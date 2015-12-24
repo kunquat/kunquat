@@ -45,7 +45,7 @@ static Set_envelope_func Proc_gc_set_map;
 
 static bool Proc_gc_init(Device_impl* dimpl);
 
-static Proc_process_vstate_func Proc_gc_process_vstate;
+static Proc_state_render_voice_func Gc_state_render_voice;
 
 static void Gc_state_render_mixed(
         Device_state* dstate,
@@ -85,6 +85,7 @@ static Device_state* Proc_gc_create_state(
         return NULL;
 
     proc_state->render_mixed = Gc_state_render_mixed;
+    proc_state->render_voice = Gc_state_render_voice;
 
     return (Device_state*)proc_state;
 }
@@ -97,9 +98,6 @@ static bool Proc_gc_init(Device_impl* dimpl)
     Proc_gc* gc = (Proc_gc*)dimpl;
 
     Device_set_state_creator(dimpl->device, Proc_gc_create_state);
-
-    Processor* proc = (Processor*)gc->parent.device;
-    proc->process_vstate = Proc_gc_process_vstate;
 
     gc->is_map_enabled = false;
     gc->map = NULL;
@@ -216,27 +214,23 @@ static void distort(
 }
 
 
-static uint32_t Proc_gc_process_vstate(
-        const Processor* proc,
+static int32_t Gc_state_render_voice(
         Proc_state* proc_state,
-        Au_state* au_state,
         Voice_state* vstate,
+        const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
-        uint32_t audio_rate,
         double tempo)
 {
-    assert(proc != NULL);
     assert(proc_state != NULL);
-    assert(au_state != NULL);
     assert(vstate != NULL);
+    assert(au_state != NULL);
     assert(wbs != NULL);
     assert(buf_start >= 0);
     assert(buf_stop >= 0);
-    assert(audio_rate > 0);
-    assert(tempo > 0);
     assert(isfinite(tempo));
+    assert(tempo > 0);
 
     // Get input
     Audio_buffer* in_buffer = Proc_state_get_voice_buffer_mut(
@@ -253,7 +247,7 @@ static uint32_t Proc_gc_process_vstate(
     assert(out_buffer != NULL);
 
     // Distort the signal
-    const Proc_gc* gc = (const Proc_gc*)proc->parent.dimpl;
+    const Proc_gc* gc = (const Proc_gc*)proc_state->parent.device->dimpl;
     distort(gc, in_buffer, out_buffer, buf_start, buf_stop);
 
     // Mark state as started, TODO: fix this mess

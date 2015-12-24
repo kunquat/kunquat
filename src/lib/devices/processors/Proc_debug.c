@@ -38,7 +38,7 @@ static bool Proc_debug_init(Device_impl* dimpl);
 
 static Set_bool_func Proc_debug_set_single_pulse;
 
-static Proc_process_vstate_func Proc_debug_process_vstate;
+static Proc_state_render_voice_func Debug_state_render_voice;
 
 static void del_Proc_debug(Device_impl* dimpl);
 
@@ -58,14 +58,31 @@ Device_impl* new_Proc_debug(Processor* proc)
 }
 
 
+static Device_state* Proc_debug_create_state(
+        const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
+{
+    assert(device != NULL);
+    assert(audio_rate > 0);
+    assert(audio_buffer_size >= 0);
+
+    Proc_state* proc_state =
+        new_Proc_state_default(device, audio_rate, audio_buffer_size);
+    if (proc_state == NULL)
+        return NULL;
+
+    proc_state->render_voice = Debug_state_render_voice;
+
+    return &proc_state->parent;
+}
+
+
 static bool Proc_debug_init(Device_impl* dimpl)
 {
     assert(dimpl != NULL);
 
     Proc_debug* debug = (Proc_debug*)dimpl;
 
-    Processor* proc = (Processor*)debug->parent.device;
-    proc->process_vstate = Proc_debug_process_vstate;
+    Device_set_state_creator(debug->parent.device, Proc_debug_create_state);
 
     if (!Device_impl_register_set_bool(
                 &debug->parent,
@@ -81,24 +98,22 @@ static bool Proc_debug_init(Device_impl* dimpl)
 }
 
 
-static uint32_t Proc_debug_process_vstate(
-        const Processor* proc,
+static int32_t Debug_state_render_voice(
         Proc_state* proc_state,
-        Au_state* au_state,
         Voice_state* vstate,
+        const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
-        uint32_t audio_rate,
         double tempo)
 {
-    assert(proc != NULL);
     assert(proc_state != NULL);
-    assert(au_state != NULL);
     assert(vstate != NULL);
+    assert(au_state != NULL);
     assert(wbs != NULL);
-    assert(audio_rate > 0);
     assert(tempo > 0);
+
+    const Processor* proc = (const Processor*)proc_state->parent.device;
 
     // Get actual pitches
     const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
@@ -134,6 +149,8 @@ static uint32_t Proc_debug_process_vstate(
         }
         return buf_start;
     }
+
+    const int32_t audio_rate = proc_state->parent.audio_rate;
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {

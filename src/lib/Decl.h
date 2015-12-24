@@ -16,6 +16,7 @@
 #define K_DECL_H
 
 
+typedef struct Au_state Au_state;
 typedef struct Au_table Au_table;
 typedef struct Audio_unit Audio_unit;
 typedef struct Channel Channel;
@@ -24,7 +25,9 @@ typedef struct Device Device;
 typedef struct Device_impl Device_impl;
 typedef struct Device_state Device_state;
 typedef struct Module Module;
+typedef struct Proc_state Proc_state;
 typedef struct Processor Processor;
+typedef struct Voice_state Voice_state;
 
 
 #endif // K_DECL_H

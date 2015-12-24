@@ -141,7 +141,6 @@ Processor* new_Processor(int index, const Au_params* au_params)
     proc->enable_signal_support = false;
 
     proc->init_vstate = NULL;
-    proc->process_vstate = NULL;
     proc->clear_history = NULL;
 
     Device_set_state_creator(
@@ -172,12 +171,10 @@ Processor* new_Processor(int index, const Au_params* au_params)
 
 bool Processor_init(
         Processor* proc,
-        Proc_process_vstate_func process_vstate,
         void (*init_vstate)(const Processor*, const Proc_state*, Voice_state*))
 {
     assert(proc != NULL);
 
-    proc->process_vstate = process_vstate;
     proc->init_vstate = init_vstate;
 
     return true;
@@ -292,7 +289,7 @@ void Processor_set_voice_signals(Processor* proc, bool enabled)
 bool Processor_get_voice_signals(const Processor* proc)
 {
     assert(proc != NULL);
-    return (proc->process_vstate != NULL) && proc->enable_voice_support;
+    return proc->enable_voice_support;
 }
 
 
@@ -329,7 +326,6 @@ void Processor_process_vstate(
         double tempo)
 {
     assert(proc != NULL);
-    assert(proc->process_vstate != NULL);
     assert(dstates != NULL);
     assert(vstate != NULL);
     assert(wbs != NULL);
@@ -408,16 +404,9 @@ void Processor_process_vstate(
     const double old_pos_rem = vstate->pos_rem;
 
     // Call the implementation
-    const int32_t impl_render_stop = proc->process_vstate(
-            proc,
-            proc_state,
-            au_state,
-            vstate,
-            wbs,
-            buf_start,
-            process_stop,
-            audio_rate,
-            tempo);
+    const int32_t impl_render_stop = Proc_state_render_voice(
+            proc_state, vstate, au_state, wbs, buf_start, process_stop, tempo);
+
     if (!vstate->active) // FIXME: communicate end of rendering in a cleaner way
     {
         vstate->active = true;

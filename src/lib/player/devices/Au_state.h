@@ -16,23 +16,23 @@
 #define K_AU_STATE_H
 
 
-#include <player/devices/Device_state.h>
-
+#include <Decl.h>
 #include <player/Device_states.h>
+#include <player/devices/Device_state.h>
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
 
-typedef struct Au_state
+struct Au_state
 {
     Device_state parent;
 
     bool bypass;
     double sustain; // 0 = no sustain, 1.0 = full sustain
     Device_states* dstates; // required for rendering, TODO: make less hacky
-} Au_state;
+};
 
 
 /**

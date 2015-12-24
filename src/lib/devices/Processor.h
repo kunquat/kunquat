@@ -31,18 +31,6 @@
 #include <stdint.h>
 
 
-typedef uint32_t Proc_process_vstate_func(
-        const Processor*,
-        Proc_state*,
-        Au_state*,
-        Voice_state*,
-        const Work_buffers*,
-        int32_t buf_start,
-        int32_t buf_stop,
-        uint32_t audio_rate,
-        double tempo);
-
-
 typedef enum
 {
     VOICE_FEATURE_PITCH,
@@ -76,7 +64,6 @@ struct Processor
     bool enable_signal_support;
 
     void (*init_vstate)(const Processor*, const Proc_state*, Voice_state*);
-    Proc_process_vstate_func* process_vstate;
     void (*clear_history)(const Device_impl*, Proc_state*);
 };
 
@@ -97,19 +84,15 @@ Processor* new_Processor(int index, const Au_params* au_params);
 /**
  * Initialise the general Processor parameters.
  *
- * \param proc             The Processor -- must not be \c NULL.
- * \param destroy          The destructor of the Processor --
- *                         must not be \c NULL.
- * \param process_vstate   The Voice state process function of the Processor,
- *                         or \c NULL if not needed.
- * \param init_vstate      The Voice state initialiser, or \c NULL if not needed.
+ * \param proc          The Processor -- must not be \c NULL.
+ * \param destroy       The destructor of the Processor -- must not be \c NULL.
+ * \param init_vstate   The Voice state initialiser, or \c NULL if not needed.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Processor_init(
         Processor* proc,
         //void (*destroy)(Processor*),
-        Proc_process_vstate_func process_vstate,
         void (*init_vstate)(const Processor*, const Proc_state*, Voice_state*));
 
 

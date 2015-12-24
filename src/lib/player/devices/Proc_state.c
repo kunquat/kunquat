@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <player/devices/Device_state.h>
+#include <player/Voice_state.h>
 
 #include <math.h>
 #include <stdbool.h>
@@ -72,6 +73,8 @@ bool Proc_state_init(
     proc_state->set_tempo = NULL;
     proc_state->reset = NULL;
     proc_state->render_mixed = NULL;
+
+    proc_state->render_voice = NULL;
 
     proc_state->voice_out_buffers_modified = new_Bit_array(KQT_DEVICE_PORTS_MAX);
     if (proc_state->voice_out_buffers_modified == NULL)
@@ -141,6 +144,32 @@ void Proc_state_render_mixed(
         proc_state->render_mixed(dstate, wbs, buf_start, buf_stop, tempo);
 
     return;
+}
+
+
+int32_t Proc_state_render_voice(
+        Proc_state* proc_state,
+        Voice_state* vstate,
+        const Au_state* au_state,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        double tempo)
+{
+    assert(proc_state != NULL);
+    assert(vstate != NULL);
+    assert(au_state != NULL);
+    assert(wbs != NULL);
+    assert(buf_start >= 0);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
+
+    if (proc_state->render_voice != NULL)
+        return proc_state->render_voice(
+                proc_state, vstate, au_state, wbs, buf_start, buf_stop, tempo);
+
+    vstate->active = false;
+    return buf_start;
 }
 
 

@@ -55,7 +55,7 @@ static Device_state* Proc_noise_create_state(
 static void Proc_noise_init_vstate(
         const Processor* proc, const Proc_state* proc_state, Voice_state* vstate);
 
-static Proc_process_vstate_func Proc_noise_process_vstate;
+static Proc_state_render_voice_func Noise_state_render_voice;
 
 static void del_Proc_noise(Device_impl* proc_impl);
 
@@ -83,7 +83,6 @@ static bool Proc_noise_init(Device_impl* dimpl)
 
     Processor* proc = (Processor*)noise->parent.device;
     proc->init_vstate = Proc_noise_init_vstate;
-    proc->process_vstate = Proc_noise_process_vstate;
 
     Device_set_state_creator(noise->parent.device, Proc_noise_create_state);
 
@@ -130,6 +129,8 @@ static Device_state* Proc_noise_create_state(
         return NULL;
     }
 
+    noise_state->parent.render_voice = Noise_state_render_voice;
+
     noise_state->order = 0;
 
     return &noise_state->parent.parent;
@@ -151,24 +152,22 @@ static void Proc_noise_init_vstate(
 }
 
 
-static uint32_t Proc_noise_process_vstate(
-        const Processor* proc,
+static int32_t Noise_state_render_voice(
         Proc_state* proc_state,
-        Au_state* au_state,
         Voice_state* vstate,
+        const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
-        uint32_t audio_rate,
         double tempo)
 {
-    assert(proc != NULL);
     assert(proc_state != NULL);
-    assert(au_state != NULL);
     assert(vstate != NULL);
+    assert(au_state != NULL);
     assert(wbs != NULL);
-    assert(audio_rate > 0);
     assert(tempo > 0);
+
+    const Processor* proc = (const Processor*)proc_state->parent.device;
 
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
@@ -233,6 +232,7 @@ static uint32_t Proc_noise_process_vstate(
         audio_r[i] = vals[1] * actual_force;
     }
 
+    const int32_t audio_rate = proc_state->parent.audio_rate;
     Proc_ramp_attack(proc, vstate, out_buffer, 2, audio_rate, buf_start, buf_stop);
 
     vstate->pos = 1; // XXX: hackish

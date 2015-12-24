@@ -16,6 +16,7 @@
 #define K_VOICE_STATE_H
 
 
+#include <Decl.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <mathnum/Tstamp.h>
@@ -44,7 +45,7 @@ typedef struct Filter_state
 } Filter_state;
 
 
-typedef struct Voice_state
+struct Voice_state
 {
     bool active;                   ///< Whether there is anything left to process.
     uint32_t freq;                 ///< The last mixing frequency used.
@@ -107,7 +108,7 @@ typedef struct Voice_state
     int lowpass_xfade_state_used;
     int lowpass_state_used;
     Filter_state lowpass_state[2];
-} Voice_state;
+};
 
 
 /**

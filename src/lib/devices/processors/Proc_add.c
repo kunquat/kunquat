@@ -23,6 +23,7 @@
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/devices/Proc_state.h>
 #include <player/Work_buffers.h>
 #include <string/common.h>
 
@@ -68,7 +69,7 @@ static Set_float_func   Proc_add_set_tone_pitch;
 static Set_float_func   Proc_add_set_tone_volume;
 static Set_float_func   Proc_add_set_tone_panning;
 
-static Proc_process_vstate_func Proc_add_process_vstate;
+static Proc_state_render_voice_func Add_state_render_voice;
 
 static void del_Proc_add(Device_impl* dimpl);
 
@@ -88,15 +89,34 @@ Device_impl* new_Proc_add(Processor* proc)
 }
 
 
+static Device_state* Proc_add_create_state(
+        const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
+{
+    assert(device != NULL);
+    assert(audio_rate > 0);
+    assert(audio_buffer_size >= 0);
+
+    Proc_state* proc_state =
+        new_Proc_state_default(device, audio_rate, audio_buffer_size);
+    if (proc_state == NULL)
+        return NULL;
+
+    proc_state->render_voice = Add_state_render_voice;
+
+    return &proc_state->parent;
+}
+
+
 static bool Proc_add_init(Device_impl* dimpl)
 {
     assert(dimpl != NULL);
 
     Proc_add* add = (Proc_add*)dimpl;
 
+    Device_set_state_creator(add->parent.device, Proc_add_create_state);
+
     Processor* proc = (Processor*)add->parent.device;
     proc->init_vstate = Proc_add_init_vstate;
-    proc->process_vstate = Proc_add_process_vstate;
 
     bool reg_success = true;
 
@@ -196,26 +216,24 @@ static void Proc_add_init_vstate(
 }
 
 
-static uint32_t Proc_add_process_vstate(
-        const Processor* proc,
+static int32_t Add_state_render_voice(
         Proc_state* proc_state,
-        Au_state* au_state,
         Voice_state* vstate,
+        const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
-        uint32_t audio_rate,
         double tempo)
 {
-    assert(proc != NULL);
     assert(proc_state != NULL);
-    assert(au_state != NULL);
     assert(vstate != NULL);
+    assert(au_state != NULL);
     assert(wbs != NULL);
-    assert(audio_rate > 0);
     assert(tempo > 0);
 
-    Proc_add* add = (Proc_add*)proc->parent.dimpl;
+    const Device_state* dstate = &proc_state->parent;
+    const Processor* proc = (const Processor*)proc_state->parent.device;
+    const Proc_add* add = (Proc_add*)proc_state->parent.device->dimpl;
     Voice_state_add* add_state = (Voice_state_add*)vstate;
     assert(is_p2(BASE_FUNC_SIZE));
 
@@ -290,13 +308,13 @@ static uint32_t Proc_add_process_vstate(
     }
 
     // Add base waveform tones
-    const double inv_audio_rate = 1.0 / audio_rate;
+    const double inv_audio_rate = 1.0 / dstate->audio_rate;
 
     const float* base = Sample_get_buffer(add->base, 0);
 
     for (int h = 0; h < add_state->tone_limit; ++h)
     {
-        Add_tone* tone = &add->tones[h];
+        const Add_tone* tone = &add->tones[h];
         const double pitch_factor = tone->pitch_factor;
         const double volume_factor = tone->volume_factor;
 
@@ -365,7 +383,8 @@ static uint32_t Proc_add_process_vstate(
     }
 
     if (add->is_ramp_attack_enabled)
-        Proc_ramp_attack(proc, vstate, out_buffer, 2, audio_rate, buf_start, buf_stop);
+        Proc_ramp_attack(
+                proc, vstate, out_buffer, 2, dstate->audio_rate, buf_start, buf_stop);
 
     vstate->pos = 1; // XXX: hackish
 

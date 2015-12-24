@@ -25,7 +25,17 @@
 #include <stdlib.h>
 
 
-typedef struct Proc_state
+typedef int32_t Proc_state_render_voice_func(
+        Proc_state*,
+        Voice_state*,
+        const Au_state*,
+        const Work_buffers*,
+        int32_t buf_start,
+        int32_t buf_stop,
+        double tempo);
+
+
+struct Proc_state
 {
     Device_state parent;
 
@@ -37,7 +47,9 @@ typedef struct Proc_state
     Device_state_set_tempo_func* set_tempo;
     Device_state_reset_func* reset;
     Device_state_render_mixed_func* render_mixed;
-} Proc_state;
+
+    Proc_state_render_voice_func* render_voice;
+};
 
 
 /**
@@ -104,6 +116,31 @@ const Audio_buffer* Proc_state_get_voice_buffer(
  */
 Audio_buffer* Proc_state_get_voice_buffer_mut(
         Proc_state* proc_state, Device_port_type type, int port);
+
+
+/**
+ * Render voice signal with the Processor state.
+ *
+ * \param proc_state   The Processor state -- must not be \c NULL.
+ * \param vstate       The Voice state -- must not be \c NULL.
+ * \param au_state     The Audio unit state -- must not be \c NULL.
+ * \param wbs          The Work buffers -- must not be \c NULL.
+ * \param buf_start    The start index of rendering -- must be >= \c 0.
+ * \param buf_stop     The stop index of rendering -- must be less than or equal
+ *                     to the audio buffer size.
+ * \param tempo        The current tempo -- must be finite and > \c 0.
+ *
+ * \return   The actual stop index of rendering. This is always within
+ *           the interval [\a buf_start, \a buf_stop].
+ */
+int32_t Proc_state_render_voice(
+        Proc_state* proc_state,
+        Voice_state* vstate,
+        const Au_state* au_state,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        double tempo);
 
 
 /**
