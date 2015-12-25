@@ -243,7 +243,7 @@ void Device_state_render_mixed(
     assert(isfinite(tempo));
     assert(tempo > 0);
 
-    if (ds->render_mixed != NULL)
+    if (Device_get_mixed_signals(ds->device) && (ds->render_mixed != NULL))
         ds->render_mixed(ds, wbs, buf_start, buf_stop, tempo);
 
     return;

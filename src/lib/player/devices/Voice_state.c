@@ -15,6 +15,7 @@
 #include <player/devices/Voice_state.h>
 
 #include <debug/assert.h>
+#include <devices/Processor.h>
 #include <kunquat/limits.h>
 #include <mathnum/Tstamp.h>
 #include <player/Slider.h>
@@ -163,7 +164,9 @@ int32_t Voice_state_render_voice(
     assert(isfinite(tempo));
     assert(tempo > 0);
 
-    if (vstate->render_voice != NULL)
+    const Processor* proc = (const Processor*)proc_state->parent.device;
+
+    if (Processor_get_voice_signals(proc) && (vstate->render_voice != NULL))
         return vstate->render_voice(
                 vstate, proc_state, au_state, wbs, buf_start, buf_stop, tempo);
 
