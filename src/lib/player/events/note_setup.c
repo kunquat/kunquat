@@ -18,6 +18,7 @@
 #include <devices/Audio_unit.h>
 #include <kunquat/limits.h>
 #include <player/Channel.h>
+#include <player/devices/Voice_state.h>
 #include <player/Slider.h>
 
 #include <stdint.h>

@@ -18,7 +18,7 @@
 
 
 #include <Filter.h>
-#include <player/Voice_state.h>
+#include <player/devices/Voice_state.h>
 
 
 #define NOISE_MAX 8

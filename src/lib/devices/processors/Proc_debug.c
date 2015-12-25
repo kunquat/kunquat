@@ -19,6 +19,7 @@
 #include <devices/Device_params.h>
 #include <devices/processors/Proc_utils.h>
 #include <memory.h>
+#include <player/devices/Voice_state.h>
 #include <player/Work_buffers.h>
 #include <string/common.h>
 

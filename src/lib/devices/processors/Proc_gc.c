@@ -22,6 +22,7 @@
 #include <devices/processors/Proc_utils.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/devices/Voice_state.h>
 #include <string/common.h>
 
 #include <math.h>

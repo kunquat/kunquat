@@ -20,6 +20,7 @@
 #include <devices/Processor.h>
 #include <kunquat/limits.h>
 #include <memory.h>
+#include <player/devices/Voice_state.h>
 #include <player/Voice_group.h>
 #include <string/common.h>
 

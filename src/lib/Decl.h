@@ -27,6 +27,7 @@ typedef struct Device_state Device_state;
 typedef struct Module Module;
 typedef struct Proc_state Proc_state;
 typedef struct Processor Processor;
+typedef struct Value Value;
 typedef struct Voice_state Voice_state;
 
 

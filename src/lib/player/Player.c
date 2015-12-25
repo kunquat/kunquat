@@ -22,6 +22,7 @@
 #include <memory.h>
 #include <module/sheet/Channel_defaults.h>
 #include <Pat_inst_ref.h>
+#include <player/devices/Voice_state.h>
 #include <player/Player_private.h>
 #include <player/Player_seq.h>
 #include <player/Position.h>

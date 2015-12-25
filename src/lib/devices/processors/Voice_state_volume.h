@@ -16,8 +16,8 @@
 #define K_VOICE_STATE_VOLUME_H
 
 
+#include <player/devices/Voice_state.h>
 #include <player/Linear_controls.h>
-#include <player/Voice_state.h>
 
 
 typedef struct Voice_state_volume

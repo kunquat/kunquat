@@ -16,7 +16,7 @@
 #define K_VOICE_STATE_SAMPLE_H
 
 
-#include <player/Voice_state.h>
+#include <player/devices/Voice_state.h>
 
 
 typedef struct Voice_state_sample

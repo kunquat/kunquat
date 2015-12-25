@@ -24,7 +24,6 @@
 #include <devices/Processor.h>
 #include <kunquat/limits.h>
 #include <module/Scale.h>
-#include <player/Voice_state.h>
 #include <string/Streader.h>
 
 #include <stdbool.h>

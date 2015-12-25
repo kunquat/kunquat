@@ -24,7 +24,6 @@
 #include <kunquat/limits.h>
 #include <player/devices/Au_state.h>
 #include <player/devices/Proc_state.h>
-#include <player/Voice_state.h>
 #include <player/Work_buffers.h>
 
 #include <stdbool.h>

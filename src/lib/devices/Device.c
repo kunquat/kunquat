@@ -19,6 +19,7 @@
 #include <devices/Device_impl.h>
 #include <mathnum/common.h>
 #include <string/common.h>
+#include <Value.h>
 
 #include <inttypes.h>
 #include <math.h>

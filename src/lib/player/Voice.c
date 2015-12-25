@@ -17,7 +17,7 @@
 #include <debug/assert.h>
 #include <mathnum/common.h>
 #include <memory.h>
-#include <player/Voice_state.h>
+#include <player/devices/Voice_state.h>
 
 #include <inttypes.h>
 #include <stdint.h>

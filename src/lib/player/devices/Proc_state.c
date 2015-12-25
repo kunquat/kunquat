@@ -16,7 +16,7 @@
 
 #include <debug/assert.h>
 #include <player/devices/Device_state.h>
-#include <player/Voice_state.h>
+#include <player/devices/Voice_state.h>
 
 #include <math.h>
 #include <stdbool.h>

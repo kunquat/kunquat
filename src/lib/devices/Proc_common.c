@@ -21,6 +21,8 @@
 #include <Filter.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
+#include <player/devices/Voice_state.h>
+#include <player/Pitch_controls.h>
 #include <player/Work_buffers.h>
 
 #include <stdio.h>

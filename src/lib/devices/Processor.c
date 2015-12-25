@@ -20,6 +20,7 @@
 #include <Filter.h>
 #include <memory.h>
 #include <player/Channel.h>
+#include <player/devices/Voice_state.h>
 #include <player/Voice.h>
 
 #include <inttypes.h>

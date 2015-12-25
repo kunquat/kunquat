@@ -17,10 +17,10 @@
 
 
 #include <Audio_buffer.h>
+#include <Decl.h>
 #include <devices/Processor.h>
 #include <kunquat/limits.h>
 #include <player/devices/Au_state.h>
-#include <player/Voice_state.h>
 #include <player/Work_buffers.h>
 
 #include <math.h>

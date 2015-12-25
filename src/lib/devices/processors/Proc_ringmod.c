@@ -21,6 +21,7 @@
 #include <devices/processors/Proc_utils.h>
 #include <memory.h>
 #include <player/devices/Proc_state.h>
+#include <player/devices/Voice_state.h>
 
 #include <math.h>
 #include <stdlib.h>

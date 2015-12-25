@@ -12,7 +12,7 @@
  */
 
 
-#include <player/Voice_state.h>
+#include <player/devices/Voice_state.h>
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>

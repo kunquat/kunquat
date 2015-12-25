@@ -26,9 +26,11 @@
 #include <player/Channel_proc_state.h>
 #include <player/Env_state.h>
 #include <player/Event_cache.h>
+#include <player/Filter_controls.h>
 #include <player/Force_controls.h>
 #include <player/General_state.h>
 #include <player/LFO.h>
+#include <player/Pitch_controls.h>
 #include <player/Voice_pool.h>
 
 #include <stdbool.h>
