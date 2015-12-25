@@ -45,7 +45,7 @@ static bool Proc_sample_init(Device_impl* dimpl);
 static void Proc_sample_init_vstate(
         const Processor* proc, const Proc_state* proc_state, Voice_state* vstate);
 
-static Proc_state_render_voice_func Sample_state_render_voice;
+static Voice_state_render_voice_func Sample_state_render_voice;
 
 static void del_Proc_sample(Device_impl* dimpl);
 
@@ -65,31 +65,11 @@ Device_impl* new_Proc_sample(Processor* proc)
 }
 
 
-static Device_state* Proc_sample_create_state(
-        const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
-{
-    assert(device != NULL);
-    assert(audio_rate > 0);
-    assert(audio_buffer_size >= 0);
-
-    Proc_state* proc_state =
-        new_Proc_state_default(device, audio_rate, audio_buffer_size);
-    if (proc_state == NULL)
-        return NULL;
-
-    proc_state->render_voice = Sample_state_render_voice;
-
-    return &proc_state->parent;
-}
-
-
 static bool Proc_sample_init(Device_impl* dimpl)
 {
     assert(dimpl != NULL);
 
     Proc_sample* sample_p = (Proc_sample*)dimpl;
-
-    Device_set_state_creator(sample_p->parent.device, Proc_sample_create_state);
 
     Processor* proc = (Processor*)sample_p->parent.device;
     proc->init_vstate = Proc_sample_init_vstate;
@@ -131,6 +111,8 @@ static void Proc_sample_init_vstate(
     assert(proc_state != NULL);
     assert(vstate != NULL);
 
+    vstate->render_voice = Sample_state_render_voice;
+
     Voice_state_sample* sample_state = (Voice_state_sample*)vstate;
     sample_state->sample = -1;
     sample_state->cents = 0;
@@ -145,17 +127,17 @@ static void Proc_sample_init_vstate(
 
 
 static int32_t Sample_state_render_voice(
-        Proc_state* proc_state,
         Voice_state* vstate,
+        Proc_state* proc_state,
         const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
 {
+    assert(vstate != NULL);
     assert(proc_state != NULL);
     assert(au_state != NULL);
-    assert(vstate != NULL);
     assert(wbs != NULL);
     assert(tempo > 0);
 

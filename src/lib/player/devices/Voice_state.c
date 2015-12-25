@@ -49,6 +49,8 @@ Voice_state* Voice_state_init(
     state->rand_p = rand_p;
     state->rand_s = rand_s;
 
+    state->render_voice = NULL;
+
     Force_controls_init(&state->force_controls, freq, tempo);
     Pitch_controls_init(&state->pitch_controls, freq, tempo);
     Filter_controls_init(&state->filter_controls, freq, tempo);
@@ -141,6 +143,32 @@ Voice_state* Voice_state_clear(Voice_state* state)
     }
 
     return state;
+}
+
+
+int32_t Voice_state_render_voice(
+        Voice_state* vstate,
+        Proc_state* proc_state,
+        const Au_state* au_state,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        double tempo)
+{
+    assert(vstate != NULL);
+    assert(proc_state != NULL);
+    assert(au_state != NULL);
+    assert(wbs != NULL);
+    assert(buf_start >= 0);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
+
+    if (vstate->render_voice != NULL)
+        return vstate->render_voice(
+                vstate, proc_state, au_state, wbs, buf_start, buf_stop, tempo);
+
+    vstate->active = false;
+    return buf_start;
 }
 
 

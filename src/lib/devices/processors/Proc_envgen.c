@@ -74,7 +74,7 @@ static Set_bool_func        Proc_envgen_set_force_env_enabled;
 static Set_envelope_func    Proc_envgen_set_force_env;
 static Set_num_list_func    Proc_envgen_set_y_range;
 
-static Proc_state_render_voice_func Envgen_state_render_voice;
+static Voice_state_render_voice_func Envgen_state_render_voice;
 
 static void del_Proc_envgen(Device_impl* dimpl);
 
@@ -108,31 +108,11 @@ Device_impl* new_Proc_envgen(Processor* proc)
 }
 
 
-static Device_state* Proc_envgen_create_state(
-        const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
-{
-    assert(device != NULL);
-    assert(audio_rate > 0);
-    assert(audio_buffer_size >= 0);
-
-    Proc_state* proc_state =
-        new_Proc_state_default(device, audio_rate, audio_buffer_size);
-    if (proc_state == NULL)
-        return NULL;
-
-    proc_state->render_voice = Envgen_state_render_voice;
-
-    return &proc_state->parent;
-}
-
-
 static bool Proc_envgen_init(Device_impl* dimpl)
 {
     assert(dimpl != NULL);
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
-
-    Device_set_state_creator(egen->parent.device, Proc_envgen_create_state);
 
     Processor* proc = (Processor*)egen->parent.device;
     proc->init_vstate = Proc_envgen_init_vstate;
@@ -187,6 +167,8 @@ static void Proc_envgen_init_vstate(
     assert(proc_state != NULL);
     assert(vstate != NULL);
 
+    vstate->render_voice = Envgen_state_render_voice;
+
     Voice_state_envgen* egen_state = (Voice_state_envgen*)vstate;
 
     Time_env_state_init(&egen_state->env_state);
@@ -196,16 +178,16 @@ static void Proc_envgen_init_vstate(
 
 
 static int32_t Envgen_state_render_voice(
-        Proc_state* proc_state,
         Voice_state* vstate,
+        Proc_state* proc_state,
         const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
 {
-    assert(proc_state != NULL);
     assert(vstate != NULL);
+    assert(proc_state != NULL);
     assert(au_state != NULL);
     assert(wbs != NULL);
     assert(buf_start >= 0);

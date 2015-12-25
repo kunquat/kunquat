@@ -46,7 +46,7 @@ static Set_envelope_func Proc_gc_set_map;
 
 static bool Proc_gc_init(Device_impl* dimpl);
 
-static Proc_state_render_voice_func Gc_state_render_voice;
+static Voice_state_render_voice_func Gc_state_render_voice;
 
 static void Gc_state_render_mixed(
         Device_state* dstate,
@@ -86,9 +86,21 @@ static Device_state* Proc_gc_create_state(
         return NULL;
 
     proc_state->render_mixed = Gc_state_render_mixed;
-    proc_state->render_voice = Gc_state_render_voice;
 
     return (Device_state*)proc_state;
+}
+
+
+static void Proc_gc_init_vstate(
+        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate)
+{
+    assert(proc != NULL);
+    assert(proc_state != NULL);
+    assert(vstate != NULL);
+
+    vstate->render_voice = Gc_state_render_voice;
+
+    return;
 }
 
 
@@ -99,6 +111,9 @@ static bool Proc_gc_init(Device_impl* dimpl)
     Proc_gc* gc = (Proc_gc*)dimpl;
 
     Device_set_state_creator(dimpl->device, Proc_gc_create_state);
+
+    Processor* proc = (Processor*)gc->parent.device;
+    proc->init_vstate = Proc_gc_init_vstate;
 
     gc->is_map_enabled = false;
     gc->map = NULL;
@@ -216,16 +231,16 @@ static void distort(
 
 
 static int32_t Gc_state_render_voice(
-        Proc_state* proc_state,
         Voice_state* vstate,
+        Proc_state* proc_state,
         const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
 {
-    assert(proc_state != NULL);
     assert(vstate != NULL);
+    assert(proc_state != NULL);
     assert(au_state != NULL);
     assert(wbs != NULL);
     assert(buf_start >= 0);

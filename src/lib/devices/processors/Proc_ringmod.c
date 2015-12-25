@@ -35,7 +35,7 @@ typedef struct Proc_ringmod
 
 static bool Proc_ringmod_init(Device_impl* dimpl);
 
-static Proc_state_render_voice_func Ringmod_state_render_voice;
+static Voice_state_render_voice_func Ringmod_state_render_voice;
 
 static void Ringmod_state_render_mixed(
         Device_state* dstate,
@@ -74,10 +74,22 @@ static Device_state* Proc_ringmod_create_state(
     if (proc_state == NULL)
         return NULL;
 
-    proc_state->render_voice = Ringmod_state_render_voice;
     proc_state->render_mixed = Ringmod_state_render_mixed;
 
     return (Device_state*)proc_state;
+}
+
+
+static void Proc_ringmod_init_vstate(
+        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate)
+{
+    assert(proc != NULL);
+    assert(proc_state != NULL);
+    assert(vstate != NULL);
+
+    vstate->render_voice = Ringmod_state_render_voice;
+
+    return;
 }
 
 
@@ -88,6 +100,9 @@ static bool Proc_ringmod_init(Device_impl* dimpl)
     Proc_ringmod* ringmod = (Proc_ringmod*)dimpl;
 
     Device_set_state_creator(ringmod->parent.device, Proc_ringmod_create_state);
+
+    Processor* proc = (Processor*)ringmod->parent.device;
+    proc->init_vstate = Proc_ringmod_init_vstate;
 
     return true;
 }
@@ -121,16 +136,16 @@ static void multiply_signals(
 
 
 static int32_t Ringmod_state_render_voice(
-        Proc_state* proc_state,
         Voice_state* vstate,
+        Proc_state* proc_state,
         const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
 {
-    assert(proc_state != NULL);
     assert(vstate != NULL);
+    assert(proc_state != NULL);
     assert(au_state != NULL);
     assert(wbs != NULL);
     assert(buf_start >= 0);

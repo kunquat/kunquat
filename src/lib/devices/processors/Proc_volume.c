@@ -68,7 +68,7 @@ static bool Proc_volume_init(Device_impl* dimpl);
 static void Proc_volume_init_vstate(
         const Processor* proc, const Proc_state* proc_state, Voice_state* vstate);
 
-static Proc_state_render_voice_func Proc_state_volume_render_voice;
+static Voice_state_render_voice_func Proc_state_volume_render_voice;
 
 static void Proc_state_volume_render_mixed(
         Device_state* dstate,
@@ -157,6 +157,8 @@ static void Proc_volume_init_vstate(
     assert(proc_state != NULL);
     assert(vstate != NULL);
 
+    vstate->render_voice = Proc_state_volume_render_voice;
+
     Voice_state_volume* vol_vstate = (Voice_state_volume*)vstate;
 
     Linear_controls_init(&vol_vstate->volume);
@@ -188,7 +190,6 @@ static Device_state* Proc_volume_create_state(
     vol_state->parent.set_tempo = Proc_state_volume_set_tempo;
     vol_state->parent.reset = Proc_state_volume_reset;
     vol_state->parent.render_mixed = Proc_state_volume_render_mixed;
-    vol_state->parent.render_voice = Proc_state_volume_render_voice;
 
     Linear_controls_init(&vol_state->volume);
     Linear_controls_set_audio_rate(&vol_state->volume, audio_rate);
@@ -306,16 +307,16 @@ static Linear_controls* Proc_volume_get_voice_cv_controls_volume(
 
 
 static int32_t Proc_state_volume_render_voice(
-        Proc_state* proc_state,
         Voice_state* vstate,
+        Proc_state* proc_state,
         const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
 {
-    assert(proc_state != NULL);
     assert(vstate != NULL);
+    assert(proc_state != NULL);
     assert(au_state != NULL);
     assert(wbs != NULL);
     assert(buf_start >= 0);

@@ -69,7 +69,7 @@ static Set_float_func   Proc_add_set_tone_pitch;
 static Set_float_func   Proc_add_set_tone_volume;
 static Set_float_func   Proc_add_set_tone_panning;
 
-static Proc_state_render_voice_func Add_state_render_voice;
+static Voice_state_render_voice_func Add_state_render_voice;
 
 static void del_Proc_add(Device_impl* dimpl);
 
@@ -89,31 +89,11 @@ Device_impl* new_Proc_add(Processor* proc)
 }
 
 
-static Device_state* Proc_add_create_state(
-        const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
-{
-    assert(device != NULL);
-    assert(audio_rate > 0);
-    assert(audio_buffer_size >= 0);
-
-    Proc_state* proc_state =
-        new_Proc_state_default(device, audio_rate, audio_buffer_size);
-    if (proc_state == NULL)
-        return NULL;
-
-    proc_state->render_voice = Add_state_render_voice;
-
-    return &proc_state->parent;
-}
-
-
 static bool Proc_add_init(Device_impl* dimpl)
 {
     assert(dimpl != NULL);
 
     Proc_add* add = (Proc_add*)dimpl;
-
-    Device_set_state_creator(add->parent.device, Proc_add_create_state);
 
     Processor* proc = (Processor*)add->parent.device;
     proc->init_vstate = Proc_add_init_vstate;
@@ -196,6 +176,8 @@ static void Proc_add_init_vstate(
     assert(proc_state != NULL);
     assert(vstate != NULL);
 
+    vstate->render_voice = Add_state_render_voice;
+
     Proc_add* add = (Proc_add*)proc->parent.dimpl;
     Voice_state_add* add_state = (Voice_state_add*)vstate;
 
@@ -217,16 +199,16 @@ static void Proc_add_init_vstate(
 
 
 static int32_t Add_state_render_voice(
-        Proc_state* proc_state,
         Voice_state* vstate,
+        Proc_state* proc_state,
         const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
 {
-    assert(proc_state != NULL);
     assert(vstate != NULL);
+    assert(proc_state != NULL);
     assert(au_state != NULL);
     assert(wbs != NULL);
     assert(tempo > 0);

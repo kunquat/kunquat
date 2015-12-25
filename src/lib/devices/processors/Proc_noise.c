@@ -55,7 +55,7 @@ static Device_state* Proc_noise_create_state(
 static void Proc_noise_init_vstate(
         const Processor* proc, const Proc_state* proc_state, Voice_state* vstate);
 
-static Proc_state_render_voice_func Noise_state_render_voice;
+static Voice_state_render_voice_func Noise_state_render_voice;
 
 static void del_Proc_noise(Device_impl* proc_impl);
 
@@ -129,8 +129,6 @@ static Device_state* Proc_noise_create_state(
         return NULL;
     }
 
-    noise_state->parent.render_voice = Noise_state_render_voice;
-
     noise_state->order = 0;
 
     return &noise_state->parent.parent;
@@ -144,6 +142,8 @@ static void Proc_noise_init_vstate(
     assert(proc_state != NULL);
     assert(vstate != NULL);
 
+    vstate->render_voice = Noise_state_render_voice;
+
     Voice_state_noise* noise_vstate = (Voice_state_noise*)vstate;
     memset(noise_vstate->buf[0], 0, NOISE_MAX * sizeof(double));
     memset(noise_vstate->buf[1], 0, NOISE_MAX * sizeof(double));
@@ -153,16 +153,16 @@ static void Proc_noise_init_vstate(
 
 
 static int32_t Noise_state_render_voice(
-        Proc_state* proc_state,
         Voice_state* vstate,
+        Proc_state* proc_state,
         const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
 {
-    assert(proc_state != NULL);
     assert(vstate != NULL);
+    assert(proc_state != NULL);
     assert(au_state != NULL);
     assert(wbs != NULL);
     assert(tempo > 0);

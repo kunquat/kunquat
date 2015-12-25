@@ -405,8 +405,8 @@ void Processor_process_vstate(
     const double old_pos_rem = vstate->pos_rem;
 
     // Call the implementation
-    const int32_t impl_render_stop = Proc_state_render_voice(
-            proc_state, vstate, au_state, wbs, buf_start, process_stop, tempo);
+    const int32_t impl_render_stop = Voice_state_render_voice(
+            vstate, proc_state, au_state, wbs, buf_start, process_stop, tempo);
 
     if (!vstate->active) // FIXME: communicate end of rendering in a cleaner way
     {

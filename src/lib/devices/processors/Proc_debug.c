@@ -39,7 +39,7 @@ static bool Proc_debug_init(Device_impl* dimpl);
 
 static Set_bool_func Proc_debug_set_single_pulse;
 
-static Proc_state_render_voice_func Debug_state_render_voice;
+static Voice_state_render_voice_func Debug_state_render_voice;
 
 static void del_Proc_debug(Device_impl* dimpl);
 
@@ -59,21 +59,16 @@ Device_impl* new_Proc_debug(Processor* proc)
 }
 
 
-static Device_state* Proc_debug_create_state(
-        const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
+static void Proc_debug_init_vstate(
+        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate)
 {
-    assert(device != NULL);
-    assert(audio_rate > 0);
-    assert(audio_buffer_size >= 0);
+    assert(proc != NULL);
+    assert(proc_state != NULL);
+    assert(vstate != NULL);
 
-    Proc_state* proc_state =
-        new_Proc_state_default(device, audio_rate, audio_buffer_size);
-    if (proc_state == NULL)
-        return NULL;
+    vstate->render_voice = Debug_state_render_voice;
 
-    proc_state->render_voice = Debug_state_render_voice;
-
-    return &proc_state->parent;
+    return;
 }
 
 
@@ -83,7 +78,8 @@ static bool Proc_debug_init(Device_impl* dimpl)
 
     Proc_debug* debug = (Proc_debug*)dimpl;
 
-    Device_set_state_creator(debug->parent.device, Proc_debug_create_state);
+    Processor* proc = (Processor*)debug->parent.device;
+    proc->init_vstate = Proc_debug_init_vstate;
 
     if (!Device_impl_register_set_bool(
                 &debug->parent,
@@ -100,16 +96,16 @@ static bool Proc_debug_init(Device_impl* dimpl)
 
 
 static int32_t Debug_state_render_voice(
-        Proc_state* proc_state,
         Voice_state* vstate,
+        Proc_state* proc_state,
         const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
 {
-    assert(proc_state != NULL);
     assert(vstate != NULL);
+    assert(proc_state != NULL);
     assert(au_state != NULL);
     assert(wbs != NULL);
     assert(tempo > 0);

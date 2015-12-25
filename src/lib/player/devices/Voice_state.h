@@ -33,6 +33,16 @@
 #include <stdlib.h>
 
 
+typedef int32_t Voice_state_render_voice_func(
+        Voice_state*,
+        Proc_state*,
+        const Au_state*,
+        const Work_buffers*,
+        int32_t buf_start,
+        int32_t buf_stop,
+        double tempo);
+
+
 #define FILTER_ORDER (2)
 
 
@@ -53,6 +63,8 @@ struct Voice_state
     Channel_proc_state* cpstate;   ///< Channel-specific Processor parameters.
     Random* rand_p;                ///< Parameter random source.
     Random* rand_s;                ///< Signal random source.
+
+    Voice_state_render_voice_func* render_voice;
 
     double ramp_attack;            ///< The current state of volume ramp during attack.
     double ramp_release;           ///< The current state of volume ramp during release.
@@ -141,6 +153,31 @@ Voice_state* Voice_state_init(
  * \return   The parameter \a state.
  */
 Voice_state* Voice_state_clear(Voice_state* state);
+
+
+/**
+ * Render voice signal with the Voice state.
+ *
+ * \param vstate       The Voice state -- must not be \c NULL.
+ * \param proc_state   The Processor state -- must not be \c NULL.
+ * \param au_state     The Audio unit state -- must not be \c NULL.
+ * \param wbs          The Work buffers -- must not be \c NULL.
+ * \param buf_start    The start index of rendering -- must be >= \c 0.
+ * \param buf_stop     The stop index of rendering -- must be less than or equal
+ *                     to the audio buffer size.
+ * \param tempo        The current tempo -- must be finite and > \c 0.
+ *
+ * \return   The actual stop index of rendering. This is always within
+ *           the interval [\a buf_start, \a buf_stop].
+ */
+int32_t Voice_state_render_voice(
+        Voice_state* vstate,
+        Proc_state* proc_state,
+        const Au_state* au_state,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        double tempo);
 
 
 #endif // K_VOICE_STATE_H
