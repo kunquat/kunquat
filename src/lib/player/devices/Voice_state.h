@@ -33,6 +33,9 @@
 #include <stdlib.h>
 
 
+typedef void Voice_state_init_func(Voice_state*, const Proc_state*);
+
+
 typedef int32_t Voice_state_render_voice_func(
         Voice_state*,
         Proc_state*,

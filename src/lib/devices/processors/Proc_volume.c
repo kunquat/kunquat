@@ -65,8 +65,7 @@ static Get_voice_cv_float_controls_mut_func Proc_volume_get_voice_cv_controls_vo
 
 static bool Proc_volume_init(Device_impl* dimpl);
 
-static void Proc_volume_init_vstate(
-        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate);
+static Voice_state_init_func Proc_volume_init_vstate;
 
 static Voice_state_render_voice_func Proc_state_volume_render_voice;
 
@@ -150,12 +149,10 @@ const char* Proc_volume_property(const Processor* proc, const char* property_typ
 }
 
 
-static void Proc_volume_init_vstate(
-        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate)
+static void Proc_volume_init_vstate(Voice_state* vstate, const Proc_state* proc_state)
 {
-    assert(proc != NULL);
-    assert(proc_state != NULL);
     assert(vstate != NULL);
+    assert(proc_state != NULL);
 
     vstate->render_voice = Proc_state_volume_render_voice;
 

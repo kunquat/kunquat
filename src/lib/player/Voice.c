@@ -133,7 +133,7 @@ void Voice_init(
             voice->state, cgstate, voice->rand_p, voice->rand_s, freq, tempo);
 
     if (proc->init_vstate != NULL)
-        proc->init_vstate(proc, proc_state, voice->state);
+        proc->init_vstate(voice->state, proc_state);
 
     return;
 }

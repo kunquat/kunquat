@@ -169,9 +169,7 @@ Processor* new_Processor(int index, const Au_params* au_params)
 }
 
 
-bool Processor_init(
-        Processor* proc,
-        void (*init_vstate)(const Processor*, const Proc_state*, Voice_state*))
+bool Processor_init(Processor* proc, Voice_state_init_func* init_vstate)
 {
     assert(proc != NULL);
 

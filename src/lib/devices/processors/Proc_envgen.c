@@ -61,8 +61,7 @@ typedef struct Proc_envgen
 
 static bool Proc_envgen_init(Device_impl* dimpl);
 
-static void Proc_envgen_init_vstate(
-        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate);
+static Voice_state_init_func Proc_envgen_init_vstate;
 
 static Set_float_func       Proc_envgen_set_scale;
 static Set_bool_func        Proc_envgen_set_time_env_enabled;
@@ -160,12 +159,10 @@ const char* Proc_envgen_property(const Processor* proc, const char* property_typ
 }
 
 
-static void Proc_envgen_init_vstate(
-        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate)
+static void Proc_envgen_init_vstate(Voice_state* vstate, const Proc_state* proc_state)
 {
-    assert(proc != NULL);
-    assert(proc_state != NULL);
     assert(vstate != NULL);
+    assert(proc_state != NULL);
 
     vstate->render_voice = Envgen_state_render_voice;
 

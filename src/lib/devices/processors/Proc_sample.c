@@ -42,8 +42,7 @@ typedef struct Proc_sample
 
 static bool Proc_sample_init(Device_impl* dimpl);
 
-static void Proc_sample_init_vstate(
-        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate);
+static Voice_state_init_func Proc_sample_init_vstate;
 
 static Voice_state_render_voice_func Sample_state_render_voice;
 
@@ -104,12 +103,10 @@ const char* Proc_sample_property(const Processor* proc, const char* property_typ
 }
 
 
-static void Proc_sample_init_vstate(
-        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate)
+static void Proc_sample_init_vstate(Voice_state* vstate, const Proc_state* proc_state)
 {
-    assert(proc != NULL);
-    assert(proc_state != NULL);
     assert(vstate != NULL);
+    assert(proc_state != NULL);
 
     vstate->render_voice = Sample_state_render_voice;
 

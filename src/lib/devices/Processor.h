@@ -24,6 +24,7 @@
 #include <kunquat/limits.h>
 #include <player/devices/Au_state.h>
 #include <player/devices/Proc_state.h>
+#include <player/devices/Voice_state.h>
 #include <player/Work_buffers.h>
 
 #include <stdbool.h>
@@ -62,7 +63,7 @@ struct Processor
     bool enable_voice_support;
     bool enable_signal_support;
 
-    void (*init_vstate)(const Processor*, const Proc_state*, Voice_state*);
+    Voice_state_init_func* init_vstate;
 };
 
 
@@ -91,7 +92,7 @@ Processor* new_Processor(int index, const Au_params* au_params);
 bool Processor_init(
         Processor* proc,
         //void (*destroy)(Processor*),
-        void (*init_vstate)(const Processor*, const Proc_state*, Voice_state*));
+        Voice_state_init_func* init_vstate);
 
 
 /**

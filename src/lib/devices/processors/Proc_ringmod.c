@@ -80,12 +80,10 @@ static Device_state* Proc_ringmod_create_state(
 }
 
 
-static void Proc_ringmod_init_vstate(
-        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate)
+static void Proc_ringmod_init_vstate(Voice_state* vstate, const Proc_state* proc_state)
 {
-    assert(proc != NULL);
-    assert(proc_state != NULL);
     assert(vstate != NULL);
+    assert(proc_state != NULL);
 
     vstate->render_voice = Ringmod_state_render_voice;
 

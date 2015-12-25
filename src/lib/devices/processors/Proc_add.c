@@ -58,8 +58,7 @@ typedef struct Proc_add
 
 static bool Proc_add_init(Device_impl* dimpl);
 
-static void Proc_add_init_vstate(
-        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate);
+static Voice_state_init_func Proc_add_init_vstate;
 
 static double sine(double phase, double modifier);
 
@@ -169,16 +168,14 @@ const char* Proc_add_property(const Processor* proc, const char* property_type)
 }
 
 
-static void Proc_add_init_vstate(
-        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate)
+static void Proc_add_init_vstate(Voice_state* vstate, const Proc_state* proc_state)
 {
-    assert(proc != NULL);
-    assert(proc_state != NULL);
     assert(vstate != NULL);
+    assert(proc_state != NULL);
 
     vstate->render_voice = Add_state_render_voice;
 
-    Proc_add* add = (Proc_add*)proc->parent.dimpl;
+    Proc_add* add = (Proc_add*)proc_state->parent.device->dimpl;
     Voice_state_add* add_state = (Voice_state_add*)vstate;
 
     add_state->tone_limit = 0;

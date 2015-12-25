@@ -52,8 +52,7 @@ static bool Proc_noise_init(Device_impl* dimpl);
 static Device_state* Proc_noise_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
-static void Proc_noise_init_vstate(
-        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate);
+static Voice_state_init_func Proc_noise_init_vstate;
 
 static Voice_state_render_voice_func Noise_state_render_voice;
 
@@ -135,12 +134,10 @@ static Device_state* Proc_noise_create_state(
 }
 
 
-static void Proc_noise_init_vstate(
-        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate)
+static void Proc_noise_init_vstate(Voice_state* vstate, const Proc_state* proc_state)
 {
-    assert(proc != NULL);
-    assert(proc_state != NULL);
     assert(vstate != NULL);
+    assert(proc_state != NULL);
 
     vstate->render_voice = Noise_state_render_voice;
 
