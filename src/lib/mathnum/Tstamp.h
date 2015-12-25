@@ -16,6 +16,7 @@
 #define K_TSTAMP_H
 
 
+#include <Decl.h>
 #include <kunquat/limits.h>
 
 #include <inttypes.h>
@@ -27,11 +28,11 @@
  * object is expected to be initialised either automatically or as part of
  * another object.
  */
-typedef struct Tstamp
+struct Tstamp
 {
     int64_t beats; /// The number of beats.
     int32_t rem; /// Remainder of a beat -- always >= \c 0 and < \c KQT_TSTAMP_BEAT.
-} Tstamp;
+};
 
 
 /**

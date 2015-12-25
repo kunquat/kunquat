@@ -58,6 +58,30 @@ typedef struct Set_cb
 } Set_cb;
 
 
+typedef struct Device_impl_cv_bool_callbacks
+{
+    Proc_state_set_cv_bool_func* set_value;
+    Voice_state_set_cv_bool_func* voice_set_value;
+} Device_impl_cv_bool_callbacks;
+
+typedef struct Device_impl_cv_int_callbacks
+{
+    Proc_state_set_cv_int_func* set_value;
+    Voice_state_set_cv_int_func* voice_set_value;
+} Device_impl_cv_int_callbacks;
+
+typedef struct Device_impl_cv_float_callbacks
+{
+    Proc_state_get_cv_float_controls_mut_func* get_controls;
+    Voice_state_get_cv_float_controls_mut_func* get_voice_controls;
+} Device_impl_cv_float_callbacks;
+
+typedef struct Device_impl_cv_tstamp_callbacks
+{
+    Proc_state_set_cv_tstamp_func* set_value;
+    Voice_state_set_cv_tstamp_func* voice_set_value;
+} Device_impl_cv_tstamp_callbacks;
+
 typedef struct Update_control_var_cb
 {
     char key_pattern[KQT_KEY_LENGTH_MAX];
@@ -305,8 +329,11 @@ static Update_control_var_cb* Device_impl_create_update_cv_cb(
 }
 
 
-Device_impl_cv_bool_callbacks* Device_impl_create_cv_bool(
-        Device_impl* dimpl, const char* keyp)
+bool Device_impl_create_cv_bool(
+        Device_impl* dimpl,
+        const char* keyp,
+        Proc_state_set_cv_bool_func* pstate_set,
+        Voice_state_set_cv_bool_func* vstate_set)
 {
     assert(dimpl != NULL);
     assert(keyp != NULL);
@@ -314,18 +341,20 @@ Device_impl_cv_bool_callbacks* Device_impl_create_cv_bool(
     Update_control_var_cb* update_cv_cb =
         Device_impl_create_update_cv_cb(dimpl, keyp, VALUE_TYPE_BOOL);
     if (update_cv_cb == NULL)
-        return NULL;
+        return false;
 
-    Device_impl_cv_bool_callbacks* ret = &update_cv_cb->cb.bool_type;
-    ret->set_value = NULL;
-    ret->voice_set_value = NULL;
+    update_cv_cb->cb.bool_type.set_value = pstate_set;
+    update_cv_cb->cb.bool_type.voice_set_value = vstate_set;
 
-    return ret;
+    return true;
 }
 
 
-Device_impl_cv_int_callbacks* Device_impl_create_cv_int(
-        Device_impl* dimpl, const char* keyp)
+bool Device_impl_create_cv_int(
+        Device_impl* dimpl,
+        const char* keyp,
+        Proc_state_set_cv_int_func* pstate_set,
+        Voice_state_set_cv_int_func* vstate_set)
 {
     assert(dimpl != NULL);
     assert(keyp != NULL);
@@ -333,18 +362,20 @@ Device_impl_cv_int_callbacks* Device_impl_create_cv_int(
     Update_control_var_cb* update_cv_cb =
         Device_impl_create_update_cv_cb(dimpl, keyp, VALUE_TYPE_INT);
     if (update_cv_cb == NULL)
-        return NULL;
+        return false;
 
-    Device_impl_cv_int_callbacks* ret = &update_cv_cb->cb.int_type;
-    ret->set_value = NULL;
-    ret->voice_set_value = NULL;
+    update_cv_cb->cb.int_type.set_value = pstate_set;
+    update_cv_cb->cb.int_type.voice_set_value = vstate_set;
 
-    return ret;
+    return true;
 }
 
 
-Device_impl_cv_float_callbacks* Device_impl_create_cv_float(
-        Device_impl* dimpl, const char* keyp)
+bool Device_impl_create_cv_float(
+        Device_impl* dimpl,
+        const char* keyp,
+        Proc_state_get_cv_float_controls_mut_func* pstate_get,
+        Voice_state_get_cv_float_controls_mut_func* vstate_get)
 {
     assert(dimpl != NULL);
     assert(keyp != NULL);
@@ -352,18 +383,20 @@ Device_impl_cv_float_callbacks* Device_impl_create_cv_float(
     Update_control_var_cb* update_cv_cb =
         Device_impl_create_update_cv_cb(dimpl, keyp, VALUE_TYPE_FLOAT);
     if (update_cv_cb == NULL)
-        return NULL;
+        return false;
 
-    Device_impl_cv_float_callbacks* ret = &update_cv_cb->cb.float_type;
-    ret->get_controls = NULL;
-    ret->get_voice_controls = NULL;
+    update_cv_cb->cb.float_type.get_controls = pstate_get;
+    update_cv_cb->cb.float_type.get_voice_controls = vstate_get;
 
-    return ret;
+    return true;
 }
 
 
-Device_impl_cv_tstamp_callbacks* Device_impl_create_cv_tstamp(
-        Device_impl* dimpl, const char* keyp)
+bool Device_impl_create_cv_tstamp(
+        Device_impl* dimpl,
+        const char* keyp,
+        Proc_state_set_cv_tstamp_func* pstate_set,
+        Voice_state_set_cv_tstamp_func* vstate_set)
 {
     assert(dimpl != NULL);
     assert(keyp != NULL);
@@ -371,13 +404,12 @@ Device_impl_cv_tstamp_callbacks* Device_impl_create_cv_tstamp(
     Update_control_var_cb* update_cv_cb =
         Device_impl_create_update_cv_cb(dimpl, keyp, VALUE_TYPE_TSTAMP);
     if (update_cv_cb == NULL)
-        return NULL;
+        return false;
 
-    Device_impl_cv_tstamp_callbacks* ret = &update_cv_cb->cb.Tstamp_type;
-    ret->set_value = NULL;
-    ret->voice_set_value = NULL;
+    update_cv_cb->cb.Tstamp_type.set_value = pstate_set;
+    update_cv_cb->cb.Tstamp_type.voice_set_value = vstate_set;
 
-    return ret;
+    return true;
 }
 
 
@@ -607,77 +639,50 @@ static const Update_control_var_cb* get_update_control_var_cb(
 }
 
 
-void Device_impl_set_cv_generic(
+void Device_impl_get_proc_cv_callback(
         const Device_impl* dimpl,
-        Device_state* dstate,
-        Voice_state* vstate,
         const char* key,
-        const Value* value)
+        Value_type type,
+        Device_impl_proc_cv_callback* cb)
 {
     assert(dimpl != NULL);
-    assert(dstate != NULL);
     assert(key != NULL);
-    assert(strlen(key) < KQT_KEY_LENGTH_MAX);
-    assert(value != NULL);
-    assert(value->type != VALUE_TYPE_FLOAT);
+    assert(cb != NULL);
 
-    Key_indices indices = { 0 };
     const Update_control_var_cb* update_cv_cb =
-        get_update_control_var_cb(dimpl, key, indices);
+        get_update_control_var_cb(dimpl, key, cb->indices);
 
-    if ((update_cv_cb == NULL) || (value->type != update_cv_cb->type))
+    if ((update_cv_cb == NULL) || (type != update_cv_cb->type))
+    {
+        cb->type = VALUE_TYPE_NONE;
         return;
+    }
 
-    switch (value->type)
+    cb->type = type;
+
+    switch (type)
     {
         case VALUE_TYPE_BOOL:
         {
-            if (vstate != NULL)
-            {
-                if (update_cv_cb->cb.bool_type.voice_set_value != NULL)
-                    update_cv_cb->cb.bool_type.voice_set_value(
-                            dimpl, dstate, vstate, indices, value->value.bool_type);
-            }
-            else
-            {
-                if (update_cv_cb->cb.bool_type.set_value != NULL)
-                    update_cv_cb->cb.bool_type.set_value(
-                            dimpl, dstate, indices, value->value.bool_type);
-            }
+            cb->cb.set_bool = update_cv_cb->cb.bool_type.set_value;
         }
         break;
 
         case VALUE_TYPE_INT:
         {
-            if (vstate != NULL)
-            {
-                if (update_cv_cb->cb.int_type.voice_set_value != NULL)
-                    update_cv_cb->cb.int_type.voice_set_value(
-                            dimpl, dstate, vstate, indices, value->value.int_type);
-            }
-            else
-            {
-                if (update_cv_cb->cb.int_type.set_value != NULL)
-                    update_cv_cb->cb.int_type.set_value(
-                            dimpl, dstate, indices, value->value.int_type);
-            }
+            cb->cb.set_int = update_cv_cb->cb.int_type.set_value;
+        }
+        break;
+
+        case VALUE_TYPE_FLOAT:
+        {
+            cb->cb.get_float_controls = update_cv_cb->cb.float_type.get_controls;
         }
         break;
 
         case VALUE_TYPE_TSTAMP:
         {
-            if (vstate != NULL)
-            {
-                if (update_cv_cb->cb.Tstamp_type.voice_set_value != NULL)
-                    update_cv_cb->cb.Tstamp_type.voice_set_value(
-                            dimpl, dstate, vstate, indices, &value->value.Tstamp_type);
-            }
-            else
-            {
-                if (update_cv_cb->cb.Tstamp_type.set_value != NULL)
-                    update_cv_cb->cb.Tstamp_type.set_value(
-                            dimpl, dstate, indices, &value->value.Tstamp_type);
-            }
+            cb->cb.set_tstamp = update_cv_cb->cb.Tstamp_type.set_value;
         }
         break;
 
@@ -689,36 +694,58 @@ void Device_impl_set_cv_generic(
 }
 
 
-Linear_controls* Device_impl_get_cv_float_controls_mut(
+void Device_impl_get_voice_cv_callback(
         const Device_impl* dimpl,
-        Device_state* dstate,
-        Voice_state* vstate,
-        const char* key)
+        const char* key,
+        Value_type type,
+        Device_impl_voice_cv_callback* cb)
 {
     assert(dimpl != NULL);
-    assert(dstate != NULL);
     assert(key != NULL);
+    assert(cb != NULL);
 
-    Key_indices indices = { 0 };
     const Update_control_var_cb* update_cv_cb =
-        get_update_control_var_cb(dimpl, key, indices);
+        get_update_control_var_cb(dimpl, key, cb->indices);
 
-    if ((update_cv_cb == NULL) || (update_cv_cb->type != VALUE_TYPE_FLOAT))
-        return NULL;
-
-    if (vstate != NULL)
+    if ((update_cv_cb == NULL) || (type != update_cv_cb->type))
     {
-        if (update_cv_cb->cb.float_type.get_voice_controls != NULL)
-            return update_cv_cb->cb.float_type.get_voice_controls(
-                    dimpl, dstate, vstate, indices);
-    }
-    else
-    {
-        if (update_cv_cb->cb.float_type.get_controls != NULL)
-            return update_cv_cb->cb.float_type.get_controls(dimpl, dstate, indices);
+        cb->type = VALUE_TYPE_NONE;
+        return;
     }
 
-    return NULL;
+    cb->type = type;
+
+    switch (type)
+    {
+        case VALUE_TYPE_BOOL:
+        {
+            cb->cb.set_bool = update_cv_cb->cb.bool_type.voice_set_value;
+        }
+        break;
+
+        case VALUE_TYPE_INT:
+        {
+            cb->cb.set_int = update_cv_cb->cb.int_type.voice_set_value;
+        }
+        break;
+
+        case VALUE_TYPE_FLOAT:
+        {
+            cb->cb.get_float_controls = update_cv_cb->cb.float_type.get_voice_controls;
+        }
+        break;
+
+        case VALUE_TYPE_TSTAMP:
+        {
+            cb->cb.set_tstamp = update_cv_cb->cb.Tstamp_type.voice_set_value;
+        }
+        break;
+
+        default:
+            assert(false);
+    }
+
+    return;
 }
 
 

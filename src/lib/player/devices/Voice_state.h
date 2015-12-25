@@ -27,6 +27,7 @@
 #include <player/Pitch_controls.h>
 #include <player/Slider.h>
 #include <player/Time_env_state.h>
+#include <string/key_pattern.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -44,6 +45,16 @@ typedef int32_t Voice_state_render_voice_func(
         int32_t buf_start,
         int32_t buf_stop,
         double tempo);
+
+
+typedef void Voice_state_set_cv_bool_func(
+        Voice_state*, const Device_state*, const Key_indices, bool);
+typedef void Voice_state_set_cv_int_func(
+        Voice_state*, const Device_state*, const Key_indices, int64_t);
+typedef Linear_controls* Voice_state_get_cv_float_controls_mut_func(
+        Voice_state*, const Device_state*, const Key_indices);
+typedef void Voice_state_set_cv_tstamp_func(
+        Voice_state*, const Device_state*, const Key_indices, const Tstamp*);
 
 
 #define FILTER_ORDER (2)
@@ -181,6 +192,117 @@ int32_t Voice_state_render_voice(
         int32_t buf_start,
         int32_t buf_stop,
         double tempo);
+
+
+/**
+ * Set value of a control variable in the Voice state.
+ *
+ * \param vstate   The Voice state -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
+ * \param key      The key of the control variable -- must not be \c NULL.
+ * \param value    The value to be set -- must not be \c NULL.
+ */
+void Voice_state_cv_generic_set(
+        Voice_state* vstate,
+        const Device_state* dstate,
+        const char* key,
+        const Value* value);
+
+
+/**
+ * Initialise floating-point control variable in the Voice state.
+ *
+ * \param vstate         The Voice state -- must not be \c NULL.
+ * \param dstate         The Device state -- must not be \c NULL.
+ * \param key            The key of the control variable -- must not be \c NULL.
+ * \param src_controls   The source Linear controls -- must not be \c NULL.
+ */
+void Voice_state_cv_float_init(
+        Voice_state* vstate,
+        const Device_state* dstate,
+        const char* key,
+        const Linear_controls* src_controls);
+
+
+/**
+ * Set slide target of a floating-point control variable in the Voice state.
+ *
+ * \param vstate   The Voice state -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
+ * \param key      The key of the control variable -- must not be \c NULL.
+ * \param value    The new target value -- must be finite.
+ */
+void Voice_state_cv_float_slide_target(
+        Voice_state* vstate, const Device_state* dstate, const char* key, double value);
+
+
+/**
+ * Set slide length of a floating-point control variable in the Voice state.
+ *
+ * \param vstate   The Voice state -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
+ * \param key      The key of the control variable -- must not be \c NULL.
+ * \param length   The slide length -- must not be \c NULL.
+ */
+void Voice_state_cv_float_slide_length(
+        Voice_state* vstate,
+        const Device_state* dstate,
+        const char* key,
+        const Tstamp* length);
+
+
+/**
+ * Set oscillation speed of a float control variable in the Voice state.
+ *
+ * \param vstate   The Voice state -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
+ * \param key      The key of the control variable -- must not be \c NULL.
+ * \param speed    The oscillation speed -- must be finite and >= \c 0.
+ */
+void Voice_state_cv_float_osc_speed(
+        Voice_state* vstate, const Device_state* dstate, const char* key, double speed);
+
+
+/**
+ * Set oscillation depth of a float control variable in the Voice state.
+ *
+ * \param vstate   The Voice state -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
+ * \param key      The key of the control variable -- must not be \c NULL.
+ * \param depth    The oscillation depth -- must be finite.
+ */
+void Voice_state_cv_float_osc_depth(
+        Voice_state* vstate, const Device_state* dstate, const char* key, double depth);
+
+
+/**
+ * Set oscillation speed slide of a float control variable in the Voice state.
+ *
+ * \param vstate   The Voice state -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
+ * \param key      The key of the control variable -- must not be \c NULL.
+ * \param length   The length of the oscillation speed slide -- must not be \c NULL.
+ */
+void Voice_state_cv_float_osc_speed_slide(
+        Voice_state* vstate,
+        const Device_state* dstate,
+        const char* key,
+        const Tstamp* length);
+
+
+/**
+ * Set oscillation depth slide of a float control variable in the Voice state.
+ *
+ * \param vstate   The Voice state -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
+ * \param key      The key of the control variable -- must not be \c NULL.
+ * \param length   The length of the oscillation depth slide -- must not be \c NULL.
+ */
+void Voice_state_cv_float_osc_depth_slide(
+        Voice_state* vstate,
+        const Device_state* dstate,
+        const char* key,
+        const Tstamp* length);
 
 
 #endif // K_VOICE_STATE_H

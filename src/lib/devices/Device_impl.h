@@ -25,6 +25,7 @@
 #include <devices/param_types/Sample.h>
 #include <mathnum/Tstamp.h>
 #include <player/devices/Device_state.h>
+#include <player/devices/Voice_state.h>
 #include <player/Linear_controls.h>
 #include <string/key_pattern.h>
 
@@ -51,35 +52,6 @@ SET_FUNC_TYPE(hit_map,          const Hit_map*);
 SET_FUNC_TYPE(num_list,         const Num_list*);
 #undef SET_FUNC_TYPE
 
-// typedefs for control variable setter callbacks
-
-#define SET_CV_FUNC_TYPE(name, actual_type) \
-    typedef void (name)(const Device_impl*, Device_state*, Key_indices, actual_type)
-SET_CV_FUNC_TYPE(Set_cv_bool_func,      bool);
-SET_CV_FUNC_TYPE(Set_cv_int_func,       int64_t);
-SET_CV_FUNC_TYPE(Set_cv_tstamp_func,    const Tstamp*);
-#undef SET_CV_FUNC_TYPE
-
-typedef Linear_controls* Get_cv_float_controls_mut_func(
-        const Device_impl*, Device_state*, const Key_indices);
-
-// ... and corresponding voice control variable callbacks
-
-#define SET_VOICE_CV_FUNC_TYPE(name, actual_type) \
-    typedef void (name)(                          \
-            const Device_impl*,                   \
-            const Device_state*,                  \
-            Voice_state*,                         \
-            Key_indices,                          \
-            actual_type)
-SET_VOICE_CV_FUNC_TYPE(Set_voice_cv_bool_func,      bool);
-SET_VOICE_CV_FUNC_TYPE(Set_voice_cv_int_func,       int64_t);
-SET_VOICE_CV_FUNC_TYPE(Set_voice_cv_tstamp_func,    const Tstamp*);
-#undef SET_VOICE_CV_FUNC_TYPE
-
-typedef Linear_controls* Get_voice_cv_float_controls_mut_func(
-        const Device_impl*, const Device_state*, Voice_state*, const Key_indices);
-
 
 /**
  * The base class of a Processor implementation.
@@ -97,29 +69,37 @@ struct Device_impl
 
 // Containers of callback functions for control variable types.
 
-typedef struct Device_impl_cv_bool_callbacks
+typedef struct Device_impl_proc_cv_callback
 {
-    Set_cv_bool_func* set_value;
-    Set_voice_cv_bool_func* voice_set_value;
-} Device_impl_cv_bool_callbacks;
+    Value_type type;
+    Key_indices indices;
+    union
+    {
+        Proc_state_set_cv_bool_func* set_bool;
+        Proc_state_set_cv_int_func* set_int;
+        Proc_state_get_cv_float_controls_mut_func* get_float_controls;
+        Proc_state_set_cv_tstamp_func* set_tstamp;
+    } cb;
+} Device_impl_proc_cv_callback;
 
-typedef struct Device_impl_cv_int_callbacks
-{
-    Set_cv_int_func* set_value;
-    Set_voice_cv_int_func* voice_set_value;
-} Device_impl_cv_int_callbacks;
+#define DEVICE_IMPL_PROC_CV_CALLBACK_AUTO \
+    (&(Device_impl_proc_cv_callback){ .type = VALUE_TYPE_NONE })
 
-typedef struct Device_impl_cv_float_callbacks
+typedef struct Device_impl_voice_cv_callback
 {
-    Get_cv_float_controls_mut_func* get_controls;
-    Get_voice_cv_float_controls_mut_func* get_voice_controls;
-} Device_impl_cv_float_callbacks;
+    Value_type type;
+    Key_indices indices;
+    union
+    {
+        Voice_state_set_cv_bool_func* set_bool;
+        Voice_state_set_cv_int_func* set_int;
+        Voice_state_get_cv_float_controls_mut_func* get_float_controls;
+        Voice_state_set_cv_tstamp_func* set_tstamp;
+    } cb;
+} Device_impl_voice_cv_callback;
 
-typedef struct Device_impl_cv_tstamp_callbacks
-{
-    Set_cv_tstamp_func* set_value;
-    Set_voice_cv_tstamp_func* voice_set_value;
-} Device_impl_cv_tstamp_callbacks;
+#define DEVICE_IMPL_VOICE_CV_CALLBACK_AUTO \
+    (&(Device_impl_voice_cv_callback){ .type = VALUE_TYPE_NONE })
 
 
 /**
@@ -394,61 +374,69 @@ bool Device_impl_register_set_num_list(
 /**
  * Create a boolean control variable.
  *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param keyp     The key pattern -- must not be \c NULL.
+ * \param dimpl        The Device implementation -- must not be \c NULL.
+ * \param keyp         The key pattern -- must not be \c NULL.
+ * \param pstate_set   The Processor state set function, or \c NULL.
+ * \param vstate_set   The Voice state set function, or \c NULL.
  *
- * \return   A container for modifier callback functions that modify \a keyp,
- *           or \c NULL if memory allocation failed. All the fields are
- *           initialised to \c NULL. The Device implementation maintains
- *           ownership of the container.
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
-Device_impl_cv_bool_callbacks* Device_impl_create_cv_bool(
-        Device_impl* dimpl, const char* keyp);
+bool Device_impl_create_cv_bool(
+        Device_impl* dimpl,
+        const char* keyp,
+        Proc_state_set_cv_bool_func* pstate_set,
+        Voice_state_set_cv_bool_func* vstate_set);
 
 
 /**
  * Create an integer control variable.
  *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param keyp     The key pattern -- must not be \c NULL.
+ * \param dimpl        The Device implementation -- must not be \c NULL.
+ * \param keyp         The key pattern -- must not be \c NULL.
+ * \param pstate_set   The Processor state set function, or \c NULL.
+ * \param vstate_set   The Voice state set function, or \c NULL.
  *
- * \return   A container for modifier callback functions that modify \a keyp,
- *           or \c NULL if memory allocation failed. All the fields are
- *           initialised to \c NULL. The Device implementation maintains
- *           ownership of the container.
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
-Device_impl_cv_int_callbacks* Device_impl_create_cv_int(
-        Device_impl* dimpl, const char* keyp);
+bool Device_impl_create_cv_int(
+        Device_impl* dimpl,
+        const char* keyp,
+        Proc_state_set_cv_int_func* pstate_set,
+        Voice_state_set_cv_int_func* vstate_set);
 
 
 /**
  * Create a float control variable.
  *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param keyp     The key pattern -- must not be \c NULL.
+ * \param dimpl        The Device implementation -- must not be \c NULL.
+ * \param keyp         The key pattern -- must not be \c NULL.
+ * \param pstate_get   The Processor state Linear controls get function, or \c NULL.
+ * \param vstate_get   The Voice state Linear controls get function, or \c NULL.
  *
- * \return   A container for modifier callback functions that modify \a keyp,
- *           or \c NULL if memory allocation failed. All the fields are
- *           initialised to \c NULL. The Device implementation maintains
- *           ownership of the container.
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
-Device_impl_cv_float_callbacks* Device_impl_create_cv_float(
-        Device_impl* dimpl, const char* keyp);
+bool Device_impl_create_cv_float(
+        Device_impl* dimpl,
+        const char* keyp,
+        Proc_state_get_cv_float_controls_mut_func* pstate_get,
+        Voice_state_get_cv_float_controls_mut_func* vstate_get);
 
 
 /**
  * Create a tstamp control variable.
  *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param keyp     The key pattern -- must not be \c NULL.
+ * \param dimpl        The Device implementation -- must not be \c NULL.
+ * \param keyp         The key pattern -- must not be \c NULL.
+ * \param pstate_set   The Processor state set function, or \c NULL.
+ * \param vstate_set   The Voice state set function, or \c NULL.
  *
- * \return   A container for modifier callback functions that modify \a keyp,
- *           or \c NULL if memory allocation failed. All the fields are
- *           initialised to \c NULL. The Device implementation maintains
- *           ownership of the container.
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
-Device_impl_cv_tstamp_callbacks* Device_impl_create_cv_tstamp(
-        Device_impl* dimpl, const char* keyp);
+bool Device_impl_create_cv_tstamp(
+        Device_impl* dimpl,
+        const char* keyp,
+        Proc_state_set_cv_tstamp_func* pstate_set,
+        Voice_state_set_cv_tstamp_func* vstate_set);
 
 
 /**
@@ -478,39 +466,35 @@ bool Device_impl_set_state_key(
 
 
 /**
- * Set a control variable in a Device or Voice state.
+ * Get a Processor control variable callback function.
  *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param dstate   The Device state -- must not be \c NULL.
- * \param vstate   The Voice state, or \c NULL if updating \a dstate.
- * \param key      The key to be updated -- must not be \c NULL.
- * \param value    The Value -- must not be \c NULL and must not have
- *                 \c VALUE_TYPE_FLOAT as type.
+ * \param dimpl   The Device implementation -- must not be \c NULL.
+ * \param key     The key of the control variable -- must not be \c NULL.
+ * \param type    The control variable type.
+ * \param cb      The destination address of the callback structure -- must
+ *                not be \c NULL.
  */
-void Device_impl_set_cv_generic(
+void Device_impl_get_proc_cv_callback(
         const Device_impl* dimpl,
-        Device_state* dstate,
-        Voice_state* vstate,
         const char* key,
-        const Value* value);
+        Value_type type,
+        Device_impl_proc_cv_callback* cb);
 
 
 /**
- * Get modifiable floating-point controls from a Device or Voice state.
+ * Get a Voice control variable callback function.
  *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param dstate   The Device state -- must not be \c NULL.
- * \param vstate   The Voice state, or \c NULL if getting controls from \a dstate.
- * \param key      The key to be updated -- must not be \c NULL.
- *
- * \return   The Linear controls associated with \a key, or \c NULL if \a dimpl does
- *           not support floating-point controls with \a key.
+ * \param dimpl   The Device implementation -- must not be \c NULL.
+ * \param key     The key of the control variable -- must not be \c NULL.
+ * \param type    The control variable type.
+ * \param cb      The destination address of the callback structure -- must
+ *                not be \c NULL.
  */
-Linear_controls* Device_impl_get_cv_float_controls_mut(
+void Device_impl_get_voice_cv_callback(
         const Device_impl* dimpl,
-        Device_state* dstate,
-        Voice_state* vstate,
-        const char* key);
+        const char* key,
+        Value_type type,
+        Device_impl_voice_cv_callback* cb);
 
 
 /**

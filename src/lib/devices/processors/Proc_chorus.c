@@ -192,8 +192,8 @@ static Device_state* Proc_chorus_create_state(
     static Set_state_float_func Proc_chorus_set_state_voice_ ## name;
 #include <devices/processors/Proc_chorus_params.h>
 
-static Get_cv_float_controls_mut_func Proc_chorus_get_delay_variance;
-static Get_cv_float_controls_mut_func Proc_chorus_get_volume;
+static Proc_state_get_cv_float_controls_mut_func Chorus_state_get_delay_variance;
+static Proc_state_get_cv_float_controls_mut_func Chorus_state_get_volume;
 
 
 static void Chorus_state_clear_history(Proc_state* proc_state);
@@ -243,26 +243,18 @@ static bool Proc_chorus_init(Device_impl* dimpl)
             Proc_chorus_set_state_voice_ ## name);
 #include <devices/processors/Proc_chorus_params.h>
 
+    // Control variables
+    reg_success &= Device_impl_create_cv_float(
+            &chorus->parent,
+            "voice_XX/delay",
+            Chorus_state_get_delay_variance,
+            NULL);
+
+    reg_success &= Device_impl_create_cv_float(
+            &chorus->parent, "voice_XX/volume", Chorus_state_get_volume, NULL);
+
     if (!reg_success)
         return false;
-
-    // Delay control variable
-    {
-        Device_impl_cv_float_callbacks* cbs =
-            Device_impl_create_cv_float(&chorus->parent, "voice_XX/delay");
-        if (cbs == NULL)
-            return false;
-        cbs->get_controls = Proc_chorus_get_delay_variance;
-    }
-
-    // Volume control variable
-    {
-        Device_impl_cv_float_callbacks* cbs =
-            Device_impl_create_cv_float(&chorus->parent, "voice_XX/volume");
-        if (cbs == NULL)
-            return false;
-        cbs->get_controls = Proc_chorus_get_volume;
-    }
 
     for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
     {
@@ -385,7 +377,7 @@ static bool Proc_chorus_set_state_voice_delay(
     assert(indices != NULL);
     assert(isfinite(value));
 
-    Linear_controls* controls = Proc_chorus_get_delay_variance(dimpl, dstate, indices);
+    Linear_controls* controls = Chorus_state_get_delay_variance(dstate, indices);
     if (controls == NULL)
         return true;
 
@@ -419,7 +411,7 @@ static bool Proc_chorus_set_state_voice_range(
     assert(indices != NULL);
     assert(isfinite(value));
 
-    Linear_controls* controls = Proc_chorus_get_delay_variance(dimpl, dstate, indices);
+    Linear_controls* controls = Chorus_state_get_delay_variance(dstate, indices);
     if (controls == NULL)
         return true;
 
@@ -449,7 +441,7 @@ static bool Proc_chorus_set_state_voice_speed(
     assert(indices != NULL);
     assert(isfinite(value));
 
-    Linear_controls* controls = Proc_chorus_get_delay_variance(dimpl, dstate, indices);
+    Linear_controls* controls = Chorus_state_get_delay_variance(dstate, indices);
     if (controls == NULL)
         return true;
 
@@ -474,7 +466,7 @@ static bool Proc_chorus_set_state_voice_volume(
     assert(indices != NULL);
     assert(isfinite(value));
 
-    Linear_controls* controls = Proc_chorus_get_volume(dimpl, dstate, indices);
+    Linear_controls* controls = Chorus_state_get_volume(dstate, indices);
     if (controls == NULL)
         return true;
 
@@ -488,12 +480,9 @@ static bool Proc_chorus_set_state_voice_volume(
 }
 
 
-static Linear_controls* Proc_chorus_get_delay_variance(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        const Key_indices indices)
+static Linear_controls* Chorus_state_get_delay_variance(
+        Device_state* dstate, const Key_indices indices)
 {
-    assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
 
@@ -508,12 +497,9 @@ static Linear_controls* Proc_chorus_get_delay_variance(
 }
 
 
-static Linear_controls* Proc_chorus_get_volume(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        const Key_indices indices)
+static Linear_controls* Chorus_state_get_volume(
+        Device_state* dstate, const Key_indices indices)
 {
-    assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
 

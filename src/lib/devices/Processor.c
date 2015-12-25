@@ -470,79 +470,22 @@ static void Processor_set_control_var_generic(
     assert(key != NULL);
     assert(value != NULL);
 
-    const Processor* proc = (const Processor*)device;
-    const Device_impl* dimpl = device->dimpl;
     Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
 
     if (mode == DEVICE_CONTROL_VAR_MODE_MIXED)
     {
-        if (value->type == VALUE_TYPE_FLOAT)
-        {
-            Linear_controls* controls =
-                Device_impl_get_cv_float_controls_mut(dimpl, dstate, NULL, key);
-            if (controls != NULL)
-                Linear_controls_set_value(controls, value->value.float_type);
-        }
-        else
-        {
-            Device_impl_set_cv_generic(dimpl, dstate, NULL, key, value);
-        }
+        Proc_state_cv_generic_set(dstate, key, value);
     }
     else
     {
         assert(channel != NULL);
+        const Processor* proc = (const Processor*)device;
         Voice* voice = Channel_get_fg_voice(channel, proc->index);
         if (voice != NULL)
-        {
-            if (value->type == VALUE_TYPE_FLOAT)
-            {
-                Linear_controls* controls = Device_impl_get_cv_float_controls_mut(
-                        dimpl, dstate, voice->state, key);
-                if (controls != NULL)
-                    Linear_controls_set_value(controls, value->value.float_type);
-            }
-            else
-            {
-                Device_impl_set_cv_generic(dimpl, dstate, voice->state, key, value);
-            }
-        }
+            Voice_state_cv_generic_set(voice->state, dstate, key, value);
     }
 
     return;
-}
-
-
-static Linear_controls* get_cv_float_controls(
-        const Device* device,
-        Device_states* dstates,
-        Device_control_var_mode mode,
-        Channel* channel,
-        const char* key)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(channel != NULL);
-    assert(key != NULL);
-
-    const Processor* proc = (const Processor*)device;
-    const Device_impl* dimpl = device->dimpl;
-    Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
-
-    Linear_controls* controls = NULL;
-
-    if (mode == DEVICE_CONTROL_VAR_MODE_MIXED)
-    {
-        controls = Device_impl_get_cv_float_controls_mut(dimpl, dstate, NULL, key);
-    }
-    else
-    {
-        Voice* voice = Channel_get_fg_voice(channel, proc->index);
-        if (voice != NULL)
-            controls = Device_impl_get_cv_float_controls_mut(
-                    dimpl, dstate, voice->state, key);
-    }
-
-    return controls;
 }
 
 
@@ -560,11 +503,19 @@ static void Processor_slide_control_var_float_target(
     assert(key != NULL);
     assert(isfinite(value));
 
-    Linear_controls* controls =
-        get_cv_float_controls(device, dstates, mode, channel, key);
+    Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
 
-    if (controls != NULL)
-        Linear_controls_slide_value_target(controls, value);
+    if (mode == DEVICE_CONTROL_VAR_MODE_MIXED)
+    {
+        Proc_state_cv_float_slide_target(dstate, key, value);
+    }
+    else
+    {
+        const Processor* proc = (const Processor*)device;
+        Voice* voice = Channel_get_fg_voice(channel, proc->index);
+        if (voice != NULL)
+            Voice_state_cv_float_slide_target(voice->state, dstate, key, value);
+    }
 
     return;
 }
@@ -584,11 +535,19 @@ static void Processor_slide_control_var_float_length(
     assert(key != NULL);
     assert(length != NULL);
 
-    Linear_controls* controls =
-        get_cv_float_controls(device, dstates, mode, channel, key);
+    Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
 
-    if (controls != NULL)
-        Linear_controls_slide_value_length(controls, length);
+    if (mode == DEVICE_CONTROL_VAR_MODE_MIXED)
+    {
+        Proc_state_cv_float_slide_length(dstate, key, length);
+    }
+    else
+    {
+        const Processor* proc = (const Processor*)device;
+        Voice* voice = Channel_get_fg_voice(channel, proc->index);
+        if (voice != NULL)
+            Voice_state_cv_float_slide_length(voice->state, dstate, key, length);
+    }
 
     return;
 }
@@ -608,11 +567,19 @@ static void Processor_osc_speed_cv_float(
     assert(key != NULL);
     assert(speed >= 0);
 
-    Linear_controls* controls =
-        get_cv_float_controls(device, dstates, mode, channel, key);
+    Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
 
-    if (controls != NULL)
-        Linear_controls_osc_speed_value(controls, speed);
+    if (mode == DEVICE_CONTROL_VAR_MODE_MIXED)
+    {
+        Proc_state_cv_float_osc_speed(dstate, key, speed);
+    }
+    else
+    {
+        const Processor* proc = (const Processor*)device;
+        Voice* voice = Channel_get_fg_voice(channel, proc->index);
+        if (voice != NULL)
+            Voice_state_cv_float_osc_speed(voice->state, dstate, key, speed);
+    }
 
     return;
 }
@@ -632,11 +599,19 @@ static void Processor_osc_depth_cv_float(
     assert(key != NULL);
     assert(isfinite(depth));
 
-    Linear_controls* controls =
-        get_cv_float_controls(device, dstates, mode, channel, key);
+    Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
 
-    if (controls != NULL)
-        Linear_controls_osc_depth_value(controls, depth);
+    if (mode == DEVICE_CONTROL_VAR_MODE_MIXED)
+    {
+        Proc_state_cv_float_osc_depth(dstate, key, depth);
+    }
+    else
+    {
+        const Processor* proc = (const Processor*)device;
+        Voice* voice = Channel_get_fg_voice(channel, proc->index);
+        if (voice != NULL)
+            Voice_state_cv_float_osc_depth(voice->state, dstate, key, depth);
+    }
 
     return;
 }
@@ -656,11 +631,19 @@ static void Processor_osc_speed_slide_cv_float(
     assert(key != NULL);
     assert(length != NULL);
 
-    Linear_controls* controls =
-        get_cv_float_controls(device, dstates, mode, channel, key);
+    Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
 
-    if (controls != NULL)
-        Linear_controls_osc_speed_slide_value(controls, length);
+    if (mode == DEVICE_CONTROL_VAR_MODE_MIXED)
+    {
+        Proc_state_cv_float_osc_speed_slide(dstate, key, length);
+    }
+    else
+    {
+        const Processor* proc = (const Processor*)device;
+        Voice* voice = Channel_get_fg_voice(channel, proc->index);
+        if (voice != NULL)
+            Voice_state_cv_float_osc_speed_slide(voice->state, dstate, key, length);
+    }
 
     return;
 }
@@ -680,11 +663,19 @@ static void Processor_osc_depth_slide_cv_float(
     assert(key != NULL);
     assert(length != NULL);
 
-    Linear_controls* controls =
-        get_cv_float_controls(device, dstates, mode, channel, key);
+    Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
 
-    if (controls != NULL)
-        Linear_controls_osc_depth_slide_value(controls, length);
+    if (mode == DEVICE_CONTROL_VAR_MODE_MIXED)
+    {
+        Proc_state_cv_float_osc_depth_slide(dstate, key, length);
+    }
+    else
+    {
+        const Processor* proc = (const Processor*)device;
+        Voice* voice = Channel_get_fg_voice(channel, proc->index);
+        if (voice != NULL)
+            Voice_state_cv_float_osc_depth_slide(voice->state, dstate, key, length);
+    }
 
     return;
 }
@@ -700,15 +691,16 @@ static void Processor_init_control_var_float(
 {
     assert(device != NULL);
     assert(dstates != NULL);
+    assert(mode == DEVICE_CONTROL_VAR_MODE_VOICE);
     assert(channel != NULL);
     assert(key != NULL);
     assert(src_controls != NULL);
 
-    Linear_controls* dest_controls =
-        get_cv_float_controls(device, dstates, mode, channel, key);
-
-    if (dest_controls != NULL)
-        Linear_controls_copy(dest_controls, src_controls);
+    const Processor* proc = (const Processor*)device;
+    Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
+    Voice* voice = Channel_get_fg_voice(channel, proc->index);
+    if (voice != NULL)
+        Voice_state_cv_float_init(voice->state, dstate, key, src_controls);
 
     return;
 }

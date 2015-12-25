@@ -59,8 +59,8 @@ static Set_float_func Proc_volume_set_volume;
 
 static Set_state_float_func Proc_volume_set_state_volume;
 
-static Get_cv_float_controls_mut_func Proc_volume_get_cv_controls_volume;
-static Get_voice_cv_float_controls_mut_func Proc_volume_get_voice_cv_controls_volume;
+static Proc_state_get_cv_float_controls_mut_func Volume_pstate_get_cv_controls_volume;
+static Voice_state_get_cv_float_controls_mut_func Volume_vstate_get_cv_controls_volume;
 
 
 static bool Proc_volume_init(Device_impl* dimpl);
@@ -115,15 +115,14 @@ static bool Proc_volume_init(Device_impl* dimpl)
             Proc_volume_set_volume,
             Proc_volume_set_state_volume);
 
+    reg_success &= Device_impl_create_cv_float(
+            &volume->parent,
+            "volume",
+            Volume_pstate_get_cv_controls_volume,
+            Volume_vstate_get_cv_controls_volume);
+
     if (!reg_success)
         return false;
-
-    Device_impl_cv_float_callbacks* vol_cbs =
-        Device_impl_create_cv_float(&volume->parent, "volume");
-    if (vol_cbs == NULL)
-        return false;
-    vol_cbs->get_controls = Proc_volume_get_cv_controls_volume;
-    vol_cbs->get_voice_controls = Proc_volume_get_voice_cv_controls_volume;
 
     volume->scale = 1.0;
 
@@ -273,10 +272,9 @@ static bool Proc_volume_set_state_volume(
 }
 
 
-static Linear_controls* Proc_volume_get_cv_controls_volume(
-        const Device_impl* dimpl, Device_state* dstate, const Key_indices indices)
+static Linear_controls* Volume_pstate_get_cv_controls_volume(
+        Device_state* dstate, const Key_indices indices)
 {
-    assert(dimpl != NULL);
     assert(dstate != NULL);
     ignore(indices);
 
@@ -286,15 +284,11 @@ static Linear_controls* Proc_volume_get_cv_controls_volume(
 }
 
 
-static Linear_controls* Proc_volume_get_voice_cv_controls_volume(
-        const Device_impl* dimpl,
-        const Device_state* dstate,
-        Voice_state* vstate,
-        const Key_indices indices)
+static Linear_controls* Volume_vstate_get_cv_controls_volume(
+        Voice_state* vstate, const Device_state* dstate, const Key_indices indices)
 {
-    assert(dimpl != NULL);
-    assert(dstate != NULL);
     assert(vstate != NULL);
+    assert(dstate != NULL);
     ignore(indices);
 
     Voice_state_volume* vol_vstate = (Voice_state_volume*)vstate;

@@ -16,6 +16,7 @@
 #define K_LINEAR_CONTROLS_H
 
 
+#include <Decl.h>
 #include <mathnum/Tstamp.h>
 #include <player/LFO.h>
 #include <player/Slider.h>
@@ -26,14 +27,14 @@
 #include <stdlib.h>
 
 
-typedef struct Linear_controls
+struct Linear_controls
 {
     double value;
     double min_value;
     double max_value;
     Slider slider;
     LFO lfo;
-} Linear_controls;
+};
 
 
 /**

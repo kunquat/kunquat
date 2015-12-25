@@ -15,6 +15,9 @@
 #include <player/devices/Proc_state.h>
 
 #include <debug/assert.h>
+#include <devices/Device.h>
+#include <devices/Device_impl.h>
+#include <mathnum/Tstamp.h>
 #include <player/devices/Device_state.h>
 #include <player/devices/Voice_state.h>
 
@@ -213,6 +216,164 @@ Audio_buffer* Proc_state_get_voice_buffer_mut(
         Bit_array_set(proc_state->voice_out_buffers_modified, port_num, true);
 
     return proc_state->voice_buffers[port_type][port_num];
+}
+
+
+void Proc_state_cv_generic_set(
+        Device_state* dstate, const char* key, const Value* value)
+{
+    assert(dstate != NULL);
+    assert(key != NULL);
+    assert(value != NULL);
+
+    const Device_impl* dimpl = dstate->device->dimpl;
+
+    Device_impl_proc_cv_callback* cb = DEVICE_IMPL_PROC_CV_CALLBACK_AUTO;
+    Device_impl_get_proc_cv_callback(dimpl, key, value->type, cb);
+
+    if (cb->type == VALUE_TYPE_NONE)
+        return;
+
+    switch (cb->type)
+    {
+        case VALUE_TYPE_BOOL:
+        {
+            cb->cb.set_bool(dstate, cb->indices, value->value.bool_type);
+        }
+        break;
+
+        case VALUE_TYPE_INT:
+        {
+            cb->cb.set_int(dstate, cb->indices, value->value.int_type);
+        }
+        break;
+
+        case VALUE_TYPE_FLOAT:
+        {
+            Linear_controls* controls =
+                cb->cb.get_float_controls(dstate, cb->indices);
+            if (controls != NULL)
+                Linear_controls_set_value(controls, value->value.float_type);
+        }
+        break;
+
+        case VALUE_TYPE_TSTAMP:
+        {
+            cb->cb.set_tstamp(dstate, cb->indices, &value->value.Tstamp_type);
+        }
+        break;
+
+        default:
+            assert(false);
+    }
+
+    return;
+}
+
+
+static Linear_controls* get_cv_float_controls(Device_state* dstate, const char* key)
+{
+    assert(dstate != NULL);
+    assert(key != NULL);
+
+    const Device_impl* dimpl = dstate->device->dimpl;
+
+    Device_impl_proc_cv_callback* cb = DEVICE_IMPL_PROC_CV_CALLBACK_AUTO;
+    Device_impl_get_proc_cv_callback(dimpl, key, VALUE_TYPE_FLOAT, cb);
+
+    if (cb->type != VALUE_TYPE_FLOAT)
+        return NULL;
+
+    return cb->cb.get_float_controls(dstate, cb->indices);
+}
+
+
+void Proc_state_cv_float_slide_target(
+        Device_state* dstate, const char* key, double value)
+{
+    assert(dstate != NULL);
+    assert(key != NULL);
+    assert(isfinite(value));
+
+    Linear_controls* controls = get_cv_float_controls(dstate, key);
+    if (controls != NULL)
+        Linear_controls_slide_value_target(controls, value);
+
+    return;
+}
+
+
+void Proc_state_cv_float_slide_length(
+        Device_state* dstate, const char* key, const Tstamp* length)
+{
+    assert(dstate != NULL);
+    assert(key != NULL);
+    assert(length != NULL);
+
+    Linear_controls* controls = get_cv_float_controls(dstate, key);
+    if (controls != NULL)
+        Linear_controls_slide_value_length(controls, length);
+
+    return;
+}
+
+
+void Proc_state_cv_float_osc_speed(Device_state* dstate, const char* key, double speed)
+{
+    assert(dstate != NULL);
+    assert(key != NULL);
+    assert(isfinite(speed));
+    assert(speed >= 0);
+
+    Linear_controls* controls = get_cv_float_controls(dstate, key);
+    if (controls != NULL)
+        Linear_controls_osc_speed_value(controls, speed);
+
+    return;
+}
+
+
+void Proc_state_cv_float_osc_depth(Device_state* dstate, const char* key, double depth)
+{
+    assert(dstate != NULL);
+    assert(key != NULL);
+    assert(isfinite(depth));
+
+    Linear_controls* controls = get_cv_float_controls(dstate, key);
+    if (controls != NULL)
+        Linear_controls_osc_depth_value(controls, depth);
+
+    return;
+}
+
+
+void Proc_state_cv_float_osc_speed_slide(
+        Device_state* dstate, const char* key, const Tstamp* length)
+{
+    assert(dstate != NULL);
+    assert(key != NULL);
+    assert(length != NULL);
+
+    Linear_controls* controls = get_cv_float_controls(dstate, key);
+    if (controls != NULL)
+        Linear_controls_osc_speed_slide_value(controls, length);
+
+    return;
+}
+
+
+void Proc_state_cv_float_osc_depth_slide(
+        Device_state* dstate, const char* key, const Tstamp* length)
+{
+    assert(dstate != NULL);
+    assert(key != NULL);
+    assert(length != NULL);
+
+    Linear_controls* controls = get_cv_float_controls(dstate, key);
+    if (controls != NULL)
+        Linear_controls_osc_depth_slide_value(controls, length);
+
+    return;
 }
 
 
