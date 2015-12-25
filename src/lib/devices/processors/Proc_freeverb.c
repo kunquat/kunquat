@@ -213,8 +213,7 @@ static bool Proc_freeverb_init(Device_impl* dimpl);
 static Device_state* Proc_freeverb_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
-static void Proc_freeverb_clear_history(
-        const Device_impl* dimpl, Proc_state* proc_state);
+static void Freeverb_state_clear_history(Proc_state* proc_state);
 
 static Set_float_func Proc_freeverb_set_refl;
 static Set_float_func Proc_freeverb_set_damp;
@@ -256,9 +255,6 @@ static bool Proc_freeverb_init(Device_impl* dimpl)
     Proc_freeverb* freeverb = (Proc_freeverb*)dimpl;
 
     Device_set_state_creator(freeverb->parent.device, Proc_freeverb_create_state);
-
-    Processor_set_clear_history(
-            (Processor*)freeverb->parent.device, Proc_freeverb_clear_history);
 
     // Register key set/update handlers
     bool reg_success = true;
@@ -321,6 +317,7 @@ static Device_state* Proc_freeverb_create_state(
     fstate->parent.set_audio_rate = Freeverb_state_set_audio_rate;
     fstate->parent.reset = Freeverb_state_reset;
     fstate->parent.render_mixed = Freeverb_state_render_mixed;
+    fstate->parent.clear_history = Freeverb_state_clear_history;
 
     fstate->active_reflect = initial_reflect;
     fstate->active_damp = initial_damp;
@@ -390,9 +387,8 @@ static Device_state* Proc_freeverb_create_state(
 }
 
 
-static void Proc_freeverb_clear_history(const Device_impl* dimpl, Proc_state* proc_state)
+static void Freeverb_state_clear_history(Proc_state* proc_state)
 {
-    assert(dimpl != NULL);
     assert(proc_state != NULL);
 
     Freeverb_state_reset((Device_state*)proc_state);

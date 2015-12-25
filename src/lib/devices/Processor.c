@@ -142,7 +142,6 @@ Processor* new_Processor(int index, const Au_params* au_params)
     proc->enable_signal_support = false;
 
     proc->init_vstate = NULL;
-    proc->clear_history = NULL;
 
     Device_set_state_creator(
             &proc->parent,
@@ -208,29 +207,6 @@ bool Processor_is_voice_feature_enabled(
     assert(feature < VOICE_FEATURE_COUNT_);
 
     return (proc->voice_features[port_num] & VOICE_FEATURE_FLAG(feature)) != 0;
-}
-
-
-void Processor_set_clear_history(
-        Processor* proc, void (*func)(const Device_impl*, Proc_state*))
-{
-    assert(proc != NULL);
-    assert(func != NULL);
-
-    proc->clear_history = func;
-
-    return;
-}
-
-
-void Processor_clear_history(const Processor* proc, Proc_state* proc_state)
-{
-    assert(proc != NULL);
-
-    if ((proc->clear_history != NULL) && (proc->parent.dimpl != NULL))
-        proc->clear_history(proc->parent.dimpl, proc_state);
-
-    return;
 }
 
 

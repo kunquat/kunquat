@@ -74,6 +74,8 @@ bool Proc_state_init(
     proc_state->reset = NULL;
     proc_state->render_mixed = NULL;
 
+    proc_state->clear_history = NULL;
+
     proc_state->voice_out_buffers_modified = new_Bit_array(KQT_DEVICE_PORTS_MAX);
     if (proc_state->voice_out_buffers_modified == NULL)
     {
@@ -140,6 +142,17 @@ void Proc_state_render_mixed(
     Proc_state* proc_state = (Proc_state*)dstate;
     if (proc_state->render_mixed != NULL)
         proc_state->render_mixed(dstate, wbs, buf_start, buf_stop, tempo);
+
+    return;
+}
+
+
+void Proc_state_clear_history(Proc_state* proc_state)
+{
+    assert(proc_state != NULL);
+
+    if (proc_state->clear_history != NULL)
+        proc_state->clear_history(proc_state);
 
     return;
 }

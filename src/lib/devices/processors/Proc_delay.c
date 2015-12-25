@@ -184,8 +184,7 @@ static Set_state_float_func Proc_delay_set_state_max_delay;
 static Set_state_float_func Proc_delay_set_state_tap_delay;
 static Set_state_float_func Proc_delay_set_state_tap_volume;
 
-static void Proc_delay_clear_history(
-        const Device_impl* dimpl, Proc_state* proc_state);
+static void Delay_state_clear_history(Proc_state* proc_state);
 
 static void Delay_state_render_mixed(
         Device_state* dstate,
@@ -247,9 +246,6 @@ static bool Proc_delay_init(Device_impl* dimpl)
 
     // TODO: add control variable accessors
 
-    Processor_set_clear_history(
-            (Processor*)delay->parent.device, Proc_delay_clear_history);
-
     delay->max_delay = 2;
 
     for (int i = 0; i < TAPS_MAX; ++i)
@@ -285,6 +281,7 @@ static Device_state* Proc_delay_create_state(
     dlstate->parent.set_audio_rate = Delay_state_set_audio_rate;
     dlstate->parent.reset = Delay_state_reset;
     dlstate->parent.render_mixed = Delay_state_render_mixed;
+    dlstate->parent.clear_history = Delay_state_clear_history;
     dlstate->buf = NULL;
 
     dlstate->buf = new_Audio_buffer(delay->max_delay * audio_rate + 1);
@@ -435,10 +432,8 @@ static bool Proc_delay_set_state_tap_volume(
 }
 
 
-static void Proc_delay_clear_history(
-        const Device_impl* dimpl, Proc_state* proc_state)
+static void Delay_state_clear_history(Proc_state* proc_state)
 {
-    assert(dimpl != NULL);
     assert(proc_state != NULL);
 
     Delay_state* dlstate = (Delay_state*)proc_state;

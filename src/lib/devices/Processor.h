@@ -63,7 +63,6 @@ struct Processor
     bool enable_signal_support;
 
     void (*init_vstate)(const Processor*, const Proc_state*, Voice_state*);
-    void (*clear_history)(const Device_impl*, Proc_state*);
 };
 
 
@@ -120,26 +119,6 @@ void Processor_set_voice_feature(
  */
 bool Processor_is_voice_feature_enabled(
         const Processor* proc, int port_num, Voice_feature feature);
-
-
-/**
- * Set a function that clears the internal buffers of the Processor
- * implementation.
- *
- * \param proc   The Processor -- must not be \c NULL.
- * \param func   The clear function -- must not be \c NULL.
- */
-void Processor_set_clear_history(
-        Processor* proc, void(*func)(const Device_impl*, Proc_state*));
-
-
-/**
- * Clear the internal buffers (if any) of the Processor.
- *
- * \param proc         The Processor -- must not be \c NULL.
- * \param proc_state   The Processor state -- must not be \c NULL.
- */
-void Processor_clear_history(const Processor* proc, Proc_state* proc_state);
 
 
 /**

@@ -196,7 +196,7 @@ static Get_cv_float_controls_mut_func Proc_chorus_get_delay_variance;
 static Get_cv_float_controls_mut_func Proc_chorus_get_volume;
 
 
-static void Proc_chorus_clear_history(const Device_impl* dimpl, Proc_state* proc_state);
+static void Chorus_state_clear_history(Proc_state* proc_state);
 
 static void Chorus_state_render_mixed(
         Device_state* dstate,
@@ -230,9 +230,6 @@ static bool Proc_chorus_init(Device_impl* dimpl)
     Proc_chorus* chorus = (Proc_chorus*)dimpl;
 
     Device_set_state_creator(chorus->parent.device, Proc_chorus_create_state);
-
-    Processor_set_clear_history(
-            (Processor*)chorus->parent.device, Proc_chorus_clear_history);
 
     // Register key set/update handlers
     bool reg_success = true;
@@ -302,6 +299,7 @@ static Device_state* Proc_chorus_create_state(
     cstate->parent.set_audio_rate = Chorus_state_set_audio_rate;
     cstate->parent.reset = Chorus_state_reset;
     cstate->parent.render_mixed = Chorus_state_render_mixed;
+    cstate->parent.clear_history = Chorus_state_clear_history;
     cstate->buf = NULL;
     cstate->buf_pos = 0;
 
@@ -318,9 +316,8 @@ static Device_state* Proc_chorus_create_state(
 }
 
 
-static void Proc_chorus_clear_history(const Device_impl* dimpl, Proc_state* proc_state)
+static void Chorus_state_clear_history(Proc_state* proc_state)
 {
-    assert(dimpl != NULL);
     assert(proc_state != NULL);
 
     Chorus_state* cstate = (Chorus_state*)proc_state;

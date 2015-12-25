@@ -25,6 +25,9 @@
 #include <stdlib.h>
 
 
+typedef void Proc_state_clear_history_func(Proc_state*);
+
+
 struct Proc_state
 {
     Device_state parent;
@@ -37,6 +40,8 @@ struct Proc_state
     Device_state_set_tempo_func* set_tempo;
     Device_state_reset_func* reset;
     Device_state_render_mixed_func* render_mixed;
+
+    Proc_state_clear_history_func* clear_history;
 };
 
 
@@ -55,6 +60,14 @@ bool Proc_state_init(
         const Device* device,
         int32_t audio_rate,
         int32_t audio_buffer_size);
+
+
+/**
+ * Clear Processor state history.
+ *
+ * \param proc_state   The Processor state -- must not be \c NULL.
+ */
+void Proc_state_clear_history(Proc_state* proc_state);
 
 
 /**

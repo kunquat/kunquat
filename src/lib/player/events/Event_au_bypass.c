@@ -50,7 +50,7 @@ bool Event_au_bypass_on_process(
         {
             Proc_state* proc_state = (Proc_state*)Device_states_get_state(
                     dstates, Device_get_id((const Device*)proc));
-            Processor_clear_history(proc, proc_state);
+            Proc_state_clear_history(proc_state);
         }
     }
 
