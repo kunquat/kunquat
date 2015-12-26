@@ -406,7 +406,7 @@ static void fill_buf(float* buf, const Sample* sample)
 
 
 static bool Proc_add_set_base(
-        Device_impl* dimpl, Key_indices indices, const Sample* value)
+        Device_impl* dimpl, const Key_indices indices, const Sample* value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -420,7 +420,7 @@ static bool Proc_add_set_base(
 
 
 static bool Proc_add_set_ramp_attack(
-        Device_impl* dimpl, Key_indices indices, bool enabled)
+        Device_impl* dimpl, const Key_indices indices, bool enabled)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -433,7 +433,7 @@ static bool Proc_add_set_ramp_attack(
 
 
 static bool Proc_add_set_tone_pitch(
-        Device_impl* dimpl, Key_indices indices, double value)
+        Device_impl* dimpl, const Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -454,7 +454,7 @@ static bool Proc_add_set_tone_pitch(
 
 
 static bool Proc_add_set_tone_volume(
-        Device_impl* dimpl, Key_indices indices, double value)
+        Device_impl* dimpl, const Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -475,7 +475,7 @@ static bool Proc_add_set_tone_volume(
 
 
 static bool Proc_add_set_tone_panning(
-        Device_impl* dimpl, Key_indices indices, double value)
+        Device_impl* dimpl, const Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);

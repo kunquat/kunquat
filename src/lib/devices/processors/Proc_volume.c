@@ -242,7 +242,7 @@ static void Proc_state_volume_reset(Device_state* dstate)
 
 
 static bool Proc_volume_set_volume(
-        Device_impl* dimpl, Key_indices indices, double value)
+        Device_impl* dimpl, const Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -255,12 +255,8 @@ static bool Proc_volume_set_volume(
 
 
 static bool Proc_volume_set_state_volume(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Key_indices indices,
-        double value)
+        Device_state* dstate, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
     assert(isfinite(value));

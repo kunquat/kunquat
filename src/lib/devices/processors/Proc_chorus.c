@@ -348,7 +348,7 @@ static double get_voice_volume(double value)
 
 #define CHORUS_PARAM(name, dev_key, update_key, def_value)               \
     static bool Proc_chorus_set_voice_ ## name(                          \
-            Device_impl* dimpl, Key_indices indices, double value)       \
+            Device_impl* dimpl, const Key_indices indices, double value) \
     {                                                                    \
         assert(dimpl != NULL);                                           \
         assert(indices != NULL);                                         \
@@ -367,12 +367,8 @@ static double get_voice_volume(double value)
 
 
 static bool Proc_chorus_set_state_voice_delay(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Key_indices indices,
-        double value)
+        Device_state* dstate, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
     assert(isfinite(value));
@@ -401,12 +397,8 @@ static bool Proc_chorus_set_state_voice_delay(
 
 
 static bool Proc_chorus_set_state_voice_range(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Key_indices indices,
-        double value)
+        Device_state* dstate, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
     assert(isfinite(value));
@@ -431,12 +423,8 @@ static bool Proc_chorus_set_state_voice_range(
 
 
 static bool Proc_chorus_set_state_voice_speed(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Key_indices indices,
-        double value)
+        Device_state* dstate, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
     assert(isfinite(value));
@@ -456,12 +444,8 @@ static bool Proc_chorus_set_state_voice_speed(
 
 
 static bool Proc_chorus_set_state_voice_volume(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Key_indices indices,
-        double value)
+        Device_state* dstate, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
     assert(isfinite(value));

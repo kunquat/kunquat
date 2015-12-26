@@ -397,7 +397,8 @@ static void Freeverb_state_clear_history(Proc_state* proc_state)
 }
 
 
-static bool Proc_freeverb_set_refl(Device_impl* dimpl, Key_indices indices, double value)
+static bool Proc_freeverb_set_refl(
+        Device_impl* dimpl, const Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -415,7 +416,8 @@ static bool Proc_freeverb_set_refl(Device_impl* dimpl, Key_indices indices, doub
 }
 
 
-static bool Proc_freeverb_set_damp(Device_impl* dimpl, Key_indices indices, double value)
+static bool Proc_freeverb_set_damp(
+        Device_impl* dimpl, const Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);

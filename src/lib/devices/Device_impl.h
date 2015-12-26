@@ -36,10 +36,10 @@
 
 // typedefs for value setter callbacks
 
-#define SET_FUNC_TYPE(name, actual_type)                                          \
-    typedef bool (Set_ ## name ## _func)(Device_impl*, Key_indices, actual_type); \
-    typedef bool (Set_state_ ## name ## _func)(                                   \
-            const Device_impl*, Device_state*, Key_indices, actual_type)
+#define SET_FUNC_TYPE(name, param_type)                                                \
+    typedef bool (Set_ ## name ## _func)(Device_impl*, const Key_indices, param_type); \
+    typedef bool (Set_state_ ## name ## _func)(                                        \
+            Device_state*, const Key_indices, param_type)
 SET_FUNC_TYPE(bool,             bool);
 SET_FUNC_TYPE(int,              int64_t);
 SET_FUNC_TYPE(float,            double);

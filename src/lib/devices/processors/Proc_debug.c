@@ -206,7 +206,7 @@ static int32_t Debug_state_render_voice(
 
 
 static bool Proc_debug_set_single_pulse(
-        Device_impl* dimpl, Key_indices indices, bool value)
+        Device_impl* dimpl, const Key_indices indices, bool value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);

@@ -134,7 +134,8 @@ static bool Proc_gc_init(Device_impl* dimpl)
 }
 
 
-static bool Proc_gc_set_map_enabled(Device_impl* dimpl, Key_indices indices, bool value)
+static bool Proc_gc_set_map_enabled(
+        Device_impl* dimpl, const Key_indices indices, bool value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -147,7 +148,7 @@ static bool Proc_gc_set_map_enabled(Device_impl* dimpl, Key_indices indices, boo
 
 
 static bool Proc_gc_set_map(
-        Device_impl* dimpl, Key_indices indices, const Envelope* value)
+        Device_impl* dimpl, const Key_indices indices, const Envelope* value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);

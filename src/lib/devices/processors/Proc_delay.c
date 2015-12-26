@@ -318,7 +318,7 @@ static double get_tap_volume(double value)
 
 
 static bool Proc_delay_set_max_delay(
-        Device_impl* dimpl, Key_indices indices, double value)
+        Device_impl* dimpl, const Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -331,7 +331,7 @@ static bool Proc_delay_set_max_delay(
 
 
 static bool Proc_delay_set_tap_delay(
-        Device_impl* dimpl, Key_indices indices, double value)
+        Device_impl* dimpl, const Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -347,7 +347,7 @@ static bool Proc_delay_set_tap_delay(
 
 
 static bool Proc_delay_set_tap_volume(
-        Device_impl* dimpl, Key_indices indices, double value)
+        Device_impl* dimpl, const Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -363,12 +363,8 @@ static bool Proc_delay_set_tap_volume(
 
 
 static bool Proc_delay_set_state_max_delay(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Key_indices indices,
-        double value)
+        Device_state* dstate, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
 
@@ -384,12 +380,8 @@ static bool Proc_delay_set_state_max_delay(
 
 
 static bool Proc_delay_set_state_tap_delay(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Key_indices indices,
-        double value)
+        Device_state* dstate, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
     assert(isfinite(value));
@@ -397,7 +389,7 @@ static bool Proc_delay_set_state_tap_delay(
     if (indices[0] < 0 || indices[0] >= TAPS_MAX)
         return true;
 
-    const Proc_delay* delay = (const Proc_delay*)dimpl;
+    const Proc_delay* delay = (const Proc_delay*)dstate->device->dimpl;
     Delay_state* dlstate = (Delay_state*)dstate;
     Tap_state_set(
             &dlstate->tap_states[indices[0]],
@@ -412,12 +404,8 @@ static bool Proc_delay_set_state_tap_delay(
 
 
 static bool Proc_delay_set_state_tap_volume(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Key_indices indices,
-        double value)
+        Device_state* dstate, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
     assert(isfinite(value));

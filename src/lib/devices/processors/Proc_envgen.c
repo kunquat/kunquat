@@ -329,7 +329,7 @@ static int32_t Envgen_state_render_voice(
 
 
 static bool Proc_envgen_set_scale(
-        Device_impl* dimpl, Key_indices indices, double value)
+        Device_impl* dimpl, const Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -342,7 +342,7 @@ static bool Proc_envgen_set_scale(
 
 
 static bool Proc_envgen_set_time_env_enabled(
-        Device_impl* dimpl, Key_indices indices, bool value)
+        Device_impl* dimpl, const Key_indices indices, bool value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -355,7 +355,7 @@ static bool Proc_envgen_set_time_env_enabled(
 
 
 static bool Proc_envgen_set_time_env(
-        Device_impl* dimpl, Key_indices indices, const Envelope* value)
+        Device_impl* dimpl, const Key_indices indices, const Envelope* value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -398,7 +398,7 @@ static bool Proc_envgen_set_time_env(
 
 
 static bool Proc_envgen_set_loop_enabled(
-        Device_impl* dimpl, Key_indices indices, bool value)
+        Device_impl* dimpl, const Key_indices indices, bool value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -411,7 +411,7 @@ static bool Proc_envgen_set_loop_enabled(
 
 
 static bool Proc_envgen_set_env_scale_amount(
-        Device_impl* dimpl, Key_indices indices, double value)
+        Device_impl* dimpl, const Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -424,7 +424,7 @@ static bool Proc_envgen_set_env_scale_amount(
 
 
 static bool Proc_envgen_set_env_scale_center(
-        Device_impl* dimpl, Key_indices indices, double value)
+        Device_impl* dimpl, const Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -437,7 +437,7 @@ static bool Proc_envgen_set_env_scale_center(
 
 
 static bool Proc_envgen_set_force_env_enabled(
-        Device_impl* dimpl, Key_indices indices, bool value)
+        Device_impl* dimpl, const Key_indices indices, bool value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -450,7 +450,7 @@ static bool Proc_envgen_set_force_env_enabled(
 
 
 static bool Proc_envgen_set_force_env(
-        Device_impl* dimpl, Key_indices indices, const Envelope* value)
+        Device_impl* dimpl, const Key_indices indices, const Envelope* value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -495,7 +495,7 @@ static bool Proc_envgen_set_force_env(
 
 
 static bool Proc_envgen_set_y_range(
-        Device_impl* dimpl, Key_indices indices, const Num_list* value)
+        Device_impl* dimpl, const Key_indices indices, const Num_list* value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);

@@ -515,9 +515,7 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key)
 
 
 bool Device_impl_set_state_key(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        const char* key)
+        const Device_impl* dimpl, Device_state* dstate, const char* key)
 {
     assert(dimpl != NULL);
     assert(key != NULL);
@@ -533,32 +531,29 @@ bool Device_impl_set_state_key(
     const Set_cb* set_cb = AAtree_get_exact(dimpl->set_cbs, keyp);
     if (set_cb != NULL)
     {
-#define SET_FIELD(type_name, type)                                 \
-        if (true)                                                  \
-        {                                                          \
-            const type* dval = Device_params_get_ ## type_name(    \
-                    dimpl->device->dparams, key);                  \
-            const type val = (dval != NULL) ?                      \
-                *dval : set_cb->cb.type_name ## _type.default_val; \
-            if (set_cb->cb.type_name ## _type.set_state != NULL)   \
-                return set_cb->cb.type_name ## _type.set_state(    \
-                        dimpl, dstate, indices, val);              \
-        }                                                          \
+#define SET_FIELD(type_name, type)                                                    \
+        if (true)                                                                     \
+        {                                                                             \
+            const type* dval = Device_params_get_ ## type_name(                       \
+                    dimpl->device->dparams, key);                                     \
+            const type val = (dval != NULL) ?                                         \
+                *dval : set_cb->cb.type_name ## _type.default_val;                    \
+            if (set_cb->cb.type_name ## _type.set_state != NULL)                      \
+                return set_cb->cb.type_name ## _type.set_state(dstate, indices, val); \
+        }                                                                             \
         else (void)0
 
-#define SET_FIELDP(type_name, type)                              \
-        if (true)                                                \
-        {                                                        \
-            const type* val = Device_params_get_ ## type_name(   \
-                    dimpl->device->dparams, key);                \
-            if (set_cb->cb.type_name ## _type.set_state != NULL) \
-                return set_cb->cb.type_name ## _type.set_state(  \
-                        dimpl, dstate, indices, val);            \
-        }                                                        \
+#define SET_FIELDP(type_name, type)                                                   \
+        if (true)                                                                     \
+        {                                                                             \
+            const type* val = Device_params_get_ ## type_name(                        \
+                    dimpl->device->dparams, key);                                     \
+            if (set_cb->cb.type_name ## _type.set_state != NULL)                      \
+                return set_cb->cb.type_name ## _type.set_state(dstate, indices, val); \
+        }                                                                             \
         else (void)0
 
-        const Device_field_type dftype = get_keyp_device_field_type(
-                set_cb->key_pattern);
+        const Device_field_type dftype = get_keyp_device_field_type(set_cb->key_pattern);
         assert(dftype != DEVICE_FIELD_NONE);
 
         switch (dftype)
@@ -581,8 +576,7 @@ bool Device_impl_set_state_key(
                         dimpl->device->dparams, key);
                 const Tstamp* val = (dval != NULL)
                     ? dval : &set_cb->cb.tstamp_type.default_val;
-                return set_cb->cb.tstamp_type.set_state(
-                        dimpl, dstate, indices, val);
+                return set_cb->cb.tstamp_type.set_state(dstate, indices, val);
             }
             break;
 
