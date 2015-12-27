@@ -380,6 +380,8 @@ bool Device_set_key(Device* device, const char* key, Streader* sr);
 /**
  * Notify a Device state of a Device key change.
  *
+ * This function is called after the corresponding call of \a Device_set_key.
+ *
  * \param device    The Device -- must not be \c NULL.
  * \param dstates   The Device state collection -- must not be \c NULL.
  * \param key       The key -- must be valid.
