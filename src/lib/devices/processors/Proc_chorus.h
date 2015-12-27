@@ -22,6 +22,31 @@
 #include <stdlib.h>
 
 
+#define CHORUS_BUF_TIME 0.25
+#define CHORUS_VOICES_MAX 32
+
+#define CHORUS_DB_MAX 18
+#define CHORUS_DELAY_SCALE (1.0 / 1000.0) // delay parameter is in milliseconds
+#define CHORUS_DELAY_MAX (CHORUS_BUF_TIME * 1000.0 / 2.0)
+
+
+typedef struct Chorus_voice_params
+{
+    double delay;
+    double range;
+    double speed;
+    double volume;
+} Chorus_voice_params;
+
+
+typedef struct Proc_chorus
+{
+    Device_impl parent;
+
+    Chorus_voice_params voice_params[CHORUS_VOICES_MAX];
+} Proc_chorus;
+
+
 /**
  * Create a new chorus Processor.
  *
