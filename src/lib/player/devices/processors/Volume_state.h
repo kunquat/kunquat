@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_VOLUME_STATES_H
-#define K_VOLUME_STATES_H
+#ifndef K_VOLUME_STATE_H
+#define K_VOLUME_STATE_H
 
 
 #include <Decl.h>
@@ -43,6 +43,6 @@ Proc_state_get_cv_float_controls_mut_func Volume_pstate_get_cv_controls_volume;
 Voice_state_get_cv_float_controls_mut_func Volume_vstate_get_cv_controls_volume;
 
 
-#endif // K_PROC_VOLUME_STATE_H
+#endif // K_VOLUME_STATE_H
 
 

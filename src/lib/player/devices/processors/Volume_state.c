@@ -12,7 +12,7 @@
  */
 
 
-#include <player/devices/processors/Volume_states.h>
+#include <player/devices/processors/Volume_state.h>
 
 #include <devices/Device.h>
 #include <devices/processors/Proc_utils.h>
@@ -28,11 +28,11 @@
 #include <stdlib.h>
 
 
-typedef struct Volume_state
+typedef struct Volume_pstate
 {
     Proc_state parent;
     Linear_controls volume;
-} Volume_state;
+} Volume_pstate;
 
 
 static bool Volume_pstate_set_audio_rate(Device_state* dstate, int32_t audio_rate)
@@ -40,7 +40,7 @@ static bool Volume_pstate_set_audio_rate(Device_state* dstate, int32_t audio_rat
     assert(dstate != NULL);
     assert(audio_rate > 0);
 
-    Volume_state* vol_state = (Volume_state*)dstate;
+    Volume_pstate* vol_state = (Volume_pstate*)dstate;
     Linear_controls_set_audio_rate(&vol_state->volume, audio_rate);
 
     return true;
@@ -52,7 +52,7 @@ static void Volume_pstate_set_tempo(Device_state* dstate, double tempo)
     assert(dstate != NULL);
     assert(tempo > 0);
 
-    Volume_state* vol_state = (Volume_state*)dstate;
+    Volume_pstate* vol_state = (Volume_pstate*)dstate;
     Linear_controls_set_tempo(&vol_state->volume, tempo);
 
     return;
@@ -63,7 +63,7 @@ static void Volume_pstate_reset(Device_state* dstate)
 {
     assert(dstate != NULL);
 
-    Volume_state* vol_state = (Volume_state*)dstate;
+    Volume_pstate* vol_state = (Volume_pstate*)dstate;
     const Device_impl* dimpl = dstate->device->dimpl;
 
     Linear_controls_init(&vol_state->volume);
@@ -86,7 +86,7 @@ bool Volume_pstate_set_volume(
     assert(indices != NULL);
     assert(isfinite(value));
 
-    Volume_state* vol_state = (Volume_state*)dstate;
+    Volume_pstate* vol_state = (Volume_pstate*)dstate;
     Linear_controls_set_value(&vol_state->volume, value);
 
     return true;
@@ -105,7 +105,7 @@ void Volume_pstate_render_mixed(
     assert(isfinite(tempo));
     assert(tempo > 0);
 
-    Volume_state* vol_state = (Volume_state*)dstate;
+    Volume_pstate* vol_state = (Volume_pstate*)dstate;
 
     // Update real-time control
     static const int CONTROL_WORK_BUFFER_VOLUME = WORK_BUFFER_IMPL_1;
@@ -140,7 +140,7 @@ Device_state* new_Volume_pstate(
     assert(audio_rate > 0);
     assert(audio_buffer_size >= 0);
 
-    Volume_state* vol_state = memory_alloc_item(Volume_state);
+    Volume_pstate* vol_state = memory_alloc_item(Volume_pstate);
     if ((vol_state == NULL) ||
             !Proc_state_init(&vol_state->parent, device, audio_rate, audio_buffer_size))
     {
@@ -167,7 +167,7 @@ Linear_controls* Volume_pstate_get_cv_controls_volume(
     assert(dstate != NULL);
     ignore(indices);
 
-    Volume_state* vol_state = (Volume_state*)dstate;
+    Volume_pstate* vol_state = (Volume_pstate*)dstate;
 
     return &vol_state->volume;
 }

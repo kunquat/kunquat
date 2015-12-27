@@ -21,7 +21,7 @@
 #include <mathnum/conversions.h>
 #include <player/Linear_controls.h>
 #include <player/devices/Proc_state.h>
-#include <player/devices/processors/Volume_states.h>
+#include <player/devices/processors/Volume_state.h>
 #include <string/common.h>
 #include <memory.h>
 

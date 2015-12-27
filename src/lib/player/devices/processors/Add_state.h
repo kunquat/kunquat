@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_ADD_STATES_H
-#define K_ADD_STATES_H
+#ifndef K_ADD_STATE_H
+#define K_ADD_STATE_H
 
 
 #include <Decl.h>
@@ -30,6 +30,6 @@ size_t Add_vstate_get_size(void);
 void Add_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
 
 
-#endif // K_ADD_STATES_H
+#endif // K_ADD_STATE_H
 
 
