@@ -16,11 +16,34 @@
 #define K_PROC_ADD_H
 
 
+#include <Decl.h>
 #include <devices/Device_impl.h>
 #include <devices/Processor.h>
 
 #include <stdint.h>
 #include <stdlib.h>
+
+
+#define ADD_TONES_MAX 32
+#define ADD_BASE_FUNC_SIZE 4096
+
+
+typedef struct Add_tone
+{
+    double pitch_factor;
+    double volume_factor;
+    double panning;
+} Add_tone;
+
+
+typedef struct Proc_add
+{
+    Device_impl parent;
+
+    Sample* base;
+    bool is_ramp_attack_enabled;
+    Add_tone tones[ADD_TONES_MAX];
+} Proc_add;
 
 
 /**

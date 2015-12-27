@@ -30,7 +30,7 @@
 /**
  * Sample contains a digital sound sample.
  */
-typedef struct Sample
+struct Sample
 {
 //    Sample_params params;
 //    char* path;           ///< The path of the file (if applicable -- otherwise NULL).
@@ -41,7 +41,7 @@ typedef struct Sample
     bool is_float;        ///< Whether this sample is in floating point format.
     uint64_t len;         ///< The length of the sample (in amplitude values per channel).
     void* data[2];        ///< The sample data.
-} Sample;
+};
 
 
 /**

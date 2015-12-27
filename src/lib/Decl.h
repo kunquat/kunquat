@@ -28,6 +28,7 @@ typedef struct Linear_controls Linear_controls;
 typedef struct Module Module;
 typedef struct Proc_state Proc_state;
 typedef struct Processor Processor;
+typedef struct Sample Sample;
 typedef struct Tstamp Tstamp;
 typedef struct Value Value;
 typedef struct Voice_state Voice_state;
