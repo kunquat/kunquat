@@ -22,6 +22,13 @@
 #include <stdlib.h>
 
 
+typedef struct Proc_debug
+{
+    Device_impl parent;
+    bool single_pulse;
+} Proc_debug;
+
+
 /**
  * Create a new Debug Processor.
  *
