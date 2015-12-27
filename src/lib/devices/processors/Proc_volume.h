@@ -22,6 +22,13 @@
 #include <stdlib.h>
 
 
+typedef struct Proc_volume
+{
+    Device_impl parent;
+    double scale;
+} Proc_volume;
+
+
 /**
  * Create a new volume Processor.
  *
