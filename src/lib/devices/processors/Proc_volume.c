@@ -32,13 +32,6 @@
 #include <string.h>
 
 
-typedef struct Volume_state
-{
-    Proc_state parent;
-    Linear_controls volume;
-} Volume_state;
-
-
 static Set_float_func Proc_volume_set_volume;
 
 static bool Proc_volume_init(Device_impl* dimpl);
