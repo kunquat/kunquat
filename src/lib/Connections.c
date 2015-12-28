@@ -38,14 +38,6 @@ struct Connections
 
 
 /**
- * Resets the graph for searching purposes.
- *
- * \param graph   The Connections -- must not be \c NULL.
- */
-static void Connections_reset(Connections* graph);
-
-
-/**
  * Tells whether there is a cycle inside Connections.
  *
  * All Connections must be acyclic.
@@ -54,7 +46,7 @@ static void Connections_reset(Connections* graph);
  *
  * \return   \c true if there is a cycle in \a graph, otherwise \c false.
  */
-static bool Connections_is_cyclic(Connections* graph);
+static bool Connections_is_cyclic(const Connections* graph);
 
 
 /**
@@ -215,10 +207,7 @@ Connections* new_Connections_from_string(
     mem_error_if(!AAtree_ins(graph->nodes, master_node), graph, master_node, sr);
 
     if (!Streader_has_data(sr))
-    {
-        Connections_reset(graph);
         return graph;
-    }
 
     read_conn_data rcdata = { graph, level, au_table, master };
     if (!Streader_read_list(sr, read_connection, &rcdata))
@@ -233,8 +222,6 @@ Connections* new_Connections_from_string(
         del_Connections(graph);
         return NULL;
     }
-
-    Connections_reset(graph);
 
     return graph;
 }
@@ -287,11 +274,11 @@ bool Connections_init_buffers(Connections* graph, Device_states* states)
 
     Device_node* master = AAtree_get_exact(graph->nodes, "");
     assert(master != NULL);
-    Device_node_reset(master);
+    Device_states_reset_node_states(states);
     if (!Device_node_init_buffers_simple(master, states))
         return false;
 
-    Device_node_reset(master);
+    Device_states_reset_node_states(states);
     return Device_node_init_effect_buffers(master, states);
 }
 
@@ -307,7 +294,7 @@ void Connections_clear_buffers(
     if (start >= until)
         return;
 
-    Device_node_reset(master);
+    Device_states_reset_node_states(states);
     Device_node_clear_buffers(master, states, start, until);
 
     return;
@@ -338,7 +325,7 @@ void Connections_process_voice_group(
     if (buf_start >= buf_stop)
         return;
 
-    Device_node_reset(master);
+    Device_states_reset_node_states(dstates);
     Device_node_process_voice_group(
             master, vgroup, dstates, wbs, buf_start, buf_stop, audio_rate, tempo);
 
@@ -377,44 +364,45 @@ void Connections_mix(
 //    fprintf(stderr, "Mix process:\n");
 #endif
 
-    Device_node_reset(master);
+    Device_states_reset_node_states(states);
     Device_node_mix(master, states, wbs, start, until, freq, tempo);
 
     return;
 }
 
 
-static void Connections_reset(Connections* graph)
+static bool Connections_is_cyclic(const Connections* graph)
 {
     assert(graph != NULL);
 
-    const char* name = "";
-    Device_node* node = AAiter_get_at_least(graph->iter, name);
-    while (node != NULL)
+    // Reset testing states
     {
-        Device_node_set_state(node, DEVICE_NODE_STATE_NEW);
-        node = AAiter_get_next(graph->iter);
+        AAiter* iter = AAITER_AUTO;
+        AAiter_change_tree(iter, graph->nodes);
+
+        Device_node* node = AAiter_get_at_least(iter, "");
+        while (node != NULL)
+        {
+            Device_node_reset_cycle_test_state(node);
+            node = AAiter_get_next(iter);
+        }
     }
 
-    return;
-}
-
-
-static bool Connections_is_cyclic(Connections* graph)
-{
-    assert(graph != NULL);
-
-    Connections_reset(graph);
-    const char* name = "";
-    Device_node* node = AAiter_get_at_least(graph->iter, name);
-    while (node != NULL)
+    // Test for cycles
     {
-        assert(Device_node_get_state(node) != DEVICE_NODE_STATE_REACHED);
-        if (Device_node_cycle_in_path(node))
-            return true;
+        AAiter* iter = AAITER_AUTO;
+        AAiter_change_tree(iter, graph->nodes);
 
-        node = AAiter_get_next(graph->iter);
+        Device_node* node = AAiter_get_at_least(iter, "");
+        while (node != NULL)
+        {
+            if (Device_node_cycle_in_path(node))
+                return true;
+
+            node = AAiter_get_next(iter);
+        }
     }
+
     return false;
 }
 

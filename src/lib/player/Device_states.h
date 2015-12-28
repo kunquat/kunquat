@@ -120,6 +120,14 @@ void Device_states_reset(Device_states* states);
 
 
 /**
+ * Reset the graph search node states in the Device states.
+ *
+ * \param states   The Device states -- must not be \c NULL.
+ */
+void Device_states_reset_node_states(Device_states* states);
+
+
+/**
  * Destroy a Device state collection.
  *
  * \param dsc   The Device states, or \c NULL.

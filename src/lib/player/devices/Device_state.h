@@ -35,6 +35,19 @@ typedef enum
 } Device_port_type;
 
 
+/**
+ * The state of a Device node during a graph search. These are sometimes
+ * referred to as the colours white, grey and black.
+ */
+typedef enum
+{
+    DEVICE_NODE_STATE_NEW = 0,
+    DEVICE_NODE_STATE_REACHED,
+    DEVICE_NODE_STATE_VISITED,
+    DEVICE_NODE_STATE_COUNT
+} Device_node_state;
+
+
 typedef bool Device_state_set_audio_rate_func(Device_state*, int32_t audio_rate);
 typedef bool Device_state_set_audio_buffer_size_func(Device_state*, int32_t buffer_size);
 typedef void Device_state_set_tempo_func(Device_state*, double tempo);
@@ -55,6 +68,8 @@ struct Device_state
 {
     uint32_t device_id;
     const Device* device;
+
+    Device_node_state node_state;
 
     int32_t audio_rate;
     int32_t audio_buffer_size;
@@ -128,6 +143,25 @@ int Device_state_cmp(const Device_state* ds1, const Device_state* ds2);
  * \return   The Device.
  */
 const Device* Device_state_get_device(const Device_state* ds);
+
+
+/**
+ * Set the node state of the Device state.
+ *
+ * \param ds           The Device state -- must not be \c NULL.
+ * \param node_state   The node state -- must be < \c DEVICE_NODE_STATE_COUNT.
+ */
+void Device_state_set_node_state(Device_state* ds, Device_node_state node_state);
+
+
+/**
+ * Get the node state of the Device state.
+ *
+ * \param ds   The Device state -- must not be \c NULL.
+ *
+ * \return   The node state.
+ */
+Device_node_state Device_state_get_node_state(const Device_state* ds);
 
 
 /**

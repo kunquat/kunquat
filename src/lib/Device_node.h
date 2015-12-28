@@ -26,18 +26,6 @@
 #include <stdio.h>
 
 
-/**
- * The state of a Device node during a search. These are sometimes referred to
- * as the colours white, grey and black.
- */
-typedef enum
-{
-    DEVICE_NODE_STATE_NEW = 0,
-    DEVICE_NODE_STATE_REACHED,
-    DEVICE_NODE_STATE_VISITED
-} Device_node_state;
-
-
 #define KQT_DEVICE_NODE_NAME_MAX 32
 #define DEVICE_CONNECTION_ERROR_LENGTH_MAX 256
 
@@ -104,17 +92,6 @@ void Device_node_init_processor_voice_cut_settings(Device_node* node);
  */
 bool Device_node_check_connections(
         const Device_node* node, char err[DEVICE_CONNECTION_ERROR_LENGTH_MAX]);
-
-
-/**
- * Reset the Device node and its subgraph.
- *
- * This function assumes that if the underlying Connections graph is not
- * reset, all its nodes have been marked at least reached.
- *
- * \param node   The Device node -- must not be \c NULL.
- */
-void Device_node_reset(Device_node* node);
 
 
 /**
@@ -222,25 +199,6 @@ const Device* Device_node_get_device(const Device_node* node);
 
 
 /**
- * Set the node state of the Device node.
- *
- * \param node    The Device node -- must not be \c NULL.
- * \param state   The state -- must be valid.
- */
-void Device_node_set_state(Device_node* node, Device_node_state state);
-
-
-/**
- * Get the node state of the Device node.
- *
- * \param node   The Device node -- must not be \c NULL.
- *
- * \return   The state.
- */
-Device_node_state Device_node_get_state(const Device_node* node);
-
-
-/**
  * Connect two Device nodes.
  *
  * \param receiver    The Device node that receives audio -- must not
@@ -316,6 +274,16 @@ Device_node* Device_node_get_receiver(Device_node* node, int send_port, int* rec
  * \return   The next neighbour if one exists, otherwise \c NULL.
  */
 Device_node* Device_node_get_next(Device_node* node, int* port);
+
+
+/**
+ * Reset cycle test status of the Device node.
+ *
+ * This function does not recurse to connected nodes.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ */
+void Device_node_reset_cycle_test_state(Device_node* node);
 
 
 /**

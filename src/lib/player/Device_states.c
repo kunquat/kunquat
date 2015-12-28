@@ -218,6 +218,25 @@ void Device_states_reset(Device_states* states)
 }
 
 
+void Device_states_reset_node_states(Device_states* states)
+{
+    assert(states != NULL);
+
+    AAiter* iter = AAITER_AUTO;
+    AAiter_change_tree(iter, states->states);
+
+    Device_state* ds = AAiter_get_at_least(iter, DEVICE_STATE_KEY(0));
+
+    while (ds != NULL)
+    {
+        Device_state_set_node_state(ds, DEVICE_NODE_STATE_NEW);
+        ds = AAiter_get_next(iter);
+    }
+
+    return;
+}
+
+
 void del_Device_states(Device_states* states)
 {
     if (states == NULL)

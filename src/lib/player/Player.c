@@ -576,7 +576,6 @@ void Player_play(Player* player, int32_t nframes)
 
     nframes = min(nframes, player->audio_buffer_size);
 
-    // TODO: separate data and playback state in connections
     Connections* connections = player->module->connections;
     assert(connections != NULL);
 

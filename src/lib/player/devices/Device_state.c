@@ -38,6 +38,9 @@ void Device_state_init(
 
     ds->device = device;
     ds->device_id = Device_get_id(ds->device);
+
+    ds->node_state = DEVICE_NODE_STATE_NEW;
+
     ds->audio_rate = audio_rate;
     ds->audio_buffer_size = audio_buffer_size;
 
@@ -94,6 +97,24 @@ const Device* Device_state_get_device(const Device_state* ds)
 {
     assert(ds != NULL);
     return ds->device;
+}
+
+
+void Device_state_set_node_state(Device_state* ds, Device_node_state node_state)
+{
+    assert(ds != NULL);
+    assert(node_state < DEVICE_NODE_STATE_COUNT);
+
+    ds->node_state = node_state;
+
+    return;
+}
+
+
+Device_node_state Device_state_get_node_state(const Device_state* ds)
+{
+    assert(ds != NULL);
+    return ds->node_state;
 }
 
 
