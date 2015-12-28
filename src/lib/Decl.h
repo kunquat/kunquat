@@ -24,6 +24,7 @@ typedef struct Connections Connections;
 typedef struct Device Device;
 typedef struct Device_impl Device_impl;
 typedef struct Device_state Device_state;
+typedef struct Envelope Envelope;
 typedef struct Linear_controls Linear_controls;
 typedef struct Module Module;
 typedef struct Proc_state Proc_state;

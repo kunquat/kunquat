@@ -18,6 +18,7 @@
 
 #include <string/Streader.h>
 
+#include <Decl.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -40,13 +41,6 @@ typedef enum
     // Sentinel value -- not a valid setting.
     ENVELOPE_INT_LAST
 } Envelope_int;
-
-
-/**
- * Envelope defines a mapping from one type of a value to another. They are
- * mostly used inside Audio units.
- */
-typedef struct Envelope Envelope;
 
 
 /**
