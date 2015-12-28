@@ -22,6 +22,25 @@
 #include <stdlib.h>
 
 
+#define DELAY_TAPS_MAX 32
+
+
+typedef struct Delay_tap
+{
+    double delay;
+    double scale;
+} Delay_tap;
+
+
+typedef struct Proc_delay
+{
+    Device_impl parent;
+
+    double max_delay;
+    Delay_tap taps[DELAY_TAPS_MAX];
+} Proc_delay;
+
+
 /**
  * Create a new delay Processor.
  *
