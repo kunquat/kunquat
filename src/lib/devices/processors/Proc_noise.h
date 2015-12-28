@@ -23,6 +23,12 @@
 #include <stdlib.h>
 
 
+typedef struct Proc_noise
+{
+    Device_impl parent;
+} Proc_noise;
+
+
 /**
  * Create a new Noise Processor.
  *
