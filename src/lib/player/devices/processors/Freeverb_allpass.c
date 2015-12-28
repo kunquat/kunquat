@@ -12,7 +12,7 @@
  */
 
 
-#include <devices/processors/Freeverb_allpass.h>
+#include <player/devices/processors/Freeverb_allpass.h>
 
 #include <debug/assert.h>
 #include <mathnum/common.h>

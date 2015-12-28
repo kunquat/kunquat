@@ -12,7 +12,7 @@
  */
 
 
-#include <devices/processors/Freeverb_comb.h>
+#include <player/devices/processors/Freeverb_comb.h>
 
 #include <debug/assert.h>
 #include <mathnum/common.h>

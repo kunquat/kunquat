@@ -22,6 +22,24 @@
 #include <stdlib.h>
 
 
+typedef struct Proc_freeverb
+{
+    Device_impl parent;
+
+    double gain;
+    double reflect;
+    double reflect1;
+    double damp;
+    double damp1;
+    double wet;
+    double wet1;
+    double wet2;
+    double width;
+    double reflect_setting;
+    double damp_setting;
+} Proc_freeverb;
+
+
 /**
  * Create a new Freeverb Processor.
  *
