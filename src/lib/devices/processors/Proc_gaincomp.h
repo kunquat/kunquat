@@ -16,10 +16,20 @@
 #define K_PROC_GC_H
 
 
+#include <Decl.h>
 #include <devices/Device_impl.h>
 #include <devices/Processor.h>
 
 #include <stdlib.h>
+
+
+typedef struct Proc_gaincomp
+{
+    Device_impl parent;
+
+    bool is_map_enabled;
+    const Envelope* map;
+} Proc_gaincomp;
 
 
 /**
