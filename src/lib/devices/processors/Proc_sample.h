@@ -29,6 +29,12 @@
 #define SAMPLE_RANDOMS_MAX (8)
 
 
+typedef struct Proc_sample
+{
+    Device_impl parent;
+} Proc_sample;
+
+
 /**
  * Create a new Sample Processor.
  *
