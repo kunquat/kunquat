@@ -13,7 +13,7 @@
  */
 
 
-#include <Filter.h>
+#include <player/devices/Filter.h>
 
 #include <debug/assert.h>
 #include <mathnum/common.h>
@@ -271,7 +271,7 @@ double iir_filter_strict_cascade(
 
     for (int i = 0; i < (n & ~((int)1)); i += 2)
     {
-        var -= coeffs[i  ] * buf[i  ] + 
+        var -= coeffs[i  ] * buf[i  ] +
                coeffs[i+1] * buf[i+1];
         buf[i  ] = buf[i+1];
         buf[i+1] = var;

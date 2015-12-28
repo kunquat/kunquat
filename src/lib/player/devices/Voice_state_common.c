@@ -16,11 +16,11 @@
 
 #include <debug/assert.h>
 #include <devices/Processor.h>
-#include <player/devices/processors/Proc_utils.h>
-#include <Filter.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <player/Audio_buffer.h>
+#include <player/devices/Filter.h>
+#include <player/devices/processors/Proc_utils.h>
 #include <player/devices/Voice_state.h>
 #include <player/Pitch_controls.h>
 #include <player/Work_buffers.h>

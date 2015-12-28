@@ -16,7 +16,6 @@
 
 #include <debug/assert.h>
 #include <devices/Proc_type.h>
-#include <Filter.h>
 #include <memory.h>
 #include <player/Channel.h>
 #include <player/Voice.h>
