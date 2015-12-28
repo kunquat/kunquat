@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_CHORUS_STATES_H
-#define K_CHORUS_STATES_H
+#ifndef K_CHORUS_STATE_H
+#define K_CHORUS_STATE_H
 
 
 #include <Decl.h>
@@ -41,6 +41,6 @@ Proc_state_get_cv_float_controls_mut_func Chorus_pstate_get_cv_delay_variance;
 Proc_state_get_cv_float_controls_mut_func Chorus_pstate_get_cv_volume;
 
 
-#endif // K_CHORUS_STATES_H
+#endif // K_CHORUS_STATE_H
 
 
