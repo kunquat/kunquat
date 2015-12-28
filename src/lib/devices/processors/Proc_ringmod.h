@@ -22,6 +22,12 @@
 #include <stdlib.h>
 
 
+typedef struct Proc_ringmod
+{
+    Device_impl parent;
+} Proc_ringmod;
+
+
 /**
  * Create a new Ring modulator Processor.
  *

@@ -1,0 +1,33 @@
+
+
+/*
+ * Author: Tomi Jylhä-Ollila, Finland 2015
+ *
+ * This file is part of Kunquat.
+ *
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
+ *
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
+ */
+
+
+#ifndef K_RINGMOD_STATE_H
+#define K_RINGMOD_STATE_H
+
+
+#include <Decl.h>
+
+#include <stdint.h>
+
+
+Device_state* new_Ringmod_pstate(
+        const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
+
+
+void Ringmod_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
+
+
+#endif // K_RINGMOD_STATE_H
+
+
