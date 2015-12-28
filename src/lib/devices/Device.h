@@ -16,7 +16,6 @@
 #define K_DEVICE_H
 
 
-#include <Audio_buffer.h>
 #include <Decl.h>
 #include <devices/Device_params.h>
 #include <kunquat/limits.h>

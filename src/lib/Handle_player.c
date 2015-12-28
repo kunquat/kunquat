@@ -14,7 +14,6 @@
 
 #include <Handle_private.h>
 
-#include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <kunquat/Player.h>
 #include <kunquat/limits.h>

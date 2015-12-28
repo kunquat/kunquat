@@ -14,11 +14,11 @@
 
 #include <player/devices/processors/Chorus_state.h>
 
-#include <Audio_buffer.h>
 #include <devices/processors/Proc_chorus.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <memory.h>
+#include <player/Audio_buffer.h>
 #include <player/devices/processors/Proc_utils.h>
 #include <player/Linear_controls.h>
 #include <player/Player.h>

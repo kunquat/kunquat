@@ -12,7 +12,7 @@
  */
 
 
-#include <Audio_buffer.h>
+#include <player/Audio_buffer.h>
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>

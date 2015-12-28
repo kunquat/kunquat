@@ -14,7 +14,6 @@
 
 #include <devices/processors/Proc_gaincomp.h>
 
-#include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
 #include <devices/param_types/Envelope.h>

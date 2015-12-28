@@ -14,7 +14,6 @@
 
 #include <devices/processors/Proc_add.h>
 
-#include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Processor.h>
 #include <devices/param_types/Sample.h>

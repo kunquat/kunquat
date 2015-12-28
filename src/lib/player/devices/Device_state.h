@@ -16,9 +16,9 @@
 #define K_DEVICE_STATE_H
 
 
-#include <Audio_buffer.h>
 #include <Decl.h>
 #include <kunquat/limits.h>
+#include <player/Audio_buffer.h>
 #include <player/Work_buffers.h>
 
 #include <stdbool.h>

@@ -14,7 +14,6 @@
 
 #include <devices/param_types/Sample.h>
 
-#include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>

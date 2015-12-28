@@ -15,7 +15,6 @@
 
 #include <devices/processors/Proc_noise.h>
 
-#include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_params.h>
 #include <devices/Processor.h>
