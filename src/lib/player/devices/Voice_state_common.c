@@ -12,7 +12,7 @@
  */
 
 
-#include <devices/Proc_common.h>
+#include <player/devices/Voice_state_common.h>
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
@@ -33,15 +33,15 @@
 #define RAMP_RELEASE_TIME (200.0)
 
 
-void Proc_common_handle_pitch(
-        const Processor* proc,
+void Voice_state_common_handle_pitch(
         Voice_state* vstate,
+        const Processor* proc,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop)
 {
-    assert(proc != NULL);
     assert(vstate != NULL);
+    assert(proc != NULL);
     assert(wbs != NULL);
     assert(buf_start < buf_stop);
 
@@ -124,18 +124,18 @@ void Proc_common_handle_pitch(
 }
 
 
-int32_t Proc_common_handle_force(
-        const Processor* proc,
-        Au_state* au_state,
+int32_t Voice_state_common_handle_force(
         Voice_state* vstate,
+        const Au_state* au_state,
+        const Processor* proc,
         const Work_buffers* wbs,
         uint32_t freq,
         int32_t buf_start,
         int32_t buf_stop)
 {
-    assert(proc != NULL);
-    assert(au_state != NULL);
     assert(vstate != NULL);
+    assert(au_state != NULL);
+    assert(proc != NULL);
     assert(wbs != NULL);
 
     float* actual_forces = Work_buffers_get_buffer_contents_mut(
@@ -385,22 +385,22 @@ static double get_xfade_step(double freq, double true_lowpass, double resonance)
 }
 
 
-void Proc_common_handle_filter(
-        const Processor* proc,
-        Au_state* au_state,
+void Voice_state_common_handle_filter(
         Voice_state* vstate,
-        const Work_buffers* wbs,
         Audio_buffer* voice_out_buf,
+        const Processor* proc,
+        const Au_state* au_state,
+        const Work_buffers* wbs,
         int ab_count,
         uint32_t freq,
         int32_t buf_start,
         int32_t buf_stop)
 {
+    assert(vstate != NULL);
+    assert(voice_out_buf != NULL);
     assert(proc != NULL);
     assert(au_state != NULL);
-    assert(vstate != NULL);
     assert(wbs != NULL);
-    assert(voice_out_buf != NULL);
     assert((ab_count == 1) || (ab_count == 2));
 
     // TODO: if we actually get processors with multiple voice output ports,
@@ -691,21 +691,22 @@ void Proc_common_handle_filter(
 }
 
 
-int32_t Proc_common_ramp_release(
+int32_t Voice_state_common_ramp_release(
+        Voice_state* vstate,
+        Audio_buffer* voice_out_buf,
         const Processor* proc,
         const Au_state* au_state,
-        Voice_state* vstate,
         const Work_buffers* wbs,
-        Audio_buffer* voice_out_buf,
         int ab_count,
         uint32_t freq,
         int32_t buf_start,
         int32_t buf_stop)
 {
-    assert(proc != NULL);
     assert(vstate != NULL);
-    assert(wbs != NULL);
     assert(voice_out_buf != NULL);
+    assert(proc != NULL);
+    assert(au_state != NULL);
+    assert(wbs != NULL);
 
     // TODO: if we actually get processors with multiple voice output ports,
     //       process ramping correctly for all of them
@@ -752,11 +753,11 @@ int32_t Proc_common_ramp_release(
 }
 
 
-void Proc_common_handle_panning(
-        const Processor* proc,
+void Voice_state_common_handle_panning(
         Voice_state* vstate,
-        const Work_buffers* wbs,
         Audio_buffer* voice_out_buf,
+        const Processor* proc,
+        const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop)
 {

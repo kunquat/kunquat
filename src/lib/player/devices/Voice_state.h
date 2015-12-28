@@ -72,7 +72,7 @@ typedef struct Filter_state
 struct Voice_state
 {
     bool active;                   ///< Whether there is anything left to process.
-    uint32_t freq;                 ///< The last mixing frequency used.
+    int32_t freq;                  ///< The last mixing frequency used.
     double tempo;                  ///< The last tempo setting used.
     Channel_proc_state* cpstate;   ///< Channel-specific Processor parameters.
     Random* rand_p;                ///< Parameter random source.
@@ -155,7 +155,7 @@ Voice_state* Voice_state_init(
         Channel_proc_state* cpstate,
         Random* rand_p,
         Random* rand_s,
-        uint32_t freq,
+        int32_t freq,
         double tempo);
 
 

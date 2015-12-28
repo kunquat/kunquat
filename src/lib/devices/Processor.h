@@ -155,29 +155,6 @@ const Au_params* Processor_get_au_params(const Processor* proc);
 
 
 /**
- * Process a Voice state that belongs to the Processor.
- *
- * \param proc         The Processor -- must not be \c NULL.
- * \param dstates      The Device states -- must not be \c NULL.
- * \param vstate       The Voice state -- must not be \c NULL.
- * \param wbs          The Work buffers -- must not be \c NULL.
- * \param buf_start    The start index of the buffer area to be processed.
- * \param buf_stop     The stop index of the buffer area to be processed.
- * \param audio_rate   The mixing frequency -- must be > \c 0.
- * \param tempo        The current tempo -- must be > \c 0.
- */
-void Processor_process_vstate(
-        const Processor* proc,
-        Device_states* dstates,
-        Voice_state* vstate,
-        const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
-        uint32_t audio_rate,
-        double tempo);
-
-
-/**
  * Destroy an existing Processor.
  *
  * \param proc   The Processor, or \c NULL.

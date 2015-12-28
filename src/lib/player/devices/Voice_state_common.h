@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_COMMON_H
-#define K_PROC_COMMON_H
+#ifndef K_VOICE_STATE_COMMON_H
+#define K_VOICE_STATE_COMMON_H
 
 
 #include <Audio_buffer.h>
@@ -35,15 +35,15 @@
  * This function fills WORK_BUFFER_PITCH_PARAMS and WORK_BUFFER_ACTUAL_PITCHES
  * with up-to-date values in the specified buffer area.
  *
- * \param proc        The Processor -- must not be \c NULL.
  * \param vstate      The Voice state -- must not be \c NULL.
+ * \param proc        The Processor -- must not be \c NULL.
  * \param wbs         The Work buffers -- must not be \c NULL.
  * \param buf_start   The start index of the buffer area to be processed.
  * \param buf_stop    The stop index of the buffer area to be processed.
  */
-void Proc_common_handle_pitch(
-        const Processor* proc,
+void Voice_state_common_handle_pitch(
         Voice_state* vstate,
+        const Processor* proc,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop);
@@ -55,9 +55,9 @@ void Proc_common_handle_pitch(
  * This function fills WORK_BUFFER_ACTUAL_FORCES with up-to-date values in the
  * specified buffer area. It must be called after \a Proc_common_handle_pitch.
  *
- * \param proc          The Processor -- must not be \c NULL.
- * \param au_state      The Audio unit state -- must not be \c NULL.
  * \param vstate        The Voice state -- must not be \c NULL.
+ * \param au_state      The Audio unit state -- must not be \c NULL.
+ * \param proc          The Processor -- must not be \c NULL.
  * \param wbs           The Work buffers -- must not be \c NULL.
  * \param audio_rate    The audio rate -- must be positive.
  * \param buf_start     The start index of the buffer area to be processed.
@@ -68,10 +68,10 @@ void Proc_common_handle_pitch(
  *           indicate that permanent silence is reached and the voice should be
  *           deactivated after the current process cycle.
  */
-int32_t Proc_common_handle_force(
-        const Processor* proc,
-        Au_state* au_state,
+int32_t Voice_state_common_handle_force(
         Voice_state* vstate,
+        const Au_state* au_state,
+        const Processor* proc,
         const Work_buffers* wbs,
         uint32_t audio_rate,
         int32_t buf_start,
@@ -86,23 +86,23 @@ int32_t Proc_common_handle_force(
  * \a Proc_common_handle_force and the process function of the processor
  * implementation.
  *
+ * \param vstate          The Voice state -- must not be \c NULL.
+ * \param voice_out_buf   The audio output buffer -- must not be \c NULL.
  * \param proc            The Processor -- must not be \c NULL.
  * \param au_state        The Audio unit state -- must not be \c NULL.
- * \param vstate          The Voice state -- must not be \c NULL.
  * \param wbs             The Work buffers -- must not be \c NULL.
- * \param voice_out_buf   The audio output buffer -- must not be \c NULL.
  * \param ab_count        The number of audio buffers used -- must be \c 1 or
  *                        \c 2. If \c 1, only the left channel will be updated.
  * \param audio_rate      The audio rate -- must be positive.
  * \param buf_start       The start index of the buffer area to be processed.
  * \param buf_stop        The stop index of the buffer area to be processed.
  */
-void Proc_common_handle_filter(
-        const Processor* proc,
-        Au_state* au_state,
+void Voice_state_common_handle_filter(
         Voice_state* vstate,
-        const Work_buffers* wbs,
         Audio_buffer* voice_out_buf,
+        const Processor* proc,
+        const Au_state* au_state,
+        const Work_buffers* wbs,
         int ab_count,
         uint32_t audio_rate,
         int32_t buf_start,
@@ -115,11 +115,11 @@ void Proc_common_handle_filter(
  * This function should be called after the process function of the processor
  * implementation.
  *
+ * \param vstate          The Voice state -- must not be \c NULL.
+ * \param voice_out_buf   The audio output buffer -- must not be \c NULL.
  * \param proc            The Processor -- must not be \c NULL.
  * \param au_state        The Audio unit state -- must not be \c NULL.
- * \param vstate          The Voice state -- must not be \c NULL.
  * \param wbs             The Work buffers -- must not be \c NULL.
- * \param voice_out_buf   The audio output buffer -- must not be \c NULL.
  * \param ab_count        The number of audio buffers used -- must be \c 1 or
  *                        \c 2. If \c 1, only the left channel will be updated.
  * \param audio_rate      The audio rate -- must be positive.
@@ -131,12 +131,12 @@ void Proc_common_handle_filter(
  *           indicate that permanent silence is reached and the voice should be
  *           deactivated after the current process cycle.
  */
-int32_t Proc_common_ramp_release(
+int32_t Voice_state_common_ramp_release(
+        Voice_state* vstate,
+        Audio_buffer* voice_out_buf,
         const Processor* proc,
         const Au_state* au_state,
-        Voice_state* vstate,
         const Work_buffers* wbs,
-        Audio_buffer* voice_out_buf,
         int ab_count,
         uint32_t audio_rate,
         int32_t buf_start,
@@ -149,22 +149,22 @@ int32_t Proc_common_ramp_release(
  * This function should be called after the process function of the processor
  * implementation.
  *
- * \param proc            The Processor -- must not be \c NULL.
  * \param vstate          The Voice state -- must not be \c NULL.
- * \param wbs             The Work buffers -- must not be \c NULL.
  * \param voice_out_buf   The audio output buffer -- must not be \c NULL.
+ * \param proc            The Processor -- must not be \c NULL.
+ * \param wbs             The Work buffers -- must not be \c NULL.
  * \param buf_start       The start index of the buffer area to be processed.
  * \param buf_stop        The stop index of the buffer area to be processed.
  */
-void Proc_common_handle_panning(
-        const Processor* proc,
+void Voice_state_common_handle_panning(
         Voice_state* vstate,
-        const Work_buffers* wbs,
         Audio_buffer* voice_out_buf,
+        const Processor* proc,
+        const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop);
 
 
-#endif // K_PROC_COMMON_H
+#endif // K_VOICE_STATE_COMMON_H
 
 
