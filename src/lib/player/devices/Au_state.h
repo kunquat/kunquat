@@ -36,18 +36,17 @@ struct Au_state
 
 
 /**
- * Initialise the Audio unit state.
+ * Create a new Audio unit state.
  *
- * \param au_state            The Audio unit state -- must not be \c NULL.
  * \param device              The Device -- must not be \c NULL.
  * \param audio_rate          The audio rate -- must be > \c 0.
  * \param audio_buffer_size   The audio buffer size -- must be >= \c 0.
+ *
+ * \return   The new Audio unit state if successful, or \c NULL if memory
+ *           allocation failed.
  */
-void Au_state_init(
-        Au_state* au_state,
-        const Device* device,
-        int32_t audio_rate,
-        int32_t audio_buffer_size);
+Device_state* new_Au_state(
+        const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
 
 /**
