@@ -16,6 +16,7 @@
 #define K_SAMPLE_PARAMS_H
 
 
+#include <Decl.h>
 #include <string/Streader.h>
 
 #include <stdint.h>
@@ -46,14 +47,14 @@ typedef enum
 /**
  * Common parameters for a Sample.
  */
-typedef struct Sample_params
+struct Sample_params
 {
     Sample_format format; ///< The file format.
     double mid_freq;      ///< The playback frequency used to represent 440 Hz tone.
     Sample_loop loop;     ///< Loop setting.
     uint64_t loop_start;  ///< Loop start.
     uint64_t loop_end;    ///< Loop end (the frame at this index will not be played).
-} Sample_params;
+};
 
 
 /**
