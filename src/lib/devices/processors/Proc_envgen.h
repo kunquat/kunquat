@@ -16,10 +16,31 @@
 #define K_PROC_ENVGEN_H
 
 
+#include <Decl.h>
 #include <devices/Device_impl.h>
 #include <devices/Processor.h>
 
 #include <stdlib.h>
+
+
+typedef struct Proc_envgen
+{
+    Device_impl parent;
+
+    double scale;
+
+    bool is_time_env_enabled;
+    const Envelope* time_env;
+    bool is_loop_enabled;
+    double env_scale_amount;
+    double env_scale_center;
+
+    bool is_force_env_enabled;
+    const Envelope* force_env;
+
+    double y_min;
+    double y_max;
+} Proc_envgen;
 
 
 /**
