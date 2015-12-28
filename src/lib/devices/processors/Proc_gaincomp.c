@@ -12,7 +12,7 @@
  */
 
 
-#include <devices/processors/Proc_gc.h>
+#include <devices/processors/Proc_gaincomp.h>
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
@@ -32,19 +32,19 @@
 #include <string.h>
 
 
-typedef struct Proc_gc
+typedef struct Proc_gaincomp
 {
     Device_impl parent;
 
     bool is_map_enabled;
     const Envelope* map;
-} Proc_gc;
+} Proc_gaincomp;
 
 
 static Set_bool_func     Proc_gc_set_map_enabled;
 static Set_envelope_func Proc_gc_set_map;
 
-static bool Proc_gc_init(Device_impl* dimpl);
+static bool Proc_gaincomp_init(Device_impl* dimpl);
 
 static Voice_state_render_voice_func Gc_state_render_voice;
 
@@ -55,19 +55,19 @@ static void Gc_state_render_mixed(
         int32_t buf_stop,
         double tempo);
 
-static void del_Proc_gc(Device_impl* dimpl);
+static void del_Proc_gaincomp(Device_impl* dimpl);
 
 
-Device_impl* new_Proc_gc(Processor* proc)
+Device_impl* new_Proc_gaincomp(Processor* proc)
 {
-    Proc_gc* gc = memory_alloc_item(Proc_gc);
+    Proc_gaincomp* gc = memory_alloc_item(Proc_gaincomp);
     if (gc == NULL)
         return NULL;
 
     gc->parent.device = (Device*)proc;
 
-    Device_impl_register_init(&gc->parent, Proc_gc_init);
-    Device_impl_register_destroy(&gc->parent, del_Proc_gc);
+    Device_impl_register_init(&gc->parent, Proc_gaincomp_init);
+    Device_impl_register_destroy(&gc->parent, del_Proc_gaincomp);
 
     return &gc->parent;
 }
@@ -102,11 +102,11 @@ static void Proc_gc_init_vstate(Voice_state* vstate, const Proc_state* proc_stat
 }
 
 
-static bool Proc_gc_init(Device_impl* dimpl)
+static bool Proc_gaincomp_init(Device_impl* dimpl)
 {
     assert(dimpl != NULL);
 
-    Proc_gc* gc = (Proc_gc*)dimpl;
+    Proc_gaincomp* gc = (Proc_gaincomp*)dimpl;
 
     Device_set_state_creator(dimpl->device, Proc_gc_create_state);
 
@@ -140,7 +140,7 @@ static bool Proc_gc_set_map_enabled(
     assert(dimpl != NULL);
     assert(indices != NULL);
 
-    Proc_gc* gc = (Proc_gc*)dimpl;
+    Proc_gaincomp* gc = (Proc_gaincomp*)dimpl;
     gc->is_map_enabled = value;
 
     return true;
@@ -153,7 +153,7 @@ static bool Proc_gc_set_map(
     assert(dimpl != NULL);
     assert(indices != NULL);
 
-    Proc_gc* gc = (Proc_gc*)dimpl;
+    Proc_gaincomp* gc = (Proc_gaincomp*)dimpl;
 
     bool valid = true;
     if (value != NULL && Envelope_node_count(value) > 1)
@@ -188,7 +188,7 @@ static bool Proc_gc_set_map(
 
 
 static void distort(
-        const Proc_gc* gc,
+        const Proc_gaincomp* gc,
         Audio_buffer* in_buffer,
         Audio_buffer* out_buffer,
         int32_t buf_start,
@@ -262,7 +262,7 @@ static int32_t Gc_state_render_voice(
     assert(out_buffer != NULL);
 
     // Distort the signal
-    const Proc_gc* gc = (const Proc_gc*)proc_state->parent.device->dimpl;
+    const Proc_gaincomp* gc = (const Proc_gaincomp*)proc_state->parent.device->dimpl;
     distort(gc, in_buffer, out_buffer, buf_start, buf_stop);
 
     // Mark state as started, TODO: fix this mess
@@ -296,19 +296,19 @@ static void Gc_state_render_mixed(
     assert(out_buffer != NULL);
 
     // Distort the signal
-    const Proc_gc* gc = (const Proc_gc*)dstate->device->dimpl;
+    const Proc_gaincomp* gc = (const Proc_gaincomp*)dstate->device->dimpl;
     distort(gc, in_buffer, out_buffer, buf_start, buf_stop);
 
     return;
 }
 
 
-static void del_Proc_gc(Device_impl* dimpl)
+static void del_Proc_gaincomp(Device_impl* dimpl)
 {
     if (dimpl == NULL)
         return;
 
-    Proc_gc* gc = (Proc_gc*)dimpl;
+    Proc_gaincomp* gc = (Proc_gaincomp*)dimpl;
     memory_free(gc);
 
     return;

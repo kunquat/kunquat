@@ -28,7 +28,7 @@
  * \return   The new gain compression Processor if successful, or \c NULL if
  *           memory allocation failed.
  */
-Device_impl* new_Proc_gc(Processor* proc);
+Device_impl* new_Proc_gaincomp(Processor* proc);
 
 
 #endif // K_PROC_GC_H
