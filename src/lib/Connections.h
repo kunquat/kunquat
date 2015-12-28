@@ -93,38 +93,41 @@ Device_node* Connections_get_master(Connections* graph);
 /**
  * Prepare the Connections for mixing.
  *
- * \param graph    The Connections -- must not be \c NULL.
- * \param states   The Device states -- must not be \c NULL.
+ * \param graph     The Connections -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Connections_prepare(Connections* graph, Device_states* states);
+bool Connections_prepare(const Connections* graph, Device_states* dstates);
 
 
 /**
  * Initialise all Audio buffers in the Connections.
  *
- * \param graph    The Connections -- must not be \c NULL.
- * \param states   The Device states -- must not be \c NULL.
+ * \param graph     The Connections -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Connections_init_buffers(Connections* graph, Device_states* states);
+bool Connections_init_buffers(const Connections* graph, Device_states* dstates);
 
 
 /**
  * Clear the Audio buffers in the Connections.
  *
- * \param graph    The Connections -- must not be \c NULL.
- * \param states   The Device states -- must not be \c NULL.
- * \param start    The first frame to be cleared -- must be less than the
- *                 buffer size.
- * \param until    The first frame not to be cleared -- must be less than or
- *                 equal to the buffer size. If \a until <= \a start, nothing
- *                 will be mixed.
+ * \param graph     The Connections -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
+ * \param start     The first frame to be cleared -- must be less than the
+ *                  buffer size.
+ * \param until     The first frame not to be cleared -- must be less than or
+ *                  equal to the buffer size. If \a until <= \a start, nothing
+ *                  will be mixed.
  */
 void Connections_clear_buffers(
-        Connections* graph, Device_states* states, uint32_t start, uint32_t until);
+        const Connections* graph,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until);
 
 
 /**
@@ -142,7 +145,7 @@ void Connections_clear_buffers(
  * \param tempo        The current tempo -- must be > \c 0.
  */
 void Connections_process_voice_group(
-        Connections* graph,
+        const Connections* graph,
         Voice_group* vgroup,
         Device_states* dstates,
         const Work_buffers* wbs,
@@ -155,20 +158,20 @@ void Connections_process_voice_group(
 /**
  * Mix the audio in the Connections.
  *
- * \param graph    The Connections -- must not be \c NULL.
- * \param states   The Device states -- must not be \c NULL.
- * \param wbs      The Work buffers -- must not be \c NULL.
- * \param start    The first frame to be mixed -- must be less than the
- *                 buffer size.
- * \param until    The first frame not to be mixed -- must be less than or
- *                 equal to the buffer size. If \a until <= \a start, nothing
- *                 will be mixed.
- * \param freq     The mixing frequency -- must be > \c 0.
- * \param tempo    The tempo -- must be > \c 0 and finite.
+ * \param graph     The Connections -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
+ * \param wbs       The Work buffers -- must not be \c NULL.
+ * \param start     The first frame to be mixed -- must be less than the
+ *                  buffer size.
+ * \param until     The first frame not to be mixed -- must be less than or
+ *                  equal to the buffer size. If \a until <= \a start, nothing
+ *                  will be mixed.
+ * \param freq      The mixing frequency -- must be > \c 0.
+ * \param tempo     The tempo -- must be > \c 0 and finite.
  */
 void Connections_mix(
-        Connections* graph,
-        Device_states* device_states,
+        const Connections* graph,
+        Device_states* dstates,
         const Work_buffers* wbs,
         uint32_t start,
         uint32_t until,
@@ -182,7 +185,7 @@ void Connections_mix(
  * \param graph   The Connections -- must not be \c NULL.
  * \param out     The output file -- must not be \c NULL.
  */
-void Connections_print(Connections* graph, FILE* out);
+void Connections_print(const Connections* graph, FILE* out);
 
 
 /**

@@ -322,6 +322,13 @@ bool Module_find_pattern_location(
 }
 
 
+const Connections* Module_get_connections(const Module* module)
+{
+    assert(module != NULL);
+    return module->connections;
+}
+
+
 void Module_set_mix_vol(Module* module, double mix_vol)
 {
     assert(module != NULL);

@@ -162,6 +162,16 @@ bool Module_find_pattern_location(
         int16_t* system);
 
 
+/**
+ * Get the Connections of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ *
+ * \return   The Connections.
+ */
+const Connections* Module_get_connections(const Module* module);
+
+
 /*
  * FIXME: Old interface below, clean up
  */

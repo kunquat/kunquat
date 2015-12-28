@@ -236,14 +236,14 @@ static bool Handle_update_connections(Handle* handle)
     assert(handle != NULL);
 
     Module* module = Handle_get_module(handle);
-    Connections* graph = module->connections;
+    const Connections* graph = Module_get_connections(module);
 
     if (graph == NULL)
         return true;
 
-    Device_states* states = Player_get_device_states(handle->player);
+    Device_states* dstates = Player_get_device_states(handle->player);
 
-    if (!Connections_prepare(graph, states))
+    if (!Connections_prepare(graph, dstates))
     {
         Handle_set_error(handle, ERROR_MEMORY,
                 "Couldn't allocate memory for connections");
@@ -489,7 +489,8 @@ int kqt_Handle_validate(kqt_Handle handle)
         if (h->module->connections != NULL)
         {
             set_invalid_if(
-                    !Connections_check_connections(h->module->connections, err_msg),
+                    !Connections_check_connections(
+                        Module_get_connections(h->module), err_msg),
                     "Error in top-level connections: %s",
                     err_msg);
         }

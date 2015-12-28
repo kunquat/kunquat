@@ -258,51 +258,54 @@ Device_node* Connections_get_master(Connections* graph)
 }
 
 
-bool Connections_prepare(Connections* graph, Device_states* states)
+bool Connections_prepare(const Connections* graph, Device_states* dstates)
 {
     assert(graph != NULL);
-    assert(states != NULL);
+    assert(dstates != NULL);
 
-    return Connections_init_buffers(graph, states);
+    return Connections_init_buffers(graph, dstates);
 }
 
 
-bool Connections_init_buffers(Connections* graph, Device_states* states)
+bool Connections_init_buffers(const Connections* graph, Device_states* dstates)
 {
     assert(graph != NULL);
-    assert(states != NULL);
+    assert(dstates != NULL);
 
-    Device_node* master = AAtree_get_exact(graph->nodes, "");
+    const Device_node* master = AAtree_get_exact(graph->nodes, "");
     assert(master != NULL);
-    Device_states_reset_node_states(states);
-    if (!Device_node_init_buffers_simple(master, states))
+    Device_states_reset_node_states(dstates);
+    if (!Device_node_init_buffers_simple(master, dstates))
         return false;
 
-    Device_states_reset_node_states(states);
-    return Device_node_init_effect_buffers(master, states);
+    Device_states_reset_node_states(dstates);
+    return Device_node_init_effect_buffers(master, dstates);
 }
 
 
 void Connections_clear_buffers(
-        Connections* graph, Device_states* states, uint32_t start, uint32_t until)
+        const Connections* graph,
+        Device_states* dstates,
+        uint32_t start,
+        uint32_t until)
 {
     assert(graph != NULL);
-    assert(states != NULL);
+    assert(dstates != NULL);
 
-    Device_node* master = AAtree_get_exact(graph->nodes, "");
+    const Device_node* master = AAtree_get_exact(graph->nodes, "");
     assert(master != NULL);
     if (start >= until)
         return;
 
-    Device_states_reset_node_states(states);
-    Device_node_clear_buffers(master, states, start, until);
+    Device_states_reset_node_states(dstates);
+    Device_node_clear_buffers(master, dstates, start, until);
 
     return;
 }
 
 
 void Connections_process_voice_group(
-        Connections* graph,
+        const Connections* graph,
         Voice_group* vgroup,
         Device_states* dstates,
         const Work_buffers* wbs,
@@ -320,7 +323,7 @@ void Connections_process_voice_group(
     assert(audio_rate > 0);
     assert(tempo > 0);
 
-    Device_node* master = AAtree_get_exact(graph->nodes, "");
+    const Device_node* master = AAtree_get_exact(graph->nodes, "");
     assert(master != NULL);
     if (buf_start >= buf_stop)
         return;
@@ -334,8 +337,8 @@ void Connections_process_voice_group(
 
 
 void Connections_mix(
-        Connections* graph,
-        Device_states* states,
+        const Connections* graph,
+        Device_states* dstates,
         const Work_buffers* wbs,
         uint32_t start,
         uint32_t until,
@@ -343,13 +346,13 @@ void Connections_mix(
         double tempo)
 {
     assert(graph != NULL);
-    assert(states != NULL);
+    assert(dstates != NULL);
     assert(wbs != NULL);
     assert(freq > 0);
     assert(isfinite(tempo));
     assert(tempo > 0);
 
-    Device_node* master = AAtree_get_exact(graph->nodes, "");
+    const Device_node* master = AAtree_get_exact(graph->nodes, "");
     assert(master != NULL);
     if (start >= until)
         return;
@@ -364,8 +367,8 @@ void Connections_mix(
 //    fprintf(stderr, "Mix process:\n");
 #endif
 
-    Device_states_reset_node_states(states);
-    Device_node_mix(master, states, wbs, start, until, freq, tempo);
+    Device_states_reset_node_states(dstates);
+    Device_node_mix(master, dstates, wbs, start, until, freq, tempo);
 
     return;
 }
@@ -441,13 +444,13 @@ void Connections_init_processor_voice_cut_settings(Connections* graph)
 }
 
 
-void Connections_print(Connections* graph, FILE* out)
+void Connections_print(const Connections* graph, FILE* out)
 {
     assert(graph != NULL);
     assert(out != NULL);
 
 //    Connections_reset(graph);
-    Device_node* master = AAtree_get_exact(graph->nodes, "");
+    const Device_node* master = AAtree_get_exact(graph->nodes, "");
     assert(master != NULL);
     Device_node_print(master, out);
     fprintf(out, "\n");

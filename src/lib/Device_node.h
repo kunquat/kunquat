@@ -97,38 +97,41 @@ bool Device_node_check_connections(
 /**
  * Initialise all Audio buffers in the Device node and its subgraph.
  *
- * \param node     The Device node -- must not be \c NULL.
- * \param states   The Device states -- must not be \c NULL.
+ * \param node      The Device node -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_node_init_buffers_simple(Device_node* node, Device_states* states);
+bool Device_node_init_buffers_simple(const Device_node* node, Device_states* dstates);
 
 
 /**
  * Initialise the graphs of the Effects in the subgraph.
  *
- * \param node     The Device node -- must not be \c NULL.
- * \param states   The Device states -- must not be \c NULL.
+ * \param node      The Device node -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_node_init_effect_buffers(Device_node* node, Device_states* states);
+bool Device_node_init_effect_buffers(const Device_node* node, Device_states* dstates);
 
 
 /**
  * Clear the audio buffers in the Device node and its subgraph.
  *
- * \param node     The Device node -- must not be \c NULL.
- * \param states   The Device states -- must not be \c NULL.
- * \param start    The first frame to be cleared -- must be less than the
- *                 buffer size.
- * \param until    The first frame not to be cleared -- must be less than or
- *                 equal to the buffer size. If \a until <= \a start, nothing
- *                 will be cleared.
+ * \param node      The Device node -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
+ * \param start     The first frame to be cleared -- must be less than the
+ *                  buffer size.
+ * \param until     The first frame not to be cleared -- must be less than or
+ *                  equal to the buffer size. If \a until <= \a start, nothing
+ *                  will be cleared.
  */
 void Device_node_clear_buffers(
-        Device_node* node, Device_states* states, uint32_t start, uint32_t until);
+        const Device_node* node,
+        Device_states* dstates,
+        uint32_t start,
+        uint32_t until);
 
 
 /**
@@ -144,7 +147,7 @@ void Device_node_clear_buffers(
  * \param tempo        The current tempo -- must be > \c 0.
  */
 void Device_node_process_voice_group(
-        Device_node* node,
+        const Device_node* node,
         Voice_group* vgroup,
         Device_states* dstates,
         const Work_buffers* wbs,
@@ -157,20 +160,20 @@ void Device_node_process_voice_group(
 /**
  * Mix audio in the Device node and its subgraph.
  *
- * \param node     The Device node -- must not be \c NULL.
- * \param states   The Device states -- must not be \c NULL.
- * \param wbs      The Work buffers -- must not be \c NULL.
- * \param start    The first frame to be mixed -- must be less than the
+ * \param node      The Device node -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
+ * \param wbs       The Work buffers -- must not be \c NULL.
+ * \param start     The first frame to be mixed -- must be less than the
  *                  buffer size.
- * \param until    The first frame not to be mixed -- must be less than or
- *                 equal to the buffer size. If \a until <= \a start, nothing
- *                 will be mixed.
- * \param freq     The mixing frequency -- must be > \c 0.
- * \param tempo    The tempo -- must be > \c 0 and finite.
+ * \param until     The first frame not to be mixed -- must be less than or
+ *                  equal to the buffer size. If \a until <= \a start, nothing
+ *                  will be mixed.
+ * \param freq      The mixing frequency -- must be > \c 0.
+ * \param tempo     The tempo -- must be > \c 0 and finite.
  */
 void Device_node_mix(
-        Device_node* node,
-        Device_states* states,
+        const Device_node* node,
+        Device_states* dstates,
         const Work_buffers* wbs,
         uint32_t start,
         uint32_t until,
@@ -185,7 +188,7 @@ void Device_node_mix(
  *
  * \return   The name.
  */
-char* Device_node_get_name(Device_node* node);
+const char* Device_node_get_name(const Device_node* node);
 
 
 /**
@@ -234,46 +237,6 @@ void Device_node_disconnect(Device_node* node, const Device* device);
  */
 void Device_node_replace(
         Device_node* node, const Device* old_device, const Device* new_device);
-
-
-/**
- * Get the first in a list of Device nodes that sends audio to this Device node.
- *
- * \param node        The Device node -- must not be \c NULL.
- * \param rec_port    The receive port number -- must be >= \c 0 and
- *                    < \c KQT_DEVICE_PORTS_MAX.
- * \param send_port   A pointer where the send port of the returned node
- *                    will be stored, or \c NULL.
- *
- * \return   The first sender if one exists, otherwise \c NULL.
- */
-Device_node* Device_node_get_sender(Device_node* node, int rec_port, int* send_port);
-
-
-/**
- * Get the first in a list of Device nodes that receives audio from this Device node.
- *
- * \param node        The Device node -- must not be \c NULL.
- * \param send_port   The send port number -- must be >= \c 0 and
- *                    < \c KQT_DEVICE_PORTS_MAX.
- * \param rec_port    A pointer where the receive port of the returned
- *                    node will be stored, or \c NULL.
- *
- * \return   The first receiver if one exists, otherwise \c NULL.
- */
-Device_node* Device_node_get_receiver(Device_node* node, int send_port, int* rec_port);
-
-
-/**
- * Get the next neighbour from the last requested list of a Device node.
- *
- * \param node   The Device node -- must not be \c NULL.
- * \param port   A pointer where the port of the returned node
- *               will be stored, or \c NULL.
- *
- * \return   The next neighbour if one exists, otherwise \c NULL.
- */
-Device_node* Device_node_get_next(Device_node* node, int* port);
 
 
 /**

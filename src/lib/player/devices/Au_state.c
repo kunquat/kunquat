@@ -88,7 +88,7 @@ static void Au_state_render_mixed(
     Au_state* au_state = (Au_state*)dstate;
 
     const Audio_unit* au = (const Audio_unit*)dstate->device;
-    Connections* connections = Audio_unit_get_connections_mut(au);
+    const Connections* connections = Audio_unit_get_connections(au);
 
     if (au_state->bypass)
     {

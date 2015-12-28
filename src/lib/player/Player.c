@@ -465,7 +465,7 @@ static void Player_process_voices(
         const Device_state* au_state = Device_states_get_state(
                 player->device_states, au_id);
         const Audio_unit* au = (const Audio_unit*)Device_state_get_device(au_state);
-        Connections* conns = Audio_unit_get_connections_mut(au);
+        const Connections* conns = Audio_unit_get_connections(au);
 
         if (conns != NULL)
         {
@@ -576,15 +576,11 @@ void Player_play(Player* player, int32_t nframes)
 
     nframes = min(nframes, player->audio_buffer_size);
 
-    Connections* connections = player->module->connections;
+    const Connections* connections = Module_get_connections(player->module);
     assert(connections != NULL);
 
     Device_states_clear_audio_buffers(player->device_states, 0, nframes);
-    Connections_clear_buffers(
-            connections,
-            player->device_states,
-            0,
-            nframes);
+    Connections_clear_buffers(connections, player->device_states, 0, nframes);
 
     // TODO: check if song or pattern instance location has changed
 
