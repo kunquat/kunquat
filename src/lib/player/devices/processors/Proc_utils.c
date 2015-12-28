@@ -12,7 +12,7 @@
  */
 
 
-#include <devices/processors/Proc_utils.h>
+#include <player/devices/processors/Proc_utils.h>
 
 #include <debug/assert.h>
 #include <devices/Processor.h>

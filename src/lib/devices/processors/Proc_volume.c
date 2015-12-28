@@ -17,7 +17,6 @@
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
 #include <devices/Processor.h>
-#include <devices/processors/Proc_utils.h>
 #include <mathnum/conversions.h>
 #include <player/Linear_controls.h>
 #include <player/devices/Proc_state.h>

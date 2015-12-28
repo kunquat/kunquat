@@ -16,11 +16,11 @@
 
 #include <debug/assert.h>
 #include <devices/processors/Proc_envgen.h>
-#include <devices/processors/Proc_utils.h>
-#include <player/devices/Proc_state.h>
-#include <player/devices/Voice_state.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/devices/Proc_state.h>
+#include <player/devices/processors/Proc_utils.h>
+#include <player/devices/Voice_state.h>
 
 #include <stdlib.h>
 #include <string.h>

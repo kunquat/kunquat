@@ -16,7 +16,7 @@
 
 #include <debug/assert.h>
 #include <devices/processors/Proc_debug.h>
-#include <devices/processors/Proc_utils.h>
+#include <player/devices/processors/Proc_utils.h>
 
 
 static int32_t Debug_vstate_render_voice(

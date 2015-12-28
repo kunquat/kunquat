@@ -22,7 +22,6 @@
 #include <devices/param_types/Sample.h>
 #include <devices/param_types/Wavpack.h>
 #include <devices/Processor.h>
-#include <devices/processors/Proc_utils.h>
 #include <memory.h>
 #include <player/devices/processors/Sample_state.h>
 #include <player/Work_buffers.h>

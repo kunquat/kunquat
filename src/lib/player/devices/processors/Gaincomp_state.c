@@ -17,12 +17,12 @@
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/processors/Proc_gaincomp.h>
-#include <devices/processors/Proc_utils.h>
-#include <player/devices/Device_state.h>
-#include <player/devices/Proc_state.h>
-#include <player/devices/Voice_state.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/devices/Device_state.h>
+#include <player/devices/Proc_state.h>
+#include <player/devices/processors/Proc_utils.h>
+#include <player/devices/Voice_state.h>
 
 #include <stdint.h>
 

@@ -17,7 +17,6 @@
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_params.h>
-#include <devices/processors/Proc_utils.h>
 #include <memory.h>
 #include <player/devices/processors/Debug_state.h>
 #include <player/devices/Voice_state.h>

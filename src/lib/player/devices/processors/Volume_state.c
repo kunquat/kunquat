@@ -15,11 +15,11 @@
 #include <player/devices/processors/Volume_state.h>
 
 #include <devices/Device.h>
-#include <devices/processors/Proc_utils.h>
 #include <devices/processors/Proc_volume.h>
 #include <mathnum/conversions.h>
 #include <memory.h>
 #include <player/devices/Proc_state.h>
+#include <player/devices/processors/Proc_utils.h>
 #include <player/devices/Voice_state.h>
 #include <player/Linear_controls.h>
 #include <string/key_pattern.h>

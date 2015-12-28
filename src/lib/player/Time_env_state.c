@@ -16,8 +16,8 @@
 
 #include <debug/assert.h>
 #include <devices/param_types/Envelope.h>
-#include <devices/processors/Proc_utils.h>
 #include <mathnum/common.h>
+#include <player/devices/processors/Proc_utils.h>
 #include <player/Work_buffers.h>
 
 #include <math.h>

@@ -16,11 +16,11 @@
 
 #include <debug/assert.h>
 #include <devices/processors/Proc_freeverb.h>
-#include <devices/processors/Proc_utils.h>
-#include <player/devices/processors/Freeverb_allpass.h>
-#include <player/devices/processors/Freeverb_comb.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/devices/processors/Freeverb_allpass.h>
+#include <player/devices/processors/Freeverb_comb.h>
+#include <player/devices/processors/Proc_utils.h>
 
 
 #define FREEVERB_COMBS 8

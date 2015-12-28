@@ -19,8 +19,8 @@
 #include <devices/param_types/Sample.h>
 #include <devices/param_types/Sample_params.h>
 #include <devices/processors/Proc_sample.h>
-#include <devices/processors/Proc_utils.h>
 #include <mathnum/common.h>
+#include <player/devices/processors/Proc_utils.h>
 #include <player/Work_buffers.h>
 
 #include <stdio.h>

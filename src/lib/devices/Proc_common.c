@@ -17,7 +17,7 @@
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Processor.h>
-#include <devices/processors/Proc_utils.h>
+#include <player/devices/processors/Proc_utils.h>
 #include <Filter.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>

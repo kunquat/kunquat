@@ -19,7 +19,6 @@
 #include <debug/assert.h>
 #include <devices/Device_params.h>
 #include <devices/Processor.h>
-#include <devices/processors/Proc_utils.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <memory.h>
