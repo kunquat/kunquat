@@ -16,7 +16,7 @@
 #define K_SAMPLE_STATE_H
 
 
-#include <Decl.h>
+#include <decl.h>
 
 #include <stdlib.h>
 

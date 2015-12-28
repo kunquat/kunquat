@@ -17,7 +17,7 @@
 
 
 #include <containers/AAtree.h>
-#include <Decl.h>
+#include <decl.h>
 #include <devices/param_types/Envelope.h>
 #include <devices/param_types/Hit_map.h>
 #include <devices/param_types/Note_map.h>

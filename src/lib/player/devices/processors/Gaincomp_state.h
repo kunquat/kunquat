@@ -16,7 +16,7 @@
 #define K_GAINCOMP_STATE_H
 
 
-#include <Decl.h>
+#include <decl.h>
 
 #include <stdint.h>
 

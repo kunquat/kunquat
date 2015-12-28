@@ -16,7 +16,7 @@
 #define K_CHANNEL_H
 
 
-#include <Decl.h>
+#include <decl.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <mathnum/Tstamp.h>

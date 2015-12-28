@@ -16,7 +16,7 @@
 #define K_AU_STATE_H
 
 
-#include <Decl.h>
+#include <decl.h>
 #include <player/Device_states.h>
 #include <player/devices/Device_state.h>
 

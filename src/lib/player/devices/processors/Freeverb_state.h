@@ -16,7 +16,7 @@
 #define K_FREEVERB_STATE_H
 
 
-#include <Decl.h>
+#include <decl.h>
 #include <devices/Device.h>
 #include <player/devices/Device_state.h>
 

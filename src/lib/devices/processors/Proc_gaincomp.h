@@ -16,7 +16,7 @@
 #define K_PROC_GC_H
 
 
-#include <Decl.h>
+#include <decl.h>
 #include <devices/Device_impl.h>
 #include <devices/Processor.h>
 

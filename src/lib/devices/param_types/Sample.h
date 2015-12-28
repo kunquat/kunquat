@@ -16,7 +16,7 @@
 #define K_SAMPLE_H
 
 
-#include <Decl.h>
+#include <decl.h>
 #include <devices/param_types/Sample_params.h>
 #include <player/devices/Proc_state.h>
 #include <player/Work_buffer.h>

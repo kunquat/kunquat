@@ -17,7 +17,7 @@
 
 
 #include <Connections.h>
-#include <Decl.h>
+#include <decl.h>
 #include <devices/Device.h>
 #include <kunquat/limits.h>
 #include <module/Bind.h>

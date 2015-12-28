@@ -17,7 +17,7 @@
 
 
 #include <containers/Bit_array.h>
-#include <Decl.h>
+#include <decl.h>
 #include <player/Audio_buffer.h>
 #include <player/devices/Device_state.h>
 #include <string/key_pattern.h>

@@ -16,7 +16,7 @@
 #define K_VOICE_STATE_COMMON_H
 
 
-#include <Decl.h>
+#include <decl.h>
 #include <devices/Processor.h>
 #include <kunquat/limits.h>
 #include <player/Audio_buffer.h>

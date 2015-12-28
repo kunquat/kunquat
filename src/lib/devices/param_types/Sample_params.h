@@ -16,7 +16,7 @@
 #define K_SAMPLE_PARAMS_H
 
 
-#include <Decl.h>
+#include <decl.h>
 #include <string/Streader.h>
 
 #include <stdint.h>

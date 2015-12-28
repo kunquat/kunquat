@@ -16,7 +16,7 @@
 #define K_TSTAMP_H
 
 
-#include <Decl.h>
+#include <decl.h>
 #include <kunquat/limits.h>
 
 #include <inttypes.h>

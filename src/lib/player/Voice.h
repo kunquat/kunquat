@@ -16,7 +16,7 @@
 #define K_VOICE_H
 
 
-#include <Decl.h>
+#include <decl.h>
 #include <devices/Processor.h>
 #include <mathnum/Random.h>
 #include <player/Channel_proc_state.h>

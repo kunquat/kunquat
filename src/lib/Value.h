@@ -16,7 +16,7 @@
 #define K_VALUE_H
 
 
-#include <Decl.h>
+#include <decl.h>
 #include <kunquat/limits.h>
 #include <mathnum/Real.h>
 #include <mathnum/Tstamp.h>

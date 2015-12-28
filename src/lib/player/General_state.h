@@ -16,7 +16,7 @@
 #define K_GENERAL_STATE_H
 
 
-#include <Decl.h>
+#include <decl.h>
 #include <player/Active_names.h>
 #include <player/Env_state.h>
 

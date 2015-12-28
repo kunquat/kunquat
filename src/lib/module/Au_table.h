@@ -16,7 +16,7 @@
 #define K_AU_TABLE_H
 
 
-#include <Decl.h>
+#include <decl.h>
 
 #include <stdbool.h>
 #include <stdlib.h>

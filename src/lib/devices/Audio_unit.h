@@ -16,7 +16,7 @@
 #define K_AUDIO_UNIT_H
 
 
-#include <Decl.h>
+#include <decl.h>
 #include <devices/Au_control_vars.h>
 #include <devices/Au_params.h>
 #include <devices/param_types/Envelope.h>

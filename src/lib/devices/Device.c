@@ -15,7 +15,6 @@
 #include <devices/Device.h>
 
 #include <debug/assert.h>
-#include <Decl.h>
 #include <devices/Device_impl.h>
 #include <mathnum/common.h>
 #include <string/common.h>

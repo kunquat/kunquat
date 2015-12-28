@@ -18,7 +18,8 @@
 
 #include <string/Streader.h>
 
-#include <Decl.h>
+#include <decl.h>
+
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>

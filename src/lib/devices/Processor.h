@@ -17,7 +17,7 @@
 
 
 #include <debug/assert.h>
-#include <Decl.h>
+#include <decl.h>
 #include <devices/Au_params.h>
 #include <devices/Device.h>
 #include <devices/Device_params.h>

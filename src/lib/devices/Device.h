@@ -16,7 +16,7 @@
 #define K_DEVICE_H
 
 
-#include <Decl.h>
+#include <decl.h>
 #include <devices/Device_params.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>

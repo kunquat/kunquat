@@ -16,7 +16,7 @@
 #define K_CHORUS_STATE_H
 
 
-#include <Decl.h>
+#include <decl.h>
 #include <player/devices/Device_state.h>
 #include <player/devices/Proc_state.h>
 #include <string/key_pattern.h>

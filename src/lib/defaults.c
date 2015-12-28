@@ -14,7 +14,6 @@
 
 #include <kunquat/defaults.h>
 
-#include <Decl.h>
 #include <Handle_private.h>
 #include <string/common.h>
 #include <string/key_pattern.h>

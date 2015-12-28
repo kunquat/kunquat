@@ -16,7 +16,7 @@
 #define K_PROC_UTILS_H
 
 
-#include <Decl.h>
+#include <decl.h>
 #include <devices/Processor.h>
 #include <player/devices/Device_state.h>
 

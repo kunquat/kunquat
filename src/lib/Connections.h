@@ -16,7 +16,7 @@
 #define K_CONNECTIONS_H
 
 
-#include <Decl.h>
+#include <decl.h>
 #include <Device_node.h>
 #include <devices/Device.h>
 #include <module/Au_table.h>

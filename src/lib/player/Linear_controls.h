@@ -16,7 +16,7 @@
 #define K_LINEAR_CONTROLS_H
 
 
-#include <Decl.h>
+#include <decl.h>
 #include <mathnum/Tstamp.h>
 #include <player/LFO.h>
 #include <player/Slider.h>
