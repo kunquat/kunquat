@@ -1029,8 +1029,7 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
     if (!Streader_has_data(params->sr))
     {
         // Remove processor
-        Module* module = Handle_get_module(params->handle);
-        Audio_unit* au = Au_table_get(Module_get_au_table(module), au_index);
+        Audio_unit* au = Au_table_get(au_table, au_index);
         if (au == NULL)
             return true;
 
