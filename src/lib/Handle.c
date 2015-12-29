@@ -453,8 +453,8 @@ int kqt_Handle_validate(kqt_Handle handle)
         Au_table* au_table = Module_get_au_table(h->module);
         for (int au_index = 0; au_index < KQT_AUDIO_UNITS_MAX; ++au_index)
         {
-            Audio_unit* au = Au_table_get(au_table, au_index);
-            if (au != NULL)
+            const Audio_unit* au = Au_table_get(au_table, au_index);
+            if ((au != NULL) && Device_is_existent((const Device*)au))
             {
                 const Connections* au_conns = Audio_unit_get_connections(au);
                 if (au_conns != NULL)
@@ -469,7 +469,7 @@ int kqt_Handle_validate(kqt_Handle handle)
                 for (int sub_au_index = 0; sub_au_index < KQT_AUDIO_UNITS_MAX; ++sub_au_index)
                 {
                     const Audio_unit* sub_au = Audio_unit_get_au(au, sub_au_index);
-                    if (sub_au != NULL)
+                    if ((sub_au != NULL) && Device_is_existent((const Device*)sub_au))
                     {
                         const Connections* conns = Audio_unit_get_connections(sub_au);
                         if (conns != NULL)
@@ -501,8 +501,8 @@ int kqt_Handle_validate(kqt_Handle handle)
         Au_table* au_table = Module_get_au_table(h->module);
         for (int au_index = 0; au_index < KQT_AUDIO_UNITS_MAX; ++au_index)
         {
-            Audio_unit* au = Au_table_get(au_table, au_index);
-            if ((au != NULL) && Device_is_existent((Device*)au))
+            const Audio_unit* au = Au_table_get(au_table, au_index);
+            if ((au != NULL) && Device_is_existent((const Device*)au))
             {
                 const Au_type au_type = Audio_unit_get_type(au);
 
@@ -511,7 +511,7 @@ int kqt_Handle_validate(kqt_Handle handle)
                         ++sub_au_index)
                 {
                     const Audio_unit* sub_au = Audio_unit_get_au(au, sub_au_index);
-                    if ((sub_au != NULL) && Device_is_existent((Device*)au))
+                    if ((sub_au != NULL) && Device_is_existent((const Device*)sub_au))
                     {
                         if (au_type == AU_TYPE_INSTRUMENT)
                         {
