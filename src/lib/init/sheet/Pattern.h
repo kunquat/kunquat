@@ -16,7 +16,6 @@
 #define K_PATTERN_H
 
 
-#include <Connections.h>
 #include <containers/AAtree.h>
 #include <init/sheet/Column.h>
 #include <kunquat/limits.h>

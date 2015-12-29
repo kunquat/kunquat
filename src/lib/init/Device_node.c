@@ -12,10 +12,10 @@
  */
 
 
-#include <Device_node.h>
+#include <init/Device_node.h>
 
-#include <Connections.h>
 #include <debug/assert.h>
+#include <init/Connections.h>
 #include <init/devices/Audio_unit.h>
 #include <init/devices/Processor.h>
 #include <kunquat/limits.h>

@@ -14,8 +14,8 @@
 
 #include <player/devices/Au_state.h>
 
-#include <Connections.h>
 #include <debug/assert.h>
+#include <init/Connections.h>
 #include <init/devices/Audio_unit.h>
 #include <memory.h>
 #include <player/Device_states.h>

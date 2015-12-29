@@ -14,9 +14,9 @@
 
 #include <init/devices/Audio_unit.h>
 
-#include <Connections.h>
 #include <debug/assert.h>
 #include <init/Au_table.h>
+#include <init/Connections.h>
 #include <init/devices/Au_control_vars.h>
 #include <init/devices/Au_interface.h>
 #include <init/devices/Device.h>

@@ -14,10 +14,10 @@
 
 #include <init/Parse_manager.h>
 
-#include <Connections.h>
 #include <debug/assert.h>
 #include <Handle_private.h>
 #include <init/Bind.h>
+#include <init/Connections.h>
 #include <init/devices/Audio_unit.h>
 #include <init/devices/Device_params.h>
 #include <init/devices/Proc_type.h>

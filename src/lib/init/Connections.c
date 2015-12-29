@@ -12,11 +12,11 @@
  */
 
 
-#include <Connections.h>
+#include <init/Connections.h>
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
-#include <Device_node.h>
+#include <init/Device_node.h>
 #include <init/devices/Audio_unit.h>
 #include <memory.h>
 #include <string/common.h>

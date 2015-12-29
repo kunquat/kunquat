@@ -15,7 +15,6 @@
 #include <player/Player.h>
 
 #include <debug/assert.h>
-#include <Device_node.h>
 #include <init/devices/Au_params.h>
 #include <init/devices/Audio_unit.h>
 #include <init/sheet/Channel_defaults.h>

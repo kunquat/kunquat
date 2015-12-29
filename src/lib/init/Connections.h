@@ -17,8 +17,8 @@
 
 
 #include <decl.h>
-#include <Device_node.h>
 #include <init/Au_table.h>
+#include <init/Device_node.h>
 #include <init/devices/Device.h>
 #include <player/Device_states.h>
 #include <player/Voice_group.h>

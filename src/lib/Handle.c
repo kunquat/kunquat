@@ -14,8 +14,8 @@
 
 #include <Handle_private.h>
 
-#include <Connections.h>
 #include <debug/assert.h>
+#include <init/Connections.h>
 #include <init/devices/Audio_unit.h>
 #include <init/Module.h>
 #include <init/Parse_manager.h>

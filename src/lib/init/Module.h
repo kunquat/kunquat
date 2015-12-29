@@ -16,9 +16,9 @@
 #define K_MODULE_H
 
 
-#include <Connections.h>
 #include <decl.h>
 #include <init/Bind.h>
+#include <init/Connections.h>
 #include <init/devices/Device.h>
 #include <init/Environment.h>
 #include <init/Input_map.h>
