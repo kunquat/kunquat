@@ -26,14 +26,14 @@
 
 struct Audio_buffer
 {
-    uint32_t size;
+    int32_t size;
     float* bufs[KQT_BUFFERS_MAX];
 };
 
 
-Audio_buffer* new_Audio_buffer(uint32_t size)
+Audio_buffer* new_Audio_buffer(int32_t size)
 {
-    //assert(size >= 0);
+    assert(size >= 0);
     assert(size <= KQT_INTERNAL_AUDIO_BUFFER_SIZE_MAX);
 
     Audio_buffer* buffer = memory_alloc_item(Audio_buffer);
@@ -70,17 +70,17 @@ Audio_buffer* new_Audio_buffer(uint32_t size)
 }
 
 
-uint32_t Audio_buffer_get_size(const Audio_buffer* buffer)
+int32_t Audio_buffer_get_size(const Audio_buffer* buffer)
 {
     assert(buffer != NULL);
     return buffer->size;
 }
 
 
-bool Audio_buffer_resize(Audio_buffer* buffer, uint32_t size)
+bool Audio_buffer_resize(Audio_buffer* buffer, int32_t size)
 {
     assert(buffer != NULL);
-    //assert(size >= 0);
+    assert(size >= 0);
     assert(size <= KQT_INTERNAL_AUDIO_BUFFER_SIZE_MAX);
 
     if (buffer->size == size)
@@ -115,17 +115,19 @@ bool Audio_buffer_resize(Audio_buffer* buffer, uint32_t size)
 }
 
 
-void Audio_buffer_clear(Audio_buffer* buffer, uint32_t start, uint32_t until)
+void Audio_buffer_clear(Audio_buffer* buffer, int32_t buf_start, int32_t buf_stop)
 {
     assert(buffer != NULL);
-    assert(start < buffer->size || buffer->size == 0);
-    assert(until <= buffer->size);
+    assert(buf_start >= 0);
+    assert(buf_start < buffer->size || buffer->size == 0);
+    assert(buf_stop >= 0);
+    assert(buf_stop <= buffer->size);
 
 //    fprintf(stderr, "Clearing %p [%d..%d)\n",
 //            (void*)buffer, (int)start, (int)until);
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
-        for (uint32_t k = start; k < until; ++k)
+        for (int32_t k = buf_start; k < buf_stop; ++k)
             buffer->bufs[i][k] = 0;
     }
 
@@ -144,7 +146,7 @@ void Audio_buffer_copy(
     assert(dest != src);
     assert(buf_start >= 0);
     assert(buf_stop >= 0);
-    assert(buf_stop <= (int32_t)dest->size);
+    assert(buf_stop <= dest->size);
 
     if (buf_stop <= buf_start)
         return;
@@ -166,16 +168,16 @@ void Audio_buffer_copy(
 void Audio_buffer_mix(
         Audio_buffer* buffer,
         const Audio_buffer* in,
-        uint32_t start,
-        uint32_t until)
+        int32_t buf_start,
+        int32_t buf_stop)
 {
     assert(buffer != NULL);
     assert(in != NULL);
     assert(buffer->size == in->size);
-    assert(start < buffer->size || buffer->size == 0);
-    assert(until <= buffer->size);
+    assert(buf_start < buffer->size || buffer->size == 0);
+    assert(buf_stop <= buffer->size);
 
-    if (buffer == in || until <= start)
+    if (buffer == in || buf_stop <= buf_start)
     {
 //        fprintf(stderr, "Not mixing %p to %p [%d..%d)\n",
 //                (void*)in, (void*)buffer, (int)start, (int)until);
@@ -186,7 +188,7 @@ void Audio_buffer_mix(
 //            (void*)in, (void*)buffer, (int)start, (int)until);
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
-        for (uint32_t k = start; k < until; ++k)
+        for (int32_t k = buf_start; k < buf_stop; ++k)
             buffer->bufs[i][k] += in->bufs[i][k];
     }
 

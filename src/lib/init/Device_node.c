@@ -425,11 +425,12 @@ bool Device_node_init_effect_buffers(const Device_node* node, Device_states* dst
 void Device_node_clear_buffers(
         const Device_node* node,
         Device_states* dstates,
-        uint32_t start,
-        uint32_t until)
+        int32_t buf_start,
+        int32_t buf_stop)
 {
     assert(node != NULL);
     assert(dstates != NULL);
+    assert(buf_start >= 0);
 
     const Device* node_device = Device_node_get_device(node);
     if (node_device == NULL)
@@ -454,17 +455,17 @@ void Device_node_clear_buffers(
         const Audio_unit* au = (const Audio_unit*)node_device;
         const Connections* au_conns = Audio_unit_get_connections(au);
         if (au_conns != NULL)
-            Connections_clear_buffers(au_conns, dstates, start, until);
+            Connections_clear_buffers(au_conns, dstates, buf_start, buf_stop);
     }
 
-    Device_state_clear_audio_buffers(node_dstate, start, until);
+    Device_state_clear_audio_buffers(node_dstate, buf_start, buf_stop);
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Connection* edge = node->receive[port];
         while (edge != NULL)
         {
-            Device_node_clear_buffers(edge->node, dstates, start, until);
+            Device_node_clear_buffers(edge->node, dstates, buf_start, buf_stop);
             edge = edge->next;
         }
     }
@@ -481,7 +482,7 @@ void Device_node_process_voice_group(
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
-        uint32_t audio_rate,
+        int32_t audio_rate,
         double tempo)
 {
     assert(node != NULL);
@@ -590,19 +591,21 @@ void Device_node_process_voice_group(
 }
 
 
-void Device_node_mix(
+void Device_node_process_mixed_signals(
         const Device_node* node,
         Device_states* dstates,
         const Work_buffers* wbs,
-        uint32_t start,
-        uint32_t until,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
+        int32_t audio_rate,
         double tempo)
 {
     assert(node != NULL);
     assert(dstates != NULL);
     assert(wbs != NULL);
-    assert(freq > 0);
+    assert(buf_start >= 0);
+    assert(buf_stop >= 0);
+    assert(audio_rate > 0);
     assert(isfinite(tempo));
     assert(tempo > 0);
 
@@ -642,7 +645,8 @@ void Device_node_mix(
                 continue;
             }
 
-            Device_node_mix(edge->node, dstates, wbs, start, until, freq, tempo);
+            Device_node_process_mixed_signals(
+                    edge->node, dstates, wbs, buf_start, buf_stop, audio_rate, tempo);
 
             Audio_buffer* send = Device_state_get_audio_buffer(
                     send_state, DEVICE_PORT_TYPE_SEND, edge->port);
@@ -671,14 +675,14 @@ void Device_node_mix(
                     (int)Device_get_id((const Device*)send_device),
                     Audio_buffer_get_buffer(send, 0)[0]);
             // */
-            Audio_buffer_mix(receive, send, start, until);
+            Audio_buffer_mix(receive, send, buf_start, buf_stop);
 
             edge = edge->next;
         }
     }
 
     //fprintf(stderr, "Rendering mixed on %p %s\n", (void*)node, node->name);
-    Device_state_render_mixed(node_dstate, wbs, start, until, tempo);
+    Device_state_render_mixed(node_dstate, wbs, buf_start, buf_stop, tempo);
 
     Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_VISITED);
     return;

@@ -689,7 +689,7 @@ void Player_play(Player* player, int32_t nframes)
 
         // Process signals in the connection graph
         {
-            Connections_mix(
+            Connections_process_mixed_signals(
                     connections,
                     player->device_states,
                     player->work_buffers,

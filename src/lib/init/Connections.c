@@ -286,19 +286,20 @@ bool Connections_init_buffers(const Connections* graph, Device_states* dstates)
 void Connections_clear_buffers(
         const Connections* graph,
         Device_states* dstates,
-        uint32_t start,
-        uint32_t until)
+        int32_t buf_start,
+        int32_t buf_stop)
 {
     assert(graph != NULL);
     assert(dstates != NULL);
+    assert(buf_start >= 0);
 
     const Device_node* master = AAtree_get_exact(graph->nodes, "");
     assert(master != NULL);
-    if (start >= until)
+    if (buf_start >= buf_stop)
         return;
 
     Device_states_reset_node_states(dstates);
-    Device_node_clear_buffers(master, dstates, start, until);
+    Device_node_clear_buffers(master, dstates, buf_start, buf_stop);
 
     return;
 }
@@ -311,7 +312,7 @@ void Connections_process_voice_group(
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
-        uint32_t audio_rate,
+        int32_t audio_rate,
         double tempo)
 {
     assert(graph != NULL);
@@ -336,25 +337,26 @@ void Connections_process_voice_group(
 }
 
 
-void Connections_mix(
+void Connections_process_mixed_signals(
         const Connections* graph,
         Device_states* dstates,
         const Work_buffers* wbs,
-        uint32_t start,
-        uint32_t until,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
+        int32_t audio_rate,
         double tempo)
 {
     assert(graph != NULL);
     assert(dstates != NULL);
     assert(wbs != NULL);
-    assert(freq > 0);
+    assert(buf_start >= 0);
+    assert(audio_rate > 0);
     assert(isfinite(tempo));
     assert(tempo > 0);
 
     const Device_node* master = AAtree_get_exact(graph->nodes, "");
     assert(master != NULL);
-    if (start >= until)
+    if (buf_start >= buf_stop)
         return;
 
 #if 0
@@ -368,7 +370,8 @@ void Connections_mix(
 #endif
 
     Device_states_reset_node_states(dstates);
-    Device_node_mix(master, dstates, wbs, start, until, freq, tempo);
+    Device_node_process_mixed_signals(
+            master, dstates, wbs, buf_start, buf_stop, audio_rate, tempo);
 
     return;
 }

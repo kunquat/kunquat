@@ -119,19 +119,18 @@ bool Device_node_init_effect_buffers(const Device_node* node, Device_states* dst
 /**
  * Clear the audio buffers in the Device node and its subgraph.
  *
- * \param node      The Device node -- must not be \c NULL.
- * \param dstates   The Device states -- must not be \c NULL.
- * \param start     The first frame to be cleared -- must be less than the
- *                  buffer size.
- * \param until     The first frame not to be cleared -- must be less than or
- *                  equal to the buffer size. If \a until <= \a start, nothing
- *                  will be cleared.
+ * \param node        The Device node -- must not be \c NULL.
+ * \param dstates     The Device states -- must not be \c NULL.
+ * \param buf_start   The start index of the buffer area to be cleared -- must
+ *                    be less than the buffer size.
+ * \param buf_stop    The stop index of the buffer area to be cleared -- must
+ *                    be less than or equal to the buffer size.
  */
 void Device_node_clear_buffers(
         const Device_node* node,
         Device_states* dstates,
-        uint32_t start,
-        uint32_t until);
+        int32_t buf_start,
+        int32_t buf_stop);
 
 
 /**
@@ -153,31 +152,30 @@ void Device_node_process_voice_group(
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
-        uint32_t audio_rate,
+        int32_t audio_rate,
         double tempo);
 
 
 /**
- * Mix audio in the Device node and its subgraph.
+ * Process mixed signals in the Device node and its subgraph.
  *
- * \param node      The Device node -- must not be \c NULL.
- * \param dstates   The Device states -- must not be \c NULL.
- * \param wbs       The Work buffers -- must not be \c NULL.
- * \param start     The first frame to be mixed -- must be less than the
- *                  buffer size.
- * \param until     The first frame not to be mixed -- must be less than or
- *                  equal to the buffer size. If \a until <= \a start, nothing
- *                  will be mixed.
- * \param freq      The mixing frequency -- must be > \c 0.
- * \param tempo     The tempo -- must be > \c 0 and finite.
+ * \param node         The Device node -- must not be \c NULL.
+ * \param dstates      The Device states -- must not be \c NULL.
+ * \param wbs          The Work buffers -- must not be \c NULL.
+ * \param buf_start    The start index of the buffer area to be mixed -- must
+ *                     be less than the buffer size.
+ * \param buf_stop     The stop index of the buffer area to be mixed -- must
+ *                     be less than or equal to the buffer size.
+ * \param audio_rate   The mixing frequency -- must be > \c 0.
+ * \param tempo        The tempo -- must be finite and > \c 0.
  */
-void Device_node_mix(
+void Device_node_process_mixed_signals(
         const Device_node* node,
         Device_states* dstates,
         const Work_buffers* wbs,
-        uint32_t start,
-        uint32_t until,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
+        int32_t audio_rate,
         double tempo);
 
 

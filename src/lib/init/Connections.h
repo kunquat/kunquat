@@ -115,19 +115,18 @@ bool Connections_init_buffers(const Connections* graph, Device_states* dstates);
 /**
  * Clear the Audio buffers in the Connections.
  *
- * \param graph     The Connections -- must not be \c NULL.
- * \param dstates   The Device states -- must not be \c NULL.
- * \param start     The first frame to be cleared -- must be less than the
- *                  buffer size.
- * \param until     The first frame not to be cleared -- must be less than or
- *                  equal to the buffer size. If \a until <= \a start, nothing
- *                  will be mixed.
+ * \param graph       The Connections -- must not be \c NULL.
+ * \param dstates     The Device states -- must not be \c NULL.
+ * \param buf_start   The start index of the buffer area to be cleared -- must
+ *                    be less than the buffer size.
+ * \param buf_stop    The stop index of the buffer area to be cleared -- must
+ *                    be less than or equal to the buffer size.
  */
 void Connections_clear_buffers(
         const Connections* graph,
         Device_states* states,
-        uint32_t start,
-        uint32_t until);
+        int32_t buf_start,
+        int32_t buf_stop);
 
 
 /**
@@ -142,7 +141,7 @@ void Connections_clear_buffers(
  * \param buf_stop     The stop index of the buffer area to be processed
  *                     -- must not be negative.
  * \param audio_rate   The audio rate -- must be > \c 0.
- * \param tempo        The current tempo -- must be > \c 0.
+ * \param tempo        The current tempo -- must be finite and > \c 0.
  */
 void Connections_process_voice_group(
         const Connections* graph,
@@ -151,31 +150,30 @@ void Connections_process_voice_group(
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
-        uint32_t audio_rate,
+        int32_t audio_rate,
         double tempo);
 
 
 /**
- * Mix the audio in the Connections.
+ * Process mixed signals in the Connections.
  *
- * \param graph     The Connections -- must not be \c NULL.
- * \param dstates   The Device states -- must not be \c NULL.
- * \param wbs       The Work buffers -- must not be \c NULL.
- * \param start     The first frame to be mixed -- must be less than the
- *                  buffer size.
- * \param until     The first frame not to be mixed -- must be less than or
- *                  equal to the buffer size. If \a until <= \a start, nothing
- *                  will be mixed.
- * \param freq      The mixing frequency -- must be > \c 0.
- * \param tempo     The tempo -- must be > \c 0 and finite.
+ * \param graph        The Connections -- must not be \c NULL.
+ * \param dstates      The Device states -- must not be \c NULL.
+ * \param wbs          The Work buffers -- must not be \c NULL.
+ * \param buf_start    The start index of the buffer area to be processed
+ *                     -- must be less than the buffer size.
+ * \param buf_stop     The stop index of the buffer area to be processed
+ *                     -- must be less than or equal to the buffer size.
+ * \param audio_rate   The audio rate -- must be > \c 0.
+ * \param tempo        The tempo -- must be finite and > \c 0.
  */
-void Connections_mix(
+void Connections_process_mixed_signals(
         const Connections* graph,
         Device_states* dstates,
         const Work_buffers* wbs,
-        uint32_t start,
-        uint32_t until,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
+        int32_t audio_rate,
         double tempo);
 
 

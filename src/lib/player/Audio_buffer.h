@@ -35,7 +35,7 @@ typedef struct Audio_buffer Audio_buffer;
  * \return   The new buffer if successful, or \c NULL if memory allocation
  *           failed.
  */
-Audio_buffer* new_Audio_buffer(uint32_t size);
+Audio_buffer* new_Audio_buffer(int32_t size);
 
 
 /**
@@ -45,7 +45,7 @@ Audio_buffer* new_Audio_buffer(uint32_t size);
  *
  * \return   The size of the Audio buffer.
  */
-uint32_t Audio_buffer_get_size(const Audio_buffer* buffer);
+int32_t Audio_buffer_get_size(const Audio_buffer* buffer);
 
 
 /**
@@ -57,20 +57,19 @@ uint32_t Audio_buffer_get_size(const Audio_buffer* buffer);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Audio_buffer_resize(Audio_buffer* buffer, uint32_t size);
+bool Audio_buffer_resize(Audio_buffer* buffer, int32_t size);
 
 
 /**
  * Clear the Audio buffer.
  *
- * \param buffer   The Audio buffer -- must not be \c NULL.
- * \param start    The first frame to be cleared -- must be less than the
- *                 buffer size.
- * \param until    The first frame not to be cleared -- must be less than or
- *                 equal to the buffer size. If \a until <= \a start, nothing
- *                 will be cleared.
+ * \param buffer      The Audio buffer -- must not be \c NULL.
+ * \param buf_start   The start index of the area to be cleared -- must be
+ *                    >= \c 0 and less than the buffer size.
+ * \param buf_stop    The stop index of the area to be cleared - must be
+ *                    >= \c 0 and less than or equal to the buffer size.
  */
-void Audio_buffer_clear(Audio_buffer* buffer, uint32_t start, uint32_t until);
+void Audio_buffer_clear(Audio_buffer* buffer, int32_t buf_start, int32_t buf_stop);
 
 
 /**
@@ -94,21 +93,20 @@ void Audio_buffer_copy(
  *
  * If the two buffers are the same Audio buffer, this function does nothing.
  *
- * \param buffer   The Audio buffer that will contain the end result -- must
- *                 not be \c NULL.
- * \param in       The input Audio buffer -- must not be \c NULL and must
- *                 have the same size as \a buffer.
- * \param start    The first frame to be mixed -- must be less than the
- *                 buffer size.
- * \param until    The first frame not to be mixed -- must be less than or
- *                 equal to the buffer size. If \a until <= \a start, nothing
- *                 will be mixed.
+ * \param buffer      The Audio buffer that will contain the end result -- must
+ *                    not be \c NULL.
+ * \param in          The input Audio buffer -- must not be \c NULL and must
+ *                    have the same size as \a buffer.
+ * \param buf_start   The start index of the area to be mixed -- must be
+ *                    >= \c 0 and less than the buffer size.
+ * \param buf_stop    The stop index of the area to be mixed -- must be
+ *                    >= \c 0 and less than or equal to the buffer size.
  */
 void Audio_buffer_mix(
         Audio_buffer* buffer,
         const Audio_buffer* in,
-        uint32_t start,
-        uint32_t until);
+        int32_t buf_start,
+        int32_t buf_stop);
 
 
 /**
