@@ -306,7 +306,7 @@ typedef struct Read_trigger_data
 static bool read_trigger(Streader* sr, int32_t index, void* userdata)
 {
     assert(sr != NULL);
-    (void)index;
+    ignore(index);
     assert(userdata != NULL);
 
     Read_trigger_data* rtdata = userdata;

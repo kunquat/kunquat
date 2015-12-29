@@ -18,6 +18,8 @@
 
 #include <init/devices/Device.h>
 
+#include <stdlib.h>
+
 
 typedef struct Au_interface
 {

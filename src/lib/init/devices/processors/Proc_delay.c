@@ -22,7 +22,6 @@
 #include <player/devices/processors/Delay_state.h>
 #include <string/common.h>
 
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -21,8 +21,6 @@
 #include <mathnum/conversions.h>
 #include <memory.h>
 #include <player/devices/processors/Chorus_state.h>
-#include <player/Linear_controls.h>
-#include <player/Player.h>
 #include <string/common.h>
 
 #include <math.h>

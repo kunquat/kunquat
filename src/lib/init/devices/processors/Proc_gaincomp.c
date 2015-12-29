@@ -18,13 +18,11 @@
 #include <init/devices/Device_impl.h>
 #include <init/devices/param_types/Envelope.h>
 #include <init/devices/Processor.h>
-#include <mathnum/common.h>
 #include <memory.h>
 #include <player/devices/processors/Gaincomp_state.h>
 #include <string/common.h>
 
-#include <math.h>
-#include <stdint.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

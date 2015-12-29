@@ -32,7 +32,6 @@ bool Sample_parse_wav(Sample* sample, Streader* sr)
 {
     assert(sample != NULL);
     assert(sr != NULL);
-    (void)sample;
 
     if (Streader_is_error_set(sr))
         return false;
@@ -59,7 +58,7 @@ typedef struct String_context
 static sf_count_t get_filelen_str(void* user_data)
 {
     assert(user_data != NULL);
-    String_context* context = user_data;
+    const String_context* context = user_data;
     return context->length;
 }
 
@@ -97,7 +96,7 @@ static sf_count_t read_str(void* ptr, sf_count_t count, void* user_data)
 static sf_count_t tell_str(void* user_data)
 {
     assert(user_data != NULL);
-    String_context* context = user_data;
+    const String_context* context = user_data;
     return context->pos;
 }
 

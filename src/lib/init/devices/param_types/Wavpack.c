@@ -31,7 +31,6 @@ bool Sample_parse_wavpack(Sample* sample, Streader* sr)
 {
     assert(sample != NULL);
     assert(sr != NULL);
-    (void)sample;
 
     if (Streader_is_error_set(sr))
         return false;
@@ -54,16 +53,6 @@ typedef struct String_context
     uint32_t pos;
     int push_back;
 } String_context;
-
-
-static int32_t read_bytes_str(void* id, void* data, int32_t bcount);
-static uint32_t get_pos_str(void* id);
-static int set_pos_abs_str(void* id, uint32_t pos);
-static int set_pos_rel_str(void* id, int32_t delta, int mode);
-static int push_back_byte_str(void* id, int c);
-static uint32_t get_length_str(void* id);
-static int can_seek_str(void* id);
-static int32_t write_bytes_str(void* id, void* data, int32_t bcount);
 
 
 static int32_t read_bytes_str(void* id, void* data, int32_t bcount)
@@ -107,7 +96,7 @@ static int32_t read_bytes_str(void* id, void* data, int32_t bcount)
 static uint32_t get_pos_str(void* id)
 {
     assert(id != NULL);
-    String_context* sc = id;
+    const String_context* sc = id;
     return sc->pos;
 }
 
@@ -179,7 +168,7 @@ static int push_back_byte_str(void* id, int c)
 static uint32_t get_length_str(void* id)
 {
     assert(id != NULL);
-    String_context* sc = id;
+    const String_context* sc = id;
     return sc->length;
 }
 
@@ -187,16 +176,15 @@ static uint32_t get_length_str(void* id)
 static int can_seek_str(void* id)
 {
     assert(id != NULL);
-    (void)id;
     return 1;
 }
 
 
 static int32_t write_bytes_str(void* id, void* data, int32_t bcount)
 {
-    (void)id;
-    (void)data;
-    (void)bcount;
+    ignore(id);
+    ignore(data);
+    ignore(bcount);
     assert(false);
     return 0;
 }
@@ -242,21 +230,11 @@ bool Sample_parse_wavpack(Sample* sample, Streader* sr)
     const size_t length = sr->len;
 
     String_context* sc =
-        &(String_context) {
-            .data = data,
-            .length = length,
-            .pos = 0,
-            .push_back = EOF
-        };
+        &(String_context){ .data = data, .length = length, .pos = 0, .push_back = EOF };
 
-    char err_str[80] = { '\0' };
+    char err_str[80] = "";
     WavpackContext* context = WavpackOpenFileInputEx(
-            &reader_str,
-            sc,
-            NULL,
-            err_str,
-            OPEN_2CH_MAX | OPEN_NORMALIZE,
-            0);
+            &reader_str, sc, NULL, err_str, OPEN_2CH_MAX | OPEN_NORMALIZE, 0);
     if (context == NULL)
     {
         Streader_set_error(sr, err_str);
@@ -301,7 +279,7 @@ bool Sample_parse_wavpack(Sample* sample, Streader* sr)
         sample->bits = 32;
     }
 
-    int req_bytes = sample->bits / 8;
+    const int req_bytes = sample->bits / 8;
     sample->data[0] = sample->data[1] = NULL;
     void* nbuf_l = memory_alloc_items(char, sample->len * req_bytes);
     if (nbuf_l == NULL)

@@ -15,16 +15,12 @@
 #include <init/devices/param_types/Sample.h>
 
 #include <debug/assert.h>
-#include <kunquat/limits.h>
-#include <mathnum/common.h>
 #include <memory.h>
 
-#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 
 Sample* new_Sample(void)

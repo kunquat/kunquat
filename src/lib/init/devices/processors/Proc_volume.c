@@ -18,14 +18,12 @@
 #include <init/devices/Device_impl.h>
 #include <init/devices/Processor.h>
 #include <mathnum/conversions.h>
-#include <player/Linear_controls.h>
-#include <player/devices/Proc_state.h>
 #include <player/devices/processors/Volume_state.h>
 #include <string/common.h>
 #include <memory.h>
 
 #include <math.h>
-#include <stdint.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

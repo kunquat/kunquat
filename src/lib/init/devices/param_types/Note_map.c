@@ -14,6 +14,7 @@
 
 #include <init/devices/param_types/Note_map.h>
 
+#include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <memory.h>
 
@@ -42,7 +43,7 @@ static int Random_list_cmp(const Random_list* list1, const Random_list* list2);
 
 static void del_Random_list(Random_list* list);
 
-static double distance(Random_list* list, Random_list* key);
+static double distance(const Random_list* list, const Random_list* key);
 
 
 static int Random_list_cmp(const Random_list* list1, const Random_list* list2)
@@ -95,7 +96,7 @@ static bool read_random_list_entry(Streader* sr, int32_t index, void* userdata)
 static bool read_mapping(Streader* sr, int32_t index, void* userdata)
 {
     assert(sr != NULL);
-    (void)index;
+    ignore(index);
     assert(userdata != NULL);
 
     Note_map* map = userdata;
@@ -244,12 +245,12 @@ bool Note_map_add_entry(Note_map* map, double cents, double force, Sample_entry*
 }
 
 
-static double distance(Random_list* list, Random_list* key)
+static double distance(const Random_list* list, const Random_list* key)
 {
     assert(list != NULL);
     assert(key != NULL);
-    double tone_d = (list->cents - key->cents) * 64;
-    double force_d = list->force - key->force;
+    const double tone_d = (list->cents - key->cents) * 64;
+    const double force_d = list->force - key->force;
     return hypot(tone_d, force_d);
 }
 
@@ -262,7 +263,7 @@ const Sample_entry* Note_map_get_entry(
     assert(isfinite(force) || (isinf(force) && force < 0));
     assert(random != NULL);
 
-    Random_list* key =
+    const Random_list* key =
         &(Random_list){ .force = force, .freq = NAN, .cents = cents };
     Random_list* estimate_low = AAiter_get_at_most(map->iter, key);
     Random_list* choice = NULL;
@@ -321,7 +322,7 @@ const Sample_entry* Note_map_get_entry(
     assert(choice->entry_count > 0);
     assert(choice->entry_count < NOTE_MAP_RANDOMS_MAX);
 //    state->middle_tone = choice->freq;
-    int index = Random_get_index(random, choice->entry_count);
+    const int index = Random_get_index(random, choice->entry_count);
     assert(index >= 0);
 //    fprintf(stderr, "%d\n", index);
 

@@ -27,7 +27,6 @@
 #include <memory.h>
 #include <player/Channel.h>
 #include <player/devices/Au_state.h>
-#include <player/Work_buffers.h>
 #include <string/common.h>
 
 #include <inttypes.h>

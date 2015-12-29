@@ -19,15 +19,12 @@
 #include <init/devices/Device_params.h>
 #include <init/devices/Processor.h>
 #include <kunquat/limits.h>
-#include <mathnum/common.h>
 #include <memory.h>
 #include <player/devices/processors/Noise_state.h>
-#include <player/Work_buffers.h>
 #include <string/common.h>
 
-#include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 

@@ -22,7 +22,6 @@
 #include <memory.h>
 #include <player/devices/Proc_state.h>
 #include <player/devices/processors/Add_state.h>
-#include <player/Work_buffers.h>
 #include <string/common.h>
 
 #include <math.h>
@@ -207,7 +206,7 @@ static bool Proc_add_set_tone_pitch(
     assert(dimpl != NULL);
     assert(indices != NULL);
 
-    int32_t ti = indices[0];
+    const int32_t ti = indices[0];
     if (ti < 0 || ti >= ADD_TONES_MAX)
         return true;
 
@@ -228,7 +227,7 @@ static bool Proc_add_set_tone_volume(
     assert(dimpl != NULL);
     assert(indices != NULL);
 
-    int32_t ti = indices[0];
+    const int32_t ti = indices[0];
     if (ti < 0 || ti >= ADD_TONES_MAX)
         return true;
 
@@ -249,7 +248,7 @@ static bool Proc_add_set_tone_panning(
     assert(dimpl != NULL);
     assert(indices != NULL);
 
-    int32_t ti = indices[0];
+    const int32_t ti = indices[0];
     if (ti < 0 || ti >= ADD_TONES_MAX)
         return true;
 

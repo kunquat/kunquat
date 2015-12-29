@@ -14,19 +14,13 @@
 
 #include <init/devices/processors/Proc_sample.h>
 
-#include <containers/AAtree.h>
 #include <debug/assert.h>
-#include <init/devices/Device_params.h>
-#include <init/devices/param_types/Hit_map.h>
-#include <init/devices/param_types/Sample.h>
-#include <init/devices/param_types/Wavpack.h>
 #include <init/devices/Processor.h>
 #include <memory.h>
 #include <player/devices/processors/Sample_state.h>
-#include <player/Work_buffers.h>
 #include <string/common.h>
 
-#include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

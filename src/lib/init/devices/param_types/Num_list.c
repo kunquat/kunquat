@@ -37,7 +37,7 @@ static bool Num_list_append(Num_list* nl, double num);
 static bool read_num(Streader* sr, int32_t index, void* userdata)
 {
     assert(sr != NULL);
-    (void)index;
+    ignore(index);
     assert(userdata != NULL);
 
     Num_list* nl = userdata;

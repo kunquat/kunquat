@@ -15,15 +15,10 @@
 #include <init/devices/processors/Proc_debug.h>
 
 #include <debug/assert.h>
-#include <init/devices/Device_params.h>
 #include <memory.h>
 #include <player/devices/processors/Debug_state.h>
-#include <player/devices/Voice_state.h>
-#include <player/Work_buffers.h>
 #include <string/common.h>
 
-#include <math.h>
-#include <stdint.h>
 #include <stdlib.h>
 
 

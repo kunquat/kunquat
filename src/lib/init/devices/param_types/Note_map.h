@@ -16,7 +16,6 @@
 #define K_NOTE_MAP_H
 
 
-#include <containers/AAtree.h>
 #include <init/devices/param_types/Sample_entry.h>
 #include <mathnum/Random.h>
 #include <string/Streader.h>

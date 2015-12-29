@@ -23,7 +23,6 @@
 #include <string/common.h>
 
 #include <math.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -102,7 +101,7 @@ static bool Proc_freeverb_init(Device_impl* dimpl)
 
     Proc_freeverb_update_reflectivity(freeverb, initial_reflect);
     Proc_freeverb_update_damp(freeverb, initial_damp);
-    const double fixed_gain = 0.015;
+    static const double fixed_gain = 0.015;
     Proc_freeverb_update_gain(freeverb, fixed_gain);
     Proc_freeverb_update_wet(freeverb, initial_wet);
 

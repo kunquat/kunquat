@@ -25,6 +25,7 @@
 #include <init/devices/param_types/Sample.h>
 #include <mathnum/Tstamp.h>
 #include <player/devices/Device_state.h>
+#include <player/devices/Proc_state.h>
 #include <player/devices/Voice_state.h>
 #include <player/Linear_controls.h>
 #include <string/key_pattern.h>

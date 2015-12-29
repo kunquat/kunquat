@@ -25,7 +25,6 @@
 #include <player/devices/Au_state.h>
 #include <player/devices/Proc_state.h>
 #include <player/devices/Voice_state.h>
-#include <player/Work_buffers.h>
 
 #include <stdbool.h>
 #include <stdint.h>

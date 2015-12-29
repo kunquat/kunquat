@@ -16,6 +16,7 @@
 #define K_DEVICE_PARAMS_H
 
 
+#include <containers/AAtree.h>
 #include <init/devices/Device_field.h>
 #include <mathnum/Real.h>
 #include <mathnum/Tstamp.h>

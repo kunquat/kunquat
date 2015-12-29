@@ -192,8 +192,8 @@ static bool read_env_node(Streader* sr, int32_t index, void* userdata)
     if (!Streader_readf(sr, "[%f,%f]", &node[0], &node[1]))
         return false;
 
-    size_t read_pos = sr->pos;
-    bool is_last = Streader_try_match_char(sr, ']');
+    const size_t read_pos = sr->pos;
+    const bool is_last = Streader_try_match_char(sr, ']');
     sr->pos = read_pos;
 
     if (is_last && index < 1)
@@ -213,7 +213,7 @@ static bool read_env_node(Streader* sr, int32_t index, void* userdata)
     }
     else
     {
-        int ret = Envelope_set_node(env, node[0], node[1]);
+        const int ret = Envelope_set_node(env, node[0], node[1]);
         if (ret == -1)
         {
             Streader_set_error(
