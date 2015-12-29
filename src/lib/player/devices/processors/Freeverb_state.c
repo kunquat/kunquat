@@ -15,7 +15,7 @@
 #include <player/devices/processors/Freeverb_state.h>
 
 #include <debug/assert.h>
-#include <devices/processors/Proc_freeverb.h>
+#include <init/devices/processors/Proc_freeverb.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <player/devices/processors/Freeverb_allpass.h>

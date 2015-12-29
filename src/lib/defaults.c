@@ -26,7 +26,7 @@ static const struct
 } keys_to_defaults[] =
 {
 #define MODULE_KEYP(name, keyp, def_val) { keyp, def_val },
-#include <module/Module_key_patterns.h>
+#include <init/Module_key_patterns.h>
     { NULL, NULL }
 };
 

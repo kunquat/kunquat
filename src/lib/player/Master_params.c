@@ -15,9 +15,9 @@
 #include <player/Master_params.h>
 
 #include <debug/assert.h>
+#include <init/Module.h>
+#include <init/sheet/Track_list.h>
 #include <mathnum/Random.h>
-#include <module/Module.h>
-#include <module/sheet/Track_list.h>
 
 #include <stdbool.h>
 #include <stdlib.h>

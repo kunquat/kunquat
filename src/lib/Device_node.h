@@ -16,8 +16,8 @@
 #define K_DEVICE_NODE_H
 
 
-#include <devices/Device.h>
-#include <module/Au_table.h>
+#include <init/Au_table.h>
+#include <init/devices/Device.h>
 #include <player/Device_states.h>
 #include <player/Voice_group.h>
 

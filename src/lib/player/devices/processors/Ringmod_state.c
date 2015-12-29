@@ -15,7 +15,7 @@
 #include <player/devices/processors/Ringmod_state.h>
 
 #include <debug/assert.h>
-#include <devices/processors/Proc_ringmod.h>
+#include <init/devices/processors/Proc_ringmod.h>
 #include <memory.h>
 #include <player/Audio_buffer.h>
 #include <player/devices/processors/Proc_utils.h>

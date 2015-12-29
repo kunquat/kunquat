@@ -17,11 +17,11 @@
 
 
 #include <decl.h>
+#include <init/Au_table.h>
+#include <init/sheet/Channel_defaults.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <mathnum/Tstamp.h>
-#include <module/Au_table.h>
-#include <module/sheet/Channel_defaults.h>
 #include <player/Channel_cv_state.h>
 #include <player/Channel_proc_state.h>
 #include <player/Env_state.h>

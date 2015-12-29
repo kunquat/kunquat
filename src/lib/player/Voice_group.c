@@ -15,7 +15,7 @@
 #include <player/Voice_group.h>
 
 #include <debug/assert.h>
-#include <devices/Device.h>
+#include <init/devices/Device.h>
 #include <player/Voice.h>
 
 #include <stdint.h>

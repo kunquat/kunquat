@@ -16,7 +16,7 @@
 #define K_EVENT_HANDLER_H
 
 
-#include <devices/Processor.h>
+#include <init/devices/Processor.h>
 #include <player/Channel.h>
 #include <player/devices/Au_state.h>
 #include <player/Event_names.h>

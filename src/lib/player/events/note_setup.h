@@ -16,7 +16,7 @@
 #define K_NOTE_SETUP_H
 
 
-#include <devices/Audio_unit.h>
+#include <init/devices/Audio_unit.h>
 #include <player/Channel.h>
 
 #include <stdint.h>

@@ -15,8 +15,8 @@
 #include <player/devices/Voice_state.h>
 
 #include <debug/assert.h>
-#include <devices/Device_impl.h>
-#include <devices/Processor.h>
+#include <init/devices/Device_impl.h>
+#include <init/devices/Processor.h>
 #include <kunquat/limits.h>
 #include <mathnum/Tstamp.h>
 #include <player/devices/Voice_state_common.h>

@@ -17,7 +17,7 @@
 
 
 #include <decl.h>
-#include <devices/Processor.h>
+#include <init/devices/Processor.h>
 #include <kunquat/limits.h>
 #include <player/Audio_buffer.h>
 #include <player/devices/Au_state.h>

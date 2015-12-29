@@ -17,7 +17,7 @@
 
 
 #include <decl.h>
-#include <devices/Processor.h>
+#include <init/devices/Processor.h>
 #include <player/devices/Device_state.h>
 
 #include <stdint.h>

@@ -15,9 +15,9 @@
 #include <player/Active_names.h>
 
 #include <debug/assert.h>
+#include <init/Env_var.h>
 #include <kunquat/limits.h>
 #include <memory.h>
-#include <module/Env_var.h>
 
 #include <stdlib.h>
 #include <string.h>

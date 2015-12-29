@@ -15,8 +15,8 @@
 #include <player/devices/Proc_state.h>
 
 #include <debug/assert.h>
-#include <devices/Device.h>
-#include <devices/Device_impl.h>
+#include <init/devices/Device.h>
+#include <init/devices/Device_impl.h>
 #include <mathnum/Tstamp.h>
 #include <player/devices/Device_state.h>
 #include <player/devices/Voice_state.h>

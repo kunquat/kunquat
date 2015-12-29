@@ -15,8 +15,8 @@
 #include <player/events/Event_control_decl.h>
 
 #include <debug/assert.h>
-#include <module/Env_var.h>
-#include <module/Environment.h>
+#include <init/Env_var.h>
+#include <init/Environment.h>
 #include <player/Active_names.h>
 #include <player/Channel.h>
 #include <player/Event_type.h>

@@ -14,8 +14,8 @@
 
 #include <player/devices/processors/Volume_state.h>
 
-#include <devices/Device.h>
-#include <devices/processors/Proc_volume.h>
+#include <init/devices/Device.h>
+#include <init/devices/processors/Proc_volume.h>
 #include <mathnum/conversions.h>
 #include <memory.h>
 #include <player/devices/Proc_state.h>

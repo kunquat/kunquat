@@ -15,11 +15,11 @@
 #include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
+#include <init/Input_map.h>
+#include <init/Module.h>
+#include <init/Scale.h>
 #include <kunquat/limits.h>
 #include <mathnum/Tstamp.h>
-#include <module/Input_map.h>
-#include <module/Module.h>
-#include <module/Scale.h>
 #include <player/devices/Voice_state.h>
 #include <player/events/Event_common.h>
 #include <player/events/note_setup.h>

@@ -15,7 +15,7 @@
 #include <player/devices/processors/Debug_state.h>
 
 #include <debug/assert.h>
-#include <devices/processors/Proc_debug.h>
+#include <init/devices/processors/Proc_debug.h>
 #include <player/devices/processors/Proc_utils.h>
 
 

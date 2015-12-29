@@ -16,8 +16,8 @@
 #define K_ENV_STATE_H
 
 
-#include <module/Env_var.h>
-#include <module/Environment.h>
+#include <init/Env_var.h>
+#include <init/Environment.h>
 
 #include <stdbool.h>
 #include <stdlib.h>

@@ -15,9 +15,9 @@
 #include <player/devices/processors/Sample_state.h>
 
 #include <debug/assert.h>
-#include <devices/param_types/Sample.h>
-#include <devices/param_types/Sample_params.h>
-#include <devices/processors/Proc_sample.h>
+#include <init/devices/param_types/Sample.h>
+#include <init/devices/param_types/Sample_params.h>
+#include <init/devices/processors/Proc_sample.h>
 #include <mathnum/common.h>
 #include <player/Audio_buffer.h>
 #include <player/devices/processors/Proc_utils.h>

@@ -16,7 +16,7 @@
 #define K_TIME_ENV_STATE_H
 
 
-#include <devices/param_types/Envelope.h>
+#include <init/devices/param_types/Envelope.h>
 #include <player/Work_buffers.h>
 
 #include <stdint.h>

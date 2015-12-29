@@ -14,7 +14,7 @@
 
 #include <player/devices/processors/Chorus_state.h>
 
-#include <devices/processors/Proc_chorus.h>
+#include <init/devices/processors/Proc_chorus.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <memory.h>

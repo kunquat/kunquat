@@ -16,11 +16,11 @@
 
 #include <Connections.h>
 #include <debug/assert.h>
-#include <devices/Audio_unit.h>
+#include <init/devices/Audio_unit.h>
+#include <init/Module.h>
+#include <init/Parse_manager.h>
 #include <kunquat/limits.h>
 #include <memory.h>
-#include <module/Module.h>
-#include <module/Parse_manager.h>
 #include <string/common.h>
 
 #include <stdlib.h>

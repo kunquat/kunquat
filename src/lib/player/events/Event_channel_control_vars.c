@@ -15,7 +15,7 @@
 #include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
-#include <module/Module.h>
+#include <init/Module.h>
 #include <player/events/set_active_name.h>
 #include <Value.h>
 

@@ -15,7 +15,7 @@
 #include <player/devices/processors/Add_state.h>
 
 #include <debug/assert.h>
-#include <devices/processors/Proc_add.h>
+#include <init/devices/processors/Proc_add.h>
 #include <mathnum/common.h>
 #include <player/devices/processors/Proc_utils.h>
 

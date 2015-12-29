@@ -17,7 +17,7 @@
 
 
 #include <decl.h>
-#include <devices/Device.h>
+#include <init/devices/Device.h>
 #include <player/devices/Device_state.h>
 
 #include <stdint.h>

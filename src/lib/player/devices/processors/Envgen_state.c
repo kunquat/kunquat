@@ -15,7 +15,7 @@
 #include <player/devices/processors/Envgen_state.h>
 
 #include <debug/assert.h>
-#include <devices/processors/Proc_envgen.h>
+#include <init/devices/processors/Proc_envgen.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <player/devices/Proc_state.h>

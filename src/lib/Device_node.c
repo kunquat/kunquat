@@ -16,8 +16,8 @@
 
 #include <Connections.h>
 #include <debug/assert.h>
-#include <devices/Audio_unit.h>
-#include <devices/Processor.h>
+#include <init/devices/Audio_unit.h>
+#include <init/devices/Processor.h>
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <player/Device_states.h>

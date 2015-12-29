@@ -15,7 +15,7 @@
 #include <player/devices/processors/Proc_utils.h>
 
 #include <debug/assert.h>
-#include <devices/Processor.h>
+#include <init/devices/Processor.h>
 #include <memory.h>
 #include <player/devices/Proc_state.h>
 #include <player/devices/Voice_state.h>

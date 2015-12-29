@@ -15,7 +15,7 @@
 #include <player/devices/processors/Gaincomp_state.h>
 
 #include <debug/assert.h>
-#include <devices/processors/Proc_gaincomp.h>
+#include <init/devices/processors/Proc_gaincomp.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <player/Audio_buffer.h>

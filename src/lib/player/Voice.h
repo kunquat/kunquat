@@ -17,7 +17,7 @@
 
 
 #include <decl.h>
-#include <devices/Processor.h>
+#include <init/devices/Processor.h>
 #include <mathnum/Random.h>
 #include <player/Channel_proc_state.h>
 #include <player/Device_states.h>

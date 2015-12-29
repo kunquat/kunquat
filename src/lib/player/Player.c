@@ -16,11 +16,11 @@
 
 #include <debug/assert.h>
 #include <Device_node.h>
-#include <devices/Au_params.h>
-#include <devices/Audio_unit.h>
+#include <init/devices/Au_params.h>
+#include <init/devices/Audio_unit.h>
+#include <init/sheet/Channel_defaults.h>
 #include <mathnum/common.h>
 #include <memory.h>
-#include <module/sheet/Channel_defaults.h>
 #include <Pat_inst_ref.h>
 #include <player/devices/Voice_state.h>
 #include <player/Player_private.h>

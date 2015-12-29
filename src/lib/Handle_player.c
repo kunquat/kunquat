@@ -15,11 +15,11 @@
 #include <Handle_private.h>
 
 #include <debug/assert.h>
+#include <init/Env_var.h>
+#include <init/Module.h>
 #include <kunquat/Player.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
-#include <module/Env_var.h>
-#include <module/Module.h>
 #include <string/common.h>
 
 #include <math.h>

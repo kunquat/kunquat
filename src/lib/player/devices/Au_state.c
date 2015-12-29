@@ -16,7 +16,7 @@
 
 #include <Connections.h>
 #include <debug/assert.h>
-#include <devices/Audio_unit.h>
+#include <init/devices/Audio_unit.h>
 #include <memory.h>
 #include <player/Device_states.h>
 #include <player/devices/Device_state.h>

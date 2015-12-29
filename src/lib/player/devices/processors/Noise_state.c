@@ -15,7 +15,7 @@
 #include <player/devices/processors/Noise_state.h>
 
 #include <debug/assert.h>
-#include <devices/processors/Proc_noise.h>
+#include <init/devices/processors/Proc_noise.h>
 #include <memory.h>
 #include <player/devices/Filter.h>
 #include <player/devices/Proc_state.h>
