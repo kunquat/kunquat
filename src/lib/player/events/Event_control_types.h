@@ -23,6 +23,8 @@ EVENT_CONTROL_DEF("cresume",    resume,                 NONE,           NULL)
 EVENT_CONTROL_DEF("cpattern",   play_pattern,           PAT_INST_REF,   v_piref)
 // tempo factor?
 
+EVENT_CONTROL_DEF("c.evn",      env_set_var_name,       STRING,         v_key)
+EVENT_CONTROL_DEF("c.ev",       env_set_var,            REALTIME,       v_finite_rt)
 EVENT_CONTROL_DEF("c.Bn",       env_set_bool_name,      STRING,         v_key)
 EVENT_CONTROL_DEF("c.B",        env_set_bool,           BOOL,           v_any_bool)
 EVENT_CONTROL_DEF("c.In",       env_set_int_name,       STRING,         v_key)

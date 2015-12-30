@@ -29,6 +29,41 @@
 #include <stdlib.h>
 
 
+bool Event_control_env_set_var_name_process(
+        General_state* global_state, Channel* channel, const Value* value)
+{
+    assert(global_state != NULL);
+    assert(channel != NULL);
+    assert(value != NULL);
+    assert(value->type == VALUE_TYPE_STRING);
+
+    return set_active_name(&channel->parent, ACTIVE_CAT_ENV, ACTIVE_TYPE_BOOL, value);
+}
+
+
+bool Event_control_env_set_var_process(
+        General_state* global_state, Channel* channel, const Value* value)
+{
+    assert(global_state != NULL);
+    assert(channel != NULL);
+    assert(value != NULL);
+
+    Env_var* var = Env_state_get_var(
+            global_state->estate,
+            Active_names_get(
+                channel->parent.active_names, ACTIVE_CAT_ENV, ACTIVE_TYPE_BOOL));
+    if (var == NULL)
+        return false;
+
+    Value* converted = VALUE_AUTO;
+    if (!Value_convert(converted, value, Env_var_get_type(var)))
+        return false;
+
+    Env_var_set_value(var, converted);
+    return true;
+}
+
+
 bool Event_control_env_set_bool_process(
         General_state* global_state, Channel* channel, const Value* value)
 {
