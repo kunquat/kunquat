@@ -1031,6 +1031,15 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
             return true;
 
         Proc_table* proc_table = Audio_unit_get_procs(au);
+
+        const Processor* proc = Proc_table_get_proc(proc_table, proc_index);
+        if (proc != NULL)
+        {
+            // Remove Device state of the processor
+            Device_states* dstates = Player_get_device_states(params->handle->player);
+            Device_states_remove_state(dstates, Device_get_id((const Device*)proc));
+        }
+
         Proc_table_set_existent(proc_table, proc_index, false);
         Proc_table_remove_proc(proc_table, proc_index);
 
@@ -1104,8 +1113,7 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
 
     // Sync the Device state(s)
     if (!Device_sync_states(
-                (Device*)proc,
-                Player_get_device_states(params->handle->player)))
+                (Device*)proc, Player_get_device_states(params->handle->player)))
     {
         Handle_set_error(params->handle, ERROR_MEMORY,
                 "Couldn't allocate memory while syncing processor");
