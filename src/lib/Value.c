@@ -24,6 +24,18 @@
 #include <string.h>
 
 
+bool Value_type_is_realtime(Value_type type)
+{
+    assert(type >= VALUE_TYPE_NONE);
+    assert(type < VALUE_TYPE_COUNT);
+
+    return (type == VALUE_TYPE_BOOL) ||
+        (type == VALUE_TYPE_INT) ||
+        (type == VALUE_TYPE_FLOAT) ||
+        (type == VALUE_TYPE_TSTAMP);
+}
+
+
 Value* Value_copy(Value* restrict dest, const Value* restrict src)
 {
     assert(dest != NULL);
