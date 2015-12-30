@@ -918,6 +918,10 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
             Streader_read_piref(event_reader, &value->value.Pat_inst_ref_type);
             break;
 
+        case VALUE_TYPE_REALTIME:
+            Streader_read_finite_rt(event_reader, value);
+            break;
+
         default:
             assert(false);
     }
