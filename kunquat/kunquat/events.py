@@ -26,6 +26,7 @@ EVENT_ARG_TSTAMP = 'tstamp'
 EVENT_ARG_STRING = 'string'
 EVENT_ARG_PAT = 'pat'
 EVENT_ARG_PITCH = 'pitch'
+EVENT_ARG_REALTIME = 'realtime'
 
 
 """Event information indexed by event name."""
