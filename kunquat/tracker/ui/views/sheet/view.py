@@ -1244,14 +1244,15 @@ class View(QWidget):
             return u'120'
 
         ex = {
-            None                    : None,
-            events.EVENT_ARG_BOOL   : u'false',
-            events.EVENT_ARG_INT    : u'0',
-            events.EVENT_ARG_FLOAT  : u'0',
-            events.EVENT_ARG_TSTAMP : u'0',
-            events.EVENT_ARG_STRING : u"''",
-            events.EVENT_ARG_PAT    : u'pat(0, 0)',
-            events.EVENT_ARG_PITCH  : u'0',
+            None                        : None,
+            events.EVENT_ARG_BOOL       : u'false',
+            events.EVENT_ARG_INT        : u'0',
+            events.EVENT_ARG_FLOAT      : u'0',
+            events.EVENT_ARG_TSTAMP     : u'0',
+            events.EVENT_ARG_STRING     : u"''",
+            events.EVENT_ARG_PAT        : u'pat(0, 0)',
+            events.EVENT_ARG_PITCH      : u'0',
+            events.EVENT_ARG_REALTIME   : u'0',
         }
 
         return ex[info['arg_type']]
