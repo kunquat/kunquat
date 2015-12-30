@@ -41,6 +41,7 @@ Device_impl* new_Proc_sample(void)
         return NULL;
     }
 
+    sample_p->parent.get_vstate_size = Sample_vstate_get_size;
     sample_p->parent.init_vstate = Sample_vstate_init;
 
     return &sample_p->parent;
@@ -52,15 +53,7 @@ const char* Proc_sample_property(const Processor* proc, const char* property_typ
     assert(proc != NULL);
     assert(property_type != NULL);
 
-    if (string_eq(property_type, "voice_state_size"))
-    {
-        static char size_str[8] = { '\0' };
-        if (string_eq(size_str, ""))
-            snprintf(size_str, 8, "%zd", Sample_vstate_get_size());
-
-        return size_str;
-    }
-    else if (string_eq(property_type, "proc_state_vars"))
+    if (string_eq(property_type, "proc_state_vars"))
     {
         static const char* vars_str = "["
             "[\"I\", \"e\"], " // expression

@@ -1071,34 +1071,22 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
     Device_states* dstates = Player_get_device_states(params->handle->player);
     Device_states_remove_state(dstates, Device_get_id((Device*)proc));
 
+    // Allocate Voice state space
+    {
+        const size_t size = Device_impl_get_vstate_size(proc_impl);
+        if (!Player_reserve_voice_state_space(params->handle->player, size) ||
+                !Player_reserve_voice_state_space(params->handle->length_counter, size))
+        {
+            Handle_set_error(params->handle, ERROR_MEMORY,
+                    "Could not allocate memory for processor voice states");
+            return false;
+        }
+    }
+
     // Get processor properties
     Proc_property* property = d->prop;
     if (property != NULL)
     {
-        // Allocate Voice state space
-        const char* size_str = property(proc, "voice_state_size");
-        if (size_str != NULL)
-        {
-            Streader* size_sr = Streader_init(
-                    STREADER_AUTO, size_str, strlen(size_str));
-            int64_t size = 0;
-            Streader_read_int(size_sr, &size);
-            assert(!Streader_is_error_set(params->sr));
-            assert(size >= 0);
-//            fprintf(stderr, "Reserving space for %" PRId64 " bytes\n",
-//                            size);
-            if (!Player_reserve_voice_state_space(
-                        params->handle->player, size) ||
-                    !Player_reserve_voice_state_space(
-                        params->handle->length_counter, size))
-            {
-                Handle_set_error(params->handle, ERROR_MEMORY,
-                        "Couldn't allocate memory for processor voice states");
-                del_Device_impl(proc_impl);
-                return false;
-            }
-        }
-
         // Allocate channel-specific processor state space
         const char* proc_state_vars = property(proc, "proc_state_vars");
         if (proc_state_vars != NULL)

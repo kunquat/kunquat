@@ -17,11 +17,12 @@
 
 
 #include <decl.h>
+#include <player/devices/Voice_state.h>
 
 #include <stdlib.h>
 
 
-size_t Sample_vstate_get_size(void);
+Voice_state_get_size_func Sample_vstate_get_size;
 
 void Sample_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
 

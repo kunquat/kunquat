@@ -45,6 +45,7 @@ Device_impl* new_Proc_noise(void)
     }
 
     noise->parent.create_pstate = new_Noise_pstate;
+    noise->parent.get_vstate_size = Noise_vstate_get_size;
     noise->parent.init_vstate = Noise_vstate_init;
 
     return &noise->parent;
@@ -56,14 +57,7 @@ const char* Proc_noise_property(const Processor* proc, const char* property_type
     assert(proc != NULL);
     assert(property_type != NULL);
 
-    if (string_eq(property_type, "voice_state_size"))
-    {
-        static char size_str[8] = { '\0' };
-        if (string_eq(size_str, ""))
-            snprintf(size_str, 8, "%zd", Noise_vstate_get_size());
-        return size_str;
-    }
-    else if (string_eq(property_type, "proc_state_vars"))
+    if (string_eq(property_type, "proc_state_vars"))
     {
         static const char* vars_str = "[[\"I\", \"o\"]]"; // noise order
         return vars_str;

@@ -53,6 +53,7 @@ Device_impl* new_Proc_envgen(void)
         return NULL;
     }
 
+    egen->parent.get_vstate_size = Envgen_vstate_get_size;
     egen->parent.init_vstate = Envgen_vstate_init;
 
     egen->scale = 1;
@@ -101,15 +102,6 @@ const char* Proc_envgen_property(const Processor* proc, const char* property_typ
 {
     assert(proc != NULL);
     assert(property_type != NULL);
-
-    if (string_eq(property_type, "voice_state_size"))
-    {
-        static char size_str[8] = "";
-        if (string_eq(size_str, ""))
-            snprintf(size_str, 8, "%zd", Envgen_vstate_get_size());
-
-        return size_str;
-    }
 
     return NULL;
 }

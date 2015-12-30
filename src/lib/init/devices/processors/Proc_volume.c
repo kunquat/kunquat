@@ -47,6 +47,7 @@ Device_impl* new_Proc_volume(void)
     }
 
     volume->parent.create_pstate = new_Volume_pstate;
+    volume->parent.get_vstate_size = Volume_vstate_get_size;
     volume->parent.init_vstate = Volume_vstate_init;
 
     // Register key and control variable handlers
@@ -81,15 +82,6 @@ const char* Proc_volume_property(const Processor* proc, const char* property_typ
 {
     assert(proc != NULL);
     assert(property_type != NULL);
-
-    if (string_eq(property_type, "voice_state_size"))
-    {
-        static char size_str[8] = "";
-        if (string_eq(size_str, ""))
-            snprintf(size_str, 8, "%zd", Volume_vstate_get_size());
-
-        return size_str;
-    }
 
     return NULL;
 }

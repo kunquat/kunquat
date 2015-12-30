@@ -104,6 +104,7 @@ bool Device_impl_init(Device_impl* dimpl, Device_impl_destroy_func* destroy)
     assert(destroy != NULL);
 
     dimpl->create_pstate = NULL;
+    dimpl->get_vstate_size = NULL;
     dimpl->init_vstate = NULL;
     dimpl->destroy = destroy;
 
@@ -134,6 +135,17 @@ void Device_impl_set_device(Device_impl* dimpl, const Device* device)
     dimpl->device = device;
 
     return;
+}
+
+
+size_t Device_impl_get_vstate_size(const Device_impl* dimpl)
+{
+    assert(dimpl != NULL);
+
+    if (dimpl->get_vstate_size != NULL)
+        return dimpl->get_vstate_size();
+
+    return sizeof(Voice_state);
 }
 
 

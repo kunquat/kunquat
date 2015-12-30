@@ -54,6 +54,7 @@ Device_impl* new_Proc_add(void)
         return NULL;
     }
 
+    add->parent.get_vstate_size = Add_vstate_get_size;
     add->parent.init_vstate = Add_vstate_init;
 
     bool reg_success = true;
@@ -116,15 +117,6 @@ const char* Proc_add_property(const Processor* proc, const char* property_type)
 {
     assert(proc != NULL);
     assert(property_type != NULL);
-
-    if (string_eq(property_type, "voice_state_size"))
-    {
-        static char size_str[8] = "";
-        if (string_eq(size_str, ""))
-            snprintf(size_str, 8, "%zd", Add_vstate_get_size());
-
-        return size_str;
-    }
 
     return NULL;
 }

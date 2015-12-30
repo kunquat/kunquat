@@ -34,6 +34,9 @@
 #include <stdlib.h>
 
 
+typedef size_t Voice_state_get_size_func(void);
+
+
 typedef void Voice_state_init_func(Voice_state*, const Proc_state*);
 
 

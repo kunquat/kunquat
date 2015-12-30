@@ -67,6 +67,7 @@ struct Device_impl
     AAtree* update_cv_cbs;
 
     Device_state_create_func* create_pstate;
+    Voice_state_get_size_func* get_vstate_size;
     Voice_state_init_func* init_vstate;
     Device_impl_destroy_func* destroy;
 };
@@ -128,6 +129,16 @@ bool Device_impl_init(Device_impl* dimpl, Device_impl_destroy_func* destroy);
  * \param device   The Device -- must not be \c NULL.
  */
 void Device_impl_set_device(Device_impl* dimpl, const Device* device);
+
+
+/**
+ * Get Voice state size required by the Device implementation.
+ *
+ * \param dimpl   The Device implementation -- must not be \c NULL.
+ *
+ * \return   The size required for Voice states of this Device implementation.
+ */
+size_t Device_impl_get_vstate_size(const Device_impl* dimpl);
 
 
 /**

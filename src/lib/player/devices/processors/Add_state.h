@@ -25,7 +25,7 @@
 #include <stdbool.h>
 
 
-size_t Add_vstate_get_size(void);
+Voice_state_get_size_func Add_vstate_get_size;
 
 void Add_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
 
