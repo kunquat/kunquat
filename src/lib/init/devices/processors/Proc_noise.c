@@ -57,12 +57,6 @@ const char* Proc_noise_property(const Processor* proc, const char* property_type
     assert(proc != NULL);
     assert(property_type != NULL);
 
-    if (string_eq(property_type, "proc_state_vars"))
-    {
-        static const char* vars_str = "[[\"I\", \"o\"]]"; // noise order
-        return vars_str;
-    }
-
     return NULL;
 }
 

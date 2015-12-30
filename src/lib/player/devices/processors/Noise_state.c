@@ -96,16 +96,6 @@ static int32_t Noise_vstate_render_voice(
     Noise_pstate* noise_state = (Noise_pstate*)proc_state;
     Noise_vstate* noise_vstate = (Noise_vstate*)vstate;
 
-    if (vstate->note_on)
-    {
-        const int64_t* order_arg = Channel_proc_state_get_int(
-                vstate->cpstate, "o");
-        if (order_arg != NULL)
-            noise_state->order = *order_arg;
-        else
-            noise_state->order = 0;
-    }
-
     // Get actual forces
     const Cond_work_buffer* actual_forces = Cond_work_buffer_init(
             COND_WORK_BUFFER_AUTO,

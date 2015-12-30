@@ -53,15 +53,6 @@ const char* Proc_sample_property(const Processor* proc, const char* property_typ
     assert(proc != NULL);
     assert(property_type != NULL);
 
-    if (string_eq(property_type, "proc_state_vars"))
-    {
-        static const char* vars_str = "["
-            "[\"I\", \"e\"], " // expression
-            "[\"I\", \"s\"]"   // source
-            "]";
-        return vars_str;
-    }
-
     return NULL;
 }
 

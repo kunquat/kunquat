@@ -1087,25 +1087,6 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
     Proc_property* property = d->prop;
     if (property != NULL)
     {
-        // Allocate channel-specific processor state space
-        const char* proc_state_vars = property(proc, "proc_state_vars");
-        if (proc_state_vars != NULL)
-        {
-            Streader* gsv_sr = Streader_init(
-                    STREADER_AUTO,
-                    proc_state_vars,
-                    strlen(proc_state_vars));
-
-            if (!Player_alloc_channel_proc_state_keys(
-                        params->handle->player, gsv_sr))
-            {
-                Reader_params gsv_params;
-                gsv_params.handle = params->handle;
-                gsv_params.sr = gsv_sr;
-                set_error(&gsv_params);
-                return false;
-            }
-        }
     }
 
     // Allocate Device state(s) for this Processor
