@@ -52,15 +52,6 @@ Device_impl* new_Proc_noise(void)
 }
 
 
-const char* Proc_noise_property(const Processor* proc, const char* property_type)
-{
-    assert(proc != NULL);
-    assert(property_type != NULL);
-
-    return NULL;
-}
-
-
 static void del_Proc_noise(Device_impl* dimpl)
 {
     if (dimpl == NULL)

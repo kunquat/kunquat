@@ -113,15 +113,6 @@ Device_impl* new_Proc_add(void)
 }
 
 
-const char* Proc_add_property(const Processor* proc, const char* property_type)
-{
-    assert(proc != NULL);
-    assert(property_type != NULL);
-
-    return NULL;
-}
-
-
 static double sine(double phase, double modifier)
 {
     ignore(modifier);

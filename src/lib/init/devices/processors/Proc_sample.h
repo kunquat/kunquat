@@ -44,18 +44,6 @@ typedef struct Proc_sample
 Device_impl* new_Proc_sample(void);
 
 
-/**
- * Return Sample Processor property information.
- *
- * \param proc            The Sample Processor -- must be valid.
- * \param property_type   The property type -- must not be \c NULL.
- *
- * \return   The Sample Processor property description matching
- *           \a property_type, or \c NULL if one does not exist.
- */
-const char* Proc_sample_property(const Processor* proc, const char* property_type);
-
-
 #endif // K_PROC_SAMPLE_H
 
 

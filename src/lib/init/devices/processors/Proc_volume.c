@@ -78,15 +78,6 @@ Device_impl* new_Proc_volume(void)
 }
 
 
-const char* Proc_volume_property(const Processor* proc, const char* property_type)
-{
-    assert(proc != NULL);
-    assert(property_type != NULL);
-
-    return NULL;
-}
-
-
 static bool Proc_volume_set_volume(
         Device_impl* dimpl, const Key_indices indices, double value)
 {

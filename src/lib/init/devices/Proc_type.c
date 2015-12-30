@@ -36,24 +36,23 @@ struct Proc_type
 {
     const char* type;
     Proc_cons* cons;
-    Proc_property* property;
 };
 
 
 static const Proc_type proc_types[] =
 {
-    { "debug", new_Proc_debug, NULL },
-    { "add", new_Proc_add, Proc_add_property },
-    { "chorus", new_Proc_chorus, NULL },
-    { "delay", new_Proc_delay, NULL },
-    { "envgen", new_Proc_envgen, Proc_envgen_property },
-    { "freeverb", new_Proc_freeverb, NULL },
-    { "gaincomp", new_Proc_gaincomp, NULL },
-    { "noise", new_Proc_noise, Proc_noise_property },
-    { "ringmod", new_Proc_ringmod, NULL },
-    { "sample", new_Proc_sample, Proc_sample_property },
-    { "volume", new_Proc_volume, Proc_volume_property },
-    { NULL, NULL, NULL }
+    { "debug", new_Proc_debug },
+    { "add", new_Proc_add },
+    { "chorus", new_Proc_chorus },
+    { "delay", new_Proc_delay },
+    { "envgen", new_Proc_envgen },
+    { "freeverb", new_Proc_freeverb },
+    { "gaincomp", new_Proc_gaincomp },
+    { "noise", new_Proc_noise },
+    { "ringmod", new_Proc_ringmod },
+    { "sample", new_Proc_sample },
+    { "volume", new_Proc_volume },
+    { NULL, NULL }
 };
 
 
@@ -67,21 +66,6 @@ Proc_cons* Proc_type_find_cons(const char* type)
             return proc_types[i].cons;
     }
 
-    return NULL;
-}
-
-
-Proc_property* Proc_type_find_property(const char* type)
-{
-    assert(type != NULL);
-
-    for (int i = 0; proc_types[i].type != NULL; ++i)
-    {
-        if (string_eq(type, proc_types[i].type))
-            return proc_types[i].property;
-    }
-
-    assert(false);
     return NULL;
 }
 

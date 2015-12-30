@@ -48,15 +48,6 @@ Device_impl* new_Proc_sample(void)
 }
 
 
-const char* Proc_sample_property(const Processor* proc, const char* property_type)
-{
-    assert(proc != NULL);
-    assert(property_type != NULL);
-
-    return NULL;
-}
-
-
 void del_Proc_sample(Device_impl* dimpl)
 {
     if (dimpl == NULL)

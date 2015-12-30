@@ -52,15 +52,6 @@ typedef struct Proc_envgen
 Device_impl* new_Proc_envgen(void);
 
 
-/**
- * Return envelope generator Processor property information.
- *
- * \param proc            The envelope generator Processor -- must be valid.
- * \param property_type   The property type -- must not be \c NULL.
- */
-const char* Proc_envgen_property(const Processor* proc, const char* property_type);
-
-
 #endif // K_PROC_ENVGEN_H
 
 

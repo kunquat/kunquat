@@ -984,7 +984,6 @@ typedef struct pmdata
 {
     Handle* handle;
     Proc_cons* cons;
-    Proc_property* prop;
 } pmdata;
 
 
@@ -1009,8 +1008,6 @@ static bool read_proc_manifest_entry(Streader* sr, const char* key, void* userda
                     "Unsupported Processor type: %s", type);
             return false;
         }
-
-        d->prop = Proc_type_find_property(type);
     }
 
     return true;
@@ -1049,7 +1046,7 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
         return false;
 
     // Create the Processor implementation
-    pmdata* d = &(pmdata){ .handle = params->handle, .cons = NULL, .prop = NULL };
+    pmdata* d = &(pmdata){ .handle = params->handle, .cons = NULL };
     if (!Streader_read_dict(params->sr, read_proc_manifest_entry, d))
         return false;
 
@@ -1081,12 +1078,6 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
                     "Could not allocate memory for processor voice states");
             return false;
         }
-    }
-
-    // Get processor properties
-    Proc_property* property = d->prop;
-    if (property != NULL)
-    {
     }
 
     // Allocate Device state(s) for this Processor

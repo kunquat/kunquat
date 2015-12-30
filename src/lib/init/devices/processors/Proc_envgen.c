@@ -98,15 +98,6 @@ Device_impl* new_Proc_envgen(void)
 }
 
 
-const char* Proc_envgen_property(const Processor* proc, const char* property_type)
-{
-    assert(proc != NULL);
-    assert(property_type != NULL);
-
-    return NULL;
-}
-
-
 static bool Proc_envgen_set_scale(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
