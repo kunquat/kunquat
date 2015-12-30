@@ -46,10 +46,10 @@ class PlaybackManager():
     def is_recording(self):
         return self._session.get_record_mode()
 
-    def get_runtime_var_value(self, var_type, var_name):
-        return self._session.get_runtime_var_value(var_type, var_name)
+    def get_runtime_var_value(self, var_name):
+        return self._session.get_runtime_var_value(var_name)
 
-    def set_runtime_var_value(self, var_type, var_name, var_value):
-        self._controller.set_runtime_var_value(var_type, var_name, var_value)
+    def set_runtime_var_value(self, var_name, var_value):
+        self._controller.set_runtime_var_value(var_name, var_value)
 
 

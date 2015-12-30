@@ -305,31 +305,25 @@ class Controller():
         self._session.set_active_note(channel, pitch)
         self._updater.signal_update()
 
-    def update_active_var_name(self, ch, var_type, var_name):
-        self._session.set_active_var_name(ch, var_type, var_name)
+    def update_active_var_name(self, ch, var_name):
+        self._session.set_active_var_name(ch, var_name)
 
-    def update_active_var_value(self, ch, var_type, var_value):
-        self._session.set_active_var_value(ch, var_type, var_value)
+    def update_active_var_value(self, ch, var_value):
+        self._session.set_active_var_value(ch, var_value)
         self._updater.signal_update(set(['signal_runtime_env']))
 
-    def set_runtime_var_value(self, var_type, var_name, var_value):
+    def set_runtime_var_value(self, var_name, var_value):
         # Get current active variable name
-        old_name = self._session.get_active_var_name(0, var_type) or ''
+        old_name = self._session.get_active_var_name(0) or ''
 
         # Set new value
-        base_event_names = {
-            bool:           'c.B',
-            int:            'c.I',
-            float:          'c.F',
-            tstamp.Tstamp:  'c.T',
-        }
-        name_event = ('{}n'.format(base_event_names[var_type]), var_name)
-        value_event = (base_event_names[var_type], var_value)
+        name_event = ('c.evn', var_name)
+        value_event = ('c.ev', var_value)
         self._audio_engine.tfire_event(0, name_event)
         self._audio_engine.tfire_event(0, value_event)
 
         # Restore old active variable name so that we don't mess up playback
-        old_name_event = ('{}n'.format(base_event_names[var_type]), old_name)
+        old_name_event = ('c.evn', old_name)
         self._audio_engine.tfire_event(0, old_name_event)
 
     def send_queries(self):

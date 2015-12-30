@@ -75,7 +75,7 @@ class Session():
         self._expanded_au_vars = {}
         self._module_path = None
         self._is_saving = False
-        self._active_var_names = defaultdict(lambda: {})
+        self._active_var_names = {}
         self._runtime_env = {}
 
     def get_output_speed(self):
@@ -434,19 +434,19 @@ class Session():
     def is_saving(self):
         return self._is_saving
 
-    def set_active_var_name(self, ch, var_type, var_name):
-        self._active_var_names[ch][var_type] = var_name
+    def set_active_var_name(self, ch, var_name):
+        self._active_var_names[ch] = var_name
 
-    def get_active_var_name(self, ch, var_type):
-        return self._active_var_names[ch].get(var_type)
+    def get_active_var_name(self, ch):
+        return self._active_var_names.get(ch)
 
-    def set_active_var_value(self, ch, var_type, var_value):
-        var_name = self.get_active_var_name(ch, var_type)
+    def set_active_var_value(self, ch, var_value):
+        var_name = self.get_active_var_name(ch)
         if var_name:
-            self._runtime_env[(var_type, var_name)] = var_value
+            self._runtime_env[var_name] = var_value
 
-    def get_runtime_var_value(self, var_type, var_name):
-        return self._runtime_env.get((var_type, var_name))
+    def get_runtime_var_value(self, var_name):
+        return self._runtime_env.get(var_name)
 
     def reset_runtime_env(self):
         self._active_var_names.clear()
