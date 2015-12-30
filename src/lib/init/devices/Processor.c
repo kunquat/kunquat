@@ -47,6 +47,22 @@ static Device_state* Processor_create_state_plain(
 }
 
 
+static Device_state* Processor_create_dstate(
+        const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
+{
+    assert(device != NULL);
+    assert(audio_rate > 0);
+    assert(audio_buffer_size >= 0);
+
+    const Device_impl* dimpl = Device_get_impl(device);
+
+    if ((dimpl != NULL) && (dimpl->create_pstate != NULL))
+        return dimpl->create_pstate(device, audio_rate, audio_buffer_size);
+
+    return Processor_create_state_plain(device, audio_rate, audio_buffer_size);
+}
+
+
 static void Processor_set_control_var_generic(
         const Device* device,
         Device_states* dstates,
@@ -138,11 +154,7 @@ Processor* new_Processor(int index, const Au_params* au_params)
     proc->enable_voice_support = false;
     proc->enable_signal_support = false;
 
-    proc->init_vstate = NULL;
-
-    Device_set_state_creator(
-            &proc->parent,
-            Processor_create_state_plain);
+    Device_set_state_creator(&proc->parent, Processor_create_dstate);
 
     Device_register_set_control_var_generic(
             &proc->parent, Processor_set_control_var_generic);
@@ -163,16 +175,6 @@ Processor* new_Processor(int index, const Au_params* au_params)
             &proc->parent, Processor_init_control_var_float);
 
     return proc;
-}
-
-
-bool Processor_init(Processor* proc, Voice_state_init_func* init_vstate)
-{
-    assert(proc != NULL);
-
-    proc->init_vstate = init_vstate;
-
-    return true;
 }
 
 

@@ -36,12 +36,12 @@ typedef struct Proc_sample
 
 
 /**
- * Create a new Sample Processor.
+ * Create a new Sample processor.
  *
- * \return   The new Sample Processor if successful, or \c NULL if memory
+ * \return   The new Sample processor if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_impl* new_Proc_sample(Processor* proc);
+Device_impl* new_Proc_sample(void);
 
 
 /**

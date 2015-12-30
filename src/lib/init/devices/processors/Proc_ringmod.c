@@ -24,38 +24,25 @@
 #include <stdlib.h>
 
 
-static bool Proc_ringmod_init(Device_impl* dimpl);
-
 static void del_Proc_ringmod(Device_impl* dimpl);
 
 
-Device_impl* new_Proc_ringmod(Processor* proc)
+Device_impl* new_Proc_ringmod(void)
 {
     Proc_ringmod* ringmod = memory_alloc_item(Proc_ringmod);
     if (ringmod == NULL)
         return NULL;
 
-    ringmod->parent.device = (Device*)proc;
+    if (!Device_impl_init(&ringmod->parent, del_Proc_ringmod))
+    {
+        del_Device_impl(&ringmod->parent);
+        return NULL;
+    }
 
-    Device_impl_register_init(&ringmod->parent, Proc_ringmod_init);
-    Device_impl_register_destroy(&ringmod->parent, del_Proc_ringmod);
+    ringmod->parent.create_pstate = new_Ringmod_pstate;
+    ringmod->parent.init_vstate = Ringmod_vstate_init;
 
     return &ringmod->parent;
-}
-
-
-static bool Proc_ringmod_init(Device_impl* dimpl)
-{
-    assert(dimpl != NULL);
-
-    Proc_ringmod* ringmod = (Proc_ringmod*)dimpl;
-
-    Device_set_state_creator(ringmod->parent.device, new_Ringmod_pstate);
-
-    Processor* proc = (Processor*)ringmod->parent.device;
-    proc->init_vstate = Ringmod_vstate_init;
-
-    return true;
 }
 
 

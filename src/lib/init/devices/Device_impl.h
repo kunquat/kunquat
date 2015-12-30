@@ -54,17 +54,21 @@ SET_FUNC_TYPE(num_list,         const Num_list*);
 #undef SET_FUNC_TYPE
 
 
+typedef void Device_impl_destroy_func(Device_impl*);
+
+
 /**
  * The base class of a Processor implementation.
  */
 struct Device_impl
 {
-    Device* device;
+    const Device* device;
     AAtree* set_cbs;
     AAtree* update_cv_cbs;
 
-    bool (*init)(Device_impl*);
-    void (*destroy)(Device_impl*);
+    Device_state_create_func* create_pstate;
+    Voice_state_init_func* init_vstate;
+    Device_impl_destroy_func* destroy;
 };
 
 
@@ -104,31 +108,26 @@ typedef struct Device_impl_voice_cv_callback
 
 
 /**
- * Register an initialisation function.
- *
- * \param dimpl   The Device implementation -- must not be \c NULL.
- * \param init    The initialisation function -- must not be \c NULL.
- */
-void Device_impl_register_init(Device_impl* dimpl, bool (*init)(Device_impl*));
-
-
-/**
- * Register a destructor.
- *
- * \param dimpl     The Device implementation -- must not be \c NULL.
- * \param destroy   The destructor -- must not be \c NULL.
- */
-void Device_impl_register_destroy(Device_impl* dimpl, void (*destroy)(Device_impl*));
-
-
-/**
  * Initialise the Device implementation.
  *
- * \param dimpl   The Device implementation -- must not be \c NULL.
+ * \param dimpl     The Device implementation -- must not be \c NULL.
+ * \param destroy   The destructor function -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
+ *           The Device implementation class allows calling \a del_Device_impl
+ *           even if the initialisation fails, as long as the derived class
+ *           handles its own partially initialised state correctly.
  */
-bool Device_impl_init(Device_impl* dimpl);
+bool Device_impl_init(Device_impl* dimpl, Device_impl_destroy_func* destroy);
+
+
+/**
+ * Set the Device of the Device implementation.
+ *
+ * \param dimpl    The Device implementation -- must not be \c NULL.
+ * \param device   The Device -- must not be \c NULL.
+ */
+void Device_impl_set_device(Device_impl* dimpl, const Device* device);
 
 
 /**

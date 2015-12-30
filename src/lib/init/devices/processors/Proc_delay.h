@@ -17,7 +17,6 @@
 
 
 #include <init/devices/Device_impl.h>
-#include <init/devices/Processor.h>
 
 #include <stdlib.h>
 
@@ -42,14 +41,14 @@ typedef struct Proc_delay
 
 
 /**
- * Create a new delay Processor.
+ * Create a new delay processor.
  *
- * This Processor implements a tapped delay line (TDL).
+ * This processor implements a tapped delay line (TDL).
  *
- * \return   The new delay Processor if successful, or \c NULL if memory
+ * \return   The new delay processor if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_impl* new_Proc_delay(Processor* proc);
+Device_impl* new_Proc_delay(void);
 
 
 #endif // K_PROC_DELAY_H

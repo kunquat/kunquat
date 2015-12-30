@@ -34,8 +34,6 @@ static const double initial_wet = 1 / 3.0; // 3.0 = scale_wet
 static const double initial_width = 1;
 
 
-static bool Proc_freeverb_init(Device_impl* dimpl);
-
 static Set_float_func Proc_freeverb_set_refl;
 static Set_float_func Proc_freeverb_set_damp;
 
@@ -47,28 +45,19 @@ static void Proc_freeverb_update_wet(Proc_freeverb* freeverb, double wet);
 static void del_Proc_freeverb(Device_impl* dimpl);
 
 
-Device_impl* new_Proc_freeverb(Processor* proc)
+Device_impl* new_Proc_freeverb(void)
 {
     Proc_freeverb* freeverb = memory_alloc_item(Proc_freeverb);
     if (freeverb == NULL)
         return NULL;
 
-    freeverb->parent.device = (Device*)proc;
+    if (!Device_impl_init(&freeverb->parent, del_Proc_freeverb))
+    {
+        del_Device_impl(&freeverb->parent);
+        return NULL;
+    }
 
-    Device_impl_register_init(&freeverb->parent, Proc_freeverb_init);
-    Device_impl_register_destroy(&freeverb->parent, del_Proc_freeverb);
-
-    return &freeverb->parent;
-}
-
-
-static bool Proc_freeverb_init(Device_impl* dimpl)
-{
-    assert(dimpl != NULL);
-
-    Proc_freeverb* freeverb = (Proc_freeverb*)dimpl;
-
-    Device_set_state_creator(freeverb->parent.device, new_Freeverb_pstate);
+    freeverb->parent.create_pstate = new_Freeverb_pstate;
 
     // Register key set/update handlers
     bool reg_success = true;
@@ -87,7 +76,10 @@ static bool Proc_freeverb_init(Device_impl* dimpl)
             NULL);
 
     if (!reg_success)
-        return false;
+    {
+        del_Device_impl(&freeverb->parent);
+        return NULL;
+    }
 
     freeverb->gain = 0;
     freeverb->reflect = 0;
@@ -105,7 +97,7 @@ static bool Proc_freeverb_init(Device_impl* dimpl)
     Proc_freeverb_update_gain(freeverb, fixed_gain);
     Proc_freeverb_update_wet(freeverb, initial_wet);
 
-    return true;
+    return &freeverb->parent;
 }
 
 

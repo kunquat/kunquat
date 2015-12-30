@@ -26,36 +26,24 @@
 #include <string.h>
 
 
-static bool Proc_sample_init(Device_impl* dimpl);
-
 static void del_Proc_sample(Device_impl* dimpl);
 
 
-Device_impl* new_Proc_sample(Processor* proc)
+Device_impl* new_Proc_sample(void)
 {
     Proc_sample* sample_p = memory_alloc_item(Proc_sample);
     if (sample_p == NULL)
         return NULL;
 
-    sample_p->parent.device = (Device*)proc;
+    if (!Device_impl_init(&sample_p->parent, del_Proc_sample))
+    {
+        del_Device_impl(&sample_p->parent);
+        return NULL;
+    }
 
-    Device_impl_register_init(&sample_p->parent, Proc_sample_init);
-    Device_impl_register_destroy(&sample_p->parent, del_Proc_sample);
+    sample_p->parent.init_vstate = Sample_vstate_init;
 
     return &sample_p->parent;
-}
-
-
-static bool Proc_sample_init(Device_impl* dimpl)
-{
-    assert(dimpl != NULL);
-
-    Proc_sample* sample_p = (Proc_sample*)dimpl;
-
-    Processor* proc = (Processor*)sample_p->parent.device;
-    proc->init_vstate = Sample_vstate_init;
-
-    return true;
 }
 
 

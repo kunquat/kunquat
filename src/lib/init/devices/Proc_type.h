@@ -31,7 +31,7 @@
  * \return   The new Processor if successful, or \c NULL if memory allocation
  *           failed.
  */
-typedef Device_impl* Proc_cons(Processor* proc);
+typedef Device_impl* Proc_cons(void);
 
 
 /**

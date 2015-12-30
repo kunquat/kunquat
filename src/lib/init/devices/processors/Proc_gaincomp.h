@@ -18,7 +18,6 @@
 
 #include <decl.h>
 #include <init/devices/Device_impl.h>
-#include <init/devices/Processor.h>
 
 #include <stdlib.h>
 
@@ -33,12 +32,12 @@ typedef struct Proc_gaincomp
 
 
 /**
- * Create a new gain compression Processor.
+ * Create a new gain compression processor.
  *
- * \return   The new gain compression Processor if successful, or \c NULL if
+ * \return   The new gain compression processor if successful, or \c NULL if
  *           memory allocation failed.
  */
-Device_impl* new_Proc_gaincomp(Processor* proc);
+Device_impl* new_Proc_gaincomp(void);
 
 
 #endif // K_PROC_GC_H

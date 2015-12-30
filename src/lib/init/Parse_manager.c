@@ -1057,7 +1057,7 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
         return false;
 
     assert(d->cons != NULL);
-    Device_impl* proc_impl = d->cons(proc);
+    Device_impl* proc_impl = d->cons();
     if (proc_impl == NULL)
     {
         Handle_set_error(params->handle, ERROR_MEMORY,
@@ -1065,13 +1065,7 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
         return false;
     }
 
-    if (!Device_set_impl((Device*)proc, proc_impl))
-    {
-        del_Device_impl(proc_impl);
-        Handle_set_error(params->handle, ERROR_MEMORY,
-                "Couldn't allocate memory while initialising Processor implementation");
-        return false;
-    }
+    Device_set_impl((Device*)proc, proc_impl);
 
     // Remove old Processor Device state
     Device_states* dstates = Player_get_device_states(params->handle->player);

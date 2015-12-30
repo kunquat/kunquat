@@ -30,12 +30,12 @@ typedef struct Proc_noise
 
 
 /**
- * Create a new Noise Processor.
+ * Create a new Noise processor.
  *
- * \return   The new Noise Processor if successful, or \c NULL if memory
+ * \return   The new Noise processor if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_impl* new_Proc_noise(Processor* proc);
+Device_impl* new_Proc_noise(void);
 
 
 /**

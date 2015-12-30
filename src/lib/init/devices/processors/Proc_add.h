@@ -47,12 +47,12 @@ typedef struct Proc_add
 
 
 /**
- * Create a new additive synthesis Processor.
+ * Create a new additive synthesis processor.
  *
- * \return   The new additive synthesis Processor if successful, or \c NULL if
+ * \return   The new additive synthesis processor if successful, or \c NULL if
  *           memory allocation failed.
  */
-Device_impl* new_Proc_add(Processor* proc);
+Device_impl* new_Proc_add(void);
 
 
 /**

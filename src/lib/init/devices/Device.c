@@ -101,23 +101,24 @@ bool Device_is_existent(const Device* device)
 }
 
 
-bool Device_set_impl(Device* device, Device_impl* dimpl)
+void Device_set_impl(Device* device, Device_impl* dimpl)
 {
     assert(device != NULL);
     assert(dimpl != NULL);
 
-    Device_impl* old_dimpl = device->dimpl;
+    del_Device_impl(device->dimpl);
+
+    Device_impl_set_device(dimpl, device);
     device->dimpl = dimpl;
 
-    if (!Device_impl_init(device->dimpl))
-    {
-        device->dimpl = old_dimpl;
-        return false;
-    }
+    return;
+}
 
-    del_Device_impl(old_dimpl);
 
-    return true;
+const Device_impl* Device_get_impl(const Device* device)
+{
+    assert(device != NULL);
+    return device->dimpl;
 }
 
 

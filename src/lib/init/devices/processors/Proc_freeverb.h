@@ -17,7 +17,6 @@
 
 
 #include <init/devices/Device_impl.h>
-#include <init/devices/Processor.h>
 
 #include <stdlib.h>
 
@@ -41,16 +40,16 @@ typedef struct Proc_freeverb
 
 
 /**
- * Create a new Freeverb Processor.
+ * Create a new Freeverb processor.
  *
  * This is a rewrite of the Freeverb public domain reverb by Jezar at
  * Dreampoint in 2000. Unlike the original, this implementation supports
  * arbitrary audio rates.
  *
- * \return   The new Freeverb Processor if successful, or \c NULL if memory
+ * \return   The new Freeverb processor if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_impl* new_Proc_freeverb(Processor* proc);
+Device_impl* new_Proc_freeverb(void);
 
 
 #endif // K_PROC_FREEVERB_H

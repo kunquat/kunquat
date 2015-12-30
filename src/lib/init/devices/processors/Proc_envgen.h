@@ -44,12 +44,12 @@ typedef struct Proc_envgen
 
 
 /**
- * Create a new envelope generator Processor.
+ * Create a new envelope generator processor.
  *
- * \return   The new envelope generator Processor if successful, or \c NULL if
+ * \return   The new envelope generator processor if successful, or \c NULL if
  *           memory allocation failed.
  */
-Device_impl* new_Proc_envgen(Processor* proc);
+Device_impl* new_Proc_envgen(void);
 
 
 /**

@@ -15,6 +15,7 @@
 #include <player/Voice.h>
 
 #include <debug/assert.h>
+#include <init/devices/Device_impl.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <player/devices/Voice_state.h>
@@ -132,8 +133,9 @@ void Voice_init(
     Voice_state_init(
             voice->state, cgstate, voice->rand_p, voice->rand_s, freq, tempo);
 
-    if (proc->init_vstate != NULL)
-        proc->init_vstate(voice->state, proc_state);
+    const Device_impl* dimpl = Device_get_impl((const Device*)proc);
+    if ((dimpl != NULL) && (dimpl->init_vstate != NULL))
+        dimpl->init_vstate(voice->state, proc_state);
 
     return;
 }

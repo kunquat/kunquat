@@ -17,7 +17,6 @@
 
 
 #include <init/devices/Device_impl.h>
-#include <init/devices/Processor.h>
 
 #include <stdlib.h>
 
@@ -30,16 +29,16 @@ typedef struct Proc_debug
 
 
 /**
- * Create a new Debug Processor.
+ * Create a new Debug processor.
  *
- * The Debug Processor generates a narrow pulse wave (with one sample value 1,
+ * The Debug processor generates a narrow pulse wave (with one sample value 1,
  * the rest are 0.5) that lasts no more than 10 phase cycles. Note off lasts
  * no more than two phase cycles with all sample values negated.
  *
- * \return   The new Debug Processor if successful, or \c NULL if memory
+ * \return   The new Debug processor if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_impl* new_Proc_debug(Processor* proc);
+Device_impl* new_Proc_debug(void);
 
 
 #endif // K_PROC_DEBUG_H

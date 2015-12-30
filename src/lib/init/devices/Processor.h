@@ -61,8 +61,6 @@ struct Processor
 
     bool enable_voice_support;
     bool enable_signal_support;
-
-    Voice_state_init_func* init_vstate;
 };
 
 
@@ -77,21 +75,6 @@ struct Processor
  *           failed.
  */
 Processor* new_Processor(int index, const Au_params* au_params);
-
-
-/**
- * Initialise the general Processor parameters.
- *
- * \param proc          The Processor -- must not be \c NULL.
- * \param destroy       The destructor of the Processor -- must not be \c NULL.
- * \param init_vstate   The Voice state initialiser, or \c NULL if not needed.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Processor_init(
-        Processor* proc,
-        //void (*destroy)(Processor*),
-        Voice_state_init_func* init_vstate);
 
 
 /**
