@@ -141,6 +141,14 @@ bool v_finite_float(const char* param)
 }
 
 
+bool v_finite_rt(const char* param)
+{
+    assert(param != NULL);
+    Streader* sr = init_c_streader(param);
+    return Streader_read_finite_rt(sr, NULL);
+}
+
+
 bool v_force(const char* param)
 {
     assert(param != NULL);
