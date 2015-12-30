@@ -86,6 +86,9 @@ const char* kqt_get_event_arg_type(const char* event_name)
                 case VALUE_TYPE_PAT_INST_REF:
                     return "pat";
 
+                case VALUE_TYPE_REALTIME:
+                    return "realtime";
+
                 default:
                     assert(false);
             }
