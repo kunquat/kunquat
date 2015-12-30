@@ -14,13 +14,12 @@
 
 #include <Handle_private.h>
 
-#include <Audio_buffer.h>
 #include <debug/assert.h>
+#include <init/Env_var.h>
+#include <init/Module.h>
 #include <kunquat/Player.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
-#include <module/Env_var.h>
-#include <module/Module.h>
 #include <string/common.h>
 
 #include <math.h>
@@ -88,11 +87,7 @@ int kqt_Handle_set_audio_rate(kqt_Handle handle, long rate)
         return 0;
     }
 
-    if (!Device_set_audio_rate(
-                (Device*)h->module,
-                Player_get_device_states(h->player),
-                rate) ||
-            !Player_set_audio_rate(h->player, rate))
+    if (!Player_set_audio_rate(h->player, rate))
     {
         Handle_set_error(h, ERROR_MEMORY,
                 "Couldn't allocate memory after change of audio rate.");
@@ -135,11 +130,7 @@ int kqt_Handle_set_audio_buffer_size(kqt_Handle handle, long size)
         return 0;
     }
 
-    if (!Device_set_buffer_size(
-                (Device*)h->module,
-                Player_get_device_states(h->player),
-                size) ||
-            !Player_set_audio_buffer_size(h->player, size))
+    if (!Player_set_audio_buffer_size(h->player, size))
     {
         Handle_set_error(h, ERROR_MEMORY,
                 "Couldn't allocate memory for new buffers");
@@ -239,7 +230,7 @@ int kqt_Handle_set_position(kqt_Handle handle, int track, long long nanoseconds)
     int64_t skip_frames = ((double)nanoseconds / 1000000000L) *
         Player_get_audio_rate(h->player);
 
-    Device_reset((Device*)h->module, Player_get_device_states(h->player));
+    Device_states_reset(Player_get_device_states(h->player));
 
     Player_reset(h->player, track);
     Player_skip(h->player, skip_frames);

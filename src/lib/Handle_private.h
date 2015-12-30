@@ -19,8 +19,8 @@
 #include <kunquat/Handle.h>
 
 #include <Error.h>
+#include <init/Module.h>
 #include <kunquat/Player.h>
-#include <module/Module.h>
 #include <player/Player.h>
 
 #include <stdbool.h>

@@ -16,11 +16,11 @@
 #define K_VOICE_H
 
 
-#include <devices/Processor.h>
+#include <decl.h>
+#include <init/devices/Processor.h>
 #include <mathnum/Random.h>
 #include <player/Channel_proc_state.h>
 #include <player/Device_states.h>
-#include <player/Voice_state.h>
 #include <player/Work_buffers.h>
 
 #include <stdbool.h>

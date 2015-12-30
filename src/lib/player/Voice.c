@@ -17,7 +17,7 @@
 #include <debug/assert.h>
 #include <mathnum/common.h>
 #include <memory.h>
-#include <player/Voice_state.h>
+#include <player/devices/Voice_state.h>
 
 #include <inttypes.h>
 #include <stdint.h>
@@ -133,7 +133,7 @@ void Voice_init(
             voice->state, cgstate, voice->rand_p, voice->rand_s, freq, tempo);
 
     if (proc->init_vstate != NULL)
-        proc->init_vstate(proc, proc_state, voice->state);
+        proc->init_vstate(voice->state, proc_state);
 
     return;
 }
@@ -157,7 +157,7 @@ void Voice_reset(Voice* voice)
 
 void Voice_mix(
         Voice* voice,
-        Device_states* states,
+        Device_states* dstates,
         const Work_buffers* wbs,
         uint32_t nframes,
         uint32_t offset,
@@ -166,15 +166,23 @@ void Voice_mix(
 {
     assert(voice != NULL);
     assert(voice->proc != NULL);
-    assert(states != NULL);
+    assert(dstates != NULL);
     assert(wbs != NULL);
     assert(freq > 0);
 
     if (voice->prio == VOICE_PRIO_INACTIVE)
         return;
 
-    Processor_process_vstate(
-            voice->proc, states, voice->state, wbs, offset, nframes, freq, tempo);
+    //Processor_process_vstate(
+    //        voice->proc, states, voice->state, wbs, offset, nframes, freq, tempo);
+
+    Proc_state* pstate = (Proc_state*)Device_states_get_state(
+            dstates, Device_get_id((const Device*)voice->proc));
+    const Au_state* au_state = (const Au_state*)Device_states_get_state(
+            dstates, voice->proc->au_params->device_id);
+
+    Voice_state_render_voice(
+            voice->state, pstate, au_state, wbs, offset, nframes, tempo);
 
     voice->updated = true;
 

@@ -16,7 +16,7 @@
 #define K_PLAYER_PRIVATE_H
 
 
-#include <module/Environment.h>
+#include <init/Environment.h>
 #include <player/Cgiter.h>
 #include <player/Channel.h>
 #include <player/Device_states.h>

@@ -15,13 +15,13 @@
 #include <player/Event_handler.h>
 
 #include <debug/assert.h>
-#include <devices/Audio_unit.h>
-#include <devices/Processor.h>
+#include <init/Au_table.h>
+#include <init/Bind.h>
+#include <init/devices/Audio_unit.h>
+#include <init/devices/Processor.h>
+#include <init/Module.h>
 #include <kunquat/limits.h>
 #include <memory.h>
-#include <module/Au_table.h>
-#include <module/Bind.h>
-#include <module/Module.h>
 #include <player/Channel.h>
 #include <player/Event_names.h>
 #include <player/Event_type.h>

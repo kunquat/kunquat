@@ -15,13 +15,13 @@
 #include <player/Player.h>
 
 #include <debug/assert.h>
-#include <Device_node.h>
-#include <devices/Au_params.h>
-#include <devices/Audio_unit.h>
+#include <init/devices/Au_params.h>
+#include <init/devices/Audio_unit.h>
+#include <init/sheet/Channel_defaults.h>
 #include <mathnum/common.h>
 #include <memory.h>
-#include <module/sheet/Channel_defaults.h>
 #include <Pat_inst_ref.h>
+#include <player/devices/Voice_state.h>
 #include <player/Player_private.h>
 #include <player/Player_seq.h>
 #include <player/Position.h>
@@ -332,6 +332,9 @@ bool Player_set_audio_rate(Player* player, int32_t rate)
     if (player->audio_rate == rate)
         return true;
 
+    if (!Device_states_set_audio_rate(player->device_states, rate))
+        return false;
+
     // Add current playback frame count to nanoseconds history
     player->nanoseconds_history +=
         player->audio_frames_processed * 1000000000LL / player->audio_rate;
@@ -371,21 +374,23 @@ bool Player_set_audio_buffer_size(Player* player, int32_t size)
             memory_free(player->audio_buffers[i]);
             player->audio_buffers[i] = NULL;
         }
-        return true;
     }
-
-    // Reallocate buffers
-    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
+    else
     {
-        float* new_buffer = memory_realloc_items(
-                float,
-                size,
-                player->audio_buffers[i]);
-        if (new_buffer == NULL)
-            return false;
+        for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
+        {
+            float* new_buffer =
+                memory_realloc_items(float, size, player->audio_buffers[i]);
+            if (new_buffer == NULL)
+                return false;
 
-        player->audio_buffers[i] = new_buffer;
+            player->audio_buffers[i] = new_buffer;
+        }
     }
+
+    // Update device state buffers
+    if (!Device_states_set_audio_buffer_size(player->device_states, size))
+        return false;
 
     // Update work buffers
     if (!Work_buffers_resize(player->work_buffers, size))
@@ -459,7 +464,7 @@ static void Player_process_voices(
         const Device_state* au_state = Device_states_get_state(
                 player->device_states, au_id);
         const Audio_unit* au = (const Audio_unit*)Device_state_get_device(au_state);
-        Connections* conns = Audio_unit_get_connections_mut(au);
+        const Connections* conns = Audio_unit_get_connections(au);
 
         if (conns != NULL)
         {
@@ -570,16 +575,11 @@ void Player_play(Player* player, int32_t nframes)
 
     nframes = min(nframes, player->audio_buffer_size);
 
-    // TODO: separate data and playback state in connections
-    Connections* connections = player->module->connections;
+    const Connections* connections = Module_get_connections(player->module);
     assert(connections != NULL);
 
     Device_states_clear_audio_buffers(player->device_states, 0, nframes);
-    Connections_clear_buffers(
-            connections,
-            player->device_states,
-            0,
-            nframes);
+    Connections_clear_buffers(connections, player->device_states, 0, nframes);
 
     // TODO: check if song or pattern instance location has changed
 
@@ -599,10 +599,8 @@ void Player_play(Player* player, int32_t nframes)
 
                 Master_params_set_starting_tempo(&player->master_params);
 
-                Device_update_tempo(
-                        (const Device*)player->module,
-                        player->device_states,
-                        player->master_params.tempo);
+                Device_states_set_tempo(
+                        player->device_states, player->master_params.tempo);
 
                 // Init control variables
                 {
@@ -691,7 +689,7 @@ void Player_play(Player* player, int32_t nframes)
 
         // Process signals in the connection graph
         {
-            Connections_mix(
+            Connections_process_mixed_signals(
                     connections,
                     player->device_states,
                     player->work_buffers,

@@ -16,9 +16,10 @@
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
-#include <player/Device_state.h>
+#include <player/devices/Device_state.h>
 #include <memory.h>
 
+#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -57,7 +58,12 @@ bool Device_states_add_state(Device_states* states, Device_state* state)
     assert(state != NULL);
     assert(!AAtree_contains(states->states, state));
 
-    return AAtree_ins(states->states, state);
+    if (!AAtree_ins(states->states, state))
+        return false;
+
+    Device_state_reset(state);
+
+    return true;
 }
 
 
@@ -167,6 +173,29 @@ void Device_states_clear_audio_buffers(
 
         ds = AAiter_get_next(iter);
     }
+
+    return;
+}
+
+
+void Device_states_set_tempo(Device_states* states, double tempo)
+{
+    assert(states != NULL);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
+
+    AAiter* iter = AAITER_AUTO;
+    AAiter_change_tree(iter, states->states);
+
+    Device_state* ds = AAiter_get_at_least(iter, DEVICE_STATE_KEY(0));
+
+    while (ds != NULL)
+    {
+        Device_state_set_tempo(ds, tempo);
+        ds = AAiter_get_next(iter);
+    }
+
+    return;
 }
 
 
@@ -182,9 +211,29 @@ void Device_states_reset(Device_states* states)
     while (ds != NULL)
     {
         Device_state_reset(ds);
-
         ds = AAiter_get_next(iter);
     }
+
+    return;
+}
+
+
+void Device_states_reset_node_states(Device_states* states)
+{
+    assert(states != NULL);
+
+    AAiter* iter = AAITER_AUTO;
+    AAiter_change_tree(iter, states->states);
+
+    Device_state* ds = AAiter_get_at_least(iter, DEVICE_STATE_KEY(0));
+
+    while (ds != NULL)
+    {
+        Device_state_set_node_state(ds, DEVICE_NODE_STATE_NEW);
+        ds = AAiter_get_next(iter);
+    }
+
+    return;
 }
 
 

@@ -15,6 +15,7 @@
 #include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
+#include <player/devices/Voice_state.h>
 #include <player/events/Event_common.h>
 #include <player/Voice.h>
 #include <Value.h>

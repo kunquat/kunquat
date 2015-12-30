@@ -16,10 +16,10 @@
 #define K_EVENT_AU_DECL_H
 
 
-#include <devices/Au_params.h>
-#include <devices/Audio_unit.h>
-#include <player/Au_state.h>
+#include <init/devices/Au_params.h>
+#include <init/devices/Audio_unit.h>
 #include <player/Channel.h>
+#include <player/devices/Au_state.h>
 #include <player/Master_params.h>
 #include <Value.h>
 

@@ -15,9 +15,9 @@
 
 #include <test_common.h>
 
-#include <Filter.h>
 #include <kunquat/testing.h>
 #include <mathnum/common.h>
+#include <player/devices/Filter.h>
 
 #include <math.h>
 #include <string.h>

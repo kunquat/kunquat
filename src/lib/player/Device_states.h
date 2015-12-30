@@ -16,7 +16,7 @@
 #define K_DEVICE_STATES_H
 
 
-#include <player/Device_state.h>
+#include <player/devices/Device_state.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -103,11 +103,28 @@ void Device_states_clear_audio_buffers(
 
 
 /**
+ * Set the tempo in the Device states.
+ *
+ * \param states   The Device states -- must not be \c NULL.
+ * \param tempo    The new tempo -- must be finite and > \c 0.
+ */
+void Device_states_set_tempo(Device_states* states, double tempo);
+
+
+/**
  * Reset the Device states.
  *
  * \param states   The Device states -- must not be \c NULL.
  */
 void Device_states_reset(Device_states* states);
+
+
+/**
+ * Reset the graph search node states in the Device states.
+ *
+ * \param states   The Device states -- must not be \c NULL.
+ */
+void Device_states_reset_node_states(Device_states* states);
 
 
 /**

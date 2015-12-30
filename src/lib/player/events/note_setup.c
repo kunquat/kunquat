@@ -15,9 +15,10 @@
 #include <player/events/note_setup.h>
 
 #include <debug/assert.h>
-#include <devices/Audio_unit.h>
+#include <init/devices/Audio_unit.h>
 #include <kunquat/limits.h>
 #include <player/Channel.h>
+#include <player/devices/Voice_state.h>
 #include <player/Slider.h>
 
 #include <stdint.h>

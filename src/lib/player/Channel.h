@@ -16,19 +16,21 @@
 #define K_CHANNEL_H
 
 
-#include <Decl.h>
+#include <decl.h>
+#include <init/Au_table.h>
+#include <init/sheet/Channel_defaults.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <mathnum/Tstamp.h>
-#include <module/Au_table.h>
-#include <module/sheet/Channel_defaults.h>
 #include <player/Channel_cv_state.h>
 #include <player/Channel_proc_state.h>
 #include <player/Env_state.h>
 #include <player/Event_cache.h>
+#include <player/Filter_controls.h>
 #include <player/Force_controls.h>
 #include <player/General_state.h>
 #include <player/LFO.h>
+#include <player/Pitch_controls.h>
 #include <player/Voice_pool.h>
 
 #include <stdbool.h>

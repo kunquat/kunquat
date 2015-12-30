@@ -16,7 +16,7 @@
 #define K_MASTER_PARAMS_H
 
 
-#include <Decl.h>
+#include <decl.h>
 #include <mathnum/Random.h>
 #include <player/Active_jumps.h>
 #include <player/Env_state.h>

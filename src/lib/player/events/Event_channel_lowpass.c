@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <mathnum/common.h>
+#include <player/devices/Voice_state.h>
 #include <player/events/Event_common.h>
 #include <player/Voice.h>
 #include <Value.h>

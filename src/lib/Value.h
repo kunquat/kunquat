@@ -16,6 +16,7 @@
 #define K_VALUE_H
 
 
+#include <decl.h>
 #include <kunquat/limits.h>
 #include <mathnum/Real.h>
 #include <mathnum/Tstamp.h>
@@ -39,7 +40,7 @@ typedef enum
 } Value_type;
 
 
-typedef struct Value
+struct Value
 {
     Value_type type;
     union
@@ -52,7 +53,7 @@ typedef struct Value
         char string_type[KQT_VAR_NAME_MAX + 2]; // add 2 chars for quotes
         Pat_inst_ref Pat_inst_ref_type;
     } value;
-} Value;
+};
 
 
 #define VALUE_AUTO (&(Value){ .type = VALUE_TYPE_NONE })

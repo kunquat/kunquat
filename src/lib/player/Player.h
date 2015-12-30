@@ -16,9 +16,9 @@
 #define K_PLAYER_H
 
 
-#include <devices/Au_control_vars.h>
+#include <init/devices/Au_control_vars.h>
+#include <init/Module.h>
 #include <kunquat/limits.h>
-#include <module/Module.h>
 #include <player/Event_handler.h>
 #include <string/Streader.h>
 
