@@ -218,21 +218,6 @@ bool Player_reserve_voice_state_space(Player* player, size_t size)
 }
 
 
-bool Player_alloc_channel_proc_state_keys(Player* player, Streader* sr)
-{
-    assert(player != NULL);
-    assert(sr != NULL);
-
-    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
-    {
-        if (!Channel_proc_state_alloc_keys(player->channels[i]->cpstate, sr))
-            return false;
-    }
-
-    return true;
-}
-
-
 bool Player_alloc_channel_cv_state(Player* player, const Au_control_vars* aucv)
 {
     assert(player != NULL);

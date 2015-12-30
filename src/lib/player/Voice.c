@@ -112,7 +112,6 @@ void Voice_init(
         const Processor* proc,
         uint64_t group_id,
         const Proc_state* proc_state,
-        Channel_proc_state* cgstate,
         uint64_t seed,
         uint32_t freq,
         double tempo)
@@ -120,7 +119,6 @@ void Voice_init(
     assert(voice != NULL);
     assert(proc != NULL);
     assert(proc_state != NULL);
-    assert(cgstate != NULL);
     assert(freq > 0);
     assert(tempo > 0);
 
@@ -130,8 +128,7 @@ void Voice_init(
     Random_set_seed(voice->rand_p, seed);
     Random_set_seed(voice->rand_s, seed);
 
-    Voice_state_init(
-            voice->state, cgstate, voice->rand_p, voice->rand_s, freq, tempo);
+    Voice_state_init(voice->state, voice->rand_p, voice->rand_s, freq, tempo);
 
     const Device_impl* dimpl = Device_get_impl((const Device*)proc);
     if ((dimpl != NULL) && (dimpl->init_vstate != NULL))

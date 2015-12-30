@@ -29,6 +29,7 @@
 #include <player/devices/Voice_state.h>
 #include <player/Linear_controls.h>
 #include <string/key_pattern.h>
+#include <Value.h>
 
 #include <stdbool.h>
 #include <stdint.h>

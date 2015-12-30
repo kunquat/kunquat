@@ -36,14 +36,12 @@ static bool Channel_init(Channel* ch, int num, Env_state* estate, const Module* 
 
     General_state_preinit(&ch->parent);
 
-    ch->cpstate = new_Channel_proc_state();
     ch->rand = new_Random();
     ch->cvstate = new_Channel_cv_state();
-    if (ch->cpstate == NULL || ch->rand == NULL || ch->cvstate == NULL ||
+    if ((ch->rand == NULL) || (ch->cvstate == NULL) ||
             !General_state_init(&ch->parent, false, estate, module))
     {
         del_Channel_cv_state(ch->cvstate);
-        del_Channel_proc_state(ch->cpstate);
         del_Random(ch->rand);
         return false;
     }
@@ -271,8 +269,6 @@ void Channel_deinit(Channel* ch)
 
     del_Event_cache(ch->event_cache);
     ch->event_cache = NULL;
-    del_Channel_proc_state(ch->cpstate);
-    ch->cpstate = NULL;
     del_Random(ch->rand);
     ch->rand = NULL;
     del_Channel_cv_state(ch->cvstate);

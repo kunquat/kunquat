@@ -352,25 +352,6 @@ bool Event_handler_process_type(
 #endif
 
 
-#if 0
-bool Event_handler_add_channel_proc_state_key(
-        Event_handler* eh,
-        const char* key)
-{
-    assert(eh != NULL);
-    assert(key != NULL);
-
-    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-    {
-        if (!Channel_proc_state_set_key(eh->channels[i]->cgstate, key))
-            return false;
-    }
-
-    return true;
-}
-#endif
-
-
 void del_Event_handler(Event_handler* eh)
 {
     if (eh == NULL)

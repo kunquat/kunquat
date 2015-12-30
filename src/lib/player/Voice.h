@@ -19,7 +19,6 @@
 #include <decl.h>
 #include <init/devices/Processor.h>
 #include <mathnum/Random.h>
-#include <player/Channel_proc_state.h>
 #include <player/Device_states.h>
 #include <player/Work_buffers.h>
 
@@ -131,8 +130,6 @@ const Processor* Voice_get_proc(const Voice* voice);
  * \param group_id     The ID of the group this Voice belongs to. This is used
  *                     to identify which Voices are connected.
  * \param proc_state   The Processor state -- must not be \c NULL.
- * \param cpstate      The Channel-specific Processor state -- must not be
- *                     \c NULL.
  * \param seed         The random seed.
  * \param freq         The mixing frequency -- must be > \c 0.
  * \param tempo        The current tempo -- must be > \c 0.
@@ -142,7 +139,6 @@ void Voice_init(
         const Processor* proc,
         uint64_t group_id,
         const Proc_state* proc_state,
-        Channel_proc_state* cpstate,
         uint64_t seed,
         uint32_t freq,
         double tempo);
