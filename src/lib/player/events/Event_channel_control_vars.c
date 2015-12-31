@@ -24,22 +24,13 @@
 #include <stdlib.h>
 
 
-static const Active_type active_types[VALUE_TYPE_COUNT] =
-{
-    [VALUE_TYPE_BOOL]   = ACTIVE_TYPE_BOOL,
-    [VALUE_TYPE_INT]    = ACTIVE_TYPE_INT,
-    [VALUE_TYPE_FLOAT]  = ACTIVE_TYPE_FLOAT,
-    [VALUE_TYPE_TSTAMP] = ACTIVE_TYPE_TSTAMP,
-};
-
-
-static bool try_update_cv(Channel* ch, const Value* value, Active_type active_type)
+static bool try_update_cv(Channel* ch, const Value* value)
 {
     assert(ch != NULL);
     assert(value != NULL);
 
-    const char* var_name = Active_names_get(
-            ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR, active_type);
+    const char* var_name =
+        Active_names_get(ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR);
     if (var_name == NULL)
         return false;
 
@@ -58,11 +49,11 @@ static void set_cv_value_generic(Channel* ch, Device_states* dstates, const Valu
 
     //const Active_type active_type = active_types[value->type];
 
-    if (!try_update_cv(ch, value, ACTIVE_TYPE_BOOL))
+    if (!try_update_cv(ch, value))
         return;
 
-    const char* var_name = Active_names_get(
-            ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_BOOL);
+    const char* var_name =
+        Active_names_get(ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR);
     assert(var_name != NULL);
 
     const Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
@@ -88,8 +79,8 @@ static void set_cv_carry(Channel* ch, Device_states* dstates, bool enabled)
     assert(ch != NULL);
     assert(dstates != NULL);
 
-    const char* var_name = Active_names_get(
-            ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_BOOL);
+    const char* var_name =
+        Active_names_get(ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR);
     if (var_name == NULL)
         return;
 
@@ -107,8 +98,7 @@ bool Event_channel_set_cv_name_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_STRING);
 
-    return set_active_name(
-            &ch->parent, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_BOOL, value);
+    return set_active_name(&ch->parent, ACTIVE_CAT_CONTROL_VAR, value);
 }
 
 
@@ -160,8 +150,8 @@ bool Event_channel_slide_cv_target_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    const char* var_name = Active_names_get(
-            ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_BOOL);
+    const char* var_name =
+        Active_names_get(ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR);
     const Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
     if ((var_name == NULL) || (au == NULL))
         return true;
@@ -191,8 +181,8 @@ bool Event_channel_slide_cv_length_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
-    const char* var_name = Active_names_get(
-            ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_BOOL);
+    const char* var_name =
+        Active_names_get(ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR);
     const Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
     if ((var_name == NULL) || (au == NULL))
         return true;
@@ -222,8 +212,8 @@ bool Event_channel_osc_speed_cv_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    const char* var_name = Active_names_get(
-            ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_BOOL);
+    const char* var_name =
+        Active_names_get(ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR);
     const Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
     if ((var_name == NULL) || (au == NULL))
         return true;
@@ -253,8 +243,8 @@ bool Event_channel_osc_depth_cv_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    const char* var_name = Active_names_get(
-            ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_BOOL);
+    const char* var_name =
+        Active_names_get(ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR);
     const Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
     if ((var_name == NULL) || (au == NULL))
         return true;
@@ -284,8 +274,8 @@ bool Event_channel_osc_speed_slide_cv_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
-    const char* var_name = Active_names_get(
-            ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_BOOL);
+    const char* var_name =
+        Active_names_get(ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR);
     const Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
     if ((var_name == NULL) || (au == NULL))
         return true;
@@ -315,8 +305,8 @@ bool Event_channel_osc_depth_slide_cv_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
-    const char* var_name = Active_names_get(
-            ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_BOOL);
+    const char* var_name =
+        Active_names_get(ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR);
     const Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
     if ((var_name == NULL) || (au == NULL))
         return true;

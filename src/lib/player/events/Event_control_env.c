@@ -37,7 +37,7 @@ bool Event_control_env_set_var_name_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_STRING);
 
-    return set_active_name(&channel->parent, ACTIVE_CAT_ENV, ACTIVE_TYPE_BOOL, value);
+    return set_active_name(&channel->parent, ACTIVE_CAT_ENV, value);
 }
 
 
@@ -50,8 +50,7 @@ bool Event_control_env_set_var_process(
 
     Env_var* var = Env_state_get_var(
             global_state->estate,
-            Active_names_get(
-                channel->parent.active_names, ACTIVE_CAT_ENV, ACTIVE_TYPE_BOOL));
+            Active_names_get(channel->parent.active_names, ACTIVE_CAT_ENV));
     if (var == NULL)
         return false;
 
