@@ -31,36 +31,23 @@
 static Set_bool_func     Proc_gc_set_map_enabled;
 static Set_envelope_func Proc_gc_set_map;
 
-static bool Proc_gaincomp_init(Device_impl* dimpl);
-
 static void del_Proc_gaincomp(Device_impl* dimpl);
 
 
-Device_impl* new_Proc_gaincomp(Processor* proc)
+Device_impl* new_Proc_gaincomp(void)
 {
     Proc_gaincomp* gc = memory_alloc_item(Proc_gaincomp);
     if (gc == NULL)
         return NULL;
 
-    gc->parent.device = (Device*)proc;
+    if (!Device_impl_init(&gc->parent, del_Proc_gaincomp))
+    {
+        del_Device_impl(&gc->parent);
+        return NULL;
+    }
 
-    Device_impl_register_init(&gc->parent, Proc_gaincomp_init);
-    Device_impl_register_destroy(&gc->parent, del_Proc_gaincomp);
-
-    return &gc->parent;
-}
-
-
-static bool Proc_gaincomp_init(Device_impl* dimpl)
-{
-    assert(dimpl != NULL);
-
-    Proc_gaincomp* gc = (Proc_gaincomp*)dimpl;
-
-    Device_set_state_creator(dimpl->device, new_Gaincomp_pstate);
-
-    Processor* proc = (Processor*)gc->parent.device;
-    proc->init_vstate = Gaincomp_vstate_init;
+    gc->parent.create_pstate = new_Gaincomp_pstate;
+    gc->parent.init_vstate = Gaincomp_vstate_init;
 
     gc->is_map_enabled = false;
     gc->map = NULL;
@@ -77,9 +64,12 @@ static bool Proc_gaincomp_init(Device_impl* dimpl)
 #undef REGISTER_SET
 
     if (!reg_success)
-        return false;
+    {
+        del_Device_impl(&gc->parent);
+        return NULL;
+    }
 
-    return true;
+    return &gc->parent;
 }
 
 

@@ -33,7 +33,7 @@ bool Volume_pstate_set_volume(
         Device_state* dstate, const Key_indices indices, double value);
 
 
-size_t Volume_vstate_get_size(void);
+Voice_state_get_size_func Volume_vstate_get_size;
 
 void Volume_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
 

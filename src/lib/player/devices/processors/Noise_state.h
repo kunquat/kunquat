@@ -17,6 +17,7 @@
 
 
 #include <decl.h>
+#include <player/devices/Voice_state.h>
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -26,7 +27,7 @@ Device_state* new_Noise_pstate(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
 
-size_t Noise_vstate_get_size(void);
+Voice_state_get_size_func Noise_vstate_get_size;
 
 void Noise_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
 

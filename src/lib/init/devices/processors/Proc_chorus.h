@@ -17,7 +17,6 @@
 
 
 #include <init/devices/Device_impl.h>
-#include <init/devices/Processor.h>
 
 #include <stdlib.h>
 
@@ -48,12 +47,12 @@ typedef struct Proc_chorus
 
 
 /**
- * Create a new chorus Processor.
+ * Create a new chorus processor.
  *
- * \return   The new chorus Processor if successful, or \c NULL if memory
+ * \return   The new chorus processor if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_impl* new_Proc_chorus(Processor* proc);
+Device_impl* new_Proc_chorus(void);
 
 
 #endif // K_PROC_CHORUS_H

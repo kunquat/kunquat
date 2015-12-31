@@ -31,8 +31,6 @@
 #include <string.h>
 
 
-static bool Proc_add_init(Device_impl* dimpl);
-
 static double sine(double phase, double modifier);
 
 static Set_sample_func  Proc_add_set_base;
@@ -44,29 +42,20 @@ static Set_float_func   Proc_add_set_tone_panning;
 static void del_Proc_add(Device_impl* dimpl);
 
 
-Device_impl* new_Proc_add(Processor* proc)
+Device_impl* new_Proc_add(void)
 {
     Proc_add* add = memory_alloc_item(Proc_add);
     if (add == NULL)
         return NULL;
 
-    add->parent.device = (Device*)proc;
+    if (!Device_impl_init(&add->parent, del_Proc_add))
+    {
+        del_Device_impl(&add->parent);
+        return NULL;
+    }
 
-    Device_impl_register_init(&add->parent, Proc_add_init);
-    Device_impl_register_destroy(&add->parent, del_Proc_add);
-
-    return &add->parent;
-}
-
-
-static bool Proc_add_init(Device_impl* dimpl)
-{
-    assert(dimpl != NULL);
-
-    Proc_add* add = (Proc_add*)dimpl;
-
-    Processor* proc = (Processor*)add->parent.device;
-    proc->init_vstate = Add_vstate_init;
+    add->parent.get_vstate_size = Add_vstate_get_size;
+    add->parent.init_vstate = Add_vstate_init;
 
     bool reg_success = true;
 
@@ -83,7 +72,10 @@ static bool Proc_add_init(Device_impl* dimpl)
 #undef REGISTER_SET
 
     if (!reg_success)
-        return false;
+    {
+        del_Device_impl(&add->parent);
+        return NULL;
+    }
 
     add->base = NULL;
     add->is_ramp_attack_enabled = true;
@@ -117,25 +109,7 @@ static bool Proc_add_init(Device_impl* dimpl)
     add->tones[0].pitch_factor = 1.0;
     add->tones[0].volume_factor = 1.0;
 
-    return true;
-}
-
-
-const char* Proc_add_property(const Processor* proc, const char* property_type)
-{
-    assert(proc != NULL);
-    assert(property_type != NULL);
-
-    if (string_eq(property_type, "voice_state_size"))
-    {
-        static char size_str[8] = "";
-        if (string_eq(size_str, ""))
-            snprintf(size_str, 8, "%zd", Add_vstate_get_size());
-
-        return size_str;
-    }
-
-    return NULL;
+    return &add->parent;
 }
 
 

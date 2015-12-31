@@ -47,24 +47,12 @@ typedef struct Proc_add
 
 
 /**
- * Create a new additive synthesis Processor.
+ * Create a new additive synthesis processor.
  *
- * \return   The new additive synthesis Processor if successful, or \c NULL if
+ * \return   The new additive synthesis processor if successful, or \c NULL if
  *           memory allocation failed.
  */
-Device_impl* new_Proc_add(Processor* proc);
-
-
-/**
- * Return additive Processor property information.
- *
- * \param proc            The additive Processor -- must be valid.
- * \param property_type   The property type -- must not be \c NULL.
- *
- * \return   The additive Processor property description matching
- *           \a property_type, or \c NULL if one does not exist.
- */
-const char* Proc_add_property(const Processor* proc, const char* property_type);
+Device_impl* new_Proc_add(void);
 
 
 #endif // K_PROC_ADD_H

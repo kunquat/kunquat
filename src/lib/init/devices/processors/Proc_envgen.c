@@ -28,8 +28,6 @@
 #include <string.h>
 
 
-static bool Proc_envgen_init(Device_impl* dimpl);
-
 static Set_float_func       Proc_envgen_set_scale;
 static Set_bool_func        Proc_envgen_set_time_env_enabled;
 static Set_envelope_func    Proc_envgen_set_time_env;
@@ -43,16 +41,20 @@ static Set_num_list_func    Proc_envgen_set_y_range;
 static void del_Proc_envgen(Device_impl* dimpl);
 
 
-Device_impl* new_Proc_envgen(Processor* proc)
+Device_impl* new_Proc_envgen(void)
 {
     Proc_envgen* egen = memory_alloc_item(Proc_envgen);
     if (egen == NULL)
         return NULL;
 
-    egen->parent.device = (Device*)proc;
+    if (!Device_impl_init(&egen->parent, del_Proc_envgen))
+    {
+        del_Device_impl(&egen->parent);
+        return NULL;
+    }
 
-    Device_impl_register_init(&egen->parent, Proc_envgen_init);
-    Device_impl_register_destroy(&egen->parent, del_Proc_envgen);
+    egen->parent.get_vstate_size = Envgen_vstate_get_size;
+    egen->parent.init_vstate = Envgen_vstate_init;
 
     egen->scale = 1;
 
@@ -67,19 +69,6 @@ Device_impl* new_Proc_envgen(Processor* proc)
 
     egen->y_min = 0;
     egen->y_max = 1;
-
-    return &egen->parent;
-}
-
-
-static bool Proc_envgen_init(Device_impl* dimpl)
-{
-    assert(dimpl != NULL);
-
-    Proc_envgen* egen = (Proc_envgen*)dimpl;
-
-    Processor* proc = (Processor*)egen->parent.device;
-    proc->init_vstate = Envgen_vstate_init;
 
     bool reg_success = true;
 
@@ -100,27 +89,12 @@ static bool Proc_envgen_init(Device_impl* dimpl)
 #undef REGISTER_SET
 
     if (!reg_success)
-        return false;
-
-    return true;
-}
-
-
-const char* Proc_envgen_property(const Processor* proc, const char* property_type)
-{
-    assert(proc != NULL);
-    assert(property_type != NULL);
-
-    if (string_eq(property_type, "voice_state_size"))
     {
-        static char size_str[8] = "";
-        if (string_eq(size_str, ""))
-            snprintf(size_str, 8, "%zd", Envgen_vstate_get_size());
-
-        return size_str;
+        del_Device_impl(&egen->parent);
+        return NULL;
     }
 
-    return NULL;
+    return &egen->parent;
 }
 
 

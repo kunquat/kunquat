@@ -32,8 +32,6 @@
 #define DELAY_DB_MAX 18
 
 
-static bool Proc_delay_init(Device_impl* dimpl);
-
 static Set_float_func Proc_delay_set_max_delay;
 static Set_float_func Proc_delay_set_tap_delay;
 static Set_float_func Proc_delay_set_tap_volume;
@@ -41,28 +39,19 @@ static Set_float_func Proc_delay_set_tap_volume;
 static void del_Proc_delay(Device_impl* dimpl);
 
 
-Device_impl* new_Proc_delay(Processor* proc)
+Device_impl* new_Proc_delay(void)
 {
     Proc_delay* delay = memory_alloc_item(Proc_delay);
     if (delay == NULL)
         return NULL;
 
-    delay->parent.device = (Device*)proc;
+    if (!Device_impl_init(&delay->parent, del_Proc_delay))
+    {
+        del_Device_impl(&delay->parent);
+        return NULL;
+    }
 
-    Device_impl_register_init(&delay->parent, Proc_delay_init);
-    Device_impl_register_destroy(&delay->parent, del_Proc_delay);
-
-    return &delay->parent;
-}
-
-
-static bool Proc_delay_init(Device_impl* dimpl)
-{
-    assert(dimpl != NULL);
-
-    Proc_delay* delay = (Proc_delay*)dimpl;
-
-    Device_set_state_creator(delay->parent.device, new_Delay_pstate);
+    delay->parent.create_pstate = new_Delay_pstate;
 
     // Register key handlers
     bool reg_success = true;
@@ -87,7 +76,10 @@ static bool Proc_delay_init(Device_impl* dimpl)
             Delay_pstate_set_tap_volume);
 
     if (!reg_success)
-        return false;
+    {
+        del_Device_impl(&delay->parent);
+        return NULL;
+    }
 
     // TODO: add control variable accessors
 
@@ -99,7 +91,7 @@ static bool Proc_delay_init(Device_impl* dimpl)
         delay->taps[i].scale = 1;
     }
 
-    return true;
+    return &delay->parent;
 }
 
 

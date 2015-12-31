@@ -984,7 +984,6 @@ typedef struct pmdata
 {
     Handle* handle;
     Proc_cons* cons;
-    Proc_property* prop;
 } pmdata;
 
 
@@ -1009,8 +1008,6 @@ static bool read_proc_manifest_entry(Streader* sr, const char* key, void* userda
                     "Unsupported Processor type: %s", type);
             return false;
         }
-
-        d->prop = Proc_type_find_property(type);
     }
 
     return true;
@@ -1034,6 +1031,15 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
             return true;
 
         Proc_table* proc_table = Audio_unit_get_procs(au);
+
+        const Processor* proc = Proc_table_get_proc(proc_table, proc_index);
+        if (proc != NULL)
+        {
+            // Remove Device state of the processor
+            Device_states* dstates = Player_get_device_states(params->handle->player);
+            Device_states_remove_state(dstates, Device_get_id((const Device*)proc));
+        }
+
         Proc_table_set_existent(proc_table, proc_index, false);
         Proc_table_remove_proc(proc_table, proc_index);
 
@@ -1049,7 +1055,7 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
         return false;
 
     // Create the Processor implementation
-    pmdata* d = &(pmdata){ .handle = params->handle, .cons = NULL, .prop = NULL };
+    pmdata* d = &(pmdata){ .handle = params->handle, .cons = NULL };
     if (!Streader_read_dict(params->sr, read_proc_manifest_entry, d))
         return false;
 
@@ -1057,7 +1063,7 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
         return false;
 
     assert(d->cons != NULL);
-    Device_impl* proc_impl = d->cons(proc);
+    Device_impl* proc_impl = d->cons();
     if (proc_impl == NULL)
     {
         Handle_set_error(params->handle, ERROR_MEMORY,
@@ -1065,64 +1071,21 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
         return false;
     }
 
-    if (!Device_set_impl((Device*)proc, proc_impl))
-    {
-        del_Device_impl(proc_impl);
-        Handle_set_error(params->handle, ERROR_MEMORY,
-                "Couldn't allocate memory while initialising Processor implementation");
-        return false;
-    }
+    Device_set_impl((Device*)proc, proc_impl);
 
     // Remove old Processor Device state
     Device_states* dstates = Player_get_device_states(params->handle->player);
     Device_states_remove_state(dstates, Device_get_id((Device*)proc));
 
-    // Get processor properties
-    Proc_property* property = d->prop;
-    if (property != NULL)
+    // Allocate Voice state space
     {
-        // Allocate Voice state space
-        const char* size_str = property(proc, "voice_state_size");
-        if (size_str != NULL)
+        const size_t size = Device_impl_get_vstate_size(proc_impl);
+        if (!Player_reserve_voice_state_space(params->handle->player, size) ||
+                !Player_reserve_voice_state_space(params->handle->length_counter, size))
         {
-            Streader* size_sr = Streader_init(
-                    STREADER_AUTO, size_str, strlen(size_str));
-            int64_t size = 0;
-            Streader_read_int(size_sr, &size);
-            assert(!Streader_is_error_set(params->sr));
-            assert(size >= 0);
-//            fprintf(stderr, "Reserving space for %" PRId64 " bytes\n",
-//                            size);
-            if (!Player_reserve_voice_state_space(
-                        params->handle->player, size) ||
-                    !Player_reserve_voice_state_space(
-                        params->handle->length_counter, size))
-            {
-                Handle_set_error(params->handle, ERROR_MEMORY,
-                        "Couldn't allocate memory for processor voice states");
-                del_Device_impl(proc_impl);
-                return false;
-            }
-        }
-
-        // Allocate channel-specific processor state space
-        const char* proc_state_vars = property(proc, "proc_state_vars");
-        if (proc_state_vars != NULL)
-        {
-            Streader* gsv_sr = Streader_init(
-                    STREADER_AUTO,
-                    proc_state_vars,
-                    strlen(proc_state_vars));
-
-            if (!Player_alloc_channel_proc_state_keys(
-                        params->handle->player, gsv_sr))
-            {
-                Reader_params gsv_params;
-                gsv_params.handle = params->handle;
-                gsv_params.sr = gsv_sr;
-                set_error(&gsv_params);
-                return false;
-            }
+            Handle_set_error(params->handle, ERROR_MEMORY,
+                    "Could not allocate memory for processor voice states");
+            return false;
         }
     }
 
@@ -1150,8 +1113,7 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
 
     // Sync the Device state(s)
     if (!Device_sync_states(
-                (Device*)proc,
-                Player_get_device_states(params->handle->player)))
+                (Device*)proc, Player_get_device_states(params->handle->player)))
     {
         Handle_set_error(params->handle, ERROR_MEMORY,
                 "Couldn't allocate memory while syncing processor");

@@ -29,60 +29,26 @@
 #include <string.h>
 
 
-static bool Proc_noise_init(Device_impl* dimpl);
-
 static void del_Proc_noise(Device_impl* proc_impl);
 
 
-Device_impl* new_Proc_noise(Processor* proc)
+Device_impl* new_Proc_noise(void)
 {
     Proc_noise* noise = memory_alloc_item(Proc_noise);
     if (noise == NULL)
         return NULL;
 
-    noise->parent.device = (Device*)proc;
+    if (!Device_impl_init(&noise->parent, del_Proc_noise))
+    {
+        del_Device_impl(&noise->parent);
+        return NULL;
+    }
 
-    Device_impl_register_init(&noise->parent, Proc_noise_init);
-    Device_impl_register_destroy(&noise->parent, del_Proc_noise);
+    noise->parent.create_pstate = new_Noise_pstate;
+    noise->parent.get_vstate_size = Noise_vstate_get_size;
+    noise->parent.init_vstate = Noise_vstate_init;
 
     return &noise->parent;
-}
-
-
-static bool Proc_noise_init(Device_impl* dimpl)
-{
-    assert(dimpl != NULL);
-
-    Proc_noise* noise = (Proc_noise*)dimpl;
-
-    Processor* proc = (Processor*)noise->parent.device;
-    proc->init_vstate = Noise_vstate_init;
-
-    Device_set_state_creator(noise->parent.device, new_Noise_pstate);
-
-    return true;
-}
-
-
-const char* Proc_noise_property(const Processor* proc, const char* property_type)
-{
-    assert(proc != NULL);
-    assert(property_type != NULL);
-
-    if (string_eq(property_type, "voice_state_size"))
-    {
-        static char size_str[8] = { '\0' };
-        if (string_eq(size_str, ""))
-            snprintf(size_str, 8, "%zd", Noise_vstate_get_size());
-        return size_str;
-    }
-    else if (string_eq(property_type, "proc_state_vars"))
-    {
-        static const char* vars_str = "[[\"I\", \"o\"]]"; // noise order
-        return vars_str;
-    }
-
-    return NULL;
 }
 
 

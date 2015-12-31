@@ -53,7 +53,6 @@ void reserve_voice(
                Audio_unit_get_proc(au, proc_num),
                group_id,
                proc_state,
-               ch->cpstate,
                rand_seed,
                *ch->freq,
                *ch->tempo);

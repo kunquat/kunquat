@@ -48,6 +48,9 @@ typedef enum
 } Device_node_state;
 
 
+typedef Device_state* Device_state_create_func(
+        const Device*, int32_t buffer_size, int32_t audio_rate);
+
 typedef bool Device_state_set_audio_rate_func(Device_state*, int32_t audio_rate);
 typedef bool Device_state_set_audio_buffer_size_func(Device_state*, int32_t buffer_size);
 typedef void Device_state_set_tempo_func(Device_state*, double tempo);

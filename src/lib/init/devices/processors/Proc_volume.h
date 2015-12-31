@@ -30,24 +30,12 @@ typedef struct Proc_volume
 
 
 /**
- * Create a new volume Processor.
+ * Create a new volume processor.
  *
- * \return   The new volume Processor if successful, or \c NULL if memory
+ * \return   The new volume processor if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_impl* new_Proc_volume(Processor* proc);
-
-
-/**
- * Return volume Processor property information.
- *
- * \param proc            The volume Processor -- must be valid.
- * \param property_type   The property type -- must not be \c NULL.
- *
- * \return   The volume Processor property description matching
- *           \a property_type, or \c NULL if one does not exist.
- */
-const char* Proc_volume_property(const Processor* proc, const char* property_type);
+Device_impl* new_Proc_volume(void);
 
 
 #endif // K_PROC_VOLUME_H

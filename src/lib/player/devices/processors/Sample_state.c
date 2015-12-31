@@ -397,32 +397,9 @@ static int32_t Sample_vstate_render_voice(
     {
         // Select our sample
 
+        // TODO: remove the expression and source parameters from the format
         int expression = 0;
         int source = 0;
-
-        const int64_t* expression_arg = Channel_proc_state_get_int(
-                vstate->cpstate, "e");
-        if (expression_arg != NULL)
-        {
-            if (*expression_arg < 0 || *expression_arg >= SAMPLE_EXPRESSIONS_MAX)
-            {
-                vstate->active = false;
-                return buf_start;
-            }
-            expression = *expression_arg;
-        }
-
-        const int64_t* source_arg = Channel_proc_state_get_int(
-                vstate->cpstate, "s");
-        if (source_arg != NULL)
-        {
-            if (*source_arg < 0 || *source_arg >= SAMPLE_SOURCES_MAX)
-            {
-                vstate->active = false;
-                return buf_start;
-            }
-            source = *source_arg;
-        }
 
         const Sample_entry* entry = NULL;
         if (vstate->hit_index >= 0)

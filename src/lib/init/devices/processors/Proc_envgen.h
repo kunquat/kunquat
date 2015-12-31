@@ -44,21 +44,12 @@ typedef struct Proc_envgen
 
 
 /**
- * Create a new envelope generator Processor.
+ * Create a new envelope generator processor.
  *
- * \return   The new envelope generator Processor if successful, or \c NULL if
+ * \return   The new envelope generator processor if successful, or \c NULL if
  *           memory allocation failed.
  */
-Device_impl* new_Proc_envgen(Processor* proc);
-
-
-/**
- * Return envelope generator Processor property information.
- *
- * \param proc            The envelope generator Processor -- must be valid.
- * \param property_type   The property type -- must not be \c NULL.
- */
-const char* Proc_envgen_property(const Processor* proc, const char* property_type);
+Device_impl* new_Proc_envgen(void);
 
 
 #endif // K_PROC_ENVGEN_H

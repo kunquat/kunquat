@@ -98,29 +98,15 @@ typedef struct Update_control_var_cb
 } Update_control_var_cb;
 
 
-void Device_impl_register_init(Device_impl* dimpl, bool (*init)(Device_impl*))
-{
-    assert(dimpl != NULL);
-    assert(init != NULL);
-    dimpl->init = init;
-    return;
-}
-
-
-void Device_impl_register_destroy(Device_impl* dimpl, void (*destroy)(Device_impl*))
+bool Device_impl_init(Device_impl* dimpl, Device_impl_destroy_func* destroy)
 {
     assert(dimpl != NULL);
     assert(destroy != NULL);
+
+    dimpl->create_pstate = NULL;
+    dimpl->get_vstate_size = NULL;
+    dimpl->init_vstate = NULL;
     dimpl->destroy = destroy;
-    return;
-}
-
-
-bool Device_impl_init(Device_impl* dimpl)
-{
-    assert(dimpl != NULL);
-    assert(dimpl->init != NULL);
-    assert(dimpl->destroy != NULL);
 
     dimpl->set_cbs = NULL;
     dimpl->update_cv_cbs = NULL;
@@ -131,15 +117,35 @@ bool Device_impl_init(Device_impl* dimpl)
     dimpl->update_cv_cbs = new_AAtree(
             (int (*)(const void*, const void*))strcmp,
             memory_free);
-    if ((dimpl->set_cbs == NULL) ||
-            (dimpl->update_cv_cbs == NULL) ||
-            !dimpl->init(dimpl))
+    if ((dimpl->set_cbs == NULL) || (dimpl->update_cv_cbs == NULL))
     {
         Device_impl_deinit(dimpl);
         return false;
     }
 
     return true;
+}
+
+
+void Device_impl_set_device(Device_impl* dimpl, const Device* device)
+{
+    assert(dimpl != NULL);
+    assert(device != NULL);
+
+    dimpl->device = device;
+
+    return;
+}
+
+
+size_t Device_impl_get_vstate_size(const Device_impl* dimpl)
+{
+    assert(dimpl != NULL);
+
+    if (dimpl->get_vstate_size != NULL)
+        return dimpl->get_vstate_size();
+
+    return sizeof(Voice_state);
 }
 
 

@@ -23,7 +23,6 @@
 #include <mathnum/Random.h>
 #include <mathnum/Tstamp.h>
 #include <player/Channel_cv_state.h>
-#include <player/Channel_proc_state.h>
 #include <player/Env_state.h>
 #include <player/Event_cache.h>
 #include <player/Filter_controls.h>
@@ -46,7 +45,6 @@ struct Channel
 {
     General_state parent;
     int num;                       ///< Channel number.
-    Channel_proc_state* cpstate;   ///< Channel-specific processor state.
     Random* rand;                  ///< Random source for this channel.
     Event_cache* event_cache;
     Channel_cv_state* cvstate;

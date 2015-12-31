@@ -22,36 +22,24 @@
 #include <stdlib.h>
 
 
-static bool Proc_debug_init(Device_impl* dimpl);
-
 static Set_bool_func Proc_debug_set_single_pulse;
 
 static void del_Proc_debug(Device_impl* dimpl);
 
 
-Device_impl* new_Proc_debug(Processor* proc)
+Device_impl* new_Proc_debug(void)
 {
     Proc_debug* debug = memory_alloc_item(Proc_debug);
     if (debug == NULL)
         return NULL;
 
-    debug->parent.device = (Device*)proc;
+    if (!Device_impl_init(&debug->parent, del_Proc_debug))
+    {
+        del_Device_impl(&debug->parent);
+        return NULL;
+    }
 
-    Device_impl_register_init(&debug->parent, Proc_debug_init);
-    Device_impl_register_destroy(&debug->parent, del_Proc_debug);
-
-    return &debug->parent;
-}
-
-
-static bool Proc_debug_init(Device_impl* dimpl)
-{
-    assert(dimpl != NULL);
-
-    Proc_debug* debug = (Proc_debug*)dimpl;
-
-    Processor* proc = (Processor*)debug->parent.device;
-    proc->init_vstate = Debug_vstate_init;
+    debug->parent.init_vstate = Debug_vstate_init;
 
     if (!Device_impl_register_set_bool(
                 &debug->parent,
@@ -59,11 +47,14 @@ static bool Proc_debug_init(Device_impl* dimpl)
                 false,
                 Proc_debug_set_single_pulse,
                 NULL))
-        return false;
+    {
+        del_Device_impl(&debug->parent);
+        return NULL;
+    }
 
     debug->single_pulse = false;
 
-    return true;
+    return &debug->parent;
 }
 
 

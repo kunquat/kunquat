@@ -31,9 +31,6 @@
 #include <string.h>
 
 
-static bool Proc_chorus_init(Device_impl* dimpl);
-
-
 #define CHORUS_PARAM(name, dev_key, update_key, def_value) \
     static Set_float_func Proc_chorus_set_voice_ ## name;
 #include <init/devices/processors/Proc_chorus_params.h>
@@ -42,28 +39,19 @@ static bool Proc_chorus_init(Device_impl* dimpl);
 static void del_Proc_chorus(Device_impl* dimpl);
 
 
-Device_impl* new_Proc_chorus(Processor* proc)
+Device_impl* new_Proc_chorus(void)
 {
     Proc_chorus* chorus = memory_alloc_item(Proc_chorus);
     if (chorus == NULL)
         return NULL;
 
-    chorus->parent.device = (Device*)proc;
+    if (!Device_impl_init(&chorus->parent, del_Proc_chorus))
+    {
+        del_Device_impl(&chorus->parent);
+        return NULL;
+    }
 
-    Device_impl_register_init(&chorus->parent, Proc_chorus_init);
-    Device_impl_register_destroy(&chorus->parent, del_Proc_chorus);
-
-    return &chorus->parent;
-}
-
-
-static bool Proc_chorus_init(Device_impl* dimpl)
-{
-    assert(dimpl != NULL);
-
-    Proc_chorus* chorus = (Proc_chorus*)dimpl;
-
-    Device_set_state_creator(chorus->parent.device, new_Chorus_pstate);
+    chorus->parent.create_pstate = new_Chorus_pstate;
 
     // Register key set/update handlers
     bool reg_success = true;
@@ -88,7 +76,10 @@ static bool Proc_chorus_init(Device_impl* dimpl)
             &chorus->parent, "voice_XX/volume", Chorus_pstate_get_cv_volume, NULL);
 
     if (!reg_success)
-        return false;
+    {
+        del_Device_impl(&chorus->parent);
+        return NULL;
+    }
 
     for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
     {
@@ -100,7 +91,7 @@ static bool Proc_chorus_init(Device_impl* dimpl)
         params->volume = 1;
     }
 
-    return true;
+    return &chorus->parent;
 }
 
 

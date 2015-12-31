@@ -20,7 +20,6 @@
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <mathnum/Tstamp.h>
-#include <player/Channel_proc_state.h>
 #include <player/Filter_controls.h>
 #include <player/Force_controls.h>
 #include <player/LFO.h>
@@ -32,6 +31,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+
+
+typedef size_t Voice_state_get_size_func(void);
 
 
 typedef void Voice_state_init_func(Voice_state*, const Proc_state*);
@@ -74,7 +76,6 @@ struct Voice_state
     bool active;                   ///< Whether there is anything left to process.
     int32_t freq;                  ///< The last mixing frequency used.
     double tempo;                  ///< The last tempo setting used.
-    Channel_proc_state* cpstate;   ///< Channel-specific Processor parameters.
     Random* rand_p;                ///< Parameter random source.
     Random* rand_s;                ///< Signal random source.
 
@@ -141,8 +142,6 @@ struct Voice_state
  * Initialise a Voice state.
  *
  * \param state     The Voice state -- must not be \c NULL.
- * \param cpstate   The Channel-specific Processor state -- must not be
- *                  \c NULL.
  * \param rand_p    The parameter Random source -- must not be \c NULL.
  * \param rand_s    The signal Random source -- must not be \c NULL.
  * \param freq      The mixing frequency -- must be > \c 0.
@@ -152,7 +151,6 @@ struct Voice_state
  */
 Voice_state* Voice_state_init(
         Voice_state* state,
-        Channel_proc_state* cpstate,
         Random* rand_p,
         Random* rand_s,
         int32_t freq,

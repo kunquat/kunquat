@@ -30,24 +30,12 @@ typedef struct Proc_noise
 
 
 /**
- * Create a new Noise Processor.
+ * Create a new Noise processor.
  *
- * \return   The new Noise Processor if successful, or \c NULL if memory
+ * \return   The new Noise processor if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_impl* new_Proc_noise(Processor* proc);
-
-
-/**
- * Return Noise Processor property information.
- *
- * \param proc            The Noise Processor -- must be valid.
- * \param property_type   The property type -- must not be \c NULL.
- *
- * \return   The Noise Processor property description matching
- *           \a property_type, or \c NULL if one does not exist.
- */
-const char* Proc_noise_property(const Processor* proc, const char* property_type);
+Device_impl* new_Proc_noise(void);
 
 
 #endif // K_PROC_NOISE_H

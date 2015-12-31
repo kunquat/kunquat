@@ -22,6 +22,7 @@
 #include <mathnum/Random.h>
 #include <mathnum/Tstamp.h>
 #include <player/Device_states.h>
+#include <player/devices/Device_state.h>
 #include <player/Linear_controls.h>
 #include <string/Streader.h>
 
@@ -35,10 +36,6 @@ typedef enum
     DEVICE_CONTROL_VAR_MODE_MIXED,
     DEVICE_CONTROL_VAR_MODE_VOICE,
 } Device_control_var_mode;
-
-
-typedef Device_state* Device_create_state_func(
-        const Device*, int32_t buffer_size, int32_t audio_rate);
 
 
 typedef void Device_set_control_var_generic_func(
@@ -125,7 +122,7 @@ struct Device
     Device_params* dparams;
     Device_impl* dimpl;
 
-    Device_create_state_func* create_state;
+    Device_state_create_func* create_state;
 
     Device_set_control_var_generic_func* set_control_var_generic;
     Device_slide_control_var_float_target_func* slide_control_var_float_target;
@@ -203,11 +200,19 @@ bool Device_is_existent(const Device* device);
  *
  * \param device   The Device -- must not be \c NULL.
  * \param dimpl    The Device implementation, or \c NULL.
- *
- * \return   \c true if successful, or \c false if initialisation of Device
- *           implementation failed.
  */
-bool Device_set_impl(Device* device, Device_impl* dimpl);
+void Device_set_impl(Device* device, Device_impl* dimpl);
+
+
+/**
+ * Get the Device implementation of the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ *
+ * \return   The Device implementation of the Device, or \c NULL if one does
+ *           not exist.
+ */
+const Device_impl* Device_get_impl(const Device* device);
 
 
 /**
@@ -231,7 +236,7 @@ Device_state* Device_create_state(
  * \param creator   The creator function, or \c NULL for default creator.
  */
 void Device_set_state_creator(
-        Device* device, Device_state* (*creator)(const Device*, int32_t, int32_t));
+        Device* device, Device_state_create_func* creator);
 
 
 /**

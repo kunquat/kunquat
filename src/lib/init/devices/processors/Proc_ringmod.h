@@ -17,7 +17,6 @@
 
 
 #include <init/devices/Device_impl.h>
-#include <init/devices/Processor.h>
 
 #include <stdlib.h>
 
@@ -29,12 +28,12 @@ typedef struct Proc_ringmod
 
 
 /**
- * Create a new Ring modulator Processor.
+ * Create a new Ring modulator processor.
  *
- * \return   The new Ring modulator Processor if successful, or \c NULL if
+ * \return   The new Ring modulator processor if successful, or \c NULL if
  *           memory allocation failed.
  */
-Device_impl* new_Proc_ringmod(Processor* proc);
+Device_impl* new_Proc_ringmod(void);
 
 
 #endif // K_PROC_RINGMOD_H

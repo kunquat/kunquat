@@ -20,7 +20,7 @@
 #include <player/devices/Voice_state.h>
 
 
-size_t Envgen_vstate_get_size(void);
+Voice_state_get_size_func Envgen_vstate_get_size;
 
 void Envgen_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
 

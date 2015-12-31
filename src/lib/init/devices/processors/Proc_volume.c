@@ -31,36 +31,24 @@
 
 static Set_float_func Proc_volume_set_volume;
 
-static bool Proc_volume_init(Device_impl* dimpl);
-
 static void del_Proc_volume(Device_impl* dimpl);
 
 
-Device_impl* new_Proc_volume(Processor* proc)
+Device_impl* new_Proc_volume(void)
 {
     Proc_volume* volume = memory_alloc_item(Proc_volume);
     if (volume == NULL)
         return NULL;
 
-    volume->parent.device = (Device*)proc;
+    if (!Device_impl_init(&volume->parent, del_Proc_volume))
+    {
+        del_Device_impl(&volume->parent);
+        return NULL;
+    }
 
-    Device_impl_register_init(&volume->parent, Proc_volume_init);
-    Device_impl_register_destroy(&volume->parent, del_Proc_volume);
-
-    return &volume->parent;
-}
-
-
-static bool Proc_volume_init(Device_impl* dimpl)
-{
-    assert(dimpl != NULL);
-
-    Proc_volume* volume = (Proc_volume*)dimpl;
-
-    Device_set_state_creator(volume->parent.device, new_Volume_pstate);
-
-    Processor* proc = (Processor*)volume->parent.device;
-    proc->init_vstate = Volume_vstate_init;
+    volume->parent.create_pstate = new_Volume_pstate;
+    volume->parent.get_vstate_size = Volume_vstate_get_size;
+    volume->parent.init_vstate = Volume_vstate_init;
 
     // Register key and control variable handlers
     bool reg_success = true;
@@ -79,29 +67,14 @@ static bool Proc_volume_init(Device_impl* dimpl)
             Volume_vstate_get_cv_controls_volume);
 
     if (!reg_success)
-        return false;
+    {
+        del_Device_impl(&volume->parent);
+        return NULL;
+    }
 
     volume->scale = 1.0;
 
-    return true;
-}
-
-
-const char* Proc_volume_property(const Processor* proc, const char* property_type)
-{
-    assert(proc != NULL);
-    assert(property_type != NULL);
-
-    if (string_eq(property_type, "voice_state_size"))
-    {
-        static char size_str[8] = "";
-        if (string_eq(size_str, ""))
-            snprintf(size_str, 8, "%zd", Volume_vstate_get_size());
-
-        return size_str;
-    }
-
-    return NULL;
+    return &volume->parent;
 }
 
 

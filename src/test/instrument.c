@@ -185,6 +185,72 @@ START_TEST(Input_map_maintains_indices)
 END_TEST
 
 
+START_TEST(Add_and_remove_internal_effect_and_render)
+{
+    set_audio_rate(220);
+    set_mix_volume(0);
+
+    setup_debug_instrument();
+    setup_debug_single_pulse();
+
+    float actual_buf[buf_len] = { 0.0f };
+
+    // Add silence
+    set_data("album/p_manifest.json", "{}");
+    set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
+    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
+    set_data("pat_000/p_manifest.json", "{}");
+    set_data("pat_000/p_pattern.json", "{ \"length\": [16, 0] }");
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
+
+    // Add internal audio unit
+    set_data("au_00/au_00/p_manifest.json", "{ \"type\": \"effect\" }");
+    set_data("au_00/au_00/in_00/p_manifest.json", "{}");
+    set_data("au_00/au_00/out_00/p_manifest.json", "{}");
+    set_data(
+            "au_00/p_connections.json",
+            "[ [\"proc_00/C/out_00\", \"out_00\"]"
+            ", [\"proc_00/C/out_00\", \"au_00/in_00\"]"
+            ", [\"au_00/out_00\", \"out_00\"] ]");
+
+    // Add processor inside the internal audio unit
+    set_data("au_00/au_00/proc_00/in_00/p_manifest.json", "{}");
+    set_data("au_00/au_00/proc_00/out_00/p_manifest.json", "{}");
+    set_data("au_00/au_00/proc_00/p_manifest.json", "{ \"type\": \"volume\" }");
+    set_data("au_00/au_00/proc_00/p_signal_type.json", "\"mixed\"");
+    set_data(
+            "au_00/au_00/p_connections.json",
+            "[ [\"in_00\", \"proc_00/C/in_00\"]"
+            ", [\"proc_00/C/out_00\", \"out_00\"] ]");
+
+    validate();
+    check_unexpected_error();
+
+    // Test rendering
+    mix_and_fill(actual_buf, buf_len);
+
+    // Remove the internal audio unit
+    set_data("au_00/p_connections.json", "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
+    set_data("au_00/au_00/in_00/p_manifest.json", "");
+    set_data("au_00/au_00/out_00/p_manifest.json", "");
+    set_data("au_00/au_00/p_connections.json", "");
+    set_data("au_00/au_00/p_manifest.json", "");
+    set_data("au_00/au_00/proc_00/in_00/p_manifest.json", "");
+    set_data("au_00/au_00/proc_00/out_00/p_manifest.json", "");
+    set_data("au_00/au_00/proc_00/p_manifest.json", "");
+    set_data("au_00/au_00/proc_00/p_signal_type.json", "");
+
+    validate();
+    check_unexpected_error();
+
+    // Test rendering again
+    kqt_Handle_set_position(handle, 0, 0);
+    mix_and_fill(actual_buf, buf_len);
+}
+END_TEST
+
+
 START_TEST(Read_audio_unit_control_vars)
 {
     setup_single_pulse_without_instrument_manifest();
@@ -215,6 +281,7 @@ Suite* Instrument_suite(void)
     tcase_add_test(tc_general, Adding_manifest_enables_instrument);
     //tcase_add_test(tc_general, Removing_manifest_disables_instrument);
     tcase_add_test(tc_general, Input_map_maintains_indices);
+    tcase_add_test(tc_general, Add_and_remove_internal_effect_and_render);
     tcase_add_test(tc_general, Read_audio_unit_control_vars);
 
     return s;
