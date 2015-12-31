@@ -231,8 +231,7 @@ bool Player_alloc_channel_cv_state(Player* player, const Au_control_vars* aucv)
     {
         for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         {
-            if (!Channel_cv_state_add_entry(
-                    player->channels[i]->cvstate, var_name, var_type))
+            if (!Channel_cv_state_add_entry(player->channels[i]->cvstate, var_name))
                 return false;
         }
 

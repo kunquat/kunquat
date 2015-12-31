@@ -22,7 +22,7 @@
 #include <stdlib.h>
 
 
-bool Event_au_set_cv_bool_value_process(
+bool Event_au_set_cv_value_process(
         const Audio_unit* au,
         const Au_params* au_params,
         Au_state* au_state,
@@ -38,13 +38,12 @@ bool Event_au_set_cv_bool_value_process(
     assert(channel != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
-    assert(value->type == VALUE_TYPE_BOOL);
 
     const char* var_name = Active_names_get(
             channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_BOOL);
 
     if (var_name == NULL)
-        return true;
+        return false;
 
     const Device* dev = (const Device*)au;
     Device_set_control_var_generic(
@@ -60,45 +59,7 @@ bool Event_au_set_cv_bool_value_process(
 }
 
 
-bool Event_au_set_cv_int_value_process(
-        const Audio_unit* au,
-        const Au_params* au_params,
-        Au_state* au_state,
-        Master_params* master_params,
-        Channel* channel,
-        Device_states* dstates,
-        const Value* value)
-{
-    assert(au != NULL);
-    assert(au_params != NULL);
-    assert(au_state != NULL);
-    assert(master_params != NULL);
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_INT);
-
-    const char* var_name = Active_names_get(
-            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_INT);
-
-    if (var_name == NULL)
-        return true;
-
-    const Device* dev = (const Device*)au;
-    Device_set_control_var_generic(
-            dev,
-            dstates,
-            DEVICE_CONTROL_VAR_MODE_MIXED,
-            master_params->random,
-            NULL,
-            var_name,
-            value);
-
-    return true;
-}
-
-
-bool Event_au_set_cv_float_value_process(
+bool Event_au_slide_cv_target_process(
         const Audio_unit* au,
         const Au_params* au_params,
         Au_state* au_state,
@@ -117,45 +78,7 @@ bool Event_au_set_cv_float_value_process(
     assert(value->type == VALUE_TYPE_FLOAT);
 
     const char* var_name = Active_names_get(
-            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
-
-    if (var_name == NULL)
-        return true;
-
-    const Device* dev = (const Device*)au;
-    Device_set_control_var_generic(
-            dev,
-            dstates,
-            DEVICE_CONTROL_VAR_MODE_MIXED,
-            master_params->random,
-            NULL,
-            var_name,
-            value);
-
-    return true;
-}
-
-
-bool Event_au_slide_cv_float_target_process(
-        const Audio_unit* au,
-        const Au_params* au_params,
-        Au_state* au_state,
-        Master_params* master_params,
-        Channel* channel,
-        Device_states* dstates,
-        const Value* value)
-{
-    assert(au != NULL);
-    assert(au_params != NULL);
-    assert(au_state != NULL);
-    assert(master_params != NULL);
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
-
-    const char* var_name = Active_names_get(
-            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
+            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_BOOL);
 
     if (var_name == NULL)
         return true;
@@ -173,7 +96,7 @@ bool Event_au_slide_cv_float_target_process(
 }
 
 
-bool Event_au_slide_cv_float_length_process(
+bool Event_au_slide_cv_length_process(
         const Audio_unit* au,
         const Au_params* au_params,
         Au_state* au_state,
@@ -192,7 +115,7 @@ bool Event_au_slide_cv_float_length_process(
     assert(value->type == VALUE_TYPE_TSTAMP);
 
     const char* var_name = Active_names_get(
-            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
+            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_BOOL);
 
     if (var_name == NULL)
         return true;
@@ -210,7 +133,7 @@ bool Event_au_slide_cv_float_length_process(
 }
 
 
-bool Event_au_osc_speed_cv_float_process(
+bool Event_au_osc_speed_cv_process(
         const Audio_unit* au,
         const Au_params* au_params,
         Au_state* au_state,
@@ -229,7 +152,7 @@ bool Event_au_osc_speed_cv_float_process(
     assert(value->type == VALUE_TYPE_FLOAT);
 
     const char* var_name = Active_names_get(
-            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
+            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_BOOL);
 
     if (var_name == NULL)
         return true;
@@ -247,7 +170,7 @@ bool Event_au_osc_speed_cv_float_process(
 }
 
 
-bool Event_au_osc_depth_cv_float_process(
+bool Event_au_osc_depth_cv_process(
         const Audio_unit* au,
         const Au_params* au_params,
         Au_state* au_state,
@@ -266,7 +189,7 @@ bool Event_au_osc_depth_cv_float_process(
     assert(value->type == VALUE_TYPE_FLOAT);
 
     const char* var_name = Active_names_get(
-            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
+            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_BOOL);
 
     if (var_name == NULL)
         return true;
@@ -284,7 +207,7 @@ bool Event_au_osc_depth_cv_float_process(
 }
 
 
-bool Event_au_osc_speed_slide_cv_float_process(
+bool Event_au_osc_speed_slide_cv_process(
         const Audio_unit* au,
         const Au_params* au_params,
         Au_state* au_state,
@@ -303,7 +226,7 @@ bool Event_au_osc_speed_slide_cv_float_process(
     assert(value->type == VALUE_TYPE_TSTAMP);
 
     const char* var_name = Active_names_get(
-            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
+            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_BOOL);
 
     if (var_name == NULL)
         return true;
@@ -321,7 +244,7 @@ bool Event_au_osc_speed_slide_cv_float_process(
 }
 
 
-bool Event_au_osc_depth_slide_cv_float_process(
+bool Event_au_osc_depth_slide_cv_process(
         const Audio_unit* au,
         const Au_params* au_params,
         Au_state* au_state,
@@ -340,7 +263,7 @@ bool Event_au_osc_depth_slide_cv_float_process(
     assert(value->type == VALUE_TYPE_TSTAMP);
 
     const char* var_name = Active_names_get(
-            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
+            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_BOOL);
 
     if (var_name == NULL)
         return true;
@@ -353,44 +276,6 @@ bool Event_au_osc_depth_slide_cv_float_process(
             channel,
             var_name,
             &value->value.Tstamp_type);
-
-    return true;
-}
-
-
-bool Event_au_set_cv_tstamp_value_process(
-        const Audio_unit* au,
-        const Au_params* au_params,
-        Au_state* au_state,
-        Master_params* master_params,
-        Channel* channel,
-        Device_states* dstates,
-        const Value* value)
-{
-    assert(au != NULL);
-    assert(au_params != NULL);
-    assert(au_state != NULL);
-    assert(master_params != NULL);
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_TSTAMP);
-
-    const char* var_name = Active_names_get(
-            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_TSTAMP);
-
-    if (var_name == NULL)
-        return true;
-
-    const Device* dev = (const Device*)au;
-    Device_set_control_var_generic(
-            dev,
-            dstates,
-            DEVICE_CONTROL_VAR_MODE_MIXED,
-            master_params->random,
-            channel,
-            var_name,
-            value);
 
     return true;
 }

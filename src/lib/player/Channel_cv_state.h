@@ -65,13 +65,10 @@ void Channel_cv_state_set_tempo(Channel_cv_state* state, double tempo);
  * \param state      The Channel control variable state -- must not be \c NULL.
  * \param var_name   The variable name -- must not be \c NULL and must be
  *                   shorter than \c KQT_VAR_NAME_MAX characters.
- * \param var_type   The variable type -- must be \c VALUE_TYPE_BOOL,
- *                   \c VALUE_TYPE_INT, \c VALUE_TYPE_FLOAT or \c VALUE_TYPE_TSTAMP.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Channel_cv_state_add_entry(
-        Channel_cv_state* state, const char* var_name, Value_type var_type);
+bool Channel_cv_state_add_entry(Channel_cv_state* state, const char* var_name);
 
 
 /**
@@ -81,8 +78,8 @@ bool Channel_cv_state_add_entry(
  * \param var_name   The variable name -- must not be \c NULL.
  * \param value      The new value -- must not be \c NULL.
  *
- * \return   \c true if the new value was actually set, or \c false if \a state
- *           does not contain an entry with matching variable name and value type.
+ * \return   \c true if the new value was actually set, or \c false if
+ *           \a state does not contain an entry called \a var_name.
  */
 bool Channel_cv_state_set_value(
         Channel_cv_state* state, const char* var_name, const Value* value);
@@ -96,7 +93,7 @@ bool Channel_cv_state_set_value(
  * \param value      The target value -- must be finite.
  *
  * \return   \c true if \a value was applied, or \c false if \a state does not
- *           contain a float entry called \a var_name.
+ *           contain an entry called \a var_name.
  */
 bool Channel_cv_state_slide_target_float(
         Channel_cv_state* state, const char* var_name, double value);
@@ -177,13 +174,11 @@ bool Channel_cv_state_osc_depth_slide_float(
  *
  * \param state      The Channel control variable state -- must not be \c NULL.
  * \param var_name   The variable name -- must not be \c NULL.
- * \param var_type   The variable type -- must be \c VALUE_TYPE_BOOL,
- *                   \c VALUE_TYPE_INT, \c VALUE_TYPE_FLOAT, or \c VALUE_TYPE_TSTAMP.
  *
  * \return   The stored value if one exists, otherwise \c NULL.
  */
 const Value* Channel_cv_state_get_value(
-        const Channel_cv_state* state, const char* var_name, Value_type var_type);
+        const Channel_cv_state* state, const char* var_name);
 
 
 /**
@@ -204,18 +199,13 @@ const Linear_controls* Channel_cv_state_get_float_controls(
  *
  * \param state      The Channel control variable state -- must not be \c NULL.
  * \param var_name   The variable name -- must not be \c NULL.
- * \param var_type   The variable type -- must be \c VALUE_TYPE_BOOL,
- *                   \c VALUE_TYPE_INT, \c VALUE_TYPE_FLOAT or \c VALUE_TYPE_TSTAMP.
  * \param enabled    \c true to enable carrying, \c false to disable.
  *
  * \return   \c true if the new carrying state was set, or \c false if \a state
  *           does not contain an entry with matching variable name and value type.
  */
 bool Channel_cv_state_set_carrying_enabled(
-        Channel_cv_state* state,
-        const char* var_name,
-        Value_type var_type,
-        bool enabled);
+        Channel_cv_state* state, const char* var_name, bool enabled);
 
 
 /**
@@ -223,14 +213,12 @@ bool Channel_cv_state_set_carrying_enabled(
  *
  * \param state      The Channel control variable state -- must not be \c NULL.
  * \param var_name   The variable name -- must not be \c NULL.
- * \param var_type   The variable type -- must be \c VALUE_TYPE_BOOL,
- *                   \c VALUE_TYPE_INT, \c VALUE_TYPE_FLOAT or \c VALUE_TYPE_TSTAMP.
  *
- * \return   \c true if carrying is enabled for the control variable matching
- *           \a var_name and \a var_type (if the variable exists), \c false otherwise.
+ * \return   \c true if carrying is enabled for the control variable called
+ *           \a var_name, otherwise \c false.
  */
 bool Channel_cv_state_is_carrying_enabled(
-        const Channel_cv_state* state, const char* var_name, Value_type var_type);
+        const Channel_cv_state* state, const char* var_name);
 
 
 /**
