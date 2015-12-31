@@ -25,6 +25,7 @@ _proc_defaults = {
     'chorus':   { 'signal_type': u'mixed', 'ports': ['in_00', 'out_00'] },
     'delay':    { 'signal_type': u'mixed', 'ports': ['in_00', 'out_00'] },
     'envgen':   { 'signal_type': u'voice', 'ports': ['out_00'] },
+    'filter':   { 'signal_type': u'mixed', 'ports': ['in_00', 'out_00'] },
     'freeverb': { 'signal_type': u'mixed', 'ports': ['in_00', 'out_00'] },
     'gaincomp': { 'signal_type': u'mixed', 'ports': ['in_00', 'out_00'] },
     'ringmod':  { 'signal_type': u'mixed', 'ports': ['in_00', 'in_01', 'out_00'] },

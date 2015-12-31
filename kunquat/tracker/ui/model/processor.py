@@ -16,6 +16,7 @@ from procparamsadd import ProcParamsAdd
 from procparamschorus import ProcParamsChorus
 from procparamsdelay import ProcParamsDelay
 from procparamsenvgen import ProcParamsEnvgen
+from procparamsfilter import ProcParamsFilter
 from procparamsfreeverb import ProcParamsFreeverb
 from procparamsgaincomp import ProcParamsGainComp
 from procparamsvolume import ProcParamsVolume
@@ -82,6 +83,7 @@ class Processor():
             'chorus':   ProcParamsChorus,
             'delay':    ProcParamsDelay,
             'envgen':   ProcParamsEnvgen,
+            'filter':   ProcParamsFilter,
             'freeverb': ProcParamsFreeverb,
             'gaincomp': ProcParamsGainComp,
             'volume':   ProcParamsVolume,

@@ -15,6 +15,7 @@ from addproc import AddProc
 from chorusproc import ChorusProc
 from delayproc import DelayProc
 from envgenproc import EnvgenProc
+from filterproc import FilterProc
 from freeverbproc import FreeverbProc
 from gaincomp_proc import GainCompProc
 from ringmodproc import RingmodProc
@@ -28,6 +29,7 @@ _proc_classes = {
     'chorus':   ChorusProc,
     'delay':    DelayProc,
     'envgen':   EnvgenProc,
+    'filter':   FilterProc,
     'freeverb': FreeverbProc,
     'gaincomp': GainCompProc,
     'ringmod':  RingmodProc,
