@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -78,7 +78,7 @@ static int32_t Envgen_vstate_render_voice(
 
     int32_t new_buf_stop = buf_stop;
 
-    if (is_time_env_enabled)
+    if (is_time_env_enabled && (!egen->is_release_env || !vstate->note_on))
     {
         // Apply the time envelope
         const int32_t env_stop = Time_env_state_process(

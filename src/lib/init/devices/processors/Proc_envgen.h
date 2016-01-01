@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -32,6 +32,7 @@ typedef struct Proc_envgen
     bool is_time_env_enabled;
     const Envelope* time_env;
     bool is_loop_enabled;
+    bool is_release_env;
     double env_scale_amount;
     double env_scale_center;
 

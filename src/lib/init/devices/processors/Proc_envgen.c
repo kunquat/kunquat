@@ -33,6 +33,7 @@ static Set_float_func       Proc_envgen_set_scale;
 static Set_bool_func        Proc_envgen_set_time_env_enabled;
 static Set_envelope_func    Proc_envgen_set_time_env;
 static Set_bool_func        Proc_envgen_set_loop_enabled;
+static Set_bool_func        Proc_envgen_set_release_env;
 static Set_float_func       Proc_envgen_set_env_scale_amount;
 static Set_float_func       Proc_envgen_set_env_scale_center;
 static Set_bool_func        Proc_envgen_set_force_env_enabled;
@@ -62,6 +63,7 @@ Device_impl* new_Proc_envgen(void)
     egen->is_time_env_enabled = false;
     egen->time_env = NULL;
     egen->is_loop_enabled = false;
+    egen->is_release_env = false;
     egen->env_scale_amount = 0;
     egen->env_scale_center = 440;
 
@@ -81,6 +83,7 @@ Device_impl* new_Proc_envgen(void)
     REGISTER_SET(bool,      time_env_enabled,   "p_b_env_enabled.json",         false);
     REGISTER_SET(envelope,  time_env,           "p_e_env.json",                 NULL);
     REGISTER_SET(bool,      loop_enabled,       "p_b_env_loop_enabled.json",    false);
+    REGISTER_SET(bool,      release_env,        "p_b_env_is_release.json",      false);
     REGISTER_SET(float,     env_scale_amount,   "p_f_env_scale_amount.json",    0.0);
     REGISTER_SET(float,     env_scale_center,   "p_f_env_scale_center.json",    0.0);
     REGISTER_SET(bool,      force_env_enabled,  "p_b_force_env_enabled.json",   false);
@@ -176,6 +179,19 @@ static bool Proc_envgen_set_loop_enabled(
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
     egen->is_loop_enabled = value;
+
+    return true;
+}
+
+
+static bool Proc_envgen_set_release_env(
+        Device_impl* dimpl, const Key_indices indices, bool value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+
+    Proc_envgen* egen = (Proc_envgen*)dimpl;
+    egen->is_release_env = value;
 
     return true;
 }
