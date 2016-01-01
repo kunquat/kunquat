@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -19,6 +19,7 @@
 #include <init/devices/param_types/Envelope.h>
 #include <init/devices/Processor.h>
 #include <mathnum/common.h>
+#include <mathnum/conversions.h>
 #include <memory.h>
 #include <player/devices/Proc_state.h>
 #include <player/devices/processors/Envgen_state.h>
@@ -105,7 +106,7 @@ static bool Proc_envgen_set_scale(
     assert(indices != NULL);
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
-    egen->scale = isfinite(value) ? exp2(value / 6) : 1;
+    egen->scale = isfinite(value) ? dB_to_scale(value) : 1;
 
     return true;
 }
