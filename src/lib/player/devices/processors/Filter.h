@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *         Ossi Saresoja, Finland 2010-2013
  *
  * This file is part of Kunquat.
@@ -18,6 +18,8 @@
 
 
 #include <debug/assert.h>
+
+#include <stdlib.h>
 
 
 /* #define dprod(buf0, buf1, i0, i1, limit0, limit1, var, oper)            \ */

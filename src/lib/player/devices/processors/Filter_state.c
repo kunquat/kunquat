@@ -20,8 +20,8 @@
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <memory.h>
-#include <player/devices/Filter.h>
 #include <player/devices/Proc_state.h>
+#include <player/devices/processors/Filter.h>
 #include <player/devices/processors/Proc_utils.h>
 #include <player/devices/Voice_state.h>
 

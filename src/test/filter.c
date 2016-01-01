@@ -1,7 +1,7 @@
 
 
 /*
- * Authors: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Authors: Tomi Jylhä-Ollila, Finland 2013-2016
  *          Ossi Saresoja, Finland 2013
  *
  * This file is part of Kunquat.
@@ -17,7 +17,7 @@
 
 #include <kunquat/testing.h>
 #include <mathnum/common.h>
-#include <player/devices/Filter.h>
+#include <player/devices/processors/Filter.h>
 
 #include <math.h>
 #include <string.h>

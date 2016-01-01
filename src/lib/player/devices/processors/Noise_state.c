@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -17,8 +17,8 @@
 #include <debug/assert.h>
 #include <init/devices/processors/Proc_noise.h>
 #include <memory.h>
-#include <player/devices/Filter.h>
 #include <player/devices/Proc_state.h>
+#include <player/devices/processors/Filter.h>
 #include <player/devices/processors/Proc_utils.h>
 #include <player/devices/Voice_state.h>
 
