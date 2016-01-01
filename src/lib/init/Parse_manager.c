@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -795,39 +795,12 @@ static bool read_any_au_env_force_release(
 }
 
 
-static bool read_any_au_env_force_filter(
-        Reader_params* params, Au_table* au_table, int level)
-{
-    assert(params != NULL);
-    return read_any_au_env_generic(
-            params, au_table, level, Au_params_parse_env_force_filter);
-}
-
-
 static bool read_any_au_env_pitch_pan(
         Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
     return read_any_au_env_generic(
             params, au_table, level, Au_params_parse_env_pitch_pan);
-}
-
-
-static bool read_any_au_env_filter(
-        Reader_params* params, Au_table* au_table, int level)
-{
-    assert(params != NULL);
-    return read_any_au_env_generic(
-            params, au_table, level, Au_params_parse_env_filter);
-}
-
-
-static bool read_any_au_env_filter_release(
-        Reader_params* params, Au_table* au_table, int level)
-{
-    assert(params != NULL);
-    return read_any_au_env_generic(
-            params, au_table, level, Au_params_parse_env_filter_rel);
 }
 
 
@@ -1289,13 +1262,6 @@ static bool read_any_proc_vf_force(
         Reader_params* params, Au_table* au_table, int level)
 {
     return read_any_proc_voice_feature(params, au_table, level, VOICE_FEATURE_FORCE);
-}
-
-
-static bool read_any_proc_vf_filter(
-        Reader_params* params, Au_table* au_table, int level)
-{
-    return read_any_proc_voice_feature(params, au_table, level, VOICE_FEATURE_FILTER);
 }
 
 

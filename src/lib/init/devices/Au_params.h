@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -38,9 +38,6 @@ typedef struct Au_params
     bool force_volume_env_enabled;
     Envelope* force_volume_env;
 
-    bool env_force_filter_enabled;
-    Envelope* env_force_filter;
-
     bool force_pitch_env_enabled;
     Envelope* force_pitch_env;
     double force_pitch_env_scale;
@@ -65,22 +62,6 @@ typedef struct Au_params
     double panning;
     bool env_pitch_pan_enabled;
     Envelope* env_pitch_pan;
-
-    // Lowpass filter settings
-    double global_lowpass;
-    double default_lowpass;
-    double default_resonance;
-    double pitch_lowpass_scale;
-    bool env_filter_enabled;
-    bool env_filter_loop_enabled;
-    Envelope* env_filter;
-    double env_filter_scale_amount;
-    double env_filter_scale_center;
-
-    bool env_filter_rel_enabled;
-    Envelope* env_filter_rel;
-    double env_filter_rel_scale_amount;
-    double env_filter_rel_scale_center;
 } Au_params;
 
 
@@ -110,16 +91,7 @@ bool Au_params_parse_env_force_rel(Au_params* aup, Streader* sr);
 bool Au_params_parse_env_force(Au_params* aup, Streader* sr);
 
 
-bool Au_params_parse_env_force_filter(Au_params* aup, Streader* sr);
-
-
 bool Au_params_parse_env_pitch_pan(Au_params* aup, Streader* sr);
-
-
-bool Au_params_parse_env_filter(Au_params* aup, Streader* sr);
-
-
-bool Au_params_parse_env_filter_rel(Au_params* aup, Streader* sr);
 
 
 /**
