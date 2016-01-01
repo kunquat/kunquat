@@ -135,6 +135,7 @@ static const int CONTROL_WB_RESONANCE = WORK_BUFFER_IMPL_2;
 static void Filter_state_impl_update_controls(
         Filter_state_impl* fimpl,
         const Work_buffers* wbs,
+        Audio_buffer* cutoff_buf,
         int32_t buf_start,
         int32_t buf_stop)
 {
@@ -146,6 +147,17 @@ static void Filter_state_impl_update_controls(
 
     Linear_controls_fill_work_buffer(&fimpl->cutoff, cutoff_wb, buf_start, buf_stop);
     Linear_controls_fill_work_buffer(&fimpl->resonance, res_wb, buf_start, buf_stop);
+
+    if (cutoff_buf != NULL)
+    {
+        // FIXME: using left channel only; change this to single-channel stream
+        const float* cutoff_shift = Audio_buffer_get_buffer(cutoff_buf, 0);
+
+        float* cutoff_values = Work_buffer_get_contents_mut(cutoff_wb);
+
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            cutoff_values[i] += (cutoff_shift[i] - 100);
+    }
 
     return;
 }
@@ -489,7 +501,11 @@ static void Filter_pstate_render_mixed(
     Filter_pstate* fpstate = (Filter_pstate*)dstate;
 
     Filter_state_impl_set_tempo(&fpstate->state_impl, tempo);
-    Filter_state_impl_update_controls(&fpstate->state_impl, wbs, buf_start, buf_stop);
+
+    Audio_buffer* cutoff_shift =
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 1);
+    Filter_state_impl_update_controls(
+            &fpstate->state_impl, wbs, cutoff_shift, buf_start, buf_stop);
 
     // Get input
     Audio_buffer* in_buffer =
@@ -630,7 +646,11 @@ int32_t Filter_vstate_render_voice(
     Filter_vstate* fvstate = (Filter_vstate*)vstate;
 
     Filter_state_impl_set_tempo(&fvstate->state_impl, tempo);
-    Filter_state_impl_update_controls(&fvstate->state_impl, wbs, buf_start, buf_stop);
+
+    Audio_buffer* cutoff_shift =
+        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 1);
+    Filter_state_impl_update_controls(
+            &fvstate->state_impl, wbs, cutoff_shift, buf_start, buf_stop);
 
     // Get input
     Audio_buffer* in_buffer =
