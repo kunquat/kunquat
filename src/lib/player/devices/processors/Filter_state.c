@@ -23,6 +23,7 @@
 #include <player/devices/Filter.h>
 #include <player/devices/Proc_state.h>
 #include <player/devices/processors/Proc_utils.h>
+#include <player/devices/Voice_state.h>
 
 #include <math.h>
 #include <stdint.h>
@@ -68,8 +69,8 @@ static void Filter_state_impl_init(Filter_state_impl* fimpl, const Proc_filter* 
 
     fimpl->anything_rendered = false;
 
-    fimpl->applied_lowpass = filter->cutoff;
-    fimpl->applied_resonance = filter->resonance;
+    fimpl->applied_lowpass = FILTER_DEFAULT_CUTOFF;
+    fimpl->applied_resonance = FILTER_DEFAULT_RESONANCE;
     fimpl->true_lowpass = INFINITY;
     fimpl->true_resonance = 0.5;
     fimpl->lowpass_state_used = -1;
@@ -93,8 +94,8 @@ static void Filter_state_impl_init(Filter_state_impl* fimpl, const Proc_filter* 
 
     Linear_controls_init(&fimpl->cutoff);
     Linear_controls_init(&fimpl->resonance);
-    Linear_controls_set_value(&fimpl->cutoff, fimpl->applied_lowpass);
-    Linear_controls_set_value(&fimpl->resonance, fimpl->applied_resonance);
+    Linear_controls_set_value(&fimpl->cutoff, filter->cutoff);
+    Linear_controls_set_value(&fimpl->resonance, filter->resonance);
 
     return;
 }
@@ -392,7 +393,7 @@ static void Filter_state_impl_apply_work_buffers(
                     }
                 }
                 fimpl->lowpass_state_used = new_state;
-    //            fprintf(stderr, "created filter with cutoff %f\n", cutoff);
+                //fprintf(stderr, "created filter with cutoff %f\n", cutoff);
             }
             else
             {
@@ -567,6 +568,92 @@ Device_state* new_Filter_pstate(
     Filter_state_impl_set_audio_rate(&fpstate->state_impl, audio_rate);
 
     return (Device_state*)fpstate;
+}
+
+
+typedef struct Filter_vstate
+{
+    Voice_state parent;
+
+    Filter_state_impl state_impl;
+} Filter_vstate;
+
+
+size_t Filter_vstate_get_size(void)
+{
+    return sizeof(Filter_vstate);
+}
+
+
+int32_t Filter_vstate_render_voice(
+        Voice_state* vstate,
+        Proc_state* proc_state,
+        const Au_state* au_state,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        double tempo)
+{
+    assert(vstate != NULL);
+    assert(proc_state != NULL);
+    assert(au_state != NULL);
+    assert(wbs != NULL);
+    assert(buf_start >= 0);
+    assert(buf_stop >= 0);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
+
+    Filter_vstate* fvstate = (Filter_vstate*)vstate;
+
+    Filter_state_impl_set_tempo(&fvstate->state_impl, tempo);
+    Filter_state_impl_update_controls(&fvstate->state_impl, wbs, buf_start, buf_stop);
+
+    // Get input
+    Audio_buffer* in_buffer =
+        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
+    if (in_buffer == NULL)
+    {
+        vstate->active = false;
+        return buf_start;
+    }
+
+    // Get output
+    Audio_buffer* out_buffer =
+        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0);
+    assert(out_buffer != NULL);
+
+    const Device_state* dstate = (const Device_state*)proc_state;
+    Filter_state_impl_apply_work_buffers(
+            &fvstate->state_impl,
+            wbs,
+            in_buffer,
+            out_buffer,
+            buf_start,
+            buf_stop,
+            dstate->audio_rate);
+
+    // Mark state as started, TODO: fix this mess
+    vstate->pos = 1;
+
+    return buf_stop;
+}
+
+
+void Filter_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
+{
+    assert(vstate != NULL);
+    assert(proc_state != NULL);
+
+    vstate->render_voice = Filter_vstate_render_voice;
+
+    Filter_vstate* fvstate = (Filter_vstate*)vstate;
+
+    const Device_state* dstate = (const Device_state*)proc_state;
+    const Proc_filter* filter = (const Proc_filter*)dstate->device->dimpl;
+    Filter_state_impl_init(&fvstate->state_impl, filter);
+    Filter_state_impl_set_audio_rate(&fvstate->state_impl, dstate->audio_rate);
+
+    return;
 }
 
 

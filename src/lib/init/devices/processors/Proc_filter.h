@@ -19,6 +19,10 @@
 #include <init/devices/Device_impl.h>
 
 
+#define FILTER_DEFAULT_CUTOFF 100.0
+#define FILTER_DEFAULT_RESONANCE 0.0
+
+
 typedef struct Proc_filter
 {
     Device_impl parent;

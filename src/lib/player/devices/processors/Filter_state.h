@@ -18,6 +18,8 @@
 
 #include <decl.h>
 #include <player/devices/Device_state.h>
+#include <player/devices/Proc_state.h>
+#include <player/devices/Voice_state.h>
 #include <string/key_pattern.h>
 
 #include <stdint.h>
@@ -31,6 +33,11 @@ bool Filter_pstate_set_cutoff(
 
 bool Filter_pstate_set_resonance(
         Device_state* dstate, const Key_indices indices, double value);
+
+
+Voice_state_get_size_func Filter_vstate_get_size;
+
+void Filter_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
 
 
 #endif // K_FILTER_STATE_H

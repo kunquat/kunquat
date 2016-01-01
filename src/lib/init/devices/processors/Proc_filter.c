@@ -22,10 +22,6 @@
 #include <stdbool.h>
 
 
-#define DEFAULT_CUTOFF 100.0
-#define DEFAULT_RESONANCE 0.0
-
-
 static Set_float_func Proc_filter_set_cutoff;
 static Set_float_func Proc_filter_set_resonance;
 
@@ -45,23 +41,25 @@ Device_impl* new_Proc_filter(void)
     }
 
     filter->parent.create_pstate = new_Filter_pstate;
+    filter->parent.get_vstate_size = Filter_vstate_get_size;
+    filter->parent.init_vstate = Filter_vstate_init;
 
-    filter->cutoff = DEFAULT_CUTOFF;
-    filter->resonance = DEFAULT_RESONANCE;
+    filter->cutoff = FILTER_DEFAULT_CUTOFF;
+    filter->resonance = FILTER_DEFAULT_RESONANCE;
 
     bool reg_success = true;
 
     reg_success &= Device_impl_register_set_float(
             &filter->parent,
             "p_f_cutoff.json",
-            DEFAULT_CUTOFF,
+            FILTER_DEFAULT_CUTOFF,
             Proc_filter_set_cutoff,
             Filter_pstate_set_cutoff);
 
     reg_success &= Device_impl_register_set_float(
             &filter->parent,
             "p_f_resonance.json",
-            DEFAULT_RESONANCE,
+            FILTER_DEFAULT_RESONANCE,
             Proc_filter_set_resonance,
             Filter_pstate_set_resonance);
 
