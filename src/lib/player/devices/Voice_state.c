@@ -278,7 +278,7 @@ int32_t Voice_state_render_voice(
 
     // Call the implementation
     const int32_t impl_render_stop = vstate->render_voice(
-            vstate, proc_state, au_state, wbs, buf_start, buf_stop, tempo);
+            vstate, proc_state, au_state, wbs, buf_start, process_stop, tempo);
 
     if (!vstate->active) // FIXME: communicate end of rendering in a cleaner way
     {
