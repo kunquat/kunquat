@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -32,6 +32,8 @@ class TimeEnvelope(QWidget):
         self._enabled_toggle = QCheckBox('Enabled')
         if self._allow_loop():
             self._loop_toggle = QCheckBox('Loop')
+        if self._allow_release_toggle():
+            self._release_toggle = QCheckBox('Release')
         self._scale_amount = NumberSlider(2, -4, 4, title='Scale amount:')
         self._scale_center = NumberSlider(0, -3600, 3600, title='Scale center:')
 
@@ -39,6 +41,8 @@ class TimeEnvelope(QWidget):
         h.addWidget(self._enabled_toggle)
         if self._allow_loop():
             h.addWidget(self._loop_toggle)
+        if self._allow_release_toggle():
+            h.addWidget(self._release_toggle)
         h.addWidget(self._scale_amount)
         h.addWidget(self._scale_center)
 
@@ -70,6 +74,11 @@ class TimeEnvelope(QWidget):
                     self._loop_toggle,
                     SIGNAL('stateChanged(int)'),
                     self._loop_enabled_changed)
+        if self._allow_release_toggle():
+            QObject.connect(
+                    self._release_toggle,
+                    SIGNAL('stateChanged(int)'),
+                    self._release_changed)
         QObject.connect(
                 self._scale_amount,
                 SIGNAL('numberChanged(float)'),
@@ -127,6 +136,11 @@ class TimeEnvelope(QWidget):
         self._set_loop_enabled(new_enabled)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
+    def _release_changed(self, state):
+        new_enabled = (state == Qt.Checked)
+        self._set_release_enabled(new_enabled)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
     def _scale_amount_changed(self, num):
         self._set_scale_amount(num)
         self._updater.signal_update(set([self._get_update_signal_type()]))
@@ -158,6 +172,9 @@ class TimeEnvelope(QWidget):
     def _allow_loop(self):
         raise NotImplementedError
 
+    def _allow_release_toggle(self):
+        return False
+
     def _make_envelope_widget(self):
         raise NotImplementedError
 
@@ -174,6 +191,12 @@ class TimeEnvelope(QWidget):
         raise NotImplementedError
 
     def _set_loop_enabled(self, enabled):
+        raise NotImplementedError
+
+    def _get_release_enabled(self):
+        raise NotImplementedError
+
+    def _set_release_enabled(self, enabled):
         raise NotImplementedError
 
     def _get_scale_amount(self):
