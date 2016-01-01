@@ -90,7 +90,15 @@ static bool process_expr(
         if (Streader_is_error_set(expr_reader))
             return false;
 
-        if (!Value_convert(ret_value, ret_value, field_type))
+        if (field_type == VALUE_TYPE_REALTIME)
+        {
+            if (!Value_type_is_realtime(ret_value->type))
+            {
+                Streader_set_error(expr_reader, "Type mismatch");
+                return false;
+            }
+        }
+        else if (!Value_convert(ret_value, ret_value, field_type))
         {
             Streader_set_error(expr_reader, "Type mismatch");
             return false;

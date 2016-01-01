@@ -22,16 +22,13 @@ EVENT_AU_DEF("abp+",        bypass_on,                  NONE,       NULL)
 EVENT_AU_DEF("abp-",        bypass_off,                 NONE,       NULL)
 EVENT_AU_DEF("a.sus",       set_sustain,                FLOAT,      v_sustain)
 
-EVENT_AU_DEF("a.B",         set_cv_bool_value,          BOOL,       v_any_bool)
-EVENT_AU_DEF("a.I",         set_cv_int_value,           INT,        v_any_int)
-EVENT_AU_DEF("a.F",         set_cv_float_value,         FLOAT,      v_finite_float)
-EVENT_AU_DEF("a/F",         slide_cv_float_target,      FLOAT,      v_finite_float)
-EVENT_AU_DEF("a/=F",        slide_cv_float_length,      TSTAMP,     v_nonneg_ts)
-EVENT_AU_DEF("aosF",        osc_speed_cv_float,         FLOAT,      v_nonneg_float)
-EVENT_AU_DEF("aodF",        osc_depth_cv_float,         FLOAT,      v_nonneg_float)
-EVENT_AU_DEF("ao/=sF",      osc_speed_slide_cv_float,   TSTAMP,     v_nonneg_ts)
-EVENT_AU_DEF("ao/=dF",      osc_depth_slide_cv_float,   TSTAMP,     v_nonneg_ts)
-EVENT_AU_DEF("a.T",         set_cv_tstamp_value,        TSTAMP,     v_any_ts)
+EVENT_AU_DEF("a.v",         set_cv_value,               REALTIME,   v_finite_rt)
+EVENT_AU_DEF("a/v",         slide_cv_target,            FLOAT,      v_finite_float)
+EVENT_AU_DEF("a/=v",        slide_cv_length,            TSTAMP,     v_nonneg_ts)
+EVENT_AU_DEF("aosv",        osc_speed_cv,               FLOAT,      v_nonneg_float)
+EVENT_AU_DEF("aodv",        osc_depth_cv,               FLOAT,      v_nonneg_float)
+EVENT_AU_DEF("ao/=sv",      osc_speed_slide_cv,         TSTAMP,     v_nonneg_ts)
+EVENT_AU_DEF("ao/=dv",      osc_depth_slide_cv,         TSTAMP,     v_nonneg_ts)
 
 
 #undef EVENT_AU_DEF

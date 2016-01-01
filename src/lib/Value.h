@@ -37,6 +37,8 @@ typedef enum
     VALUE_TYPE_STRING,
     VALUE_TYPE_PAT_INST_REF,
     VALUE_TYPE_COUNT,
+
+    VALUE_TYPE_REALTIME = -2 // not a valid type; used with type-generic events
 } Value_type;
 
 
@@ -57,6 +59,18 @@ struct Value
 
 
 #define VALUE_AUTO (&(Value){ .type = VALUE_TYPE_NONE })
+
+
+/**
+ * Check if the Value type is realtime.
+ *
+ * Currently, realtime Value types include \c VALUE_TYPE_BOOL,
+ * \c VALUE_TYPE_INT, \c VALUE_TYPE_FLOAT and \c VALUE_TYPE_TSTAMP.
+ *
+ * \param type   The Value type -- must be >= \c VALUE_TYPE_NONE and
+ *               < \c VALUE_TYPE_COUNT.
+ */
+bool Value_type_is_realtime(Value_type type);
 
 
 /**

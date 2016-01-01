@@ -469,22 +469,26 @@ static void Audio_unit_init_control_var_generic(
     if (mode == DEVICE_CONTROL_VAR_MODE_VOICE)
     {
         const Channel_cv_state* cvstate = Channel_get_cv_state(channel);
-        if (Channel_cv_state_is_carrying_enabled(cvstate, var_name, var_type))
+        if (Channel_cv_state_is_carrying_enabled(cvstate, var_name))
         {
             const Value* carried_value =
-                Channel_cv_state_get_value(cvstate, var_name, var_type);
+                Channel_cv_state_get_value(cvstate, var_name);
             if (carried_value != NULL)
             {
-                Audio_unit_set_control_var_generic(
-                        &au->parent,
-                        dstates,
-                        mode,
-                        random,
-                        channel,
-                        var_name,
-                        carried_value);
+                Value* converted = VALUE_AUTO;
+                if (Value_convert(converted, carried_value, var_type))
+                {
+                    Audio_unit_set_control_var_generic(
+                            &au->parent,
+                            dstates,
+                            mode,
+                            random,
+                            channel,
+                            var_name,
+                            converted);
 
-                carried = true;
+                    carried = true;
+                }
             }
         }
     }
@@ -572,7 +576,7 @@ static void Audio_unit_init_control_var_float_slide(
     if (mode == DEVICE_CONTROL_VAR_MODE_VOICE)
     {
         const Channel_cv_state* cvstate = Channel_get_cv_state(channel);
-        if (Channel_cv_state_is_carrying_enabled(cvstate, var_name, VALUE_TYPE_FLOAT))
+        if (Channel_cv_state_is_carrying_enabled(cvstate, var_name))
         {
             const Linear_controls* controls =
                 Channel_cv_state_get_float_controls(cvstate, var_name);

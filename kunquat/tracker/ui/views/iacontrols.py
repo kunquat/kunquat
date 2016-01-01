@@ -249,8 +249,7 @@ class RuntimeVarValueEditor(QWidget):
         var_type_index = var_types.index(var_type)
         self.layout().setCurrentIndex(var_type_index)
 
-        runtime_var_value = playback_manager.get_runtime_var_value(
-                var_type, self._var_name)
+        runtime_var_value = playback_manager.get_runtime_var_value(self._var_name)
         if runtime_var_value == None:
             runtime_var_value = env.get_var_init_value(self._var_name)
 
@@ -259,9 +258,9 @@ class RuntimeVarValueEditor(QWidget):
         if var_type == bool:
             editor.setCheckState(Qt.Checked if runtime_var_value else Qt.Unchecked)
         elif var_type == int:
-            editor.setText(unicode(runtime_var_value))
+            editor.setText(unicode(int(runtime_var_value)))
         elif var_type == float:
-            editor.setText(unicode(runtime_var_value))
+            editor.setText(unicode(float(runtime_var_value)))
         elif var_type == tstamp.Tstamp:
             editor.setText(unicode(float(runtime_var_value)))
         else:
@@ -272,25 +271,25 @@ class RuntimeVarValueEditor(QWidget):
         enabled = (new_state == Qt.Checked)
 
         playback_manager = self._ui_model.get_playback_manager()
-        playback_manager.set_runtime_var_value(bool, self._var_name, enabled)
+        playback_manager.set_runtime_var_value(self._var_name, enabled)
 
     def _change_int_value(self):
         value = int(self._editors[int].text())
 
         playback_manager = self._ui_model.get_playback_manager()
-        playback_manager.set_runtime_var_value(int, self._var_name, value)
+        playback_manager.set_runtime_var_value(self._var_name, value)
 
     def _change_float_value(self):
         value = float(self._editors[float].text())
 
         playback_manager = self._ui_model.get_playback_manager()
-        playback_manager.set_runtime_var_value(float, self._var_name, value)
+        playback_manager.set_runtime_var_value(self._var_name, value)
 
     def _change_tstamp_value(self):
         value = tstamp.Tstamp(float(self._editors[tstamp.Tstamp].text()))
 
         playback_manager = self._ui_model.get_playback_manager()
-        playback_manager.set_runtime_var_value(tstamp.Tstamp, self._var_name, value)
+        playback_manager.set_runtime_var_value(self._var_name, value)
 
     def focusOutEvent(self, event):
         if self._update_flag:

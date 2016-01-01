@@ -81,17 +81,6 @@ class AudioEngine():
         self._ui_engine.update_event_log_with(
                 channel_number, event_type, event_value, context)
 
-        var_types = {
-            'c.Bn': bool,
-            'c.B':  bool,
-            'c.In': int,
-            'c.I':  int,
-            'c.Fn': float,
-            'c.F':  float,
-            'c.Tn': tstamp.Tstamp,
-            'c.T':  tstamp.Tstamp,
-        }
-
         if event_type == EVENT_SELECT_CONTROL:
             control_number = event_value
             self._ui_engine.update_selected_control(channel_number, control_number)
@@ -110,14 +99,13 @@ class AudioEngine():
         elif event_type == 'Arow':
             row = event_value
             self._ui_engine.update_playback_cursor(row)
-        elif event_type in ('c.Bn', 'c.In', 'c.Fn', 'c.Tn'):
-            var_type = var_types[event_type]
+        elif event_type == 'c.evn':
             var_name = event_value
-            self._ui_engine.update_active_var_name(channel_number, var_type, var_name)
-        elif event_type in ('c.B', 'c.I', 'c.F', 'c.T'):
-            var_type = var_types[event_type]
+            self._ui_engine.update_active_var_name(channel_number, var_name)
+        elif event_type == 'c.ev':
+            var_type = tstamp.Tstamp if type(event_value) == list else type(event_value)
             var_value = var_type(event_value)
-            self._ui_engine.update_active_var_value(channel_number, var_type, var_value)
+            self._ui_engine.update_active_var_value(channel_number, var_value)
 
     def _process_events(self, event_data, context):
         for channel_number, event in event_data:

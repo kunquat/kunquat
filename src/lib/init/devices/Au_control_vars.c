@@ -370,18 +370,6 @@ bool Au_control_binding_iter_init(
 }
 
 
-static bool check_value_var_entry_type_compatible(
-        Value_type value_type, Var_entry_type var_entry_type)
-{
-    return (value_type == VALUE_TYPE_BOOL && var_entry_type == VAR_ENTRY_BOOL) ||
-        (value_type == VALUE_TYPE_INT && var_entry_type == VAR_ENTRY_INT) ||
-        (value_type == VALUE_TYPE_FLOAT &&
-            (var_entry_type == VAR_ENTRY_FLOAT ||
-             var_entry_type == VAR_ENTRY_FLOAT_SLIDE)) ||
-        (value_type == VALUE_TYPE_TSTAMP && var_entry_type == VAR_ENTRY_TSTAMP);
-}
-
-
 bool Au_control_binding_iter_init_set_generic(
         Au_control_binding_iter* iter,
         const Au_control_vars* aucv,
@@ -393,10 +381,7 @@ bool Au_control_binding_iter_init_set_generic(
     assert(aucv != NULL);
     assert(var_name != NULL);
     assert(value != NULL);
-    assert((value->type == VALUE_TYPE_BOOL) ||
-            (value->type == VALUE_TYPE_INT) ||
-            (value->type == VALUE_TYPE_FLOAT) ||
-            (value->type == VALUE_TYPE_TSTAMP));
+    assert(Value_type_is_realtime(value->type));
 
     iter->iter = NULL;
     Value_copy(&iter->src_value, value);
@@ -407,7 +392,12 @@ bool Au_control_binding_iter_init_set_generic(
 
     const Var_entry* var_entry = AAtree_get_exact(aucv->vars, var_name);
     assert(var_entry != NULL);
-    if (!check_value_var_entry_type_compatible(iter->src_value.type, var_entry->type))
+
+    // Try to convert input value to type expected by the variable entry
+    if (!Value_convert(
+                &iter->src_value,
+                &iter->src_value,
+                get_value_type_from_var_entry_type(var_entry->type)))
         return false;
 
     if (var_entry->type == VAR_ENTRY_FLOAT_SLIDE)

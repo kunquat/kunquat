@@ -28,16 +28,6 @@ typedef enum Active_cat
 } Active_cat;
 
 
-typedef enum Active_type
-{
-    ACTIVE_TYPE_BOOL = 0,
-    ACTIVE_TYPE_INT,
-    ACTIVE_TYPE_FLOAT,
-    ACTIVE_TYPE_TSTAMP,
-    ACTIVE_TYPE_COUNT
-} Active_type;
-
-
 /**
  * Names of variables that are subject to modification.
  */
@@ -57,28 +47,24 @@ Active_names* new_Active_names(void);
  * Set an active name for a type.
  *
  * \param names   The Active names -- must not be \c NULL.
- * \param cat     The category -- must be valid.
- * \param type    The variable type -- must be valid.
+ * \param cat     The category -- must be < \c ACTIVE_CAT_COUNT.
  * \param name    The new name -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if \a name contains too
  *           many characters to fit the type.
  */
-bool Active_names_set(
-        Active_names* names, Active_cat cat, Active_type type, const char* name);
+bool Active_names_set(Active_names* names, Active_cat cat, const char* name);
 
 
 /**
  * Get an active name for a type.
  *
  * \param names   The Active names -- must not be \c NULL.
- * \param cat     The category -- must be valid.
- * \param type    The variable type -- must be valid.
+ * \param cat     The category -- must be < \c ACTIVE_CAT_COUNT.
  *
  * \return   The active name. This is never \c NULL.
  */
-const char* Active_names_get(
-        const Active_names* names, Active_cat cat, Active_type type);
+const char* Active_names_get(const Active_names* names, Active_cat cat);
 
 
 /**

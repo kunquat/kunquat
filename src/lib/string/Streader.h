@@ -19,6 +19,7 @@
 #include <Error.h>
 #include <mathnum/Tstamp.h>
 #include <Pat_inst_ref.h>
+#include <Value.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -245,6 +246,19 @@ bool Streader_read_string(Streader* sr, size_t max_bytes, char* dest);
  * \return   \c true if a Tstamp was successfully read, otherwise \c false.
  */
 bool Streader_read_tstamp(Streader* sr, Tstamp* dest);
+
+
+/**
+ * Read any finite realtime value (boolean, integer, float or Tstamp).
+ *
+ * \param sr     The Streader -- must not be \c NULL.
+ * \param dest   The destination address of the Value container, or
+ *               \c NULL for parsing without storing the value.
+ *
+ * \return   \c true if a finite realtime value was successfully read,
+ *           otherwise \c false.
+ */
+bool Streader_read_finite_rt(Streader* sr, Value* dest);
 
 
 /**
