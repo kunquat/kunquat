@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -144,13 +144,11 @@ class Signals(QWidget):
 
         self._vf_pitch = QCheckBox('Pitch')
         self._vf_force = QCheckBox('Force')
-        self._vf_filter = QCheckBox('Filter')
         self._vf_panning = QCheckBox('Panning')
 
         vf_layout = QVBoxLayout()
         vf_layout.addWidget(self._vf_pitch)
         vf_layout.addWidget(self._vf_force)
-        vf_layout.addWidget(self._vf_filter)
         vf_layout.addWidget(self._vf_panning)
 
         self._vf_container = QWidget()
@@ -181,7 +179,6 @@ class Signals(QWidget):
         vf_info = [
             (self._vf_pitch, self._vf_pitch_changed),
             (self._vf_force, self._vf_force_changed),
-            (self._vf_filter, self._vf_filter_changed),
             (self._vf_panning, self._vf_panning_changed),
         ]
 
@@ -231,7 +228,6 @@ class Signals(QWidget):
         vf_info = [
             (self._vf_pitch, proc.get_vf_pitch),
             (self._vf_force, proc.get_vf_force),
-            (self._vf_filter, proc.get_vf_filter),
             (self._vf_panning, proc.get_vf_panning),
         ]
 
@@ -264,7 +260,6 @@ class Signals(QWidget):
         vf_info = {
             'pitch': proc.set_vf_pitch,
             'force': proc.set_vf_force,
-            'filter': proc.set_vf_filter,
             'panning': proc.set_vf_panning,
         }
 
@@ -276,9 +271,6 @@ class Signals(QWidget):
 
     def _vf_force_changed(self, state):
         self._vf_changed(state, 'force')
-
-    def _vf_filter_changed(self, state):
-        self._vf_changed(state, 'filter')
 
     def _vf_panning_changed(self, state):
         self._vf_changed(state, 'panning')
