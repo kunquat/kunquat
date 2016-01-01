@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -53,7 +53,6 @@ Voice_state* Voice_state_init(
 
     Force_controls_init(&state->force_controls, freq, tempo);
     Pitch_controls_init(&state->pitch_controls, freq, tempo);
-    Filter_controls_init(&state->filter_controls, freq, tempo);
 
     Slider_set_audio_rate(&state->panning_slider, freq);
     Slider_set_tempo(&state->panning_slider, tempo);
@@ -113,34 +112,6 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->pitch_pan_ref_param = FLT_MAX;
     state->pitch_pan_value = 0;
 
-    Time_env_state_init(&state->env_filter_state);
-    Time_env_state_init(&state->env_filter_rel_state);
-
-    Filter_controls_reset(&state->filter_controls);
-    state->actual_lowpass = 100;
-
-    state->applied_lowpass = state->actual_lowpass;
-    state->applied_resonance = state->filter_controls.resonance;
-    state->true_lowpass = INFINITY;
-    state->true_resonance = 0.5;
-    state->lowpass_state_used = -1;
-    state->lowpass_xfade_state_used = -1;
-    state->lowpass_xfade_pos = 1;
-    state->lowpass_xfade_update = 0;
-
-    for (int i = 0; i < FILTER_ORDER; ++i)
-    {
-        state->lowpass_state[0].coeffs[i] = 0;
-        state->lowpass_state[1].coeffs[i] = 0;
-        for (int k = 0; k < KQT_BUFFERS_MAX; ++k)
-        {
-            state->lowpass_state[0].history1[k][i] = 0;
-            state->lowpass_state[0].history2[k][i] = 0;
-            state->lowpass_state[1].history1[k][i] = 0;
-            state->lowpass_state[1].history2[k][i] = 0;
-        }
-    }
-
     return state;
 }
 
@@ -178,9 +149,6 @@ static void adjust_relative_lengths(
 
         Slider_set_audio_rate(&vstate->panning_slider, audio_rate);
         Slider_set_tempo(&vstate->panning_slider, tempo);
-
-        Filter_controls_set_audio_rate(&vstate->filter_controls, audio_rate);
-        Filter_controls_set_tempo(&vstate->filter_controls, tempo);
 
         vstate->freq = audio_rate;
         vstate->tempo = tempo;
@@ -315,17 +283,6 @@ int32_t Voice_state_render_voice(
             assert(ramp_release_stop <= process_stop);
             process_stop = ramp_release_stop;
         }
-
-        Voice_state_common_handle_filter(
-                vstate,
-                voice_out_buf,
-                proc,
-                au_state,
-                wbs,
-                2,
-                audio_rate,
-                buf_start,
-                process_stop);
 
         Voice_state_common_handle_panning(
                 vstate, voice_out_buf, proc, wbs, buf_start, process_stop);

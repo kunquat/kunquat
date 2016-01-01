@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -20,7 +20,6 @@
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <mathnum/Tstamp.h>
-#include <player/Filter_controls.h>
 #include <player/Force_controls.h>
 #include <player/LFO.h>
 #include <player/Pitch_controls.h>
@@ -57,18 +56,6 @@ typedef Linear_controls* Voice_state_get_cv_float_controls_mut_func(
         Voice_state*, const Device_state*, const Key_indices);
 typedef void Voice_state_set_cv_tstamp_func(
         Voice_state*, const Device_state*, const Key_indices, const Tstamp*);
-
-
-#define FILTER_ORDER (2)
-
-
-typedef struct Filter_state
-{
-    double coeffs[FILTER_ORDER]; ///< Coefficient table.
-    double mul;
-    double history1[KQT_BUFFERS_MAX][FILTER_ORDER]; ///< History buffer.
-    double history2[KQT_BUFFERS_MAX][FILTER_ORDER]; ///< History buffer.
-} Filter_state;
 
 
 struct Voice_state
@@ -118,23 +105,6 @@ struct Voice_state
 
     float pitch_pan_ref_param;     ///< Pitch value that maps to the stored pitch-pan value.
     float pitch_pan_value;
-
-    Time_env_state env_filter_state;
-    Time_env_state env_filter_rel_state;
-
-    Filter_controls filter_controls;
-    double actual_lowpass;         ///< The current actual lowpass parameter.
-
-    // Lowpass filter implementation state
-    double applied_lowpass;
-    double applied_resonance;
-    double true_lowpass;
-    double true_resonance;
-    double lowpass_xfade_pos;
-    double lowpass_xfade_update;
-    int lowpass_xfade_state_used;
-    int lowpass_state_used;
-    Filter_state lowpass_state[2];
 };
 
 

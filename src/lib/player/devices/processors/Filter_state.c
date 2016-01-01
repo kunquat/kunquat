@@ -30,9 +30,7 @@
 #include <stdlib.h>
 
 
-#ifndef FILTER_ORDER
 #define FILTER_ORDER 2
-#endif
 
 
 typedef struct Single_filter_state
