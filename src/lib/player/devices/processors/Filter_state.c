@@ -156,7 +156,7 @@ static void Filter_state_impl_update_controls(
         float* cutoff_values = Work_buffer_get_contents_mut(cutoff_wb);
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            cutoff_values[i] += (cutoff_shift[i] - 100);
+            cutoff_values[i] += (cutoff_shift[i] * 100 - 100);
     }
 
     return;
