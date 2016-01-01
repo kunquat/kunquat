@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -25,7 +25,6 @@
 #include <player/Channel_cv_state.h>
 #include <player/Env_state.h>
 #include <player/Event_cache.h>
-#include <player/Filter_controls.h>
 #include <player/Force_controls.h>
 #include <player/General_state.h>
 #include <player/LFO.h>
@@ -77,15 +76,6 @@ struct Channel
     bool carry_pitch;
     double orig_pitch;
     Pitch_controls pitch_controls;
-
-    Tstamp filter_slide_length;
-    Tstamp lowpass_resonance_slide_length;
-    double autowah_speed;
-    Tstamp autowah_speed_slide;
-    double autowah_depth;
-    Tstamp autowah_depth_slide;
-    bool carry_filter;
-    Filter_controls filter_controls;
 
     double panning;                ///< The current panning.
     Slider panning_slider;
