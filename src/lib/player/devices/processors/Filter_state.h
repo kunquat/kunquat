@@ -40,6 +40,13 @@ Voice_state_get_size_func Filter_vstate_get_size;
 void Filter_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
 
 
+Proc_state_get_cv_float_controls_mut_func Filter_pstate_get_cv_controls_cutoff;
+Proc_state_get_cv_float_controls_mut_func Filter_pstate_get_cv_controls_resonance;
+
+Voice_state_get_cv_float_controls_mut_func Filter_vstate_get_cv_controls_cutoff;
+Voice_state_get_cv_float_controls_mut_func Filter_vstate_get_cv_controls_resonance;
+
+
 #endif // K_FILTER_STATE_H
 
 

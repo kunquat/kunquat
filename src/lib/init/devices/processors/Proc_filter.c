@@ -63,6 +63,18 @@ Device_impl* new_Proc_filter(void)
             Proc_filter_set_resonance,
             Filter_pstate_set_resonance);
 
+    reg_success &= Device_impl_create_cv_float(
+            &filter->parent,
+            "cutoff",
+            Filter_pstate_get_cv_controls_cutoff,
+            Filter_vstate_get_cv_controls_cutoff);
+
+    reg_success &= Device_impl_create_cv_float(
+            &filter->parent,
+            "resonance",
+            Filter_pstate_get_cv_controls_resonance,
+            Filter_vstate_get_cv_controls_resonance);
+
     if (!reg_success)
     {
         del_Device_impl(&filter->parent);

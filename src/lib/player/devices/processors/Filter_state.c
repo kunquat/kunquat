@@ -571,6 +571,30 @@ Device_state* new_Filter_pstate(
 }
 
 
+Linear_controls* Filter_pstate_get_cv_controls_cutoff(
+        Device_state* dstate, const Key_indices indices)
+{
+    assert(dstate != NULL);
+    ignore(indices);
+
+    Filter_pstate* fpstate = (Filter_pstate*)dstate;
+
+    return &fpstate->state_impl.cutoff;
+}
+
+
+Linear_controls* Filter_pstate_get_cv_controls_resonance(
+        Device_state* dstate, const Key_indices indices)
+{
+    assert(dstate != NULL);
+    ignore(indices);
+
+    Filter_pstate* fpstate = (Filter_pstate*)dstate;
+
+    return &fpstate->state_impl.resonance;
+}
+
+
 typedef struct Filter_vstate
 {
     Voice_state parent;
@@ -654,6 +678,32 @@ void Filter_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     Filter_state_impl_set_audio_rate(&fvstate->state_impl, dstate->audio_rate);
 
     return;
+}
+
+
+Linear_controls* Filter_vstate_get_cv_controls_cutoff(
+        Voice_state* vstate, const Device_state* dstate, const Key_indices indices)
+{
+    assert(vstate != NULL);
+    assert(dstate != NULL);
+    ignore(indices);
+
+    Filter_vstate* fvstate = (Filter_vstate*)vstate;
+
+    return &fvstate->state_impl.cutoff;
+}
+
+
+Linear_controls* Filter_vstate_get_cv_controls_resonance(
+        Voice_state* vstate, const Device_state* dstate, const Key_indices indices)
+{
+    assert(vstate != NULL);
+    assert(dstate != NULL);
+    ignore(indices);
+
+    Filter_vstate* fvstate = (Filter_vstate*)vstate;
+
+    return &fvstate->state_impl.resonance;
 }
 
 
