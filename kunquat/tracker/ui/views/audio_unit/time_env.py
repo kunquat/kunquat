@@ -119,6 +119,7 @@ class TimeEnvelope(QWidget):
 
         if self._allow_release_toggle():
             old_block = self._release_toggle.blockSignals(True)
+            self._release_toggle.setEnabled(self._get_enabled())
             self._release_toggle.setCheckState(
                     Qt.Checked if self._get_release_enabled() else Qt.Unchecked)
             self._release_toggle.blockSignals(old_block)
