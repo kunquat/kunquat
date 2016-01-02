@@ -48,21 +48,15 @@ bool v_hit(const char* param);
 
 bool v_key(const char* param);
 
-bool v_lowpass(const char* param);
-
 bool v_nonneg_float(const char* param);
 bool v_nonneg_ts(const char* param);
 
 bool v_note_entry(const char* param);
 
-bool v_panning(const char* param);
-
 bool v_pattern(const char* param);
 bool v_piref(const char* param);
 
 bool v_pitch(const char* param);
-
-bool v_resonance(const char* param);
 
 bool v_scale(const char* param);
 
