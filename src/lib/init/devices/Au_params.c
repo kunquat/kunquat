@@ -46,7 +46,6 @@ Au_params* Au_params_init(Au_params* aup, uint32_t device_id)
     aup->force_pitch_env = NULL;
     aup->env_force = NULL;
     aup->env_force_rel = NULL;
-    aup->env_pitch_pan = NULL;
 
     aup->volume = 1;
     aup->global_force = 1;
@@ -86,107 +85,10 @@ Au_params* Au_params_init(Au_params* aup, uint32_t device_id)
     Envelope_set_first_lock(aup->env_force_rel, true, false);
     Envelope_set_last_lock(aup->env_force_rel, false, true);
 
-    new_env_or_fail(aup->env_pitch_pan, 8,  -6000, 6000, 0,  -1, 1, 0);
-    aup->env_pitch_pan_enabled = false;
-    Envelope_set_node(aup->env_pitch_pan, -1, 0);
-    Envelope_set_node(aup->env_pitch_pan, 0, 0);
-    Envelope_set_node(aup->env_pitch_pan, 1, 0);
-    Envelope_set_first_lock(aup->env_pitch_pan, true, false);
-    Envelope_set_last_lock(aup->env_pitch_pan, true, false);
-
     return aup;
 }
 
 #undef new_env_or_fail
-
-
-typedef struct ntdata
-{
-    bool enabled;
-    bool nodes_found;
-    const char* type;
-    Envelope* env;
-} ntdata;
-
-static bool read_nontime_env(Streader* sr, const char* key, void* userdata)
-{
-    assert(sr != NULL);
-    assert(key != NULL);
-    assert(userdata != NULL);
-
-    ntdata* d = userdata;
-
-    if (string_eq(key, "enabled"))
-    {
-        if (!Streader_read_bool(sr, &d->enabled))
-            return false;
-    }
-    else if (string_eq(key, "envelope"))
-    {
-        if (!Envelope_read(d->env, sr))
-            return false;
-        d->nodes_found = true;
-    }
-    else
-    {
-        Streader_set_error(
-                 sr, "Unrecognised key in %s envelope: %s", d->type, key);
-        return false;
-    }
-
-    return true;
-}
-
-
-bool Au_params_parse_env_pitch_pan(Au_params* aup, Streader* sr)
-{
-    assert(aup != NULL);
-    assert(sr != NULL);
-
-    if (Streader_is_error_set(sr))
-        return false;
-
-    Envelope* env = new_Envelope(32, -6000, 6000, 0, -1, 1, 0);
-    if (env == NULL)
-    {
-        Streader_set_memory_error(
-                sr, "Could not allocate memory for pitch-pan envelope");
-        return false;
-    }
-
-    ntdata d =
-    {
-        .enabled = false,
-        .nodes_found = false,
-        .type = "pitch-pan",
-        .env = env,
-    };
-
-    if (Streader_has_data(sr))
-    {
-        if (!Streader_read_dict(sr, read_nontime_env, &d))
-        {
-            del_Envelope(env);
-            return false;
-        }
-    }
-
-    aup->env_pitch_pan_enabled = d.enabled;
-    Envelope* old_env = aup->env_pitch_pan;
-    aup->env_pitch_pan = env;
-    del_Envelope(old_env);
-
-    if (!d.nodes_found)
-    {
-        assert(Envelope_node_count(env) == 0);
-        int index = Envelope_set_node(env, -6000, 0);
-        assert(index == 0);
-        index = Envelope_set_node(env, 6000, 0);
-        assert(index == 1);
-    }
-
-    return true;
-}
 
 
 typedef struct tdata
@@ -378,7 +280,6 @@ void Au_params_deinit(Au_params* aup)
     del_env_check(aup->force_pitch_env);
     del_env_check(aup->env_force);
     del_env_check(aup->env_force_rel);
-    del_env_check(aup->env_pitch_pan);
 
     return;
 }
