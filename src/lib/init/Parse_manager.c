@@ -1256,13 +1256,6 @@ static bool read_any_proc_vf_force(
 }
 
 
-static bool read_any_proc_vf_panning(
-        Reader_params* params, Au_table* au_table, int level)
-{
-    return read_any_proc_voice_feature(params, au_table, level, VOICE_FEATURE_PANNING);
-}
-
-
 #define MAKE_AU_EFFECT_READER(base_name)                                \
     static bool read_au_ ## base_name(Reader_params* params)            \
     {                                                                   \
