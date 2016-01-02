@@ -64,6 +64,7 @@ static void Panning_pstate_reset(Device_state* dstate)
     const Proc_panning* panning = (const Proc_panning*)dstate->device->dimpl;
 
     Panning_pstate* ppstate = (Panning_pstate*)dstate;
+    Linear_controls_init(&ppstate->panning);
     Linear_controls_set_value(&ppstate->panning, panning->panning);
 
     return;
@@ -202,6 +203,18 @@ Device_state* new_Panning_pstate(
 }
 
 
+Linear_controls* Panning_pstate_get_cv_controls_panning(
+        Device_state* dstate, const Key_indices indices)
+{
+    assert(dstate != NULL);
+    ignore(indices);
+
+    Panning_pstate* ppstate = (Panning_pstate*)dstate;
+
+    return &ppstate->panning;
+}
+
+
 typedef struct Panning_vstate
 {
     Voice_state parent;
@@ -281,6 +294,19 @@ void Panning_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     Linear_controls_set_value(&pvstate->panning, panning->panning);
 
     return;
+}
+
+
+Linear_controls* Panning_vstate_get_cv_controls_panning(
+        Voice_state* vstate, const Device_state* dstate, const Key_indices indices)
+{
+    assert(vstate != NULL);
+    assert(dstate != NULL);
+    ignore(indices);
+
+    Panning_vstate* pvstate = (Panning_vstate*)vstate;
+
+    return &pvstate->panning;
 }
 
 
