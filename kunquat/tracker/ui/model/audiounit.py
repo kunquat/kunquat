@@ -28,6 +28,7 @@ _proc_defaults = {
     'filter':   { 'signal_type': u'mixed', 'ports': ['in_00', 'in_01', 'out_00'] },
     'freeverb': { 'signal_type': u'mixed', 'ports': ['in_00', 'out_00'] },
     'gaincomp': { 'signal_type': u'mixed', 'ports': ['in_00', 'out_00'] },
+    'panning':  { 'signal_type': u'mixed', 'ports': ['in_00', 'out_00'] },
     'ringmod':  { 'signal_type': u'mixed', 'ports': ['in_00', 'in_01', 'out_00'] },
     'sample':   { 'signal_type': u'voice', 'ports': ['out_00'] },
     'volume':   { 'signal_type': u'mixed', 'ports': ['in_00', 'out_00'] },

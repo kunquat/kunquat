@@ -19,6 +19,7 @@ from procparamsenvgen import ProcParamsEnvgen
 from procparamsfilter import ProcParamsFilter
 from procparamsfreeverb import ProcParamsFreeverb
 from procparamsgaincomp import ProcParamsGainComp
+from procparamspanning import ProcParamsPanning
 from procparamsvolume import ProcParamsVolume
 
 
@@ -86,6 +87,7 @@ class Processor():
             'filter':   ProcParamsFilter,
             'freeverb': ProcParamsFreeverb,
             'gaincomp': ProcParamsGainComp,
+            'panning':  ProcParamsPanning,
             'volume':   ProcParamsVolume,
         }
         cons = types[self.get_type()]

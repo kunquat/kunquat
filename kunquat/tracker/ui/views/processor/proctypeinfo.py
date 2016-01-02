@@ -18,6 +18,7 @@ from envgenproc import EnvgenProc
 from filterproc import FilterProc
 from freeverbproc import FreeverbProc
 from gaincomp_proc import GainCompProc
+from panningproc import PanningProc
 from ringmodproc import RingmodProc
 from sampleproc import SampleProc
 from volumeproc import VolumeProc
@@ -32,6 +33,7 @@ _proc_classes = {
     'filter':   FilterProc,
     'freeverb': FreeverbProc,
     'gaincomp': GainCompProc,
+    'panning':  PanningProc,
     'ringmod':  RingmodProc,
     'volume':   VolumeProc,
 }
