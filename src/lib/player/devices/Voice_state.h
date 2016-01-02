@@ -98,13 +98,6 @@ struct Voice_state
 
     Force_controls force_controls;
     double actual_force;           ///< The current actual force (includes tremolo & envs).
-
-    double panning;                ///< The current panning.
-    double actual_panning;         ///< The current actual panning.
-    Slider panning_slider;
-
-    float pitch_pan_ref_param;     ///< Pitch value that maps to the stored pitch-pan value.
-    float pitch_pan_value;
 };
 
 

@@ -54,9 +54,6 @@ Voice_state* Voice_state_init(
     Force_controls_init(&state->force_controls, freq, tempo);
     Pitch_controls_init(&state->pitch_controls, freq, tempo);
 
-    Slider_set_audio_rate(&state->panning_slider, freq);
-    Slider_set_tempo(&state->panning_slider, tempo);
-
     return state;
 }
 
@@ -105,13 +102,6 @@ Voice_state* Voice_state_clear(Voice_state* state)
     Force_controls_reset(&state->force_controls);
     state->actual_force = 1;
 
-    state->panning = 0;
-    state->actual_panning = 0;
-    Slider_init(&state->panning_slider, SLIDE_MODE_LINEAR);
-
-    state->pitch_pan_ref_param = FLT_MAX;
-    state->pitch_pan_value = 0;
-
     return state;
 }
 
@@ -146,9 +136,6 @@ static void adjust_relative_lengths(
 
         Force_controls_set_audio_rate(&vstate->force_controls, audio_rate);
         Force_controls_set_tempo(&vstate->force_controls, tempo);
-
-        Slider_set_audio_rate(&vstate->panning_slider, audio_rate);
-        Slider_set_tempo(&vstate->panning_slider, tempo);
 
         vstate->freq = audio_rate;
         vstate->tempo = tempo;
@@ -283,9 +270,6 @@ int32_t Voice_state_render_voice(
             assert(ramp_release_stop <= process_stop);
             process_stop = ramp_release_stop;
         }
-
-        Voice_state_common_handle_panning(
-                vstate, voice_out_buf, proc, wbs, buf_start, process_stop);
     }
 
     vstate->pos = new_pos;
