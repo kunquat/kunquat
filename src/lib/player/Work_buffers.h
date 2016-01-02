@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -28,9 +28,6 @@ typedef enum
     WORK_BUFFER_PITCH_PARAMS,
     WORK_BUFFER_ACTUAL_PITCHES,
     WORK_BUFFER_ACTUAL_FORCES,
-    WORK_BUFFER_ACTUAL_LOWPASSES,
-    WORK_BUFFER_LOWPASS_RESONANCES,
-    WORK_BUFFER_ACTUAL_PANNINGS,
     WORK_BUFFER_IMPL_1,
     WORK_BUFFER_IMPL_2,
     WORK_BUFFER_IMPL_3,
