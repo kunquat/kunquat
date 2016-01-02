@@ -19,6 +19,7 @@
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <player/Audio_buffer.h>
+#include <player/devices/Proc_state.h>
 #include <player/devices/processors/Proc_utils.h>
 #include <player/devices/Voice_state.h>
 #include <player/Pitch_controls.h>
@@ -257,63 +258,70 @@ int32_t Voice_state_common_handle_force(
 
 int32_t Voice_state_common_ramp_release(
         Voice_state* vstate,
-        Audio_buffer* voice_out_buf,
-        const Processor* proc,
+        Proc_state* proc_state,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int ab_count,
-        uint32_t freq,
+        int32_t audio_rate,
         int32_t buf_start,
         int32_t buf_stop)
 {
     assert(vstate != NULL);
-    assert(voice_out_buf != NULL);
-    assert(proc != NULL);
+    assert(proc_state != NULL);
     assert(au_state != NULL);
     assert(wbs != NULL);
 
-    // TODO: if we actually get processors with multiple voice output ports,
-    //       process ramping correctly for all of them
+    const Processor* proc =
+        (const Processor*)(((const Device_state*)proc_state)->device);
 
-    const bool is_env_force_rel_used =
-        Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE) &&
-        proc->au_params->env_force_rel_enabled;
+    const float ramp_start = vstate->ramp_release;
+    int32_t process_stop = buf_stop;
 
-    const bool do_ramp_release =
-        !vstate->note_on &&
-        Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_CUT) &&
-        ((vstate->ramp_release > 0) ||
-            (!is_env_force_rel_used && (au_state->sustain < 0.5)));
+    const float ramp_shift = RAMP_RELEASE_TIME / audio_rate;
 
-    if (do_ramp_release)
+    for (int32_t port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        float* abufs[KQT_BUFFERS_MAX] =
-        {
-            Audio_buffer_get_buffer(voice_out_buf, 0),
-            Audio_buffer_get_buffer(voice_out_buf, 1),
-        };
+        const bool is_env_force_rel_used =
+            Processor_is_voice_feature_enabled(proc, port, VOICE_FEATURE_FORCE) &&
+            proc->au_params->env_force_rel_enabled;
 
-        const float ramp_shift = RAMP_RELEASE_TIME / freq;
-        const float ramp_start = vstate->ramp_release;
-        float ramp = ramp_start;
-        int32_t i = buf_start;
+        const bool do_ramp_release =
+            !vstate->note_on &&
+            Proc_state_is_voice_out_buffer_modified(proc_state, port) &&
+            Processor_is_voice_feature_enabled(proc, port, VOICE_FEATURE_CUT) &&
+            ((ramp_start > 0) ||
+                (!is_env_force_rel_used && (au_state->sustain < 0.5)));
 
-        for (int ch = 0; ch < ab_count; ++ch)
+        Audio_buffer* out_buf = Proc_state_get_voice_buffer_mut(
+                proc_state, DEVICE_PORT_TYPE_SEND, port);
+
+        if (do_ramp_release && (out_buf != NULL))
         {
-            ramp = ramp_start;
-            for (i = buf_start; (i < buf_stop) && (ramp < 1); ++i)
+            float* abufs[KQT_BUFFERS_MAX] =
             {
-                abufs[ch][i] *= 1 - ramp;
-                ramp += ramp_shift;
+                Audio_buffer_get_buffer(out_buf, 0),
+                Audio_buffer_get_buffer(out_buf, 1),
+            };
+
+            float ramp = ramp_start;
+            int32_t i = buf_start;
+
+            for (int ch = 0; ch < 2; ++ch)
+            {
+                ramp = ramp_start;
+                for (i = buf_start; (i < buf_stop) && (ramp < 1); ++i)
+                {
+                    abufs[ch][i] *= 1 - ramp;
+                    ramp += ramp_shift;
+                }
             }
+
+            process_stop = min(i, process_stop);
+
+            vstate->ramp_release = ramp;
         }
-
-        vstate->ramp_release = ramp;
-
-        return i;
     }
 
-    return buf_stop;
+    return process_stop;
 }
 
 

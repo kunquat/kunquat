@@ -85,12 +85,9 @@ int32_t Voice_state_common_handle_force(
  * implementation.
  *
  * \param vstate          The Voice state -- must not be \c NULL.
- * \param voice_out_buf   The audio output buffer -- must not be \c NULL.
- * \param proc            The Processor -- must not be \c NULL.
+ * \param proc_state      The Processor state -- must not be \c NULL.
  * \param au_state        The Audio unit state -- must not be \c NULL.
  * \param wbs             The Work buffers -- must not be \c NULL.
- * \param ab_count        The number of audio buffers used -- must be \c 1 or
- *                        \c 2. If \c 1, only the left channel will be updated.
  * \param audio_rate      The audio rate -- must be positive.
  * \param buf_start       The start index of the buffer area to be processed.
  * \param buf_stop        The stop index of the buffer area to be processed.
@@ -102,12 +99,10 @@ int32_t Voice_state_common_handle_force(
  */
 int32_t Voice_state_common_ramp_release(
         Voice_state* vstate,
-        Audio_buffer* voice_out_buf,
-        const Processor* proc,
+        Proc_state* proc_state,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int ab_count,
-        uint32_t audio_rate,
+        int32_t audio_rate,
         int32_t buf_start,
         int32_t buf_stop);
 

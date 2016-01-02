@@ -250,16 +250,12 @@ int32_t Voice_state_render_voice(
     vstate->pos_rem = old_pos_rem;
 
     // Apply common parameters to generated signal
-    // TODO: does not work with multiple voice output ports
-    if (Proc_state_is_voice_out_buffer_modified(proc_state, 0))
     {
         const int32_t ramp_release_stop = Voice_state_common_ramp_release(
                 vstate,
-                voice_out_buf,
-                proc,
+                proc_state,
                 au_state,
                 wbs,
-                2,
                 audio_rate,
                 buf_start,
                 process_stop);
