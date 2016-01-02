@@ -17,7 +17,7 @@
 
 
 #include <decl.h>
-#include <player/devices/Device_state.h>
+#include <player/devices/Voice_state.h>
 #include <string/key_pattern.h>
 
 #include <stdint.h>
@@ -28,6 +28,11 @@ Device_state* new_Panning_pstate(
 
 bool Panning_pstate_set_panning(
         Device_state* dstate, const Key_indices indices, double value);
+
+
+Voice_state_get_size_func Panning_vstate_get_size;
+
+void Panning_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
 
 
 #endif // K_PANNING_STATE_H

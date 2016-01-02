@@ -137,6 +137,7 @@ static void Panning_pstate_render_mixed(
 
     Panning_pstate* ppstate = (Panning_pstate*)dstate;
 
+    // Update controls
     Linear_controls_set_tempo(&ppstate->panning, tempo);
 
     const Work_buffer* panning_wb = Work_buffers_get_buffer(wbs, CONTROL_WB_PANNING);
@@ -198,6 +199,88 @@ Device_state* new_Panning_pstate(
     Panning_pstate_set_audio_rate(dstate, audio_rate);
 
     return dstate;
+}
+
+
+typedef struct Panning_vstate
+{
+    Voice_state parent;
+    Linear_controls panning;
+} Panning_vstate;
+
+
+size_t Panning_vstate_get_size(void)
+{
+    return sizeof(Panning_vstate);
+}
+
+
+int32_t Panning_vstate_render_voice(
+        Voice_state* vstate,
+        Proc_state* proc_state,
+        const Au_state* au_state,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        double tempo)
+{
+    assert(vstate != NULL);
+    assert(proc_state != NULL);
+    assert(au_state != NULL);
+    assert(wbs != NULL);
+    assert(buf_start >= 0);
+    assert(buf_stop >= 0);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
+
+    Panning_vstate* pvstate = (Panning_vstate*)vstate;
+
+    // Update controls
+    Linear_controls_set_tempo(&pvstate->panning, tempo);
+
+    const Work_buffer* panning_wb = Work_buffers_get_buffer(wbs, CONTROL_WB_PANNING);
+    Linear_controls_fill_work_buffer(&pvstate->panning, panning_wb, buf_start, buf_stop);
+
+    // Get input
+    Audio_buffer* in_buffer =
+        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
+    if (in_buffer == NULL)
+    {
+        vstate->active = false;
+        return buf_start;
+    }
+
+    // Get output
+    Audio_buffer* out_buffer =
+        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0);
+    assert(out_buffer != NULL);
+
+    const Device_state* dstate = (const Device_state*)proc_state;
+    apply_panning(wbs, in_buffer, out_buffer, buf_start, buf_stop, dstate->audio_rate);
+
+    // Mark state as started, TODO: fix this mess
+    vstate->pos = 1;
+
+    return buf_stop;
+}
+
+
+void Panning_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
+{
+    assert(vstate != NULL);
+    assert(proc_state != NULL);
+
+    vstate->render_voice = Panning_vstate_render_voice;
+
+    Panning_vstate* pvstate = (Panning_vstate*)vstate;
+
+    const Device_state* dstate = (const Device_state*)proc_state;
+    const Proc_panning* panning = (const Proc_panning*)dstate->device->dimpl;
+    Linear_controls_init(&pvstate->panning);
+    Linear_controls_set_audio_rate(&pvstate->panning, dstate->audio_rate);
+    Linear_controls_set_value(&pvstate->panning, panning->panning);
+
+    return;
 }
 
 
