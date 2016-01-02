@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -20,7 +20,7 @@ class ProcParamsEnvgen(ProcParams):
         ProcParams.__init__(self, proc_id, controller)
 
     def get_scale(self):
-        return self._get_value('p_f_scale.json', 1.0)
+        return self._get_value('p_f_scale.json', 0.0)
 
     def set_scale(self, value):
         self._set_value('p_f_scale.json', value)
@@ -53,6 +53,12 @@ class ProcParamsEnvgen(ProcParams):
 
     def set_time_env_loop_enabled(self, enabled):
         self._set_value('p_b_env_loop_enabled.json', enabled)
+
+    def get_time_env_is_release(self):
+        return self._get_value('p_b_env_is_release.json', False)
+
+    def set_time_env_is_release(self, value):
+        self._set_value('p_b_env_is_release.json', value)
 
     def get_time_env_scale_amount(self):
         return self._get_value('p_f_env_scale_amount.json', 0)

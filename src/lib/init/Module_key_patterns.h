@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2016
  *
  * This file is part of Kunquat.
  *
@@ -78,22 +78,7 @@ MODULE_AU_KEYP(au_env_force_release,    "au_XX/p_envelope_force_release.json",
         ", \"scale_center\": 0"
         ", \"envelope\": { \"nodes\": [ [0, 1], [1, 0] ] }"
         "}")
-MODULE_AU_KEYP(au_env_force_filter,     "au_XX/p_envelope_force_filter.json",
-        "{ \"enabled\": false, \"envelope\": { \"nodes\": [ [0, 1], [1, 1] ] } }")
 MODULE_AU_KEYP(au_env_pitch_pan,        "au_XX/p_envelope_pitch_pan.json",      "")
-MODULE_AU_KEYP(au_env_filter,           "au_XX/p_envelope_filter.json",
-        "{ \"enabled\": false"
-        ", \"scale_amount\": 0"
-        ", \"scale_center\": 0"
-        ", \"loop\": false"
-        ", \"envelope\": { \"nodes\": [ [0, 100], [1, 100] ], \"marks\": [0, 1] }"
-        "}")
-MODULE_AU_KEYP(au_env_filter_release,   "au_XX/p_envelope_filter_release.json",
-        "{ \"enabled\": false"
-        ", \"scale_amount\": 0"
-        ", \"scale_center\": 0"
-        ", \"envelope\": { \"nodes\": [ [0, 100], [1, 100] ] }"
-        "}")
 
 MODULE_AU_KEYP(au_control_vars,         "au_XX/p_control_vars.json",            "[]")
 
@@ -103,7 +88,6 @@ MODULE_AU_KEYP(proc_in_port_manifest,   "au_XX/proc_XX/in_XX/p_manifest.json",  
 MODULE_AU_KEYP(proc_out_port_manifest,  "au_XX/proc_XX/out_XX/p_manifest.json", "")
 MODULE_AU_KEYP(proc_vf_pitch,           "au_XX/proc_XX/out_XX/p_vf_pitch.json", "true")
 MODULE_AU_KEYP(proc_vf_force,           "au_XX/proc_XX/out_XX/p_vf_force.json", "true")
-MODULE_AU_KEYP(proc_vf_filter,          "au_XX/proc_XX/out_XX/p_vf_filter.json", "true")
 MODULE_AU_KEYP(proc_vf_panning,         "au_XX/proc_XX/out_XX/p_vf_panning.json", "true")
 MODULE_AU_KEYP(proc_impl_key,           "au_XX/proc_XX/i/",                     "")
 MODULE_AU_KEYP(proc_conf_key,           "au_XX/proc_XX/c/",                     "")

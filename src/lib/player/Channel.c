@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -102,7 +102,6 @@ void Channel_set_audio_rate(Channel* ch, int32_t audio_rate)
     Force_controls_set_audio_rate(&ch->force_controls, audio_rate);
     Pitch_controls_set_audio_rate(&ch->pitch_controls, audio_rate);
     Slider_set_audio_rate(&ch->panning_slider, audio_rate);
-    Filter_controls_set_audio_rate(&ch->filter_controls, audio_rate);
     Channel_cv_state_set_audio_rate(ch->cvstate, audio_rate);
 
     return;
@@ -117,7 +116,6 @@ void Channel_set_tempo(Channel* ch, double tempo)
     Force_controls_set_tempo(&ch->force_controls, tempo);
     Pitch_controls_set_tempo(&ch->pitch_controls, tempo);
     Slider_set_tempo(&ch->panning_slider, tempo);
-    Filter_controls_set_tempo(&ch->filter_controls, tempo);
     Channel_cv_state_set_tempo(ch->cvstate, tempo);
 
     return;
@@ -179,15 +177,6 @@ void Channel_reset(Channel* ch)
     ch->carry_pitch = false;
     ch->orig_pitch = NAN;
     Pitch_controls_reset(&ch->pitch_controls);
-
-    Tstamp_set(&ch->filter_slide_length, 0, 0);
-    ch->autowah_speed = 0;
-    Tstamp_init(&ch->autowah_speed_slide);
-    ch->autowah_depth = 0;
-    Tstamp_init(&ch->autowah_depth_slide);
-    Tstamp_set(&ch->lowpass_resonance_slide_length, 0, 0);
-    ch->carry_filter = false;
-    Filter_controls_reset(&ch->filter_controls);
 
     ch->panning = 0;
     Slider_init(&ch->panning_slider, SLIDE_MODE_LINEAR);

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -49,19 +49,6 @@ EVENT_CHANNEL_DEF(".arpi",  set_arpeggio_index,         INT,        v_arp_index)
 EVENT_CHANNEL_DEF(".arps",  set_arpeggio_speed,         FLOAT,      v_arp_speed)
 EVENT_CHANNEL_DEF("arp+",   arpeggio_on,                NONE,       NULL)
 EVENT_CHANNEL_DEF("arp-",   arpeggio_off,               NONE,       NULL)
-
-EVENT_CHANNEL_DEF(".L",     set_lowpass,                FLOAT,      v_lowpass)
-EVENT_CHANNEL_DEF("/L",     slide_lowpass,              FLOAT,      v_lowpass)
-EVENT_CHANNEL_DEF("/=L",    slide_lowpass_length,       TSTAMP,     v_nonneg_ts)
-EVENT_CHANNEL_DEF("ws",     autowah_speed,              FLOAT,      v_nonneg_float)
-EVENT_CHANNEL_DEF("wd",     autowah_depth,              FLOAT,      v_nonneg_float)
-EVENT_CHANNEL_DEF("w/=s",   autowah_speed_slide,        TSTAMP,     v_nonneg_ts)
-EVENT_CHANNEL_DEF("w/=d",   autowah_depth_slide,        TSTAMP,     v_nonneg_ts)
-EVENT_CHANNEL_DEF(".r",     set_resonance,              FLOAT,      v_resonance)
-EVENT_CHANNEL_DEF("/r",     slide_resonance,            FLOAT,      v_resonance)
-EVENT_CHANNEL_DEF("/=r",    slide_resonance_length,     TSTAMP,     v_nonneg_ts)
-EVENT_CHANNEL_DEF("->L+",   carry_filter_on,            NONE,       NULL)
-EVENT_CHANNEL_DEF("->L-",   carry_filter_off,           NONE,       NULL)
 
 EVENT_CHANNEL_DEF(".P",     set_panning,                FLOAT,      v_panning)
 EVENT_CHANNEL_DEF("/P",     slide_panning,              FLOAT,      v_panning)

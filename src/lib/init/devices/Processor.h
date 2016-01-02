@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -35,7 +35,6 @@ typedef enum
     VOICE_FEATURE_PITCH,
     VOICE_FEATURE_FORCE,
     VOICE_FEATURE_CUT,
-    VOICE_FEATURE_FILTER,
     VOICE_FEATURE_PANNING,
     VOICE_FEATURE_COUNT_
 } Voice_feature;

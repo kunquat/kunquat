@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -14,6 +14,7 @@
 
 #include <player/devices/processors/Volume_state.h>
 
+#include <debug/assert.h>
 #include <init/devices/Device.h>
 #include <init/devices/processors/Proc_volume.h>
 #include <mathnum/conversions.h>
@@ -93,7 +94,7 @@ bool Volume_pstate_set_volume(
 }
 
 
-void Volume_pstate_render_mixed(
+static void Volume_pstate_render_mixed(
         Device_state* dstate,
         const Work_buffers* wbs,
         int32_t buf_start,
@@ -125,8 +126,8 @@ void Volume_pstate_render_mixed(
     for (int32_t frame = buf_start; frame < buf_stop; ++frame)
     {
         const float scale = dB_to_scale(control_values[frame]);
-        out_data[0][frame] += in_data[0][frame] * scale;
-        out_data[1][frame] += in_data[1][frame] * scale;
+        out_data[0][frame] = in_data[0][frame] * scale;
+        out_data[1][frame] = in_data[1][frame] * scale;
     }
 
     return;

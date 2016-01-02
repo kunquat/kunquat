@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -645,19 +645,6 @@ void Player_play(Player* player, int32_t nframes)
 
                 if (LFO_active(&pc->vibrato))
                     LFO_skip(&pc->vibrato, to_be_rendered);
-            }
-
-            {
-                Filter_controls* fc = &ch->filter_controls;
-
-                if (Slider_in_progress(&fc->lowpass_slider))
-                    fc->lowpass = Slider_skip(&fc->lowpass_slider, to_be_rendered);
-
-                if (LFO_active(&fc->autowah))
-                    LFO_skip(&fc->autowah, to_be_rendered);
-
-                if (Slider_in_progress(&fc->resonance_slider))
-                    fc->resonance = Slider_skip(&fc->resonance_slider, to_be_rendered);
             }
 
             Channel_cv_state_update_float_controls(ch->cvstate, to_be_rendered);

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -44,12 +44,14 @@ class EnvgenProc(QWidget):
         # TODO: range edit
 
         self._scale = ScaleSlider()
+        self._range = RangeEditor()
         self._time_env = EgenTimeEnv()
         self._force_env = ForceEnv()
 
         v = QVBoxLayout()
         v.setSpacing(10)
         v.addWidget(self._scale)
+        v.addWidget(self._range)
         v.addWidget(self._time_env)
         v.addWidget(self._force_env)
         self.setLayout(v)
@@ -59,24 +61,28 @@ class EnvgenProc(QWidget):
     def set_au_id(self, au_id):
         self._au_id = au_id
         self._scale.set_au_id(au_id)
+        self._range.set_au_id(au_id)
         self._time_env.set_au_id(au_id)
         self._force_env.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._proc_id = proc_id
         self._scale.set_proc_id(proc_id)
+        self._range.set_proc_id(proc_id)
         self._time_env.set_proc_id(proc_id)
         self._force_env.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._scale.set_ui_model(ui_model)
+        self._range.set_ui_model(ui_model)
         self._time_env.set_ui_model(ui_model)
         self._force_env.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._force_env.unregister_updaters()
         self._time_env.unregister_updaters()
+        self._range.unregister_updaters()
         self._scale.unregister_updaters()
 
 
@@ -99,6 +105,89 @@ class ScaleSlider(ProcNumSlider):
         return ''.join(('signal_egen_scale_', self._au_id, self._proc_id))
 
 
+class RangeEditor(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._au_id = None
+        self._proc_id = None
+        self._ui_model = None
+        self._updater = None
+
+        self._min_editor = QDoubleSpinBox()
+        self._max_editor = QDoubleSpinBox()
+
+        for editor in (self._min_editor, self._max_editor):
+            editor.setMinimum(-99999)
+            editor.setMaximum(99999)
+
+        h = QHBoxLayout()
+        h.setContentsMargins(10, 0, 10, 0)
+        h.addWidget(QLabel('Minimum value:'), 0)
+        h.addWidget(self._min_editor, 1)
+        h.addWidget(QLabel('Maximum value:'), 0)
+        h.addWidget(self._max_editor, 1)
+        self.setLayout(h)
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(
+                self._min_editor, SIGNAL('valueChanged(double)'), self._set_range_min)
+        QObject.connect(
+                self._max_editor, SIGNAL('valueChanged(double)'), self._set_range_max)
+
+        self._update_range()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _get_update_signal_type(self):
+        return '_'.join(('signal_env_range', self._proc_id))
+
+    def _perform_updates(self, signals):
+        if self._get_update_signal_type() in signals:
+            self._update_range()
+
+    def _update_range(self):
+        egen_params = get_egen_params(self)
+        y_range = egen_params.get_y_range()
+
+        if y_range[0] != self._min_editor.value():
+            old_block = self._min_editor.blockSignals(True)
+            self._min_editor.setValue(y_range[0])
+            self._min_editor.blockSignals(old_block)
+
+        if y_range[1] != self._max_editor.value():
+            old_block = self._max_editor.blockSignals(True)
+            self._max_editor.setValue(y_range[1])
+            self._max_editor.blockSignals(old_block)
+
+    def _set_range_min(self, value):
+        egen_params = get_egen_params(self)
+        y_range = egen_params.get_y_range()
+        y_range[0] = value
+        y_range[1] = max(y_range)
+        egen_params.set_y_range(y_range)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _set_range_max(self, value):
+        egen_params = get_egen_params(self)
+        y_range = egen_params.get_y_range()
+        y_range[1] = value
+        y_range[0] = min(y_range)
+        egen_params.set_y_range(y_range)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+
 class EgenTimeEnv(TimeEnvelope):
 
     def __init__(self):
@@ -114,6 +203,9 @@ class EgenTimeEnv(TimeEnvelope):
         return 'Envelope'
 
     def _allow_loop(self):
+        return True
+
+    def _allow_release_toggle(self):
         return True
 
     def _make_envelope_widget(self):
@@ -139,6 +231,12 @@ class EgenTimeEnv(TimeEnvelope):
 
     def _set_loop_enabled(self, enabled):
         get_egen_params(self).set_time_env_loop_enabled(enabled)
+
+    def _get_release_enabled(self):
+        return get_egen_params(self).get_time_env_is_release()
+
+    def _set_release_enabled(self, enabled):
+        get_egen_params(self).set_time_env_is_release(enabled)
 
     def _get_scale_amount(self):
         return get_egen_params(self).get_time_env_scale_amount()

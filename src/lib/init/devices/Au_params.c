@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -43,13 +43,10 @@ Au_params* Au_params_init(Au_params* aup, uint32_t device_id)
     aup->device_id = device_id;
 
     aup->force_volume_env = NULL;
-    aup->env_force_filter = NULL;
     aup->force_pitch_env = NULL;
     aup->env_force = NULL;
     aup->env_force_rel = NULL;
     aup->env_pitch_pan = NULL;
-    aup->env_filter = NULL;
-    aup->env_filter_rel = NULL;
 
     aup->volume = 1;
     aup->global_force = 1;
@@ -62,13 +59,6 @@ Au_params* Au_params_init(Au_params* aup, uint32_t device_id)
     Envelope_set_node(aup->force_volume_env, 1, 1);
     Envelope_set_first_lock(aup->force_volume_env, true, true);
     Envelope_set_last_lock(aup->force_volume_env, true, false);
-
-    new_env_or_fail(aup->env_force_filter, 8,  0, 1, 0,  0, 1, 0);
-    aup->env_force_filter_enabled = false;
-    Envelope_set_node(aup->env_force_filter, 0, 1);
-    Envelope_set_node(aup->env_force_filter, 1, 1);
-    Envelope_set_first_lock(aup->env_force_filter, true, false);
-    Envelope_set_last_lock(aup->env_force_filter, true, false);
 
     new_env_or_fail(aup->force_pitch_env, 8,  0, 1, 0,  -1, 1, 0);
     aup->force_pitch_env_enabled = false;
@@ -103,27 +93,6 @@ Au_params* Au_params_init(Au_params* aup, uint32_t device_id)
     Envelope_set_node(aup->env_pitch_pan, 1, 0);
     Envelope_set_first_lock(aup->env_pitch_pan, true, false);
     Envelope_set_last_lock(aup->env_pitch_pan, true, false);
-
-    new_env_or_fail(aup->env_filter, 32,  0, INFINITY, 0,  0, 100, 0);
-    aup->global_lowpass = 100;
-    aup->default_lowpass = 100;
-    aup->default_resonance = 0;
-    aup->pitch_lowpass_scale = 0;
-    aup->env_filter_enabled = false;
-    aup->env_filter_loop_enabled = false;
-    aup->env_filter_scale_amount = 1;
-    aup->env_filter_scale_center = 440;
-    Envelope_set_node(aup->env_filter, 0, 100);
-    Envelope_set_node(aup->env_filter, 1, 100);
-    Envelope_set_first_lock(aup->env_filter, true, false);
-
-    new_env_or_fail(aup->env_filter_rel, 32,  0, INFINITY, 0,  0, 100, 0);
-    aup->env_filter_rel_enabled = false;
-    aup->env_filter_rel_scale_amount = 1;
-    aup->env_filter_rel_scale_center = 440;
-    Envelope_set_node(aup->env_filter_rel, 0, 100);
-    Envelope_set_node(aup->env_filter_rel, 1, 100);
-    Envelope_set_first_lock(aup->env_filter_rel, true, false);
 
     return aup;
 }
@@ -163,56 +132,6 @@ static bool read_nontime_env(Streader* sr, const char* key, void* userdata)
         Streader_set_error(
                  sr, "Unrecognised key in %s envelope: %s", d->type, key);
         return false;
-    }
-
-    return true;
-}
-
-bool Au_params_parse_env_force_filter(Au_params* aup, Streader* sr)
-{
-    assert(aup != NULL);
-    assert(sr != NULL);
-
-    if (Streader_is_error_set(sr))
-        return false;
-
-    Envelope* env = new_Envelope(8, 0, 1, 0, 0, 1, 0);
-    if (env == NULL)
-    {
-        Streader_set_memory_error(
-                sr, "Could not allocate memory for force-filter envelope");
-        return false;
-    }
-
-    ntdata d =
-    {
-        .enabled = false,
-        .nodes_found = false,
-        .type = "force-filter",
-        .env = env,
-    };
-
-    if (Streader_has_data(sr))
-    {
-        if (!Streader_read_dict(sr, read_nontime_env, &d))
-        {
-            del_Envelope(env);
-            return false;
-        }
-    }
-
-    aup->env_force_filter_enabled = d.enabled;
-    Envelope* old_env = aup->env_force_filter;
-    aup->env_force_filter = env;
-    del_Envelope(old_env);
-
-    if (!d.nodes_found)
-    {
-        assert(Envelope_node_count(env) == 0);
-        int index = Envelope_set_node(env, 0, 1);
-        assert(index == 0);
-        index = Envelope_set_node(env, 1, 1);
-        assert(index == 1);
     }
 
     return true;
@@ -443,77 +362,6 @@ bool Au_params_parse_env_force_rel(Au_params* aup, Streader* sr)
 }
 
 
-bool Au_params_parse_env_filter(Au_params* aup, Streader* sr)
-{
-    assert(aup != NULL);
-    assert(sr != NULL);
-
-    if (Streader_is_error_set(sr))
-        return false;
-
-    tdata td =
-    {
-        .env = NULL,
-        .enabled = false,
-        .scale_amount = 0,
-        .scale_center = 0,
-        .carry = false,
-        .loop = false,
-        .release = false,
-    };
-
-    parse_env_time(sr, &td, 0, INFINITY, 0, 0, 100, 0);
-    if (td.env == NULL)
-        return false;
-
-    assert(!Streader_is_error_set(sr));
-    aup->env_filter_enabled = td.enabled;
-    aup->env_filter_loop_enabled = td.loop;
-    aup->env_filter_scale_amount = td.scale_amount;
-    aup->env_filter_scale_center = exp2(td.scale_center / 1200) * 440;
-    Envelope* old_env = aup->env_filter;
-    aup->env_filter = td.env;
-    del_Envelope(old_env);
-
-    return true;
-}
-
-
-bool Au_params_parse_env_filter_rel(Au_params* aup, Streader* sr)
-{
-    assert(aup != NULL);
-    assert(sr != NULL);
-
-    if (Streader_is_error_set(sr))
-        return false;
-
-    tdata td =
-    {
-        .env = NULL,
-        .enabled = false,
-        .scale_amount = 0,
-        .scale_center = 0,
-        .carry = false,
-        .loop = false,
-        .release = true,
-    };
-
-    parse_env_time(sr, &td, 0, INFINITY, 0, 0, 100, 0);
-    if (td.env == NULL)
-        return false;
-
-    assert(!Streader_is_error_set(sr));
-    aup->env_filter_rel_enabled = td.enabled;
-    aup->env_filter_rel_scale_amount = td.scale_amount;
-    aup->env_filter_rel_scale_center = exp2(td.scale_center / 1200) * 440;
-    Envelope* old_env = aup->env_filter_rel;
-    aup->env_filter_rel = td.env;
-    del_Envelope(old_env);
-
-    return true;
-}
-
-
 #define del_env_check(env)   \
     if (true)                \
     {                        \
@@ -527,13 +375,10 @@ void Au_params_deinit(Au_params* aup)
         return;
 
     del_env_check(aup->force_volume_env);
-    del_env_check(aup->env_force_filter);
     del_env_check(aup->force_pitch_env);
     del_env_check(aup->env_force);
     del_env_check(aup->env_force_rel);
     del_env_check(aup->env_pitch_pan);
-    del_env_check(aup->env_filter);
-    del_env_check(aup->env_filter_rel);
 
     return;
 }

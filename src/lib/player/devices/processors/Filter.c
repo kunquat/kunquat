@@ -2,7 +2,7 @@
 
 /*
  * Authors: Ossi Saresoja, Finland 2009-2012
- *          Tomi Jylhä-Ollila, Finland 2010-2015
+ *          Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -13,7 +13,7 @@
  */
 
 
-#include <player/devices/Filter.h>
+#include <player/devices/processors/Filter.h>
 
 #include <debug/assert.h>
 #include <mathnum/common.h>

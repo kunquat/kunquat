@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -20,6 +20,7 @@
 #include <init/devices/processors/Proc_debug.h>
 #include <init/devices/processors/Proc_delay.h>
 #include <init/devices/processors/Proc_envgen.h>
+#include <init/devices/processors/Proc_filter.h>
 #include <init/devices/processors/Proc_freeverb.h>
 #include <init/devices/processors/Proc_gaincomp.h>
 #include <init/devices/processors/Proc_noise.h>
@@ -46,6 +47,7 @@ static const Proc_type proc_types[] =
     { "chorus", new_Proc_chorus },
     { "delay", new_Proc_delay },
     { "envgen", new_Proc_envgen },
+    { "filter", new_Proc_filter },
     { "freeverb", new_Proc_freeverb },
     { "gaincomp", new_Proc_gaincomp },
     { "noise", new_Proc_noise },
