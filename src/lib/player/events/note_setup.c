@@ -97,9 +97,6 @@ void set_au_properties(Voice* voice, Voice_state* vs, Channel* ch, double* force
             vs->force_controls.force * voice->proc->au_params->global_force;
     }
 
-    vs->panning = ch->panning;
-    Slider_copy(&vs->panning_slider, &ch->panning_slider);
-
     return;
 }
 

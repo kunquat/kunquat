@@ -77,9 +77,6 @@ struct Channel
     double orig_pitch;
     Pitch_controls pitch_controls;
 
-    double panning;                ///< The current panning.
-    Slider panning_slider;
-
     double arpeggio_ref;
     double arpeggio_speed;
     int arpeggio_edit_pos;

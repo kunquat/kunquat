@@ -19,6 +19,7 @@ from procparamsenvgen import ProcParamsEnvgen
 from procparamsfilter import ProcParamsFilter
 from procparamsfreeverb import ProcParamsFreeverb
 from procparamsgaincomp import ProcParamsGainComp
+from procparamspanning import ProcParamsPanning
 from procparamsvolume import ProcParamsVolume
 
 
@@ -86,6 +87,7 @@ class Processor():
             'filter':   ProcParamsFilter,
             'freeverb': ProcParamsFreeverb,
             'gaincomp': ProcParamsGainComp,
+            'panning':  ProcParamsPanning,
             'volume':   ProcParamsVolume,
         }
         cons = types[self.get_type()]
@@ -116,22 +118,6 @@ class Processor():
 
     def set_vf_force(self, port, enabled):
         key = self._get_key(self._get_vf_key(port, 'force'))
-        self._store[key] = enabled
-
-    def get_vf_filter(self, port):
-        key = self._get_key(self._get_vf_key(port, 'filter'))
-        return self._store.get(key, get_default_value(key))
-
-    def set_vf_filter(self, port, enabled):
-        key = self._get_key(self._get_vf_key(port, 'filter'))
-        self._store[key] = enabled
-
-    def get_vf_panning(self, port):
-        key = self._get_key(self._get_vf_key(port, 'panning'))
-        return self._store.get(key, get_default_value(key))
-
-    def set_vf_panning(self, port, enabled):
-        key = self._get_key(self._get_vf_key(port, 'panning'))
         self._store[key] = enabled
 
 

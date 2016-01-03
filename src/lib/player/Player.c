@@ -650,14 +650,6 @@ void Player_play(Player* player, int32_t nframes)
             Channel_cv_state_update_float_controls(ch->cvstate, to_be_rendered);
         }
 
-        // Update panning slides, TODO: revisit
-        for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
-        {
-            Channel* ch = player->channels[i];
-            if (Slider_in_progress(&ch->panning_slider))
-                Slider_skip(&ch->panning_slider, to_be_rendered);
-        }
-
         // Process signals in the connection graph
         {
             Connections_process_mixed_signals(

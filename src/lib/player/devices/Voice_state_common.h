@@ -112,28 +112,6 @@ int32_t Voice_state_common_ramp_release(
         int32_t buf_stop);
 
 
-/**
- * Process panning.
- *
- * This function should be called after the process function of the processor
- * implementation.
- *
- * \param vstate          The Voice state -- must not be \c NULL.
- * \param voice_out_buf   The audio output buffer -- must not be \c NULL.
- * \param proc            The Processor -- must not be \c NULL.
- * \param wbs             The Work buffers -- must not be \c NULL.
- * \param buf_start       The start index of the buffer area to be processed.
- * \param buf_stop        The stop index of the buffer area to be processed.
- */
-void Voice_state_common_handle_panning(
-        Voice_state* vstate,
-        Audio_buffer* voice_out_buf,
-        const Processor* proc,
-        const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop);
-
-
 #endif // K_VOICE_STATE_COMMON_H
 
 

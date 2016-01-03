@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -208,17 +208,6 @@ bool v_key(const char* param)
 }
 
 
-bool v_lowpass(const char* param)
-{
-    assert(param != NULL);
-
-    double res = NAN;
-    Streader* sr = init_c_streader(param);
-
-    return Streader_read_float(sr, &res) && (res >= -100) && (res <= 200);
-}
-
-
 bool v_nonneg_float(const char* param)
 {
     assert(param != NULL);
@@ -253,17 +242,6 @@ bool v_note_entry(const char* param)
 }
 
 
-bool v_panning(const char* param)
-{
-    assert(param != NULL);
-
-    double pan = NAN;
-    Streader* sr = init_c_streader(param);
-
-    return Streader_read_float(sr, &pan) && (pan >= -1) && (pan <= 1);
-}
-
-
 bool v_pattern(const char* param)
 {
     assert(param != NULL);
@@ -287,17 +265,6 @@ bool v_pitch(const char* param)
 {
     assert(param != NULL);
     return v_finite_float(param);
-}
-
-
-bool v_resonance(const char* param)
-{
-    assert(param != NULL);
-
-    double res = NAN;
-    Streader* sr = init_c_streader(param);
-
-    return Streader_read_float(sr, &res) && (res >= 0) && (res <= 100);
 }
 
 

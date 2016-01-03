@@ -56,12 +56,6 @@ typedef struct Au_params
     Envelope* env_force_rel;
     double env_force_rel_scale_amount;
     double env_force_rel_center;
-
-    // Panning settings
-    bool panning_enabled;
-    double panning;
-    bool env_pitch_pan_enabled;
-    Envelope* env_pitch_pan;
 } Au_params;
 
 
@@ -89,9 +83,6 @@ bool Au_params_parse_env_force_rel(Au_params* aup, Streader* sr);
 
 
 bool Au_params_parse_env_force(Au_params* aup, Streader* sr);
-
-
-bool Au_params_parse_env_pitch_pan(Au_params* aup, Streader* sr);
 
 
 /**

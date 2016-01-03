@@ -101,7 +101,6 @@ void Channel_set_audio_rate(Channel* ch, int32_t audio_rate)
 
     Force_controls_set_audio_rate(&ch->force_controls, audio_rate);
     Pitch_controls_set_audio_rate(&ch->pitch_controls, audio_rate);
-    Slider_set_audio_rate(&ch->panning_slider, audio_rate);
     Channel_cv_state_set_audio_rate(ch->cvstate, audio_rate);
 
     return;
@@ -115,7 +114,6 @@ void Channel_set_tempo(Channel* ch, double tempo)
 
     Force_controls_set_tempo(&ch->force_controls, tempo);
     Pitch_controls_set_tempo(&ch->pitch_controls, tempo);
-    Slider_set_tempo(&ch->panning_slider, tempo);
     Channel_cv_state_set_tempo(ch->cvstate, tempo);
 
     return;
@@ -177,9 +175,6 @@ void Channel_reset(Channel* ch)
     ch->carry_pitch = false;
     ch->orig_pitch = NAN;
     Pitch_controls_reset(&ch->pitch_controls);
-
-    ch->panning = 0;
-    Slider_init(&ch->panning_slider, SLIDE_MODE_LINEAR);
 
     ch->arpeggio_ref = NAN;
     ch->arpeggio_speed = 24;
