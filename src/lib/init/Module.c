@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -91,11 +91,8 @@ Module* new_Module(void)
     }
 
     Streader* conn_sr = Streader_init(STREADER_AUTO, NULL, 0);
-    module->connections = new_Connections_from_string(
-            conn_sr,
-            false,
-            module->au_table,
-            &module->parent);
+    module->connections =
+        new_Connections_from_string(conn_sr, false, module->au_table, &module->parent);
     if (module->connections == NULL)
     {
         del_Module(module);
