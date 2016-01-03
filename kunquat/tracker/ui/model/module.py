@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2015
+#          Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -129,7 +129,9 @@ class Module():
         au.set_ui_model(self._ui_model)
         au.set_existence('instrument')
         au.set_port_existence('in_00', True)
+        au.set_port_existence('in_01', True)
         au.set_port_existence('out_00', True)
+        au.set_port_existence('out_01', True)
 
     def add_effect(self, au_id):
         au = AudioUnit(au_id)
@@ -137,7 +139,9 @@ class Module():
         au.set_ui_model(self._ui_model)
         au.set_existence('effect')
         au.set_port_existence('in_00', True)
+        au.set_port_existence('in_01', True)
         au.set_port_existence('out_00', True)
+        au.set_port_existence('out_01', True)
 
     def get_out_ports(self):
         out_ports = []
