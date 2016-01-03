@@ -2,9 +2,13 @@
 
 [
     ["proc_01/C/out_00", "proc_03/C/in_00"],
-    ["proc_02/C/out_00", "proc_03/C/in_01"],
+    ["proc_01/C/out_01", "proc_03/C/in_01"],
+    ["proc_02/C/out_00", "proc_03/C/in_02"],
+    ["proc_02/C/out_00", "proc_03/C/in_03"],
     ["proc_03/C/out_00", "proc_00/C/in_00"],
-    ["proc_00/C/out_00", "out_00"]
+    ["proc_03/C/out_01", "proc_00/C/in_01"],
+    ["proc_00/C/out_00", "out_00"],
+    ["proc_00/C/out_01", "out_01"]
 ]
 
 
