@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -23,6 +23,7 @@
 #include <player/Device_states.h>
 #include <player/devices/Voice_state.h>
 #include <player/Voice_group.h>
+#include <player/Work_buffer.h>
 #include <string/common.h>
 
 #include <math.h>
@@ -559,14 +560,14 @@ void Device_node_process_voice_group(
                 // Mix voice audio buffers
                 Proc_state* send_state = (Proc_state*)Device_states_get_state(
                         dstates, Device_get_id(send_device));
-                const Audio_buffer* send_buf = Proc_state_get_voice_buffer(
+                const Work_buffer* send_buf = Proc_state_get_voice_buffer(
                         send_state, DEVICE_PORT_TYPE_SEND, edge->port);
 
-                Audio_buffer* recv_buf = Proc_state_get_voice_buffer_mut(
+                Work_buffer* recv_buf = Proc_state_get_voice_buffer_mut(
                         recv_state, DEVICE_PORT_TYPE_RECEIVE, port);
 
                 if ((send_buf != NULL) && (recv_buf != NULL))
-                    Audio_buffer_mix(recv_buf, send_buf, buf_start, buf_stop);
+                    Work_buffer_mix(recv_buf, send_buf, buf_start, buf_stop);
             }
 
             edge = edge->next;
@@ -648,9 +649,9 @@ void Device_node_process_mixed_signals(
             Device_node_process_mixed_signals(
                     edge->node, dstates, wbs, buf_start, buf_stop, audio_rate, tempo);
 
-            Audio_buffer* send = Device_state_get_audio_buffer(
+            Work_buffer* send = Device_state_get_audio_buffer(
                     send_state, DEVICE_PORT_TYPE_SEND, edge->port);
-            Audio_buffer* receive = Device_state_get_audio_buffer(
+            Work_buffer* receive = Device_state_get_audio_buffer(
                     node_dstate, DEVICE_PORT_TYPE_RECEIVE, port);
             if (receive == NULL || send == NULL)
             {
@@ -675,7 +676,7 @@ void Device_node_process_mixed_signals(
                     (int)Device_get_id((const Device*)send_device),
                     Audio_buffer_get_buffer(send, 0)[0]);
             // */
-            Audio_buffer_mix(receive, send, buf_start, buf_stop);
+            Work_buffer_mix(receive, send, buf_start, buf_stop);
 
             edge = edge->next;
         }

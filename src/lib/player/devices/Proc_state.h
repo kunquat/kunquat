@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -18,7 +18,6 @@
 
 #include <containers/Bit_array.h>
 #include <decl.h>
-#include <player/Audio_buffer.h>
 #include <player/devices/Device_state.h>
 #include <string/key_pattern.h>
 
@@ -42,7 +41,7 @@ struct Proc_state
 {
     Device_state parent;
 
-    Audio_buffer* voice_buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
+    Work_buffer* voice_buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
     Bit_array* voice_out_buffers_modified;
 
     Device_state_set_audio_rate_func* set_audio_rate;
@@ -108,7 +107,7 @@ bool Proc_state_is_voice_out_buffer_modified(Proc_state* proc_state, int port_nu
  *
  * \return   The voice buffer if one exists, otherwise \c NULL.
  */
-const Audio_buffer* Proc_state_get_voice_buffer(
+const Work_buffer* Proc_state_get_voice_buffer(
         const Proc_state* proc_state, Device_port_type type, int port);
 
 
@@ -125,7 +124,39 @@ const Audio_buffer* Proc_state_get_voice_buffer(
  *
  * \return   The voice buffer if one exists, otherwise \c NULL.
  */
-Audio_buffer* Proc_state_get_voice_buffer_mut(
+Work_buffer* Proc_state_get_voice_buffer_mut(
+        Proc_state* proc_state, Device_port_type type, int port);
+
+
+/**
+ * Get voice buffer contents of the Processor state.
+ *
+ * This is a convenience function that skips the Work buffer abstraction layer.
+ *
+ * \param proc_state   The Processor state -- must not be \c NULL.
+ * \param type         The port type -- must be valid.
+ * \param port         The port number -- must be >= \c 0 and
+ *                     < \c KQT_DEVICE_PORTS_MAX.
+ *
+ * \return   The Work buffer contents, or \c NULL if the buffer does not exist.
+ */
+const float* Proc_state_get_voice_buffer_contents(
+        const Proc_state* proc_state, Device_port_type type, int port);
+
+
+/**
+ * Get mutable voice buffer contents of the Processor state.
+ *
+ * This is a convenience function that skips the Work buffer abstraction layer.
+ *
+ * \param proc_state   The Processor state -- must not be \c NULL.
+ * \param type         The port type -- must be valid.
+ * \param port         The port number -- must be >= \c 0 and
+ *                     < \c KQT_DEVICE_PORTS_MAX.
+ *
+ * \return   The Work buffer contents, or \c NULL if the buffer does not exist.
+ */
+float* Proc_state_get_voice_buffer_contents_mut(
         Proc_state* proc_state, Device_port_type type, int port);
 
 

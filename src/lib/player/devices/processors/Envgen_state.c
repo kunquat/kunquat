@@ -63,11 +63,13 @@ static int32_t Envgen_vstate_render_voice(
     Envgen_vstate* egen_state = (Envgen_vstate*)vstate;
 
     // Get output buffer for writing
-    Audio_buffer* out_buffer = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_SEND, 0);
-    assert(out_buffer != NULL);
-    float* audio_l = Audio_buffer_get_buffer(out_buffer, 0);
-    float* audio_r = Audio_buffer_get_buffer(out_buffer, 1);
+    float* out_buffer =
+        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0);
+    if (out_buffer == NULL)
+    {
+        vstate->active = false;
+        return buf_start;
+    }
 
     const bool is_time_env_enabled =
         egen->is_time_env_enabled && (egen->time_env != NULL);
@@ -117,22 +119,22 @@ static int32_t Envgen_vstate_render_voice(
             }
         }
 
-        // Write to audio output
+        // Write to signal output
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            audio_l[i] = time_env[i];
+            out_buffer[i] = time_env[i];
     }
     else
     {
         // Initialise with default values
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            audio_l[i] = 1;
+            out_buffer[i] = 1;
     }
 
     // Apply range
     if ((egen->y_min != 0) || (egen->y_max != 1))
     {
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            audio_l[i] = egen->y_min + audio_l[i] * range_width;
+            out_buffer[i] = egen->y_min + out_buffer[i] * range_width;
     }
 
     // Apply our internal scaling
@@ -140,7 +142,7 @@ static int32_t Envgen_vstate_render_voice(
     {
         const double scale = egen->scale;
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            audio_l[i] *= scale;
+            out_buffer[i] *= scale;
     }
 
     if (Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE))
@@ -158,14 +160,14 @@ static int32_t Envgen_vstate_render_voice(
                 const double force_clamped = min(1, actual_force);
                 const double factor = Envelope_get_value(egen->force_env, force_clamped);
                 assert(isfinite(factor));
-                audio_l[i] *= factor;
+                out_buffer[i] *= factor;
             }
         }
         else
         {
             // Apply linear scaling by default
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                audio_l[i] *= actual_forces[i];
+                out_buffer[i] *= actual_forces[i];
         }
     }
     else
@@ -176,15 +178,8 @@ static int32_t Envgen_vstate_render_voice(
             const double factor = Envelope_get_node(
                     egen->force_env, Envelope_node_count(egen->force_env) - 1)[1];
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                audio_l[i] *= factor;
+                out_buffer[i] *= factor;
         }
-    }
-
-    // Copy to the right channel
-    {
-        const int32_t frame_count = new_buf_stop - buf_start;
-        assert(frame_count >= 0);
-        memcpy(audio_r + buf_start, audio_l + buf_start, sizeof(float) * frame_count);
     }
 
     // Mark state as started, TODO: fix this mess

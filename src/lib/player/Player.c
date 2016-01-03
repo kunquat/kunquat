@@ -26,6 +26,8 @@
 #include <player/Player_seq.h>
 #include <player/Position.h>
 #include <player/Voice_group.h>
+#include <player/Work_buffer.h>
+#include <player/Work_buffers.h>
 #include <string/common.h>
 
 #include <stdbool.h>
@@ -547,6 +549,56 @@ static void Player_flush_receive(Player* player)
 }
 
 
+static void Player_apply_master_volume(
+        Player* player, int32_t buf_start, int32_t buf_stop)
+{
+    assert(player != NULL);
+    assert(buf_start >= 0);
+    assert(buf_stop >= 0);
+
+    static const int CONTROL_WB_MASTER_VOLUME = WORK_BUFFER_IMPL_1;
+
+    float* volumes = Work_buffers_get_buffer_contents_mut(
+            player->work_buffers, CONTROL_WB_MASTER_VOLUME);
+
+    if (Slider_in_progress(&player->master_params.volume_slider))
+    {
+        double final_volume = player->master_params.volume;
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+        {
+            final_volume = Slider_step(&player->master_params.volume_slider);
+            volumes[i] = final_volume;
+        }
+        player->master_params.volume = final_volume;
+    }
+    else
+    {
+        const float cur_volume = player->master_params.volume;
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            volumes[i] = cur_volume;
+    }
+
+    // Get access to mixed output
+    Device_state* master_state = Device_states_get_state(
+            player->device_states, Device_get_id((const Device*)player->module));
+    assert(master_state != NULL);
+
+    for (int32_t port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Work_buffer* buffer = Device_state_get_audio_buffer(
+                master_state, DEVICE_PORT_TYPE_RECEIVE, port);
+        if (buffer != NULL)
+        {
+            float* buf = Work_buffer_get_contents_mut(buffer);
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+                buf[i] *= volumes[i];
+        }
+    }
+
+    return;
+}
+
+
 void Player_play(Player* player, int32_t nframes)
 {
     assert(player != NULL);
@@ -661,87 +713,40 @@ void Player_play(Player* player, int32_t nframes)
                     player->audio_rate,
                     player->master_params.tempo);
 
-            // Get access to mixed output
-            Device_state* master_state = Device_states_get_state(
-                    player->device_states,
-                    Device_get_id((const Device*)player->module));
-            assert(master_state != NULL);
-
-            Audio_buffer* buffer = Device_state_get_audio_buffer(
-                    master_state,
-                    DEVICE_PORT_TYPE_RECEIVE,
-                    0);
-
-            if (buffer != NULL)
-            {
-                float* bufs[] =
-                {
-                    Audio_buffer_get_buffer(buffer, 0),
-                    Audio_buffer_get_buffer(buffer, 1),
-                };
-                assert(bufs[0] != NULL);
-                assert(bufs[1] != NULL);
-
-                // Apply master volume
-                for (int32_t i = rendered; i < rendered + to_be_rendered; ++i)
-                {
-                    if (Slider_in_progress(&player->master_params.volume_slider))
-                        player->master_params.volume = Slider_step(
-                                &player->master_params.volume_slider);
-
-                    for (int ch = 0; ch < 2; ++ch)
-                        bufs[ch][i] *= player->master_params.volume;
-                }
-            }
+            Player_apply_master_volume(player, rendered, rendered + to_be_rendered);
         }
 
         rendered += to_be_rendered;
     }
 
-    bool audio_buffers_filled = false;
-
     // Apply global parameters to the mixed signal
     {
         Device_state* master_state = Device_states_get_state(
-                player->device_states,
-                Device_get_id((const Device*)player->module));
+                player->device_states, Device_get_id((const Device*)player->module));
         assert(master_state != NULL);
 
-        Audio_buffer* buffer = Device_state_get_audio_buffer(
-                master_state,
-                DEVICE_PORT_TYPE_RECEIVE,
-                0);
-
-        if (buffer != NULL)
+        // Note: we only access as many ports as we can output
+        for (int32_t port = 0; port < KQT_BUFFERS_MAX; ++port)
         {
-            // Apply render volume
-            float* bufs[] =
+            float* out_buf = player->audio_buffers[port];
+
+            Work_buffer* buffer = Device_state_get_audio_buffer(
+                    master_state, DEVICE_PORT_TYPE_RECEIVE, port);
+
+            if (buffer != NULL)
             {
-                Audio_buffer_get_buffer(buffer, 0),
-                Audio_buffer_get_buffer(buffer, 1),
-            };
-            assert(bufs[0] != NULL);
-            assert(bufs[1] != NULL);
-            for (int ch = 0; ch < 2; ++ch)
-            {
+                // Apply render volume
+                const float* buf = Work_buffer_get_contents(buffer);
+
                 for (int32_t i = 0; i < rendered; ++i)
-                {
-                    player->audio_buffers[ch][i] =
-                        bufs[ch][i] * player->module->mix_vol;
-                }
+                    out_buf[i] = buf[i] * player->module->mix_vol;
             }
-
-            audio_buffers_filled = true;
-        }
-    }
-
-    // Fill with zeros if we haven't produced any sound
-    if (!audio_buffers_filled)
-    {
-        for (int ch = 0; ch < 2; ++ch)
-        {
-            for (int32_t i = 0; i < rendered; ++i)
-                player->audio_buffers[ch][i] = 0.0f;
+            else
+            {
+                // Fill with zeroes if we haven't produced any sound
+                for (int32_t i = 0; i < rendered; ++i)
+                    player->audio_buffers[port][i] = 0;
+            }
         }
     }
 

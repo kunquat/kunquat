@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -274,16 +274,22 @@ void setup_debug_instrument(void)
     assert(handle != 0);
 
     set_data("out_00/p_manifest.json", "{}");
+    set_data("out_01/p_manifest.json", "{}");
     set_data("p_connections.json",
-            "[ [\"au_00/out_00\", \"out_00\"] ]");
+            "[ [\"au_00/out_00\", \"out_00\"]"
+            ", [\"au_00/out_01\", \"out_01\"]"
+            "]");
 
     set_data("p_control_map.json", "[ [0, 0] ]");
     set_data("control_00/p_manifest.json", "{}");
 
     set_data("au_00/p_manifest.json", "{ \"type\": \"instrument\" }");
     set_data("au_00/out_00/p_manifest.json", "{}");
+    set_data("au_00/out_01/p_manifest.json", "{}");
     set_data("au_00/p_connections.json",
-            "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
+            "[ [\"proc_00/C/out_00\", \"out_00\"]"
+            ", [\"proc_00/C/out_01\", \"out_01\"]"
+            "]");
 
     // Make sure that we get the note release behavior specified in the debug processor
     set_data("au_00/p_envelope_force_release.json",
@@ -293,6 +299,7 @@ void setup_debug_instrument(void)
     set_data("au_00/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
     set_data("au_00/proc_00/p_signal_type.json", "\"voice\"");
     set_data("au_00/proc_00/out_00/p_manifest.json", "{}");
+    set_data("au_00/proc_00/out_01/p_manifest.json", "{}");
 
     validate();
 

@@ -185,7 +185,7 @@ int32_t Voice_state_render_voice(
         return buf_start;
 
     // Get audio output buffers
-    Audio_buffer* audio_buffer = Device_state_get_audio_buffer(
+    Work_buffer* audio_buffer = Device_state_get_audio_buffer(
             &proc_state->parent, DEVICE_PORT_TYPE_SEND, 0);
     if (audio_buffer == NULL)
     {
@@ -193,7 +193,7 @@ int32_t Voice_state_render_voice(
         return buf_start;
     }
 
-    Audio_buffer* voice_out_buf = Proc_state_get_voice_buffer_mut(
+    Work_buffer* voice_out_buf = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_SEND, 0);
     if (voice_out_buf == NULL)
     {
@@ -272,15 +272,15 @@ int32_t Voice_state_render_voice(
     vstate->pos_rem = new_pos_rem;
 
     // Mix rendered audio to the combined signal buffer
+    for (int32_t port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        Audio_buffer_mix(audio_buffer, voice_out_buf, buf_start, process_stop);
+        Work_buffer* mixed_buffer = Device_state_get_audio_buffer(
+                &proc_state->parent, DEVICE_PORT_TYPE_SEND, port);
+        const Work_buffer* voice_buffer = Proc_state_get_voice_buffer(
+                proc_state, DEVICE_PORT_TYPE_SEND, port);
 
-        /*
-        fprintf(stderr, "1st item by %d @ %p: %.1f\n",
-                (int)Device_get_id((const Device*)proc),
-                (const void*)audio_buffer,
-                out_l[buf_start]);
-        // */
+        if ((mixed_buffer != NULL) && (voice_buffer != NULL))
+            Work_buffer_mix(mixed_buffer, voice_buffer, buf_start, process_stop);
     }
 
     if (deactivate_after_processing)

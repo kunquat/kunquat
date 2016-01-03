@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -26,26 +26,29 @@
 
 
 static void multiply_signals(
-        Audio_buffer* in1_buffer,
-        Audio_buffer* in2_buffer,
-        Audio_buffer* out_buffer,
+        const float* in1_buffers[2],
+        const float* in2_buffers[2],
+        float* out_buffers[2],
         int32_t buf_start,
         int32_t buf_stop)
 {
-    assert(in1_buffer != NULL);
-    assert(in2_buffer != NULL);
-    assert(out_buffer != NULL);
+    assert(in1_buffers != NULL);
+    assert(in2_buffers != NULL);
+    assert(out_buffers != NULL);
     assert(buf_start >= 0);
     assert(buf_stop >= 0);
 
     for (int ch = 0; ch < 2; ++ch)
     {
-        const float* in1_values = Audio_buffer_get_buffer(in1_buffer, ch);
-        const float* in2_values = Audio_buffer_get_buffer(in2_buffer, ch);
-        float* out_values = Audio_buffer_get_buffer(out_buffer, ch);
+        const float* in1_values = in1_buffers[ch];
+        const float* in2_values = in2_buffers[ch];
+        float* out_values = out_buffers[ch];
 
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            out_values[i] = in1_values[i] * in2_values[i];
+        if ((in1_values != NULL) && (in2_values != NULL) && (out_values != NULL))
+        {
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+                out_values[i] = in1_values[i] * in2_values[i];
+        }
     }
 
     return;
@@ -65,20 +68,26 @@ static void Ringmod_pstate_render_mixed(
     assert(tempo > 0);
 
     // Get inputs
-    Audio_buffer* in1_buffer =
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Audio_buffer* in2_buffer =
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 1);
-    if ((in1_buffer == NULL) || (in2_buffer == NULL))
-        return;
+    const float* in1_buffers[] =
+    {
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 0),
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 1),
+    };
+    const float* in2_buffers[] =
+    {
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 2),
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 3),
+    };
 
     // Get outputs
-    Audio_buffer* out_buffer =
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, 0);
-    assert(out_buffer != NULL);
+    float* out_buffers[] =
+    {
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 0),
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 1),
+    };
 
     // Multiply the signals
-    multiply_signals(in1_buffer, in2_buffer, out_buffer, buf_start, buf_stop);
+    multiply_signals(in1_buffers, in2_buffers, out_buffers, buf_start, buf_stop);
 
     return;
 }
@@ -121,23 +130,36 @@ static int32_t Ringmod_vstate_render_voice(
     assert(tempo > 0);
 
     // Get inputs
-    Audio_buffer* in1_buffer = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Audio_buffer* in2_buffer = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, 1);
-    if ((in1_buffer == NULL) || (in2_buffer == NULL))
+    const float* in1_buffers[] =
+    {
+        Proc_state_get_voice_buffer_contents_mut(
+                proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
+        Proc_state_get_voice_buffer_contents_mut(
+                proc_state, DEVICE_PORT_TYPE_RECEIVE, 1),
+    };
+    const float* in2_buffers[] =
+    {
+        Proc_state_get_voice_buffer_contents_mut(
+                proc_state, DEVICE_PORT_TYPE_RECEIVE, 2),
+        Proc_state_get_voice_buffer_contents_mut(
+                proc_state, DEVICE_PORT_TYPE_RECEIVE, 3),
+    };
+    if ((in1_buffers[0] == NULL && (in1_buffers[1] == NULL)) ||
+            ((in2_buffers[0] == NULL) || in2_buffers[1] == NULL))
     {
         vstate->active = false;
         return buf_start;
     }
 
     // Get output
-    Audio_buffer* out_buffer = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_SEND, 0);
-    assert(out_buffer != NULL);
+    float* out_buffers[] =
+    {
+        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0),
+        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 1),
+    };
 
     // Multiply the signals
-    multiply_signals(in1_buffer, in2_buffer, out_buffer, buf_start, buf_stop);
+    multiply_signals(in1_buffers, in2_buffers, out_buffers, buf_start, buf_stop);
 
     // Mark state as started, TODO: fix this mess
     vstate->pos = 1;

@@ -291,33 +291,27 @@ int32_t Voice_state_common_ramp_release(
             ((ramp_start > 0) ||
                 (!is_env_force_rel_used && (au_state->sustain < 0.5)));
 
-        Audio_buffer* out_buf = Proc_state_get_voice_buffer_mut(
-                proc_state, DEVICE_PORT_TYPE_SEND, port);
-
-        if (do_ramp_release && (out_buf != NULL))
+        if (do_ramp_release)
         {
-            float* abufs[KQT_BUFFERS_MAX] =
+            Work_buffer* buffer = Proc_state_get_voice_buffer_mut(
+                    proc_state, DEVICE_PORT_TYPE_SEND, port);
+            if (buffer != NULL)
             {
-                Audio_buffer_get_buffer(out_buf, 0),
-                Audio_buffer_get_buffer(out_buf, 1),
-            };
+                float* buf = Work_buffer_get_contents_mut(buffer);
 
-            float ramp = ramp_start;
-            int32_t i = buf_start;
+                float ramp = ramp_start;
+                int32_t i = buf_start;
 
-            for (int ch = 0; ch < 2; ++ch)
-            {
-                ramp = ramp_start;
                 for (i = buf_start; (i < buf_stop) && (ramp < 1); ++i)
                 {
-                    abufs[ch][i] *= 1 - ramp;
+                    buf[i] *= 1 - ramp;
                     ramp += ramp_shift;
                 }
+
+                process_stop = min(i, process_stop);
+
+                vstate->ramp_release = ramp;
             }
-
-            process_stop = min(i, process_stop);
-
-            vstate->ramp_release = ramp;
         }
     }
 

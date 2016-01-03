@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -47,36 +47,33 @@ Proc_state* new_Proc_state_default(
 
 
 void Proc_ramp_attack(
-        const Processor* proc,
         Voice_state* vstate,
-        Audio_buffer* voice_out_buf,
-        int ab_count,
-        uint32_t audio_rate,
+        int buf_count,
+        float* out_bufs[buf_count],
         int32_t buf_start,
-        int32_t buf_stop)
+        int32_t buf_stop,
+        int32_t audio_rate)
 {
-    assert(proc != NULL);
     assert(vstate != NULL);
-    assert(voice_out_buf != NULL);
-    assert((ab_count == 1) || (ab_count == 2));
-    (void)proc;
-
-    float* abufs[KQT_BUFFERS_MAX] =
-    {
-        Audio_buffer_get_buffer(voice_out_buf, 0),
-        Audio_buffer_get_buffer(voice_out_buf, 1),
-    };
+    assert(buf_count > 0);
+    assert(out_bufs != NULL);
+    assert(buf_start >= 0);
+    assert(buf_stop >= 0);
+    assert(audio_rate > 0);
 
     const float start_ramp_attack = vstate->ramp_attack;
     const float inc = RAMP_ATTACK_TIME / audio_rate;
 
-    for (int ch = 0; ch < ab_count; ++ch)
+    for (int ch = 0; ch < buf_count; ++ch)
     {
+        if (out_bufs[ch] == NULL)
+            continue;
+
         float ramp_attack = start_ramp_attack;
 
         for (int32_t i = buf_start; (i < buf_stop) && (ramp_attack < 1); ++i)
         {
-            abufs[ch][i] *= ramp_attack;
+            out_bufs[ch][i] *= ramp_attack;
             ramp_attack += inc;
         }
 

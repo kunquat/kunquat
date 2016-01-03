@@ -133,7 +133,7 @@ static const int CONTROL_WB_RESONANCE = WORK_BUFFER_IMPL_2;
 static void Filter_state_impl_update_controls(
         Filter_state_impl* fimpl,
         const Work_buffers* wbs,
-        Audio_buffer* cutoff_buf,
+        Work_buffer* cutoff_buf,
         int32_t buf_start,
         int32_t buf_stop)
 {
@@ -148,8 +148,7 @@ static void Filter_state_impl_update_controls(
 
     if (cutoff_buf != NULL)
     {
-        // FIXME: using left channel only; change this to single-channel stream
-        const float* cutoff_shift = Audio_buffer_get_buffer(cutoff_buf, 0);
+        const float* cutoff_shift = Work_buffer_get_contents(cutoff_buf);
 
         float* cutoff_values = Work_buffer_get_contents_mut(cutoff_wb);
 
@@ -163,36 +162,28 @@ static void Filter_state_impl_update_controls(
 
 static void Filter_state_impl_apply_filter_settings(
         Filter_state_impl* fimpl,
-        Audio_buffer* in_buffer,
-        Audio_buffer* out_buffer,
+        Work_buffer* in_buffers[2],
+        Work_buffer* out_buffers[2],
         double xfade_start,
         double xfade_step,
         int32_t buf_start,
         int32_t buf_stop)
 {
     assert(fimpl != NULL);
-    assert(in_buffer != NULL);
-    assert(out_buffer != NULL);
+    assert(in_buffers != NULL);
+    assert(out_buffers != NULL);
 
     if ((fimpl->lowpass_state_used == -1) && (fimpl->lowpass_xfade_state_used == -1))
     {
-        Audio_buffer_copy(out_buffer, in_buffer, buf_start, buf_stop);
+        for (int ch = 0; ch < 2; ++ch)
+        {
+            if ((in_buffers[ch] != NULL) && (out_buffers[ch] != NULL))
+                Work_buffer_copy(out_buffers[ch], in_buffers[ch], buf_start, buf_stop);
+        }
         return;
     }
 
     assert(fimpl->lowpass_state_used != fimpl->lowpass_xfade_state_used);
-
-    const float* in_bufs[] =
-    {
-        Audio_buffer_get_buffer(in_buffer, 0),
-        Audio_buffer_get_buffer(in_buffer, 1),
-    };
-
-    float* out_bufs[] =
-    {
-        Audio_buffer_get_buffer(out_buffer, 0),
-        Audio_buffer_get_buffer(out_buffer, 1),
-    };
 
     // Get filter states used
     Single_filter_state* in_fst = (fimpl->lowpass_state_used > -1) ?
@@ -206,8 +197,11 @@ static void Filter_state_impl_apply_filter_settings(
     {
         double xfade = xfade_start_clamped;
 
-        const float* in_buf = in_bufs[ch];
-        float* out_buf = out_bufs[ch];
+        if ((in_buffers[ch] == NULL) || (out_buffers[ch] == NULL))
+            continue;
+
+        const float* in_buf = Work_buffer_get_contents(in_buffers[ch]);
+        float* out_buf = Work_buffer_get_contents_mut(out_buffers[ch]);
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
@@ -304,12 +298,18 @@ static double get_xfade_step(double audio_rate, double true_lowpass, double reso
 static void Filter_state_impl_apply_work_buffers(
         Filter_state_impl* fimpl,
         const Work_buffers* wbs,
-        Audio_buffer* in_buffer,
-        Audio_buffer* out_buffer,
+        Work_buffer* in_buffers[2],
+        Work_buffer* out_buffers[2],
         int32_t buf_start,
         int32_t buf_stop,
         int32_t audio_rate)
 {
+    assert(fimpl != NULL);
+    assert(wbs != NULL);
+    assert(in_buffers != NULL);
+    assert(out_buffers != NULL);
+    assert(audio_rate > 0);
+
     const float* cutoffs = Work_buffers_get_buffer_contents(wbs, CONTROL_WB_CUTOFF);
     const float* resonances =
         Work_buffers_get_buffer_contents(wbs, CONTROL_WB_RESONANCE);
@@ -357,8 +357,8 @@ static void Filter_state_impl_apply_work_buffers(
             apply_filter_stop = i;
             Filter_state_impl_apply_filter_settings(
                     fimpl,
-                    in_buffer,
-                    out_buffer,
+                    in_buffers,
+                    out_buffers,
                     xfade_start,
                     fimpl->lowpass_xfade_update,
                     apply_filter_start,
@@ -424,8 +424,8 @@ static void Filter_state_impl_apply_work_buffers(
     // Apply previous filter settings to the remaining signal
     Filter_state_impl_apply_filter_settings(
             fimpl,
-            in_buffer,
-            out_buffer,
+            in_buffers,
+            out_buffers,
             xfade_start,
             fimpl->lowpass_xfade_update,
             apply_filter_start,
@@ -500,27 +500,30 @@ static void Filter_pstate_render_mixed(
 
     Filter_state_impl_set_tempo(&fpstate->state_impl, tempo);
 
-    Audio_buffer* cutoff_shift =
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 1);
+    Work_buffer* cutoff_shift =
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 2);
     Filter_state_impl_update_controls(
             &fpstate->state_impl, wbs, cutoff_shift, buf_start, buf_stop);
 
-    // Get input
-    Audio_buffer* in_buffer =
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
-    if (in_buffer == NULL)
-        return;
+    // Get audio buffers
+    Work_buffer* in_buffers[2] =
+    {
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 0),
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 1),
+    };
 
     // Get output
-    Audio_buffer* out_buffer =
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, 0);
-    assert(out_buffer != NULL);
+    Work_buffer* out_buffers[2] =
+    {
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, 0),
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, 1),
+    };
 
     Filter_state_impl_apply_work_buffers(
             &fpstate->state_impl,
             wbs,
-            in_buffer,
-            out_buffer,
+            in_buffers,
+            out_buffers,
             buf_start,
             buf_stop,
             dstate->audio_rate);
@@ -645,31 +648,36 @@ int32_t Filter_vstate_render_voice(
 
     Filter_state_impl_set_tempo(&fvstate->state_impl, tempo);
 
-    Audio_buffer* cutoff_shift =
-        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 1);
+    Work_buffer* cutoff_shift =
+        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 2);
     Filter_state_impl_update_controls(
             &fvstate->state_impl, wbs, cutoff_shift, buf_start, buf_stop);
 
     // Get input
-    Audio_buffer* in_buffer =
-        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
-    if (in_buffer == NULL)
+    Work_buffer* in_buffers[2] =
+    {
+        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
+        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 1),
+    };
+    if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
     {
         vstate->active = false;
         return buf_start;
     }
 
     // Get output
-    Audio_buffer* out_buffer =
-        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0);
-    assert(out_buffer != NULL);
+    Work_buffer* out_buffers[2] =
+    {
+        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0),
+        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_SEND, 1),
+    };
 
     const Device_state* dstate = (const Device_state*)proc_state;
     Filter_state_impl_apply_work_buffers(
             &fvstate->state_impl,
             wbs,
-            in_buffer,
-            out_buffer,
+            in_buffers,
+            out_buffers,
             buf_start,
             buf_stop,
             dstate->audio_rate);

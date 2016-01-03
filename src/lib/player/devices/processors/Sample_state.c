@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -55,7 +55,7 @@ static int32_t Sample_render(
         const Processor* proc,
         const Proc_state* proc_state,
         const Work_buffers* wbs,
-        Audio_buffer* out_buffer,
+        float* out_buffers[2],
         int32_t buf_start,
         int32_t buf_stop,
         int32_t audio_rate,
@@ -97,11 +97,14 @@ static int32_t Sample_render(
             1,
             Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE));
 
-    float* abufs[KQT_BUFFERS_MAX] =
+    float* abufs[KQT_BUFFERS_MAX] = { out_buffers[0], out_buffers[1] };
+    if ((sample->channels == 1) && (out_buffers[0] == NULL))
     {
-        Audio_buffer_get_buffer(out_buffer, 0),
-        Audio_buffer_get_buffer(out_buffer, 1),
-    };
+        // Make sure that mono sample is rendered to right channel
+        // if the left one does not exist
+        out_buffers[0] = out_buffers[1];
+        out_buffers[1] = NULL;
+    }
 
     static const int SAMPLE_WORK_BUFFER_POSITIONS = WORK_BUFFER_IMPL_1;
     static const int SAMPLE_WORK_BUFFER_NEXT_POSITIONS = WORK_BUFFER_IMPL_2;
@@ -278,6 +281,8 @@ static int32_t Sample_render(
                 {
                     const int8_t* data = sample->data[ch];
                     float* audio_buffer = abufs[ch];
+                    if (audio_buffer == NULL)
+                        continue;
 
                     for (int32_t i = buf_start; i < new_buf_stop; ++i)
                     {
@@ -299,6 +304,8 @@ static int32_t Sample_render(
                 {
                     const int16_t* data = sample->data[ch];
                     float* audio_buffer = abufs[ch];
+                    if (audio_buffer == NULL)
+                        continue;
 
                     for (int32_t i = buf_start; i < new_buf_stop; ++i)
                     {
@@ -320,6 +327,8 @@ static int32_t Sample_render(
                 {
                     const int32_t* data = sample->data[ch];
                     float* audio_buffer = abufs[ch];
+                    if (audio_buffer == NULL)
+                        continue;
 
                     for (int32_t i = buf_start; i < new_buf_stop; ++i)
                     {
@@ -343,6 +352,8 @@ static int32_t Sample_render(
         {
             const float* data = sample->data[ch];
             float* audio_buffer = abufs[ch];
+            if (audio_buffer == NULL)
+                continue;
 
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
             {
@@ -357,7 +368,7 @@ static int32_t Sample_render(
 #undef get_item
 
     // Copy mono signal to the right channel
-    if (sample->channels == 1)
+    if ((sample->channels == 1) && (abufs[0] != NULL) && (abufs[1] != NULL))
     {
         const int32_t frame_count = new_buf_stop - buf_start;
         memcpy(abufs[1] + buf_start, abufs[0] + buf_start, sizeof(float) * frame_count);
@@ -518,15 +529,17 @@ static int32_t Sample_vstate_render_voice(
     Sample_set_loop(sample, sample_state->params.loop);
     // */
 
-    Audio_buffer* out_buffer = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_SEND, 0);
-    assert(out_buffer != NULL);
+    float* out_buffers[] =
+    {
+        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0),
+        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 1),
+    };
 
     const int32_t audio_rate = proc_state->parent.audio_rate;
 
     return Sample_render(
             sample, header, vstate, proc, proc_state, wbs,
-            out_buffer, buf_start, buf_stop, audio_rate, tempo,
+            out_buffers, buf_start, buf_stop, audio_rate, tempo,
             sample_state->middle_tone, sample_state->freq,
             sample_state->volume);
 }

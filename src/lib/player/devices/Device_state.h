@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -18,8 +18,6 @@
 
 #include <decl.h>
 #include <kunquat/limits.h>
-#include <player/Audio_buffer.h>
-#include <player/Work_buffers.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -77,7 +75,7 @@ struct Device_state
     int32_t audio_rate;
     int32_t audio_buffer_size;
 
-    Audio_buffer* buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
+    Work_buffer* buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
 
     // Protected interface
     bool (*add_buffer)(struct Device_state*, Device_port_type, int port);
@@ -243,9 +241,23 @@ void Device_state_clear_audio_buffers(Device_state* ds, uint32_t start, uint32_t
  * \param port   The port number -- must be >= \c 0 and
  *               < \c KQT_DEVICE_PORTS_MAX.
  *
- * \return   The Audio buffer if one exists, otherwise \c NULL.
+ * \return   The Work buffer if one exists, otherwise \c NULL.
  */
-Audio_buffer* Device_state_get_audio_buffer(
+Work_buffer* Device_state_get_audio_buffer(
+        const Device_state* ds, Device_port_type type, int port);
+
+
+/**
+ * Return contents of an audio buffer in the Device state.
+ *
+ * \param ds     The Device state -- must not be \c NULL.
+ * \param type   The port type -- must be valid.
+ * \param port   The port number -- must be >= \c 0 and
+ *               < \c KQT_DEVICE_PORTS_MAX.
+ *
+ * \return   The buffer contents, or \c NULL if the Work buffer does not exist.
+ */
+float* Device_state_get_audio_buffer_contents_mut(
         const Device_state* ds, Device_port_type type, int port);
 
 

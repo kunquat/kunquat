@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -20,6 +20,7 @@
 #include <mathnum/Tstamp.h>
 #include <player/devices/Device_state.h>
 #include <player/devices/Voice_state.h>
+#include <player/Work_buffer.h>
 
 #include <math.h>
 #include <stdbool.h>
@@ -170,9 +171,9 @@ void Proc_state_clear_voice_buffers(Proc_state* proc_state)
     {
         for (int port_num = 0; port_num < KQT_DEVICE_PORTS_MAX; ++port_num)
         {
-            Audio_buffer* buffer = proc_state->voice_buffers[port_type][port_num];
+            Work_buffer* buffer = proc_state->voice_buffers[port_type][port_num];
             if (buffer != NULL)
-                Audio_buffer_clear(buffer, 0, Audio_buffer_get_size(buffer));
+                Work_buffer_clear(buffer, 0, Work_buffer_get_size(buffer));
         }
     }
 
@@ -192,11 +193,11 @@ bool Proc_state_is_voice_out_buffer_modified(Proc_state* proc_state, int port_nu
 }
 
 
-const Audio_buffer* Proc_state_get_voice_buffer(
+const Work_buffer* Proc_state_get_voice_buffer(
         const Proc_state* proc_state, Device_port_type port_type, int port_num)
 {
     assert(proc_state != NULL);
-    assert(port_type == DEVICE_PORT_TYPE_RECEIVE || port_type == DEVICE_PORT_TYPE_SEND);
+    assert(port_type < DEVICE_PORT_TYPES);
     assert(port_num >= 0);
     assert(port_num < KQT_DEVICE_PORTS_MAX);
 
@@ -204,11 +205,11 @@ const Audio_buffer* Proc_state_get_voice_buffer(
 }
 
 
-Audio_buffer* Proc_state_get_voice_buffer_mut(
+Work_buffer* Proc_state_get_voice_buffer_mut(
         Proc_state* proc_state, Device_port_type port_type, int port_num)
 {
     assert(proc_state != NULL);
-    assert(port_type == DEVICE_PORT_TYPE_RECEIVE || port_type == DEVICE_PORT_TYPE_SEND);
+    assert(port_type < DEVICE_PORT_TYPES);
     assert(port_num >= 0);
     assert(port_num < KQT_DEVICE_PORTS_MAX);
 
@@ -216,6 +217,39 @@ Audio_buffer* Proc_state_get_voice_buffer_mut(
         Bit_array_set(proc_state->voice_out_buffers_modified, port_num, true);
 
     return proc_state->voice_buffers[port_type][port_num];
+}
+
+
+const float* Proc_state_get_voice_buffer_contents(
+        const Proc_state* proc_state, Device_port_type port_type, int port_num)
+{
+    assert(proc_state != NULL);
+    assert(port_type < DEVICE_PORT_TYPES);
+    assert(port_num >= 0);
+    assert(port_num < KQT_DEVICE_PORTS_MAX);
+
+    const Work_buffer* wb = Proc_state_get_voice_buffer(proc_state, port_type, port_num);
+    if (wb == NULL)
+        return NULL;
+
+    return Work_buffer_get_contents(wb);
+}
+
+
+float* Proc_state_get_voice_buffer_contents_mut(
+        Proc_state* proc_state, Device_port_type port_type, int port_num)
+{
+    assert(proc_state != NULL);
+    assert(port_type < DEVICE_PORT_TYPES);
+    assert(port_num >= 0);
+    assert(port_num < KQT_DEVICE_PORTS_MAX);
+
+    const Work_buffer* wb =
+        Proc_state_get_voice_buffer_mut(proc_state, port_type, port_num);
+    if (wb == NULL)
+        return NULL;
+
+    return Work_buffer_get_contents_mut(wb);
 }
 
 
@@ -390,10 +424,11 @@ static bool Proc_state_add_buffer(
     if (proc_state->voice_buffers[port_type][port_num] != NULL)
         return true;
 
-    proc_state->voice_buffers[port_type][port_num] = new_Audio_buffer(
-            dstate->audio_buffer_size);
-    if (proc_state->voice_buffers[port_type][port_num] == NULL)
+    Work_buffer* new_buffer = new_Work_buffer(dstate->audio_buffer_size);
+    if (new_buffer == NULL)
         return false;
+
+    proc_state->voice_buffers[port_type][port_num] = new_buffer;
 
     return true;
 }
@@ -411,8 +446,8 @@ static bool Proc_state_set_audio_buffer_size(Device_state* dstate, int32_t new_s
     {
         for (int port_num = 0; port_num < KQT_DEVICE_PORTS_MAX; ++port_num)
         {
-            Audio_buffer* buffer = proc_state->voice_buffers[port_type][port_num];
-            if ((buffer != NULL) && !Audio_buffer_resize(buffer, new_size))
+            Work_buffer* buffer = proc_state->voice_buffers[port_type][port_num];
+            if ((buffer != NULL) && !Work_buffer_resize(buffer, new_size))
                 return false;
         }
     }
@@ -434,7 +469,7 @@ void Proc_state_deinit(Device_state* dstate)
             port_type < DEVICE_PORT_TYPES; ++port_type)
     {
         for (int port_num = 0; port_num < KQT_DEVICE_PORTS_MAX; ++port_num)
-            del_Audio_buffer(proc_state->voice_buffers[port_type][port_num]);
+            del_Work_buffer(proc_state->voice_buffers[port_type][port_num]);
     }
 
     del_Bit_array(proc_state->voice_out_buffers_modified);

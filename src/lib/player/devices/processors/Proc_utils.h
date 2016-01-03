@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -45,25 +45,23 @@ Proc_state* new_Proc_state_default(
  * This function should be called by processor implementations (that need it)
  * before returning from their process function.
  *
- * \param proc            The Processor -- must not be \c NULL.
- * \param vstate          The Voice state -- must not be \c NULL.
- * \param voice_out_buf   The audio output buffer -- must not be \c NULL.
- * \param ab_count        The number of audio buffers used -- must be \c 1 or
- *                        \c 2. If \c 1, only the left channel will be updated.
- * \param audio_rate      The audio rate -- must be positive.
- * \param buf_start       The start index of the buffer area to be processed.
- * \param buf_stop        The stop index of the buffer area to be processed.
+ * \param vstate       The Voice state -- must not be \c NULL.
+ * \param buf_count    The number of output buffers -- must be > \c 0.
+ * \param out_bufs     The signal output buffers -- must not be \c NULL.
+ * \param buf_start    The start index of the buffer area to be processed.
+ * \param buf_stop     The stop index of the buffer area to be processed.
+ * \param audio_rate   The audio rate -- must be positive.
  */
 void Proc_ramp_attack(
-        const Processor* proc,
         Voice_state* vstate,
-        Audio_buffer* voice_out_buf,
-        int ab_count,
-        uint32_t audio_rate,
+        int buf_count,
+        float* out_bufs[buf_count],
         int32_t buf_start,
-        int32_t buf_stop);
+        int32_t buf_stop,
+        int32_t audio_rate);
 
 
+#if 0
 #define get_raw_buffers(ds, type, port, buffers)          \
     if (true)                                             \
     {                                                     \
@@ -106,6 +104,7 @@ void Proc_ramp_attack(
  */
 #define get_raw_output(ds, port, buffers) \
     get_raw_buffers((ds), DEVICE_PORT_TYPE_SEND, (port), (buffers))
+#endif
 
 
 /**

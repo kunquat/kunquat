@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -59,13 +59,13 @@ static void mix_interface_connection(
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        Audio_buffer* out = Device_state_get_audio_buffer(
+        Work_buffer* out = Device_state_get_audio_buffer(
                 out_ds, DEVICE_PORT_TYPE_SEND, port);
-        const Audio_buffer* in = Device_state_get_audio_buffer(
+        const Work_buffer* in = Device_state_get_audio_buffer(
                 in_ds, DEVICE_PORT_TYPE_RECEIVE, port);
 
         if ((out != NULL) && (in != NULL))
-            Audio_buffer_mix(out, in, buf_start, buf_stop);
+            Work_buffer_mix(out, in, buf_start, buf_stop);
     }
 
     return;
