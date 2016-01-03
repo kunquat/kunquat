@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -74,6 +74,16 @@ bool Work_buffers_resize(Work_buffers* buffers, uint32_t new_size)
 
 
 const Work_buffer* Work_buffers_get_buffer(
+        const Work_buffers* buffers, Work_buffer_type type)
+{
+    assert(buffers != NULL);
+    assert(type < WORK_BUFFER_COUNT_);
+
+    return buffers->buffers[type];
+}
+
+
+Work_buffer* Work_buffers_get_buffer_mut(
         const Work_buffers* buffers, Work_buffer_type type)
 {
     assert(buffers != NULL);

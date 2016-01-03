@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -31,14 +31,14 @@ static_assert(sizeof(int32_t) <= WORK_BUFFER_ELEM_SIZE,
 
 struct Work_buffer
 {
-    uint32_t size;
+    int32_t size;
     char* contents;
 };
 
 
-Work_buffer* new_Work_buffer(uint32_t size)
+Work_buffer* new_Work_buffer(int32_t size)
 {
-    //assert(size >= 0);
+    assert(size >= 0);
     assert(size <= WORK_BUFFER_SIZE_MAX);
 
     Work_buffer* buffer = memory_alloc_item(Work_buffer);
@@ -66,10 +66,10 @@ Work_buffer* new_Work_buffer(uint32_t size)
 }
 
 
-bool Work_buffer_resize(Work_buffer* buffer, uint32_t new_size)
+bool Work_buffer_resize(Work_buffer* buffer, int32_t new_size)
 {
     assert(buffer != NULL);
-    //assert(new_size >= 0);
+    assert(new_size >= 0);
     assert(new_size <= WORK_BUFFER_SIZE_MAX);
 
     if (new_size == 0)
@@ -80,7 +80,7 @@ bool Work_buffer_resize(Work_buffer* buffer, uint32_t new_size)
         return true;
     }
 
-    const uint32_t actual_size = new_size + 2;
+    const int32_t actual_size = new_size + 2;
     char* new_contents = memory_realloc_items(
             char, actual_size * WORK_BUFFER_ELEM_SIZE, buffer->contents);
     if (new_contents == NULL)
@@ -93,7 +93,23 @@ bool Work_buffer_resize(Work_buffer* buffer, uint32_t new_size)
 }
 
 
-uint32_t Work_buffer_get_size(const Work_buffer* buffer)
+void Work_buffer_clear(Work_buffer* buffer, int32_t buf_start, int32_t buf_stop)
+{
+    assert(buffer != NULL);
+    assert(buf_start >= -1);
+    assert(buf_start <= Work_buffer_get_size(buffer));
+    assert(buf_stop >= -1);
+    assert(buf_stop <= Work_buffer_get_size(buffer) + 1);
+
+    float* fcontents = Work_buffer_get_contents_mut(buffer);
+    for (int32_t i = buf_start; i < buf_stop; ++i)
+        fcontents[i] = 0;
+
+    return;
+}
+
+
+int32_t Work_buffer_get_size(const Work_buffer* buffer)
 {
     assert(buffer != NULL);
     return buffer->size;
@@ -124,22 +140,54 @@ int32_t* Work_buffer_get_contents_int_mut(const Work_buffer* buffer)
 void Work_buffer_copy(
         const Work_buffer* restrict dest,
         const Work_buffer* restrict src,
-        uint32_t start,
-        uint32_t stop)
+        int32_t buf_start,
+        int32_t buf_stop)
 {
     assert(dest != NULL);
     assert(src != NULL);
     assert(dest != src);
-    assert(start <= Work_buffer_get_size(dest));
-    assert(stop <= Work_buffer_get_size(dest));
+    assert(buf_start >= -1);
+    assert(buf_start <= Work_buffer_get_size(dest));
+    assert(buf_stop >= -1);
+    assert(buf_stop <= Work_buffer_get_size(dest) + 1);
 
-    if (start >= stop)
+    if (buf_start >= buf_stop)
         return;
 
-    char* dest_start = dest->contents + (start * WORK_BUFFER_ELEM_SIZE);
-    const char* src_start = src->contents + (start * WORK_BUFFER_ELEM_SIZE);
-    const uint32_t elem_count = stop - start;
+    const int32_t actual_start = buf_start + 1;
+    const int32_t actual_stop = buf_stop + 1;
+
+    char* dest_start = dest->contents + (actual_start * WORK_BUFFER_ELEM_SIZE);
+    const char* src_start = src->contents + (actual_start * WORK_BUFFER_ELEM_SIZE);
+    const uint32_t elem_count = actual_stop - actual_start;
     memcpy(dest_start, src_start, elem_count * WORK_BUFFER_ELEM_SIZE);
+
+    return;
+}
+
+
+void Work_buffer_mix(
+        Work_buffer* buffer,
+        const Work_buffer* in,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    assert(buffer != NULL);
+    assert(in != NULL);
+    assert(Work_buffer_get_size(buffer) == Work_buffer_get_size(in));
+    assert(buf_start >= -1);
+    assert(buf_start <= Work_buffer_get_size(buffer));
+    assert(buf_stop >= -1);
+    assert(buf_stop <= Work_buffer_get_size(buffer) + 1);
+
+    if (buffer == in)
+        return;
+
+    float* buf_contents = Work_buffer_get_contents_mut(buffer);
+    const float* in_contents = Work_buffer_get_contents(in);
+
+    for (int32_t i = buf_start; i < buf_stop; ++i)
+        buf_contents[i] += in_contents[i];
 
     return;
 }

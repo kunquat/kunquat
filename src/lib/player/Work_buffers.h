@@ -16,6 +16,7 @@
 #define K_WORK_BUFFERS_H
 
 
+#include <decl.h>
 #include <player/Work_buffer.h>
 
 #include <stdbool.h>
@@ -34,12 +35,6 @@ typedef enum
     WORK_BUFFER_TIME_ENV,
     WORK_BUFFER_COUNT_
 } Work_buffer_type;
-
-
-/**
- * A collection of Work buffers for various audio rendering purposes.
- */
-typedef struct Work_buffers Work_buffers;
 
 
 /**
@@ -75,6 +70,18 @@ bool Work_buffers_resize(Work_buffers* buffers, uint32_t new_size);
  * \return   The Work buffer. This is never \c NULL.
  */
 const Work_buffer* Work_buffers_get_buffer(
+        const Work_buffers* buffers, Work_buffer_type type);
+
+
+/**
+ * Get a mutable Work buffer.
+ *
+ * \param buffers   The Work buffers -- must not be \c NULL.
+ * \param type      The Work buffer type -- must be valid.
+ *
+ * \return   The Work buffer. This is never \c NULL.
+ */
+Work_buffer* Work_buffers_get_buffer_mut(
         const Work_buffers* buffers, Work_buffer_type type);
 
 
