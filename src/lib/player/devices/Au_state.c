@@ -109,6 +109,7 @@ static void Au_state_render_mixed(
         // Process audio unit graph
         Connections_process_mixed_signals(
                 connections,
+                false, // hack_reset
                 au_state->dstates,
                 wbs,
                 buf_start,

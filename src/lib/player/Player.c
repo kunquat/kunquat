@@ -706,6 +706,7 @@ void Player_play(Player* player, int32_t nframes)
         {
             Connections_process_mixed_signals(
                     connections,
+                    true, // hack_reset
                     player->device_states,
                     player->work_buffers,
                     rendered,

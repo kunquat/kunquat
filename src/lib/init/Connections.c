@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -339,6 +339,7 @@ void Connections_process_voice_group(
 
 void Connections_process_mixed_signals(
         const Connections* graph,
+        bool hack_reset,
         Device_states* dstates,
         const Work_buffers* wbs,
         int32_t buf_start,
@@ -369,7 +370,9 @@ void Connections_process_mixed_signals(
 //    fprintf(stderr, "Mix process:\n");
 #endif
 
-    Device_states_reset_node_states(dstates);
+    if (hack_reset)
+        Device_states_reset_node_states(dstates);
+
     Device_node_process_mixed_signals(
             master, dstates, wbs, buf_start, buf_stop, audio_rate, tempo);
 
