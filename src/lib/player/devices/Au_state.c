@@ -51,8 +51,8 @@ static void Au_state_init(
 static void mix_interface_connection(
         Device_state* out_ds,
         const Device_state* in_ds,
-        uint32_t buf_start,
-        uint32_t buf_stop)
+        int32_t buf_start,
+        int32_t buf_stop)
 {
     assert(out_ds != NULL);
     assert(in_ds != NULL);
