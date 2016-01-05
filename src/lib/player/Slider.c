@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -136,7 +136,6 @@ void Slider_change_target(Slider* slider, double target)
     assert(slider != NULL);
     assert(isfinite(target));
 
-    slider->to = target;
     if (slider->progress < 1)
         Slider_start(slider, target, Slider_get_value(slider));
 
