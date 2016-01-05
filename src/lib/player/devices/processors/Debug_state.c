@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -51,11 +51,11 @@ static int32_t Debug_vstate_render_voice(
             Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE));
 
     // Get output buffer for writing
-    Audio_buffer* out_buffer = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_SEND, 0);
-    assert(out_buffer != NULL);
-    float* audio_l = Audio_buffer_get_buffer(out_buffer, 0);
-    float* audio_r = Audio_buffer_get_buffer(out_buffer, 1);
+    float* out_buffers[] =
+    {
+        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0),
+        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 1),
+    };
 
     Proc_debug* debug = (Proc_debug*)proc->parent.dimpl;
     if (debug->single_pulse)
@@ -63,8 +63,10 @@ static int32_t Debug_vstate_render_voice(
         if (buf_start < buf_stop)
         {
             const float val = 1.0 * Cond_work_buffer_get_value(actual_forces, buf_start);
-            audio_l[buf_start] = val;
-            audio_r[buf_start] = val;
+            if (out_buffers[0] != NULL)
+                out_buffers[0][buf_start] = val;
+            if (out_buffers[1] != NULL)
+                out_buffers[1][buf_start] = val;
             vstate->active = false;
             return buf_start + 1;
         }
@@ -99,8 +101,10 @@ static int32_t Debug_vstate_render_voice(
         vals[0] *= actual_force;
         vals[1] *= actual_force;
 
-        audio_l[i] = vals[0];
-        audio_r[i] = vals[1];
+        if (out_buffers[0] != NULL)
+            out_buffers[0][i] = vals[0];
+        if (out_buffers[1] != NULL)
+            out_buffers[1][i] = vals[1];
 
         vstate->rel_pos_rem += actual_pitch / audio_rate;
 

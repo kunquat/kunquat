@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -158,6 +158,7 @@ void Connections_process_voice_group(
  * Process mixed signals in the Connections.
  *
  * \param graph        The Connections -- must not be \c NULL.
+ * \param hack_reset   Whether the Device states should be reset or not. TODO: fix this
  * \param dstates      The Device states -- must not be \c NULL.
  * \param wbs          The Work buffers -- must not be \c NULL.
  * \param buf_start    The start index of the buffer area to be processed
@@ -169,6 +170,7 @@ void Connections_process_voice_group(
  */
 void Connections_process_mixed_signals(
         const Connections* graph,
+        bool hack_reset,
         Device_states* dstates,
         const Work_buffers* wbs,
         int32_t buf_start,

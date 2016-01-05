@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -103,6 +103,7 @@ class Controller():
             'pat_000/p_manifest.json'             : {},
             'pat_000/instance_000/p_manifest.json': {},
             'out_00/p_manifest.json'              : {},
+            'out_01/p_manifest.json'              : {},
         }
         self._store.put(transaction)
 
@@ -176,7 +177,10 @@ class Controller():
         transaction = {}
 
         # TODO: Figure out a proper way of connecting the audio unit
-        connections = [['/'.join((au_prefix, 'out_00')), 'out_00']]
+        connections = [
+                ['/'.join((au_prefix, 'out_00')), 'out_00'],
+                ['/'.join((au_prefix, 'out_01')), 'out_01'],
+                ]
         transaction['p_connections.json'] = connections
 
         control_map = [[0, au_number]]

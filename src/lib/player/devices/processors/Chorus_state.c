@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -165,12 +165,19 @@ static void Chorus_pstate_render_mixed(
 
     Chorus_pstate* cstate = (Chorus_pstate*)dstate;
 
-    const float* in_data[] = { NULL, NULL };
-    float* out_data[] = { NULL, NULL };
-    get_raw_input(&cstate->parent.parent, 0, in_data);
-    get_raw_output(&cstate->parent.parent, 0, out_data);
+    const float* in_data[] =
+    {
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 0),
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 1),
+    };
 
-    float* buf[] =
+    float* out_data[] =
+    {
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 0),
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 1),
+    };
+
+    float* history_data[] =
     {
         Audio_buffer_get_buffer(cstate->buf, 0),
         Audio_buffer_get_buffer(cstate->buf, 1),
@@ -222,86 +229,98 @@ static void Chorus_pstate_render_mixed(
             total_offsets[i] = chunk_offset - delay_frames;
         }
 
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int ch = 0; ch < 2; ++ch)
         {
-            const float total_offset = total_offsets[i];
-            const float volume = dB_to_scale(vols[i]);
+            const float* in = in_data[ch];
+            float* out = out_data[ch];
+            if ((in == NULL) || (out == NULL))
+                continue;
 
-            // Get buffer positions
-            const int32_t cur_pos = (int32_t)floor(total_offset);
-            const double remainder = total_offset - cur_pos;
-            assert(cur_pos <= (int32_t)i);
-            assert(implies(cur_pos == (int32_t)i, remainder == 0));
-            const int32_t next_pos = cur_pos + 1;
+            const float* history = history_data[ch];
+            assert(history != NULL);
 
-            // Get audio frames
-            double cur_val_l = 0;
-            double cur_val_r = 0;
-            double next_val_l = 0;
-            double next_val_r = 0;
-
-            if (cur_pos >= 0)
+            for (int32_t i = buf_start; i < buf_stop; ++i)
             {
-                const int32_t in_cur_pos = buf_start + cur_pos;
-                assert(in_cur_pos < (int32_t)buf_stop);
-                cur_val_l = in_data[0][in_cur_pos];
-                cur_val_r = in_data[1][in_cur_pos];
+                const float total_offset = total_offsets[i];
+                const float volume = dB_to_scale(vols[i]);
 
-                const int32_t in_next_pos = min(buf_start + next_pos, i);
-                assert(in_next_pos < (int32_t)buf_stop);
-                next_val_l = in_data[0][in_next_pos];
-                next_val_r = in_data[1][in_next_pos];
-            }
-            else
-            {
-                const int32_t cur_delay_buf_pos =
-                    (cur_cstate_buf_pos + cur_pos + delay_buf_size) % delay_buf_size;
-                assert(cur_delay_buf_pos >= 0);
+                // Get buffer positions
+                const int32_t cur_pos = (int32_t)floor(total_offset);
+                const double remainder = total_offset - cur_pos;
+                assert(cur_pos <= (int32_t)i);
+                assert(implies(cur_pos == (int32_t)i, remainder == 0));
+                const int32_t next_pos = cur_pos + 1;
 
-                cur_val_l = buf[0][cur_delay_buf_pos];
-                cur_val_r = buf[1][cur_delay_buf_pos];
+                // Get audio frames
+                double cur_val = 0;
+                double next_val = 0;
 
-                if (next_pos < 0)
+                if (cur_pos >= 0)
                 {
-                    const int32_t next_delay_buf_pos =
-                        (cur_cstate_buf_pos + next_pos + delay_buf_size) %
-                        delay_buf_size;
-                    assert(next_delay_buf_pos >= 0);
+                    const int32_t in_cur_pos = buf_start + cur_pos;
+                    assert(in_cur_pos < (int32_t)buf_stop);
+                    cur_val = in[in_cur_pos];
 
-                    next_val_l = buf[0][next_delay_buf_pos];
-                    next_val_r = buf[1][next_delay_buf_pos];
+                    const int32_t in_next_pos = min(buf_start + next_pos, i);
+                    assert(in_next_pos < (int32_t)buf_stop);
+                    next_val = in[in_next_pos];
                 }
                 else
                 {
-                    assert(next_pos == 0);
-                    next_val_l = in_data[0][buf_start];
-                    next_val_r = in_data[1][buf_start];
+                    const int32_t cur_delay_buf_pos =
+                        (cur_cstate_buf_pos + cur_pos + delay_buf_size) % delay_buf_size;
+                    assert(cur_delay_buf_pos >= 0);
+
+                    cur_val = history[cur_delay_buf_pos];
+
+                    if (next_pos < 0)
+                    {
+                        const int32_t next_delay_buf_pos =
+                            (cur_cstate_buf_pos + next_pos + delay_buf_size) %
+                            delay_buf_size;
+                        assert(next_delay_buf_pos >= 0);
+
+                        next_val = history[next_delay_buf_pos];
+                    }
+                    else
+                    {
+                        assert(next_pos == 0);
+                        next_val = in[buf_start];
+                    }
                 }
+
+                // Create output frame
+                const double prev_scale = 1 - remainder;
+                const float val =
+                    (prev_scale * volume * cur_val) + (remainder * volume * next_val);
+
+                out[i] += val;
             }
-
-            // Create output frame
-            const double prev_scale = 1 - remainder;
-            const float val_l =
-                (prev_scale * volume * cur_val_l) + (remainder * volume * next_val_l);
-            const float val_r =
-                (prev_scale * volume * cur_val_r) + (remainder * volume * next_val_r);
-
-            out_data[0][i] += val_l;
-            out_data[1][i] += val_r;
         }
     }
 
     // Update the chorus state buffers
-    for (int32_t i = buf_start; i < buf_stop; ++i)
+    for (int ch = 0; ch < 2; ++ch)
     {
-        buf[0][cur_cstate_buf_pos] = in_data[0][i];
-        buf[1][cur_cstate_buf_pos] = in_data[1][i];
+        const float* in = in_data[ch];
+        if (in == NULL)
+            continue;
 
-        ++cur_cstate_buf_pos;
-        if (cur_cstate_buf_pos >= delay_buf_size)
+        float* history = history_data[ch];
+        assert(history != NULL);
+
+        cur_cstate_buf_pos = cstate->buf_pos;
+
+        for (int32_t i = buf_start; i < buf_stop; ++i)
         {
-            assert(cur_cstate_buf_pos == delay_buf_size);
-            cur_cstate_buf_pos = 0;
+            history[cur_cstate_buf_pos] = in[i];
+
+            ++cur_cstate_buf_pos;
+            if (cur_cstate_buf_pos >= delay_buf_size)
+            {
+                assert(cur_cstate_buf_pos == delay_buf_size);
+                cur_cstate_buf_pos = 0;
+            }
         }
     }
 

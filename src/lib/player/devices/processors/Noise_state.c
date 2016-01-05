@@ -104,47 +104,44 @@ static int32_t Noise_vstate_render_voice(
             Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE));
 
     // Get output buffer for writing
-    Audio_buffer* out_buffer = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_SEND, 0);
-    assert(out_buffer != NULL);
-    float* audio_l = Audio_buffer_get_buffer(out_buffer, 0);
-    float* audio_r = Audio_buffer_get_buffer(out_buffer, 1);
-
-    for (int32_t i = buf_start; i < buf_stop; ++i)
+    float* out_buffers[] =
     {
-        const float actual_force = Cond_work_buffer_get_value(actual_forces, i);
+        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0),
+        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 1),
+    };
 
-        double vals[KQT_BUFFERS_MAX] = { 0 };
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        if (out_buffers[ch] == NULL)
+            continue;
 
-        if (noise_state->order < 0)
+        for (int32_t i = buf_start; i < buf_stop; ++i)
         {
-            vals[0] = dc_pole_filter(
-                    -noise_state->order,
-                    noise_vstate->buf[0],
-                    Random_get_float_signal(vstate->rand_s));
-            vals[1] = dc_pole_filter(
-                    -noise_state->order,
-                    noise_vstate->buf[1],
-                    Random_get_float_signal(vstate->rand_s));
-        }
-        else
-        {
-            vals[0] = dc_zero_filter(
-                    noise_state->order,
-                    noise_vstate->buf[0],
-                    Random_get_float_signal(vstate->rand_s));
-            vals[1] = dc_zero_filter(
-                    noise_state->order,
-                    noise_vstate->buf[1],
-                    Random_get_float_signal(vstate->rand_s));
-        }
+            const float actual_force = Cond_work_buffer_get_value(actual_forces, i);
 
-        audio_l[i] = vals[0] * actual_force;
-        audio_r[i] = vals[1] * actual_force;
+            double val = 0;
+
+            if (noise_state->order < 0)
+            {
+                val = dc_pole_filter(
+                        -noise_state->order,
+                        noise_vstate->buf[ch],
+                        Random_get_float_signal(vstate->rand_s));
+            }
+            else
+            {
+                val = dc_zero_filter(
+                        noise_state->order,
+                        noise_vstate->buf[ch],
+                        Random_get_float_signal(vstate->rand_s));
+            }
+
+            out_buffers[ch][i] = val * actual_force;
+        }
     }
 
     const int32_t audio_rate = proc_state->parent.audio_rate;
-    Proc_ramp_attack(proc, vstate, out_buffer, 2, audio_rate, buf_start, buf_stop);
+    Proc_ramp_attack(vstate, 2, out_buffers, buf_start, buf_stop, audio_rate);
 
     vstate->pos = 1; // XXX: hackish
 

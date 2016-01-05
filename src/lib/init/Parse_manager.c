@@ -686,8 +686,6 @@ static bool read_any_au_in_port_manifest(
 
     Device_set_port_existence(
             (Device*)au, DEVICE_PORT_TYPE_RECEIVE, in_port_index, existent);
-    Device_set_port_existence(
-            (Device*)au, DEVICE_PORT_TYPE_SEND, in_port_index, existent);
 
     return true;
 }
@@ -713,8 +711,6 @@ static bool read_any_au_out_port_manifest(
     Audio_unit* au = NULL;
     acquire_au(au, params->handle, au_table, au_index);
 
-    Device_set_port_existence(
-            (Device*)au, DEVICE_PORT_TYPE_RECEIVE, out_port_index, existent);
     Device_set_port_existence(
             (Device*)au, DEVICE_PORT_TYPE_SEND, out_port_index, existent);
 

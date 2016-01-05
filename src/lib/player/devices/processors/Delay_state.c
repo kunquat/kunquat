@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 #include <init/devices/processors/Proc_delay.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/Audio_buffer.h>
 #include <player/devices/processors/Proc_utils.h>
 
 
@@ -159,10 +160,18 @@ static void Delay_pstate_render_mixed(
 
     const Proc_delay* delay = (const Proc_delay*)dstate->device->dimpl;
 
-    float* in_data[] = { NULL, NULL };
-    float* out_data[] = { NULL, NULL };
-    get_raw_input(&dlstate->parent.parent, 0, in_data);
-    get_raw_output(&dlstate->parent.parent, 0, out_data);
+    const float* in_data[] =
+    {
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 0),
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 1),
+    };
+
+    float* out_data[] =
+    {
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 0),
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 1),
+    };
+
     float* delay_data[] =
     {
         Audio_buffer_get_buffer(dlstate->buf, 0),
@@ -172,6 +181,7 @@ static void Delay_pstate_render_mixed(
     const int32_t buf_size = Audio_buffer_get_size(dlstate->buf);
     const int32_t nframes = buf_stop - buf_start;
 
+    // Add delayed audio from previous call
     for (int tap_index = 0; tap_index < DELAY_TAPS_MAX; ++tap_index)
     {
         const Delay_tap* tap = &delay->taps[tap_index];
@@ -190,39 +200,61 @@ static void Delay_pstate_render_mixed(
         tstate->frames_left = nframes;
         const int32_t mix_until = min(delay_frames, nframes);
 
-        for (int32_t i = 0; i < mix_until; ++i)
+        for (int ch = 0; ch < 2; ++ch)
         {
-            out_data[0][buf_start + i] +=
-                delay_data[0][tstate->buf_pos] * tap->scale;
-            out_data[1][buf_start + i] +=
-                delay_data[1][tstate->buf_pos] * tap->scale;
+            float* out = out_data[ch];
+            if (out == NULL)
+                continue;
 
-            ++tstate->buf_pos;
-            if (tstate->buf_pos >= buf_size)
+            const float* delay_buf = delay_data[ch];
+            assert(delay_buf != NULL);
+
+            int32_t tstate_buf_pos = tstate->buf_pos;
+
+            for (int32_t i = 0; i < mix_until; ++i)
             {
-                assert(tstate->buf_pos == buf_size);
-                tstate->buf_pos = 0;
+                out[buf_start + i] += delay_buf[tstate_buf_pos] * tap->scale;
+
+                ++tstate_buf_pos;
+                if (tstate_buf_pos >= buf_size)
+                {
+                    assert(tstate_buf_pos == buf_size);
+                    tstate_buf_pos = 0;
+                }
             }
         }
+
+        tstate->buf_pos = (tstate->buf_pos + mix_until) % buf_size;
 
         tstate->frames_left -= mix_until;
     }
 
-    int32_t new_buf_pos = dlstate->buf_pos;
-
-    for (int32_t i = buf_start; i < buf_stop; ++i)
+    // Update delay buffer contents
+    for (int ch = 0; ch < 2; ++ch)
     {
-        delay_data[0][new_buf_pos] = in_data[0][i];
-        delay_data[1][new_buf_pos] = in_data[1][i];
+        const float* in = in_data[ch];
+        if (in == NULL)
+            continue;
 
-        ++new_buf_pos;
-        if (new_buf_pos >= buf_size)
+        float* delay_buf = delay_data[ch];
+        assert(delay_buf != NULL);
+
+        int32_t new_buf_pos = dlstate->buf_pos;
+
+        for (int32_t i = buf_start; i < buf_stop; ++i)
         {
-            assert(new_buf_pos == buf_size);
-            new_buf_pos = 0;
+            delay_buf[new_buf_pos] = in[i];
+
+            ++new_buf_pos;
+            if (new_buf_pos >= buf_size)
+            {
+                assert(new_buf_pos == buf_size);
+                new_buf_pos = 0;
+            }
         }
     }
 
+    // Add delayed audio from current call
     for (int tap_index = 0; tap_index < DELAY_TAPS_MAX; ++tap_index)
     {
         const Delay_tap* tap = &delay->taps[tap_index];
@@ -231,20 +263,31 @@ static void Delay_pstate_render_mixed(
 
         Tap_state* tstate = &dlstate->tap_states[tap_index];
 
-        for (int32_t i = nframes - tstate->frames_left; i < nframes; ++i)
+        for (int ch = 0; ch < 2; ++ch)
         {
-            out_data[0][buf_start + i] +=
-                delay_data[0][tstate->buf_pos] * tap->scale;
-            out_data[1][buf_start + i] +=
-                delay_data[1][tstate->buf_pos] * tap->scale;
+            float* out = out_data[ch];
+            if (out == NULL)
+                continue;
 
-            ++tstate->buf_pos;
-            if (tstate->buf_pos >= buf_size)
+            const float* delay_buf = delay_data[ch];
+            assert(delay_buf != NULL);
+
+            int32_t tstate_buf_pos = tstate->buf_pos;
+
+            for (int32_t i = nframes - tstate->frames_left; i < nframes; ++i)
             {
-                assert(tstate->buf_pos == buf_size);
-                tstate->buf_pos = 0;
+                out[buf_start + i] += delay_buf[tstate_buf_pos] * tap->scale;
+
+                ++tstate_buf_pos;
+                if (tstate_buf_pos >= buf_size)
+                {
+                    assert(tstate_buf_pos == buf_size);
+                    tstate_buf_pos = 0;
+                }
             }
         }
+
+        tstate->buf_pos = (tstate->buf_pos + tstate->frames_left) % buf_size;
     }
 
     dlstate->buf_pos += nframes;

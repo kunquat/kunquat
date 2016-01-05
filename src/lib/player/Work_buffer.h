@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 #define K_WORK_BUFFER_H
 
 
+#include <decl.h>
 #include <kunquat/limits.h>
 
 #include <stdbool.h>
@@ -27,12 +28,6 @@
 
 
 /**
- * A buffer of float values for devices to use as temporary storage.
- */
-typedef struct Work_buffer Work_buffer;
-
-
-/**
  * Create a new Work buffer.
  *
  * \param size   The buffer size -- must be >= \c 0 and
@@ -41,7 +36,7 @@ typedef struct Work_buffer Work_buffer;
  * \return   The new Work buffer if successful, or \c NULL if memory allocation
  *           failed.
  */
-Work_buffer* new_Work_buffer(uint32_t size);
+Work_buffer* new_Work_buffer(int32_t size);
 
 
 /**
@@ -53,7 +48,19 @@ Work_buffer* new_Work_buffer(uint32_t size);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Work_buffer_resize(Work_buffer* buffer, uint32_t new_size);
+bool Work_buffer_resize(Work_buffer* buffer, int32_t new_size);
+
+
+/**
+ * Clear the Work buffer with floating-point zeroes.
+ *
+ * \param buffer      The Work buffer -- must not be \c NULL.
+ * \param buf_start   The start index of the area to be cleared -- must be
+ *                    >= \c -1 and less than or equal to the buffer size.
+ * \param buf_stop    The stop index of the area to be cleared -- must be
+ *                    >= \c -1 and less than or equal to buffer size + \c 1.
+ */
+void Work_buffer_clear(Work_buffer* buffer, int32_t buf_start, int32_t buf_stop);
 
 
 /**
@@ -63,7 +70,7 @@ bool Work_buffer_resize(Work_buffer* buffer, uint32_t new_size);
  *
  * \return   The size of the buffer.
  */
-uint32_t Work_buffer_get_size(const Work_buffer* buffer);
+int32_t Work_buffer_get_size(const Work_buffer* buffer);
 
 
 /**
@@ -105,16 +112,39 @@ int32_t* Work_buffer_get_contents_int_mut(const Work_buffer* buffer);
 /**
  * Copy contents of the Work buffer into another.
  *
- * \param dest    The destination Work buffer -- must not be \c NULL.
- * \param src     The source Work buffer -- must not be \c NULL or \a dest.
- * \param start   Start index of copying -- must not exceed buffer length.
- * \param stop    Stop index of copying -- must not exceed buffer length.
+ * \param dest        The destination Work buffer -- must not be \c NULL.
+ * \param src         The source Work buffer -- must not be \c NULL or \a dest.
+ * \param buf_start   The start index of the area to be copied -- must be
+ *                    >= \c -1 and less than or equal to the buffer size.
+ * \param buf_stop    The stop index of the area to be copied -- must be
+ *                    >= \c -1 and less than or equal to buffer size + \c 1.
  */
 void Work_buffer_copy(
         const Work_buffer* restrict dest,
         const Work_buffer* restrict src,
-        uint32_t start,
-        uint32_t stop);
+        int32_t buf_start,
+        int32_t buf_stop);
+
+
+/**
+ * Mix the contents of a Work buffer into another as floating-point data.
+ *
+ * If the two buffers are the same Work buffer, this function does nothing.
+ *
+ * \param buffer      The Work buffer that will contain the end result -- must
+ *                    not be \c NULL.
+ * \param in          The input Work buffer -- must not be \c NULL and must
+ *                    have the same size as \a buffer.
+ * \param buf_start   The start index of the area to be mixed -- must be
+ *                    >= \c -1 and less than or equal to the buffer size.
+ * \param buf_stop    The stop index of the area to be mixed -- must be
+ *                    >= \c -1 and less than or equal to buffer size + \c 1.
+ */
+void Work_buffer_mix(
+        Work_buffer* buffer,
+        const Work_buffer* in,
+        int32_t buf_start,
+        int32_t buf_stop);
 
 
 /**

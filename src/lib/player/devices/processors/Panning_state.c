@@ -25,6 +25,60 @@
 #include <stdlib.h>
 
 
+static const int CONTROL_WB_PANNING = WORK_BUFFER_IMPL_1;
+
+
+static void apply_panning(
+        const Work_buffers* wbs,
+        const float* in_buffers[2],
+        float* out_buffers[2],
+        int32_t buf_start,
+        int32_t buf_stop,
+        int32_t audio_rate)
+{
+    assert(wbs != NULL);
+    assert(in_buffers != NULL);
+    assert(out_buffers != NULL);
+    assert(buf_start >= 0);
+    assert(buf_stop >= 0);
+    assert(audio_rate > 0);
+
+    float* pannings = Work_buffers_get_buffer_contents_mut(wbs, CONTROL_WB_PANNING);
+
+    // Clamp the input values
+    for (int32_t i = buf_start; i < buf_stop; ++i)
+    {
+        float panning = pannings[i];
+        panning = clamp(panning, -1, 1);
+        pannings[i] = panning;
+    }
+
+    // Apply panning
+    // TODO: revisit panning formula
+    {
+        const float* in_buf = in_buffers[0];
+        float* out_buf = out_buffers[0];
+        if ((in_buf != NULL) && (out_buf != NULL))
+        {
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+                out_buf[i] = in_buf[i] * (1 - pannings[i]);
+        }
+    }
+
+    {
+        const float* in_buf = in_buffers[1];
+        float* out_buf = out_buffers[1];
+        if ((in_buf != NULL) && (out_buf != NULL))
+        {
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+                out_buf[i] = in_buf[i] * (1 + pannings[i]);
+        }
+    }
+
+    return;
+}
+
+
 typedef struct Panning_pstate
 {
     Proc_state parent;
@@ -71,59 +125,6 @@ static void Panning_pstate_reset(Device_state* dstate)
 }
 
 
-static const int CONTROL_WB_PANNING = WORK_BUFFER_IMPL_1;
-
-
-static void apply_panning(
-        const Work_buffers* wbs,
-        Audio_buffer* in_buffer,
-        Audio_buffer* out_buffer,
-        int32_t buf_start,
-        int32_t buf_stop,
-        int32_t audio_rate)
-{
-    assert(wbs != NULL);
-    assert(in_buffer != NULL);
-    assert(out_buffer != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
-    assert(audio_rate > 0);
-
-    float* pannings = Work_buffers_get_buffer_contents_mut(wbs, CONTROL_WB_PANNING);
-
-    // Clamp the input values
-    for (int32_t i = buf_start; i < buf_stop; ++i)
-    {
-        float panning = pannings[i];
-        panning = clamp(panning, -1, 1);
-        pannings[i] = panning;
-    }
-
-    const float* in_bufs[] =
-    {
-        Audio_buffer_get_buffer(in_buffer, 0),
-        Audio_buffer_get_buffer(in_buffer, 1),
-    };
-
-    float* out_bufs[] =
-    {
-        Audio_buffer_get_buffer(out_buffer, 0),
-        Audio_buffer_get_buffer(out_buffer, 1),
-    };
-
-    // Apply panning
-    // TODO: revisit panning formula
-    for (int32_t i = buf_start; i < buf_stop; ++i)
-    {
-        const float panning = pannings[i];
-        out_bufs[0][i] = in_bufs[0][i] * (1 - panning);
-        out_bufs[1][i] = in_bufs[1][i] * (1 + panning);
-    }
-
-    return;
-}
-
-
 static void Panning_pstate_render_mixed(
         Device_state* dstate,
         const Work_buffers* wbs,
@@ -145,17 +146,20 @@ static void Panning_pstate_render_mixed(
     Linear_controls_fill_work_buffer(&ppstate->panning, panning_wb, buf_start, buf_stop);
 
     // Get input
-    Audio_buffer* in_buffer =
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
-    if (in_buffer == NULL)
-        return;
+    const float* in_buffers[] =
+    {
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 0),
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 1),
+    };
 
     // Get output
-    Audio_buffer* out_buffer =
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, 0);
-    assert(out_buffer != NULL);
+    float* out_buffers[] =
+    {
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 0),
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 1),
+    };
 
-    apply_panning(wbs, in_buffer, out_buffer, buf_start, buf_stop, dstate->audio_rate);
+    apply_panning(wbs, in_buffers, out_buffers, buf_start, buf_stop, dstate->audio_rate);
 
     return;
 }
@@ -255,21 +259,28 @@ int32_t Panning_vstate_render_voice(
     Linear_controls_fill_work_buffer(&pvstate->panning, panning_wb, buf_start, buf_stop);
 
     // Get input
-    Audio_buffer* in_buffer =
-        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
-    if (in_buffer == NULL)
+    const float* in_buffers[] =
+    {
+        Proc_state_get_voice_buffer_contents_mut(
+                proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
+        Proc_state_get_voice_buffer_contents_mut(
+                proc_state, DEVICE_PORT_TYPE_RECEIVE, 1),
+    };
+    if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
     {
         vstate->active = false;
         return buf_start;
     }
 
     // Get output
-    Audio_buffer* out_buffer =
-        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0);
-    assert(out_buffer != NULL);
+    float* out_buffers[] =
+    {
+        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0),
+        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 1),
+    };
 
     const Device_state* dstate = (const Device_state*)proc_state;
-    apply_panning(wbs, in_buffer, out_buffer, buf_start, buf_stop, dstate->audio_rate);
+    apply_panning(wbs, in_buffers, out_buffers, buf_start, buf_stop, dstate->audio_rate);
 
     // Mark state as started, TODO: fix this mess
     vstate->pos = 1;

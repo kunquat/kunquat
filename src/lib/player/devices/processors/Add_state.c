@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -79,15 +79,10 @@ static int32_t Add_vstate_render_voice(
             Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE));
 
     // Get output buffer for writing
-    Audio_buffer* out_buffer = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_SEND, 0);
-    assert(out_buffer != NULL);
-    Audio_buffer_clear(out_buffer, buf_start, buf_stop);
-
-    float* out_values[] =
+    float* out_bufs[] =
     {
-        Audio_buffer_get_buffer(out_buffer, 0),
-        Audio_buffer_get_buffer(out_buffer, 1),
+        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0),
+        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 1),
     };
 
     // Get phase modulation signal
@@ -100,37 +95,26 @@ static int32_t Add_vstate_render_voice(
         Work_buffers_get_buffer_contents_mut(wbs, ADD_WORK_BUFFER_MOD_R),
     };
 
-    Audio_buffer* mod_buffer = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
-
-    if (mod_buffer != NULL)
     {
-        // Copy from the input voice buffer
+        // Copy from the input voice buffers if available
         // XXX: not sure if the best way to handle this...
-        const float* mod_in_values[] =
-        {
-            Audio_buffer_get_buffer(mod_buffer, 0),
-            Audio_buffer_get_buffer(mod_buffer, 1),
-        };
-
         for (int ch = 0; ch < 2; ++ch)
         {
-            const float* mod_in_values_ch = mod_in_values[ch];
-            float* mod_values_ch = mod_values[ch];
+            const float* mod_in_values = Proc_state_get_voice_buffer_contents_mut(
+                    proc_state, DEVICE_PORT_TYPE_RECEIVE, ch);
 
-            for (int32_t i = buf_start; i < buf_stop; ++i)
-                mod_values_ch[i] = mod_in_values_ch[i];
-        }
-    }
-    else
-    {
-        // Fill with zeroes if no modulation signal
-        for (int ch = 0; ch < 2; ++ch)
-        {
-            float* mod_values_ch = mod_values[ch];
-
-            for (int32_t i = buf_start; i < buf_stop; ++i)
-                mod_values_ch[i] = 0;
+            if (mod_in_values != NULL)
+            {
+                float* mod_values_ch = mod_values[ch];
+                for (int32_t i = buf_start; i < buf_stop; ++i)
+                    mod_values_ch[i] = mod_in_values[i];
+            }
+            else
+            {
+                float* mod_values_ch = mod_values[ch];
+                for (int32_t i = buf_start; i < buf_stop; ++i)
+                    mod_values_ch[i] = 0;
+            }
         }
     }
 
@@ -160,11 +144,14 @@ static int32_t Add_vstate_render_voice(
 
         for (int32_t ch = 0; ch < 2; ++ch)
         {
+            float* out_buf_ch = out_bufs[ch];
+            if (out_buf_ch == NULL)
+                continue;
+
             const double panning_factor = 1 + pannings[ch];
             const float* mod_values_ch = mod_values[ch];
 
             double phase = tone_state->phase[ch];
-            float* out_values_ch = out_values[ch];
 
             for (int32_t i = buf_start; i < buf_stop; ++i)
             {
@@ -186,7 +173,7 @@ static int32_t Add_vstate_render_voice(
                 const double value =
                     (item1 + (lerp_val * item_diff)) * volume_factor * panning_factor;
 
-                out_values_ch[i] += value;
+                out_buf_ch[i] += value;
 
                 phase += actual_pitch * pitch_factor_inv_audio_rate;
 
@@ -201,17 +188,21 @@ static int32_t Add_vstate_render_voice(
     }
 
     // Apply actual force
-    for (int32_t i = buf_start; i < buf_stop; ++i)
+    for (int ch = 0; ch < 2; ++ch)
     {
-        const float actual_force = Cond_work_buffer_get_value(
-                actual_forces, i);
-        out_values[0][i] *= actual_force;
-        out_values[1][i] *= actual_force;
+        if (out_bufs[ch] == NULL)
+            continue;
+
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+        {
+            const float actual_force = Cond_work_buffer_get_value(actual_forces, i);
+            out_bufs[ch][i] *= actual_force;
+        }
     }
 
     if (add->is_ramp_attack_enabled)
         Proc_ramp_attack(
-                proc, vstate, out_buffer, 2, dstate->audio_rate, buf_start, buf_stop);
+                vstate, 2, out_bufs, buf_start, buf_stop, dstate->audio_rate);
 
     vstate->pos = 1; // XXX: hackish
 

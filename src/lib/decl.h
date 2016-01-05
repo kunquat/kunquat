@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -34,6 +34,8 @@ typedef struct Sample_params Sample_params;
 typedef struct Tstamp Tstamp;
 typedef struct Value Value;
 typedef struct Voice_state Voice_state;
+typedef struct Work_buffer Work_buffer;
+typedef struct Work_buffers Work_buffers;
 
 
 #endif // K_DECL_H

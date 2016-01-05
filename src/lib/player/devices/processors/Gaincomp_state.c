@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -29,8 +29,8 @@
 
 static void distort(
         const Proc_gaincomp* gc,
-        Audio_buffer* in_buffer,
-        Audio_buffer* out_buffer,
+        Work_buffer* in_buffer,
+        Work_buffer* out_buffer,
         int32_t buf_start,
         int32_t buf_stop)
 {
@@ -42,27 +42,24 @@ static void distort(
 
     if (gc->is_map_enabled && (gc->map != NULL))
     {
-        for (int ch = 0; ch < 2; ++ch)
+        const float* in_values = Work_buffer_get_contents(in_buffer);
+        float* out_values = Work_buffer_get_contents_mut(out_buffer);
+
+        for (int32_t i = buf_start; i < buf_stop; ++i)
         {
-            const float* in_values = Audio_buffer_get_buffer(in_buffer, ch);
-            float* out_values = Audio_buffer_get_buffer(out_buffer, ch);
+            const float in_value = in_values[i];
+            const float abs_value = fabs(in_value);
 
-            for (int32_t i = buf_start; i < buf_stop; ++i)
-            {
-                const float in_value = in_values[i];
-                const float abs_value = fabs(in_value);
+            float out_value = Envelope_get_value(gc->map, min(abs_value, 1));
+            if (in_value < 0)
+                out_value = -out_value;
 
-                float out_value = Envelope_get_value(gc->map, min(abs_value, 1));
-                if (in_value < 0)
-                    out_value = -out_value;
-
-                out_values[i] = out_value;
-            }
+            out_values[i] = out_value;
         }
     }
     else
     {
-        Audio_buffer_copy(out_buffer, in_buffer, buf_start, buf_stop);
+        Work_buffer_copy(out_buffer, in_buffer, buf_start, buf_stop);
     }
 
     return;
@@ -82,19 +79,26 @@ static void Gaincomp_pstate_render_mixed(
     assert(tempo > 0);
 
     // Get input
-    Audio_buffer* in_buffer =
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
-    if (in_buffer == NULL)
-        return;
+    Work_buffer* in_buffers[] =
+    {
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 0),
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 1),
+    };
 
     // Get output
-    Audio_buffer* out_buffer =
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, 0);
-    assert(out_buffer != NULL);
+    Work_buffer* out_buffers[] =
+    {
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, 0),
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, 1),
+    };
 
     // Distort the signal
     const Proc_gaincomp* gc = (const Proc_gaincomp*)dstate->device->dimpl;
-    distort(gc, in_buffer, out_buffer, buf_start, buf_stop);
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        if ((in_buffers[ch] != NULL) && (out_buffers[ch] != NULL))
+            distort(gc, in_buffers[ch], out_buffers[ch], buf_start, buf_stop);
+    }
 
     return;
 }
@@ -137,22 +141,31 @@ static int32_t Gaincomp_vstate_render_voice(
     assert(tempo > 0);
 
     // Get input
-    Audio_buffer* in_buffer = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
-    if (in_buffer == NULL)
+    Work_buffer* in_buffers[] =
+    {
+        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
+        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 1),
+    };
+    if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
     {
         vstate->active = false;
         return buf_start;
     }
 
     // Get output
-    Audio_buffer* out_buffer = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_SEND, 0);
-    assert(out_buffer != NULL);
+    Work_buffer* out_buffers[] =
+    {
+        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0),
+        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_SEND, 1),
+    };
 
     // Distort the signal
     const Proc_gaincomp* gc = (const Proc_gaincomp*)proc_state->parent.device->dimpl;
-    distort(gc, in_buffer, out_buffer, buf_start, buf_stop);
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        if ((in_buffers[ch] != NULL) && (out_buffers[ch] != NULL))
+            distort(gc, in_buffers[ch], out_buffers[ch], buf_start, buf_stop);
+    }
 
     // Mark state as started, TODO: fix this mess
     vstate->pos = 1;

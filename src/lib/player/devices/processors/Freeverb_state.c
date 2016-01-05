@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -58,10 +58,8 @@ typedef struct Freeverb_pstate
     double active_reflect;
     double active_damp;
 
-    Freeverb_comb* comb_left[FREEVERB_COMBS];
-    Freeverb_comb* comb_right[FREEVERB_COMBS];
-    Freeverb_allpass* allpass_left[FREEVERB_ALLPASSES];
-    Freeverb_allpass* allpass_right[FREEVERB_ALLPASSES];
+    Freeverb_comb* combs[2][FREEVERB_COMBS];
+    Freeverb_allpass* allpasses[2][FREEVERB_ALLPASSES];
 } Freeverb_pstate;
 
 
@@ -71,15 +69,13 @@ static void Freeverb_pstate_deinit(Device_state* dev_state)
 
     Freeverb_pstate* fstate = (Freeverb_pstate*)dev_state;
 
-    for (int i = 0; i < FREEVERB_COMBS; ++i)
+    for (int ch = 0; ch < 2; ++ch)
     {
-        del_Freeverb_comb(fstate->comb_left[i]);
-        del_Freeverb_comb(fstate->comb_right[i]);
-    }
-    for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
-    {
-        del_Freeverb_allpass(fstate->allpass_left[i]);
-        del_Freeverb_allpass(fstate->allpass_right[i]);
+        for (int i = 0; i < FREEVERB_COMBS; ++i)
+            del_Freeverb_comb(fstate->combs[ch][i]);
+
+        for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
+            del_Freeverb_allpass(fstate->allpasses[ch][i]);
     }
 
     Proc_state_deinit(&fstate->parent.parent);
@@ -95,37 +91,23 @@ static void Freeverb_pstate_reset(Device_state* dstate)
     Freeverb_pstate* fstate = (Freeverb_pstate*)dstate;
     const Proc_freeverb* freeverb = (const Proc_freeverb*)dstate->device->dimpl;
 
-    for (int i = 0; i < FREEVERB_COMBS; ++i)
-    {
-        Freeverb_comb_clear(fstate->comb_left[i]);
-        Freeverb_comb_clear(fstate->comb_right[i]);
-    }
-
-    for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
-    {
-        Freeverb_allpass_clear(fstate->allpass_left[i]);
-        Freeverb_allpass_clear(fstate->allpass_right[i]);
-    }
-
     fstate->active_reflect = freeverb->reflect1;
     fstate->active_damp = freeverb->damp1;
 
-    for (int i = 0; i < FREEVERB_COMBS; ++i)
+    for (int ch = 0; ch < 2; ++ch)
     {
-        assert(fstate->comb_left[i] != NULL);
-        assert(fstate->comb_right[i] != NULL);
-        Freeverb_comb_set_feedback(fstate->comb_left[i], fstate->active_reflect);
-        Freeverb_comb_set_feedback(fstate->comb_right[i], fstate->active_reflect);
-        Freeverb_comb_set_damp(fstate->comb_left[i], fstate->active_damp);
-        Freeverb_comb_set_damp(fstate->comb_right[i], fstate->active_damp);
-    }
+        for (int i = 0; i < FREEVERB_COMBS; ++i)
+        {
+            Freeverb_comb_clear(fstate->combs[ch][i]);
+            Freeverb_comb_set_feedback(fstate->combs[ch][i], fstate->active_reflect);
+            Freeverb_comb_set_damp(fstate->combs[ch][i], fstate->active_damp);
+        }
 
-    for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
-    {
-        assert(fstate->allpass_left[i] != NULL);
-        assert(fstate->allpass_right[i] != NULL);
-        Freeverb_allpass_set_feedback(fstate->allpass_left[i], 0.5);
-        Freeverb_allpass_set_feedback(fstate->allpass_right[i], 0.5);
+        for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
+        {
+            Freeverb_allpass_clear(fstate->allpasses[ch][i]);
+            Freeverb_allpass_set_feedback(fstate->allpasses[ch][i], 0.5);
+        }
     }
 
     return;
@@ -143,13 +125,13 @@ static bool Freeverb_pstate_set_audio_rate(Device_state* dstate, int32_t audio_r
     {
         const uint32_t left_size = max(1, comb_tuning[i] * audio_rate);
 
-        if (!Freeverb_comb_resize_buffer(fstate->comb_left[i], left_size))
+        if (!Freeverb_comb_resize_buffer(fstate->combs[0][i], left_size))
             return false;
 
         const uint32_t right_size =
             max(1, (comb_tuning[i] + stereo_spread) * audio_rate);
 
-        if (!Freeverb_comb_resize_buffer(fstate->comb_right[i], right_size))
+        if (!Freeverb_comb_resize_buffer(fstate->combs[1][i], right_size))
             return false;
     }
 
@@ -157,13 +139,13 @@ static bool Freeverb_pstate_set_audio_rate(Device_state* dstate, int32_t audio_r
     {
         const uint32_t left_size = max(1, allpass_tuning[i] * audio_rate);
 
-        if (!Freeverb_allpass_resize_buffer(fstate->allpass_left[i], left_size))
+        if (!Freeverb_allpass_resize_buffer(fstate->allpasses[0][i], left_size))
             return false;
 
         const uint32_t right_size = max(
                 1, (allpass_tuning[i] + stereo_spread) * audio_rate);
 
-        if (!Freeverb_allpass_resize_buffer(fstate->allpass_right[i], right_size))
+        if (!Freeverb_allpass_resize_buffer(fstate->allpasses[1][i], right_size))
             return false;
     }
 
@@ -199,20 +181,27 @@ static void Freeverb_pstate_render_mixed(
 
     Proc_freeverb* freeverb = (Proc_freeverb*)dstate->device->dimpl;
 
-    float* in_data[] = { NULL, NULL };
-    float* out_data[] = { NULL, NULL };
-    get_raw_input(&fstate->parent.parent, 0, in_data);
-    get_raw_output(&fstate->parent.parent, 0, out_data);
+    Work_buffer* in_wbs[] =
+    {
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 0),
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 0),
+    };
+
+    Work_buffer* out_wbs[] =
+    {
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, 0),
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, 1),
+    };
 
     if (fstate->active_reflect != freeverb->reflect1)
     {
         // Update reflectivity settings
         fstate->active_reflect = freeverb->reflect1;
 
-        for (int i = 0; i < FREEVERB_COMBS; ++i)
+        for (int ch = 0; ch < 2; ++ch)
         {
-            Freeverb_comb_set_feedback(fstate->comb_left[i], fstate->active_reflect);
-            Freeverb_comb_set_feedback(fstate->comb_right[i], fstate->active_reflect);
+            for (int i = 0; i < FREEVERB_COMBS; ++i)
+                Freeverb_comb_set_feedback(fstate->combs[ch][i], fstate->active_reflect);
         }
     }
 
@@ -221,35 +210,75 @@ static void Freeverb_pstate_render_mixed(
         // Update damp settings
         fstate->active_damp = freeverb->damp1;
 
-        for (int i = 0; i < FREEVERB_COMBS; ++i)
+        for (int ch = 0; ch < 2; ++ch)
         {
-            Freeverb_comb_set_damp(fstate->comb_left[i], fstate->active_damp);
-            Freeverb_comb_set_damp(fstate->comb_right[i], fstate->active_damp);
+            for (int i = 0; i < FREEVERB_COMBS; ++i)
+                Freeverb_comb_set_damp(fstate->combs[ch][i], fstate->active_damp);
         }
     }
 
+    // TODO: figure out a cleaner way of dealing with the buffers
+    static const int WB_FREEVERB_LEFT = WORK_BUFFER_IMPL_1;
+    static const int WB_FREEVERB_RIGHT = WORK_BUFFER_IMPL_2;
+
+    Work_buffer* workspace[] =
+    {
+        Work_buffers_get_buffer_mut(wbs, WB_FREEVERB_LEFT),
+        Work_buffers_get_buffer_mut(wbs, WB_FREEVERB_RIGHT),
+    };
+
+    // Get input data
+    if ((in_wbs[0] != NULL) && (in_wbs[1] != NULL))
+    {
+        Work_buffer_copy(workspace[0], in_wbs[0], buf_start, buf_stop);
+        Work_buffer_copy(workspace[1], in_wbs[1], buf_start, buf_stop);
+    }
+    else if ((in_wbs[0] == NULL) != (in_wbs[1] == NULL))
+    {
+        const Work_buffer* existing = (in_wbs[0] != NULL) ? in_wbs[0] : in_wbs[1];
+        Work_buffer_copy(workspace[0], existing, buf_start, buf_stop);
+        Work_buffer_copy(workspace[1], existing, buf_start, buf_stop);
+    }
+    else
+    {
+        Work_buffer_clear(workspace[0], buf_start, buf_stop);
+        Work_buffer_clear(workspace[1], buf_start, buf_stop);
+    }
+
+    float* ws[] =
+    {
+        Work_buffer_get_contents_mut(workspace[0]),
+        Work_buffer_get_contents_mut(workspace[1]),
+    };
+
+    // Apply reverb
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
         float out_l = 0;
         float out_r = 0;
-        const float input = (in_data[0][i] + in_data[1][i]) * freeverb->gain;
+        const float input = (ws[0][i] + ws[1][i]) * freeverb->gain;
 
         for (int comb = 0; comb < FREEVERB_COMBS; ++comb)
         {
-            out_l += Freeverb_comb_process(fstate->comb_left[comb], input);
-            out_r += Freeverb_comb_process(fstate->comb_right[comb], input);
+            out_l += Freeverb_comb_process(fstate->combs[0][comb], input);
+            out_r += Freeverb_comb_process(fstate->combs[1][comb], input);
         }
 
         for (int allpass = 0; allpass < FREEVERB_ALLPASSES; ++allpass)
         {
-            out_l = Freeverb_allpass_process(
-                    fstate->allpass_left[allpass], out_l);
-            out_r = Freeverb_allpass_process(
-                    fstate->allpass_right[allpass], out_r);
+            out_l = Freeverb_allpass_process(fstate->allpasses[0][allpass], out_l);
+            out_r = Freeverb_allpass_process(fstate->allpasses[1][allpass], out_r);
         }
 
-        out_data[0][i] += out_l * freeverb->wet1 + out_r * freeverb->wet2;
-        out_data[1][i] += out_r * freeverb->wet1 + out_l * freeverb->wet2;
+        ws[0][i] = out_l * freeverb->wet1 + out_r * freeverb->wet2;
+        ws[1][i] = out_r * freeverb->wet1 + out_l * freeverb->wet2;
+    }
+
+    // Copy results to outputs that exist
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        if (out_wbs[ch] != NULL)
+            Work_buffer_copy(out_wbs[ch], workspace[ch], buf_start, buf_stop);
     }
 
     return;
@@ -284,23 +313,21 @@ Device_state* new_Freeverb_pstate(
     fstate->active_reflect = freeverb->reflect_setting;
     fstate->active_damp = freeverb->damp_setting;
 
-    for (int i = 0; i < FREEVERB_COMBS; ++i)
+    for (int ch = 0; ch < 2; ++ch)
     {
-        fstate->comb_left[i] = NULL;
-        fstate->comb_right[i] = NULL;
-    }
-    for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
-    {
-        fstate->allpass_left[i] = NULL;
-        fstate->allpass_right[i] = NULL;
+        for (int i = 0; i < FREEVERB_COMBS; ++i)
+            fstate->combs[ch][i] = NULL;
+
+        for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
+            fstate->allpasses[ch][i] = NULL;
     }
 
     for (int i = 0; i < FREEVERB_COMBS; ++i)
     {
         const uint32_t left_size = max(1, comb_tuning[i] * audio_rate);
 
-        fstate->comb_left[i] = new_Freeverb_comb(left_size);
-        if (fstate->comb_left[i] == NULL)
+        fstate->combs[0][i] = new_Freeverb_comb(left_size);
+        if (fstate->combs[0][i] == NULL)
         {
             del_Device_state(&fstate->parent.parent);
             return NULL;
@@ -309,8 +336,8 @@ Device_state* new_Freeverb_pstate(
         const uint32_t right_size = max(
                 1, (comb_tuning[i] + stereo_spread) * audio_rate);
 
-        fstate->comb_right[i] = new_Freeverb_comb(right_size);
-        if (fstate->comb_right[i] == NULL)
+        fstate->combs[1][i] = new_Freeverb_comb(right_size);
+        if (fstate->combs[1][i] == NULL)
         {
             del_Device_state(&fstate->parent.parent);
             return NULL;
@@ -321,10 +348,10 @@ Device_state* new_Freeverb_pstate(
     {
         const uint32_t left_size = max(1, allpass_tuning[i] * audio_rate);
 
-        if (fstate->allpass_left[i] == NULL)
+        if (fstate->allpasses[0][i] == NULL)
         {
-            fstate->allpass_left[i] = new_Freeverb_allpass(left_size);
-            if (fstate->allpass_left[i] == NULL)
+            fstate->allpasses[0][i] = new_Freeverb_allpass(left_size);
+            if (fstate->allpasses[0][i] == NULL)
             {
                 del_Device_state(&fstate->parent.parent);
                 return NULL;
@@ -334,10 +361,10 @@ Device_state* new_Freeverb_pstate(
         const uint32_t right_size = max(
                 1, (allpass_tuning[i] + stereo_spread) * audio_rate);
 
-        if (fstate->allpass_right[i] == NULL)
+        if (fstate->allpasses[1][i] == NULL)
         {
-            fstate->allpass_right[i] = new_Freeverb_allpass(right_size);
-            if (fstate->allpass_right[i] == NULL)
+            fstate->allpasses[1][i] = new_Freeverb_allpass(right_size);
+            if (fstate->allpasses[1][i] == NULL)
             {
                 del_Device_state(&fstate->parent.parent);
                 return NULL;

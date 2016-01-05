@@ -115,19 +115,35 @@ static void Volume_pstate_render_mixed(
             wbs, CONTROL_WORK_BUFFER_VOLUME);
     Linear_controls_fill_work_buffer(
             &vol_state->volume, control_wb, buf_start, buf_stop);
-    const float* control_values = Work_buffer_get_contents(control_wb);
+    float* control_values = Work_buffer_get_contents_mut(control_wb);
 
-    // Get port buffers
-    float* in_data[] = { NULL, NULL };
-    float* out_data[] = { NULL, NULL };
-    get_raw_input(&vol_state->parent.parent, 0, in_data);
-    get_raw_output(&vol_state->parent.parent, 0, out_data);
-
-    for (int32_t frame = buf_start; frame < buf_stop; ++frame)
+    // Get input
+    const float* in_buffers[] =
     {
-        const float scale = dB_to_scale(control_values[frame]);
-        out_data[0][frame] = in_data[0][frame] * scale;
-        out_data[1][frame] = in_data[1][frame] * scale;
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 0),
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 1),
+    };
+
+    // Get output
+    float* out_buffers[] =
+    {
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 0),
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 1),
+    };
+
+    // Convert real-time control values
+    for (int32_t i = buf_start; i < buf_stop; ++i)
+        control_values[i] = dB_to_scale(control_values[i]);
+
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        const float* in = in_buffers[ch];
+        float* out = out_buffers[ch];
+        if ((in == NULL) || (out == NULL))
+            continue;
+
+        for (int32_t frame = buf_start; frame < buf_stop; ++frame)
+            out[frame] = in[frame] * control_values[frame];
     }
 
     return;
@@ -220,17 +236,26 @@ int32_t Volume_vstate_render_voice(
             &vol_vstate->volume, control_wb, buf_start, buf_stop);
     float* control_values = Work_buffer_get_contents_mut(control_wb);
 
-    // Get buffers
-    Audio_buffer* in_buffer = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Audio_buffer* out_buffer = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_SEND, 0);
-    if (in_buffer == NULL)
+    // Get input
+    const float* in_buffers[] =
+    {
+        Proc_state_get_voice_buffer_contents_mut(
+                proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
+        Proc_state_get_voice_buffer_contents_mut(
+                proc_state, DEVICE_PORT_TYPE_RECEIVE, 1),
+    };
+    if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
     {
         vstate->active = false;
         return buf_start;
     }
-    assert(out_buffer != NULL);
+
+    // Get output
+    float* out_buffers[] =
+    {
+        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0),
+        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 1),
+    };
 
     // Convert real-time control values
     for (int32_t i = buf_start; i < buf_stop; ++i)
@@ -239,8 +264,10 @@ int32_t Volume_vstate_render_voice(
     // Scale
     for (int ch = 0; ch < 2; ++ch)
     {
-        const float* in_values = Audio_buffer_get_buffer(in_buffer, ch);
-        float* out_values = Audio_buffer_get_buffer(out_buffer, ch);
+        const float* in = in_buffers[ch];
+        float* out = out_buffers[ch];
+        if ((in == NULL) || (out == NULL))
+            continue;
 
         const float scale = vol->scale;
 
@@ -250,13 +277,12 @@ int32_t Volume_vstate_render_voice(
                     wbs, WORK_BUFFER_ACTUAL_FORCES);
 
             for (int32_t i = buf_start; i < buf_stop; ++i)
-                out_values[i] =
-                    in_values[i] * scale * actual_forces[i] * control_values[i];
+                out[i] = in[i] * scale * actual_forces[i] * control_values[i];
         }
         else
         {
             for (int32_t i = buf_start; i < buf_stop; ++i)
-                out_values[i] = in_values[i] * scale * control_values[i];
+                out[i] = in[i] * scale * control_values[i];
         }
     }
 

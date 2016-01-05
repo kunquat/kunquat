@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -38,7 +38,7 @@ struct Player
 
     int32_t audio_rate;
     int32_t audio_buffer_size;
-    float*  audio_buffers[2];
+    float*  audio_buffers[KQT_BUFFERS_MAX];
     int32_t audio_frames_available;
 
     Device_states* device_states;

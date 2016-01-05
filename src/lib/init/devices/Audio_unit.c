@@ -202,8 +202,11 @@ Audio_unit* new_Audio_unit(void)
         Device_set_port_existence(
                 &au->in_iface->parent, DEVICE_PORT_TYPE_SEND, port, true);
     }
-    Device_set_port_existence(
-            &au->out_iface->parent, DEVICE_PORT_TYPE_RECEIVE, 0, true);
+    for (int port = 0; port < KQT_BUFFERS_MAX; ++port)
+    {
+        Device_set_port_existence(
+                &au->out_iface->parent, DEVICE_PORT_TYPE_RECEIVE, port, true);
+    }
 
 //    au->default_force = AU_DEFAULT_FORCE;
     au->params.force_variation = AU_DEFAULT_FORCE_VAR;

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 #include <init/devices/Device.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/Work_buffer.h>
 
 #include <math.h>
 #include <stdbool.h>
@@ -154,8 +155,8 @@ bool Device_state_set_audio_buffer_size(Device_state* ds, int32_t size)
         for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
                 type < DEVICE_PORT_TYPES; ++type)
         {
-            Audio_buffer* buffer = ds->buffers[type][port];
-            if ((buffer != NULL) && !Audio_buffer_resize(buffer, size))
+            Work_buffer* buffer = ds->buffers[type][port];
+            if ((buffer != NULL) && !Work_buffer_resize(buffer, size))
                 return false;
         }
     }
@@ -187,7 +188,7 @@ bool Device_state_add_audio_buffer(Device_state* ds, Device_port_type type, int 
     if (ds->buffers[type][port] != NULL)
         return true;
 
-    ds->buffers[type][port] = new_Audio_buffer(ds->audio_buffer_size);
+    ds->buffers[type][port] = new_Work_buffer(ds->audio_buffer_size);
     if (ds->buffers[type][port] == NULL)
         return false;
 
@@ -207,23 +208,41 @@ void Device_state_clear_audio_buffers(Device_state* ds, uint32_t start, uint32_t
         for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
                 type < DEVICE_PORT_TYPES; ++type)
         {
-            Audio_buffer* buffer = ds->buffers[type][port];
+            Work_buffer* buffer = ds->buffers[type][port];
             if (buffer != NULL)
-                Audio_buffer_clear(buffer, start, stop);
+                Work_buffer_clear(buffer, start, stop);
         }
     }
+
+    return;
 }
 
 
-Audio_buffer* Device_state_get_audio_buffer(
+Work_buffer* Device_state_get_audio_buffer(
         const Device_state* ds, Device_port_type type, int port)
 {
     assert(ds != NULL);
-    assert(type == DEVICE_PORT_TYPE_RECEIVE || type == DEVICE_PORT_TYPE_SEND);
+    assert(type < DEVICE_PORT_TYPES);
     assert(port >= 0);
     assert(port < KQT_DEVICE_PORTS_MAX);
 
     return ds->buffers[type][port];
+}
+
+
+float* Device_state_get_audio_buffer_contents_mut(
+        const Device_state* ds, Device_port_type type, int port)
+{
+    assert(ds != NULL);
+    assert(type < DEVICE_PORT_TYPES);
+    assert(port >= 0);
+    assert(port < KQT_DEVICE_PORTS_MAX);
+
+    Work_buffer* wb = Device_state_get_audio_buffer(ds, type, port);
+    if (wb == NULL)
+        return NULL;
+
+    return Work_buffer_get_contents_mut(wb);
 }
 
 
@@ -264,6 +283,8 @@ void Device_state_render_mixed(
     assert(isfinite(tempo));
     assert(tempo > 0);
 
+    assert(ds->node_state == DEVICE_NODE_STATE_REACHED);
+
     if (Device_get_mixed_signals(ds->device) && (ds->render_mixed != NULL))
         ds->render_mixed(ds, wbs, buf_start, buf_stop, tempo);
 
@@ -283,7 +304,7 @@ void del_Device_state(Device_state* ds)
     {
         for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
                 type < DEVICE_PORT_TYPES; ++type)
-            del_Audio_buffer(ds->buffers[type][port]);
+            del_Work_buffer(ds->buffers[type][port]);
     }
     memory_free(ds);
 
