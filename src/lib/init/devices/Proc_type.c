@@ -21,6 +21,7 @@
 #include <init/devices/processors/Proc_delay.h>
 #include <init/devices/processors/Proc_envgen.h>
 #include <init/devices/processors/Proc_filter.h>
+#include <init/devices/processors/Proc_force.h>
 #include <init/devices/processors/Proc_freeverb.h>
 #include <init/devices/processors/Proc_gaincomp.h>
 #include <init/devices/processors/Proc_noise.h>
@@ -49,6 +50,7 @@ static const Proc_type proc_types[] =
     { "delay", new_Proc_delay },
     { "envgen", new_Proc_envgen },
     { "filter", new_Proc_filter },
+    { "force", new_Proc_force },
     { "freeverb", new_Proc_freeverb },
     { "gaincomp", new_Proc_gaincomp },
     { "noise", new_Proc_noise },
