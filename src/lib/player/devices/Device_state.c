@@ -345,6 +345,9 @@ void del_Device_state(Device_state* ds)
                 type < DEVICE_PORT_TYPES; ++type)
             del_Work_buffer(ds->buffers[type][port]);
     }
+
+    del_Bit_array(ds->in_connected);
+
     memory_free(ds);
 
     return;
