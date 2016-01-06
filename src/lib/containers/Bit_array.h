@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -16,14 +16,10 @@
 #define K_BIT_ARRAY_H
 
 
+#include <decl.h>
+
 #include <stdbool.h>
 #include <stdlib.h>
-
-
-/**
- * An array of bits.
- */
-typedef struct Bit_array Bit_array;
 
 
 /**
@@ -31,7 +27,7 @@ typedef struct Bit_array Bit_array;
  *
  * \param size   The size of the array -- must be > \c 0.
  *
- * \return   \c true if successful, or \c false if memory allocation failed.
+ * \return   The new Bit array if successful, or \c NULL if memory allocation failed.
  */
 Bit_array* new_Bit_array(size_t size);
 
