@@ -53,7 +53,8 @@ bool Proc_state_init(
     assert(audio_rate > 0);
     assert(audio_buffer_size >= 0);
 
-    Device_state_init(&proc_state->parent, device, audio_rate, audio_buffer_size);
+    if (!Device_state_init(&proc_state->parent, device, audio_rate, audio_buffer_size))
+        return false;
 
     for (Device_port_type port_type = DEVICE_PORT_TYPE_RECEIVE;
             port_type < DEVICE_PORT_TYPES; ++port_type)
@@ -201,6 +202,10 @@ const Work_buffer* Proc_state_get_voice_buffer(
     assert(port_num >= 0);
     assert(port_num < KQT_DEVICE_PORTS_MAX);
 
+    if ((port_type == DEVICE_PORT_TYPE_RECEIVE) &&
+            !Device_state_is_input_port_connected(&proc_state->parent, port_num))
+        return NULL;
+
     return proc_state->voice_buffers[port_type][port_num];
 }
 
@@ -212,6 +217,10 @@ Work_buffer* Proc_state_get_voice_buffer_mut(
     assert(port_type < DEVICE_PORT_TYPES);
     assert(port_num >= 0);
     assert(port_num < KQT_DEVICE_PORTS_MAX);
+
+    if ((port_type == DEVICE_PORT_TYPE_RECEIVE) &&
+            !Device_state_is_input_port_connected(&proc_state->parent, port_num))
+        return NULL;
 
     if (port_type == DEVICE_PORT_TYPE_SEND)
         Bit_array_set(proc_state->voice_out_buffers_modified, port_num, true);

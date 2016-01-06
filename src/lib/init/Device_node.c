@@ -513,8 +513,7 @@ void Device_node_process_voice_group(
     Proc_state* recv_state = NULL;
     if (node->type == DEVICE_TYPE_PROCESSOR)
     {
-        recv_state = (Proc_state*)Device_states_get_state(
-                dstates, Device_get_id(node_device));
+        recv_state = (Proc_state*)node_dstate;
 
         // Clear the voice buffers for new contents
         Proc_state_clear_voice_buffers(recv_state);
@@ -535,6 +534,10 @@ void Device_node_process_voice_group(
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         const Connection* edge = node->receive[port];
+
+        if (edge != NULL)
+            Device_state_mark_input_port_connected(node_dstate, port);
+
         while (edge != NULL)
         {
             const Device* send_device = Device_node_get_device(edge->node);
@@ -629,6 +632,10 @@ void Device_node_process_mixed_signals(
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Connection* edge = node->receive[port];
+
+        if (edge != NULL)
+            Device_state_mark_input_port_connected(node_dstate, port);
+
         while (edge != NULL)
         {
             const Device* send_device = Device_node_get_device(edge->node);

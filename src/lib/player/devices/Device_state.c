@@ -14,6 +14,7 @@
 
 #include <player/devices/Device_state.h>
 
+#include <containers/Bit_array.h>
 #include <debug/assert.h>
 #include <init/devices/Device.h>
 #include <mathnum/common.h>
@@ -26,7 +27,7 @@
 #include <stdlib.h>
 
 
-void Device_state_init(
+bool Device_state_init(
         Device_state* ds,
         const Device* device,
         int32_t audio_rate,
@@ -45,6 +46,8 @@ void Device_state_init(
     ds->audio_rate = audio_rate;
     ds->audio_buffer_size = audio_buffer_size;
 
+    ds->in_connected = NULL;
+
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
@@ -60,7 +63,11 @@ void Device_state_init(
     ds->render_mixed = NULL;
     ds->deinit = NULL;
 
-    return;
+    ds->in_connected = new_Bit_array(KQT_DEVICE_PORTS_MAX);
+    if (ds->in_connected == NULL)
+        return false;
+
+    return true;
 }
 
 
@@ -75,7 +82,11 @@ Device_state* new_Device_state_plain(
     if (ds == NULL)
         return NULL;
 
-    Device_state_init(ds, device, audio_rate, audio_buffer_size);
+    if (!Device_state_init(ds, device, audio_rate, audio_buffer_size))
+    {
+        del_Device_state(ds);
+        return NULL;
+    }
 
     return ds;
 }
@@ -214,6 +225,8 @@ void Device_state_clear_audio_buffers(Device_state* ds, uint32_t start, uint32_t
         }
     }
 
+    Bit_array_clear(ds->in_connected);
+
     return;
 }
 
@@ -225,6 +238,10 @@ Work_buffer* Device_state_get_audio_buffer(
     assert(type < DEVICE_PORT_TYPES);
     assert(port >= 0);
     assert(port < KQT_DEVICE_PORTS_MAX);
+
+    if ((type == DEVICE_PORT_TYPE_RECEIVE) &&
+            !Device_state_is_input_port_connected(ds, port))
+        return NULL;
 
     return ds->buffers[type][port];
 }
@@ -243,6 +260,28 @@ float* Device_state_get_audio_buffer_contents_mut(
         return NULL;
 
     return Work_buffer_get_contents_mut(wb);
+}
+
+
+void Device_state_mark_input_port_connected(Device_state* ds, int port)
+{
+    assert(ds != NULL);
+    assert(port >= 0);
+    assert(port < KQT_DEVICE_PORTS_MAX);
+
+    Bit_array_set(ds->in_connected, port, true);
+
+    return;
+}
+
+
+bool Device_state_is_input_port_connected(const Device_state* ds, int port)
+{
+    assert(ds != NULL);
+    assert(port >= 0);
+    assert(port < KQT_DEVICE_PORTS_MAX);
+
+    return Bit_array_get(ds->in_connected, port);
 }
 
 
