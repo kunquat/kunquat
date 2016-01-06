@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -122,9 +122,14 @@ void LFO_set_speed(LFO* lfo, double speed)
     assert(speed >= 0);
 
     if (Slider_in_progress(&lfo->speed_slider))
-        lfo->prev_speed = Slider_get_value(&lfo->speed_slider);
+    {
+        const double cur_progress = Slider_get_value(&lfo->speed_slider);
+        lfo->prev_speed = lerp(lfo->prev_speed, lfo->target_speed, cur_progress);
+    }
     else
+    {
         lfo->prev_speed = lfo->target_speed;
+    }
 
     lfo->target_speed = speed;
     Slider_start(&lfo->speed_slider, 1.0, 0.0);
@@ -151,9 +156,14 @@ void LFO_set_depth(LFO* lfo, double depth)
     assert(isfinite(depth));
 
     if (Slider_in_progress(&lfo->depth_slider))
-        lfo->prev_depth = Slider_get_value(&lfo->depth_slider);
+    {
+        const double cur_progress = Slider_get_value(&lfo->depth_slider);
+        lfo->prev_depth = lerp(lfo->prev_depth, lfo->target_depth, cur_progress);
+    }
     else
+    {
         lfo->prev_depth = lfo->target_depth;
+    }
 
     lfo->target_depth = depth;
     Slider_start(&lfo->depth_slider, 1.0, 0.0);
