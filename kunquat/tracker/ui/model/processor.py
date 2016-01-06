@@ -17,6 +17,7 @@ from procparamschorus import ProcParamsChorus
 from procparamsdelay import ProcParamsDelay
 from procparamsenvgen import ProcParamsEnvgen
 from procparamsfilter import ProcParamsFilter
+from procparamsforce import ProcParamsForce
 from procparamsfreeverb import ProcParamsFreeverb
 from procparamsgaincomp import ProcParamsGainComp
 from procparamspanning import ProcParamsPanning
@@ -85,6 +86,7 @@ class Processor():
             'delay':    ProcParamsDelay,
             'envgen':   ProcParamsEnvgen,
             'filter':   ProcParamsFilter,
+            'force':    ProcParamsForce,
             'freeverb': ProcParamsFreeverb,
             'gaincomp': ProcParamsGainComp,
             'panning':  ProcParamsPanning,

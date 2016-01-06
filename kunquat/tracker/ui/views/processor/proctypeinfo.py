@@ -16,6 +16,7 @@ from chorusproc import ChorusProc
 from delayproc import DelayProc
 from envgenproc import EnvgenProc
 from filterproc import FilterProc
+from forceproc import ForceProc
 from freeverbproc import FreeverbProc
 from gaincomp_proc import GainCompProc
 from panningproc import PanningProc
@@ -31,6 +32,7 @@ _proc_classes = {
     'delay':    DelayProc,
     'envgen':   EnvgenProc,
     'filter':   FilterProc,
+    'force':    ForceProc,
     'freeverb': FreeverbProc,
     'gaincomp': GainCompProc,
     'panning':  PanningProc,
