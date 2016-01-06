@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -59,12 +59,6 @@ Device_impl* new_Proc_volume(void)
             0.0,
             Proc_volume_set_volume,
             Volume_pstate_set_volume);
-
-    reg_success &= Device_impl_create_cv_float(
-            &volume->parent,
-            "volume",
-            Volume_pstate_get_cv_controls_volume,
-            Volume_vstate_get_cv_controls_volume);
 
     if (!reg_success)
     {
