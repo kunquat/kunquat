@@ -15,8 +15,12 @@
 #include <player/devices/processors/Force_state.h>
 
 #include <debug/assert.h>
+#include <init/devices/Device.h>
 #include <init/devices/processors/Proc_force.h>
+#include <mathnum/conversions.h>
+#include <player/Force_controls.h>
 
+#include <stdio.h>
 #include <stdlib.h>
 
 
@@ -50,8 +54,6 @@ static int32_t Force_vstate_render_voice(
     assert(isfinite(tempo));
     assert(tempo > 0);
 
-    //Force_vstate* fvstate = (Force_vstate*)vstate;
-
     // Get output
     float* out_buf =
         Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0);
@@ -61,11 +63,123 @@ static int32_t Force_vstate_render_voice(
         return buf_start;
     }
 
-    // Fill in the force values
-    const float* actual_forces =
-        Work_buffers_get_buffer_contents(wbs, WORK_BUFFER_ACTUAL_FORCES);
-    for (int32_t i = buf_start; i < buf_stop; ++i)
-        out_buf[i] = actual_forces[i];
+    //Force_vstate* fvstate = (Force_vstate*)vstate;
+    const Proc_force* force = (const Proc_force*)proc_state->parent.device->dimpl;
+
+    Force_controls* fc = &vstate->force_controls;
+
+    int32_t new_buf_stop = buf_stop;
+
+    // Apply force slide & global force
+    {
+        const double global_scale = dB_to_scale(force->global_force);
+        if (Slider_in_progress(&fc->slider))
+        {
+            float new_force = fc->force;
+            for (int32_t i = buf_start; i < new_buf_stop; ++i)
+            {
+                new_force = Slider_step(&fc->slider);
+                out_buf[i] = new_force * global_scale;
+            }
+            fc->force = new_force;
+        }
+        else
+        {
+            const float actual_force = fc->force * global_scale;
+            for (int32_t i = buf_start; i < new_buf_stop; ++i)
+                out_buf[i] = actual_force;
+        }
+    }
+
+#if 0
+    // Apply tremolo
+    if (LFO_active(&fc->tremolo))
+    {
+        for (int32_t i = buf_start; i < new_buf_stop; ++i)
+            actual_forces[i] *= LFO_step(&fc->tremolo);
+    }
+
+    // Apply force envelope
+    if (proc->au_params->env_force_enabled)
+    {
+        const Envelope* env = proc->au_params->env_force;
+
+        const int32_t env_force_stop = Time_env_state_process(
+                &vstate->force_env_state,
+                env,
+                proc->au_params->env_force_loop_enabled,
+                proc->au_params->env_force_scale_amount,
+                proc->au_params->env_force_center,
+                0, // sustain
+                0, 1, // range
+                Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH),
+                wbs,
+                buf_start,
+                new_buf_stop,
+                freq);
+
+        const Work_buffer* wb_time_env = Work_buffers_get_buffer(
+                wbs, WORK_BUFFER_TIME_ENV);
+        float* time_env = Work_buffer_get_contents_mut(wb_time_env);
+
+        // Check the end of envelope processing
+        if (vstate->force_env_state.is_finished)
+        {
+            const double* last_node = Envelope_get_node(
+                    env, Envelope_node_count(env) - 1);
+            const double last_value = last_node[1];
+            if (last_value == 0)
+            {
+                new_buf_stop = env_force_stop;
+            }
+            else
+            {
+                // Fill the rest of the envelope buffer with the last value
+                for (int32_t i = env_force_stop; i < new_buf_stop; ++i)
+                    time_env[i] = last_value;
+            }
+        }
+
+        for (int32_t i = buf_start; i < new_buf_stop; ++i)
+            actual_forces[i] *= time_env[i];
+    }
+
+    // Apply force release envelope
+    if (!vstate->note_on && proc->au_params->env_force_rel_enabled)
+    {
+        const Envelope* env = proc->au_params->env_force_rel;
+
+        const int32_t env_force_rel_stop = Time_env_state_process(
+                &vstate->force_rel_env_state,
+                env,
+                false, // no loop
+                proc->au_params->env_force_rel_scale_amount,
+                proc->au_params->env_force_rel_center,
+                au_state->sustain,
+                0, 1, // range
+                Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH),
+                wbs,
+                buf_start,
+                new_buf_stop,
+                freq);
+
+        if (vstate->force_rel_env_state.is_finished)
+            new_buf_stop = env_force_rel_stop;
+
+        const Work_buffer* wb_time_env = Work_buffers_get_buffer(
+                wbs, WORK_BUFFER_TIME_ENV);
+        float* time_env = Work_buffer_get_contents_mut(wb_time_env);
+
+        for (int32_t i = buf_start; i < new_buf_stop; ++i)
+            actual_forces[i] *= time_env[i];
+    }
+
+    // Update actual force for next iteration
+    if (new_buf_stop < buf_stop)
+        vstate->actual_force = 0;
+    else if (new_buf_stop > buf_start)
+        vstate->actual_force = actual_forces[new_buf_stop - 1];
+#endif
 
     // Mark state as started, TODO: fix this mess
     vstate->pos = 1;
