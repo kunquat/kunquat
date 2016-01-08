@@ -164,7 +164,7 @@ static int32_t Sample_render(
                 {
                     new_buf_stop = i;
                     positions[i] = length - 1; // Make the index safe to access
-                    vstate->active = false;
+                    Voice_state_set_finished(vstate);
                     break;
                 }
             }

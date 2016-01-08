@@ -108,7 +108,7 @@ static int32_t Envgen_vstate_render_voice(
             const double last_value = last_node[1];
             if (fabs(egen->y_min + last_value * range_width) < 0.0001)
             {
-                vstate->active = false;
+                Voice_state_set_finished(vstate);
                 new_buf_stop = env_stop;
             }
             else
