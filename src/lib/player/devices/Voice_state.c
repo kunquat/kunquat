@@ -222,6 +222,7 @@ int32_t Voice_state_render_voice(
     if (Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH))
         Voice_state_common_handle_pitch(vstate, proc, wbs, buf_start, process_stop);
 
+#if 0
     if (Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE))
     {
         const int32_t force_stop = Voice_state_common_handle_force(
@@ -235,6 +236,7 @@ int32_t Voice_state_render_voice(
             process_stop = force_stop;
         }
     }
+#endif
 
     const uint64_t old_pos = vstate->pos;
     const double old_pos_rem = vstate->pos_rem;

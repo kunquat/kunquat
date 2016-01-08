@@ -49,6 +49,7 @@ void Voice_state_common_handle_pitch(
         int32_t buf_stop);
 
 
+#if 0
 /**
  * Process force.
  *
@@ -105,6 +106,7 @@ int32_t Voice_state_common_ramp_release(
         int32_t audio_rate,
         int32_t buf_start,
         int32_t buf_stop);
+#endif
 
 
 #endif // K_VOICE_STATE_COMMON_H

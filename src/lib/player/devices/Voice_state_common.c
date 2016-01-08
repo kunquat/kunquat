@@ -124,6 +124,7 @@ void Voice_state_common_handle_pitch(
 }
 
 
+#if 0
 int32_t Voice_state_common_handle_force(
         Voice_state* vstate,
         const Au_state* au_state,
@@ -317,5 +318,6 @@ int32_t Voice_state_common_ramp_release(
 
     return process_stop;
 }
+#endif
 
 
