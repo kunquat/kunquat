@@ -24,6 +24,7 @@ typedef struct Proc_force
     Device_impl parent;
 
     double global_force;
+    double force_var;
 } Proc_force;
 
 

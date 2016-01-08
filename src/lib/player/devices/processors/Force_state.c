@@ -18,7 +18,9 @@
 #include <init/devices/Device.h>
 #include <init/devices/processors/Proc_force.h>
 #include <mathnum/conversions.h>
+#include <mathnum/Random.h>
 #include <player/Force_controls.h>
+#include <player/Time_env_state.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,6 +29,7 @@
 typedef struct Force_vstate
 {
     Voice_state parent;
+    double fixed_adjust;
 } Force_vstate;
 
 
@@ -63,42 +66,42 @@ static int32_t Force_vstate_render_voice(
         return buf_start;
     }
 
-    //Force_vstate* fvstate = (Force_vstate*)vstate;
-    const Proc_force* force = (const Proc_force*)proc_state->parent.device->dimpl;
+    Force_vstate* fvstate = (Force_vstate*)vstate;
+    //const Proc_force* force = (const Proc_force*)proc_state->parent.device->dimpl;
 
     Force_controls* fc = &vstate->force_controls;
 
     int32_t new_buf_stop = buf_stop;
 
-    // Apply force slide & global force
+    // Apply force slide & fixed adjust
     {
-        const double global_scale = dB_to_scale(force->global_force);
+        const double fixed_scale = dB_to_scale(fvstate->fixed_adjust);
         if (Slider_in_progress(&fc->slider))
         {
             float new_force = fc->force;
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
             {
                 new_force = Slider_step(&fc->slider);
-                out_buf[i] = new_force * global_scale;
+                out_buf[i] = new_force * fixed_scale;
             }
             fc->force = new_force;
         }
         else
         {
-            const float actual_force = fc->force * global_scale;
+            const float actual_force = fc->force * fixed_scale;
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
                 out_buf[i] = actual_force;
         }
     }
 
-#if 0
     // Apply tremolo
     if (LFO_active(&fc->tremolo))
     {
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            actual_forces[i] *= LFO_step(&fc->tremolo);
+            out_buf[i] *= LFO_step(&fc->tremolo);
     }
 
+#if 0
     // Apply force envelope
     if (proc->au_params->env_force_enabled)
     {
@@ -194,6 +197,20 @@ void Force_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     assert(proc_state != NULL);
 
     vstate->render_voice = Force_vstate_render_voice;
+
+    const Proc_force* force = (const Proc_force*)proc_state->parent.device->dimpl;
+    Force_vstate* fvstate = (Force_vstate*)vstate;
+
+    // Set fixed force adjustment
+    fvstate->fixed_adjust = force->global_force;
+
+    if (force->force_var != 0)
+    {
+        double var_dB = Random_get_float_scale(vstate->rand_p) * force->force_var * 2.0;
+        var_dB -= force->force_var;
+
+        fvstate->fixed_adjust += var_dB;
+    }
 
     return;
 }

@@ -23,6 +23,7 @@
 
 
 static Set_float_func Proc_force_set_global_force;
+static Set_float_func Proc_force_set_force_variation;
 
 static void del_Proc_force(Device_impl* dimpl);
 
@@ -43,6 +44,7 @@ Device_impl* new_Proc_force(void)
     force->parent.init_vstate = Force_vstate_init;
 
     force->global_force = 0.0;
+    force->force_var = 0.0;
 
     // Register key handlers
     bool reg_success = true;
@@ -52,6 +54,13 @@ Device_impl* new_Proc_force(void)
             "p_f_global_force.json",
             0.0,
             Proc_force_set_global_force,
+            NULL);
+
+    reg_success &= Device_impl_register_set_float(
+            &force->parent,
+            "p_f_force_variation.json",
+            0.0,
+            Proc_force_set_force_variation,
             NULL);
 
     return &force->parent;
@@ -66,6 +75,19 @@ static bool Proc_force_set_global_force(
 
     Proc_force* force = (Proc_force*)dimpl;
     force->global_force = isfinite(value) ? value : 0.0;
+
+    return true;
+}
+
+
+static bool Proc_force_set_force_variation(
+        Device_impl* dimpl, const Key_indices indices, double value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+
+    Proc_force* force = (Proc_force*)dimpl;
+    force->force_var = (isfinite(value) && (value >= 0)) ? value : 0.0;
 
     return true;
 }
