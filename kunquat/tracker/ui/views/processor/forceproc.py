@@ -26,21 +26,58 @@ class ForceProc(QWidget):
     def __init__(self):
         QWidget.__init__(self)
 
+        self._global_force = GlobalForceSlider()
+
+        sliders = QGridLayout()
+        sliders.addWidget(QLabel('Global force:'), 0, 0)
+        sliders.addWidget(self._global_force, 0, 1)
+
         v = QVBoxLayout()
-        v.addWidget(QLabel('todo'))
+        v.addLayout(sliders)
         v.addStretch(1)
         self.setLayout(v)
 
     def set_au_id(self, au_id):
-        pass
+        self._global_force.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
-        pass
+        self._global_force.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
-        pass
+        self._global_force.set_ui_model(ui_model)
 
     def unregister_updaters(self):
-        pass
+        self._global_force.unregister_updaters()
+
+
+class ForceNumSlider(ProcNumSlider):
+
+    def __init__(self, decimals, min_value, max_value):
+        ProcNumSlider.__init__(self, decimals, min_value, max_value, '')
+
+    def _get_force_params(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        proc = au.get_processor(self._proc_id)
+        force_params = proc.get_type_params()
+        return force_params
+
+
+class GlobalForceSlider(ForceNumSlider):
+
+    def __init__(self):
+        ForceNumSlider.__init__(self, 1, -64.0, 18.0)
+
+    def _get_update_signal_type(self):
+        return '_'.join(('signal_force_global_force', self._proc_id))
+
+    def _update_value(self):
+        force_params = self._get_force_params()
+        self.set_number(force_params.get_global_force())
+
+    def _value_changed(self, value):
+        force_params = self._get_force_params()
+        force_params.set_global_force(value)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
