@@ -71,13 +71,6 @@ static int32_t Add_vstate_render_voice(
             440,
             Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH));
 
-    // Get actual forces
-    const Cond_work_buffer* actual_forces = Cond_work_buffer_init(
-            COND_WORK_BUFFER_AUTO,
-            Work_buffers_get_buffer(wbs, WORK_BUFFER_ACTUAL_FORCES),
-            1,
-            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE));
-
     // Get output buffer for writing
     float* out_bufs[] =
     {
@@ -187,22 +180,8 @@ static int32_t Add_vstate_render_voice(
         }
     }
 
-    // Apply actual force
-    for (int ch = 0; ch < 2; ++ch)
-    {
-        if (out_bufs[ch] == NULL)
-            continue;
-
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-        {
-            const float actual_force = Cond_work_buffer_get_value(actual_forces, i);
-            out_bufs[ch][i] *= actual_force;
-        }
-    }
-
     if (add->is_ramp_attack_enabled)
-        Proc_ramp_attack(
-                vstate, 2, out_bufs, buf_start, buf_stop, dstate->audio_rate);
+        Proc_ramp_attack(vstate, 2, out_bufs, buf_start, buf_stop, dstate->audio_rate);
 
     vstate->pos = 1; // XXX: hackish
 
