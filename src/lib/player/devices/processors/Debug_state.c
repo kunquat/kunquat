@@ -43,13 +43,6 @@ static int32_t Debug_vstate_render_voice(
             440,
             Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH));
 
-    // Get actual forces
-    const Cond_work_buffer* actual_forces = Cond_work_buffer_init(
-            COND_WORK_BUFFER_AUTO,
-            Work_buffers_get_buffer(wbs, WORK_BUFFER_ACTUAL_FORCES),
-            1,
-            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE));
-
     // Get output buffer for writing
     float* out_buffers[] =
     {
@@ -62,7 +55,7 @@ static int32_t Debug_vstate_render_voice(
     {
         if (buf_start < buf_stop)
         {
-            const float val = 1.0 * Cond_work_buffer_get_value(actual_forces, buf_start);
+            const float val = 1.0;
             if (out_buffers[0] != NULL)
                 out_buffers[0][buf_start] = val;
             if (out_buffers[1] != NULL)
@@ -83,7 +76,6 @@ static int32_t Debug_vstate_render_voice(
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
         const float actual_pitch = Cond_work_buffer_get_value(actual_pitches, i);
-        const float actual_force = Cond_work_buffer_get_value(actual_forces, i);
 
         double vals[KQT_BUFFERS_MAX] = { 0 };
 
@@ -104,9 +96,6 @@ static int32_t Debug_vstate_render_voice(
 
             vstate->release_stop = i + 1;
         }
-
-        vals[0] *= actual_force;
-        vals[1] *= actual_force;
 
         if (out_buffers[0] != NULL)
             out_buffers[0][i] = vals[0];
