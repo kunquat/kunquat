@@ -291,11 +291,6 @@ void setup_debug_instrument(void)
             ", [\"proc_00/C/out_01\", \"out_01\"]"
             "]");
 
-    // Make sure that we get the note release behavior specified in the debug processor
-    set_data("au_00/p_envelope_force_release.json",
-            "{ \"enabled\": true, \"envelope\": {"
-            "  \"nodes\": [ [0, 1], [98, 1], [99, 0] ] } }");
-
     set_data("au_00/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
     set_data("au_00/proc_00/p_signal_type.json", "\"voice\"");
     set_data("au_00/proc_00/out_00/p_manifest.json", "{}");
