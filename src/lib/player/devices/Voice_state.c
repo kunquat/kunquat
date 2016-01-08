@@ -43,6 +43,7 @@ Voice_state* Voice_state_init(
 
     Voice_state_clear(state);
     state->active = true;
+    state->has_finished = false;
     state->note_on = true;
     state->freq = freq;
     state->tempo = tempo;
@@ -50,6 +51,8 @@ Voice_state* Voice_state_init(
     state->rand_s = rand_s;
 
     state->render_voice = NULL;
+
+    state->release_stop = 0;
 
     Force_controls_init(&state->force_controls, freq, tempo);
     Pitch_controls_init(&state->pitch_controls, freq, tempo);
@@ -63,6 +66,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     assert(state != NULL);
 
     state->active = false;
+    state->has_finished = false;
     state->freq = 0;
     state->tempo = 0;
     state->ramp_attack = 0;
@@ -162,6 +166,8 @@ int32_t Voice_state_render_voice(
     assert(isfinite(tempo));
     assert(tempo > 0);
 
+    vstate->release_stop = buf_start;
+
     const Processor* proc = (const Processor*)proc_state->parent.device;
     if (!Processor_get_voice_signals(proc) || (vstate->render_voice == NULL))
     {
@@ -169,6 +175,7 @@ int32_t Voice_state_render_voice(
         return buf_start;
     }
 
+#if 0
     // Check for voice cut before mixing anything (no need for volume ramping)
     if (!vstate->note_on &&
             (vstate->pos == 0) &&
@@ -180,6 +187,7 @@ int32_t Voice_state_render_voice(
         vstate->active = false;
         return buf_start;
     }
+#endif
 
     if (buf_start >= buf_stop)
         return buf_start;
@@ -250,6 +258,7 @@ int32_t Voice_state_render_voice(
     vstate->pos_rem = old_pos_rem;
 
     // Apply common parameters to generated signal
+    /*
     {
         const int32_t ramp_release_stop = Voice_state_common_ramp_release(
                 vstate,
@@ -267,11 +276,29 @@ int32_t Voice_state_render_voice(
             process_stop = ramp_release_stop;
         }
     }
+    // */
 
     vstate->pos = new_pos;
     vstate->pos_rem = new_pos_rem;
 
-    // Mix rendered audio to the combined signal buffer
+    if (deactivate_after_processing)
+        vstate->active = false;
+
+    return process_stop;
+}
+
+
+void Voice_state_mix_signals(
+        Voice_state* vstate,
+        Proc_state* proc_state,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    assert(vstate != NULL);
+    assert(proc_state != NULL);
+    assert(buf_start >= 0);
+    assert(buf_stop >= buf_start);
+
     for (int32_t port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Work_buffer* mixed_buffer = Device_state_get_audio_buffer(
@@ -280,13 +307,21 @@ int32_t Voice_state_render_voice(
                 proc_state, DEVICE_PORT_TYPE_SEND, port);
 
         if ((mixed_buffer != NULL) && (voice_buffer != NULL))
-            Work_buffer_mix(mixed_buffer, voice_buffer, buf_start, process_stop);
+            Work_buffer_mix(mixed_buffer, voice_buffer, buf_start, buf_stop);
     }
 
-    if (deactivate_after_processing)
+    if (vstate->has_finished)
         vstate->active = false;
 
-    return process_stop;
+    return;
+}
+
+
+void Voice_state_set_finished(Voice_state* vstate)
+{
+    assert(vstate != NULL);
+    vstate->has_finished = true;
+    return;
 }
 
 

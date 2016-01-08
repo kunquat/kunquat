@@ -61,12 +61,15 @@ typedef void Voice_state_set_cv_tstamp_func(
 struct Voice_state
 {
     bool active;                   ///< Whether there is anything left to process.
+    bool has_finished;
     int32_t freq;                  ///< The last mixing frequency used.
     double tempo;                  ///< The last tempo setting used.
     Random* rand_p;                ///< Parameter random source.
     Random* rand_s;                ///< Signal random source.
 
     Voice_state_render_voice_func* render_voice;
+
+    int32_t release_stop;
 
     double ramp_attack;            ///< The current state of volume ramp during attack.
     double ramp_release;           ///< The current state of volume ramp during release.
@@ -153,6 +156,33 @@ int32_t Voice_state_render_voice(
         int32_t buf_start,
         int32_t buf_stop,
         double tempo);
+
+
+/**
+ * Mix rendered Voice signals to combined signal buffers.
+ *
+ * \param vstate       The Voice state -- must not be \c NULL.
+ * \param proc_state   The Processor state -- must not be \c NULL.
+ * \param buf_start    The start index of mixing -- must be >= \c 0.
+ * \param buf_stop     The stop index of mixing -- must be less than or equal
+ *                     to the audio buffer size.
+ */
+void Voice_state_mix_signals(
+        Voice_state* vstate,
+        Proc_state* proc_state,
+        int32_t buf_start,
+        int32_t buf_stop);
+
+
+/**
+ * Set Voice state as finished.
+ *
+ * The Voice state will be deactivated after retrieving the buffer contents
+ * written during the current cycle.
+ *
+ * \param vstate       The Voice state -- must not be \c NULL.
+ */
+void Voice_state_set_finished(Voice_state* vstate);
 
 
 /**

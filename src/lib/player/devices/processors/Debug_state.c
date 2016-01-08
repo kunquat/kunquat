@@ -67,7 +67,7 @@ static int32_t Debug_vstate_render_voice(
                 out_buffers[0][buf_start] = val;
             if (out_buffers[1] != NULL)
                 out_buffers[1][buf_start] = val;
-            vstate->active = false;
+            Voice_state_set_finished(vstate);
             return buf_start + 1;
         }
         return buf_start;
@@ -96,6 +96,8 @@ static int32_t Debug_vstate_render_voice(
         {
             vals[0] = -vals[0];
             vals[1] = -vals[1];
+
+            vstate->release_stop = i + 1;
         }
 
         vals[0] *= actual_force;
@@ -113,7 +115,7 @@ static int32_t Debug_vstate_render_voice(
             vstate->noff_pos_rem += actual_pitch / audio_rate;
             if (vstate->noff_pos_rem >= 2)
             {
-                vstate->active = false;
+                Voice_state_set_finished(vstate);
                 return i + 1;
             }
         }
@@ -123,7 +125,7 @@ static int32_t Debug_vstate_render_voice(
             ++vstate->pos;
             if (vstate->pos >= 10)
             {
-                vstate->active = false;
+                Voice_state_set_finished(vstate);
                 return i + 1;
             }
             vstate->rel_pos = 0;

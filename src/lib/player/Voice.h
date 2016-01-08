@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -153,23 +153,26 @@ void Voice_reset(Voice* voice);
 
 
 /**
- * Mix the Voice.
+ * Render the Voice.
  *
- * \param voice    The Voice -- must not be \c NULL.
- * \param states   The Device states -- must not be \c NULL.
- * \param wbs      The Work buffers -- must not be \c NULL.
- * \param amount   The number of frames to be mixed.
- * \param offset   The buffer offset.
- * \param freq     The mixing frequency -- must be > \c 0.
- * \param tempo    The current tempo -- must be > \c 0.
+ * \param voice        The Voice -- must not be \c NULL.
+ * \param dstates      The Device states -- must not be \c NULL.
+ * \param wbs          The Work buffers -- must not be \c NULL.
+ * \param buf_start    The start index of the buffer area to be rendered.
+ * \param buf_stop     The stop index of the buffer area to be rendered.
+ * \param audio_rate   The audio rate -- must be > \c 0.
+ * \param tempo        The current tempo -- must be > \c 0.
+ *
+ * \return   The stop index of release note frames rendered to voice buffers,
+ *           or \a buf_stop if the Voice is inactive or has a note still on.
+ *           This is always within the range [\a buf_start, \a buf_stop].
  */
-void Voice_mix(
+int32_t Voice_render(
         Voice* voice,
-        Device_states* states,
+        Device_states* dstates,
         const Work_buffers* wbs,
-        uint32_t amount,
-        uint32_t offset,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
         double tempo);
 
 

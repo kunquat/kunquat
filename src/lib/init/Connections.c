@@ -305,7 +305,7 @@ void Connections_clear_buffers(
 }
 
 
-void Connections_process_voice_group(
+int32_t Connections_process_voice_group(
         const Connections* graph,
         Voice_group* vgroup,
         Device_states* dstates,
@@ -327,11 +327,36 @@ void Connections_process_voice_group(
     const Device_node* master = AAtree_get_exact(graph->nodes, "");
     assert(master != NULL);
     if (buf_start >= buf_stop)
+        return buf_start;
+
+    Device_node_reset_subgraph(master, dstates);
+    //Device_states_reset_node_states(dstates);
+    return Device_node_process_voice_group(
+            master, vgroup, dstates, wbs, buf_start, buf_stop, audio_rate, tempo);
+}
+
+
+void Connections_mix_voice_signals(
+        const Connections* graph,
+        Voice_group* vgroup,
+        Device_states* dstates,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    assert(graph != NULL);
+    assert(vgroup != NULL);
+    assert(dstates != NULL);
+    assert(buf_start >= 0);
+    assert(buf_stop >= 0);
+
+    const Device_node* master = AAtree_get_exact(graph->nodes, "");
+    assert(master != NULL);
+    if (buf_start >= buf_stop)
         return;
 
-    Device_states_reset_node_states(dstates);
-    Device_node_process_voice_group(
-            master, vgroup, dstates, wbs, buf_start, buf_stop, audio_rate, tempo);
+    Device_node_reset_subgraph(master, dstates);
+    //Device_states_reset_node_states(dstates);
+    Device_node_mix_voice_signals(master, vgroup, dstates, buf_start, buf_stop);
 
     return;
 }
