@@ -145,6 +145,7 @@ static int32_t Envgen_vstate_render_voice(
             out_buffer[i] *= scale;
     }
 
+#if 0
     if (Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE))
     {
         const float* actual_forces = Work_buffers_get_buffer_contents(
@@ -171,6 +172,7 @@ static int32_t Envgen_vstate_render_voice(
         }
     }
     else
+#endif
     {
         if (is_force_env_enabled)
         {
