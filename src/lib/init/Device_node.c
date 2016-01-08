@@ -577,6 +577,8 @@ int32_t Device_node_process_voice_group(
         }
     }
 
+    int32_t release_stop = buf_stop;
+
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         const Connection* edge = node->receive[port];
@@ -593,7 +595,7 @@ int32_t Device_node_process_voice_group(
                 continue;
             }
 
-            Device_node_process_voice_group(
+            const int32_t sub_release_stop = Device_node_process_voice_group(
                     edge->node,
                     vgroup,
                     dstates,
@@ -602,6 +604,8 @@ int32_t Device_node_process_voice_group(
                     buf_stop,
                     audio_rate,
                     tempo);
+
+            release_stop = min(release_stop, sub_release_stop);
 
             if ((node->type == DEVICE_TYPE_PROCESSOR) &&
                     (edge->node->type == DEVICE_TYPE_PROCESSOR))
@@ -623,8 +627,6 @@ int32_t Device_node_process_voice_group(
         }
     }
 
-    int32_t process_stop = buf_stop;
-
     if (node->type == DEVICE_TYPE_PROCESSOR)
     {
         if (Processor_get_voice_signals((const Processor*)node_device))
@@ -635,16 +637,16 @@ int32_t Device_node_process_voice_group(
 
             if (voice != NULL)
             {
-                const int32_t voice_stop = Voice_render(
+                const int32_t voice_release_stop = Voice_render(
                         voice, dstates, wbs, buf_start, buf_stop, tempo);
-                process_stop = min(process_stop, voice_stop);
+                release_stop = min(release_stop, voice_release_stop);
             }
         }
     }
 
     Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_VISITED);
 
-    return process_stop;
+    return release_stop;
 }
 
 
