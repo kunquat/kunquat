@@ -27,10 +27,13 @@ class ForceProc(QWidget):
         QWidget.__init__(self)
 
         self._global_force = GlobalForceSlider()
+        self._force_variation = ForceVarSlider()
 
         sliders = QGridLayout()
         sliders.addWidget(QLabel('Global force:'), 0, 0)
         sliders.addWidget(self._global_force, 0, 1)
+        sliders.addWidget(QLabel('Force variation:'), 1, 0)
+        sliders.addWidget(self._force_variation, 1, 1)
 
         v = QVBoxLayout()
         v.addLayout(sliders)
@@ -39,14 +42,18 @@ class ForceProc(QWidget):
 
     def set_au_id(self, au_id):
         self._global_force.set_au_id(au_id)
+        self._force_variation.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._global_force.set_proc_id(proc_id)
+        self._force_variation.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._global_force.set_ui_model(ui_model)
+        self._force_variation.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._force_variation.unregister_updaters()
         self._global_force.unregister_updaters()
 
 
@@ -78,6 +85,24 @@ class GlobalForceSlider(ForceNumSlider):
     def _value_changed(self, value):
         force_params = self._get_force_params()
         force_params.set_global_force(value)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+
+class ForceVarSlider(ForceNumSlider):
+
+    def __init__(self):
+        ForceNumSlider.__init__(self, 1, 0.0, 32.0)
+
+    def _get_update_signal_type(self):
+        return '_'.join(('signal_force_force_variation', self._proc_id))
+
+    def _update_value(self):
+        force_params = self._get_force_params()
+        self.set_number(force_params.get_force_variation())
+
+    def _value_changed(self, value):
+        force_params = self._get_force_params()
+        force_params.set_force_variation(value)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 

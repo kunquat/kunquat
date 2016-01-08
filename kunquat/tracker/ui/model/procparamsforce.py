@@ -25,4 +25,10 @@ class ProcParamsForce(ProcParams):
     def set_global_force(self, value):
         self._set_value('p_f_global_force.json', value)
 
+    def get_force_variation(self):
+        return self._get_value('p_f_force_variation.json', 0.0)
+
+    def set_force_variation(self, value):
+        self._set_value('p_f_force_variation.json', value)
+
 
