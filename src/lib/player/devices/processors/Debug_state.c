@@ -68,6 +68,11 @@ static int32_t Debug_vstate_render_voice(
             if (out_buffers[1] != NULL)
                 out_buffers[1][buf_start] = val;
             Voice_state_set_finished(vstate);
+
+            // We want all single pulses to be included in test buffers,
+            // even if another voice replaces us in the channel foreground
+            vstate->release_stop = buf_start + 1;
+
             return buf_start + 1;
         }
         return buf_start;
