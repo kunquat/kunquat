@@ -20,7 +20,7 @@
 //              Name            Type suffix         Arg type        Validator
 EVENT_QUERY_DEF("qlocation",    location,           NONE,           NULL)
 EVENT_QUERY_DEF("qvoices",      voice_count,        NONE,           NULL)
-EVENT_QUERY_DEF("qf",           actual_force,       INT,            v_proc)
+EVENT_QUERY_DEF("qf",           actual_force,       NONE,           NULL)
 
 
 #undef EVENT_QUERY_DEF

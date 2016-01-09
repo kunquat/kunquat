@@ -201,17 +201,6 @@ int32_t Voice_render(
 }
 
 
-double Voice_get_actual_force(const Voice* voice)
-{
-    assert(voice != NULL);
-    assert(voice->state != NULL);
-    assert(voice->state->active);
-    assert(voice->state->actual_force > 0);
-
-    return log2(voice->state->actual_force) * 6;
-}
-
-
 void del_Voice(Voice* voice)
 {
     if (voice == NULL)

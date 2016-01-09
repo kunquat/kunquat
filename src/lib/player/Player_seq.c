@@ -227,14 +227,15 @@ void Player_process_event(
 
             case Event_query_actual_force:
             {
-                assert(arg->type == VALUE_TYPE_INT);
-                assert(arg->value.int_type >= 0);
-                assert(arg->value.int_type < KQT_PROCESSORS_MAX);
-
                 Value* force = VALUE_AUTO;
                 force->type = VALUE_TYPE_FLOAT;
-                force->value.float_type = Channel_get_fg_force(
-                        player->channels[ch_num], arg->value.int_type);
+                force->value.float_type = Channel_get_fg_force(player->channels[ch_num]);
+                if (!isfinite(force->value.float_type))
+                {
+                    force->type = VALUE_TYPE_BOOL;
+                    force->value.bool_type = false;
+                }
+
                 try_process("Af", force);
             }
             break;

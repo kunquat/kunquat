@@ -177,16 +177,6 @@ int32_t Voice_render(
 
 
 /**
- * Return the actual current force of the Voice.
- *
- * \param voice   The Voice -- must not be \c NULL and must be active.
- *
- * \return   The actual force.
- */
-double Voice_get_actual_force(const Voice* voice);
-
-
-/**
  * Destroy an existing Voice.
  *
  * \param voice   The Voice, or \c NULL.
