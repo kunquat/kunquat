@@ -186,11 +186,15 @@ int32_t Voice_render(
     if (!voice->state->active)
     {
         Voice_reset(voice);
+        return buf_start;
     }
     else if (!voice->state->note_on)
     {
         voice->prio = VOICE_PRIO_BG;
-        return voice->state->release_stop;
+        if (voice->state->has_release_data)
+            return voice->state->release_stop;
+
+        return buf_start;
     }
 
     return buf_stop;

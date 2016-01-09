@@ -52,6 +52,7 @@ Voice_state* Voice_state_init(
 
     state->render_voice = NULL;
 
+    state->has_release_data = false;
     state->release_stop = 0;
 
     Force_controls_init(&state->force_controls, freq, tempo);
@@ -166,6 +167,7 @@ int32_t Voice_state_render_voice(
     assert(isfinite(tempo));
     assert(tempo > 0);
 
+    vstate->has_release_data = false;
     vstate->release_stop = buf_start;
 
     const Processor* proc = (const Processor*)proc_state->parent.device;
@@ -311,6 +313,18 @@ void Voice_state_mix_signals(
         if ((mixed_buffer != NULL) && (voice_buffer != NULL))
             Work_buffer_mix(mixed_buffer, voice_buffer, buf_start, buf_stop);
     }
+
+    return;
+}
+
+
+void Voice_state_mark_release_data(Voice_state* vstate, int32_t release_stop)
+{
+    assert(vstate != NULL);
+    assert(release_stop >= 0);
+
+    vstate->has_release_data = true;
+    vstate->release_stop = release_stop;
 
     return;
 }

@@ -69,6 +69,7 @@ struct Voice_state
 
     Voice_state_render_voice_func* render_voice;
 
+    bool has_release_data;
     int32_t release_stop;
 
     double ramp_attack;            ///< The current state of volume ramp during attack.
@@ -172,6 +173,16 @@ void Voice_state_mix_signals(
         Proc_state* proc_state,
         int32_t buf_start,
         int32_t buf_stop);
+
+
+/**
+ * Mark Voice state as having release data.
+ *
+ * \param vstate         The Voice state -- must not be \c NULL.
+ * \param release_stop   The buffer end index of rendered release data
+ *                       -- must be >= \c 0.
+ */
+void Voice_state_mark_release_data(Voice_state* vstate, int32_t release_stop);
 
 
 /**
