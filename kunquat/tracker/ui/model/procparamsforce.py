@@ -91,4 +91,10 @@ class ProcParamsForce(ProcParams):
     def set_release_envelope_scale_center(self, value):
         self._set_value('p_f_env_rel_scale_center.json', value)
 
+    def get_release_ramp_enabled(self):
+        return self._get_value('p_b_release_ramp.json', False)
+
+    def set_release_ramp_enabled(self, enabled):
+        self._set_value('p_b_release_ramp.json', enabled)
+
 

@@ -31,6 +31,7 @@ class ForceProc(QWidget):
         self._global_force = GlobalForceSlider()
         self._force_variation = ForceVarSlider()
         self._force_envelope = ForceEnvelope()
+        self._ramp_release = RampReleaseToggle()
         self._force_release_envelope = ForceReleaseEnvelope()
 
         sliders = QGridLayout()
@@ -42,6 +43,7 @@ class ForceProc(QWidget):
         v = QVBoxLayout()
         v.addLayout(sliders)
         v.addWidget(self._force_envelope)
+        v.addWidget(self._ramp_release)
         v.addWidget(self._force_release_envelope)
         self.setLayout(v)
 
@@ -49,22 +51,26 @@ class ForceProc(QWidget):
         self._global_force.set_au_id(au_id)
         self._force_variation.set_au_id(au_id)
         self._force_envelope.set_au_id(au_id)
+        self._ramp_release.set_au_id(au_id)
         self._force_release_envelope.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._global_force.set_proc_id(proc_id)
         self._force_variation.set_proc_id(proc_id)
         self._force_envelope.set_proc_id(proc_id)
+        self._ramp_release.set_proc_id(proc_id)
         self._force_release_envelope.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._global_force.set_ui_model(ui_model)
         self._force_variation.set_ui_model(ui_model)
         self._force_envelope.set_ui_model(ui_model)
+        self._ramp_release.set_ui_model(ui_model)
         self._force_release_envelope.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._force_release_envelope.unregister_updaters()
+        self._ramp_release.unregister_updaters()
         self._force_envelope.unregister_updaters()
         self._force_variation.unregister_updaters()
         self._global_force.unregister_updaters()
@@ -116,6 +122,67 @@ class ForceVarSlider(ForceNumSlider):
     def _value_changed(self, value):
         force_params = self._get_force_params()
         force_params.set_force_variation(value)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+
+class RampReleaseToggle(QCheckBox):
+
+    def __init__(self):
+        QCheckBox.__init__(self)
+        self.setText('Ramp release')
+        self._au_id = None
+        self._proc_id = None
+        self._ui_model = None
+        self._updater = None
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(self, SIGNAL('stateChanged(int)'), self._state_changed)
+
+        self._update_state()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _get_update_signal_type(self):
+        return '_'.join(('signal_force_ramp_release', self._proc_id))
+
+    def _perform_updates(self, signals):
+        update_signals = set([self._get_update_signal_type(),
+            '_'.join(('signal_force_release_envelope', self._proc_id))])
+        if not signals.isdisjoint(update_signals):
+            self._update_state()
+
+    def _get_force_params(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        proc = au.get_processor(self._proc_id)
+        force_params = proc.get_type_params()
+        return force_params
+
+    def _update_state(self):
+        force_params = self._get_force_params()
+        ramp_enabled = force_params.get_release_ramp_enabled()
+        release_env_enabled = force_params.get_release_envelope_enabled()
+
+        old_block = self.blockSignals(True)
+        self.setCheckState(Qt.Checked if ramp_enabled else Qt.Unchecked)
+        self.setEnabled(not release_env_enabled)
+        self.blockSignals(old_block)
+
+    def _state_changed(self, new_state):
+        enabled = (new_state == Qt.Checked)
+        force_params = self._get_force_params()
+        force_params.set_release_ramp_enabled(enabled)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
