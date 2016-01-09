@@ -14,7 +14,6 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from force_editor import ForceEditor
 from infoeditor import InfoEditor
 from subdevices import Subdevices
 from testbutton import TestButton
@@ -32,7 +31,6 @@ class Editor(QWidget):
         self._test_button = TestButton()
         self._tabs = QTabWidget()
 
-        self._force_editor = ForceEditor()
         self._subdevices = Subdevices()
         self._info_editor = InfoEditor()
         self._tabs.addTab(self._subdevices, 'Subdevices')
@@ -50,7 +48,6 @@ class Editor(QWidget):
     def set_au_id(self, au_id):
         self._au_id = au_id
         self._test_button.set_au_id(au_id)
-        self._force_editor.set_au_id(au_id)
         self._subdevices.set_au_id(au_id)
         self._info_editor.set_au_id(au_id)
 
@@ -58,22 +55,17 @@ class Editor(QWidget):
         self._ui_model = ui_model
         self._control_manager = ui_model.get_control_manager()
         self._test_button.set_ui_model(ui_model)
-        self._force_editor.set_ui_model(ui_model)
         self._subdevices.set_ui_model(ui_model)
         self._info_editor.set_ui_model(ui_model)
         self._keyboard_mapper.set_ui_model(ui_model)
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        if au.is_instrument():
-            self._tabs.insertTab(0, self._force_editor, 'Force')
-            self._tabs.setCurrentIndex(0)
 
     def unregister_updaters(self):
         self._keyboard_mapper.unregister_updaters()
         self._info_editor.unregister_updaters()
         self._subdevices.unregister_updaters()
-        self._force_editor.unregister_updaters()
         self._test_button.unregister_updaters()
 
     def keyPressEvent(self, event):
