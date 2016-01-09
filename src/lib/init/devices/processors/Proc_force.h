@@ -39,6 +39,8 @@ typedef struct Proc_force
     double force_release_env_scale_center;
 
     Envelope* def_force_release_env;
+
+    bool is_release_ramping_enabled;
 } Proc_force;
 
 

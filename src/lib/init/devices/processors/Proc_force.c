@@ -39,6 +39,8 @@ static Set_bool_func        Proc_force_set_env_rel_enabled;
 static Set_float_func       Proc_force_set_env_rel_scale_amount;
 static Set_float_func       Proc_force_set_env_rel_scale_center;
 
+static Set_bool_func        Proc_force_set_release_ramp;
+
 
 static void del_Proc_force(Device_impl* dimpl);
 
@@ -73,6 +75,8 @@ Device_impl* new_Proc_force(void)
     force->force_release_env_scale_center = 0.0;
 
     force->def_force_release_env = NULL;
+
+    force->is_release_ramping_enabled = false;
 
     // Add default release envelope
     {
@@ -118,6 +122,7 @@ Device_impl* new_Proc_force(void)
     REGISTER_KEY(bool,      env_rel_enabled,    "p_b_env_rel_enabled.json",     false);
     REGISTER_KEY(float,   env_rel_scale_amount, "p_f_env_rel_scale_amount.json", 0.0);
     REGISTER_KEY(float,   env_rel_scale_center, "p_f_env_rel_scale_center.json", 0.0);
+    REGISTER_KEY(bool,      release_ramp,       "p_b_release_ramp.json",        false);
 
 #undef REGISTER_KEY
 
@@ -311,6 +316,19 @@ static bool Proc_force_set_env_rel_scale_center(
 
     Proc_force* force = (Proc_force*)dimpl;
     force->force_release_env_scale_center = isfinite(value) ? value : 0;
+
+    return true;
+}
+
+
+static bool Proc_force_set_release_ramp(
+        Device_impl* dimpl, const Key_indices indices, bool value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+
+    Proc_force* force = (Proc_force*)dimpl;
+    force->is_release_ramping_enabled = value;
 
     return true;
 }

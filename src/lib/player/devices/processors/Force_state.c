@@ -18,6 +18,7 @@
 #include <init/devices/Device.h>
 #include <init/devices/Processor.h>
 #include <init/devices/processors/Proc_force.h>
+#include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <mathnum/Random.h>
 #include <player/Force_controls.h>
@@ -30,7 +31,9 @@
 typedef struct Force_vstate
 {
     Voice_state parent;
+
     double fixed_adjust;
+    double release_ramp_progress;
 } Force_vstate;
 
 
@@ -38,6 +41,9 @@ size_t Force_vstate_get_size(void)
 {
     return sizeof(Force_vstate);
 }
+
+
+#define RAMP_RELEASE_SPEED 200.0
 
 
 static int32_t Force_vstate_render_voice(
@@ -161,9 +167,9 @@ static int32_t Force_vstate_render_voice(
 
     if (!vstate->note_on)
     {
-        // Apply force release envelope
         if (force->is_force_release_env_enabled)
         {
+            // Apply force release envelope
             const Envelope* env = force->force_release_env;
             assert(env != NULL);
 
@@ -208,6 +214,34 @@ static int32_t Force_vstate_render_voice(
                 return new_buf_stop;
             }
         }
+        else if (force->is_release_ramping_enabled)
+        {
+            // Apply release ramping
+            int32_t new_buf_stop = buf_stop;
+
+            const float ramp_step = RAMP_RELEASE_SPEED / proc_state->parent.audio_rate;
+
+            if (au_state->sustain < 0.5)
+            {
+                double progress = fvstate->release_ramp_progress;
+                int32_t i = buf_start;
+
+                for (i = buf_start; (i < buf_stop) && (progress < 1); ++i)
+                {
+                    out_buf[i] *= 1 - progress;
+                    progress += ramp_step;
+                }
+
+                new_buf_stop = min(i, new_buf_stop);
+
+                fvstate->release_ramp_progress = progress;
+            }
+
+            // Keep the note running
+            Voice_state_mark_release_data(vstate, new_buf_stop);
+
+            return new_buf_stop;
+        }
     }
 
     // Mark state as started, TODO: fix this mess
@@ -237,6 +271,9 @@ void Force_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
         fvstate->fixed_adjust += var_dB;
     }
+
+    // Initialise release ramping
+    fvstate->release_ramp_progress = 0.0;
 
     return;
 }
