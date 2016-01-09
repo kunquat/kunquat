@@ -31,6 +31,7 @@ class ForceProc(QWidget):
         self._global_force = GlobalForceSlider()
         self._force_variation = ForceVarSlider()
         self._force_envelope = ForceEnvelope()
+        self._force_release_envelope = ForceReleaseEnvelope()
 
         sliders = QGridLayout()
         sliders.addWidget(QLabel('Global force:'), 0, 0)
@@ -41,24 +42,29 @@ class ForceProc(QWidget):
         v = QVBoxLayout()
         v.addLayout(sliders)
         v.addWidget(self._force_envelope)
+        v.addWidget(self._force_release_envelope)
         self.setLayout(v)
 
     def set_au_id(self, au_id):
         self._global_force.set_au_id(au_id)
         self._force_variation.set_au_id(au_id)
         self._force_envelope.set_au_id(au_id)
+        self._force_release_envelope.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._global_force.set_proc_id(proc_id)
         self._force_variation.set_proc_id(proc_id)
         self._force_envelope.set_proc_id(proc_id)
+        self._force_release_envelope.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._global_force.set_ui_model(ui_model)
         self._force_variation.set_ui_model(ui_model)
         self._force_envelope.set_ui_model(ui_model)
+        self._force_release_envelope.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._force_release_envelope.unregister_updaters()
         self._force_envelope.unregister_updaters()
         self._force_variation.unregister_updaters()
         self._global_force.unregister_updaters()
@@ -113,7 +119,7 @@ class ForceVarSlider(ForceNumSlider):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
-class ForceEnvelope(TimeEnvelope):
+class ForceEnvelopeBase(TimeEnvelope):
 
     def __init__(self):
         TimeEnvelope.__init__(self)
@@ -121,6 +127,19 @@ class ForceEnvelope(TimeEnvelope):
 
     def set_proc_id(self, proc_id):
         self._proc_id = proc_id
+
+    def _get_force_params(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        proc = au.get_processor(self._proc_id)
+        force_params = proc.get_type_params()
+        return force_params
+
+
+class ForceEnvelope(ForceEnvelopeBase):
+
+    def __init__(self):
+        ForceEnvelopeBase.__init__(self)
 
     def _get_title(self):
         return u'Force envelope'
@@ -139,13 +158,6 @@ class ForceEnvelope(TimeEnvelope):
 
     def _get_update_signal_type(self):
         return '_'.join(('signal_force_envelope', self._proc_id))
-
-    def _get_force_params(self):
-        module = self._ui_model.get_module()
-        au = module.get_audio_unit(self._au_id)
-        proc = au.get_processor(self._proc_id)
-        force_params = proc.get_type_params()
-        return force_params
 
     def _get_enabled(self):
         return self._get_force_params().get_envelope_enabled()
@@ -176,5 +188,54 @@ class ForceEnvelope(TimeEnvelope):
 
     def _set_envelope_data(self, envelope):
         self._get_force_params().set_envelope(envelope)
+
+
+class ForceReleaseEnvelope(ForceEnvelopeBase):
+
+    def __init__(self):
+        ForceEnvelopeBase.__init__(self)
+
+    def _get_title(self):
+        return u'Force release envelope'
+
+    def _allow_loop(self):
+        return False
+
+    def _make_envelope_widget(self):
+        envelope = Envelope()
+        envelope.set_node_count_max(32)
+        envelope.set_y_range(0, 1)
+        envelope.set_x_range(0, 4)
+        envelope.set_first_lock(True, False)
+        envelope.set_last_lock(False, True)
+        envelope.set_x_range_adjust(False, True)
+        return envelope
+
+    def _get_update_signal_type(self):
+        return '_'.join(('signal_force_release_envelope', self._proc_id))
+
+    def _get_enabled(self):
+        return self._get_force_params().get_release_envelope_enabled()
+
+    def _set_enabled(self, enabled):
+        self._get_force_params().set_release_envelope_enabled(enabled)
+
+    def _get_scale_amount(self):
+        return self._get_force_params().get_release_envelope_scale_amount()
+
+    def _set_scale_amount(self, value):
+        self._get_force_params().set_release_envelope_scale_amount(value)
+
+    def _get_scale_center(self):
+        return self._get_force_params().get_release_envelope_scale_center()
+
+    def _set_scale_center(self, value):
+        self._get_force_params().set_release_envelope_scale_center(value)
+
+    def _get_envelope_data(self):
+        return self._get_force_params().get_release_envelope()
+
+    def _set_envelope_data(self, envelope):
+        self._get_force_params().set_release_envelope(envelope)
 
 
