@@ -109,7 +109,7 @@ static int32_t Force_vstate_render_voice(
 
         const Processor* proc = (const Processor*)proc_state->parent.device;
 
-        const float scale_center_freq = cents_to_Hz(force->force_env_scale_center);
+        const double scale_center_freq = cents_to_Hz(force->force_env_scale_center);
 
         const int32_t env_force_stop = Time_env_state_process(
                 &vstate->force_env_state,
@@ -159,43 +159,56 @@ static int32_t Force_vstate_render_voice(
             return new_buf_stop;
     }
 
-#if 0
-    // Apply force release envelope
-    if (!vstate->note_on && proc->au_params->env_force_rel_enabled)
+    if (!vstate->note_on)
     {
-        const Envelope* env = proc->au_params->env_force_rel;
+        // Apply force release envelope
+        if (force->is_force_release_env_enabled)
+        {
+            const Envelope* env = force->force_release_env;
+            assert(env != NULL);
 
-        const int32_t env_force_rel_stop = Time_env_state_process(
-                &vstate->force_rel_env_state,
-                env,
-                false, // no loop
-                proc->au_params->env_force_rel_scale_amount,
-                proc->au_params->env_force_rel_center,
-                au_state->sustain,
-                0, 1, // range
-                Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH),
-                wbs,
-                buf_start,
-                new_buf_stop,
-                freq);
+            const Processor* proc = (const Processor*)proc_state->parent.device;
 
-        if (vstate->force_rel_env_state.is_finished)
-            new_buf_stop = env_force_rel_stop;
+            const double scale_center_freq =
+                cents_to_Hz(force->force_release_env_scale_center);
 
-        const Work_buffer* wb_time_env = Work_buffers_get_buffer(
-                wbs, WORK_BUFFER_TIME_ENV);
-        float* time_env = Work_buffer_get_contents_mut(wb_time_env);
+            const int32_t env_force_rel_stop = Time_env_state_process(
+                    &vstate->force_rel_env_state,
+                    env,
+                    false, // no loop
+                    force->force_release_env_scale_amount,
+                    scale_center_freq,
+                    au_state->sustain,
+                    0, 1, // range
+                    Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH),
+                    wbs,
+                    buf_start,
+                    new_buf_stop,
+                    proc_state->parent.audio_rate);
 
-        for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            actual_forces[i] *= time_env[i];
+            if (vstate->force_rel_env_state.is_finished)
+                new_buf_stop = env_force_rel_stop;
+
+            const Work_buffer* wb_time_env = Work_buffers_get_buffer(
+                    wbs, WORK_BUFFER_TIME_ENV);
+            float* time_env = Work_buffer_get_contents_mut(wb_time_env);
+
+            for (int32_t i = buf_start; i < new_buf_stop; ++i)
+                out_buf[i] *= time_env[i];
+
+            for (int32_t i = new_buf_stop; i < buf_stop; ++i)
+                out_buf[i] = 0;
+
+            // Keep the note running
+            Voice_state_mark_release_data(vstate, new_buf_stop);
+
+            if (vstate->force_rel_env_state.is_finished)
+            {
+                Voice_state_set_finished(vstate);
+                return new_buf_stop;
+            }
+        }
     }
-
-    // Update actual force for next iteration
-    if (new_buf_stop < buf_stop)
-        vstate->actual_force = 0;
-    else if (new_buf_stop > buf_start)
-        vstate->actual_force = actual_forces[new_buf_stop - 1];
-#endif
 
     // Mark state as started, TODO: fix this mess
     vstate->pos = 1;
