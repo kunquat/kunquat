@@ -245,6 +245,12 @@ static int32_t Force_vstate_render_voice(
             // Keep the note running
             Voice_state_mark_release_data(vstate, new_buf_stop);
 
+            for (int32_t i = new_buf_stop; i < buf_stop; ++i)
+                out_buf[i] = 0;
+
+            if (fvstate->release_ramp_progress >= 1)
+                Voice_state_set_finished(vstate);
+
             return new_buf_stop;
         }
     }
