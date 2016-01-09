@@ -31,4 +31,37 @@ class ProcParamsForce(ProcParams):
     def set_force_variation(self, value):
         self._set_value('p_f_force_variation.json', value)
 
+    def get_envelope(self):
+        ret_env = { 'nodes': [ [0, 1], [1, 1] ], 'marks': [0, 1], 'smooth': False }
+        stored_env = self._get_value('p_e_env.json', None) or {}
+        ret_env.update(stored_env)
+        return ret_env
+
+    def set_envelope(self, envelope):
+        self._set_value('p_e_env.json', envelope)
+
+    def get_envelope_enabled(self):
+        return self._get_value('p_b_env_enabled.json', False)
+
+    def set_envelope_enabled(self, enabled):
+        self._set_value('p_b_env_enabled.json', enabled)
+
+    def get_envelope_loop_enabled(self):
+        return self._get_value('p_b_env_loop_enabled.json', False)
+
+    def set_envelope_loop_enabled(self, enabled):
+        self._set_value('p_b_env_loop_enabled.json', True)
+
+    def get_envelope_scale_amount(self):
+        return self._get_value('p_f_env_scale_amount.json', 0.0)
+
+    def set_envelope_scale_amount(self, value):
+        self._set_value('p_f_env_scale_amount.json', value)
+
+    def get_envelope_scale_center(self):
+        return self._get_value('p_f_env_scale_center.json', 0.0)
+
+    def set_envelope_scale_center(self, value):
+        self._set_value('p_f_env_scale_center.json', value)
+
 
