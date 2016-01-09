@@ -53,27 +53,9 @@ MODULE_KEYP(album_tracks,           "album/p_tracks.json",                  "[]"
 #endif
 
 MODULE_AU_KEYP(au_manifest,             "au_XX/p_manifest.json",                "")
-MODULE_AU_KEYP(au,                      "au_XX/p_audio_unit.json",
-        "{ \"global_force\": 0"
-        ", \"force\": 0"
-        ", \"force_variation\": 0"
-        "}")
 MODULE_AU_KEYP(au_in_port_manifest,     "au_XX/in_XX/p_manifest.json",          "")
 MODULE_AU_KEYP(au_out_port_manifest,    "au_XX/out_XX/p_manifest.json",         "")
 MODULE_AU_KEYP(au_connections,          "au_XX/p_connections.json",             "[]")
-MODULE_AU_KEYP(au_env_force,            "au_XX/p_envelope_force.json",
-        "{ \"enabled\": false"
-        ", \"scale_amount\": 0"
-        ", \"scale_center\": 0"
-        ", \"loop\": false"
-        ", \"envelope\": { \"nodes\": [ [0, 1], [1, 1] ], \"marks\": [0, 1] }"
-        "}")
-MODULE_AU_KEYP(au_env_force_release,    "au_XX/p_envelope_force_release.json",
-        "{ \"enabled\": false"
-        ", \"scale_amount\": 0"
-        ", \"scale_center\": 0"
-        ", \"envelope\": { \"nodes\": [ [0, 1], [1, 0] ] }"
-        "}")
 
 MODULE_AU_KEYP(au_control_vars,         "au_XX/p_control_vars.json",            "[]")
 
