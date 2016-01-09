@@ -16,6 +16,7 @@
 #define K_PROC_FORCE_H
 
 
+#include <decl.h>
 #include <init/devices/Device_impl.h>
 
 
@@ -25,6 +26,12 @@ typedef struct Proc_force
 
     double global_force;
     double force_var;
+
+    const Envelope* force_env;
+    bool is_force_env_enabled;
+    bool is_force_env_loop_enabled;
+    double force_env_scale_amount;
+    double force_env_scale_center;
 } Proc_force;
 
 

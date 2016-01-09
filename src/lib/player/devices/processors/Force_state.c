@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/Device.h>
+#include <init/devices/Processor.h>
 #include <init/devices/processors/Proc_force.h>
 #include <mathnum/conversions.h>
 #include <mathnum/Random.h>
@@ -67,7 +68,7 @@ static int32_t Force_vstate_render_voice(
     }
 
     Force_vstate* fvstate = (Force_vstate*)vstate;
-    //const Proc_force* force = (const Proc_force*)proc_state->parent.device->dimpl;
+    const Proc_force* force = (const Proc_force*)proc_state->parent.device->dimpl;
 
     Force_controls* fc = &vstate->force_controls;
 
@@ -101,28 +102,31 @@ static int32_t Force_vstate_render_voice(
             out_buf[i] *= LFO_step(&fc->tremolo);
     }
 
-#if 0
     // Apply force envelope
-    if (proc->au_params->env_force_enabled)
+    if (force->is_force_env_enabled && (force->force_env != NULL))
     {
-        const Envelope* env = proc->au_params->env_force;
+        const Envelope* env = force->force_env;
+
+        const Processor* proc = (const Processor*)proc_state->parent.device;
+
+        const float scale_center_freq = cents_to_Hz(force->force_env_scale_center);
 
         const int32_t env_force_stop = Time_env_state_process(
                 &vstate->force_env_state,
                 env,
-                proc->au_params->env_force_loop_enabled,
-                proc->au_params->env_force_scale_amount,
-                proc->au_params->env_force_center,
+                force->is_force_env_loop_enabled,
+                force->force_env_scale_amount,
+                scale_center_freq,
                 0, // sustain
                 0, 1, // range
                 Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH),
                 wbs,
                 buf_start,
                 new_buf_stop,
-                freq);
+                proc_state->parent.audio_rate);
 
-        const Work_buffer* wb_time_env = Work_buffers_get_buffer(
-                wbs, WORK_BUFFER_TIME_ENV);
+        const Work_buffer* wb_time_env =
+            Work_buffers_get_buffer(wbs, WORK_BUFFER_TIME_ENV);
         float* time_env = Work_buffer_get_contents_mut(wb_time_env);
 
         // Check the end of envelope processing
@@ -134,6 +138,11 @@ static int32_t Force_vstate_render_voice(
             if (last_value == 0)
             {
                 new_buf_stop = env_force_stop;
+
+                for (int32_t i = new_buf_stop; i < buf_stop; ++i)
+                    out_buf[i] = 0;
+
+                Voice_state_set_finished(vstate);
             }
             else
             {
@@ -144,9 +153,13 @@ static int32_t Force_vstate_render_voice(
         }
 
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            actual_forces[i] *= time_env[i];
+            out_buf[i] *= time_env[i];
+
+        if (vstate->has_finished)
+            return new_buf_stop;
     }
 
+#if 0
     // Apply force release envelope
     if (!vstate->note_on && proc->au_params->env_force_rel_enabled)
     {
