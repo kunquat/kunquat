@@ -56,8 +56,6 @@ bool Event_channel_note_on_process(
         return true;
 
     // Allocate new Voices
-    //double force_var = NAN;
-
     bool is_voice_rand_seed_set = false;
     uint64_t voice_rand_seed = 0;
 
@@ -152,8 +150,6 @@ bool Event_channel_note_on_process(
         }
 
         //fprintf(stderr, "Event set pitch @ %p: %f\n", (void*)&vs->pitch, vs->pitch);
-
-        //set_au_properties(voice, vs, ch, &force_var);
     }
 
     Device_init_control_vars(
@@ -185,8 +181,6 @@ bool Event_channel_hit_process(Channel* ch, Device_states* dstates, const Value*
     Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
     if (au == NULL)
         return true;
-
-    //double force_var = NAN;
 
     bool is_voice_rand_seed_set = false;
     uint64_t voice_rand_seed = 0;
@@ -230,8 +224,6 @@ bool Event_channel_hit_process(Channel* ch, Device_states* dstates, const Value*
             Force_controls* fc = Force_vstate_get_force_controls_mut(vs);
             Force_controls_copy(fc, &ch->force_controls);
         }
-
-        //set_au_properties(voice, vs, ch, &force_var);
     }
 
     Device_init_control_vars(

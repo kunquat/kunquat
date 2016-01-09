@@ -73,7 +73,6 @@ struct Voice_state
     int32_t release_stop;
 
     double ramp_attack;            ///< The current state of volume ramp during attack.
-    //double ramp_release;           ///< The current state of volume ramp during release.
 
     int hit_index;                 ///< The hit index (negative for normal notes).
     Pitch_controls pitch_controls;
@@ -99,13 +98,6 @@ struct Voice_state
 
     // TODO: temp hack -- replace with proper type identifier
     bool is_force_state;
-    /*
-    Time_env_state force_env_state;
-    Time_env_state force_rel_env_state;
-
-    Force_controls force_controls;
-    double actual_force;           ///< The current actual force (includes tremolo & envs).
-    // */
 };
 
 

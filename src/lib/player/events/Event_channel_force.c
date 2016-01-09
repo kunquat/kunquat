@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -57,9 +57,6 @@ bool Event_channel_set_force_process(
         Force_controls* fc = get_force_controls(vs);
         if (fc != NULL)
         {
-            // Update actual force in case it's queried before another render call
-            //vs->actual_force *= (force / vs->force_controls.force);
-
             fc->force = force;
             Slider_break(&fc->slider);
         }
