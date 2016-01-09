@@ -312,9 +312,6 @@ void Voice_state_mix_signals(
             Work_buffer_mix(mixed_buffer, voice_buffer, buf_start, buf_stop);
     }
 
-    if (vstate->has_finished)
-        vstate->active = false;
-
     return;
 }
 

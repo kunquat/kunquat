@@ -104,7 +104,7 @@ void Voice_group_deactivate_unreachable(Voice_group* vg)
     for (uint16_t i = 0; i < vg->size; ++i)
     {
         Voice* voice = vg->voices[i];
-        if (!voice->updated || !voice->state->active)
+        if (!voice->updated || !voice->state->active || voice->state->has_finished)
             Voice_reset(voice);
     }
 
