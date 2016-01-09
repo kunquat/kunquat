@@ -114,12 +114,4 @@ class Processor():
         key = self._get_key(self._get_vf_key(port, 'pitch'))
         self._store[key] = enabled
 
-    def get_vf_force(self, port):
-        key = self._get_key(self._get_vf_key(port, 'force'))
-        return self._store.get(key, get_default_value(key))
-
-    def set_vf_force(self, port, enabled):
-        key = self._get_key(self._get_vf_key(port, 'force'))
-        self._store[key] = enabled
-
 
