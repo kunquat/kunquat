@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2016
  *
  * This file is part of Kunquat.
  *
