@@ -19,11 +19,14 @@
 #include <decl.h>
 #include <player/devices/Proc_state.h>
 #include <player/devices/Voice_state.h>
+#include <player/Force_controls.h>
 
 
 Voice_state_get_size_func Force_vstate_get_size;
 
 void Force_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
+
+Force_controls* Force_vstate_get_force_controls_mut(Voice_state* vstate);
 
 
 #endif // K_FORCE_STATE_H

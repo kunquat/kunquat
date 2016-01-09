@@ -61,28 +61,40 @@ void reserve_voice(
 }
 
 
+#if 0
 void set_au_properties(Voice* voice, Voice_state* vs, Channel* ch, double* force_var)
 {
     assert(force_var != NULL);
 
-    if (ch->carry_force)
+    if (vs->is_force_state)
     {
-        if (isnan(ch->force_controls.force))
-            ch->force_controls.force = exp2(voice->proc->au_params->force / 6);
+        Force_controls* fc = Force_vstate_get_force_controls_mut(vs);
+        assert(fc != NULL);
 
-        Force_controls_copy(&vs->force_controls, &ch->force_controls);
-        vs->actual_force =
-            vs->force_controls.force * voice->proc->au_params->global_force;
+        if (ch->carry_force)
+        {
+            if (isnan(ch->force_controls.force))
+                ch->force_controls.force = exp2(voice->proc->au_params->force / 6);
+
+            Force_controls_copy(fc, &ch->force_controls);
+            /*
+            vs->actual_force =
+                vs->force_controls.force * voice->proc->au_params->global_force;
+            // */
+        }
+        /*
+        else
+        {
+            fc->force = exp2(voice->proc->au_params->force / 6);
+
+            Slider_set_length(&fc->slider, &ch->force_slide_length);
+
+            Force_controls_copy(&ch->force_controls, fc);
+        }
+        // */
     }
-    else
-    {
-        vs->force_controls.force = exp2(voice->proc->au_params->force / 6);
 
-        Slider_set_length(&vs->force_controls.slider, &ch->force_slide_length);
-
-        Force_controls_copy(&ch->force_controls, &vs->force_controls);
-    }
-
+#if 0
     if (voice->proc->au_params->force_variation != 0)
     {
         if (isnan(*force_var))
@@ -96,8 +108,10 @@ void set_au_properties(Voice* voice, Voice_state* vs, Channel* ch, double* force
         vs->actual_force =
             vs->force_controls.force * voice->proc->au_params->global_force;
     }
+#endif
 
     return;
 }
+#endif
 
 

@@ -20,6 +20,7 @@
 #include <init/Scale.h>
 #include <kunquat/limits.h>
 #include <mathnum/Tstamp.h>
+#include <player/devices/processors/Force_state.h>
 #include <player/devices/Voice_state.h>
 #include <player/events/Event_common.h>
 #include <player/events/note_setup.h>
@@ -55,12 +56,21 @@ bool Event_channel_note_on_process(
         return true;
 
     // Allocate new Voices
-    double force_var = NAN;
+    //double force_var = NAN;
 
     bool is_voice_rand_seed_set = false;
     uint64_t voice_rand_seed = 0;
 
     const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
+
+    if (!ch->carry_force)
+    {
+        Force_controls_reset(&ch->force_controls);
+        ch->force_controls.force = 1;
+        Slider_set_length(&ch->force_controls.slider, &ch->force_slide_length);
+        LFO_set_speed_slide(&ch->force_controls.tremolo, &ch->tremolo_speed_slide);
+        LFO_set_depth_slide(&ch->force_controls.tremolo, &ch->tremolo_depth_slide);
+    }
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -135,9 +145,15 @@ bool Event_channel_note_on_process(
             Pitch_controls_copy(&ch->pitch_controls, &vs->pitch_controls);
         }
 
+        if (vs->is_force_state)
+        {
+            Force_controls* fc = Force_vstate_get_force_controls_mut(vs);
+            Force_controls_copy(fc, &ch->force_controls);
+        }
+
         //fprintf(stderr, "Event set pitch @ %p: %f\n", (void*)&vs->pitch, vs->pitch);
 
-        set_au_properties(voice, vs, ch, &force_var);
+        //set_au_properties(voice, vs, ch, &force_var);
     }
 
     Device_init_control_vars(
@@ -170,12 +186,21 @@ bool Event_channel_hit_process(Channel* ch, Device_states* dstates, const Value*
     if (au == NULL)
         return true;
 
-    double force_var = NAN;
+    //double force_var = NAN;
 
     bool is_voice_rand_seed_set = false;
     uint64_t voice_rand_seed = 0;
 
     const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
+
+    if (!ch->carry_force)
+    {
+        Force_controls_reset(&ch->force_controls);
+        ch->force_controls.force = 1;
+        Slider_set_length(&ch->force_controls.slider, &ch->force_slide_length);
+        LFO_set_speed_slide(&ch->force_controls.tremolo, &ch->tremolo_speed_slide);
+        LFO_set_depth_slide(&ch->force_controls.tremolo, &ch->tremolo_depth_slide);
+    }
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -199,7 +224,14 @@ bool Event_channel_hit_process(Channel* ch, Device_states* dstates, const Value*
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
         vs->hit_index = value->value.int_type;
-        set_au_properties(voice, vs, ch, &force_var);
+
+        if (vs->is_force_state)
+        {
+            Force_controls* fc = Force_vstate_get_force_controls_mut(vs);
+            Force_controls_copy(fc, &ch->force_controls);
+        }
+
+        //set_au_properties(voice, vs, ch, &force_var);
     }
 
     Device_init_control_vars(

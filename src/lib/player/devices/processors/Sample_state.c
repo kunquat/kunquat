@@ -423,7 +423,7 @@ static int32_t Sample_vstate_render_voice(
             entry = Hit_map_get_entry(
                     map,
                     vstate->hit_index,
-                    vstate->force_controls.force,
+                    1, //vstate->force_controls.force, TODO: get from force input
                     vstate->rand_p);
         }
         else
@@ -448,7 +448,7 @@ static int32_t Sample_vstate_render_voice(
             entry = Note_map_get_entry(
                     map,
                     log2(vstate->pitch_controls.pitch / 440) * 1200,
-                    vstate->force_controls.force,
+                    1, //vstate->force_controls.force, TODO: get from force input
                     vstate->rand_p);
             sample_state->middle_tone = entry->ref_freq;
         }

@@ -73,7 +73,7 @@ struct Voice_state
     int32_t release_stop;
 
     double ramp_attack;            ///< The current state of volume ramp during attack.
-    double ramp_release;           ///< The current state of volume ramp during release.
+    //double ramp_release;           ///< The current state of volume ramp during release.
 
     int hit_index;                 ///< The hit index (negative for normal notes).
     Pitch_controls pitch_controls;
@@ -97,22 +97,26 @@ struct Voice_state
     uint64_t noff_pos;             ///< Note Off position.
     double noff_pos_rem;           ///< Note Off position remainder.
 
+    // TODO: temp hack -- replace with proper type identifier
+    bool is_force_state;
+    /*
     Time_env_state force_env_state;
     Time_env_state force_rel_env_state;
 
     Force_controls force_controls;
     double actual_force;           ///< The current actual force (includes tremolo & envs).
+    // */
 };
 
 
 /**
  * Initialise a Voice state.
  *
- * \param state     The Voice state -- must not be \c NULL.
- * \param rand_p    The parameter Random source -- must not be \c NULL.
- * \param rand_s    The signal Random source -- must not be \c NULL.
- * \param freq      The mixing frequency -- must be > \c 0.
- * \param tempo     The current tempo -- must be > \c 0.
+ * \param state        The Voice state -- must not be \c NULL.
+ * \param rand_p       The parameter Random source -- must not be \c NULL.
+ * \param rand_s       The signal Random source -- must not be \c NULL.
+ * \param audio_rate   The audio rate -- must be > \c 0.
+ * \param tempo        The current tempo -- must be > \c 0.
  *
  * \return   The parameter \a state.
  */
@@ -120,7 +124,7 @@ Voice_state* Voice_state_init(
         Voice_state* state,
         Random* rand_p,
         Random* rand_s,
-        int32_t freq,
+        int32_t audio_rate,
         double tempo);
 
 

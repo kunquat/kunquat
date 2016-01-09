@@ -53,7 +53,7 @@ void reserve_voice(
  * \param force_var   A reference to the force variation value -- must not be
  *                    \c NULL.
  */
-void set_au_properties(Voice* voice, Voice_state* vs, Channel* ch, double* force_var);
+//void set_au_properties(Voice* voice, Voice_state* vs, Channel* ch, double* force_var);
 
 
 #endif // K_NOTE_SETUP_H

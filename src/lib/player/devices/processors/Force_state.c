@@ -34,6 +34,10 @@ typedef struct Force_vstate
 
     double fixed_adjust;
     double release_ramp_progress;
+
+    Force_controls controls;
+    Time_env_state env_state;
+    Time_env_state release_env_state;
 } Force_vstate;
 
 
@@ -76,7 +80,8 @@ static int32_t Force_vstate_render_voice(
     Force_vstate* fvstate = (Force_vstate*)vstate;
     const Proc_force* force = (const Proc_force*)proc_state->parent.device->dimpl;
 
-    Force_controls* fc = &vstate->force_controls;
+    Force_controls* fc = &fvstate->controls;
+    Force_controls_set_tempo(fc, tempo);
 
     int32_t new_buf_stop = buf_stop;
 
@@ -118,7 +123,7 @@ static int32_t Force_vstate_render_voice(
         const double scale_center_freq = cents_to_Hz(force->force_env_scale_center);
 
         const int32_t env_force_stop = Time_env_state_process(
-                &vstate->force_env_state,
+                &fvstate->env_state,
                 env,
                 force->is_force_env_loop_enabled,
                 force->force_env_scale_amount,
@@ -136,7 +141,7 @@ static int32_t Force_vstate_render_voice(
         float* time_env = Work_buffer_get_contents_mut(wb_time_env);
 
         // Check the end of envelope processing
-        if (vstate->force_env_state.is_finished)
+        if (fvstate->env_state.is_finished)
         {
             const double* last_node = Envelope_get_node(
                     env, Envelope_node_count(env) - 1);
@@ -179,7 +184,7 @@ static int32_t Force_vstate_render_voice(
                 cents_to_Hz(force->force_release_env_scale_center);
 
             const int32_t env_force_rel_stop = Time_env_state_process(
-                    &vstate->force_rel_env_state,
+                    &fvstate->release_env_state,
                     env,
                     false, // no loop
                     force->force_release_env_scale_amount,
@@ -192,7 +197,7 @@ static int32_t Force_vstate_render_voice(
                     new_buf_stop,
                     proc_state->parent.audio_rate);
 
-            if (vstate->force_rel_env_state.is_finished)
+            if (fvstate->release_env_state.is_finished)
                 new_buf_stop = env_force_rel_stop;
 
             const Work_buffer* wb_time_env = Work_buffers_get_buffer(
@@ -208,7 +213,7 @@ static int32_t Force_vstate_render_voice(
             // Keep the note running
             Voice_state_mark_release_data(vstate, new_buf_stop);
 
-            if (vstate->force_rel_env_state.is_finished)
+            if (fvstate->release_env_state.is_finished)
             {
                 Voice_state_set_finished(vstate);
                 return new_buf_stop;
@@ -272,10 +277,27 @@ void Force_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
         fvstate->fixed_adjust += var_dB;
     }
 
-    // Initialise release ramping
     fvstate->release_ramp_progress = 0.0;
 
+    Force_controls_init(&fvstate->controls, proc_state->parent.audio_rate, 120);
+
+    Time_env_state_init(&fvstate->env_state);
+    Time_env_state_init(&fvstate->release_env_state);
+
+    vstate->is_force_state = true;
+
     return;
+}
+
+
+Force_controls* Force_vstate_get_force_controls_mut(Voice_state* vstate)
+{
+    assert(vstate != NULL);
+    assert(vstate->is_force_state);
+
+    Force_vstate* fvstate = (Force_vstate*)vstate;
+
+    return &fvstate->controls;
 }
 
 

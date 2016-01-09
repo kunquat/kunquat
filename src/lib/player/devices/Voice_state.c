@@ -32,20 +32,20 @@ Voice_state* Voice_state_init(
         Voice_state* state,
         Random* rand_p,
         Random* rand_s,
-        int32_t freq,
+        int32_t audio_rate,
         double tempo)
 {
     assert(state != NULL);
     assert(rand_p != NULL);
     assert(rand_s != NULL);
-    assert(freq > 0);
+    assert(audio_rate > 0);
     assert(tempo > 0);
 
     Voice_state_clear(state);
     state->active = true;
     state->has_finished = false;
     state->note_on = true;
-    state->freq = freq;
+    state->freq = audio_rate;
     state->tempo = tempo;
     state->rand_p = rand_p;
     state->rand_s = rand_s;
@@ -55,8 +55,10 @@ Voice_state* Voice_state_init(
     state->has_release_data = false;
     state->release_stop = 0;
 
-    Force_controls_init(&state->force_controls, freq, tempo);
-    Pitch_controls_init(&state->pitch_controls, freq, tempo);
+    //Force_controls_init(&state->force_controls, audio_rate, tempo);
+    Pitch_controls_init(&state->pitch_controls, audio_rate, tempo);
+
+    state->is_force_state = false;
 
     return state;
 }
@@ -71,7 +73,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->freq = 0;
     state->tempo = 0;
     state->ramp_attack = 0;
-    state->ramp_release = 0;
+    //state->ramp_release = 0;
 
     state->hit_index = -1;
     Pitch_controls_reset(&state->pitch_controls);
@@ -101,11 +103,15 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->noff_pos = 0;
     state->noff_pos_rem = 0;
 
+    /*
     Time_env_state_init(&state->force_env_state);
     Time_env_state_init(&state->force_rel_env_state);
 
     Force_controls_reset(&state->force_controls);
     state->actual_force = 1;
+    // */
+
+    state->is_force_state = false;
 
     return state;
 }
@@ -139,8 +145,10 @@ static void adjust_relative_lengths(
             vstate->arpeggio_frames *= vstate->tempo / tempo;
         }
 
+        /*
         Force_controls_set_audio_rate(&vstate->force_controls, audio_rate);
         Force_controls_set_tempo(&vstate->force_controls, tempo);
+        // */
 
         vstate->freq = audio_rate;
         vstate->tempo = tempo;
