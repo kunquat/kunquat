@@ -129,7 +129,7 @@ typedef struct Cond_work_buffer
  * Initialise a Conditional work buffer.
  *
  * \param cwb         The Conditional work buffer -- must not be \c NULL.
- * \param wb          The Work buffer -- must not be \c NULL.
+ * \param wb          The Work buffer, or \c NULL.
  * \param def_value   The default value.
  * \param enabled     \c true if \a wb should be used, otherwise \c false.
  *
