@@ -190,7 +190,7 @@ bool Handle_init(Handle* handle)
 
     // Create players
     handle->player = new_Player(
-            handle->module, DEFAULT_AUDIO_RATE, 2048, 16384, 256);
+            handle->module, DEFAULT_AUDIO_RATE, 2048, 16384, 1024);
     handle->length_counter = new_Player(handle->module, 1000000000L, 0, 0, 0);
     if (handle->player == NULL || handle->length_counter == NULL)
     {
