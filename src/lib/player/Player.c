@@ -470,7 +470,7 @@ static void Player_process_voices(
             else
                 Voice_group_deactivate_unreachable(vg);
 
-            active_voice_count += Voice_group_get_size(vg);
+            active_voice_count += Voice_group_get_active_count(vg);
         }
         else
         {
