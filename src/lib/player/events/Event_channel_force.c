@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -16,13 +16,24 @@
 
 #include <debug/assert.h>
 #include <player/devices/Voice_state.h>
+#include <player/devices/processors/Force_state.h>
 #include <player/events/Event_common.h>
+#include <player/Force_controls.h>
 #include <player/Voice.h>
 #include <Value.h>
 
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
+
+
+static Force_controls* get_force_controls(Voice_state* vstate)
+{
+    if (!vstate->is_force_state)
+        return NULL;
+
+    return Force_vstate_get_force_controls_mut(vstate);
+}
 
 
 bool Event_channel_set_force_process(
@@ -43,12 +54,12 @@ bool Event_channel_set_force_process(
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
 
-        // Update actual force in case it's queried before another render call
-        vs->actual_force *= (force / vs->force_controls.force);
-
-        vs->force_controls.force = force;
-        Slider_break(&vs->force_controls.slider);
-//        vs->force_slide = 0;
+        Force_controls* fc = get_force_controls(vs);
+        if (fc != NULL)
+        {
+            fc->force = force;
+            Slider_break(&fc->slider);
+        }
     }
 
     return true;
@@ -75,11 +86,14 @@ bool Event_channel_slide_force_process(
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
 
-        if (Slider_in_progress(&vs->force_controls.slider))
-            Slider_change_target(&vs->force_controls.slider, slide_target);
-        else
-            Slider_start(
-                    &vs->force_controls.slider, slide_target, vs->force_controls.force);
+        Force_controls* fc = get_force_controls(vs);
+        if (fc != NULL)
+        {
+            if (Slider_in_progress(&fc->slider))
+                Slider_change_target(&fc->slider, slide_target);
+            else
+                Slider_start(&fc->slider, slide_target, fc->force);
+        }
     }
 
     return true;
@@ -102,7 +116,10 @@ bool Event_channel_slide_force_length_process(
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
-        Slider_set_length(&vs->force_controls.slider, &ch->force_slide_length);
+
+        Force_controls* fc = get_force_controls(vs);
+        if (fc != NULL)
+            Slider_set_length(&fc->slider, &ch->force_slide_length);
     }
 
     return true;
@@ -131,12 +148,16 @@ bool Event_channel_tremolo_speed_process(
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
 
-        LFO_set_speed(&vs->force_controls.tremolo, value->value.float_type);
+        Force_controls* fc = get_force_controls(vs);
+        if (fc != NULL)
+        {
+            LFO_set_speed(&fc->tremolo, value->value.float_type);
 
-        if (ch->tremolo_depth > 0)
-            LFO_set_depth(&vs->force_controls.tremolo, ch->tremolo_depth);
+            if (ch->tremolo_depth > 0)
+                LFO_set_depth(&fc->tremolo, ch->tremolo_depth);
 
-        LFO_turn_on(&vs->force_controls.tremolo);
+            LFO_turn_on(&fc->tremolo);
+        }
     }
 
     return true;
@@ -165,11 +186,15 @@ bool Event_channel_tremolo_depth_process(
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
 
-        if (ch->tremolo_speed > 0)
-            LFO_set_speed(&vs->force_controls.tremolo, ch->tremolo_speed);
+        Force_controls* fc = get_force_controls(vs);
+        if (fc != NULL)
+        {
+            if (ch->tremolo_speed > 0)
+                LFO_set_speed(&fc->tremolo, ch->tremolo_speed);
 
-        LFO_set_depth(&vs->force_controls.tremolo, actual_depth);
-        LFO_turn_on(&vs->force_controls.tremolo);
+            LFO_set_depth(&fc->tremolo, actual_depth);
+            LFO_turn_on(&fc->tremolo);
+        }
     }
 
     return true;
@@ -192,7 +217,10 @@ bool Event_channel_tremolo_speed_slide_process(
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
-        LFO_set_speed_slide(&vs->force_controls.tremolo, &value->value.Tstamp_type);
+
+        Force_controls* fc = get_force_controls(vs);
+        if (fc != NULL)
+            LFO_set_speed_slide(&fc->tremolo, &value->value.Tstamp_type);
     }
 
     return true;
@@ -215,7 +243,10 @@ bool Event_channel_tremolo_depth_slide_process(
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
-        LFO_set_depth_slide(&vs->force_controls.tremolo, &value->value.Tstamp_type);
+
+        Force_controls* fc = get_force_controls(vs);
+        if (fc != NULL)
+            LFO_set_depth_slide(&fc->tremolo, &value->value.Tstamp_type);
     }
 
     return true;

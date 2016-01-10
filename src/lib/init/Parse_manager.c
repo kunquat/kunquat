@@ -644,26 +644,6 @@ static bool read_any_au_manifest(Reader_params* params, Au_table* au_table, int 
 }
 
 
-static bool read_any_au(Reader_params* params, Au_table* au_table, int level)
-{
-    assert(params != NULL);
-
-    int32_t index = -1;
-    acquire_au_index(index, params, level);
-
-    Audio_unit* au = NULL;
-    acquire_au(au, params->handle, au_table, index);
-
-    if (!Audio_unit_parse_header(au, params->sr))
-    {
-        set_error(params);
-        return false;
-    }
-
-    return true;
-}
-
-
 static bool read_any_au_in_port_manifest(
         Reader_params* params, Au_table* au_table, int level)
 {
@@ -748,46 +728,6 @@ static bool read_any_au_connections(Reader_params* params, Au_table* au_table, i
     }
 
     return true;
-}
-
-
-static bool read_any_au_env_generic(
-        Reader_params* params,
-        Au_table* au_table,
-        int level,
-        bool parse_func(Au_params*, Streader*))
-{
-    assert(params != NULL);
-
-    int32_t index = -1;
-    acquire_au_index(index, params, level);
-
-    Audio_unit* au = NULL;
-    acquire_au(au, params->handle, au_table, index);
-
-    if (!parse_func(Audio_unit_get_params(au), params->sr))
-    {
-        set_error(params);
-        return false;
-    }
-
-    return true;
-}
-
-
-static bool read_any_au_env_force(Reader_params* params, Au_table* au_table, int level)
-{
-    assert(params != NULL);
-    return read_any_au_env_generic(params, au_table, level, Au_params_parse_env_force);
-}
-
-
-static bool read_any_au_env_force_release(
-        Reader_params* params, Au_table* au_table, int level)
-{
-    assert(params != NULL);
-    return read_any_au_env_generic(
-            params, au_table, level, Au_params_parse_env_force_rel);
 }
 
 
@@ -1242,13 +1182,6 @@ static bool read_any_proc_vf_pitch(
         Reader_params* params, Au_table* au_table, int level)
 {
     return read_any_proc_voice_feature(params, au_table, level, VOICE_FEATURE_PITCH);
-}
-
-
-static bool read_any_proc_vf_force(
-        Reader_params* params, Au_table* au_table, int level)
-{
-    return read_any_proc_voice_feature(params, au_table, level, VOICE_FEATURE_FORCE);
 }
 
 

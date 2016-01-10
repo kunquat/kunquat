@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -81,6 +81,14 @@ Voice* Voice_group_get_voice(Voice_group* vg, uint16_t index);
  * \return   The Voice inside the group if found, otherwise \c NULL.
  */
 Voice* Voice_group_get_voice_by_proc(Voice_group* vg, uint32_t proc_id);
+
+
+/**
+ * Deactivate all Voices in the Voice group.
+ *
+ * \param vg   The Voice group -- must not be \c NULL.
+ */
+void Voice_group_deactivate_all(Voice_group* vg);
 
 
 /**

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -42,18 +42,6 @@ void reserve_voice(
         const Proc_state* proc_state,
         int proc_num,
         uint64_t rand_seed);
-
-
-/**
- * Set initial values of parameters according to the Audio unit.
- *
- * \param voice       The Voice -- must not be \c NULL.
- * \param vs          The Voice state -- must not be \c NULL.
- * \param ch          The Channel -- must not be \c NULL.
- * \param force_var   A reference to the force variation value -- must not be
- *                    \c NULL.
- */
-void set_au_properties(Voice* voice, Voice_state* vs, Channel* ch, double* force_var);
 
 
 #endif // K_NOTE_SETUP_H

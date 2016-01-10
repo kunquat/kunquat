@@ -61,6 +61,7 @@ typedef void Voice_state_set_cv_tstamp_func(
 struct Voice_state
 {
     bool active;                   ///< Whether there is anything left to process.
+    bool has_finished;
     int32_t freq;                  ///< The last mixing frequency used.
     double tempo;                  ///< The last tempo setting used.
     Random* rand_p;                ///< Parameter random source.
@@ -68,8 +69,10 @@ struct Voice_state
 
     Voice_state_render_voice_func* render_voice;
 
+    bool has_release_data;
+    int32_t release_stop;
+
     double ramp_attack;            ///< The current state of volume ramp during attack.
-    double ramp_release;           ///< The current state of volume ramp during release.
 
     int hit_index;                 ///< The hit index (negative for normal notes).
     Pitch_controls pitch_controls;
@@ -93,22 +96,19 @@ struct Voice_state
     uint64_t noff_pos;             ///< Note Off position.
     double noff_pos_rem;           ///< Note Off position remainder.
 
-    Time_env_state force_env_state;
-    Time_env_state force_rel_env_state;
-
-    Force_controls force_controls;
-    double actual_force;           ///< The current actual force (includes tremolo & envs).
+    // TODO: temp hack -- replace with proper type identifier
+    bool is_force_state;
 };
 
 
 /**
  * Initialise a Voice state.
  *
- * \param state     The Voice state -- must not be \c NULL.
- * \param rand_p    The parameter Random source -- must not be \c NULL.
- * \param rand_s    The signal Random source -- must not be \c NULL.
- * \param freq      The mixing frequency -- must be > \c 0.
- * \param tempo     The current tempo -- must be > \c 0.
+ * \param state        The Voice state -- must not be \c NULL.
+ * \param rand_p       The parameter Random source -- must not be \c NULL.
+ * \param rand_s       The signal Random source -- must not be \c NULL.
+ * \param audio_rate   The audio rate -- must be > \c 0.
+ * \param tempo        The current tempo -- must be > \c 0.
  *
  * \return   The parameter \a state.
  */
@@ -116,7 +116,7 @@ Voice_state* Voice_state_init(
         Voice_state* state,
         Random* rand_p,
         Random* rand_s,
-        int32_t freq,
+        int32_t audio_rate,
         double tempo);
 
 
@@ -153,6 +153,43 @@ int32_t Voice_state_render_voice(
         int32_t buf_start,
         int32_t buf_stop,
         double tempo);
+
+
+/**
+ * Mix rendered Voice signals to combined signal buffers.
+ *
+ * \param vstate       The Voice state -- must not be \c NULL.
+ * \param proc_state   The Processor state -- must not be \c NULL.
+ * \param buf_start    The start index of mixing -- must be >= \c 0.
+ * \param buf_stop     The stop index of mixing -- must be less than or equal
+ *                     to the audio buffer size.
+ */
+void Voice_state_mix_signals(
+        Voice_state* vstate,
+        Proc_state* proc_state,
+        int32_t buf_start,
+        int32_t buf_stop);
+
+
+/**
+ * Mark Voice state as having release data.
+ *
+ * \param vstate         The Voice state -- must not be \c NULL.
+ * \param release_stop   The buffer end index of rendered release data
+ *                       -- must be >= \c 0.
+ */
+void Voice_state_mark_release_data(Voice_state* vstate, int32_t release_stop);
+
+
+/**
+ * Set Voice state as finished.
+ *
+ * The Voice state will be deactivated after retrieving the buffer contents
+ * written during the current cycle.
+ *
+ * \param vstate       The Voice state -- must not be \c NULL.
+ */
+void Voice_state_set_finished(Voice_state* vstate);
 
 
 /**

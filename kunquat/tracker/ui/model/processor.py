@@ -17,6 +17,7 @@ from procparamschorus import ProcParamsChorus
 from procparamsdelay import ProcParamsDelay
 from procparamsenvgen import ProcParamsEnvgen
 from procparamsfilter import ProcParamsFilter
+from procparamsforce import ProcParamsForce
 from procparamsfreeverb import ProcParamsFreeverb
 from procparamsgaincomp import ProcParamsGainComp
 from procparamspanning import ProcParamsPanning
@@ -85,6 +86,7 @@ class Processor():
             'delay':    ProcParamsDelay,
             'envgen':   ProcParamsEnvgen,
             'filter':   ProcParamsFilter,
+            'force':    ProcParamsForce,
             'freeverb': ProcParamsFreeverb,
             'gaincomp': ProcParamsGainComp,
             'panning':  ProcParamsPanning,
@@ -110,14 +112,6 @@ class Processor():
 
     def set_vf_pitch(self, port, enabled):
         key = self._get_key(self._get_vf_key(port, 'pitch'))
-        self._store[key] = enabled
-
-    def get_vf_force(self, port):
-        key = self._get_key(self._get_vf_key(port, 'force'))
-        return self._store.get(key, get_default_value(key))
-
-    def set_vf_force(self, port, enabled):
-        key = self._get_key(self._get_vf_key(port, 'force'))
         self._store[key] = enabled
 
 

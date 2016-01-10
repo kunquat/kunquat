@@ -219,16 +219,23 @@ Voice* Channel_get_fg_voice(Channel* ch, int proc_index)
 }
 
 
-double Channel_get_fg_force(Channel* ch, int proc_index)
+double Channel_get_fg_force(const Channel* ch)
 {
     assert(ch != NULL);
-    assert(proc_index >= 0);
-    assert(proc_index < KQT_PROCESSORS_MAX);
 
-    if (ch->fg[proc_index] == NULL)
+    bool has_fg_voice = false;
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    {
+        if (ch->fg[i] != NULL)
+        {
+            has_fg_voice = true;
+            break;
+        }
+    }
+    if (!has_fg_voice)
         return NAN;
 
-    return Voice_get_actual_force(ch->fg[proc_index]);
+    return log2(ch->force_controls.force) * 6;
 }
 
 

@@ -29,7 +29,7 @@
 static Device_state_reset_func Au_state_reset;
 
 
-static void Au_state_init(
+static bool Au_state_init(
         Au_state* au_state,
         const Device* device,
         int32_t audio_rate,
@@ -37,14 +37,16 @@ static void Au_state_init(
 {
     assert(au_state != NULL);
 
-    Device_state_init(&au_state->parent, device, audio_rate, audio_buffer_size);
+    if (!Device_state_init(&au_state->parent, device, audio_rate, audio_buffer_size))
+        return false;
+
     au_state->parent.reset = Au_state_reset;
 
     au_state->dstates = NULL;
 
     Au_state_reset(&au_state->parent);
 
-    return;
+    return true;
 }
 
 
@@ -138,7 +140,11 @@ Device_state* new_Au_state(
     if (au_state == NULL)
         return NULL;
 
-    Au_state_init(au_state, device, audio_rate, audio_buffer_size);
+    if (!Au_state_init(au_state, device, audio_rate, audio_buffer_size))
+    {
+        del_Device_state(&au_state->parent);
+        return NULL;
+    }
 
     au_state->parent.render_mixed = Au_state_render_mixed;
 

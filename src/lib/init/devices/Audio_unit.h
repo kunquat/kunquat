@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -29,10 +29,6 @@
 #include <stdbool.h>
 
 
-#define AU_DEFAULT_GLOBAL_FORCE 0
-#define AU_DEFAULT_FORCE 0
-#define AU_DEFAULT_FORCE_VAR 0
-#define AU_DEFAULT_GLOBAL_LOWPASS 100
 #define AU_DEFAULT_SCALE_INDEX (-1)
 
 
@@ -70,17 +66,6 @@ void Audio_unit_set_type(Audio_unit* au, Au_type type);
  * \return   The type of the Audio unit.
  */
 Au_type Audio_unit_get_type(const Audio_unit* au);
-
-
-/**
- * Parse an Audio unit header from a textual description.
- *
- * \param au   The Audio unit -- must not be \c NULL.
- * \param sr   The Streader of the JSON data -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Audio_unit_parse_header(Audio_unit* au, Streader* sr);
 
 
 /**

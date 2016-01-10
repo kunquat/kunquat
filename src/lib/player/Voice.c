@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -154,54 +154,50 @@ void Voice_reset(Voice* voice)
 }
 
 
-void Voice_mix(
+int32_t Voice_render(
         Voice* voice,
         Device_states* dstates,
         const Work_buffers* wbs,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
         double tempo)
 {
     assert(voice != NULL);
     assert(voice->proc != NULL);
     assert(dstates != NULL);
     assert(wbs != NULL);
-    assert(freq > 0);
+    assert(buf_start >= 0);
+    assert(buf_stop >= buf_start);
 
     if (voice->prio == VOICE_PRIO_INACTIVE)
-        return;
-
-    //Processor_process_vstate(
-    //        voice->proc, states, voice->state, wbs, offset, nframes, freq, tempo);
+        return buf_stop;
 
     Proc_state* pstate = (Proc_state*)Device_states_get_state(
             dstates, Device_get_id((const Device*)voice->proc));
     const Au_state* au_state = (const Au_state*)Device_states_get_state(
             dstates, voice->proc->au_params->device_id);
 
-    Voice_state_render_voice(
-            voice->state, pstate, au_state, wbs, offset, nframes, tempo);
+    const int32_t process_stop = Voice_state_render_voice(
+            voice->state, pstate, au_state, wbs, buf_start, buf_stop, tempo);
+    ignore(process_stop); // TODO: this should probably be release_stop
 
     voice->updated = true;
 
     if (!voice->state->active)
+    {
         Voice_reset(voice);
+        return buf_start;
+    }
     else if (!voice->state->note_on)
+    {
         voice->prio = VOICE_PRIO_BG;
+        if (voice->state->has_release_data)
+            return voice->state->release_stop;
 
-    return;
-}
+        return buf_start;
+    }
 
-
-double Voice_get_actual_force(const Voice* voice)
-{
-    assert(voice != NULL);
-    assert(voice->state != NULL);
-    assert(voice->state->active);
-    assert(voice->state->actual_force > 0);
-
-    return log2(voice->state->actual_force) * 6;
+    return buf_stop;
 }
 
 

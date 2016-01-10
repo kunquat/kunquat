@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -134,6 +134,17 @@ void Device_node_clear_buffers(
 
 
 /**
+ * Reset subgraph starting from the Device node.
+ *
+ * TODO: Remove this work-around after Audio units have their own Device states!
+ *
+ * \param node      The Device node -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
+ */
+void Device_node_reset_subgraph(const Device_node* node, Device_states* dstates);
+
+
+/**
  * Process a Voice group in the Device node and its subgraph.
  *
  * \param node         The Device node -- must not be \c NULL.
@@ -144,8 +155,12 @@ void Device_node_clear_buffers(
  * \param buf_stop     The stop index of the buffer area to be processed.
  * \param audio_rate   The audio rate -- must be > \c 0.
  * \param tempo        The current tempo -- must be > \c 0.
+ *
+ * \return   The stop index of complete frames rendered to voice buffers. This
+ *           is always within range [\a buf_start, \a buf_stop]. If the stop
+ *           index is < \a buf_stop, the note has ended.
  */
-void Device_node_process_voice_group(
+int32_t Device_node_process_voice_group(
         const Device_node* node,
         Voice_group* vgroup,
         Device_states* dstates,
@@ -154,6 +169,23 @@ void Device_node_process_voice_group(
         int32_t buf_stop,
         int32_t audio_rate,
         double tempo);
+
+
+/**
+ * Add Voice signals to mixed signal input buffers.
+ *
+ * \param node        The Device node -- must not be \c NULL.
+ * \param vgroup      The Voice group -- must not be \c NULL.
+ * \param dstates     The Device states -- must not be \c NULL.
+ * \param buf_start   The start index of the buffer area to be processed.
+ * \param buf_stop    The stop index of the buffer area to be processed.
+ */
+void Device_node_mix_voice_signals(
+        const Device_node* node,
+        Voice_group* vgroup,
+        Device_states* dstates,
+        int32_t buf_start,
+        int32_t buf_stop);
 
 
 /**

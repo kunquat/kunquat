@@ -75,6 +75,11 @@ struct Device_state
     int32_t audio_rate;
     int32_t audio_buffer_size;
 
+    // Information on which input ports are connected to something
+    // TODO: This exists only because it is currently inconvenient to find a
+    //       Device node by using Device as a reference -- fix this!
+    Bit_array* in_connected;
+
     Work_buffer* buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
 
     // Protected interface
@@ -98,8 +103,10 @@ struct Device_state
  * \param device              The Device -- must not be \c NULL.
  * \param audio_rate          The audio rate -- must be > \c 0.
  * \param audio_buffer_size   The audio buffer size -- must be >= \c 0.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
-void Device_state_init(
+bool Device_state_init(
         Device_state* ds,
         const Device* device,
         int32_t audio_rate,
@@ -259,6 +266,28 @@ Work_buffer* Device_state_get_audio_buffer(
  */
 float* Device_state_get_audio_buffer_contents_mut(
         const Device_state* ds, Device_port_type type, int port);
+
+
+/**
+ * Mark input port as connected.
+ *
+ * \param ds     The Device state -- must not be \c NULL.
+ * \param port   The port number -- must be >= \c 0 and
+ *               < \c KQT_DEVICE_PORTS_MAX.
+ */
+void Device_state_mark_input_port_connected(Device_state* ds, int port);
+
+
+/**
+ * Check if an input port is connected.
+ *
+ * \param ds     The Device state -- must not be \c NULL.
+ * \param port   The port number -- must be >= \c 0 and
+ *               < \c KQT_DEVICE_PORTS_MAX.
+ *
+ * \return   \c true if the \a port is connected, otherwise \c false.
+ */
+bool Device_state_is_input_port_connected(const Device_state* ds, int port);
 
 
 /**

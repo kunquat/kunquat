@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -36,11 +36,6 @@ bool Volume_pstate_set_volume(
 Voice_state_get_size_func Volume_vstate_get_size;
 
 void Volume_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
-
-
-Proc_state_get_cv_float_controls_mut_func Volume_pstate_get_cv_controls_volume;
-
-Voice_state_get_cv_float_controls_mut_func Volume_vstate_get_cv_controls_volume;
 
 
 #endif // K_VOLUME_STATE_H

@@ -143,11 +143,9 @@ class Signals(QWidget):
             self._signal_type.addItem(text)
 
         self._vf_pitch = QCheckBox('Pitch')
-        self._vf_force = QCheckBox('Force')
 
         vf_layout = QVBoxLayout()
         vf_layout.addWidget(self._vf_pitch)
-        vf_layout.addWidget(self._vf_force)
 
         self._vf_container = QWidget()
         self._vf_container.setLayout(vf_layout)
@@ -176,7 +174,6 @@ class Signals(QWidget):
 
         vf_info = [
             (self._vf_pitch, self._vf_pitch_changed),
-            (self._vf_force, self._vf_force_changed),
         ]
 
         for info in vf_info:
@@ -224,7 +221,6 @@ class Signals(QWidget):
 
         vf_info = [
             (self._vf_pitch, proc.get_vf_pitch),
-            (self._vf_force, proc.get_vf_force),
         ]
 
         for info in vf_info:
@@ -255,7 +251,6 @@ class Signals(QWidget):
 
         vf_info = {
             'pitch': proc.set_vf_pitch,
-            'force': proc.set_vf_force,
         }
 
         vf_info[vf_name](0, enabled)
@@ -263,8 +258,5 @@ class Signals(QWidget):
 
     def _vf_pitch_changed(self, state):
         self._vf_changed(state, 'pitch')
-
-    def _vf_force_changed(self, state):
-        self._vf_changed(state, 'force')
 
 

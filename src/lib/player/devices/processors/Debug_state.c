@@ -43,13 +43,6 @@ static int32_t Debug_vstate_render_voice(
             440,
             Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH));
 
-    // Get actual forces
-    const Cond_work_buffer* actual_forces = Cond_work_buffer_init(
-            COND_WORK_BUFFER_AUTO,
-            Work_buffers_get_buffer(wbs, WORK_BUFFER_ACTUAL_FORCES),
-            1,
-            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE));
-
     // Get output buffer for writing
     float* out_buffers[] =
     {
@@ -62,12 +55,17 @@ static int32_t Debug_vstate_render_voice(
     {
         if (buf_start < buf_stop)
         {
-            const float val = 1.0 * Cond_work_buffer_get_value(actual_forces, buf_start);
+            const float val = 1.0;
             if (out_buffers[0] != NULL)
                 out_buffers[0][buf_start] = val;
             if (out_buffers[1] != NULL)
                 out_buffers[1][buf_start] = val;
-            vstate->active = false;
+            Voice_state_set_finished(vstate);
+
+            // We want all single pulses to be included in test buffers,
+            // even if another voice replaces us in the channel foreground
+            Voice_state_mark_release_data(vstate, buf_start + 1);
+
             return buf_start + 1;
         }
         return buf_start;
@@ -78,7 +76,6 @@ static int32_t Debug_vstate_render_voice(
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
         const float actual_pitch = Cond_work_buffer_get_value(actual_pitches, i);
-        const float actual_force = Cond_work_buffer_get_value(actual_forces, i);
 
         double vals[KQT_BUFFERS_MAX] = { 0 };
 
@@ -96,10 +93,9 @@ static int32_t Debug_vstate_render_voice(
         {
             vals[0] = -vals[0];
             vals[1] = -vals[1];
-        }
 
-        vals[0] *= actual_force;
-        vals[1] *= actual_force;
+            Voice_state_mark_release_data(vstate, i + 1);
+        }
 
         if (out_buffers[0] != NULL)
             out_buffers[0][i] = vals[0];
@@ -113,7 +109,7 @@ static int32_t Debug_vstate_render_voice(
             vstate->noff_pos_rem += actual_pitch / audio_rate;
             if (vstate->noff_pos_rem >= 2)
             {
-                vstate->active = false;
+                Voice_state_set_finished(vstate);
                 return i + 1;
             }
         }
@@ -123,7 +119,7 @@ static int32_t Debug_vstate_render_voice(
             ++vstate->pos;
             if (vstate->pos >= 10)
             {
-                vstate->active = false;
+                Voice_state_set_finished(vstate);
                 return i + 1;
             }
             vstate->rel_pos = 0;

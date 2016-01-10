@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -86,6 +86,17 @@ Voice* Voice_group_get_voice_by_proc(Voice_group* vg, uint32_t proc_id)
 }
 
 
+void Voice_group_deactivate_all(Voice_group* vg)
+{
+    assert(vg != NULL);
+
+    for (uint16_t i = 0; i < vg->size; ++i)
+        Voice_reset(vg->voices[i]);
+
+    return;
+}
+
+
 void Voice_group_deactivate_unreachable(Voice_group* vg)
 {
     assert(vg != NULL);
@@ -93,7 +104,7 @@ void Voice_group_deactivate_unreachable(Voice_group* vg)
     for (uint16_t i = 0; i < vg->size; ++i)
     {
         Voice* voice = vg->voices[i];
-        if (!voice->updated)
+        if (!voice->updated || !voice->state->active || voice->state->has_finished)
             Voice_reset(voice);
     }
 

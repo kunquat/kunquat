@@ -88,20 +88,11 @@ static int32_t Noise_vstate_render_voice(
     assert(wbs != NULL);
     assert(tempo > 0);
 
-    const Processor* proc = (const Processor*)proc_state->parent.device;
-
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
 
     Noise_pstate* noise_state = (Noise_pstate*)proc_state;
     Noise_vstate* noise_vstate = (Noise_vstate*)vstate;
-
-    // Get actual forces
-    const Cond_work_buffer* actual_forces = Cond_work_buffer_init(
-            COND_WORK_BUFFER_AUTO,
-            Work_buffers_get_buffer(wbs, WORK_BUFFER_ACTUAL_FORCES),
-            1,
-            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE));
 
     // Get output buffer for writing
     float* out_buffers[] =
@@ -117,8 +108,6 @@ static int32_t Noise_vstate_render_voice(
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
-            const float actual_force = Cond_work_buffer_get_value(actual_forces, i);
-
             double val = 0;
 
             if (noise_state->order < 0)
@@ -136,7 +125,7 @@ static int32_t Noise_vstate_render_voice(
                         Random_get_float_signal(vstate->rand_s));
             }
 
-            out_buffers[ch][i] = val * actual_force;
+            out_buffers[ch][i] = val;
         }
     }
 

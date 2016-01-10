@@ -16,11 +16,6 @@
 #define K_AU_PARAMS_H
 
 
-#include <init/devices/param_types/Envelope.h>
-#include <init/Scale.h>
-#include <string/Streader.h>
-
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -28,34 +23,6 @@
 typedef struct Au_params
 {
     uint32_t device_id;
-
-    // Basic force settings
-    double global_force;
-    double force;
-    double force_variation;
-
-    // Force -> param envelopes
-    bool force_volume_env_enabled;
-    Envelope* force_volume_env;
-
-    bool force_pitch_env_enabled;
-    Envelope* force_pitch_env;
-    double force_pitch_env_scale;
-
-    double volume; ///< Audio unit volume.
-
-    // Force envelopes
-    bool env_force_enabled;
-    bool env_force_loop_enabled;
-    bool env_force_carry;
-    Envelope* env_force;
-    double env_force_scale_amount;
-    double env_force_center;
-
-    bool env_force_rel_enabled;
-    Envelope* env_force_rel;
-    double env_force_rel_scale_amount;
-    double env_force_rel_center;
 } Au_params;
 
 
@@ -69,20 +36,6 @@ typedef struct Au_params
  *           allocation failed.
  */
 Au_params* Au_params_init(Au_params* aup, uint32_t device_id);
-
-
-/**
- * Parse an Audio unit parameter file.
- *
- * \param aup   The Audio unit parameters -- must not be \c NULL.
- * \param sr    The Streader of the JSON data -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Au_params_parse_env_force_rel(Au_params* aup, Streader* sr);
-
-
-bool Au_params_parse_env_force(Au_params* aup, Streader* sr);
 
 
 /**

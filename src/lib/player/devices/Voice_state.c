@@ -32,27 +32,32 @@ Voice_state* Voice_state_init(
         Voice_state* state,
         Random* rand_p,
         Random* rand_s,
-        int32_t freq,
+        int32_t audio_rate,
         double tempo)
 {
     assert(state != NULL);
     assert(rand_p != NULL);
     assert(rand_s != NULL);
-    assert(freq > 0);
+    assert(audio_rate > 0);
     assert(tempo > 0);
 
     Voice_state_clear(state);
     state->active = true;
+    state->has_finished = false;
     state->note_on = true;
-    state->freq = freq;
+    state->freq = audio_rate;
     state->tempo = tempo;
     state->rand_p = rand_p;
     state->rand_s = rand_s;
 
     state->render_voice = NULL;
 
-    Force_controls_init(&state->force_controls, freq, tempo);
-    Pitch_controls_init(&state->pitch_controls, freq, tempo);
+    state->has_release_data = false;
+    state->release_stop = 0;
+
+    Pitch_controls_init(&state->pitch_controls, audio_rate, tempo);
+
+    state->is_force_state = false;
 
     return state;
 }
@@ -63,10 +68,10 @@ Voice_state* Voice_state_clear(Voice_state* state)
     assert(state != NULL);
 
     state->active = false;
+    state->has_finished = false;
     state->freq = 0;
     state->tempo = 0;
     state->ramp_attack = 0;
-    state->ramp_release = 0;
 
     state->hit_index = -1;
     Pitch_controls_reset(&state->pitch_controls);
@@ -96,11 +101,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->noff_pos = 0;
     state->noff_pos_rem = 0;
 
-    Time_env_state_init(&state->force_env_state);
-    Time_env_state_init(&state->force_rel_env_state);
-
-    Force_controls_reset(&state->force_controls);
-    state->actual_force = 1;
+    state->is_force_state = false;
 
     return state;
 }
@@ -134,9 +135,6 @@ static void adjust_relative_lengths(
             vstate->arpeggio_frames *= vstate->tempo / tempo;
         }
 
-        Force_controls_set_audio_rate(&vstate->force_controls, audio_rate);
-        Force_controls_set_tempo(&vstate->force_controls, tempo);
-
         vstate->freq = audio_rate;
         vstate->tempo = tempo;
     }
@@ -162,20 +160,11 @@ int32_t Voice_state_render_voice(
     assert(isfinite(tempo));
     assert(tempo > 0);
 
+    vstate->has_release_data = false;
+    vstate->release_stop = buf_start;
+
     const Processor* proc = (const Processor*)proc_state->parent.device;
     if (!Processor_get_voice_signals(proc) || (vstate->render_voice == NULL))
-    {
-        vstate->active = false;
-        return buf_start;
-    }
-
-    // Check for voice cut before mixing anything (no need for volume ramping)
-    if (!vstate->note_on &&
-            (vstate->pos == 0) &&
-            (vstate->pos_rem == 0) &&
-            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_CUT) &&
-            (!proc->au_params->env_force_rel_enabled ||
-                !Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE)))
     {
         vstate->active = false;
         return buf_start;
@@ -202,7 +191,6 @@ int32_t Voice_state_render_voice(
     }
 
     // Process common parameters required by implementations
-    bool deactivate_after_processing = false;
     int32_t process_stop = buf_stop;
 
     const int32_t audio_rate = proc_state->parent.audio_rate;
@@ -214,64 +202,31 @@ int32_t Voice_state_render_voice(
     if (Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH))
         Voice_state_common_handle_pitch(vstate, proc, wbs, buf_start, process_stop);
 
-    if (Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE))
-    {
-        const int32_t force_stop = Voice_state_common_handle_force(
-                vstate, au_state, proc, wbs, audio_rate, buf_start, process_stop);
-
-        const bool force_ended = (force_stop < process_stop);
-        if (force_ended)
-        {
-            deactivate_after_processing = true;
-            assert(force_stop <= process_stop);
-            process_stop = force_stop;
-        }
-    }
-
-    const uint64_t old_pos = vstate->pos;
-    const double old_pos_rem = vstate->pos_rem;
-
     // Call the implementation
     const int32_t impl_render_stop = vstate->render_voice(
             vstate, proc_state, au_state, wbs, buf_start, process_stop, tempo);
 
-    if (!vstate->active) // FIXME: communicate end of rendering in a cleaner way
+    if (!vstate->active)
     {
-        vstate->active = true;
-        deactivate_after_processing = true;
         assert(impl_render_stop <= process_stop);
         process_stop = impl_render_stop;
     }
 
-    // XXX: Hack to make post-processing work correctly below, fix properly!
-    const uint64_t new_pos = vstate->pos;
-    const double new_pos_rem = vstate->pos_rem;
-    vstate->pos = old_pos;
-    vstate->pos_rem = old_pos_rem;
+    return process_stop;
+}
 
-    // Apply common parameters to generated signal
-    {
-        const int32_t ramp_release_stop = Voice_state_common_ramp_release(
-                vstate,
-                proc_state,
-                au_state,
-                wbs,
-                audio_rate,
-                buf_start,
-                process_stop);
-        const bool ramp_release_ended = (vstate->ramp_release >= 1);
-        if (ramp_release_ended)
-        {
-            deactivate_after_processing = true;
-            assert(ramp_release_stop <= process_stop);
-            process_stop = ramp_release_stop;
-        }
-    }
 
-    vstate->pos = new_pos;
-    vstate->pos_rem = new_pos_rem;
+void Voice_state_mix_signals(
+        Voice_state* vstate,
+        Proc_state* proc_state,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    assert(vstate != NULL);
+    assert(proc_state != NULL);
+    assert(buf_start >= 0);
+    assert(buf_stop >= buf_start);
 
-    // Mix rendered audio to the combined signal buffer
     for (int32_t port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Work_buffer* mixed_buffer = Device_state_get_audio_buffer(
@@ -280,13 +235,30 @@ int32_t Voice_state_render_voice(
                 proc_state, DEVICE_PORT_TYPE_SEND, port);
 
         if ((mixed_buffer != NULL) && (voice_buffer != NULL))
-            Work_buffer_mix(mixed_buffer, voice_buffer, buf_start, process_stop);
+            Work_buffer_mix(mixed_buffer, voice_buffer, buf_start, buf_stop);
     }
 
-    if (deactivate_after_processing)
-        vstate->active = false;
+    return;
+}
 
-    return process_stop;
+
+void Voice_state_mark_release_data(Voice_state* vstate, int32_t release_stop)
+{
+    assert(vstate != NULL);
+    assert(release_stop >= 0);
+
+    vstate->has_release_data = true;
+    vstate->release_stop = release_stop;
+
+    return;
+}
+
+
+void Voice_state_set_finished(Voice_state* vstate)
+{
+    assert(vstate != NULL);
+    vstate->has_finished = true;
+    return;
 }
 
 

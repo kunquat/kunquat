@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2016
  *
  * This file is part of Kunquat.
  *
@@ -22,7 +22,7 @@ EVENT_AUTO_DEF("Atrack",    location_track,         INT,            v_track)
 EVENT_AUTO_DEF("Asystem",   location_system,        INT,            v_system)
 EVENT_AUTO_DEF("Arow",      location_row,           TSTAMP,         v_any_ts)
 EVENT_AUTO_DEF("Avoices",   voice_count,            INT,            v_any_int)
-EVENT_AUTO_DEF("Af",        actual_force,           FLOAT,          v_any_float)
+EVENT_AUTO_DEF("Af",        actual_force,           REALTIME,       NULL)
 
 
 #undef EVENT_AUTO_DEF

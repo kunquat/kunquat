@@ -46,8 +46,6 @@ struct Audio_unit
     Au_interface* in_iface;
     Connections* connections;
 
-//    double default_force;       ///< Default force.
-
     int scale_index;            ///< The index of the Scale used (-1 means the default).
 
     Au_params params;   ///< All the Audio unit parameters that Processors need.
@@ -208,9 +206,6 @@ Audio_unit* new_Audio_unit(void)
                 &au->out_iface->parent, DEVICE_PORT_TYPE_RECEIVE, port, true);
     }
 
-//    au->default_force = AU_DEFAULT_FORCE;
-    au->params.force_variation = AU_DEFAULT_FORCE_VAR;
-
     au->scale_index = AU_DEFAULT_SCALE_INDEX;
 
     return au;
@@ -232,77 +227,6 @@ Au_type Audio_unit_get_type(const Audio_unit* au)
 {
     assert(au != NULL);
     return au->type;
-}
-
-
-typedef struct au_params
-{
-    double global_force;
-    double default_force;
-    double force_variation;
-    int64_t scale_index;
-} au_params;
-
-static bool read_au_field(Streader* sr, const char* key, void* userdata)
-{
-    assert(sr != NULL);
-    assert(key != NULL);
-    assert(userdata != NULL);
-
-    au_params* p = userdata;
-
-    if (string_eq(key, "force"))
-        Streader_read_float(sr, &p->default_force);
-    else if (string_eq(key, "force_variation"))
-        Streader_read_float(sr, &p->force_variation);
-    else if (string_eq(key, "global_force"))
-        Streader_read_float(sr, &p->global_force);
-    else if (string_eq(key, "scale"))
-    {
-        if (!Streader_read_int(sr, &p->scale_index))
-            return false;
-
-        if (p->scale_index < -1 || p->scale_index >= KQT_SCALES_MAX)
-        {
-            Streader_set_error(
-                     sr, "Invalid scale index: %" PRId64, p->scale_index);
-            return false;
-        }
-    }
-    else
-    {
-        Streader_set_error(
-                sr, "Unsupported field in audio unit information: %s", key);
-        return false;
-    }
-
-    return !Streader_is_error_set(sr);
-}
-
-bool Audio_unit_parse_header(Audio_unit* au, Streader* sr)
-{
-    assert(au != NULL);
-    assert(sr != NULL);
-
-    if (Streader_is_error_set(sr))
-        return false;
-
-    au_params* p = &(au_params)
-    {
-        .global_force = AU_DEFAULT_GLOBAL_FORCE,
-        .default_force = AU_DEFAULT_FORCE,
-        .force_variation = AU_DEFAULT_FORCE_VAR,
-        .scale_index = AU_DEFAULT_SCALE_INDEX,
-    };
-
-    if (Streader_has_data(sr) && !Streader_read_dict(sr, read_au_field, p))
-        return false;
-
-    au->params.force = p->default_force;
-    au->params.force_variation = p->force_variation;
-    au->params.global_force = exp2(p->global_force / 6);
-
-    return true;
 }
 
 

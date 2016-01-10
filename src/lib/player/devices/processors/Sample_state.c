@@ -90,13 +90,6 @@ static int32_t Sample_render(
             440,
             Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH));
 
-    // Get actual forces
-    const Cond_work_buffer* actual_forces = Cond_work_buffer_init(
-            COND_WORK_BUFFER_AUTO,
-            Work_buffers_get_buffer(wbs, WORK_BUFFER_ACTUAL_FORCES),
-            1,
-            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE));
-
     float* abufs[KQT_BUFFERS_MAX] = { out_buffers[0], out_buffers[1] };
     if ((sample->channels == 1) && (out_buffers[0] == NULL))
     {
@@ -164,7 +157,7 @@ static int32_t Sample_render(
                 {
                     new_buf_stop = i;
                     positions[i] = length - 1; // Make the index safe to access
-                    vstate->active = false;
+                    Voice_state_set_finished(vstate);
                     break;
                 }
             }
@@ -286,11 +279,9 @@ static int32_t Sample_render(
 
                     for (int32_t i = buf_start; i < new_buf_stop; ++i)
                     {
-                        const float actual_force = Cond_work_buffer_get_value(
-                                actual_forces, i);
                         float item = 0;
                         get_item(item);
-                        audio_buffer[i] = item * actual_force * fixed_scale;
+                        audio_buffer[i] = item * fixed_scale;
                     }
                 }
             }
@@ -309,11 +300,9 @@ static int32_t Sample_render(
 
                     for (int32_t i = buf_start; i < new_buf_stop; ++i)
                     {
-                        const float actual_force = Cond_work_buffer_get_value(
-                                actual_forces, i);
                         float item = 0;
                         get_item(item);
-                        audio_buffer[i] = item * actual_force * fixed_scale;
+                        audio_buffer[i] = item * fixed_scale;
                     }
                 }
             }
@@ -332,11 +321,9 @@ static int32_t Sample_render(
 
                     for (int32_t i = buf_start; i < new_buf_stop; ++i)
                     {
-                        const float actual_force = Cond_work_buffer_get_value(
-                                actual_forces, i);
                         float item = 0;
                         get_item(item);
-                        audio_buffer[i] = item * actual_force * fixed_scale;
+                        audio_buffer[i] = item * fixed_scale;
                     }
                 }
             }
@@ -357,10 +344,9 @@ static int32_t Sample_render(
 
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
             {
-                const float actual_force = Cond_work_buffer_get_value(actual_forces, i);
                 float item = 0;
                 get_item(item);
-                audio_buffer[i] = item * actual_force * vol_scale;
+                audio_buffer[i] = item * vol_scale;
             }
         }
     }
@@ -437,7 +423,7 @@ static int32_t Sample_vstate_render_voice(
             entry = Hit_map_get_entry(
                     map,
                     vstate->hit_index,
-                    vstate->force_controls.force,
+                    1, //vstate->force_controls.force, TODO: get from force input
                     vstate->rand_p);
         }
         else
@@ -462,7 +448,7 @@ static int32_t Sample_vstate_render_voice(
             entry = Note_map_get_entry(
                     map,
                     log2(vstate->pitch_controls.pitch / 440) * 1200,
-                    vstate->force_controls.force,
+                    1, //vstate->force_controls.force, TODO: get from force input
                     vstate->rand_p);
             sample_state->middle_tone = entry->ref_freq;
         }

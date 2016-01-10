@@ -427,9 +427,7 @@ static void Player_process_voices(
             {
                 // Verify voice ownership
                 ch->fg[k] = Voice_pool_get_voice(
-                        player->voices,
-                        ch->fg[k],
-                        ch->fg_id[k]);
+                        player->voices, ch->fg[k], ch->fg_id[k]);
             }
         }
     }
@@ -454,7 +452,7 @@ static void Player_process_voices(
 
         if (conns != NULL)
         {
-            Connections_process_voice_group(
+            const int32_t process_stop = Connections_process_voice_group(
                     conns,
                     vg,
                     player->device_states,
@@ -464,10 +462,20 @@ static void Player_process_voices(
                     player->audio_rate,
                     player->master_params.tempo);
 
+            Connections_mix_voice_signals(
+                    conns, vg, player->device_states, render_start, process_stop);
+
+            if (process_stop < render_stop)
+                Voice_group_deactivate_all(vg);
+            else
+                Voice_group_deactivate_unreachable(vg);
+
             active_voice_count += Voice_group_get_size(vg);
         }
-
-        Voice_group_deactivate_unreachable(vg);
+        else
+        {
+            Voice_group_deactivate_all(vg);
+        }
 
         vg = Voice_pool_get_next_group(player->voices);
     }

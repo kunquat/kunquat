@@ -187,14 +187,11 @@ Voice* Channel_get_fg_voice(Channel* ch, int proc_index);
 /**
  * Return an actual force of a current foreground Voice.
  *
- * \param ch           The Channel -- must not be \c NULL.
- * \param proc_index   The Processor index -- must be >= \c 0 and
- *                     < \c KQT_PROCESSORS_MAX.
+ * \param ch   The Channel -- must not be \c NULL.
  *
- * \return   The actual force if the active foreground Voice at \a proc_index
- *           exists, otherwise NAN.
+ * \return   The actual force if the active foreground Voice exists, otherwise NAN.
  */
-double Channel_get_fg_force(Channel* ch, int proc_index);
+double Channel_get_fg_force(const Channel* ch);
 
 
 /**

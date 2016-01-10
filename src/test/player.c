@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -1317,7 +1317,7 @@ static bool test_reported_force(Streader* sr, double expected)
 
     if (!(Streader_readf(sr, "[[0, [") &&
                 Streader_match_string(sr, "qf") &&
-                Streader_readf(sr, ", 0]], [0, [") &&
+                Streader_readf(sr, ", null]], [0, [") &&
                 Streader_match_string(sr, "Af") &&
                 Streader_readf(sr, ", %f]]]", &actual)))
         return false;
@@ -1340,13 +1340,13 @@ START_TEST(Query_note_force)
 
     kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
 
-    kqt_Handle_fire_event(handle, 0, "[\"qf\", 0]");
+    kqt_Handle_fire_event(handle, 0, "[\"qf\", null]");
     const char* events0 = kqt_Handle_receive_events(handle);
     Streader* sr0 = Streader_init(STREADER_AUTO, events0, strlen(events0));
     fail_if(!test_reported_force(sr0, 0.0), Streader_get_error_desc(sr0));
 
     kqt_Handle_fire_event(handle, 0, "[\".f\", -6]");
-    kqt_Handle_fire_event(handle, 0, "[\"qf\", 0]");
+    kqt_Handle_fire_event(handle, 0, "[\"qf\", null]");
     const char* events6 = kqt_Handle_receive_events(handle);
     Streader* sr6 = Streader_init(STREADER_AUTO, events6, strlen(events6));
     fail_if(!test_reported_force(sr6, -6.0), Streader_get_error_desc(sr6));

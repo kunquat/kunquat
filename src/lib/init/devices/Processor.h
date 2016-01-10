@@ -33,7 +33,6 @@
 typedef enum
 {
     VOICE_FEATURE_PITCH,
-    VOICE_FEATURE_FORCE,
     VOICE_FEATURE_CUT,
     VOICE_FEATURE_COUNT_
 } Voice_feature;
