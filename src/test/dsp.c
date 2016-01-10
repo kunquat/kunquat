@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -20,6 +20,28 @@
 
 
 #define buf_len 128
+
+
+static void make_debug_instrument(void)
+{
+    set_data("au_02/proc_00/in_00/p_manifest.json", "{}");
+    set_data("au_02/proc_00/out_00/p_manifest.json", "{}");
+    set_data("au_02/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
+    set_data("au_02/proc_00/p_signal_type.json", "\"voice\"");
+
+    set_data("au_02/proc_01/out_00/p_manifest.json", "{}");
+    set_data("au_02/proc_01/p_manifest.json", "{ \"type\": \"pitch\" }");
+    set_data("au_02/proc_01/p_signal_type.json", "\"voice\"");
+
+    set_data("au_02/p_manifest.json", "{ \"type\": \"instrument\" }");
+    set_data("au_02/out_00/p_manifest.json", "{}");
+    set_data("au_02/p_connections.json",
+            "[ [\"proc_00/C/out_00\", \"out_00\"]"
+            ", [\"proc_01/C/out_00\", \"proc_00/C/in_00\"]"
+            "]");
+
+    return;
+}
 
 
 START_TEST(Trivial_chorus_is_identity)
@@ -44,13 +66,7 @@ START_TEST(Trivial_chorus_is_identity)
     set_data("au_03/out_00/p_manifest.json", "{}");
     set_data("au_03/p_manifest.json", "{ \"type\": \"effect\" }");
 
-    set_data("au_02/proc_00/out_00/p_manifest.json", "{}");
-    set_data("au_02/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
-    set_data("au_02/proc_00/p_signal_type.json", "\"voice\"");
-    set_data("au_02/p_manifest.json", "{ \"type\": \"instrument\" }");
-    set_data("au_02/out_00/p_manifest.json", "{}");
-    set_data("au_02/p_connections.json",
-            "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
+    make_debug_instrument();
 
     set_data("out_00/p_manifest.json", "{}");
     set_data("p_connections.json",

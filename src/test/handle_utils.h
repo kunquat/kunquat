@@ -289,12 +289,18 @@ void setup_debug_instrument(void)
     set_data("au_00/p_connections.json",
             "[ [\"proc_00/C/out_00\", \"out_00\"]"
             ", [\"proc_00/C/out_01\", \"out_01\"]"
+            ", [\"proc_01/C/out_00\", \"proc_00/C/in_00\"]"
             "]");
 
     set_data("au_00/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
     set_data("au_00/proc_00/p_signal_type.json", "\"voice\"");
+    set_data("au_00/proc_00/in_00/p_manifest.json", "{}");
     set_data("au_00/proc_00/out_00/p_manifest.json", "{}");
     set_data("au_00/proc_00/out_01/p_manifest.json", "{}");
+
+    set_data("au_00/proc_01/p_manifest.json", "{ \"type\": \"pitch\" }");
+    set_data("au_00/proc_01/p_signal_type.json", "\"voice\"");
+    set_data("au_00/proc_01/out_00/p_manifest.json", "{}");
 
     validate();
 

@@ -954,7 +954,7 @@ START_TEST(Events_from_many_triggers_can_be_retrieved_with_multiple_receives)
 
     const int event_count = 2049;
     const int note_count = event_count / 16 + 1;
-    fail_if(note_count >= 256, "Too many notes to check correct audio output");
+    fail_if(note_count >= 512, "Too many notes to check correct audio output");
 
     setup_many_triggers(event_count);
 
@@ -1151,8 +1151,8 @@ START_TEST(Events_from_complex_bind_can_be_retrieved_with_multiple_receives)
             "Kunquat handle rendered %ld instead of 10 frames",
             kqt_Handle_get_frames_available(handle));
 
-    // FIXME: We can only check for 256 notes as we run out of voices :-P
-    const float expected_buf[10] = { min((float)event_count, 256) };
+    // FIXME: We can only check for 512 notes as we run out of voices :-P
+    const float expected_buf[10] = { min((float)event_count, 512) };
     const float* actual_buf = kqt_Handle_get_audio(handle, 0);
     check_buffers_equal(expected_buf, actual_buf, 10, 0.0f);
 }
@@ -1200,8 +1200,8 @@ START_TEST(Fire_with_complex_bind_can_be_processed_with_multiple_receives)
             "Kunquat handle rendered %ld instead of 10 frames",
             kqt_Handle_get_frames_available(handle));
 
-    // FIXME: We can only check for 256 notes as we run out of voices :-P
-    const float expected_buf[10] = { min((float)event_count, 256) };
+    // FIXME: We can only check for 512 notes as we run out of voices :-P
+    const float expected_buf[10] = { min((float)event_count, 512) };
     const float* actual_buf = kqt_Handle_get_audio(handle, 0);
     check_buffers_equal(expected_buf, actual_buf, 10, 0.0f);
 }
@@ -1288,6 +1288,15 @@ START_TEST(Query_voice_count_with_note)
     pause();
 
     kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
+    kqt_Handle_play(handle, 1);
+    kqt_Handle_fire_event(handle, 0, "[\"qvoices\", null]");
+
+    const char* events2 = kqt_Handle_receive_events(handle);
+    const char* expected2 = "[[0, [\"qvoices\", null]], [0, [\"Avoices\", 2]]]";
+
+    fail_if(strcmp(events2, expected2) != 0,
+            "Received event list %s instead of %s", events2, expected2);
+
     kqt_Handle_play(handle, 2048);
     kqt_Handle_fire_event(handle, 0, "[\"qvoices\", null]");
 
