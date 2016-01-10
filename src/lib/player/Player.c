@@ -68,7 +68,7 @@ Player* new_Player(
     assert(audio_buffer_size >= 0);
     assert(audio_buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(voice_count >= 0);
-    assert(voice_count < KQT_VOICES_MAX);
+    assert(voice_count <= KQT_VOICES_MAX);
 
     Player* player = memory_alloc_item(Player);
     if (player == NULL)
