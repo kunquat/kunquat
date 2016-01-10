@@ -20,6 +20,7 @@ from forceproc import ForceProc
 from freeverbproc import FreeverbProc
 from gaincomp_proc import GainCompProc
 from panningproc import PanningProc
+from pitchproc import PitchProc
 from ringmodproc import RingmodProc
 from sampleproc import SampleProc
 from volumeproc import VolumeProc
@@ -36,6 +37,7 @@ _proc_classes = {
     'freeverb': FreeverbProc,
     'gaincomp': GainCompProc,
     'panning':  PanningProc,
+    'pitch':    PitchProc,
     'ringmod':  RingmodProc,
     'volume':   VolumeProc,
 }
