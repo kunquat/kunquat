@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -36,7 +36,7 @@ KQT_LIMIT_INT(CONTROLS_MAX)
 KQT_LIMIT_INT(PROCESSORS_MAX)
 KQT_LIMIT_INT(DEVICE_PORTS_MAX)
 KQT_LIMIT_INT(HITS_MAX)
-KQT_LIMIT_INT(ARPEGGIO_NOTES_MAX)
+KQT_LIMIT_INT(ARPEGGIO_TONES_MAX)
 KQT_LIMIT_INT(VAR_NAME_MAX)
 
 

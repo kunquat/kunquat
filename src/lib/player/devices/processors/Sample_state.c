@@ -389,6 +389,13 @@ static int32_t Sample_vstate_render_voice(
     if (buf_start >= buf_stop)
         return buf_start;
 
+    // Get actual pitches
+    const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
+            COND_WORK_BUFFER_AUTO,
+            Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
+            440,
+            true);
+
     if (sample_state->sample < 0)
     {
         // Select our sample
@@ -418,7 +425,6 @@ static int32_t Sample_vstate_render_voice(
                 return buf_start;
             }
 
-            vstate->pitch_controls.pitch = 440;
             entry = Hit_map_get_entry(
                     map,
                     vstate->hit_index,
@@ -444,9 +450,11 @@ static int32_t Sample_vstate_render_voice(
             }
 
             //fprintf(stderr, "pitch @ %p: %f\n", (void*)&state->pitch, state->pitch);
+            const float start_freq =
+                Cond_work_buffer_get_value(actual_pitches, buf_start);
             entry = Note_map_get_entry(
                     map,
-                    log2(vstate->pitch_controls.pitch / 440) * 1200,
+                    log2(start_freq / 440) * 1200,
                     1, //vstate->force_controls.force, TODO: get from force input
                     vstate->rand_p);
             sample_state->middle_tone = entry->ref_freq;

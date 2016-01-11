@@ -29,6 +29,7 @@
 #include <stdlib.h>
 
 
+#if 0
 /**
  * Process pitch.
  *
@@ -47,6 +48,7 @@ void Voice_state_common_handle_pitch(
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop);
+#endif
 
 
 #endif // K_VOICE_STATE_COMMON_H

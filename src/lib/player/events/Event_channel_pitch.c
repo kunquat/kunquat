@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <init/Scale.h>
 #include <kunquat/limits.h>
+#include <player/devices/processors/Pitch_state.h>
 #include <player/devices/Voice_state.h>
 #include <player/events/Event_common.h>
 #include <player/Voice.h>
@@ -67,10 +68,8 @@ bool Event_channel_slide_pitch_process(
             continue;
 #endif
 
-        if (Slider_in_progress(&vs->pitch_controls.slider))
-            Slider_change_target(&vs->pitch_controls.slider, pitch);
-        else
-            Slider_start(&vs->pitch_controls.slider, pitch, vs->pitch_controls.pitch);
+        if (vs->is_pitch_state)
+            Pitch_vstate_set_controls(vs, &ch->pitch_controls);
     }
 
     return true;
@@ -93,7 +92,9 @@ bool Event_channel_slide_pitch_length_process(
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
-        Slider_set_length(&vs->pitch_controls.slider, &ch->pitch_slide_length);
+
+        if (vs->is_pitch_state)
+            Pitch_vstate_set_controls(vs, &ch->pitch_controls);
     }
 
     return true;
@@ -121,11 +122,9 @@ bool Event_channel_vibrato_speed_process(
         Event_check_voice(ch, i);
 
         Voice_state* vs = ch->fg[i]->state;
-        LFO_set_speed(&vs->pitch_controls.vibrato, ch->vibrato_speed);
-        if (ch->vibrato_depth > 0)
-            LFO_set_depth(&vs->pitch_controls.vibrato, ch->vibrato_depth);
 
-        LFO_turn_on(&vs->pitch_controls.vibrato);
+        if (vs->is_pitch_state)
+            Pitch_vstate_set_controls(vs, &ch->pitch_controls);
     }
 
     return true;
@@ -154,11 +153,9 @@ bool Event_channel_vibrato_depth_process(
         Event_check_voice(ch, i);
 
         Voice_state* vs = ch->fg[i]->state;
-        if (ch->vibrato_speed > 0)
-            LFO_set_speed(&vs->pitch_controls.vibrato, ch->vibrato_speed);
 
-        LFO_set_depth(&vs->pitch_controls.vibrato, actual_depth);
-        LFO_turn_on(&vs->pitch_controls.vibrato);
+        if (vs->is_pitch_state)
+            Pitch_vstate_set_controls(vs, &ch->pitch_controls);
     }
 
     return true;
@@ -181,7 +178,9 @@ bool Event_channel_vibrato_speed_slide_process(
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
-        LFO_set_speed_slide(&vs->pitch_controls.vibrato, &ch->vibrato_speed_slide);
+
+        if (vs->is_pitch_state)
+            Pitch_vstate_set_controls(vs, &ch->pitch_controls);
     }
 
     return true;
@@ -204,7 +203,9 @@ bool Event_channel_vibrato_depth_slide_process(
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
-        LFO_set_depth_slide(&vs->pitch_controls.vibrato, &ch->vibrato_depth_slide);
+
+        if (vs->is_pitch_state)
+            Pitch_vstate_set_controls(vs, &ch->pitch_controls);
     }
 
     return true;

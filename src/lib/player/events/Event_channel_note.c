@@ -19,8 +19,10 @@
 #include <init/Module.h>
 #include <init/Scale.h>
 #include <kunquat/limits.h>
+#include <mathnum/conversions.h>
 #include <mathnum/Tstamp.h>
 #include <player/devices/processors/Force_state.h>
+#include <player/devices/processors/Pitch_state.h>
 #include <player/devices/Voice_state.h>
 #include <player/events/Event_common.h>
 #include <player/events/note_setup.h>
@@ -60,6 +62,34 @@ bool Event_channel_note_on_process(
     uint64_t voice_rand_seed = 0;
 
     const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
+
+    if (ch->carry_pitch)
+    {
+        const double cents = value->value.float_type;
+
+        if (isnan(ch->pitch_controls.pitch))
+            ch->pitch_controls.pitch = exp2(ch->pitch_controls.orig_carried_pitch / 1200) * 440;
+        if (isnan(ch->pitch_controls.orig_carried_pitch))
+            ch->pitch_controls.orig_carried_pitch = cents;
+
+        const double pitch_diff = cents - ch->pitch_controls.orig_carried_pitch;
+        if (pitch_diff != 0)
+            ch->pitch_controls.freq_mul = exp2(pitch_diff / 1200);
+        else
+            ch->pitch_controls.freq_mul = 1;
+    }
+    else
+    {
+        Pitch_controls_reset(&ch->pitch_controls);
+        ch->pitch_controls.orig_carried_pitch = value->value.float_type;
+        Slider_set_length(&ch->pitch_controls.slider, &ch->pitch_slide_length);
+        LFO_set_speed_slide(&ch->pitch_controls.vibrato, &ch->vibrato_speed_slide);
+        LFO_set_depth_slide(&ch->pitch_controls.vibrato, &ch->vibrato_depth_slide);
+
+        ch->pitch_controls.pitch = cents_to_Hz(value->value.float_type);
+        if (isnan(ch->pitch_controls.orig_carried_pitch))
+            ch->pitch_controls.orig_carried_pitch = value->value.float_type;
+    }
 
     if (!ch->carry_force)
     {
@@ -115,41 +145,14 @@ bool Event_channel_note_on_process(
         }
 #endif
 
-        vs->orig_pitch_param = value->value.float_type;
-
-        if (ch->carry_pitch)
-        {
-            if (isnan(ch->pitch_controls.pitch))
-                ch->pitch_controls.pitch = exp2(vs->orig_pitch_param / 1200) * 440;
-            if (isnan(ch->pitch_controls.orig_carried_pitch))
-                ch->pitch_controls.orig_carried_pitch = vs->orig_pitch_param;
-
-            const double pitch_diff =
-                vs->orig_pitch_param - ch->pitch_controls.orig_carried_pitch;
-            if (pitch_diff != 0)
-                ch->pitch_controls.freq_mul = exp2(pitch_diff / 1200);
-            else
-                ch->pitch_controls.freq_mul = 1;
-
-            Pitch_controls_copy(&vs->pitch_controls, &ch->pitch_controls);
-        }
-        else
-        {
-            vs->pitch_controls.pitch = exp2(vs->orig_pitch_param / 1200) * 440;
-            vs->pitch_controls.orig_carried_pitch = vs->orig_pitch_param;
-
-            Slider_set_length(&vs->pitch_controls.slider, &ch->pitch_slide_length);
-
-            Pitch_controls_copy(&ch->pitch_controls, &vs->pitch_controls);
-        }
+        if (vs->is_pitch_state)
+            Pitch_vstate_set_controls(vs, &ch->pitch_controls);
 
         if (vs->is_force_state)
         {
             Force_controls* fc = Force_vstate_get_force_controls_mut(vs);
             Force_controls_copy(fc, &ch->force_controls);
         }
-
-        //fprintf(stderr, "Event set pitch @ %p: %f\n", (void*)&vs->pitch, vs->pitch);
     }
 
     Device_init_control_vars(

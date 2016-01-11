@@ -30,6 +30,7 @@
 #include <string.h>
 
 
+#if 0
 #define RAMP_RELEASE_TIME (200.0)
 
 
@@ -122,5 +123,6 @@ void Voice_state_common_handle_pitch(
 
     return;
 }
+#endif
 
 

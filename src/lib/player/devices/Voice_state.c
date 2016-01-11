@@ -19,7 +19,6 @@
 #include <init/devices/Processor.h>
 #include <kunquat/limits.h>
 #include <mathnum/Tstamp.h>
-#include <player/devices/Voice_state_common.h>
 #include <player/Slider.h>
 
 #include <float.h>
@@ -55,8 +54,7 @@ Voice_state* Voice_state_init(
     state->has_release_data = false;
     state->release_stop = 0;
 
-    Pitch_controls_init(&state->pitch_controls, audio_rate, tempo);
-
+    state->is_pitch_state = false;
     state->is_force_state = false;
 
     return state;
@@ -74,23 +72,6 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->ramp_attack = 0;
 
     state->hit_index = -1;
-    Pitch_controls_reset(&state->pitch_controls);
-    state->orig_pitch_param = NAN;
-    state->actual_pitch = 0;
-    state->prev_actual_pitch = 0;
-
-    state->arpeggio = false;
-    state->arpeggio_ref = NAN;
-    state->arpeggio_length = 0;
-    state->arpeggio_frames = 0;
-    state->arpeggio_note = 0;
-    state->arpeggio_tones[0] = state->arpeggio_tones[1] = NAN;
-#if 0
-    for (int i = 0; i < KQT_ARPEGGIO_NOTES_MAX; ++i)
-    {
-        state->arpeggio_offsets[i] = NAN;
-    }
-#endif
 
     state->pos = 0;
     state->pos_rem = 0;
@@ -101,6 +82,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->noff_pos = 0;
     state->noff_pos_rem = 0;
 
+    state->is_pitch_state = false;
     state->is_force_state = false;
 
     return state;
@@ -124,6 +106,7 @@ static void adjust_relative_lengths(
 
     if (vstate->freq != audio_rate || vstate->tempo != tempo)
     {
+#if 0
         Pitch_controls_set_audio_rate(&vstate->pitch_controls, audio_rate);
         Pitch_controls_set_tempo(&vstate->pitch_controls, tempo);
 
@@ -134,6 +117,7 @@ static void adjust_relative_lengths(
             vstate->arpeggio_frames *= (double)audio_rate / vstate->freq;
             vstate->arpeggio_frames *= vstate->tempo / tempo;
         }
+#endif
 
         vstate->freq = audio_rate;
         vstate->tempo = tempo;
@@ -196,11 +180,6 @@ int32_t Voice_state_render_voice(
     const int32_t audio_rate = proc_state->parent.audio_rate;
 
     adjust_relative_lengths(vstate, audio_rate, tempo);
-
-    // NOTE: checking voice features before processing in order to save time
-    //       Revisit if we ever add support for several output ports!
-    if (Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH))
-        Voice_state_common_handle_pitch(vstate, proc, wbs, buf_start, process_stop);
 
     // Call the implementation
     const int32_t impl_render_stop = vstate->render_voice(

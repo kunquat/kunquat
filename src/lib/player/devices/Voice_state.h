@@ -75,17 +75,6 @@ struct Voice_state
     double ramp_attack;            ///< The current state of volume ramp during attack.
 
     int hit_index;                 ///< The hit index (negative for normal notes).
-    Pitch_controls pitch_controls;
-    double orig_pitch_param;       ///< The original pitch parameter.
-    double actual_pitch;           ///< The actual frequency (includes vibrato).
-    double prev_actual_pitch;      ///< The actual frequency in the previous mixing cycle.
-
-    bool arpeggio;                 ///< Arpeggio enabled.
-    double arpeggio_ref;           ///< Arpeggio reference note in cents.
-    double arpeggio_length;        ///< Length of one note in the arpeggio.
-    double arpeggio_frames;        ///< Frames left of the current note in the arpeggio.
-    int arpeggio_note;             ///< Current note in the arpeggio.
-    double arpeggio_tones[KQT_ARPEGGIO_NOTES_MAX]; ///< Tones in the arpeggio.
 
     uint64_t pos;                  ///< The current playback position.
     double pos_rem;                ///< The current playback position remainder.
@@ -97,6 +86,7 @@ struct Voice_state
     double noff_pos_rem;           ///< Note Off position remainder.
 
     // TODO: temp hack -- replace with proper type identifier
+    bool is_pitch_state;
     bool is_force_state;
 };
 

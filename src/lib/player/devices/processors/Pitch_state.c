@@ -16,14 +16,29 @@
 
 #include <debug/assert.h>
 #include <init/devices/processors/Proc_pitch.h>
+#include <mathnum/conversions.h>
 #include <player/Pitch_controls.h>
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 typedef struct Pitch_vstate
 {
     Voice_state parent;
+
+    Pitch_controls controls;
+    double orig_pitch_param;
+    double actual_pitch;
+    double prev_actual_pitch;
+
+    bool is_arpeggio_enabled;
+    double arpeggio_ref_pitch;
+    double arpeggio_speed;
+    double arpeggio_tone_progress;
+    int arpeggio_tone_index;
+    double arpeggio_tones[KQT_ARPEGGIO_TONES_MAX];
 } Pitch_vstate;
 
 
@@ -60,7 +75,9 @@ static int32_t Pitch_vstate_render_voice(
         return buf_start;
     }
 
-    Pitch_controls* pc = &vstate->pitch_controls;
+    Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
+
+    Pitch_controls* pc = &pvstate->controls;
     Pitch_controls_set_tempo(pc, tempo);
 
     out_buf[buf_start - 1] = pc->pitch;
@@ -89,7 +106,7 @@ static int32_t Pitch_vstate_render_voice(
             out_buf[i] *= pc->freq_mul;
     }
 
-    out_buf[buf_start - 1] = vstate->actual_pitch;
+    out_buf[buf_start - 1] = pvstate->actual_pitch;
 
     // Apply vibrato
     if (LFO_active(&pc->vibrato))
@@ -99,33 +116,37 @@ static int32_t Pitch_vstate_render_voice(
     }
 
     // Apply arpeggio
-    if (vstate->arpeggio)
+    if (pvstate->is_arpeggio_enabled)
     {
+        const Device_state* dstate = &proc_state->parent;
+        const double progress_update =
+            (pvstate->arpeggio_speed / dstate->audio_rate) * (tempo / 60.0);
+
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             // Adjust actual pitch according to the current arpeggio state
-            assert(!isnan(vstate->arpeggio_tones[0]));
+            assert(!isnan(pvstate->arpeggio_tones[0]));
             double diff = exp2(
-                    (vstate->arpeggio_tones[vstate->arpeggio_note] -
-                        vstate->arpeggio_ref) / 1200);
+                    (pvstate->arpeggio_tones[pvstate->arpeggio_tone_index] -
+                        pvstate->arpeggio_ref_pitch) / 1200.0);
             out_buf[i] *= diff;
 
             // Update arpeggio state
-            vstate->arpeggio_frames += 1;
-            if (vstate->arpeggio_frames >= vstate->arpeggio_length)
+            pvstate->arpeggio_tone_progress += progress_update;
+            while (pvstate->arpeggio_tone_progress > 1.0)
             {
-                vstate->arpeggio_frames -= vstate->arpeggio_length;
-                ++vstate->arpeggio_note;
-                if (vstate->arpeggio_note > KQT_ARPEGGIO_NOTES_MAX ||
-                        isnan(vstate->arpeggio_tones[vstate->arpeggio_note]))
-                    vstate->arpeggio_note = 0;
+                pvstate->arpeggio_tone_progress -= 1.0;
+                ++pvstate->arpeggio_tone_index;
+                if (pvstate->arpeggio_tone_index >= KQT_ARPEGGIO_TONES_MAX ||
+                        isnan(pvstate->arpeggio_tones[pvstate->arpeggio_tone_index]))
+                    pvstate->arpeggio_tone_index = 0;
             }
         }
     }
 
     // Update actual pitch for next iteration
-    vstate->actual_pitch = out_buf[buf_stop - 1];
-    vstate->prev_actual_pitch = out_buf[buf_stop - 2];
+    pvstate->actual_pitch = out_buf[buf_stop - 1];
+    pvstate->prev_actual_pitch = out_buf[buf_stop - 2];
 
     // Mark state as started, TODO: fix this mess
     vstate->pos = 1;
@@ -140,6 +161,118 @@ void Pitch_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     assert(proc_state != NULL);
 
     vstate->render_voice = Pitch_vstate_render_voice;
+
+    Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
+
+    // Initialise common pitch state
+    Pitch_controls_init(&pvstate->controls, proc_state->parent.audio_rate, 120);
+
+    pvstate->orig_pitch_param = NAN;
+    pvstate->actual_pitch = 0;
+    pvstate->prev_actual_pitch = 0;
+
+    // Initialise arpeggio
+    pvstate->is_arpeggio_enabled = false;
+    pvstate->arpeggio_ref_pitch = NAN;
+    pvstate->arpeggio_speed = 24;
+    pvstate->arpeggio_tone_progress = 0;
+    pvstate->arpeggio_tone_index = 0;
+    pvstate->arpeggio_tones[0] = pvstate->arpeggio_tones[1] = NAN;
+
+    vstate->is_pitch_state = true;
+
+    return;
+}
+
+
+void Pitch_vstate_set_controls(Voice_state* vstate, const Pitch_controls* controls)
+{
+    assert(vstate != NULL);
+    assert(controls != NULL);
+
+    Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
+
+    Pitch_controls_copy(&pvstate->controls, controls);
+
+    if (isnan(pvstate->orig_pitch_param))
+        pvstate->orig_pitch_param = pvstate->controls.orig_carried_pitch;
+
+    pvstate->actual_pitch = pvstate->controls.pitch;
+
+    return;
+}
+
+
+void Pitch_vstate_arpeggio_on(
+        Voice_state* vstate,
+        double speed,
+        double ref_pitch,
+        double tones[KQT_ARPEGGIO_TONES_MAX])
+{
+    assert(vstate != NULL);
+    assert(isfinite(speed));
+    assert(speed > 0);
+    assert(isfinite(ref_pitch));
+    assert(tones != NULL);
+
+    Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
+
+    if (pvstate->is_arpeggio_enabled)
+        return;
+
+    pvstate->arpeggio_speed = speed;
+    pvstate->arpeggio_ref_pitch = ref_pitch;
+    memcpy(pvstate->arpeggio_tones, tones, KQT_ARPEGGIO_TONES_MAX * sizeof(double));
+    pvstate->arpeggio_tone_index = 0;
+    pvstate->is_arpeggio_enabled = true;
+
+    return;
+}
+
+
+void Pitch_vstate_arpeggio_off(Voice_state* vstate)
+{
+    assert(vstate != NULL);
+
+    Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
+    pvstate->is_arpeggio_enabled = false;
+
+    return;
+}
+
+
+void Pitch_vstate_update_arpeggio_tones(
+        Voice_state* vstate, double tones[KQT_ARPEGGIO_TONES_MAX])
+{
+    assert(vstate != NULL);
+
+    Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
+    memcpy(pvstate->arpeggio_tones, tones, KQT_ARPEGGIO_TONES_MAX * sizeof(double));
+
+    return;
+}
+
+
+void Pitch_vstate_update_arpeggio_speed(Voice_state* vstate, double speed)
+{
+    assert(vstate != NULL);
+    assert(isfinite(speed));
+    assert(speed > 0);
+
+    Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
+    pvstate->arpeggio_speed = speed;
+
+    return;
+}
+
+
+void Pitch_vstate_reset_arpeggio(Voice_state* vstate)
+{
+    assert(vstate != NULL);
+
+    Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
+    pvstate->arpeggio_tones[0] = pvstate->arpeggio_tones[1] = NAN;
+    pvstate->arpeggio_tone_index = 0;
 
     return;
 }
