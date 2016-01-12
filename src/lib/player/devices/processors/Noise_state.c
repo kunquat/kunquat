@@ -132,8 +132,6 @@ static int32_t Noise_vstate_render_voice(
     const int32_t audio_rate = proc_state->parent.audio_rate;
     Proc_ramp_attack(vstate, 2, out_buffers, buf_start, buf_stop, audio_rate);
 
-    vstate->pos = 1; // XXX: hackish
-
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
     return buf_stop;
 }

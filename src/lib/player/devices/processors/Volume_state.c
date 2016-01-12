@@ -219,9 +219,6 @@ int32_t Volume_vstate_render_voice(
     apply_volume(
             2, in_bufs, out_bufs, scale_buf, vol_pstate->scale, buf_start, buf_stop);
 
-    // Mark state as started, TODO: fix this mess
-    vstate->pos = 1;
-
     return buf_stop;
 }
 

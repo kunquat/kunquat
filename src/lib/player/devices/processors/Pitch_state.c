@@ -148,9 +148,6 @@ static int32_t Pitch_vstate_render_voice(
     pvstate->actual_pitch = out_buf[buf_stop - 1];
     pvstate->prev_actual_pitch = out_buf[buf_stop - 2];
 
-    // Mark state as started, TODO: fix this mess
-    vstate->pos = 1;
-
     return buf_stop;
 }
 

@@ -167,9 +167,6 @@ static int32_t Gaincomp_vstate_render_voice(
             distort(gc, in_buffers[ch], out_buffers[ch], buf_start, buf_stop);
     }
 
-    // Mark state as started, TODO: fix this mess
-    vstate->pos = 1;
-
     return buf_stop;
 }
 

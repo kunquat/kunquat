@@ -188,9 +188,6 @@ static int32_t Envgen_vstate_render_voice(
         }
     }
 
-    // Mark state as started, TODO: fix this mess
-    vstate->pos = 1;
-
     return new_buf_stop;
 }
 

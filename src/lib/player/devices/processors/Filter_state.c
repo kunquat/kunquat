@@ -683,9 +683,6 @@ int32_t Filter_vstate_render_voice(
             buf_stop,
             dstate->audio_rate);
 
-    // Mark state as started, TODO: fix this mess
-    vstate->pos = 1;
-
     return buf_stop;
 }
 

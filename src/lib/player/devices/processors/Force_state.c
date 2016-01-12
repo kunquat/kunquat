@@ -256,9 +256,6 @@ static int32_t Force_vstate_render_voice(
         }
     }
 
-    // Mark state as started, TODO: fix this mess
-    vstate->pos = 1;
-
     return buf_stop;
 }
 

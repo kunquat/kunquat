@@ -183,8 +183,6 @@ static int32_t Add_vstate_render_voice(
     if (add->is_ramp_attack_enabled)
         Proc_ramp_attack(vstate, 2, out_bufs, buf_start, buf_stop, dstate->audio_rate);
 
-    vstate->pos = 1; // XXX: hackish
-
     return buf_stop;
 }
 
