@@ -30,21 +30,6 @@
 #include <stdint.h>
 
 
-typedef enum
-{
-    VOICE_FEATURE_CUT,
-    VOICE_FEATURE_COUNT_
-} Voice_feature;
-
-static_assert(
-        VOICE_FEATURE_COUNT_ <= 31,
-        "Too many voice features defined, change flag container type");
-
-#define VOICE_FEATURE_FLAG(feature) (1 << (feature))
-
-#define VOICE_FEATURES_ALL ((1 << VOICE_FEATURE_COUNT_) - 1)
-
-
 /**
  * Processor creates signal output based on voice or signal input.
  */
@@ -53,7 +38,6 @@ struct Processor
     Device parent;
     int index;
     const Au_params* au_params;
-    uint32_t voice_features[KQT_DEVICE_PORTS_MAX];
 
     bool enable_voice_support;
     bool enable_signal_support;
@@ -71,33 +55,6 @@ struct Processor
  *           failed.
  */
 Processor* new_Processor(int index, const Au_params* au_params);
-
-
-/**
- * Set a voice feature of the Processor.
- *
- * \param proc       The Processor -- must not be \c NULL.
- * \param port_num   The output port number -- must be >= \c 0 and
- *                   < \c KQT_DEVICE_PORTS_MAX.
- * \param feature    The voice feature -- must be valid.
- * \param enabled    Whether \a feature is enabled or not.
- */
-void Processor_set_voice_feature(
-        Processor* proc, int port_num, Voice_feature feature, bool enabled);
-
-
-/**
- * Get a voice feature enabled status of the Processor.
- *
- * \param proc       The Processor -- must not be \c NULL.
- * \param port_num   The output port number -- must be >= \c 0 and
- *                   < \c KQT_DEVICE_PORTS_MAX.
- * \param feature    The voice feature -- must be valid.
- *
- * \return   \c true if \a feature is enabled, otherwise \c false.
- */
-bool Processor_is_voice_feature_enabled(
-        const Processor* proc, int port_num, Voice_feature feature);
 
 
 /**
