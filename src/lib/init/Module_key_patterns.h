@@ -63,7 +63,6 @@ MODULE_AU_KEYP(proc_manifest,           "au_XX/proc_XX/p_manifest.json",        
 MODULE_AU_KEYP(proc_signal_type,        "au_XX/proc_XX/p_signal_type.json",     "\"voice\"")
 MODULE_AU_KEYP(proc_in_port_manifest,   "au_XX/proc_XX/in_XX/p_manifest.json",  "")
 MODULE_AU_KEYP(proc_out_port_manifest,  "au_XX/proc_XX/out_XX/p_manifest.json", "")
-MODULE_AU_KEYP(proc_vf_pitch,           "au_XX/proc_XX/out_XX/p_vf_pitch.json", "true")
 MODULE_AU_KEYP(proc_impl_key,           "au_XX/proc_XX/i/",                     "")
 MODULE_AU_KEYP(proc_conf_key,           "au_XX/proc_XX/c/",                     "")
 

@@ -1146,45 +1146,6 @@ static bool read_any_proc_conf_key(
 }
 
 
-static bool read_any_proc_voice_feature(
-        Reader_params* params, Au_table* au_table, int level, Voice_feature feature)
-{
-    assert(params != NULL);
-    assert(au_table != NULL);
-
-    int32_t au_index = -1;
-    acquire_au_index(au_index, params, level);
-    int32_t proc_index = -1;
-    acquire_proc_index(proc_index, params, level + 1);
-    int32_t port_num = -1;
-    acquire_port_index(port_num, params, level + 2);
-
-    Audio_unit* au = NULL;
-    acquire_au(au, params->handle, au_table, au_index);
-    Proc_table* proc_table = Audio_unit_get_procs(au);
-
-    Processor* proc = add_processor(params->handle, au, proc_table, proc_index);
-    if (proc == NULL)
-        return false;
-
-    bool feature_enabled = true;
-    if (Streader_has_data(params->sr) &&
-            !Streader_read_bool(params->sr, &feature_enabled))
-        return false;
-
-    Processor_set_voice_feature(proc, port_num, feature, feature_enabled);
-
-    return true;
-}
-
-
-static bool read_any_proc_vf_pitch(
-        Reader_params* params, Au_table* au_table, int level)
-{
-    return read_any_proc_voice_feature(params, au_table, level, VOICE_FEATURE_PITCH);
-}
-
-
 #define MAKE_AU_EFFECT_READER(base_name)                                \
     static bool read_au_ ## base_name(Reader_params* params)            \
     {                                                                   \
