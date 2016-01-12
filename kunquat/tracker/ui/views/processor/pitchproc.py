@@ -25,7 +25,7 @@ class PitchProc(QWidget):
         QWidget.__init__(self)
 
         v = QVBoxLayout()
-        v.addWidget(QLabel('todo'))
+        v.addWidget(QLabel('The Pitch processor does not support additional parameters.'))
         v.addStretch(1)
         self.setLayout(v)
 
