@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -26,6 +26,7 @@ class RingmodProc(QWidget):
 
         v = QVBoxLayout()
         v.addWidget(QLabel('The Ring modulator does not support additional parameters.'))
+        v.addStretch(1)
         self.setLayout(v)
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
