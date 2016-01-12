@@ -68,8 +68,7 @@ static int32_t Add_vstate_render_voice(
     const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
             COND_WORK_BUFFER_AUTO,
             Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
-            440,
-            true);
+            440);
 
     // Get output buffer for writing
     float* out_bufs[] =

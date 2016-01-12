@@ -70,7 +70,7 @@ int32_t Time_env_state_process(
     assert(audio_rate > 0);
 
     const Cond_work_buffer* actual_pitches =
-        Cond_work_buffer_init(COND_WORK_BUFFER_AUTO, pitch_buf, 440, true);
+        Cond_work_buffer_init(COND_WORK_BUFFER_AUTO, pitch_buf, 440);
 
     // Get constant values used inside the loop
     const double slowdown_fac = 1.0 - sustain;

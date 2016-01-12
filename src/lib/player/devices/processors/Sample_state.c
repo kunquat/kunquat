@@ -86,8 +86,7 @@ static int32_t Sample_render(
     const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
             COND_WORK_BUFFER_AUTO,
             Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
-            440,
-            true);
+            440);
 
     float* abufs[KQT_BUFFERS_MAX] = { out_buffers[0], out_buffers[1] };
     if ((sample->channels == 1) && (out_buffers[0] == NULL))
@@ -393,8 +392,7 @@ static int32_t Sample_vstate_render_voice(
     const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
             COND_WORK_BUFFER_AUTO,
             Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
-            440,
-            true);
+            440);
 
     if (sample_state->sample < 0)
     {
