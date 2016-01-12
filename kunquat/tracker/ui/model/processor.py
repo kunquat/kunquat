@@ -105,15 +105,4 @@ class Processor():
         key = self._get_key('p_signal_type.json')
         self._store[key] = signal_type
 
-    def _get_vf_key(self, port, vf):
-        return 'out_{:02x}/p_vf_{}.json'.format(port, vf)
-
-    def get_vf_pitch(self, port):
-        key = self._get_key(self._get_vf_key(port, 'pitch'))
-        return self._store.get(key, get_default_value(key))
-
-    def set_vf_pitch(self, port, enabled):
-        key = self._get_key(self._get_vf_key(port, 'pitch'))
-        self._store[key] = enabled
-
 
