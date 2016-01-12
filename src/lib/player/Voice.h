@@ -131,17 +131,13 @@ const Processor* Voice_get_proc(const Voice* voice);
  *                     to identify which Voices are connected.
  * \param proc_state   The Processor state -- must not be \c NULL.
  * \param seed         The random seed.
- * \param freq         The mixing frequency -- must be > \c 0.
- * \param tempo        The current tempo -- must be > \c 0.
  */
 void Voice_init(
         Voice* voice,
         const Processor* proc,
         uint64_t group_id,
         const Proc_state* proc_state,
-        uint64_t seed,
-        uint32_t freq,
-        double tempo);
+        uint64_t seed);
 
 
 /**

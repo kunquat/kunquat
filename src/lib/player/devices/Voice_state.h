@@ -62,8 +62,6 @@ struct Voice_state
 {
     bool active;                   ///< Whether there is anything left to process.
     bool has_finished;
-    int32_t freq;                  ///< The last mixing frequency used.
-    double tempo;                  ///< The last tempo setting used.
     Random* rand_p;                ///< Parameter random source.
     Random* rand_s;                ///< Signal random source.
 
@@ -97,17 +95,10 @@ struct Voice_state
  * \param state        The Voice state -- must not be \c NULL.
  * \param rand_p       The parameter Random source -- must not be \c NULL.
  * \param rand_s       The signal Random source -- must not be \c NULL.
- * \param audio_rate   The audio rate -- must be > \c 0.
- * \param tempo        The current tempo -- must be > \c 0.
  *
  * \return   The parameter \a state.
  */
-Voice_state* Voice_state_init(
-        Voice_state* state,
-        Random* rand_p,
-        Random* rand_s,
-        int32_t audio_rate,
-        double tempo);
+Voice_state* Voice_state_init(Voice_state* state, Random* rand_p, Random* rand_s);
 
 
 /**

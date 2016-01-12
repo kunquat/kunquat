@@ -27,25 +27,16 @@
 #include <stdlib.h>
 
 
-Voice_state* Voice_state_init(
-        Voice_state* state,
-        Random* rand_p,
-        Random* rand_s,
-        int32_t audio_rate,
-        double tempo)
+Voice_state* Voice_state_init(Voice_state* state, Random* rand_p, Random* rand_s)
 {
     assert(state != NULL);
     assert(rand_p != NULL);
     assert(rand_s != NULL);
-    assert(audio_rate > 0);
-    assert(tempo > 0);
 
     Voice_state_clear(state);
     state->active = true;
     state->has_finished = false;
     state->note_on = true;
-    state->freq = audio_rate;
-    state->tempo = tempo;
     state->rand_p = rand_p;
     state->rand_s = rand_s;
 
@@ -67,8 +58,6 @@ Voice_state* Voice_state_clear(Voice_state* state)
 
     state->active = false;
     state->has_finished = false;
-    state->freq = 0;
-    state->tempo = 0;
     state->ramp_attack = 0;
 
     state->hit_index = -1;
@@ -86,44 +75,6 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->is_force_state = false;
 
     return state;
-}
-
-
-/**
- * Update voice parameter settings that depend on audio rate and/or tempo.
- *
- * \param vstate       The Voice state -- must not be \c NULL.
- * \param audio_rate   The new audio rate -- must be positive.
- * \param tempo        The new tempo -- must be positive and finite.
- */
-static void adjust_relative_lengths(
-        Voice_state* vstate, int32_t audio_rate, double tempo)
-{
-    assert(vstate != NULL);
-    assert(audio_rate > 0);
-    assert(tempo > 0);
-    assert(isfinite(tempo));
-
-    if (vstate->freq != audio_rate || vstate->tempo != tempo)
-    {
-#if 0
-        Pitch_controls_set_audio_rate(&vstate->pitch_controls, audio_rate);
-        Pitch_controls_set_tempo(&vstate->pitch_controls, tempo);
-
-        if (vstate->arpeggio)
-        {
-            vstate->arpeggio_length *= (double)audio_rate / vstate->freq;
-            vstate->arpeggio_length *= vstate->tempo / tempo;
-            vstate->arpeggio_frames *= (double)audio_rate / vstate->freq;
-            vstate->arpeggio_frames *= vstate->tempo / tempo;
-        }
-#endif
-
-        vstate->freq = audio_rate;
-        vstate->tempo = tempo;
-    }
-
-    return;
 }
 
 
@@ -174,24 +125,12 @@ int32_t Voice_state_render_voice(
         return buf_start;
     }
 
-    // Process common parameters required by implementations
-    int32_t process_stop = buf_stop;
-
-    const int32_t audio_rate = proc_state->parent.audio_rate;
-
-    adjust_relative_lengths(vstate, audio_rate, tempo);
-
     // Call the implementation
     const int32_t impl_render_stop = vstate->render_voice(
-            vstate, proc_state, au_state, wbs, buf_start, process_stop, tempo);
+            vstate, proc_state, au_state, wbs, buf_start, buf_stop, tempo);
+    assert(impl_render_stop <= buf_stop);
 
-    if (!vstate->active)
-    {
-        assert(impl_render_stop <= process_stop);
-        process_stop = impl_render_stop;
-    }
-
-    return process_stop;
+    return impl_render_stop;
 }
 
 
