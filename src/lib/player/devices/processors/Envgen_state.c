@@ -21,6 +21,7 @@
 #include <player/devices/Proc_state.h>
 #include <player/devices/processors/Proc_utils.h>
 #include <player/devices/Voice_state.h>
+#include <player/Work_buffers.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -58,9 +59,12 @@ static int32_t Envgen_vstate_render_voice(
     assert(isfinite(tempo));
     assert(tempo > 0);
 
-    const Processor* proc = (const Processor*)proc_state->parent.device;
     const Proc_envgen* egen = (Proc_envgen*)proc_state->parent.device->dimpl;
     Envgen_vstate* egen_state = (Envgen_vstate*)vstate;
+
+    // Get pitch input
+    const Work_buffer* actual_pitches =
+        Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
 
     // Get output buffer for writing
     float* out_buffer =
@@ -91,8 +95,8 @@ static int32_t Envgen_vstate_render_voice(
                 egen->env_scale_center,
                 0, // sustain
                 0, 1, // range, NOTE: this needs to be mapped to our [y_min, y_max]!
-                Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH),
-                wbs,
+                actual_pitches,
+                Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
                 buf_start,
                 new_buf_stop,
                 proc_state->parent.audio_rate);

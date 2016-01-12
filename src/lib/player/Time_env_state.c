@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -50,8 +50,8 @@ int32_t Time_env_state_process(
         double sustain,
         double min_value,
         double max_value,
-        bool pitch_enabled,
-        const Work_buffers* wbs,
+        const Work_buffer* pitch_buf,
+        float* env_buf,
         int32_t buf_start,
         int32_t buf_stop,
         uint32_t audio_rate)
@@ -64,18 +64,13 @@ int32_t Time_env_state_process(
     assert(sustain <= 1);
     assert(isfinite(min_value));
     assert(isfinite(max_value));
-    assert(wbs != NULL);
+    assert(env_buf != NULL);
     assert(buf_start >= 0);
     assert(buf_stop >= 0);
     assert(audio_rate > 0);
 
-    const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
-            COND_WORK_BUFFER_AUTO,
-            Work_buffers_get_buffer(wbs, WORK_BUFFER_ACTUAL_PITCHES),
-            440,
-            pitch_enabled);
-
-    float* values = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV);
+    const Cond_work_buffer* actual_pitches =
+        Cond_work_buffer_init(COND_WORK_BUFFER_AUTO, pitch_buf, 440, true);
 
     // Get constant values used inside the loop
     const double slowdown_fac = 1.0 - sustain;
@@ -165,7 +160,7 @@ int32_t Time_env_state_process(
 
         // Apply envelope value
         assert(isfinite(value));
-        values[i] = value;
+        env_buf[i] = value;
 
         // Update envelope position
         double new_pos = cur_pos + scale_factor * slowdown_fac_inv_audio_rate;

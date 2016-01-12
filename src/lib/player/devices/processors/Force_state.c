@@ -23,6 +23,7 @@
 #include <mathnum/Random.h>
 #include <player/Force_controls.h>
 #include <player/Time_env_state.h>
+#include <player/Work_buffers.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,6 +68,10 @@ static int32_t Force_vstate_render_voice(
     assert(buf_stop >= 0);
     assert(isfinite(tempo));
     assert(tempo > 0);
+
+    // Get pitch input
+    const Work_buffer* actual_pitches =
+        Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
 
     // Get output
     float* out_buf =
@@ -118,8 +123,6 @@ static int32_t Force_vstate_render_voice(
     {
         const Envelope* env = force->force_env;
 
-        const Processor* proc = (const Processor*)proc_state->parent.device;
-
         const double scale_center_freq = cents_to_Hz(force->force_env_scale_center);
 
         const int32_t env_force_stop = Time_env_state_process(
@@ -130,8 +133,8 @@ static int32_t Force_vstate_render_voice(
                 scale_center_freq,
                 0, // sustain
                 0, 1, // range
-                Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH),
-                wbs,
+                actual_pitches,
+                Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
                 buf_start,
                 new_buf_stop,
                 proc_state->parent.audio_rate);
@@ -178,8 +181,6 @@ static int32_t Force_vstate_render_voice(
             const Envelope* env = force->force_release_env;
             assert(env != NULL);
 
-            const Processor* proc = (const Processor*)proc_state->parent.device;
-
             const double scale_center_freq =
                 cents_to_Hz(force->force_release_env_scale_center);
 
@@ -191,8 +192,8 @@ static int32_t Force_vstate_render_voice(
                     scale_center_freq,
                     au_state->sustain,
                     0, 1, // range
-                    Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH),
-                    wbs,
+                    actual_pitches,
+                    Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
                     buf_start,
                     new_buf_stop,
                     proc_state->parent.audio_rate);

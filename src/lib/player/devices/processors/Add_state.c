@@ -18,6 +18,7 @@
 #include <init/devices/processors/Proc_add.h>
 #include <mathnum/common.h>
 #include <player/devices/processors/Proc_utils.h>
+#include <player/Work_buffers.h>
 
 
 #define ADD_BASE_FUNC_SIZE_MASK (ADD_BASE_FUNC_SIZE - 1)

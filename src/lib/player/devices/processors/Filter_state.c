@@ -24,6 +24,7 @@
 #include <player/devices/processors/Filter.h>
 #include <player/devices/processors/Proc_utils.h>
 #include <player/devices/Voice_state.h>
+#include <player/Work_buffers.h>
 
 #include <math.h>
 #include <stdint.h>

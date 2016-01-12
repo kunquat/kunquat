@@ -20,6 +20,7 @@
 #include <mathnum/common.h>
 #include <memory.h>
 #include <player/Linear_controls.h>
+#include <player/Work_buffers.h>
 
 #include <stdint.h>
 #include <stdlib.h>
