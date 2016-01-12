@@ -1,11 +1,11 @@
 
 
 {
-    "Iin": { "offset": [-300, 0] },
+    "Iin": { "offset": [-300, 100] },
     "proc_00": { "offset": [-100, 100] },
     "proc_01": { "offset": [-100, -100] },
     "proc_02": { "offset": [100, 0] },
-    "proc_03": { "offset": [-250, 100] },
+    "proc_03": { "offset": [-250, 0] },
     "master": { "offset": [300, 0] }
 }
 
