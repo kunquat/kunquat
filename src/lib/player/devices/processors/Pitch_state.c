@@ -126,7 +126,7 @@ static int32_t Pitch_vstate_render_voice(
         {
             // Adjust actual pitch according to the current arpeggio state
             assert(!isnan(pvstate->arpeggio_tones[0]));
-            double diff = exp2(
+            const double diff = exp2(
                     (pvstate->arpeggio_tones[pvstate->arpeggio_tone_index] -
                         pvstate->arpeggio_ref_pitch) / 1200.0);
             out_buf[i] *= diff;
