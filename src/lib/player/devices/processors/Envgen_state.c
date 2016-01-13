@@ -66,6 +66,10 @@ static int32_t Envgen_vstate_render_voice(
     const Work_buffer* actual_pitches =
         Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
 
+    // Get volume scales
+    const float* vol_scales =
+        Proc_state_get_voice_buffer_contents(proc_state, DEVICE_PORT_TYPE_RECEIVE, 1);
+
     // Get output buffer for writing
     float* out_buffer =
         Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0);
@@ -149,21 +153,17 @@ static int32_t Envgen_vstate_render_voice(
             out_buffer[i] *= scale;
     }
 
-#if 0
-    if (Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE))
+    if (vol_scales != NULL)
     {
-        const float* actual_forces = Work_buffers_get_buffer_contents(
-                wbs, WORK_BUFFER_ACTUAL_FORCES);
-
         if (is_force_env_enabled)
         {
             // Apply force envelope
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
             {
-                const float actual_force = actual_forces[i];
+                const float vol_scale = vol_scales[i];
 
-                const double force_clamped = min(1, actual_force);
-                const double factor = Envelope_get_value(egen->force_env, force_clamped);
+                const double vol_clamped = min(1, vol_scale);
+                const double factor = Envelope_get_value(egen->force_env, vol_clamped);
                 assert(isfinite(factor));
                 out_buffer[i] *= factor;
             }
@@ -172,11 +172,10 @@ static int32_t Envgen_vstate_render_voice(
         {
             // Apply linear scaling by default
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                out_buffer[i] *= actual_forces[i];
+                out_buffer[i] *= vol_scales[i];
         }
     }
     else
-#endif
     {
         if (is_force_env_enabled)
         {
