@@ -161,9 +161,6 @@ static int32_t Ringmod_vstate_render_voice(
     // Multiply the signals
     multiply_signals(in1_buffers, in2_buffers, out_buffers, buf_start, buf_stop);
 
-    // Mark state as started, TODO: fix this mess
-    vstate->pos = 1;
-
     return buf_stop;
 }
 

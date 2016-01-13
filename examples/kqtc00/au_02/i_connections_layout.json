@@ -1,13 +1,14 @@
 
 
 {
-    "Iin": { "offset": [-300, 0] },
-    "proc_01": { "offset": [-300, -100] },
-    "proc_02": { "offset": [-300, 100] },
-    "proc_03": { "offset": [-150, 0] },
-    "proc_04": { "offset": [0, 100] },
+    "Iin": { "offset": [-350, 100] },
+    "proc_01": { "offset": [-250, -25] },
+    "proc_02": { "offset": [-250, 50] },
+    "proc_03": { "offset": [-125, 50] },
+    "proc_04": { "offset": [0, -100] },
     "proc_05": { "offset": [150, 0] },
     "proc_00": { "offset": [0, 0] },
+    "proc_06": { "offset": [-400, -100] },
     "master": { "offset": [300, 0] }
 }
 

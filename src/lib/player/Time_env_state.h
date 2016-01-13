@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -17,7 +17,7 @@
 
 
 #include <init/devices/param_types/Envelope.h>
-#include <player/Work_buffers.h>
+#include <player/Work_buffer.h>
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -57,10 +57,9 @@ void Time_env_state_init(Time_env_state* testate);
  *                        (0 indicates no sustain).
  * \param min_value       Minimum envelope value -- must be finite.
  * \param max_value       Maximum envelope value -- must be finite.
- * \param pitch_enabled   \c true if pitch processing is enabled, otherwise
- *                        \c false.
- * \param wbs             The Work buffers -- must not be \c NULL. The envelope
- *                        values will be stored in \c WORK_BUFFER_TIME_ENV.
+ * \param pitch_buf       Input pitch values, or \c NULL if not available.
+ * \param env_buf         Destination buffer for envelope values
+ *                        -- must not be \c NULL.
  * \param buf_start       Write starting position of the work buffer
  *                        -- must be >= \c 0.
  * \param buf_stop        Write stopping position of the work buffer
@@ -78,8 +77,8 @@ int32_t Time_env_state_process(
         double sustain,
         double min_value,
         double max_value,
-        bool pitch_enabled,
-        const Work_buffers* wbs,
+        const Work_buffer* pitch_buf,
+        float* env_buf,
         int32_t buf_start,
         int32_t buf_stop,
         uint32_t audio_rate);

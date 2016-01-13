@@ -61,52 +61,6 @@ void Proc_ramp_attack(
         int32_t audio_rate);
 
 
-#if 0
-#define get_raw_buffers(ds, type, port, buffers)          \
-    if (true)                                             \
-    {                                                     \
-        assert((buffers) != NULL);                        \
-        Audio_buffer* in = Device_state_get_audio_buffer( \
-                (ds), (type), (port));                    \
-        if (in == NULL)                                   \
-            return;                                       \
-                                                          \
-        (buffers)[0] = Audio_buffer_get_buffer(in, 0);    \
-        (buffers)[1] = Audio_buffer_get_buffer(in, 1);    \
-    } else (void)0
-
-
-/**
- * Retrieve raw input buffers from the Processor.
- *
- * This macro stops the calling function if the buffers do not exist.
- *
- * \param ds        The Device state -- must not be \c NULL.
- * \param num       The port number -- must be >= \c and
- *                  < \c KQT_DEVICE_PORTS_MAX.
- * \param buffers   The array where the buffers are stored -- must not
- *                  be \c NULL.
- */
-#define get_raw_input(ds, port, buffers) \
-    get_raw_buffers((ds), DEVICE_PORT_TYPE_RECEIVE, (port), (buffers))
-
-
-/**
- * Retrieve raw output buffers from the Processor.
- *
- * This macro stops the calling function if the buffers do not exist.
- *
- * \param ds        The Device state -- must not be \c NULL.
- * \param num       The port number -- must be >= \c and
- *                  < \c KQT_DEVICE_PORTS_MAX.
- * \param buffers   The array where the buffers are stored -- must not
- *                  be \c NULL.
- */
-#define get_raw_output(ds, port, buffers) \
-    get_raw_buffers((ds), DEVICE_PORT_TYPE_SEND, (port), (buffers))
-#endif
-
-
 /**
  * A helper for conditional Work buffer access.
  *
@@ -129,14 +83,13 @@ typedef struct Cond_work_buffer
  * Initialise a Conditional work buffer.
  *
  * \param cwb         The Conditional work buffer -- must not be \c NULL.
- * \param wb          The Work buffer -- must not be \c NULL.
+ * \param wb          The Work buffer, or \c NULL.
  * \param def_value   The default value.
- * \param enabled     \c true if \a wb should be used, otherwise \c false.
  *
  * \return   The parameter \a cwb.
  */
 Cond_work_buffer* Cond_work_buffer_init(
-        Cond_work_buffer* cwb, const Work_buffer* wb, float def_value, bool enabled);
+        Cond_work_buffer* cwb, const Work_buffer* wb, float def_value);
 
 
 /**

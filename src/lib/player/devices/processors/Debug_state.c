@@ -36,12 +36,11 @@ static int32_t Debug_vstate_render_voice(
 
     const Processor* proc = (const Processor*)proc_state->parent.device;
 
-    // Get actual pitches
+    // Get pitches
     const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
             COND_WORK_BUFFER_AUTO,
-            Work_buffers_get_buffer(wbs, WORK_BUFFER_ACTUAL_PITCHES),
-            440,
-            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH));
+            Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
+            440);
 
     // Get output buffer for writing
     float* out_buffers[] =

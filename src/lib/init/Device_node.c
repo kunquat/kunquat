@@ -137,62 +137,6 @@ int Device_node_cmp(const Device_node* n1, const Device_node* n2)
 }
 
 
-void Device_node_clear_processor_voice_cut_settings(Device_node* node)
-{
-    assert(node != NULL);
-
-    const Device* node_device = Device_node_get_device(node);
-    if (node_device == NULL)
-        return;
-
-    if (node->type == DEVICE_TYPE_PROCESSOR)
-    {
-        Processor* proc = Device_node_get_processor_mut(node);
-        Processor_set_voice_feature(proc, 0, VOICE_FEATURE_CUT, false);
-    }
-
-    return;
-}
-
-
-void Device_node_init_processor_voice_cut_settings(Device_node* node)
-{
-    assert(node != NULL);
-
-    const Device* node_device = Device_node_get_device(node);
-    if (node_device == NULL)
-        return;
-
-    bool is_mixed_device = true;
-    if (node->type == DEVICE_TYPE_PROCESSOR)
-        is_mixed_device = Device_get_mixed_signals(node_device);
-
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-    {
-        Connection* edge = node->receive[port];
-        while (edge != NULL)
-        {
-            if (Device_node_get_device(edge->node) == NULL)
-            {
-                edge = edge->next;
-                continue;
-            }
-
-            if (is_mixed_device && (edge->node->type == DEVICE_TYPE_PROCESSOR))
-            {
-                Processor* proc = Device_node_get_processor_mut(edge->node);
-                if (proc != NULL)
-                    Processor_set_voice_feature(proc, 0, VOICE_FEATURE_CUT, true);
-            }
-
-            edge = edge->next;
-        }
-    }
-
-    return;
-}
-
-
 bool Device_node_check_connections(
         const Device_node* node, char err[DEVICE_CONNECTION_ERROR_LENGTH_MAX])
 {
@@ -225,26 +169,6 @@ bool Device_node_check_connections(
                         "Device %s does not exist",
                         send_dev_name);
                 return false;
-            }
-
-            // Check that Processors connected to mixed signal devices
-            // have the voice cut feature enabled
-            if (((node->type == DEVICE_TYPE_MASTER) ||
-                        Device_get_mixed_signals(recv_device)) &&
-                    (conn->node->type == DEVICE_TYPE_PROCESSOR))
-            {
-                const Processor* proc = (const Processor*)send_device;
-                if (Processor_get_voice_signals(proc) &&
-                        !Processor_is_voice_feature_enabled(
-                            proc, conn->port, VOICE_FEATURE_CUT))
-                {
-                    snprintf(
-                            err, DEVICE_CONNECTION_ERROR_LENGTH_MAX,
-                            "Device %s port %d is connected to a mixed signal device"
-                            " but has voice cutting feature disabled",
-                            send_dev_name, conn->port);
-                    return false;
-                }
             }
 
             // Check existence of send port

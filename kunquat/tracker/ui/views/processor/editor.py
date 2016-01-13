@@ -142,17 +142,8 @@ class Signals(QWidget):
             _, text = info
             self._signal_type.addItem(text)
 
-        self._vf_pitch = QCheckBox('Pitch')
-
-        vf_layout = QVBoxLayout()
-        vf_layout.addWidget(self._vf_pitch)
-
-        self._vf_container = QWidget()
-        self._vf_container.setLayout(vf_layout)
-
         v = QHBoxLayout()
         v.addWidget(HeaderFrame('Signal type', self._signal_type))
-        v.addWidget(HeaderFrame('Voice features', self._vf_container))
         self.setLayout(v)
 
     def set_au_id(self, au_id):
@@ -171,15 +162,6 @@ class Signals(QWidget):
                 self._signal_type,
                 SIGNAL('currentIndexChanged(int)'),
                 self._signal_type_changed)
-
-        vf_info = [
-            (self._vf_pitch, self._vf_pitch_changed),
-        ]
-
-        for info in vf_info:
-            checkbox, handler = info
-            QObject.connect(
-                    checkbox, SIGNAL('stateChanged(int)'), handler)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
@@ -216,19 +198,6 @@ class Signals(QWidget):
         self._signal_type.setCurrentIndex(index)
         self._signal_type.blockSignals(old_block)
 
-        # Update voice features
-        self._vf_container.setEnabled(signal_type == 'voice')
-
-        vf_info = [
-            (self._vf_pitch, proc.get_vf_pitch),
-        ]
-
-        for info in vf_info:
-            checkbox, get_vf = info
-            old_block = checkbox.blockSignals(True)
-            checkbox.setCheckState(Qt.Checked if get_vf(0) else Qt.Unchecked)
-            checkbox.blockSignals(old_block)
-
     def _signal_type_changed(self, index):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
@@ -241,22 +210,5 @@ class Signals(QWidget):
 
         proc.set_signal_type(new_signal_type)
         self._updater.signal_update(update_signals)
-
-    def _vf_changed(self, state, vf_name):
-        module = self._ui_model.get_module()
-        au = module.get_audio_unit(self._au_id)
-        proc = au.get_processor(self._proc_id)
-
-        enabled = (state == Qt.Checked)
-
-        vf_info = {
-            'pitch': proc.set_vf_pitch,
-        }
-
-        vf_info[vf_name](0, enabled)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
-
-    def _vf_pitch_changed(self, state):
-        self._vf_changed(state, 'pitch')
 
 

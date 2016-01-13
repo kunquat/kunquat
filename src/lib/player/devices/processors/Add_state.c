@@ -18,6 +18,7 @@
 #include <init/devices/processors/Proc_add.h>
 #include <mathnum/common.h>
 #include <player/devices/processors/Proc_utils.h>
+#include <player/Work_buffers.h>
 
 
 #define ADD_BASE_FUNC_SIZE_MASK (ADD_BASE_FUNC_SIZE - 1)
@@ -59,7 +60,6 @@ static int32_t Add_vstate_render_voice(
     assert(tempo > 0);
 
     const Device_state* dstate = &proc_state->parent;
-    const Processor* proc = (const Processor*)proc_state->parent.device;
     const Proc_add* add = (Proc_add*)proc_state->parent.device->dimpl;
     Add_vstate* add_state = (Add_vstate*)vstate;
     assert(is_p2(ADD_BASE_FUNC_SIZE));
@@ -67,9 +67,8 @@ static int32_t Add_vstate_render_voice(
     // Get actual pitches
     const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
             COND_WORK_BUFFER_AUTO,
-            Work_buffers_get_buffer(wbs, WORK_BUFFER_ACTUAL_PITCHES),
-            440,
-            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH));
+            Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
+            440);
 
     // Get output buffer for writing
     float* out_bufs[] =
@@ -94,7 +93,7 @@ static int32_t Add_vstate_render_voice(
         for (int ch = 0; ch < 2; ++ch)
         {
             const float* mod_in_values = Proc_state_get_voice_buffer_contents_mut(
-                    proc_state, DEVICE_PORT_TYPE_RECEIVE, ch);
+                    proc_state, DEVICE_PORT_TYPE_RECEIVE, ch + 1);
 
             if (mod_in_values != NULL)
             {
@@ -182,8 +181,6 @@ static int32_t Add_vstate_render_voice(
 
     if (add->is_ramp_attack_enabled)
         Proc_ramp_attack(vstate, 2, out_bufs, buf_start, buf_stop, dstate->audio_rate);
-
-    vstate->pos = 1; // XXX: hackish
 
     return buf_stop;
 }

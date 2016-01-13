@@ -48,13 +48,12 @@ void reserve_voice(
 //    fprintf(stderr, "allocated Voice %p\n", (void*)ch->fg[proc_num]);
     ch->fg_id[proc_num] = Voice_id(ch->fg[proc_num]);
 
-    Voice_init(ch->fg[proc_num],
-               Audio_unit_get_proc(au, proc_num),
-               group_id,
-               proc_state,
-               rand_seed,
-               *ch->freq,
-               *ch->tempo);
+    Voice_init(
+            ch->fg[proc_num],
+            Audio_unit_get_proc(au, proc_num),
+            group_id,
+            proc_state,
+            rand_seed);
 
     return;
 }

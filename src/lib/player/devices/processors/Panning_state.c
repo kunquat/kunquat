@@ -20,6 +20,7 @@
 #include <mathnum/common.h>
 #include <memory.h>
 #include <player/Linear_controls.h>
+#include <player/Work_buffers.h>
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -281,9 +282,6 @@ int32_t Panning_vstate_render_voice(
 
     const Device_state* dstate = (const Device_state*)proc_state;
     apply_panning(wbs, in_buffers, out_buffers, buf_start, buf_stop, dstate->audio_rate);
-
-    // Mark state as started, TODO: fix this mess
-    vstate->pos = 1;
 
     return buf_stop;
 }

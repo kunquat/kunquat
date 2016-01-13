@@ -61,6 +61,16 @@ uint16_t Voice_group_get_size(const Voice_group* vg);
 
 
 /**
+ * Get the number of active Voices in the Voice group.
+ *
+ * \param vg   The Voice group -- must not be \c NULL.
+ *
+ * \return   The number of active Voices.
+ */
+uint16_t Voice_group_get_active_count(const Voice_group* vg);
+
+
+/**
  * Get a Voice in the Voice group.
  *
  * \param vg      The Voice group -- must not be \c NULL.

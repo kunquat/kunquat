@@ -80,8 +80,8 @@ bool v_arp_index(const char* param)
     Streader* sr = init_c_streader(param);
 
     return Streader_read_int(sr, &index) &&
-        index >= 0 &&
-        index < KQT_ARPEGGIO_NOTES_MAX;
+        (index >= 0) &&
+        (index < KQT_ARPEGGIO_TONES_MAX);
 }
 
 
@@ -92,7 +92,7 @@ bool v_arp_speed(const char* param)
     double speed = NAN;
     Streader* sr = init_c_streader(param);
 
-    return Streader_read_float(sr, &speed) && speed > 0;
+    return Streader_read_float(sr, &speed) && (speed > 0);
 }
 
 

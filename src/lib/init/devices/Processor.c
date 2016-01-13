@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -148,8 +148,6 @@ Processor* new_Processor(int index, const Au_params* au_params)
     //fprintf(stderr, "New Processor %p\n", (void*)proc);
     proc->index = index;
     proc->au_params = au_params;
-    for (int port_num = 0; port_num < KQT_DEVICE_PORTS_MAX; ++port_num)
-        proc->voice_features[port_num] = VOICE_FEATURES_ALL;
 
     proc->enable_voice_support = false;
     proc->enable_signal_support = false;
@@ -175,35 +173,6 @@ Processor* new_Processor(int index, const Au_params* au_params)
             &proc->parent, Processor_init_control_var_float);
 
     return proc;
-}
-
-
-void Processor_set_voice_feature(
-        Processor* proc, int port_num, Voice_feature feature, bool enabled)
-{
-    assert(proc != NULL);
-    assert(port_num >= 0);
-    assert(port_num < KQT_DEVICE_PORTS_MAX);
-    assert(feature < VOICE_FEATURE_COUNT_);
-
-    if (enabled)
-        proc->voice_features[port_num] |= VOICE_FEATURE_FLAG(feature);
-    else
-        proc->voice_features[port_num] &= ~VOICE_FEATURE_FLAG(feature);
-
-    return;
-}
-
-
-bool Processor_is_voice_feature_enabled(
-        const Processor* proc, int port_num, Voice_feature feature)
-{
-    assert(proc != NULL);
-    assert(port_num >= 0);
-    assert(port_num < KQT_DEVICE_PORTS_MAX);
-    assert(feature < VOICE_FEATURE_COUNT_);
-
-    return (proc->voice_features[port_num] & VOICE_FEATURE_FLAG(feature)) != 0;
 }
 
 

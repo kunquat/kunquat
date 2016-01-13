@@ -62,8 +62,6 @@ struct Voice_state
 {
     bool active;                   ///< Whether there is anything left to process.
     bool has_finished;
-    int32_t freq;                  ///< The last mixing frequency used.
-    double tempo;                  ///< The last tempo setting used.
     Random* rand_p;                ///< Parameter random source.
     Random* rand_s;                ///< Signal random source.
 
@@ -75,17 +73,6 @@ struct Voice_state
     double ramp_attack;            ///< The current state of volume ramp during attack.
 
     int hit_index;                 ///< The hit index (negative for normal notes).
-    Pitch_controls pitch_controls;
-    double orig_pitch_param;       ///< The original pitch parameter.
-    double actual_pitch;           ///< The actual frequency (includes vibrato).
-    double prev_actual_pitch;      ///< The actual frequency in the previous mixing cycle.
-
-    bool arpeggio;                 ///< Arpeggio enabled.
-    double arpeggio_ref;           ///< Arpeggio reference note in cents.
-    double arpeggio_length;        ///< Length of one note in the arpeggio.
-    double arpeggio_frames;        ///< Frames left of the current note in the arpeggio.
-    int arpeggio_note;             ///< Current note in the arpeggio.
-    double arpeggio_tones[KQT_ARPEGGIO_NOTES_MAX]; ///< Tones in the arpeggio.
 
     uint64_t pos;                  ///< The current playback position.
     double pos_rem;                ///< The current playback position remainder.
@@ -97,6 +84,7 @@ struct Voice_state
     double noff_pos_rem;           ///< Note Off position remainder.
 
     // TODO: temp hack -- replace with proper type identifier
+    bool is_pitch_state;
     bool is_force_state;
 };
 
@@ -107,17 +95,10 @@ struct Voice_state
  * \param state        The Voice state -- must not be \c NULL.
  * \param rand_p       The parameter Random source -- must not be \c NULL.
  * \param rand_s       The signal Random source -- must not be \c NULL.
- * \param audio_rate   The audio rate -- must be > \c 0.
- * \param tempo        The current tempo -- must be > \c 0.
  *
  * \return   The parameter \a state.
  */
-Voice_state* Voice_state_init(
-        Voice_state* state,
-        Random* rand_p,
-        Random* rand_s,
-        int32_t audio_rate,
-        double tempo);
+Voice_state* Voice_state_init(Voice_state* state, Random* rand_p, Random* rand_s);
 
 
 /**

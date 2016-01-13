@@ -62,6 +62,21 @@ uint16_t Voice_group_get_size(const Voice_group* vg)
 }
 
 
+uint16_t Voice_group_get_active_count(const Voice_group* vg)
+{
+    assert(vg != NULL);
+
+    uint16_t count = 0;
+    for (uint16_t i = 0; i < vg->size; ++i)
+    {
+        if (vg->voices[i]->state->active)
+            ++count;
+    }
+
+    return count;
+}
+
+
 Voice* Voice_group_get_voice(Voice_group* vg, uint16_t index)
 {
     assert(vg != NULL);

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -149,11 +149,18 @@ START_TEST(Input_map_maintains_indices)
     set_data("au_01/p_manifest.json", "{ \"type\": \"instrument\" }");
     set_data("au_01/out_00/p_manifest.json", "{}");
     set_data("au_01/p_connections.json",
-            "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
+            "[ [\"proc_00/C/out_00\", \"out_00\"]"
+            ", [\"proc_01/C/out_00\", \"proc_00/C/in_00\"]"
+            "]");
 
     set_data("au_01/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
     set_data("au_01/proc_00/p_signal_type.json", "\"voice\"");
+    set_data("au_01/proc_00/in_00/p_manifest.json", "{}");
     set_data("au_01/proc_00/out_00/p_manifest.json", "{}");
+
+    set_data("au_01/proc_01/p_manifest.json", "{ \"type\": \"pitch\" }");
+    set_data("au_01/proc_01/p_signal_type.json", "\"voice\"");
+    set_data("au_01/proc_01/out_00/p_manifest.json", "{}");
 
     validate();
     check_unexpected_error();

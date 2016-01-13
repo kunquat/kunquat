@@ -24,6 +24,7 @@
 #include <player/devices/processors/Filter.h>
 #include <player/devices/processors/Proc_utils.h>
 #include <player/devices/Voice_state.h>
+#include <player/Work_buffers.h>
 
 #include <math.h>
 #include <stdint.h>
@@ -501,15 +502,15 @@ static void Filter_pstate_render_mixed(
     Filter_state_impl_set_tempo(&fpstate->state_impl, tempo);
 
     Work_buffer* cutoff_shift =
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 2);
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
     Filter_state_impl_update_controls(
             &fpstate->state_impl, wbs, cutoff_shift, buf_start, buf_stop);
 
     // Get audio buffers
     Work_buffer* in_buffers[2] =
     {
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 0),
         Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 1),
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 2),
     };
 
     // Get output
@@ -649,15 +650,15 @@ int32_t Filter_vstate_render_voice(
     Filter_state_impl_set_tempo(&fvstate->state_impl, tempo);
 
     Work_buffer* cutoff_shift =
-        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 2);
+        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
     Filter_state_impl_update_controls(
             &fvstate->state_impl, wbs, cutoff_shift, buf_start, buf_stop);
 
     // Get input
     Work_buffer* in_buffers[2] =
     {
-        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
         Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 1),
+        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 2),
     };
     if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
     {
@@ -681,9 +682,6 @@ int32_t Filter_vstate_render_voice(
             buf_start,
             buf_stop,
             dstate->audio_rate);
-
-    // Mark state as started, TODO: fix this mess
-    vstate->pos = 1;
 
     return buf_stop;
 }

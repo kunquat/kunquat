@@ -68,7 +68,7 @@ Player* new_Player(
     assert(audio_buffer_size >= 0);
     assert(audio_buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(voice_count >= 0);
-    assert(voice_count < KQT_VOICES_MAX);
+    assert(voice_count <= KQT_VOICES_MAX);
 
     Player* player = memory_alloc_item(Player);
     if (player == NULL)
@@ -470,7 +470,7 @@ static void Player_process_voices(
             else
                 Voice_group_deactivate_unreachable(vg);
 
-            active_voice_count += Voice_group_get_size(vg);
+            active_voice_count += Voice_group_get_active_count(vg);
         }
         else
         {

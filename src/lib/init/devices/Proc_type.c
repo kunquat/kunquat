@@ -26,6 +26,7 @@
 #include <init/devices/processors/Proc_gaincomp.h>
 #include <init/devices/processors/Proc_noise.h>
 #include <init/devices/processors/Proc_panning.h>
+#include <init/devices/processors/Proc_pitch.h>
 #include <init/devices/processors/Proc_ringmod.h>
 #include <init/devices/processors/Proc_sample.h>
 #include <init/devices/processors/Proc_volume.h>
@@ -55,6 +56,7 @@ static const Proc_type proc_types[] =
     { "gaincomp", new_Proc_gaincomp },
     { "noise", new_Proc_noise },
     { "panning", new_Proc_panning },
+    { "pitch", new_Proc_pitch },
     { "ringmod", new_Proc_ringmod },
     { "sample", new_Proc_sample },
     { "volume", new_Proc_volume },

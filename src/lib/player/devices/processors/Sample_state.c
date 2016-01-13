@@ -52,7 +52,6 @@ static int32_t Sample_render(
         const Sample* sample,
         const Sample_params* params,
         Voice_state* vstate,
-        const Processor* proc,
         const Proc_state* proc_state,
         const Work_buffers* wbs,
         float* out_buffers[2],
@@ -86,9 +85,8 @@ static int32_t Sample_render(
     // Get actual pitches
     const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
             COND_WORK_BUFFER_AUTO,
-            Work_buffers_get_buffer(wbs, WORK_BUFFER_ACTUAL_PITCHES),
-            440,
-            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH));
+            Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
+            440);
 
     float* abufs[KQT_BUFFERS_MAX] = { out_buffers[0], out_buffers[1] };
     if ((sample->channels == 1) && (out_buffers[0] == NULL))
@@ -390,6 +388,12 @@ static int32_t Sample_vstate_render_voice(
     if (buf_start >= buf_stop)
         return buf_start;
 
+    // Get actual pitches
+    const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
+            COND_WORK_BUFFER_AUTO,
+            Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
+            440);
+
     if (sample_state->sample < 0)
     {
         // Select our sample
@@ -419,7 +423,6 @@ static int32_t Sample_vstate_render_voice(
                 return buf_start;
             }
 
-            vstate->pitch_controls.pitch = 440;
             entry = Hit_map_get_entry(
                     map,
                     vstate->hit_index,
@@ -445,9 +448,11 @@ static int32_t Sample_vstate_render_voice(
             }
 
             //fprintf(stderr, "pitch @ %p: %f\n", (void*)&state->pitch, state->pitch);
+            const float start_freq =
+                Cond_work_buffer_get_value(actual_pitches, buf_start);
             entry = Note_map_get_entry(
                     map,
-                    log2(vstate->pitch_controls.pitch / 440) * 1200,
+                    log2(start_freq / 440) * 1200,
                     1, //vstate->force_controls.force, TODO: get from force input
                     vstate->rand_p);
             sample_state->middle_tone = entry->ref_freq;
@@ -524,7 +529,7 @@ static int32_t Sample_vstate_render_voice(
     const int32_t audio_rate = proc_state->parent.audio_rate;
 
     return Sample_render(
-            sample, header, vstate, proc, proc_state, wbs,
+            sample, header, vstate, proc_state, wbs,
             out_buffers, buf_start, buf_stop, audio_rate, tempo,
             sample_state->middle_tone, sample_state->freq,
             sample_state->volume);

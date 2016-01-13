@@ -85,16 +85,15 @@ void Proc_ramp_attack(
 
 
 Cond_work_buffer* Cond_work_buffer_init(
-        Cond_work_buffer* cwb, const Work_buffer* wb, float def_value, bool enabled)
+        Cond_work_buffer* cwb, const Work_buffer* wb, float def_value)
 {
     assert(cwb != NULL);
-    assert(wb != NULL);
 
     cwb->index_mask = 0;
     cwb->def_value = def_value;
     cwb->wb_contents = &cwb->def_value;
 
-    if (enabled)
+    if (wb != NULL)
     {
         cwb->index_mask = ~(int32_t)0;
         cwb->wb_contents = Work_buffer_get_contents(wb);

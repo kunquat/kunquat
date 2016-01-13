@@ -112,11 +112,15 @@ static void Volume_pstate_render_mixed(
 
     Volume_pstate* vol_pstate = (Volume_pstate*)dstate;
 
+    // Get control stream
+    float* scale_buf =
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
+
     // Get input
     const float* in_bufs[] =
     {
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 0),
         Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 1),
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 2),
     };
 
     // Get output
@@ -125,10 +129,6 @@ static void Volume_pstate_render_mixed(
         Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 0),
         Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 1),
     };
-
-    // Get control stream
-    float* scale_buf =
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 2);
 
     apply_volume(
             2, in_bufs, out_bufs, scale_buf, vol_pstate->scale, buf_start, buf_stop);
@@ -190,13 +190,17 @@ int32_t Volume_vstate_render_voice(
     assert(isfinite(tempo));
     assert(tempo > 0);
 
+    // Get control stream
+    float* scale_buf = Proc_state_get_voice_buffer_contents_mut(
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
+
     // Get input
     const float* in_bufs[] =
     {
         Proc_state_get_voice_buffer_contents_mut(
-                proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
-        Proc_state_get_voice_buffer_contents_mut(
                 proc_state, DEVICE_PORT_TYPE_RECEIVE, 1),
+        Proc_state_get_voice_buffer_contents_mut(
+                proc_state, DEVICE_PORT_TYPE_RECEIVE, 2),
     };
     if ((in_bufs[0] == NULL) && (in_bufs[1] == NULL))
     {
@@ -211,16 +215,9 @@ int32_t Volume_vstate_render_voice(
         Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 1),
     };
 
-    // Get control stream
-    float* scale_buf = Proc_state_get_voice_buffer_contents_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, 2);
-
     const Volume_pstate* vol_pstate = (const Volume_pstate*)proc_state;
     apply_volume(
             2, in_bufs, out_bufs, scale_buf, vol_pstate->scale, buf_start, buf_stop);
-
-    // Mark state as started, TODO: fix this mess
-    vstate->pos = 1;
 
     return buf_stop;
 }
