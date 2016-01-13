@@ -4,7 +4,7 @@
     "Iin": { "offset": [-300, 0] },
     "proc_00": { "offset": [100, 0] },
     "proc_01": { "offset": [-50, 30] },
-    "proc_03": { "offset": [-175, -30] },
+    "proc_02": { "offset": [-175, -30] },
     "master": { "offset": [300, 0] }
 }
 
