@@ -22,12 +22,12 @@ import tstamp
 # Default processor settings
 _proc_defaults = {
     'add':      { 'signal_type': u'voice',
-                  'ports': ['in_00', 'in_01', 'in_02', 'out_00', 'out_01'] },
+                  'ports': ['in_00', 'in_01', 'in_02', 'in_03', 'out_00', 'out_01'] },
     'chorus':   { 'signal_type': u'mixed',
                   'ports': ['in_00', 'in_01', 'out_00', 'out_01'] },
     'delay':    { 'signal_type': u'mixed',
                   'ports': ['in_00', 'in_01', 'out_00', 'out_01'] },
-    'envgen':   { 'signal_type': u'voice', 'ports': ['in_00', 'out_00'] },
+    'envgen':   { 'signal_type': u'voice', 'ports': ['in_00', 'in_01', 'out_00'] },
     'filter':   { 'signal_type': u'mixed',
                   'ports': ['in_00', 'in_01', 'in_02', 'out_00', 'out_01'] },
     'force':    { 'signal_type': u'voice', 'ports': ['in_00', 'out_00'] },
@@ -40,7 +40,8 @@ _proc_defaults = {
     'pitch':    { 'signal_type': u'voice', 'ports': ['out_00'] },
     'ringmod':  { 'signal_type': u'mixed',
                   'ports': ['in_00', 'in_01', 'in_02', 'in_03', 'out_00', 'out_01'] },
-    'sample':   { 'signal_type': u'voice', 'ports': ['out_00', 'out_01'] },
+    'sample':   { 'signal_type': u'voice',
+                  'ports': ['in_00', 'in_01', 'out_00', 'out_01'] },
     'volume':   { 'signal_type': u'voice',
                   'ports': ['in_00', 'in_01', 'in_02', 'out_00', 'out_01'] },
 }
