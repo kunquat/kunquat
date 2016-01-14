@@ -79,7 +79,7 @@ class ProcParamsEnvgen(ProcParams):
         self._set_value('p_b_force_env_enabled.json', enabled)
 
     def get_force_env(self):
-        ret_env = { 'nodes': [ [0, 1], [1, 1] ], 'smooth': False }
+        ret_env = { 'nodes': [ [0, 0], [1, 1] ], 'smooth': False }
         stored_env = self._get_value('p_e_force_env.json', None) or {}
         ret_env.update(stored_env)
         return ret_env

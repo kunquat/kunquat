@@ -88,6 +88,12 @@ static int32_t Sample_render(
             Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
             440);
 
+    // Get volume scales
+    const Cond_work_buffer* volumes = Cond_work_buffer_init(
+            COND_WORK_BUFFER_AUTO,
+            Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 1),
+            1.0);
+
     float* abufs[KQT_BUFFERS_MAX] = { out_buffers[0], out_buffers[1] };
     if ((sample->channels == 1) && (out_buffers[0] == NULL))
     {
@@ -277,9 +283,11 @@ static int32_t Sample_render(
 
                     for (int32_t i = buf_start; i < new_buf_stop; ++i)
                     {
+                        const float volume = Cond_work_buffer_get_value(volumes, i);
+
                         float item = 0;
                         get_item(item);
-                        audio_buffer[i] = item * fixed_scale;
+                        audio_buffer[i] = item * fixed_scale * volume;
                     }
                 }
             }
@@ -298,9 +306,11 @@ static int32_t Sample_render(
 
                     for (int32_t i = buf_start; i < new_buf_stop; ++i)
                     {
+                        const float volume = Cond_work_buffer_get_value(volumes, i);
+
                         float item = 0;
                         get_item(item);
-                        audio_buffer[i] = item * fixed_scale;
+                        audio_buffer[i] = item * fixed_scale * volume;
                     }
                 }
             }
@@ -319,9 +329,11 @@ static int32_t Sample_render(
 
                     for (int32_t i = buf_start; i < new_buf_stop; ++i)
                     {
+                        const float volume = Cond_work_buffer_get_value(volumes, i);
+
                         float item = 0;
                         get_item(item);
-                        audio_buffer[i] = item * fixed_scale;
+                        audio_buffer[i] = item * fixed_scale * volume;
                     }
                 }
             }
@@ -342,9 +354,11 @@ static int32_t Sample_render(
 
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
             {
+                const float volume = Cond_work_buffer_get_value(volumes, i);
+
                 float item = 0;
                 get_item(item);
-                audio_buffer[i] = item * vol_scale;
+                audio_buffer[i] = item * vol_scale * volume;
             }
         }
     }
@@ -394,6 +408,12 @@ static int32_t Sample_vstate_render_voice(
             Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
             440);
 
+    // Get volume scales
+    const Cond_work_buffer* vol_scales = Cond_work_buffer_init(
+            COND_WORK_BUFFER_AUTO,
+            Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 1),
+            1.0);
+
     if (sample_state->sample < 0)
     {
         // Select our sample
@@ -426,7 +446,7 @@ static int32_t Sample_vstate_render_voice(
             entry = Hit_map_get_entry(
                     map,
                     vstate->hit_index,
-                    1, //vstate->force_controls.force, TODO: get from force input
+                    Cond_work_buffer_get_value(vol_scales, buf_start),
                     vstate->rand_p);
         }
         else
@@ -453,7 +473,7 @@ static int32_t Sample_vstate_render_voice(
             entry = Note_map_get_entry(
                     map,
                     log2(start_freq / 440) * 1200,
-                    1, //vstate->force_controls.force, TODO: get from force input
+                    Cond_work_buffer_get_value(vol_scales, buf_start),
                     vstate->rand_p);
             sample_state->middle_tone = entry->ref_freq;
         }

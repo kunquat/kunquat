@@ -108,23 +108,6 @@ int32_t Voice_state_render_voice(
     if (buf_start >= buf_stop)
         return buf_start;
 
-    // Get audio output buffers
-    Work_buffer* audio_buffer = Device_state_get_audio_buffer(
-            &proc_state->parent, DEVICE_PORT_TYPE_SEND, 0);
-    if (audio_buffer == NULL)
-    {
-        vstate->active = false;
-        return buf_start;
-    }
-
-    Work_buffer* voice_out_buf = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_SEND, 0);
-    if (voice_out_buf == NULL)
-    {
-        vstate->active = false;
-        return buf_start;
-    }
-
     // Call the implementation
     const int32_t impl_render_stop = vstate->render_voice(
             vstate, proc_state, au_state, wbs, buf_start, buf_stop, tempo);

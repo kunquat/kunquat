@@ -70,6 +70,12 @@ static int32_t Add_vstate_render_voice(
             Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
             440);
 
+    // Get volume scales
+    const Cond_work_buffer* vol_scales = Cond_work_buffer_init(
+            COND_WORK_BUFFER_AUTO,
+            Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 1),
+            1.0);
+
     // Get output buffer for writing
     float* out_bufs[] =
     {
@@ -93,7 +99,7 @@ static int32_t Add_vstate_render_voice(
         for (int ch = 0; ch < 2; ++ch)
         {
             const float* mod_in_values = Proc_state_get_voice_buffer_contents_mut(
-                    proc_state, DEVICE_PORT_TYPE_RECEIVE, ch + 1);
+                    proc_state, DEVICE_PORT_TYPE_RECEIVE, ch + 2);
 
             if (mod_in_values != NULL)
             {
@@ -147,8 +153,8 @@ static int32_t Add_vstate_render_voice(
 
             for (int32_t i = buf_start; i < buf_stop; ++i)
             {
-                const float actual_pitch = Cond_work_buffer_get_value(
-                        actual_pitches, i);
+                const float actual_pitch = Cond_work_buffer_get_value(actual_pitches, i);
+                const float vol_scale = Cond_work_buffer_get_value(vol_scales, i);
                 const float mod_val = mod_values_ch[i];
 
                 // Note: + mod_val is specific to phase modulation
@@ -165,7 +171,7 @@ static int32_t Add_vstate_render_voice(
                 const double value =
                     (item1 + (lerp_val * item_diff)) * volume_factor * panning_factor;
 
-                out_buf_ch[i] += value;
+                out_buf_ch[i] += value * vol_scale;
 
                 phase += actual_pitch * pitch_factor_inv_audio_rate;
 
