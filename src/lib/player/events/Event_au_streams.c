@@ -25,7 +25,7 @@
 #include <stdlib.h>
 
 
-Device_state* get_target_dstate(
+static Device_state* get_target_dstate(
         const Audio_unit* au, Device_states* dstates, const char* stream_name)
 {
     assert(au != NULL);
