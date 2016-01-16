@@ -29,9 +29,9 @@
  *
  * \param gstate   The General state -- must not be \c NULL.
  * \param cat      The active category -- must be valid.
- * \param fields   The event fields.
+ * \param value    The name to be set -- must not be \c NULL.
  *
- * \return   \c true if and only if \a fields is valid.
+ * \return   \c true.
  */
 bool set_active_name(General_state* gstate, Active_cat cat, const Value* value);
 
