@@ -19,6 +19,8 @@
 #include <init/sheet/Channel_defaults.h>
 #include <mathnum/Tstamp.h>
 #include <memory.h>
+#include <player/Channel_cv_state.h>
+#include <player/Channel_stream_state.h>
 
 #include <math.h>
 #include <stdio.h>
@@ -38,9 +40,11 @@ static bool Channel_init(Channel* ch, int num, Env_state* estate, const Module* 
 
     ch->rand = new_Random();
     ch->cvstate = new_Channel_cv_state();
-    if ((ch->rand == NULL) || (ch->cvstate == NULL) ||
+    ch->csstate = new_Channel_stream_state();
+    if ((ch->rand == NULL) || (ch->cvstate == NULL) || (ch->csstate == NULL) ||
             !General_state_init(&ch->parent, false, estate, module))
     {
+        del_Channel_stream_state(ch->csstate);
         del_Channel_cv_state(ch->cvstate);
         del_Random(ch->rand);
         return false;
@@ -102,6 +106,7 @@ void Channel_set_audio_rate(Channel* ch, int32_t audio_rate)
     Force_controls_set_audio_rate(&ch->force_controls, audio_rate);
     Pitch_controls_set_audio_rate(&ch->pitch_controls, audio_rate);
     Channel_cv_state_set_audio_rate(ch->cvstate, audio_rate);
+    Channel_stream_state_set_audio_rate(ch->csstate, audio_rate);
 
     return;
 }
@@ -115,6 +120,7 @@ void Channel_set_tempo(Channel* ch, double tempo)
     Force_controls_set_tempo(&ch->force_controls, tempo);
     Pitch_controls_set_tempo(&ch->pitch_controls, tempo);
     Channel_cv_state_set_tempo(ch->cvstate, tempo);
+    Channel_stream_state_set_tempo(ch->csstate, tempo);
 
     return;
 }
@@ -182,6 +188,7 @@ void Channel_reset(Channel* ch)
     ch->arpeggio_tones[0] = ch->arpeggio_tones[1] = NAN;
 
     Channel_cv_state_reset(ch->cvstate);
+    Channel_stream_state_reset(ch->csstate);
 
     Random_reset(ch->rand);
     if (ch->event_cache != NULL)
@@ -253,6 +260,20 @@ Channel_cv_state* Channel_get_cv_state_mut(Channel* ch)
 }
 
 
+const Channel_stream_state* Channel_get_stream_state(const Channel* ch)
+{
+    assert(ch != NULL);
+    return ch->csstate;
+}
+
+
+Channel_stream_state* Channel_get_stream_state_mut(Channel* ch)
+{
+    assert(ch != NULL);
+    return ch->csstate;
+}
+
+
 void Channel_deinit(Channel* ch)
 {
     if (ch == NULL)
@@ -262,6 +283,8 @@ void Channel_deinit(Channel* ch)
     ch->event_cache = NULL;
     del_Random(ch->rand);
     ch->rand = NULL;
+    del_Channel_stream_state(ch->csstate);
+    ch->csstate = NULL;
     del_Channel_cv_state(ch->cvstate);
     ch->cvstate = NULL;
     General_state_deinit(&ch->parent);

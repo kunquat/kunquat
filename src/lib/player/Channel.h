@@ -23,6 +23,7 @@
 #include <mathnum/Random.h>
 #include <mathnum/Tstamp.h>
 #include <player/Channel_cv_state.h>
+#include <player/Channel_stream_state.h>
 #include <player/Env_state.h>
 #include <player/Event_cache.h>
 #include <player/Force_controls.h>
@@ -47,6 +48,7 @@ struct Channel
     Random* rand;                  ///< Random source for this channel.
     Event_cache* event_cache;
     Channel_cv_state* cvstate;
+    Channel_stream_state* csstate;
 
     Voice_pool* pool;              ///< All Voices.
     Voice* fg[KQT_PROCESSORS_MAX]; ///< Foreground Voices.
