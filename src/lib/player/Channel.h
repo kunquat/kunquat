@@ -217,6 +217,26 @@ Channel_cv_state* Channel_get_cv_state_mut(Channel* ch);
 
 
 /**
+ * Get stream state of the Channel.
+ *
+ * \param ch   The Channel -- must not be \c NULL.
+ *
+ * \return   The stream state of the Channel. This is never \c NULL.
+ */
+const Channel_stream_state* Channel_get_stream_state(const Channel* ch);
+
+
+/**
+ * Get mutable stream state of the Channel.
+ *
+ * \param ch   The Channel -- must not be \c NULL.
+ *
+ * \return   The mutable stream state of the Channel. This is never \c NULL.
+ */
+Channel_stream_state* Channel_get_stream_state_mut(Channel* ch);
+
+
+/**
  * Deinitialise the Channel.
  *
  * \param ch   The Channel, or \c NULL.

@@ -227,6 +227,7 @@ void Stream_pstate_set_osc_depth_slide(Device_state* dstate, const Tstamp* lengt
 typedef struct Stream_vstate
 {
     Voice_state parent;
+    double def_value;
     Linear_controls controls;
 } Stream_vstate;
 
@@ -279,12 +280,41 @@ void Stream_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
     vstate->render_voice = Stream_vstate_render_voice;
 
+    vstate->is_stream_state = true;
+
     Stream_vstate* svstate = (Stream_vstate*)vstate;
+
+    svstate->def_value = 0; // TODO: make configurable
 
     Linear_controls_init(&svstate->controls);
     Linear_controls_set_audio_rate(&svstate->controls, proc_state->parent.audio_rate);
     Linear_controls_set_tempo(&svstate->controls, 120);
-    Linear_controls_set_value(&svstate->controls, 0); // TODO: make configurable
+    Linear_controls_set_value(&svstate->controls, svstate->def_value);
+
+    return;
+}
+
+
+double Stream_vstate_get_default_value(const Voice_state* vstate)
+{
+    assert(vstate != NULL);
+    assert(vstate->is_stream_state);
+
+    const Stream_vstate* svstate = (const Stream_vstate*)vstate;
+
+    return svstate->def_value;
+}
+
+
+void Stream_vstate_set_controls(Voice_state* vstate, const Linear_controls* controls)
+{
+    assert(vstate != NULL);
+    assert(vstate->is_stream_state);
+    assert(controls != NULL);
+
+    Stream_vstate* svstate = (Stream_vstate*)vstate;
+
+    Linear_controls_copy(&svstate->controls, controls);
 
     return;
 }

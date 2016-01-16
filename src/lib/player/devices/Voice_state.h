@@ -86,6 +86,7 @@ struct Voice_state
     // TODO: temp hack -- replace with proper type identifier
     bool is_pitch_state;
     bool is_force_state;
+    bool is_stream_state;
 };
 
 

@@ -20,6 +20,7 @@
 #include <player/devices/Device_state.h>
 #include <player/devices/Proc_state.h>
 #include <player/devices/Voice_state.h>
+#include <player/Linear_controls.h>
 #include <string/key_pattern.h>
 
 #include <stdint.h>
@@ -40,6 +41,10 @@ void Stream_pstate_set_osc_depth_slide(Device_state* dstate, const Tstamp* lengt
 Voice_state_get_size_func Stream_vstate_get_size;
 
 void Stream_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
+
+double Stream_vstate_get_default_value(const Voice_state* vstate);
+
+void Stream_vstate_set_controls(Voice_state* vstate, const Linear_controls* controls);
 
 
 #endif // K_STREAM_STATE_H

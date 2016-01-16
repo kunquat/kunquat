@@ -268,7 +268,7 @@ const Linear_controls* Channel_stream_state_get_controls(
     assert(stream_name != NULL);
     assert(is_valid_var_name(stream_name));
 
-    Entry* entry = AAtree_get_exact(state->tree, stream_name);
+    const Entry* entry = AAtree_get_exact(state->tree, stream_name);
     if (entry == NULL)
         return NULL;
 
