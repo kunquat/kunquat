@@ -18,6 +18,8 @@
 #include <Handle_private.h>
 #include <init/Bind.h>
 #include <init/Connections.h>
+#include <init/devices/Au_control_vars.h>
+#include <init/devices/Au_streams.h>
 #include <init/devices/Audio_unit.h>
 #include <init/devices/Device_params.h>
 #include <init/devices/Proc_type.h>
@@ -766,6 +768,47 @@ static bool read_any_au_control_vars(
     else
     {
         Audio_unit_set_control_vars(au, NULL);
+    }
+
+    return true;
+}
+
+
+static bool read_any_au_streams(
+        Reader_params* params, Au_table* au_table, int level)
+{
+    assert(params != NULL);
+
+    int32_t index = -1;
+    acquire_au_index(index, params, level);
+
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, index);
+
+    if (Streader_has_data(params->sr))
+    {
+        Au_streams* au_streams = new_Au_streams(params->sr);
+        if (au_streams == NULL)
+        {
+            set_error(params);
+            return false;
+        }
+
+        Audio_unit_set_streams(au, au_streams);
+
+        if (level == 0)
+        {
+            if (!Player_alloc_channel_streams(params->handle->player, au_streams))
+            {
+                Handle_set_error(params->handle, ERROR_MEMORY,
+                        "Could not allocate memory for audio unit streams");
+                return false;
+            }
+        }
+    }
+    else
+    {
+        Audio_unit_set_streams(au, NULL);
     }
 
     return true;

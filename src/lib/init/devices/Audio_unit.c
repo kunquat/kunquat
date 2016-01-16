@@ -19,6 +19,7 @@
 #include <init/Connections.h>
 #include <init/devices/Au_control_vars.h>
 #include <init/devices/Au_interface.h>
+#include <init/devices/Au_streams.h>
 #include <init/devices/Device.h>
 #include <init/devices/Proc_table.h>
 #include <init/devices/Processor.h>
@@ -54,6 +55,7 @@ struct Audio_unit
     Au_table* au_table;
 
     Au_control_vars* control_vars;
+    Au_streams* streams;
 };
 
 
@@ -147,6 +149,7 @@ Audio_unit* new_Audio_unit(void)
     au->procs = NULL;
     au->au_table = NULL;
     au->control_vars = NULL;
+    au->streams = NULL;
 
     if (!Device_init(&au->parent, false))
     {
@@ -334,6 +337,24 @@ void Audio_unit_set_control_vars(Audio_unit* au, Au_control_vars* au_control_var
     au->control_vars = au_control_vars;
 
     return;
+}
+
+
+void Audio_unit_set_streams(Audio_unit* au, Au_streams* au_streams)
+{
+    assert(au != NULL);
+
+    del_Au_streams(au->streams);
+    au->streams = au_streams;
+
+    return;
+}
+
+
+const Au_streams* Audio_unit_get_streams(const Audio_unit* au)
+{
+    assert(au != NULL);
+    return au->streams;
 }
 
 
@@ -848,6 +869,7 @@ void del_Audio_unit(Audio_unit* au)
     del_Au_interface(au->out_iface);
     del_Au_table(au->au_table);
     del_Proc_table(au->procs);
+    del_Au_streams(au->streams);
     del_Au_control_vars(au->control_vars);
     Device_deinit(&au->parent);
     memory_free(au);
