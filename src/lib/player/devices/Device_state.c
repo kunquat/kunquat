@@ -46,6 +46,8 @@ bool Device_state_init(
     ds->audio_rate = audio_rate;
     ds->audio_buffer_size = audio_buffer_size;
 
+    ds->is_stream_state = false;
+
     ds->in_connected = NULL;
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
