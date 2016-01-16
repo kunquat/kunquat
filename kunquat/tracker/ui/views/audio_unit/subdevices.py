@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -32,6 +32,9 @@ def _get_update_signal_type(au_id):
 def _get_rebuild_signal_type(au_id):
     return 'signal_au_control_vars_rebuild_{}'.format(au_id)
 
+def _get_stream_update_signal_type(au_id):
+    return 'signal_au_streams_{}'.format(au_id)
+
 
 class Subdevices(QSplitter):
 
@@ -39,24 +42,421 @@ class Subdevices(QSplitter):
         QSplitter.__init__(self, Qt.Vertical)
 
         self._conns_editor = ConnectionsEditor()
+        self._streams = Streams()
         self._control_vars = ControlVariables()
 
+        cl = QHBoxLayout()
+        cl.setMargin(0)
+        cl.setSpacing(4)
+        cl.addWidget(self._streams, 1)
+        cl.addWidget(self._control_vars, 3)
+
+        cw = QWidget()
+        cw.setLayout(cl)
+
         self.addWidget(self._conns_editor)
-        self.addWidget(self._control_vars)
+        self.addWidget(cw)
 
         self.setStretchFactor(0, 4)
 
     def set_au_id(self, au_id):
         self._conns_editor.set_au_id(au_id)
+        self._streams.set_au_id(au_id)
         self._control_vars.set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
         self._conns_editor.set_ui_model(ui_model)
+        self._streams.set_ui_model(ui_model)
         self._control_vars.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._control_vars.unregister_updaters()
+        self._streams.unregister_updaters()
         self._conns_editor.unregister_updaters()
+
+
+class NameEditor(QLineEdit):
+
+    def __init__(self, validator_cls):
+        QLineEdit.__init__(self)
+        self._au_id = None
+        self._context = None
+        self._ui_model = None
+        self._updater = None
+        self._validator = None
+        self._validator_cls = validator_cls
+
+        self.set_used_names(set())
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_context(self, context):
+        self._context = context
+
+        if self._ui_model:
+            self._update_contents()
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+
+        QObject.connect(self, SIGNAL('editingFinished()'), self._change_name_handler)
+
+        self._update_contents()
+
+    def unregister_updaters(self):
+        pass
+
+    def set_used_names(self, used_names):
+        self._validator = self._validator_cls(used_names)
+        self.setValidator(self._validator)
+
+    def _change_name_handler(self):
+        new_name = unicode(self.text())
+        self._change_name(new_name)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            event.accept()
+            self.set_context(self._context)
+        else:
+            return QLineEdit.keyPressEvent(self, event)
+
+    # Protected interface
+
+    def _update_contents(self):
+        raise NotImplementedError
+
+    def _change_name(self, new_name):
+        raise NotImplementedError
+
+
+class RemoveButton(QPushButton):
+
+    def __init__(self):
+        QPushButton.__init__(self)
+        self._au_id = None
+        self._context = None
+        self._ui_model = None
+        self._updater = None
+
+        self.setToolTip('Remove')
+
+        self.setStyleSheet('padding: 0 -2px;')
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_context(self, context):
+        self._context = context
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+
+        icon_bank = ui_model.get_icon_bank()
+        self.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
+
+        QObject.connect(self, SIGNAL('clicked()'), self._remove)
+
+    def unregister_updaters(self):
+        pass
+
+    # Protected interface
+
+    def _get_button_text(self):
+        raise NotImplementedError
+
+    def _remove(self):
+        raise NotImplementedError
+
+
+class Streams(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+
+        self._stream_list = StreamList()
+
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(2)
+        v.addWidget(HeaderLine('Streams'))
+        v.addWidget(self._stream_list)
+        self.setLayout(v)
+
+    def set_au_id(self, au_id):
+        self._stream_list.set_au_id(au_id)
+
+    def set_ui_model(self, ui_model):
+        self._stream_list.set_ui_model(ui_model)
+
+    def unregister_updaters(self):
+        self._stream_list.unregister_updaters()
+
+
+class StreamList(EditorList):
+
+    def __init__(self):
+        EditorList.__init__(self)
+        self._au_id = None
+        self._ui_model = None
+        self._updater = None
+
+        self._stream_names = None
+        self._stream_names_set = None
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        self._update_stream_names()
+
+    def unregister_updaters(self):
+        self.disconnect_widgets()
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        if _get_stream_update_signal_type(self._au_id) in signals:
+            self._update_stream_names()
+
+    def _update_stream_names(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        self._stream_names = au.get_stream_names()
+        self._stream_names_set = set(self._stream_names)
+
+        self.update_list()
+
+    def _make_adder_widget(self):
+        adder = StreamAdder()
+        adder.set_au_id(self._au_id)
+        adder.set_ui_model(self._ui_model)
+        return adder
+
+    def _get_updated_editor_count(self):
+        stream_count = len(self._stream_names)
+        return stream_count
+
+    def _make_editor_widget(self, index):
+        stream_name = self._stream_names[index]
+
+        editor = StreamEditor()
+        editor.set_au_id(self._au_id)
+        editor.set_context(stream_name)
+        editor.set_ui_model(self._ui_model)
+        return editor
+
+    def _update_editor(self, index, editor):
+        stream_name = self._stream_names[index]
+
+        editor.set_context(stream_name)
+        editor.set_used_names(self._stream_names_set)
+
+    def _disconnect_widget(self, widget):
+        widget.unregister_updaters()
+
+
+class StreamAdder(QPushButton):
+
+    def __init__(self):
+        QPushButton.__init__(self)
+        self._au_id = None
+        self._ui_model = None
+        self._updater = None
+
+        self.setText('Add new stream')
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+
+        QObject.connect(self, SIGNAL('clicked()'), self._add_new_entry)
+
+    def unregister_updaters(self):
+        pass
+
+    def _add_new_entry(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+
+        au.add_stream()
+        self._updater.signal_update(set([_get_stream_update_signal_type(self._au_id)]))
+
+
+class StreamEditor(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._au_id = None
+        self._context = None
+        self._ui_model = None
+        self._updater = None
+
+        self._name_editor = StreamNameEditor()
+        self._target_proc_editor = StreamTargetProcEditor()
+        self._remove_button = StreamRemoveButton()
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(4)
+        h.addWidget(self._name_editor)
+        h.addWidget(self._target_proc_editor)
+        h.addWidget(self._remove_button)
+        self.setLayout(h)
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+        self._name_editor.set_au_id(au_id)
+        self._target_proc_editor.set_au_id(au_id)
+        self._remove_button.set_au_id(au_id)
+
+    def set_context(self, context):
+        self._context = context
+        self._name_editor.set_context(context)
+        self._target_proc_editor.set_context(context)
+        self._remove_button.set_context(context)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._name_editor.set_ui_model(ui_model)
+        self._target_proc_editor.set_ui_model(ui_model)
+        self._remove_button.set_ui_model(ui_model)
+
+    def unregister_updaters(self):
+        self._remove_button.unregister_updaters()
+        self._target_proc_editor.unregister_updaters()
+        self._name_editor.unregister_updaters()
+
+    def set_used_names(self, used_names):
+        self._name_editor.set_used_names(used_names)
+
+
+class StreamNameEditor(NameEditor):
+
+    def __init__(self):
+        NameEditor.__init__(self, VarNameValidator)
+
+    def _update_contents(self):
+        old_block = self.blockSignals(True)
+        self.setText(self._context)
+        self.blockSignals(old_block)
+
+    def _change_name(self, new_name):
+        if new_name == self._context:
+            return
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        au.change_stream_name(self._context, new_name)
+        self._updater.signal_update(set([_get_stream_update_signal_type(self._au_id)]))
+
+
+class StreamTargetProcEditor(QComboBox):
+
+    def __init__(self):
+        QComboBox.__init__(self)
+        self._au_id = None
+        self._context = None
+        self._ui_model = None
+        self._updater = None
+
+        self.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_context(self, context):
+        self._context = context
+
+        if self._ui_model:
+            self._update_contents()
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(
+                self, SIGNAL('currentIndexChanged(int)'), self._change_target_proc_id)
+
+        self._update_contents()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _update_contents(self):
+        if not self._context:
+            return
+
+        stream_name = self._context
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+
+        target_proc_num = au.get_stream_target_processor(stream_name)
+
+        old_block = self.blockSignals(True)
+
+        self.clear()
+        for proc_id in au.get_processor_ids():
+            proc = au.get_processor(proc_id)
+            if proc.get_existence():
+                name = proc.get_name() or '-'
+                cur_target_proc_id = proc_id.split('/')[-1]
+                cur_target_proc_num = int(cur_target_proc_id.split('_')[-1], 16)
+                self.addItem(name, QVariant(cur_target_proc_num))
+
+            selected_index = self.findData(QVariant(target_proc_num))
+            if selected_index >= 0:
+                self.setCurrentIndex(selected_index)
+
+        self.blockSignals(old_block)
+
+    def _perform_updates(self, signals):
+        update_signals = set([
+            '_'.join(('signal_connections', self._au_id)),
+            'signal_controls'])
+        if not signals.isdisjoint(update_signals):
+            self._update_contents()
+
+    def _change_target_proc_id(self, index):
+        if index < 0:
+            return
+
+        new_target_proc_id = str(self.itemData(index).toString())
+        new_target_proc_num = int(new_target_proc_id.split('_')[-1], 16)
+
+        stream_name = self._context
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        au.set_stream_target_processor(stream_name, new_target_proc_num)
+
+        self._updater.signal_update(set([_get_stream_update_signal_type(self._au_id)]))
+
+
+class StreamRemoveButton(RemoveButton):
+
+    def __init__(self):
+        RemoveButton.__init__(self)
+
+    def _remove(self):
+        stream_name = self._context
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        au.remove_stream(stream_name)
+        self._updater.signal_update(set([_get_stream_update_signal_type(self._au_id)]))
 
 
 class ControlVariables(QWidget):
@@ -289,63 +689,6 @@ class ControlVariableTypeExpander(QPushButton):
                     QPoint(0, -triangle_extent),
                     QPoint(triangle_extent, 0),
                     QPoint(0, triangle_extent))
-
-
-class NameEditor(QLineEdit):
-
-    def __init__(self, validator_cls):
-        QLineEdit.__init__(self)
-        self._au_id = None
-        self._context = None
-        self._ui_model = None
-        self._updater = None
-        self._validator = None
-        self._validator_cls = validator_cls
-
-        self.set_used_names(set())
-
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_context(self, context):
-        self._context = context
-
-        if self._ui_model:
-            self._update_contents()
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
-        QObject.connect(self, SIGNAL('editingFinished()'), self._change_name_handler)
-
-        self._update_contents()
-
-    def unregister_updaters(self):
-        pass
-
-    def set_used_names(self, used_names):
-        self._validator = self._validator_cls(used_names)
-        self.setValidator(self._validator)
-
-    def _change_name_handler(self):
-        new_name = unicode(self.text())
-        self._change_name(new_name)
-
-    def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Escape:
-            event.accept()
-            self.set_context(self._context)
-        else:
-            return QLineEdit.keyPressEvent(self, event)
-
-    # Protected interface
-
-    def _update_contents(self):
-        raise NotImplementedError
-
-    def _change_name(self, new_name):
-        raise NotImplementedError
 
 
 class ControlVariableNameEditor(NameEditor):
@@ -843,46 +1186,6 @@ class ControlVariableAdder(QPushButton):
 
         au.add_control_var_float_slide()
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
-
-
-class RemoveButton(QPushButton):
-
-    def __init__(self):
-        QPushButton.__init__(self)
-        self._au_id = None
-        self._context = None
-        self._ui_model = None
-        self._updater = None
-
-        self.setToolTip('Remove')
-
-        self.setStyleSheet('padding: 0 -2px;')
-
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_context(self, context):
-        self._context = context
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
-        icon_bank = ui_model.get_icon_bank()
-        self.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
-
-        QObject.connect(self, SIGNAL('clicked()'), self._remove)
-
-    def unregister_updaters(self):
-        pass
-
-    # Protected interface
-
-    def _get_button_text(self):
-        raise NotImplementedError
-
-    def _remove(self):
-        raise NotImplementedError
 
 
 class ControlVariableRemoveButton(RemoveButton):

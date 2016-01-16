@@ -22,6 +22,7 @@ from procparamsfreeverb import ProcParamsFreeverb
 from procparamsgaincomp import ProcParamsGainComp
 from procparamspanning import ProcParamsPanning
 from procparamspitch import ProcParamsPitch
+from procparams_stream import ProcParamsStream
 from procparamsvolume import ProcParamsVolume
 
 
@@ -92,6 +93,7 @@ class Processor():
             'gaincomp': ProcParamsGainComp,
             'panning':  ProcParamsPanning,
             'pitch':    ProcParamsPitch,
+            'stream':   ProcParamsStream,
             'volume':   ProcParamsVolume,
         }
         cons = types[self.get_type()]

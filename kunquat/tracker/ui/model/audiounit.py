@@ -42,6 +42,7 @@ _proc_defaults = {
                   'ports': ['in_00', 'in_01', 'in_02', 'in_03', 'out_00', 'out_01'] },
     'sample':   { 'signal_type': u'voice',
                   'ports': ['in_00', 'in_01', 'out_00', 'out_01'] },
+    'stream':   { 'signal_type': u'voice', 'ports': ['out_00'] },
     'volume':   { 'signal_type': u'mixed',
                   'ports': ['in_00', 'in_01', 'in_02', 'out_00', 'out_01'] },
 }
@@ -569,5 +570,68 @@ class AudioUnit():
         entry = binding_list[index]
         entry[4] = new_value
         self._set_control_var_binding_list(var_name, binding_list)
+
+    def _get_stream_list(self):
+        key = self._get_key('p_streams.json')
+        ret = self._store.get(key, get_default_value(key))
+        return ret
+
+    def _set_stream_list(self, stream_list):
+        key = self._get_key('p_streams.json')
+        self._store[key] = stream_list
+
+    def get_stream_names(self):
+        stream_list = self._get_stream_list()
+        return [name for (name, _) in stream_list]
+
+    def _get_stream_entry_index(self, stream_name):
+        stream_list = self._get_stream_list()
+        for i, entry in enumerate(stream_list):
+            if entry[0] == stream_name:
+                return i
+        raise ValueError('Stream {} not in list'.format(stream_name))
+
+    def get_stream_target_processor(self, stream_name):
+        stream_list = self._get_stream_list()
+        index = self._get_stream_entry_index(stream_name)
+        entry = stream_list[index]
+        return entry[1]
+
+    def _get_unique_stream_name(self, stream_list):
+        names = set('var{:02d}'.format(i) for i in xrange(1, len(stream_list) + 2))
+        for entry in stream_list:
+            used_name = entry[0]
+            names.discard(used_name)
+        unique_name = min(names)
+        return unique_name
+
+    def add_stream(self):
+        stream_list = self._get_stream_list()
+        stream_name = self._get_unique_stream_name(stream_list)
+
+        min_proc_id = min(self.get_processor_ids())
+        min_proc_num = int(min_proc_id.split('_')[-1], 16)
+        new_entry = [stream_name, min_proc_num]
+
+        stream_list.append(new_entry)
+        self._set_stream_list(stream_list)
+
+    def change_stream_name(self, old_stream_name, new_stream_name):
+        stream_list = self._get_stream_list()
+        index = self._get_stream_entry_index(old_stream_name)
+        stream_list[index][0] = new_stream_name
+        self._set_stream_list(stream_list)
+
+    def set_stream_target_processor(self, stream_name, proc_num):
+        stream_list = self._get_stream_list()
+        index = self._get_stream_entry_index(stream_name)
+        stream_list[index][1] = proc_num
+        self._set_stream_list(stream_list)
+
+    def remove_stream(self, stream_name):
+        stream_list = self._get_stream_list()
+        index = self._get_stream_entry_index(stream_name)
+        del stream_list[index]
+        self._set_stream_list(stream_list)
 
 

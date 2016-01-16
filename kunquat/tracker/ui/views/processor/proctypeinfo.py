@@ -23,6 +23,7 @@ from panningproc import PanningProc
 from pitchproc import PitchProc
 from ringmodproc import RingmodProc
 from sampleproc import SampleProc
+from streamproc import StreamProc
 from volumeproc import VolumeProc
 from unsupportedproc import UnsupportedProc
 
@@ -39,6 +40,7 @@ _proc_classes = {
     'panning':  PanningProc,
     'pitch':    PitchProc,
     'ringmod':  RingmodProc,
+    'stream':   StreamProc,
     'volume':   VolumeProc,
 }
 
