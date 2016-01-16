@@ -50,6 +50,8 @@ EVENT_CHANNEL_DEF(".arps",  set_arpeggio_speed,         FLOAT,      v_arp_speed)
 EVENT_CHANNEL_DEF("arp+",   arpeggio_on,                NONE,       NULL)
 EVENT_CHANNEL_DEF("arp-",   arpeggio_off,               NONE,       NULL)
 
+EVENT_CHANNEL_DEF(".sn",    set_stream_name,            STRING,     v_var_name)
+
 EVENT_CHANNEL_DEF(".vn",    set_cv_name,                STRING,     v_var_name)
 EVENT_CHANNEL_DEF(".v",     set_cv_value,               REALTIME,   v_finite_rt)
 EVENT_CHANNEL_DEF("/v",     slide_cv_target,            FLOAT,      v_finite_float)
