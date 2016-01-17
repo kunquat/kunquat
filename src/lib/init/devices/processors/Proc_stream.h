@@ -24,7 +24,7 @@ typedef struct Proc_stream
 {
     Device_impl parent;
 
-    double def_value;
+    double init_value;
 } Proc_stream;
 
 

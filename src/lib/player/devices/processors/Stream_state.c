@@ -52,7 +52,7 @@ typedef struct Stream_pstate
 {
     Proc_state parent;
 
-    double def_value;
+    double init_value;
     Linear_controls controls;
 } Stream_pstate;
 
@@ -77,7 +77,7 @@ static void Stream_pstate_reset(Device_state* dstate)
     Stream_pstate* spstate = (Stream_pstate*)dstate;
 
     Linear_controls_init(&spstate->controls);
-    Linear_controls_set_value(&spstate->controls, spstate->def_value);
+    Linear_controls_set_value(&spstate->controls, spstate->init_value);
 
     return;
 }
@@ -128,14 +128,28 @@ Device_state* new_Stream_pstate(
     spstate->parent.render_mixed = Stream_pstate_render_mixed;
 
     const Proc_stream* stream = (const Proc_stream*)device->dimpl;
-    spstate->def_value = stream->def_value;
+    spstate->init_value = stream->init_value;
 
     Linear_controls_init(&spstate->controls);
     Linear_controls_set_audio_rate(&spstate->controls, audio_rate);
     Linear_controls_set_tempo(&spstate->controls, 120);
-    Linear_controls_set_value(&spstate->controls, spstate->def_value);
+    Linear_controls_set_value(&spstate->controls, spstate->init_value);
 
     return (Device_state*)spstate;
+}
+
+
+bool Stream_pstate_set_init_value(
+        Device_state* dstate, const Key_indices indices, double value)
+{
+    assert(dstate != NULL);
+    assert(indices != NULL);
+
+    Stream_pstate* spstate = (Stream_pstate*)dstate;
+
+    spstate->init_value = isfinite(value) ? value : 0.0;
+
+    return true;
 }
 
 
@@ -234,7 +248,7 @@ typedef struct Stream_vstate
 {
     Voice_state parent;
 
-    double def_value;
+    double init_value;
     Linear_controls controls;
 } Stream_vstate;
 
@@ -293,12 +307,12 @@ void Stream_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
     const Proc_stream* stream = (const Proc_stream*)proc_state->parent.device->dimpl;
 
-    svstate->def_value = stream->def_value;
+    svstate->init_value = stream->init_value;
 
     Linear_controls_init(&svstate->controls);
     Linear_controls_set_audio_rate(&svstate->controls, proc_state->parent.audio_rate);
     Linear_controls_set_tempo(&svstate->controls, 120);
-    Linear_controls_set_value(&svstate->controls, svstate->def_value);
+    Linear_controls_set_value(&svstate->controls, svstate->init_value);
 
     return;
 }

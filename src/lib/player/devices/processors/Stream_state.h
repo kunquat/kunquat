@@ -29,6 +29,9 @@
 Device_state* new_Stream_pstate(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
+bool Stream_pstate_set_init_value(
+        Device_state* dstate, const Key_indices indices, double value);
+
 void Stream_pstate_set_value(Device_state* dstate, double value);
 void Stream_pstate_slide_target(Device_state* dstate, double value);
 void Stream_pstate_slide_length(Device_state* dstate, const Tstamp* length);

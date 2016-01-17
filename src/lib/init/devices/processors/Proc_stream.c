@@ -22,7 +22,7 @@
 #include <stdlib.h>
 
 
-static Set_float_func   Proc_stream_set_default_value;
+static Set_float_func   Proc_stream_set_init_value;
 
 
 static void del_Proc_stream(Device_impl* dimpl);
@@ -34,7 +34,7 @@ Device_impl* new_Proc_stream(void)
     if (stream == NULL)
         return NULL;
 
-    stream->def_value = 0;
+    stream->init_value = 0;
 
     if (!Device_impl_init(&stream->parent, del_Proc_stream))
     {
@@ -49,11 +49,15 @@ Device_impl* new_Proc_stream(void)
     // Register key handlers
     bool reg_success = true;
 
-#define REGISTER_KEY(type, field, key, def_val)                             \
-    reg_success &= Device_impl_register_set_ ## type(                       \
-            &stream->parent, key, def_val, Proc_stream_set_ ## field, NULL)
+#define REGISTER_KEY(type, field, key, def_val)         \
+    reg_success &= Device_impl_register_set_ ## type(   \
+            &stream->parent,                            \
+            key,                                        \
+            def_val,                                    \
+            Proc_stream_set_ ## field,                  \
+            Stream_pstate_set_ ## field)
 
-    REGISTER_KEY(float, default_value,  "p_f_default_value.json",   0.0);
+    REGISTER_KEY(float, init_value,     "p_f_init_value.json",   0.0);
 
 #undef REGISTER_KEY
 
@@ -67,14 +71,14 @@ Device_impl* new_Proc_stream(void)
 }
 
 
-static bool Proc_stream_set_default_value(
+static bool Proc_stream_set_init_value(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
 
     Proc_stream* stream = (Proc_stream*)dimpl;
-    stream->def_value = isfinite(value) ? value : 0.0;
+    stream->init_value = isfinite(value) ? value : 0.0;
 
     return true;
 }
