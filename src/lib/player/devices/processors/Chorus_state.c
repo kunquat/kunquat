@@ -381,7 +381,7 @@ Device_state* new_Chorus_pstate(
 }
 
 
-Linear_controls* Chorus_pstate_get_cv_delay_variance(
+static Linear_controls* Chorus_pstate_get_cv_delay_variance(
         Device_state* dstate, const Key_indices indices)
 {
     assert(dstate != NULL);
@@ -398,7 +398,7 @@ Linear_controls* Chorus_pstate_get_cv_delay_variance(
 }
 
 
-Linear_controls* Chorus_pstate_get_cv_volume(
+static Linear_controls* Chorus_pstate_get_cv_volume(
         Device_state* dstate, const Key_indices indices)
 {
     assert(dstate != NULL);
