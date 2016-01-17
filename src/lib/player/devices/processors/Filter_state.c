@@ -57,8 +57,8 @@ typedef struct Filter_state_impl
     int lowpass_state_used;
     Single_filter_state lowpass_state[2];
 
-    Linear_controls cutoff;
-    Linear_controls resonance;
+    double def_cutoff;
+    double def_resonance;
 } Filter_state_impl;
 
 
@@ -91,37 +91,8 @@ static void Filter_state_impl_init(Filter_state_impl* fimpl, const Proc_filter* 
         }
     }
 
-    Linear_controls_init(&fimpl->cutoff);
-    Linear_controls_init(&fimpl->resonance);
-    Linear_controls_set_value(&fimpl->cutoff, filter->cutoff);
-    Linear_controls_set_value(&fimpl->resonance, filter->resonance);
-
-    return;
-}
-
-
-static void Filter_state_impl_set_audio_rate(
-        Filter_state_impl* fimpl, int32_t audio_rate)
-{
-    assert(fimpl != NULL);
-    assert(audio_rate > 0);
-
-    Linear_controls_set_audio_rate(&fimpl->cutoff, audio_rate);
-    Linear_controls_set_audio_rate(&fimpl->resonance, audio_rate);
-
-    return;
-}
-
-
-static void Filter_state_impl_set_tempo(
-        Filter_state_impl* fimpl, double tempo)
-{
-    assert(fimpl != NULL);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
-
-    Linear_controls_set_tempo(&fimpl->cutoff, tempo);
-    Linear_controls_set_tempo(&fimpl->resonance, tempo);
+    fimpl->def_cutoff = filter->cutoff;
+    fimpl->def_resonance = filter->resonance;
 
     return;
 }
@@ -129,36 +100,6 @@ static void Filter_state_impl_set_tempo(
 
 static const int CONTROL_WB_CUTOFF = WORK_BUFFER_IMPL_1;
 static const int CONTROL_WB_RESONANCE = WORK_BUFFER_IMPL_2;
-
-
-static void Filter_state_impl_update_controls(
-        Filter_state_impl* fimpl,
-        const Work_buffers* wbs,
-        Work_buffer* cutoff_buf,
-        int32_t buf_start,
-        int32_t buf_stop)
-{
-    assert(fimpl != NULL);
-    assert(wbs != NULL);
-
-    const Work_buffer* cutoff_wb = Work_buffers_get_buffer(wbs, CONTROL_WB_CUTOFF);
-    const Work_buffer* res_wb = Work_buffers_get_buffer(wbs, CONTROL_WB_RESONANCE);
-
-    Linear_controls_fill_work_buffer(&fimpl->cutoff, cutoff_wb, buf_start, buf_stop);
-    Linear_controls_fill_work_buffer(&fimpl->resonance, res_wb, buf_start, buf_stop);
-
-    if (cutoff_buf != NULL)
-    {
-        const float* cutoff_shift = Work_buffer_get_contents(cutoff_buf);
-
-        float* cutoff_values = Work_buffer_get_contents_mut(cutoff_wb);
-
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            cutoff_values[i] += (cutoff_shift[i] * 100 - 100);
-    }
-
-    return;
-}
 
 
 static void Filter_state_impl_apply_filter_settings(
@@ -296,8 +237,10 @@ static double get_xfade_step(double audio_rate, double true_lowpass, double reso
 }
 
 
-static void Filter_state_impl_apply_work_buffers(
+static void Filter_state_impl_apply_input_buffers(
         Filter_state_impl* fimpl,
+        const float* cutoff_buf,
+        const float* resonance_buf,
         const Work_buffers* wbs,
         Work_buffer* in_buffers[2],
         Work_buffer* out_buffers[2],
@@ -311,9 +254,37 @@ static void Filter_state_impl_apply_work_buffers(
     assert(out_buffers != NULL);
     assert(audio_rate > 0);
 
-    const float* cutoffs = Work_buffers_get_buffer_contents(wbs, CONTROL_WB_CUTOFF);
-    const float* resonances =
-        Work_buffers_get_buffer_contents(wbs, CONTROL_WB_RESONANCE);
+    float* cutoffs = Work_buffers_get_buffer_contents_mut(wbs, CONTROL_WB_CUTOFF);
+
+    if (cutoff_buf != NULL)
+    {
+        // Get cutoff values from input
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            cutoffs[i] = cutoff_buf[i];
+    }
+    else
+    {
+        // Get our default cutoff
+        const float def_cutoff = fimpl->def_cutoff;
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            cutoffs[i] = def_cutoff;
+    }
+
+    float* resonances = Work_buffers_get_buffer_contents_mut(wbs, CONTROL_WB_RESONANCE);
+
+    if (resonance_buf != NULL)
+    {
+        // Get resonance values from input
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            resonances[i] = resonance_buf[i];
+    }
+    else
+    {
+        // Get our default resonance
+        const float def_resonance = fimpl->def_resonance;
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            resonances[i] = def_resonance;
+    }
 
     static const double max_true_lowpass_change = 0.01;
     static const double max_resonance_change = 0.01;
@@ -444,34 +415,6 @@ typedef struct Filter_pstate
 } Filter_pstate;
 
 
-static bool Filter_pstate_set_audio_rate(Device_state* dstate, int32_t audio_rate)
-{
-    assert(dstate != NULL);
-    assert(audio_rate > 0);
-
-    const Proc_filter* filter = (const Proc_filter*)dstate->device->dimpl;
-
-    Filter_pstate* fpstate = (Filter_pstate*)dstate;
-    Filter_state_impl_set_audio_rate(&fpstate->state_impl, audio_rate);
-    Filter_state_impl_init(&fpstate->state_impl, filter);
-
-    return true;
-}
-
-
-static void Filter_pstate_set_tempo(Device_state* dstate, double tempo)
-{
-    assert(dstate != NULL);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
-
-    Filter_pstate* fpstate = (Filter_pstate*)dstate;
-    Filter_state_impl_set_tempo(&fpstate->state_impl, tempo);
-
-    return;
-}
-
-
 static void Filter_pstate_reset(Device_state* dstate)
 {
     assert(dstate != NULL);
@@ -499,18 +442,17 @@ static void Filter_pstate_render_mixed(
 
     Filter_pstate* fpstate = (Filter_pstate*)dstate;
 
-    Filter_state_impl_set_tempo(&fpstate->state_impl, tempo);
-
-    Work_buffer* cutoff_shift =
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Filter_state_impl_update_controls(
-            &fpstate->state_impl, wbs, cutoff_shift, buf_start, buf_stop);
+    // Get parameter inputs
+    const float* cutoff_buf =
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
+    const float* resonance_buf =
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 1);
 
     // Get audio buffers
     Work_buffer* in_buffers[2] =
     {
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 1),
         Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 2),
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 3),
     };
 
     // Get output
@@ -520,8 +462,10 @@ static void Filter_pstate_render_mixed(
         Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, 1),
     };
 
-    Filter_state_impl_apply_work_buffers(
+    Filter_state_impl_apply_input_buffers(
             &fpstate->state_impl,
+            cutoff_buf,
+            resonance_buf,
             wbs,
             in_buffers,
             out_buffers,
@@ -541,7 +485,7 @@ bool Filter_pstate_set_cutoff(
     assert(isfinite(value));
 
     Filter_pstate* fpstate = (Filter_pstate*)dstate;
-    Linear_controls_set_value(&fpstate->state_impl.cutoff, value);
+    fpstate->state_impl.def_cutoff = value;
 
     return true;
 }
@@ -555,7 +499,7 @@ bool Filter_pstate_set_resonance(
     assert(isfinite(value));
 
     Filter_pstate* fpstate = (Filter_pstate*)dstate;
-    Linear_controls_set_value(&fpstate->state_impl.resonance, value);
+    fpstate->state_impl.def_resonance = value;
 
     return true;
 }
@@ -576,40 +520,13 @@ Device_state* new_Filter_pstate(
         return NULL;
     }
 
-    fpstate->parent.set_audio_rate = Filter_pstate_set_audio_rate;
-    fpstate->parent.set_tempo = Filter_pstate_set_tempo;
     fpstate->parent.reset = Filter_pstate_reset;
     fpstate->parent.render_mixed = Filter_pstate_render_mixed;
 
     const Proc_filter* filter = (const Proc_filter*)device->dimpl;
     Filter_state_impl_init(&fpstate->state_impl, filter);
-    Filter_state_impl_set_audio_rate(&fpstate->state_impl, audio_rate);
 
     return (Device_state*)fpstate;
-}
-
-
-Linear_controls* Filter_pstate_get_cv_controls_cutoff(
-        Device_state* dstate, const Key_indices indices)
-{
-    assert(dstate != NULL);
-    ignore(indices);
-
-    Filter_pstate* fpstate = (Filter_pstate*)dstate;
-
-    return &fpstate->state_impl.cutoff;
-}
-
-
-Linear_controls* Filter_pstate_get_cv_controls_resonance(
-        Device_state* dstate, const Key_indices indices)
-{
-    assert(dstate != NULL);
-    ignore(indices);
-
-    Filter_pstate* fpstate = (Filter_pstate*)dstate;
-
-    return &fpstate->state_impl.resonance;
 }
 
 
@@ -647,18 +564,17 @@ int32_t Filter_vstate_render_voice(
 
     Filter_vstate* fvstate = (Filter_vstate*)vstate;
 
-    Filter_state_impl_set_tempo(&fvstate->state_impl, tempo);
-
-    Work_buffer* cutoff_shift =
-        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Filter_state_impl_update_controls(
-            &fvstate->state_impl, wbs, cutoff_shift, buf_start, buf_stop);
+    // Get parameter inputs
+    const float* cutoff_buf =
+        Proc_state_get_voice_buffer_contents(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
+    const float* resonance_buf =
+        Proc_state_get_voice_buffer_contents(proc_state, DEVICE_PORT_TYPE_RECEIVE, 1);
 
     // Get input
     Work_buffer* in_buffers[2] =
     {
-        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 1),
         Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 2),
+        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 3),
     };
     if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
     {
@@ -674,8 +590,10 @@ int32_t Filter_vstate_render_voice(
     };
 
     const Device_state* dstate = (const Device_state*)proc_state;
-    Filter_state_impl_apply_work_buffers(
+    Filter_state_impl_apply_input_buffers(
             &fvstate->state_impl,
+            cutoff_buf,
+            resonance_buf,
             wbs,
             in_buffers,
             out_buffers,
@@ -699,35 +617,8 @@ void Filter_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     const Device_state* dstate = (const Device_state*)proc_state;
     const Proc_filter* filter = (const Proc_filter*)dstate->device->dimpl;
     Filter_state_impl_init(&fvstate->state_impl, filter);
-    Filter_state_impl_set_audio_rate(&fvstate->state_impl, dstate->audio_rate);
 
     return;
-}
-
-
-Linear_controls* Filter_vstate_get_cv_controls_cutoff(
-        Voice_state* vstate, const Device_state* dstate, const Key_indices indices)
-{
-    assert(vstate != NULL);
-    assert(dstate != NULL);
-    ignore(indices);
-
-    Filter_vstate* fvstate = (Filter_vstate*)vstate;
-
-    return &fvstate->state_impl.cutoff;
-}
-
-
-Linear_controls* Filter_vstate_get_cv_controls_resonance(
-        Voice_state* vstate, const Device_state* dstate, const Key_indices indices)
-{
-    assert(vstate != NULL);
-    assert(dstate != NULL);
-    ignore(indices);
-
-    Filter_vstate* fvstate = (Filter_vstate*)vstate;
-
-    return &fvstate->state_impl.resonance;
 }
 
 
