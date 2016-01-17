@@ -25,4 +25,16 @@ class ProcParamsStream(ProcParams):
     def set_init_value(self, value):
         self._set_value('p_f_init_value.json', value)
 
+    def get_init_osc_speed(self):
+        return self._get_value('p_f_init_osc_speed.json', 0.0)
+
+    def set_init_osc_speed(self, value):
+        self._set_value('p_f_init_osc_speed.json', value)
+
+    def get_init_osc_depth(self):
+        return self._get_value('p_f_init_osc_depth.json', 0.0)
+
+    def set_init_osc_depth(self, value):
+        self._set_value('p_f_init_osc_depth.json', value)
+
 
