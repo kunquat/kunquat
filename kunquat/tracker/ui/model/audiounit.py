@@ -36,7 +36,7 @@ _proc_defaults = {
     'gaincomp': { 'signal_type': u'mixed',
                   'ports': ['in_00', 'in_01', 'out_00', 'out_01'] },
     'panning':  { 'signal_type': u'mixed',
-                  'ports': ['in_00', 'in_01', 'out_00', 'out_01'] },
+                  'ports': ['in_00', 'in_01', 'in_02', 'out_00', 'out_01'] },
     'pitch':    { 'signal_type': u'voice', 'ports': ['out_00'] },
     'ringmod':  { 'signal_type': u'mixed',
                   'ports': ['in_00', 'in_01', 'in_02', 'in_03', 'out_00', 'out_01'] },
