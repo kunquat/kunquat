@@ -29,7 +29,7 @@ _proc_defaults = {
                   'ports': ['in_00', 'in_01', 'out_00', 'out_01'] },
     'envgen':   { 'signal_type': u'voice', 'ports': ['in_00', 'in_01', 'out_00'] },
     'filter':   { 'signal_type': u'mixed',
-                  'ports': ['in_00', 'in_01', 'in_02', 'out_00', 'out_01'] },
+                  'ports': ['in_00', 'in_01', 'in_02', 'in_03', 'out_00', 'out_01'] },
     'force':    { 'signal_type': u'voice', 'ports': ['in_00', 'out_00'] },
     'freeverb': { 'signal_type': u'mixed',
                   'ports': ['in_00', 'in_01', 'out_00', 'out_01'] },
