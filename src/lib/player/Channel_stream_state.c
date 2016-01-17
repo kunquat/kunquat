@@ -261,6 +261,27 @@ bool Channel_stream_state_set_osc_depth_slide(
 }
 
 
+bool Channel_stream_state_set_controls(
+        Channel_stream_state* state,
+        const char* stream_name,
+        const Linear_controls* controls)
+{
+    assert(state != NULL);
+    assert(stream_name != NULL);
+    assert(is_valid_var_name(stream_name));
+    assert(controls != NULL);
+
+    Entry* entry = AAtree_get_exact(state->tree, stream_name);
+    if (entry == NULL)
+        return false;
+
+    Linear_controls_copy(&entry->controls, controls);
+    entry->is_set = true;
+
+    return true;
+}
+
+
 const Linear_controls* Channel_stream_state_get_controls(
         const Channel_stream_state* state, const char* stream_name)
 {

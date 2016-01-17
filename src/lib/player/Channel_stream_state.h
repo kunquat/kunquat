@@ -168,6 +168,22 @@ bool Channel_stream_state_set_osc_depth_slide(
 
 
 /**
+ * Set Linear controls of a stream in the Channel stream state.
+ *
+ * \param state         The Channel stream state -- must not be \c NULL.
+ * \param stream_name   The name of the stream -- must be a valid variable name.
+ * \param controls      The Linear controls -- must not be \c NULL.
+ *
+ * \return   \c true if \a controls were set, or \c false if \a state does not
+ *           contain a stream called \a stream_name.
+ */
+bool Channel_stream_state_set_controls(
+        Channel_stream_state* state,
+        const char* stream_name,
+        const Linear_controls* controls);
+
+
+/**
  * Get Linear controls of a stream in the Channel stream state.
  *
  * \param state         The Channel stream state -- must not be \c NULL.
