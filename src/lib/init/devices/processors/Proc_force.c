@@ -51,15 +51,6 @@ Device_impl* new_Proc_force(void)
     if (force == NULL)
         return NULL;
 
-    if (!Device_impl_init(&force->parent, del_Proc_force))
-    {
-        del_Device_impl(&force->parent);
-        return NULL;
-    }
-
-    force->parent.get_vstate_size = Force_vstate_get_size;
-    force->parent.init_vstate = Force_vstate_init;
-
     force->global_force = 0.0;
     force->force_var = 0.0;
 
@@ -77,6 +68,15 @@ Device_impl* new_Proc_force(void)
     force->def_force_release_env = NULL;
 
     force->is_release_ramping_enabled = false;
+
+    if (!Device_impl_init(&force->parent, del_Proc_force))
+    {
+        del_Device_impl(&force->parent);
+        return NULL;
+    }
+
+    force->parent.get_vstate_size = Force_vstate_get_size;
+    force->parent.init_vstate = Force_vstate_init;
 
     // Add default release envelope
     {
