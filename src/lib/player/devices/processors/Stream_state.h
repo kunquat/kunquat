@@ -42,7 +42,7 @@ Voice_state_get_size_func Stream_vstate_get_size;
 
 void Stream_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
 
-double Stream_vstate_get_default_value(const Voice_state* vstate);
+const Linear_controls* Stream_vstate_get_controls(const Voice_state* vstate);
 
 void Stream_vstate_set_controls(Voice_state* vstate, const Linear_controls* controls);
 

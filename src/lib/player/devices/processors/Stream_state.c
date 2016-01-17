@@ -15,6 +15,7 @@
 #include <player/devices/processors/Stream_state.h>
 
 #include <debug/assert.h>
+#include <init/devices/Device.h>
 #include <init/devices/processors/Proc_stream.h>
 #include <memory.h>
 #include <player/devices/Proc_state.h>
@@ -50,6 +51,8 @@ static void apply_controls(
 typedef struct Stream_pstate
 {
     Proc_state parent;
+
+    double def_value;
     Linear_controls controls;
 } Stream_pstate;
 
@@ -74,7 +77,7 @@ static void Stream_pstate_reset(Device_state* dstate)
     Stream_pstate* spstate = (Stream_pstate*)dstate;
 
     Linear_controls_init(&spstate->controls);
-    Linear_controls_set_value(&spstate->controls, 0); // TODO: make configurable
+    Linear_controls_set_value(&spstate->controls, spstate->def_value);
 
     return;
 }
@@ -124,10 +127,13 @@ Device_state* new_Stream_pstate(
     spstate->parent.reset = Stream_pstate_reset;
     spstate->parent.render_mixed = Stream_pstate_render_mixed;
 
+    const Proc_stream* stream = (const Proc_stream*)device->dimpl;
+    spstate->def_value = stream->def_value;
+
     Linear_controls_init(&spstate->controls);
     Linear_controls_set_audio_rate(&spstate->controls, audio_rate);
     Linear_controls_set_tempo(&spstate->controls, 120);
-    Linear_controls_set_value(&spstate->controls, 0); // TODO: make configurable
+    Linear_controls_set_value(&spstate->controls, spstate->def_value);
 
     return (Device_state*)spstate;
 }
@@ -227,6 +233,7 @@ void Stream_pstate_set_osc_depth_slide(Device_state* dstate, const Tstamp* lengt
 typedef struct Stream_vstate
 {
     Voice_state parent;
+
     double def_value;
     Linear_controls controls;
 } Stream_vstate;
@@ -284,7 +291,9 @@ void Stream_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
     Stream_vstate* svstate = (Stream_vstate*)vstate;
 
-    svstate->def_value = 0; // TODO: make configurable
+    const Proc_stream* stream = (const Proc_stream*)proc_state->parent.device->dimpl;
+
+    svstate->def_value = stream->def_value;
 
     Linear_controls_init(&svstate->controls);
     Linear_controls_set_audio_rate(&svstate->controls, proc_state->parent.audio_rate);
@@ -295,14 +304,14 @@ void Stream_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 }
 
 
-double Stream_vstate_get_default_value(const Voice_state* vstate)
+const Linear_controls* Stream_vstate_get_controls(const Voice_state* vstate)
 {
     assert(vstate != NULL);
     assert(vstate->is_stream_state);
 
     const Stream_vstate* svstate = (const Stream_vstate*)vstate;
 
-    return svstate->def_value;
+    return &svstate->controls;
 }
 
 

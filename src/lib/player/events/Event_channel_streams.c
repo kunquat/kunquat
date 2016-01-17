@@ -80,9 +80,11 @@ static void ensure_valid_stream(
 
     if (isnan(Linear_controls_get_value(controls)))
     {
-        const double value =
-            (vstate != NULL) ? Stream_vstate_get_default_value(vstate) : 0;
-        Channel_stream_state_set_value(ss, stream_name, value);
+        if (vstate != NULL)
+            Channel_stream_state_set_controls(
+                    ss, stream_name, Stream_vstate_get_controls(vstate));
+        else
+            Channel_stream_state_set_value(ss, stream_name, 0);
     }
 
     return;
