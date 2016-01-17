@@ -54,12 +54,6 @@ Device_impl* new_Proc_panning(void)
             Proc_panning_set_panning,
             Panning_pstate_set_panning);
 
-    reg_success &= Device_impl_create_cv_float(
-            &panning->parent,
-            "panning",
-            Panning_pstate_get_cv_controls_panning,
-            Panning_vstate_get_cv_controls_panning);
-
     if (!reg_success)
     {
         del_Device_impl(&panning->parent);

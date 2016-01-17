@@ -36,10 +36,6 @@ Voice_state_get_size_func Panning_vstate_get_size;
 void Panning_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
 
 
-Proc_state_get_cv_float_controls_mut_func Panning_pstate_get_cv_controls_panning;
-Voice_state_get_cv_float_controls_mut_func Panning_vstate_get_cv_controls_panning;
-
-
 #endif // K_PANNING_STATE_H
 
 
