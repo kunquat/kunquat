@@ -25,6 +25,8 @@ typedef struct Proc_stream
     Device_impl parent;
 
     double init_value;
+    double init_osc_speed;
+    double init_osc_depth;
 } Proc_stream;
 
 

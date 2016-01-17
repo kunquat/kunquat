@@ -23,6 +23,7 @@
 #include <player/Linear_controls.h>
 
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 
@@ -53,6 +54,8 @@ typedef struct Stream_pstate
     Proc_state parent;
 
     double init_value;
+    double init_osc_speed;
+    double init_osc_depth;
     Linear_controls controls;
 } Stream_pstate;
 
@@ -78,6 +81,10 @@ static void Stream_pstate_reset(Device_state* dstate)
 
     Linear_controls_init(&spstate->controls);
     Linear_controls_set_value(&spstate->controls, spstate->init_value);
+    if (spstate->init_osc_speed > 0)
+        Linear_controls_osc_speed_value(&spstate->controls, spstate->init_osc_speed);
+    if (spstate->init_osc_depth > 0)
+        Linear_controls_osc_depth_value(&spstate->controls, spstate->init_osc_depth);
 
     return;
 }
@@ -144,10 +151,44 @@ bool Stream_pstate_set_init_value(
 {
     assert(dstate != NULL);
     assert(indices != NULL);
+    ignore(value);
 
     Stream_pstate* spstate = (Stream_pstate*)dstate;
+    const Proc_stream* stream = (Proc_stream*)dstate->device->dimpl;
 
-    spstate->init_value = isfinite(value) ? value : 0.0;
+    spstate->init_value = stream->init_value;
+
+    return true;
+}
+
+
+bool Stream_pstate_set_init_osc_speed(
+        Device_state* dstate, const Key_indices indices, double value)
+{
+    assert(dstate != NULL);
+    assert(indices != NULL);
+    ignore(value);
+
+    Stream_pstate* spstate = (Stream_pstate*)dstate;
+    const Proc_stream* stream = (Proc_stream*)dstate->device->dimpl;
+
+    spstate->init_osc_speed = stream->init_osc_speed;
+
+    return true;
+}
+
+
+bool Stream_pstate_set_init_osc_depth(
+        Device_state* dstate, const Key_indices indices, double value)
+{
+    assert(dstate != NULL);
+    assert(indices != NULL);
+    ignore(value);
+
+    Stream_pstate* spstate = (Stream_pstate*)dstate;
+    const Proc_stream* stream = (Proc_stream*)dstate->device->dimpl;
+
+    spstate->init_osc_depth = stream->init_osc_depth;
 
     return true;
 }
@@ -247,8 +288,6 @@ void Stream_pstate_set_osc_depth_slide(Device_state* dstate, const Tstamp* lengt
 typedef struct Stream_vstate
 {
     Voice_state parent;
-
-    double init_value;
     Linear_controls controls;
 } Stream_vstate;
 
@@ -307,12 +346,14 @@ void Stream_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
     const Proc_stream* stream = (const Proc_stream*)proc_state->parent.device->dimpl;
 
-    svstate->init_value = stream->init_value;
-
     Linear_controls_init(&svstate->controls);
     Linear_controls_set_audio_rate(&svstate->controls, proc_state->parent.audio_rate);
     Linear_controls_set_tempo(&svstate->controls, 120);
-    Linear_controls_set_value(&svstate->controls, svstate->init_value);
+    Linear_controls_set_value(&svstate->controls, stream->init_value);
+    if (stream->init_osc_speed > 0)
+        Linear_controls_osc_speed_value(&svstate->controls, stream->init_osc_speed);
+    if (stream->init_osc_depth > 0)
+        Linear_controls_osc_depth_value(&svstate->controls, stream->init_osc_depth);
 
     return;
 }
