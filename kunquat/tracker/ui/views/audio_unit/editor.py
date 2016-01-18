@@ -15,7 +15,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from infoeditor import InfoEditor
-from subdevices import Subdevices
+from components import Components
 from testbutton import TestButton
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 
@@ -31,9 +31,9 @@ class Editor(QWidget):
         self._test_button = TestButton()
         self._tabs = QTabWidget()
 
-        self._subdevices = Subdevices()
+        self._components = Components()
         self._info_editor = InfoEditor()
-        self._tabs.addTab(self._subdevices, 'Subdevices')
+        self._tabs.addTab(self._components, 'Components')
         self._tabs.addTab(self._info_editor, 'Info')
 
         self._keyboard_mapper = KeyboardMapper()
@@ -48,14 +48,14 @@ class Editor(QWidget):
     def set_au_id(self, au_id):
         self._au_id = au_id
         self._test_button.set_au_id(au_id)
-        self._subdevices.set_au_id(au_id)
+        self._components.set_au_id(au_id)
         self._info_editor.set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._control_manager = ui_model.get_control_manager()
         self._test_button.set_ui_model(ui_model)
-        self._subdevices.set_ui_model(ui_model)
+        self._components.set_ui_model(ui_model)
         self._info_editor.set_ui_model(ui_model)
         self._keyboard_mapper.set_ui_model(ui_model)
 
@@ -65,7 +65,7 @@ class Editor(QWidget):
     def unregister_updaters(self):
         self._keyboard_mapper.unregister_updaters()
         self._info_editor.unregister_updaters()
-        self._subdevices.unregister_updaters()
+        self._components.unregister_updaters()
         self._test_button.unregister_updaters()
 
     def keyPressEvent(self, event):

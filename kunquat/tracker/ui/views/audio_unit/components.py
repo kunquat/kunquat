@@ -35,7 +35,7 @@ def _get_stream_update_signal_type(au_id):
     return 'signal_au_streams_{}'.format(au_id)
 
 
-class Subdevices(QSplitter):
+class Components(QSplitter):
 
     def __init__(self):
         QSplitter.__init__(self, Qt.Vertical)
