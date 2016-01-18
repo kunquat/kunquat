@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -42,9 +42,6 @@ typedef enum
 {
     ITER_MODE_DEVICES,
     ITER_MODE_SET_GENERIC,
-    ITER_MODE_SLIDE_FLOAT,
-    ITER_MODE_OSC_DEPTH_FLOAT,
-    ITER_MODE_INIT_FLOAT_CONTROLS,
 } Iter_mode;
 
 
@@ -52,7 +49,6 @@ typedef enum
 {
     BIND_ENTRY_TYPE_INVALID,
     BIND_ENTRY_TYPE_EXPRESSION,
-    BIND_ENTRY_TYPE_FLOAT_SLIDE,
 } Bind_entry_type;
 
 
@@ -73,19 +69,13 @@ typedef struct Bind_entry
         {
             char* expression;
         } expr_type;
-
-        struct
-        {
-            double map_min_to;
-            double map_max_to;
-        } float_slide_type;
     } ext;
 
     struct Bind_entry* next;
 } Bind_entry;
 
 
-void del_Bind_entry(Bind_entry* entry)
+static void del_Bind_entry(Bind_entry* entry)
 {
     if (entry == NULL)
         return;
@@ -106,7 +96,6 @@ typedef enum
     VAR_ENTRY_INT,
     VAR_ENTRY_FLOAT,
     VAR_ENTRY_TSTAMP,
-    VAR_ENTRY_FLOAT_SLIDE,
 } Var_entry_type;
 
 
@@ -116,22 +105,12 @@ typedef struct Var_entry
     Var_entry_type type;
     Value init_value;
 
-    // Type-specific settings
-    union
-    {
-        struct
-        {
-            double min_value;
-            double max_value;
-        } float_slide_type;
-    } ext;
-
     Bind_entry* first_bind_entry;
     Bind_entry* last_bind_entry;
 } Var_entry;
 
 
-void del_Var_entry(Var_entry* entry)
+static void del_Var_entry(Var_entry* entry)
 {
     if (entry == NULL)
         return;
@@ -156,7 +135,7 @@ static Value_type get_value_type_from_var_entry_type(Var_entry_type var_entry_ty
     {
         case VAR_ENTRY_BOOL: return VALUE_TYPE_BOOL;
         case VAR_ENTRY_INT:  return VALUE_TYPE_INT;
-        case VAR_ENTRY_FLOAT: case VAR_ENTRY_FLOAT_SLIDE: return VALUE_TYPE_FLOAT;
+        case VAR_ENTRY_FLOAT: return VALUE_TYPE_FLOAT;
         case VAR_ENTRY_TSTAMP: return VALUE_TYPE_TSTAMP;
 
         default:
@@ -246,9 +225,6 @@ static bool Au_control_binding_iter_init_common(
 }
 
 
-static const double range_eps = 0.000001;
-
-
 static void Au_control_binding_iter_update(Au_control_binding_iter* iter)
 {
     assert(iter != NULL);
@@ -286,56 +262,6 @@ static void Au_control_binding_iter_update(Au_control_binding_iter* iter)
             }
 
             Value_copy(&iter->target_value, result);
-        }
-        break;
-
-        case ITER_MODE_SLIDE_FLOAT:
-        {
-            assert(iter->src_value.type == VALUE_TYPE_FLOAT);
-
-            // Map to target range
-            const double map_min_to = iter->iter->ext.float_slide_type.map_min_to;
-            const double map_max_to = iter->iter->ext.float_slide_type.map_max_to;
-            const double target_value = lerp(
-                    map_min_to, map_max_to, iter->ext.set_float_type.src_range_norm);
-
-            iter->target_value.type = VALUE_TYPE_FLOAT;
-            iter->target_value.value.float_type = target_value;
-        }
-        break;
-
-        case ITER_MODE_OSC_DEPTH_FLOAT:
-        {
-            assert(iter->src_value.type == VALUE_TYPE_FLOAT);
-
-            // Scale oscillation depth to target range
-            const double map_min_to = iter->iter->ext.float_slide_type.map_min_to;
-            const double map_max_to = iter->iter->ext.float_slide_type.map_max_to;
-            const double target_range = map_max_to - map_min_to;
-            const double osc_range_norm = iter->ext.osc_float_type.osc_range_norm;
-            const double target_depth = target_range * osc_range_norm;
-
-            iter->target_value.type = VALUE_TYPE_FLOAT;
-            iter->target_value.value.float_type = target_depth;
-        }
-        break;
-
-        case ITER_MODE_INIT_FLOAT_CONTROLS:
-        {
-            assert(iter->src_value.type == VALUE_TYPE_FLOAT);
-
-            const double map_min_to = iter->iter->ext.float_slide_type.map_min_to;
-            const double map_max_to = iter->iter->ext.float_slide_type.map_max_to;
-
-            Linear_controls_convert(
-                    &iter->target_controls,
-                    map_min_to,
-                    map_max_to,
-                    &iter->ext.init_float_type.src_controls,
-                    iter->ext.init_float_type.range_min,
-                    iter->ext.init_float_type.range_max);
-
-            iter->target_value.type = VALUE_TYPE_FLOAT;
         }
         break;
 
@@ -379,6 +305,7 @@ bool Au_control_binding_iter_init_set_generic(
 {
     assert(iter != NULL);
     assert(aucv != NULL);
+    assert(rand != NULL);
     assert(var_name != NULL);
     assert(value != NULL);
     assert(Value_type_is_realtime(value->type));
@@ -400,136 +327,7 @@ bool Au_control_binding_iter_init_set_generic(
                 get_value_type_from_var_entry_type(var_entry->type)))
         return false;
 
-    if (var_entry->type == VAR_ENTRY_FLOAT_SLIDE)
-    {
-        iter->iter_mode = ITER_MODE_SLIDE_FLOAT;
-
-        iter->ext.set_float_type.src_range_norm = get_range_norm(
-                iter->src_value.value.float_type,
-                var_entry->ext.float_slide_type.min_value,
-                var_entry->ext.float_slide_type.max_value);
-    }
-    else
-    {
-        // We can only iterate sliding floats without Random source
-        if (rand == NULL)
-            return false;
-
-        iter->rand = rand;
-    }
-
-    Au_control_binding_iter_update(iter);
-
-    return true;
-}
-
-
-bool Au_control_binding_iter_init_slide_float(
-        Au_control_binding_iter* iter,
-        const Au_control_vars* aucv,
-        const char* var_name,
-        double value)
-{
-    assert(iter != NULL);
-    assert(aucv != NULL);
-    assert(var_name != NULL);
-    assert(isfinite(value));
-
-    iter->iter = NULL;
-    iter->src_value.type = VALUE_TYPE_FLOAT;
-    iter->src_value.value.float_type = value;
-
-    if (!Au_control_binding_iter_init_common(
-            iter, aucv, var_name, ITER_MODE_SLIDE_FLOAT))
-        return false;
-
-    const Var_entry* var_entry = AAtree_get_exact(aucv->vars, var_name);
-    assert(var_entry != NULL);
-    if (var_entry->type != VAR_ENTRY_FLOAT_SLIDE)
-        return false;
-
-    iter->ext.set_float_type.src_range_norm = get_range_norm(
-            iter->src_value.value.float_type,
-            var_entry->ext.float_slide_type.min_value,
-            var_entry->ext.float_slide_type.max_value);
-
-    Au_control_binding_iter_update(iter);
-
-    return true;
-}
-
-
-bool Au_control_binding_iter_init_osc_depth_float(
-        Au_control_binding_iter* iter,
-        const Au_control_vars* aucv,
-        const char* var_name,
-        double depth)
-{
-    assert(iter != NULL);
-    assert(aucv != NULL);
-    assert(var_name != NULL);
-    assert(isfinite(depth));
-
-    iter->iter = NULL;
-    iter->src_value.type = VALUE_TYPE_FLOAT;
-    iter->src_value.value.float_type = depth;
-
-    if (!Au_control_binding_iter_init_common(
-            iter, aucv, var_name, ITER_MODE_OSC_DEPTH_FLOAT))
-        return false;
-
-    const Var_entry* var_entry = AAtree_get_exact(aucv->vars, var_name);
-    assert(var_entry != NULL);
-    if (var_entry->type != VAR_ENTRY_FLOAT_SLIDE)
-        return false;
-
-    const double min_value = var_entry->ext.float_slide_type.min_value;
-    const double max_value = var_entry->ext.float_slide_type.max_value;
-    const double src_range = max_value - min_value;
-    if (src_range > range_eps)
-    {
-        const double range_norm_unclamped = depth / src_range;
-        iter->ext.osc_float_type.osc_range_norm = clamp(range_norm_unclamped, -1.0, 1.0);
-    }
-    else
-    {
-        iter->ext.osc_float_type.osc_range_norm = 0.0;
-    }
-
-    Au_control_binding_iter_update(iter);
-
-    return true;
-}
-
-
-bool Au_control_binding_iter_init_float_controls(
-        Au_control_binding_iter* iter,
-        const Au_control_vars* aucv,
-        const char* var_name,
-        const Linear_controls* controls)
-{
-    assert(iter != NULL);
-    assert(aucv != NULL);
-    assert(var_name != NULL);
-    assert(controls != NULL);
-
-    iter->iter = NULL;
-    iter->src_value.type = VALUE_TYPE_FLOAT;
-    iter->src_value.value.float_type = 0;
-
-    if (!Au_control_binding_iter_init_common(
-                iter, aucv, var_name, ITER_MODE_INIT_FLOAT_CONTROLS))
-        return false;
-
-    const Var_entry* var_entry = AAtree_get_exact(aucv->vars, var_name);
-    assert(var_entry != NULL);
-    if (var_entry->type != VAR_ENTRY_FLOAT_SLIDE)
-        return false;
-
-    iter->ext.init_float_type.range_min = var_entry->ext.float_slide_type.min_value;
-    iter->ext.init_float_type.range_max = var_entry->ext.float_slide_type.max_value;
-
-    Linear_controls_copy(&iter->ext.init_float_type.src_controls, controls);
+    iter->rand = rand;
 
     Au_control_binding_iter_update(iter);
 
@@ -707,98 +505,6 @@ static bool read_binding_targets_generic(Streader* sr, int32_t index, void* user
 }
 
 
-static bool read_binding_targets_float_slide(Streader* sr, int32_t index, void* userdata)
-{
-    assert(sr != NULL);
-    ignore(index);
-
-    Var_entry* entry = userdata;
-    assert(entry != NULL);
-
-    if (!Streader_readf(sr, "["))
-        return false;
-
-    // Create and attach new bind entry
-    Bind_entry* bind_entry = new_Bind_entry_common(sr);
-    if (bind_entry == NULL)
-        return false;
-
-    if (entry->last_bind_entry == NULL)
-    {
-        assert(entry->first_bind_entry == NULL);
-        entry->first_bind_entry = bind_entry;
-        entry->last_bind_entry = bind_entry;
-    }
-    else
-    {
-        entry->last_bind_entry->next = bind_entry;
-        entry->last_bind_entry = bind_entry;
-    }
-
-    // Get type
-    char type_name[16] = "";
-    if (!Streader_readf(sr, "%s", 16, type_name))
-        return false;
-
-    // Read type-specific parts
-    bind_entry->type = BIND_ENTRY_TYPE_FLOAT_SLIDE;
-    if (string_eq(type_name, "float"))
-    {
-        if (!Streader_readf(
-                    sr,
-                    ",%f,%f]",
-                    &bind_entry->ext.float_slide_type.map_min_to,
-                    &bind_entry->ext.float_slide_type.map_max_to))
-            return false;
-
-        bind_entry->target_var_type = VALUE_TYPE_FLOAT;
-    }
-    else
-    {
-        Streader_set_error(
-                sr,
-                "Invalid type of audio unit control variable target %s: %s"
-                " (Floating-point values with sliding/oscillating support"
-                " may only be bound to other floating-point values)",
-                bind_entry->target_var_name,
-                type_name);
-        return false;
-    }
-
-    return true;
-}
-
-
-static bool read_ext_data_float(Streader* sr, int32_t index, void* userdata)
-{
-    assert(sr != NULL);
-
-    Var_entry* entry = userdata;
-    assert(entry != NULL);
-
-    if (index == 0)
-    {
-        if (!Streader_read_float(sr, &entry->ext.float_slide_type.min_value))
-            return false;
-    }
-    else if (index == 1)
-    {
-        if (!Streader_read_float(sr, &entry->ext.float_slide_type.max_value))
-            return false;
-    }
-    else
-    {
-        Streader_set_error(
-                sr,
-                "Unexpected data in type-specific parameter list of variable %s",
-                entry->name);
-        return false;
-    }
-
-    return true;
-}
-
-
 static bool read_var_entry(Streader* sr, int32_t index, void* userdata)
 {
     assert(sr != NULL);
@@ -904,34 +610,6 @@ static bool read_var_entry(Streader* sr, int32_t index, void* userdata)
                     entry))
             return false;
     }
-    else if (string_eq(type_name, "float_slide"))
-    {
-        entry->type = VAR_ENTRY_FLOAT_SLIDE;
-        entry->ext.float_slide_type.min_value = NAN;
-        entry->ext.float_slide_type.max_value = NAN;
-
-        entry->init_value.type = VALUE_TYPE_FLOAT;
-
-        if (!Streader_readf(
-                    sr,
-                    "%f,%l,%l]",
-                    &entry->init_value.value.float_type,
-                    read_ext_data_float,
-                    entry,
-                    read_binding_targets_float_slide,
-                    entry))
-            return false;
-
-        if (!isfinite(entry->ext.float_slide_type.min_value) ||
-                !isfinite(entry->ext.float_slide_type.max_value))
-        {
-            Streader_set_error(
-                    sr,
-                    "Missing complete bounds information for floating-point variable %s",
-                    entry->name);
-            return false;
-        }
-    }
     else
     {
         Streader_set_error(
@@ -990,32 +668,6 @@ const Value* Au_control_vars_get_init_value(
     assert(entry != NULL);
 
     return &entry->init_value;
-}
-
-
-bool Au_control_vars_in_entry_any_float(
-        const Au_control_vars* aucv, const char* var_name)
-{
-    assert(aucv != NULL);
-    assert(var_name != NULL);
-
-    const Var_entry* entry = AAtree_get_exact(aucv->vars, var_name);
-    assert(entry != NULL);
-
-    return (entry->type == VAR_ENTRY_FLOAT) || (entry->type == VAR_ENTRY_FLOAT_SLIDE);
-}
-
-
-bool Au_control_vars_is_entry_float_slide(
-        const Au_control_vars* aucv, const char* var_name)
-{
-    assert(aucv != NULL);
-    assert(var_name != NULL);
-
-    const Var_entry* entry = AAtree_get_exact(aucv->vars, var_name);
-    assert(entry != NULL);
-
-    return (entry->type == VAR_ENTRY_FLOAT_SLIDE);
 }
 
 

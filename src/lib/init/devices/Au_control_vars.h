@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -19,7 +19,6 @@
 #include <containers/AAtree.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
-#include <player/Linear_controls.h>
 #include <string/Streader.h>
 #include <Value.h>
 
@@ -60,32 +59,12 @@ typedef struct Au_control_binding_iter
     int iter_mode;
     Value src_value;
     Random* rand;
-    union
-    {
-        struct
-        {
-            double src_range_norm;
-        } set_float_type;
-
-        struct
-        {
-            double osc_range_norm;
-        } osc_float_type;
-
-        struct
-        {
-            double range_min;
-            double range_max;
-            Linear_controls src_controls;
-        } init_float_type;
-    } ext;
 
     // Data provided for the user
     Target_dev_type target_dev_type;
     int target_dev_index;
     const char* target_var_name;
     Value target_value;
-    Linear_controls target_controls;
 } Au_control_binding_iter;
 
 #define AU_CONTROL_BINDING_ITER_AUTO (&(Au_control_binding_iter){ \
@@ -142,8 +121,7 @@ bool Au_control_binding_iter_init(
  *
  * \param iter       The iterator -- must not be \c NULL.
  * \param aucv       The Audio unit control variables -- must not be \c NULL.
- * \param rand       The Random source -- must not be \c NULL unless the
- *                   control variable is expected to be a sliding float.
+ * \param rand       The Random source -- must not be \c NULL.
  * \param var_name   The name of the variable -- must not be \c NULL.
  * \param value      The source Value -- must not be \c NULL.
  *
@@ -158,57 +136,6 @@ bool Au_control_binding_iter_init_set_generic(
         Random* rand,
         const char* var_name,
         const Value* value);
-
-
-/**
- * Start iterating over results of sliding bound floating-point control variables.
- *
- * \param iter       The iterator -- must not be \c NULL.
- * \param aucv       The Audio unit control variables -- must not be \c NULL.
- * \param var_name   The name of the variable -- must not be \c NULL.
- * \param value      The source value -- must be finite.
- *
- * \return   \c true if at least one result is found, otherwise \c false.
- */
-bool Au_control_binding_iter_init_slide_float(
-        Au_control_binding_iter* iter,
-        const Au_control_vars* aucv,
-        const char* var_name,
-        double value);
-
-
-/**
- * Start iterating over oscillation depths of bound floating-point control variables.
- *
- * \param iter       The iterator -- must not be \c NULL.
- * \param aucv       The Audio unit control variables -- must not be \c NULL.
- * \param var_name   The name of the variable -- must not be \c NULL.
- * \param value      The source oscillation depth -- must be finite.
- *
- * \return   \c true if at least one result is found, otherwise \c false.
- */
-bool Au_control_binding_iter_init_osc_depth_float(
-        Au_control_binding_iter* iter,
-        const Au_control_vars* aucv,
-        const char* var_name,
-        double depth);
-
-
-/**
- * Start iterating over float controls of bound floating-point control variables.
- *
- * \param iter       The iterator -- must not be \c NULL.
- * \param aucv       The Audio unit control variables -- must not be \c NULL.
- * \param var_name   The name of the variable -- must not be \c NULL.
- * \param controls   The source Linear controls -- must not be \c NULL.
- *
- * \return   \c true if at least one result is found, otherwise \c false.
- */
-bool Au_control_binding_iter_init_float_controls(
-        Au_control_binding_iter* iter,
-        const Au_control_vars* aucv,
-        const char* var_name,
-        const Linear_controls* controls);
 
 
 /**
@@ -242,33 +169,6 @@ Au_control_vars* new_Au_control_vars(Streader* sr);
  * \return   The initial Value. This is never \c NULL.
  */
 const Value* Au_control_vars_get_init_value(
-        const Au_control_vars* aucv, const char* var_name);
-
-
-/**
- * Tell whether a control variable is of any floating type.
- *
- * \param aucv       The Audio unit control variables -- must not be \c NULL.
- * \param var_name   The variable name -- must not be \c NULL and must exist
- *                   in \a aucv.
- *
- * \return   \c true if \a var_name refers to a floating type (with or without
- *           mapped range), otherwise \c false.
- */
-bool Au_control_vars_in_entry_any_float(
-        const Au_control_vars* aucv, const char* var_name);
-
-
-/**
- * Tell whether a control variable is of floating slide type.
- *
- * \param aucv       The Audio unit control variables -- must not be \c NULL.
- * \param var_name   The variable name -- must not be \c NULL and must exist
- *                   in \a aucv.
- *
- * \return   \c true if \a var_name refers to a floating slide type, otherwise \c false.
- */
-bool Au_control_vars_is_entry_float_slide(
         const Au_control_vars* aucv, const char* var_name);
 
 
