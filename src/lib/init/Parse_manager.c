@@ -48,7 +48,7 @@ typedef struct Reader_params
 
 
 #define MODULE_KEYP(name, keyp, def) static bool read_##name(Reader_params* params);
-#include <init/Module_key_patterns.h>
+#include <init/module_key_patterns.h>
 
 
 static const struct
@@ -58,7 +58,7 @@ static const struct
 } keyp_to_func[] =
 {
 #define MODULE_KEYP(name, keyp, def) { keyp, read_##name, },
-#include <init/Module_key_patterns.h>
+#include <init/module_key_patterns.h>
     { NULL, NULL }
 };
 
@@ -1225,7 +1225,7 @@ static bool read_any_proc_conf_key(
 
 #define MODULE_KEYP(name, keyp, def_val)
 #define MODULE_AU_KEYP(name, keyp, def_val) MAKE_AU_READERS(name)
-#include <init/Module_key_patterns.h>
+#include <init/module_key_patterns.h>
 
 
 #define acquire_pattern(pattern, handle, index)                         \

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2016
  *
  * This file is part of Kunquat.
  *
@@ -26,7 +26,7 @@ static const struct
 } keys_to_defaults[] =
 {
 #define MODULE_KEYP(name, keyp, def_val) { keyp, def_val },
-#include <init/Module_key_patterns.h>
+#include <init/module_key_patterns.h>
     { NULL, NULL }
 };
 
