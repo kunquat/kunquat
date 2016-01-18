@@ -105,7 +105,6 @@ void Channel_set_audio_rate(Channel* ch, int32_t audio_rate)
 
     Force_controls_set_audio_rate(&ch->force_controls, audio_rate);
     Pitch_controls_set_audio_rate(&ch->pitch_controls, audio_rate);
-    Channel_cv_state_set_audio_rate(ch->cvstate, audio_rate);
     Channel_stream_state_set_audio_rate(ch->csstate, audio_rate);
 
     return;
@@ -119,7 +118,6 @@ void Channel_set_tempo(Channel* ch, double tempo)
 
     Force_controls_set_tempo(&ch->force_controls, tempo);
     Pitch_controls_set_tempo(&ch->pitch_controls, tempo);
-    Channel_cv_state_set_tempo(ch->cvstate, tempo);
     Channel_stream_state_set_tempo(ch->csstate, tempo);
 
     return;

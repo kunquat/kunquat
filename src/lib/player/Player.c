@@ -731,7 +731,6 @@ void Player_play(Player* player, int32_t nframes)
                     LFO_skip(&pc->vibrato, to_be_rendered);
             }
 
-            Channel_cv_state_update_float_controls(ch->cvstate, to_be_rendered);
             Channel_stream_state_update(ch->csstate, to_be_rendered);
         }
 
