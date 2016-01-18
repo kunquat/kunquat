@@ -63,12 +63,6 @@ EVENT_CHANNEL_DEF("->s-",   carry_stream_off,           NONE,       NULL)
 
 EVENT_CHANNEL_DEF(".vn",    set_cv_name,                STRING,     v_var_name)
 EVENT_CHANNEL_DEF(".v",     set_cv_value,               REALTIME,   v_finite_rt)
-EVENT_CHANNEL_DEF("/v",     slide_cv_target,            FLOAT,      v_finite_float)
-EVENT_CHANNEL_DEF("/=v",    slide_cv_length,            TSTAMP,     v_nonneg_ts)
-EVENT_CHANNEL_DEF("osv",    osc_speed_cv,               FLOAT,      v_nonneg_float)
-EVENT_CHANNEL_DEF("odv",    osc_depth_cv,               FLOAT,      v_nonneg_float)
-EVENT_CHANNEL_DEF("o/=sv",  osc_speed_slide_cv,         TSTAMP,     v_nonneg_ts)
-EVENT_CHANNEL_DEF("o/=dv",  osc_depth_slide_cv,         TSTAMP,     v_nonneg_ts)
 EVENT_CHANNEL_DEF("->v+",   carry_cv_on,                NONE,       NULL)
 EVENT_CHANNEL_DEF("->v-",   carry_cv_off,               NONE,       NULL)
 

@@ -31,12 +31,6 @@ EVENT_AU_DEF("ao/=s",       stream_osc_speed_slide,     TSTAMP,     v_nonneg_ts)
 EVENT_AU_DEF("ao/=d",       stream_osc_depth_slide,     TSTAMP,     v_nonneg_ts)
 
 EVENT_AU_DEF("a.v",         set_cv_value,               REALTIME,   v_finite_rt)
-EVENT_AU_DEF("a/v",         slide_cv_target,            FLOAT,      v_finite_float)
-EVENT_AU_DEF("a/=v",        slide_cv_length,            TSTAMP,     v_nonneg_ts)
-EVENT_AU_DEF("aosv",        osc_speed_cv,               FLOAT,      v_nonneg_float)
-EVENT_AU_DEF("aodv",        osc_depth_cv,               FLOAT,      v_nonneg_float)
-EVENT_AU_DEF("ao/=sv",      osc_speed_slide_cv,         TSTAMP,     v_nonneg_ts)
-EVENT_AU_DEF("ao/=dv",      osc_depth_slide_cv,         TSTAMP,     v_nonneg_ts)
 
 
 #undef EVENT_AU_DEF
