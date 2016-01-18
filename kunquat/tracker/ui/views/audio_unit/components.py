@@ -48,7 +48,7 @@ class Components(QSplitter):
         cl.setMargin(0)
         cl.setSpacing(4)
         cl.addWidget(self._streams, 1)
-        cl.addWidget(self._control_vars, 3)
+        #cl.addWidget(self._control_vars, 3)
 
         cw = QWidget()
         cw.setLayout(cl)
