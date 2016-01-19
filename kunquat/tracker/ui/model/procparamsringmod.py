@@ -14,12 +14,20 @@
 from procparams import ProcParams
 
 
-class ProcParamsPitch(ProcParams):
+class ProcParamsRingmod(ProcParams):
 
     def __init__(self, proc_id, controller):
         ProcParams.__init__(self, proc_id, controller)
 
     def get_port_names(self):
-        return { 'out_00': u'freq' }
+        return {
+            'in_00':  u'audio1 L',
+            'in_01':  u'audio1 R',
+            'in_02':  u'audio2 L',
+            'in_03':  u'audio2 R',
+            'out_00': u'audio L',
+            'out_01': u'audio R',
+        }
+
 
 

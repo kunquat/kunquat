@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -182,6 +182,16 @@ class ProcParamsAdd(ProcParams):
 
     def __init__(self, proc_id, controller):
         ProcParams.__init__(self, proc_id, controller)
+
+    def get_port_names(self):
+        return {
+            'in_00':  u'freq',
+            'in_01':  u'scale',
+            'in_02':  u'phmod L',
+            'in_03':  u'phmod R',
+            'out_00': u'audio L',
+            'out_01': u'audio R'
+        }
 
     def get_ramp_attack_enabled(self):
         return self._get_value('p_b_ramp_attack.json', True)

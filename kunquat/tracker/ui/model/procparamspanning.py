@@ -19,6 +19,15 @@ class ProcParamsPanning(ProcParams):
     def __init__(self, proc_id, controller):
         ProcParams.__init__(self, proc_id, controller)
 
+    def get_port_names(self):
+        return {
+            'in_00':  u'pan',
+            'in_01':  u'audio L',
+            'in_02':  u'audio R',
+            'out_00': u'audio L',
+            'out_01': u'audio R',
+        }
+
     def get_panning(self):
         return self._get_value('p_f_panning.json', 0.0)
 
