@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <init/devices/processors/Proc_add.h>
 #include <mathnum/common.h>
+#include <mathnum/conversions.h>
 #include <player/devices/processors/Proc_utils.h>
 #include <player/Work_buffers.h>
 
@@ -44,6 +45,11 @@ size_t Add_vstate_get_size(void)
 }
 
 
+static const int ADD_WORK_BUFFER_FIXED_PITCH = WORK_BUFFER_IMPL_1;
+static const int ADD_WORK_BUFFER_MOD_L = WORK_BUFFER_IMPL_2;
+static const int ADD_WORK_BUFFER_MOD_R = WORK_BUFFER_IMPL_3;
+
+
 static int32_t Add_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
@@ -64,11 +70,20 @@ static int32_t Add_vstate_render_voice(
     Add_vstate* add_state = (Add_vstate*)vstate;
     assert(is_p2(ADD_BASE_FUNC_SIZE));
 
-    // Get actual pitches
-    const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
-            COND_WORK_BUFFER_AUTO,
-            Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
-            440);
+    // Get frequencies
+    float* freqs = Proc_state_get_voice_buffer_contents_mut(
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
+    if (freqs == NULL)
+    {
+        freqs = Work_buffers_get_buffer_contents_mut(wbs, ADD_WORK_BUFFER_FIXED_PITCH);
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            freqs[i] = 440;
+    }
+    else
+    {
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            freqs[i] = cents_to_Hz(freqs[i]);
+    }
 
     // Get volume scales
     const Cond_work_buffer* vol_scales = Cond_work_buffer_init(
@@ -84,9 +99,6 @@ static int32_t Add_vstate_render_voice(
     };
 
     // Get phase modulation signal
-    static const int ADD_WORK_BUFFER_MOD_L = WORK_BUFFER_IMPL_1;
-    static const int ADD_WORK_BUFFER_MOD_R = WORK_BUFFER_IMPL_2;
-
     float* mod_values[] =
     {
         Work_buffers_get_buffer_contents_mut(wbs, ADD_WORK_BUFFER_MOD_L),
@@ -153,7 +165,7 @@ static int32_t Add_vstate_render_voice(
 
             for (int32_t i = buf_start; i < buf_stop; ++i)
             {
-                const float actual_pitch = Cond_work_buffer_get_value(actual_pitches, i);
+                const float freq = freqs[i];
                 const float vol_scale = Cond_work_buffer_get_value(vol_scales, i);
                 const float mod_val = mod_values_ch[i];
 
@@ -173,7 +185,7 @@ static int32_t Add_vstate_render_voice(
 
                 out_buf_ch[i] += value * vol_scale;
 
-                phase += actual_pitch * pitch_factor_inv_audio_rate;
+                phase += freq * pitch_factor_inv_audio_rate;
 
                 // Normalise to range [0, 1)
                 // phase is usually < 2, so this is faster than subtracting floor(phase)
