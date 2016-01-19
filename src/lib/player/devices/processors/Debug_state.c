@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/processors/Proc_debug.h>
+#include <mathnum/conversions.h>
 #include <player/devices/processors/Proc_utils.h>
 
 
@@ -40,7 +41,7 @@ static int32_t Debug_vstate_render_voice(
     const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
             COND_WORK_BUFFER_AUTO,
             Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
-            440);
+            0);
 
     // Get output buffer for writing
     float* out_buffers[] =
@@ -74,7 +75,8 @@ static int32_t Debug_vstate_render_voice(
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
-        const float actual_pitch = Cond_work_buffer_get_value(actual_pitches, i);
+        const float freq = cents_to_Hz(
+                Cond_work_buffer_get_value(actual_pitches, i));
 
         double vals[KQT_BUFFERS_MAX] = { 0 };
 
@@ -101,11 +103,11 @@ static int32_t Debug_vstate_render_voice(
         if (out_buffers[1] != NULL)
             out_buffers[1][i] = vals[1];
 
-        vstate->rel_pos_rem += actual_pitch / audio_rate;
+        vstate->rel_pos_rem += freq / audio_rate;
 
         if (!vstate->note_on)
         {
-            vstate->noff_pos_rem += actual_pitch / audio_rate;
+            vstate->noff_pos_rem += freq / audio_rate;
             if (vstate->noff_pos_rem >= 2)
             {
                 Voice_state_set_finished(vstate);
