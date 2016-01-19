@@ -244,6 +244,30 @@ bool Player_alloc_channel_cv_state(Player* player, const Au_control_vars* aucv)
 }
 
 
+bool Player_alloc_channel_streams(Player* player, const Au_streams* streams)
+{
+    assert(player != NULL);
+    assert(streams != NULL);
+
+    Stream_target_dev_iter* iter =
+        Stream_target_dev_iter_init(STREAM_TARGET_DEV_ITER_AUTO, streams);
+
+    const char* name = Stream_target_dev_iter_get_next(iter);
+    while (name != NULL)
+    {
+        for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        {
+            if (!Channel_stream_state_add_entry(player->channels[i]->csstate, name))
+                return false;
+        }
+
+        name = Stream_target_dev_iter_get_next(iter);
+    }
+
+    return true;
+}
+
+
 bool Player_refresh_env_state(Player* player)
 {
     assert(player != NULL);
@@ -707,7 +731,7 @@ void Player_play(Player* player, int32_t nframes)
                     LFO_skip(&pc->vibrato, to_be_rendered);
             }
 
-            Channel_cv_state_update_float_controls(ch->cvstate, to_be_rendered);
+            Channel_stream_state_update(ch->csstate, to_be_rendered);
         }
 
         // Process signals in the connection graph

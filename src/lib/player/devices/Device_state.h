@@ -75,6 +75,9 @@ struct Device_state
     int32_t audio_rate;
     int32_t audio_buffer_size;
 
+    // TODO: temp hack -- replace with proper type identifier
+    bool is_stream_state;
+
     // Information on which input ports are connected to something
     // TODO: This exists only because it is currently inconvenient to find a
     //       Device node by using Device as a reference -- fix this!

@@ -29,6 +29,7 @@
 #include <init/devices/processors/Proc_pitch.h>
 #include <init/devices/processors/Proc_ringmod.h>
 #include <init/devices/processors/Proc_sample.h>
+#include <init/devices/processors/Proc_stream.h>
 #include <init/devices/processors/Proc_volume.h>
 #include <string/common.h>
 
@@ -59,6 +60,7 @@ static const Proc_type proc_types[] =
     { "pitch", new_Proc_pitch },
     { "ringmod", new_Proc_ringmod },
     { "sample", new_Proc_sample },
+    { "stream", new_Proc_stream },
     { "volume", new_Proc_volume },
     { NULL, NULL }
 };

@@ -18,6 +18,8 @@
 #include <Handle_private.h>
 #include <init/Bind.h>
 #include <init/Connections.h>
+#include <init/devices/Au_control_vars.h>
+#include <init/devices/Au_streams.h>
 #include <init/devices/Audio_unit.h>
 #include <init/devices/Device_params.h>
 #include <init/devices/Proc_type.h>
@@ -46,7 +48,7 @@ typedef struct Reader_params
 
 
 #define MODULE_KEYP(name, keyp, def) static bool read_##name(Reader_params* params);
-#include <init/Module_key_patterns.h>
+#include <init/module_key_patterns.h>
 
 
 static const struct
@@ -56,7 +58,7 @@ static const struct
 } keyp_to_func[] =
 {
 #define MODULE_KEYP(name, keyp, def) { keyp, read_##name, },
-#include <init/Module_key_patterns.h>
+#include <init/module_key_patterns.h>
     { NULL, NULL }
 };
 
@@ -772,6 +774,47 @@ static bool read_any_au_control_vars(
 }
 
 
+static bool read_any_au_streams(
+        Reader_params* params, Au_table* au_table, int level)
+{
+    assert(params != NULL);
+
+    int32_t index = -1;
+    acquire_au_index(index, params, level);
+
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, index);
+
+    if (Streader_has_data(params->sr))
+    {
+        Au_streams* au_streams = new_Au_streams(params->sr);
+        if (au_streams == NULL)
+        {
+            set_error(params);
+            return false;
+        }
+
+        Audio_unit_set_streams(au, au_streams);
+
+        if (level == 0)
+        {
+            if (!Player_alloc_channel_streams(params->handle->player, au_streams))
+            {
+                Handle_set_error(params->handle, ERROR_MEMORY,
+                        "Could not allocate memory for audio unit streams");
+                return false;
+            }
+        }
+    }
+    else
+    {
+        Audio_unit_set_streams(au, NULL);
+    }
+
+    return true;
+}
+
+
 static Processor* add_processor(
         Handle* handle, Audio_unit* au, Proc_table* proc_table, int proc_index)
 {
@@ -1182,7 +1225,7 @@ static bool read_any_proc_conf_key(
 
 #define MODULE_KEYP(name, keyp, def_val)
 #define MODULE_AU_KEYP(name, keyp, def_val) MAKE_AU_READERS(name)
-#include <init/Module_key_patterns.h>
+#include <init/module_key_patterns.h>
 
 
 #define acquire_pattern(pattern, handle, index)                         \

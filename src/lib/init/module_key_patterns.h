@@ -57,6 +57,7 @@ MODULE_AU_KEYP(au_in_port_manifest,     "au_XX/in_XX/p_manifest.json",          
 MODULE_AU_KEYP(au_out_port_manifest,    "au_XX/out_XX/p_manifest.json",         "")
 MODULE_AU_KEYP(au_connections,          "au_XX/p_connections.json",             "[]")
 
+MODULE_AU_KEYP(au_streams,              "au_XX/p_streams.json",                 "[]")
 MODULE_AU_KEYP(au_control_vars,         "au_XX/p_control_vars.json",            "[]")
 
 MODULE_AU_KEYP(proc_manifest,           "au_XX/proc_XX/p_manifest.json",        "")

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -50,6 +50,15 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip);
 void Player_update_sliders_and_lfos_tempo(Player* player);
 
 
+/**
+ * Move the sequencer state forwards.
+ *
+ * \param player    The Player -- must not be \c NULL and must be in playing state.
+ * \param nframes   The number of frames to move forwards -- must be >= \c 0.
+ * \param skip      Whether or not event processing should be skipped.
+ *
+ * \return   The number of frames to be rendered.
+ */
 int32_t Player_move_forwards(Player* player, int32_t nframes, bool skip);
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -64,16 +64,6 @@ Device_impl* new_Proc_chorus(void)
             Proc_chorus_set_voice_ ## name,                \
             Chorus_pstate_set_voice_ ## name);
 #include <init/devices/processors/Proc_chorus_params.h>
-
-    // Control variables
-    reg_success &= Device_impl_create_cv_float(
-            &chorus->parent,
-            "voice_XX/delay",
-            Chorus_pstate_get_cv_delay_variance,
-            NULL);
-
-    reg_success &= Device_impl_create_cv_float(
-            &chorus->parent, "voice_XX/volume", Chorus_pstate_get_cv_volume, NULL);
 
     if (!reg_success)
     {

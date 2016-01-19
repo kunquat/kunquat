@@ -197,6 +197,25 @@ void Audio_unit_set_control_vars(Audio_unit* au, Au_control_vars* au_control_var
 
 
 /**
+ * Set the streams of the Audio unit.
+ *
+ * \param au           The Audio unit -- must not be \c NULL.
+ * \param au_streams   The Audio unit stream map, or \c NULL.
+ */
+void Audio_unit_set_streams(Audio_unit* au, Au_streams* au_streams);
+
+
+/**
+ * Get the streams of the Audio unit.
+ *
+ * \param au   The Audio unit -- must not be \c NULL.
+ *
+ * \return   The Audio unit streams, or \c NULL if \a au does not have any.
+ */
+const Au_streams* Audio_unit_get_streams(const Audio_unit* au);
+
+
+/**
  * Destroy an existing Audio unit.
  *
  * \param au   The Audio unit, or \c NULL.

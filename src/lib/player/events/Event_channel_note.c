@@ -15,21 +15,26 @@
 #include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
+#include <init/devices/Au_streams.h>
 #include <init/Input_map.h>
 #include <init/Module.h>
 #include <init/Scale.h>
 #include <kunquat/limits.h>
 #include <mathnum/conversions.h>
 #include <mathnum/Tstamp.h>
+#include <player/Channel.h>
 #include <player/devices/processors/Force_state.h>
 #include <player/devices/processors/Pitch_state.h>
+#include <player/devices/processors/Stream_state.h>
 #include <player/devices/Voice_state.h>
 #include <player/events/Event_common.h>
 #include <player/events/note_setup.h>
+#include <player/events/stream_utils.h>
 #include <player/Voice.h>
 #include <Value.h>
 
 #include <float.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -162,6 +167,33 @@ bool Event_channel_note_on_process(
             Channel_get_random_source(ch),
             ch);
 
+    // Initialise streams
+    const Au_streams* streams = Audio_unit_get_streams(au);
+    if (streams != NULL)
+    {
+        const Channel_stream_state* stream_state = Channel_get_stream_state(ch);
+
+        Stream_target_dev_iter* iter =
+            Stream_target_dev_iter_init(STREAM_TARGET_DEV_ITER_AUTO, streams);
+        const char* stream_name = Stream_target_dev_iter_get_next(iter);
+        while (stream_name != NULL)
+        {
+            if (Channel_stream_state_is_carrying_enabled(stream_state, stream_name))
+            {
+                Voice_state* vstate = get_target_stream_vstate(ch, stream_name);
+                if (vstate != NULL)
+                {
+                    const Linear_controls* controls =
+                        Channel_stream_state_get_controls(stream_state, stream_name);
+                    if (!isnan(Linear_controls_get_value(controls)))
+                        Stream_vstate_set_controls(vstate, controls);
+                }
+            }
+
+            stream_name = Stream_target_dev_iter_get_next(iter);
+        }
+    }
+
     return true;
 }
 
@@ -235,6 +267,33 @@ bool Event_channel_hit_process(Channel* ch, Device_states* dstates, const Value*
             DEVICE_CONTROL_VAR_MODE_VOICE,
             Channel_get_random_source(ch),
             ch);
+
+    // Initialise streams
+    {
+        const Au_streams* streams = Audio_unit_get_streams(au);
+
+        const Channel_stream_state* stream_state = Channel_get_stream_state(ch);
+
+        Stream_target_dev_iter* iter =
+            Stream_target_dev_iter_init(STREAM_TARGET_DEV_ITER_AUTO, streams);
+        const char* stream_name = Stream_target_dev_iter_get_next(iter);
+        while (stream_name != NULL)
+        {
+            if (Channel_stream_state_is_carrying_enabled(stream_state, stream_name))
+            {
+                Voice_state* vstate = get_target_stream_vstate(ch, stream_name);
+                if (vstate != NULL)
+                {
+                    const Linear_controls* controls =
+                        Channel_stream_state_get_controls(stream_state, stream_name);
+                    if (!isnan(Linear_controls_get_value(controls)))
+                        Stream_vstate_set_controls(vstate, controls);
+                }
+            }
+
+            stream_name = Stream_target_dev_iter_get_next(iter);
+        }
+    }
 
     return true;
 }

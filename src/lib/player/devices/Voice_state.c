@@ -47,6 +47,7 @@ Voice_state* Voice_state_init(Voice_state* state, Random* rand_p, Random* rand_s
 
     state->is_pitch_state = false;
     state->is_force_state = false;
+    state->is_stream_state = false;
 
     return state;
 }
@@ -73,6 +74,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
 
     state->is_pitch_state = false;
     state->is_force_state = false;
+    state->is_stream_state = false;
 
     return state;
 }

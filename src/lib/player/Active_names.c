@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -47,7 +47,7 @@ bool Active_names_set(Active_names* names, Active_cat cat, const char* name)
     assert(name != NULL);
 
     const size_t length_limit =
-        (cat == ACTIVE_CAT_ENV) ? KQT_VAR_NAME_MAX : KQT_KEY_LENGTH_MAX;
+        (cat == ACTIVE_CAT_CONTROL_VAR) ? KQT_KEY_LENGTH_MAX : KQT_VAR_NAME_MAX;
     if (strlen(name) >= length_limit)
         return false;
 
