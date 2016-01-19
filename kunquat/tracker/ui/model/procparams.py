@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -22,6 +22,9 @@ class ProcParams():
     def _get_key(self, impl_or_conf, subkey):
         assert impl_or_conf in ('i/', 'c/')
         return ''.join((self._key_prefix, impl_or_conf, subkey))
+
+    def get_port_names(self):
+        return {}
 
     # Protected interface
 
