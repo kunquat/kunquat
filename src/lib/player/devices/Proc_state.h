@@ -31,8 +31,7 @@ typedef void Proc_state_clear_history_func(Proc_state*);
 
 typedef void Proc_state_set_cv_bool_func(Device_state*, const Key_indices, bool);
 typedef void Proc_state_set_cv_int_func(Device_state*, const Key_indices, int64_t);
-typedef Linear_controls* Proc_state_get_cv_float_controls_mut_func(
-        Device_state*, const Key_indices);
+typedef void Proc_state_set_cv_float_func(Device_state*, const Key_indices, double);
 typedef void Proc_state_set_cv_tstamp_func(
         Device_state*, const Key_indices, const Tstamp*);
 
@@ -169,72 +168,6 @@ float* Proc_state_get_voice_buffer_contents_mut(
  */
 void Proc_state_cv_generic_set(
         Device_state* dstate, const char* key, const Value* value);
-
-
-/**
- * Set slide target of a floating-point control variable in the Processor state.
- *
- * \param dstate   The Processor state -- must not be \c NULL.
- * \param key      The key of the control variable -- must not be \c NULL.
- * \param value    The new target value -- must be finite.
- */
-void Proc_state_cv_float_slide_target(
-        Device_state* dstate, const char* key, double value);
-
-
-/**
- * Set slide length of a floating-point control variable in the Processor state.
- *
- * \param dstate   The Processor state -- must not be \c NULL.
- * \param key      The key of the control variable -- must not be \c NULL.
- * \param length   The slide length -- must not be \c NULL.
- */
-void Proc_state_cv_float_slide_length(
-        Device_state* dstate, const char* key, const Tstamp* length);
-
-
-/**
- * Set oscillation speed of a float control variable in the Processor state.
- *
- * \param dstate   The Processor state -- must not be \c NULL.
- * \param key      The key of the control variable -- must not be \c NULL.
- * \param speed    The oscillation speed -- must be finite and >= \c 0.
- */
-void Proc_state_cv_float_osc_speed(
-        Device_state* dstate, const char* key, double speed);
-
-
-/**
- * Set oscillation depth of a float control variable in the Processor state.
- *
- * \param dstate   The Processor state -- must not be \c NULL.
- * \param key      The key of the control variable -- must not be \c NULL.
- * \param depth    The oscillation depth -- must be finite.
- */
-void Proc_state_cv_float_osc_depth(
-        Device_state* dstate, const char* key, double depth);
-
-
-/**
- * Set oscillation speed slide of a float control variable in the Processor state.
- *
- * \param dstate   The Processor state -- must not be \c NULL.
- * \param key      The key of the control variable -- must not be \c NULL.
- * \param length   The length of the oscillation speed slide -- must not be \c NULL.
- */
-void Proc_state_cv_float_osc_speed_slide(
-        Device_state* dstate, const char* key, const Tstamp* length);
-
-
-/**
- * Set oscillation depth slide of a float control variable in the Processor state.
- *
- * \param dstate   The Processor state -- must not be \c NULL.
- * \param key      The key of the control variable -- must not be \c NULL.
- * \param length   The length of the oscillation depth slide -- must not be \c NULL.
- */
-void Proc_state_cv_float_osc_depth_slide(
-        Device_state* dstate, const char* key, const Tstamp* length);
 
 
 /**
