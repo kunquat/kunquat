@@ -1108,6 +1108,8 @@ class Device():
         self._in_ports = in_ports
         self._out_ports = out_ports
 
+        self._port_names = model_device.get_port_names()
+
         self._bg = None
 
     def get_name(self):
@@ -1146,27 +1148,29 @@ class Device():
         painter.setFont(self._config['port_font'])
         text_option = QTextOption(Qt.AlignLeft | Qt.AlignVCenter)
         port_height = self._get_port_height()
-        port_y = self._get_title_height()
+        port_y = self._get_title_height() + pad
 
         for port_id in self._in_ports:
-            port_num = int(port_id.split('_')[1], 16)
+            port_str = self._port_names.get(
+                    port_id, str(int(port_id.split('_')[1], 16)))
             painter.drawText(
                     QRectF(pad, port_y, self._bg.width() // 2, port_height),
-                    str(port_num),
+                    port_str,
                     text_option)
             port_y += port_height
 
         text_option = QTextOption(Qt.AlignRight | Qt.AlignVCenter)
-        port_y = self._get_title_height()
+        port_y = self._get_title_height() + pad
         for port_id in self._out_ports:
-            port_num = int(port_id.split('_')[1], 16)
+            port_str = self._port_names.get(
+                    port_id, str(int(port_id.split('_')[1], 16)))
             painter.drawText(
                     QRectF(
                         self._bg.width() // 2,
                         port_y,
                         self._bg.width() // 2 - pad,
                         port_height),
-                    str(port_num),
+                    port_str,
                     text_option)
             port_y += port_height
 
@@ -1201,7 +1205,7 @@ class Device():
         port_offset = self._config['port_handle_size'] // 2
         padding = self._config['padding']
         port_x = bg_offset_x - port_offset
-        port_y = bg_offset_y + padding + self._get_title_height() + port_offset
+        port_y = bg_offset_y + padding + self._get_title_height() + padding + port_offset
 
         for _ in self._in_ports:
             yield (port_x, port_y)
@@ -1214,7 +1218,7 @@ class Device():
         port_offset = self._config['port_handle_size'] // 2
         padding = self._config['padding']
         port_x = bg_offset_x + self._bg.width() + port_offset - 1
-        port_y = bg_offset_y + padding + self._get_title_height() + port_offset
+        port_y = bg_offset_y + padding + self._get_title_height() + padding + port_offset
 
         for _ in self._out_ports:
             yield (port_x, port_y)
@@ -1399,10 +1403,12 @@ class Device():
         port_height = self._get_port_height()
         ports_height = max(len(self._in_ports), len(self._out_ports)) * port_height
 
+        padding = self._config['padding']
+
         if ports_height > 0:
-            total_height = title_height + ports_height
+            total_height = title_height + padding + ports_height
         else:
-            total_height = title_height + self._config['padding'] * 2
+            total_height = title_height + padding * 2
 
         if self._has_edit_button():
             edit_button_height = self._get_edit_button_height()
