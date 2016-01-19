@@ -119,6 +119,9 @@ class AudioUnit():
 
         return out_ports
 
+    def get_port_names(self):
+        return {} # TODO
+
     def set_port_existence(self, port_id, existence):
         key = self._get_key('{}/p_manifest.json'.format(port_id))
         if existence:

@@ -22,6 +22,7 @@ from procparamsfreeverb import ProcParamsFreeverb
 from procparamsgaincomp import ProcParamsGainComp
 from procparamspanning import ProcParamsPanning
 from procparamspitch import ProcParamsPitch
+from procparamsringmod import ProcParamsRingmod
 from procparams_stream import ProcParamsStream
 from procparamsvolume import ProcParamsVolume
 
@@ -93,6 +94,7 @@ class Processor():
             'gaincomp': ProcParamsGainComp,
             'panning':  ProcParamsPanning,
             'pitch':    ProcParamsPitch,
+            'ringmod':  ProcParamsRingmod,
             'stream':   ProcParamsStream,
             'volume':   ProcParamsVolume,
         }
@@ -106,5 +108,9 @@ class Processor():
     def set_signal_type(self, signal_type):
         key = self._get_key('p_signal_type.json')
         self._store[key] = signal_type
+
+    def get_port_names(self):
+        type_params = self.get_type_params()
+        return type_params.get_port_names()
 
 
