@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -28,9 +28,9 @@
  */
 typedef struct Pitch_controls
 {
-    double pitch;               // TODO: change this to cents
-    double orig_carried_pitch;  // Note: this is in cents
-    double freq_mul;
+    double pitch;
+    double orig_carried_pitch;
+    double pitch_add;
     Slider slider;
     LFO    vibrato;
 } Pitch_controls;

@@ -37,7 +37,7 @@ bool Event_channel_slide_pitch_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    const double pitch = exp2(value->value.float_type / 1200) * 440;
+    const double pitch = value->value.float_type;
 
     if (Slider_in_progress(&ch->pitch_controls.slider))
         Slider_change_target(&ch->pitch_controls.slider, pitch);
@@ -139,7 +139,7 @@ bool Event_channel_vibrato_depth_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    const double actual_depth = value->value.float_type / 240; // unit is 5 cents
+    const double actual_depth = value->value.float_type * 5; // unit is 5 cents
     ch->vibrato_depth = actual_depth;
 
     if (ch->vibrato_speed > 0)

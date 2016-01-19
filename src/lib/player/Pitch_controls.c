@@ -31,9 +31,9 @@ void Pitch_controls_init(Pitch_controls* pc, int32_t audio_rate, double tempo)
 
     pc->pitch = NAN;
     pc->orig_carried_pitch = NAN;
-    pc->freq_mul = 1;
-    Slider_init(&pc->slider, SLIDE_MODE_EXP);
-    LFO_init(&pc->vibrato, LFO_MODE_EXP);
+    pc->pitch_add = 0;
+    Slider_init(&pc->slider, SLIDE_MODE_LINEAR);
+    LFO_init(&pc->vibrato, LFO_MODE_LINEAR);
     Pitch_controls_set_audio_rate(pc, audio_rate);
     Pitch_controls_set_tempo(pc, tempo);
 
@@ -71,9 +71,9 @@ void Pitch_controls_reset(Pitch_controls* pc)
 
     pc->pitch = NAN;
     pc->orig_carried_pitch = NAN;
-    pc->freq_mul = 1;
-    Slider_init(&pc->slider, SLIDE_MODE_EXP);
-    LFO_init(&pc->vibrato, LFO_MODE_EXP);
+    pc->pitch_add = 0;
+    Slider_init(&pc->slider, SLIDE_MODE_LINEAR);
+    LFO_init(&pc->vibrato, LFO_MODE_LINEAR);
 
     return;
 }
@@ -88,7 +88,7 @@ void Pitch_controls_copy(
 
     dest->pitch = src->pitch;
     dest->orig_carried_pitch = src->orig_carried_pitch;
-    dest->freq_mul = src->freq_mul;
+    dest->pitch_add = src->pitch_add;
     Slider_copy(&dest->slider, &src->slider);
     LFO_copy(&dest->vibrato, &src->vibrato);
 
