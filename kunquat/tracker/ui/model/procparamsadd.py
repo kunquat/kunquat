@@ -185,7 +185,7 @@ class ProcParamsAdd(ProcParams):
 
     def get_port_names(self):
         return {
-            'in_00':  u'freq',
+            'in_00':  u'pitch',
             'in_01':  u'scale',
             'in_02':  u'phmod L',
             'in_03':  u'phmod R',

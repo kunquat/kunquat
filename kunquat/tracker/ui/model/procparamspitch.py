@@ -20,6 +20,6 @@ class ProcParamsPitch(ProcParams):
         ProcParams.__init__(self, proc_id, controller)
 
     def get_port_names(self):
-        return { 'out_00': u'freq' }
+        return { 'out_00': u'pitch' }
 
 
