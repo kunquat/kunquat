@@ -51,6 +51,9 @@ size_t Force_vstate_get_size(void)
 #define RAMP_RELEASE_SPEED 200.0
 
 
+static const int FORCE_WB_FIXED_PITCH = WORK_BUFFER_IMPL_1;
+
+
 static int32_t Force_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
@@ -70,8 +73,14 @@ static int32_t Force_vstate_render_voice(
     assert(tempo > 0);
 
     // Get pitch input
-    const Work_buffer* actual_pitches =
-        Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
+    float* pitches = Proc_state_get_voice_buffer_contents_mut(
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
+    if (pitches == NULL)
+    {
+        pitches = Work_buffers_get_buffer_contents_mut(wbs, FORCE_WB_FIXED_PITCH);
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            pitches[i] = 0;
+    }
 
     // Get output
     float* out_buf =
@@ -123,17 +132,15 @@ static int32_t Force_vstate_render_voice(
     {
         const Envelope* env = force->force_env;
 
-        const double scale_center_freq = cents_to_Hz(force->force_env_scale_center);
-
         const int32_t env_force_stop = Time_env_state_process(
                 &fvstate->env_state,
                 env,
                 force->is_force_env_loop_enabled,
                 force->force_env_scale_amount,
-                scale_center_freq,
+                force->force_env_scale_center,
                 0, // sustain
                 0, 1, // range
-                actual_pitches,
+                pitches,
                 Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
                 buf_start,
                 new_buf_stop,
@@ -181,18 +188,15 @@ static int32_t Force_vstate_render_voice(
             const Envelope* env = force->force_release_env;
             assert(env != NULL);
 
-            const double scale_center_freq =
-                cents_to_Hz(force->force_release_env_scale_center);
-
             const int32_t env_force_rel_stop = Time_env_state_process(
                     &fvstate->release_env_state,
                     env,
                     false, // no loop
                     force->force_release_env_scale_amount,
-                    scale_center_freq,
+                    force->force_release_env_scale_center,
                     au_state->sustain,
                     0, 1, // range
-                    actual_pitches,
+                    pitches,
                     Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
                     buf_start,
                     new_buf_stop,
