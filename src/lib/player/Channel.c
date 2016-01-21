@@ -240,7 +240,7 @@ double Channel_get_fg_force(const Channel* ch)
     if (!has_fg_voice)
         return NAN;
 
-    return log2(ch->force_controls.force) * 6;
+    return ch->force_controls.force;
 }
 
 

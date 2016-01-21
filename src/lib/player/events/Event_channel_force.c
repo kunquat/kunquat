@@ -44,7 +44,7 @@ bool Event_channel_set_force_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    const double force = exp2(value->value.float_type / 6);
+    const double force = value->value.float_type;
 
     ch->force_controls.force = force;
     Slider_break(&ch->force_controls.slider);
@@ -74,7 +74,7 @@ bool Event_channel_slide_force_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    double slide_target = exp2(value->value.float_type / 6);
+    double slide_target = value->value.float_type;
 
     if (Slider_in_progress(&ch->force_controls.slider))
         Slider_change_target(&ch->force_controls.slider, slide_target);
@@ -172,7 +172,7 @@ bool Event_channel_tremolo_depth_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    const double actual_depth = value->value.float_type / 6;
+    const double actual_depth = value->value.float_type;
     ch->tremolo_depth = actual_depth;
 
     if (ch->tremolo_speed > 0)

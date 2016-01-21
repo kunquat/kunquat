@@ -54,6 +54,12 @@ size_t Force_vstate_get_size(void)
 static const int FORCE_WB_FIXED_PITCH = WORK_BUFFER_IMPL_1;
 
 
+static double scale_to_dB(double scale)
+{
+    return log2(scale) * 6;
+}
+
+
 static int32_t Force_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
@@ -101,20 +107,20 @@ static int32_t Force_vstate_render_voice(
 
     // Apply force slide & fixed adjust
     {
-        const double fixed_scale = dB_to_scale(fvstate->fixed_adjust);
+        const double fixed_adjust = fvstate->fixed_adjust;
         if (Slider_in_progress(&fc->slider))
         {
             float new_force = fc->force;
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
             {
                 new_force = Slider_step(&fc->slider);
-                out_buf[i] = new_force * fixed_scale;
+                out_buf[i] = new_force + fixed_adjust;
             }
             fc->force = new_force;
         }
         else
         {
-            const float actual_force = fc->force * fixed_scale;
+            const float actual_force = fc->force + fixed_adjust;
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
                 out_buf[i] = actual_force;
         }
@@ -124,7 +130,7 @@ static int32_t Force_vstate_render_voice(
     if (LFO_active(&fc->tremolo))
     {
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            out_buf[i] *= LFO_step(&fc->tremolo);
+            out_buf[i] += LFO_step(&fc->tremolo);
     }
 
     // Apply force envelope
@@ -150,6 +156,10 @@ static int32_t Force_vstate_render_voice(
             Work_buffers_get_buffer(wbs, WORK_BUFFER_TIME_ENV);
         float* time_env = Work_buffer_get_contents_mut(wb_time_env);
 
+        // Convert envelope data to dB
+        for (int32_t i = buf_start; i < env_force_stop; ++i)
+            time_env[i] = scale_to_dB(time_env[i]);
+
         // Check the end of envelope processing
         if (fvstate->env_state.is_finished)
         {
@@ -161,20 +171,22 @@ static int32_t Force_vstate_render_voice(
                 new_buf_stop = env_force_stop;
 
                 for (int32_t i = new_buf_stop; i < buf_stop; ++i)
-                    out_buf[i] = 0;
+                    out_buf[i] = -INFINITY;
 
-                Voice_state_set_finished(vstate);
+                // TODO: add interface for reporting that we'll only give -INFINITY
+                //Voice_state_set_finished(vstate);
             }
             else
             {
                 // Fill the rest of the envelope buffer with the last value
+                const double last_value_dB = scale_to_dB(last_value);
                 for (int32_t i = env_force_stop; i < new_buf_stop; ++i)
-                    time_env[i] = last_value;
+                    time_env[i] = last_value_dB;
             }
         }
 
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            out_buf[i] *= time_env[i];
+            out_buf[i] += time_env[i];
 
         if (vstate->has_finished)
             return new_buf_stop;
@@ -209,11 +221,15 @@ static int32_t Force_vstate_render_voice(
                     wbs, WORK_BUFFER_TIME_ENV);
             float* time_env = Work_buffer_get_contents_mut(wb_time_env);
 
+            // Convert envelope data to dB
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                out_buf[i] *= time_env[i];
+                time_env[i] = scale_to_dB(time_env[i]);
+
+            for (int32_t i = buf_start; i < new_buf_stop; ++i)
+                out_buf[i] += time_env[i];
 
             for (int32_t i = new_buf_stop; i < buf_stop; ++i)
-                out_buf[i] = 0;
+                out_buf[i] = -INFINITY;
 
             // Keep the note running
             Voice_state_mark_release_data(vstate, new_buf_stop);
@@ -238,7 +254,7 @@ static int32_t Force_vstate_render_voice(
 
                 for (i = buf_start; (i < buf_stop) && (progress < 1); ++i)
                 {
-                    out_buf[i] *= 1 - progress;
+                    out_buf[i] += scale_to_dB(1 - progress);
                     progress += ramp_step;
                 }
 
@@ -251,7 +267,7 @@ static int32_t Force_vstate_render_voice(
             Voice_state_mark_release_data(vstate, new_buf_stop);
 
             for (int32_t i = new_buf_stop; i < buf_stop; ++i)
-                out_buf[i] = 0;
+                out_buf[i] = -INFINITY;
 
             if (fvstate->release_ramp_progress >= 1)
                 Voice_state_set_finished(vstate);
