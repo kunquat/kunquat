@@ -65,7 +65,7 @@ Device_impl* new_Proc_envgen(void)
     egen->is_loop_enabled = false;
     egen->is_release_env = false;
     egen->env_scale_amount = 0;
-    egen->env_scale_center = 440;
+    egen->env_scale_center = 0;
 
     egen->is_force_env_enabled = false;
     egen->force_env = NULL;
@@ -217,7 +217,7 @@ static bool Proc_envgen_set_env_scale_center(
     assert(indices != NULL);
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
-    egen->env_scale_center = isfinite(value) ? exp2(value / 1200) * 440 : 440;
+    egen->env_scale_center = isfinite(value) ? value : 0;
 
     return true;
 }

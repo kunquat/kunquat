@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -72,8 +72,8 @@ typedef struct Device_impl_cv_int_callbacks
 
 typedef struct Device_impl_cv_float_callbacks
 {
-    Proc_state_get_cv_float_controls_mut_func* get_controls;
-    Voice_state_get_cv_float_controls_mut_func* get_voice_controls;
+    Proc_state_set_cv_float_func* set_value;
+    Voice_state_set_cv_float_func* voice_set_value;
 } Device_impl_cv_float_callbacks;
 
 typedef struct Device_impl_cv_tstamp_callbacks
@@ -380,8 +380,8 @@ bool Device_impl_create_cv_int(
 bool Device_impl_create_cv_float(
         Device_impl* dimpl,
         const char* keyp,
-        Proc_state_get_cv_float_controls_mut_func* pstate_get,
-        Voice_state_get_cv_float_controls_mut_func* vstate_get)
+        Proc_state_set_cv_float_func* pstate_set,
+        Voice_state_set_cv_float_func* vstate_set)
 {
     assert(dimpl != NULL);
     assert(keyp != NULL);
@@ -391,8 +391,8 @@ bool Device_impl_create_cv_float(
     if (update_cv_cb == NULL)
         return false;
 
-    update_cv_cb->cb.float_type.get_controls = pstate_get;
-    update_cv_cb->cb.float_type.get_voice_controls = vstate_get;
+    update_cv_cb->cb.float_type.set_value = pstate_set;
+    update_cv_cb->cb.float_type.voice_set_value = vstate_set;
 
     return true;
 }
@@ -663,28 +663,20 @@ void Device_impl_get_proc_cv_callback(
     switch (type)
     {
         case VALUE_TYPE_BOOL:
-        {
             cb->cb.set_bool = update_cv_cb->cb.bool_type.set_value;
-        }
-        break;
+            break;
 
         case VALUE_TYPE_INT:
-        {
             cb->cb.set_int = update_cv_cb->cb.int_type.set_value;
-        }
-        break;
+            break;
 
         case VALUE_TYPE_FLOAT:
-        {
-            cb->cb.get_float_controls = update_cv_cb->cb.float_type.get_controls;
-        }
-        break;
+            cb->cb.set_float = update_cv_cb->cb.float_type.set_value;
+            break;
 
         case VALUE_TYPE_TSTAMP:
-        {
             cb->cb.set_tstamp = update_cv_cb->cb.Tstamp_type.set_value;
-        }
-        break;
+            break;
 
         default:
             assert(false);
@@ -718,28 +710,20 @@ void Device_impl_get_voice_cv_callback(
     switch (type)
     {
         case VALUE_TYPE_BOOL:
-        {
             cb->cb.set_bool = update_cv_cb->cb.bool_type.voice_set_value;
-        }
-        break;
+            break;
 
         case VALUE_TYPE_INT:
-        {
             cb->cb.set_int = update_cv_cb->cb.int_type.voice_set_value;
-        }
-        break;
+            break;
 
         case VALUE_TYPE_FLOAT:
-        {
-            cb->cb.get_float_controls = update_cv_cb->cb.float_type.get_voice_controls;
-        }
-        break;
+            cb->cb.set_float = update_cv_cb->cb.float_type.voice_set_value;
+            break;
 
         case VALUE_TYPE_TSTAMP:
-        {
             cb->cb.set_tstamp = update_cv_cb->cb.Tstamp_type.voice_set_value;
-        }
-        break;
+            break;
 
         default:
             assert(false);

@@ -50,7 +50,7 @@ int32_t Time_env_state_process(
         double sustain,
         double min_value,
         double max_value,
-        const Work_buffer* pitch_buf,
+        const float* pitch_buf,
         float* env_buf,
         int32_t buf_start,
         int32_t buf_stop,
@@ -64,17 +64,14 @@ int32_t Time_env_state_process(
     assert(sustain <= 1);
     assert(isfinite(min_value));
     assert(isfinite(max_value));
+    assert(pitch_buf != NULL);
     assert(env_buf != NULL);
     assert(buf_start >= 0);
     assert(buf_stop >= 0);
     assert(audio_rate > 0);
 
-    const Cond_work_buffer* actual_pitches =
-        Cond_work_buffer_init(COND_WORK_BUFFER_AUTO, pitch_buf, 440);
-
     // Get constant values used inside the loop
     const double slowdown_fac = 1.0 - sustain;
-    const double inv_scale_center = 1.0 / scale_center;
     const double inv_audio_rate = 1.0 / audio_rate;
     const double slowdown_fac_inv_audio_rate = slowdown_fac * inv_audio_rate;
 
@@ -102,14 +99,10 @@ int32_t Time_env_state_process(
     int32_t i = buf_start;
     for (; i < buf_stop; ++i)
     {
-        const float actual_pitch = Cond_work_buffer_get_value(actual_pitches, i);
-        const float prev_actual_pitch = Cond_work_buffer_get_value(
-                actual_pitches, i - 1);
+        const float pitch = pitch_buf[i];
 
         // Apply pitch-based scaling
-        if ((scale_amount != 0) &&
-                ((cur_pos == 0) || (actual_pitch != prev_actual_pitch)))
-            scale_factor = pow(actual_pitch * inv_scale_center, scale_amount);
+        scale_factor = exp2((pitch - scale_center) * scale_amount / 1200.0);
 
         // Get envelope value at current position
         double value = last_node[1]; // initial value is used if next_node == NULL

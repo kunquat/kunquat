@@ -19,6 +19,7 @@
 #include <mathnum/conversions.h>
 #include <player/Pitch_controls.h>
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,8 +31,7 @@ typedef struct Pitch_vstate
 
     Pitch_controls controls;
     double orig_pitch_param;
-    double actual_pitch;
-    double prev_actual_pitch;
+    double pitch;
 
     bool is_arpeggio_enabled;
     double arpeggio_ref_pitch;
@@ -100,19 +100,17 @@ static int32_t Pitch_vstate_render_voice(
     }
 
     // Adjust carried pitch
-    if (pc->freq_mul != 1)
+    if (pc->pitch_add != 0)
     {
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            out_buf[i] *= pc->freq_mul;
+            out_buf[i] += pc->pitch_add;
     }
-
-    out_buf[buf_start - 1] = pvstate->actual_pitch;
 
     // Apply vibrato
     if (LFO_active(&pc->vibrato))
     {
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            out_buf[i] *= LFO_step(&pc->vibrato);
+            out_buf[i] += LFO_step(&pc->vibrato);
     }
 
     // Apply arpeggio
@@ -126,10 +124,9 @@ static int32_t Pitch_vstate_render_voice(
         {
             // Adjust actual pitch according to the current arpeggio state
             assert(!isnan(pvstate->arpeggio_tones[0]));
-            const double diff = exp2(
-                    (pvstate->arpeggio_tones[pvstate->arpeggio_tone_index] -
-                        pvstate->arpeggio_ref_pitch) / 1200.0);
-            out_buf[i] *= diff;
+            const double diff = (pvstate->arpeggio_tones[pvstate->arpeggio_tone_index] -
+                    pvstate->arpeggio_ref_pitch);
+            out_buf[i] += diff;
 
             // Update arpeggio state
             pvstate->arpeggio_tone_progress += progress_update;
@@ -144,9 +141,8 @@ static int32_t Pitch_vstate_render_voice(
         }
     }
 
-    // Update actual pitch for next iteration
-    pvstate->actual_pitch = out_buf[buf_stop - 1];
-    pvstate->prev_actual_pitch = out_buf[buf_stop - 2];
+    // Update pitch for next iteration
+    pvstate->pitch = out_buf[buf_stop - 1];
 
     return buf_stop;
 }
@@ -165,8 +161,7 @@ void Pitch_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     Pitch_controls_init(&pvstate->controls, proc_state->parent.audio_rate, 120);
 
     pvstate->orig_pitch_param = NAN;
-    pvstate->actual_pitch = 0;
-    pvstate->prev_actual_pitch = 0;
+    pvstate->pitch = 0;
 
     // Initialise arpeggio
     pvstate->is_arpeggio_enabled = false;
@@ -194,7 +189,7 @@ void Pitch_vstate_set_controls(Voice_state* vstate, const Pitch_controls* contro
     if (isnan(pvstate->orig_pitch_param))
         pvstate->orig_pitch_param = pvstate->controls.orig_carried_pitch;
 
-    pvstate->actual_pitch = pvstate->controls.pitch;
+    pvstate->pitch = pvstate->controls.pitch;
 
     return;
 }

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -84,7 +84,7 @@ typedef struct Device_impl_proc_cv_callback
     {
         Proc_state_set_cv_bool_func* set_bool;
         Proc_state_set_cv_int_func* set_int;
-        Proc_state_get_cv_float_controls_mut_func* get_float_controls;
+        Proc_state_set_cv_float_func* set_float;
         Proc_state_set_cv_tstamp_func* set_tstamp;
     } cb;
 } Device_impl_proc_cv_callback;
@@ -100,7 +100,7 @@ typedef struct Device_impl_voice_cv_callback
     {
         Voice_state_set_cv_bool_func* set_bool;
         Voice_state_set_cv_int_func* set_int;
-        Voice_state_get_cv_float_controls_mut_func* get_float_controls;
+        Voice_state_set_cv_float_func* set_float;
         Voice_state_set_cv_tstamp_func* set_tstamp;
     } cb;
 } Device_impl_voice_cv_callback;
@@ -430,8 +430,8 @@ bool Device_impl_create_cv_int(
 bool Device_impl_create_cv_float(
         Device_impl* dimpl,
         const char* keyp,
-        Proc_state_get_cv_float_controls_mut_func* pstate_get,
-        Voice_state_get_cv_float_controls_mut_func* vstate_get);
+        Proc_state_set_cv_float_func* pstate_set,
+        Voice_state_set_cv_float_func* vstate_set);
 
 
 /**

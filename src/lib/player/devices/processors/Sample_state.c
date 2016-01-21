@@ -19,6 +19,7 @@
 #include <init/devices/param_types/Sample_params.h>
 #include <init/devices/processors/Proc_sample.h>
 #include <mathnum/common.h>
+#include <mathnum/conversions.h>
 #include <player/Audio_buffer.h>
 #include <player/devices/processors/Proc_utils.h>
 #include <player/Work_buffers.h>
@@ -48,11 +49,17 @@ size_t Sample_vstate_get_size(void)
 }
 
 
+static const int SAMPLE_WORK_BUFFER_POSITIONS = WORK_BUFFER_IMPL_1;
+static const int SAMPLE_WORK_BUFFER_NEXT_POSITIONS = WORK_BUFFER_IMPL_2;
+static const int SAMPLE_WORK_BUFFER_POSITIONS_REM = WORK_BUFFER_IMPL_3;
+static const int SAMPLE_WB_FIXED_PITCH = WORK_BUFFER_IMPL_4;
+
+
 static int32_t Sample_render(
         const Sample* sample,
         const Sample_params* params,
         Voice_state* vstate,
-        const Proc_state* proc_state,
+        Proc_state* proc_state,
         const Work_buffers* wbs,
         float* out_buffers[2],
         int32_t buf_start,
@@ -83,10 +90,19 @@ static int32_t Sample_render(
     }
 
     // Get actual pitches
-    const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
-            COND_WORK_BUFFER_AUTO,
-            Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
-            440);
+    float* freqs = Proc_state_get_voice_buffer_contents_mut(
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
+    if (freqs == NULL)
+    {
+        freqs = Work_buffers_get_buffer_contents_mut(wbs, SAMPLE_WB_FIXED_PITCH);
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            freqs[i] = 440;
+    }
+    else
+    {
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            freqs[i] = cents_to_Hz(freqs[i]);
+    }
 
     // Get volume scales
     const Cond_work_buffer* volumes = Cond_work_buffer_init(
@@ -102,10 +118,6 @@ static int32_t Sample_render(
         out_buffers[0] = out_buffers[1];
         out_buffers[1] = NULL;
     }
-
-    static const int SAMPLE_WORK_BUFFER_POSITIONS = WORK_BUFFER_IMPL_1;
-    static const int SAMPLE_WORK_BUFFER_NEXT_POSITIONS = WORK_BUFFER_IMPL_2;
-    static const int SAMPLE_WORK_BUFFER_POSITIONS_REM = WORK_BUFFER_IMPL_3;
 
     int32_t* positions = Work_buffers_get_buffer_contents_int_mut(
             wbs, SAMPLE_WORK_BUFFER_POSITIONS);
@@ -125,8 +137,8 @@ static int32_t Sample_render(
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
-        const float actual_pitch = Cond_work_buffer_get_value(actual_pitches, i);
-        const double shift_total = actual_pitch * shift_factor;
+        const float freq = freqs[i];
+        const double shift_total = freq * shift_factor;
 
         const int32_t shift_floor = floor(shift_total);
         const double shift_rem = shift_total - shift_floor;
@@ -403,10 +415,14 @@ static int32_t Sample_vstate_render_voice(
         return buf_start;
 
     // Get actual pitches
-    const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
-            COND_WORK_BUFFER_AUTO,
-            Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
-            440);
+    float* pitches = Proc_state_get_voice_buffer_contents_mut(
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
+    if (pitches == NULL)
+    {
+        pitches = Work_buffers_get_buffer_contents_mut(wbs, SAMPLE_WB_FIXED_PITCH);
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            pitches[i] = 0;
+    }
 
     // Get volume scales
     const Cond_work_buffer* vol_scales = Cond_work_buffer_init(
@@ -468,11 +484,10 @@ static int32_t Sample_vstate_render_voice(
             }
 
             //fprintf(stderr, "pitch @ %p: %f\n", (void*)&state->pitch, state->pitch);
-            const float start_freq =
-                Cond_work_buffer_get_value(actual_pitches, buf_start);
+            const float start_pitch = pitches[buf_start];
             entry = Note_map_get_entry(
                     map,
-                    log2(start_freq / 440) * 1200,
+                    start_pitch,
                     Cond_work_buffer_get_value(vol_scales, buf_start),
                     vstate->rand_p);
             sample_state->middle_tone = entry->ref_freq;

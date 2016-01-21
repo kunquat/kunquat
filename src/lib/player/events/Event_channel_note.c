@@ -73,15 +73,12 @@ bool Event_channel_note_on_process(
         const double cents = value->value.float_type;
 
         if (isnan(ch->pitch_controls.pitch))
-            ch->pitch_controls.pitch = exp2(ch->pitch_controls.orig_carried_pitch / 1200) * 440;
+            ch->pitch_controls.pitch = cents;
         if (isnan(ch->pitch_controls.orig_carried_pitch))
             ch->pitch_controls.orig_carried_pitch = cents;
 
         const double pitch_diff = cents - ch->pitch_controls.orig_carried_pitch;
-        if (pitch_diff != 0)
-            ch->pitch_controls.freq_mul = exp2(pitch_diff / 1200);
-        else
-            ch->pitch_controls.freq_mul = 1;
+        ch->pitch_controls.pitch_add = pitch_diff;
     }
     else
     {
@@ -91,7 +88,7 @@ bool Event_channel_note_on_process(
         LFO_set_speed_slide(&ch->pitch_controls.vibrato, &ch->vibrato_speed_slide);
         LFO_set_depth_slide(&ch->pitch_controls.vibrato, &ch->vibrato_depth_slide);
 
-        ch->pitch_controls.pitch = cents_to_Hz(value->value.float_type);
+        ch->pitch_controls.pitch = value->value.float_type;
         if (isnan(ch->pitch_controls.orig_carried_pitch))
             ch->pitch_controls.orig_carried_pitch = value->value.float_type;
     }
