@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -23,6 +23,13 @@ double dB_to_scale(double dB)
 {
     assert(isfinite(dB) || (dB == -INFINITY));
     return exp2(dB / 6.0);
+}
+
+
+double scale_to_dB(double scale)
+{
+    assert(scale >= 0);
+    return log2(scale) * 6;
 }
 
 

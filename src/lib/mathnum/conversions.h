@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -27,6 +27,16 @@
  * \return   The scale factor.
  */
 double dB_to_scale(double dB);
+
+
+/**
+ * Convert the given scale value to dB.
+ *
+ * \param scale   The scale value -- must be >= \c 0.
+ *
+ * \return   The dB value.
+ */
+double scale_to_dB(double scale);
 
 
 /**

@@ -54,12 +54,6 @@ size_t Force_vstate_get_size(void)
 static const int FORCE_WB_FIXED_PITCH = WORK_BUFFER_IMPL_1;
 
 
-static double scale_to_dB(double scale)
-{
-    return log2(scale) * 6;
-}
-
-
 static int32_t Force_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
