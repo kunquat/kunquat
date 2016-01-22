@@ -18,6 +18,7 @@
 
 #include <debug/assert.h>
 #include <mathnum/fast_exp2.h>
+#include <mathnum/fast_log2.h>
 
 #include <math.h>
 
@@ -37,7 +38,7 @@ double dB_to_scale(double dB);
  *
  * \param dB   The value in dB -- must be finite or \c -INFINITY.
  *
- * \return   The scale factor.
+ * \return   The approximate scale factor.
  */
 inline double fast_dB_to_scale(double dB)
 {
@@ -61,6 +62,23 @@ double scale_to_dB(double scale);
 
 
 /**
+ * Convert the given scale value to dB using fast approximation.
+ *
+ * \param scale   The scale value -- must be >= \c 0.
+ *
+ * \return   The approximate dB value.
+ */
+inline double fast_scale_to_dB(double scale)
+{
+    assert(scale >= 0);
+    if (scale == 0)
+        return -INFINITY;
+
+    return fast_log2(scale) * 6;
+}
+
+
+/**
  * Convert the given pitch from cents to Hz.
  *
  * \param cents   The cents value -- must be finite.
@@ -75,7 +93,7 @@ double cents_to_Hz(double cents);
  *
  * \param cents   The cents value.
  *
- * \return   The pitch in Hz if \a cents is finite, otherwise \c 0.
+ * \return   The approximate pitch in Hz if \a cents is finite, otherwise \c 0.
  */
 inline double fast_cents_to_Hz(double cents)
 {
