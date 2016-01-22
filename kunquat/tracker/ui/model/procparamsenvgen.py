@@ -20,7 +20,7 @@ class ProcParamsEnvgen(ProcParams):
         ProcParams.__init__(self, proc_id, controller)
 
     def get_port_names(self):
-        return { 'in_00': u'pitch', 'in_01': u'scale', 'out_00': u'env' }
+        return { 'in_00': u'pitch', 'in_01': u'force', 'out_00': u'env' }
 
     def get_time_env_enabled(self):
         return self._get_value('p_b_env_enabled.json', False)

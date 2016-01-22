@@ -21,7 +21,7 @@ class ProcParamsVolume(ProcParams):
 
     def get_port_names(self):
         return {
-            'in_00':  u'scale',
+            'in_00':  u'force',
             'in_01':  u'audio L',
             'in_02':  u'audio R',
             'out_00': u'audio L',
