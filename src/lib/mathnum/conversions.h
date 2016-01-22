@@ -16,6 +16,9 @@
 #define K_CONVERSIONS_H
 
 
+#include <debug/assert.h>
+#include <mathnum/fast_exp2.h>
+
 #include <math.h>
 
 
@@ -27,6 +30,24 @@
  * \return   The scale factor.
  */
 double dB_to_scale(double dB);
+
+
+/**
+ * Convert the given dB value to scale factor using fast approximation.
+ *
+ * \param dB   The value in dB -- must be finite or \c -INFINITY.
+ *
+ * \return   The scale factor.
+ */
+inline double fast_dB_to_scale(double dB)
+{
+    assert(isfinite(dB) || (dB == -INFINITY));
+
+    if (dB == -INFINITY)
+        return 0.0;
+
+    return fast_exp2(dB / 6.0);
+}
 
 
 /**
@@ -47,6 +68,22 @@ double scale_to_dB(double scale);
  * \return   The pitch in Hz.
  */
 double cents_to_Hz(double cents);
+
+
+/**
+ * Convert the given pitch from cents to Hz using fast approximation.
+ *
+ * \param cents   The cents value.
+ *
+ * \return   The pitch in Hz if \a cents is finite, otherwise \c 0.
+ */
+inline double fast_cents_to_Hz(double cents)
+{
+    if (!isfinite(cents))
+        return 0;
+
+    return fast_exp2(cents / 1200.0) * 440;
+}
 
 
 #endif // K_CONVERSIONS_H
