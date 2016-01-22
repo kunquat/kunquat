@@ -68,7 +68,7 @@ static void apply_volume(
                 continue;
 
             for (int32_t i = buf_start; i < buf_stop; ++i)
-                out[i] *= dB_to_scale(vol_buffer[i]);
+                out[i] *= fast_dB_to_scale(vol_buffer[i]);
         }
     }
 

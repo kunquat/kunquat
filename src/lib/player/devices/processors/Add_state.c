@@ -83,7 +83,7 @@ static int32_t Add_vstate_render_voice(
     else
     {
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            freqs[i] = cents_to_Hz(freqs[i]);
+            freqs[i] = fast_cents_to_Hz(freqs[i]);
     }
 
     // Get volume scales
@@ -98,7 +98,7 @@ static int32_t Add_vstate_render_voice(
     else
     {
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            scales[i] = dB_to_scale(scales[i]);
+            scales[i] = fast_dB_to_scale(scales[i]);
     }
 
     // Get output buffer for writing

@@ -157,7 +157,7 @@ static int32_t Envgen_vstate_render_voice(
         {
             // Convert input force to linear scale
             for (int32_t i = buf_start; i < buf_stop; ++i)
-                force_scales[i] = dB_to_scale(force_scales[i]);
+                force_scales[i] = fast_dB_to_scale(force_scales[i]);
 
             if (is_force_env_enabled)
             {

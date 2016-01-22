@@ -102,7 +102,7 @@ static int32_t Sample_render(
     else
     {
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            freqs[i] = cents_to_Hz(freqs[i]);
+            freqs[i] = fast_cents_to_Hz(freqs[i]);
     }
 
     // Get force input
@@ -117,7 +117,7 @@ static int32_t Sample_render(
     else
     {
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            force_scales[i] = dB_to_scale(force_scales[i]);
+            force_scales[i] = fast_dB_to_scale(force_scales[i]);
     }
 
     float* abufs[KQT_BUFFERS_MAX] = { out_buffers[0], out_buffers[1] };

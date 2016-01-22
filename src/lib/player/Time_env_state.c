@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <init/devices/param_types/Envelope.h>
 #include <mathnum/common.h>
+#include <mathnum/fast_exp2.h>
 #include <player/devices/processors/Proc_utils.h>
 #include <player/Work_buffers.h>
 
@@ -102,7 +103,7 @@ int32_t Time_env_state_process(
         const float pitch = pitch_buf[i];
 
         // Apply pitch-based scaling
-        scale_factor = exp2((pitch - scale_center) * scale_amount / 1200.0);
+        scale_factor = fast_exp2((pitch - scale_center) * scale_amount / 1200.0);
 
         // Get envelope value at current position
         double value = last_node[1]; // initial value is used if next_node == NULL
