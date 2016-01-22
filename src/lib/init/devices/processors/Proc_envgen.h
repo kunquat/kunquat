@@ -27,14 +27,16 @@ typedef struct Proc_envgen
 {
     Device_impl parent;
 
-    double scale;
-
     bool is_time_env_enabled;
     const Envelope* time_env;
     bool is_loop_enabled;
     bool is_release_env;
     double env_scale_amount;
     double env_scale_center;
+
+    bool is_linear_force;
+
+    double global_adjust;
 
     bool is_force_env_enabled;
     const Envelope* force_env;

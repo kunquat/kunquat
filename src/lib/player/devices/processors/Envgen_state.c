@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <init/devices/processors/Proc_envgen.h>
 #include <mathnum/common.h>
+#include <mathnum/conversions.h>
 #include <memory.h>
 #include <player/devices/Proc_state.h>
 #include <player/devices/processors/Proc_utils.h>
@@ -42,6 +43,7 @@ size_t Envgen_vstate_get_size(void)
 
 
 static const int ENVGEN_WB_FIXED_PITCH = WORK_BUFFER_IMPL_1;
+static const int ENVGEN_WB_FIXED_FORCE = WORK_BUFFER_IMPL_2;
 
 
 static int32_t Envgen_vstate_render_voice(
@@ -75,9 +77,9 @@ static int32_t Envgen_vstate_render_voice(
             pitches[i] = 0;
     }
 
-    // Get volume scales
-    const float* vol_scales =
-        Proc_state_get_voice_buffer_contents(proc_state, DEVICE_PORT_TYPE_RECEIVE, 1);
+    // Get force scales
+    float* force_scales = Proc_state_get_voice_buffer_contents_mut(
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, 1);
 
     // Get output buffer for writing
     float* out_buffer =
@@ -123,12 +125,14 @@ static int32_t Envgen_vstate_render_voice(
             const double* last_node = Envelope_get_node(
                     egen->time_env, Envelope_node_count(egen->time_env) - 1);
             const double last_value = last_node[1];
+            /*
             if (fabs(egen->y_min + last_value * range_width) < 0.0001)
             {
                 Voice_state_set_finished(vstate);
                 new_buf_stop = env_stop;
             }
             else
+            // */
             {
                 // Fill the rest of the envelope buffer with the last value
                 for (int32_t i = env_stop; i < new_buf_stop; ++i)
@@ -147,54 +151,75 @@ static int32_t Envgen_vstate_render_voice(
             out_buffer[i] = 1;
     }
 
-    // Apply range
-    if ((egen->y_min != 0) || (egen->y_max != 1))
+    if (egen->is_linear_force)
     {
-        for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            out_buffer[i] = egen->y_min + out_buffer[i] * range_width;
-    }
-
-    // Apply our internal scaling
-    if (egen->scale != 1)
-    {
-        const double scale = egen->scale;
-        for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            out_buffer[i] *= scale;
-    }
-
-    if (vol_scales != NULL)
-    {
-        if (is_force_env_enabled)
+        if (force_scales != NULL)
         {
-            // Apply force envelope
-            for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            {
-                const float vol_scale = vol_scales[i];
+            // Convert input force to linear scale
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+                force_scales[i] = dB_to_scale(force_scales[i]);
 
-                const double vol_clamped = min(1, vol_scale);
-                const double factor = Envelope_get_value(egen->force_env, vol_clamped);
-                assert(isfinite(factor));
-                out_buffer[i] *= factor;
+            if (is_force_env_enabled)
+            {
+                // Apply force envelope
+                for (int32_t i = buf_start; i < new_buf_stop; ++i)
+                {
+                    const float force_scale = force_scales[i];
+
+                    const double vol_clamped = min(1, force_scale);
+                    const double factor = Envelope_get_value(egen->force_env, vol_clamped);
+                    assert(isfinite(factor));
+                    out_buffer[i] *= factor;
+                }
+            }
+            else
+            {
+                // Apply linear scaling by default
+                for (int32_t i = buf_start; i < new_buf_stop; ++i)
+                    out_buffer[i] *= force_scales[i];
             }
         }
         else
         {
-            // Apply linear scaling by default
-            for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                out_buffer[i] *= vol_scales[i];
+            if (is_force_env_enabled)
+            {
+                // Just apply the rightmost force envelope value (as we assume force 0 dB)
+                const double factor = Envelope_get_node(
+                        egen->force_env, Envelope_node_count(egen->force_env) - 1)[1];
+                for (int32_t i = buf_start; i < new_buf_stop; ++i)
+                    out_buffer[i] *= factor;
+            }
         }
+
+        // Convert to dB
+        const double global_adjust = egen->global_adjust;
+        for (int32_t i = buf_start; i < new_buf_stop; ++i)
+            out_buffer[i] = scale_to_dB(out_buffer[i]) + global_adjust;
     }
     else
     {
-        if (is_force_env_enabled)
+        if ((egen->y_min != 0) || (egen->y_max != 1))
         {
-            // Just apply the rightmost force envelope value (as we assume force 1)
-            const double factor = Envelope_get_node(
-                    egen->force_env, Envelope_node_count(egen->force_env) - 1)[1];
+            // Apply range
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                out_buffer[i] *= factor;
+                out_buffer[i] =
+                    egen->y_min + out_buffer[i] * range_width;
+        }
+
+        const double global_adjust = egen->global_adjust;
+
+        if (force_scales != NULL)
+        {
+            for (int32_t i = buf_start; i < new_buf_stop; ++i)
+                out_buffer[i] += force_scales[i] + global_adjust;
+        }
+        else
+        {
+            for (int32_t i = buf_start; i < new_buf_stop; ++i)
+                out_buffer[i] += global_adjust;
         }
     }
+
 
     return new_buf_stop;
 }
