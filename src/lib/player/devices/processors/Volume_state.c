@@ -33,18 +33,20 @@ static void apply_volume(
         int buf_count,
         const float* in_buffers[buf_count],
         float* out_buffers[buf_count],
-        float* scale_buffer,
-        float global_scale,
+        float* vol_buffer,
+        float global_vol,
         int32_t buf_start,
         int32_t buf_stop)
 {
     assert(buf_count > 0);
     assert(in_buffers != NULL);
     assert(out_buffers != NULL);
-    assert(global_scale >= 0);
+    assert(isfinite(global_vol));
     assert(buf_start >= 0);
 
-    // Copy input to output with global scaling
+    const float global_scale = dB_to_scale(global_vol);
+
+    // Copy input to output with global volume adjustment
     for (int ch = 0; ch < buf_count; ++ch)
     {
         const float* in = in_buffers[ch];
@@ -56,8 +58,8 @@ static void apply_volume(
             out[frame] = in[frame] * global_scale;
     }
 
-    // Scale output based on control stream
-    if (scale_buffer != NULL)
+    // Adjust output based on volume buffer
+    if (vol_buffer != NULL)
     {
         for (int ch = 0; ch < buf_count; ++ch)
         {
@@ -66,7 +68,7 @@ static void apply_volume(
                 continue;
 
             for (int32_t i = buf_start; i < buf_stop; ++i)
-                out[i] *= scale_buffer[i];
+                out[i] *= dB_to_scale(vol_buffer[i]);
         }
     }
 
@@ -77,7 +79,7 @@ static void apply_volume(
 typedef struct Volume_pstate
 {
     Proc_state parent;
-    float scale;
+    double volume;
 } Volume_pstate;
 
 
@@ -87,12 +89,8 @@ bool Volume_pstate_set_volume(
     assert(dstate != NULL);
     assert(indices != NULL);
 
-    Volume_pstate* vol_state = (Volume_pstate*)dstate;
-
-    if (isfinite(value))
-        vol_state->scale = dB_to_scale(value);
-    else
-        vol_state->scale = 1.0;
+    Volume_pstate* vpstate = (Volume_pstate*)dstate;
+    vpstate->volume = isfinite(value) ? value : 0.0;
 
     return true;
 }
@@ -110,10 +108,10 @@ static void Volume_pstate_render_mixed(
     assert(isfinite(tempo));
     assert(tempo > 0);
 
-    Volume_pstate* vol_pstate = (Volume_pstate*)dstate;
+    Volume_pstate* vpstate = (Volume_pstate*)dstate;
 
     // Get control stream
-    float* scale_buf =
+    float* vol_buf =
         Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
 
     // Get input
@@ -130,8 +128,7 @@ static void Volume_pstate_render_mixed(
         Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 1),
     };
 
-    apply_volume(
-            2, in_bufs, out_bufs, scale_buf, vol_pstate->scale, buf_start, buf_stop);
+    apply_volume(2, in_bufs, out_bufs, vol_buf, vpstate->volume, buf_start, buf_stop);
 
     return;
 }
@@ -154,7 +151,7 @@ Device_state* new_Volume_pstate(
 
     vol_state->parent.render_mixed = Volume_pstate_render_mixed;
 
-    vol_state->scale = 1.0;
+    vol_state->volume = 0.0;
 
     return (Device_state*)vol_state;
 }
@@ -191,7 +188,7 @@ int32_t Volume_vstate_render_voice(
     assert(tempo > 0);
 
     // Get control stream
-    float* scale_buf = Proc_state_get_voice_buffer_contents_mut(
+    float* volume_buf = Proc_state_get_voice_buffer_contents_mut(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
 
     // Get input
@@ -215,9 +212,8 @@ int32_t Volume_vstate_render_voice(
         Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 1),
     };
 
-    const Volume_pstate* vol_pstate = (const Volume_pstate*)proc_state;
-    apply_volume(
-            2, in_bufs, out_bufs, scale_buf, vol_pstate->scale, buf_start, buf_stop);
+    const Volume_pstate* vpstate = (const Volume_pstate*)proc_state;
+    apply_volume(2, in_bufs, out_bufs, volume_buf, vpstate->volume, buf_start, buf_stop);
 
     return buf_stop;
 }
