@@ -152,7 +152,7 @@ static int32_t Force_vstate_render_voice(
 
         // Convert envelope data to dB
         for (int32_t i = buf_start; i < env_force_stop; ++i)
-            time_env[i] = scale_to_dB(time_env[i]);
+            time_env[i] = fast_scale_to_dB(time_env[i]);
 
         // Check the end of envelope processing
         if (fvstate->env_state.is_finished)
@@ -217,7 +217,7 @@ static int32_t Force_vstate_render_voice(
 
             // Convert envelope data to dB
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                time_env[i] = scale_to_dB(time_env[i]);
+                time_env[i] = fast_scale_to_dB(time_env[i]);
 
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
                 out_buf[i] += time_env[i];
@@ -248,7 +248,7 @@ static int32_t Force_vstate_render_voice(
 
                 for (i = buf_start; (i < buf_stop) && (progress < 1); ++i)
                 {
-                    out_buf[i] += scale_to_dB(1 - progress);
+                    out_buf[i] += fast_scale_to_dB(1 - progress);
                     progress += ramp_step;
                 }
 

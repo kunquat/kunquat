@@ -194,7 +194,7 @@ static int32_t Envgen_vstate_render_voice(
         // Convert to dB
         const double global_adjust = egen->global_adjust;
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            out_buffer[i] = scale_to_dB(out_buffer[i]) + global_adjust;
+            out_buffer[i] = fast_scale_to_dB(out_buffer[i]) + global_adjust;
     }
     else
     {
