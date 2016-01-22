@@ -39,7 +39,7 @@ inline double fast_exp2(double x)
 #define KQT_FAST_EXP2_LN2_2 0.480453013918201424
 #define KQT_FAST_EXP2_LN3_2 0.333024651988929479
     static const double f2 = 0.5 * KQT_FAST_EXP2_LN2_2;
-    //static const double f3 = (1.0 / 6.0) * KQT_FAST_EXP2_LN3_2;
+    static const double f3 = (1.0 / 6.0) * KQT_FAST_EXP2_LN3_2;
 
     // For all fast_exp2(x) > 0, 2048 shifts x to positive side to avoid stupid fmod
     static const double pre_shift = 2048.0 + 0.5;
@@ -52,9 +52,9 @@ inline double fast_exp2(double x)
     const int shift_amount = fa - 2048;
 
     const double sx2 = sx * sx;
-    //const double sx3 = sx2 * sx;
+    const double sx3 = sx2 * sx;
 
-    const double esx = 1 + (sx * KQT_FAST_EXP2_LN2) + (sx2 * f2);
+    const double esx = 1 + (sx * KQT_FAST_EXP2_LN2) + (sx2 * f2) + (sx3 * f3);
 #undef KQT_FAST_EXP2_LN2
 #undef KQT_FAST_EXP2_LN2_2
 #undef KQT_FAST_EXP2_LN3_2

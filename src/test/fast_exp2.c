@@ -23,7 +23,7 @@
 
 START_TEST(Maximum_relative_error_is_small)
 {
-    static const double small = 0.01;
+    static const double small = 0.001;
     static const int32_t test_count = 1048577;
 
     for (int32_t i = 0; i < test_count; ++i)
