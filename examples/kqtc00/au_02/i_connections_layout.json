@@ -2,9 +2,8 @@
 
 {
     "Iin": { "offset": [-350, 100] },
-    "proc_01": { "offset": [-200, 0] },
+    "proc_01": { "offset": [-50, 100] },
     "proc_02": { "offset": [-200, 100] },
-    "proc_03": { "offset": [0, 75] },
     "proc_04": { "offset": [-50, -25] },
     "proc_00": { "offset": [150, -25] },
     "proc_06": { "offset": [-350, -125] },
