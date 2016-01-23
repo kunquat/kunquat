@@ -12,8 +12,6 @@
 #
 
 from addproc import AddProc
-from chorusproc import ChorusProc
-from delayproc import DelayProc
 from envgenproc import EnvgenProc
 from filterproc import FilterProc
 from forceproc import ForceProc
@@ -30,8 +28,6 @@ from unsupportedproc import UnsupportedProc
 
 _proc_classes = {
     'add':      AddProc,
-    'chorus':   ChorusProc,
-    'delay':    DelayProc,
     'envgen':   EnvgenProc,
     'filter':   FilterProc,
     'force':    ForceProc,
