@@ -46,8 +46,9 @@ size_t Add_vstate_get_size(void)
 
 
 static const int ADD_WORK_BUFFER_FIXED_PITCH = WORK_BUFFER_IMPL_1;
-static const int ADD_WORK_BUFFER_MOD_L = WORK_BUFFER_IMPL_2;
-static const int ADD_WORK_BUFFER_MOD_R = WORK_BUFFER_IMPL_3;
+static const int ADD_WORK_BUFFER_FIXED_FORCE = WORK_BUFFER_IMPL_2;
+static const int ADD_WORK_BUFFER_MOD_L = WORK_BUFFER_IMPL_3;
+static const int ADD_WORK_BUFFER_MOD_R = WORK_BUFFER_IMPL_4;
 
 
 static int32_t Add_vstate_render_voice(
@@ -82,14 +83,23 @@ static int32_t Add_vstate_render_voice(
     else
     {
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            freqs[i] = cents_to_Hz(freqs[i]);
+            freqs[i] = fast_cents_to_Hz(freqs[i]);
     }
 
     // Get volume scales
-    const Cond_work_buffer* vol_scales = Cond_work_buffer_init(
-            COND_WORK_BUFFER_AUTO,
-            Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 1),
-            1.0);
+    float* scales = Proc_state_get_voice_buffer_contents_mut(
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, 1);
+    if (scales == NULL)
+    {
+        scales = Work_buffers_get_buffer_contents_mut(wbs, ADD_WORK_BUFFER_FIXED_FORCE);
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            scales[i] = 1;
+    }
+    else
+    {
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            scales[i] = fast_dB_to_scale(scales[i]);
+    }
 
     // Get output buffer for writing
     float* out_bufs[] =
@@ -166,7 +176,7 @@ static int32_t Add_vstate_render_voice(
             for (int32_t i = buf_start; i < buf_stop; ++i)
             {
                 const float freq = freqs[i];
-                const float vol_scale = Cond_work_buffer_get_value(vol_scales, i);
+                const float vol_scale = scales[i];
                 const float mod_val = mod_values_ch[i];
 
                 // Note: + mod_val is specific to phase modulation

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -73,13 +73,8 @@ def test_add_external_deps(builder, options, cc):
         if not options.with_sndfile:
             conf_errors.append('kunquat-export was requested without libsndfile.')
 
-    if options.enable_profiling:
-        if not _test_add_lib_with_header(builder, cc, 'm_p', 'math.h'):
-            conf_errors.append(
-                    'Profiling was requested but profiling math library was not found.')
-    else:
-        if not _test_add_lib_with_header(builder, cc, 'm', 'math.h'):
-            conf_errors.append('Math library was not found.')
+    if not _test_add_lib_with_header(builder, cc, 'm', 'math.h'):
+        conf_errors.append('Math library was not found.')
 
     if conf_errors:
         print('\nCould not configure Kunquat due to the following error{}:\n'.format(

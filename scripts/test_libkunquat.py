@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -45,7 +45,7 @@ def test_libkunquat(builder, options, cc):
     # Define which tests depend on others
     deps = defaultdict(lambda: [], {
             'handle': ['streader', 'tstamp'],
-            'player': ['handle', 'streader', 'fast_sin'],
+            'player': ['handle', 'streader', 'fast_sin', 'fast_exp2', 'fast_log2'],
             'memory': ['handle'],
             'connections': ['handle', 'player'],
             'generator': ['connections'],
@@ -56,7 +56,7 @@ def test_libkunquat(builder, options, cc):
     finished_tests = set()
 
     # Specify tests that should always run without memory debugging (for performance)
-    force_disable_mem_tests = set(['fast_sin'])
+    force_disable_mem_tests = set(['fast_sin', 'fast_exp2', 'fast_log2'])
 
     echo = '\n   Testing libkunquat\n'
 

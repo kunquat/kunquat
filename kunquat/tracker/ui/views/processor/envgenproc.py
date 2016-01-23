@@ -40,18 +40,22 @@ class EnvgenProc(QWidget):
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
+        self._updater = None
 
-        # TODO: range edit
-
-        self._scale = ScaleSlider()
+        self._global_adjust = GlobalAdjustSlider()
+        self._linear_force = QCheckBox('Linear force')
         self._range = RangeEditor()
         self._time_env = EgenTimeEnv()
         self._force_env = ForceEnv()
 
+        rl = QHBoxLayout()
+        rl.addWidget(self._linear_force)
+        rl.addWidget(self._range)
+
         v = QVBoxLayout()
         v.setSpacing(10)
-        v.addWidget(self._scale)
-        v.addWidget(self._range)
+        v.addWidget(self._global_adjust)
+        v.addLayout(rl)
         v.addWidget(self._time_env)
         v.addWidget(self._force_env)
         self.setLayout(v)
@@ -60,49 +64,86 @@ class EnvgenProc(QWidget):
 
     def set_au_id(self, au_id):
         self._au_id = au_id
-        self._scale.set_au_id(au_id)
+        self._global_adjust.set_au_id(au_id)
         self._range.set_au_id(au_id)
         self._time_env.set_au_id(au_id)
         self._force_env.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._proc_id = proc_id
-        self._scale.set_proc_id(proc_id)
+        self._global_adjust.set_proc_id(proc_id)
         self._range.set_proc_id(proc_id)
         self._time_env.set_proc_id(proc_id)
         self._force_env.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._scale.set_ui_model(ui_model)
+        self._global_adjust.set_ui_model(ui_model)
         self._range.set_ui_model(ui_model)
         self._time_env.set_ui_model(ui_model)
         self._force_env.set_ui_model(ui_model)
 
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(
+                self._linear_force,
+                SIGNAL('stateChanged(int)'),
+                self._change_linear_force)
+
+        self._update_linear_force()
+
     def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
         self._force_env.unregister_updaters()
         self._time_env.unregister_updaters()
         self._range.unregister_updaters()
-        self._scale.unregister_updaters()
+        self._global_adjust.unregister_updaters()
+
+    def _get_update_signal_type(self):
+        return 'signal_egen_linear_force_{}'.format(self._proc_id)
+
+    def _perform_updates(self, signals):
+        if self._get_update_signal_type() in signals:
+            self._update_linear_force()
+
+    def _update_linear_force(self):
+        egen_params = get_egen_params(self)
+        enabled = egen_params.get_linear_force_enabled()
+
+        self._force_env.setEnabled(enabled)
+        self._range.setEnabled(not enabled)
+
+        old_block = self._linear_force.blockSignals(True)
+        self._linear_force.setCheckState(Qt.Checked if enabled else Qt.Unchecked)
+        self._linear_force.blockSignals(old_block)
+
+    def _change_linear_force(self, state):
+        enabled = (state == Qt.Checked)
+
+        egen_params = get_egen_params(self)
+        egen_params.set_linear_force_enabled(enabled)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
-class ScaleSlider(ProcNumSlider):
+# TODO: change this into a spinbox -- a proper range is too wide for a slider
+class GlobalAdjustSlider(ProcNumSlider):
 
     def __init__(self):
-        ProcNumSlider.__init__(self, 2, -64.0, 24.0, title='Scale')
+        ProcNumSlider.__init__(self, 2, -128.0, 128.0, title='Global adjust')
         self.set_number(0)
 
     def _update_value(self):
         egen_params = get_egen_params(self)
-        self.set_number(egen_params.get_scale())
+        self.set_number(egen_params.get_global_adjust())
 
-    def _value_changed(self, scale):
+    def _value_changed(self, value):
         egen_params = get_egen_params(self)
-        egen_params.set_scale(scale)
+        egen_params.set_global_adjust(value)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _get_update_signal_type(self):
-        return ''.join(('signal_egen_scale_', self._au_id, self._proc_id))
+        return 'signal_egen_global_adjust_{}'.format(self._proc_id)
 
 
 class RangeEditor(QWidget):

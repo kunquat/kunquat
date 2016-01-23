@@ -98,6 +98,10 @@ class Processor():
             'stream':   ProcParamsStream,
             'volume':   ProcParamsVolume,
         }
+
+        if self.get_type() not in types:
+            return None
+
         cons = types[self.get_type()]
         return cons(self._proc_id, self._controller)
 
@@ -111,6 +115,9 @@ class Processor():
 
     def get_port_names(self):
         type_params = self.get_type_params()
+        if not type_params:
+            return {}
+
         return type_params.get_port_names()
 
 

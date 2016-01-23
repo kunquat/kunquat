@@ -40,6 +40,8 @@ Device_impl* new_Proc_volume(void)
     if (volume == NULL)
         return NULL;
 
+    volume->volume = 0.0;
+
     if (!Device_impl_init(&volume->parent, del_Proc_volume))
     {
         del_Device_impl(&volume->parent);
@@ -66,8 +68,6 @@ Device_impl* new_Proc_volume(void)
         return NULL;
     }
 
-    volume->scale = 1.0;
-
     return &volume->parent;
 }
 
@@ -79,7 +79,7 @@ static bool Proc_volume_set_volume(
     assert(indices != NULL);
 
     Proc_volume* volume = (Proc_volume*)dimpl;
-    volume->scale = isfinite(value) ? dB_to_scale(value) : 1.0;
+    volume->volume = isfinite(value) ? value : 0.0;
 
     return true;
 }

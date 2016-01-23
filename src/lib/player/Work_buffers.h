@@ -30,6 +30,7 @@ typedef enum
     WORK_BUFFER_IMPL_2,
     WORK_BUFFER_IMPL_3,
     WORK_BUFFER_IMPL_4,
+    WORK_BUFFER_IMPL_5,
     WORK_BUFFER_TIME_ENV,
     WORK_BUFFER_COUNT_
 } Work_buffer_type;

@@ -29,13 +29,14 @@
 #include <string.h>
 
 
-static Set_float_func       Proc_envgen_set_scale;
 static Set_bool_func        Proc_envgen_set_time_env_enabled;
 static Set_envelope_func    Proc_envgen_set_time_env;
 static Set_bool_func        Proc_envgen_set_loop_enabled;
 static Set_bool_func        Proc_envgen_set_release_env;
 static Set_float_func       Proc_envgen_set_env_scale_amount;
 static Set_float_func       Proc_envgen_set_env_scale_center;
+static Set_bool_func        Proc_envgen_set_linear_force;
+static Set_float_func       Proc_envgen_set_global_adjust;
 static Set_bool_func        Proc_envgen_set_force_env_enabled;
 static Set_envelope_func    Proc_envgen_set_force_env;
 static Set_num_list_func    Proc_envgen_set_y_range;
@@ -49,6 +50,23 @@ Device_impl* new_Proc_envgen(void)
     if (egen == NULL)
         return NULL;
 
+    egen->is_time_env_enabled = false;
+    egen->time_env = NULL;
+    egen->is_loop_enabled = false;
+    egen->is_release_env = false;
+    egen->env_scale_amount = 0;
+    egen->env_scale_center = 0;
+
+    egen->is_linear_force = false;
+
+    egen->global_adjust = 0;
+
+    egen->is_force_env_enabled = false;
+    egen->force_env = NULL;
+
+    egen->y_min = 0;
+    egen->y_max = 1;
+
     if (!Device_impl_init(&egen->parent, del_Proc_envgen))
     {
         del_Device_impl(&egen->parent);
@@ -58,34 +76,20 @@ Device_impl* new_Proc_envgen(void)
     egen->parent.get_vstate_size = Envgen_vstate_get_size;
     egen->parent.init_vstate = Envgen_vstate_init;
 
-    egen->scale = 1;
-
-    egen->is_time_env_enabled = false;
-    egen->time_env = NULL;
-    egen->is_loop_enabled = false;
-    egen->is_release_env = false;
-    egen->env_scale_amount = 0;
-    egen->env_scale_center = 0;
-
-    egen->is_force_env_enabled = false;
-    egen->force_env = NULL;
-
-    egen->y_min = 0;
-    egen->y_max = 1;
-
     bool reg_success = true;
 
 #define REGISTER_SET(type, field, key, def_val)                         \
     reg_success &= Device_impl_register_set_##type(                     \
             &egen->parent, key, def_val, Proc_envgen_set_##field, NULL)
 
-    REGISTER_SET(float,     scale,              "p_f_scale.json",               0.0);
     REGISTER_SET(bool,      time_env_enabled,   "p_b_env_enabled.json",         false);
     REGISTER_SET(envelope,  time_env,           "p_e_env.json",                 NULL);
     REGISTER_SET(bool,      loop_enabled,       "p_b_env_loop_enabled.json",    false);
     REGISTER_SET(bool,      release_env,        "p_b_env_is_release.json",      false);
     REGISTER_SET(float,     env_scale_amount,   "p_f_env_scale_amount.json",    0.0);
     REGISTER_SET(float,     env_scale_center,   "p_f_env_scale_center.json",    0.0);
+    REGISTER_SET(bool,      linear_force,       "p_b_linear_force.json",        false);
+    REGISTER_SET(float,     global_adjust,      "p_f_global_adjust.json",       0.0);
     REGISTER_SET(bool,      force_env_enabled,  "p_b_force_env_enabled.json",   false);
     REGISTER_SET(envelope,  force_env,          "p_e_force_env.json",           NULL);
     REGISTER_SET(num_list,  y_range,            "p_ln_y_range.json",            NULL);
@@ -99,19 +103,6 @@ Device_impl* new_Proc_envgen(void)
     }
 
     return &egen->parent;
-}
-
-
-static bool Proc_envgen_set_scale(
-        Device_impl* dimpl, const Key_indices indices, double value)
-{
-    assert(dimpl != NULL);
-    assert(indices != NULL);
-
-    Proc_envgen* egen = (Proc_envgen*)dimpl;
-    egen->scale = isfinite(value) ? dB_to_scale(value) : 1;
-
-    return true;
 }
 
 
@@ -218,6 +209,33 @@ static bool Proc_envgen_set_env_scale_center(
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
     egen->env_scale_center = isfinite(value) ? value : 0;
+
+    return true;
+}
+
+
+static bool Proc_envgen_set_linear_force(
+        Device_impl* dimpl, const Key_indices indices, bool value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+
+    Proc_envgen* egen = (Proc_envgen*)dimpl;
+
+    egen->is_linear_force = value;
+
+    return true;
+}
+
+
+static bool Proc_envgen_set_global_adjust(
+        Device_impl* dimpl, const Key_indices indices, double value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+
+    Proc_envgen* egen = (Proc_envgen*)dimpl;
+    egen->global_adjust = isfinite(value) ? value : 0;
 
     return true;
 }

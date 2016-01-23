@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -44,8 +44,7 @@ void assert_suppress_messages(void);
  */
 
 
-#if defined(HAS_EXECINFO) && !defined(SILENT_ASSERT)
-
+#if !defined(NDEBUG) && defined(HAS_EXECINFO) && !defined(SILENT_ASSERT)
 /**
  * Print a backtrace of the execution.
  */
@@ -53,13 +52,12 @@ void assert_print_backtrace(void);
 
 #else // !HAS_EXECINFO || SILENT_ASSERT
 
-#define assert_print_backtrace() (void)0
+#define assert_print_backtrace() ignore(0)
 
 #endif // !HAS_EXECINFO || SILENT_ASSERT
 
 
-#ifndef SILENT_ASSERT
-
+#if !defined(NDEBUG) && !defined(SILENT_ASSERT)
 /**
  * Print a message of failed assertion.
  *
@@ -76,7 +74,7 @@ void assert_print_msg(
 
 #else // SILENT_ASSERT
 
-#define assert_print_msg() (void)0
+#define assert_print_msg(file, line, func, expr) ignore(0)
 
 #endif // SILENT_ASSERT
 
@@ -86,7 +84,7 @@ void assert_print_msg(
 #define assert(expr)                                               \
     (                                                              \
         (expr) ?                                                   \
-            (void)0                                                \
+            ignore(0)                                              \
         :                                                          \
         (                                                          \
             assert_print_msg(__FILE__, __LINE__, __func__, #expr), \

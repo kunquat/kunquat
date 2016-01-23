@@ -20,21 +20,7 @@ class ProcParamsEnvgen(ProcParams):
         ProcParams.__init__(self, proc_id, controller)
 
     def get_port_names(self):
-        return { 'in_00': u'pitch', 'in_01': u'scale', 'out_00': u'env' }
-
-    def get_scale(self):
-        return self._get_value('p_f_scale.json', 0.0)
-
-    def set_scale(self, value):
-        self._set_value('p_f_scale.json', value)
-
-    def get_y_range(self):
-        return self._get_value('p_ln_y_range.json', [0, 1])
-
-    def set_y_range(self, y_range):
-        assert len(y_range) == 2
-        assert y_range[0] <= y_range[1]
-        self._set_value('p_ln_y_range.json', y_range)
+        return { 'in_00': u'pitch', 'in_01': u'force', 'out_00': u'env' }
 
     def get_time_env_enabled(self):
         return self._get_value('p_b_env_enabled.json', False)
@@ -75,6 +61,18 @@ class ProcParamsEnvgen(ProcParams):
     def set_time_env_scale_center(self, value):
         self._set_value('p_f_env_scale_center.json', value)
 
+    def get_linear_force_enabled(self):
+        return self._get_value('p_b_linear_force.json', False)
+
+    def set_linear_force_enabled(self, enabled):
+        self._set_value('p_b_linear_force.json', enabled)
+
+    def get_global_adjust(self):
+        return self._get_value('p_f_global_adjust.json', 0)
+
+    def set_global_adjust(self, value):
+        self._set_value('p_f_global_adjust.json', value)
+
     def get_force_env_enabled(self):
         return self._get_value('p_b_force_env_enabled.json', False)
 
@@ -89,5 +87,13 @@ class ProcParamsEnvgen(ProcParams):
 
     def set_force_env(self, envelope):
         self._set_value('p_e_force_env.json', envelope)
+
+    def get_y_range(self):
+        return self._get_value('p_ln_y_range.json', [0, 1])
+
+    def set_y_range(self, y_range):
+        assert len(y_range) == 2
+        assert y_range[0] <= y_range[1]
+        self._set_value('p_ln_y_range.json', y_range)
 
 
