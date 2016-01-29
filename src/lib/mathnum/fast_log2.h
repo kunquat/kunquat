@@ -26,7 +26,7 @@
  *
  * \param x   The input value -- must be finite and > \c 0.
  *
- * \return   log2(\a x).
+ * \return   Roughly log2(\a x).
  */
 inline double fast_log2(double x)
 {
@@ -40,14 +40,14 @@ inline double fast_log2(double x)
 
     const double sxmp1 = (sx - 1) / (sx + 1);
     const double sxmp1_2 = sxmp1 * sxmp1;
-    const double sxmp1_3 = sxmp1 * sxmp1_2;
-    const double sxmp1_5 = sxmp1_3 * sxmp1_2;
 
     static const double fac = 2.8853900817779268; // 2 * (1 / ln(2))
     static const double f13 = (1.0 / 3.0);
     static const double f15 = (1.0 / 5.0);
+    static const double facf13 = fac * f13;
+    static const double facf15 = fac * f15;
 
-    const double l2sx = fac * (sxmp1 + (f13 * sxmp1_3) + (f15 * sxmp1_5));
+    const double l2sx = sxmp1 * (fac + sxmp1_2 * (facf13 + (facf15 * sxmp1_2)));
 
     return l2sx + exp;
 }
