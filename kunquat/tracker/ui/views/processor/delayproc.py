@@ -81,8 +81,6 @@ class MaxDelay(QDoubleSpinBox):
         self.setMaximum(60)
         self.setValue(1)
 
-        #self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
-
     def set_au_id(self, au_id):
         self._au_id = au_id
 
