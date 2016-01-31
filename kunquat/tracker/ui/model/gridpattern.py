@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -48,7 +48,7 @@ class GridPattern():
         self._session = None
         self._store = None
 
-        self._id = gp_id
+        self._id = str(gp_id) # JSON dicts only use string keys
 
         self._model_data = None
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -50,7 +50,17 @@ class GridManager():
 
     def get_editable_grid_pattern_ids(self):
         raw_dict = self._get_raw_master_dict()
-        valid_keys = [k for k in raw_dict if isinstance(k, int) and (k >= 0)]
+
+        # JSON only supports string keys, so convert them back for convenience
+        # TODO: maybe we should switch to string type all the way internally
+        valid_keys = []
+        for key in raw_dict.iterkeys():
+            try:
+                converted = int(key)
+                valid_keys.append(converted)
+            except ValueError:
+                pass
+
         return valid_keys
 
     def select_grid_pattern(self, gp_id):
