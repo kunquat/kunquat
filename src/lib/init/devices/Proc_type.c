@@ -47,7 +47,7 @@ static const Proc_type proc_types[] =
 {
     { "debug", new_Proc_debug },
     { "add", new_Proc_add },
-    { "chorus", new_Proc_chorus },
+    { "delay", new_Proc_chorus },
     { "envgen", new_Proc_envgen },
     { "filter", new_Proc_filter },
     { "force", new_Proc_force },

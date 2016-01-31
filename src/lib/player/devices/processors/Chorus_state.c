@@ -29,6 +29,7 @@
 #include <stdlib.h>
 
 
+#if 0
 typedef struct Chorus_voice
 {
     Linear_controls delay_variance;
@@ -38,6 +39,7 @@ typedef struct Chorus_voice
     double speed;
     double volume;
 } Chorus_voice;
+#endif
 
 
 typedef struct Chorus_pstate
@@ -46,10 +48,11 @@ typedef struct Chorus_pstate
 
     Audio_buffer* buf;
     int32_t buf_pos;
-    Chorus_voice voices[CHORUS_VOICES_MAX];
+    //Chorus_voice voices[CHORUS_VOICES_MAX];
 } Chorus_pstate;
 
 
+#if 0
 static void Chorus_voice_reset(
         Chorus_voice* voice, const Chorus_voice_params* params, int32_t audio_rate)
 {
@@ -83,6 +86,7 @@ static void Chorus_voice_reset(
 
     return;
 }
+#endif
 
 
 static void Chorus_pstate_deinit(Device_state* dev_state)
@@ -109,7 +113,9 @@ static bool Chorus_pstate_set_audio_rate(Device_state* dstate, int32_t audio_rat
 
     Chorus_pstate* cstate = (Chorus_pstate*)dstate;
 
-    const int32_t delay_buf_size = CHORUS_BUF_TIME * audio_rate + 1;
+    const Proc_chorus* delay = (const Proc_chorus*)dstate->device->dimpl;
+
+    const int32_t delay_buf_size = delay->max_delay * audio_rate + 1;
 
     assert(cstate->buf != NULL);
     if (!Audio_buffer_resize(cstate->buf, delay_buf_size))
@@ -118,12 +124,14 @@ static bool Chorus_pstate_set_audio_rate(Device_state* dstate, int32_t audio_rat
     Audio_buffer_clear(cstate->buf, 0, Audio_buffer_get_size(cstate->buf));
     cstate->buf_pos = 0;
 
+    /*
     for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
     {
         Chorus_voice* voice = &cstate->voices[i];
         Linear_controls_set_audio_rate(&voice->delay_variance, audio_rate);
         Linear_controls_set_audio_rate(&voice->volume_controls, audio_rate);
     }
+    // */
 
     return true;
 }
@@ -134,18 +142,20 @@ static void Chorus_pstate_reset(Device_state* dstate)
     assert(dstate != NULL);
 
     Chorus_pstate* cstate = (Chorus_pstate*)dstate;
-    const Proc_chorus* chorus = (Proc_chorus*)dstate->device->dimpl;
+    //const Proc_chorus* chorus = (Proc_chorus*)dstate->device->dimpl;
 
     const uint32_t delay_buf_size = Audio_buffer_get_size(cstate->buf);
     Audio_buffer_clear(cstate->buf, 0, delay_buf_size);
     cstate->buf_pos = 0;
 
+    /*
     for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
     {
         const Chorus_voice_params* params = &chorus->voice_params[i];
         Chorus_voice* voice = &cstate->voices[i];
         Chorus_voice_reset(voice, params, cstate->parent.parent.audio_rate);
     }
+    // */
 
     return;
 }
@@ -164,6 +174,8 @@ static void Chorus_pstate_render_mixed(
     assert(tempo > 0);
 
     Chorus_pstate* cstate = (Chorus_pstate*)dstate;
+
+    const Proc_chorus* delay = (const Proc_chorus*)dstate->device->dimpl;
 
     const float* in_data[] =
     {
@@ -188,7 +200,7 @@ static void Chorus_pstate_render_mixed(
 
     static const int CHORUS_WORK_BUFFER_TOTAL_OFFSETS = WORK_BUFFER_IMPL_1;
     static const int CHORUS_WORK_BUFFER_DELAY = WORK_BUFFER_IMPL_2;
-    static const int CHORUS_WORK_BUFFER_VOLUME = WORK_BUFFER_IMPL_3;
+    //static const int CHORUS_WORK_BUFFER_VOLUME = WORK_BUFFER_IMPL_3;
 
     float* total_offsets = Work_buffers_get_buffer_contents_mut(
             wbs, CHORUS_WORK_BUFFER_TOTAL_OFFSETS);
@@ -197,14 +209,22 @@ static void Chorus_pstate_render_mixed(
         Work_buffers_get_buffer(wbs, CHORUS_WORK_BUFFER_DELAY);
     float* delays = Work_buffer_get_contents_mut(delays_wb);
 
-    const Work_buffer* vols_wb = Work_buffers_get_buffer(wbs, CHORUS_WORK_BUFFER_VOLUME);
-    float* vols = Work_buffer_get_contents_mut(vols_wb);
+    // Fill in default delay
+    {
+        const float init_delay = delay->init_delay;
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            delays[i] = init_delay;
+    }
+
+    //const Work_buffer* vols_wb = Work_buffers_get_buffer(wbs, CHORUS_WORK_BUFFER_VOLUME);
+    //float* vols = Work_buffer_get_contents_mut(vols_wb);
 
     int32_t cur_cstate_buf_pos = cstate->buf_pos;
 
     const int32_t audio_rate = dstate->audio_rate;
 
     // Mix chorus voices
+/*
     for (int vi = 0; vi < CHORUS_VOICES_MAX; ++vi)
     {
         Chorus_voice* voice = &cstate->voices[vi];
@@ -219,85 +239,87 @@ static void Chorus_pstate_render_mixed(
 
         Linear_controls_fill_work_buffer(
                 &voice->volume_controls, vols_wb, buf_start, buf_stop);
+// */
 
-        // Get total offsets
-        for (int32_t i = buf_start, chunk_offset = 0; i < buf_stop; ++i, ++chunk_offset)
+    // Get total offsets
+    for (int32_t i = buf_start, chunk_offset = 0; i < buf_stop; ++i, ++chunk_offset)
+    {
+        const float delay = delays[i];
+        float delay_frames = delay * audio_rate;
+        delay_frames = clamp(delay_frames, 0, delay_max);
+        total_offsets[i] = chunk_offset - delay_frames;
+    }
+
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        const float* in = in_data[ch];
+        float* out = out_data[ch];
+        if ((in == NULL) || (out == NULL))
+            continue;
+
+        const float* history = history_data[ch];
+        assert(history != NULL);
+
+        for (int32_t i = buf_start; i < buf_stop; ++i)
         {
-            const double delay = delays[i];
-            double delay_frames = delay * CHORUS_DELAY_SCALE * audio_rate;
-            delay_frames = clamp(delay_frames, 0, delay_max);
-            total_offsets[i] = chunk_offset - delay_frames;
-        }
+            const float total_offset = total_offsets[i];
+            //const float volume = dB_to_scale(vols[i]);
 
-        for (int ch = 0; ch < 2; ++ch)
-        {
-            const float* in = in_data[ch];
-            float* out = out_data[ch];
-            if ((in == NULL) || (out == NULL))
-                continue;
+            // Get buffer positions
+            const int32_t cur_pos = (int32_t)floor(total_offset);
+            const double remainder = total_offset - cur_pos;
+            assert(cur_pos <= (int32_t)i);
+            assert(implies(cur_pos == (int32_t)i, remainder == 0));
+            const int32_t next_pos = cur_pos + 1;
 
-            const float* history = history_data[ch];
-            assert(history != NULL);
+            // Get audio frames
+            double cur_val = 0;
+            double next_val = 0;
 
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+            if (cur_pos >= 0)
             {
-                const float total_offset = total_offsets[i];
-                const float volume = dB_to_scale(vols[i]);
+                const int32_t in_cur_pos = buf_start + cur_pos;
+                assert(in_cur_pos < (int32_t)buf_stop);
+                cur_val = in[in_cur_pos];
 
-                // Get buffer positions
-                const int32_t cur_pos = (int32_t)floor(total_offset);
-                const double remainder = total_offset - cur_pos;
-                assert(cur_pos <= (int32_t)i);
-                assert(implies(cur_pos == (int32_t)i, remainder == 0));
-                const int32_t next_pos = cur_pos + 1;
+                const int32_t in_next_pos = min(buf_start + next_pos, i);
+                assert(in_next_pos < (int32_t)buf_stop);
+                next_val = in[in_next_pos];
+            }
+            else
+            {
+                const int32_t cur_delay_buf_pos =
+                    (cur_cstate_buf_pos + cur_pos + delay_buf_size) % delay_buf_size;
+                assert(cur_delay_buf_pos >= 0);
 
-                // Get audio frames
-                double cur_val = 0;
-                double next_val = 0;
+                cur_val = history[cur_delay_buf_pos];
 
-                if (cur_pos >= 0)
+                if (next_pos < 0)
                 {
-                    const int32_t in_cur_pos = buf_start + cur_pos;
-                    assert(in_cur_pos < (int32_t)buf_stop);
-                    cur_val = in[in_cur_pos];
+                    const int32_t next_delay_buf_pos =
+                        (cur_cstate_buf_pos + next_pos + delay_buf_size) %
+                        delay_buf_size;
+                    assert(next_delay_buf_pos >= 0);
 
-                    const int32_t in_next_pos = min(buf_start + next_pos, i);
-                    assert(in_next_pos < (int32_t)buf_stop);
-                    next_val = in[in_next_pos];
+                    next_val = history[next_delay_buf_pos];
                 }
                 else
                 {
-                    const int32_t cur_delay_buf_pos =
-                        (cur_cstate_buf_pos + cur_pos + delay_buf_size) % delay_buf_size;
-                    assert(cur_delay_buf_pos >= 0);
-
-                    cur_val = history[cur_delay_buf_pos];
-
-                    if (next_pos < 0)
-                    {
-                        const int32_t next_delay_buf_pos =
-                            (cur_cstate_buf_pos + next_pos + delay_buf_size) %
-                            delay_buf_size;
-                        assert(next_delay_buf_pos >= 0);
-
-                        next_val = history[next_delay_buf_pos];
-                    }
-                    else
-                    {
-                        assert(next_pos == 0);
-                        next_val = in[buf_start];
-                    }
+                    assert(next_pos == 0);
+                    next_val = in[buf_start];
                 }
-
-                // Create output frame
-                const double prev_scale = 1 - remainder;
-                const float val =
-                    (prev_scale * volume * cur_val) + (remainder * volume * next_val);
-
-                out[i] += val;
             }
+
+            // Create output frame
+            const double prev_scale = 1 - remainder;
+            const float val =
+                (prev_scale * cur_val) + (remainder * next_val);
+
+            out[i] = val;
         }
     }
+
+    //}
 
     // Update the chorus state buffers
     for (int ch = 0; ch < 2; ++ch)
@@ -368,7 +390,9 @@ Device_state* new_Chorus_pstate(
     cstate->buf = NULL;
     cstate->buf_pos = 0;
 
-    const int32_t delay_buf_size = CHORUS_BUF_TIME * audio_rate + 1;
+    const Proc_chorus* delay = (const Proc_chorus*)device->dimpl;
+
+    const int32_t delay_buf_size = delay->max_delay * audio_rate + 1;
 
     cstate->buf = new_Audio_buffer(delay_buf_size);
     if (cstate->buf == NULL)
@@ -381,6 +405,30 @@ Device_state* new_Chorus_pstate(
 }
 
 
+bool Delay_pstate_set_max_delay(
+        Device_state* dstate, const Key_indices indices, double value)
+{
+    assert(dstate != NULL);
+    ignore(indices);
+    ignore(value);
+
+    Chorus_pstate* dpstate = (Chorus_pstate*)dstate;
+
+    const Proc_chorus* delay = (const Proc_chorus*)dstate->device->dimpl;
+
+    const int32_t delay_buf_size = delay->max_delay * dstate->audio_rate + 1;
+
+    if (!Audio_buffer_resize(dpstate->buf, delay_buf_size))
+        return false;
+
+    Audio_buffer_clear(dpstate->buf, 0, Audio_buffer_get_size(dpstate->buf));
+    dpstate->buf_pos = 0;
+
+    return true;
+}
+
+
+/*
 static Linear_controls* Chorus_pstate_get_cv_delay_variance(
         Device_state* dstate, const Key_indices indices)
 {
@@ -528,5 +576,6 @@ bool Chorus_pstate_set_voice_volume(
 
     return true;
 }
+// */
 
 

@@ -28,6 +28,10 @@
 Device_state* new_Chorus_pstate(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
+bool Delay_pstate_set_max_delay(
+        Device_state* dstate, const Key_indices indices, double value);
+
+/*
 bool Chorus_pstate_set_voice_delay(
         Device_state* dstate, const Key_indices indices, double value);
 bool Chorus_pstate_set_voice_range(
@@ -36,6 +40,7 @@ bool Chorus_pstate_set_voice_speed(
         Device_state* dstate, const Key_indices indices, double value);
 bool Chorus_pstate_set_voice_volume(
         Device_state* dstate, const Key_indices indices, double value);
+// */
 
 
 #endif // K_CHORUS_STATE_H

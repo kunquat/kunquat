@@ -31,10 +31,14 @@
 #include <string.h>
 
 
+/*
 #define CHORUS_PARAM(name, dev_key, update_key, def_value) \
     static Set_float_func Proc_chorus_set_voice_ ## name;
 #include <init/devices/processors/Proc_chorus_params.h>
+// */
 
+static Set_float_func Proc_delay_set_max_delay;
+static Set_float_func Proc_delay_set_init_delay;
 
 static void del_Proc_chorus(Device_impl* dimpl);
 
@@ -44,6 +48,9 @@ Device_impl* new_Proc_chorus(void)
     Proc_chorus* chorus = memory_alloc_item(Proc_chorus);
     if (chorus == NULL)
         return NULL;
+
+    chorus->max_delay = DELAY_DEFAULT_BUF_LENGTH;
+    chorus->init_delay = 0;
 
     if (!Device_impl_init(&chorus->parent, del_Proc_chorus))
     {
@@ -56,6 +63,7 @@ Device_impl* new_Proc_chorus(void)
     // Register key set/update handlers
     bool reg_success = true;
 
+/*
 #define CHORUS_PARAM(name, dev_key, update_key, def_value) \
     reg_success &= Device_impl_register_set_float(         \
             &chorus->parent,                               \
@@ -64,6 +72,21 @@ Device_impl* new_Proc_chorus(void)
             Proc_chorus_set_voice_ ## name,                \
             Chorus_pstate_set_voice_ ## name);
 #include <init/devices/processors/Proc_chorus_params.h>
+// */
+
+    reg_success &= Device_impl_register_set_float(
+            &chorus->parent,
+            "p_f_max_delay.json",
+            chorus->max_delay,
+            Proc_delay_set_max_delay,
+            Delay_pstate_set_max_delay);
+
+    reg_success &= Device_impl_register_set_float(
+            &chorus->parent,
+            "p_f_init_delay.json",
+            chorus->init_delay,
+            Proc_delay_set_init_delay,
+            NULL);
 
     if (!reg_success)
     {
@@ -71,6 +94,7 @@ Device_impl* new_Proc_chorus(void)
         return NULL;
     }
 
+#if 0
     for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
     {
         Chorus_voice_params* params = &chorus->voice_params[i];
@@ -80,11 +104,13 @@ Device_impl* new_Proc_chorus(void)
         params->speed = 0;
         params->volume = 1;
     }
+#endif
 
     return &chorus->parent;
 }
 
 
+#if 0
 static double get_voice_delay(double value)
 {
     return ((0 <= value) && (value < CHORUS_DELAY_MAX)) ? value : -1.0;
@@ -128,6 +154,38 @@ static double get_voice_volume(double value)
         return true;                                                     \
     }
 #include <init/devices/processors/Proc_chorus_params.h>
+#endif
+
+
+static bool Proc_delay_set_max_delay(
+        Device_impl* dimpl, const Key_indices indices, double value)
+{
+    assert(dimpl != NULL);
+    ignore(indices);
+
+    Proc_chorus* delay = (Proc_chorus*)dimpl;
+
+    if (isfinite(value) && (value > 0) && (value <= DELAY_MAX_BUF_LENGTH))
+        delay->max_delay = value;
+    else
+        delay->max_delay = DELAY_DEFAULT_BUF_LENGTH;
+
+    return true;
+}
+
+
+static bool Proc_delay_set_init_delay(
+        Device_impl* dimpl, const Key_indices indices, double value)
+{
+    assert(dimpl != NULL);
+    ignore(indices);
+
+    Proc_chorus* delay = (Proc_chorus*)dimpl;
+
+    delay->init_delay = (isfinite(value) && (value >= 0)) ? value : 0;
+
+    return true;
+}
 
 
 static void del_Proc_chorus(Device_impl* dimpl)
