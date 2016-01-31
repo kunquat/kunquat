@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2015
+# Author: Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -121,7 +121,11 @@ class SheetArea(QAbstractScrollArea):
         self._updater.register_updater(self._perform_updates)
         self._sheet_manager = ui_model.get_sheet_manager()
 
-        # Default zoom level
+        # Child widgets
+        self._ruler.set_ui_model(ui_model)
+        self.viewport().set_ui_model(ui_model)
+
+        # Initialise zoom levels
         px_per_beat = self._config['trs_per_beat'] * self._config['tr_height']
         self._zoom_levels = utils.get_zoom_levels(
                 1, px_per_beat, tstamp.BEAT, self._config['zoom_factor'])
@@ -130,7 +134,7 @@ class SheetArea(QAbstractScrollArea):
                 -self._default_zoom_index,
                 len(self._zoom_levels) - self._default_zoom_index - 1)
 
-        # Default column width
+        # Initialise column widths
         fm = self._config['font_metrics']
         em_px = int(math.ceil(fm.tightBoundingRect('m').width()))
         em_range = list(range(3, 41))
@@ -140,12 +144,9 @@ class SheetArea(QAbstractScrollArea):
                 -self._default_col_width_index,
                 len(self._col_width_levels) - self._default_col_width_index - 1)
 
+        # Apply default zoom level and column width
         self._set_px_per_beat(self._zoom_levels[self._default_zoom_index])
         self._set_column_width(self._col_width_levels[self._default_col_width_index])
-
-        # Child widgets
-        self._ruler.set_ui_model(ui_model)
-        self.viewport().set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -276,9 +276,9 @@ class ColumnCache():
 
     PIXMAP_HEIGHT = 256
 
-    def __init__(self, col_num, pat_num):
+    def __init__(self, col_num, pat_index):
         self._col_num = col_num
-        self._pat_num = pat_num
+        self._pat_index = pat_index
         self._inactive = False
         self._ui_model = None
 
@@ -403,11 +403,14 @@ class ColumnCache():
         # Grid
         sheet_manager = self._ui_model.get_sheet_manager()
         if sheet_manager.is_grid_enabled():
+            pinsts = utils.get_all_pattern_instances(self._ui_model)
+            pat_num = pinsts[self._pat_index].get_pattern_num()
+
             grid_start_ts = tstamp.Tstamp(0, start_px * tstamp.BEAT // self._px_per_beat)
             tr_height_ts = utils.get_tstamp_from_px(
                     self._config['tr_height'], self._px_per_beat)
             lines = grid.get_grid_lines(
-                    self._pat_num, self._col_num, grid_start_ts, stop_ts, tr_height_ts)
+                    pat_num, self._col_num, grid_start_ts, stop_ts, tr_height_ts)
 
             for line_info in lines:
                 line_ts, line_style = line_info
@@ -446,7 +449,7 @@ class ColumnCache():
         painter.eraseRect(QRect(0, 0, self._width, ColumnCache.PIXMAP_HEIGHT))
         painter.setPen(Qt.white)
         painter.drawRect(0, 0, self._width - 1, ColumnCache.PIXMAP_HEIGHT - 1)
-        pixmap_desc = '{}-{}-{}'.format(self._col_num, self._pat_num, index)
+        pixmap_desc = '{}-{}-{}'.format(self._col_num, self._pat_index, index)
         painter.drawText(QPoint(2, 12), pixmap_desc)
         """
 
