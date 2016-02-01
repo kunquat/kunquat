@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -12,6 +12,7 @@
 #
 
 from copy import deepcopy
+from types import NoneType
 
 from kunquat.kunquat.limits import PATTERNS_MAX
 import tstamp
@@ -46,14 +47,15 @@ class GridManager():
         return data if isinstance(data, dict) else {}
 
     def get_all_grid_pattern_ids(self):
-        return [0] + self.get_editable_grid_pattern_ids()
+        return [u'0'] + self.get_editable_grid_pattern_ids()
 
     def get_editable_grid_pattern_ids(self):
         raw_dict = self._get_raw_master_dict()
-        valid_keys = [k for k in raw_dict if isinstance(k, int) and (k >= 0)]
+        valid_keys = list(raw_dict.iterkeys())
         return valid_keys
 
     def select_grid_pattern(self, gp_id):
+        assert isinstance(gp_id, (NoneType, unicode))
         if gp_id != self.get_selected_grid_pattern_id():
             self._session.select_grid_pattern_line(None)
         self._session.select_grid_pattern(gp_id)
@@ -62,6 +64,7 @@ class GridManager():
         return self._session.get_selected_grid_pattern_id()
 
     def get_grid_pattern(self, gp_id):
+        assert isinstance(gp_id, (NoneType, unicode))
         gp = GridPattern(gp_id)
         gp.set_controller(self._controller)
         return gp
@@ -72,7 +75,7 @@ class GridManager():
         # Find a new unique ID
         used_ids = set(raw_master_dict.iterkeys())
         for i in xrange(1, len(used_ids) + 2):
-            new_id = i
+            new_id = unicode(i)
             if new_id not in used_ids:
                 break
         else:
@@ -119,7 +122,8 @@ class GridManager():
                 yield pattern
 
     def remove_grid_pattern(self, gp_id):
-        assert gp_id != 0
+        assert gp_id != u'0'
+        assert isinstance(gp_id, unicode)
         raw_master_dict = self._get_raw_master_dict()
         del raw_master_dict[gp_id]
         self._set_raw_master_dict(raw_master_dict)
@@ -163,7 +167,7 @@ class GridManager():
         return self._session.get_grid_pattern_zoom_range()
 
     def set_default_grid_pattern_id(self, gp_id):
-        assert (gp_id == None) or isinstance(gp_id, int)
+        assert isinstance(gp_id, (NoneType, unicode))
         self._session.set_default_grid_pattern_id(gp_id)
 
     def get_default_grid_pattern_id(self):

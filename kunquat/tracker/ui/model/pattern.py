@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -104,7 +104,7 @@ class Pattern():
         return edit
 
     def set_base_grid_pattern_id(self, gp_id):
-        assert (gp_id == None) or isinstance(gp_id, int)
+        assert (gp_id == None) or isinstance(gp_id, unicode)
         key = '{}/i_base_grid.json'.format(self._pattern_id)
         self._store[key] = gp_id
 

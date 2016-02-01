@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -48,6 +48,7 @@ class GridPattern():
         self._session = None
         self._store = None
 
+        assert isinstance(gp_id, unicode)
         self._id = gp_id
 
         self._model_data = None
