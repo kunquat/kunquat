@@ -48,7 +48,8 @@ class GridPattern():
         self._session = None
         self._store = None
 
-        self._id = str(gp_id) # JSON dicts only use string keys
+        assert isinstance(gp_id, unicode)
+        self._id = gp_id
 
         self._model_data = None
 

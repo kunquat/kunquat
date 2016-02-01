@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -10,6 +10,8 @@
 # To the extent possible under law, Kunquat Affirmers have waived all
 # copyright and related or neighboring rights to Kunquat.
 #
+
+from types import NoneType
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -268,8 +270,8 @@ class GridSelector(QComboBox):
             self._update_grid_pattern_selection()
 
     def _change_grid_pattern(self, index):
-        gp_id, success = self.itemData(index).toInt()
-        if (not success) or (gp_id == None):
+        gp_id = unicode(self.itemData(index).toString())
+        if not gp_id:
             return
 
         pattern = self._get_pattern()
