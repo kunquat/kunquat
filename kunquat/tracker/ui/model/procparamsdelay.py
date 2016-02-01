@@ -23,8 +23,9 @@ class ProcParamsDelay(ProcParams):
 
     def get_port_names(self):
         return {
-            'in_00':  u'audio L',
-            'in_01':  u'audio R',
+            'in_00':  u'delay',
+            'in_01':  u'audio L',
+            'in_02':  u'audio R',
             'out_00': u'audio L',
             'out_01': u'audio R',
         }
