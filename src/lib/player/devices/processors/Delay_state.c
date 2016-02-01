@@ -109,8 +109,8 @@ static void Delay_pstate_render_mixed(
 
     const float* in_data[] =
     {
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 0),
         Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 1),
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 2),
     };
 
     float* out_data[] =
@@ -129,17 +129,18 @@ static void Delay_pstate_render_mixed(
     const int32_t delay_max = delay_buf_size - 1;
 
     static const int DELAY_WORK_BUFFER_TOTAL_OFFSETS = WORK_BUFFER_IMPL_1;
-    static const int DELAY_WORK_BUFFER_DELAY = WORK_BUFFER_IMPL_2;
+    static const int DELAY_WORK_BUFFER_FIXED_DELAY = WORK_BUFFER_IMPL_2;
 
     float* total_offsets = Work_buffers_get_buffer_contents_mut(
             wbs, DELAY_WORK_BUFFER_TOTAL_OFFSETS);
 
-    const Work_buffer* delays_wb =
-        Work_buffers_get_buffer(wbs, DELAY_WORK_BUFFER_DELAY);
-    float* delays = Work_buffer_get_contents_mut(delays_wb);
-
-    // Fill in default delay
+    // Get delay stream
+    float* delays =
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
+    if (delays == NULL)
     {
+        delays =
+            Work_buffers_get_buffer_contents_mut(wbs, DELAY_WORK_BUFFER_FIXED_DELAY);
         const float init_delay = delay->init_delay;
         for (int32_t i = buf_start; i < buf_stop; ++i)
             delays[i] = init_delay;
