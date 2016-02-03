@@ -46,15 +46,6 @@ typedef struct Proc_envgen
 } Proc_envgen;
 
 
-/**
- * Create a new envelope generator processor.
- *
- * \return   The new envelope generator processor if successful, or \c NULL if
- *           memory allocation failed.
- */
-Device_impl* new_Proc_envgen(void);
-
-
 #endif // K_PROC_ENVGEN_H
 
 

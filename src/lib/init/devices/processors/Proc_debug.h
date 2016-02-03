@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -26,19 +26,6 @@ typedef struct Proc_debug
     Device_impl parent;
     bool single_pulse;
 } Proc_debug;
-
-
-/**
- * Create a new Debug processor.
- *
- * The Debug processor generates a narrow pulse wave (with one sample value 1,
- * the rest are 0.5) that lasts no more than 10 phase cycles. Note off lasts
- * no more than two phase cycles with all sample values negated.
- *
- * \return   The new Debug processor if successful, or \c NULL if memory
- *           allocation failed.
- */
-Device_impl* new_Proc_debug(void);
 
 
 #endif // K_PROC_DEBUG_H

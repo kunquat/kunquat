@@ -26,15 +26,6 @@ typedef struct Proc_pitch
 } Proc_pitch;
 
 
-/**
- * Create a new pitch processor.
- *
- * \return   The new pitch processor if successful, or \c NULL if memory
- *           allocation failed.
- */
-Device_impl* new_Proc_pitch(void);
-
-
 #endif // K_PROC_PITCH_H
 
 

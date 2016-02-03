@@ -34,15 +34,6 @@ typedef struct Proc_delay
 } Proc_delay;
 
 
-/**
- * Create a new delay processor.
- *
- * \return   The new delay processor if successful, or \c NULL if memory
- *           allocation failed.
- */
-Device_impl* new_Proc_delay(void);
-
-
 #endif // K_PROC_DELAY_H
 
 

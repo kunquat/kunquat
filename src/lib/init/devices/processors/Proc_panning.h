@@ -26,15 +26,6 @@ typedef struct Proc_panning
 } Proc_panning;
 
 
-/**
- * Create a new panning processor.
- *
- * \return   The new panning processor if successful, or \c NULL if memory
- *           allocation failed.
- */
-Device_impl* new_Proc_panning(void);
-
-
 #endif // K_PROC_PANNING_H
 
 

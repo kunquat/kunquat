@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_GC_H
-#define K_PROC_GC_H
+#ifndef K_PROC_GAINCOMP_H
+#define K_PROC_GAINCOMP_H
 
 
 #include <decl.h>
@@ -31,15 +31,6 @@ typedef struct Proc_gaincomp
 } Proc_gaincomp;
 
 
-/**
- * Create a new gain compression processor.
- *
- * \return   The new gain compression processor if successful, or \c NULL if
- *           memory allocation failed.
- */
-Device_impl* new_Proc_gaincomp(void);
-
-
-#endif // K_PROC_GC_H
+#endif // K_PROC_GAINCOMP_H
 
 

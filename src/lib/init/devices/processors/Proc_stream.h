@@ -30,15 +30,6 @@ typedef struct Proc_stream
 } Proc_stream;
 
 
-/**
- * Create a new stream processor.
- *
- * \return   The new stream processor if successful, or \c NULL if memory
- *           allocation failed.
- */
-Device_impl* new_Proc_stream(void);
-
-
 #endif // K_PROC_STREAM_H
 
 
