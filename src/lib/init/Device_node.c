@@ -731,7 +731,7 @@ void Device_node_process_mixed_signals(
             fprintf(stderr, "%s %d %.1f\n",
                     edge->node->name,
                     (int)Device_get_id((const Device*)send_device),
-                    Audio_buffer_get_buffer(send, 0)[0]);
+                    Work_buffer_get_contents(send)[0]);
             // */
             Work_buffer_mix(receive, send, buf_start, buf_stop);
 
