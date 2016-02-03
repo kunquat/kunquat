@@ -43,6 +43,7 @@ struct Proc_state
     Work_buffer* voice_buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
     Bit_array* voice_out_buffers_modified;
 
+    Device_state_destroy_func* destroy;
     Device_state_set_audio_rate_func* set_audio_rate;
     Device_state_set_audio_buffer_size_func* set_audio_buffer_size;
     Device_state_set_tempo_func* set_tempo;
@@ -168,14 +169,6 @@ float* Proc_state_get_voice_buffer_contents_mut(
  */
 void Proc_state_cv_generic_set(
         Device_state* dstate, const char* key, const Value* value);
-
-
-/**
- * Deinitialises the Processor state.
- *
- * \param dstate   The Processor state -- must not be \c NULL.
- */
-void Proc_state_deinit(Device_state* dstate);
 
 
 #endif // K_PROC_STATE_H

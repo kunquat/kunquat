@@ -63,7 +63,7 @@ bool Device_state_init(
     ds->set_tempo = NULL;
     ds->reset = NULL;
     ds->render_mixed = NULL;
-    ds->deinit = NULL;
+    ds->destroy = NULL;
 
     ds->in_connected = new_Bit_array(KQT_DEVICE_PORTS_MAX);
     if (ds->in_connected == NULL)
@@ -338,19 +338,23 @@ void del_Device_state(Device_state* ds)
     if (ds == NULL)
         return;
 
-    if (ds->deinit != NULL)
-        ds->deinit(ds);
-
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
                 type < DEVICE_PORT_TYPES; ++type)
+        {
             del_Work_buffer(ds->buffers[type][port]);
+            ds->buffers[type][port] = NULL;
+        }
     }
 
     del_Bit_array(ds->in_connected);
+    ds->in_connected = NULL;
 
-    memory_free(ds);
+    if (ds->destroy != NULL)
+        ds->destroy(ds);
+    else
+        memory_free(ds);
 
     return;
 }

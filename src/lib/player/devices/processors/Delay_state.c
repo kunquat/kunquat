@@ -38,18 +38,18 @@ typedef struct Delay_pstate
 } Delay_pstate;
 
 
-static void Delay_pstate_deinit(Device_state* dev_state)
+static void del_Delay_pstate(Device_state* dstate)
 {
-    assert(dev_state != NULL);
+    assert(dstate != NULL);
 
-    Delay_pstate* dpstate = (Delay_pstate*)dev_state;
+    Delay_pstate* dpstate = (Delay_pstate*)dstate;
     if (dpstate->buf != NULL)
     {
         del_Audio_buffer(dpstate->buf);
         dpstate->buf = NULL;
     }
 
-    Proc_state_deinit(&dpstate->parent.parent);
+    memory_free(dpstate);
 
     return;
 }
@@ -288,7 +288,7 @@ Device_state* new_Delay_pstate(
         return NULL;
     }
 
-    dpstate->parent.parent.deinit = Delay_pstate_deinit;
+    dpstate->parent.destroy = del_Delay_pstate;
     dpstate->parent.set_audio_rate = Delay_pstate_set_audio_rate;
     dpstate->parent.reset = Delay_pstate_reset;
     dpstate->parent.render_mixed = Delay_pstate_render_mixed;

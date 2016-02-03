@@ -61,6 +61,8 @@ typedef void Device_state_render_mixed_func(
         int32_t buf_stop,
         double tempo);
 
+typedef void Device_state_destroy_func(Device_state*);
+
 
 /**
  * Transient state of a Device.
@@ -92,7 +94,7 @@ struct Device_state
     Device_state_set_tempo_func* set_tempo;
     Device_state_reset_func* reset;
     Device_state_render_mixed_func* render_mixed;
-    void (*deinit)(struct Device_state* ds);
+    Device_state_destroy_func* destroy;
 };
 
 
@@ -326,6 +328,17 @@ void Device_state_render_mixed(
         int32_t buf_start,
         int32_t buf_stop,
         double tempo);
+
+
+/**
+ * Deinitialise the Device state.
+ *
+ * This function frees all the dynamically allocated resources within the base
+ * Device state structure, but not the stucture itself.
+ *
+ * \param ds   The Device state -- must not be \c NULL.
+ */
+void Device_state_deinit(Device_state* ds);
 
 
 /**

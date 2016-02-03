@@ -64,22 +64,22 @@ typedef struct Freeverb_pstate
 } Freeverb_pstate;
 
 
-static void Freeverb_pstate_deinit(Device_state* dev_state)
+static void del_Freeverb_pstate(Device_state* dstate)
 {
-    assert(dev_state != NULL);
+    assert(dstate != NULL);
 
-    Freeverb_pstate* fstate = (Freeverb_pstate*)dev_state;
+    Freeverb_pstate* fpstate = (Freeverb_pstate*)dstate;
 
     for (int ch = 0; ch < 2; ++ch)
     {
         for (int i = 0; i < FREEVERB_COMBS; ++i)
-            del_Freeverb_comb(fstate->combs[ch][i]);
+            del_Freeverb_comb(fpstate->combs[ch][i]);
 
         for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
-            del_Freeverb_allpass(fstate->allpasses[ch][i]);
+            del_Freeverb_allpass(fpstate->allpasses[ch][i]);
     }
 
-    Proc_state_deinit(&fstate->parent.parent);
+    memory_free(fpstate);
 
     return;
 }
@@ -293,54 +293,54 @@ Device_state* new_Freeverb_pstate(
     assert(audio_rate > 0);
     assert(audio_buffer_size >= 0);
 
-    Freeverb_pstate* fstate = memory_alloc_item(Freeverb_pstate);
-    if (fstate == NULL)
+    Freeverb_pstate* fpstate = memory_alloc_item(Freeverb_pstate);
+    if (fpstate == NULL)
         return NULL;
 
-    if (!Proc_state_init(&fstate->parent, device, audio_rate, audio_buffer_size))
+    if (!Proc_state_init(&fpstate->parent, device, audio_rate, audio_buffer_size))
     {
-        memory_free(fstate);
+        memory_free(fpstate);
         return NULL;
     }
 
-    fstate->parent.parent.deinit = Freeverb_pstate_deinit;
-    fstate->parent.set_audio_rate = Freeverb_pstate_set_audio_rate;
-    fstate->parent.reset = Freeverb_pstate_reset;
-    fstate->parent.render_mixed = Freeverb_pstate_render_mixed;
-    fstate->parent.clear_history = Freeverb_pstate_clear_history;
+    fpstate->parent.destroy = del_Freeverb_pstate;
+    fpstate->parent.set_audio_rate = Freeverb_pstate_set_audio_rate;
+    fpstate->parent.reset = Freeverb_pstate_reset;
+    fpstate->parent.render_mixed = Freeverb_pstate_render_mixed;
+    fpstate->parent.clear_history = Freeverb_pstate_clear_history;
 
     const Proc_freeverb* freeverb = (const Proc_freeverb*)device->dimpl;
 
-    fstate->active_reflect = freeverb->reflect_setting;
-    fstate->active_damp = freeverb->damp_setting;
+    fpstate->active_reflect = freeverb->reflect_setting;
+    fpstate->active_damp = freeverb->damp_setting;
 
     for (int ch = 0; ch < 2; ++ch)
     {
         for (int i = 0; i < FREEVERB_COMBS; ++i)
-            fstate->combs[ch][i] = NULL;
+            fpstate->combs[ch][i] = NULL;
 
         for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
-            fstate->allpasses[ch][i] = NULL;
+            fpstate->allpasses[ch][i] = NULL;
     }
 
     for (int i = 0; i < FREEVERB_COMBS; ++i)
     {
         const uint32_t left_size = max(1, comb_tuning[i] * audio_rate);
 
-        fstate->combs[0][i] = new_Freeverb_comb(left_size);
-        if (fstate->combs[0][i] == NULL)
+        fpstate->combs[0][i] = new_Freeverb_comb(left_size);
+        if (fpstate->combs[0][i] == NULL)
         {
-            del_Device_state(&fstate->parent.parent);
+            del_Device_state(&fpstate->parent.parent);
             return NULL;
         }
 
         const uint32_t right_size = max(
                 1, (comb_tuning[i] + stereo_spread) * audio_rate);
 
-        fstate->combs[1][i] = new_Freeverb_comb(right_size);
-        if (fstate->combs[1][i] == NULL)
+        fpstate->combs[1][i] = new_Freeverb_comb(right_size);
+        if (fpstate->combs[1][i] == NULL)
         {
-            del_Device_state(&fstate->parent.parent);
+            del_Device_state(&fpstate->parent.parent);
             return NULL;
         }
     }
@@ -349,12 +349,12 @@ Device_state* new_Freeverb_pstate(
     {
         const uint32_t left_size = max(1, allpass_tuning[i] * audio_rate);
 
-        if (fstate->allpasses[0][i] == NULL)
+        if (fpstate->allpasses[0][i] == NULL)
         {
-            fstate->allpasses[0][i] = new_Freeverb_allpass(left_size);
-            if (fstate->allpasses[0][i] == NULL)
+            fpstate->allpasses[0][i] = new_Freeverb_allpass(left_size);
+            if (fpstate->allpasses[0][i] == NULL)
             {
-                del_Device_state(&fstate->parent.parent);
+                del_Device_state(&fpstate->parent.parent);
                 return NULL;
             }
         }
@@ -362,18 +362,18 @@ Device_state* new_Freeverb_pstate(
         const uint32_t right_size = max(
                 1, (allpass_tuning[i] + stereo_spread) * audio_rate);
 
-        if (fstate->allpasses[1][i] == NULL)
+        if (fpstate->allpasses[1][i] == NULL)
         {
-            fstate->allpasses[1][i] = new_Freeverb_allpass(right_size);
-            if (fstate->allpasses[1][i] == NULL)
+            fpstate->allpasses[1][i] = new_Freeverb_allpass(right_size);
+            if (fpstate->allpasses[1][i] == NULL)
             {
-                del_Device_state(&fstate->parent.parent);
+                del_Device_state(&fpstate->parent.parent);
                 return NULL;
             }
         }
     }
 
-    return &fstate->parent.parent;
+    return &fpstate->parent.parent;
 }
 
 

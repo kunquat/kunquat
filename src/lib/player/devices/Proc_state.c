@@ -18,6 +18,7 @@
 #include <init/devices/Device.h>
 #include <init/devices/Device_impl.h>
 #include <mathnum/Tstamp.h>
+#include <memory.h>
 #include <player/devices/Device_state.h>
 #include <player/devices/Voice_state.h>
 #include <player/Work_buffer.h>
@@ -33,6 +34,9 @@ static bool Proc_state_add_buffer(
 
 static bool Proc_state_set_audio_buffer_size(Device_state* dstate, int32_t new_size);
 
+static void Proc_state_deinit(Proc_state* proc_state);
+
+
 static Device_state_set_audio_rate_func Proc_state_set_audio_rate;
 
 static Device_state_set_tempo_func Proc_state_set_tempo;
@@ -40,6 +44,8 @@ static Device_state_set_tempo_func Proc_state_set_tempo;
 static Device_state_reset_func Proc_state_reset;
 
 static Device_state_render_mixed_func Proc_state_render_mixed;
+
+static Device_state_destroy_func del_Proc_state;
 
 
 bool Proc_state_init(
@@ -71,8 +77,9 @@ bool Proc_state_init(
     proc_state->parent.set_tempo = Proc_state_set_tempo;
     proc_state->parent.reset = Proc_state_reset;
     proc_state->parent.render_mixed = Proc_state_render_mixed;
-    proc_state->parent.deinit = Proc_state_deinit;
+    proc_state->parent.destroy = del_Proc_state;
 
+    proc_state->destroy = NULL;
     proc_state->set_audio_rate = NULL;
     proc_state->set_audio_buffer_size = NULL;
     proc_state->set_tempo = NULL;
@@ -84,7 +91,7 @@ bool Proc_state_init(
     proc_state->voice_out_buffers_modified = new_Bit_array(KQT_DEVICE_PORTS_MAX);
     if (proc_state->voice_out_buffers_modified == NULL)
     {
-        Proc_state_deinit(&proc_state->parent);
+        Proc_state_deinit(proc_state);
         return false;
     }
 
@@ -359,11 +366,9 @@ static bool Proc_state_set_audio_buffer_size(Device_state* dstate, int32_t new_s
 }
 
 
-void Proc_state_deinit(Device_state* dstate)
+static void Proc_state_deinit(Proc_state* proc_state)
 {
-    assert(dstate != NULL);
-
-    Proc_state* proc_state = (Proc_state*)dstate;
+    assert(proc_state != NULL);
 
     for (Device_port_type port_type = DEVICE_PORT_TYPE_RECEIVE;
             port_type < DEVICE_PORT_TYPES; ++port_type)
@@ -373,6 +378,25 @@ void Proc_state_deinit(Device_state* dstate)
     }
 
     del_Bit_array(proc_state->voice_out_buffers_modified);
+    proc_state->voice_out_buffers_modified = NULL;
+
+    return;
+}
+
+
+static void del_Proc_state(Device_state* dstate)
+{
+    if (dstate == NULL)
+        return;
+
+    Proc_state* proc_state = (Proc_state*)dstate;
+
+    Proc_state_deinit(proc_state);
+
+    if (proc_state->destroy != NULL)
+        proc_state->destroy(dstate);
+    else
+        memory_free(proc_state);
 
     return;
 }
