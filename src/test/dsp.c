@@ -44,23 +44,19 @@ static void make_debug_instrument(void)
 }
 
 
-START_TEST(Trivial_chorus_is_identity)
+START_TEST(Trivial_delay_is_identity)
 {
     set_audio_rate(220);
     set_mix_volume(0);
     pause();
 
-    set_data("au_03/proc_01/c/voice_00/p_f_delay.json", "0");
-    set_data("au_03/proc_01/c/voice_00/p_f_range.json", "0");
-    set_data("au_03/proc_01/c/voice_00/p_f_speed.json", "0");
-    set_data("au_03/proc_01/c/voice_00/p_f_volume.json", "0");
-    set_data("au_03/proc_01/in_00/p_manifest.json", "{}");
+    set_data("au_03/proc_01/in_01/p_manifest.json", "{}");
     set_data("au_03/proc_01/out_00/p_manifest.json", "{}");
-    set_data("au_03/proc_01/p_manifest.json", "{ \"type\": \"chorus\" }");
+    set_data("au_03/proc_01/p_manifest.json", "{ \"type\": \"delay\" }");
     set_data("au_03/proc_01/p_signal_type.json", "\"mixed\"");
 
     set_data("au_03/p_connections.json",
-            "[ [\"in_00\", \"proc_01/C/in_00\"], "
+            "[ [\"in_00\", \"proc_01/C/in_01\"], "
             "  [\"proc_01/C/out_00\", \"out_00\"] ]");
     set_data("au_03/in_00/p_manifest.json", "{}");
     set_data("au_03/out_00/p_manifest.json", "{}");
@@ -102,7 +98,7 @@ Suite* DSP_suite(void)
     tcase_set_timeout(tc_chorus, timeout);
     tcase_add_checked_fixture(tc_chorus, setup_empty, handle_teardown);
 
-    tcase_add_test(tc_chorus, Trivial_chorus_is_identity);
+    tcase_add_test(tc_chorus, Trivial_delay_is_identity);
 
     return s;
 }

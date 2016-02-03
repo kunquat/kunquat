@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -21,14 +21,8 @@
 #include <stdlib.h>
 
 
-#define DELAY_TAPS_MAX 32
-
-
-typedef struct Delay_tap
-{
-    double delay;
-    double scale;
-} Delay_tap;
+#define DELAY_DEFAULT_BUF_LENGTH (2.0)
+#define DELAY_MAX_BUF_LENGTH (60.0)
 
 
 typedef struct Proc_delay
@@ -36,14 +30,12 @@ typedef struct Proc_delay
     Device_impl parent;
 
     double max_delay;
-    Delay_tap taps[DELAY_TAPS_MAX];
+    double init_delay;
 } Proc_delay;
 
 
 /**
  * Create a new delay processor.
- *
- * This processor implements a tapped delay line (TDL).
  *
  * \return   The new delay processor if successful, or \c NULL if memory
  *           allocation failed.

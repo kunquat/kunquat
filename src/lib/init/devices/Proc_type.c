@@ -16,7 +16,6 @@
 
 #include <debug/assert.h>
 #include <init/devices/processors/Proc_add.h>
-#include <init/devices/processors/Proc_chorus.h>
 #include <init/devices/processors/Proc_debug.h>
 #include <init/devices/processors/Proc_delay.h>
 #include <init/devices/processors/Proc_envgen.h>
@@ -48,7 +47,6 @@ static const Proc_type proc_types[] =
 {
     { "debug", new_Proc_debug },
     { "add", new_Proc_add },
-    { "chorus", new_Proc_chorus },
     { "delay", new_Proc_delay },
     { "envgen", new_Proc_envgen },
     { "filter", new_Proc_filter },

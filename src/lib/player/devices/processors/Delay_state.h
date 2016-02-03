@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -29,10 +29,6 @@ Device_state* new_Delay_pstate(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
 bool Delay_pstate_set_max_delay(
-        Device_state* dstate, const Key_indices indices, double value);
-bool Delay_pstate_set_tap_delay(
-        Device_state* dstate, const Key_indices indices, double value);
-bool Delay_pstate_set_tap_volume(
         Device_state* dstate, const Key_indices indices, double value);
 
 

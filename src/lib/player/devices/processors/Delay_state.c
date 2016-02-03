@@ -14,21 +14,19 @@
 
 #include <player/devices/processors/Delay_state.h>
 
-#include <debug/assert.h>
 #include <init/devices/processors/Proc_delay.h>
 #include <mathnum/common.h>
+#include <mathnum/conversions.h>
 #include <memory.h>
 #include <player/Audio_buffer.h>
 #include <player/devices/processors/Proc_utils.h>
+#include <player/Linear_controls.h>
+#include <player/Player.h>
 
-
-typedef struct Tap_state
-{
-    bool enabled;
-    int32_t buf_pos;
-    int32_t frames_left;
-    double scale;
-} Tap_state;
+#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 typedef struct Delay_pstate
@@ -37,83 +35,21 @@ typedef struct Delay_pstate
 
     Audio_buffer* buf;
     int32_t buf_pos;
-    Tap_state tap_states[DELAY_TAPS_MAX];
 } Delay_pstate;
-
-
-static void Tap_state_set(
-        Tap_state* tstate,
-        double delay,
-        double scale,
-        int32_t master_buf_pos,
-        int32_t buf_size,
-        int32_t audio_rate)
-{
-    assert(tstate != NULL);
-    assert(isfinite(scale));
-    assert(master_buf_pos < buf_size);
-    assert(buf_size > 0);
-    assert(audio_rate > 0);
-
-    if (!isfinite(delay) || (delay < 0))
-    {
-        tstate->enabled = false;
-        return;
-    }
-
-    tstate->enabled = true;
-    tstate->frames_left = 0;
-
-    const int32_t delay_frames = delay * audio_rate;
-    assert(delay_frames >= 0);
-    assert(delay_frames <= buf_size);
-    tstate->buf_pos = (buf_size + master_buf_pos - delay_frames) % buf_size;
-    assert(tstate->buf_pos >= 0);
-
-    tstate->scale = scale;
-
-    return;
-}
 
 
 static void Delay_pstate_deinit(Device_state* dev_state)
 {
     assert(dev_state != NULL);
 
-    Delay_pstate* dlstate = (Delay_pstate*)dev_state;
-    if (dlstate->buf != NULL)
+    Delay_pstate* dpstate = (Delay_pstate*)dev_state;
+    if (dpstate->buf != NULL)
     {
-        del_Audio_buffer(dlstate->buf);
-        dlstate->buf = NULL;
+        del_Audio_buffer(dpstate->buf);
+        dpstate->buf = NULL;
     }
 
-    Proc_state_deinit(&dlstate->parent.parent);
-
-    return;
-}
-
-
-static void Delay_pstate_reset(Device_state* dstate)
-{
-    assert(dstate != NULL);
-
-    Delay_pstate* dlstate = (Delay_pstate*)dstate;
-    const Proc_delay* delay = (const Proc_delay*)dstate->device->dimpl;
-
-    Audio_buffer_clear(dlstate->buf, 0, Audio_buffer_get_size(dlstate->buf));
-    dlstate->buf_pos = 0;
-
-    const int32_t audio_rate = dlstate->parent.parent.audio_rate;
-    const int32_t buf_size = Audio_buffer_get_size(dlstate->buf);
-
-    for (int i = 0; i < DELAY_TAPS_MAX; ++i)
-    {
-        const Delay_tap* tap = &delay->taps[i];
-        Tap_state* tstate = &dlstate->tap_states[i];
-
-        Tap_state_set(
-                tstate, tap->delay, tap->scale, dlstate->buf_pos, buf_size, audio_rate);
-    }
+    Proc_state_deinit(&dpstate->parent.parent);
 
     return;
 }
@@ -124,21 +60,34 @@ static bool Delay_pstate_set_audio_rate(Device_state* dstate, int32_t audio_rate
     assert(dstate != NULL);
     assert(audio_rate > 0);
 
-    Delay_pstate* dlstate = (Delay_pstate*)dstate;
+    Delay_pstate* dpstate = (Delay_pstate*)dstate;
+
     const Proc_delay* delay = (const Proc_delay*)dstate->device->dimpl;
 
-    assert(dlstate->buf != NULL);
-    long buf_len =
-        max(Audio_buffer_get_size(dlstate->buf), delay->max_delay * audio_rate);
-    assert(buf_len > 0);
-    buf_len += 1; // so that the maximum delay will work
+    const int32_t delay_buf_size = delay->max_delay * audio_rate + 1;
 
-    if (!Audio_buffer_resize(dlstate->buf, buf_len))
+    assert(dpstate->buf != NULL);
+    if (!Audio_buffer_resize(dpstate->buf, delay_buf_size))
         return false;
 
-    Delay_pstate_reset(dstate);
+    Audio_buffer_clear(dpstate->buf, 0, Audio_buffer_get_size(dpstate->buf));
+    dpstate->buf_pos = 0;
 
     return true;
+}
+
+
+static void Delay_pstate_reset(Device_state* dstate)
+{
+    assert(dstate != NULL);
+
+    Delay_pstate* dpstate = (Delay_pstate*)dstate;
+
+    const uint32_t delay_buf_size = Audio_buffer_get_size(dpstate->buf);
+    Audio_buffer_clear(dpstate->buf, 0, delay_buf_size);
+    dpstate->buf_pos = 0;
+
+    return;
 }
 
 
@@ -151,19 +100,17 @@ static void Delay_pstate_render_mixed(
 {
     assert(dstate != NULL);
     assert(wbs != NULL);
-    assert(buf_start >= 0);
     assert(buf_start <= buf_stop);
-    assert(isfinite(tempo));
     assert(tempo > 0);
 
-    Delay_pstate* dlstate = (Delay_pstate*)dstate;
+    Delay_pstate* dpstate = (Delay_pstate*)dstate;
 
     const Proc_delay* delay = (const Proc_delay*)dstate->device->dimpl;
 
     const float* in_data[] =
     {
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 0),
         Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 1),
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 2),
     };
 
     float* out_data[] =
@@ -172,131 +119,140 @@ static void Delay_pstate_render_mixed(
         Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 1),
     };
 
-    float* delay_data[] =
+    float* history_data[] =
     {
-        Audio_buffer_get_buffer(dlstate->buf, 0),
-        Audio_buffer_get_buffer(dlstate->buf, 1)
+        Audio_buffer_get_buffer(dpstate->buf, 0),
+        Audio_buffer_get_buffer(dpstate->buf, 1),
     };
 
-    const int32_t buf_size = Audio_buffer_get_size(dlstate->buf);
-    const int32_t nframes = buf_stop - buf_start;
+    const int32_t delay_buf_size = Audio_buffer_get_size(dpstate->buf);
+    const int32_t delay_max = delay_buf_size - 1;
 
-    // Add delayed audio from previous call
-    for (int tap_index = 0; tap_index < DELAY_TAPS_MAX; ++tap_index)
+    static const int DELAY_WORK_BUFFER_TOTAL_OFFSETS = WORK_BUFFER_IMPL_1;
+    static const int DELAY_WORK_BUFFER_FIXED_DELAY = WORK_BUFFER_IMPL_2;
+
+    float* total_offsets = Work_buffers_get_buffer_contents_mut(
+            wbs, DELAY_WORK_BUFFER_TOTAL_OFFSETS);
+
+    // Get delay stream
+    float* delays =
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
+    if (delays == NULL)
     {
-        const Delay_tap* tap = &delay->taps[tap_index];
-        if (tap->delay > delay->max_delay)
-            continue;
-
-        Tap_state* tstate = &dlstate->tap_states[tap_index];
-
-        int32_t delay_frames = dlstate->buf_pos - tstate->buf_pos;
-        if (delay_frames < 0)
-        {
-            delay_frames += buf_size;
-            assert(delay_frames > 0);
-        }
-
-        tstate->frames_left = nframes;
-        const int32_t mix_until = min(delay_frames, nframes);
-
-        for (int ch = 0; ch < 2; ++ch)
-        {
-            float* out = out_data[ch];
-            if (out == NULL)
-                continue;
-
-            const float* delay_buf = delay_data[ch];
-            assert(delay_buf != NULL);
-
-            int32_t tstate_buf_pos = tstate->buf_pos;
-
-            for (int32_t i = 0; i < mix_until; ++i)
-            {
-                out[buf_start + i] += delay_buf[tstate_buf_pos] * tap->scale;
-
-                ++tstate_buf_pos;
-                if (tstate_buf_pos >= buf_size)
-                {
-                    assert(tstate_buf_pos == buf_size);
-                    tstate_buf_pos = 0;
-                }
-            }
-        }
-
-        tstate->buf_pos = (tstate->buf_pos + mix_until) % buf_size;
-
-        tstate->frames_left -= mix_until;
+        delays =
+            Work_buffers_get_buffer_contents_mut(wbs, DELAY_WORK_BUFFER_FIXED_DELAY);
+        const float init_delay = delay->init_delay;
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            delays[i] = init_delay;
     }
 
-    // Update delay buffer contents
+    int32_t cur_dpstate_buf_pos = dpstate->buf_pos;
+
+    const int32_t audio_rate = dstate->audio_rate;
+
+    // Get total offsets
+    for (int32_t i = buf_start, chunk_offset = 0; i < buf_stop; ++i, ++chunk_offset)
+    {
+        const float delay = delays[i];
+        float delay_frames = delay * audio_rate;
+        delay_frames = clamp(delay_frames, 0, delay_max);
+        total_offsets[i] = chunk_offset - delay_frames;
+    }
+
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        const float* in = in_data[ch];
+        float* out = out_data[ch];
+        if ((in == NULL) || (out == NULL))
+            continue;
+
+        const float* history = history_data[ch];
+        assert(history != NULL);
+
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+        {
+            const float total_offset = total_offsets[i];
+
+            // Get buffer positions
+            const int32_t cur_pos = (int32_t)floor(total_offset);
+            const double remainder = total_offset - cur_pos;
+            assert(cur_pos <= (int32_t)i);
+            assert(implies(cur_pos == (int32_t)i, remainder == 0));
+            const int32_t next_pos = cur_pos + 1;
+
+            // Get audio frames
+            double cur_val = 0;
+            double next_val = 0;
+
+            if (cur_pos >= 0)
+            {
+                const int32_t in_cur_pos = buf_start + cur_pos;
+                assert(in_cur_pos < (int32_t)buf_stop);
+                cur_val = in[in_cur_pos];
+
+                const int32_t in_next_pos = min(buf_start + next_pos, i);
+                assert(in_next_pos < (int32_t)buf_stop);
+                next_val = in[in_next_pos];
+            }
+            else
+            {
+                const int32_t cur_delay_buf_pos =
+                    (cur_dpstate_buf_pos + cur_pos + delay_buf_size) % delay_buf_size;
+                assert(cur_delay_buf_pos >= 0);
+
+                cur_val = history[cur_delay_buf_pos];
+
+                if (next_pos < 0)
+                {
+                    const int32_t next_delay_buf_pos =
+                        (cur_dpstate_buf_pos + next_pos + delay_buf_size) %
+                        delay_buf_size;
+                    assert(next_delay_buf_pos >= 0);
+
+                    next_val = history[next_delay_buf_pos];
+                }
+                else
+                {
+                    assert(next_pos == 0);
+                    next_val = in[buf_start];
+                }
+            }
+
+            // Create output frame
+            const double prev_scale = 1 - remainder;
+            const float val =
+                (prev_scale * cur_val) + (remainder * next_val);
+
+            out[i] = val;
+        }
+    }
+
+    // Update the delay state buffers
     for (int ch = 0; ch < 2; ++ch)
     {
         const float* in = in_data[ch];
         if (in == NULL)
             continue;
 
-        float* delay_buf = delay_data[ch];
-        assert(delay_buf != NULL);
+        float* history = history_data[ch];
+        assert(history != NULL);
 
-        int32_t new_buf_pos = dlstate->buf_pos;
+        cur_dpstate_buf_pos = dpstate->buf_pos;
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
-            delay_buf[new_buf_pos] = in[i];
+            history[cur_dpstate_buf_pos] = in[i];
 
-            ++new_buf_pos;
-            if (new_buf_pos >= buf_size)
+            ++cur_dpstate_buf_pos;
+            if (cur_dpstate_buf_pos >= delay_buf_size)
             {
-                assert(new_buf_pos == buf_size);
-                new_buf_pos = 0;
+                assert(cur_dpstate_buf_pos == delay_buf_size);
+                cur_dpstate_buf_pos = 0;
             }
         }
     }
 
-    // Add delayed audio from current call
-    for (int tap_index = 0; tap_index < DELAY_TAPS_MAX; ++tap_index)
-    {
-        const Delay_tap* tap = &delay->taps[tap_index];
-        if (tap->delay > delay->max_delay)
-            continue;
-
-        Tap_state* tstate = &dlstate->tap_states[tap_index];
-
-        for (int ch = 0; ch < 2; ++ch)
-        {
-            float* out = out_data[ch];
-            if (out == NULL)
-                continue;
-
-            const float* delay_buf = delay_data[ch];
-            assert(delay_buf != NULL);
-
-            int32_t tstate_buf_pos = tstate->buf_pos;
-
-            for (int32_t i = nframes - tstate->frames_left; i < nframes; ++i)
-            {
-                out[buf_start + i] += delay_buf[tstate_buf_pos] * tap->scale;
-
-                ++tstate_buf_pos;
-                if (tstate_buf_pos >= buf_size)
-                {
-                    assert(tstate_buf_pos == buf_size);
-                    tstate_buf_pos = 0;
-                }
-            }
-        }
-
-        tstate->buf_pos = (tstate->buf_pos + tstate->frames_left) % buf_size;
-    }
-
-    dlstate->buf_pos += nframes;
-    if (dlstate->buf_pos >= buf_size)
-    {
-        dlstate->buf_pos -= buf_size;
-        assert(dlstate->buf_pos >= 0);
-        assert(dlstate->buf_pos < buf_size);
-    }
+    dpstate->buf_pos = cur_dpstate_buf_pos;
 
     return;
 }
@@ -306,8 +262,10 @@ static void Delay_pstate_clear_history(Proc_state* proc_state)
 {
     assert(proc_state != NULL);
 
-    Delay_pstate* dlstate = (Delay_pstate*)proc_state;
-    Audio_buffer_clear(dlstate->buf, 0, Audio_buffer_get_size(dlstate->buf));
+    Delay_pstate* dpstate = (Delay_pstate*)proc_state;
+    Audio_buffer_clear(dpstate->buf, 0, Audio_buffer_get_size(dpstate->buf));
+
+    dpstate->buf_pos = 0;
 
     return;
 }
@@ -320,44 +278,36 @@ Device_state* new_Delay_pstate(
     assert(audio_rate > 0);
     assert(audio_buffer_size >= 0);
 
-    Delay_pstate* dlstate = memory_alloc_item(Delay_pstate);
-    if (dlstate == NULL)
+    Delay_pstate* dpstate = memory_alloc_item(Delay_pstate);
+    if (dpstate == NULL)
         return NULL;
 
-    if (!Proc_state_init(&dlstate->parent, device, audio_rate, audio_buffer_size))
+    if (!Proc_state_init(&dpstate->parent, device, audio_rate, audio_buffer_size))
     {
-        memory_free(dlstate);
-        return NULL;
-    }
-
-    const Proc_delay* delay = (Proc_delay*)device->dimpl;
-
-    dlstate->parent.parent.deinit = Delay_pstate_deinit;
-    dlstate->parent.set_audio_rate = Delay_pstate_set_audio_rate;
-    dlstate->parent.reset = Delay_pstate_reset;
-    dlstate->parent.render_mixed = Delay_pstate_render_mixed;
-    dlstate->parent.clear_history = Delay_pstate_clear_history;
-    dlstate->buf = NULL;
-
-    dlstate->buf = new_Audio_buffer(delay->max_delay * audio_rate + 1);
-    if (dlstate->buf == NULL)
-    {
-        del_Device_state(&dlstate->parent.parent);
+        memory_free(dpstate);
         return NULL;
     }
 
-    dlstate->buf_pos = 0;
+    dpstate->parent.parent.deinit = Delay_pstate_deinit;
+    dpstate->parent.set_audio_rate = Delay_pstate_set_audio_rate;
+    dpstate->parent.reset = Delay_pstate_reset;
+    dpstate->parent.render_mixed = Delay_pstate_render_mixed;
+    dpstate->parent.clear_history = Delay_pstate_clear_history;
+    dpstate->buf = NULL;
+    dpstate->buf_pos = 0;
 
-    for (int i = 0; i < DELAY_TAPS_MAX; ++i)
+    const Proc_delay* delay = (const Proc_delay*)device->dimpl;
+
+    const int32_t delay_buf_size = delay->max_delay * audio_rate + 1;
+
+    dpstate->buf = new_Audio_buffer(delay_buf_size);
+    if (dpstate->buf == NULL)
     {
-        Tap_state* tstate = &dlstate->tap_states[i];
-        tstate->enabled = false;
-        tstate->buf_pos = 0;
-        tstate->frames_left = 0;
-        tstate->scale = 1.0;
+        del_Device_state(&dpstate->parent.parent);
+        return NULL;
     }
 
-    return &dlstate->parent.parent;
+    return &dpstate->parent.parent;
 }
 
 
@@ -365,62 +315,20 @@ bool Delay_pstate_set_max_delay(
         Device_state* dstate, const Key_indices indices, double value)
 {
     assert(dstate != NULL);
-    assert(indices != NULL);
+    ignore(indices);
     ignore(value);
 
-    Delay_pstate* dlstate = (Delay_pstate*)dstate;
-    const Proc_delay* delay = (const Proc_delay*)dstate->device->dimpl;
-
-    long buf_len = max(
-            Audio_buffer_get_size(dlstate->buf),
-            delay->max_delay * dstate->audio_rate + 1); // + 1 for maximum delay support
-    assert(buf_len > 0);
-
-    return Audio_buffer_resize(dlstate->buf, buf_len);
-}
-
-
-bool Delay_pstate_set_tap_delay(
-        Device_state* dstate, const Key_indices indices, double value)
-{
-    assert(dstate != NULL);
-    assert(indices != NULL);
-    ignore(value);
-
-    const int32_t index = indices[0];
-
-    if (index < 0 || index >= DELAY_TAPS_MAX)
-        return true;
+    Delay_pstate* dpstate = (Delay_pstate*)dstate;
 
     const Proc_delay* delay = (const Proc_delay*)dstate->device->dimpl;
-    Delay_pstate* dlstate = (Delay_pstate*)dstate;
-    Tap_state_set(
-            &dlstate->tap_states[index],
-            delay->taps[index].delay,
-            delay->taps[index].scale,
-            dlstate->buf_pos,
-            Audio_buffer_get_size(dlstate->buf),
-            dstate->audio_rate);
 
-    return true;
-}
+    const int32_t delay_buf_size = delay->max_delay * dstate->audio_rate + 1;
 
+    if (!Audio_buffer_resize(dpstate->buf, delay_buf_size))
+        return false;
 
-bool Delay_pstate_set_tap_volume(
-        Device_state* dstate, const Key_indices indices, double value)
-{
-    assert(dstate != NULL);
-    assert(indices != NULL);
-    ignore(value);
-
-    const int32_t index = indices[0];
-
-    if (index < 0 || index >= DELAY_TAPS_MAX)
-        return true;
-
-    const Proc_delay* delay = (const Proc_delay*)dstate->device->dimpl;
-    Delay_pstate* dlstate = (Delay_pstate*)dstate;
-    dlstate->tap_states[index].scale = delay->taps[index].scale;
+    Audio_buffer_clear(dpstate->buf, 0, Audio_buffer_get_size(dpstate->buf));
+    dpstate->buf_pos = 0;
 
     return true;
 }
