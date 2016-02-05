@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -18,14 +18,7 @@ from procnumslider import ProcNumSlider
 from waveform import Waveform
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
-
-
-def get_add_params(obj):
-    module = obj._ui_model.get_module()
-    au = module.get_audio_unit(obj._au_id)
-    proc = au.get_processor(obj._proc_id)
-    add_params = proc.get_type_params()
-    return add_params
+import utils
 
 
 class AddProc(QWidget):
@@ -89,7 +82,7 @@ class AddProc(QWidget):
             self._update_ramp_attack()
 
     def _update_ramp_attack(self):
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         enabled = add_params.get_ramp_attack_enabled()
 
         old_block = self._ramp_attack.blockSignals(True)
@@ -98,7 +91,7 @@ class AddProc(QWidget):
 
     def _change_ramp_attack(self, state):
         enabled = (state == Qt.Checked)
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.set_ramp_attack_enabled(enabled)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
@@ -151,7 +144,7 @@ class WaveformEditor(QWidget):
         self._prewarp_list.set_ui_model(ui_model)
         self._postwarp_list.set_ui_model(ui_model)
 
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
@@ -177,7 +170,7 @@ class WaveformEditor(QWidget):
             self._update_all()
 
     def _update_all(self):
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
         selected_base_func = add_params.get_waveform_func(self._wave_type)
         enable_warps = (selected_base_func != None)
@@ -201,7 +194,7 @@ class WaveformEditor(QWidget):
         self._waveform.set_waveform(add_params.get_waveform(self._wave_type))
 
     def _base_func_selected(self, index):
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         func_names = add_params.get_waveform_func_names(self._wave_type)
         add_params.set_waveform_func(self._wave_type, func_names[index])
         self._updater.signal_update(set([self._get_update_signal_type()]))
@@ -246,7 +239,7 @@ class WarpList(EditorList):
         return self._adder
 
     def _get_updated_editor_count(self):
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         count = add_params.get_warp_func_count(self._wave_type, self._warp_type)
 
         max_count_reached = (count >= add_params.get_max_warp_func_count())
@@ -279,7 +272,7 @@ class WarpList(EditorList):
     def _update_all(self):
         self.update_list()
 
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         warp_count = add_params.get_warp_func_count(self._wave_type, self._warp_type)
         max_count_reached = (warp_count >= add_params.get_max_warp_func_count())
         self._adder.setVisible(not max_count_reached)
@@ -319,7 +312,7 @@ class WarpAdder(QPushButton):
                 ('signal_proc_add_', self._au_id, self._proc_id, self._wave_type))
 
     def _add_warp(self):
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.add_warp_func(self._wave_type, self._warp_type)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
@@ -385,7 +378,7 @@ class WarpEditor(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
         func_names = add_params.get_warp_func_names(self._warp_type)
         old_block = self._func_selector.blockSignals(True)
@@ -418,7 +411,7 @@ class WarpEditor(QWidget):
             self._update_all()
 
     def _update_all(self):
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
         warp_func_count = add_params.get_warp_func_count(
                 self._wave_type, self._warp_type)
@@ -447,19 +440,19 @@ class WarpEditor(QWidget):
         self._value_display.setText(str(float(arg)))
 
     def _moved_down(self):
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.move_warp_func(
                 self._wave_type, self._warp_type, self._index, self._index + 1)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _moved_up(self):
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.move_warp_func(
                 self._wave_type, self._warp_type, self._index, self._index - 1)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _set_warp(self):
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         name = str(self._func_selector.currentText())
         arg = self._slider.value() / float(self._ARG_SCALE)
         add_params.set_warp_func(
@@ -473,7 +466,7 @@ class WarpEditor(QWidget):
         self._set_warp()
 
     def _removed(self):
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.remove_warp_func(self._wave_type, self._warp_type, self._index)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
@@ -518,7 +511,7 @@ class ToneList(EditorList):
         return self._adder
 
     def _get_updated_editor_count(self):
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         count = add_params.get_tone_count(self._wave_type)
         return count
 
@@ -546,7 +539,7 @@ class ToneList(EditorList):
     def _update_all(self):
         self.update_list()
 
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         count = add_params.get_tone_count(self._wave_type)
         max_count_reached = (count >= add_params.get_max_tone_count())
         self._adder.setVisible(not max_count_reached)
@@ -581,7 +574,7 @@ class ToneAdder(QPushButton):
         return ''.join(('signal_proc_add_tone_', self._au_id, self._proc_id))
 
     def _add_tone(self):
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.add_tone(self._wave_type)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
@@ -647,7 +640,7 @@ class ToneEditor(QWidget):
         return ''.join(('signal_proc_add_tone_', self._au_id, self._proc_id))
 
     def _removed(self):
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.remove_tone(self._wave_type, self._index)
         updater = self._ui_model.get_updater()
         updater.signal_update(set([self._get_update_signal_type()]))
@@ -702,7 +695,7 @@ class TonePitchSpin(QWidget):
             self._update_value()
 
     def _update_value(self):
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
         if self._index >= add_params.get_tone_count(self._wave_type):
             # We have been removed
@@ -715,7 +708,7 @@ class TonePitchSpin(QWidget):
         self._spin.blockSignals(old_block)
 
     def _value_changed(self, pitch):
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.set_tone_pitch(self._wave_type, self._index, pitch)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
@@ -729,7 +722,7 @@ class ToneVolumeSlider(ProcNumSlider):
         self.set_number(0)
 
     def _update_value(self):
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
         if self._index >= add_params.get_tone_count(self._wave_type):
             # We have been removed
@@ -738,7 +731,7 @@ class ToneVolumeSlider(ProcNumSlider):
         self.set_number(add_params.get_tone_volume(self._wave_type, self._index))
 
     def _value_changed(self, volume):
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.set_tone_volume(self._wave_type, self._index, volume)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
@@ -755,7 +748,7 @@ class TonePanningSlider(ProcNumSlider):
         self.set_number(0)
 
     def _update_value(self):
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
         if self._index >= add_params.get_tone_count(self._wave_type):
             # We have been removed
@@ -764,7 +757,7 @@ class TonePanningSlider(ProcNumSlider):
         self.set_number(add_params.get_tone_panning(self._wave_type, self._index))
 
     def _value_changed(self, panning):
-        add_params = get_add_params(self)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.set_tone_panning(self._wave_type, self._index, panning)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 

@@ -17,14 +17,7 @@ from PyQt4.QtGui import *
 from procnumslider import ProcNumSlider
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
-
-
-def get_delay_params(obj):
-    module = obj._ui_model.get_module()
-    au = module.get_audio_unit(obj._au_id)
-    proc = au.get_processor(obj._proc_id)
-    type_params = proc.get_type_params()
-    return type_params
+import utils
 
 
 class DelayProc(QWidget):
@@ -106,7 +99,7 @@ class MaxDelay(QDoubleSpinBox):
             self._update_value()
 
     def _update_value(self):
-        delay_params = get_delay_params(self)
+        delay_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
         old_block = self.blockSignals(True)
         new_delay = delay_params.get_max_delay()
@@ -115,7 +108,7 @@ class MaxDelay(QDoubleSpinBox):
         self.blockSignals(old_block)
 
     def _value_changed(self, value):
-        delay_params = get_delay_params(self)
+        delay_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         delay_params.set_max_delay(value)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
@@ -127,12 +120,12 @@ class InitDelay(ProcNumSlider):
         self.set_number(0)
 
     def _update_value(self):
-        delay_params = get_delay_params(self)
+        delay_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         self.set_range(0, delay_params.get_max_delay())
         self.set_number(delay_params.get_init_delay())
 
     def _value_changed(self, value):
-        delay_params = get_delay_params(self)
+        delay_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         delay_params.set_init_delay(value)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 

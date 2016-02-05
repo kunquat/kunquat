@@ -19,14 +19,7 @@ from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.audio_unit.simple_env import SimpleEnvelope
 from kunquat.tracker.ui.views.audio_unit.time_env import TimeEnvelope
-
-
-def get_egen_params(obj):
-    module = obj._ui_model.get_module()
-    au = module.get_audio_unit(obj._au_id)
-    proc = au.get_processor(obj._proc_id)
-    egen_params = proc.get_type_params()
-    return egen_params
+import utils
 
 
 class EnvgenProc(QWidget):
@@ -108,7 +101,7 @@ class EnvgenProc(QWidget):
             self._update_linear_force()
 
     def _update_linear_force(self):
-        egen_params = get_egen_params(self)
+        egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         enabled = egen_params.get_linear_force_enabled()
 
         self._force_env.setEnabled(enabled)
@@ -121,7 +114,7 @@ class EnvgenProc(QWidget):
     def _change_linear_force(self, state):
         enabled = (state == Qt.Checked)
 
-        egen_params = get_egen_params(self)
+        egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         egen_params.set_linear_force_enabled(enabled)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
@@ -134,11 +127,11 @@ class GlobalAdjustSlider(ProcNumSlider):
         self.set_number(0)
 
     def _update_value(self):
-        egen_params = get_egen_params(self)
+        egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         self.set_number(egen_params.get_global_adjust())
 
     def _value_changed(self, value):
-        egen_params = get_egen_params(self)
+        egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         egen_params.set_global_adjust(value)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
@@ -199,7 +192,7 @@ class RangeEditor(QWidget):
             self._update_range()
 
     def _update_range(self):
-        egen_params = get_egen_params(self)
+        egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         y_range = egen_params.get_y_range()
 
         if y_range[0] != self._min_editor.value():
@@ -213,7 +206,7 @@ class RangeEditor(QWidget):
             self._max_editor.blockSignals(old_block)
 
     def _set_range_min(self, value):
-        egen_params = get_egen_params(self)
+        egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         y_range = egen_params.get_y_range()
         y_range[0] = value
         y_range[1] = max(y_range)
@@ -221,7 +214,7 @@ class RangeEditor(QWidget):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _set_range_max(self, value):
-        egen_params = get_egen_params(self)
+        egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         y_range = egen_params.get_y_range()
         y_range[1] = value
         y_range[0] = min(y_range)
@@ -261,41 +254,44 @@ class EgenTimeEnv(TimeEnvelope):
     def _get_update_signal_type(self):
         return ''.join(('signal_egen_time_env_', self._au_id, self._proc_id))
 
+    def _get_egen_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
     def _get_enabled(self):
-        return get_egen_params(self).get_time_env_enabled()
+        return self._get_egen_params().get_time_env_enabled()
 
     def _set_enabled(self, enabled):
-        get_egen_params(self).set_time_env_enabled(enabled)
+        self._get_egen_params().set_time_env_enabled(enabled)
 
     def _get_loop_enabled(self):
-        return get_egen_params(self).get_time_env_loop_enabled()
+        return self._get_egen_params().get_time_env_loop_enabled()
 
     def _set_loop_enabled(self, enabled):
-        get_egen_params(self).set_time_env_loop_enabled(enabled)
+        self._get_egen_params().set_time_env_loop_enabled(enabled)
 
     def _get_release_enabled(self):
-        return get_egen_params(self).get_time_env_is_release()
+        return self._get_egen_params().get_time_env_is_release()
 
     def _set_release_enabled(self, enabled):
-        get_egen_params(self).set_time_env_is_release(enabled)
+        self._get_egen_params().set_time_env_is_release(enabled)
 
     def _get_scale_amount(self):
-        return get_egen_params(self).get_time_env_scale_amount()
+        return self._get_egen_params().get_time_env_scale_amount()
 
     def _set_scale_amount(self, value):
-        get_egen_params(self).set_time_env_scale_amount(value)
+        self._get_egen_params().set_time_env_scale_amount(value)
 
     def _get_scale_center(self):
-        return get_egen_params(self).get_time_env_scale_center()
+        return self._get_egen_params().get_time_env_scale_center()
 
     def _set_scale_center(self, value):
-        get_egen_params(self).set_time_env_scale_center(value)
+        self._get_egen_params().set_time_env_scale_center(value)
 
     def _get_envelope_data(self):
-        return get_egen_params(self).get_time_env()
+        return self._get_egen_params().get_time_env()
 
     def _set_envelope_data(self, envelope):
-        get_egen_params(self).set_time_env(envelope)
+        self._get_egen_params().set_time_env(envelope)
 
 
 class ForceEnv(SimpleEnvelope):
@@ -323,19 +319,19 @@ class ForceEnv(SimpleEnvelope):
         return envelope
 
     def _get_enabled(self):
-        egen_params = get_egen_params(self)
+        egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         return egen_params.get_force_env_enabled()
 
     def _set_enabled(self, enabled):
-        egen_params = get_egen_params(self)
+        egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         egen_params.set_force_env_enabled(enabled)
 
     def _get_envelope_data(self):
-        egen_params = get_egen_params(self)
+        egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         return egen_params.get_force_env()
 
     def _set_envelope_data(self, envelope):
-        egen_params = get_egen_params(self)
+        egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         egen_params.set_force_env(envelope)
 
 
