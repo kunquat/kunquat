@@ -53,7 +53,7 @@ class ProcParamsForce(ProcParams):
         return self._get_value('p_b_env_loop_enabled.json', False)
 
     def set_envelope_loop_enabled(self, enabled):
-        self._set_value('p_b_env_loop_enabled.json', True)
+        self._set_value('p_b_env_loop_enabled.json', enabled)
 
     def get_envelope_scale_amount(self):
         return self._get_value('p_f_env_scale_amount.json', 0.0)
