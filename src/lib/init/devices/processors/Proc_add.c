@@ -58,20 +58,24 @@ Device_impl* new_Proc_add(void)
     add->parent.get_vstate_size = Add_vstate_get_size;
     add->parent.init_vstate = Add_vstate_init;
 
-    if (!(REGISTER_SET_FIXED_STATE(add, sample, base, "p_base.wav", NULL) &&
-            REGISTER_SET_FIXED_STATE(
-                add, bool, ramp_attack, "p_b_ramp_attack.json", true) &&
-            REGISTER_SET_FIXED_STATE(
-                add, float, tone_pitch, "tone_XX/p_f_pitch.json", NAN) &&
-            REGISTER_SET_FIXED_STATE(
-                add, float, tone_volume, "tone_XX/p_f_volume.json", NAN) &&
-            REGISTER_SET_FIXED_STATE(
-                add, float, tone_panning, "tone_XX/p_f_pan.json", 0.0)
+#define REG_KEY(type, name, keyp, def_value) \
+    REGISTER_SET_FIXED_STATE(add, type, name, keyp, def_value)
+#define REG_KEY_BOOL(name, keyp, def_value) \
+    REGISTER_SET_FIXED_STATE(add, bool, name, keyp, def_value)
+
+    if (!(REG_KEY(sample, base, "p_base.wav", NULL) &&
+            REG_KEY_BOOL(ramp_attack, "p_b_ramp_attack.json", true) &&
+            REG_KEY(float, tone_pitch, "tone_XX/p_f_pitch.json", NAN) &&
+            REG_KEY(float, tone_volume, "tone_XX/p_f_volume.json", NAN) &&
+            REG_KEY(float, tone_panning, "tone_XX/p_f_pan.json", 0.0)
          ))
     {
         del_Device_impl(&add->parent);
         return NULL;
     }
+
+#undef REG_KEY
+#undef REG_KEY_BOOL
 
     add->base = NULL;
     add->is_ramp_attack_enabled = true;

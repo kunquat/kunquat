@@ -77,33 +77,30 @@ Device_impl* new_Proc_envgen(void)
     envgen->parent.get_vstate_size = Envgen_vstate_get_size;
     envgen->parent.init_vstate = Envgen_vstate_init;
 
-    if (!(REGISTER_SET_FIXED_STATE(
-                envgen, bool, time_env_enabled, "p_b_env_enabled.json", false) &&
-            REGISTER_SET_FIXED_STATE(
-                envgen, envelope, time_env, "p_e_env.json", NULL) &&
-            REGISTER_SET_FIXED_STATE(
-                envgen, bool, loop_enabled, "p_b_env_loop_enabled.json", false) &&
-            REGISTER_SET_FIXED_STATE(
-                envgen, bool, release_env, "p_b_env_is_release.json", false) &&
-            REGISTER_SET_FIXED_STATE(
-                envgen, float, env_scale_amount, "p_f_env_scale_amount.json", 0.0) &&
-            REGISTER_SET_FIXED_STATE(
-                envgen, float, env_scale_center, "p_f_env_scale_center.json", 0.0) &&
-            REGISTER_SET_FIXED_STATE(
-                envgen, bool, linear_force, "p_b_linear_force.json", false) &&
-            REGISTER_SET_FIXED_STATE(
-                envgen, float, global_adjust, "p_f_global_adjust.json", 0.0) &&
-            REGISTER_SET_FIXED_STATE(
-                envgen, bool, force_env_enabled, "p_b_force_env_enabled.json", false) &&
-            REGISTER_SET_FIXED_STATE(
-                envgen, envelope, force_env, "p_e_force_env.json", NULL) &&
-            REGISTER_SET_FIXED_STATE(
-                envgen, num_list, y_range, "p_ln_y_range.json", NULL)
+#define REG_KEY(type, name, keyp, def_value) \
+    REGISTER_SET_FIXED_STATE(envgen, type, name, keyp, def_value)
+#define REG_KEY_BOOL(name, keyp, def_value) \
+    REGISTER_SET_FIXED_STATE(envgen, bool, name, keyp, def_value)
+
+    if (!(REG_KEY_BOOL(time_env_enabled, "p_b_env_enabled.json", false) &&
+            REG_KEY(envelope, time_env, "p_e_env.json", NULL) &&
+            REG_KEY_BOOL(loop_enabled, "p_b_env_loop_enabled.json", false) &&
+            REG_KEY_BOOL(release_env, "p_b_env_is_release.json", false) &&
+            REG_KEY(float, env_scale_amount, "p_f_env_scale_amount.json", 0.0) &&
+            REG_KEY(float, env_scale_center, "p_f_env_scale_center.json", 0.0) &&
+            REG_KEY_BOOL(linear_force, "p_b_linear_force.json", false) &&
+            REG_KEY(float, global_adjust, "p_f_global_adjust.json", 0.0) &&
+            REG_KEY_BOOL(force_env_enabled, "p_b_force_env_enabled.json", false) &&
+            REG_KEY(envelope, force_env, "p_e_force_env.json", NULL) &&
+            REG_KEY(num_list, y_range, "p_ln_y_range.json", NULL)
         ))
     {
         del_Device_impl(&envgen->parent);
         return NULL;
     }
+
+#undef REG_KEY
+#undef REG_KEY_BOOL
 
     return &envgen->parent;
 }
