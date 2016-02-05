@@ -16,10 +16,12 @@ from procparams import ProcParams
 
 class ProcParamsRingmod(ProcParams):
 
-    def __init__(self, proc_id, controller):
-        ProcParams.__init__(self, proc_id, controller)
+    @staticmethod
+    def get_default_signal_type():
+        return u'mixed'
 
-    def get_port_names(self):
+    @staticmethod
+    def get_port_info():
         return {
             'in_00':  u'audio1 L',
             'in_01':  u'audio1 R',
@@ -29,5 +31,7 @@ class ProcParamsRingmod(ProcParams):
             'out_01': u'audio R',
         }
 
+    def __init__(self, proc_id, controller):
+        ProcParams.__init__(self, proc_id, controller)
 
 

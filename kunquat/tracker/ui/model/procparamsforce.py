@@ -16,11 +16,16 @@ from procparams import ProcParams
 
 class ProcParamsForce(ProcParams):
 
+    @staticmethod
+    def get_default_signal_type():
+        return u'voice'
+
+    @staticmethod
+    def get_port_info():
+        return { 'in_00': u'pitch', 'out_00': u'force' }
+
     def __init__(self, proc_id, controller):
         ProcParams.__init__(self, proc_id, controller)
-
-    def get_port_names(self):
-        return { 'in_00': u'pitch', 'out_00': u'force' }
 
     def get_global_force(self):
         return self._get_value('p_f_global_force.json', 0.0)

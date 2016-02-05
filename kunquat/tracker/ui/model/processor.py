@@ -26,7 +26,27 @@ from procparams_stream import ProcParamsStream
 from procparamsvolume import ProcParamsVolume
 
 
+_proc_classes = {
+    'add':      ProcParamsAdd,
+    'delay':    ProcParamsDelay,
+    'envgen':   ProcParamsEnvgen,
+    'filter':   ProcParamsFilter,
+    'force':    ProcParamsForce,
+    'freeverb': ProcParamsFreeverb,
+    'gaincomp': ProcParamsGainComp,
+    'panning':  ProcParamsPanning,
+    'pitch':    ProcParamsPitch,
+    'ringmod':  ProcParamsRingmod,
+    'stream':   ProcParamsStream,
+    'volume':   ProcParamsVolume,
+}
+
+
 class Processor():
+
+    @staticmethod
+    def get_params_class(format_name):
+        return _proc_classes.get(format_name, None)
 
     def __init__(self, au_id, proc_id):
         assert au_id
@@ -82,25 +102,10 @@ class Processor():
         return None
 
     def get_type_params(self):
-        types = {
-            'add':      ProcParamsAdd,
-            'delay':    ProcParamsDelay,
-            'envgen':   ProcParamsEnvgen,
-            'filter':   ProcParamsFilter,
-            'force':    ProcParamsForce,
-            'freeverb': ProcParamsFreeverb,
-            'gaincomp': ProcParamsGainComp,
-            'panning':  ProcParamsPanning,
-            'pitch':    ProcParamsPitch,
-            'ringmod':  ProcParamsRingmod,
-            'stream':   ProcParamsStream,
-            'volume':   ProcParamsVolume,
-        }
-
-        if self.get_type() not in types:
+        if self.get_type() not in _proc_classes:
             return None
 
-        cons = types[self.get_type()]
+        cons = _proc_classes[self.get_type()]
         return cons(self._proc_id, self._controller)
 
     def get_signal_type(self):
@@ -111,11 +116,11 @@ class Processor():
         key = self._get_key('p_signal_type.json')
         self._store[key] = signal_type
 
-    def get_port_names(self):
+    def get_port_info(self):
         type_params = self.get_type_params()
         if not type_params:
             return {}
 
-        return type_params.get_port_names()
+        return type_params.get_port_info()
 
 

@@ -19,33 +19,6 @@ from processor import Processor
 import tstamp
 
 
-# Default processor settings
-_proc_defaults = {
-    'add':      { 'signal_type': u'voice',
-                  'ports': ['in_00', 'in_01', 'in_02', 'in_03', 'out_00', 'out_01'] },
-    'delay':    { 'signal_type': u'mixed',
-                  'ports': ['in_00', 'in_01', 'in_02', 'out_00', 'out_01'] },
-    'envgen':   { 'signal_type': u'voice', 'ports': ['in_00', 'in_01', 'out_00'] },
-    'filter':   { 'signal_type': u'mixed',
-                  'ports': ['in_00', 'in_01', 'in_02', 'in_03', 'out_00', 'out_01'] },
-    'force':    { 'signal_type': u'voice', 'ports': ['in_00', 'out_00'] },
-    'freeverb': { 'signal_type': u'mixed',
-                  'ports': ['in_00', 'in_01', 'out_00', 'out_01'] },
-    'gaincomp': { 'signal_type': u'mixed',
-                  'ports': ['in_00', 'in_01', 'out_00', 'out_01'] },
-    'panning':  { 'signal_type': u'mixed',
-                  'ports': ['in_00', 'in_01', 'in_02', 'out_00', 'out_01'] },
-    'pitch':    { 'signal_type': u'voice', 'ports': ['out_00'] },
-    'ringmod':  { 'signal_type': u'mixed',
-                  'ports': ['in_00', 'in_01', 'in_02', 'in_03', 'out_00', 'out_01'] },
-    'sample':   { 'signal_type': u'voice',
-                  'ports': ['in_00', 'in_01', 'out_00', 'out_01'] },
-    'stream':   { 'signal_type': u'voice', 'ports': ['out_00'] },
-    'volume':   { 'signal_type': u'mixed',
-                  'ports': ['in_00', 'in_01', 'in_02', 'out_00', 'out_01'] },
-}
-
-
 class AudioUnit():
 
     def __init__(self, au_id):
@@ -117,7 +90,7 @@ class AudioUnit():
 
         return out_ports
 
-    def get_port_names(self):
+    def get_port_info(self):
         return {} # TODO
 
     def set_port_existence(self, port_id, existence):
@@ -168,10 +141,12 @@ class AudioUnit():
         manifest_key = '{}/p_manifest.json'.format(key_prefix)
         transaction[manifest_key] = { 'type': proc_type }
 
-        signal_type_key = '{}/p_signal_type.json'.format(key_prefix)
-        transaction[signal_type_key] = _proc_defaults[proc_type]['signal_type']
+        params_class = Processor.get_params_class(proc_type)
 
-        for port_id in _proc_defaults[proc_type]['ports']:
+        signal_type_key = '{}/p_signal_type.json'.format(key_prefix)
+        transaction[signal_type_key] = params_class.get_default_signal_type()
+
+        for port_id in params_class.get_port_info().iterkeys():
             port_manifest_key = '{}/{}/p_manifest.json'.format(key_prefix, port_id)
             transaction[port_manifest_key] = {}
 

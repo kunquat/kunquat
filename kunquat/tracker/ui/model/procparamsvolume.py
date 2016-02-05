@@ -16,10 +16,12 @@ from procparams import ProcParams
 
 class ProcParamsVolume(ProcParams):
 
-    def __init__(self, proc_id, controller):
-        ProcParams.__init__(self, proc_id, controller)
+    @staticmethod
+    def get_default_signal_type():
+        return u'mixed'
 
-    def get_port_names(self):
+    @staticmethod
+    def get_port_info():
         return {
             'in_00':  u'force',
             'in_01':  u'audio L',
@@ -27,6 +29,9 @@ class ProcParamsVolume(ProcParams):
             'out_00': u'audio L',
             'out_01': u'audio R',
         }
+
+    def __init__(self, proc_id, controller):
+        ProcParams.__init__(self, proc_id, controller)
 
     def get_volume(self):
         return self._get_value('p_f_volume.json', 0.0)

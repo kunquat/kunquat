@@ -153,7 +153,7 @@ class Module():
 
         return out_ports
 
-    def get_port_names(self):
+    def get_port_info(self):
         return { 'out_00': u'out L', 'out_01': u'out R' }
 
     def get_connections(self):
