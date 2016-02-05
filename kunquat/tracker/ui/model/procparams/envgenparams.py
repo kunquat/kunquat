@@ -14,7 +14,7 @@
 from procparams import ProcParams
 
 
-class ProcParamsEnvgen(ProcParams):
+class EnvgenParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():

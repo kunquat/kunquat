@@ -14,7 +14,7 @@
 from procparams import ProcParams
 
 
-class ProcParamsForce(ProcParams):
+class ForceParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():

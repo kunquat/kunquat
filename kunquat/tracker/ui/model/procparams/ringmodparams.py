@@ -14,7 +14,7 @@
 from procparams import ProcParams
 
 
-class ProcParamsRingmod(ProcParams):
+class RingmodParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():

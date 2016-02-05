@@ -123,7 +123,7 @@ def post_scaled_shift(y, amount):
     return (scale * y) + offset
 
 
-class ProcParamsAdd(ProcParams):
+class AddParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():

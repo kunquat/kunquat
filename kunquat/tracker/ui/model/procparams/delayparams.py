@@ -16,7 +16,7 @@ import math
 from procparams import ProcParams
 
 
-class ProcParamsDelay(ProcParams):
+class DelayParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():

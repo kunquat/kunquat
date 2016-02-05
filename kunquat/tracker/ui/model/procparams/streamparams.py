@@ -14,7 +14,7 @@
 from procparams import ProcParams
 
 
-class ProcParamsStream(ProcParams):
+class StreamParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():

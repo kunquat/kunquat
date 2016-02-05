@@ -14,7 +14,7 @@
 from procparams import ProcParams
 
 
-class ProcParamsGainComp(ProcParams):
+class FilterParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():
@@ -23,8 +23,10 @@ class ProcParamsGainComp(ProcParams):
     @staticmethod
     def get_port_info():
         return {
-            'in_00':  u'audio L',
-            'in_01':  u'audio R',
+            'in_00':  u'cutoff',
+            'in_01':  u'reso',
+            'in_02':  u'audio L',
+            'in_03':  u'audio R',
             'out_00': u'audio L',
             'out_01': u'audio R',
         }
@@ -32,19 +34,16 @@ class ProcParamsGainComp(ProcParams):
     def __init__(self, proc_id, controller):
         ProcParams.__init__(self, proc_id, controller)
 
-    def get_mapping_enabled(self):
-        return self._get_value('p_b_map_enabled.json', False)
+    def get_cutoff(self):
+        return self._get_value('p_f_cutoff.json', 100.0)
 
-    def set_mapping_enabled(self, enabled):
-        self._set_value('p_b_map_enabled.json', enabled)
+    def set_cutoff(self, value):
+        self._set_value('p_f_cutoff.json', value)
 
-    def get_mapping(self):
-        ret_env = { 'nodes': [ [0, 0], [1, 1] ], 'smooth': False }
-        stored_env = self._get_value('p_e_map.json', None) or {}
-        ret_env.update(stored_env)
-        return ret_env
+    def get_resonance(self):
+        return self._get_value('p_f_resonance.json', 0.0)
 
-    def set_mapping(self, envelope):
-        self._set_value('p_e_map.json', envelope)
+    def set_resonance(self, value):
+        self._set_value('p_f_resonance.json', value)
 
 

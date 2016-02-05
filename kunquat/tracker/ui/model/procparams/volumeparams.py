@@ -14,7 +14,7 @@
 from procparams import ProcParams
 
 
-class ProcParamsFreeverb(ProcParams):
+class VolumeParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():
@@ -23,8 +23,9 @@ class ProcParamsFreeverb(ProcParams):
     @staticmethod
     def get_port_info():
         return {
-            'in_00':  u'audio L',
-            'in_01':  u'audio R',
+            'in_00':  u'force',
+            'in_01':  u'audio L',
+            'in_02':  u'audio R',
             'out_00': u'audio L',
             'out_01': u'audio R',
         }
@@ -32,16 +33,10 @@ class ProcParamsFreeverb(ProcParams):
     def __init__(self, proc_id, controller):
         ProcParams.__init__(self, proc_id, controller)
 
-    def get_reflectivity(self):
-        return self._get_value('p_f_refl.json', 20)
+    def get_volume(self):
+        return self._get_value('p_f_volume.json', 0.0)
 
-    def set_reflectivity(self, value):
-        self._set_value('p_f_refl.json', value)
-
-    def get_damp(self):
-        return self._get_value('p_f_damp.json', 20)
-
-    def set_damp(self, value):
-        self._set_value('p_f_damp.json', value)
+    def set_volume(self, value):
+        self._set_value('p_f_volume.json', value)
 
 

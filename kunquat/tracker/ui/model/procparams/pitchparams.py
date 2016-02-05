@@ -14,7 +14,7 @@
 from procparams import ProcParams
 
 
-class ProcParamsPitch(ProcParams):
+class PitchParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():
