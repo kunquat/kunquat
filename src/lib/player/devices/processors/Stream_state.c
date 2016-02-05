@@ -158,6 +158,8 @@ bool Stream_pstate_set_init_value(
 
     spstate->init_value = stream->init_value;
 
+    Linear_controls_set_value(&spstate->controls, spstate->init_value);
+
     return true;
 }
 
@@ -174,6 +176,8 @@ bool Stream_pstate_set_init_osc_speed(
 
     spstate->init_osc_speed = stream->init_osc_speed;
 
+    Linear_controls_osc_speed_value(&spstate->controls, spstate->init_osc_speed);
+
     return true;
 }
 
@@ -189,6 +193,8 @@ bool Stream_pstate_set_init_osc_depth(
     const Proc_stream* stream = (Proc_stream*)dstate->device->dimpl;
 
     spstate->init_osc_depth = stream->init_osc_depth;
+
+    Linear_controls_osc_depth_value(&spstate->controls, spstate->init_osc_depth);
 
     return true;
 }
