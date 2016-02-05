@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/Device_impl.h>
+#include <init/devices/processors/Proc_init_utils.h>
 #include <memory.h>
 #include <player/devices/processors/Filter_state.h>
 
@@ -47,23 +48,21 @@ Device_impl* new_Proc_filter(void)
     filter->cutoff = FILTER_DEFAULT_CUTOFF;
     filter->resonance = FILTER_DEFAULT_RESONANCE;
 
-    bool reg_success = true;
-
-    reg_success &= Device_impl_register_set_float(
-            &filter->parent,
-            "p_f_cutoff.json",
-            FILTER_DEFAULT_CUTOFF,
-            Proc_filter_set_cutoff,
-            Filter_pstate_set_cutoff);
-
-    reg_success &= Device_impl_register_set_float(
-            &filter->parent,
-            "p_f_resonance.json",
-            FILTER_DEFAULT_RESONANCE,
-            Proc_filter_set_resonance,
-            Filter_pstate_set_resonance);
-
-    if (!reg_success)
+    if (!(REGISTER_SET_WITH_STATE_CB(
+                filter,
+                float,
+                cutoff,
+                "p_f_cutoff.json",
+                FILTER_DEFAULT_CUTOFF,
+                Filter_pstate_set_cutoff) &&
+            REGISTER_SET_WITH_STATE_CB(
+                filter,
+                float,
+                resonance,
+                "p_f_resonance.json",
+                FILTER_DEFAULT_RESONANCE,
+                Filter_pstate_set_resonance)
+        ))
     {
         del_Device_impl(&filter->parent);
         return NULL;

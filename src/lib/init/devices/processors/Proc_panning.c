@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/Device_impl.h>
+#include <init/devices/processors/Proc_init_utils.h>
 #include <memory.h>
 #include <player/devices/processors/Panning_state.h>
 
@@ -45,16 +46,13 @@ Device_impl* new_Proc_panning(void)
     panning->parent.get_vstate_size = Panning_vstate_get_size;
     panning->parent.init_vstate = Panning_vstate_init;
 
-    bool reg_success = true;
-
-    reg_success &= Device_impl_register_set_float(
-            &panning->parent,
-            "p_f_panning.json",
-            0,
-            Proc_panning_set_panning,
-            Panning_pstate_set_panning);
-
-    if (!reg_success)
+    if (!REGISTER_SET_WITH_STATE_CB(
+                panning,
+                float,
+                panning,
+                "p_f_panning.json",
+                0.0,
+                Panning_pstate_set_panning))
     {
         del_Device_impl(&panning->parent);
         return NULL;

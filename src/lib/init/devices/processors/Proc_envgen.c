@@ -18,6 +18,7 @@
 #include <init/devices/Device_impl.h>
 #include <init/devices/param_types/Envelope.h>
 #include <init/devices/Processor.h>
+#include <init/devices/processors/Proc_init_utils.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <memory.h>
@@ -46,63 +47,65 @@ static void del_Proc_envgen(Device_impl* dimpl);
 
 Device_impl* new_Proc_envgen(void)
 {
-    Proc_envgen* egen = memory_alloc_item(Proc_envgen);
-    if (egen == NULL)
+    Proc_envgen* envgen = memory_alloc_item(Proc_envgen);
+    if (envgen == NULL)
         return NULL;
 
-    egen->is_time_env_enabled = false;
-    egen->time_env = NULL;
-    egen->is_loop_enabled = false;
-    egen->is_release_env = false;
-    egen->env_scale_amount = 0;
-    egen->env_scale_center = 0;
+    envgen->is_time_env_enabled = false;
+    envgen->time_env = NULL;
+    envgen->is_loop_enabled = false;
+    envgen->is_release_env = false;
+    envgen->env_scale_amount = 0;
+    envgen->env_scale_center = 0;
 
-    egen->is_linear_force = false;
+    envgen->is_linear_force = false;
 
-    egen->global_adjust = 0;
+    envgen->global_adjust = 0;
 
-    egen->is_force_env_enabled = false;
-    egen->force_env = NULL;
+    envgen->is_force_env_enabled = false;
+    envgen->force_env = NULL;
 
-    egen->y_min = 0;
-    egen->y_max = 1;
+    envgen->y_min = 0;
+    envgen->y_max = 1;
 
-    if (!Device_impl_init(&egen->parent, del_Proc_envgen))
+    if (!Device_impl_init(&envgen->parent, del_Proc_envgen))
     {
-        del_Device_impl(&egen->parent);
+        del_Device_impl(&envgen->parent);
         return NULL;
     }
 
-    egen->parent.get_vstate_size = Envgen_vstate_get_size;
-    egen->parent.init_vstate = Envgen_vstate_init;
+    envgen->parent.get_vstate_size = Envgen_vstate_get_size;
+    envgen->parent.init_vstate = Envgen_vstate_init;
 
-    bool reg_success = true;
-
-#define REGISTER_SET(type, field, key, def_val)                         \
-    reg_success &= Device_impl_register_set_##type(                     \
-            &egen->parent, key, def_val, Proc_envgen_set_##field, NULL)
-
-    REGISTER_SET(bool,      time_env_enabled,   "p_b_env_enabled.json",         false);
-    REGISTER_SET(envelope,  time_env,           "p_e_env.json",                 NULL);
-    REGISTER_SET(bool,      loop_enabled,       "p_b_env_loop_enabled.json",    false);
-    REGISTER_SET(bool,      release_env,        "p_b_env_is_release.json",      false);
-    REGISTER_SET(float,     env_scale_amount,   "p_f_env_scale_amount.json",    0.0);
-    REGISTER_SET(float,     env_scale_center,   "p_f_env_scale_center.json",    0.0);
-    REGISTER_SET(bool,      linear_force,       "p_b_linear_force.json",        false);
-    REGISTER_SET(float,     global_adjust,      "p_f_global_adjust.json",       0.0);
-    REGISTER_SET(bool,      force_env_enabled,  "p_b_force_env_enabled.json",   false);
-    REGISTER_SET(envelope,  force_env,          "p_e_force_env.json",           NULL);
-    REGISTER_SET(num_list,  y_range,            "p_ln_y_range.json",            NULL);
-
-#undef REGISTER_SET
-
-    if (!reg_success)
+    if (!(REGISTER_SET_FIXED_STATE(
+                envgen, bool, time_env_enabled, "p_b_env_enabled.json", false) &&
+            REGISTER_SET_FIXED_STATE(
+                envgen, envelope, time_env, "p_e_env.json", NULL) &&
+            REGISTER_SET_FIXED_STATE(
+                envgen, bool, loop_enabled, "p_b_env_loop_enabled.json", false) &&
+            REGISTER_SET_FIXED_STATE(
+                envgen, bool, release_env, "p_b_env_is_release.json", false) &&
+            REGISTER_SET_FIXED_STATE(
+                envgen, float, env_scale_amount, "p_f_env_scale_amount.json", 0.0) &&
+            REGISTER_SET_FIXED_STATE(
+                envgen, float, env_scale_center, "p_f_env_scale_center.json", 0.0) &&
+            REGISTER_SET_FIXED_STATE(
+                envgen, bool, linear_force, "p_b_linear_force.json", false) &&
+            REGISTER_SET_FIXED_STATE(
+                envgen, float, global_adjust, "p_f_global_adjust.json", 0.0) &&
+            REGISTER_SET_FIXED_STATE(
+                envgen, bool, force_env_enabled, "p_b_force_env_enabled.json", false) &&
+            REGISTER_SET_FIXED_STATE(
+                envgen, envelope, force_env, "p_e_force_env.json", NULL) &&
+            REGISTER_SET_FIXED_STATE(
+                envgen, num_list, y_range, "p_ln_y_range.json", NULL)
+        ))
     {
-        del_Device_impl(&egen->parent);
+        del_Device_impl(&envgen->parent);
         return NULL;
     }
 
-    return &egen->parent;
+    return &envgen->parent;
 }
 
 

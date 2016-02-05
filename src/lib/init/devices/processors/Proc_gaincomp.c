@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 #include <init/devices/Device_impl.h>
 #include <init/devices/param_types/Envelope.h>
 #include <init/devices/Processor.h>
+#include <init/devices/processors/Proc_init_utils.h>
 #include <memory.h>
 #include <player/devices/processors/Gaincomp_state.h>
 #include <string/common.h>
@@ -52,18 +53,10 @@ Device_impl* new_Proc_gaincomp(void)
     gc->is_map_enabled = false;
     gc->map = NULL;
 
-    bool reg_success = true;
-
-#define REGISTER_SET(type, field, key, def_val)                   \
-    reg_success &= Device_impl_register_set_##type(               \
-            &gc->parent, key, def_val, Proc_gc_set_##field, NULL)
-
-    REGISTER_SET(bool,      map_enabled,    "p_b_map_enabled.json",     false);
-    REGISTER_SET(envelope,  map,            "p_e_map.json",             NULL);
-
-#undef REGISTER_SET
-
-    if (!reg_success)
+    if (!(REGISTER_SET_FIXED_STATE(
+                gc, bool, map_enabled, "p_b_map_enabled.json", false) &&
+            REGISTER_SET_FIXED_STATE(gc, envelope, map, "p_e_map.json", NULL)
+        ))
     {
         del_Device_impl(&gc->parent);
         return NULL;

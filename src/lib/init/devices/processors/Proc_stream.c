@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/Device_impl.h>
+#include <init/devices/processors/Proc_init_utils.h>
 #include <memory.h>
 #include <player/devices/processors/Stream_state.h>
 
@@ -50,24 +51,14 @@ Device_impl* new_Proc_stream(void)
     stream->parent.get_vstate_size = Stream_vstate_get_size;
     stream->parent.init_vstate = Stream_vstate_init;
 
-    // Register key handlers
-    bool reg_success = true;
-
-#define REGISTER_KEY(type, field, key, def_val)         \
-    reg_success &= Device_impl_register_set_ ## type(   \
-            &stream->parent,                            \
-            key,                                        \
-            def_val,                                    \
-            Proc_stream_set_ ## field,                  \
-            Stream_pstate_set_ ## field)
-
-    REGISTER_KEY(float, init_value,     "p_f_init_value.json",      0.0);
-    REGISTER_KEY(float, init_osc_speed, "p_f_init_osc_speed.json",  0.0);
-    REGISTER_KEY(float, init_osc_depth, "p_f_init_osc_depth.json",  0.0);
-
-#undef REGISTER_KEY
-
-    if (!reg_success)
+    // Register key handlers, TODO: clean this up
+    if (!(REGISTER_SET_WITH_STATE_CB(
+                stream, float, init_value, "p_f_init_value.json", 0.0, Stream_pstate_set_init_value) &&
+            REGISTER_SET_WITH_STATE_CB(
+                stream, float, init_osc_speed, "p_f_init_osc_speed.json", 0.0, Stream_pstate_set_init_osc_speed) &&
+            REGISTER_SET_WITH_STATE_CB(
+                stream, float, init_osc_depth, "p_f_init_osc_depth.json", 0.0, Stream_pstate_set_init_osc_depth)
+        ))
     {
         del_Device_impl(&stream->parent);
         return NULL;

@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <Error.h>
 #include <init/devices/Device_impl.h>
+#include <init/devices/processors/Proc_init_utils.h>
 #include <memory.h>
 #include <player/devices/processors/Force_state.h>
 #include <string/Streader.h>
@@ -105,28 +106,31 @@ Device_impl* new_Proc_force(void)
     }
 
     // Register key handlers
-    bool reg_success = true;
-
-#define REGISTER_KEY(type, field, key, def_val)                           \
-    reg_success &= Device_impl_register_set_ ## type(                     \
-            &force->parent, key, def_val, Proc_force_set_ ## field, NULL)
-
-    REGISTER_KEY(float,     global_force,       "p_f_global_force.json",        0.0);
-    REGISTER_KEY(float,     force_variation,    "p_f_force_variation.json",     0.0);
-    REGISTER_KEY(envelope,  env,                "p_e_env.json",                 NULL);
-    REGISTER_KEY(bool,      env_enabled,        "p_b_env_enabled.json",         false);
-    REGISTER_KEY(bool,      env_loop_enabled,   "p_b_env_loop_enabled.json",    false);
-    REGISTER_KEY(float,     env_scale_amount,   "p_f_env_scale_amount.json",    0.0);
-    REGISTER_KEY(float,     env_scale_center,   "p_f_env_scale_center.json",    0.0);
-    REGISTER_KEY(envelope,  env_rel,            "p_e_env_rel.json",             NULL);
-    REGISTER_KEY(bool,      env_rel_enabled,    "p_b_env_rel_enabled.json",     false);
-    REGISTER_KEY(float,   env_rel_scale_amount, "p_f_env_rel_scale_amount.json", 0.0);
-    REGISTER_KEY(float,   env_rel_scale_center, "p_f_env_rel_scale_center.json", 0.0);
-    REGISTER_KEY(bool,      release_ramp,       "p_b_release_ramp.json",        false);
-
-#undef REGISTER_KEY
-
-    if (!reg_success)
+    if (!(REGISTER_SET_FIXED_STATE(
+                force, float, global_force, "p_f_global_force.json", 0.0) &&
+            REGISTER_SET_FIXED_STATE(
+                force, float, force_variation, "p_f_force_variation.json", 0.0) &&
+            REGISTER_SET_FIXED_STATE(
+                force, envelope, env, "p_e_env.json", NULL) &&
+            REGISTER_SET_FIXED_STATE(
+                force, bool, env_enabled, "p_b_env_enabled.json", false) &&
+            REGISTER_SET_FIXED_STATE(
+                force, bool, env_loop_enabled, "p_b_env_loop_enabled.json", false) &&
+            REGISTER_SET_FIXED_STATE(
+                force, float, env_scale_amount, "p_f_env_scale_amount.json", 0.0) &&
+            REGISTER_SET_FIXED_STATE(
+                force, float, env_scale_center, "p_f_env_scale_center.json", 0.0) &&
+            REGISTER_SET_FIXED_STATE(
+                force, envelope, env_rel, "p_e_env_rel.json", NULL) &&
+            REGISTER_SET_FIXED_STATE(
+                force, bool, env_rel_enabled, "p_b_env_rel_enabled.json", false) &&
+            REGISTER_SET_FIXED_STATE(
+                force, float, env_rel_scale_amount, "p_f_env_rel_scale_amount.json", 0.0) &&
+            REGISTER_SET_FIXED_STATE(
+                force, float, env_rel_scale_center, "p_f_env_rel_scale_center.json", 0.0) &&
+            REGISTER_SET_FIXED_STATE(
+                force, bool, release_ramp, "p_b_release_ramp.json", false)
+        ))
     {
         del_Device_impl(&force->parent);
         return NULL;

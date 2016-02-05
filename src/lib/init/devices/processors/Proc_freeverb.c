@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <init/devices/Device_impl.h>
 #include <init/devices/Processor.h>
+#include <init/devices/processors/Proc_init_utils.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <player/devices/processors/Freeverb_state.h>
@@ -34,8 +35,8 @@ static const double initial_wet = 1 / 3.0; // 3.0 = scale_wet
 static const double initial_width = 1;
 
 
-static Set_float_func Proc_freeverb_set_refl;
-static Set_float_func Proc_freeverb_set_damp;
+static Set_float_func Proc_freeverb_set_initial_refl;
+static Set_float_func Proc_freeverb_set_initial_damp;
 
 static void Proc_freeverb_update_reflectivity(Proc_freeverb* freeverb, double reflect);
 static void Proc_freeverb_update_damp(Proc_freeverb* freeverb, double damp);
@@ -59,23 +60,12 @@ Device_impl* new_Proc_freeverb(void)
 
     freeverb->parent.create_pstate = new_Freeverb_pstate;
 
-    // Register key set/update handlers
-    bool reg_success = true;
-
-    reg_success &= Device_impl_register_set_float(
-            &freeverb->parent,
-            "p_f_refl.json",
-            initial_reflect,
-            Proc_freeverb_set_refl,
-            NULL);
-    reg_success &= Device_impl_register_set_float(
-            &freeverb->parent,
-            "p_f_damp.json",
-            initial_damp,
-            Proc_freeverb_set_damp,
-            NULL);
-
-    if (!reg_success)
+    // Register key set handlers
+    if (!(REGISTER_SET_FIXED_STATE(
+                freeverb, float, initial_refl, "p_f_refl.json", initial_reflect) &&
+            REGISTER_SET_FIXED_STATE(
+                freeverb, float, initial_damp, "p_f_damp.json", initial_damp)
+        ))
     {
         del_Device_impl(&freeverb->parent);
         return NULL;
@@ -101,7 +91,7 @@ Device_impl* new_Proc_freeverb(void)
 }
 
 
-static bool Proc_freeverb_set_refl(
+static bool Proc_freeverb_set_initial_refl(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
     assert(dimpl != NULL);
@@ -120,7 +110,7 @@ static bool Proc_freeverb_set_refl(
 }
 
 
-static bool Proc_freeverb_set_damp(
+static bool Proc_freeverb_set_initial_damp(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
     assert(dimpl != NULL);

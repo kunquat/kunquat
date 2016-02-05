@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <init/devices/Processor.h>
 #include <init/devices/param_types/Sample.h>
+#include <init/devices/processors/Proc_init_utils.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <memory.h>
@@ -57,21 +58,16 @@ Device_impl* new_Proc_add(void)
     add->parent.get_vstate_size = Add_vstate_get_size;
     add->parent.init_vstate = Add_vstate_init;
 
-    bool reg_success = true;
-
-#define REGISTER_SET(type, field, key, def_val) \
-    reg_success &= Device_impl_register_set_##type(                       \
-            &add->parent, key, def_val, Proc_add_set_##field, NULL)
-
-    REGISTER_SET(sample,    base,           "p_base.wav",               NULL);
-    REGISTER_SET(bool,      ramp_attack,    "p_b_ramp_attack.json",     true);
-    REGISTER_SET(float,     tone_pitch,     "tone_XX/p_f_pitch.json",   NAN);
-    REGISTER_SET(float,     tone_volume,    "tone_XX/p_f_volume.json",  NAN);
-    REGISTER_SET(float,     tone_panning,   "tone_XX/p_f_pan.json",     0.0);
-
-#undef REGISTER_SET
-
-    if (!reg_success)
+    if (!(REGISTER_SET_FIXED_STATE(add, sample, base, "p_base.wav", NULL) &&
+            REGISTER_SET_FIXED_STATE(
+                add, bool, ramp_attack, "p_b_ramp_attack.json", true) &&
+            REGISTER_SET_FIXED_STATE(
+                add, float, tone_pitch, "tone_XX/p_f_pitch.json", NAN) &&
+            REGISTER_SET_FIXED_STATE(
+                add, float, tone_volume, "tone_XX/p_f_volume.json", NAN) &&
+            REGISTER_SET_FIXED_STATE(
+                add, float, tone_panning, "tone_XX/p_f_pan.json", 0.0)
+         ))
     {
         del_Device_impl(&add->parent);
         return NULL;
