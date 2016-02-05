@@ -19,7 +19,7 @@
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <memory.h>
-#include <player/devices/processors/Proc_utils.h>
+#include <player/devices/processors/Proc_player_utils.h>
 #include <player/Linear_controls.h>
 #include <player/Player.h>
 #include <player/Work_buffer.h>

@@ -20,7 +20,7 @@
 #include <mathnum/conversions.h>
 #include <memory.h>
 #include <player/devices/Proc_state.h>
-#include <player/devices/processors/Proc_utils.h>
+#include <player/devices/processors/Proc_player_utils.h>
 #include <player/devices/Voice_state.h>
 #include <player/Work_buffers.h>
 

@@ -18,7 +18,7 @@
 #include <init/devices/processors/Proc_add.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
-#include <player/devices/processors/Proc_utils.h>
+#include <player/devices/processors/Proc_player_utils.h>
 #include <player/Work_buffers.h>
 
 

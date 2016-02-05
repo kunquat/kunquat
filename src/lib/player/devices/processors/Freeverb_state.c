@@ -20,7 +20,7 @@
 #include <memory.h>
 #include <player/devices/processors/Freeverb_allpass.h>
 #include <player/devices/processors/Freeverb_comb.h>
-#include <player/devices/processors/Proc_utils.h>
+#include <player/devices/processors/Proc_player_utils.h>
 #include <player/Work_buffers.h>
 
 
