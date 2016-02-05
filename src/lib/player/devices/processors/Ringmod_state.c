@@ -17,7 +17,7 @@
 #include <debug/assert.h>
 #include <init/devices/processors/Proc_ringmod.h>
 #include <memory.h>
-#include <player/devices/processors/Proc_player_utils.h>
+#include <player/devices/processors/Proc_state_utils.h>
 
 #include <math.h>
 #include <stdint.h>

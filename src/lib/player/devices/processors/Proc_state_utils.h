@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_PLAYER_UTILS_H
-#define K_PROC_PLAYER_UTILS_H
+#ifndef K_PROC_STATE_UTILS_H
+#define K_PROC_STATE_UTILS_H
 
 
 #include <decl.h>
@@ -107,6 +107,6 @@ inline float Cond_work_buffer_get_value(const Cond_work_buffer* cwb, int32_t ind
 }
 
 
-#endif // K_PROC_PLAYER_UTILS_H
+#endif // K_PROC_STATE_UTILS_H
 
 
