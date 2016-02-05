@@ -25,8 +25,8 @@
 
 
 static void multiply_signals(
-        const float* in1_buffers[2],
-        const float* in2_buffers[2],
+        float* in1_buffers[2],
+        float* in2_buffers[2],
         float* out_buffers[2],
         int32_t buf_start,
         int32_t buf_stop)
@@ -66,24 +66,18 @@ static void Ringmod_pstate_render_mixed(
     assert(isfinite(tempo));
     assert(tempo > 0);
 
+    Proc_state* proc_state = (Proc_state*)dstate;
+
     // Get inputs
-    const float* in1_buffers[] =
-    {
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 0),
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 1),
-    };
-    const float* in2_buffers[] =
-    {
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 2),
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 3),
-    };
+    float* in1_buffers[2] = { NULL };
+    Proc_state_get_mixed_audio_in_buffers(proc_state, 0, 2, in1_buffers);
+
+    float* in2_buffers[2] = { NULL };
+    Proc_state_get_mixed_audio_in_buffers(proc_state, 2, 4, in2_buffers);
 
     // Get outputs
-    float* out_buffers[] =
-    {
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 0),
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 1),
-    };
+    float* out_buffers[2] = { NULL };
+    Proc_state_get_mixed_audio_out_buffers(proc_state, 0, 2, out_buffers);
 
     // Multiply the signals
     multiply_signals(in1_buffers, in2_buffers, out_buffers, buf_start, buf_stop);
@@ -129,33 +123,22 @@ static int32_t Ringmod_vstate_render_voice(
     assert(tempo > 0);
 
     // Get inputs
-    const float* in1_buffers[] =
-    {
-        Proc_state_get_voice_buffer_contents_mut(
-                proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
-        Proc_state_get_voice_buffer_contents_mut(
-                proc_state, DEVICE_PORT_TYPE_RECEIVE, 1),
-    };
-    const float* in2_buffers[] =
-    {
-        Proc_state_get_voice_buffer_contents_mut(
-                proc_state, DEVICE_PORT_TYPE_RECEIVE, 2),
-        Proc_state_get_voice_buffer_contents_mut(
-                proc_state, DEVICE_PORT_TYPE_RECEIVE, 3),
-    };
-    if ((in1_buffers[0] == NULL && (in1_buffers[1] == NULL)) ||
-            ((in2_buffers[0] == NULL) || in2_buffers[1] == NULL))
+    float* in1_buffers[2] = { NULL };
+    Proc_state_get_voice_audio_in_buffers(proc_state, 0, 2, in1_buffers);
+
+    float* in2_buffers[2] = { NULL };
+    Proc_state_get_voice_audio_in_buffers(proc_state, 2, 4, in2_buffers);
+
+    if (((in1_buffers[0] == NULL) || (in2_buffers[0] == NULL)) &&
+            ((in1_buffers[1] == NULL) || (in2_buffers[1] == NULL)))
     {
         vstate->active = false;
         return buf_start;
     }
 
     // Get output
-    float* out_buffers[] =
-    {
-        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0),
-        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 1),
-    };
+    float* out_buffers[2] = { NULL };
+    Proc_state_get_voice_audio_out_buffers(proc_state, 0, 2, out_buffers);
 
     // Multiply the signals
     multiply_signals(in1_buffers, in2_buffers, out_buffers, buf_start, buf_stop);

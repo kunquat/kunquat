@@ -40,6 +40,76 @@ Proc_state* new_Proc_state_default(
 
 
 /**
+ * Retrieve mixed audio input buffers.
+ *
+ * \param proc_state   The Processor state -- must not be \c NULL.
+ * \param port_start   The first port index -- must be >= \c 0 and
+ *                     < \c KQT_DEVICE_PORTS_MAX.
+ * \param port_stop    The index after the last port index -- must be
+ *                     >= \c port_start and <= \c KQT_DEVICE_PORTS_MAX.
+ * \param in_bufs      The destination buffer array -- must not be \c NULL and
+ *                     must have space for \a port_stop - \a port_start buffers.
+ *                     Any of the stored pointers may be \c NULL.
+ */
+void Proc_state_get_mixed_audio_in_buffers(
+        Proc_state* proc_state, int32_t port_start, int32_t port_stop, float* in_bufs[]);
+
+
+/**
+ * Retrieve mixed audio output buffers.
+ *
+ * \param proc_state   The Processor state -- must not be \c NULL.
+ * \param port_start   The first port index -- must be >= \c 0 and
+ *                     < \c KQT_DEVICE_PORTS_MAX.
+ * \param port_stop    The index after the last port index -- must be
+ *                     >= \c port_start and <= \c KQT_DEVICE_PORTS_MAX.
+ * \param out_bufs     The destination buffer array -- must not be \c NULL and
+ *                     must have space for \a port_stop - \a port_start buffers.
+ *                     Any of the stored pointers may be \c NULL.
+ */
+void Proc_state_get_mixed_audio_out_buffers(
+        Proc_state* proc_state,
+        int32_t port_start,
+        int32_t port_stop,
+        float* out_bufs[]);
+
+
+/**
+ * Retrieve voice audio input buffers.
+ *
+ * \param proc_state   The Processor state -- must not be \c NULL.
+ * \param port_start   The first port index -- must be >= \c 0 and
+ *                     < \c KQT_DEVICE_PORTS_MAX.
+ * \param port_stop    The index after the last port index -- must be
+ *                     >= \c port_start and <= \c KQT_DEVICE_PORTS_MAX.
+ * \param in_bufs      The destination buffer array -- must not be \c NULL and
+ *                     must have space for \a port_stop - \a port_start buffers.
+ *                     Any of the stored pointers may be \c NULL.
+ */
+void Proc_state_get_voice_audio_in_buffers(
+        Proc_state* proc_state, int32_t port_start, int32_t port_stop, float* in_bufs[]);
+
+
+/**
+ * Retrieve voice audio output buffers.
+ *
+ * \param proc_state   The Processor state -- must not be \c NULL.
+ * \param port_start   The first port index -- must be >= \c 0 and
+ *                     < \c KQT_DEVICE_PORTS_MAX.
+ * \param port_stop    The index after the last port index -- must be
+ *                     >= \c port_start and <= \c KQT_DEVICE_PORTS_MAX.
+ * \param out_bufs     The destination buffer array -- must not be \c NULL and
+ *                     must have space for \a port_stop - \a port_start buffers.
+ *                     Any of the stored pointers may be \c NULL.
+ */
+void Proc_state_get_voice_audio_out_buffers(
+        Proc_state* proc_state,
+        int32_t port_start,
+        int32_t port_stop,
+        float* out_bufs[]);
+
+
+/**
  * Process volume ramping at the start of a note.
  *
  * This function should be called by processor implementations (that need it)

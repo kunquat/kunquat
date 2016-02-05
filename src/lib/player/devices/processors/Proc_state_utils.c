@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/Processor.h>
+#include <kunquat/limits.h>
 #include <memory.h>
 #include <player/devices/Proc_state.h>
 #include <player/devices/Voice_state.h>
@@ -43,6 +44,126 @@ Proc_state* new_Proc_state_default(
     }
 
     return pstate;
+}
+
+
+static void get_mixed_audio_buffers(
+        Proc_state* proc_state,
+        Device_port_type port_type,
+        int32_t port_start,
+        int32_t port_stop,
+        float* bufs[])
+{
+    assert(proc_state != NULL);
+    assert(port_type < DEVICE_PORT_TYPES);
+    assert(port_start >= 0);
+    assert(port_start < KQT_DEVICE_PORTS_MAX);
+    assert(port_stop >= port_start);
+    assert(port_stop <= KQT_DEVICE_PORTS_MAX);
+    assert(bufs != NULL);
+
+    Device_state* dstate = (Device_state*)proc_state;
+
+    for (int32_t i = 0, port = port_start; port < port_stop; ++i, ++port)
+        bufs[i] = Device_state_get_audio_buffer_contents_mut(dstate, port_type, port);
+
+    return;
+}
+
+
+void Proc_state_get_mixed_audio_in_buffers(
+        Proc_state* proc_state, int32_t port_start, int32_t port_stop, float* in_bufs[])
+{
+    assert(proc_state != NULL);
+    assert(port_start >= 0);
+    assert(port_start < KQT_DEVICE_PORTS_MAX);
+    assert(port_stop >= port_start);
+    assert(port_stop <= KQT_DEVICE_PORTS_MAX);
+    assert(in_bufs != NULL);
+
+    get_mixed_audio_buffers(
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, port_start, port_stop, in_bufs);
+
+    return;
+}
+
+
+void Proc_state_get_mixed_audio_out_buffers(
+        Proc_state* proc_state,
+        int32_t port_start,
+        int32_t port_stop,
+        float* out_bufs[])
+{
+    assert(proc_state != NULL);
+    assert(port_start >= 0);
+    assert(port_start < KQT_DEVICE_PORTS_MAX);
+    assert(port_stop >= port_start);
+    assert(port_stop <= KQT_DEVICE_PORTS_MAX);
+    assert(out_bufs != NULL);
+
+    get_mixed_audio_buffers(
+            proc_state, DEVICE_PORT_TYPE_SEND, port_start, port_stop, out_bufs);
+
+    return;
+}
+
+
+static void get_voice_audio_buffers(
+        Proc_state* proc_state,
+        Device_port_type port_type,
+        int32_t port_start,
+        int32_t port_stop,
+        float* bufs[])
+{
+    assert(proc_state != NULL);
+    assert(port_type < DEVICE_PORT_TYPES);
+    assert(port_start >= 0);
+    assert(port_start < KQT_DEVICE_PORTS_MAX);
+    assert(port_stop >= port_start);
+    assert(port_stop <= KQT_DEVICE_PORTS_MAX);
+    assert(bufs != NULL);
+
+    for (int32_t i = 0, port = port_start; port < port_stop; ++i, ++port)
+        bufs[i] = Proc_state_get_voice_buffer_contents_mut(proc_state, port_type, port);
+
+    return;
+}
+
+
+void Proc_state_get_voice_audio_in_buffers(
+        Proc_state* proc_state, int32_t port_start, int32_t port_stop, float* in_bufs[])
+{
+    assert(proc_state != NULL);
+    assert(port_start >= 0);
+    assert(port_start < KQT_DEVICE_PORTS_MAX);
+    assert(port_stop >= port_start);
+    assert(port_stop <= KQT_DEVICE_PORTS_MAX);
+    assert(in_bufs != NULL);
+
+    get_voice_audio_buffers(
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, port_start, port_stop, in_bufs);
+
+    return;
+}
+
+
+void Proc_state_get_voice_audio_out_buffers(
+        Proc_state* proc_state,
+        int32_t port_start,
+        int32_t port_stop,
+        float* out_bufs[])
+{
+    assert(proc_state != NULL);
+    assert(port_start >= 0);
+    assert(port_start < KQT_DEVICE_PORTS_MAX);
+    assert(port_stop >= port_start);
+    assert(port_stop <= KQT_DEVICE_PORTS_MAX);
+    assert(out_bufs != NULL);
+
+    get_voice_audio_buffers(
+            proc_state, DEVICE_PORT_TYPE_SEND, port_start, port_stop, out_bufs);
+
+    return;
 }
 
 

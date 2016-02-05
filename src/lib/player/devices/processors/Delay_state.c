@@ -121,17 +121,11 @@ static void Delay_pstate_render_mixed(
 
     const Proc_delay* delay = (const Proc_delay*)dstate->device->dimpl;
 
-    const float* in_data[] =
-    {
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 1),
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 2),
-    };
+    float* in_data[2] = { NULL };
+    Proc_state_get_mixed_audio_in_buffers(&dpstate->parent, 1, 3, in_data);
 
-    float* out_data[] =
-    {
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 0),
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 1),
-    };
+    float* out_data[2] = { NULL };
+    Proc_state_get_mixed_audio_out_buffers(&dpstate->parent, 0, 2, out_data);
 
     float* history_data[] =
     {

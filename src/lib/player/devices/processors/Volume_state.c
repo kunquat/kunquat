@@ -31,7 +31,7 @@
 
 static void apply_volume(
         int buf_count,
-        const float* in_buffers[buf_count],
+        float* in_buffers[buf_count],
         float* out_buffers[buf_count],
         float* vol_buffer,
         float global_vol,
@@ -115,18 +115,12 @@ static void Volume_pstate_render_mixed(
         Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
 
     // Get input
-    const float* in_bufs[] =
-    {
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 1),
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 2),
-    };
+    float* in_bufs[2] = { NULL };
+    Proc_state_get_mixed_audio_in_buffers(&vpstate->parent, 1, 3, in_bufs);
 
     // Get output
-    float* out_bufs[] =
-    {
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 0),
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 1),
-    };
+    float* out_bufs[2] = { NULL };
+    Proc_state_get_mixed_audio_out_buffers(&vpstate->parent, 0, 2, out_bufs);
 
     apply_volume(2, in_bufs, out_bufs, vol_buf, vpstate->volume, buf_start, buf_stop);
 
@@ -192,13 +186,9 @@ int32_t Volume_vstate_render_voice(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
 
     // Get input
-    const float* in_bufs[] =
-    {
-        Proc_state_get_voice_buffer_contents_mut(
-                proc_state, DEVICE_PORT_TYPE_RECEIVE, 1),
-        Proc_state_get_voice_buffer_contents_mut(
-                proc_state, DEVICE_PORT_TYPE_RECEIVE, 2),
-    };
+    float* in_bufs[2] = { NULL };
+    Proc_state_get_voice_audio_in_buffers(proc_state, 1, 3, in_bufs);
+
     if ((in_bufs[0] == NULL) && (in_bufs[1] == NULL))
     {
         vstate->active = false;
@@ -206,11 +196,8 @@ int32_t Volume_vstate_render_voice(
     }
 
     // Get output
-    float* out_bufs[] =
-    {
-        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0),
-        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 1),
-    };
+    float* out_bufs[2] = { NULL };
+    Proc_state_get_voice_audio_out_buffers(proc_state, 0, 2, out_bufs);
 
     const Volume_pstate* vpstate = (const Volume_pstate*)proc_state;
     apply_volume(2, in_bufs, out_bufs, volume_buf, vpstate->volume, buf_start, buf_stop);

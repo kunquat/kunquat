@@ -19,6 +19,7 @@
 #include <init/devices/processors/Proc_panning.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/devices/processors/Proc_state_utils.h>
 #include <player/Work_buffers.h>
 
 #include <stdint.h>
@@ -32,7 +33,7 @@ static void apply_panning(
         const Work_buffers* wbs,
         const float* pan_values,
         double def_pan,
-        const float* in_buffers[2],
+        float* in_buffers[2],
         float* out_buffers[2],
         int32_t buf_start,
         int32_t buf_stop,
@@ -126,18 +127,12 @@ static void Panning_pstate_render_mixed(
         Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
 
     // Get input
-    const float* in_buffers[] =
-    {
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 1),
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 2),
-    };
+    float* in_buffers[2] = { NULL };
+    Proc_state_get_mixed_audio_in_buffers(&ppstate->parent, 1, 3, in_buffers);
 
     // Get output
-    float* out_buffers[] =
-    {
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 0),
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 1),
-    };
+    float* out_buffers[2] = { NULL };
+    Proc_state_get_mixed_audio_out_buffers(&ppstate->parent, 0, 2, out_buffers);
 
     apply_panning(
             wbs,
@@ -226,13 +221,8 @@ int32_t Panning_vstate_render_voice(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
 
     // Get input
-    const float* in_buffers[] =
-    {
-        Proc_state_get_voice_buffer_contents_mut(
-                proc_state, DEVICE_PORT_TYPE_RECEIVE, 1),
-        Proc_state_get_voice_buffer_contents_mut(
-                proc_state, DEVICE_PORT_TYPE_RECEIVE, 2),
-    };
+    float* in_buffers[2] = { NULL };
+    Proc_state_get_voice_audio_in_buffers(proc_state, 1, 3, in_buffers);
     if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
     {
         vstate->active = false;
@@ -240,11 +230,8 @@ int32_t Panning_vstate_render_voice(
     }
 
     // Get output
-    float* out_buffers[] =
-    {
-        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0),
-        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 1),
-    };
+    float* out_buffers[2] = { NULL };
+    Proc_state_get_voice_audio_out_buffers(proc_state, 0, 2, out_buffers);
 
     const Device_state* dstate = (const Device_state*)proc_state;
 
