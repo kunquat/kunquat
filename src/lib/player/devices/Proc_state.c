@@ -59,6 +59,15 @@ bool Proc_state_init(
     assert(audio_rate > 0);
     assert(audio_buffer_size >= 0);
 
+    proc_state->destroy = NULL;
+    proc_state->set_audio_rate = NULL;
+    proc_state->set_audio_buffer_size = NULL;
+    proc_state->set_tempo = NULL;
+    proc_state->reset = NULL;
+    proc_state->render_mixed = NULL;
+
+    proc_state->clear_history = NULL;
+
     if (!Device_state_init(&proc_state->parent, device, audio_rate, audio_buffer_size))
         return false;
 
@@ -69,8 +78,6 @@ bool Proc_state_init(
             proc_state->voice_buffers[port_type][port_num] = NULL;
     }
 
-    proc_state->voice_out_buffers_modified = NULL;
-
     proc_state->parent.add_buffer = Proc_state_add_buffer;
     proc_state->parent.set_audio_rate = Proc_state_set_audio_rate;
     proc_state->parent.set_audio_buffer_size = Proc_state_set_audio_buffer_size;
@@ -78,22 +85,6 @@ bool Proc_state_init(
     proc_state->parent.reset = Proc_state_reset;
     proc_state->parent.render_mixed = Proc_state_render_mixed;
     proc_state->parent.destroy = del_Proc_state;
-
-    proc_state->destroy = NULL;
-    proc_state->set_audio_rate = NULL;
-    proc_state->set_audio_buffer_size = NULL;
-    proc_state->set_tempo = NULL;
-    proc_state->reset = NULL;
-    proc_state->render_mixed = NULL;
-
-    proc_state->clear_history = NULL;
-
-    proc_state->voice_out_buffers_modified = new_Bit_array(KQT_DEVICE_PORTS_MAX);
-    if (proc_state->voice_out_buffers_modified == NULL)
-    {
-        Proc_state_deinit(proc_state);
-        return false;
-    }
 
     return true;
 }
@@ -185,19 +176,7 @@ void Proc_state_clear_voice_buffers(Proc_state* proc_state)
         }
     }
 
-    Bit_array_clear(proc_state->voice_out_buffers_modified);
-
     return;
-}
-
-
-bool Proc_state_is_voice_out_buffer_modified(Proc_state* proc_state, int port_num)
-{
-    assert(proc_state != NULL);
-    assert(port_num >= 0);
-    assert(port_num < KQT_DEVICE_PORTS_MAX);
-
-    return Bit_array_get(proc_state->voice_out_buffers_modified, port_num);
 }
 
 
@@ -228,9 +207,6 @@ Work_buffer* Proc_state_get_voice_buffer_mut(
     if ((port_type == DEVICE_PORT_TYPE_RECEIVE) &&
             !Device_state_is_input_port_connected(&proc_state->parent, port_num))
         return NULL;
-
-    if (port_type == DEVICE_PORT_TYPE_SEND)
-        Bit_array_set(proc_state->voice_out_buffers_modified, port_num, true);
 
     return proc_state->voice_buffers[port_type][port_num];
 }
@@ -376,9 +352,6 @@ static void Proc_state_deinit(Proc_state* proc_state)
         for (int port_num = 0; port_num < KQT_DEVICE_PORTS_MAX; ++port_num)
             del_Work_buffer(proc_state->voice_buffers[port_type][port_num]);
     }
-
-    del_Bit_array(proc_state->voice_out_buffers_modified);
-    proc_state->voice_out_buffers_modified = NULL;
 
     return;
 }
