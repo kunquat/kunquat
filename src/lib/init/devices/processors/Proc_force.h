@@ -44,15 +44,6 @@ typedef struct Proc_force
 } Proc_force;
 
 
-/**
- * Create a new force processor.
- *
- * \return   The new force processor if successful, or \c NULL if memory
- *           allocation failed.
- */
-Device_impl* new_Proc_force(void);
-
-
 #endif // K_PROC_FORCE_H
 
 

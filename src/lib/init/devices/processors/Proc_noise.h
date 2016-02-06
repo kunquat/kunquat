@@ -1,7 +1,7 @@
 
 
 /*
- * Authors: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Authors: Tomi Jylhä-Ollila, Finland 2010-2016
  *          Ossi Saresoja, Finland 2010
  *
  * This file is part of Kunquat.
@@ -27,15 +27,6 @@ typedef struct Proc_noise
 {
     Device_impl parent;
 } Proc_noise;
-
-
-/**
- * Create a new Noise processor.
- *
- * \return   The new Noise processor if successful, or \c NULL if memory
- *           allocation failed.
- */
-Device_impl* new_Proc_noise(void);
 
 
 #endif // K_PROC_NOISE_H

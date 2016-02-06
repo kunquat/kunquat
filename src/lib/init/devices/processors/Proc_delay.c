@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <init/devices/Device_impl.h>
 #include <init/devices/Processor.h>
+#include <init/devices/processors/Proc_init_utils.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <memory.h>
@@ -55,23 +56,16 @@ Device_impl* new_Proc_delay(void)
     delay->parent.create_pstate = new_Delay_pstate;
 
     // Register key set/update handlers
-    bool reg_success = true;
-
-    reg_success &= Device_impl_register_set_float(
-            &delay->parent,
-            "p_f_max_delay.json",
-            delay->max_delay,
-            Proc_delay_set_max_delay,
-            Delay_pstate_set_max_delay);
-
-    reg_success &= Device_impl_register_set_float(
-            &delay->parent,
-            "p_f_init_delay.json",
-            delay->init_delay,
-            Proc_delay_set_init_delay,
-            NULL);
-
-    if (!reg_success)
+    if (!(REGISTER_SET_WITH_STATE_CB(
+                delay,
+                float,
+                max_delay,
+                "p_f_max_delay.json",
+                delay->max_delay,
+                Delay_pstate_set_max_delay) &&
+            REGISTER_SET_FIXED_STATE(
+                delay, float, init_delay, "p_f_init_delay.json", delay->init_delay)
+         ))
     {
         del_Device_impl(&delay->parent);
         return NULL;

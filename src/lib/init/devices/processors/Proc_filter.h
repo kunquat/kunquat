@@ -31,15 +31,6 @@ typedef struct Proc_filter
 } Proc_filter;
 
 
-/**
- * Create a new filter processor.
- *
- * \return   The new filter processor if successful, or \c NULL if memory
- *           allocation failed.
- */
-Device_impl* new_Proc_filter(void);
-
-
 #endif // K_PROC_FILTER_H
 
 

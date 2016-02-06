@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -32,9 +32,6 @@
  *           failed.
  */
 typedef Device_impl* Proc_cons(void);
-
-
-typedef struct Proc_type Proc_type;
 
 
 /**

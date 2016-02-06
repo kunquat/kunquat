@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -44,15 +44,6 @@ typedef struct Proc_add
     bool is_ramp_attack_enabled;
     Add_tone tones[ADD_TONES_MAX];
 } Proc_add;
-
-
-/**
- * Create a new additive synthesis processor.
- *
- * \return   The new additive synthesis processor if successful, or \c NULL if
- *           memory allocation failed.
- */
-Device_impl* new_Proc_add(void);
 
 
 #endif // K_PROC_ADD_H

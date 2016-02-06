@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <init/devices/Device_impl.h>
 #include <init/devices/Processor.h>
+#include <init/devices/processors/Proc_init_utils.h>
 #include <mathnum/conversions.h>
 #include <player/devices/processors/Volume_state.h>
 #include <string/common.h>
@@ -52,17 +53,9 @@ Device_impl* new_Proc_volume(void)
     volume->parent.get_vstate_size = Volume_vstate_get_size;
     volume->parent.init_vstate = Volume_vstate_init;
 
-    // Register key and control variable handlers
-    bool reg_success = true;
-
-    reg_success &= Device_impl_register_set_float(
-            &volume->parent,
-            "p_f_volume.json",
-            0.0,
-            Proc_volume_set_volume,
-            Volume_pstate_set_volume);
-
-    if (!reg_success)
+    // Register key handlers
+    if (!REGISTER_SET_WITH_STATE_CB(
+                volume, float, volume, "p_f_volume.json", 0.0, Volume_pstate_set_volume))
     {
         del_Device_impl(&volume->parent);
         return NULL;

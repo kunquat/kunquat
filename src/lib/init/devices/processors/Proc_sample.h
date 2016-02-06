@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -33,15 +33,6 @@ typedef struct Proc_sample
 {
     Device_impl parent;
 } Proc_sample;
-
-
-/**
- * Create a new Sample processor.
- *
- * \return   The new Sample processor if successful, or \c NULL if memory
- *           allocation failed.
- */
-Device_impl* new_Proc_sample(void);
 
 
 #endif // K_PROC_SAMPLE_H

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <init/devices/Processor.h>
 #include <init/devices/param_types/Sample.h>
+#include <init/devices/processors/Proc_init_utils.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <memory.h>
@@ -57,25 +58,24 @@ Device_impl* new_Proc_add(void)
     add->parent.get_vstate_size = Add_vstate_get_size;
     add->parent.init_vstate = Add_vstate_init;
 
-    bool reg_success = true;
+#define REG_KEY(type, name, keyp, def_value) \
+    REGISTER_SET_FIXED_STATE(add, type, name, keyp, def_value)
+#define REG_KEY_BOOL(name, keyp, def_value) \
+    REGISTER_SET_FIXED_STATE(add, bool, name, keyp, def_value)
 
-#define REGISTER_SET(type, field, key, def_val) \
-    reg_success &= Device_impl_register_set_##type(                       \
-            &add->parent, key, def_val, Proc_add_set_##field, NULL)
-
-    REGISTER_SET(sample,    base,           "p_base.wav",               NULL);
-    REGISTER_SET(bool,      ramp_attack,    "p_b_ramp_attack.json",     true);
-    REGISTER_SET(float,     tone_pitch,     "tone_XX/p_f_pitch.json",   NAN);
-    REGISTER_SET(float,     tone_volume,    "tone_XX/p_f_volume.json",  NAN);
-    REGISTER_SET(float,     tone_panning,   "tone_XX/p_f_pan.json",     0.0);
-
-#undef REGISTER_SET
-
-    if (!reg_success)
+    if (!(REG_KEY(sample, base, "p_base.wav", NULL) &&
+            REG_KEY_BOOL(ramp_attack, "p_b_ramp_attack.json", true) &&
+            REG_KEY(float, tone_pitch, "tone_XX/p_f_pitch.json", NAN) &&
+            REG_KEY(float, tone_volume, "tone_XX/p_f_volume.json", NAN) &&
+            REG_KEY(float, tone_panning, "tone_XX/p_f_pan.json", 0.0)
+         ))
     {
         del_Device_impl(&add->parent);
         return NULL;
     }
+
+#undef REG_KEY
+#undef REG_KEY_BOOL
 
     add->base = NULL;
     add->is_ramp_attack_enabled = true;

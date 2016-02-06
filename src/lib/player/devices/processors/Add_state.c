@@ -18,7 +18,7 @@
 #include <init/devices/processors/Proc_add.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
-#include <player/devices/processors/Proc_utils.h>
+#include <player/devices/processors/Proc_state_utils.h>
 #include <player/Work_buffers.h>
 
 
@@ -102,11 +102,8 @@ static int32_t Add_vstate_render_voice(
     }
 
     // Get output buffer for writing
-    float* out_bufs[] =
-    {
-        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0),
-        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 1),
-    };
+    float* out_bufs[2] = { NULL };
+    Proc_state_get_voice_audio_out_buffers(proc_state, 0, 2, out_bufs);
 
     // Get phase modulation signal
     float* mod_values[] =
@@ -118,10 +115,13 @@ static int32_t Add_vstate_render_voice(
     {
         // Copy from the input voice buffers if available
         // XXX: not sure if the best way to handle this...
+
+        float* in_mod_bufs[2] = { NULL };
+        Proc_state_get_voice_audio_in_buffers(proc_state, 2, 4, in_mod_bufs);
+
         for (int ch = 0; ch < 2; ++ch)
         {
-            const float* mod_in_values = Proc_state_get_voice_buffer_contents_mut(
-                    proc_state, DEVICE_PORT_TYPE_RECEIVE, ch + 2);
+            const float* mod_in_values = in_mod_bufs[ch];
 
             if (mod_in_values != NULL)
             {

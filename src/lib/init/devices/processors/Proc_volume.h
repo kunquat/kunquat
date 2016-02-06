@@ -29,15 +29,6 @@ typedef struct Proc_volume
 } Proc_volume;
 
 
-/**
- * Create a new volume processor.
- *
- * \return   The new volume processor if successful, or \c NULL if memory
- *           allocation failed.
- */
-Device_impl* new_Proc_volume(void);
-
-
 #endif // K_PROC_VOLUME_H
 
 

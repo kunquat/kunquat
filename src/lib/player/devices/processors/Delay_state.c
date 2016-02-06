@@ -15,13 +15,14 @@
 #include <player/devices/processors/Delay_state.h>
 
 #include <init/devices/processors/Proc_delay.h>
+#include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <memory.h>
-#include <player/Audio_buffer.h>
-#include <player/devices/processors/Proc_utils.h>
+#include <player/devices/processors/Proc_state_utils.h>
 #include <player/Linear_controls.h>
 #include <player/Player.h>
+#include <player/Work_buffer.h>
 
 #include <math.h>
 #include <stdbool.h>
@@ -33,23 +34,27 @@ typedef struct Delay_pstate
 {
     Proc_state parent;
 
-    Audio_buffer* buf;
+    Work_buffer* bufs[KQT_BUFFERS_MAX];
     int32_t buf_pos;
 } Delay_pstate;
 
 
-static void Delay_pstate_deinit(Device_state* dev_state)
+static void del_Delay_pstate(Device_state* dstate)
 {
-    assert(dev_state != NULL);
+    assert(dstate != NULL);
 
-    Delay_pstate* dpstate = (Delay_pstate*)dev_state;
-    if (dpstate->buf != NULL)
+    Delay_pstate* dpstate = (Delay_pstate*)dstate;
+
+    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
-        del_Audio_buffer(dpstate->buf);
-        dpstate->buf = NULL;
+        if (dpstate->bufs[i] != NULL)
+        {
+            del_Work_buffer(dpstate->bufs[i]);
+            dpstate->bufs[i] = NULL;
+        }
     }
 
-    Proc_state_deinit(&dpstate->parent.parent);
+    memory_free(dpstate);
 
     return;
 }
@@ -66,11 +71,16 @@ static bool Delay_pstate_set_audio_rate(Device_state* dstate, int32_t audio_rate
 
     const int32_t delay_buf_size = delay->max_delay * audio_rate + 1;
 
-    assert(dpstate->buf != NULL);
-    if (!Audio_buffer_resize(dpstate->buf, delay_buf_size))
-        return false;
+    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
+    {
+        Work_buffer* buf = dpstate->bufs[i];
 
-    Audio_buffer_clear(dpstate->buf, 0, Audio_buffer_get_size(dpstate->buf));
+        if (!Work_buffer_resize(buf, delay_buf_size))
+            return false;
+
+        Work_buffer_clear(buf, 0, Work_buffer_get_size(buf));
+    }
+
     dpstate->buf_pos = 0;
 
     return true;
@@ -83,8 +93,12 @@ static void Delay_pstate_reset(Device_state* dstate)
 
     Delay_pstate* dpstate = (Delay_pstate*)dstate;
 
-    const uint32_t delay_buf_size = Audio_buffer_get_size(dpstate->buf);
-    Audio_buffer_clear(dpstate->buf, 0, delay_buf_size);
+    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
+    {
+        Work_buffer* buf = dpstate->bufs[i];
+        Work_buffer_clear(buf, 0, Work_buffer_get_size(buf));
+    }
+
     dpstate->buf_pos = 0;
 
     return;
@@ -107,25 +121,20 @@ static void Delay_pstate_render_mixed(
 
     const Proc_delay* delay = (const Proc_delay*)dstate->device->dimpl;
 
-    const float* in_data[] =
-    {
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 1),
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 2),
-    };
+    float* in_data[2] = { NULL };
+    Proc_state_get_mixed_audio_in_buffers(&dpstate->parent, 1, 3, in_data);
 
-    float* out_data[] =
-    {
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 0),
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_SEND, 1),
-    };
+    float* out_data[2] = { NULL };
+    Proc_state_get_mixed_audio_out_buffers(&dpstate->parent, 0, 2, out_data);
 
     float* history_data[] =
     {
-        Audio_buffer_get_buffer(dpstate->buf, 0),
-        Audio_buffer_get_buffer(dpstate->buf, 1),
+        Work_buffer_get_contents_mut(dpstate->bufs[0]),
+        Work_buffer_get_contents_mut(dpstate->bufs[1]),
     };
 
-    const int32_t delay_buf_size = Audio_buffer_get_size(dpstate->buf);
+    const int32_t delay_buf_size = Work_buffer_get_size(dpstate->bufs[0]);
+    assert(delay_buf_size == Work_buffer_get_size(dpstate->bufs[1]));
     const int32_t delay_max = delay_buf_size - 1;
 
     static const int DELAY_WORK_BUFFER_TOTAL_OFFSETS = WORK_BUFFER_IMPL_1;
@@ -263,7 +272,12 @@ static void Delay_pstate_clear_history(Proc_state* proc_state)
     assert(proc_state != NULL);
 
     Delay_pstate* dpstate = (Delay_pstate*)proc_state;
-    Audio_buffer_clear(dpstate->buf, 0, Audio_buffer_get_size(dpstate->buf));
+
+    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
+    {
+        Work_buffer* buf = dpstate->bufs[i];
+        Work_buffer_clear(buf, 0, Work_buffer_get_size(buf));
+    }
 
     dpstate->buf_pos = 0;
 
@@ -288,23 +302,28 @@ Device_state* new_Delay_pstate(
         return NULL;
     }
 
-    dpstate->parent.parent.deinit = Delay_pstate_deinit;
+    dpstate->parent.destroy = del_Delay_pstate;
     dpstate->parent.set_audio_rate = Delay_pstate_set_audio_rate;
     dpstate->parent.reset = Delay_pstate_reset;
     dpstate->parent.render_mixed = Delay_pstate_render_mixed;
     dpstate->parent.clear_history = Delay_pstate_clear_history;
-    dpstate->buf = NULL;
     dpstate->buf_pos = 0;
+
+    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
+        dpstate->bufs[i] = NULL;
 
     const Proc_delay* delay = (const Proc_delay*)device->dimpl;
 
     const int32_t delay_buf_size = delay->max_delay * audio_rate + 1;
 
-    dpstate->buf = new_Audio_buffer(delay_buf_size);
-    if (dpstate->buf == NULL)
+    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
-        del_Device_state(&dpstate->parent.parent);
-        return NULL;
+        dpstate->bufs[i] = new_Work_buffer(delay_buf_size);
+        if (dpstate->bufs[i] == NULL)
+        {
+            del_Device_state(&dpstate->parent.parent);
+            return NULL;
+        }
     }
 
     return &dpstate->parent.parent;
@@ -324,10 +343,16 @@ bool Delay_pstate_set_max_delay(
 
     const int32_t delay_buf_size = delay->max_delay * dstate->audio_rate + 1;
 
-    if (!Audio_buffer_resize(dpstate->buf, delay_buf_size))
-        return false;
+    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
+    {
+        Work_buffer* buf = dpstate->bufs[i];
 
-    Audio_buffer_clear(dpstate->buf, 0, Audio_buffer_get_size(dpstate->buf));
+        if (!Work_buffer_resize(buf, delay_buf_size))
+            return false;
+
+        Work_buffer_clear(buf, 0, Work_buffer_get_size(buf));
+    }
+
     dpstate->buf_pos = 0;
 
     return true;

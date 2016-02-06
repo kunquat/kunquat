@@ -16,7 +16,6 @@
 #define K_PROC_STATE_H
 
 
-#include <containers/Bit_array.h>
 #include <decl.h>
 #include <player/devices/Device_state.h>
 #include <string/key_pattern.h>
@@ -27,7 +26,6 @@
 
 
 typedef void Proc_state_clear_history_func(Proc_state*);
-
 
 typedef void Proc_state_set_cv_bool_func(Device_state*, const Key_indices, bool);
 typedef void Proc_state_set_cv_int_func(Device_state*, const Key_indices, int64_t);
@@ -41,8 +39,8 @@ struct Proc_state
     Device_state parent;
 
     Work_buffer* voice_buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
-    Bit_array* voice_out_buffers_modified;
 
+    Device_state_destroy_func* destroy;
     Device_state_set_audio_rate_func* set_audio_rate;
     Device_state_set_audio_buffer_size_func* set_audio_buffer_size;
     Device_state_set_tempo_func* set_tempo;
@@ -84,16 +82,6 @@ void Proc_state_clear_history(Proc_state* proc_state);
  * \param proc_state   The Processor state -- must not be \c NULL.
  */
 void Proc_state_clear_voice_buffers(Proc_state* proc_state);
-
-
-/**
- * Get voice output buffer modification status.
- *
- * \param proc_state   The Processor state -- must not be \c NULL.
- *
- * \return   \c true if the buffer has been modified, otherwise \c false.
- */
-bool Proc_state_is_voice_out_buffer_modified(Proc_state* proc_state, int port_num);
 
 
 /**
@@ -168,14 +156,6 @@ float* Proc_state_get_voice_buffer_contents_mut(
  */
 void Proc_state_cv_generic_set(
         Device_state* dstate, const char* key, const Value* value);
-
-
-/**
- * Deinitialises the Processor state.
- *
- * \param dstate   The Processor state -- must not be \c NULL.
- */
-void Proc_state_deinit(Device_state* dstate);
 
 
 #endif // K_PROC_STATE_H

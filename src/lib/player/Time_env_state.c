@@ -18,7 +18,7 @@
 #include <init/devices/param_types/Envelope.h>
 #include <mathnum/common.h>
 #include <mathnum/fast_exp2.h>
-#include <player/devices/processors/Proc_utils.h>
+#include <player/devices/processors/Proc_state_utils.h>
 #include <player/Work_buffers.h>
 
 #include <math.h>

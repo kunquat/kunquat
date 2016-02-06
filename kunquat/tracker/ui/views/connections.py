@@ -1108,7 +1108,7 @@ class Device():
         self._in_ports = in_ports
         self._out_ports = out_ports
 
-        self._port_names = model_device.get_port_names()
+        self._port_names = model_device.get_port_info()
 
         self._bg = None
 

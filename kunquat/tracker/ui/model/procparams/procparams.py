@@ -14,6 +14,14 @@
 
 class ProcParams():
 
+    @staticmethod
+    def get_default_signal_type():
+        raise NotImplementedError
+
+    @staticmethod
+    def get_port_info():
+        return {}
+
     def __init__(self, proc_id, controller):
         self._key_prefix = '{}/'.format(proc_id)
         self._controller = controller
@@ -22,9 +30,6 @@ class ProcParams():
     def _get_key(self, impl_or_conf, subkey):
         assert impl_or_conf in ('i/', 'c/')
         return ''.join((self._key_prefix, impl_or_conf, subkey))
-
-    def get_port_names(self):
-        return {}
 
     # Protected interface
 

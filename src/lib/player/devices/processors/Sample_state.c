@@ -20,8 +20,7 @@
 #include <init/devices/processors/Proc_sample.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
-#include <player/Audio_buffer.h>
-#include <player/devices/processors/Proc_utils.h>
+#include <player/devices/processors/Proc_state_utils.h>
 #include <player/Work_buffers.h>
 
 #include <stdio.h>
@@ -565,11 +564,14 @@ static int32_t Sample_vstate_render_voice(
     Sample_set_loop(sample, sample_state->params.loop);
     // */
 
-    float* out_buffers[] =
+    float* out_buffers[2] = { NULL };
+    Proc_state_get_voice_audio_out_buffers(proc_state, 0, 2, out_buffers);
+
+    if ((out_buffers[0] == NULL) && (out_buffers[1] == NULL))
     {
-        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0),
-        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 1),
-    };
+        vstate->active = false;
+        return buf_start;
+    }
 
     const int32_t audio_rate = proc_state->parent.audio_rate;
 

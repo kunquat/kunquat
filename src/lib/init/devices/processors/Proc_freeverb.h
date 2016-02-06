@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -37,19 +37,6 @@ typedef struct Proc_freeverb
     double reflect_setting;
     double damp_setting;
 } Proc_freeverb;
-
-
-/**
- * Create a new Freeverb processor.
- *
- * This is a rewrite of the Freeverb public domain reverb by Jezar at
- * Dreampoint in 2000. Unlike the original, this implementation supports
- * arbitrary audio rates.
- *
- * \return   The new Freeverb processor if successful, or \c NULL if memory
- *           allocation failed.
- */
-Device_impl* new_Proc_freeverb(void);
 
 
 #endif // K_PROC_FREEVERB_H

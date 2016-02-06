@@ -17,7 +17,7 @@
 #include <debug/assert.h>
 #include <init/devices/processors/Proc_debug.h>
 #include <mathnum/conversions.h>
-#include <player/devices/processors/Proc_utils.h>
+#include <player/devices/processors/Proc_state_utils.h>
 
 
 static int32_t Debug_vstate_render_voice(
@@ -43,12 +43,9 @@ static int32_t Debug_vstate_render_voice(
             Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
             0);
 
-    // Get output buffer for writing
-    float* out_buffers[] =
-    {
-        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0),
-        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 1),
-    };
+    // Get output buffers for writing
+    float* out_buffers[2] = { NULL };
+    Proc_state_get_voice_audio_out_buffers(proc_state, 0, 2, out_buffers);
 
     Proc_debug* debug = (Proc_debug*)proc->parent.dimpl;
     if (debug->single_pulse)

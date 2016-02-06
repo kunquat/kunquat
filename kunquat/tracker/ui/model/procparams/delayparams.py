@@ -16,12 +16,14 @@ import math
 from procparams import ProcParams
 
 
-class ProcParamsDelay(ProcParams):
+class DelayParams(ProcParams):
 
-    def __init__(self, proc_id, controller):
-        ProcParams.__init__(self, proc_id, controller)
+    @staticmethod
+    def get_default_signal_type():
+        return u'mixed'
 
-    def get_port_names(self):
+    @staticmethod
+    def get_port_info():
         return {
             'in_00':  u'delay',
             'in_01':  u'audio L',
@@ -29,6 +31,9 @@ class ProcParamsDelay(ProcParams):
             'out_00': u'audio L',
             'out_01': u'audio R',
         }
+
+    def __init__(self, proc_id, controller):
+        ProcParams.__init__(self, proc_id, controller)
 
     def get_max_delay(self):
         return self._get_value('p_f_max_delay.json', 2.0)

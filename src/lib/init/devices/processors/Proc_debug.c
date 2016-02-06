@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -15,6 +15,7 @@
 #include <init/devices/processors/Proc_debug.h>
 
 #include <debug/assert.h>
+#include <init/devices/processors/Proc_init_utils.h>
 #include <memory.h>
 #include <player/devices/processors/Debug_state.h>
 #include <string/common.h>
@@ -41,12 +42,8 @@ Device_impl* new_Proc_debug(void)
 
     debug->parent.init_vstate = Debug_vstate_init;
 
-    if (!Device_impl_register_set_bool(
-                &debug->parent,
-                "p_b_single_pulse.json",
-                false,
-                Proc_debug_set_single_pulse,
-                NULL))
+    if (!REGISTER_SET_FIXED_STATE(
+            debug, bool, single_pulse, "p_b_single_pulse.json", false))
     {
         del_Device_impl(&debug->parent);
         return NULL;

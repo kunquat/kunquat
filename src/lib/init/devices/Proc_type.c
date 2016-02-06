@@ -15,51 +15,27 @@
 #include <init/devices/Proc_type.h>
 
 #include <debug/assert.h>
-#include <init/devices/processors/Proc_add.h>
-#include <init/devices/processors/Proc_debug.h>
-#include <init/devices/processors/Proc_delay.h>
-#include <init/devices/processors/Proc_envgen.h>
-#include <init/devices/processors/Proc_filter.h>
-#include <init/devices/processors/Proc_force.h>
-#include <init/devices/processors/Proc_freeverb.h>
-#include <init/devices/processors/Proc_gaincomp.h>
-#include <init/devices/processors/Proc_noise.h>
-#include <init/devices/processors/Proc_panning.h>
-#include <init/devices/processors/Proc_pitch.h>
-#include <init/devices/processors/Proc_ringmod.h>
-#include <init/devices/processors/Proc_sample.h>
-#include <init/devices/processors/Proc_stream.h>
-#include <init/devices/processors/Proc_volume.h>
 #include <string/common.h>
 
 #include <stdbool.h>
 #include <stdlib.h>
 
 
-struct Proc_type
+typedef struct Proc_type
 {
     const char* type;
     Proc_cons* cons;
-};
+} Proc_type;
+
+
+#define PROC_TYPE(name) Device_impl* new_Proc_ ## name(void);
+#include <init/devices/Proc_types.h>
 
 
 static const Proc_type proc_types[] =
 {
-    { "debug", new_Proc_debug },
-    { "add", new_Proc_add },
-    { "delay", new_Proc_delay },
-    { "envgen", new_Proc_envgen },
-    { "filter", new_Proc_filter },
-    { "force", new_Proc_force },
-    { "freeverb", new_Proc_freeverb },
-    { "gaincomp", new_Proc_gaincomp },
-    { "noise", new_Proc_noise },
-    { "panning", new_Proc_panning },
-    { "pitch", new_Proc_pitch },
-    { "ringmod", new_Proc_ringmod },
-    { "sample", new_Proc_sample },
-    { "stream", new_Proc_stream },
-    { "volume", new_Proc_volume },
+#define PROC_TYPE(name) { #name, new_Proc_ ## name },
+#include <init/devices/Proc_types.h>
     { NULL, NULL }
 };
 
