@@ -78,6 +78,12 @@ static int32_t Pitch_vstate_render_voice(
     Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
 
     Pitch_controls* pc = &pvstate->controls;
+    if (!isfinite(pc->pitch))
+    {
+        vstate->active = false;
+        return buf_start;
+    }
+
     Pitch_controls_set_tempo(pc, tempo);
 
     out_buf[buf_start - 1] = pc->pitch;
