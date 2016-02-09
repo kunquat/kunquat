@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -81,7 +81,7 @@ void* Vector_get_ref(const Vector* v, size_t index);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Vector_append(Vector* v, void* elem);
+bool Vector_append(Vector* v, const void* elem);
 
 
 /**

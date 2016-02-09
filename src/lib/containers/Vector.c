@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -85,7 +85,7 @@ void* Vector_get_ref(const Vector* v, size_t index)
 }
 
 
-bool Vector_append(Vector* v, void* elem)
+bool Vector_append(Vector* v, const void* elem)
 {
     assert(v != NULL);
     assert(elem != NULL);
