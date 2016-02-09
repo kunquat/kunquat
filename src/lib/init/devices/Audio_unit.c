@@ -21,6 +21,7 @@
 #include <init/devices/Au_interface.h>
 #include <init/devices/Au_streams.h>
 #include <init/devices/Device.h>
+#include <init/devices/Hit_proc_filter.h>
 #include <init/devices/Proc_table.h>
 #include <init/devices/Processor.h>
 #include <mathnum/common.h>
@@ -56,6 +57,7 @@ struct Audio_unit
 
     Au_control_vars* control_vars;
     Au_streams* streams;
+    Hit_proc_filter* hit_proc_filters[KQT_HITS_MAX];
 };
 
 
@@ -94,6 +96,8 @@ Audio_unit* new_Audio_unit(void)
     au->au_table = NULL;
     au->control_vars = NULL;
     au->streams = NULL;
+    for (int i = 0; i < KQT_HITS_MAX; ++i)
+        au->hit_proc_filters[i] = NULL;
 
     if (!Device_init(&au->parent, false))
     {
@@ -290,6 +294,29 @@ const Au_streams* Audio_unit_get_streams(const Audio_unit* au)
 }
 
 
+void Audio_unit_set_hit_proc_filter(Audio_unit* au, int index, Hit_proc_filter* hpf)
+{
+    assert(au != NULL);
+    assert(index >= 0);
+    assert(index < KQT_HITS_MAX);
+
+    del_Hit_proc_filter(au->hit_proc_filters[index]);
+    au->hit_proc_filters[index] = hpf;
+
+    return;
+}
+
+
+const Hit_proc_filter* Audio_unit_get_hit_proc_filter(const Audio_unit* au, int index)
+{
+    assert(au != NULL);
+    assert(index >= 0);
+    assert(index < KQT_HITS_MAX);
+
+    return au->hit_proc_filters[index];
+}
+
+
 static const Device* get_cv_target_device(
         const Audio_unit* au,
         const Au_control_binding_iter* iter,
@@ -466,6 +493,8 @@ void del_Audio_unit(Audio_unit* au)
     del_Au_interface(au->out_iface);
     del_Au_table(au->au_table);
     del_Proc_table(au->procs);
+    for (int i = 0; i < KQT_HITS_MAX; ++i)
+        del_Hit_proc_filter(au->hit_proc_filters[i]);
     del_Au_streams(au->streams);
     del_Au_control_vars(au->control_vars);
     Device_deinit(&au->parent);

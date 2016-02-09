@@ -59,6 +59,7 @@ MODULE_AU_KEYP(au_connections,          "au_XX/p_connections.json",             
 
 MODULE_AU_KEYP(au_streams,              "au_XX/p_streams.json",                 "[]")
 MODULE_AU_KEYP(au_control_vars,         "au_XX/p_control_vars.json",            "[]")
+MODULE_AU_KEYP(au_hit_proc_filter,      "au_XX/hit_XX/p_hit_proc_filter.json",  "[]")
 
 MODULE_AU_KEYP(proc_manifest,           "au_XX/proc_XX/p_manifest.json",        "")
 MODULE_AU_KEYP(proc_signal_type,        "au_XX/proc_XX/p_signal_type.json",     "\"voice\"")
