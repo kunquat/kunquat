@@ -222,7 +222,7 @@ bool Event_channel_hit_process(Channel* ch, Device_states* dstates, const Value*
     if (!ch->carry_force)
     {
         Force_controls_reset(&ch->force_controls);
-        ch->force_controls.force = 1;
+        ch->force_controls.force = 0;
         Slider_set_length(&ch->force_controls.slider, &ch->force_slide_length);
         LFO_set_speed_slide(&ch->force_controls.tremolo, &ch->tremolo_speed_slide);
         LFO_set_depth_slide(&ch->force_controls.tremolo, &ch->tremolo_depth_slide);
@@ -266,9 +266,9 @@ bool Event_channel_hit_process(Channel* ch, Device_states* dstates, const Value*
             ch);
 
     // Initialise streams
+    const Au_streams* streams = Audio_unit_get_streams(au);
+    if (streams != NULL)
     {
-        const Au_streams* streams = Audio_unit_get_streams(au);
-
         const Channel_stream_state* stream_state = Channel_get_stream_state(ch);
 
         Stream_target_dev_iter* iter =
