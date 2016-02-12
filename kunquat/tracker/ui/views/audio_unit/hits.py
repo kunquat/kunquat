@@ -24,7 +24,7 @@ _BANK_SIZE = 32
 
 
 def _get_update_signal_type(au_id):
-    return 'signal_select_hit_{}'.format(au_id)
+    return 'signal_hit_{}'.format(au_id)
 
 
 class Hits(QWidget):
@@ -363,5 +363,6 @@ class HitEnabled(QCheckBox):
         existence = (state == Qt.Checked)
         hit = _get_current_hit(self._ui_model, self._au_id)
         hit.set_existence(existence)
+        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
