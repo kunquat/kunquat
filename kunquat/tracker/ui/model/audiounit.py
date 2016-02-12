@@ -15,6 +15,7 @@
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
 from connections import Connections
+from hit import Hit
 from processor import Processor
 import tstamp
 
@@ -151,6 +152,20 @@ class AudioUnit():
             transaction[port_manifest_key] = {}
 
         self._store.put(transaction)
+
+    def _get_hit_key_base(self, hit_index):
+        return self._get_key('hit_{:02x}'.format(hit_index))
+
+    def get_hit(self, hit_index):
+        hit = Hit(self._au_id, hit_index)
+        hit.set_controller(self._controller)
+        return hit
+
+    def set_edit_selected_hit_info(self, hit_base, hit_offset):
+        self._session.set_edit_selected_hit_info(self._au_id, hit_base, hit_offset)
+
+    def get_edit_selected_hit_info(self):
+        return self._session.get_edit_selected_hit_info(self._au_id)
 
     def get_audio_unit(self, au_id):
         assert au_id.startswith(self._au_id + '/')
