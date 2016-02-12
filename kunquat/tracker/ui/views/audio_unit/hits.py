@@ -297,21 +297,26 @@ class HitEditor(QWidget):
         QWidget.__init__(self)
 
         self._enabled = HitEnabled()
+        self._name = HitName()
 
         v = QVBoxLayout()
         v.setMargin(0)
         v.setSpacing(2)
         v.addWidget(self._enabled)
+        v.addWidget(self._name)
         v.addStretch(1)
         self.setLayout(v)
 
     def set_au_id(self, au_id):
         self._enabled.set_au_id(au_id)
+        self._name.set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
         self._enabled.set_ui_model(ui_model)
+        self._name.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._name.unregister_updaters()
         self._enabled.unregister_updaters()
 
 
@@ -363,6 +368,59 @@ class HitEnabled(QCheckBox):
         existence = (state == Qt.Checked)
         hit = _get_current_hit(self._ui_model, self._au_id)
         hit.set_existence(existence)
+        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
+
+
+class HitName(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._au_id = None
+        self._ui_model = None
+        self._updater = None
+
+        self._edit = QLineEdit()
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(2)
+        h.addWidget(QLabel('Name:'))
+        h.addWidget(self._edit)
+        self.setLayout(h)
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(self._edit, SIGNAL('textEdited(QString)'), self._change_name)
+
+        self._update_name()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        if _get_update_signal_type(self._au_id) in signals:
+            self._update_name()
+
+    def _update_name(self):
+        hit = _get_current_hit(self._ui_model, self._au_id)
+
+        old_block = self._edit.blockSignals(True)
+        name = hit.get_name() or u''
+        if name != unicode(self._edit.text()):
+            self._edit.setText(name)
+        self._edit.blockSignals(old_block)
+
+    def _change_name(self, text_qstring):
+        name = unicode(text_qstring)
+
+        hit = _get_current_hit(self._ui_model, self._au_id)
+        hit.set_name(name)
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 

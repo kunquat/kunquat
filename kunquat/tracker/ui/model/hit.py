@@ -49,4 +49,13 @@ class Hit():
         key = self._get_key('p_hit_proc_filter.json')
         self._store[key] = procs
 
+    def get_name(self):
+        key = self._get_key('m_name.json')
+        return self._store.get(key, None)
+
+    def set_name(self, name):
+        assert isinstance(name, unicode)
+        key = self._get_key('m_name.json')
+        self._store[key] = name
+
 
