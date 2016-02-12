@@ -102,6 +102,10 @@ bool Event_channel_note_on_process(
         LFO_set_depth_slide(&ch->force_controls.tremolo, &ch->tremolo_depth_slide);
     }
 
+    // Don't attempt to play effects
+    if (Audio_unit_get_type(au) != AU_TYPE_INSTRUMENT)
+        return true;
+
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         const Processor* proc = Audio_unit_get_proc(au, i);
@@ -228,6 +232,15 @@ bool Event_channel_hit_process(Channel* ch, Device_states* dstates, const Value*
         LFO_set_depth_slide(&ch->force_controls.tremolo, &ch->tremolo_depth_slide);
     }
 
+    // Don't attempt to hit effects
+    if (Audio_unit_get_type(au) != AU_TYPE_INSTRUMENT)
+        return true;
+
+    const int hit_index = value->value.int_type;
+
+    if (!Audio_unit_get_hit_existence(au, hit_index))
+        return true;
+
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         const Processor* proc = Audio_unit_get_proc(au, i);
@@ -249,7 +262,7 @@ bool Event_channel_hit_process(Channel* ch, Device_states* dstates, const Value*
 
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
-        vs->hit_index = value->value.int_type;
+        vs->hit_index = hit_index;
 
         if (vs->is_force_state)
         {
