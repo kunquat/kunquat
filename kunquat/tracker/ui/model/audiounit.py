@@ -108,6 +108,13 @@ class AudioUnit():
         connections.set_ui_model(self._ui_model)
         return connections
 
+    def set_connections_edit_mode(self, mode):
+        assert mode in ('normal', 'hit_proc_filter')
+        self._session.set_au_connections_edit_mode(self._au_id, mode)
+
+    def get_connections_edit_mode(self):
+        return self._session.get_au_connections_edit_mode(self._au_id) or 'normal'
+
     def get_processor(self, proc_id):
         proc = Processor(self._au_id, proc_id)
         proc.set_controller(self._controller)
@@ -160,6 +167,12 @@ class AudioUnit():
         hit = Hit(self._au_id, hit_index)
         hit.set_controller(self._controller)
         return hit
+
+    def set_connections_hit_index(self, hit_index):
+        self._session.set_au_connections_hit_index(self._au_id, hit_index)
+
+    def get_connections_hit_index(self):
+        return self._session.get_au_connections_hit_index(self._au_id)
 
     def set_edit_selected_hit_info(self, hit_base, hit_offset):
         self._session.set_edit_selected_hit_info(self._au_id, hit_base, hit_offset)

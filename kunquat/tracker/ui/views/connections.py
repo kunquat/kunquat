@@ -69,6 +69,8 @@ DEFAULT_CONFIG = {
                 'fg_colour'       : QColor(0xcc, 0xff, 0xff),
                 'button_bg_colour': QColor(0x11, 0x33, 0x33),
                 'button_focused_bg_colour': QColor(0, 0x55, 0x55),
+                'hilight_selected': QColor(0xff, 0xaa, 0x77),
+                'hilight_excluded': QColor(0x55, 0x44, 0x33),
             },
             'proc_mixed': {
                 'bg_colour'       : QColor(0x55, 0x22, 0x55),
@@ -273,6 +275,8 @@ class ConnectionsView(QWidget):
 
         self._ls_cache = {}
 
+        self._edit_dev_highlights = {}
+
         self._edge_menu = EdgeMenu(self)
         QObject.connect(
                 self._edge_menu, SIGNAL('aboutToHide()'), self._edge_menu_closing)
@@ -374,6 +378,12 @@ class ConnectionsView(QWidget):
             self._get_signal('signal_connections'),
             'signal_controls',
             ])
+        if self._au_id != None:
+            update_signals |= set([
+                self._get_signal('signal_au_conns_hit'),
+                self._get_signal('signal_au_conns_edit_mode'),
+                ])
+
         if not signals.isdisjoint(update_signals):
             self._update_devices()
 
@@ -536,6 +546,22 @@ class ConnectionsView(QWidget):
 
         self._visible_devices = new_visible_devices
 
+        # Get edit highlights
+        self._edit_dev_highlights = {}
+        if self._au_id != None:
+            au = module.get_audio_unit(self._au_id)
+            if au.get_connections_edit_mode() == 'hit_proc_filter':
+                hit_index = au.get_connections_hit_index()
+                if hit_index != None:
+                    hit = au.get_hit(hit_index)
+                    if hit.get_existence():
+                        excluded = hit.get_excluded_processors()
+                        visible_procs = set(dev_id for dev_id in self._visible_devices
+                                if dev_id.startswith('proc'))
+                        for dev_id in visible_procs:
+                            self._edit_dev_highlights[dev_id] = ('hilight_excluded'
+                                    if dev_id in excluded else 'hilight_selected')
+
         # Update finished
         QObject.emit(self, SIGNAL('positionsChanged()'))
         self.update()
@@ -659,6 +685,10 @@ class ConnectionsView(QWidget):
                     focus_info = to_info
 
             device.draw_ports(painter, focus_info)
+
+            # Draw device highlight
+            if dev_id in self._edit_dev_highlights:
+                device.draw_device_highlight(painter, self._edit_dev_highlights[dev_id])
 
             # Draw button highlight
             if self._focused_button_info.get('dev_id') == dev_id:
@@ -1268,6 +1298,24 @@ class Device():
             port_id = self._out_ports[i]
             colour = focused_colour if port_id == focused_port else normal_colour
             painter.fillRect(rect, colour)
+
+        painter.restore()
+
+    def draw_device_highlight(self, painter, highlight_mode):
+        assert self._id.startswith('proc')
+        painter.save()
+
+        extent = 4
+
+        colour = self._type_config[highlight_mode]
+        pen = QPen(colour)
+        pen.setWidth(2)
+        painter.setPen(pen)
+        painter.setRenderHint(QPainter.Antialiasing)
+
+        exbr = extent - 1
+        rect = self.get_rect_in_area().adjusted(-extent, -extent, exbr, exbr)
+        painter.drawRect(rect)
 
         painter.restore()
 
