@@ -216,6 +216,27 @@ const Au_streams* Audio_unit_get_streams(const Audio_unit* au);
 
 
 /**
+ * Set hit existence in the Audio unit.
+ *
+ * \param au          The Audio unit -- must not be \c NULL.
+ * \param index       The hit index -- must be >= \c 0 and < \c KQT_HITS_MAX.
+ * \param existence   The hit existence status.
+ */
+void Audio_unit_set_hit_existence(Audio_unit* au, int index, bool existence);
+
+
+/**
+ * Get hit existence in the Audio unit.
+ *
+ * \param au      The Audio unit -- must not be \c NULL.
+ * \param index   The hit index -- must be >= \c 0 and < \c KQT_HITS_MAX.
+ *
+ * \return   \c true if the hit exists, otherwise \c false.
+ */
+bool Audio_unit_get_hit_existence(const Audio_unit* au, int index);
+
+
+/**
  * Set the Hit processor filter of the Audio unit.
  *
  * \param au      The Audio unit -- must not be \c NULL.
