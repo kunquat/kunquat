@@ -80,6 +80,13 @@ DEFAULT_CONFIG = {
                 'fg_colour'       : QColor(0xff, 0xcc, 0xff),
                 'button_bg_colour': QColor(0x33, 0x11, 0x33),
                 'button_focused_bg_colour': QColor(0x55, 0, 0x55),
+                # TODO: Mixed processors shouldn't be highlighted;
+                #       these are just a temp fix to prevent crash
+                'hilight_selected': QColor(0x99, 0xbb, 0x99),
+                'hilight_excluded': QColor(0x55, 0x44, 0x33),
+                'hilight_selected_focused': QColor(0xff, 0x88, 0x44),
+                'hilight_excluded_focused': QColor(0x88, 0x33, 0x11),
+                'hilight_pressed' : QColor(0xff, 0xff, 0xff),
             },
             'master': {
                 'bg_colour'       : QColor(0x33, 0x55, 0x33),
