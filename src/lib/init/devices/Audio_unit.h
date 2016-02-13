@@ -249,7 +249,7 @@ void Audio_unit_set_hit_proc_filter(Audio_unit* au, int index, Hit_proc_filter* 
 /**
  * Get the Hit processor filter of the Audio unit.
  *
- * \param au   The Audio unit -- must not be \c NULL.
+ * \param au      The Audio unit -- must not be \c NULL.
  * \param index   The hit index -- must be >= \c 0 and < \c KQT_HITS_MAX.
  *
  * \return   The Hit processor filter if one exists, otherwise \c NULL.
