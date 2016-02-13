@@ -205,6 +205,14 @@ class HitEditingToggle(QPushButton):
         self._ui_model = None
         self._updater = None
 
+        self.setStyleSheet(
+                '''QPushButton:checked
+                {
+                    background-color: #a32;
+                    color: #fff;
+                }
+                ''')
+
         self.setCheckable(True)
 
     def set_au_id(self, au_id):
@@ -236,7 +244,7 @@ class HitEditingToggle(QPushButton):
         cur_mode = au.get_connections_edit_mode()
 
         old_block = self.blockSignals(True)
-        self.setDown(cur_mode == 'hit_proc_filter')
+        self.setChecked(cur_mode == 'hit_proc_filter')
         self.blockSignals(old_block)
 
         for i in xrange(HITS_MAX):
