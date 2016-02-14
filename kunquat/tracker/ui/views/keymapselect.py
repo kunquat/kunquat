@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2014
+# Authors: Toni Ruottu, Finland 2014
+#          Tomi Jylhä-Ollila, Finland 2016
 #
 # This file is part of Kunquat.
 #
@@ -42,14 +43,18 @@ class KeymapSelect(QComboBox):
         keymap_id = self._keymap_catalog[catalog_index]
         self._keymap_manager.set_selected_keymap_id(keymap_id)
         keymap_data = self._keymap_manager.get_selected_keymap()
-        base_octave = keymap_data['base_octave']
+        if keymap_data.get('is_hit_keymap', False):
+            base_octave = 0
+        else:
+            base_octave = keymap_data['base_octave']
         self._typewriter_manager.set_octave(base_octave)
+        self._updater.signal_update(set(['signal_select_keymap']))
 
     def _update_keymap_texts(self):
         for i, keymap_id in self._keymap_catalog.items():
             keymap = self._keymap_manager.get_keymap(keymap_id)
             keymap_name = keymap['name'] or '-'
-            text = '%s' % keymap_name
+            text = u'{}'.format(keymap_name)
             self.setItemText(i, text)
 
     def _update_keymaps(self):

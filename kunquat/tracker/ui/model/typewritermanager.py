@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2014
+#          Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -93,18 +93,35 @@ class TypewriterManager():
         return rows
 
     def _current_upper_octaves(self, keymap):
-        upper_octaves = keymap[self.get_octave():]
+        lower_key_limit = sum(self._ROW_LENGTHS[2:4])
+        upper_key_limit = sum(self._ROW_LENGTHS[0:2])
+
+        cur_octave_index = self.get_octave()
+        if len(keymap[cur_octave_index]) > upper_key_limit:
+            upper_octaves = [keymap[cur_octave_index][lower_key_limit:]]
+        else:
+            upper_octaves = keymap[cur_octave_index:]
+
         return upper_octaves
 
     def _current_lower_octaves(self, keymap):
-        key_limit = 14
-        lower_octave_candidates = keymap[:self.get_octave()]
-        workspace = list(lower_octave_candidates) # copy
-        while sum([len(i) for i in workspace]) > key_limit:
-            workspace.pop(0)
-        fitting_lower_octaves = workspace
-        gray_key = None
-        padding_octave = key_limit * [gray_key]
+        lower_key_limit = sum(self._ROW_LENGTHS[2:4])
+        upper_key_limit = sum(self._ROW_LENGTHS[0:2])
+
+        cur_octave_index = self.get_octave()
+        if len(keymap[cur_octave_index]) > upper_key_limit:
+            # Use lower part of the keyboard for very large octaves
+            fitting_lower_octaves = [keymap[cur_octave_index][:lower_key_limit]]
+        else:
+            # Find lower octaves that fit inside the lower part of the keyboard
+            lower_octave_candidates = keymap[:cur_octave_index]
+            workspace = list(lower_octave_candidates) # copy
+            while sum([len(i) for i in workspace]) > lower_key_limit:
+                workspace.pop(0)
+            fitting_lower_octaves = workspace
+
+        grey_key = None
+        padding_octave = lower_key_limit * [grey_key]
         padding_octaves = [padding_octave]
         lower_octaves = fitting_lower_octaves + padding_octaves
         return lower_octaves
@@ -121,17 +138,25 @@ class TypewriterManager():
         rows = [row0, row1, row2, row3]
         self._current_map = rows
 
-    def get_button_pitch(self, coord):
+    def _get_button_param(self, coord, get_pitch):
         (row, column) = coord
         keymap_data = self._keymap_manager.get_selected_keymap()
         keymap = keymap_data['keymap']
+        if keymap_data.get('is_hit_keymap', False) == get_pitch:
+            return None
         self._create_current_map(keymap)
-        pitch_row = self._current_map[row]
+        param_row = self._current_map[row]
         try:
-            pitch = pitch_row[column]
+            param = param_row[column]
         except IndexError:
-            pitch = None
-        return pitch
+            param = None
+        return param
+
+    def get_button_pitch(self, coord):
+        return self._get_button_param(coord, get_pitch=True)
+
+    def get_button_hit(self, coord):
+        return self._get_button_param(coord, get_pitch=False)
 
     def get_pitches_by_octave(self, octave_id):
         keymap_data = self._keymap_manager.get_selected_keymap()
@@ -178,7 +203,10 @@ class TypewriterManager():
         selected = self._session.get_octave_id()
         if selected == None:
             keymap_data = self._keymap_manager.get_selected_keymap()
-            base_octave = keymap_data['base_octave']
+            if keymap_data.get('is_hit_keymap', False):
+                base_octave = 0
+            else:
+                base_octave = keymap_data['base_octave']
             return base_octave
         return selected
 

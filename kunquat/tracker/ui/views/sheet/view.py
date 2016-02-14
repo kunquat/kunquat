@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -1325,13 +1325,8 @@ class View(QWidget):
     def keyPressEvent(self, event):
         selection = self._ui_model.get_selection()
         location = selection.get_location()
-        sheet_manager = self._ui_model.get_sheet_manager()
-        control_id = sheet_manager.get_inferred_active_control_id_at_location(location)
 
-        control_manager = self._ui_model.get_control_manager()
-        control_manager.set_control_id_override(control_id)
         note_pressed = self._keyboard_mapper.process_typewriter_button_event(event)
-        control_manager.set_control_id_override(None)
         if note_pressed:
             return
 

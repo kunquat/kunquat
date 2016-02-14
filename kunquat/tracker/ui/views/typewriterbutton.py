@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2013-2015
+#          Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -109,6 +109,12 @@ class TypewriterButton(QPushButton):
     def _perform_updates(self, signals):
         if any(s in signals for s in ['signal_octave', 'signal_notation']):
             self._update_properties()
+
+        if not set(['signal_selection', 'signal_hits']).isdisjoint(signals):
+            keymap_manager = self._ui_model.get_keymap_manager()
+            if keymap_manager.is_hit_keymap_selected():
+                self._update_properties()
+
         self._update_leds()
 
     def _update_properties(self):
