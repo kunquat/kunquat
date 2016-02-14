@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2015
+#          Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -85,9 +85,13 @@ class Control():
             return None
         return notes[channel_number]
 
-    def start_tracked_note(self, channel_number, pitch):
+    def get_active_hits(self):
+        hits = self._session.get_active_hits_by_control_id(self._control_id)
+        return hits
+
+    def start_tracked_note(self, channel_number, event_type, param):
         note = self._controller.start_tracked_note(
-                channel_number, self._control_id, pitch)
+                channel_number, self._control_id, event_type, param)
         return note
 
 

@@ -34,6 +34,7 @@ from notechannelmapper import NoteChannelMapper
 #TODO: figure a place for the events
 EVENT_SELECT_CONTROL = '.a'
 EVENT_NOTE_ON = 'n+'
+EVENT_HIT = 'h'
 EVENT_NOTE_OFF = 'n-'
 
 
@@ -263,19 +264,20 @@ class Controller():
     def get_infinite_mode(self):
         return self._session.get_infinite_mode()
 
-    def start_tracked_note(self, channel_number, control_id, pitch):
+    def start_tracked_note(self, channel_number, control_id, event_type, param):
+        assert event_type in (EVENT_NOTE_ON, EVENT_HIT)
         note = self._note_channel_mapper.get_tracked_note(channel_number, False)
-        self.set_active_note(note.get_channel(), control_id, pitch)
+        self.set_active_note(note.get_channel(), control_id, event_type, param)
         return note
 
-    def set_active_note(self, channel_number, control_id, pitch):
+    def set_active_note(self, channel_number, control_id, event_type, param):
         parts = control_id.split('_')
         second = parts[1]
         control_number = int(second, 16)
         control_event = (EVENT_SELECT_CONTROL, control_number)
         self._audio_engine.fire_event(channel_number, control_event)
-        note_on_event = (EVENT_NOTE_ON, pitch)
-        self._audio_engine.fire_event(channel_number, note_on_event)
+        note_on_or_hit_event = (event_type, param)
+        self._audio_engine.fire_event(channel_number, note_on_or_hit_event)
 
     def set_rest(self, channel_number):
         note_off_event = (EVENT_NOTE_OFF, None)
@@ -305,8 +307,8 @@ class Controller():
         self._session.set_selected_control_id_by_channel(channel, control_id)
         self._updater.signal_update()
 
-    def update_active_note(self, channel, pitch):
-        self._session.set_active_note(channel, pitch)
+    def update_active_note(self, channel, event_type, pitch):
+        self._session.set_active_note(channel, event_type, pitch)
         self._updater.signal_update()
 
     def update_active_var_name(self, ch, var_name):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -72,8 +72,8 @@ class UiThread(MonitoringThread):
     def update_selected_control(self, channel_number, control_number):
         self._q.push('update_selected_control', channel_number, control_number)
 
-    def update_active_note(self, channel_number, pitch):
-        self._q.push('update_active_note', channel_number, pitch)
+    def update_active_note(self, channel_number, event_type, pitch):
+        self._q.push('update_active_note', channel_number, event_type, pitch)
 
     def update_active_var_name(self, channel_number, var_name):
         self._q.push('update_active_var_name', channel_number, var_name)
