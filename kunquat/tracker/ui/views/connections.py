@@ -69,12 +69,24 @@ DEFAULT_CONFIG = {
                 'fg_colour'       : QColor(0xcc, 0xff, 0xff),
                 'button_bg_colour': QColor(0x11, 0x33, 0x33),
                 'button_focused_bg_colour': QColor(0, 0x55, 0x55),
+                'hilight_selected': QColor(0x99, 0xbb, 0x99),
+                'hilight_excluded': QColor(0x55, 0x44, 0x33),
+                'hilight_selected_focused': QColor(0xff, 0x88, 0x44),
+                'hilight_excluded_focused': QColor(0x88, 0x33, 0x11),
+                'hilight_pressed' : QColor(0xff, 0xff, 0xff),
             },
             'proc_mixed': {
                 'bg_colour'       : QColor(0x55, 0x22, 0x55),
                 'fg_colour'       : QColor(0xff, 0xcc, 0xff),
                 'button_bg_colour': QColor(0x33, 0x11, 0x33),
                 'button_focused_bg_colour': QColor(0x55, 0, 0x55),
+                # TODO: Mixed processors shouldn't be highlighted;
+                #       these are just a temp fix to prevent crash
+                'hilight_selected': QColor(0x99, 0xbb, 0x99),
+                'hilight_excluded': QColor(0x55, 0x44, 0x33),
+                'hilight_selected_focused': QColor(0xff, 0x88, 0x44),
+                'hilight_excluded_focused': QColor(0x88, 0x33, 0x11),
+                'hilight_pressed' : QColor(0xff, 0xff, 0xff),
             },
             'master': {
                 'bg_colour'       : QColor(0x33, 0x55, 0x33),
@@ -273,6 +285,9 @@ class ConnectionsView(QWidget):
 
         self._ls_cache = {}
 
+        self._edit_dev_highlights = {}
+        self._pressed_dev_id = None
+
         self._edge_menu = EdgeMenu(self)
         QObject.connect(
                 self._edge_menu, SIGNAL('aboutToHide()'), self._edge_menu_closing)
@@ -374,6 +389,12 @@ class ConnectionsView(QWidget):
             self._get_signal('signal_connections'),
             'signal_controls',
             ])
+        if self._au_id != None:
+            update_signals |= set([
+                self._get_signal('signal_au_conns_hit'),
+                self._get_signal('signal_au_conns_edit_mode'),
+                ])
+
         if not signals.isdisjoint(update_signals):
             self._update_devices()
 
@@ -536,6 +557,22 @@ class ConnectionsView(QWidget):
 
         self._visible_devices = new_visible_devices
 
+        # Get edit highlights
+        self._edit_dev_highlights = {}
+        if self._au_id != None:
+            au = module.get_audio_unit(self._au_id)
+            if au.get_connections_edit_mode() == 'hit_proc_filter':
+                hit_index = au.get_connections_hit_index()
+                if hit_index != None:
+                    hit = au.get_hit(hit_index)
+                    if hit.get_existence():
+                        excluded = hit.get_excluded_processors()
+                        visible_procs = set(dev_id for dev_id in self._visible_devices
+                                if dev_id.startswith('proc'))
+                        for dev_id in visible_procs:
+                            self._edit_dev_highlights[dev_id] = ('hilight_excluded'
+                                    if dev_id in excluded else 'hilight_selected')
+
         # Update finished
         QObject.emit(self, SIGNAL('positionsChanged()'))
         self.update()
@@ -660,6 +697,19 @@ class ConnectionsView(QWidget):
 
             device.draw_ports(painter, focus_info)
 
+            # Draw device highlight
+            if dev_id in self._edit_dev_highlights:
+                highlight = self._edit_dev_highlights[dev_id]
+                if dev_id == self._focused_id:
+                    if dev_id == self._pressed_dev_id:
+                        highlight = 'hilight_pressed'
+                    else:
+                        if highlight == 'hilight_selected':
+                            highlight = 'hilight_selected_focused'
+                        else:
+                            highlight = 'hilight_excluded_focused'
+                device.draw_device_highlight(painter, highlight)
+
             # Draw button highlight
             if self._focused_button_info.get('dev_id') == dev_id:
                 if ((not self._focused_button_info.get('pressed')) or
@@ -752,7 +802,15 @@ class ConnectionsView(QWidget):
 
         return find_device(to_info['dev_id'], from_info['dev_id'])
 
-    def mouseMoveEvent(self, event):
+    def _get_connections_edit_mode(self):
+        mode = 'normal'
+        if self._au_id != None:
+            module = self._ui_model.get_module()
+            au = module.get_audio_unit(self._au_id)
+            mode = au.get_connections_edit_mode()
+        return mode
+
+    def _handle_mouse_move_normal(self, event):
         area_pos = self._get_area_pos(event.x(), event.y())
 
         new_focused_port_info = {}
@@ -791,7 +849,7 @@ class ConnectionsView(QWidget):
                     if dist <= self._config['edge_focus_dist_max']:
                         new_focused_edge_info = { 'paths': edge }
 
-        if self._state == STATE_MOVING:
+        elif self._state == STATE_MOVING:
             if (not self._focused_id) or (self._focused_id not in self._visible_devices):
                 self._state = STATE_IDLE
             else:
@@ -865,7 +923,43 @@ class ConnectionsView(QWidget):
             self._focused_edge_info = new_focused_edge_info
             self.update()
 
-    def mousePressEvent(self, event):
+    def _handle_mouse_move_hit_proc_filter(self, event):
+        area_pos = self._get_area_pos(event.x(), event.y())
+
+        if self._state in (STATE_IDLE, STATE_PRESSING):
+            prev_focused_id = self._focused_id
+
+            for dev_id in reversed(self._visible_device_ids):
+                if not dev_id.startswith('proc'):
+                    continue
+
+                device = self._visible_devices[dev_id]
+                dev_rel_pos = device.get_rel_pos(area_pos)
+                if device.contains_rel_pos(dev_rel_pos):
+                    if self._state == STATE_IDLE:
+                        self._focused_id = dev_id
+                    elif self._state == STATE_PRESSING:
+                        if dev_id == self._pressed_dev_id:
+                            self._focused_id = dev_id
+                        else:
+                            self._focused_id = None
+                    break
+            else:
+                self._focused_id = None
+
+            if self._focused_id != prev_focused_id:
+                self.update()
+
+    def mouseMoveEvent(self, event):
+        mode = self._get_connections_edit_mode()
+        if mode == 'normal':
+            self._handle_mouse_move_normal(event)
+        elif mode == 'hit_proc_filter':
+            self._handle_mouse_move_hit_proc_filter(event)
+        else:
+            assert False
+
+    def _handle_mouse_press_normal(self, event):
         assert self._state != STATE_EDGE_MENU
 
         area_pos = self._get_area_pos(event.x(), event.y())
@@ -914,7 +1008,33 @@ class ConnectionsView(QWidget):
             else:
                 self._state = STATE_MOVING
 
-    def mouseReleaseEvent(self, event):
+    def _handle_mouse_press_hit_proc_filter(self, event):
+        area_pos = self._get_area_pos(event.x(), event.y())
+
+        for dev_id in reversed(self._visible_device_ids):
+            if not dev_id.startswith('proc'):
+                continue
+
+            device = self._visible_devices[dev_id]
+            dev_rel_pos = device.get_rel_pos(area_pos)
+            if device.contains_rel_pos(dev_rel_pos):
+                self._pressed_dev_id = dev_id
+                self._state = STATE_PRESSING
+                self.update()
+                break
+        else:
+            self._pressed_dev_id = None
+
+    def mousePressEvent(self, event):
+        mode = self._get_connections_edit_mode()
+        if mode == 'normal':
+            self._handle_mouse_press_normal(event)
+        elif mode == 'hit_proc_filter':
+            self._handle_mouse_press_hit_proc_filter(event)
+        else:
+            assert False
+
+    def _handle_mouse_release_normal(self, event):
         if self._state == STATE_EDGE_MENU:
             return
 
@@ -953,6 +1073,40 @@ class ConnectionsView(QWidget):
             self.update()
 
         self._state = STATE_IDLE
+
+    def _handle_mouse_release_hit_proc_filter(self, event):
+        if self._state == STATE_PRESSING:
+            assert self._pressed_dev_id.startswith('proc')
+            if self._focused_id == self._pressed_dev_id:
+                # Get current hit
+                module = self._ui_model.get_module()
+                au = module.get_audio_unit(self._au_id)
+                hit_index = au.get_connections_hit_index()
+                hit = au.get_hit(hit_index)
+
+                # Toggle processor usage in hit processing
+                excluded = hit.get_excluded_processors()
+                if self._focused_id in excluded:
+                    excluded.remove(self._focused_id)
+                else:
+                    excluded.append(self._focused_id)
+                hit.set_excluded_processors(excluded)
+                self._updater.signal_update(
+                        set([self._get_signal('signal_au_conns_hit')]))
+
+        self._pressed_dev_id = None
+        self.update()
+
+        self._state = STATE_IDLE
+
+    def mouseReleaseEvent(self, event):
+        mode = self._get_connections_edit_mode()
+        if mode == 'normal':
+            self._handle_mouse_release_normal(event)
+        elif mode == 'hit_proc_filter':
+            self._handle_mouse_release_hit_proc_filter(event)
+        else:
+            assert False
 
     def _perform_button_click(self, button_info, shift_pressed):
         visibility_manager = self._ui_model.get_visibility_manager()
@@ -1268,6 +1422,26 @@ class Device():
             port_id = self._out_ports[i]
             colour = focused_colour if port_id == focused_port else normal_colour
             painter.fillRect(rect, colour)
+
+        painter.restore()
+
+    def draw_device_highlight(self, painter, highlight_mode):
+        assert self._id.startswith('proc')
+        painter.save()
+
+        extent = 4
+
+        colour = self._type_config[highlight_mode]
+        pen = QPen(colour)
+        pen.setWidth(2)
+        painter.setPen(pen)
+        if 'excluded' in highlight_mode: # TODO: clean up
+            painter.setBrush(QColor(0, 0, 0, 0x77))
+        painter.setRenderHint(QPainter.Antialiasing)
+
+        exbr = extent - 1
+        rect = self.get_rect_in_area().adjusted(-extent, -extent, exbr, exbr)
+        painter.drawRect(rect)
 
         painter.restore()
 

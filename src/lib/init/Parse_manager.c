@@ -22,6 +22,7 @@
 #include <init/devices/Au_streams.h>
 #include <init/devices/Audio_unit.h>
 #include <init/devices/Device_params.h>
+#include <init/devices/Hit_proc_filter.h>
 #include <init/devices/Proc_type.h>
 #include <init/Environment.h>
 #include <init/manifest.h>
@@ -809,6 +810,75 @@ static bool read_any_au_streams(
     else
     {
         Audio_unit_set_streams(au, NULL);
+    }
+
+    return true;
+}
+
+
+static bool read_any_au_hit_manifest(
+        Reader_params* params, Au_table* au_table, int level)
+{
+    assert(params != NULL);
+
+    if (level > 0)
+        return true;
+
+    int32_t index = -1;
+    acquire_au_index(index, params, level);
+
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, index);
+
+    const int32_t hit_index = params->indices[1];
+    if ((hit_index < 0) || (hit_index >= KQT_HITS_MAX))
+        return true;
+
+    const bool existence = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
+    {
+        set_error(params);
+        return false;
+    }
+
+    Audio_unit_set_hit_existence(au, hit_index, existence);
+
+    return true;
+}
+
+
+static bool read_any_au_hit_proc_filter(
+        Reader_params* params, Au_table* au_table, int level)
+{
+    assert(params != NULL);
+
+    if (level > 0)
+        return true;
+
+    int32_t index = -1;
+    acquire_au_index(index, params, level);
+
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, index);
+
+    const int32_t hit_index = params->indices[1];
+    if ((hit_index < 0) || (hit_index >= KQT_HITS_MAX))
+        return true;
+
+    if (Streader_has_data(params->sr))
+    {
+        Hit_proc_filter* hpf = new_Hit_proc_filter(params->sr);
+        if (hpf == NULL)
+        {
+            set_error(params);
+            return false;
+        }
+
+        Audio_unit_set_hit_proc_filter(au, hit_index, hpf);
+    }
+    else
+    {
+        Audio_unit_set_hit_proc_filter(au, hit_index, NULL);
     }
 
     return true;

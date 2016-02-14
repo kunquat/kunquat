@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2013-2015
+#          Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -77,6 +77,9 @@ class Session():
         self._is_saving = False
         self._active_var_names = {}
         self._runtime_env = {}
+        self._au_conns_edit_mode = {}
+        self._au_conns_hit_index = {}
+        self._edit_selected_hits = {}
 
     def get_output_speed(self):
         return self._output_speed
@@ -451,5 +454,23 @@ class Session():
     def reset_runtime_env(self):
         self._active_var_names.clear()
         self._runtime_env.clear()
+
+    def set_au_connections_edit_mode(self, au_id, mode):
+        self._au_conns_edit_mode[au_id] = mode
+
+    def get_au_connections_edit_mode(self, au_id):
+        return self._au_conns_edit_mode.get(au_id, None)
+
+    def set_au_connections_hit_index(self, au_id, hit_index):
+        self._au_conns_hit_index[au_id] = hit_index
+
+    def get_au_connections_hit_index(self, au_id):
+        return self._au_conns_hit_index.get(au_id, None)
+
+    def set_edit_selected_hit_info(self, au_id, hit_base, hit_offset):
+        self._edit_selected_hits[au_id] = (hit_base, hit_offset)
+
+    def get_edit_selected_hit_info(self, au_id):
+        return self._edit_selected_hits.get(au_id, (0, 0))
 
 

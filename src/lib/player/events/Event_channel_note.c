@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/Au_streams.h>
+#include <init/devices/Hit_proc_filter.h>
 #include <init/Input_map.h>
 #include <init/Module.h>
 #include <init/Scale.h>
@@ -101,6 +102,10 @@ bool Event_channel_note_on_process(
         LFO_set_speed_slide(&ch->force_controls.tremolo, &ch->tremolo_speed_slide);
         LFO_set_depth_slide(&ch->force_controls.tremolo, &ch->tremolo_depth_slide);
     }
+
+    // Don't attempt to play effects
+    if (Audio_unit_get_type(au) != AU_TYPE_INSTRUMENT)
+        return true;
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -222,11 +227,22 @@ bool Event_channel_hit_process(Channel* ch, Device_states* dstates, const Value*
     if (!ch->carry_force)
     {
         Force_controls_reset(&ch->force_controls);
-        ch->force_controls.force = 1;
+        ch->force_controls.force = 0;
         Slider_set_length(&ch->force_controls.slider, &ch->force_slide_length);
         LFO_set_speed_slide(&ch->force_controls.tremolo, &ch->tremolo_speed_slide);
         LFO_set_depth_slide(&ch->force_controls.tremolo, &ch->tremolo_depth_slide);
     }
+
+    // Don't attempt to hit effects
+    if (Audio_unit_get_type(au) != AU_TYPE_INSTRUMENT)
+        return true;
+
+    const int hit_index = value->value.int_type;
+
+    if (!Audio_unit_get_hit_existence(au, hit_index))
+        return true;
+
+    const Hit_proc_filter* hpf = Audio_unit_get_hit_proc_filter(au, hit_index);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -234,6 +250,10 @@ bool Event_channel_hit_process(Channel* ch, Device_states* dstates, const Value*
         if (proc == NULL ||
                 !Device_is_existent((const Device*)proc) ||
                 !Processor_get_voice_signals(proc))
+            continue;
+
+        // Skip processors that are filtered out for this hit index
+        if ((hpf != NULL) && !Hit_proc_filter_is_proc_allowed(hpf, i))
             continue;
 
         const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
@@ -249,7 +269,7 @@ bool Event_channel_hit_process(Channel* ch, Device_states* dstates, const Value*
 
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
-        vs->hit_index = value->value.int_type;
+        vs->hit_index = hit_index;
 
         if (vs->is_force_state)
         {
@@ -266,9 +286,9 @@ bool Event_channel_hit_process(Channel* ch, Device_states* dstates, const Value*
             ch);
 
     // Initialise streams
+    const Au_streams* streams = Audio_unit_get_streams(au);
+    if (streams != NULL)
     {
-        const Au_streams* streams = Audio_unit_get_streams(au);
-
         const Channel_stream_state* stream_state = Channel_get_stream_state(ch);
 
         Stream_target_dev_iter* iter =
