@@ -65,6 +65,17 @@ class TypewriterButtonModel():
     def _get_hit(self):
         return self._typewriter_manager.get_button_hit((self._row, self._index))
 
+    def _get_event_type_and_param(self):
+        pitch = self._get_pitch()
+        if pitch != None:
+            return ('n+', pitch)
+
+        hit = self._get_hit()
+        if hit != None:
+            return ('h', hit)
+
+        return None, None
+
     def get_led_state(self):
         selected_control = self._control_manager.get_selected_control()
         if selected_control == None:
@@ -98,13 +109,9 @@ class TypewriterButtonModel():
         return (left_on, center_on, right_on)
 
     def start_tracked_note(self):
-        event_type = 'n+'
-        param = self._get_pitch()
+        event_type, param = self._get_event_type_and_param()
         if param == None:
-            param = self._get_hit()
-            if param == None:
-                return
-            event_type = 'h'
+            return
 
         if self._session.is_key_active(self._row, self._index):
             return
@@ -116,12 +123,12 @@ class TypewriterButtonModel():
 
         if self._sheet_manager.is_editing_enabled():
             self._sheet_manager.set_chord_mode(True)
-            self._session.set_chord_note(param, True)
+            self._session.set_chord_note(event_type, param, True)
 
             if (self._sheet_manager.get_replace_mode() and
                     self._sheet_manager.is_at_trigger()):
                 trigger = self._sheet_manager.get_selected_trigger()
-                if ((event_type == 'h') and
+                if ((event_type == 'n+') and
                         (trigger.get_argument_type() == events.EVENT_ARG_PITCH)):
                     new_trigger = Trigger(trigger.get_type(), unicode(param))
                     self._sheet_manager.add_trigger(new_trigger)
@@ -140,7 +147,8 @@ class TypewriterButtonModel():
         note.set_rest()
         self._session.deactivate_key(self._row, self._index)
 
-        self._session.set_chord_note(self._get_pitch(), False)
+        event_type, param = self._get_event_type_and_param()
+        self._session.set_chord_note(event_type, param, False)
         if not self._session.are_chord_notes_down():
             self._sheet_manager.set_chord_mode(False)
 

@@ -267,11 +267,11 @@ class Session():
     def get_chord_start(self):
         return self._chord_start
 
-    def set_chord_note(self, note, is_down):
+    def set_chord_note(self, event_type, param, is_down):
         if is_down:
-            self._chord_notes.add(note)
+            self._chord_notes.add((event_type, param))
         else:
-            self._chord_notes.discard(note)
+            self._chord_notes.discard((event_type, param))
 
     def are_chord_notes_down(self):
         return len(self._chord_notes) != 0
