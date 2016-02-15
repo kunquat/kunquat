@@ -30,8 +30,6 @@ class AudioUnit():
         self._controller = None
         self._session = None
         self._ui_model = None
-        self._au_number = None
-        self._existence = None
 
     def set_controller(self, controller):
         self._store = controller.get_store()
