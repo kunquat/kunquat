@@ -65,6 +65,7 @@ class GridManager():
 
     def get_grid_pattern(self, gp_id):
         assert isinstance(gp_id, (NoneType, unicode))
+        gp_id = gp_id or u'0'
         gp = GridPattern(gp_id)
         gp.set_controller(self._controller)
         return gp
