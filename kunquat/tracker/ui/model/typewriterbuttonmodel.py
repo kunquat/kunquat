@@ -128,8 +128,9 @@ class TypewriterButtonModel():
             if (self._sheet_manager.get_replace_mode() and
                     self._sheet_manager.is_at_trigger()):
                 trigger = self._sheet_manager.get_selected_trigger()
-                if ((event_type == 'n+') and
-                        (trigger.get_argument_type() == events.EVENT_ARG_PITCH)):
+                if ((event_type == 'n+' and
+                        trigger.get_argument_type() == events.EVENT_ARG_PITCH) or
+                        (event_type == 'h' and trigger.get_type() == 'h')):
                     new_trigger = Trigger(trigger.get_type(), unicode(param))
                     self._sheet_manager.add_trigger(new_trigger)
                 elif trigger.get_type() == 'n-':
