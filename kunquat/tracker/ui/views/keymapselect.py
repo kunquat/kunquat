@@ -37,7 +37,8 @@ class KeymapSelect(QComboBox):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        self._update_keymap_texts()
+        if 'signal_select_keymap' in signals:
+            self._update_keymaps()
 
     def _select_keymap(self, catalog_index):
         keymap_id = self._keymap_catalog[catalog_index]

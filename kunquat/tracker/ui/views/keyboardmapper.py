@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -28,11 +28,13 @@ class KeyboardMapper():
 
     def __init__(self):
         self._ui_model = None
+        self._updater = None
         self._typewriter_manager = None
         self._typewriter_map = _TYPEWRITER_MAP
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
         self._typewriter_manager = ui_model.get_typewriter_manager()
 
     def unregister_updaters(self):
@@ -51,7 +53,7 @@ class KeyboardMapper():
                 button.stop_tracked_note()
             return True
 
-        # Octave selection
+        # Octave selection and hit keymap toggle
         if self.is_octave_down(event):
             if event.type() == QEvent.KeyPress:
                 cur_octave = self._typewriter_manager.get_octave()
@@ -62,6 +64,21 @@ class KeyboardMapper():
                 cur_octave = self._typewriter_manager.get_octave()
                 octave_count = self._typewriter_manager.get_octave_count()
                 self._typewriter_manager.set_octave(min(octave_count - 1, cur_octave + 1))
+            return True
+        elif self.is_hit_keymap_toggle(event):
+            if event.type() == QEvent.KeyPress:
+                keymap_manager = self._ui_model.get_keymap_manager()
+                keymap_manager.toggle_hit_keymap()
+
+                # TODO: Copied over from keymapselect.py; clean up
+                keymap_data = keymap_manager.get_selected_keymap()
+                if keymap_data.get('is_hit_keymap', False):
+                    base_octave = 0
+                else:
+                    base_octave = keymap_data['base_octave']
+                self._typewriter_manager.set_octave(base_octave)
+
+                self._updater.signal_update(set(['signal_select_keymap']))
             return True
         return False
 
@@ -80,5 +97,8 @@ class KeyboardMapper():
     def is_octave_down(self, event):
         return event.key() == Qt.Key_O and (
                 event.modifiers() == (Qt.ControlModifier | Qt.ShiftModifier))
+
+    def is_hit_keymap_toggle(self, event):
+        return (event.key() == Qt.Key_H) and (event.modifiers() == Qt.ControlModifier)
 
 

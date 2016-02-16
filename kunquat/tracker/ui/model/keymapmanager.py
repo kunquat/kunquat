@@ -56,14 +56,16 @@ class KeymapManager():
         keymap_ids.append(HitKeymapID)
         return keymap_ids
 
-    def get_selected_keymap_id(self):
+    def _get_some_keymap_id(self):
         keymap_ids = self.get_keymap_ids()
-        selected_id = self._session.get_selected_keymap_id()
         if len(keymap_ids) < 2:
             return HitKeymapID
-        if not selected_id in keymap_ids:
-            some_id = sorted(keymap_ids)[1]
-            return some_id
+        some_id = sorted(keymap_ids)[1]
+        return some_id
+
+    def get_selected_keymap_id(self):
+        keymap_ids = self.get_keymap_ids()
+        selected_id = self._session.get_selected_keymap_id() or self._get_some_keymap_id()
         return selected_id
 
     def is_hit_keymap_selected(self):
@@ -71,6 +73,8 @@ class KeymapManager():
 
     def set_selected_keymap_id(self, keymap_id):
         self._session.set_selected_keymap_id(keymap_id)
+        if keymap_id != HitKeymapID:
+            self._session.set_prev_selected_note_keymap_id(keymap_id)
         self._updater.signal_update()
 
     def get_keymap(self, keymap_id):
@@ -85,5 +89,13 @@ class KeymapManager():
         keymap_id = self.get_selected_keymap_id()
         keymap = self.get_keymap(keymap_id)
         return keymap
+
+    def toggle_hit_keymap(self):
+        if self.is_hit_keymap_selected():
+            new_id = (self._session.get_prev_selected_note_keymap_id() or
+                    self._get_some_keymap_id())
+            self.set_selected_keymap_id(new_id)
+        else:
+            self.set_selected_keymap_id(HitKeymapID)
 
 

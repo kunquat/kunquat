@@ -30,6 +30,7 @@ class Session():
         self._infinite_mode = False
         self._selected_control_id = 0
         self._selected_keymap_id = None
+        self._prev_selected_note_keymap_id = None
         self._selected_notation_id = None
         self._control_id_override = None
         # TODO: get default control ids from libkunquat?
@@ -148,6 +149,12 @@ class Session():
 
     def set_selected_keymap_id(self, keymap_id):
         self._selected_keymap_id = keymap_id
+
+    def get_prev_selected_note_keymap_id(self):
+        return self._prev_selected_note_keymap_id
+
+    def set_prev_selected_note_keymap_id(self, keymap_id):
+        self._prev_selected_note_keymap_id = keymap_id
 
     def get_selected_notation_id(self):
         return self._selected_notation_id
