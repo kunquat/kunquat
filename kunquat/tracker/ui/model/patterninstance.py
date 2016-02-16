@@ -26,6 +26,7 @@ class PatternInstance():
         self._instance_id = 'instance_{:03x}'.format(instance_num)
         self._store = None
         self._controller = None
+        self._ui_model = None
 
     def __eq__(self, other):
         if isinstance(other, PatternInstance):
@@ -40,6 +41,9 @@ class PatternInstance():
         self._store = controller.get_store()
         self._controller = controller
 
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+
     def get_pattern(self):
         pattern = Pattern(self._pattern_id)
         pattern.set_controller(self._controller)
@@ -53,8 +57,9 @@ class PatternInstance():
 
     def get_column(self, col_index):
         assert 0 <= col_index < COLUMNS_MAX
-        column = Column(self._pattern_id, col_index)
+        column = Column(self._pattern_num, self._instance_num, col_index)
         column.set_controller(self._controller)
+        column.set_ui_model(self._ui_model)
         return column
 
     def subscript(self, number):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -56,6 +56,7 @@ class Song():
         pattern_num, instance_num = order_list[system_num]
         pattern_instance = PatternInstance(pattern_num, instance_num)
         pattern_instance.set_controller(self._controller)
+        pattern_instance.set_ui_model(self._ui_model)
         return pattern_instance
 
     def _get_order_list_key(self):
