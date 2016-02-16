@@ -84,7 +84,7 @@ class TypewriterButton(QPushButton):
         layout = QVBoxLayout(self)
         led = TWLed()
         self._led = led
-        layout.addWidget(led)
+        layout.addWidget(led, 0, Qt.AlignHCenter)
         notename = QLabel()
         self._notename = notename
         notename.setAlignment(Qt.AlignCenter)
