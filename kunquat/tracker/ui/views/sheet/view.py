@@ -165,6 +165,9 @@ class View(QWidget):
         if 'signal_notation' in signals:
             self._update_all_patterns()
             self.update()
+        if 'signal_hits' in signals:
+            self._update_all_patterns()
+            self.update()
         if 'signal_module' in signals:
             self._update_all_patterns()
             self.update()
