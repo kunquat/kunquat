@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2015
+# Author: Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -45,7 +45,7 @@ DEFAULT_CONFIG = {
         'trigger': {
             'default_colour' : QColor(0xcc, 0xdd, 0xee),
             'note_on_colour' : QColor(0xff, 0xdd, 0xbb),
-            'hit_colour'     : QColor(0xdd, 0xee, 0xbb),
+            'hit_colour'     : QColor(0xbb, 0xee, 0x88),
             'note_off_colour': QColor(0xcc, 0x99, 0x66),
             'padding'        : 3,
             },
