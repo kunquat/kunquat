@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -12,6 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from column import Column
+from kunquat.kunquat.limits import *
 from pattern import Pattern
 
 
@@ -48,6 +50,12 @@ class PatternInstance():
 
     def get_instance_num(self):
         return self._instance_num
+
+    def get_column(self, col_index):
+        assert 0 <= col_index < COLUMNS_MAX
+        column = Column(self._pattern_id, col_index)
+        column.set_controller(self._controller)
+        return column
 
     def subscript(self, number):
         nums = [int(i) for i in str(number)]

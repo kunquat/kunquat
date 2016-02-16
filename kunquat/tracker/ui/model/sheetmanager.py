@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -61,8 +61,8 @@ class SheetManager():
 
         if album and album.get_track_count() > 0:
             song = album.get_song_by_track(location.get_track())
-            pattern = song.get_pattern_instance(location.get_system()).get_pattern()
-            column = pattern.get_column(location.get_col_num())
+            pinst = song.get_pattern_instance(location.get_system())
+            column = pinst.get_column(location.get_col_num())
 
             cached = self._session.get_last_column()
             if cached and (cached == column):

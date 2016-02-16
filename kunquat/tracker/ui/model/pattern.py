@@ -13,8 +13,6 @@
 
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
-
-from column import Column
 import tstamp
 
 
@@ -60,12 +58,6 @@ class Pattern():
         header = self._store.get(key, get_default_value(key))
         header['length'] = list(length)
         self._store[key] = header
-
-    def get_column(self, column_index):
-        assert 0 <= column_index < COLUMNS_MAX
-        column = Column(self._pattern_id, column_index)
-        column.set_controller(self._controller)
-        return column
 
     def get_instance_ids(self):
         instance_ids = set()
