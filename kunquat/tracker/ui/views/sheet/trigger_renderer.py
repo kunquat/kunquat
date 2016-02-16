@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -128,6 +128,10 @@ class TriggerRenderer():
             note_name = self._get_note_vis_name(expr)
             note_field = self._make_field_data(padding, note_name)
             self._fields.append(note_field)
+        elif evtype == 'h':
+            hit_name = self._trigger.get_hit_name()
+            hit_field = self._make_field_data(padding, hit_name)
+            self._fields.append(hit_field)
         elif evtype == 'n-':
             vis_text = u'══'
             note_off_field = self._make_field_data(padding, vis_text)
