@@ -59,7 +59,9 @@ class Trigger():
             if au.get_existence():
                 hit = au.get_hit(hit_index)
                 if hit.get_existence():
-                    name = hit.get_name()
+                    hit_name = hit.get_name()
+                    if hit_name:
+                        name = hit_name
 
         return name
 
