@@ -237,24 +237,24 @@ bool Audio_unit_get_hit_existence(const Audio_unit* au, int index);
 
 
 /**
- * Set the Hit processor filter of the Audio unit.
+ * Set the hit processor filter of the Audio unit.
  *
  * \param au      The Audio unit -- must not be \c NULL.
  * \param index   The hit index -- must be >= \c 0 and < \c KQT_HITS_MAX.
- * \param hpf     The Hit processor filter, or \c NULL.
+ * \param hpf     The Parameter processor filter, or \c NULL.
  */
-void Audio_unit_set_hit_proc_filter(Audio_unit* au, int index, Hit_proc_filter* hpf);
+void Audio_unit_set_hit_proc_filter(Audio_unit* au, int index, Param_proc_filter* hpf);
 
 
 /**
- * Get the Hit processor filter of the Audio unit.
+ * Get the hit processor filter of the Audio unit.
  *
  * \param au      The Audio unit -- must not be \c NULL.
  * \param index   The hit index -- must be >= \c 0 and < \c KQT_HITS_MAX.
  *
- * \return   The Hit processor filter if one exists, otherwise \c NULL.
+ * \return   The Parameter processor filter if one exists, otherwise \c NULL.
  */
-const Hit_proc_filter* Audio_unit_get_hit_proc_filter(const Audio_unit* au, int index);
+const Param_proc_filter* Audio_unit_get_hit_proc_filter(const Audio_unit* au, int index);
 
 
 /**

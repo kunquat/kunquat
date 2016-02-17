@@ -16,7 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/Au_streams.h>
-#include <init/devices/Hit_proc_filter.h>
+#include <init/devices/Param_proc_filter.h>
 #include <init/Input_map.h>
 #include <init/Module.h>
 #include <init/Scale.h>
@@ -242,7 +242,7 @@ bool Event_channel_hit_process(Channel* ch, Device_states* dstates, const Value*
     if (!Audio_unit_get_hit_existence(au, hit_index))
         return true;
 
-    const Hit_proc_filter* hpf = Audio_unit_get_hit_proc_filter(au, hit_index);
+    const Param_proc_filter* hpf = Audio_unit_get_hit_proc_filter(au, hit_index);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -253,7 +253,7 @@ bool Event_channel_hit_process(Channel* ch, Device_states* dstates, const Value*
             continue;
 
         // Skip processors that are filtered out for this hit index
-        if ((hpf != NULL) && !Hit_proc_filter_is_proc_allowed(hpf, i))
+        if ((hpf != NULL) && !Param_proc_filter_is_proc_allowed(hpf, i))
             continue;
 
         const Proc_state* proc_state = (Proc_state*)Device_states_get_state(

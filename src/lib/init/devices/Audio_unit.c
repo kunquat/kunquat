@@ -21,7 +21,7 @@
 #include <init/devices/Au_interface.h>
 #include <init/devices/Au_streams.h>
 #include <init/devices/Device.h>
-#include <init/devices/Hit_proc_filter.h>
+#include <init/devices/Param_proc_filter.h>
 #include <init/devices/Proc_table.h>
 #include <init/devices/Processor.h>
 #include <mathnum/common.h>
@@ -41,7 +41,7 @@
 typedef struct Hit_info
 {
     bool existence;
-    Hit_proc_filter* hit_proc_filter;
+    Param_proc_filter* hit_proc_filter;
 } Hit_info;
 
 
@@ -60,7 +60,7 @@ void Hit_info_deinit(Hit_info* hit)
 {
     assert(hit != NULL);
 
-    del_Hit_proc_filter(hit->hit_proc_filter);
+    del_Param_proc_filter(hit->hit_proc_filter);
     hit->hit_proc_filter = NULL;
 
     return;
@@ -345,20 +345,20 @@ bool Audio_unit_get_hit_existence(const Audio_unit* au, int index)
 }
 
 
-void Audio_unit_set_hit_proc_filter(Audio_unit* au, int index, Hit_proc_filter* hpf)
+void Audio_unit_set_hit_proc_filter(Audio_unit* au, int index, Param_proc_filter* hpf)
 {
     assert(au != NULL);
     assert(index >= 0);
     assert(index < KQT_HITS_MAX);
 
-    del_Hit_proc_filter(au->hits[index].hit_proc_filter);
+    del_Param_proc_filter(au->hits[index].hit_proc_filter);
     au->hits[index].hit_proc_filter = hpf;
 
     return;
 }
 
 
-const Hit_proc_filter* Audio_unit_get_hit_proc_filter(const Audio_unit* au, int index)
+const Param_proc_filter* Audio_unit_get_hit_proc_filter(const Audio_unit* au, int index)
 {
     assert(au != NULL);
     assert(index >= 0);

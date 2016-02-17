@@ -22,7 +22,7 @@
 #include <init/devices/Au_streams.h>
 #include <init/devices/Audio_unit.h>
 #include <init/devices/Device_params.h>
-#include <init/devices/Hit_proc_filter.h>
+#include <init/devices/Param_proc_filter.h>
 #include <init/devices/Proc_type.h>
 #include <init/Environment.h>
 #include <init/manifest.h>
@@ -867,7 +867,7 @@ static bool read_any_au_hit_proc_filter(
 
     if (Streader_has_data(params->sr))
     {
-        Hit_proc_filter* hpf = new_Hit_proc_filter(params->sr);
+        Param_proc_filter* hpf = new_Param_proc_filter(params->sr);
         if (hpf == NULL)
         {
             set_error(params);

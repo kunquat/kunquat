@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_HIT_PROC_FILTER_H
-#define K_HIT_PROC_FILTER_H
+#ifndef K_PARAM_PROC_FILTER_H
+#define K_PARAM_PROC_FILTER_H
 
 
 #include <decl.h>
@@ -24,36 +24,36 @@
 
 
 /**
- * Create a new Hit processor filter.
+ * Create a new Parameter processor filter.
  *
  * \param sr   The Streader of the JSON input -- must not be \c NULL.
  *
- * \return   The new Hit processor filter if successful, otherwise \c NULL.
+ * \return   The new Parameter processor filter if successful, otherwise \c NULL.
  */
-Hit_proc_filter* new_Hit_proc_filter(Streader* sr);
+Param_proc_filter* new_Param_proc_filter(Streader* sr);
 
 
 /**
- * Get processor filtering information from the Hit processor filter.
+ * Get processor filtering information from the Parameter processor filter.
  *
- * \param hpf          The Hit processor filter -- must not be \c NULL.
+ * \param pf           The Parameter processor filter -- must not be \c NULL.
  * \param proc_index   The processor index -- must be >= \c 0 and
  *                     < \c KQT_PROCESSORS_MAX.
  *
  * \return   \c true if processor \a proc_index is allowed to activate,
  *           otherwise \c false.
  */
-bool Hit_proc_filter_is_proc_allowed(const Hit_proc_filter* hpf, int proc_index);
+bool Param_proc_filter_is_proc_allowed(const Param_proc_filter* pf, int proc_index);
 
 
 /**
- * Destroy an existing Hit processor filter.
+ * Destroy an existing Processor filter.
  *
- * \param hpf   The Hit processor filter, or \c NULL.
+ * \param pf   The Processor filter, or \c NULL.
  */
-void del_Hit_proc_filter(Hit_proc_filter* hpf);
+void del_Param_proc_filter(Param_proc_filter* pf);
 
 
-#endif // K_HIT_PROC_FILTER_H
+#endif // K_PARAM_PROC_FILTER_H
 
 
