@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -42,23 +42,54 @@ class TypewriterButtonModel():
         self._sheet_manager = ui_model.get_sheet_manager()
 
     def get_name(self):
-        pitch = self.get_pitch()
-        if pitch == None:
-            return None
+        pitch = self._get_pitch()
+        if pitch != None:
+            notation = self._notation_manager.get_selected_notation()
+            name = notation.get_full_name(pitch)
+            return name
 
-        notation = self._notation_manager.get_selected_notation()
-        name = notation.get_full_name(pitch)
-        return name
+        hit_index = self._get_hit()
+        if hit_index != None:
+            control = self._control_manager.get_selected_control()
+            au = control.get_audio_unit()
+            if au.get_existence():
+                hit = au.get_hit(hit_index)
+                if hit.get_existence():
+                    return hit.get_name()
 
-    def get_pitch(self):
+        return None
+
+    def _get_pitch(self):
         return self._typewriter_manager.get_button_pitch((self._row, self._index))
+
+    def _get_hit(self):
+        return self._typewriter_manager.get_button_hit((self._row, self._index))
+
+    def _get_event_type_and_param(self):
+        pitch = self._get_pitch()
+        if pitch != None:
+            return ('n+', pitch)
+
+        hit = self._get_hit()
+        if hit != None:
+            return ('h', hit)
+
+        return None, None
 
     def get_led_state(self):
         selected_control = self._control_manager.get_selected_control()
         if selected_control == None:
             return None
 
-        pitch = self.get_pitch()
+        hit_index = self._get_hit()
+        if hit_index != None:
+            hits = selected_control.get_active_hits()
+            states = 3 * [False]
+            if hit_index in hits.itervalues():
+                states = [False, True, False]
+            return tuple(states)
+
+        pitch = self._get_pitch()
         if pitch == None:
             return None
 
@@ -78,8 +109,8 @@ class TypewriterButtonModel():
         return (left_on, center_on, right_on)
 
     def start_tracked_note(self):
-        pitch = self.get_pitch()
-        if pitch == None:
+        event_type, param = self._get_event_type_and_param()
+        if param == None:
             return
 
         if self._session.is_key_active(self._row, self._index):
@@ -87,24 +118,26 @@ class TypewriterButtonModel():
 
         selected_control = self._control_manager.get_selected_control()
         if selected_control:
-            note = selected_control.start_tracked_note(0, pitch)
+            note = selected_control.start_tracked_note(0, event_type, param)
             self._session.activate_key_with_note(self._row, self._index, note)
 
         if self._sheet_manager.is_editing_enabled():
             self._sheet_manager.set_chord_mode(True)
-            self._session.set_chord_note(pitch, True)
+            self._session.set_chord_note(event_type, param, True)
 
             if (self._sheet_manager.get_replace_mode() and
                     self._sheet_manager.is_at_trigger()):
                 trigger = self._sheet_manager.get_selected_trigger()
-                if trigger.get_argument_type() == events.EVENT_ARG_PITCH:
-                    new_trigger = Trigger(trigger.get_type(), unicode(pitch))
+                if ((event_type == 'n+' and
+                        trigger.get_argument_type() == events.EVENT_ARG_PITCH) or
+                        (event_type == 'h' and trigger.get_type() == 'h')):
+                    new_trigger = Trigger(trigger.get_type(), unicode(param))
                     self._sheet_manager.add_trigger(new_trigger)
                 elif trigger.get_type() == 'n-':
-                    new_trigger = Trigger('n+', unicode(pitch))
+                    new_trigger = Trigger(event_type, unicode(param))
                     self._sheet_manager.add_trigger(new_trigger)
             else:
-                trigger = Trigger('n+', unicode(pitch))
+                trigger = Trigger(event_type, unicode(param))
                 self._sheet_manager.add_trigger(trigger)
 
     def stop_tracked_note(self):
@@ -115,7 +148,8 @@ class TypewriterButtonModel():
         note.set_rest()
         self._session.deactivate_key(self._row, self._index)
 
-        self._session.set_chord_note(self.get_pitch(), False)
+        event_type, param = self._get_event_type_and_param()
+        self._session.set_chord_note(event_type, param, False)
         if not self._session.are_chord_notes_down():
             self._sheet_manager.set_chord_mode(False)
 

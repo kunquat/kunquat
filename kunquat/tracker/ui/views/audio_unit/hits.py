@@ -368,7 +368,8 @@ class HitEnabled(QCheckBox):
         existence = (state == Qt.Checked)
         hit = _get_current_hit(self._ui_model, self._au_id)
         hit.set_existence(existence)
-        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
+        self._updater.signal_update(set([
+            _get_update_signal_type(self._au_id), 'signal_hits']))
 
 
 class HitName(QWidget):
@@ -421,6 +422,7 @@ class HitName(QWidget):
 
         hit = _get_current_hit(self._ui_model, self._au_id)
         hit.set_name(name)
-        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
+        self._updater.signal_update(set([
+            _get_update_signal_type(self._au_id), 'signal_hits']))
 
 

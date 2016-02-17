@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -13,24 +13,28 @@
 
 from kunquat.kunquat.limits import *
 from trigger import Trigger
+from triggerposition import TriggerPosition
 import tstamp
 
 
 class Column():
 
-    def __init__(self, pattern_id, col_num):
-        assert pattern_id
+    def __init__(self, pattern_num, instance_num, col_num):
+        assert 0 <= pattern_num < PATTERNS_MAX
+        assert 0 <= instance_num < PAT_INSTANCES_MAX
         assert 0 <= col_num < COLUMNS_MAX
-        self._pattern_id = pattern_id
+        self._pattern_num = pattern_num
+        self._instance_num = instance_num
         self._col_num = col_num
         self._trigger_rows = None
         self._store = None
         self._controller = None
+        self._ui_model = None
 
     def __eq__(self, other):
         assert isinstance(other, Column)
         return (self._col_num == other._col_num) and \
-                (self._pattern_id == other._pattern_id)
+                (self._pattern_num == other._pattern_num)
 
     def __ne__(self, other):
         return not (self == other)
@@ -38,6 +42,9 @@ class Column():
     def set_controller(self, controller):
         self._controller = controller
         self._store = controller.get_store()
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
 
     def get_trigger_row_positions(self):
         self._build_trigger_rows()
@@ -84,6 +91,13 @@ class Column():
 
     def _build_trigger_rows(self):
         if self._trigger_rows == None:
+            # Find our location
+            album = self._ui_model.get_module().get_album()
+            col_location = album.get_pattern_instance_location_by_nums(
+                    self._pattern_num, self._instance_num)
+            assert col_location
+            track_num, system_num = col_location
+
             self._trigger_rows = {}
             trigger_list = self._get_raw_data()
             for ts_data, evspec in trigger_list:
@@ -91,12 +105,18 @@ class Column():
                 if ts not in self._trigger_rows:
                     self._trigger_rows[ts] = []
                 trigger_type, argument = evspec
-                trigger = Trigger(trigger_type, argument)
+
+                trigger_index = len(self._trigger_rows[ts])
+                location = TriggerPosition(
+                        track_num, system_num, self._col_num, ts, trigger_index)
+
+                trigger = Trigger(trigger_type, argument, location)
+                trigger.set_ui_model(self._ui_model)
                 self._trigger_rows[ts].append(trigger)
 
     def _get_key(self):
-        key = '{}/col_{:02x}/p_triggers.json'.format(
-                self._pattern_id, self._col_num)
+        key = 'pat_{:03x}/col_{:02x}/p_triggers.json'.format(
+                self._pattern_num, self._col_num)
         return key
 
     def _get_raw_data(self):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -165,6 +165,9 @@ class View(QWidget):
         if 'signal_notation' in signals:
             self._update_all_patterns()
             self.update()
+        if 'signal_hits' in signals:
+            self._update_all_patterns()
+            self.update()
         if 'signal_module' in signals:
             self._update_all_patterns()
             self.update()
@@ -224,7 +227,7 @@ class View(QWidget):
     def _update_column(self, track_num, system_num, col_num):
         pattern_index = utils.get_pattern_index_at_location(
                 self._ui_model, track_num, system_num)
-        col_data = self._pinsts[pattern_index].get_pattern().get_column(col_num)
+        col_data = self._pinsts[pattern_index].get_column(col_num)
         self._col_rends[col_num].update_column(pattern_index, col_data)
 
     def set_config(self, config):
@@ -243,7 +246,7 @@ class View(QWidget):
         lengths = [pinst.get_pattern().get_length() for pinst in pinsts]
         for i, cr in enumerate(self._col_rends):
             cr.set_pattern_lengths(lengths)
-            columns = [pinst.get_pattern().get_column(i) for pinst in pinsts]
+            columns = [pinst.get_column(i) for pinst in pinsts]
             cr.set_columns(columns)
 
     def _set_pattern_heights(self):
@@ -1130,7 +1133,7 @@ class View(QWidget):
                 if next_line_info:
                     next_ts, _ = next_line_info
 
-                cur_column = cur_pattern.get_column(col_num)
+                cur_column = cur_pinst.get_column(col_num)
 
                 # Get nearest previous target timestamp
                 prev_tstamps = cur_column.get_trigger_row_positions_in_range(
@@ -1325,13 +1328,8 @@ class View(QWidget):
     def keyPressEvent(self, event):
         selection = self._ui_model.get_selection()
         location = selection.get_location()
-        sheet_manager = self._ui_model.get_sheet_manager()
-        control_id = sheet_manager.get_inferred_active_control_id_at_location(location)
 
-        control_manager = self._ui_model.get_control_manager()
-        control_manager.set_control_id_override(control_id)
         note_pressed = self._keyboard_mapper.process_typewriter_button_event(event)
-        control_manager.set_control_id_override(None)
         if note_pressed:
             return
 

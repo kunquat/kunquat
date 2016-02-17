@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2013-2014
+#          Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -54,6 +54,7 @@ class OctaveButton(QPushButton):
                 self._octave_id)
         octave_name = self._button_model.get_name()
         self._octavename.setText(octave_name)
+        self._update_pressed()
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)

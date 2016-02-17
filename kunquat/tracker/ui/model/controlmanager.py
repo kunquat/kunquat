@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2014
+#          Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -44,7 +44,6 @@ class ControlManager():
 
     def set_selected_control_id(self, control_id):
         self._session.set_selected_control_id(control_id)
-        self._updater.signal_update()
 
     def get_selected_control(self):
         control_id = self.get_selected_control_id()

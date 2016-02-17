@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -203,6 +203,7 @@ class UiModel():
 
     def set_grid_manager(self, grid_manager):
         self._grid_manager = grid_manager
+        self._grid_manager.set_ui_model(self)
 
     def get_grid_manager(self):
         return self._grid_manager

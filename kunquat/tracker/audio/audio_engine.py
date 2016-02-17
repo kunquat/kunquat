@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2013-2015
+#          Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -25,6 +25,7 @@ from drivers.pushaudio import Pushaudio
 
 EVENT_SELECT_CONTROL = '.a'
 EVENT_NOTE_ON = 'n+'
+EVENT_HIT = 'h'
 EVENT_NOTE_OFF = 'n-'
 
 CONTEXT_MIX = 'mix'
@@ -85,11 +86,10 @@ class AudioEngine():
             control_number = event_value
             self._ui_engine.update_selected_control(channel_number, control_number)
         elif event_type == EVENT_NOTE_OFF:
-            pass
-            self._ui_engine.update_active_note(channel_number, None)
-        elif event_type == EVENT_NOTE_ON:
+            self._ui_engine.update_active_note(channel_number, EVENT_NOTE_OFF, None)
+        elif event_type in (EVENT_NOTE_ON, EVENT_HIT):
             pitch = event_value
-            self._ui_engine.update_active_note(channel_number, pitch)
+            self._ui_engine.update_active_note(channel_number, event_type, pitch)
         elif event_type == 'Atrack':
             track = event_value
             self._ui_engine.update_pending_playback_cursor_track(track)

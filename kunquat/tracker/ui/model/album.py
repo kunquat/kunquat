@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -73,6 +73,12 @@ class Album():
                     return (track_num, system_num)
         return None
 
+    def get_pattern_instance_location_by_nums(self, pat_num, inst_num):
+        # TODO: This function exists to resolve cyclic dependency;
+        #       revisit interfaces
+        pinst = PatternInstance(pat_num, inst_num)
+        return self.get_pattern_instance_location(pinst)
+
     def get_new_song_num(self):
         free_nums = set(xrange(SONGS_MAX))
 
@@ -121,6 +127,7 @@ class Album():
 
         pattern_instance = PatternInstance(pattern_num, instance_num)
         pattern_instance.set_controller(self._controller)
+        pattern_instance.set_ui_model(self._ui_model)
         create_pinst = pattern_instance.get_edit_create_pattern_instance()
         create_pat = pattern_instance.get_pattern().get_edit_create_pattern()
         insert_pinst = song.get_edit_insert_pattern_instance(
@@ -144,6 +151,7 @@ class Album():
         song.set_ui_model(self._ui_model)
         pattern_instance = PatternInstance(pattern_num, 0)
         pattern_instance.set_controller(self._controller)
+        pattern_instance.set_ui_model(self._ui_model)
 
         track_list = self._get_track_list()
         track_list.insert(track_num, song_num)

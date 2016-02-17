@@ -30,13 +30,14 @@ class Session():
         self._infinite_mode = False
         self._selected_control_id = 0
         self._selected_keymap_id = None
+        self._prev_selected_note_keymap_id = None
         self._selected_notation_id = None
         self._control_id_override = None
         # TODO: get default control ids from libkunquat?
         self._channel_selected_control_id = defaultdict(lambda: 0)
         self._channel_active_control_id = defaultdict(lambda: 0)
-        self._channel_active_note = dict()
-        self._control_active_notes = dict()
+        self._channel_active_note = {}
+        self._control_active_notes = {}
         self._octave_id = None
         self._visible = set()
         self._event_log = deque([], 1024)
@@ -149,6 +150,12 @@ class Session():
     def set_selected_keymap_id(self, keymap_id):
         self._selected_keymap_id = keymap_id
 
+    def get_prev_selected_note_keymap_id(self):
+        return self._prev_selected_note_keymap_id
+
+    def set_prev_selected_note_keymap_id(self, keymap_id):
+        self._prev_selected_note_keymap_id = keymap_id
+
     def get_selected_notation_id(self):
         return self._selected_notation_id
 
@@ -172,17 +179,37 @@ class Session():
         return self._channel_active_control_id[channel]
 
     def get_active_note_by_channel(self, channel):
-        return self._channel_active_note[channel]
+        event_type, pitch = self._channel_active_note[channel]
+        if event_type == 'n+':
+            return pitch
+        return None
+
+    def get_active_hit_by_channel(self, channel):
+        event_type, hit = self._channel_active_note[channel]
+        if event_type == 'h':
+            return hit
+        return None
 
     def get_active_notes_by_control_id(self, control_id):
-        try:
-            notes = self._control_active_notes[control_id]
-        except KeyError:
-            notes = dict()
-        return notes
+        notes = self._control_active_notes.get(control_id, {})
+        ret = {}
+        for (k, v) in notes.iteritems():
+            event_type, pitch = v
+            if event_type == 'n+':
+                ret[k] = pitch
+        return ret
 
-    def set_active_note(self, channel, pitch):
-        if pitch == None:
+    def get_active_hits_by_control_id(self, control_id):
+        notes = self._control_active_notes.get(control_id, {})
+        hits = {}
+        for (k, v) in notes.iteritems():
+            event_type, hit = v
+            if event_type == 'h':
+                hits[k] = hit
+        return hits
+
+    def set_active_note(self, channel, event_type, param):
+        if param == None:
             if channel in self._channel_active_note:
                 del self._channel_active_note[channel]
             control_id = self.get_active_control_id_by_channel(channel)
@@ -191,12 +218,12 @@ class Session():
                 if channel in notes:
                     del notes[channel]
         else:
-            self._channel_active_note[channel] = pitch
+            self._channel_active_note[channel] = (event_type, param)
             control_id = self.get_selected_control_id_by_channel(channel)
             if not control_id in self._control_active_notes:
                 self._control_active_notes[control_id] = dict()
             notes = self._control_active_notes[control_id]
-            notes[channel] = pitch
+            notes[channel] = (event_type, param)
             self._channel_active_control_id[channel] = control_id
 
     def set_octave_id(self, octave_id):
@@ -247,11 +274,11 @@ class Session():
     def get_chord_start(self):
         return self._chord_start
 
-    def set_chord_note(self, note, is_down):
+    def set_chord_note(self, event_type, param, is_down):
         if is_down:
-            self._chord_notes.add(note)
+            self._chord_notes.add((event_type, param))
         else:
-            self._chord_notes.discard(note)
+            self._chord_notes.discard((event_type, param))
 
     def are_chord_notes_down(self):
         return len(self._chord_notes) != 0

@@ -25,6 +25,7 @@ class GridManager():
 
     def __init__(self):
         self._controller = None
+        self._ui_model = None
         self._session = None
         self._store = None
 
@@ -32,6 +33,9 @@ class GridManager():
         self._controller = controller
         self._session = controller.get_session()
         self._store = controller.get_store()
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
 
     def _get_key(self):
         key = 'i_grid_patterns.json'
@@ -65,6 +69,7 @@ class GridManager():
 
     def get_grid_pattern(self, gp_id):
         assert isinstance(gp_id, (NoneType, unicode))
+        gp_id = gp_id or u'0'
         gp = GridPattern(gp_id)
         gp.set_controller(self._controller)
         return gp
@@ -117,6 +122,7 @@ class GridManager():
         for i in xrange(PATTERNS_MAX):
             pinst = PatternInstance(i, 0)
             pinst.set_controller(self._controller)
+            pinst.set_ui_model(self._ui_model)
             pattern = pinst.get_pattern()
             if pattern.get_existence():
                 yield pattern

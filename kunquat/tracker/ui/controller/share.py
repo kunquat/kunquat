@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -27,7 +27,7 @@ class Share():
         # TODO: read data from the share directory
 
         self._keymaps = {
-            '12tet': {
+            u'12tet': {
                 'name': '12-tone Equal Temperament',
                 'base_octave': 5,
                 'keymap': [
@@ -44,7 +44,7 @@ class Share():
                     [6300, 6400, 6500, 6600, 6700, None, 6800, 6900, 7000, 7100, 7200, 7300, 7400, None]
                 ]
             },
-            'slendro': {
+            u'slendro': {
                 "name": "Slendro from 440 Hz",
                 "base_octave": 5,
                 "keymap": [
@@ -64,7 +64,7 @@ class Share():
         }
 
         self._notations = {
-            '12tet': {
+            u'12tet': {
                 "name": "12-tone Equal Temperament",
 
                 "octave_names": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
@@ -83,7 +83,7 @@ class Share():
                     [6300, "C10"], [6400, "C#10"], [6500, "D10"], [6600, "D#10"], [6700, "E10"], [6800, "F10"], [6900, "F#10"], [7000, "G10"], [7100, "G#10"], [7200, "A10"], [7300, "A#10"], [7400, "B10"]
                 ]
             },
-            'slendro': {
+            u'slendro': {
                 "name": "Slendro from 0c",
 
                 "octave_names": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
