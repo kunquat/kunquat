@@ -16,6 +16,7 @@
 #define K_DECL_H
 
 
+typedef struct Au_expressions Au_expressions;
 typedef struct Au_state Au_state;
 typedef struct Au_streams Au_streams;
 typedef struct Au_table Au_table;
