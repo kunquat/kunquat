@@ -80,6 +80,7 @@ class Session():
         self._runtime_env = {}
         self._au_conns_edit_mode = {}
         self._au_conns_hit_index = {}
+        self._au_expressions = {}
         self._edit_selected_hits = {}
 
     def get_output_speed(self):
@@ -499,5 +500,11 @@ class Session():
 
     def get_edit_selected_hit_info(self, au_id):
         return self._edit_selected_hits.get(au_id, (0, 0))
+
+    def set_selected_expression(self, au_id, name):
+        self._au_expressions[au_id] = name
+
+    def get_selected_expression(self, au_id):
+        return self._au_expressions.get(au_id, None)
 
 

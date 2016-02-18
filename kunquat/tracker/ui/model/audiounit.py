@@ -178,6 +178,55 @@ class AudioUnit():
     def get_edit_selected_hit_info(self):
         return self._session.get_edit_selected_hit_info(self._au_id)
 
+    def _set_expressions(self, expressions):
+        key = self._get_key('p_expressions.json')
+        self._store[key] = expressions
+
+    def _get_expressions(self):
+        key = self._get_key('p_expressions.json')
+        expressions = self._store.get(key, {})
+        return expressions
+
+    def get_expression_names(self):
+        expressions = self._get_expressions()
+        return list(expressions.keys())
+
+    def set_selected_expression(self, name):
+        self._session.set_selected_expression(self._au_id, name)
+
+    def get_selected_expression(self):
+        return self._session.get_selected_expression(self._au_id)
+
+    def add_expression(self):
+        expressions = self._get_expressions()
+        init_names = ('expr{:02}'.format(i) for i in xrange(len(expressions) + 1))
+        for name in init_names:
+            if name not in expressions:
+                unique_name = name
+                break
+        expressions[unique_name] = []
+        self._set_expressions(expressions)
+
+    def remove_expression(self, name):
+        expressions = self._get_expressions()
+        del expressions[name]
+        self._set_expressions(expressions)
+
+    def change_expression_name(self, old_name, new_name):
+        expressions = self._get_expressions()
+        expr_info = expressions.pop(old_name)
+        expressions[new_name] = expr_info
+        self._set_expressions(expressions)
+
+    def set_expression_proc_filter(self, name, proc_filter):
+        expressions = self._get_expressions()
+        expressions[name] = proc_filter
+        self._set_expressions(expressions)
+
+    def get_expression_proc_filter(self, name):
+        expressions = self._get_expressions()
+        return expressions[name]
+
     def get_audio_unit(self, au_id):
         assert au_id.startswith(self._au_id + '/')
         assert len(au_id.split('/')) == len(self._au_id.split('/')) + 1
