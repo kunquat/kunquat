@@ -258,6 +258,25 @@ const Param_proc_filter* Audio_unit_get_hit_proc_filter(const Audio_unit* au, in
 
 
 /**
+ * Set the Audio unit expressions.
+ *
+ * \param au            The Audio unit -- must not be \c NULL.
+ * \param expressions   The Audio unit expressions, or \c NULL.
+ */
+void Audio_unit_set_expressions(Audio_unit* au, Au_expressions* expressions);
+
+
+/**
+ * Get the Audio unit expressions.
+ *
+ * \param au   The Audio unit -- must not be \c NULL.
+ *
+ * \return   The Audio unit expressions, or \c NULL if \a au has no expressions set.
+ */
+const Au_expressions* Audio_unit_get_expressions(Audio_unit* au);
+
+
+/**
  * Destroy an existing Audio unit.
  *
  * \param au   The Audio unit, or \c NULL.
