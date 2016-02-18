@@ -73,6 +73,9 @@ Param_proc_filter* new_Param_proc_filter(Streader* sr)
 {
     assert(sr != NULL);
 
+    if (Streader_is_error_set(sr))
+        return NULL;
+
     Param_proc_filter* pf = memory_alloc_item(Param_proc_filter);
     if (pf == NULL)
     {
