@@ -15,6 +15,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from kunquat.kunquat.limits import *
+from kunquat.tracker.ui.views.varnamevalidator import VarNameValidator
 
 
 class Expressions(QWidget):
@@ -23,21 +24,26 @@ class Expressions(QWidget):
         QWidget.__init__(self)
 
         self._expr_list = ExpressionList()
+        self._expr_editor = ExpressionEditor()
 
         v = QVBoxLayout()
         v.setMargin(0)
         v.setSpacing(4)
         v.addWidget(self._expr_list)
+        v.addWidget(self._expr_editor)
         v.addStretch(1)
         self.setLayout(v)
 
     def set_au_id(self, au_id):
         self._expr_list.set_au_id(au_id)
+        self._expr_editor.set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
         self._expr_list.set_ui_model(ui_model)
+        self._expr_editor.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._expr_editor.unregister_updaters()
         self._expr_list.unregister_updaters()
 
 
@@ -263,20 +269,103 @@ class ExpressionList(QWidget):
         self._expr_list_view.setModel(self._expr_list_model)
 
 
-class ExpressionEditor(QWidget):
+class ExpressionName(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
         self._au_id = None
         self._ui_model = None
+        self._updater = None
+
+        self._name_editor = QLineEdit()
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(4)
+        h.addWidget(QLabel('Name:'))
+        h.addWidget(self._name_editor)
+        self.setLayout(h)
 
     def set_au_id(self, au_id):
         self._au_id = au_id
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(
+                self._name_editor, SIGNAL('editingFinished()'), self._change_name)
+
+        self._update_name()
 
     def unregister_updaters(self):
-        pass
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _get_list_update_signal_type(self):
+        return 'signal_expr_list_{}'.format(self._au_id)
+
+    def _get_selection_update_signal_type(self):
+        return 'signal_expr_selection_{}'.format(self._au_id)
+
+    def _perform_updates(self, signals):
+        if self._get_list_update_signal_type() in signals:
+            self._update_used_names()
+        if self._get_selection_update_signal_type() in signals:
+            self._update_name()
+
+    def _get_audio_unit(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        return au
+
+    def _update_used_names(self):
+        used_names = self._get_audio_unit().get_expression_names()
+        self._name_editor.setValidator(VarNameValidator(set(used_names)))
+
+    def _update_name(self):
+        au = self._get_audio_unit()
+        self._name = au.get_selected_expression() or u''
+
+        if self._name_editor.text() != self._name:
+            old_block = self._name_editor.blockSignals(True)
+            self._name_editor.setText(self._name)
+            self._name_editor.blockSignals(old_block)
+
+    def _change_name(self):
+        au = self._get_audio_unit()
+        old_name = au.get_selected_expression()
+        if not old_name:
+            return
+
+        new_name = unicode(self._name_editor.text())
+        au.change_expression_name(old_name, new_name)
+        au.set_selected_expression(new_name)
+        self._updater.signal_update(
+                set([self._get_list_update_signal_type(),
+                    self._get_selection_update_signal_type()]))
+
+
+class ExpressionEditor(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+
+        self._name = ExpressionName()
+
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(2)
+        v.addWidget(self._name)
+        self.setLayout(v)
+
+    def set_au_id(self, au_id):
+        self._name.set_au_id(au_id)
+
+    def set_ui_model(self, ui_model):
+        self._name.set_ui_model(ui_model)
+
+    def unregister_updaters(self):
+        self._name.unregister_updaters()
 
 
