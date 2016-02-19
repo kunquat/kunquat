@@ -80,6 +80,7 @@ class Session():
         self._runtime_env = {}
         self._au_conns_edit_mode = {}
         self._au_conns_hit_index = {}
+        self._au_conns_expr_name = {}
         self._au_expressions = {}
         self._edit_selected_hits = {}
 
@@ -506,5 +507,11 @@ class Session():
 
     def get_selected_expression(self, au_id):
         return self._au_expressions.get(au_id, None)
+
+    def set_au_connections_expr_name(self, au_id, expr_name):
+        self._au_conns_expr_name[au_id] = expr_name
+
+    def get_au_connections_expr_name(self, au_id):
+        return self._au_conns_expr_name.get(au_id, None)
 
 

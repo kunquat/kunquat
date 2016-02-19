@@ -78,6 +78,9 @@ class ConnectionsToolBar(QToolBar):
         self._hit_edit = HitEditingToggle()
         self._hit_selector = HitSelector()
 
+        self._expr_edit = ExpressionEditingToggle()
+        self._expr_selector = ExpressionSelector()
+
     def set_au_id(self, au_id):
         assert self._ui_model == None, "Audio unit ID must be set before UI model"
         self._au_id = au_id
@@ -119,6 +122,8 @@ class ConnectionsToolBar(QToolBar):
 
             if au.is_instrument():
                 # Hit editing controls
+                self.addSeparator()
+
                 self._hit_edit.set_au_id(self._au_id)
                 self._hit_edit.set_ui_model(self._ui_model)
                 self.addWidget(self._hit_edit)
@@ -127,12 +132,25 @@ class ConnectionsToolBar(QToolBar):
                 self._hit_selector.set_ui_model(self._ui_model)
                 self.addWidget(self._hit_selector)
 
+                # Expression controls
+                self.addSeparator()
+
+                self._expr_edit.set_au_id(self._au_id)
+                self._expr_edit.set_ui_model(self._ui_model)
+                self.addWidget(self._expr_edit)
+
+                self._expr_selector.set_au_id(self._au_id)
+                self._expr_selector.set_ui_model(self._ui_model)
+                self.addWidget(self._expr_selector)
+
     def unregister_updaters(self):
         if self._au_id != None:
             module = self._ui_model.get_module()
             au = module.get_audio_unit(self._au_id)
 
             if au.is_instrument():
+                self._expr_selector.unregister_updaters()
+                self._expr_edit.unregister_updaters()
                 self._hit_selector.unregister_updaters()
                 self._hit_edit.unregister_updaters()
 
@@ -197,10 +215,10 @@ def _get_au_conns_edit_signal_type(au_id):
     return 'signal_au_conns_edit_mode_{}'.format(au_id)
 
 
-class HitEditingToggle(QPushButton):
+class EditingToggle(QPushButton):
 
-    def __init__(self):
-        QPushButton.__init__(self, 'Edit hit:')
+    def __init__(self, text):
+        QPushButton.__init__(self, text)
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -231,11 +249,31 @@ class HitEditingToggle(QPushButton):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        update_signals = set([
-            _get_au_conns_edit_signal_type(self._au_id),
-            _get_au_hit_signal_type(self._au_id)])
+        update_signals = self._get_update_signal_types()
         if not signals.isdisjoint(update_signals):
             self._update_enabled()
+
+    # Protected interface
+
+    def _get_update_signal_types(self):
+        raise NotImplementedError
+
+    def _update_enabled(self):
+        raise NotImplementedError
+
+    def _change_enabled(self):
+        raise NotImplementedError
+
+
+class HitEditingToggle(EditingToggle):
+
+    def __init__(self):
+        EditingToggle.__init__(self, 'Edit hit:')
+
+    def _get_update_signal_types(self):
+        return set([
+            _get_au_conns_edit_signal_type(self._au_id),
+            _get_au_hit_signal_type(self._au_id)])
 
     def _update_enabled(self):
         module = self._ui_model.get_module()
@@ -243,25 +281,56 @@ class HitEditingToggle(QPushButton):
 
         cur_mode = au.get_connections_edit_mode()
 
-        old_block = self.blockSignals(True)
-        self.setChecked(cur_mode == 'hit_proc_filter')
-        self.blockSignals(old_block)
-
         for i in xrange(HITS_MAX):
             hit = au.get_hit(i)
             if hit.get_existence():
-                self.setEnabled(True)
+                allow_toggle = True
                 break
         else:
             if cur_mode == 'hit_proc_filter':
                 au.set_connections_edit_mode('normal')
-            self.setEnabled(False)
+            allow_toggle = False
+
+        old_block = self.blockSignals(True)
+        self.setEnabled(allow_toggle)
+        self.setChecked((cur_mode == 'hit_proc_filter') and allow_toggle)
+        self.blockSignals(old_block)
 
     def _change_enabled(self):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
         mode = 'hit_proc_filter' if self.isChecked() else 'normal'
+        au.set_connections_edit_mode(mode)
+
+        self._updater.signal_update(set([_get_au_conns_edit_signal_type(self._au_id)]))
+
+
+class ExpressionEditingToggle(EditingToggle):
+
+    def __init__(self):
+        EditingToggle.__init__(self, 'Edit expression:')
+
+    def _get_update_signal_types(self):
+        return set(['signal_expr_list_{}'.format(self._au_id)])
+
+    def _update_enabled(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+
+        cur_mode = au.get_connections_edit_mode()
+        allow_toggle = (len(au.get_expression_names()) > 0)
+
+        old_block = self.blockSignals(True)
+        self.setEnabled(allow_toggle)
+        self.setChecked((cur_mode == 'expr_filter') and allow_toggle)
+        self.blockSignals(old_block)
+
+    def _change_enabled(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+
+        mode = 'expr_filter' if self.isChecked() else 'normal'
         au.set_connections_edit_mode(mode)
 
         self._updater.signal_update(set([_get_au_conns_edit_signal_type(self._au_id)]))
@@ -314,7 +383,7 @@ class HitSelector(QComboBox):
         self.setEnabled(is_enabled)
         self.blockSignals(old_block)
 
-        if is_enabled and prev_list_index == -1:
+        if is_enabled and (prev_list_index == -1):
             self.setCurrentIndex(0)
             cur_hit_index, success = self.itemData(0).toInt()
             assert success
@@ -328,5 +397,58 @@ class HitSelector(QComboBox):
         au = module.get_audio_unit(self._au_id)
         au.set_connections_hit_index(hit_index)
         self._updater.signal_update(set(['signal_au_conns_hit_{}'.format(self._au_id)]))
+
+
+class ExpressionSelector(QComboBox):
+
+    def __init__(self):
+        QComboBox.__init__(self)
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(
+                self, SIGNAL('currentIndexChanged(int)'), self._change_expression)
+
+        self._update_expression_list()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        if 'signal_expr_list_{}'.format(self._au_id) in signals:
+            self._update_expression_list()
+
+    def _update_expression_list(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+
+        prev_list_index = self.currentIndex()
+
+        expr_names = sorted(au.get_expression_names())
+
+        old_block = self.blockSignals(True)
+        self.clear()
+        self.setEnabled(len(expr_names) > 0)
+        for expr_name in expr_names:
+            self.addItem(expr_name)
+        self.blockSignals(old_block)
+
+        if expr_names and (prev_list_index == -1):
+            self.setCurrentIndex(0)
+            au.set_connections_expr_name(expr_names[0])
+
+    def _change_expression(self, item_index):
+        expr_name = unicode(self.itemText(item_index))
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        au.set_connections_expr_name(expr_name)
+        self._updater.signal_update(set(['signal_au_conns_expr_{}'.format(self._au_id)]))
 
 
