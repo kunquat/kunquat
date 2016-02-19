@@ -161,6 +161,9 @@ class AudioUnit():
     def _get_hit_key_base(self, hit_index):
         return self._get_key('hit_{:02x}'.format(hit_index))
 
+    def has_hits(self):
+        return any(self.get_hit(i).get_existence() for i in xrange(HITS_MAX))
+
     def get_hit(self, hit_index):
         hit = Hit(self._au_id, hit_index)
         hit.set_controller(self._controller)
@@ -186,6 +189,12 @@ class AudioUnit():
         key = self._get_key('p_expressions.json')
         expressions = self._store.get(key, {})
         return expressions
+
+    def has_expressions(self):
+        return bool(self._get_expressions())
+
+    def has_expression(self, name):
+        return name in self._get_expressions()
 
     def get_expression_names(self):
         expressions = self._get_expressions()

@@ -122,6 +122,7 @@ class ExpressionListToolBar(QToolBar):
         au.set_selected_expression(None)
         self._updater.signal_update(set([
             self._get_list_update_signal_type(),
+            'signal_au_conns_expr_{}'.format(self._au_id),
             self._get_selection_update_signal_type()]))
 
 

@@ -566,15 +566,15 @@ class ConnectionsView(QWidget):
 
             # Find processor filter if appropriate
             conns_edit_mode = au.get_connections_edit_mode()
-            if conns_edit_mode == 'hit_proc_filter':
+            if (conns_edit_mode == 'hit_proc_filter') and au.has_hits():
                 hit_index = au.get_connections_hit_index()
                 if hit_index != None:
                     hit = au.get_hit(hit_index)
                     if hit.get_existence():
                         excluded = hit.get_excluded_processors()
-            elif conns_edit_mode == 'expr_filter':
+            elif (conns_edit_mode == 'expr_filter') and au.has_expressions():
                 selected_expr = au.get_connections_expr_name()
-                if selected_expr:
+                if au.has_expression(selected_expr):
                     excluded = au.get_expression_proc_filter(selected_expr)
 
             if excluded != None:
