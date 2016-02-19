@@ -312,14 +312,21 @@ class ExpressionEditingToggle(EditingToggle):
         EditingToggle.__init__(self, 'Edit expression:')
 
     def _get_update_signal_types(self):
-        return set(['signal_expr_list_{}'.format(self._au_id)])
+        return set([
+            _get_au_conns_edit_signal_type(self._au_id),
+            'signal_expr_list_{}'.format(self._au_id)])
 
     def _update_enabled(self):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
         cur_mode = au.get_connections_edit_mode()
-        allow_toggle = (len(au.get_expression_names()) > 0)
+        if len(au.get_expression_names()) > 0:
+            allow_toggle = True
+        else:
+            if cur_mode == 'expr_filter':
+                au.set_connections_edit_mode('normal')
+            allow_toggle = False
 
         old_block = self.blockSignals(True)
         self.setEnabled(allow_toggle)
