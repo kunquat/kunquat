@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -18,10 +18,12 @@
 #include <kunquat/limits.h>
 #include <string/common.h>
 #include <string/Streader.h>
+#include <string/var_name.h>
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 Channel_defaults* Channel_defaults_init(Channel_defaults* chd)
@@ -29,6 +31,7 @@ Channel_defaults* Channel_defaults_init(Channel_defaults* chd)
     assert(chd != NULL);
 
     chd->control_num = 0;
+    memset(chd->init_expr, '\0', KQT_VAR_NAME_MAX);
 
     return chd;
 }
@@ -55,6 +58,20 @@ static bool read_ch_defaults_item(Streader* sr, const char* key, void* userdata)
         }
 
         chd->control_num = cnum;
+    }
+    else if (string_eq(key, "init_expr"))
+    {
+        char init_expr[KQT_VAR_NAME_MAX + 1] = "";
+
+        if (!Streader_read_string(sr, KQT_VAR_NAME_MAX + 1, init_expr))
+            return false;
+        if ((init_expr[0] != '\0') && !is_valid_var_name(init_expr))
+        {
+            Streader_set_error(sr, "Illegal initial expression %s");
+            return false;
+        }
+
+        strcpy(chd->init_expr, init_expr);
     }
     else
     {

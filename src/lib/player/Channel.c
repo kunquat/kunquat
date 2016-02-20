@@ -204,6 +204,9 @@ void Channel_apply_defaults(Channel* ch, const Channel_defaults* ch_defaults)
     assert(ch_defaults != NULL);
 
     ch->au_input = ch_defaults->control_num;
+    bool success = Active_names_set(
+            ch->parent.active_names, ACTIVE_CAT_INIT_EXPRESSION, ch_defaults->init_expr);
+    assert(success);
 
     return;
 }

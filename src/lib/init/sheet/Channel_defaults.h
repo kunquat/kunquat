@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 #define K_CHANNEL_DEFAULTS_H
 
 
+#include <kunquat/limits.h>
 #include <string/Streader.h>
 
 #include <stdbool.h>
@@ -30,6 +31,7 @@
 typedef struct Channel_defaults
 {
     int16_t control_num;
+    char init_expr[KQT_VAR_NAME_MAX];
 } Channel_defaults;
 
 
