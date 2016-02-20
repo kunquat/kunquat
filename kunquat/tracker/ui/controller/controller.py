@@ -21,6 +21,7 @@ import tempfile
 import StringIO
 import os.path
 
+from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 import kunquat.tracker.ui.model.tstamp as tstamp
@@ -36,6 +37,8 @@ EVENT_SELECT_CONTROL = '.a'
 EVENT_NOTE_ON = 'n+'
 EVENT_HIT = 'h'
 EVENT_NOTE_OFF = 'n-'
+EVENT_SET_INIT_EXPRESSION = '.xi'
+EVENT_SET_EXPRESSION = '.x'
 
 
 class Controller():
@@ -134,6 +137,8 @@ class Controller():
             self._store.clear_modified_flag()
             self._updater.signal_update(set(['signal_controls', 'signal_module']))
 
+            self._reset_expressions()
+
     def get_task_save_module(self, module_path):
         assert module_path
         tmpname = None
@@ -201,9 +206,18 @@ class Controller():
         self._session.reset_runtime_env()
         self._updater.signal_update(set(['signal_runtime_env']))
 
+    def _reset_expressions(self):
+        self._session.reset_active_init_expressions()
+
+        channel_defaults = self._ui_model.get_module().get_channel_defaults()
+        for i in xrange(CHANNELS_MAX):
+            init_expr_name = channel_defaults.get_initial_expression(i)
+            self._session.set_default_init_expression(i, init_expr_name)
+
     def play(self):
         self._audio_engine.reset_and_pause()
         self._session.reset_max_audio_levels()
+        self._reset_expressions()
         self._reset_runtime_env()
 
         if self._session.get_infinite_mode():
@@ -222,6 +236,7 @@ class Controller():
         self._audio_engine.tfire_event(0, play_event)
 
         self._session.reset_max_audio_levels()
+        self._reset_expressions()
         self._audio_engine.tfire_event(0, ('cresume', None))
 
     def play_from_cursor(self, pattern_instance, row_ts):
@@ -238,11 +253,13 @@ class Controller():
         self._audio_engine.tfire_event(0, ('cg', None))
 
         self._session.reset_max_audio_levels()
+        self._reset_expressions()
         self._audio_engine.tfire_event(0, ('cresume', None))
 
     def silence(self):
         self._audio_engine.reset_and_pause()
         self._reset_runtime_env()
+        self._reset_expressions()
 
         # Note: easy way out for syncing note kills, but causes event noise
         # TODO: figure out a better solution, this may mess things up with bind
@@ -264,20 +281,41 @@ class Controller():
     def get_infinite_mode(self):
         return self._session.get_infinite_mode()
 
-    def start_tracked_note(self, channel_number, control_id, event_type, param):
+    def start_tracked_note(
+            self, channel_number, control_id, event_type, param, expressions=None):
         assert event_type in (EVENT_NOTE_ON, EVENT_HIT)
+
+        if expressions == None:
+            channel_defaults = self._ui_model.get_module().get_channel_defaults()
+            expressions = [channel_defaults.get_initial_expression(channel_number)]
+
         note = self._note_channel_mapper.get_tracked_note(channel_number, False)
-        self.set_active_note(note.get_channel(), control_id, event_type, param)
+        self.set_active_note(
+                note.get_channel(), control_id, event_type, param, expressions)
         return note
 
-    def set_active_note(self, channel_number, control_id, event_type, param):
+    def set_active_note(
+            self, channel_number, control_id, event_type, param, expressions):
+        # Get control override event
         parts = control_id.split('_')
         second = parts[1]
         control_number = int(second, 16)
         control_event = (EVENT_SELECT_CONTROL, control_number)
+
+        # Get expression override and restore events
+        orig_init_expr = self._session.get_active_init_expression(channel_number)
+        clear_expr_event = (EVENT_SET_INIT_EXPRESSION, '')
+        restore_expr_event = (EVENT_SET_INIT_EXPRESSION, orig_init_expr)
+
+        # Fire events
         self._audio_engine.fire_event(channel_number, control_event)
         note_on_or_hit_event = (event_type, param)
+        self._audio_engine.fire_event(channel_number, clear_expr_event)
         self._audio_engine.fire_event(channel_number, note_on_or_hit_event)
+        for expression in expressions:
+            apply_expr_event = (EVENT_SET_EXPRESSION, expression)
+            self._audio_engine.fire_event(channel_number, apply_expr_event)
+        self._audio_engine.fire_event(channel_number, restore_expr_event)
 
     def set_rest(self, channel_number):
         note_off_event = (EVENT_NOTE_OFF, None)
@@ -317,6 +355,9 @@ class Controller():
     def update_active_var_value(self, ch, var_value):
         self._session.set_active_var_value(ch, var_value)
         self._updater.signal_update(set(['signal_runtime_env']))
+
+    def update_init_expression(self, ch, expr_name):
+        self._session.set_active_init_expression(ch, expr_name)
 
     def set_runtime_var_value(self, var_name, var_value):
         # Get current active variable name

@@ -38,6 +38,8 @@ class Session():
         self._channel_active_control_id = defaultdict(lambda: 0)
         self._channel_active_note = {}
         self._control_active_notes = {}
+        self._channel_active_init_expression = {}
+        self._channel_default_init_expression = {}
         self._octave_id = None
         self._visible = set()
         self._event_log = deque([], 1024)
@@ -513,5 +515,18 @@ class Session():
 
     def get_au_connections_expr_name(self, au_id):
         return self._au_conns_expr_name.get(au_id, None)
+
+    def set_active_init_expression(self, ch, expr_name):
+        self._channel_active_init_expression[ch] = expr_name
+
+    def set_default_init_expression(self, ch, expr_name):
+        self._channel_default_init_expression[ch] = expr_name
+
+    def get_active_init_expression(self, ch):
+        return self._channel_active_init_expression.get(ch,
+                self._channel_default_init_expression.get(ch, u''))
+
+    def reset_active_init_expressions(self):
+        self._channel_active_init_expression = {}
 
 

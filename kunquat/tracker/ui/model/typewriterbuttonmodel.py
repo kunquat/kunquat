@@ -118,7 +118,10 @@ class TypewriterButtonModel():
 
         selected_control = self._control_manager.get_selected_control()
         if selected_control:
-            note = selected_control.start_tracked_note(0, event_type, param)
+            selection = self._ui_model.get_selection()
+            location = selection.get_location()
+            ch_num = location.get_col_num()
+            note = selected_control.start_tracked_note(ch_num, event_type, param)
             self._session.activate_key_with_note(self._row, self._index, note)
 
         if self._sheet_manager.is_editing_enabled():
