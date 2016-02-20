@@ -342,6 +342,8 @@ class ExpressionName(QWidget):
         new_name = unicode(self._name_editor.text())
         au.change_expression_name(old_name, new_name)
         au.set_selected_expression(new_name)
+        if au.get_connections_expr_name() == old_name:
+            au.set_connections_expr_name(new_name)
         self._updater.signal_update(
                 set([self._get_list_update_signal_type(),
                     self._get_selection_update_signal_type()]))
