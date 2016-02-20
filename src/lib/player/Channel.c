@@ -185,6 +185,8 @@ void Channel_reset(Channel* ch)
     ch->arpeggio_edit_pos = 1;
     ch->arpeggio_tones[0] = ch->arpeggio_tones[1] = NAN;
 
+    ch->carry_expression = false;
+
     Channel_cv_state_reset(ch->cvstate);
     Channel_stream_state_reset(ch->csstate);
 

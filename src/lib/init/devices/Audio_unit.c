@@ -382,7 +382,7 @@ void Audio_unit_set_expressions(Audio_unit* au, Au_expressions* expressions)
 }
 
 
-const Au_expressions* Audio_unit_get_expressions(Audio_unit* au)
+const Au_expressions* Audio_unit_get_expressions(const Audio_unit* au)
 {
     assert(au != NULL);
     return au->expressions;

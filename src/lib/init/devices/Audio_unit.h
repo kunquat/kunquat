@@ -273,7 +273,7 @@ void Audio_unit_set_expressions(Audio_unit* au, Au_expressions* expressions);
  *
  * \return   The Audio unit expressions, or \c NULL if \a au has no expressions set.
  */
-const Au_expressions* Audio_unit_get_expressions(Audio_unit* au);
+const Au_expressions* Audio_unit_get_expressions(const Audio_unit* au);
 
 
 /**
