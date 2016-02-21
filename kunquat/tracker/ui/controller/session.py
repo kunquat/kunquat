@@ -84,6 +84,8 @@ class Session():
         self._au_conns_hit_index = {}
         self._au_conns_expr_name = {}
         self._au_expressions = {}
+        self._au_test_expressions = {}
+        self._au_test_expressions_enabled = {}
         self._edit_selected_hits = {}
 
     def get_output_speed(self):
@@ -528,5 +530,17 @@ class Session():
 
     def reset_active_init_expressions(self):
         self._channel_active_init_expression = {}
+
+    def set_au_test_expression(self, au_id, index, expr_name):
+        self._au_test_expressions[(au_id, index)] = expr_name
+
+    def get_au_test_expression(self, au_id, index):
+        return self._au_test_expressions.get((au_id, index), u'')
+
+    def set_au_test_expressions_enabled(self, au_id, enabled):
+        self._au_test_expressions_enabled[au_id] = enabled
+
+    def are_au_test_expressions_enabled(self, au_id):
+        return self._au_test_expressions_enabled.get(au_id)
 
 

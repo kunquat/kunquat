@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -47,10 +47,14 @@ class TestButton(QPushButton):
             self._button_model = None
             return
 
+        au = module.get_audio_unit(self._au_id)
+
         self._control_manager.set_control_id_override(control_id)
+        au.set_test_expressions_enabled(True)
         self._button_model = self._typewriter_manager.get_random_button_model()
         self._button_model.start_tracked_note()
         self._control_manager.set_control_id_override(None)
+        au.set_test_expressions_enabled(False)
 
     def _released(self):
         if self._button_model:

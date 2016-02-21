@@ -281,11 +281,20 @@ class Controller():
     def get_infinite_mode(self):
         return self._session.get_infinite_mode()
 
-    def start_tracked_note(
-            self, channel_number, control_id, event_type, param, expressions=None):
+    def start_tracked_note(self, channel_number, control_id, event_type, param):
         assert event_type in (EVENT_NOTE_ON, EVENT_HIT)
 
-        if expressions == None:
+        module = self._ui_model.get_module()
+        control = module.get_control(control_id)
+        au = control.get_audio_unit()
+
+        if self._session.are_au_test_expressions_enabled(au.get_id()):
+            expressions = []
+            for i in xrange(2):
+                expr_name = au.get_test_expression(i)
+                if expr_name:
+                    expressions.append(expr_name)
+        else:
             channel_defaults = self._ui_model.get_module().get_channel_defaults()
             expressions = [channel_defaults.get_initial_expression(channel_number)]
 
