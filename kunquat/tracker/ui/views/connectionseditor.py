@@ -410,6 +410,8 @@ class ExpressionSelector(QComboBox):
 
     def __init__(self):
         QComboBox.__init__(self)
+        self._au_id = None
+        self._ui_model = None
 
     def set_au_id(self, au_id):
         self._au_id = au_id
