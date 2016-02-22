@@ -23,11 +23,14 @@ class SongEditor(QWidget):
     def __init__(self):
         QWidget.__init__(self)
 
+        self._name = NameEditor()
         self._tempo_editor = TempoEditor()
 
         gl = QGridLayout()
-        gl.addWidget(QLabel('Initial tempo:'), 0, 0)
-        gl.addWidget(self._tempo_editor, 0, 1)
+        gl.addWidget(QLabel('Name:'), 0, 0)
+        gl.addWidget(self._name, 0, 1)
+        gl.addWidget(QLabel('Initial tempo:'), 1, 0)
+        gl.addWidget(self._tempo_editor, 1, 1)
 
         v = QVBoxLayout()
         v.setMargin(0)
@@ -38,10 +41,64 @@ class SongEditor(QWidget):
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
+        self._name.set_ui_model(ui_model)
         self._tempo_editor.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._tempo_editor.unregister_updaters()
+        self._name.unregister_updaters()
+
+
+class NameEditor(QLineEdit):
+
+    def __init__(self):
+        QLineEdit.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(self, SIGNAL('textEdited(const QString&)'), self._change_name)
+
+        self._update_name()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        update_signals = set(['signal_song', 'signal_order_list'])
+        if not signals.isdisjoint(update_signals):
+            self._update_name()
+
+    def _set_name(self, name):
+        old_block = self.blockSignals(True)
+        if name != self.text():
+            self.setText(name)
+        self.blockSignals(old_block)
+
+    def _update_name(self):
+        album = self._ui_model.get_module().get_album()
+        track_num = album.get_selected_track_num()
+        if track_num < 0:
+            self._set_name(u'')
+            self.setEnabled(False)
+            return
+        song = album.get_song_by_track(track_num)
+        self.setEnabled(True)
+        self._set_name(song.get_name())
+
+    def _change_name(self, text_qstring):
+        album = self._ui_model.get_module().get_album()
+        track_num = album.get_selected_track_num()
+        if track_num < 0:
+            return
+        song = album.get_song_by_track(track_num)
+        song.set_name(unicode(self.text()))
+
+        self._updater.signal_update(set(['signal_song', 'signal_order_list']))
 
 
 class TempoEditor(QDoubleSpinBox):
@@ -79,23 +136,24 @@ class TempoEditor(QDoubleSpinBox):
         self.blockSignals(old_block)
 
     def _update_tempo(self):
-        module = self._ui_model.get_module()
-        album = module.get_album()
+        album = self._ui_model.get_module().get_album()
         track_num = album.get_selected_track_num()
         if track_num < 0:
             self._set_tempo(120)
             self.setEnabled(False)
             return
         song = album.get_song_by_track(track_num)
+        self.setEnabled(True)
         self._set_tempo(song.get_initial_tempo())
 
     def _change_tempo(self, value):
-        module = self._ui_model.get_module()
-        album = module.get_album()
+        album = self._ui_model.get_module().get_album()
         track_num = album.get_selected_track_num()
         if track_num < 0:
             return
         song = album.get_song_by_track(track_num)
         song.set_initial_tempo(value)
+
+        self._updater.signal_update(set(['signal_song']))
 
 
