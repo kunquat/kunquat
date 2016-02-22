@@ -300,11 +300,6 @@ class Orderlist(QWidget):
         self._album_tree.setModel(self._album_tree_model)
         self._album_tree.expandAll()
 
-        QObject.connect(
-            self._album_tree.selectionModel(),
-            SIGNAL('currentChanged(const QModelIndex&, const QModelIndex&)'),
-            self._change_selection)
-
         # Fix selection
         selection = self._orderlist_manager.get_orderlist_selection()
         if selection != None:
@@ -334,6 +329,11 @@ class Orderlist(QWidget):
                 else:
                     index = self._album_tree_model.get_song_index(track_num)
                     self._album_tree.setCurrentIndex(index)
+
+        QObject.connect(
+            self._album_tree.selectionModel(),
+            SIGNAL('currentChanged(const QModelIndex&, const QModelIndex&)'),
+            self._change_selection)
 
     def get_selected_object(self):
         selection_model = self._album_tree.selectionModel()
