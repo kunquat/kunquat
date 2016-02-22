@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -16,28 +16,16 @@
 #define K_SONG_H
 
 
-#include <init/sheet/song_defaults.h>
-#include <string/Streader.h>
+#include <decl.h>
 
-#include <stdint.h>
+#include <stdbool.h>
 #include <stdlib.h>
-
-
-#define KQT_SECTION_NONE (-1)
 
 
 /**
  * Song specifies some initial playback settings and the order in which
  * Patterns are played.
  */
-typedef struct Song
-{
-    double tempo;      ///< Initial tempo.
-    double global_vol; ///< Initial global volume.
-    int scale;         ///< Index of the initial Scale.
-    int res;           ///< Size reserved for the section list.
-    int16_t* pats;     ///< Section list that contains the Pattern numbers.
-} Song;
 
 
 /**
@@ -50,32 +38,14 @@ Song* new_Song(void);
 
 
 /**
- * Create a new Song from a textual description.
- *
- * \param sr   The Streader of the JSON data -- must not be \c NULL.
- *
- * \return   The new Song if succesongful, otherwise \c NULL.
- */
-Song* new_Song_from_string(Streader* sr);
-
-
-/**
- * Get the length of the Song.
+ * Read the initial tempo of the Song.
  *
  * \param song   The Song -- must not be \c NULL.
+ * \param sr     The Streader of the JSON input -- must not be \c NULL.
  *
- * \return   The length.
+ * \return   \c true if successful, otherwise \c false.
  */
-int16_t Song_get_length(Song* song);
-
-
-/**
- * Set the initial tempo of the Song.
- *
- * \param song    The Song -- must not be \c NULL.
- * \param tempo   The tempo -- must be finite and positive.
- */
-void Song_set_tempo(Song* song, double tempo);
+bool Song_read_tempo(Song* song, Streader* sr);
 
 
 /**
@@ -85,16 +55,18 @@ void Song_set_tempo(Song* song, double tempo);
  *
  * \return   The tempo.
  */
-double Song_get_tempo(Song* song);
+double Song_get_tempo(const Song* song);
 
 
 /**
- * Set the initial global volume of the Song.
+ * Read the initial global volume of the Song.
  *
  * \param song   The Song -- must not be \c NULL.
- * \param vol    The global volume -- must be finite or \c -INFINITY.
+ * \param sr     The Streader of the JSON input -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
  */
-void Song_set_global_vol(Song* song, double vol);
+bool Song_read_global_vol(Song* song, Streader* sr);
 
 
 /**
@@ -104,27 +76,7 @@ void Song_set_global_vol(Song* song, double vol);
  *
  * \return   The global volume.
  */
-double Song_get_global_vol(Song* song);
-
-
-/**
- * Set the initial default Scale of the Song.
- *
- * \param song    The Song -- must not be \c NULL.
- * \param index   The Scale index -- must be >= \c 0 and
- *                < \c KQT_SCALES_MAX.
- */
-void Song_set_scale(Song* song, int index);
-
-
-/**
- * Get the initial default Scale of the Song.
- *
- * \param song   The Song -- must not be \c NULL.
- *
- * \return   The Scale index.
- */
-int Song_get_scale(Song* song);
+double Song_get_global_vol(const Song* song);
 
 
 /**

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 #define K_STREADER_H
 
 
+#include <decl.h>
 #include <Error.h>
 #include <mathnum/Tstamp.h>
 #include <Pat_inst_ref.h>
@@ -30,16 +31,16 @@
 
 
 /**
- * A string reader that support char arrays that are not null terminated.
+ * A string reader that supports char arrays that are not null terminated.
  */
-typedef struct Streader
+struct Streader
 {
     size_t pos;
     size_t len;
     int line;
     const char* str;
     Error error;
-} Streader;
+};
 
 
 #define STREADER_AUTO (&(Streader){ .pos = 0, .len = 0, .str = "" })

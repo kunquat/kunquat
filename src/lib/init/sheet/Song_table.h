@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -88,18 +88,6 @@ void Song_table_set_existent(Song_table* table, uint16_t index, bool existent);
  * \return   The existent status.
  */
 bool Song_table_get_existent(Song_table* table, uint16_t index);
-
-
-/**
- * Tell whether a Song is empty.
- *
- * \param table   The Song table -- must not be \c NULL.
- * \param song    The song number -- must be >= \c 0 and
- *                < \c KQT_SONGS_MAX.
- *
- * \return   \c true if and only if \a song is empty.
- */
-bool Song_table_is_song_empty(Song_table* table, uint16_t song_num);
 
 
 /**

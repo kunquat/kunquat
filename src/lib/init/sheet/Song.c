@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -15,19 +15,20 @@
 #include <init/sheet/Song.h>
 
 #include <debug/assert.h>
+#include <init/sheet/song_defaults.h>
 #include <kunquat/limits.h>
 #include <memory.h>
-#include <string/common.h>
 #include <string/Streader.h>
 
-#include <inttypes.h>
 #include <math.h>
-#include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 
 
-static bool Song_parse(Song* song, Streader* sr);
+struct Song
+{
+    double tempo;
+    double global_vol;
+};
 
 
 Song* new_Song(void)
@@ -36,176 +37,65 @@ Song* new_Song(void)
     if (song == NULL)
         return NULL;
 
-    song->res = 8;
-    song->pats = memory_alloc_items(int16_t, song->res);
-    if (song->pats == NULL)
-    {
-        memory_free(song);
-        return NULL;
-    }
-
-    for (int i = 0; i < song->res; ++i)
-        song->pats[i] = KQT_SECTION_NONE;
-
     song->tempo = SONG_DEFAULT_TEMPO;
     song->global_vol = SONG_DEFAULT_GLOBAL_VOL;
-    song->scale = SONG_DEFAULT_SCALE;
 
     return song;
 }
 
 
-Song* new_Song_from_string(Streader* sr)
+bool Song_read_tempo(Song* song, Streader* sr)
 {
+    assert(song != NULL);
     assert(sr != NULL);
 
-    Song* song = new_Song();
-    if (song == NULL)
-        return NULL;
+    double tempo = NAN;
 
-    if (!Song_parse(song, sr))
+    if (!Streader_read_float(sr, &tempo))
+        return false;
+
+    if ((tempo < 1) || (tempo > 999))
     {
-        del_Song(song);
-        return NULL;
-    }
-
-    return song;
-}
-
-
-static bool read_song_item(Streader* sr, const char* key, void* userdata)
-{
-    assert(sr != NULL);
-    assert(key != NULL);
-    assert(userdata != NULL);
-
-    Song* song = userdata;
-
-    if (string_eq(key, "tempo"))
-    {
-        if (!Streader_read_float(sr, &song->tempo))
-            return false;
-
-        if (song->tempo < 1 || song->tempo > 999)
-        {
-            Streader_set_error(
-                    sr, "Tempo (%f) is outside valid range", song->tempo);
-            return false;
-        }
-    }
-    else if (string_eq(key, "global_vol"))
-    {
-        if (!Streader_read_float(sr, &song->global_vol))
-            return false;
-    }
-    else if (string_eq(key, "scale"))
-    {
-        int64_t num = 0;
-        if (!Streader_read_int(sr, &num))
-            return false;
-
-        if (num < 0 || num >= KQT_SCALES_MAX)
-        {
-            Streader_set_error(
-                    sr,
-                    "Scale number (%" PRId64 ") is outside valid range",
-                    num);
-            return false;
-        }
-        song->scale = num;
-    }
-    else
-    {
-        Streader_set_error(sr, "Unrecognised key in Song: %s\n", key);
+        Streader_set_error(
+                sr, "Tempo %.2f is outside valid range [1, 999]", tempo);
         return false;
     }
+
+    song->tempo = tempo;
 
     return true;
 }
 
-static bool Song_parse(Song* song, Streader* sr)
-{
-    assert(song != NULL);
-    assert(sr != NULL);
 
-    if (Streader_is_error_set(sr))
-        return false;
-
-    if (!Streader_has_data(sr))
-        return true;
-
-    return Streader_read_dict(sr, read_song_item, song);
-}
-
-
-int16_t Song_get_length(Song* song)
-{
-    assert(song != NULL);
-
-    int length = 0;
-    for (length = 0; length < song->res; ++length)
-    {
-        if (song->pats[length] == KQT_SECTION_NONE)
-            break;
-    }
-
-    return length;
-}
-
-
-void Song_set_tempo(Song* song, double tempo)
-{
-    assert(song != NULL);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
-
-    song->tempo = tempo;
-
-    return;
-}
-
-
-double Song_get_tempo(Song* song)
+double Song_get_tempo(const Song* song)
 {
     assert(song != NULL);
     return song->tempo;
 }
 
 
-void Song_set_global_vol(Song* song, double vol)
+bool Song_read_global_vol(Song* song, Streader* sr)
 {
     assert(song != NULL);
-    assert(isfinite(vol) || vol == -INFINITY);
+    assert(sr != NULL);
+
+    double vol = NAN;
+
+    if (!Streader_read_float(sr, &vol))
+        return false;
+
+    // TODO: decide valid range
 
     song->global_vol = vol;
 
-    return;
+    return true;
 }
 
 
-double Song_get_global_vol(Song* song)
+double Song_get_global_vol(const Song* song)
 {
     assert(song != NULL);
     return song->global_vol;
-}
-
-
-void Song_set_scale(Song* song, int index)
-{
-    assert(song != NULL);
-    assert(index >= 0);
-    assert(index < KQT_SCALES_MAX);
-
-    song->scale = index;
-
-    return;
-}
-
-
-int Song_get_scale(Song* song)
-{
-    assert(song != NULL);
-    return song->scale;
 }
 
 
@@ -214,7 +104,6 @@ void del_Song(Song* song)
     if (song == NULL)
         return;
 
-    memory_free(song->pats);
     memory_free(song);
 
     return;

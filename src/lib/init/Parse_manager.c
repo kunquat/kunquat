@@ -1519,30 +1519,51 @@ static bool read_song_manifest(Reader_params* params)
 }
 
 
-static bool read_song(Reader_params* params)
+Song* add_song(Handle* handle, int index)
+{
+    assert(handle != NULL);
+    assert(index >= 0);
+    assert(index < KQT_SONGS_MAX);
+
+    Song_table* st = Module_get_songs(Handle_get_module(handle));
+    Song* song = Song_table_get(st, index);
+    if (song != NULL)
+        return song;
+
+    Song* new_song = new_Song();
+    if ((new_song == NULL) || !Song_table_set(st, index, new_song))
+    {
+        Handle_set_error(
+                handle, ERROR_MEMORY, "Could not allocate memory for a new song");
+        del_Song(new_song);
+        return NULL;
+    }
+
+    return new_song;
+}
+
+
+#define acquire_song(song, handle, index)       \
+    if (true)                                   \
+    {                                           \
+        (song) = add_song((handle), (index));   \
+        if ((song) == NULL)                     \
+            return false;                       \
+    }                                           \
+    else ignore(0)
+
+
+static bool read_song_tempo(Reader_params* params)
 {
     assert(params != NULL);
 
     int32_t index = -1;
     acquire_song_index(index, params);
 
-    Song* song = new_Song_from_string(params->sr);
-    if (song == NULL)
-    {
-        set_error(params);
-        return false;
-    }
+    Song* song = NULL;
+    acquire_song(song, params->handle, index);
 
-    Song_table* st = Module_get_songs(Handle_get_module(params->handle));
-    if (!Song_table_set(st, index, song))
-    {
-        Handle_set_error(params->handle, ERROR_MEMORY,
-                "Couldn't allocate memory");
-        del_Song(song);
-        return false;
-    }
-
-    return true;
+    return Song_read_tempo(song, params->sr);
 }
 
 

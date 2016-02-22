@@ -515,9 +515,9 @@ START_TEST(Initial_tempo_is_set_correctly)
     set_data("album/p_tracks.json", "[0]");
     set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
-    char ss_def[128] = "";
-    snprintf(ss_def, sizeof(ss_def), "{ \"tempo\": %d }", tempos[_i]);
-    set_data("song_00/p_song.json", ss_def);
+    char tempo_data[128] = "";
+    snprintf(tempo_data, sizeof(tempo_data), "%d", tempos[_i]);
+    set_data("song_00/p_tempo.json", tempo_data);
     set_data("pat_000/p_manifest.json", "{}");
     set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
     set_data("pat_000/instance_000/p_manifest.json", "{}");

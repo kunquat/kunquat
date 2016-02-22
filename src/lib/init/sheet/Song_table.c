@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -107,25 +107,6 @@ bool Song_table_get_existent(Song_table* table, uint16_t index)
     assert(index < KQT_SONGS_MAX);
 
     return Bit_array_get(table->existents, index);
-}
-
-
-bool Song_table_is_song_empty(Song_table* table, uint16_t song_num)
-{
-    assert(table != NULL);
-    assert(song_num < KQT_SONGS_MAX);
-
-    Song* song = Etable_get(table->songs, song_num);
-    if (song == NULL)
-        return true;
-
-    for (int i = 0; i < song->res; ++i)
-    {
-        if (song->pats[i] != KQT_SECTION_NONE)
-            return false;
-    }
-
-    return true;
 }
 
 
