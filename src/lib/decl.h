@@ -16,6 +16,7 @@
 #define K_DECL_H
 
 
+typedef struct Au_expressions Au_expressions;
 typedef struct Au_state Au_state;
 typedef struct Au_streams Au_streams;
 typedef struct Au_table Au_table;
@@ -27,9 +28,9 @@ typedef struct Device Device;
 typedef struct Device_impl Device_impl;
 typedef struct Device_state Device_state;
 typedef struct Envelope Envelope;
-typedef struct Hit_proc_filter Hit_proc_filter;
 typedef struct Linear_controls Linear_controls;
 typedef struct Module Module;
+typedef struct Param_proc_filter Param_proc_filter;
 typedef struct Proc_state Proc_state;
 typedef struct Processor Processor;
 typedef struct Sample Sample;

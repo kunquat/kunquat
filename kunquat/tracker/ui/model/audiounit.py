@@ -107,7 +107,7 @@ class AudioUnit():
         return connections
 
     def set_connections_edit_mode(self, mode):
-        assert mode in ('normal', 'hit_proc_filter')
+        assert mode in ('normal', 'hit_proc_filter', 'expr_filter')
         self._session.set_au_connections_edit_mode(self._au_id, mode)
 
     def get_connections_edit_mode(self):
@@ -161,6 +161,9 @@ class AudioUnit():
     def _get_hit_key_base(self, hit_index):
         return self._get_key('hit_{:02x}'.format(hit_index))
 
+    def has_hits(self):
+        return any(self.get_hit(i).get_existence() for i in xrange(HITS_MAX))
+
     def get_hit(self, hit_index):
         hit = Hit(self._au_id, hit_index)
         hit.set_controller(self._controller)
@@ -177,6 +180,76 @@ class AudioUnit():
 
     def get_edit_selected_hit_info(self):
         return self._session.get_edit_selected_hit_info(self._au_id)
+
+    def _set_expressions(self, expressions):
+        key = self._get_key('p_expressions.json')
+        self._store[key] = expressions
+
+    def _get_expressions(self):
+        key = self._get_key('p_expressions.json')
+        expressions = self._store.get(key, {})
+        return expressions
+
+    def has_expressions(self):
+        return bool(self._get_expressions())
+
+    def has_expression(self, name):
+        return name in self._get_expressions()
+
+    def get_expression_names(self):
+        expressions = self._get_expressions()
+        return list(expressions.keys())
+
+    def set_selected_expression(self, name):
+        self._session.set_selected_expression(self._au_id, name)
+
+    def get_selected_expression(self):
+        return self._session.get_selected_expression(self._au_id)
+
+    def add_expression(self):
+        expressions = self._get_expressions()
+        init_names = ('expr{:02}'.format(i) for i in xrange(len(expressions) + 1))
+        for name in init_names:
+            if name not in expressions:
+                unique_name = name
+                break
+        expressions[unique_name] = []
+        self._set_expressions(expressions)
+
+    def remove_expression(self, name):
+        expressions = self._get_expressions()
+        del expressions[name]
+        self._set_expressions(expressions)
+
+    def change_expression_name(self, old_name, new_name):
+        expressions = self._get_expressions()
+        expr_info = expressions.pop(old_name)
+        expressions[new_name] = expr_info
+        self._set_expressions(expressions)
+
+    def set_expression_proc_filter(self, name, proc_filter):
+        expressions = self._get_expressions()
+        expressions[name] = proc_filter
+        self._set_expressions(expressions)
+
+    def get_expression_proc_filter(self, name):
+        expressions = self._get_expressions()
+        return expressions[name]
+
+    def set_connections_expr_name(self, expr_name):
+        self._session.set_au_connections_expr_name(self._au_id, expr_name)
+
+    def get_connections_expr_name(self):
+        return self._session.get_au_connections_expr_name(self._au_id)
+
+    def set_test_expression(self, index, expr_name):
+        self._session.set_au_test_expression(self._au_id, index, expr_name)
+
+    def get_test_expression(self, index):
+        return self._session.get_au_test_expression(self._au_id, index)
+
+    def set_test_expressions_enabled(self, enabled):
+        self._session.set_au_test_expressions_enabled(self._au_id, enabled)
 
     def get_audio_unit(self, au_id):
         assert au_id.startswith(self._au_id + '/')

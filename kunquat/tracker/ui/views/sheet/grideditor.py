@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -78,7 +78,7 @@ class GridEditor(QWidget):
 class GridListModel(QAbstractListModel):
 
     def __init__(self):
-        QAbstractItemModel.__init__(self)
+        QAbstractListModel.__init__(self)
         self._ui_model = None
         self._updater = None
 

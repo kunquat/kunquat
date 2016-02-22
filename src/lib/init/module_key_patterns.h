@@ -41,7 +41,8 @@ MODULE_KEYP(random_seed,            "p_random_seed.json",                   "0")
 MODULE_KEYP(environment,            "p_environment.json",                   "[]")
 MODULE_KEYP(bind,                   "p_bind.json",                          "[]")
 MODULE_KEYP(ch_defaults, "p_channel_defaults.json",
-        "[{ \"control\": 0 }]")
+        "[{ \"control\": 0"
+        " , \"init_expr\": \"\" }]")
 
 MODULE_KEYP(album_manifest,         "album/p_manifest.json",                "")
 MODULE_KEYP(album_tracks,           "album/p_tracks.json",                  "[]")
@@ -61,6 +62,7 @@ MODULE_AU_KEYP(au_streams,              "au_XX/p_streams.json",                 
 MODULE_AU_KEYP(au_control_vars,         "au_XX/p_control_vars.json",            "[]")
 MODULE_AU_KEYP(au_hit_manifest,         "au_XX/hit_XX/p_manifest.json",         "")
 MODULE_AU_KEYP(au_hit_proc_filter,      "au_XX/hit_XX/p_hit_proc_filter.json",  "[]")
+MODULE_AU_KEYP(au_expressions,          "au_XX/p_expressions.json",             "{}")
 
 MODULE_AU_KEYP(proc_manifest,           "au_XX/proc_XX/p_manifest.json",        "")
 MODULE_AU_KEYP(proc_signal_type,        "au_XX/proc_XX/p_signal_type.json",     "\"voice\"")

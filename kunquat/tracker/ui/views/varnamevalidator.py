@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -43,6 +43,23 @@ class VarNameValidator(QValidator):
 
     def validate(self, contents, pos):
         in_str = unicode(contents)
+        status = get_var_name_validation_status(in_str)
+        if (status == QValidator.Acceptable) and (in_str in self._used_names):
+            return (QValidator.Intermediate, pos)
+        return (status, pos)
+
+
+class MaybeVarNameValidator(QValidator):
+
+    def __init__(self, used_names=set()):
+        QValidator.__init__(self)
+        self._used_names = used_names
+
+    def validate(self, contents, pos):
+        in_str = unicode(contents)
+        if not in_str:
+            return (QValidator.Acceptable, pos)
+
         status = get_var_name_validation_status(in_str)
         if (status == QValidator.Acceptable) and (in_str in self._used_names):
             return (QValidator.Intermediate, pos)

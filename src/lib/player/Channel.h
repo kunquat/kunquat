@@ -83,6 +83,8 @@ struct Channel
     double arpeggio_speed;
     int arpeggio_edit_pos;
     double arpeggio_tones[KQT_ARPEGGIO_TONES_MAX];
+
+    bool carry_expression;
 };
 
 

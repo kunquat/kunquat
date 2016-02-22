@@ -185,6 +185,8 @@ void Channel_reset(Channel* ch)
     ch->arpeggio_edit_pos = 1;
     ch->arpeggio_tones[0] = ch->arpeggio_tones[1] = NAN;
 
+    ch->carry_expression = false;
+
     Channel_cv_state_reset(ch->cvstate);
     Channel_stream_state_reset(ch->csstate);
 
@@ -202,6 +204,9 @@ void Channel_apply_defaults(Channel* ch, const Channel_defaults* ch_defaults)
     assert(ch_defaults != NULL);
 
     ch->au_input = ch_defaults->control_num;
+    bool success = Active_names_set(
+            ch->parent.active_names, ACTIVE_CAT_INIT_EXPRESSION, ch_defaults->init_expr);
+    assert(success);
 
     return;
 }

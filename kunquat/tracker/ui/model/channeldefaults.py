@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -50,14 +50,20 @@ class ChannelDefaults():
         entry = self._get_entry(ch_num)
         return 'control_{:02x}'.format(entry['control'])
 
-    def set_default_control_id(self, ch_num, control_id):
-        assert control_id
-
+    def _get_extended_entry_list(self, ch_num):
         key = self._get_key()
         chd_list = self._store.get(key, [])
         def_entry = self._get_default_entry()
         for _ in xrange(ch_num + 1 - len(chd_list)):
             chd_list.append(def_entry.copy())
+        assert ch_num < len(chd_list)
+        return chd_list
+
+    def set_default_control_id(self, ch_num, control_id):
+        assert control_id
+
+        key = self._get_key()
+        chd_list = self._get_extended_entry_list(ch_num)
 
         control_id_parts = control_id.split('_')
         control_num = int(control_id_parts[1], 16)
@@ -83,5 +89,18 @@ class ChannelDefaults():
                     self.set_default_control_id(ch_num, fallback_control_id)
 
         return transaction
+
+    def get_initial_expression(self, ch_num):
+        entry = self._get_entry(ch_num)
+        return entry['init_expr']
+
+    def set_initial_expression(self, ch_num, expr_name):
+        key = self._get_key()
+        chd_list = self._get_extended_entry_list(ch_num)
+
+        entry = chd_list[ch_num]
+        entry['init_expr'] = expr_name
+
+        self._store[key] = chd_list
 
 

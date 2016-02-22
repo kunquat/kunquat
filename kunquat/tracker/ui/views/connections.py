@@ -392,6 +392,7 @@ class ConnectionsView(QWidget):
         if self._au_id != None:
             update_signals |= set([
                 self._get_signal('signal_au_conns_hit'),
+                self._get_signal('signal_au_conns_expr'),
                 self._get_signal('signal_au_conns_edit_mode'),
                 ])
 
@@ -561,17 +562,27 @@ class ConnectionsView(QWidget):
         self._edit_dev_highlights = {}
         if self._au_id != None:
             au = module.get_audio_unit(self._au_id)
-            if au.get_connections_edit_mode() == 'hit_proc_filter':
+            excluded = None
+
+            # Find processor filter if appropriate
+            conns_edit_mode = au.get_connections_edit_mode()
+            if (conns_edit_mode == 'hit_proc_filter') and au.has_hits():
                 hit_index = au.get_connections_hit_index()
                 if hit_index != None:
                     hit = au.get_hit(hit_index)
                     if hit.get_existence():
                         excluded = hit.get_excluded_processors()
-                        visible_procs = set(dev_id for dev_id in self._visible_devices
-                                if dev_id.startswith('proc'))
-                        for dev_id in visible_procs:
-                            self._edit_dev_highlights[dev_id] = ('hilight_excluded'
-                                    if dev_id in excluded else 'hilight_selected')
+            elif (conns_edit_mode == 'expr_filter') and au.has_expressions():
+                selected_expr = au.get_connections_expr_name()
+                if au.has_expression(selected_expr):
+                    excluded = au.get_expression_proc_filter(selected_expr)
+
+            if excluded != None:
+                visible_procs = set(dev_id for dev_id in self._visible_devices
+                        if dev_id.startswith('proc'))
+                for dev_id in visible_procs:
+                    self._edit_dev_highlights[dev_id] = ('hilight_excluded'
+                            if dev_id in excluded else 'hilight_selected')
 
         # Update finished
         QObject.emit(self, SIGNAL('positionsChanged()'))
@@ -923,7 +934,7 @@ class ConnectionsView(QWidget):
             self._focused_edge_info = new_focused_edge_info
             self.update()
 
-    def _handle_mouse_move_hit_proc_filter(self, event):
+    def _handle_mouse_move_proc_filters(self, event):
         area_pos = self._get_area_pos(event.x(), event.y())
 
         if self._state in (STATE_IDLE, STATE_PRESSING):
@@ -954,8 +965,8 @@ class ConnectionsView(QWidget):
         mode = self._get_connections_edit_mode()
         if mode == 'normal':
             self._handle_mouse_move_normal(event)
-        elif mode == 'hit_proc_filter':
-            self._handle_mouse_move_hit_proc_filter(event)
+        elif mode in ('hit_proc_filter', 'expr_filter'):
+            self._handle_mouse_move_proc_filters(event)
         else:
             assert False
 
@@ -1008,7 +1019,7 @@ class ConnectionsView(QWidget):
             else:
                 self._state = STATE_MOVING
 
-    def _handle_mouse_press_hit_proc_filter(self, event):
+    def _handle_mouse_press_proc_filters(self, event):
         area_pos = self._get_area_pos(event.x(), event.y())
 
         for dev_id in reversed(self._visible_device_ids):
@@ -1029,8 +1040,8 @@ class ConnectionsView(QWidget):
         mode = self._get_connections_edit_mode()
         if mode == 'normal':
             self._handle_mouse_press_normal(event)
-        elif mode == 'hit_proc_filter':
-            self._handle_mouse_press_hit_proc_filter(event)
+        elif mode in ('hit_proc_filter', 'expr_filter'):
+            self._handle_mouse_press_proc_filters(event)
         else:
             assert False
 
@@ -1074,25 +1085,43 @@ class ConnectionsView(QWidget):
 
         self._state = STATE_IDLE
 
-    def _handle_mouse_release_hit_proc_filter(self, event):
+    def _handle_mouse_release_proc_filters(self, event, mode):
         if self._state == STATE_PRESSING:
             assert self._pressed_dev_id.startswith('proc')
             if self._focused_id == self._pressed_dev_id:
-                # Get current hit
                 module = self._ui_model.get_module()
                 au = module.get_audio_unit(self._au_id)
-                hit_index = au.get_connections_hit_index()
-                hit = au.get_hit(hit_index)
 
-                # Toggle processor usage in hit processing
-                excluded = hit.get_excluded_processors()
-                if self._focused_id in excluded:
-                    excluded.remove(self._focused_id)
+                if mode == 'hit_proc_filter':
+                    # Get current hit
+                    hit_index = au.get_connections_hit_index()
+                    hit = au.get_hit(hit_index)
+
+                    # Toggle processor usage in hit processing
+                    excluded = hit.get_excluded_processors()
+                    if self._focused_id in excluded:
+                        excluded.remove(self._focused_id)
+                    else:
+                        excluded.append(self._focused_id)
+                    hit.set_excluded_processors(excluded)
+                    self._updater.signal_update(
+                            set([self._get_signal('signal_au_conns_hit')]))
+
+                elif mode == 'expr_filter':
+                    # Update exclusion list
+                    selected_expr_name = au.get_connections_expr_name()
+                    excluded = au.get_expression_proc_filter(selected_expr_name)
+                    if self._focused_id in excluded:
+                        excluded.remove(self._focused_id)
+                    else:
+                        excluded.append(self._focused_id)
+                    au.set_expression_proc_filter(selected_expr_name, excluded)
+                    self._updater.signal_update(
+                            set([self._get_signal('signal_au_conns_expr')]))
+
                 else:
-                    excluded.append(self._focused_id)
-                hit.set_excluded_processors(excluded)
-                self._updater.signal_update(
-                        set([self._get_signal('signal_au_conns_hit')]))
+                    assert False
+
 
         self._pressed_dev_id = None
         self.update()
@@ -1103,8 +1132,8 @@ class ConnectionsView(QWidget):
         mode = self._get_connections_edit_mode()
         if mode == 'normal':
             self._handle_mouse_release_normal(event)
-        elif mode == 'hit_proc_filter':
-            self._handle_mouse_release_hit_proc_filter(event)
+        elif mode in ('hit_proc_filter', 'expr_filter'):
+            self._handle_mouse_release_proc_filters(event, mode)
         else:
             assert False
 

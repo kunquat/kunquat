@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -16,6 +16,7 @@ from PyQt4.QtGui import *
 
 from kunquat.kunquat.limits import *
 from editorlist import EditorList
+from varnamevalidator import MaybeVarNameValidator
 
 
 class ChDefaultsEditor(QWidget):
@@ -92,11 +93,16 @@ class ChDefaults(QWidget):
         self._au_selector.setSizePolicy(
                 QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
 
+        self._init_expr = QLineEdit()
+        self._init_expr.setValidator(MaybeVarNameValidator())
+
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(5)
         h.addWidget(num_widget)
         h.addWidget(self._au_selector)
+        h.addWidget(QLabel('Initial expression:'))
+        h.addWidget(self._init_expr)
         self.setLayout(h)
 
     def set_ui_model(self, ui_model):
@@ -105,12 +111,15 @@ class ChDefaults(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
-        self._update_all()
-
         QObject.connect(
                 self._au_selector,
                 SIGNAL('currentIndexChanged(int)'),
                 self._select_audio_unit)
+
+        QObject.connect(
+                self._init_expr, SIGNAL('editingFinished()'), self._change_init_expr)
+
+        self._update_all()
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
@@ -152,10 +161,22 @@ class ChDefaults(QWidget):
                 self._au_selector.setCurrentIndex(i)
         self._au_selector.blockSignals(old_block)
 
+        old_block = self._init_expr.blockSignals(True)
+        expr_name = chd.get_initial_expression(self._ch_num)
+        if expr_name != self._init_expr.text():
+            self._init_expr.setText(expr_name)
+        self._init_expr.blockSignals(old_block)
+
     def _select_audio_unit(self, index):
         control_id = self._control_catalog[index]
         chd = self._module.get_channel_defaults()
         if chd:
             chd.set_default_control_id(self._ch_num, control_id)
+
+    def _change_init_expr(self):
+        expr_name = unicode(self._init_expr.text())
+        chd = self._module.get_channel_defaults()
+        if chd:
+            chd.set_initial_expression(self._ch_num, expr_name)
 
 

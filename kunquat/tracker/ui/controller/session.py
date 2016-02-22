@@ -38,6 +38,8 @@ class Session():
         self._channel_active_control_id = defaultdict(lambda: 0)
         self._channel_active_note = {}
         self._control_active_notes = {}
+        self._channel_active_init_expression = {}
+        self._channel_default_init_expression = {}
         self._octave_id = None
         self._visible = set()
         self._event_log = deque([], 1024)
@@ -80,6 +82,10 @@ class Session():
         self._runtime_env = {}
         self._au_conns_edit_mode = {}
         self._au_conns_hit_index = {}
+        self._au_conns_expr_name = {}
+        self._au_expressions = {}
+        self._au_test_expressions = {}
+        self._au_test_expressions_enabled = {}
         self._edit_selected_hits = {}
 
     def get_output_speed(self):
@@ -499,5 +505,42 @@ class Session():
 
     def get_edit_selected_hit_info(self, au_id):
         return self._edit_selected_hits.get(au_id, (0, 0))
+
+    def set_selected_expression(self, au_id, name):
+        self._au_expressions[au_id] = name
+
+    def get_selected_expression(self, au_id):
+        return self._au_expressions.get(au_id, None)
+
+    def set_au_connections_expr_name(self, au_id, expr_name):
+        self._au_conns_expr_name[au_id] = expr_name
+
+    def get_au_connections_expr_name(self, au_id):
+        return self._au_conns_expr_name.get(au_id, None)
+
+    def set_active_init_expression(self, ch, expr_name):
+        self._channel_active_init_expression[ch] = expr_name
+
+    def set_default_init_expression(self, ch, expr_name):
+        self._channel_default_init_expression[ch] = expr_name
+
+    def get_active_init_expression(self, ch):
+        return self._channel_active_init_expression.get(ch,
+                self._channel_default_init_expression.get(ch, u''))
+
+    def reset_active_init_expressions(self):
+        self._channel_active_init_expression = {}
+
+    def set_au_test_expression(self, au_id, index, expr_name):
+        self._au_test_expressions[(au_id, index)] = expr_name
+
+    def get_au_test_expression(self, au_id, index):
+        return self._au_test_expressions.get((au_id, index), u'')
+
+    def set_au_test_expressions_enabled(self, au_id, enabled):
+        self._au_test_expressions_enabled[au_id] = enabled
+
+    def are_au_test_expressions_enabled(self, au_id):
+        return self._au_test_expressions_enabled.get(au_id)
 
 

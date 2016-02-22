@@ -18,10 +18,11 @@
 #include <init/Au_table.h>
 #include <init/Connections.h>
 #include <init/devices/Au_control_vars.h>
+#include <init/devices/Au_expressions.h>
 #include <init/devices/Au_interface.h>
 #include <init/devices/Au_streams.h>
 #include <init/devices/Device.h>
-#include <init/devices/Hit_proc_filter.h>
+#include <init/devices/Param_proc_filter.h>
 #include <init/devices/Proc_table.h>
 #include <init/devices/Processor.h>
 #include <mathnum/common.h>
@@ -41,7 +42,7 @@
 typedef struct Hit_info
 {
     bool existence;
-    Hit_proc_filter* hit_proc_filter;
+    Param_proc_filter* hit_proc_filter;
 } Hit_info;
 
 
@@ -60,7 +61,7 @@ void Hit_info_deinit(Hit_info* hit)
 {
     assert(hit != NULL);
 
-    del_Hit_proc_filter(hit->hit_proc_filter);
+    del_Param_proc_filter(hit->hit_proc_filter);
     hit->hit_proc_filter = NULL;
 
     return;
@@ -87,6 +88,7 @@ struct Audio_unit
     Au_control_vars* control_vars;
     Au_streams* streams;
     Hit_info hits[KQT_HITS_MAX];
+    Au_expressions* expressions;
 };
 
 
@@ -127,6 +129,7 @@ Audio_unit* new_Audio_unit(void)
     au->streams = NULL;
     for (int i = 0; i < KQT_HITS_MAX; ++i)
         Hit_info_init(&au->hits[i]);
+    au->expressions = NULL;
 
     if (!Device_init(&au->parent, false))
     {
@@ -345,26 +348,44 @@ bool Audio_unit_get_hit_existence(const Audio_unit* au, int index)
 }
 
 
-void Audio_unit_set_hit_proc_filter(Audio_unit* au, int index, Hit_proc_filter* hpf)
+void Audio_unit_set_hit_proc_filter(Audio_unit* au, int index, Param_proc_filter* hpf)
 {
     assert(au != NULL);
     assert(index >= 0);
     assert(index < KQT_HITS_MAX);
 
-    del_Hit_proc_filter(au->hits[index].hit_proc_filter);
+    del_Param_proc_filter(au->hits[index].hit_proc_filter);
     au->hits[index].hit_proc_filter = hpf;
 
     return;
 }
 
 
-const Hit_proc_filter* Audio_unit_get_hit_proc_filter(const Audio_unit* au, int index)
+const Param_proc_filter* Audio_unit_get_hit_proc_filter(const Audio_unit* au, int index)
 {
     assert(au != NULL);
     assert(index >= 0);
     assert(index < KQT_HITS_MAX);
 
     return au->hits[index].hit_proc_filter;
+}
+
+
+void Audio_unit_set_expressions(Audio_unit* au, Au_expressions* expressions)
+{
+    assert(au != NULL);
+
+    del_Au_expressions(au->expressions);
+    au->expressions = expressions;
+
+    return;
+}
+
+
+const Au_expressions* Audio_unit_get_expressions(const Audio_unit* au)
+{
+    assert(au != NULL);
+    return au->expressions;
 }
 
 
@@ -546,6 +567,7 @@ void del_Audio_unit(Audio_unit* au)
     del_Proc_table(au->procs);
     for (int i = 0; i < KQT_HITS_MAX; ++i)
         Hit_info_deinit(&au->hits[i]);
+    del_Au_expressions(au->expressions);
     del_Au_streams(au->streams);
     del_Au_control_vars(au->control_vars);
     Device_deinit(&au->parent);

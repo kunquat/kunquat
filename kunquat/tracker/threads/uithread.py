@@ -81,6 +81,9 @@ class UiThread(MonitoringThread):
     def update_active_var_value(self, channel_number, var_value):
         self._q.push('update_active_var_value', channel_number, var_value)
 
+    def update_init_expression(self, channel_number, expr_name):
+        self._q.push('update_init_expression', channel_number, expr_name)
+
     def update_pending_playback_cursor_track(self, track):
         self._q.push('update_pending_playback_cursor_track', track)
 
