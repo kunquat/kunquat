@@ -21,7 +21,7 @@ from mainwindow import MainWindow
 from aboutwindow import AboutWindow
 from eventlist import EventList
 from connectionswindow import ConnectionsWindow
-from orderlistdefswindow import OrderlistDefaultsWindow
+from songschannelswindow import SongsChannelsWindow
 from environmentwindow import EnvironmentWindow
 from auwindow import AuWindow
 from procwindow import ProcWindow
@@ -41,7 +41,7 @@ class RootView():
         self._about_window = None
         self._event_log = None
         self._connections = None
-        self._orderlist_defaults = None
+        self._songs_channels = None
         self._environment = None
         self._au_windows = {}
         self._proc_windows = {}
@@ -102,11 +102,11 @@ class RootView():
                 self._connections.set_ui_model(self._ui_model)
                 if is_show_allowed:
                     self._connections.show()
-            elif ui == UI_OL_DEFAULTS:
-                self._orderlist_defaults = OrderlistDefaultsWindow()
-                self._orderlist_defaults.set_ui_model(self._ui_model)
+            elif ui == UI_SONGS_CHS:
+                self._songs_channels = SongsChannelsWindow()
+                self._songs_channels.set_ui_model(self._ui_model)
                 if is_show_allowed:
-                    self._orderlist_defaults.show()
+                    self._songs_channels.show()
             elif ui == UI_ENVIRONMENT:
                 self._environment = EnvironmentWindow()
                 self._environment.set_ui_model(self._ui_model)
@@ -165,10 +165,10 @@ class RootView():
                 self._connections.unregister_updaters()
                 self._connections.deleteLater()
                 self._connections = None
-            elif ui == UI_OL_DEFAULTS:
-                self._orderlist_defaults.unregister_updaters()
-                self._orderlist_defaults.deleteLater()
-                self._orderlist_defaults = None
+            elif ui == UI_SONGS_CHS:
+                self._songs_channels.unregister_updaters()
+                self._songs_channels.deleteLater()
+                self._songs_channels = None
             elif ui == UI_ENVIRONMENT:
                 self._environment.unregister_updaters()
                 self._environment.deleteLater()

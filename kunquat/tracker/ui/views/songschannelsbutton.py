@@ -16,13 +16,13 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 
-class OrderlistDefaultsButton(QToolButton):
+class SongsChannelsButton(QToolButton):
 
     def __init__(self):
         QToolButton.__init__(self)
         self._ui_model = None
 
-        self.setText('Order list && defaults')
+        self.setText('Songs && channels')
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -33,6 +33,6 @@ class OrderlistDefaultsButton(QToolButton):
 
     def _clicked(self):
         visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.show_orderlist_defaults()
+        visibility_manager.show_songs_channels()
 
 

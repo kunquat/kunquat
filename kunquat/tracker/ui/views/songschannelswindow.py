@@ -20,7 +20,7 @@ from orderlisteditor import OrderlistEditor
 from songeditor import SongEditor
 
 
-class OrderlistDefaultsWindow(QWidget):
+class SongsChannelsWindow(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
@@ -30,7 +30,7 @@ class OrderlistDefaultsWindow(QWidget):
         self._song_editor = SongEditor()
         self._ch_defaults_editor = ChDefaultsEditor()
 
-        self.setWindowTitle('Order list & defaults')
+        self.setWindowTitle('Songs & channels')
 
         h = QHBoxLayout()
         h.setMargin(4)
@@ -54,7 +54,7 @@ class OrderlistDefaultsWindow(QWidget):
     def closeEvent(self, event):
         event.ignore()
         visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_orderlist_defaults()
+        visibility_manager.hide_songs_channels()
 
     def sizeHint(self):
         return QSize(1024, 600)

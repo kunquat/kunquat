@@ -90,12 +90,12 @@ class VisibilityManager():
         self._session.hide_ui((UI_AUDIO_UNIT, au_id))
         self._updater.signal_update()
 
-    def show_orderlist_defaults(self):
-        self._session.show_ui(UI_OL_DEFAULTS)
+    def show_songs_channels(self):
+        self._session.show_ui(UI_SONGS_CHS)
         self._updater.signal_update()
 
-    def hide_orderlist_defaults(self):
-        self._session.hide_ui(UI_OL_DEFAULTS)
+    def hide_songs_channels(self):
+        self._session.hide_ui(UI_SONGS_CHS)
         self._updater.signal_update()
 
     def show_environment(self):
