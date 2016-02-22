@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2014
-#          Tomi Jylhä-Ollila, Finland 2014-2015
+#          Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -51,7 +51,7 @@ class AlbumTreeModel(QAbstractItemModel):
     def __init__(self):
         QAbstractItemModel.__init__(self)
 
-        # we store the nodes because PyQT fails reference handling
+        # We store the nodes because PyQt fails reference handling
         self._songs = []
 
     def set_ui_model(self, ui_model):
@@ -300,6 +300,11 @@ class Orderlist(QWidget):
         self._album_tree.setModel(self._album_tree_model)
         self._album_tree.expandAll()
 
+        QObject.connect(
+            self._album_tree.selectionModel(),
+            SIGNAL('currentChanged(const QModelIndex&, const QModelIndex&)'),
+            self._change_selection)
+
         # Fix selection
         selection = self._orderlist_manager.get_orderlist_selection()
         if selection != None:
@@ -349,5 +354,18 @@ class Orderlist(QWidget):
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
+
+    def _change_selection(self, current, previous):
+        if not current.isValid():
+            return
+
+        node = current.internalPointer()
+        if node.is_pattern_instance_node():
+            node = node.get_parent()
+        if node.is_song_node():
+            song = node.get_payload()
+            album = self._ui_model.get_module().get_album()
+            album.set_selected_track_num(song.get_containing_track_number())
+            self._updater.signal_update(set(['signal_song']))
 
 

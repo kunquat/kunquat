@@ -17,6 +17,7 @@ from PyQt4.QtGui import *
 
 from chdefaultseditor import ChDefaultsEditor
 from orderlisteditor import OrderlistEditor
+from songeditor import SongEditor
 
 
 class OrderlistDefaultsWindow(QWidget):
@@ -26,6 +27,7 @@ class OrderlistDefaultsWindow(QWidget):
         self._ui_model = None
 
         self._orderlist_editor = OrderlistEditor()
+        self._song_editor = SongEditor()
         self._ch_defaults_editor = ChDefaultsEditor()
 
         self.setWindowTitle('Order list & defaults')
@@ -34,16 +36,19 @@ class OrderlistDefaultsWindow(QWidget):
         h.setMargin(4)
         h.setSpacing(4)
         h.addWidget(self._orderlist_editor)
+        h.addWidget(self._song_editor)
         h.addWidget(self._ch_defaults_editor)
         self.setLayout(h)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._orderlist_editor.set_ui_model(ui_model)
+        self._song_editor.set_ui_model(ui_model)
         self._ch_defaults_editor.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._ch_defaults_editor.unregister_updaters()
+        self._song_editor.unregister_updaters()
         self._orderlist_editor.unregister_updaters()
 
     def closeEvent(self, event):
@@ -52,6 +57,6 @@ class OrderlistDefaultsWindow(QWidget):
         visibility_manager.hide_orderlist_defaults()
 
     def sizeHint(self):
-        return QSize(800, 600)
+        return QSize(1024, 600)
 
 

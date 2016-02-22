@@ -119,4 +119,12 @@ class Song():
         edit = { self._get_order_list_key(): order_list }
         return edit
 
+    def set_initial_tempo(self, tempo):
+        key = '{}/p_tempo.json'.format(self._song_id)
+        self._store[key] = tempo
+
+    def get_initial_tempo(self):
+        key = '{}/p_tempo.json'.format(self._song_id)
+        return self._store.get(key, get_default_value(key))
+
 
