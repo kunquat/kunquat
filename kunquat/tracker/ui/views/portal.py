@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -19,7 +19,7 @@ from newbutton import NewButton
 from openbutton import OpenButton
 from savebutton import SaveButton
 from connectionsbutton import ConnectionsButton
-from orderlistbutton import OrderlistButton
+from orderlistdefsbutton import OrderlistDefaultsButton
 from eventlistbutton import EventListButton
 from aboutbutton import AboutButton
 import utils
@@ -34,8 +34,7 @@ class Portal(QToolBar):
         self._save_button = SaveButton()
         self._about_button = AboutButton()
         self._connections_button = ConnectionsButton()
-        self._orderlist_button = OrderlistButton()
-        self._ch_defaults_button = ChDefaultsButton()
+        self._ol_defs_button = OrderlistDefaultsButton()
         self._env_button = EnvButton()
         self._event_list_button = EventListButton()
         self._render_stats_button = RenderStatsButton()
@@ -45,8 +44,7 @@ class Portal(QToolBar):
         self.addWidget(self._save_button)
         self.addSeparator()
         self.addWidget(self._connections_button)
-        self.addWidget(self._orderlist_button)
-        self.addWidget(self._ch_defaults_button)
+        self.addWidget(self._ol_defs_button)
         self.addWidget(self._env_button)
         self.addSeparator()
         self.addWidget(self._event_list_button)
@@ -59,8 +57,7 @@ class Portal(QToolBar):
         self._open_button.set_ui_model(ui_model)
         self._save_button.set_ui_model(ui_model)
         self._connections_button.set_ui_model(ui_model)
-        self._orderlist_button.set_ui_model(ui_model)
-        self._ch_defaults_button.set_ui_model(ui_model)
+        self._ol_defs_button.set_ui_model(ui_model)
         self._env_button.set_ui_model(ui_model)
         self._event_list_button.set_ui_model(ui_model)
         self._render_stats_button.set_ui_model(ui_model)
@@ -71,8 +68,7 @@ class Portal(QToolBar):
         self._event_list_button.unregister_updaters()
         self._render_stats_button.unregister_updaters()
         self._env_button.unregister_updaters()
-        self._ch_defaults_button.unregister_updaters()
-        self._orderlist_button.unregister_updaters()
+        self._ol_defs_button.unregister_updaters()
         self._connections_button.unregister_updaters()
         self._save_button.unregister_updaters()
         self._open_button.unregister_updaters()
@@ -102,15 +98,6 @@ class WindowOpenerButton(QToolButton):
 
     def _show_action(self, visibility_manager):
         raise NotImplementedError
-
-
-class ChDefaultsButton(WindowOpenerButton):
-
-    def __init__(self):
-        WindowOpenerButton.__init__(self, 'Channel defaults')
-
-    def _show_action(self, visibility_manager):
-        visibility_manager.show_ch_defaults()
 
 
 class EnvButton(WindowOpenerButton):

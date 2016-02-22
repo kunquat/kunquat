@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -14,6 +14,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from headerline import HeaderLine
 from kunquat.tracker.ui.model.patterninstance import PatternInstance
 from kunquat.tracker.ui.model.song import Song
 from orderlist import Orderlist
@@ -32,7 +33,8 @@ class OrderlistEditor(QWidget):
 
         v = QVBoxLayout()
         v.setMargin(0)
-        v.setSpacing(0)
+        v.setSpacing(2)
+        v.addWidget(HeaderLine('Order list'))
         v.addWidget(self._toolbar)
         v.addWidget(self._orderlist)
         self.setLayout(v)

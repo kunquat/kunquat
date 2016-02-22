@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2014
+# Authors: Toni Ruottu, Finland 2014
+#          Tomi Jylhä-Ollila, Finland 2016
 #
 # This file is part of Kunquat.
 #
@@ -15,13 +16,13 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 
-class OrderlistButton(QToolButton):
+class OrderlistDefaultsButton(QToolButton):
 
     def __init__(self):
         QToolButton.__init__(self)
         self._ui_model = None
 
-        self.setText('Orderlist')
+        self.setText('Order list && defaults')
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -32,6 +33,6 @@ class OrderlistButton(QToolButton):
 
     def _clicked(self):
         visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.show_orderlist()
+        visibility_manager.show_orderlist_defaults()
 
 
