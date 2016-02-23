@@ -58,7 +58,6 @@ class Album():
         return song
 
     def set_selected_track_num(self, track_num):
-        # FIXME: this is for the channel defaults editor, find a cleaner approach
         self._session.set_selected_track_num(track_num)
 
     def get_selected_track_num(self):

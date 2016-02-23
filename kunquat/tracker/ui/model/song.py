@@ -73,13 +73,14 @@ class Song():
     def get_containing_track_number(self):
         return self._track_num
 
+    def set_name(self, name):
+        assert isinstance(name, unicode)
+        key = '{}/m_name.json'.format(self._song_id)
+        self._store[key] = name
+
     def get_name(self):
         key = '{}/m_name.json'.format(self._song_id)
-        try:
-            name = self._store[key]
-        except KeyError:
-            name = None
-        return name
+        return self._store.get(key, u'')
 
     def get_edit_create_song(self):
         key = '{}/p_manifest.json'.format(self._song_id)
@@ -118,5 +119,13 @@ class Song():
 
         edit = { self._get_order_list_key(): order_list }
         return edit
+
+    def set_initial_tempo(self, tempo):
+        key = '{}/p_tempo.json'.format(self._song_id)
+        self._store[key] = tempo
+
+    def get_initial_tempo(self):
+        key = '{}/p_tempo.json'.format(self._song_id)
+        return self._store.get(key, get_default_value(key))
 
 

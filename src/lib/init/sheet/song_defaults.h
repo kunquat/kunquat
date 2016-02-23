@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -17,8 +17,7 @@
 
 
 #define SONG_DEFAULT_TEMPO 120
-#define SONG_DEFAULT_GLOBAL_VOL -4
-#define SONG_DEFAULT_SCALE 0
+#define SONG_DEFAULT_GLOBAL_VOL 0
 
 
 #endif // K_SONG_DEFAULTS_H

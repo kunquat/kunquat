@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -90,20 +90,12 @@ class VisibilityManager():
         self._session.hide_ui((UI_AUDIO_UNIT, au_id))
         self._updater.signal_update()
 
-    def show_orderlist(self):
-        self._session.show_ui(UI_ORDERLIST)
+    def show_songs_channels(self):
+        self._session.show_ui(UI_SONGS_CHS)
         self._updater.signal_update()
 
-    def hide_orderlist(self):
-        self._session.hide_ui(UI_ORDERLIST)
-        self._updater.signal_update()
-
-    def show_ch_defaults(self):
-        self._session.show_ui(UI_CH_DEFAULTS)
-        self._updater.signal_update()
-
-    def hide_ch_defaults(self):
-        self._session.hide_ui(UI_CH_DEFAULTS)
+    def hide_songs_channels(self):
+        self._session.hide_ui(UI_SONGS_CHS)
         self._updater.signal_update()
 
     def show_environment(self):

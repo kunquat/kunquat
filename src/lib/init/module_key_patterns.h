@@ -87,13 +87,9 @@ MODULE_KEYP(scale, "scale_X/p_scale.json",
         ", \"notes\": []"
         "}")
 
-MODULE_KEYP(song_manifest,      "song_XX/p_manifest.json",          "")
-MODULE_KEYP(song,               "song_XX/p_song.json",
-        "{ \"tempo\": " MAKE_STRING(SONG_DEFAULT_TEMPO)
-        ", \"global_vol\": " MAKE_STRING(SONG_DEFAULT_GLOBAL_VOL)
-        ", \"scale\": " MAKE_STRING(SONG_DEFAULT_SCALE)
-        "}")
-MODULE_KEYP(song_order_list,    "song_XX/p_order_list.json",        "[]")
+MODULE_KEYP(song_manifest,  "song_XX/p_manifest.json",  "")
+MODULE_KEYP(song_tempo,     "song_XX/p_tempo.json",     MAKE_STRING(SONG_DEFAULT_TEMPO))
+MODULE_KEYP(song_order_list, "song_XX/p_order_list.json", "[]")
 
 
 #undef MAKE_STRING
