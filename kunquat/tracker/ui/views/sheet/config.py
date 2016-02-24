@@ -55,6 +55,10 @@ DEFAULT_CONFIG = {
             'min_snap_dist'   : 64,
             'guide_colour'    : QColor(0xff, 0x77, 0x22, 0x7f),
             },
+        'area_selection': {
+            'border_colour': QColor(0x88, 0xaa, 0xcc),
+            'fill_colour'  : QColor(0x88, 0xaa, 0xcc, 0x7f),
+            },
         'grid': {
             'styles': {
                 0: QPen(QBrush(QColor(0xa0, 0xa0, 0xa0)), 1, Qt.SolidLine),
