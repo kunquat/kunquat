@@ -45,6 +45,8 @@ class Session():
         self._event_log = deque([], 1024)
         self._event_index = count()
         self._selected_location = None
+        self._selected_area_start = None
+        self._selected_area_stop = None
         self._chord_mode = False
         self._chord_start = None
         self._chord_notes = set()
@@ -265,6 +267,18 @@ class Session():
 
     def get_selected_location(self):
         return self._selected_location
+
+    def set_selected_area_start(self, trigger_position):
+        self._selected_area_start = trigger_position
+
+    def get_selected_area_start(self):
+        return self._selected_area_start
+
+    def set_selected_area_stop(self, trigger_position):
+        self._selected_area_stop = trigger_position
+
+    def get_selected_area_stop(self):
+        return self._selected_area_stop
 
     def set_chord_mode(self, enabled):
         self._chord_mode = enabled

@@ -75,4 +75,69 @@ class Selection():
 
         return location
 
+    def _get_area_start(self):
+        return self._session.get_selected_area_start()
+
+    def _get_area_stop(self):
+        return self._session.get_selected_area_stop()
+
+    def try_set_area_start(self, location):
+        if not self._get_area_start():
+            self._session.set_selected_area_start(location)
+
+    def set_area_stop(self, location):
+        start = self._get_area_start()
+        assert start
+        assert start.get_track() == location.get_track()
+        assert start.get_system() == location.get_system()
+
+        self._session.set_selected_area_stop(location)
+
+    def clear_area(self):
+        self._session.set_selected_area_start(None)
+        self._session.set_selected_area_stop(None)
+
+    def has_area(self):
+        start = self._get_area_start()
+        stop = self._get_area_stop()
+        return bool(start and stop and (start != stop))
+
+    def has_trigger_row_slice(self):
+        start = self._get_area_start()
+        stop = self._get_area_stop()
+        return (self.has_area() and
+                (start.get_col_num() == stop.get_col_num()) and
+                (start.get_row_ts() == stop.get_row_ts()))
+
+    def has_rect_area(self):
+        return self.has_area() and not self.has_trigger_row_slice()
+
+    def get_area_top_left(self):
+        assert self.has_area()
+        start = self._get_area_start()
+        stop = self._get_area_stop()
+
+        col_num = min(start.get_col_num(), stop.get_col_num())
+        row_ts = min(start.get_row_ts(), stop.get_row_ts())
+        trigger_index = 0
+        if self.has_trigger_row_slice():
+            trigger_index = min(start.get_trigger_index(), stop.get_trigger_index())
+
+        return TriggerPosition(
+                start.get_track(), start.get_system(), col_num, row_ts, trigger_index)
+
+    def get_area_bottom_right(self):
+        assert self.has_area()
+        start = self._get_area_start()
+        stop = self._get_area_stop()
+
+        col_num = max(start.get_col_num(), stop.get_col_num())
+        row_ts = max(start.get_row_ts(), stop.get_row_ts())
+        trigger_index = 0
+        if self.has_trigger_row_slice():
+            trigger_index = max(start.get_trigger_index(), stop.get_trigger_index())
+
+        return TriggerPosition(
+                start.get_track(), start.get_system(), col_num, row_ts, trigger_index)
+
 
