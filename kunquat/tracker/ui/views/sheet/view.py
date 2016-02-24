@@ -577,6 +577,8 @@ class View(QWidget):
         trigger_tfm = painter.transform().translate(-self._trow_px_offset, 0)
         painter.setTransform(trigger_tfm)
 
+        orig_trow_tfm = QTransform(trigger_tfm)
+
         for i, trigger, renderer in izip(xrange(len(triggers)), triggers, rends):
             # Identify selected field
             if self._sheet_manager.get_replace_mode():
@@ -599,6 +601,21 @@ class View(QWidget):
                 self._draw_hollow_replace_cursor(painter, 0, 0)
             else:
                 self._draw_hollow_insert_cursor(painter, 0, 0)
+
+        # Draw selected trigger row slice
+        selection = self._ui_model.get_selection()
+        if selection.has_trigger_row_slice():
+            start = selection.get_area_top_left().get_trigger_index()
+            stop = selection.get_area_bottom_right().get_trigger_index()
+            start_x = sum(r.get_total_width() for r in rends[:start])
+            stop_x = start_x + sum(r.get_total_width() for r in rends[start:stop])
+            rect = QRect(
+                    QPoint(start_x, 0), QPoint(stop_x, self._config['tr_height'] - 1))
+
+            painter.setTransform(orig_trow_tfm)
+            painter.setPen(self._config['area_selection']['border_colour'])
+            painter.setBrush(self._config['area_selection']['fill_colour'])
+            painter.drawRect(rect)
 
         painter.restore()
 
@@ -1327,7 +1344,7 @@ class View(QWidget):
 
     def keyPressEvent(self, event):
         selection = self._ui_model.get_selection()
-        location = selection.get_location()
+        orig_location = selection.get_location()
 
         note_pressed = self._keyboard_mapper.process_typewriter_button_event(event)
         if note_pressed:
@@ -1335,28 +1352,64 @@ class View(QWidget):
 
         if event.key() == Qt.Key_Tab:
             event.accept()
+            selection.clear_area()
             self._move_edit_cursor_column(1)
             return True
         elif event.key() == Qt.Key_Backtab:
             event.accept()
+            selection.clear_area()
             self._move_edit_cursor_column(-1)
             return True
 
         def handle_move_up():
+            selection.clear_area()
             self._vertical_move_state.press_up()
             self._move_edit_cursor_tstamp()
 
         def handle_move_down():
+            selection.clear_area()
             self._vertical_move_state.press_down()
             self._move_edit_cursor_tstamp()
 
         def handle_move_left():
+            selection.clear_area()
             self._horizontal_move_state.press_left()
             self._move_edit_cursor_trow()
 
         def handle_move_right():
+            selection.clear_area()
             self._horizontal_move_state.press_right()
             self._move_edit_cursor_trow()
+
+        def area_bounds_move_up():
+            selection.try_set_area_start(orig_location)
+            self._vertical_move_state.press_up()
+            self._move_edit_cursor_tstamp()
+            selection.set_area_stop(selection.get_location())
+
+        def area_bounds_move_down():
+            selection.try_set_area_start(orig_location)
+            self._vertical_move_state.press_down()
+            self._move_edit_cursor_tstamp()
+            selection.set_area_stop(selection.get_location())
+
+        def area_bounds_move_left():
+            selection.try_set_area_start(orig_location)
+            if selection.has_rect_area():
+                self._move_edit_cursor_column(-1)
+            else:
+                self._horizontal_move_state.press_left()
+                self._move_edit_cursor_trow()
+            selection.set_area_stop(selection.get_location())
+
+        def area_bounds_move_right():
+            selection.try_set_area_start(orig_location)
+            if selection.has_rect_area():
+                self._move_edit_cursor_column(1)
+            else:
+                self._horizontal_move_state.press_right()
+                self._move_edit_cursor_trow()
+            selection.set_area_stop(selection.get_location())
 
         def handle_rest():
             if not event.isAutoRepeat():
@@ -1420,6 +1473,13 @@ class View(QWidget):
                 Qt.Key_Plus:    lambda: self._sheet_manager.set_column_width(
                                     self._sheet_manager.get_column_width() + 1),
                 Qt.Key_0:       lambda: self._sheet_manager.set_column_width(0),
+            },
+
+            int(Qt.ShiftModifier): {
+                Qt.Key_Up:      area_bounds_move_up,
+                Qt.Key_Down:    area_bounds_move_down,
+                Qt.Key_Left:    area_bounds_move_left,
+                Qt.Key_Right:   area_bounds_move_right,
             },
         }
 
@@ -1522,6 +1582,11 @@ class View(QWidget):
         # Draw edit cursor
         if self._sheet_manager.get_edit_mode():
             self._draw_edit_cursor(painter)
+
+        # Draw selected area
+        selection = self._ui_model.get_selection()
+        if selection.has_rect_area():
+            pass # TODO
 
         if pixmaps_created == 0:
             pass # TODO: update was easy, predraw a likely next pixmap
