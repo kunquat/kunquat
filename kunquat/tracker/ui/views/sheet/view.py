@@ -1425,27 +1425,27 @@ class View(QWidget):
             self._move_edit_cursor_tstamp()
 
         def handle_move_left():
-            if selection.has_area():
+            if selection.has_area_start():
                 selection.clear_area()
                 self.update()
             self._horizontal_move_state.press_left()
             self._move_edit_cursor_trow()
 
         def handle_move_right():
-            if selection.has_area():
+            if selection.has_area_start():
                 selection.clear_area()
                 self.update()
             self._horizontal_move_state.press_right()
             self._move_edit_cursor_trow()
 
         def handle_move_trow_start():
-            if selection.has_area():
+            if selection.has_area_start():
                 selection.clear_area()
                 self.update()
             self._move_edit_cursor_trigger_index(0)
 
         def handle_move_trow_end():
-            if selection.has_area():
+            if selection.has_area_start():
                 selection.clear_area()
                 self.update()
             self._move_edit_cursor_trigger_index(2**24) # :-P
@@ -1464,7 +1464,7 @@ class View(QWidget):
 
         def area_bounds_move_left():
             selection.try_set_area_start(orig_location)
-            if selection.has_rect_area():
+            if selection.has_rect_area() or not self._sheet_manager.is_at_trigger_row():
                 self._move_edit_cursor_column(-1)
             else:
                 self._horizontal_move_state.press_left()
@@ -1473,7 +1473,7 @@ class View(QWidget):
 
         def area_bounds_move_right():
             selection.try_set_area_start(orig_location)
-            if selection.has_rect_area():
+            if selection.has_rect_area() or not self._sheet_manager.is_at_trigger_row():
                 self._move_edit_cursor_column(1)
             else:
                 self._horizontal_move_state.press_right()
