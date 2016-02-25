@@ -1413,14 +1413,30 @@ class View(QWidget):
             self._move_edit_cursor_tstamp()
 
         def handle_move_left():
-            selection.clear_area()
+            if selection.has_area():
+                selection.clear_area()
+                self.update()
             self._horizontal_move_state.press_left()
             self._move_edit_cursor_trow()
 
         def handle_move_right():
-            selection.clear_area()
+            if selection.has_area():
+                selection.clear_area()
+                self.update()
             self._horizontal_move_state.press_right()
             self._move_edit_cursor_trow()
+
+        def handle_move_trow_start():
+            if selection.has_area():
+                selection.clear_area()
+                self.update()
+            self._move_edit_cursor_trigger_index(0)
+
+        def handle_move_trow_end():
+            if selection.has_area():
+                selection.clear_area()
+                self.update()
+            self._move_edit_cursor_trigger_index(2**24) # :-P
 
         def area_bounds_move_up():
             selection.try_set_area_start(orig_location)
@@ -1451,6 +1467,18 @@ class View(QWidget):
                 self._horizontal_move_state.press_right()
                 self._move_edit_cursor_trow()
             selection.set_area_stop(selection.get_location())
+
+        def area_bounds_move_trow_start():
+            if not selection.has_rect_area():
+                selection.try_set_area_start(orig_location)
+                self._move_edit_cursor_trigger_index(0)
+                selection.set_area_stop(selection.get_location())
+
+        def area_bounds_move_trow_end():
+            if not selection.has_rect_area():
+                selection.try_set_area_start(orig_location)
+                self._move_edit_cursor_trigger_index(2**24) # :-P
+                selection.set_area_stop(selection.get_location())
 
         def handle_rest():
             if not event.isAutoRepeat():
@@ -1483,8 +1511,8 @@ class View(QWidget):
                 Qt.Key_PageUp:  lambda: self._move_edit_cursor_bar(-1),
                 Qt.Key_PageDown: lambda: self._move_edit_cursor_bar(1),
 
-                Qt.Key_Home:    lambda: self._move_edit_cursor_trigger_index(0),
-                Qt.Key_End: lambda: self._move_edit_cursor_trigger_index(2**24), # :-P
+                Qt.Key_Home:    handle_move_trow_start,
+                Qt.Key_End:     handle_move_trow_end,
 
                 # TODO: Some rare keyboard layouts have the 1 key in a location
                 #       that interferes with the typewriter
@@ -1521,6 +1549,8 @@ class View(QWidget):
                 Qt.Key_Down:    area_bounds_move_down,
                 Qt.Key_Left:    area_bounds_move_left,
                 Qt.Key_Right:   area_bounds_move_right,
+                Qt.Key_Home:    area_bounds_move_trow_start,
+                Qt.Key_End:     area_bounds_move_trow_end,
             },
         }
 
