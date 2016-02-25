@@ -619,6 +619,47 @@ class View(QWidget):
 
         painter.restore()
 
+    def _draw_selected_area_rect(
+            self, painter, selection, rel_draw_col_start, rel_draw_col_stop):
+        painter.save()
+
+        draw_col_start = rel_draw_col_start + self._first_col
+        draw_col_stop = rel_draw_col_stop + self._first_col
+
+        top_left = selection.get_area_top_left()
+        bottom_right = selection.get_area_bottom_right()
+
+        first_area_col = top_left.get_col_num()
+        last_area_col = bottom_right.get_col_num()
+
+        start_y = self._get_row_offset(top_left)
+        stop_y = self._get_row_offset(bottom_right)
+        assert start_y != None
+        assert stop_y != None
+
+        area_col_start = max(first_area_col, draw_col_start)
+        area_col_stop = min(last_area_col + 1, draw_col_stop)
+        x_offset = self._get_col_offset(area_col_start)
+        painter.setTransform(QTransform().translate(x_offset, 0))
+        rect = QRect(QPoint(0, start_y), QPoint(self._col_width - 2, stop_y))
+
+        painter.setPen(self._config['area_selection']['border_colour'])
+        top_left = rect.topLeft()
+        top_right = rect.topRight()
+        bottom_left = rect.bottomLeft() - QPoint(0, 1)
+        bottom_right = rect.bottomRight() - QPoint(0, 1)
+
+        for col_index in xrange(area_col_start, area_col_stop):
+            painter.fillRect(rect, self._config['area_selection']['fill_colour'])
+            painter.drawLine(top_left, top_right)
+            if col_index == first_area_col:
+                painter.drawLine(top_left, bottom_left)
+            if col_index == last_area_col:
+                painter.drawLine(top_right, bottom_right)
+            painter.translate(QPoint(self._col_width, 0))
+
+        painter.restore()
+
     def _move_edit_cursor_trow(self):
         delta = self._horizontal_move_state.get_delta()
         assert delta != 0
@@ -1586,7 +1627,8 @@ class View(QWidget):
         # Draw selected area
         selection = self._ui_model.get_selection()
         if selection.has_rect_area():
-            pass # TODO
+            self._draw_selected_area_rect(
+                    painter, selection, draw_col_start, draw_col_stop)
 
         if pixmaps_created == 0:
             pass # TODO: update was easy, predraw a likely next pixmap
