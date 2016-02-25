@@ -646,8 +646,8 @@ class View(QWidget):
         painter.setPen(self._config['area_selection']['border_colour'])
         top_left = rect.topLeft()
         top_right = rect.topRight()
-        bottom_left = rect.bottomLeft() - QPoint(0, 1)
-        bottom_right = rect.bottomRight() - QPoint(0, 1)
+        bottom_left = rect.bottomLeft()
+        bottom_right = rect.bottomRight()
 
         for col_index in xrange(area_col_start, area_col_stop):
             painter.fillRect(rect, self._config['area_selection']['fill_colour'])
