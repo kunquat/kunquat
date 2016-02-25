@@ -23,6 +23,14 @@ class TriggerPosition():
         self._row_ts = row_ts
         self._trigger_index = trigger_index
 
+    def __repr__(self):
+        return 'TriggerPosition({}, {}, {}, {}, {})'.format(
+                self._track,
+                self._system,
+                self._col_num,
+                self._row_ts,
+                self._trigger_index)
+
     def __eq__(self, other):
         if other == None:
             return False
