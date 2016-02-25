@@ -270,4 +270,10 @@ class SheetArea(QAbstractScrollArea):
     def mousePressEvent(self, event):
         self.viewport().mousePressEvent(event)
 
+    def mouseMoveEvent(self, event):
+        self.viewport().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self.viewport().mouseReleaseEvent(event)
+
 

@@ -122,6 +122,7 @@ class View(QWidget):
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.setAttribute(Qt.WA_NoSystemBackground)
         self.setFocusPolicy(Qt.StrongFocus)
+        self.setMouseTracking(True)
 
         self._px_per_beat = None
         self._px_offset = 0
@@ -1023,20 +1024,22 @@ class View(QWidget):
         assert trigger_index <= trigger_count
         return trigger_index
 
-    def _select_location(self, view_x_offset, view_y_offset):
+    def _get_selected_location(self, view_x_offset, view_y_offset):
         module = self._ui_model.get_module()
         album = module.get_album()
         if not album:
-            return
+            return None
         track_count = album.get_track_count()
         songs = (album.get_song_by_track(i) for i in xrange(track_count))
         if not songs:
-            return
+            return None
+
+        view_y_offset = max(0, view_y_offset)
 
         # Get column number
-        col_num = self._first_col + (view_x_offset // self._col_width)
+        col_num = max(0, self._first_col + (view_x_offset // self._col_width))
         if col_num >= COLUMNS_MAX:
-            return
+            return None
         rel_x_offset = view_x_offset % self._col_width
 
         # Get pattern index
@@ -1055,7 +1058,7 @@ class View(QWidget):
             else:
                 break
         if track < 0:
-            return
+            return None
 
         # Get row timestamp
         rel_y_offset = y_offset - self._start_heights[pat_index]
@@ -1221,7 +1224,7 @@ class View(QWidget):
                     row_ts = next_ts
 
         location = TriggerPosition(track, system, col_num, row_ts, trigger_index)
-        selection.set_location(location)
+        return location
 
     def _handle_cursor_down_with_grid(self):
         # TODO: fix this mess
@@ -1696,6 +1699,22 @@ class View(QWidget):
 
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:
-            self._select_location(event.x(), event.y())
+            selection = self._ui_model.get_selection()
+            if selection.has_area():
+                selection.clear_area()
+
+            new_location = self._get_selected_location(event.x(), event.y())
+            if new_location:
+                selection.set_location(new_location)
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() == Qt.LeftButton:
+            selection = self._ui_model.get_selection()
+            selection.try_set_area_start(selection.get_location())
+
+            new_location = self._get_selected_location(event.x(), event.y())
+            if new_location:
+                selection.set_location(new_location)
+                selection.set_area_stop(new_location)
 
 
