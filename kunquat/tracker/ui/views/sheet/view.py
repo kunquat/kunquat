@@ -1516,6 +1516,28 @@ class View(QWidget):
                 self._move_edit_cursor_trigger_index(2**24) # :-P
                 selection.set_area_stop(selection.get_location())
 
+        def area_select_all():
+            location = selection.get_location()
+            module = self._ui_model.get_module()
+            album = module.get_album()
+            song = album.get_song_by_track(location.get_track())
+            pinst = song.get_pattern_instance(location.get_system())
+            pattern = pinst.get_pattern()
+            selection.clear_area()
+            selection.try_set_area_start(TriggerPosition(
+                location.get_track(),
+                location.get_system(),
+                0,
+                tstamp.Tstamp(0),
+                0))
+            selection.set_area_stop(TriggerPosition(
+                location.get_track(),
+                location.get_system(),
+                COLUMNS_MAX - 1,
+                pattern.get_length() + tstamp.Tstamp(0, 1),
+                2**24))
+            self.update()
+
         def handle_rest():
             if not event.isAutoRepeat():
                 self._add_rest()
@@ -1570,6 +1592,7 @@ class View(QWidget):
                 Qt.Key_Plus:    lambda: self._sheet_manager.set_zoom(
                                     self._sheet_manager.get_zoom() + 1),
                 Qt.Key_0:       lambda: self._sheet_manager.set_zoom(0),
+                Qt.Key_A:       area_select_all,
             },
 
             int(Qt.ControlModifier | Qt.AltModifier): {
