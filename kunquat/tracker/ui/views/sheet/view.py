@@ -1440,6 +1440,18 @@ class View(QWidget):
             self._horizontal_move_state.press_right()
             self._move_edit_cursor_trow()
 
+        def handle_move_prev_bar():
+            if selection.has_area_start():
+                selection.clear_area()
+                self.update()
+            self._move_edit_cursor_bar(-1)
+
+        def handle_move_next_bar():
+            if selection.has_area_start():
+                selection.clear_area()
+                self.update()
+            self._move_edit_cursor_bar(1)
+
         def handle_move_trow_start():
             if selection.has_area_start():
                 selection.clear_area()
@@ -1482,6 +1494,16 @@ class View(QWidget):
                 self._move_edit_cursor_trow()
             selection.set_area_stop(selection.get_location())
 
+        def area_bounds_move_prev_bar():
+            selection.try_set_area_start(orig_location)
+            self._move_edit_cursor_bar(-1)
+            selection.set_area_stop(selection.get_location())
+
+        def area_bounds_move_next_bar():
+            selection.try_set_area_start(orig_location)
+            self._move_edit_cursor_bar(1)
+            selection.set_area_stop(selection.get_location())
+
         def area_bounds_move_trow_start():
             if not selection.has_rect_area():
                 selection.try_set_area_start(orig_location)
@@ -1522,8 +1544,8 @@ class View(QWidget):
                 Qt.Key_Left:    handle_move_left,
                 Qt.Key_Right:   handle_move_right,
 
-                Qt.Key_PageUp:  lambda: self._move_edit_cursor_bar(-1),
-                Qt.Key_PageDown: lambda: self._move_edit_cursor_bar(1),
+                Qt.Key_PageUp:  handle_move_prev_bar,
+                Qt.Key_PageDown: handle_move_next_bar,
 
                 Qt.Key_Home:    handle_move_trow_start,
                 Qt.Key_End:     handle_move_trow_end,
@@ -1563,6 +1585,8 @@ class View(QWidget):
                 Qt.Key_Down:    area_bounds_move_down,
                 Qt.Key_Left:    area_bounds_move_left,
                 Qt.Key_Right:   area_bounds_move_right,
+                Qt.Key_PageUp:  area_bounds_move_prev_bar,
+                Qt.Key_PageDown: area_bounds_move_next_bar,
                 Qt.Key_Home:    area_bounds_move_trow_start,
                 Qt.Key_End:     area_bounds_move_trow_end,
             },
