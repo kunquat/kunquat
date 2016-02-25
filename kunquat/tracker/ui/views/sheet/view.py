@@ -1700,7 +1700,7 @@ class View(QWidget):
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:
             selection = self._ui_model.get_selection()
-            if selection.has_area():
+            if selection.has_area_start():
                 selection.clear_area()
 
             new_location = self._get_selected_location(event.x(), event.y())
@@ -1710,10 +1710,36 @@ class View(QWidget):
     def mouseMoveEvent(self, event):
         if event.buttons() == Qt.LeftButton:
             selection = self._ui_model.get_selection()
-            selection.try_set_area_start(selection.get_location())
+            orig_location = selection.get_location()
+            selection.try_set_area_start(orig_location)
 
             new_location = self._get_selected_location(event.x(), event.y())
             if new_location:
+                # Clamp our new location to the original pattern instance
+                orig_track = orig_location.get_track()
+                orig_system = orig_location.get_system()
+                new_track = new_location.get_track()
+                new_system = new_location.get_system()
+                if (new_track, new_system) < (orig_track, orig_system):
+                    new_location = TriggerPosition(
+                            orig_track,
+                            orig_system,
+                            new_location.get_col_num(),
+                            tstamp.Tstamp(0),
+                            0)
+                elif (new_track, new_system) > (orig_track, orig_system):
+                    module = self._ui_model.get_module()
+                    album = module.get_album()
+                    song = album.get_song_by_track(orig_track)
+                    pinst = song.get_pattern_instance(orig_system)
+                    pattern = pinst.get_pattern()
+                    new_location = TriggerPosition(
+                            orig_track,
+                            orig_system,
+                            new_location.get_col_num(),
+                            pattern.get_length(),
+                            0)
+
                 selection.set_location(new_location)
                 selection.set_area_stop(new_location)
 
