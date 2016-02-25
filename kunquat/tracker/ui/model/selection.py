@@ -100,6 +100,10 @@ class Selection():
     def has_area_start(self):
         return (self._get_area_start() != None)
 
+    def get_area_start(self):
+        assert self.has_area_start()
+        return self._get_area_start()
+
     def has_area(self):
         start = self._get_area_start()
         stop = self._get_area_stop()

@@ -142,6 +142,8 @@ class View(QWidget):
 
         self._trow_px_offset = 0
 
+        self._mouse_selection_snapped_out = False
+
         self._field_edit = FieldEdit(self)
 
     def set_ui_model(self, ui_model):
@@ -1699,6 +1701,8 @@ class View(QWidget):
 
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:
+            self._mouse_selection_snapped_out = False
+
             selection = self._ui_model.get_selection()
             if selection.has_area_start():
                 selection.clear_area()
@@ -1740,7 +1744,19 @@ class View(QWidget):
                             pattern.get_length(),
                             0)
 
-                selection.set_location(new_location)
-                selection.set_area_stop(new_location)
+                area_start = selection.get_area_start()
+                area_start_y = utils.get_px_from_tstamp(
+                        area_start.get_row_ts(), self._px_per_beat)
+                new_y = utils.get_px_from_tstamp(
+                        new_location.get_row_ts(), self._px_per_beat)
+                y_dist = abs(new_y - area_start_y)
+
+                if (self._sheet_manager.is_grid_enabled() or
+                        self._mouse_selection_snapped_out or
+                        area_start.get_col_num() != new_location.get_col_num() or
+                        y_dist >= self._config['tr_height']):
+                    self._mouse_selection_snapped_out = True
+                    selection.set_location(new_location)
+                    selection.set_area_stop(new_location)
 
 
