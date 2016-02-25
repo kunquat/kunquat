@@ -771,10 +771,12 @@ class View(QWidget):
         row_ts = location.get_row_ts()
         trigger_index = location.get_trigger_index()
 
+        stay_within_pattern = selection.has_area_start()
+
         # Check moving to the previous system
         move_to_previous_system = False
         if px_delta < 0 and row_ts == 0:
-            if track == 0 and system == 0:
+            if (track == 0 and system == 0) or stay_within_pattern:
                 return
             else:
                 move_to_previous_system = True
@@ -866,6 +868,13 @@ class View(QWidget):
                 self._vertical_move_state.try_snap_delay()
             new_ts = tstamp.Tstamp(0)
         elif new_ts > cur_pattern.get_length():
+            if stay_within_pattern:
+                new_ts = cur_pattern.get_length()
+                new_location = TriggerPosition(
+                        track, system, col_num, new_ts, 0)
+                selection.set_location(new_location)
+                return
+
             new_track = track
             new_system = system + 1
             if new_system >= cur_song.get_system_count():

@@ -97,6 +97,9 @@ class Selection():
         self._session.set_selected_area_start(None)
         self._session.set_selected_area_stop(None)
 
+    def has_area_start(self):
+        return (self._get_area_start() != None)
+
     def has_area(self):
         start = self._get_area_start()
         stop = self._get_area_stop()
