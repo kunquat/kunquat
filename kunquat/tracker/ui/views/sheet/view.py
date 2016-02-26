@@ -933,6 +933,10 @@ class View(QWidget):
 
         new_ts = row_ts + page_step * delta
 
+        stay_within_pattern = selection.has_area_start()
+        if stay_within_pattern:
+            new_ts = min(max(tstamp.Tstamp(0), new_ts), cur_pat_length)
+
         if new_ts < 0:
             new_track = track
             new_system = system - 1
@@ -967,7 +971,9 @@ class View(QWidget):
             return
 
         elif ((new_ts > cur_pat_length) or
-                (cur_pat_length.rem == 0 and new_ts == cur_pat_length)):
+                (cur_pat_length.rem == 0 and
+                    new_ts == cur_pat_length and
+                    not stay_within_pattern)):
             new_track = track
             new_system = system + 1
             if new_system >= cur_song.get_system_count():
