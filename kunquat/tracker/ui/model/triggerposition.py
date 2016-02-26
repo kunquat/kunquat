@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -22,6 +22,28 @@ class TriggerPosition():
         self._col_num = col_num
         self._row_ts = row_ts
         self._trigger_index = trigger_index
+
+    def __repr__(self):
+        return 'TriggerPosition({}, {}, {}, {}, {})'.format(
+                self._track,
+                self._system,
+                self._col_num,
+                self._row_ts,
+                self._trigger_index)
+
+    def __eq__(self, other):
+        if other == None:
+            return False
+
+        assert isinstance(other, TriggerPosition)
+        return ((self._track == other._track) and
+                (self._system == other._system) and
+                (self._col_num == other._col_num) and
+                (self._row_ts == other._row_ts) and
+                (self._trigger_index == other._trigger_index))
+
+    def __ne__(self, other):
+        return not (self == other)
 
     def get_track(self):
         return self._track

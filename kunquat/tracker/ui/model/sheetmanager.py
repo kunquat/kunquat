@@ -180,6 +180,19 @@ class SheetManager():
 
         return cur_column.has_trigger(row_ts, index)
 
+    def is_at_trigger_row(self):
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        if not location:
+            return False
+
+        cur_column = self.get_column_at_location(location)
+        if not cur_column:
+            return False
+        row_ts = location.get_row_ts()
+
+        return row_ts in cur_column.get_trigger_row_positions()
+
     def get_selected_trigger(self):
         selection = self._ui_model.get_selection()
         location = selection.get_location()

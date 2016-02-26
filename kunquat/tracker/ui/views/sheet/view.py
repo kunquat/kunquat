@@ -122,6 +122,7 @@ class View(QWidget):
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.setAttribute(Qt.WA_NoSystemBackground)
         self.setFocusPolicy(Qt.StrongFocus)
+        self.setMouseTracking(True)
 
         self._px_per_beat = None
         self._px_offset = 0
@@ -140,6 +141,8 @@ class View(QWidget):
         self._vertical_move_state = VerticalMoveState()
 
         self._trow_px_offset = 0
+
+        self._mouse_selection_snapped_out = False
 
         self._field_edit = FieldEdit(self)
 
@@ -577,6 +580,8 @@ class View(QWidget):
         trigger_tfm = painter.transform().translate(-self._trow_px_offset, 0)
         painter.setTransform(trigger_tfm)
 
+        orig_trow_tfm = QTransform(trigger_tfm)
+
         for i, trigger, renderer in izip(xrange(len(triggers)), triggers, rends):
             # Identify selected field
             if self._sheet_manager.get_replace_mode():
@@ -599,6 +604,62 @@ class View(QWidget):
                 self._draw_hollow_replace_cursor(painter, 0, 0)
             else:
                 self._draw_hollow_insert_cursor(painter, 0, 0)
+
+        # Draw selected trigger row slice
+        selection = self._ui_model.get_selection()
+        if selection.has_trigger_row_slice():
+            start = selection.get_area_top_left().get_trigger_index()
+            stop = selection.get_area_bottom_right().get_trigger_index()
+            start_x = sum(r.get_total_width() for r in rends[:start])
+            stop_x = start_x + sum(r.get_total_width() for r in rends[start:stop])
+            rect = QRect(
+                    QPoint(start_x, 0), QPoint(stop_x, self._config['tr_height'] - 1))
+
+            painter.setTransform(orig_trow_tfm)
+            painter.setPen(self._config['area_selection']['border_colour'])
+            painter.setBrush(self._config['area_selection']['fill_colour'])
+            painter.drawRect(rect)
+
+        painter.restore()
+
+    def _draw_selected_area_rect(
+            self, painter, selection, rel_draw_col_start, rel_draw_col_stop):
+        painter.save()
+
+        draw_col_start = rel_draw_col_start + self._first_col
+        draw_col_stop = rel_draw_col_stop + self._first_col
+
+        top_left = selection.get_area_top_left()
+        bottom_right = selection.get_area_bottom_right()
+
+        first_area_col = top_left.get_col_num()
+        last_area_col = bottom_right.get_col_num()
+
+        start_y = self._get_row_offset(top_left)
+        stop_y = self._get_row_offset(bottom_right)
+        assert start_y != None
+        assert stop_y != None
+
+        area_col_start = max(first_area_col, draw_col_start)
+        area_col_stop = min(last_area_col + 1, draw_col_stop)
+        x_offset = self._get_col_offset(area_col_start)
+        painter.setTransform(QTransform().translate(x_offset, 0))
+        rect = QRect(QPoint(0, start_y), QPoint(self._col_width - 2, stop_y))
+
+        painter.setPen(self._config['area_selection']['border_colour'])
+        top_left = rect.topLeft()
+        top_right = rect.topRight()
+        bottom_left = rect.bottomLeft()
+        bottom_right = rect.bottomRight()
+
+        for col_index in xrange(area_col_start, area_col_stop):
+            painter.fillRect(rect, self._config['area_selection']['fill_colour'])
+            painter.drawLine(top_left, top_right)
+            if col_index == first_area_col:
+                painter.drawLine(top_left, bottom_left)
+            if col_index == last_area_col:
+                painter.drawLine(top_right, bottom_right)
+            painter.translate(QPoint(self._col_width, 0))
 
         painter.restore()
 
@@ -713,10 +774,12 @@ class View(QWidget):
         row_ts = location.get_row_ts()
         trigger_index = location.get_trigger_index()
 
+        stay_within_pattern = selection.has_area_start()
+
         # Check moving to the previous system
         move_to_previous_system = False
         if px_delta < 0 and row_ts == 0:
-            if track == 0 and system == 0:
+            if (track == 0 and system == 0) or stay_within_pattern:
                 return
             else:
                 move_to_previous_system = True
@@ -808,6 +871,13 @@ class View(QWidget):
                 self._vertical_move_state.try_snap_delay()
             new_ts = tstamp.Tstamp(0)
         elif new_ts > cur_pattern.get_length():
+            if stay_within_pattern:
+                new_ts = cur_pattern.get_length()
+                new_location = TriggerPosition(
+                        track, system, col_num, new_ts, 0)
+                selection.set_location(new_location)
+                return
+
             new_track = track
             new_system = system + 1
             if new_system >= cur_song.get_system_count():
@@ -863,6 +933,10 @@ class View(QWidget):
 
         new_ts = row_ts + page_step * delta
 
+        stay_within_pattern = selection.has_area_start()
+        if stay_within_pattern:
+            new_ts = min(max(tstamp.Tstamp(0), new_ts), cur_pat_length)
+
         if new_ts < 0:
             new_track = track
             new_system = system - 1
@@ -897,7 +971,9 @@ class View(QWidget):
             return
 
         elif ((new_ts > cur_pat_length) or
-                (cur_pat_length.rem == 0 and new_ts == cur_pat_length)):
+                (cur_pat_length.rem == 0 and
+                    new_ts == cur_pat_length and
+                    not stay_within_pattern)):
             new_track = track
             new_system = system + 1
             if new_system >= cur_song.get_system_count():
@@ -956,20 +1032,22 @@ class View(QWidget):
         assert trigger_index <= trigger_count
         return trigger_index
 
-    def _select_location(self, view_x_offset, view_y_offset):
+    def _get_selected_location(self, view_x_offset, view_y_offset):
         module = self._ui_model.get_module()
         album = module.get_album()
         if not album:
-            return
+            return None
         track_count = album.get_track_count()
         songs = (album.get_song_by_track(i) for i in xrange(track_count))
         if not songs:
-            return
+            return None
+
+        view_y_offset = max(0, view_y_offset)
 
         # Get column number
-        col_num = self._first_col + (view_x_offset // self._col_width)
+        col_num = max(0, self._first_col + (view_x_offset // self._col_width))
         if col_num >= COLUMNS_MAX:
-            return
+            return None
         rel_x_offset = view_x_offset % self._col_width
 
         # Get pattern index
@@ -988,7 +1066,7 @@ class View(QWidget):
             else:
                 break
         if track < 0:
-            return
+            return None
 
         # Get row timestamp
         rel_y_offset = y_offset - self._start_heights[pat_index]
@@ -1154,7 +1232,7 @@ class View(QWidget):
                     row_ts = next_ts
 
         location = TriggerPosition(track, system, col_num, row_ts, trigger_index)
-        selection.set_location(location)
+        return location
 
     def _handle_cursor_down_with_grid(self):
         # TODO: fix this mess
@@ -1327,7 +1405,7 @@ class View(QWidget):
 
     def keyPressEvent(self, event):
         selection = self._ui_model.get_selection()
-        location = selection.get_location()
+        orig_location = selection.get_location()
 
         note_pressed = self._keyboard_mapper.process_typewriter_button_event(event)
         if note_pressed:
@@ -1335,28 +1413,136 @@ class View(QWidget):
 
         if event.key() == Qt.Key_Tab:
             event.accept()
+            selection.clear_area()
             self._move_edit_cursor_column(1)
             return True
         elif event.key() == Qt.Key_Backtab:
             event.accept()
+            selection.clear_area()
             self._move_edit_cursor_column(-1)
             return True
 
         def handle_move_up():
+            selection.clear_area()
             self._vertical_move_state.press_up()
             self._move_edit_cursor_tstamp()
 
         def handle_move_down():
+            selection.clear_area()
             self._vertical_move_state.press_down()
             self._move_edit_cursor_tstamp()
 
         def handle_move_left():
+            if selection.has_area_start():
+                selection.clear_area()
+                self.update()
             self._horizontal_move_state.press_left()
             self._move_edit_cursor_trow()
 
         def handle_move_right():
+            if selection.has_area_start():
+                selection.clear_area()
+                self.update()
             self._horizontal_move_state.press_right()
             self._move_edit_cursor_trow()
+
+        def handle_move_prev_bar():
+            if selection.has_area_start():
+                selection.clear_area()
+                self.update()
+            self._move_edit_cursor_bar(-1)
+
+        def handle_move_next_bar():
+            if selection.has_area_start():
+                selection.clear_area()
+                self.update()
+            self._move_edit_cursor_bar(1)
+
+        def handle_move_trow_start():
+            if selection.has_area_start():
+                selection.clear_area()
+                self.update()
+            self._move_edit_cursor_trigger_index(0)
+
+        def handle_move_trow_end():
+            if selection.has_area_start():
+                selection.clear_area()
+                self.update()
+            self._move_edit_cursor_trigger_index(2**24) # :-P
+
+        def area_bounds_move_up():
+            selection.try_set_area_start(orig_location)
+            self._vertical_move_state.press_up()
+            self._move_edit_cursor_tstamp()
+            selection.set_area_stop(selection.get_location())
+
+        def area_bounds_move_down():
+            selection.try_set_area_start(orig_location)
+            self._vertical_move_state.press_down()
+            self._move_edit_cursor_tstamp()
+            selection.set_area_stop(selection.get_location())
+
+        def area_bounds_move_left():
+            selection.try_set_area_start(orig_location)
+            if selection.has_rect_area() or not self._sheet_manager.is_at_trigger_row():
+                self._move_edit_cursor_column(-1)
+            else:
+                self._horizontal_move_state.press_left()
+                self._move_edit_cursor_trow()
+            selection.set_area_stop(selection.get_location())
+
+        def area_bounds_move_right():
+            selection.try_set_area_start(orig_location)
+            if selection.has_rect_area() or not self._sheet_manager.is_at_trigger_row():
+                self._move_edit_cursor_column(1)
+            else:
+                self._horizontal_move_state.press_right()
+                self._move_edit_cursor_trow()
+            selection.set_area_stop(selection.get_location())
+
+        def area_bounds_move_prev_bar():
+            selection.try_set_area_start(orig_location)
+            self._move_edit_cursor_bar(-1)
+            selection.set_area_stop(selection.get_location())
+
+        def area_bounds_move_next_bar():
+            selection.try_set_area_start(orig_location)
+            self._move_edit_cursor_bar(1)
+            selection.set_area_stop(selection.get_location())
+
+        def area_bounds_move_trow_start():
+            if not selection.has_rect_area():
+                selection.try_set_area_start(orig_location)
+                self._move_edit_cursor_trigger_index(0)
+                selection.set_area_stop(selection.get_location())
+
+        def area_bounds_move_trow_end():
+            if not selection.has_rect_area():
+                selection.try_set_area_start(orig_location)
+                self._move_edit_cursor_trigger_index(2**24) # :-P
+                selection.set_area_stop(selection.get_location())
+
+        def area_select_all():
+            location = selection.get_location()
+            module = self._ui_model.get_module()
+            album = module.get_album()
+            song = album.get_song_by_track(location.get_track())
+            pinst = song.get_pattern_instance(location.get_system())
+            pattern = pinst.get_pattern()
+            selection.clear_area()
+            selection.try_set_area_start(TriggerPosition(
+                location.get_track(),
+                location.get_system(),
+                0,
+                tstamp.Tstamp(0),
+                0))
+            selection.set_area_stop(TriggerPosition(
+                location.get_track(),
+                location.get_system(),
+                COLUMNS_MAX - 1,
+                pattern.get_length() + tstamp.Tstamp(0, 1),
+                2**24))
+            self.update()
 
         def handle_rest():
             if not event.isAutoRepeat():
@@ -1386,11 +1572,11 @@ class View(QWidget):
                 Qt.Key_Left:    handle_move_left,
                 Qt.Key_Right:   handle_move_right,
 
-                Qt.Key_PageUp:  lambda: self._move_edit_cursor_bar(-1),
-                Qt.Key_PageDown: lambda: self._move_edit_cursor_bar(1),
+                Qt.Key_PageUp:  handle_move_prev_bar,
+                Qt.Key_PageDown: handle_move_next_bar,
 
-                Qt.Key_Home:    lambda: self._move_edit_cursor_trigger_index(0),
-                Qt.Key_End: lambda: self._move_edit_cursor_trigger_index(2**24), # :-P
+                Qt.Key_Home:    handle_move_trow_start,
+                Qt.Key_End:     handle_move_trow_end,
 
                 # TODO: Some rare keyboard layouts have the 1 key in a location
                 #       that interferes with the typewriter
@@ -1412,6 +1598,7 @@ class View(QWidget):
                 Qt.Key_Plus:    lambda: self._sheet_manager.set_zoom(
                                     self._sheet_manager.get_zoom() + 1),
                 Qt.Key_0:       lambda: self._sheet_manager.set_zoom(0),
+                Qt.Key_A:       area_select_all,
             },
 
             int(Qt.ControlModifier | Qt.AltModifier): {
@@ -1420,6 +1607,17 @@ class View(QWidget):
                 Qt.Key_Plus:    lambda: self._sheet_manager.set_column_width(
                                     self._sheet_manager.get_column_width() + 1),
                 Qt.Key_0:       lambda: self._sheet_manager.set_column_width(0),
+            },
+
+            int(Qt.ShiftModifier): {
+                Qt.Key_Up:      area_bounds_move_up,
+                Qt.Key_Down:    area_bounds_move_down,
+                Qt.Key_Left:    area_bounds_move_left,
+                Qt.Key_Right:   area_bounds_move_right,
+                Qt.Key_PageUp:  area_bounds_move_prev_bar,
+                Qt.Key_PageDown: area_bounds_move_next_bar,
+                Qt.Key_Home:    area_bounds_move_trow_start,
+                Qt.Key_End:     area_bounds_move_trow_end,
             },
         }
 
@@ -1523,6 +1721,12 @@ class View(QWidget):
         if self._sheet_manager.get_edit_mode():
             self._draw_edit_cursor(painter)
 
+        # Draw selected area
+        selection = self._ui_model.get_selection()
+        if selection.has_rect_area():
+            self._draw_selected_area_rect(
+                    painter, selection, draw_col_start, draw_col_stop)
+
         if pixmaps_created == 0:
             pass # TODO: update was easy, predraw a likely next pixmap
         else:
@@ -1550,6 +1754,62 @@ class View(QWidget):
 
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:
-            self._select_location(event.x(), event.y())
+            self._mouse_selection_snapped_out = False
+
+            selection = self._ui_model.get_selection()
+            if selection.has_area_start():
+                selection.clear_area()
+
+            new_location = self._get_selected_location(event.x(), event.y())
+            if new_location:
+                selection.set_location(new_location)
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() == Qt.LeftButton:
+            selection = self._ui_model.get_selection()
+            orig_location = selection.get_location()
+            selection.try_set_area_start(orig_location)
+
+            new_location = self._get_selected_location(event.x(), event.y())
+            if new_location:
+                # Clamp our new location to the original pattern instance
+                orig_track = orig_location.get_track()
+                orig_system = orig_location.get_system()
+                new_track = new_location.get_track()
+                new_system = new_location.get_system()
+                if (new_track, new_system) < (orig_track, orig_system):
+                    new_location = TriggerPosition(
+                            orig_track,
+                            orig_system,
+                            new_location.get_col_num(),
+                            tstamp.Tstamp(0),
+                            0)
+                elif (new_track, new_system) > (orig_track, orig_system):
+                    module = self._ui_model.get_module()
+                    album = module.get_album()
+                    song = album.get_song_by_track(orig_track)
+                    pinst = song.get_pattern_instance(orig_system)
+                    pattern = pinst.get_pattern()
+                    new_location = TriggerPosition(
+                            orig_track,
+                            orig_system,
+                            new_location.get_col_num(),
+                            pattern.get_length(),
+                            0)
+
+                area_start = selection.get_area_start()
+                area_start_y = utils.get_px_from_tstamp(
+                        area_start.get_row_ts(), self._px_per_beat)
+                new_y = utils.get_px_from_tstamp(
+                        new_location.get_row_ts(), self._px_per_beat)
+                y_dist = abs(new_y - area_start_y)
+
+                if (self._sheet_manager.is_grid_enabled() or
+                        self._mouse_selection_snapped_out or
+                        area_start.get_col_num() != new_location.get_col_num() or
+                        y_dist >= self._config['tr_height']):
+                    self._mouse_selection_snapped_out = True
+                    selection.set_location(new_location)
+                    selection.set_area_stop(new_location)
 
 
