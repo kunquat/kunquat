@@ -45,12 +45,14 @@ class SheetManager():
         self._controller = None
         self._session = None
         self._updater = None
+        self._store = None
         self._ui_model = None
 
     def set_controller(self, controller):
         self._controller = controller
         self._session = controller.get_session()
         self._updater = controller.get_updater()
+        self._store = controller.get_store()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -262,6 +264,48 @@ class SheetManager():
         if cur_column.has_trigger(row_ts, index):
             cur_column.remove_trigger(row_ts, index)
             self._on_column_update(location)
+
+    def try_remove_area(self):
+        if not self.is_editing_enabled():
+            return
+
+        selection = self._ui_model.get_selection()
+        if not selection.has_area():
+            return
+
+        top_left = selection.get_area_top_left()
+        bottom_right = selection.get_area_bottom_right()
+
+        if selection.has_trigger_row_slice():
+            start_index = top_left.get_trigger_index()
+            stop_index = bottom_right.get_trigger_index()
+            cur_column = self.get_column_at_location(top_left)
+            cur_column.remove_trigger_row_slice(
+                    top_left.get_row_ts(), start_index, stop_index)
+            selection.set_location(top_left)
+            self._on_column_update(top_left)
+
+        elif selection.has_rect_area():
+            start_col = top_left.get_col_num()
+            stop_col = bottom_right.get_col_num() + 1
+            start_ts = top_left.get_row_ts()
+            stop_ts = bottom_right.get_row_ts()
+
+            transaction = {}
+            for col_num in xrange(start_col, stop_col):
+                cur_location = TriggerPosition(
+                    top_left.get_track(), top_left.get_system(), col_num, start_ts, 0)
+                cur_column = self.get_column_at_location(cur_location)
+                edit = cur_column.get_edit_remove_trigger_rows(start_ts, stop_ts)
+                transaction.update(edit)
+                self._on_column_update(cur_location)
+
+            self._store.put(transaction)
+
+        else:
+            assert False
+
+        selection.clear_area()
 
     def _on_column_update(self, location):
         track_num = location.get_track()

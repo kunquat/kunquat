@@ -89,6 +89,30 @@ class Column():
         raw_data = self._make_raw_data(self._trigger_rows)
         self._store[self._get_key()] = raw_data
 
+    def remove_trigger_row_slice(self, row_ts, start_index, stop_index):
+        self._build_trigger_rows()
+        assert self.has_trigger(row_ts, 0)
+
+        if (start_index == 0) and (stop_index >= len(self._trigger_rows[row_ts])):
+            del self._trigger_rows[row_ts]
+        else:
+            del self._trigger_rows[row_ts][start_index:stop_index]
+
+        raw_data = self._make_raw_data(self._trigger_rows)
+        self._store[self._get_key()] = raw_data
+
+    def get_edit_remove_trigger_rows(self, start_ts, stop_ts):
+        self._build_trigger_rows()
+
+        trows = self.get_trigger_row_positions_in_range(start_ts, stop_ts)
+        for row_ts in trows:
+            del self._trigger_rows[row_ts]
+
+        raw_data = self._make_raw_data(self._trigger_rows)
+        key = self._get_key()
+        transaction = { key: raw_data }
+        return transaction
+
     def _build_trigger_rows(self):
         if self._trigger_rows == None:
             # Find our location

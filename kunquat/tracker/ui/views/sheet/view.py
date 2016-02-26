@@ -1252,8 +1252,12 @@ class View(QWidget):
         self._sheet_manager.try_remove_trigger()
 
     def _perform_delete(self):
-        self._try_delete_selection()
-        self._handle_cursor_down_with_grid()
+        selection = self._ui_model.get_selection()
+        if selection.has_area():
+            self._sheet_manager.try_remove_area()
+        else:
+            self._try_delete_selection()
+            self._handle_cursor_down_with_grid()
 
     def _perform_backspace(self):
         if not self._sheet_manager.is_editing_enabled():
