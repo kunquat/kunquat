@@ -1275,6 +1275,22 @@ class View(QWidget):
             self._move_edit_cursor_trigger_index(trigger_index - 1)
             self._try_delete_selection()
 
+    def _copy_area(self):
+        area_type = self._sheet_manager.get_serialised_area_type()
+        area = self._sheet_manager.get_serialised_area()
+        clipboard = QApplication.clipboard()
+        mimedata = QMimeData()
+        mimedata.setData(area_type, area)
+        clipboard.setMimeData(mimedata)
+
+    def _paste_area(self):
+        clipboard = QApplication.clipboard()
+        mimedata = clipboard.mimeData()
+        area_type = self._sheet_manager.get_serialised_area_type()
+        if mimedata.hasFormat(area_type):
+            area_data = unicode(mimedata.data(area_type))
+            self._sheet_manager.try_paste_serialised_area(area_data)
+
     def _get_selected_coordinates(self):
         selection = self._ui_model.get_selection()
         location = selection.get_location()
@@ -1548,6 +1564,22 @@ class View(QWidget):
                 2**24))
             self.update()
 
+        def area_copy():
+            if selection.has_area():
+                self._copy_area()
+                selection.clear_area()
+
+        def area_cut():
+            if selection.has_area() and self._sheet_manager.is_editing_enabled():
+                self._copy_area()
+                self._perform_delete()
+                selection.clear_area()
+
+        def area_paste():
+            if self._sheet_manager.is_editing_enabled():
+                self._paste_area()
+                selection.clear_area()
+
         def handle_rest():
             if not event.isAutoRepeat():
                 self._add_rest()
@@ -1603,6 +1635,9 @@ class View(QWidget):
                                     self._sheet_manager.get_zoom() + 1),
                 Qt.Key_0:       lambda: self._sheet_manager.set_zoom(0),
                 Qt.Key_A:       area_select_all,
+                Qt.Key_X:       area_cut,
+                Qt.Key_C:       area_copy,
+                Qt.Key_V:       area_paste,
             },
 
             int(Qt.ControlModifier | Qt.AltModifier): {
