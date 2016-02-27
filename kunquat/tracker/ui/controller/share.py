@@ -154,3 +154,5 @@ class Share():
         icon_filename = '{}.png'.format(icon_name)
         icon_path = os.path.join(self._icons_path, icon_filename)
         return icon_path
+
+
