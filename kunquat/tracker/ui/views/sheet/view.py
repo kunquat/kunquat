@@ -1548,6 +1548,32 @@ class View(QWidget):
                 2**24))
             self.update()
 
+        def area_select_columns():
+            if selection.has_area():
+                top_left = selection.get_area_top_left()
+                bottom_right = selection.get_area_bottom_right()
+
+                module = self._ui_model.get_module()
+                album = module.get_album()
+                song = album.get_song_by_track(top_left.get_track())
+                pinst = song.get_pattern_instance(top_left.get_system())
+                pattern = pinst.get_pattern()
+
+                selection.clear_area()
+                selection.try_set_area_start(TriggerPosition(
+                    top_left.get_track(),
+                    top_left.get_system(),
+                    top_left.get_col_num(),
+                    tstamp.Tstamp(0),
+                    0))
+                selection.set_area_stop(TriggerPosition(
+                    bottom_right.get_track(),
+                    bottom_right.get_system(),
+                    bottom_right.get_col_num(),
+                    pattern.get_length() + tstamp.Tstamp(0, 1),
+                    2**24))
+                self.update()
+
         def area_copy():
             if selection.has_area():
                 utils.copy_selected_area(self._sheet_manager)
@@ -1619,6 +1645,7 @@ class View(QWidget):
                                     self._sheet_manager.get_zoom() + 1),
                 Qt.Key_0:       lambda: self._sheet_manager.set_zoom(0),
                 Qt.Key_A:       area_select_all,
+                Qt.Key_L:       area_select_columns,
                 Qt.Key_X:       area_cut,
                 Qt.Key_C:       area_copy,
                 Qt.Key_V:       area_paste,
