@@ -450,6 +450,8 @@ class SheetManager():
                             row_ts = self._unpack_tstamp_str(ts_str)
                             if row_ts == None:
                                 return None
+                            if row_ts >= area_info[u'height']:
+                                return None
                             if type(triggers) != list:
                                 return None
                             if not all(self._is_trigger_valid(t) for t in triggers):
@@ -463,6 +465,11 @@ class SheetManager():
             return None
 
         return area_info
+
+    def is_area_data_valid(self, unsafe_area_data):
+        unsafe_area_info = json.loads(unsafe_area_data)
+        area_info = self._get_validated_area_info(unsafe_area_info)
+        return area_info != None
 
     def try_paste_serialised_area(self, unsafe_area_data):
         selection = self._ui_model.get_selection()
