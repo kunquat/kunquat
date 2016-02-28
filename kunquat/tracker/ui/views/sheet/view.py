@@ -1552,27 +1552,30 @@ class View(QWidget):
             if selection.has_area():
                 top_left = selection.get_area_top_left()
                 bottom_right = selection.get_area_bottom_right()
+            else:
+                top_left = selection.get_location()
+                bottom_right = top_left
 
-                module = self._ui_model.get_module()
-                album = module.get_album()
-                song = album.get_song_by_track(top_left.get_track())
-                pinst = song.get_pattern_instance(top_left.get_system())
-                pattern = pinst.get_pattern()
+            module = self._ui_model.get_module()
+            album = module.get_album()
+            song = album.get_song_by_track(top_left.get_track())
+            pinst = song.get_pattern_instance(top_left.get_system())
+            pattern = pinst.get_pattern()
 
-                selection.clear_area()
-                selection.try_set_area_start(TriggerPosition(
-                    top_left.get_track(),
-                    top_left.get_system(),
-                    top_left.get_col_num(),
-                    tstamp.Tstamp(0),
-                    0))
-                selection.set_area_stop(TriggerPosition(
-                    bottom_right.get_track(),
-                    bottom_right.get_system(),
-                    bottom_right.get_col_num(),
-                    pattern.get_length() + tstamp.Tstamp(0, 1),
-                    0))
-                self.update()
+            selection.clear_area()
+            selection.try_set_area_start(TriggerPosition(
+                top_left.get_track(),
+                top_left.get_system(),
+                top_left.get_col_num(),
+                tstamp.Tstamp(0),
+                0))
+            selection.set_area_stop(TriggerPosition(
+                bottom_right.get_track(),
+                bottom_right.get_system(),
+                bottom_right.get_col_num(),
+                pattern.get_length() + tstamp.Tstamp(0, 1),
+                0))
+            self.update()
 
         def area_copy():
             if selection.has_area():
