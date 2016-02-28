@@ -23,6 +23,7 @@ from restbutton import RestButton
 from delselectionbutton import DelSelectionButton
 from zoombutton import ZoomButton
 from lengtheditor import LengthEditor
+import utils
 
 
 class Toolbar(QWidget):
@@ -35,6 +36,9 @@ class Toolbar(QWidget):
         self._replace_button = ReplaceButton()
         self._rest_button = RestButton()
         self._del_selection_button = DelSelectionButton()
+        self._cut_button = CutButton()
+        self._copy_button = CopyButton()
+        self._paste_button = PasteButton()
         self._zoom_buttons = [
                 ZoomButton('out'),
                 ZoomButton('original'),
@@ -59,6 +63,10 @@ class Toolbar(QWidget):
         if cmdline.get_experimental():
             h.addWidget(self._del_selection_button)
         h.addWidget(HackSeparator())
+        h.addWidget(self._cut_button)
+        h.addWidget(self._copy_button)
+        h.addWidget(self._paste_button)
+        h.addWidget(HackSeparator())
         for button in self._zoom_buttons:
             h.addWidget(button)
         h.addWidget(HackSeparator())
@@ -80,6 +88,9 @@ class Toolbar(QWidget):
         self._replace_button.set_ui_model(ui_model)
         self._rest_button.set_ui_model(ui_model)
         self._del_selection_button.set_ui_model(ui_model)
+        self._cut_button.set_ui_model(ui_model)
+        self._copy_button.set_ui_model(ui_model)
+        self._paste_button.set_ui_model(ui_model)
         for button in self._zoom_buttons:
             button.set_ui_model(ui_model)
         self._grid_toggle.set_ui_model(ui_model)
@@ -92,12 +103,149 @@ class Toolbar(QWidget):
         self._replace_button.unregister_updaters()
         self._rest_button.unregister_updaters()
         self._del_selection_button.unregister_updaters()
+        self._cut_button.unregister_updaters()
+        self._copy_button.unregister_updaters()
+        self._paste_button.unregister_updaters()
         for button in self._zoom_buttons:
             button.unregister_updaters()
         self._grid_toggle.unregister_updaters()
         self._grid_editor_button.unregister_updaters()
         self._grid_selector.unregister_updaters()
         self._length_editor.unregister_updaters()
+
+
+class CutOrCopyButton(QToolButton):
+
+    def __init__(self, button_type):
+        QToolButton.__init__(self)
+        self._ui_model = None
+        self._updater = None
+        self._sheet_manager = None
+
+        if button_type == 'cut':
+            text = 'Cut'
+            shortcut = 'Ctrl + X'
+        elif button_type == 'copy':
+            text = 'Copy'
+            shortcut = 'Ctrl + C'
+        else:
+            assert False
+
+        self._button_type = button_type
+
+        self.setAutoRaise(True)
+        self.setText(text)
+        self.setToolTip('{} ({})'.format(text, shortcut))
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._sheet_manager = ui_model.get_sheet_manager()
+        self._updater.register_updater(self._perform_updates)
+
+        icon_bank = self._ui_model.get_icon_bank()
+        icon_path = icon_bank.get_icon_path(self._button_type)
+        self.setIcon(QIcon(icon_path))
+
+        QObject.connect(self, SIGNAL('clicked()'), self._cut_or_copy)
+
+        self._update_enabled()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        update_signals = set(['signal_selection', 'signal_edit_mode'])
+        if not signals.isdisjoint(update_signals):
+            self._update_enabled()
+
+    def _update_enabled(self):
+        selection = self._ui_model.get_selection()
+        enabled = selection.has_area()
+        if self._button_type == 'cut':
+            enabled = enabled and self._sheet_manager.is_editing_enabled()
+        self.setEnabled(enabled)
+
+    def _cut_or_copy(self):
+        selection = self._ui_model.get_selection()
+        if (selection.has_area() and
+                (self._button_type == 'copy' or
+                    self._sheet_manager.is_editing_enabled())):
+            utils.copy_selected_area(self._sheet_manager)
+            if self._button_type == 'cut':
+                self._sheet_manager.try_remove_area()
+            selection.clear_area()
+            self._updater.signal_update(set(['signal_selection']))
+
+
+class CutButton(CutOrCopyButton):
+
+    def __init__(self):
+        CutOrCopyButton.__init__(self, 'cut')
+
+
+class CopyButton(CutOrCopyButton):
+
+    def __init__(self):
+        CutOrCopyButton.__init__(self, 'copy')
+
+
+class PasteButton(QToolButton):
+
+    def __init__(self):
+        QToolButton.__init__(self)
+        self._ui_model = None
+        self._updater = None
+        self._sheet_manager = None
+
+        self.setAutoRaise(True)
+        self.setText('Paste')
+        self.setToolTip('Paste (Ctrl + V)')
+
+        self._has_valid_data = False
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._sheet_manager = ui_model.get_sheet_manager()
+        self._updater.register_updater(self._perform_updates)
+
+        icon_bank = self._ui_model.get_icon_bank()
+        icon_path = icon_bank.get_icon_path('paste')
+        self.setIcon(QIcon(icon_path))
+
+        clipboard = QApplication.clipboard()
+        QObject.connect(clipboard, SIGNAL('dataChanged()'), self._update_enabled_full)
+
+        QObject.connect(self, SIGNAL('clicked()'), self._paste)
+
+        self._update_enabled_full()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        update_signals = set(['signal_selection', 'signal_edit_mode'])
+        if not signals.isdisjoint(update_signals):
+            self._update_enabled()
+
+    def _update_enabled_full(self):
+        self._has_valid_data = utils.is_clipboard_area_valid(self._sheet_manager)
+        self._update_enabled()
+
+    def _update_enabled(self):
+        selection = self._ui_model.get_selection()
+        enabled = (self._sheet_manager.is_editing_enabled() and
+                bool(selection.get_location()) and
+                self._has_valid_data)
+        self.setEnabled(enabled)
+
+    def _paste(self):
+        if self._sheet_manager.is_editing_enabled():
+            selection = self._ui_model.get_selection()
+            utils.try_paste_area(self._sheet_manager)
+            selection.clear_area()
+            self._updater.signal_update(set(['signal_selection']))
 
 
 class GridToggle(QCheckBox):

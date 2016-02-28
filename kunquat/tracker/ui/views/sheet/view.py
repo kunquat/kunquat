@@ -1252,8 +1252,12 @@ class View(QWidget):
         self._sheet_manager.try_remove_trigger()
 
     def _perform_delete(self):
-        self._try_delete_selection()
-        self._handle_cursor_down_with_grid()
+        selection = self._ui_model.get_selection()
+        if selection.has_area():
+            self._sheet_manager.try_remove_area()
+        else:
+            self._try_delete_selection()
+            self._handle_cursor_down_with_grid()
 
     def _perform_backspace(self):
         if not self._sheet_manager.is_editing_enabled():
@@ -1541,8 +1545,53 @@ class View(QWidget):
                 location.get_system(),
                 COLUMNS_MAX - 1,
                 pattern.get_length() + tstamp.Tstamp(0, 1),
-                2**24))
+                0))
             self.update()
+
+        def area_select_columns():
+            if selection.has_area():
+                top_left = selection.get_area_top_left()
+                bottom_right = selection.get_area_bottom_right()
+            else:
+                top_left = selection.get_location()
+                bottom_right = top_left
+
+            module = self._ui_model.get_module()
+            album = module.get_album()
+            song = album.get_song_by_track(top_left.get_track())
+            pinst = song.get_pattern_instance(top_left.get_system())
+            pattern = pinst.get_pattern()
+
+            selection.clear_area()
+            selection.try_set_area_start(TriggerPosition(
+                top_left.get_track(),
+                top_left.get_system(),
+                top_left.get_col_num(),
+                tstamp.Tstamp(0),
+                0))
+            selection.set_area_stop(TriggerPosition(
+                bottom_right.get_track(),
+                bottom_right.get_system(),
+                bottom_right.get_col_num(),
+                pattern.get_length() + tstamp.Tstamp(0, 1),
+                0))
+            self.update()
+
+        def area_copy():
+            if selection.has_area():
+                utils.copy_selected_area(self._sheet_manager)
+                selection.clear_area()
+
+        def area_cut():
+            if selection.has_area() and self._sheet_manager.is_editing_enabled():
+                utils.copy_selected_area(self._sheet_manager)
+                self._sheet_manager.try_remove_area()
+                selection.clear_area()
+
+        def area_paste():
+            if self._sheet_manager.is_editing_enabled():
+                utils.try_paste_area(self._sheet_manager)
+                selection.clear_area()
 
         def handle_rest():
             if not event.isAutoRepeat():
@@ -1599,6 +1648,10 @@ class View(QWidget):
                                     self._sheet_manager.get_zoom() + 1),
                 Qt.Key_0:       lambda: self._sheet_manager.set_zoom(0),
                 Qt.Key_A:       area_select_all,
+                Qt.Key_L:       area_select_columns,
+                Qt.Key_X:       area_cut,
+                Qt.Key_C:       area_copy,
+                Qt.Key_V:       area_paste,
             },
 
             int(Qt.ControlModifier | Qt.AltModifier): {

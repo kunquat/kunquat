@@ -11,8 +11,13 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import json
+import types
+
+from kunquat.kunquat.events import trigger_events_by_name
 from kunquat.kunquat.limits import *
 from grid import Grid
+from trigger import Trigger
 from triggerposition import TriggerPosition
 import tstamp
 
@@ -45,12 +50,14 @@ class SheetManager():
         self._controller = None
         self._session = None
         self._updater = None
+        self._store = None
         self._ui_model = None
 
     def set_controller(self, controller):
         self._controller = controller
         self._session = controller.get_session()
         self._updater = controller.get_updater()
+        self._store = controller.get_store()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -262,6 +269,271 @@ class SheetManager():
         if cur_column.has_trigger(row_ts, index):
             cur_column.remove_trigger(row_ts, index)
             self._on_column_update(location)
+
+    def try_remove_area(self):
+        if not self.is_editing_enabled():
+            return
+
+        selection = self._ui_model.get_selection()
+        if not selection.has_area():
+            return
+
+        top_left = selection.get_area_top_left()
+        bottom_right = selection.get_area_bottom_right()
+
+        if selection.has_trigger_row_slice():
+            start_index = top_left.get_trigger_index()
+            stop_index = bottom_right.get_trigger_index()
+            cur_column = self.get_column_at_location(top_left)
+            transaction = cur_column.get_edit_remove_trigger_row_slice(
+                    top_left.get_row_ts(), start_index, stop_index)
+            self._store.put(transaction)
+            selection.set_location(top_left)
+            self._on_column_update(top_left)
+
+        elif selection.has_rect_area():
+            start_col = top_left.get_col_num()
+            stop_col = bottom_right.get_col_num() + 1
+            start_ts = top_left.get_row_ts()
+            stop_ts = bottom_right.get_row_ts()
+
+            transaction = {}
+            for col_num in xrange(start_col, stop_col):
+                cur_location = TriggerPosition(
+                    top_left.get_track(), top_left.get_system(), col_num, start_ts, 0)
+                cur_column = self.get_column_at_location(cur_location)
+                edit = cur_column.get_edit_remove_trigger_rows(start_ts, stop_ts)
+                transaction.update(edit)
+                self._on_column_update(cur_location)
+
+            self._store.put(transaction)
+
+        else:
+            assert False
+
+        selection.clear_area()
+
+    @staticmethod
+    def get_serialised_area_type():
+        return 'application/json'
+
+    def _get_col_key(self, col_index):
+        assert 0 <= col_index < COLUMNS_MAX
+        return u'col_{:02x}'.format(col_index)
+
+    def get_serialised_area(self):
+        selection = self._ui_model.get_selection()
+        assert selection.has_area()
+
+        top_left = selection.get_area_top_left()
+        bottom_right = selection.get_area_bottom_right()
+
+        area_info = {}
+
+        if selection.has_trigger_row_slice():
+            area_info[u'type'] = u'trow_slice'
+
+            start_index = top_left.get_trigger_index()
+            stop_index = bottom_right.get_trigger_index()
+            column = self.get_column_at_location(top_left)
+            row_ts = top_left.get_row_ts()
+            triggers = (column.get_trigger(row_ts, i)
+                    for i in xrange(start_index, stop_index))
+            trigger_tuples = [(t.get_type(), t.get_argument()) for t in triggers]
+
+            area_info[u'triggers'] = trigger_tuples
+
+        elif selection.has_rect_area():
+            area_info[u'type'] = u'rect'
+
+            start_col = top_left.get_col_num()
+            stop_col = bottom_right.get_col_num() + 1
+            start_ts = top_left.get_row_ts()
+            stop_ts = bottom_right.get_row_ts()
+
+            area_info[u'width'] = stop_col - start_col
+            area_info[u'height'] = tuple(stop_ts - start_ts)
+
+            # Extract triggers with relative locations
+            for col_index in xrange(start_col, stop_col):
+                cur_location = TriggerPosition(
+                    top_left.get_track(), top_left.get_system(), col_index, start_ts, 0)
+                cur_column = self.get_column_at_location(cur_location)
+                col_area_data = {}
+                for row_ts in cur_column.get_trigger_row_positions_in_range(
+                        start_ts, stop_ts):
+                    trigger_count = cur_column.get_trigger_count_at_row(row_ts)
+                    triggers = []
+                    for trigger_index in xrange(trigger_count):
+                        trigger = cur_column.get_trigger(row_ts, trigger_index)
+                        triggers.append((trigger.get_type(), trigger.get_argument()))
+
+                    rel_ts = row_ts - start_ts
+                    col_area_data[unicode(tuple(rel_ts))] = triggers
+
+                rel_col_index = col_index - start_col
+                area_info[self._get_col_key(rel_col_index)] = col_area_data
+
+        else:
+            assert False
+
+        return json.dumps(area_info)
+
+    def _is_trigger_valid(self, unsafe_trigger):
+        if (type(unsafe_trigger) != list) or (len(unsafe_trigger) != 2):
+            return False
+        tr_type, tr_arg = unsafe_trigger
+        if ((type(tr_type) != unicode) or
+                (tr_type not in trigger_events_by_name)):
+            return False
+        if type(tr_arg) not in (unicode, types.NoneType):
+            return False
+        if ((type(tr_arg) == None) !=
+                (trigger_events_by_name[tr_type] == None)):
+            return False
+
+        return True
+
+    def _unpack_tstamp_str(self, ts_str):
+        parts = ts_str.strip('()').split(',')
+        try:
+            beats_str, rem_str = parts
+            beats = int(beats_str)
+            rem = int(rem_str)
+            if beats < 0:
+                return None
+            if not 0 <= rem < tstamp.BEAT:
+                return None
+            return tstamp.Tstamp(beats, rem)
+        except ValueError:
+            return None
+        assert False
+
+    def _get_validated_area_info(self, unsafe_area_info):
+        area_info = {}
+        try:
+            if unsafe_area_info[u'type'] == u'trow_slice':
+                area_info[u'type'] = unsafe_area_info[u'type']
+
+                triggers = unsafe_area_info[u'triggers']
+                if type(triggers) != list:
+                    return None
+                if not all(self._is_trigger_valid(t) for t in triggers):
+                    return None
+                area_info[u'triggers'] = [Trigger(t[0], t[1]) for t in triggers]
+
+            elif unsafe_area_info[u'type'] == u'rect':
+                area_info[u'type'] = unsafe_area_info[u'type']
+
+                width = unsafe_area_info[u'width']
+                if (type(width) != int) or not (1 <= width <= COLUMNS_MAX):
+                    return None
+                height = unsafe_area_info[u'height']
+                if (type(height) != list) or (len(height) != 2):
+                    return None
+                if not all(type(n) == int for n in height):
+                    return None
+                height_beats, height_rem = height
+                if height_beats < 0:
+                    return None
+                if not 0 <= height_rem < tstamp.BEAT:
+                    return None
+                area_info[u'width'] = width
+                area_info[u'height'] = tstamp.Tstamp(height_beats, height_rem)
+
+                for col_index in xrange(COLUMNS_MAX):
+                    col_key = self._get_col_key(col_index)
+                    if col_key in unsafe_area_info:
+                        col_area_data = unsafe_area_info[col_key]
+                        col_data = {}
+                        for ts_str, triggers in col_area_data.iteritems():
+                            row_ts = self._unpack_tstamp_str(ts_str)
+                            if row_ts == None:
+                                return None
+                            if row_ts >= area_info[u'height']:
+                                return None
+                            if type(triggers) != list:
+                                return None
+                            if not all(self._is_trigger_valid(t) for t in triggers):
+                                return None
+                            col_data[row_ts] = [Trigger(t[0], t[1]) for t in triggers]
+                        area_info[col_key] = col_data
+
+            else:
+                return None
+        except KeyError:
+            return None
+
+        return area_info
+
+    def is_area_data_valid(self, unsafe_area_data):
+        unsafe_area_info = json.loads(unsafe_area_data)
+        area_info = self._get_validated_area_info(unsafe_area_info)
+        return area_info != None
+
+    def try_paste_serialised_area(self, unsafe_area_data):
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        if not location:
+            return
+
+        unsafe_area_info = json.loads(unsafe_area_data)
+        area_info = self._get_validated_area_info(unsafe_area_info)
+        if area_info == None:
+            return
+
+        if area_info[u'type'] == u'trow_slice':
+            column = self.get_column_at_location(location)
+            triggers = area_info[u'triggers']
+
+            if selection.has_trigger_row_slice():
+                top_left = selection.get_area_top_left()
+                bottom_right = selection.get_area_bottom_right()
+                start_index = top_left.get_trigger_index()
+                stop_index = bottom_right.get_trigger_index()
+                transaction = column.get_edit_replace_trigger_row_slice(
+                        location.get_row_ts(), start_index, stop_index, triggers)
+            else:
+                start_index = location.get_trigger_index()
+                transaction = column.get_edit_insert_trigger_row_slice(
+                        location.get_row_ts(), start_index, triggers)
+            new_location = TriggerPosition(
+                    location.get_track(),
+                    location.get_system(),
+                    location.get_col_num(),
+                    location.get_row_ts(),
+                    start_index + len(triggers))
+            selection.set_location(new_location)
+            self._store.put(transaction)
+            self._on_column_update(location)
+
+        elif area_info[u'type'] == u'rect':
+            width = area_info[u'width']
+            height = area_info[u'height']
+
+            start_ts = location.get_row_ts()
+            stop_ts = start_ts + height
+
+            transaction = {}
+            for rel_col_num in xrange(width):
+                col_num = location.get_col_num() + rel_col_num
+                if col_num >= COLUMNS_MAX:
+                    break
+
+                cur_location = TriggerPosition(
+                    location.get_track(), location.get_system(), col_num, start_ts, 0)
+                cur_column = self.get_column_at_location(cur_location)
+
+                edit = cur_column.get_edit_replace_trigger_rows(
+                        start_ts, stop_ts, area_info[self._get_col_key(rel_col_num)])
+                transaction.update(edit)
+
+                self._on_column_update(cur_location)
+
+            self._store.put(transaction)
+
+        else:
+            assert False
 
     def _on_column_update(self, location):
         track_num = location.get_track()

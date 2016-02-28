@@ -89,14 +89,115 @@ class Column():
         raw_data = self._make_raw_data(self._trigger_rows)
         self._store[self._get_key()] = raw_data
 
+    def _copy_trigger_rows(self, trows):
+        new_trows = {}
+
+        for row_ts, row in trows.iteritems():
+            new_row = []
+            for trigger in row:
+                new_row.append(Trigger(trigger))
+            new_trows[row_ts] = new_row
+
+        return new_trows
+
+    def get_edit_replace_trigger_row_slice(
+            self, row_ts, start_index, stop_index, triggers):
+        self._build_trigger_rows()
+
+        trows = self._copy_trigger_rows(self._trigger_rows)
+
+        trows[row_ts][start_index:stop_index] = triggers
+
+        key = self._get_key()
+        raw_data = self._make_raw_data(trows)
+        transaction = { key: raw_data }
+        return transaction
+
+    def get_edit_insert_trigger_row_slice(self, row_ts, trigger_index, triggers):
+        self._build_trigger_rows()
+
+        trows = self._copy_trigger_rows(self._trigger_rows)
+
+        if row_ts not in trows:
+            trows[row_ts] = []
+
+        trows[row_ts][trigger_index:trigger_index] = triggers
+
+        key = self._get_key()
+        raw_data = self._make_raw_data(trows)
+        transaction = { key: raw_data }
+        return transaction
+
+    def get_edit_remove_trigger_row_slice(self, row_ts, start_index, stop_index):
+        self._build_trigger_rows()
+        assert self.has_trigger(row_ts, 0)
+
+        trows = self._copy_trigger_rows(self._trigger_rows)
+
+        if (start_index == 0) and (stop_index >= len(trows[row_ts])):
+            del trows[row_ts]
+        else:
+            del trows[row_ts][start_index:stop_index]
+
+        key = self._get_key()
+        raw_data = self._make_raw_data(trows)
+        transaction = { key: raw_data }
+        return transaction
+
+    def _get_length(self):
+        track_num, system_num = self._get_col_location()
+        album = self._ui_model.get_module().get_album()
+        song = album.get_song_by_track(track_num)
+        pinst = song.get_pattern_instance(system_num)
+        return pinst.get_pattern().get_length()
+
+    def get_edit_replace_trigger_rows(self, start_ts, stop_ts, new_trows):
+        self._build_trigger_rows()
+
+        all_trows = self._copy_trigger_rows(self._trigger_rows)
+
+        old_trow_positions = self.get_trigger_row_positions_in_range(start_ts, stop_ts)
+        for row_ts in old_trow_positions:
+            del all_trows[row_ts]
+
+        length = self._get_length()
+
+        for row_ts, row in new_trows.iteritems():
+            abs_ts = start_ts + row_ts
+            if abs_ts > length:
+                continue
+            all_trows[abs_ts] = row
+
+        key = self._get_key()
+        raw_data = self._make_raw_data(all_trows)
+        transaction = { key: raw_data }
+        return transaction
+
+    def get_edit_remove_trigger_rows(self, start_ts, stop_ts):
+        self._build_trigger_rows()
+
+        all_trows = self._copy_trigger_rows(self._trigger_rows)
+
+        trow_positions = self.get_trigger_row_positions_in_range(start_ts, stop_ts)
+        for row_ts in trow_positions:
+            del all_trows[row_ts]
+
+        raw_data = self._make_raw_data(all_trows)
+        key = self._get_key()
+        transaction = { key: raw_data }
+        return transaction
+
+    def _get_col_location(self):
+        album = self._ui_model.get_module().get_album()
+        col_location = album.get_pattern_instance_location_by_nums(
+                self._pattern_num, self._instance_num)
+        assert col_location
+        return col_location
+
     def _build_trigger_rows(self):
         if self._trigger_rows == None:
             # Find our location
-            album = self._ui_model.get_module().get_album()
-            col_location = album.get_pattern_instance_location_by_nums(
-                    self._pattern_num, self._instance_num)
-            assert col_location
-            track_num, system_num = col_location
+            track_num, system_num = self._get_col_location()
 
             self._trigger_rows = {}
             trigger_list = self._get_raw_data()

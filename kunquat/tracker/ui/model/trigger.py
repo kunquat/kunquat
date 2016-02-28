@@ -15,9 +15,21 @@ from control import Control
 import kunquat.kunquat.events as events
 
 
+class InvArg():
+    pass
+
+
 class Trigger():
 
-    def __init__(self, trigger_type, argument, location=None):
+    def __init__(self, trigger_type, argument=InvArg, location=None):
+        if isinstance(trigger_type, Trigger):
+            tr = trigger_type
+            trigger_type = tr._type
+            argument = tr._argument
+            location = tr._location
+        else:
+            assert argument != InvArg
+
         assert (argument == None) or (type(argument) == unicode)
         self._type = trigger_type
         self._argument = argument

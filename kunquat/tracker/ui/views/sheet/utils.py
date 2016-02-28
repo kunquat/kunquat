@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2015
+# Author: Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@ from __future__ import print_function
 import math
 
 from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 
 from config import *
 from kunquat.kunquat.limits import *
@@ -170,5 +171,33 @@ def scale_colour(colour, factor):
     new_colour.setGreen(colour.green() * factor)
     new_colour.setBlue(colour.blue() * factor)
     return new_colour
+
+
+# Clipboard access
+
+def copy_selected_area(sheet_manager):
+    area_type = sheet_manager.get_serialised_area_type()
+    area = sheet_manager.get_serialised_area()
+    clipboard = QApplication.clipboard()
+    mimedata = QMimeData()
+    mimedata.setData(area_type, area)
+    clipboard.setMimeData(mimedata)
+
+def is_clipboard_area_valid(sheet_manager):
+    clipboard = QApplication.clipboard()
+    mimedata = clipboard.mimeData()
+    area_type = sheet_manager.get_serialised_area_type()
+    if not mimedata.hasFormat(area_type):
+        return False
+    area_data = unicode(mimedata.data(area_type))
+    return sheet_manager.is_area_data_valid(area_data)
+
+def try_paste_area(sheet_manager):
+    clipboard = QApplication.clipboard()
+    mimedata = clipboard.mimeData()
+    area_type = sheet_manager.get_serialised_area_type()
+    if mimedata.hasFormat(area_type):
+        area_data = unicode(mimedata.data(area_type))
+        sheet_manager.try_paste_serialised_area(area_data)
 
 
