@@ -1545,7 +1545,7 @@ class View(QWidget):
                 location.get_system(),
                 COLUMNS_MAX - 1,
                 pattern.get_length() + tstamp.Tstamp(0, 1),
-                2**24))
+                0))
             self.update()
 
         def area_select_columns():
@@ -1571,7 +1571,7 @@ class View(QWidget):
                     bottom_right.get_system(),
                     bottom_right.get_col_num(),
                     pattern.get_length() + tstamp.Tstamp(0, 1),
-                    2**24))
+                    0))
                 self.update()
 
         def area_copy():
