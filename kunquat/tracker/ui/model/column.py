@@ -302,13 +302,13 @@ class Column():
     def clear_overlay_grids(self):
         self._set_overlay_grid_info([])
 
-    def get_overlay_grids_with_start_index(self, row_ts):
+    def _get_overlay_grids_with_start_index(self, row_ts):
         info = self._get_validated_overlay_grid_info()
         smaller_eq = filter(lambda x: x[0] <= row_ts, info)
         return info, len(smaller_eq) - 1
 
     def get_overlay_grid_info_at(self, row_ts):
-        info, index = self.get_overlay_grids_with_start_index(row_ts)
+        info, index = self._get_overlay_grids_with_start_index(row_ts)
 
         if 0 <= index < len(info):
             _, gp_id, offset = info[index]
@@ -316,6 +316,20 @@ class Column():
             gp_id, offset = None, tstamp.Tstamp(0)
 
         return gp_id, offset
+
+    def get_overlay_grid_range_at(self, row_ts):
+        info, index = self._get_overlay_grids_with_start_index(row_ts)
+        length = self._get_length()
+
+        start_ts = tstamp.Tstamp(0)
+        stop_ts = length + tstamp.Tstamp(0, 1)
+
+        if 0 <= index < len(info):
+            start_ts = info[index][0]
+        if index < (len(info) - 1):
+            stop_ts = info[index + 1][0]
+
+        return start_ts, stop_ts
 
     def _get_col_location(self):
         album = self._ui_model.get_module().get_album()

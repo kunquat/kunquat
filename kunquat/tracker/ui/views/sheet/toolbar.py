@@ -344,7 +344,7 @@ class GridSelector(QComboBox):
         self._updater.register_updater(self._perform_updates)
 
         QObject.connect(
-                self, SIGNAL('currentIndexChanged(int)'), self._change_grid_pattern)
+                self, SIGNAL('activated(int)'), self._change_grid_pattern)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
@@ -456,6 +456,9 @@ class GridSelector(QComboBox):
             if all_selected:
                 pattern.set_base_grid_pattern_id(gp_id)
 
+            if gp_id == pattern.get_base_grid_pattern_id():
+                gp_id = None
+
             if (full_columns_selected and
                     (pattern.get_base_grid_pattern_id() == gp_id) and
                     (pattern.get_base_grid_pattern_offset() == offset)):
@@ -469,7 +472,26 @@ class GridSelector(QComboBox):
                     column.set_overlay_grid(start_ts, stop_ts, gp_id, offset)
 
         else:
-            pattern.set_base_grid_pattern_id(gp_id)
+            location = selection.get_location()
+            column = pinst.get_column(location.get_col_num())
+            start_ts, stop_ts = column.get_overlay_grid_range_at(location.get_row_ts())
+            col_gp_id, offset = column.get_overlay_grid_info_at(location.get_row_ts())
+
+            if col_gp_id != None:
+                pat_length = pattern.get_length()
+                full_column_selected = ((start_ts == tstamp.Tstamp(0)) and
+                        (stop_ts > pat_length))
+                if (full_column_selected and
+                        (pattern.get_base_grid_pattern_id() == gp_id) and
+                        (pattern.get_base_grid_patterN_offset() == offset)):
+                    column.clear_overlay_grids()
+                else:
+                    if gp_id == pattern.get_base_grid_pattern_id():
+                        gp_id = None
+                    column.set_overlay_grid(start_ts, stop_ts, gp_id, offset)
+
+            else:
+                pattern.set_base_grid_pattern_id(gp_id)
 
         self._updater.signal_update(set(['signal_grid']))
 
