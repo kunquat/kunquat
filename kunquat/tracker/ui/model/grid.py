@@ -141,11 +141,7 @@ class Grid():
 
         return line_index, line_pat_ts
 
-    def get_next_or_current_line(self, pinst, col_num, row_ts, tr_height_ts):
-        gp_id = self._get_base_grid_pattern_id(pinst)
-        assert isinstance(gp_id, (NoneType, unicode))
-        grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
-
+    def _get_next_or_current_line_of_spec(self, grid_spec, row_ts, tr_height_ts):
         line_info = self._get_next_or_current_line_info(grid_spec, row_ts, tr_height_ts)
         if not line_info:
             return None
@@ -155,6 +151,32 @@ class Grid():
 
         return line_pat_ts, line_style
 
+    def get_next_or_current_line(self, pinst, col_num, row_ts, tr_height_ts):
+        column = pinst.get_column(col_num)
+        pat_length = pinst.get_pattern().get_length()
+        info_slice = column.get_overlay_grid_info_slice(row_ts, pat_length)
+
+        base_gp_id = self._get_base_grid_pattern_id(pinst)
+        assert isinstance(base_gp_id, (NoneType, unicode))
+
+        for i, info in enumerate(info_slice):
+            part_start_ts, gp_id, _ = info
+            part_stop_ts = pat_length
+            if i < (len(info_slice) - 1):
+                part_stop_ts = info_slice[i + 1][0]
+            if gp_id == None:
+                gp_id = base_gp_id
+            grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
+            line_info = self._get_next_or_current_line_of_spec(
+                    grid_spec, row_ts, tr_height_ts)
+            if line_info:
+                line_pat_ts, line_style = line_info
+                if line_pat_ts < part_stop_ts:
+                    return line_pat_ts, line_style
+            row_ts = part_stop_ts
+
+        return None
+
     def get_next_line(self, pinst, col_num, row_ts, tr_height_ts):
         next_ts = row_ts + tstamp.Tstamp(0, 1)
         return self.get_next_or_current_line(pinst, col_num, next_ts, tr_height_ts)
@@ -163,11 +185,7 @@ class Grid():
         next_ts = row_ts - tstamp.Tstamp(0, 1)
         return self.get_prev_line(pinst, col_num, next_ts, tr_height_ts)
 
-    def get_prev_line(self, pinst, col_num, row_ts, tr_height_ts):
-        gp_id = self._get_base_grid_pattern_id(pinst)
-        assert isinstance(gp_id, (NoneType, unicode))
-        grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
-
+    def _get_prev_line_of_spec(self, grid_spec, row_ts, tr_height_ts):
         line_info = self._get_next_or_current_line_info(grid_spec, row_ts, tr_height_ts)
         if not line_info:
             return None
@@ -195,6 +213,30 @@ class Grid():
             line_pat_ts -= gp_cycle_index_mod * grid_length
 
         return line_pat_ts, line_style
+
+    def get_prev_line(self, pinst, col_num, row_ts, tr_height_ts):
+        column = pinst.get_column(col_num)
+        info_slice = column.get_overlay_grid_info_slice(tstamp.Tstamp(0), row_ts)
+
+        base_gp_id = self._get_base_grid_pattern_id(pinst)
+        assert isinstance(base_gp_id, (NoneType, unicode))
+
+        for i, info in reversed(list(enumerate(info_slice))):
+            part_start_ts, gp_id, _ = info
+            part_stop_ts = row_ts
+            if i < (len(info_slice) - 1):
+                part_stop_ts = info_slice[i + 1][0]
+            if gp_id == None:
+                gp_id = base_gp_id
+            grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
+            line_info = self._get_prev_line_of_spec(grid_spec, row_ts, tr_height_ts)
+            if line_info:
+                line_pat_ts, line_style = line_info
+                if line_pat_ts >= part_start_ts:
+                    return line_pat_ts, line_style
+            row_ts = part_start_ts - tstamp.Tstamp(0, 1)
+
+        return None
 
     def _get_grid_lines_of_spec(self, grid_spec, start_ts, stop_ts, tr_height_ts):
         grid_length = grid_spec['length']
@@ -234,11 +276,10 @@ class Grid():
 
         base_gp_id = self._get_base_grid_pattern_id(pinst)
         assert isinstance(base_gp_id, (NoneType, unicode))
-        #grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
 
         lines = []
         for i, info in enumerate(info_slice):
-            part_start_ts, gp_id, offset = info
+            part_start_ts, gp_id, _ = info
             part_stop_ts = stop_ts
             if i < (len(info_slice) - 1):
                 part_stop_ts = info_slice[i + 1][0]
