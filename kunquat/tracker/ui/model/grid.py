@@ -16,7 +16,6 @@ from types import NoneType
 
 import tstamp
 from gridpattern import STYLE_COUNT
-from pattern import Pattern
 
 
 class Grid():
@@ -110,21 +109,11 @@ class Grid():
 
         return spec
 
-    def _get_pattern(self, pat_num):
-        pattern_id = 'pat_{:03x}'.format(pat_num)
-        pattern = Pattern(pattern_id)
-        pattern.set_controller(self._controller)
-        return pattern
-
-    def _get_base_grid_pattern_id(self, pat_num):
-        pattern = self._get_pattern(pat_num)
+    def _get_base_grid_pattern_id(self, pinst):
+        pattern = pinst.get_pattern()
         return pattern.get_base_grid_pattern_id()
 
-    def _get_next_or_current_line_info(self, pat_num, col_num, row_ts, tr_height_ts):
-        gp_id = self._get_base_grid_pattern_id(pat_num)
-        assert isinstance(gp_id, (NoneType, unicode))
-        grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
-
+    def _get_next_or_current_line_info(self, grid_spec, row_ts, tr_height_ts):
         grid_length = grid_spec['length']
         grid_lines = grid_spec['lines']
         if grid_length == 0 or not grid_lines:
@@ -152,38 +141,37 @@ class Grid():
 
         return line_index, line_pat_ts
 
-    def get_next_or_current_line(self, pat_num, col_num, row_ts, tr_height_ts):
-        line_info = self._get_next_or_current_line_info(
-                pat_num, col_num, row_ts, tr_height_ts)
-        if not line_info:
-            return None
-
-        gp_id = self._get_base_grid_pattern_id(pat_num)
+    def get_next_or_current_line(self, pinst, col_num, row_ts, tr_height_ts):
+        gp_id = self._get_base_grid_pattern_id(pinst)
         assert isinstance(gp_id, (NoneType, unicode))
         grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
+
+        line_info = self._get_next_or_current_line_info(grid_spec, row_ts, tr_height_ts)
+        if not line_info:
+            return None
 
         line_index, line_pat_ts = line_info
         _, line_style = grid_spec['lines'][line_index]
 
         return line_pat_ts, line_style
 
-    def get_next_line(self, pat_num, col_num, row_ts, tr_height_ts):
+    def get_next_line(self, pinst, col_num, row_ts, tr_height_ts):
         next_ts = row_ts + tstamp.Tstamp(0, 1)
-        return self.get_next_or_current_line(pat_num, col_num, next_ts, tr_height_ts)
+        return self.get_next_or_current_line(pinst, col_num, next_ts, tr_height_ts)
 
-    def get_prev_or_current_line(self, pat_num, col_num, row_ts, tr_height_ts):
+    def get_prev_or_current_line(self, pinst, col_num, row_ts, tr_height_ts):
         next_ts = row_ts - tstamp.Tstamp(0, 1)
-        return self.get_prev_line(pat_num, col_num, next_ts, tr_height_ts)
+        return self.get_prev_line(pinst, col_num, next_ts, tr_height_ts)
 
-    def get_prev_line(self, pat_num, col_num, row_ts, tr_height_ts):
-        line_info = self._get_next_or_current_line_info(
-                pat_num, col_num, row_ts, tr_height_ts)
+    def get_prev_line(self, pinst, col_num, row_ts, tr_height_ts):
+        gp_id = self._get_base_grid_pattern_id(pinst)
+        assert isinstance(gp_id, (NoneType, unicode))
+        grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
+
+        line_info = self._get_next_or_current_line_info(grid_spec, row_ts, tr_height_ts)
         if not line_info:
             return None
 
-        gp_id = self._get_base_grid_pattern_id(pat_num)
-        assert isinstance(gp_id, (NoneType, unicode))
-        grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
         grid_length = grid_spec['length']
         grid_lines = grid_spec['lines']
 
@@ -208,19 +196,16 @@ class Grid():
 
         return line_pat_ts, line_style
 
-    def get_grid_lines(self, pat_num, col_num, start_ts, stop_ts, tr_height_ts):
-        gp_id = self._get_base_grid_pattern_id(pat_num)
-        assert isinstance(gp_id, (NoneType, unicode))
-        grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
+    def _get_grid_lines_of_spec(self, grid_spec, start_ts, stop_ts, tr_height_ts):
+        grid_length = grid_spec['length']
+        grid_lines = grid_spec['lines']
 
         lines = []
 
-        grid_length = grid_spec['length']
-        grid_lines = grid_spec['lines']
         if grid_length > 0 and grid_lines:
             # Find our first line in the grid pattern
             line_index, line_pat_ts = self._get_next_or_current_line_info(
-                    pat_num, col_num, start_ts, tr_height_ts)
+                    grid_spec, start_ts, tr_height_ts)
 
             # Add lines from the grid pattern until stop_ts is reached
             skip_mod = 0
@@ -240,6 +225,28 @@ class Grid():
 
                 line_index = next_line_index
                 line_pat_ts += ts_to_next_line
+
+        return lines
+
+    def get_grid_lines(self, pinst, col_num, start_ts, stop_ts, tr_height_ts):
+        column = pinst.get_column(col_num)
+        info_slice = column.get_overlay_grid_info_slice(start_ts, stop_ts)
+
+        base_gp_id = self._get_base_grid_pattern_id(pinst)
+        assert isinstance(base_gp_id, (NoneType, unicode))
+        #grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
+
+        lines = []
+        for i, info in enumerate(info_slice):
+            part_start_ts, gp_id, offset = info
+            part_stop_ts = stop_ts
+            if i < (len(info_slice) - 1):
+                part_stop_ts = info_slice[i + 1][0]
+            if gp_id == None:
+                gp_id = base_gp_id
+            grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
+            lines.extend(self._get_grid_lines_of_spec(
+                grid_spec, part_start_ts, part_stop_ts, tr_height_ts))
 
         return lines
 

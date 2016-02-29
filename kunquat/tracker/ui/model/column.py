@@ -187,6 +187,136 @@ class Column():
         transaction = { key: raw_data }
         return transaction
 
+    def _get_validated_tstamp(self, ts_pair):
+        if (type(ts_pair) != list) or (len(ts_pair) != 2):
+            return None
+        if not all(type(t) == int for t in ts_pair):
+            return None
+        if (ts_pair[0] < 0) or not (0 <= ts_pair[1] < tstamp.BEAT):
+            return None
+        ts = tstamp.Tstamp(ts_pair)
+        return ts
+
+    def _get_overlay_grid_key(self):
+        key = '{}/i_overlay_grids.json'.format(self._get_key_base_path())
+        return key
+
+    def _get_validated_overlay_grid_info(self):
+        key = self._get_overlay_grid_key()
+
+        unsafe_data = self._store.get(key, [])
+        if type(unsafe_data) != list:
+            return []
+
+        result = []
+        prev_ts = -tstamp.Tstamp(0, 1)
+        try:
+            for unsafe_item in unsafe_data:
+                row, gp_id, offset = unsafe_item
+
+                row = self._get_validated_tstamp(row)
+                offset = self._get_validated_tstamp(offset)
+                if (row == None) or (offset == None):
+                    return []
+                if row <= prev_ts:
+                    return []
+                if (gp_id != None) and (not isinstance(gp_id, unicode)):
+                    return []
+                prev_ts = row
+
+                result.append((row, gp_id, offset))
+
+        except ValueError:
+            return []
+
+        return result
+
+    def _set_overlay_grid_info(self, info):
+        key = self._get_overlay_grid_key()
+
+        if not info:
+            self._store[key] = None
+            return
+
+        raw_info = []
+        for entry in info:
+            row, gp_id, offset = entry
+            raw_info.append((list(row), gp_id, list(offset)))
+
+        self._store[key] = raw_info
+
+    def get_overlay_grid_info_slice(self, start_ts, stop_ts):
+        info = self._get_validated_overlay_grid_info()
+
+        smaller = filter(lambda x: x[0] < start_ts, info)
+        contained = filter(lambda x: start_ts <= x[0] < stop_ts, info)
+
+        # See if contained can be used as-is
+        if contained and contained[0][0] == start_ts:
+            return contained
+
+        first_gp_id = None
+        first_offset = tstamp.Tstamp(0)
+        if smaller:
+            _, first_gp_id, first_offset = smaller[-1]
+
+        info_slice = [(start_ts, first_gp_id, first_offset)]
+        info_slice.extend(contained)
+        return info_slice
+
+    def set_overlay_grid(self, start_ts, stop_ts, gp_id, offset):
+        assert (gp_id == None) or isinstance(gp_id, unicode)
+        info = self._get_validated_overlay_grid_info()
+
+        smaller = filter(lambda x: x[0] < start_ts, info)
+        contained = filter(lambda x: start_ts <= x[0] <= stop_ts, info)
+        greater = filter(lambda x: x[0] > stop_ts, info)
+
+        # Get active grid settings at stop_ts
+        following_gp_id = None
+        following_offset = tstamp.Tstamp(0)
+        if contained:
+            _, following_gp_id, following_offset = contained[-1]
+        elif smaller:
+            _, following_gp_id, following_offset = smaller[-1]
+
+        # Construct the new settings list
+        new_info = smaller
+        new_info.append((start_ts, gp_id, offset))
+        new_info.append((stop_ts, following_gp_id, following_offset))
+        new_info.extend(greater)
+
+        # Remove repeated settings
+        final_new_info = []
+        prev_gp_id = None
+        prev_offset = tstamp.Tstamp(0)
+        for entry in new_info:
+            ts, gp_id, offset = entry
+            if (gp_id, offset) == (prev_gp_id, prev_offset):
+                continue
+            final_new_info.append(entry)
+            prev_gp_id, prev_offset = gp_id, offset
+
+        self._set_overlay_grid_info(final_new_info)
+
+    def clear_overlay_grids(self):
+        self._set_overlay_grid_info([])
+
+    def get_overlay_grids_with_start_index(self, row_ts):
+        info = self._get_validated_overlay_grid_info()
+        smaller_eq = filter(lambda x: x[0] <= row_ts, info)
+        return info, len(smaller_eq) - 1
+
+    def get_overlay_grid_info_at(self, row_ts):
+        info, index = self.get_overlay_grids_with_start_index(row_ts)
+
+        if 0 <= index < len(info):
+            _, gp_id, offset = info[index]
+        else:
+            gp_id, offset = None, tstamp.Tstamp(0)
+
+        return gp_id, offset
+
     def _get_col_location(self):
         album = self._ui_model.get_module().get_album()
         col_location = album.get_pattern_instance_location_by_nums(
@@ -215,9 +345,11 @@ class Column():
                 trigger.set_ui_model(self._ui_model)
                 self._trigger_rows[ts].append(trigger)
 
+    def _get_key_base_path(self):
+        return 'pat_{:03x}/col_{:02x}'.format(self._pattern_num, self._col_num)
+
     def _get_key(self):
-        key = 'pat_{:03x}/col_{:02x}/p_triggers.json'.format(
-                self._pattern_num, self._col_num)
+        key = '{}/p_triggers.json'.format(self._get_key_base_path())
         return key
 
     def _get_raw_data(self):

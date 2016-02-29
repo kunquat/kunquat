@@ -16,7 +16,9 @@ from types import NoneType
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
+import kunquat.tracker.ui.model.tstamp as tstamp
 from editbutton import EditButton
 from replacebutton import ReplaceButton
 from restbutton import RestButton
@@ -361,7 +363,7 @@ class GridSelector(QComboBox):
             self.addItem(name, gp_id)
         self.blockSignals(old_block)
 
-    def _get_pattern(self):
+    def _get_pattern_instance(self):
         module = self._ui_model.get_module()
         album = module.get_album()
         if not album.get_existence():
@@ -371,18 +373,24 @@ class GridSelector(QComboBox):
         location = selection.get_location()
         song = album.get_song_by_track(location.get_track())
         pinst = song.get_pattern_instance(location.get_system())
-        pattern = pinst.get_pattern()
-        return pattern
+        return pinst
 
     def _set_default_grid_pattern(self):
         grid_manager = self._ui_model.get_grid_manager()
 
         gp_id = None
 
-        # Select the base grid of the current pattern if possible
-        pattern = self._get_pattern()
-        if pattern:
-            gp_id = pattern.get_base_grid_pattern_id()
+        # Select grid at the current location if possible
+        pinst = self._get_pattern_instance()
+        if pinst:
+            selection = self._ui_model.get_selection()
+            location = selection.get_location()
+            column = pinst.get_column(location.get_col_num())
+            gp_id, _ = column.get_overlay_grid_info_at(location.get_row_ts())
+
+            if gp_id == None:
+                pattern = pinst.get_pattern()
+                gp_id = pattern.get_base_grid_pattern_id()
 
         # Fall back to whatever we can find from the grid pattern collection
         if gp_id == None:
@@ -422,11 +430,47 @@ class GridSelector(QComboBox):
         if not gp_id:
             return
 
-        pattern = self._get_pattern()
-        if not pattern:
+        pinst = self._get_pattern_instance()
+        if not pinst:
             return
 
-        pattern.set_base_grid_pattern_id(gp_id)
+        offset = tstamp.Tstamp(0) # TODO
+
+        pattern = pinst.get_pattern()
+
+        selection = self._ui_model.get_selection()
+        if selection.has_rect_area():
+            top_left = selection.get_area_top_left()
+            bottom_right = selection.get_area_bottom_right()
+            start_col = top_left.get_col_num()
+            stop_col = bottom_right.get_col_num() + 1
+            start_ts = top_left.get_row_ts()
+            stop_ts = bottom_right.get_row_ts()
+
+            pat_length = pattern.get_length()
+            full_columns_selected = ((start_ts == tstamp.Tstamp(0)) and
+                    (stop_ts > pat_length))
+            all_selected = (full_columns_selected and
+                    ((start_col, stop_col) == (0, COLUMNS_MAX)))
+
+            if all_selected:
+                pattern.set_base_grid_pattern_id(gp_id)
+
+            if (full_columns_selected and
+                    (pattern.get_base_grid_pattern_id() == gp_id) and
+                    (pattern.get_base_grid_pattern_offset() == offset)):
+                for col_index in xrange(start_col, stop_col):
+                    column = pinst.get_column(col_index)
+                    column.clear_overlay_grids()
+
+            else:
+                for col_index in xrange(start_col, stop_col):
+                    column = pinst.get_column(col_index)
+                    column.set_overlay_grid(start_ts, stop_ts, gp_id, offset)
+
+        else:
+            pattern.set_base_grid_pattern_id(gp_id)
+
         self._updater.signal_update(set(['signal_grid']))
 
 

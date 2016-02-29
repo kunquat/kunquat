@@ -404,13 +404,13 @@ class ColumnCache():
         sheet_manager = self._ui_model.get_sheet_manager()
         if sheet_manager.is_grid_enabled():
             pinsts = utils.get_all_pattern_instances(self._ui_model)
-            pat_num = pinsts[self._pat_index].get_pattern_num()
+            pinst = pinsts[self._pat_index]
 
             grid_start_ts = tstamp.Tstamp(0, start_px * tstamp.BEAT // self._px_per_beat)
             tr_height_ts = utils.get_tstamp_from_px(
                     self._config['tr_height'], self._px_per_beat)
             lines = grid.get_grid_lines(
-                    pat_num, self._col_num, grid_start_ts, stop_ts, tr_height_ts)
+                    pinst, self._col_num, grid_start_ts, stop_ts, tr_height_ts)
 
             for line_info in lines:
                 line_ts, line_style = line_info
