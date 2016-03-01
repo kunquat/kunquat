@@ -161,7 +161,7 @@ class Grid():
 
         for i, info in enumerate(info_slice):
             part_start_ts, gp_id, _ = info
-            part_stop_ts = pat_length
+            part_stop_ts = None
             if i < (len(info_slice) - 1):
                 part_stop_ts = info_slice[i + 1][0]
             if gp_id == None:
@@ -171,7 +171,7 @@ class Grid():
                     grid_spec, row_ts, tr_height_ts)
             if line_info:
                 line_pat_ts, line_style = line_info
-                if line_pat_ts < part_stop_ts:
+                if (part_stop_ts == None) or (line_pat_ts < part_stop_ts):
                     return line_pat_ts, line_style
             row_ts = part_stop_ts
 
