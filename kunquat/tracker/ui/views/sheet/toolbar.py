@@ -438,6 +438,8 @@ class GridSelector(QComboBox):
 
         pattern = pinst.get_pattern()
 
+        sheet_manager = self._ui_model.get_sheet_manager()
+
         selection = self._ui_model.get_selection()
         if selection.has_rect_area():
             top_left = selection.get_area_top_left()
@@ -463,16 +465,16 @@ class GridSelector(QComboBox):
                     (pattern.get_base_grid_pattern_id() == gp_id) and
                     (pattern.get_base_grid_pattern_offset() == offset)):
                 for col_index in xrange(start_col, stop_col):
-                    column = pinst.get_column(col_index)
-                    column.clear_overlay_grids()
+                    sheet_manager.clear_overlay_grids(pinst, column)
 
             else:
                 for col_index in xrange(start_col, stop_col):
-                    column = pinst.get_column(col_index)
-                    column.set_overlay_grid(start_ts, stop_ts, gp_id, offset)
+                    sheet_manager.set_overlay_grid(
+                            pinst, col_index, start_ts, stop_ts, gp_id, offset)
 
         else:
             location = selection.get_location()
+            col_num = location.get_col_num()
             column = pinst.get_column(location.get_col_num())
             start_ts, stop_ts = column.get_overlay_grid_range_at(location.get_row_ts())
             col_gp_id, offset = column.get_overlay_grid_info_at(location.get_row_ts())
@@ -483,12 +485,13 @@ class GridSelector(QComboBox):
                         (stop_ts > pat_length))
                 if (full_column_selected and
                         (pattern.get_base_grid_pattern_id() == gp_id) and
-                        (pattern.get_base_grid_patterN_offset() == offset)):
-                    column.clear_overlay_grids()
+                        (pattern.get_base_grid_pattern_offset() == offset)):
+                    sheet_manager.clear_overlay_grids(pinst, col_num)
                 else:
                     if gp_id == pattern.get_base_grid_pattern_id():
                         gp_id = None
-                    column.set_overlay_grid(start_ts, stop_ts, gp_id, offset)
+                    sheet_manager.set_overlay_grid(
+                            pinst, col_num, start_ts, stop_ts, gp_id, offset)
 
             else:
                 pattern.set_base_grid_pattern_id(gp_id)

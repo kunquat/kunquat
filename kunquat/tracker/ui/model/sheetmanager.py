@@ -535,6 +535,14 @@ class SheetManager():
         else:
             assert False
 
+    def set_overlay_grid(self, pinst, col_num, start_ts, stop_ts, gp_id, offset):
+        column = pinst.get_column(col_num)
+        column.set_overlay_grid(start_ts, stop_ts, gp_id, offset)
+
+    def clear_overlay_grids(self, pinst, col_num):
+        column = pinst.get_column(col_num)
+        column.clear_overlay_grids()
+
     def _on_column_update(self, location):
         track_num = location.get_track()
         system_num = location.get_system()
