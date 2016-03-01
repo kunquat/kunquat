@@ -104,4 +104,10 @@ class Pattern():
         key = '{}/i_base_grid.json'.format(self._pattern_id)
         return self._store.get(key, None)
 
+    def set_base_grid_pattern_offset(self, offset):
+        raise NotImplementedError
+
+    def get_base_grid_pattern_offset(self):
+        return tstamp.Tstamp(0) # TODO
+
 

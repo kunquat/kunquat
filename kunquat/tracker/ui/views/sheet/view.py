@@ -810,19 +810,18 @@ class View(QWidget):
             grid = self._sheet_manager.get_grid()
             song = album.get_song_by_track(track)
             pinst = song.get_pattern_instance(system)
-            pat_num = pinst.get_pattern_num()
             tr_height_ts = utils.get_tstamp_from_px(
                     self._config['tr_height'], self._px_per_beat)
 
             # Get closest grid line in our target direction
             if px_delta < 0:
-                line_info = grid.get_prev_line(pat_num, col_num, row_ts, tr_height_ts)
+                line_info = grid.get_prev_line(pinst, col_num, row_ts, tr_height_ts)
                 if line_info:
                     new_ts, _ = line_info
                 else:
                     new_ts = tstamp.Tstamp(0)
             else:
-                line_info = grid.get_next_line(pat_num, col_num, row_ts, tr_height_ts)
+                line_info = grid.get_next_line(pinst, col_num, row_ts, tr_height_ts)
                 if line_info:
                     new_ts, _ = line_info
                 else:
@@ -1184,14 +1183,13 @@ class View(QWidget):
             cur_song = album.get_song_by_track(track)
             cur_pinst = cur_song.get_pattern_instance(system)
             cur_pattern = cur_pinst.get_pattern()
-            pat_num = cur_pinst.get_pattern_num()
 
             # Select grid line above if an infinite trigger row would
             # overlap with the click position
             prev_line_selected = False
             prev_ts = tstamp.Tstamp(0)
             prev_line_info = grid.get_prev_or_current_line(
-                    pat_num, col_num, row_ts, tr_height_ts)
+                    cur_pinst, col_num, row_ts, tr_height_ts)
             if prev_line_info:
                 prev_ts, _ = prev_line_info
                 prev_y_offset = utils.get_px_from_tstamp(prev_ts, self._px_per_beat)
@@ -1207,7 +1205,7 @@ class View(QWidget):
                 # Get whatever trigger row or grid line is nearest
                 next_ts = cur_pattern.get_length()
                 next_line_info = grid.get_next_or_current_line(
-                        pat_num, col_num, row_ts, tr_height_ts)
+                        cur_pinst, col_num, row_ts, tr_height_ts)
                 if next_line_info:
                     next_ts, _ = next_line_info
 
