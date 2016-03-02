@@ -535,6 +535,14 @@ class SheetManager():
         else:
             assert False
 
+    def set_pattern_length(self, pattern, new_length):
+        transaction = pattern.get_edit_set_length(new_length)
+        self._store.put(transaction)
+
+    def set_pattern_base_grid_pattern_id(self, pattern, gp_id):
+        transaction = pattern.get_edit_set_base_grid_pattern_id(gp_id)
+        self._store.put(transaction)
+
     def set_overlay_grid(self, pinst, col_num, start_ts, stop_ts, gp_id, offset):
         column = pinst.get_column(col_num)
         column.set_overlay_grid(start_ts, stop_ts, gp_id, offset)

@@ -456,7 +456,7 @@ class GridSelector(QComboBox):
                     ((start_col, stop_col) == (0, COLUMNS_MAX)))
 
             if all_selected:
-                pattern.set_base_grid_pattern_id(gp_id)
+                sheet_manager.set_pattern_base_grid_pattern_id(pattern, gp_id)
 
             if gp_id == pattern.get_base_grid_pattern_id():
                 gp_id = None
@@ -494,7 +494,7 @@ class GridSelector(QComboBox):
                             pinst, col_num, start_ts, stop_ts, gp_id, offset)
 
             else:
-                pattern.set_base_grid_pattern_id(gp_id)
+                sheet_manager.set_pattern_base_grid_pattern_id(pattern, gp_id)
 
         self._updater.signal_update(set(['signal_grid']))
 

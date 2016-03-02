@@ -47,9 +47,10 @@ class Pattern():
         key = '{}/p_length.json'.format(self._pattern_id)
         return tstamp.Tstamp(self._store.get(key, get_default_value(key)))
 
-    def set_length(self, length):
+    def get_edit_set_length(self, length):
         key = '{}/p_length.json'.format(self._pattern_id)
-        self._store[key] = list(length)
+        transaction = { key: list(length) }
+        return transaction
 
     def get_instance_ids(self):
         instance_ids = set()
@@ -87,16 +88,17 @@ class Pattern():
                 edit[key] = None
         return edit
 
-    def set_base_grid_pattern_id(self, gp_id):
+    def get_edit_set_base_grid_pattern_id(self, gp_id):
         assert (gp_id == None) or isinstance(gp_id, unicode)
         key = '{}/i_base_grid.json'.format(self._pattern_id)
-        self._store[key] = gp_id
+        transaction = { key: gp_id }
+        return transaction
 
     def get_base_grid_pattern_id(self):
         key = '{}/i_base_grid.json'.format(self._pattern_id)
         return self._store.get(key, None)
 
-    def set_base_grid_pattern_offset(self, offset):
+    def get_edit_set_base_grid_pattern_offset(self, offset):
         raise NotImplementedError
 
     def get_base_grid_pattern_offset(self):

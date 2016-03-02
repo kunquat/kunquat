@@ -130,14 +130,18 @@ class GridManager():
     def remove_grid_pattern(self, gp_id):
         assert gp_id != u'0'
         assert isinstance(gp_id, unicode)
+
         raw_master_dict = self._get_raw_master_dict()
         del raw_master_dict[gp_id]
-        self._set_raw_master_dict(raw_master_dict)
+
+        transaction = { self._get_key(): raw_master_dict }
 
         # Remove references to the removed grid pattern
         for pattern in self._get_all_patterns():
             if pattern.get_base_grid_pattern_id() == gp_id:
-                pattern.set_base_grid_pattern_id(None)
+                transaction.update(pattern.get_edit_set_base_grid_pattern_id(None))
+
+        self._store.put(transaction)
 
     def set_grid_pattern_subdiv_part_count(self, count):
         assert count >= 2
