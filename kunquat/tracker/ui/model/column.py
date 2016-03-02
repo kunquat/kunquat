@@ -46,6 +46,9 @@ class Column():
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
+    def flush_cache(self):
+        self._trigger_rows = None
+
     def get_trigger_row_positions(self):
         self._build_trigger_rows()
         return self._trigger_rows.keys()
@@ -69,25 +72,31 @@ class Column():
         except (KeyError, IndexError):
             return False
 
-    def insert_trigger(self, row_ts, trigger_index, trigger):
+    def get_edit_insert_trigger(self, row_ts, trigger_index, trigger):
         self._build_trigger_rows()
 
-        if row_ts not in self._trigger_rows:
-            self._trigger_rows[row_ts] = []
+        trows = self._copy_trigger_rows(self._trigger_rows)
 
-        self._trigger_rows[row_ts].insert(trigger_index, trigger)
+        if row_ts not in trows:
+            trows[row_ts] = []
 
-        raw_data = self._make_raw_data(self._trigger_rows)
-        self._store[self._get_key()] = raw_data
+        trows[row_ts].insert(trigger_index, trigger)
 
-    def remove_trigger(self, row_ts, trigger_index):
+        raw_data = self._make_raw_data(trows)
+        transaction = { self._get_key(): raw_data }
+        return transaction
+
+    def get_edit_remove_trigger(self, row_ts, trigger_index):
         self._build_trigger_rows()
         assert self.has_trigger(row_ts, trigger_index)
 
-        del self._trigger_rows[row_ts][trigger_index]
+        trows = self._copy_trigger_rows(self._trigger_rows)
 
-        raw_data = self._make_raw_data(self._trigger_rows)
-        self._store[self._get_key()] = raw_data
+        del trows[row_ts][trigger_index]
+
+        raw_data = self._make_raw_data(trows)
+        transaction = { self._get_key(): raw_data }
+        return transaction
 
     def _copy_trigger_rows(self, trows):
         new_trows = {}
@@ -231,19 +240,18 @@ class Column():
 
         return result
 
-    def _set_overlay_grid_info(self, info):
+    def _get_edit_set_overlay_grid_info(self, info):
         key = self._get_overlay_grid_key()
 
         if not info:
-            self._store[key] = None
-            return
+            return { key: None }
 
         raw_info = []
         for entry in info:
             row, gp_id, offset = entry
             raw_info.append((list(row), gp_id, list(offset)))
 
-        self._store[key] = raw_info
+        return { key: raw_info }
 
     def get_overlay_grid_info_slice(self, start_ts, stop_ts):
         info = self._get_validated_overlay_grid_info()
@@ -264,7 +272,7 @@ class Column():
         info_slice.extend(contained)
         return info_slice
 
-    def set_overlay_grid(self, start_ts, stop_ts, gp_id, offset):
+    def get_edit_set_overlay_grid(self, start_ts, stop_ts, gp_id, offset):
         assert (gp_id == None) or isinstance(gp_id, unicode)
         info = self._get_validated_overlay_grid_info()
 
@@ -297,10 +305,10 @@ class Column():
             final_new_info.append(entry)
             prev_gp_id, prev_offset = gp_id, offset
 
-        self._set_overlay_grid_info(final_new_info)
+        return self._get_edit_set_overlay_grid_info(final_new_info)
 
-    def clear_overlay_grids(self):
-        self._set_overlay_grid_info([])
+    def get_edit_clear_overlay_grids(self):
+        return self._get_edit_set_overlay_grid_info([])
 
     def _get_overlay_grids_with_start_index(self, row_ts):
         info = self._get_validated_overlay_grid_info()

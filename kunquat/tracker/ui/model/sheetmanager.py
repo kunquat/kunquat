@@ -226,7 +226,8 @@ class SheetManager():
 
         if self.get_replace_mode():
             self.try_remove_trigger()
-        cur_column.insert_trigger(row_ts, index, trigger)
+        transaction = cur_column.get_edit_insert_trigger(row_ts, index, trigger)
+        self._store.put(transaction)
 
         cur_col_num = location.get_col_num()
         if self.get_chord_mode() and (cur_col_num < COLUMNS_MAX - 1):
@@ -267,7 +268,8 @@ class SheetManager():
         index = location.get_trigger_index()
 
         if cur_column.has_trigger(row_ts, index):
-            cur_column.remove_trigger(row_ts, index)
+            transaction = cur_column.get_edit_remove_trigger(row_ts, index)
+            self._store.put(transaction)
             self._on_column_update(location)
 
     def try_remove_area(self):
@@ -545,17 +547,22 @@ class SheetManager():
 
     def set_overlay_grid(self, pinst, col_num, start_ts, stop_ts, gp_id, offset):
         column = pinst.get_column(col_num)
-        column.set_overlay_grid(start_ts, stop_ts, gp_id, offset)
+        transaction = column.get_edit_set_overlay_grid(start_ts, stop_ts, gp_id, offset)
+        self._store.put(transaction)
 
     def clear_overlay_grids(self, pinst, col_num):
         column = pinst.get_column(col_num)
-        column.clear_overlay_grids()
+        transaction = column.get_edit_clear_overlay_grids()
+        self._store.put(transaction)
 
     def _on_column_update(self, location):
         track_num = location.get_track()
         system_num = location.get_system()
         col_num = location.get_col_num()
         signal = SheetManager.encode_column_signal(track_num, system_num, col_num)
+
+        column = self.get_column_at_location(location)
+        column.flush_cache()
 
         self._updater.signal_update(set([signal]))
 
