@@ -208,7 +208,7 @@ START_TEST(Add_and_remove_internal_effect_and_render)
     set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_pattern.json", "{ \"length\": [16, 0] }");
+    set_data("pat_000/p_length.json", "[16, 0]");
     set_data("pat_000/instance_000/p_manifest.json", "{}");
 
     // Add internal audio unit

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -69,7 +69,7 @@ static void set_silent_composition(void)
     set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_pattern.json", "{ \"length\": [16, 0] }");
+    set_data("pat_000/p_length.json", "[16, 0]");
     set_data("pat_000/instance_000/p_manifest.json", "{}");
 
     return;
@@ -263,7 +263,7 @@ START_TEST(Validation_rejects_patterns_without_instances)
         // Set another valid pattern
         set_data("song_00/p_order_list.json", "[ [1, 0] ]");
         set_data("pat_001/p_manifest.json", "{}");
-        set_data("pat_001/p_pattern.json", "{ \"length\": [16, 0] }");
+        set_data("pat_001/p_length.json", "[16, 0]");
         set_data("pat_001/instance_000/p_manifest.json", "{}");
     }
 
@@ -276,8 +276,8 @@ START_TEST(Validation_rejects_patterns_without_instances)
     set_data(invalid_manifest, "{}");
 
     char invalid_pattern[64] = "";
-    snprintf(invalid_pattern, 64, "%s/p_pattern.json", invalid_prefix);
-    set_data(invalid_pattern, "{ \"length\": [16, 0] }");
+    snprintf(invalid_pattern, 64, "%s/p_length.json", invalid_prefix);
+    set_data(invalid_pattern, "[16, 0]");
 
     char invalid_inst[64] = "";
     snprintf(invalid_inst, 64, "%s/instance_000/p_manifest.json", invalid_prefix);

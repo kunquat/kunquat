@@ -206,7 +206,7 @@ START_TEST(Empty_pattern_contains_silence)
     set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_pattern.json", "{ \"length\": [16, 0] }");
+    set_data("pat_000/p_length.json", "[16, 0]");
     set_data("pat_000/instance_000/p_manifest.json", "{}");
 
     validate();
@@ -265,10 +265,10 @@ START_TEST(Note_on_at_pattern_end_is_handled)
     set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0], [1, 0] ]");
 
-    char pat0_def[128] = "";
-    snprintf(pat0_def, sizeof(pat0_def), "{ \"length\": [%d, 0] }", _i);
+    char pat0_length[128] = "";
+    snprintf(pat0_length, sizeof(pat0_length), "[%d, 0]", _i);
     set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_pattern.json", pat0_def);
+    set_data("pat_000/p_length.json", pat0_length);
     set_data("pat_000/instance_000/p_manifest.json", "{}");
 
     char col_def[128] = "";
@@ -276,7 +276,7 @@ START_TEST(Note_on_at_pattern_end_is_handled)
     set_data("pat_000/col_00/p_triggers.json", col_def);
 
     set_data("pat_001/p_manifest.json", "{}");
-    set_data("pat_001/p_pattern.json", "{ \"length\": [8, 0] }");
+    set_data("pat_001/p_length.json", "[8, 0]");
     set_data("pat_001/instance_000/p_manifest.json", "{}");
 
     validate();
@@ -304,10 +304,10 @@ START_TEST(Note_on_after_pattern_end_is_ignored)
     set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0], [1, 0] ]");
 
-    char pat0_def[128] = "";
-    snprintf(pat0_def, sizeof(pat0_def), "{ \"length\": [%d, 0] }", _i);
+    char pat0_length[128] = "";
+    snprintf(pat0_length, sizeof(pat0_length), "[%d, 0]", _i);
     set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_pattern.json", pat0_def);
+    set_data("pat_000/p_length.json", pat0_length);
     set_data("pat_000/instance_000/p_manifest.json", "{}");
 
     char col_def[128] = "";
@@ -315,7 +315,7 @@ START_TEST(Note_on_after_pattern_end_is_ignored)
     set_data("pat_000/col_00/p_triggers.json", col_def);
 
     set_data("pat_001/p_manifest.json", "{}");
-    set_data("pat_001/p_pattern.json", "{ \"length\": [8, 0] }");
+    set_data("pat_001/p_length.json", "[8, 0]");
     set_data("pat_001/instance_000/p_manifest.json", "{}");
 
     validate();
@@ -343,13 +343,13 @@ START_TEST(Note_on_at_pattern_start_is_handled)
     set_data("song_00/p_order_list.json", "[ [0, 0], [1, 0] ]");
 
     set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/p_length.json", "[4, 0]");
     set_data("pat_000/instance_000/p_manifest.json", "{}");
     set_data("pat_000/col_00/p_triggers.json",
             "[ [[0, 0], [\"n+\", \"0\"]] ]");
 
     set_data("pat_001/p_manifest.json", "{}");
-    set_data("pat_001/p_pattern.json", "{ \"length\": [8, 0] }");
+    set_data("pat_001/p_length.json", "[8, 0]");
     set_data("pat_001/instance_000/p_manifest.json", "{}");
     set_data("pat_001/col_00/p_triggers.json",
             "[ [[0, 0], [\"n+\", \"0\"]] ]");
@@ -381,12 +381,12 @@ START_TEST(Pattern_playback_repeats_pattern)
     set_data("song_00/p_order_list.json", "[ [1, 0], [0, 0], [1, 1] ]");
 
     set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_pattern.json", "{ \"length\": [1, 0] }");
+    set_data("pat_000/p_length.json", "[1, 0]");
     set_data("pat_000/instance_000/p_manifest.json", "{}");
     set_data("pat_000/col_00/p_triggers.json", "[ [[0, 0], [\"n+\", \"0\"]] ]");
 
     set_data("pat_001/p_manifest.json", "{}");
-    set_data("pat_001/p_pattern.json", "{ \"length\": [16, 0] }");
+    set_data("pat_001/p_length.json", "[16, 0]");
     set_data("pat_001/instance_000/p_manifest.json", "{}");
     set_data("pat_001/instance_001/p_manifest.json", "{}");
 
@@ -419,12 +419,12 @@ START_TEST(Pattern_playback_pauses_zero_length_pattern)
     set_data("song_00/p_order_list.json", "[ [1, 0], [0, 0], [1, 1] ]");
 
     set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_pattern.json", "{ \"length\": [0, 0] }");
+    set_data("pat_000/p_length.json", "[0, 0]");
     set_data("pat_000/instance_000/p_manifest.json", "{}");
     set_data("pat_000/col_00/p_triggers.json", "[ [[0, 0], [\"n+\", \"0\"]] ]");
 
     set_data("pat_001/p_manifest.json", "{}");
-    set_data("pat_001/p_pattern.json", "{ \"length\": [16, 0] }");
+    set_data("pat_001/p_length.json", "[16, 0]");
     set_data("pat_001/instance_000/p_manifest.json", "{}");
     set_data("pat_001/instance_001/p_manifest.json", "{}");
     set_data("pat_001/col_01/p_triggers.json",
@@ -519,7 +519,7 @@ START_TEST(Initial_tempo_is_set_correctly)
     snprintf(tempo_data, sizeof(tempo_data), "%d", tempos[_i]);
     set_data("song_00/p_tempo.json", tempo_data);
     set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/p_length.json", "[4, 0]");
     set_data("pat_000/instance_000/p_manifest.json", "{}");
     set_data("pat_000/col_00/p_triggers.json",
             "[ [[0, 0], [\"n+\", \"0\"]], [[1, 0], [\"n+\", \"0\"]] ]");
@@ -549,7 +549,7 @@ START_TEST(Infinite_mode_loops_composition)
     set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_pattern.json", "{ \"length\": [2, 0] }");
+    set_data("pat_000/p_length.json", "[2, 0]");
     set_data("pat_000/instance_000/p_manifest.json", "{}");
     set_data("pat_000/col_00/p_triggers.json", "[ [[0, 0], [\"n+\", \"0\"]] ]");
 
@@ -585,7 +585,7 @@ START_TEST(Skipping_moves_position_forwards)
     set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_pattern.json", "{ \"length\": [8, 0] }");
+    set_data("pat_000/p_length.json", "[8, 0]");
     set_data("pat_000/instance_000/p_manifest.json", "{}");
     set_data("pat_000/col_00/p_triggers.json",
             "[ [[0, 0], [\"n+\", \"0\"]],"
@@ -624,7 +624,7 @@ START_TEST(Pattern_delay_extends_gap_between_trigger_rows)
     set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/p_length.json", "[4, 0]");
     set_data("pat_000/instance_000/p_manifest.json", "{}");
     char triggers[128] = "";
     snprintf(triggers, sizeof(triggers),
@@ -659,7 +659,7 @@ START_TEST(Pattern_delay_inserts_gap_between_adjacent_triggers)
     set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/p_length.json", "[4, 0]");
     set_data("pat_000/instance_000/p_manifest.json", "{}");
     char triggers[128] = "";
     snprintf(triggers, sizeof(triggers),
@@ -696,7 +696,7 @@ START_TEST(Tempo_change_affects_playback_cursor)
     set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/p_length.json", "[4, 0]");
     set_data("pat_000/instance_000/p_manifest.json", "{}");
     char triggers[256] = "";
     snprintf(triggers, sizeof(triggers),
@@ -737,7 +737,7 @@ START_TEST(Tempo_slide_affects_playback_cursor)
     set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/p_length.json", "[4, 0]");
     set_data("pat_000/instance_000/p_manifest.json", "{}");
     char triggers[256] = "";
     snprintf(triggers, sizeof(triggers),
@@ -807,7 +807,7 @@ START_TEST(Jump_backwards_creates_a_loop)
     set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/p_length.json", "[4, 0]");
     set_data("pat_000/instance_000/p_manifest.json", "{}");
     char triggers[256] = "";
     snprintf(triggers, sizeof(triggers),
@@ -882,7 +882,7 @@ void setup_many_triggers(int event_count)
     set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/p_length.json", "[4, 0]");
     set_data("pat_000/instance_000/p_manifest.json", "{}");
 
     // Add lots of simultaneous triggers
@@ -1055,7 +1055,7 @@ void setup_complex_bind_trigger(void)
     set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/p_length.json", "[4, 0]");
     set_data("pat_000/instance_000/p_manifest.json", "{}");
     set_data("pat_000/col_00/p_triggers.json",
             "[ [[0, 0], [\"#\", \"\\\"\\\"\"]] ]");
@@ -1217,7 +1217,7 @@ static void setup_query_patterns(void)
     set_data("song_00/p_order_list.json", "[ [0, 0], [0, 1] ]");
 
     set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/p_length.json", "[4, 0]");
     set_data("pat_000/instance_000/p_manifest.json", "{}");
     set_data("pat_000/instance_001/p_manifest.json", "{}");
 

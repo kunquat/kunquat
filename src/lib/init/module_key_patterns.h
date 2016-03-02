@@ -74,7 +74,7 @@ MODULE_AU_KEYP(proc_conf_key,           "au_XX/proc_XX/c/",                     
 #undef MODULE_AU_KEYP
 
 MODULE_KEYP(pattern_manifest, "pat_XXX/p_manifest.json", "")
-MODULE_KEYP(pattern,          "pat_XXX/p_pattern.json", "{ \"length\": [16, 0] }")
+MODULE_KEYP(pattern_length,   "pat_XXX/p_length.json", "[16, 0]")
 MODULE_KEYP(column,           "pat_XXX/col_XX/p_triggers.json", "[]")
 
 MODULE_KEYP(pat_instance_manifest, "pat_XXX/instance_XXX/p_manifest.json", "")

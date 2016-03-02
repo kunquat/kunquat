@@ -44,20 +44,12 @@ class Pattern():
         return (type(manifest) == dict)
 
     def get_length(self):
-        key = '{}/p_pattern.json'.format(self._pattern_id)
-        try:
-            header = self._store[key]
-            length = header['length']
-            return tstamp.Tstamp(length)
-        except KeyError:
-            default_header = get_default_value(key)
-            return tstamp.Tstamp(default_header['length'])
+        key = '{}/p_length.json'.format(self._pattern_id)
+        return tstamp.Tstamp(self._store.get(key, get_default_value(key)))
 
     def set_length(self, length):
-        key = '{}/p_pattern.json'.format(self._pattern_id)
-        header = self._store.get(key, get_default_value(key))
-        header['length'] = list(length)
-        self._store[key] = header
+        key = '{}/p_length.json'.format(self._pattern_id)
+        self._store[key] = list(length)
 
     def get_instance_ids(self):
         instance_ids = set()
