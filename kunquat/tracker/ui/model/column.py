@@ -72,6 +72,18 @@ class Column():
         except (KeyError, IndexError):
             return False
 
+    def get_edit_replace_or_insert_trigger(self, row_ts, trigger_index, trigger):
+        if not self.has_trigger(row_ts, trigger_index):
+            return self.get_edit_insert_trigger(row_ts, trigger_index, trigger)
+
+        trows = self._copy_trigger_rows(self._trigger_rows)
+
+        trows[row_ts][trigger_index] = trigger
+
+        raw_data = self._make_raw_data(trows)
+        transaction = { self._get_key(): raw_data }
+        return transaction
+
     def get_edit_insert_trigger(self, row_ts, trigger_index, trigger):
         self._build_trigger_rows()
 
