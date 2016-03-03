@@ -573,9 +573,9 @@ class SheetManager():
         else:
             assert False
 
-    def set_pattern_length(self, pattern, new_length):
+    def set_pattern_length(self, pattern, new_length, is_final):
         transaction = pattern.get_edit_set_length(new_length)
-        self._add_transaction(transaction, add_location=False)
+        self._add_transaction(transaction, add_location=False, commit=is_final)
 
     def set_pattern_base_grid_pattern_id(self, pattern, gp_id):
         transaction = pattern.get_edit_set_base_grid_pattern_id(gp_id)

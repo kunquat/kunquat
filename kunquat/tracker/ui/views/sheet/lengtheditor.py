@@ -44,7 +44,9 @@ class LengthEditor(QWidget):
         self._update_value()
 
         QObject.connect(
-                self._spinbox, SIGNAL('valueChanged(double)'), self._value_changed)
+                self._spinbox, SIGNAL('valueChanged(double)'), self._change_length)
+        QObject.connect(
+                self._spinbox, SIGNAL('editingFinished()'), self._change_length_final)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
@@ -91,14 +93,24 @@ class LengthEditor(QWidget):
         if not signals.isdisjoint(update_signals):
             self._update_value()
 
-    def _value_changed(self, new_value):
+    def _change_value(self, new_value, is_final):
         pattern = self._get_pattern()
         if not pattern:
             return
 
         length = tstamp.Tstamp(new_value)
+        if length == pattern.get_length():
+            return
+
         sheet_manager = self._ui_model.get_sheet_manager()
-        sheet_manager.set_pattern_length(pattern, length)
+        sheet_manager.set_pattern_length(pattern, length, is_final)
         self._updater.signal_update(set(['signal_pattern_length']))
+
+    def _change_length(self, new_value):
+        self._change_value(new_value, is_final=False)
+
+    def _change_length_final(self):
+        new_value = self._spinbox.value()
+        self._change_value(new_value, is_final=True)
 
 
