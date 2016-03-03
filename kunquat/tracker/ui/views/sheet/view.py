@@ -1584,6 +1584,7 @@ class View(QWidget):
             if selection.has_area():
                 utils.copy_selected_area(self._sheet_manager)
                 selection.clear_area()
+                self.update()
 
         def area_cut():
             if selection.has_area() and self._sheet_manager.is_editing_enabled():
