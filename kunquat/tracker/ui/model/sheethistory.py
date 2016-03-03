@@ -75,7 +75,7 @@ class SheetHistory():
         past.append(next_entry)
 
     def has_past_changes(self):
-        return bool(self._session.get_sheet_past())
+        return bool(self._session.get_sheet_past() or self._session.get_sheet_cur_step())
 
     def has_future_changes(self):
         return bool(self._session.get_sheet_future())
