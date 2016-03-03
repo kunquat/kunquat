@@ -559,21 +559,19 @@ class GridSelector(QComboBox):
                     ((start_col, stop_col) == (0, COLUMNS_MAX)))
 
             if all_selected:
-                sheet_manager.set_pattern_base_grid_pattern_id(pattern, gp_id)
+                sheet_manager.set_pattern_base_grid_pattern_id(
+                        pattern, gp_id, is_final=False)
 
-            if gp_id == pattern.get_base_grid_pattern_id():
+            if all_selected or (gp_id == pattern.get_base_grid_pattern_id()):
                 gp_id = None
 
             if (full_columns_selected and
                     (pattern.get_base_grid_pattern_id() == gp_id) and
                     (pattern.get_base_grid_pattern_offset() == offset)):
-                for col_index in xrange(start_col, stop_col):
-                    sheet_manager.clear_overlay_grids(pinst, column)
-
+                sheet_manager.clear_overlay_grids(pinst, start_col, stop_col)
             else:
-                for col_index in xrange(start_col, stop_col):
-                    sheet_manager.set_overlay_grid(
-                            pinst, col_index, start_ts, stop_ts, gp_id, offset)
+                sheet_manager.set_overlay_grid(
+                        pinst, start_col, stop_col, start_ts, stop_ts, gp_id, offset)
 
         else:
             location = selection.get_location()
@@ -589,15 +587,16 @@ class GridSelector(QComboBox):
                 if (full_column_selected and
                         (pattern.get_base_grid_pattern_id() == gp_id) and
                         (pattern.get_base_grid_pattern_offset() == offset)):
-                    sheet_manager.clear_overlay_grids(pinst, col_num)
+                    sheet_manager.clear_overlay_grids(pinst, col_num, col_num + 1)
                 else:
                     if gp_id == pattern.get_base_grid_pattern_id():
                         gp_id = None
                     sheet_manager.set_overlay_grid(
-                            pinst, col_num, start_ts, stop_ts, gp_id, offset)
+                        pinst, col_num, col_num + 1, start_ts, stop_ts, gp_id, offset)
 
             else:
-                sheet_manager.set_pattern_base_grid_pattern_id(pattern, gp_id)
+                sheet_manager.set_pattern_base_grid_pattern_id(
+                        pattern, gp_id, is_final=True)
 
         self._updater.signal_update(set(['signal_grid']))
 

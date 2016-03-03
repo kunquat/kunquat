@@ -577,19 +577,23 @@ class SheetManager():
         transaction = pattern.get_edit_set_length(new_length)
         self._add_transaction(transaction, add_location=False, commit=is_final)
 
-    def set_pattern_base_grid_pattern_id(self, pattern, gp_id):
+    def set_pattern_base_grid_pattern_id(self, pattern, gp_id, is_final):
         transaction = pattern.get_edit_set_base_grid_pattern_id(gp_id)
-        self._add_transaction(transaction, add_location=False)
+        self._add_transaction(transaction, add_location=False, commit=is_final)
 
-    def set_overlay_grid(self, pinst, col_num, start_ts, stop_ts, gp_id, offset):
-        column = pinst.get_column(col_num)
-        transaction = column.get_edit_set_overlay_grid(start_ts, stop_ts, gp_id, offset)
-        self._add_transaction(transaction)
+    def set_overlay_grid(
+            self, pinst, start_col, stop_col, start_ts, stop_ts, gp_id, offset):
+        for col_num in xrange(start_col, stop_col):
+            column = pinst.get_column(col_num)
+            transaction = column.get_edit_set_overlay_grid(
+                    start_ts, stop_ts, gp_id, offset)
+            self._add_transaction(transaction, commit=(col_num == stop_col - 1))
 
-    def clear_overlay_grids(self, pinst, col_num):
-        column = pinst.get_column(col_num)
-        transaction = column.get_edit_clear_overlay_grids()
-        self._add_transaction(transaction)
+    def clear_overlay_grids(self, pinst, start_col, stop_col):
+        for col_num in xrange(start_col, stop_col):
+            column = pinst.get_column(col_num)
+            transaction = column.get_edit_clear_overlay_grids()
+            self._add_transaction(transaction, commit=(col_num == stop_col - 1))
 
     def _on_column_update(self, location):
         track_num = location.get_track()
