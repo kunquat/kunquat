@@ -52,6 +52,7 @@ class Session():
         self._chord_notes = set()
         self._active_notes = {}
         self._sheet_past = []
+        self._sheet_cur_step = None
         self._sheet_future = []
         self._sheet_zoom = 0
         self._sheet_zoom_min = 0
@@ -324,6 +325,12 @@ class Session():
 
     def get_sheet_past(self):
         return self._sheet_past
+
+    def get_sheet_cur_step(self):
+        return self._sheet_cur_step
+
+    def set_sheet_cur_step(self, cur_step):
+        self._sheet_cur_step = cur_step
 
     def get_sheet_future(self):
         return self._sheet_future

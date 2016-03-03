@@ -22,8 +22,6 @@ class SheetHistory():
         self._store = None
         self._ui_model = None
 
-        self._cur_step = None
-
     def set_controller(self, controller):
         self._controller = controller
         self._session = controller.get_session()
@@ -33,19 +31,22 @@ class SheetHistory():
         self._ui_model = ui_model
 
     def commit(self):
-        if self._cur_step:
+        cur_step = self._session.get_sheet_cur_step()
+        if cur_step:
             past = self._session.get_sheet_past()
-            past.append(self._cur_step)
-            self._cur_step = None
+            past.append(cur_step)
+            self._session.set_sheet_cur_step(None)
 
     def add_step(self, transaction, location, commit=True):
-        if not self._cur_step:
-            self._cur_step = Step(self._store, self._ui_model)
-        self._cur_step.add_transaction(transaction, location)
+        cur_step = self._session.get_sheet_cur_step()
+        if not cur_step:
+            cur_step = Step(self._store, self._ui_model)
+            self._session.set_sheet_cur_step(cur_step)
+        cur_step.add_transaction(transaction, location)
 
         # Clear our future
         future = self._session.get_sheet_future()
-        future *= 0
+        future[:] = []
 
         if commit:
             self.commit()
@@ -66,7 +67,7 @@ class SheetHistory():
         future = self._session.get_sheet_future()
         if not future:
             return
-        assert not self._cur_step
+        assert not self._session.get_sheet_cur_step()
 
         next_entry = future.pop()
         next_entry.apply_new_data()
