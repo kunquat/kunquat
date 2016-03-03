@@ -85,7 +85,9 @@ class LengthEditor(QWidget):
             'signal_module',
             'signal_pattern_length',
             'signal_selection',
-            'signal_order_list'])
+            'signal_order_list',
+            'signal_undo',
+            'signal_redo'])
         if not signals.isdisjoint(update_signals):
             self._update_value()
 
