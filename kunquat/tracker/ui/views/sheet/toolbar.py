@@ -38,6 +38,8 @@ class Toolbar(QWidget):
         self._replace_button = ReplaceButton()
         self._rest_button = RestButton()
         self._del_selection_button = DelSelectionButton()
+        self._undo_button = UndoButton()
+        self._redo_button = RedoButton()
         self._cut_button = CutButton()
         self._copy_button = CopyButton()
         self._paste_button = PasteButton()
@@ -65,6 +67,9 @@ class Toolbar(QWidget):
         if cmdline.get_experimental():
             h.addWidget(self._del_selection_button)
         h.addWidget(HackSeparator())
+        h.addWidget(self._undo_button)
+        h.addWidget(self._redo_button)
+        h.addWidget(HackSeparator())
         h.addWidget(self._cut_button)
         h.addWidget(self._copy_button)
         h.addWidget(self._paste_button)
@@ -90,6 +95,8 @@ class Toolbar(QWidget):
         self._replace_button.set_ui_model(ui_model)
         self._rest_button.set_ui_model(ui_model)
         self._del_selection_button.set_ui_model(ui_model)
+        self._undo_button.set_ui_model(ui_model)
+        self._redo_button.set_ui_model(ui_model)
         self._cut_button.set_ui_model(ui_model)
         self._copy_button.set_ui_model(ui_model)
         self._paste_button.set_ui_model(ui_model)
@@ -105,6 +112,8 @@ class Toolbar(QWidget):
         self._replace_button.unregister_updaters()
         self._rest_button.unregister_updaters()
         self._del_selection_button.unregister_updaters()
+        self._undo_button.unregister_updaters()
+        self._redo_button.unregister_updaters()
         self._cut_button.unregister_updaters()
         self._copy_button.unregister_updaters()
         self._paste_button.unregister_updaters()
@@ -114,6 +123,100 @@ class Toolbar(QWidget):
         self._grid_editor_button.unregister_updaters()
         self._grid_selector.unregister_updaters()
         self._length_editor.unregister_updaters()
+
+
+class UndoButton(QToolButton):
+
+    def __init__(self):
+        QToolButton.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self.setAutoRaise(True)
+        self.setText('Undo')
+        self.setToolTip('Undo (Ctrl + Z)')
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._sheet_history = ui_model.get_sheet_history()
+        self._updater.register_updater(self._perform_updates)
+
+        icon_bank = self._ui_model.get_icon_bank()
+        icon_path = icon_bank.get_icon_path('undo')
+        self.setIcon(QIcon(icon_path))
+
+        QObject.connect(self, SIGNAL('clicked()'), self._undo)
+
+        self._update_enabled()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        update_signals = set([
+            'signal_undo',
+            'signal_redo',
+            'signal_selection',
+            'signal_pattern_length',
+            'signal_grid'])
+        if not signals.isdisjoint(update_signals):
+            self._update_enabled()
+
+    def _update_enabled(self):
+        self.setEnabled(self._sheet_history.has_past_changes())
+
+    def _undo(self):
+        self._sheet_history.undo()
+        self._ui_model.get_sheet_manager().flush_latest_column()
+        self._updater.signal_update(set(['signal_undo']))
+
+
+class RedoButton(QToolButton):
+
+    def __init__(self):
+        QToolButton.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self.setAutoRaise(True)
+        self.setText('Redo')
+        self.setToolTip('Redo (Ctrl + Shift + Z)')
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._sheet_history = ui_model.get_sheet_history()
+        self._updater.register_updater(self._perform_updates)
+
+        icon_bank = self._ui_model.get_icon_bank()
+        icon_path = icon_bank.get_icon_path('redo')
+        self.setIcon(QIcon(icon_path))
+
+        QObject.connect(self, SIGNAL('clicked()'), self._redo)
+
+        self._update_enabled()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        update_signals = set([
+            'signal_undo',
+            'signal_redo',
+            'signal_selection',
+            'signal_pattern_length',
+            'signal_grid'])
+        if not signals.isdisjoint(update_signals):
+            self._update_enabled()
+
+    def _update_enabled(self):
+        self.setEnabled(self._sheet_history.has_future_changes())
+
+    def _redo(self):
+        self._sheet_history.redo()
+        self._ui_model.get_sheet_manager().flush_latest_column()
+        self._updater.signal_update(set(['signal_redo']))
 
 
 class CutOrCopyButton(QToolButton):
