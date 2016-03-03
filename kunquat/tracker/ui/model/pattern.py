@@ -43,6 +43,9 @@ class Pattern():
         manifest = self._store.get(key, None)
         return (type(manifest) == dict)
 
+    def get_id(self):
+        return self._pattern_id
+
     def get_length(self):
         key = '{}/p_length.json'.format(self._pattern_id)
         return tstamp.Tstamp(self._store.get(key, get_default_value(key)))

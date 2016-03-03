@@ -79,8 +79,8 @@ class SheetHistory():
     def has_future_changes(self):
         return bool(self._session.get_sheet_future())
 
-    def remove_pattern_changes(self, pattern_num):
-        prefix = 'pat_{:03x}'.format(pattern_num)
+    def remove_pattern_changes(self, pattern):
+        prefix = pattern.get_id()
 
         past = self._session.get_sheet_past()
         new_past = [s for s in past if not s.has_changes_with_prefix(prefix)]
