@@ -219,8 +219,10 @@ class SheetManager():
 
         return cur_column.get_trigger(row_ts, index)
 
-    def _add_transaction(self, transaction, commit=None):
-        location = self._ui_model.get_selection().get_location()
+    def _add_transaction(self, transaction, add_location=True, commit=None):
+        location = None
+        if add_location:
+            location = self._ui_model.get_selection().get_location()
         history = self._ui_model.get_sheet_history()
 
         if commit == None:
@@ -250,7 +252,7 @@ class SheetManager():
                     row_ts, index, trigger)
         else:
             transaction = cur_column.get_edit_insert_trigger(row_ts, index, trigger)
-        self._add_transaction(transaction, commit)
+        self._add_transaction(transaction, commit=commit)
 
         # This needs to be done before updating our location below
         self._on_column_update(location)
@@ -573,11 +575,11 @@ class SheetManager():
 
     def set_pattern_length(self, pattern, new_length):
         transaction = pattern.get_edit_set_length(new_length)
-        self._add_transaction(transaction)
+        self._add_transaction(transaction, add_location=False)
 
     def set_pattern_base_grid_pattern_id(self, pattern, gp_id):
         transaction = pattern.get_edit_set_base_grid_pattern_id(gp_id)
-        self._add_transaction(transaction)
+        self._add_transaction(transaction, add_location=False)
 
     def set_overlay_grid(self, pinst, col_num, start_ts, stop_ts, gp_id, offset):
         column = pinst.get_column(col_num)

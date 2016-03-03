@@ -11,6 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from triggerposition import TriggerPosition
+
 
 class SheetHistory():
 
@@ -98,6 +100,7 @@ class Step():
         self._old_data = {}
         self._new_data = {}
         self._location = None
+        self._pinst = None
 
     def add_transaction(self, transaction, location):
         for k in transaction.iterkeys():
@@ -106,22 +109,52 @@ class Step():
         self._new_data.update(transaction)
         assert set(self._old_data.keys()) == set(self._new_data.keys())
 
-        if not self._location:
+        if (not self._location) and location:
             self._location = location
+
+            # Find our pattern instance in case it gets moved later
+            album = self._ui_model.get_module().get_album()
+            assert album
+            song = album.get_song_by_track(location.get_track())
+            assert song
+            self._pinst = song.get_pattern_instance(location.get_system())
+
+    def _get_new_location(self):
+        if not self._location:
+            return None
+
+        album = self._ui_model.get_module().get_album()
+        if not album:
+            return None
+        pinst_loc = album.get_pattern_instance_location(self._pinst)
+        if not pinst_loc:
+            return None
+        track, system = pinst_loc
+
+        return TriggerPosition(
+                track,
+                system,
+                self._location.get_col_num(),
+                self._location.get_row_ts(),
+                self._location.get_trigger_index())
 
     def apply_old_data(self):
         for k, v in self._old_data.iteritems():
             self._store[k] = v
 
-        selection = self._ui_model.get_selection()
-        selection.set_location(self._location)
+        new_location = self._get_new_location()
+        if new_location:
+            selection = self._ui_model.get_selection()
+            selection.set_location(new_location)
 
     def apply_new_data(self):
         for k, v in self._new_data.iteritems():
             self._store[k] = v
 
-        selection = self._ui_model.get_selection()
-        selection.set_location(self._location)
+        new_location = self._get_new_location()
+        if new_location:
+            selection = self._ui_model.get_selection()
+            selection.set_location(new_location)
 
     def has_changes_with_prefix(self, prefix):
         return any(k.startswith(prefix) for k in self._new_data.iterkeys())
