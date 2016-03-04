@@ -24,6 +24,8 @@ class LengthEditor(QWidget):
         self._ui_model = None
         self._updater = None
 
+        self._is_latest_committed = True
+
         self._spinbox = QDoubleSpinBox()
         self._spinbox.setMinimum(0)
         self._spinbox.setMaximum(1024)
@@ -98,15 +100,20 @@ class LengthEditor(QWidget):
         if not pattern:
             return
 
+        sheet_manager = self._ui_model.get_sheet_manager()
+
         length = tstamp.Tstamp(new_value)
         if length == pattern.get_length():
+            if is_final and not self._is_latest_committed:
+                sheet_manager.set_pattern_length(pattern, length, is_final)
+                self._is_latest_committed = True
             return
 
-        sheet_manager = self._ui_model.get_sheet_manager()
         sheet_manager.set_pattern_length(pattern, length, is_final)
         self._updater.signal_update(set(['signal_pattern_length']))
 
     def _change_length(self, new_value):
+        self._is_latest_committed = False
         self._change_value(new_value, is_final=False)
 
     def _change_length_final(self):
