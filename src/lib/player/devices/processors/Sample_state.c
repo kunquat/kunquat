@@ -36,8 +36,6 @@ typedef struct Sample_vstate
     double cents;
     double freq;
     double volume;
-    uint8_t source;
-    uint8_t expr;
     double middle_tone;
 } Sample_vstate;
 
@@ -443,25 +441,13 @@ static int32_t Sample_vstate_render_voice(
     {
         // Select our sample
 
-        // TODO: remove the expression and source parameters from the format
-        int expression = 0;
-        int source = 0;
-
         const Sample_entry* entry = NULL;
         if (vstate->hit_index >= 0)
         {
             assert(vstate->hit_index < KQT_HITS_MAX);
 
-            char map_key[] = "exp_X/src_X/p_hm_hit_map.json";
-            snprintf(
-                    map_key,
-                    strlen(map_key) + 1,
-                    "exp_%01x/src_%01x/p_hm_hit_map.json",
-                    expression,
-                    source);
-            const Hit_map* map = Device_params_get_hit_map(
-                    proc->parent.dparams,
-                    map_key);
+            const Hit_map* map =
+                Device_params_get_hit_map(proc->parent.dparams, "p_hm_hit_map.json");
             if (map == NULL)
             {
                 vstate->active = false;
@@ -476,16 +462,8 @@ static int32_t Sample_vstate_render_voice(
         }
         else
         {
-            char map_key[] = "exp_X/src_X/p_nm_note_map.json";
-            snprintf(
-                    map_key,
-                    strlen(map_key) + 1,
-                    "exp_%01x/src_%01x/p_nm_note_map.json",
-                    expression,
-                    source);
-            const Note_map* map = Device_params_get_note_map(
-                    proc->parent.dparams,
-                    map_key);
+            const Note_map* map =
+                Device_params_get_note_map(proc->parent.dparams, "p_nm_note_map.json");
             if (map == NULL)
             {
                 vstate->active = false;
@@ -595,8 +573,6 @@ void Sample_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     sample_state->cents = 0;
     sample_state->freq = 0;
     sample_state->volume = 0;
-    sample_state->source = 0;
-    sample_state->expr = 0;
     sample_state->middle_tone = 0;
 
     return;
