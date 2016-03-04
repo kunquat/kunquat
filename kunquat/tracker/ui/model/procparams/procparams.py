@@ -26,6 +26,7 @@ class ProcParams():
         self._key_prefix = '{}/'.format(proc_id)
         self._controller = controller
         self._store = controller.get_store()
+        self._session = controller.get_session()
 
     def _get_key(self, impl_or_conf, subkey):
         assert impl_or_conf in ('i/', 'c/')
