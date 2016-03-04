@@ -62,6 +62,9 @@ class SheetManager():
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
+    def flush_latest_column(self):
+        self._session.set_last_column(None)
+
     def get_column_at_location(self, location):
         module = self._ui_model.get_module()
         album = module.get_album()
@@ -144,6 +147,8 @@ class SheetManager():
         return ret_id
 
     def set_chord_mode(self, enabled):
+        was_enabled = self.get_chord_mode()
+
         self._session.set_chord_mode(enabled)
 
         if enabled:
@@ -169,6 +174,11 @@ class SheetManager():
 
                 selection.set_location(new_location)
                 self._session.set_chord_start(None)
+
+            # Finish our undo step
+            if was_enabled:
+                history = self._ui_model.get_sheet_history()
+                history.commit()
 
     def get_chord_mode(self):
         return self._session.get_chord_mode()
@@ -209,7 +219,20 @@ class SheetManager():
 
         return cur_column.get_trigger(row_ts, index)
 
-    def add_trigger(self, trigger):
+    def _add_transaction(self, transaction, add_location=True, commit=None):
+        location = None
+        if add_location:
+            location = self._ui_model.get_selection().get_location()
+        history = self._ui_model.get_sheet_history()
+
+        if commit == None:
+            commit = not self.get_chord_mode()
+
+        history.add_step(transaction, location, commit)
+
+        self._store.put(transaction)
+
+    def add_trigger(self, trigger, commit=None):
         if not self.is_editing_enabled():
             return
 
@@ -225,8 +248,14 @@ class SheetManager():
         index = location.get_trigger_index()
 
         if self.get_replace_mode():
-            self.try_remove_trigger()
-        cur_column.insert_trigger(row_ts, index, trigger)
+            transaction = cur_column.get_edit_replace_or_insert_trigger(
+                    row_ts, index, trigger)
+        else:
+            transaction = cur_column.get_edit_insert_trigger(row_ts, index, trigger)
+        self._add_transaction(transaction, commit=commit)
+
+        # This needs to be done before updating our location below
+        self._on_column_update(location)
 
         cur_col_num = location.get_col_num()
         if self.get_chord_mode() and (cur_col_num < COLUMNS_MAX - 1):
@@ -249,25 +278,32 @@ class SheetManager():
 
         selection.set_location(new_location)
 
-        self._on_column_update(location)
-
-    def try_remove_trigger(self):
+    def _get_edit_try_remove_trigger(self):
         if not self.is_editing_enabled():
-            return
+            return {}
 
         selection = self._ui_model.get_selection()
         location = selection.get_location()
         if not location:
-            return
+            return {}
 
         cur_column = self.get_column_at_location(location)
         if not cur_column:
-            return
+            return {}
         row_ts = location.get_row_ts()
         index = location.get_trigger_index()
 
-        if cur_column.has_trigger(row_ts, index):
-            cur_column.remove_trigger(row_ts, index)
+        if not cur_column.has_trigger(row_ts, index):
+            return {}
+
+        transaction = cur_column.get_edit_remove_trigger(row_ts, index)
+        return transaction
+
+    def try_remove_trigger(self):
+        transaction = self._get_edit_try_remove_trigger()
+        if transaction:
+            self._add_transaction(transaction)
+            location = self._ui_model.get_selection().get_location()
             self._on_column_update(location)
 
     def try_remove_area(self):
@@ -287,7 +323,7 @@ class SheetManager():
             cur_column = self.get_column_at_location(top_left)
             transaction = cur_column.get_edit_remove_trigger_row_slice(
                     top_left.get_row_ts(), start_index, stop_index)
-            self._store.put(transaction)
+            self._add_transaction(transaction)
             selection.set_location(top_left)
             self._on_column_update(top_left)
 
@@ -306,7 +342,7 @@ class SheetManager():
                 transaction.update(edit)
                 self._on_column_update(cur_location)
 
-            self._store.put(transaction)
+            self._add_transaction(transaction)
 
         else:
             assert False
@@ -503,8 +539,10 @@ class SheetManager():
                     location.get_col_num(),
                     location.get_row_ts(),
                     start_index + len(triggers))
+
+            self._add_transaction(transaction)
+
             selection.set_location(new_location)
-            self._store.put(transaction)
             self._on_column_update(location)
 
         elif area_info[u'type'] == u'rect':
@@ -530,16 +568,41 @@ class SheetManager():
 
                 self._on_column_update(cur_location)
 
-            self._store.put(transaction)
+            self._add_transaction(transaction)
 
         else:
             assert False
+
+    def set_pattern_length(self, pattern, new_length, is_final):
+        transaction = pattern.get_edit_set_length(new_length)
+        self._add_transaction(transaction, add_location=False, commit=is_final)
+
+    def set_pattern_base_grid_pattern_id(self, pattern, gp_id, is_final):
+        transaction = pattern.get_edit_set_base_grid_pattern_id(gp_id)
+        self._add_transaction(transaction, add_location=False, commit=is_final)
+
+    def set_overlay_grid(
+            self, pinst, start_col, stop_col, start_ts, stop_ts, gp_id, offset):
+        for col_num in xrange(start_col, stop_col):
+            column = pinst.get_column(col_num)
+            transaction = column.get_edit_set_overlay_grid(
+                    start_ts, stop_ts, gp_id, offset)
+            self._add_transaction(transaction, commit=(col_num == stop_col - 1))
+
+    def clear_overlay_grids(self, pinst, start_col, stop_col):
+        for col_num in xrange(start_col, stop_col):
+            column = pinst.get_column(col_num)
+            transaction = column.get_edit_clear_overlay_grids()
+            self._add_transaction(transaction, commit=(col_num == stop_col - 1))
 
     def _on_column_update(self, location):
         track_num = location.get_track()
         system_num = location.get_system()
         col_num = location.get_col_num()
         signal = SheetManager.encode_column_signal(track_num, system_num, col_num)
+
+        column = self.get_column_at_location(location)
+        column.flush_cache()
 
         self._updater.signal_update(set([signal]))
 

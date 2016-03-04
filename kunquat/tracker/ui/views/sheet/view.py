@@ -189,6 +189,9 @@ class View(QWidget):
         if ('signal_grid' in signals) or ('signal_grid_pattern_modified' in signals):
             self._update_grid()
             self.update()
+        if not signals.isdisjoint(set(['signal_undo', 'signal_redo'])):
+            self._update_all_patterns()
+            self.update()
 
         for signal in signals:
             if signal.startswith(SheetManager.get_column_signal_head()):
@@ -1346,11 +1349,13 @@ class View(QWidget):
 
         self.setFocus()
         arg = self._get_example_trigger_argument(text)
-        trigger = Trigger(text, arg)
-        self._sheet_manager.add_trigger(trigger)
-
         arg_type = events.trigger_events_by_name[text]['arg_type']
-        if arg_type not in (None, events.EVENT_ARG_PITCH):
+        is_immediate_arg_type = arg_type in (None, events.EVENT_ARG_PITCH)
+
+        trigger = Trigger(text, arg)
+        self._sheet_manager.add_trigger(trigger, commit=is_immediate_arg_type)
+
+        if not is_immediate_arg_type:
             selection.set_location(orig_location)
             self._start_trigger_argument_entry(new=True)
 
@@ -1579,6 +1584,7 @@ class View(QWidget):
             if selection.has_area():
                 utils.copy_selected_area(self._sheet_manager)
                 selection.clear_area()
+                self.update()
 
         def area_cut():
             if selection.has_area() and self._sheet_manager.is_editing_enabled():
@@ -1611,6 +1617,18 @@ class View(QWidget):
                 self._start_trigger_argument_entry()
             else:
                 self._start_trigger_type_entry()
+
+        def handle_undo():
+            history = self._ui_model.get_sheet_history()
+            history.undo()
+            self._sheet_manager.flush_latest_column()
+            self._updater.signal_update(set(['signal_undo']))
+
+        def handle_redo():
+            history = self._ui_model.get_sheet_history()
+            history.redo()
+            self._sheet_manager.flush_latest_column()
+            self._updater.signal_update(set(['signal_redo']))
 
         keymap = {
             int(Qt.NoModifier): {
@@ -1650,6 +1668,11 @@ class View(QWidget):
                 Qt.Key_X:       area_cut,
                 Qt.Key_C:       area_copy,
                 Qt.Key_V:       area_paste,
+                Qt.Key_Z:       handle_undo,
+            },
+
+            int(Qt.ControlModifier | Qt.ShiftModifier): {
+                Qt.Key_Z:       handle_redo,
             },
 
             int(Qt.ControlModifier | Qt.AltModifier): {

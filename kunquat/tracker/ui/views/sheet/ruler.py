@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2015
+# Author: Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -81,8 +81,12 @@ class Ruler(QWidget):
 
     def _perform_updates(self, signals):
         if not self._is_grid_ruler:
-            update_signals = set(
-                    ['signal_module', 'signal_order_list', 'signal_pattern_length'])
+            update_signals = set([
+                'signal_module',
+                'signal_order_list',
+                'signal_pattern_length',
+                'signal_undo',
+                'signal_redo'])
             if not signals.isdisjoint(update_signals):
                 self._update_all_patterns()
                 self.update()

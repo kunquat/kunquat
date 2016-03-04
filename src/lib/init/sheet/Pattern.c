@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -68,40 +68,7 @@ Pattern* new_Pattern(void)
 }
 
 
-typedef struct pat_params
-{
-    Tstamp len;
-} pat_params;
-
-static bool read_pat_param(Streader* sr, const char* key, void* userdata)
-{
-    assert(sr != NULL);
-    assert(key != NULL);
-    assert(userdata != NULL);
-
-    pat_params* pp = userdata;
-
-    if (string_eq(key, "length"))
-    {
-        if (!Streader_read_tstamp(sr, &pp->len))
-            return false;
-
-        if (Tstamp_get_beats(&pp->len) < 0)
-        {
-            Streader_set_error(sr, "Pattern length is negative");
-            return false;
-        }
-    }
-    else
-    {
-        Streader_set_error(sr, "Unrecognised key in pattern header: %s", key);
-        return false;
-    }
-
-    return true;
-}
-
-bool Pattern_parse_header(Pattern* pat, Streader* sr)
+bool Pattern_read_length(Pattern* pat, Streader* sr)
 {
     assert(pat != NULL);
     assert(sr != NULL);
@@ -109,15 +76,18 @@ bool Pattern_parse_header(Pattern* pat, Streader* sr)
     if (Streader_is_error_set(sr))
         return false;
 
-    pat_params* pp = &(pat_params)
-    {
-        .len = *PATTERN_DEFAULT_LENGTH,
-    };
+    Tstamp* length = PATTERN_DEFAULT_LENGTH;
 
-    if (Streader_has_data(sr) && !Streader_read_dict(sr, read_pat_param, pp))
+    if (Streader_has_data(sr) && !Streader_read_tstamp(sr, length))
         return false;
 
-    Pattern_set_length(pat, &pp->len);
+    if (Tstamp_get_beats(length) < 0)
+    {
+        Streader_set_error(sr, "Pattern length is negative");
+        return false;
+    }
+
+    Tstamp_copy(&pat->length, length);
 
     return true;
 }
@@ -167,16 +137,6 @@ Column* Pattern_get_column(const Pattern* pat, int index)
     assert(index < KQT_COLUMNS_MAX);
 
     return pat->cols[index];
-}
-
-
-void Pattern_set_length(Pattern* pat, Tstamp* length)
-{
-    assert(pat != NULL);
-    assert(length != NULL);
-    assert(length->beats >= 0);
-    Tstamp_copy(&pat->length, length);
-    return;
 }
 
 

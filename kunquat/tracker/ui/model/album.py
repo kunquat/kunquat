@@ -189,6 +189,11 @@ class Album():
             if is_last_track:
                 transaction.update({ 'album/p_manifest.json': None })
 
+        if is_last_instance:
+            # Remove sheet history associated with the removed pattern
+            sheet_history = self._ui_model.get_sheet_history()
+            sheet_history.remove_pattern_changes(pattern)
+
         self._store.put(transaction)
 
     def remove_song(self, track_num):

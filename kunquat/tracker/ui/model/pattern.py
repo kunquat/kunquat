@@ -43,21 +43,17 @@ class Pattern():
         manifest = self._store.get(key, None)
         return (type(manifest) == dict)
 
-    def get_length(self):
-        key = '{}/p_pattern.json'.format(self._pattern_id)
-        try:
-            header = self._store[key]
-            length = header['length']
-            return tstamp.Tstamp(length)
-        except KeyError:
-            default_header = get_default_value(key)
-            return tstamp.Tstamp(default_header['length'])
+    def get_id(self):
+        return self._pattern_id
 
-    def set_length(self, length):
-        key = '{}/p_pattern.json'.format(self._pattern_id)
-        header = self._store.get(key, get_default_value(key))
-        header['length'] = list(length)
-        self._store[key] = header
+    def get_length(self):
+        key = '{}/p_length.json'.format(self._pattern_id)
+        return tstamp.Tstamp(self._store.get(key, get_default_value(key)))
+
+    def get_edit_set_length(self, length):
+        key = '{}/p_length.json'.format(self._pattern_id)
+        transaction = { key: list(length) }
+        return transaction
 
     def get_instance_ids(self):
         instance_ids = set()
@@ -95,16 +91,17 @@ class Pattern():
                 edit[key] = None
         return edit
 
-    def set_base_grid_pattern_id(self, gp_id):
+    def get_edit_set_base_grid_pattern_id(self, gp_id):
         assert (gp_id == None) or isinstance(gp_id, unicode)
         key = '{}/i_base_grid.json'.format(self._pattern_id)
-        self._store[key] = gp_id
+        transaction = { key: gp_id }
+        return transaction
 
     def get_base_grid_pattern_id(self):
         key = '{}/i_base_grid.json'.format(self._pattern_id)
-        return self._store.get(key, None)
+        return self._store.get(key, u'0')
 
-    def set_base_grid_pattern_offset(self, offset):
+    def get_edit_set_base_grid_pattern_offset(self, offset):
         raise NotImplementedError
 
     def get_base_grid_pattern_offset(self):

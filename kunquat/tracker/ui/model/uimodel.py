@@ -21,12 +21,14 @@ from eventhistory import EventHistory
 from module import Module
 from visibilitymanager import VisibilityManager
 from selection import Selection
+from sheethistory import SheetHistory
 from sheetmanager import SheetManager
 from notationmanager import NotationManager
 from gridmanager import GridManager
 from orderlistmanager import OrderlistManager
 from processmanager import ProcessManager
 from iconbank import IconBank
+
 
 class UiModel():
     """
@@ -97,6 +99,7 @@ class UiModel():
         self._module = None
         self._visibility_manager = None
         self._selection = None
+        self._sheet_history = None
         self._sheet_manager = None
         self._notation_manager = None
         self._grid_manager = None
@@ -118,6 +121,7 @@ class UiModel():
         self._visibility_manager.set_controller(self._controller)
         self._event_history.set_controller(self._controller)
         self._selection.set_controller(self._controller)
+        self._sheet_history.set_controller(self._controller)
         self._sheet_manager.set_controller(self._controller)
         self._notation_manager.set_controller(self._controller)
         self._grid_manager.set_controller(self._controller)
@@ -187,6 +191,13 @@ class UiModel():
 
     def get_selection(self):
         return self._selection
+
+    def set_sheet_history(self, sheet_history):
+        self._sheet_history = sheet_history
+        self._sheet_history.set_ui_model(self)
+
+    def get_sheet_history(self):
+        return self._sheet_history
 
     def set_sheet_manager(self, sheet_manager):
         self._sheet_manager = sheet_manager
@@ -281,6 +292,7 @@ class UiModel():
     def clock(self):
         self._controller.send_queries()
 
+
 def create_ui_model():
     stat_manager = StatManager()
     control_manager = ControlManager()
@@ -291,6 +303,7 @@ def create_ui_model():
     module = Module()
     visibility_manager = VisibilityManager()
     selection = Selection()
+    sheet_history = SheetHistory()
     sheet_manager = SheetManager()
     notation_manager = NotationManager()
     grid_manager = GridManager()
@@ -307,6 +320,7 @@ def create_ui_model():
     ui_model.set_module(module)
     ui_model.set_visibility_manager(visibility_manager)
     ui_model.set_selection(selection)
+    ui_model.set_sheet_history(sheet_history)
     ui_model.set_sheet_manager(sheet_manager)
     ui_model.set_notation_manager(notation_manager)
     ui_model.set_grid_manager(grid_manager)
@@ -314,4 +328,5 @@ def create_ui_model():
     ui_model.set_process_manager(process_manager)
     ui_model.set_icon_bank(icon_bank)
     return ui_model
+
 

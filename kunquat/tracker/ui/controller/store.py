@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2014-2015
+#          Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -72,6 +72,9 @@ class Store(MutableMapping):
         # If the key has non-validated changes, return the most recent one
         for _, transaction in reversed(self._pending_validation):
             if key in transaction:
+                if transaction[key] == None:
+                    # None won't be stored in validated contents, so act accordingly
+                    raise KeyError, key
                 return transaction[key]
 
         return self._content[key]

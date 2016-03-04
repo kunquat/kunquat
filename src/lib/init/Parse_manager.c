@@ -1384,7 +1384,7 @@ static bool read_pattern_manifest(Reader_params* params)
 }
 
 
-static bool read_pattern(Reader_params* params)
+static bool read_pattern_length(Reader_params* params)
 {
     assert(params != NULL);
 
@@ -1394,7 +1394,7 @@ static bool read_pattern(Reader_params* params)
     Pattern* pattern = NULL;
     acquire_pattern(pattern, params->handle, index);
 
-    if (!Pattern_parse_header(pattern, params->sr))
+    if (!Pattern_read_length(pattern, params->sr))
     {
         set_error(params);
         return false;

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -48,14 +48,14 @@ Pattern* new_Pattern(void);
 
 
 /**
- * Parse the header of a Pattern.
+ * Read the length of the Pattern.
  *
  * \param pat   The Pattern -- must not be \c NULL.
- * \param sr    The Streader of the JSON data -- must not be \c NULL.
+ * \param sr    The Streader of the JSON input -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Pattern_parse_header(Pattern* pat, Streader* sr);
+bool Pattern_read_length(Pattern* pat, Streader* sr);
 
 
 /**
@@ -105,21 +105,9 @@ Column* Pattern_get_column(const Pattern* pat, int index);
 
 
 /**
- * Set the length of the Pattern.
- *
- * No Events will be deleted if the new length is shorter than the old length.
- *
- * \param pat      The Pattern -- must not be \c NULL.
- * \param length   The new length -- must not be \c NULL and must be
- *                 non-negative.
- */
-void Pattern_set_length(Pattern* pat, Tstamp* length);
-
-
-/**
  * Get the length of the Pattern.
  *
- * \param pat      The Pattern -- must not be \c NULL.
+ * \param pat   The Pattern -- must not be \c NULL.
  *
  * \return   The length -- must not be freed.
  */
