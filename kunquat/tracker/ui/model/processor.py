@@ -22,6 +22,7 @@ from procparams.gaincompparams import GainCompParams
 from procparams.panningparams import PanningParams
 from procparams.pitchparams import PitchParams
 from procparams.ringmodparams import RingmodParams
+from procparams.sampleparams import SampleParams
 from procparams.streamparams import StreamParams
 from procparams.volumeparams import VolumeParams
 
@@ -37,6 +38,7 @@ _proc_classes = {
     'panning':  PanningParams,
     'pitch':    PitchParams,
     'ringmod':  RingmodParams,
+    'sample':   SampleParams,
     'stream':   StreamParams,
     'volume':   VolumeParams,
 }

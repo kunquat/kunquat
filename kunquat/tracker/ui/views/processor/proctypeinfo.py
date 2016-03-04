@@ -38,6 +38,7 @@ _proc_classes = {
     'panning':  PanningProc,
     'pitch':    PitchProc,
     'ringmod':  RingmodProc,
+    'sample':   SampleProc,
     'stream':   StreamProc,
     'volume':   VolumeProc,
 }
