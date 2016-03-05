@@ -135,19 +135,23 @@ class AbstractAxisRenderer():
         axis_length         = params['axis_length']
         marker_dist_min     = params['marker_dist_min']
         label_dist_min      = params['label_dist_min']
+        draw_zero_label     = params['draw_zero_label']
 
         if self._draw_zero_marker:
             draw_marker(painter, zero_px, init_marker_width)
 
+        if draw_zero_label:
+            draw_label(painter, zero_px, 0)
+
         # Get interval of labels to mark
         display_val_min = self._get_display_val_min(val_range)
         display_val_max = self._get_display_val_max(val_range)
-        px_per_whole = axis_length // (display_val_max - display_val_min)
+        px_per_whole = axis_length / float(display_val_max - display_val_min)
 
         whole_num_interval = 1
-        if px_per_whole >= 1:
+        if px_per_whole > 0:
             whole_num_interval = max(1, int(2**(math.ceil(
-                math.log(label_dist_min / float(px_per_whole), 2)))))
+                math.log(label_dist_min / px_per_whole, 2)))))
 
         if marker_dist_min <= px_per_whole:
             # Positive side
@@ -202,10 +206,10 @@ class AbstractAxisRenderer():
 
                 start_px = end_px
 
-        elif px_per_whole >= 1:
+        elif px_per_whole > 0:
             # Skipping whole numbers
             whole_marker_interval = int(2**(math.ceil(
-                math.log(marker_dist_min / float(px_per_whole), 2))))
+                math.log(marker_dist_min / px_per_whole, 2))))
 
             # Positive side
             start_px = zero_px
@@ -310,7 +314,8 @@ class HorizontalAxisRenderer(AbstractAxisRenderer):
                 zero_px=zero_x,
                 axis_length=self._axis_length,
                 marker_dist_min=self._config['axis_x']['marker_min_dist'],
-                label_dist_min=self._config['axis_x']['label_min_dist'])
+                label_dist_min=self._config['axis_x']['label_min_dist'],
+                draw_zero_label=self._config['axis_x']['draw_zero_label'])
 
         painter.restore()
 
@@ -393,7 +398,8 @@ class VerticalAxisRenderer(AbstractAxisRenderer):
                 zero_px=zero_y,
                 axis_length=self._axis_length,
                 marker_dist_min=self._config['axis_y']['marker_min_dist'],
-                label_dist_min=self._config['axis_y']['label_min_dist'])
+                label_dist_min=self._config['axis_y']['label_min_dist'],
+                draw_zero_label=self._config['axis_y']['draw_zero_label'])
 
         painter.restore()
 

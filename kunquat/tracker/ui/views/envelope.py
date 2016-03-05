@@ -33,6 +33,7 @@ AXIS_CONFIG = {
         'marker_min_width': 2,
         'marker_max_width': 5,
         'label_min_dist'  : 100,
+        'draw_zero_label' : False,
     },
     'axis_y': {
         'width'           : 50,
@@ -40,6 +41,7 @@ AXIS_CONFIG = {
         'marker_min_width': 2,
         'marker_max_width': 5,
         'label_min_dist'  : 50,
+        'draw_zero_label' : False,
     },
     'label_font'  : _font,
     'label_colour': QColor(0xcc, 0xcc, 0xcc),
