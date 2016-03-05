@@ -14,6 +14,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 import utils
 
 
@@ -189,6 +190,8 @@ class SampleListView(QListView):
         self._ui_model = None
         self._updater = None
 
+        self._keyboard_mapper = KeyboardMapper()
+
         self.setSelectionMode(QAbstractItemView.SingleSelection)
 
     def set_au_id(self, au_id):
@@ -201,12 +204,14 @@ class SampleListView(QListView):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
 
+        self._keyboard_mapper.set_ui_model(ui_model)
+
         for signal_type in ('clicked', 'activated'):
             signal = '{}(const QModelIndex&)'.format(signal_type)
             QObject.connect(self, SIGNAL(signal), self._select_sample)
 
     def unregister_updaters(self):
-        pass
+        self._keyboard_mapper.unregister_updaters()
 
     def _get_update_signal_type(self):
         return 'signal_proc_select_sample_{}'.format(self._proc_id)
@@ -219,6 +224,18 @@ class SampleListView(QListView):
                     self._ui_model, self._au_id, self._proc_id)
             sample_params.set_selected_sample_id(sample_id)
             self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def keyPressEvent(self, event):
+        if self._keyboard_mapper.is_handled_key(event):
+            event.ignore()
+        else:
+            QListView.keyPressEvent(self, event)
+
+    def keyReleaseEvent(self, event):
+        if self._keyboard_mapper.is_handled_key(event):
+            event.ignore()
+        else:
+            QListView.keyReleaseEvent(self, event)
 
 
 class SampleList(QWidget):

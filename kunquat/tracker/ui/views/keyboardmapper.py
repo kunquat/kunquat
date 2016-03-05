@@ -101,4 +101,12 @@ class KeyboardMapper():
     def is_hit_keymap_toggle(self, event):
         return (event.key() == Qt.Key_H) and (event.modifiers() == Qt.ControlModifier)
 
+    def is_handled_key(self, event):
+        scancode = event.nativeScanCode()
+        button = self.get_typewriter_button_model(scancode)
+        return (bool(button) or
+                self.is_octave_up(event) or
+                self.is_octave_down(event) or
+                self.is_hit_keymap_toggle(event))
+
 
