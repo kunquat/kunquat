@@ -11,9 +11,12 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import time
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 import utils
 
@@ -27,21 +30,199 @@ class SampleProc(QTabWidget):
     def __init__(self):
         QTabWidget.__init__(self)
 
+        self._note_map_editor = NoteMapEditor()
         self._samples = Samples()
 
+        self.addTab(self._note_map_editor, 'Note map')
         self.addTab(self._samples, 'Samples')
 
     def set_au_id(self, au_id):
+        self._note_map_editor.set_au_id(au_id)
         self._samples.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
+        self._note_map_editor.set_proc_id(proc_id)
         self._samples.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
+        self._note_map_editor.set_ui_model(ui_model)
         self._samples.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._samples.unregister_updaters()
+        self._note_map_editor.unregister_updaters()
+
+
+class NoteMapEditor(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+
+        self._note_map = NoteMap()
+        self._note_map_entry = NoteMapEntry()
+
+        h = QHBoxLayout()
+        h.setMargin(2)
+        h.setSpacing(4)
+        h.addWidget(self._note_map)
+        h.addWidget(self._note_map_entry)
+        self.setLayout(h)
+
+    def set_au_id(self, au_id):
+        self._note_map.set_au_id(au_id)
+        self._note_map_entry.set_au_id(au_id)
+
+    def set_proc_id(self, proc_id):
+        self._note_map.set_proc_id(proc_id)
+        self._note_map_entry.set_proc_id(proc_id)
+
+    def set_ui_model(self, ui_model):
+        self._note_map.set_ui_model(ui_model)
+        self._note_map_entry.set_ui_model(ui_model)
+
+    def unregister_updaters(self):
+        self._note_map_entry.unregister_updaters()
+        self._note_map.unregister_updaters()
+
+
+class NoteMap(QWidget):
+
+    _DEFAULT_CONFIG = {
+        'padding'  : 3,
+        'bg_colour': QColor(0, 0, 0),
+    }
+
+    _FONT = QFont(QFont().defaultFamily(), 9)
+    _FONT.setWeight(QFont.Bold)
+
+    _AXIS_CONFIG = {
+        'axis_x': {
+            'height'          : 20,
+            'marker_min_dist' : 6,
+            'marker_min_width': 2,
+            'marker_max_width': 5,
+            'label_min_dist'  : 30,
+            'draw_zero_label' : True,
+        },
+        'axis_y': {
+            'width'           : 50,
+            'marker_min_dist' : 6,
+            'marker_min_width': 2,
+            'marker_max_width': 5,
+            'label_min_dist'  : 50,
+            'draw_zero_label' : True,
+        },
+        'label_font'  : _FONT,
+        'label_colour': QColor(0xcc, 0xcc, 0xcc),
+        'line_colour' : QColor(0xcc, 0xcc, 0xcc),
+    }
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._au_id = None
+        self._proc_id = None
+        self._ui_model = None
+        self._updater = None
+
+        self._axis_x_renderer = HorizontalAxisRenderer()
+        self._axis_x_renderer.set_config(self._AXIS_CONFIG, self)
+        self._axis_x_renderer.set_val_range([-48, 0])
+
+        self._axis_y_renderer = VerticalAxisRenderer()
+        self._axis_y_renderer.set_config(self._AXIS_CONFIG, self)
+        self._axis_y_renderer.set_val_range([-3600, 3600])
+
+        self._config = None
+        self._set_config({})
+
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_OpaquePaintEvent)
+        self.setAttribute(Qt.WA_NoSystemBackground)
+
+        self.setMouseTracking(True)
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _set_config(self, config):
+        self._config = self._DEFAULT_CONFIG.copy()
+        self._config.update(config)
+
+    def _perform_updates(self, signals):
+        pass
+
+    def paintEvent(self, event):
+        start = time.time()
+
+        painter = QPainter(self)
+        painter.setBackground(self._config['bg_colour'])
+        painter.eraseRect(0, 0, self.width(), self.height())
+
+        padding = self._config['padding']
+
+        # Axes
+        axis_x_height = self._AXIS_CONFIG['axis_x']['height']
+        axis_x_top = self.height() - padding - axis_x_height
+        axis_y_width = self._AXIS_CONFIG['axis_y']['width']
+
+        painter.setTransform(
+                QTransform().translate(padding, axis_x_top))
+        self._axis_x_renderer.set_width(self.width())
+        self._axis_x_renderer.set_axis_length(
+                self.width() - padding * 2 - axis_y_width + 1)
+        self._axis_x_renderer.set_x_offset(axis_y_width - 1)
+        self._axis_x_renderer.set_y_offset_x(self.width() - axis_y_width - padding * 2)
+        self._axis_x_renderer.render(painter)
+
+        painter.setTransform(QTransform().translate(padding, padding))
+        self._axis_y_renderer.set_height(self.height())
+        self._axis_y_renderer.set_axis_length(
+                self.height() - padding * 2 - axis_x_height + 1)
+        self._axis_y_renderer.set_x_offset_y(
+                (self.height() - axis_x_height - padding * 2) // 2)
+        self._axis_y_renderer.render(painter)
+
+        end = time.time()
+        elapsed = end - start
+        #print('Note map view updated in {:.2f} ms'.format(elapsed * 1000))
+
+
+class NoteMapEntry(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._au_id = None
+        self._proc_id = None
+        self._ui_model = None
+        self._updater = None
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        pass
 
 
 class Samples(QWidget):
