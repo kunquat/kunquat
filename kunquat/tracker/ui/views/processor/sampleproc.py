@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import math
 import time
 
 from PyQt4.QtCore import *
@@ -95,6 +96,7 @@ class NoteMap(QWidget):
         'focused_point_colour'     : QColor(0xff, 0x77, 0x22),
         'focused_point_axis_colour': QColor(0xff, 0x77, 0x22, 0x7f),
         'point_size'               : 7,
+        'point_focus_dist_max'     : 5,
     }
 
     _FONT = QFont(QFont().defaultFamily(), 9)
@@ -137,6 +139,8 @@ class NoteMap(QWidget):
         self._axis_y_renderer.set_config(self._AXIS_CONFIG, self)
         self._axis_y_renderer.set_val_range([-7200, 7200])
 
+        self._focused_point = None
+
         self._config = None
         self._set_config({})
 
@@ -167,6 +171,12 @@ class NoteMap(QWidget):
     def _perform_updates(self, signals):
         pass
 
+    def _get_area_offset(self):
+        padding = self._config['padding']
+        offset_x = padding + self._axis_y_renderer.get_width() - 1
+        offset_y = padding
+        return offset_x, offset_y
+
     def _get_vis_coords(self, point):
         cents, dB = point
 
@@ -183,11 +193,42 @@ class NoteMap(QWidget):
         x_range = 0, self._axis_x_renderer.get_axis_length() - 1
         area_x = map_range(dB, dB_range, x_range)
 
-        padding = self._config['padding']
-        x = area_x + padding + self._axis_y_renderer.get_width() - 1
-        y = area_y + padding
+        offset_x, offset_y = self._get_area_offset()
+        x = area_x + offset_x
+        y = area_y + offset_y
 
         return x, y
+
+    def _coords_dist(self, a, b):
+        ax, ay = a
+        bx, by = b
+        dx, dy = ax - bx, ay - by
+        return math.sqrt(dx * dx + dy * dy)
+
+    def _get_nearest_point_with_dist(self, x, y):
+        sample_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+        nearest_dist = float('inf')
+        nearest_point = None
+        for point in sample_params.get_note_map_points():
+            dist = self._coords_dist(self._get_vis_coords(point), (x, y))
+            if dist < nearest_dist:
+                nearest_point = point
+                nearest_dist = dist
+
+        return nearest_point, nearest_dist
+
+    def mouseMoveEvent(self, event):
+        point, dist = self._get_nearest_point_with_dist(event.x() - 1, event.y() - 1)
+        if dist <= self._config['point_focus_dist_max']:
+            self._focused_point = point
+        else:
+            self._focused_point = None
+        self.update()
+
+    def leaveEvent(self, event):
+        self._focused_point = None
+        self.update()
 
     def paintEvent(self, event):
         start = time.time()
@@ -228,8 +269,11 @@ class NoteMap(QWidget):
         point_size = self._config['point_size']
         point_offset = -(point_size // 2)
         for point in sample_params.get_note_map_points():
+            if point == self._focused_point:
+                painter.setBrush(self._config['focused_point_colour'])
+            else:
+                painter.setBrush(self._config['point_colour'])
             x, y = self._get_vis_coords(point)
-            painter.setBrush(QColor(self._config['point_colour']))
             rect = QRect(x + point_offset, y + point_offset, point_size, point_size)
             painter.drawEllipse(rect)
 
