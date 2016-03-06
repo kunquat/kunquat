@@ -140,7 +140,7 @@ class NoteMap(QWidget):
 
         self._axis_x_renderer = HorizontalAxisRenderer()
         self._axis_x_renderer.set_config(self._AXIS_CONFIG, self)
-        self._axis_x_renderer.set_val_range([-48, 0])
+        self._axis_x_renderer.set_val_range([-36, 0])
 
         self._axis_y_renderer = VerticalAxisRenderer()
         self._axis_y_renderer.set_config(self._AXIS_CONFIG, self)
