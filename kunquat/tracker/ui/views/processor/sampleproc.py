@@ -283,6 +283,7 @@ class NoteMap(QWidget):
                     if new_point not in sample_params.get_note_map_points():
                         sample_params.move_note_map_point(point, new_point)
                         sample_params.set_selected_note_map_point(new_point)
+                        self._focused_point = new_point
                         self._updater.signal_update(set([self._get_move_signal_type()]))
 
             else:
