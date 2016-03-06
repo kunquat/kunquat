@@ -17,6 +17,7 @@ from procparams import ProcParams
 class SampleParams(ProcParams):
 
     _SAMPLES_MAX = 512
+    _RANDOM_LIST_LENGTH_MAX = 8
 
     @staticmethod
     def get_default_signal_type():
@@ -39,6 +40,9 @@ class SampleParams(ProcParams):
 
     def _get_sample_key(self, sample_id, key):
         return '{}/{}'.format(sample_id, key)
+
+    def _get_sample_num(self, sample_id):
+        return int(sample_id.split('_')[1], 16)
 
     def _get_sample_header(self, sample_id):
         sample_key = self._get_sample_key(sample_id, 'p_sh_sample.json')
@@ -80,5 +84,79 @@ class SampleParams(ProcParams):
         header = self._get_sample_header(sample_id)
         header['freq'] = freq
         self._set_sample_header(sample_id, header)
+
+    def _get_note_map(self):
+        return self._get_value('p_nm_note_map.json', {})
+
+    def _set_note_map(self, note_map):
+        self._set_value('p_nm_note_map.json', note_map)
+
+    def get_note_map_points(self):
+        note_map = self._get_note_map()
+        return [coords for (coords, _) in note_map]
+
+    def add_note_map_point(self, coords):
+        assert coords not in self.get_note_map_points()
+        note_map = self._get_note_map()
+        some_sample_num = self._get_sample_num(self.get_sample_ids()[0])
+        note_map.append((coords, [[0, 0, some_sample_num]]))
+        self._set_note_map(note_map)
+
+    def _get_note_map_point_index(self, coords):
+        note_map = self._get_note_map()
+        index = [i for i, entry in enumerate(note_map) if entry[0] == coords][0]
+        return index
+
+    def remove_note_map_point(self, coords):
+        note_map = self._get_note_map()
+        index = self._get_note_map_point_index(coords)
+        del note_map[index]
+        self._set_note_map(note_map)
+
+    def _get_random_list(self, coords):
+        note_map = self._get_note_map()
+        random_list = [r for e, r in note_map if e[0] == coords][0]
+        return random_list
+
+    def get_note_map_random_list_length(self, coords):
+        random_list = self._get_random_list(coords)
+        return len(random_list)
+
+    def is_note_map_random_list_full(self, coords):
+        random_list = self._get_random_list(coords)
+        return len(random_list) >= self._RANDOM_LIST_LENGTH_MAX
+
+    def get_note_map_random_list_sample_id(self, coords, index):
+        random_list = self._get_random_list(coords)
+        entry = random_list[self._get_note_map_point_index(coords)]
+        return self._get_sample_id(entry[2])
+
+    def set_note_map_random_list_sample_id(self, coords, index, sample_id):
+        note_map = self._get_note_map()
+        point_index = self._get_note_map_point_index(coords)
+        note_map[point_index][index][2] = self._get_sample_num(sample_id)
+        self._set_note_map(note_map)
+
+    def get_note_map_random_list_cents_offset(self, coords, index):
+        random_list = self._get_random_list(coords)
+        entry = random_list[self._get_note_map_point_index(coords)]
+        return entry[0]
+
+    def set_note_map_random_list_cents_offset(self, coords, index, offset):
+        note_map = self._get_note_map()
+        point_index = self._get_note_map_point_index(coords)
+        note_map[point_index][index][0] = offset
+        self._set_note_map(note_map)
+
+    def get_note_map_random_list_volume_adjust(self, coords, index):
+        random_list = self._get_random_list(coords)
+        entry = random_list[self._get_note_map_point_index(coords)]
+        return entry[1]
+
+    def set_note_map_random_list_volume_adjust(self, coords, index, adjust):
+        note_map = self._get_note_map()
+        point_index = self._get_note_map_point_index(coords)
+        note_map[point_index][index][1] = adjust
+        self._set_note_map(note_map)
 
 
