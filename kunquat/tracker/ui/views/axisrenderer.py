@@ -54,6 +54,9 @@ class AbstractAxisRenderer():
             self._width = width
             self.flush_cache()
 
+    def get_width(self):
+        return self._width
+
     def set_height(self, height):
         if self._height != height:
             self._height = height

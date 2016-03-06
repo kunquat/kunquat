@@ -177,11 +177,15 @@ class NoteMap(QWidget):
 
         cents_range = self._axis_y_renderer.get_val_range()
         y_range = self._axis_y_renderer.get_axis_length() - 1, 0
-        y = map_range(cents, cents_range, y_range)
+        area_y = map_range(cents, cents_range, y_range)
 
         dB_range = self._axis_x_renderer.get_val_range()
         x_range = 0, self._axis_x_renderer.get_axis_length() - 1
-        x = map_range(dB, dB_range, x_range)
+        area_x = map_range(dB, dB_range, x_range)
+
+        padding = self._config['padding']
+        x = area_x + padding + self._axis_y_renderer.get_width() - 1
+        y = area_y + padding
 
         return x, y
 
@@ -219,7 +223,7 @@ class NoteMap(QWidget):
         # Note map points
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(Qt.NoPen)
-        painter.setTransform(QTransform().translate(padding + axis_y_width - 1, padding))
+        painter.setTransform(QTransform())
         sample_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         point_size = self._config['point_size']
         point_offset = -(point_size // 2)
