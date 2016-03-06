@@ -97,6 +97,9 @@ class NoteMap(QWidget):
         'focused_point_axis_colour': QColor(0xff, 0x77, 0x22, 0x7f),
         'point_size'               : 7,
         'point_focus_dist_max'     : 5,
+        'selected_highlight_colour': QColor(0xff, 0xff, 0xdd),
+        'selected_highlight_size'  : 11,
+        'selected_highlight_width' : 2,
     }
 
     _FONT = QFont(QFont().defaultFamily(), 9)
@@ -168,8 +171,15 @@ class NoteMap(QWidget):
         self._config = self._DEFAULT_CONFIG.copy()
         self._config.update(config)
 
+    def _get_selection_update_signal_type(self):
+        return 'signal_sample_note_map_selection_{}'.format(self._proc_id)
+
     def _perform_updates(self, signals):
-        pass
+        if self._get_selection_update_signal_type() in signals:
+            self.update()
+
+    def _get_sample_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
     def _get_area_offset(self):
         padding = self._config['padding']
@@ -203,10 +213,10 @@ class NoteMap(QWidget):
         ax, ay = a
         bx, by = b
         dx, dy = ax - bx, ay - by
-        return math.sqrt(dx * dx + dy * dy)
+        return math.sqrt((dx * dx) + (dy * dy))
 
     def _get_nearest_point_with_dist(self, x, y):
-        sample_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        sample_params = self._get_sample_params()
 
         nearest_dist = float('inf')
         nearest_point = None
@@ -225,6 +235,13 @@ class NoteMap(QWidget):
         else:
             self._focused_point = None
         self.update()
+
+    def mousePressEvent(self, event):
+        point, dist = self._get_nearest_point_with_dist(event.x() - 1, event.y() - 1)
+        if dist <= self._config['point_focus_dist_max']:
+            sample_params = self._get_sample_params()
+            sample_params.set_selected_note_map_point(point)
+            self._updater.signal_update(set([self._get_selection_update_signal_type()]))
 
     def leaveEvent(self, event):
         self._focused_point = None
@@ -265,10 +282,14 @@ class NoteMap(QWidget):
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(Qt.NoPen)
         painter.setTransform(QTransform())
-        sample_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        sample_params = self._get_sample_params()
         point_size = self._config['point_size']
         point_offset = -(point_size // 2)
+        selected_point = sample_params.get_selected_note_map_point()
+        selected_found = False
         for point in sample_params.get_note_map_points():
+            if point == selected_point:
+                selected_found = True
             if point == self._focused_point:
                 painter.setBrush(self._config['focused_point_colour'])
             else:
@@ -276,6 +297,21 @@ class NoteMap(QWidget):
             x, y = self._get_vis_coords(point)
             rect = QRect(x + point_offset, y + point_offset, point_size, point_size)
             painter.drawEllipse(rect)
+
+        if selected_found:
+            painter.save()
+            pen = QPen(self._config['selected_highlight_colour'])
+            pen.setWidth(self._config['selected_highlight_width'])
+            painter.setPen(pen)
+            painter.setBrush(Qt.NoBrush)
+
+            highlight_size = self._config['selected_highlight_size']
+            highlight_offset = -(highlight_size // 2)
+            x, y = self._get_vis_coords(selected_point)
+            painter.translate(highlight_offset, highlight_offset)
+            painter.drawEllipse(QRect(x, y, highlight_size, highlight_size))
+
+            painter.restore()
 
         end = time.time()
         elapsed = end - start

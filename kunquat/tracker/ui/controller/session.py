@@ -93,6 +93,7 @@ class Session():
         self._au_test_expressions_enabled = {}
         self._edit_selected_hits = {}
         self._selected_sample_ids = {}
+        self._selected_sample_note_map_points = {}
 
     def get_output_speed(self):
         return self._output_speed
@@ -578,5 +579,11 @@ class Session():
 
     def get_selected_sample_id(self, proc_id):
         return self._selected_sample_ids.get(proc_id, None)
+
+    def set_selected_sample_note_map_point(self, proc_id, point):
+        self._selected_sample_note_map_points[proc_id] = point
+
+    def get_selected_sample_note_map_point(self, proc_id):
+        return self._selected_sample_note_map_points.get(proc_id, None)
 
 

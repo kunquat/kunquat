@@ -95,6 +95,12 @@ class SampleParams(ProcParams):
         note_map = self._get_note_map()
         return [coords for (coords, _) in note_map]
 
+    def get_selected_note_map_point(self):
+        return self._session.get_selected_sample_note_map_point(self._proc_id)
+
+    def set_selected_note_map_point(self, point):
+        self._session.set_selected_sample_note_map_point(self._proc_id, point)
+
     def add_note_map_point(self, coords):
         assert coords not in self.get_note_map_points()
         note_map = self._get_note_map()
