@@ -100,6 +100,7 @@ class NoteMap(QWidget):
         'selected_highlight_colour': QColor(0xff, 0xff, 0xdd),
         'selected_highlight_size'  : 11,
         'selected_highlight_width' : 2,
+        'move_snap_dist'           : 10,
     }
 
     _FONT = QFont(QFont().defaultFamily(), 9)
@@ -127,6 +128,9 @@ class NoteMap(QWidget):
         'line_colour' : QColor(0xcc, 0xcc, 0xcc),
     }
 
+    _STATE_IDLE = 'idle'
+    _STATE_MOVING = 'moving'
+
     def __init__(self):
         QWidget.__init__(self)
         self._au_id = None
@@ -143,6 +147,11 @@ class NoteMap(QWidget):
         self._axis_y_renderer.set_val_range([-7200, 7200])
 
         self._focused_point = None
+
+        self._state = self._STATE_IDLE
+
+        self._is_start_snapping_active = False
+        self._moving_pointer_offset = (0, 0)
 
         self._config = None
         self._set_config({})
@@ -171,11 +180,16 @@ class NoteMap(QWidget):
         self._config = self._DEFAULT_CONFIG.copy()
         self._config.update(config)
 
-    def _get_selection_update_signal_type(self):
+    def _get_selection_signal_type(self):
         return 'signal_sample_note_map_selection_{}'.format(self._proc_id)
 
+    def _get_move_signal_type(self):
+        return 'signal_sample_note_map_move_{}'.format(self._proc_id)
+
     def _perform_updates(self, signals):
-        if self._get_selection_update_signal_type() in signals:
+        if self._get_selection_signal_type() in signals:
+            self.update()
+        if self._get_move_signal_type() in signals:
             self.update()
 
     def _get_sample_params(self):
@@ -187,27 +201,42 @@ class NoteMap(QWidget):
         offset_y = padding
         return offset_x, offset_y
 
+    def _map_range(self, val, src_range, target_range):
+        start_diff = val - src_range[0]
+        pos_norm = (val - src_range[0]) / float(src_range[1] - src_range[0])
+        return lerp_val(target_range[0], target_range[1], min(max(0, pos_norm), 1))
+
     def _get_vis_coords(self, point):
         cents, dB = point
 
-        def map_range(val, src_range, target_range):
-            start_diff = val - src_range[0]
-            pos_norm = (val - src_range[0]) / float(src_range[1] - src_range[0])
-            return lerp_val(target_range[0], target_range[1], min(max(0, pos_norm), 1))
-
         cents_range = self._axis_y_renderer.get_val_range()
         y_range = self._axis_y_renderer.get_axis_length() - 1, 0
-        area_y = map_range(cents, cents_range, y_range)
+        area_y = self._map_range(cents, cents_range, y_range)
 
         dB_range = self._axis_x_renderer.get_val_range()
         x_range = 0, self._axis_x_renderer.get_axis_length() - 1
-        area_x = map_range(dB, dB_range, x_range)
+        area_x = self._map_range(dB, dB_range, x_range)
 
         offset_x, offset_y = self._get_area_offset()
         x = area_x + offset_x
         y = area_y + offset_y
 
         return x, y
+
+    def _get_point_coords(self, vis_coords):
+        abs_x, abs_y = vis_coords
+        offset_x, offset_y = self._get_area_offset()
+        x, y = abs_x - offset_x, abs_y - offset_y
+
+        y_range = self._axis_y_renderer.get_axis_length() - 1, 0
+        cents_range = self._axis_y_renderer.get_val_range()
+        point_y = self._map_range(y, y_range, cents_range)
+
+        x_range = 0, self._axis_x_renderer.get_axis_length() - 1
+        dB_range = self._axis_x_renderer.get_val_range()
+        point_x = self._map_range(x, x_range, dB_range)
+
+        return [point_y, point_x]
 
     def _coords_dist(self, a, b):
         ax, ay = a
@@ -229,19 +258,53 @@ class NoteMap(QWidget):
         return nearest_point, nearest_dist
 
     def mouseMoveEvent(self, event):
-        point, dist = self._get_nearest_point_with_dist(event.x() - 1, event.y() - 1)
-        if dist <= self._config['point_focus_dist_max']:
-            self._focused_point = point
-        else:
-            self._focused_point = None
-        self.update()
+        if self._state == self._STATE_IDLE:
+            point, dist = self._get_nearest_point_with_dist(event.x() - 1, event.y() - 1)
+            if dist <= self._config['point_focus_dist_max']:
+                self._focused_point = point
+            else:
+                self._focused_point = None
+            self.update()
+        elif self._state == self._STATE_MOVING:
+            sample_params = self._get_sample_params()
+            point = sample_params.get_selected_note_map_point()
+            if point:
+                point_vis_coords = self._get_vis_coords(point)
+                adjusted_x = event.x() - self._moving_pointer_offset[0]
+                adjusted_y = event.y() - self._moving_pointer_offset[1]
+                dist = self._coords_dist((adjusted_x, adjusted_y), point_vis_coords)
+
+                if self._is_start_snapping_active:
+                    if dist >= self._config['move_snap_dist']:
+                        self._is_start_snapping_active = False
+
+                if not self._is_start_snapping_active:
+                    new_point = self._get_point_coords((adjusted_x, adjusted_y))
+                    if new_point not in sample_params.get_note_map_points():
+                        sample_params.move_note_map_point(point, new_point)
+                        sample_params.set_selected_note_map_point(new_point)
+                        self._updater.signal_update(set([self._get_move_signal_type()]))
+
+            else:
+                self._state = self._STATE_IDLE
 
     def mousePressEvent(self, event):
-        point, dist = self._get_nearest_point_with_dist(event.x() - 1, event.y() - 1)
-        if dist <= self._config['point_focus_dist_max']:
-            sample_params = self._get_sample_params()
-            sample_params.set_selected_note_map_point(point)
-            self._updater.signal_update(set([self._get_selection_update_signal_type()]))
+        if self._state == self._STATE_IDLE:
+            x, y = event.x(), event.y()
+            point, dist = self._get_nearest_point_with_dist(x - 1, y - 1)
+            if dist <= self._config['point_focus_dist_max']:
+                sample_params = self._get_sample_params()
+                sample_params.set_selected_note_map_point(point)
+
+                self._state = self._STATE_MOVING
+                self._is_start_snapping_active = True
+                point_vis = self._get_vis_coords(point)
+                self._moving_pointer_offset = (x - point_vis[0], y - point_vis[1])
+
+                self._updater.signal_update(set([self._get_selection_signal_type()]))
+
+    def mouseReleaseEvent(self, event):
+        self._state = self._STATE_IDLE
 
     def leaveEvent(self, event):
         self._focused_point = None

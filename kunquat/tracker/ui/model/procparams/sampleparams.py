@@ -113,6 +113,13 @@ class SampleParams(ProcParams):
         index = [i for i, entry in enumerate(note_map) if entry[0] == coords][0]
         return index
 
+    def move_note_map_point(self, old_coords, new_coords):
+        assert new_coords not in self.get_note_map_points()
+        note_map = self._get_note_map()
+        index = self._get_note_map_point_index(old_coords)
+        note_map[index][0] = new_coords
+        self._set_note_map(note_map)
+
     def remove_note_map_point(self, coords):
         note_map = self._get_note_map()
         index = self._get_note_map_point_index(coords)
@@ -134,35 +141,35 @@ class SampleParams(ProcParams):
 
     def get_note_map_random_list_sample_id(self, coords, index):
         random_list = self._get_random_list(coords)
-        entry = random_list[self._get_note_map_point_index(coords)]
+        entry = random_list[self._get_note_map_point_index(coords)][1]
         return self._get_sample_id(entry[2])
 
     def set_note_map_random_list_sample_id(self, coords, index, sample_id):
         note_map = self._get_note_map()
         point_index = self._get_note_map_point_index(coords)
-        note_map[point_index][index][2] = self._get_sample_num(sample_id)
+        note_map[point_index][1][index][2] = self._get_sample_num(sample_id)
         self._set_note_map(note_map)
 
     def get_note_map_random_list_cents_offset(self, coords, index):
         random_list = self._get_random_list(coords)
-        entry = random_list[self._get_note_map_point_index(coords)]
+        entry = random_list[self._get_note_map_point_index(coords)][1]
         return entry[0]
 
     def set_note_map_random_list_cents_offset(self, coords, index, offset):
         note_map = self._get_note_map()
         point_index = self._get_note_map_point_index(coords)
-        note_map[point_index][index][0] = offset
+        note_map[point_index][1][index][0] = offset
         self._set_note_map(note_map)
 
     def get_note_map_random_list_volume_adjust(self, coords, index):
         random_list = self._get_random_list(coords)
-        entry = random_list[self._get_note_map_point_index(coords)]
+        entry = random_list[self._get_note_map_point_index(coords)][1]
         return entry[1]
 
     def set_note_map_random_list_volume_adjust(self, coords, index, adjust):
         note_map = self._get_note_map()
         point_index = self._get_note_map_point_index(coords)
-        note_map[point_index][index][1] = adjust
+        note_map[point_index][1][index][1] = adjust
         self._set_note_map(note_map)
 
 
