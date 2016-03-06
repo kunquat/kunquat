@@ -18,6 +18,7 @@ from PyQt4.QtGui import *
 
 from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
+from kunquat.tracker.ui.views.utils import lerp_val
 import utils
 
 
@@ -88,8 +89,12 @@ class NoteMapEditor(QWidget):
 class NoteMap(QWidget):
 
     _DEFAULT_CONFIG = {
-        'padding'  : 3,
-        'bg_colour': QColor(0, 0, 0),
+        'padding'                  : 5,
+        'bg_colour'                : QColor(0, 0, 0),
+        'point_colour'             : QColor(0xee, 0xcc, 0xaa),
+        'focused_point_colour'     : QColor(0xff, 0x77, 0x22),
+        'focused_point_axis_colour': QColor(0xff, 0x77, 0x22, 0x7f),
+        'point_size'               : 7,
     }
 
     _FONT = QFont(QFont().defaultFamily(), 9)
@@ -130,7 +135,7 @@ class NoteMap(QWidget):
 
         self._axis_y_renderer = VerticalAxisRenderer()
         self._axis_y_renderer.set_config(self._AXIS_CONFIG, self)
-        self._axis_y_renderer.set_val_range([-3600, 3600])
+        self._axis_y_renderer.set_val_range([-7200, 7200])
 
         self._config = None
         self._set_config({})
@@ -162,6 +167,24 @@ class NoteMap(QWidget):
     def _perform_updates(self, signals):
         pass
 
+    def _get_vis_coords(self, point):
+        cents, dB = point
+
+        def map_range(val, src_range, target_range):
+            start_diff = val - src_range[0]
+            pos_norm = (val - src_range[0]) / float(src_range[1] - src_range[0])
+            return lerp_val(target_range[0], target_range[1], min(max(0, pos_norm), 1))
+
+        cents_range = self._axis_y_renderer.get_val_range()
+        y_range = self._axis_y_renderer.get_axis_length() - 1, 0
+        y = map_range(cents, cents_range, y_range)
+
+        dB_range = self._axis_x_renderer.get_val_range()
+        x_range = 0, self._axis_x_renderer.get_axis_length() - 1
+        x = map_range(dB, dB_range, x_range)
+
+        return x, y
+
     def paintEvent(self, event):
         start = time.time()
 
@@ -175,23 +198,36 @@ class NoteMap(QWidget):
         axis_x_height = self._AXIS_CONFIG['axis_x']['height']
         axis_x_top = self.height() - padding - axis_x_height
         axis_y_width = self._AXIS_CONFIG['axis_y']['width']
+        axis_x_length = self.width() - axis_y_width - (padding * 2) + 1
+        axis_y_length = self.height() - axis_x_height - (padding * 2) + 1
 
         painter.setTransform(
                 QTransform().translate(padding, axis_x_top))
         self._axis_x_renderer.set_width(self.width())
-        self._axis_x_renderer.set_axis_length(
-                self.width() - padding * 2 - axis_y_width + 1)
+        self._axis_x_renderer.set_axis_length(axis_x_length)
         self._axis_x_renderer.set_x_offset(axis_y_width - 1)
         self._axis_x_renderer.set_y_offset_x(self.width() - axis_y_width - padding * 2)
         self._axis_x_renderer.render(painter)
 
         painter.setTransform(QTransform().translate(padding, padding))
         self._axis_y_renderer.set_height(self.height())
-        self._axis_y_renderer.set_axis_length(
-                self.height() - padding * 2 - axis_x_height + 1)
+        self._axis_y_renderer.set_axis_length(axis_y_length)
         self._axis_y_renderer.set_x_offset_y(
                 (self.height() - axis_x_height - padding * 2) // 2)
         self._axis_y_renderer.render(painter)
+
+        # Note map points
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setPen(Qt.NoPen)
+        painter.setTransform(QTransform().translate(padding + axis_y_width - 1, padding))
+        sample_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        point_size = self._config['point_size']
+        point_offset = -(point_size // 2)
+        for point in sample_params.get_note_map_points():
+            x, y = self._get_vis_coords(point)
+            painter.setBrush(QColor(self._config['point_colour']))
+            rect = QRect(x + point_offset, y + point_offset, point_size, point_size)
+            painter.drawEllipse(rect)
 
         end = time.time()
         elapsed = end - start

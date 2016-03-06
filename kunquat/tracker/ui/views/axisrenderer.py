@@ -64,10 +64,16 @@ class AbstractAxisRenderer():
             self._axis_length = axis_length
             self.flush_cache()
 
+    def get_axis_length(self):
+        return self._axis_length
+
     def set_val_range(self, val_range):
         if self._val_range != val_range:
             self._val_range = val_range
             self.flush_cache()
+
+    def get_val_range(self):
+        return self._val_range
 
     def render(self, painter):
         if (self._width <= 0) or (self._height <= 0):
