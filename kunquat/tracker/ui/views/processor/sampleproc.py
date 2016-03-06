@@ -144,7 +144,7 @@ class NoteMap(QWidget):
 
         self._axis_y_renderer = VerticalAxisRenderer()
         self._axis_y_renderer.set_config(self._AXIS_CONFIG, self)
-        self._axis_y_renderer.set_val_range([-7200, 7200])
+        self._axis_y_renderer.set_val_range([-6000, 6000])
 
         self._focused_point = None
 
