@@ -391,6 +391,36 @@ class NoteMapEntry(QWidget):
         self._ui_model = None
         self._updater = None
 
+        self.setEnabled(False)
+
+        self._pitch = QDoubleSpinBox()
+        self._pitch.setDecimals(0)
+        self._pitch.setRange(-6000, 6000)
+        self._force = QDoubleSpinBox()
+        self._force.setDecimals(1)
+        self._force.setRange(-36, 0)
+
+        pitch_label = QLabel('Pitch:')
+        pitch_label.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
+        force_label = QLabel('Force:')
+        force_label.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(2)
+        h.addWidget(pitch_label)
+        h.addWidget(self._pitch)
+        h.addSpacing(4)
+        h.addWidget(force_label)
+        h.addWidget(self._force)
+
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(2)
+        v.addLayout(h)
+        v.addStretch(1)
+        self.setLayout(v)
+
     def set_au_id(self, au_id):
         self._au_id = au_id
 
@@ -402,11 +432,59 @@ class NoteMapEntry(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        QObject.connect(self._pitch, SIGNAL('valueChanged(double)'), self._move)
+        QObject.connect(self._force, SIGNAL('valueChanged(double)'), self._move)
+
+        self._update_all()
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
+    def _get_selection_signal_type(self):
+        return 'signal_sample_note_map_selection_{}'.format(self._proc_id)
+
+    def _get_move_signal_type(self):
+        return 'signal_sample_note_map_move_{}'.format(self._proc_id)
+
     def _perform_updates(self, signals):
-        pass
+        update_signals = set([
+            self._get_selection_signal_type(), self._get_move_signal_type()])
+        if not signals.isdisjoint(update_signals):
+            self._update_all()
+
+    def _get_sample_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_all(self):
+        sample_params = self._get_sample_params()
+        selected_point = sample_params.get_selected_note_map_point()
+        if selected_point not in sample_params.get_note_map_points():
+            self.setEnabled(False)
+            return
+
+        self.setEnabled(True)
+
+        new_pitch, new_force = selected_point
+
+        old_block = self._pitch.blockSignals(True)
+        if self._pitch.value() != new_pitch:
+            self._pitch.setValue(new_pitch)
+        self._pitch.blockSignals(old_block)
+
+        old_block = self._force.blockSignals(True)
+        if self._force.value() != new_force:
+            self._force.setValue(new_force)
+        self._force.blockSignals(old_block)
+
+    def _move(self, dummy):
+        sample_params = self._get_sample_params()
+        selected_point = sample_params.get_selected_note_map_point()
+        if selected_point:
+            new_point = self._pitch.value(), self._force.value()
+            if new_point not in sample_params.get_note_map_points():
+                sample_params.move_note_map_point(selected_point, new_point)
+                sample_params.set_selected_note_map_point(new_point)
+                self._updater.signal_update(set([self._get_move_signal_type()]))
 
 
 class Samples(QWidget):
