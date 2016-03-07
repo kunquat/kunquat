@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -146,12 +146,6 @@ static bool read_mapping(Streader* sr, int32_t index, void* userdata)
 
     if (!Streader_read_list(sr, read_random_list_entry, list))
         return false;
-
-    if (list->entry_count == 0)
-    {
-        Streader_set_error(sr, "Empty note mapping random list");
-        return false;
-    }
 
     return Streader_match_char(sr, ']');
 }
@@ -319,7 +313,9 @@ const Sample_entry* Note_map_get_entry(
         return NULL;
     }
 
-    assert(choice->entry_count > 0);
+    if (choice->entry_count == 0)
+        return NULL;
+
     assert(choice->entry_count < NOTE_MAP_RANDOMS_MAX);
 //    state->middle_tone = choice->freq;
     const int index = Random_get_index(random, choice->entry_count);
