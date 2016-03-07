@@ -128,7 +128,7 @@ class SampleParams(ProcParams):
 
     def _get_random_list(self, coords):
         note_map = self._get_note_map()
-        random_list = [r for e, r in note_map if e[0] == coords][0]
+        random_list = [r for e, r in note_map if e == coords][0]
         return random_list
 
     def get_note_map_random_list_length(self, coords):
@@ -139,9 +139,20 @@ class SampleParams(ProcParams):
         random_list = self._get_random_list(coords)
         return len(random_list) >= self._RANDOM_LIST_LENGTH_MAX
 
+    def add_note_map_random_list_entry(self, coords):
+        assert not self.is_note_map_random_list_full(coords)
+        note_map = self._get_note_map()
+        point_index = self._get_note_map_point_index(coords)
+
+        sample_ids = self.get_sample_ids()
+        some_sample_num = self._get_sample_num(sample_ids[0]) if sample_ids else 0
+
+        note_map[point_index][1].append([0, 0, some_sample_num])
+        self._set_note_map(note_map)
+
     def get_note_map_random_list_sample_id(self, coords, index):
         random_list = self._get_random_list(coords)
-        entry = random_list[self._get_note_map_point_index(coords)][1]
+        entry = random_list[index]
         return self._get_sample_id(entry[2])
 
     def set_note_map_random_list_sample_id(self, coords, index, sample_id):

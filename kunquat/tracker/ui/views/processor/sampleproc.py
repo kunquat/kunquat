@@ -18,6 +18,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
+from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 from kunquat.tracker.ui.views.utils import lerp_val
 import utils
@@ -66,8 +67,8 @@ class NoteMapEditor(QWidget):
         h = QHBoxLayout()
         h.setMargin(2)
         h.setSpacing(4)
-        h.addWidget(self._note_map)
-        h.addWidget(self._note_map_entry)
+        h.addWidget(self._note_map, 1)
+        h.addWidget(self._note_map_entry, 2)
         self.setLayout(h)
 
     def set_au_id(self, au_id):
@@ -381,6 +382,9 @@ class NoteMap(QWidget):
         elapsed = end - start
         #print('Note map view updated in {:.2f} ms'.format(elapsed * 1000))
 
+    def minimumSizeHint(self):
+        return QSize(200, 200)
+
 
 class NoteMapEntry(QWidget):
 
@@ -400,6 +404,8 @@ class NoteMapEntry(QWidget):
         self._force.setDecimals(1)
         self._force.setRange(-36, 0)
 
+        self._random_list = RandomList()
+
         pitch_label = QLabel('Pitch:')
         pitch_label.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
         force_label = QLabel('Force:')
@@ -418,17 +424,20 @@ class NoteMapEntry(QWidget):
         v.setMargin(0)
         v.setSpacing(2)
         v.addLayout(h)
-        v.addStretch(1)
+        v.addWidget(self._random_list)
         self.setLayout(v)
 
     def set_au_id(self, au_id):
         self._au_id = au_id
+        self._random_list.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._proc_id = proc_id
+        self._random_list.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._random_list.set_ui_model(ui_model)
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
@@ -438,6 +447,7 @@ class NoteMapEntry(QWidget):
         self._update_all()
 
     def unregister_updaters(self):
+        self._random_list.unregister_updaters()
         self._updater.unregister_updater(self._perform_updates)
 
     def _get_selection_signal_type(self):
@@ -485,6 +495,211 @@ class NoteMapEntry(QWidget):
                 sample_params.move_note_map_point(selected_point, new_point)
                 sample_params.set_selected_note_map_point(new_point)
                 self._updater.signal_update(set([self._get_move_signal_type()]))
+
+
+class RandomList(EditorList):
+
+    def __init__(self):
+        EditorList.__init__(self)
+        self._au_id = None
+        self._proc_id = None
+        self._ui_model = None
+        self._updater = None
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        self._update_all()
+
+    def unregister_updaters(self):
+        self.disconnect_widgets()
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _make_adder_widget(self):
+        self._adder = RandomEntryAdder()
+        self._adder.set_au_id(self._au_id)
+        self._adder.set_proc_id(self._proc_id)
+        self._adder.set_ui_model(self._ui_model)
+        return self._adder
+
+    def _get_updated_editor_count(self):
+        sample_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        point = sample_params.get_selected_note_map_point()
+        if point and (point in sample_params.get_note_map_points()):
+            return sample_params.get_note_map_random_list_length(point)
+        return 0
+
+    def _make_editor_widget(self, index):
+        editor = RandomEntryEditor(index)
+        editor.set_au_id(self._au_id)
+        editor.set_proc_id(self._proc_id)
+        editor.set_ui_model(self._ui_model)
+        return editor
+
+    def _update_editor(self, index, editor):
+        pass
+
+    def _disconnect_widget(self, widget):
+        widget.unregister_updaters()
+
+    def _get_selection_signal_type(self):
+        return 'signal_sample_note_map_selection_{}'.format(self._proc_id)
+
+    def _get_random_list_signal_type(self):
+        return 'signal_sample_note_map_random_list_'.format(self._proc_id)
+
+    def _perform_updates(self, signals):
+        update_signals = set([
+            self._get_selection_signal_type(),
+            self._get_random_list_signal_type()])
+        if not signals.isdisjoint(update_signals):
+            self._update_all()
+
+    def _update_all(self):
+        self.update_list()
+
+        sample_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        point = sample_params.get_selected_note_map_point()
+        if point and (point in sample_params.get_note_map_points()):
+            is_full = sample_params.is_note_map_random_list_full(point)
+            self._adder.setVisible(not is_full)
+        else:
+            self._adder.setVisible(False)
+
+        self._adder.setEnabled(len(sample_params.get_sample_ids()) > 0)
+
+
+class RandomEntryAdder(QPushButton):
+
+    def __init__(self):
+        QPushButton.__init__(self, 'Add sample entry')
+        self._au_id = None
+        self._proc_id = None
+        self._ui_model = None
+        self._updater = None
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+
+        QObject.connect(self, SIGNAL('clicked()'), self._add_entry)
+
+    def unregister_updaters(self):
+        pass
+
+    def _get_update_signal_type(self):
+        return 'signal_sample_note_map_random_list_'.format(self._proc_id)
+
+    def _add_entry(self):
+        sample_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        point = sample_params.get_selected_note_map_point()
+        if point and (point in sample_params.get_note_map_points()):
+            sample_params.add_note_map_random_list_entry(point)
+            self._updater.signal_update(set([self._get_update_signal_type()]))
+
+
+class RandomEntryEditor(QWidget):
+
+    def __init__(self, index):
+        QWidget.__init__(self)
+        self._au_id = None
+        self._proc_id = None
+        self._ui_model = None
+        self._updater = None
+
+        self._index = index
+
+        self._sample_selector = QComboBox()
+        self._sample_selector.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(2)
+        h.addWidget(self._sample_selector)
+        self.setLayout(h)
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(
+                self._sample_selector,
+                SIGNAL('currentIndexChanged(int)'),
+                self._change_sample)
+
+        self._update_all()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _get_selection_signal_type(self):
+        return 'signal_sample_note_map_selection_{}'.format(self._proc_id)
+
+    def _get_list_signal_type(self):
+        return 'signal_sample_note_map_random_list_'.format(self._proc_id)
+
+    def _perform_updates(self, signals):
+        update_signals = set([
+            self._get_selection_signal_type(), self._get_list_signal_type()])
+        if not signals.isdisjoint(update_signals):
+            self._update_all()
+
+    def _get_sample_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_all(self):
+        sample_params = self._get_sample_params()
+
+        sample_ids = sample_params.get_sample_ids()
+
+        point = sample_params.get_selected_note_map_point()
+        cur_sample_id = None
+        if point and (point in sample_params.get_note_map_points()):
+            cur_sample_id = sample_params.get_note_map_random_list_sample_id(
+                    point, self._index)
+
+        # Update sample selector contents
+        sample_info = sorted([
+            (sid, sample_params.get_sample_name(sid)) for sid in sample_ids])
+
+        old_block = self._sample_selector.blockSignals(True)
+        self._sample_selector.clear()
+        self._sample_selector.setEnabled(len(sample_ids) > 0)
+        for i, info in enumerate(sample_info):
+            sample_id, sample_name = info
+            self._sample_selector.addItem(sample_name, QVariant(sample_id))
+            if sample_id == cur_sample_id:
+                self._sample_selector.setCurrentIndex(i)
+        self._sample_selector.blockSignals(old_block)
+
+    def _change_sample(self, item_index):
+        sample_params = self._get_sample_params()
+        point = sample_params.get_selected_note_map_point()
+        if point and (point in sample_params.get_note_map_points()):
+            sample_id = unicode(self._sample_selector.itemData(item_index).toString())
+            sample_params.set_note_map_random_list_sample_id(
+                    point, self._index, sample_id)
 
 
 class Samples(QWidget):
