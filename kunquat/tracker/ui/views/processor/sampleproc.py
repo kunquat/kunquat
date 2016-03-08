@@ -102,6 +102,7 @@ class NoteMap(QWidget):
         'selected_highlight_size'  : 11,
         'selected_highlight_width' : 2,
         'move_snap_dist'           : 10,
+        'remove_dist_min'          : 200,
     }
 
     _FONT = QFont(QFont().defaultFamily(), 9)
@@ -274,6 +275,18 @@ class NoteMap(QWidget):
                 adjusted_x = event.x() - self._moving_pointer_offset[0]
                 adjusted_y = event.y() - self._moving_pointer_offset[1]
                 dist = self._coords_dist((adjusted_x, adjusted_y), point_vis_coords)
+
+                remove_dist_min = self._config['remove_dist_min']
+                keep_area_x = [-remove_dist_min, self.width() + remove_dist_min]
+                keep_area_y = [-remove_dist_min, self.height() + remove_dist_min]
+                if not ((keep_area_x[0] <= event.x() <= keep_area_x[1]) and
+                        (keep_area_y[0] <= event.y() <= keep_area_y[1])):
+                    sample_params.remove_note_map_point(point)
+                    sample_params.set_selected_note_map_point(None)
+                    self._focused_point = None
+                    self._state = self._STATE_IDLE
+                    self._updater.signal_update(set([self._get_selection_signal_type()]))
+                    return
 
                 if self._is_start_snapping_active:
                     if dist >= self._config['move_snap_dist']:

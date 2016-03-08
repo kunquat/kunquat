@@ -86,7 +86,7 @@ class SampleParams(ProcParams):
         self._set_sample_header(sample_id, header)
 
     def _get_note_map(self):
-        return self._get_value('p_nm_note_map.json', {})
+        return self._get_value('p_nm_note_map.json', [])
 
     def _set_note_map(self, note_map):
         self._set_value('p_nm_note_map.json', note_map)
