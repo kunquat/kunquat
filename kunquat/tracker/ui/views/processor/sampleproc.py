@@ -304,6 +304,21 @@ class NoteMap(QWidget):
                 self._moving_pointer_offset = (x - point_vis[0], y - point_vis[1])
 
                 self._updater.signal_update(set([self._get_selection_signal_type()]))
+            else:
+                new_point = self._get_point_coords((x, y))
+                pitch_range = self._axis_y_renderer.get_val_range()
+                force_range = self._axis_x_renderer.get_val_range()
+                if ((pitch_range[0] <= new_point[0] <= pitch_range[1]) and
+                        force_range[0] <= new_point[1] <= force_range[1]):
+                    sample_params = self._get_sample_params()
+                    sample_params.add_note_map_point(new_point)
+                    sample_params.set_selected_note_map_point(new_point)
+
+                    self._state = self._STATE_MOVING
+                    self._is_start_snapping_active = True
+                    self._moving_pointer_offset = (0, 0)
+
+                    self._updater.signal_update(set([self._get_selection_signal_type()]))
 
     def mouseReleaseEvent(self, event):
         self._state = self._STATE_IDLE

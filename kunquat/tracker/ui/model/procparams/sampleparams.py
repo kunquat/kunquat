@@ -104,8 +104,7 @@ class SampleParams(ProcParams):
     def add_note_map_point(self, coords):
         assert coords not in self.get_note_map_points()
         note_map = self._get_note_map()
-        some_sample_num = self._get_sample_num(self.get_sample_ids()[0])
-        note_map.append((coords, [[0, 0, some_sample_num]]))
+        note_map.append([coords, []])
         self._set_note_map(note_map)
 
     def _get_note_map_point_index(self, coords):
