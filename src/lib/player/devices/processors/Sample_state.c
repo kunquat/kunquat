@@ -477,6 +477,12 @@ static int32_t Sample_vstate_render_voice(
                     start_pitch,
                     Cond_work_buffer_get_value(vols, buf_start),
                     vstate->rand_p);
+            if (entry == NULL)
+            {
+                vstate->active = false;
+                return buf_start;
+            }
+
             sample_state->middle_tone = entry->ref_freq;
         }
 
