@@ -636,6 +636,9 @@ class RandomEntryEditor(QWidget):
         self._volume_shift.setDecimals(1)
         self._volume_shift.setRange(-64, 64)
 
+        self._remove_button = QPushButton()
+        self._remove_button.setStyleSheet('padding: 0 -2px;')
+
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(2)
@@ -646,6 +649,7 @@ class RandomEntryEditor(QWidget):
         h.addSpacing(2)
         h.addWidget(TightLabel('Volume shift:'))
         h.addWidget(self._volume_shift)
+        h.addWidget(self._remove_button)
         self.setLayout(h)
 
     def set_au_id(self, au_id):
@@ -658,6 +662,10 @@ class RandomEntryEditor(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+
+        icon_bank = self._ui_model.get_icon_bank()
+        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
+        self._remove_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
 
         QObject.connect(
                 self._sample_selector,
@@ -673,6 +681,8 @@ class RandomEntryEditor(QWidget):
                 self._volume_shift,
                 SIGNAL('valueChanged(double)'),
                 self._change_volume_shift)
+
+        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_entry)
 
         self._update_all()
 
@@ -702,6 +712,10 @@ class RandomEntryEditor(QWidget):
         point = sample_params.get_selected_note_map_point()
         cur_sample_id = None
         if point and (point in sample_params.get_note_map_points()):
+            if self._index >= sample_params.get_note_map_random_list_length(point):
+                # We are being removed
+                return
+
             cur_sample_id = sample_params.get_note_map_random_list_sample_id(
                     point, self._index)
 
@@ -743,6 +757,7 @@ class RandomEntryEditor(QWidget):
             sample_id = unicode(self._sample_selector.itemData(item_index).toString())
             sample_params.set_note_map_random_list_sample_id(
                     point, self._index, sample_id)
+            self._updater.signal_update(set([self._get_list_signal_type()]))
 
     def _change_pitch_shift(self, value):
         sample_params = self._get_sample_params()
@@ -750,6 +765,7 @@ class RandomEntryEditor(QWidget):
         if point and (point in sample_params.get_note_map_points()):
             sample_params.set_note_map_random_list_cents_offset(
                     point, self._index, value)
+            self._updater.signal_update(set([self._get_list_signal_type()]))
 
     def _change_volume_shift(self, value):
         sample_params = self._get_sample_params()
@@ -757,6 +773,14 @@ class RandomEntryEditor(QWidget):
         if point and (point in sample_params.get_note_map_points()):
             sample_params.set_note_map_random_list_volume_adjust(
                     point, self._index, value)
+            self._updater.signal_update(set([self._get_list_signal_type()]))
+
+    def _remove_entry(self):
+        sample_params = self._get_sample_params()
+        point = sample_params.get_selected_note_map_point()
+        if point and (point in sample_params.get_note_map_points()):
+            sample_params.remove_note_map_random_list_entry(point, self._index)
+            self._updater.signal_update(set([self._get_list_signal_type()]))
 
 
 class Samples(QWidget):

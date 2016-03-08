@@ -150,6 +150,13 @@ class SampleParams(ProcParams):
         note_map[point_index][1].append([0, 0, some_sample_num])
         self._set_note_map(note_map)
 
+    def remove_note_map_random_list_entry(self, coords, index):
+        note_map = self._get_note_map()
+        point_index = self._get_note_map_point_index(coords)
+
+        del note_map[point_index][1][index]
+        self._set_note_map(note_map)
+
     def get_note_map_random_list_sample_id(self, coords, index):
         random_list = self._get_random_list(coords)
         entry = random_list[index]
