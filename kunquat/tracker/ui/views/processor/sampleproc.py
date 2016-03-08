@@ -386,6 +386,13 @@ class NoteMap(QWidget):
         return QSize(200, 200)
 
 
+class TightLabel(QLabel):
+
+    def __init__(self, text):
+        QLabel.__init__(self, text)
+        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
+
+
 class NoteMapEntry(QWidget):
 
     def __init__(self):
@@ -406,18 +413,13 @@ class NoteMapEntry(QWidget):
 
         self._random_list = RandomList()
 
-        pitch_label = QLabel('Pitch:')
-        pitch_label.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
-        force_label = QLabel('Force:')
-        force_label.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
-
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(2)
-        h.addWidget(pitch_label)
+        h.addWidget(TightLabel('Pitch:'))
         h.addWidget(self._pitch)
-        h.addSpacing(4)
-        h.addWidget(force_label)
+        h.addSpacing(2)
+        h.addWidget(TightLabel('Force:'))
         h.addWidget(self._force)
 
         v = QVBoxLayout()
@@ -626,10 +628,24 @@ class RandomEntryEditor(QWidget):
         self._sample_selector = QComboBox()
         self._sample_selector.setSizeAdjustPolicy(QComboBox.AdjustToContents)
 
+        self._pitch_shift = QDoubleSpinBox()
+        self._pitch_shift.setDecimals(0)
+        self._pitch_shift.setRange(-6000, 6000)
+
+        self._volume_shift = QDoubleSpinBox()
+        self._volume_shift.setDecimals(1)
+        self._volume_shift.setRange(-64, 64)
+
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(2)
         h.addWidget(self._sample_selector)
+        h.addSpacing(2)
+        h.addWidget(TightLabel('Pitch shift:'))
+        h.addWidget(self._pitch_shift)
+        h.addSpacing(2)
+        h.addWidget(TightLabel('Volume shift:'))
+        h.addWidget(self._volume_shift)
         self.setLayout(h)
 
     def set_au_id(self, au_id):
@@ -647,6 +663,16 @@ class RandomEntryEditor(QWidget):
                 self._sample_selector,
                 SIGNAL('currentIndexChanged(int)'),
                 self._change_sample)
+
+        QObject.connect(
+                self._pitch_shift,
+                SIGNAL('valueChanged(double)'),
+                self._change_pitch_shift)
+
+        QObject.connect(
+                self._volume_shift,
+                SIGNAL('valueChanged(double)'),
+                self._change_volume_shift)
 
         self._update_all()
 
@@ -693,6 +719,23 @@ class RandomEntryEditor(QWidget):
                 self._sample_selector.setCurrentIndex(i)
         self._sample_selector.blockSignals(old_block)
 
+        if point and (point in sample_params.get_note_map_points()):
+            # Update pitch shift
+            old_block = self._pitch_shift.blockSignals(True)
+            new_pitch_shift = sample_params.get_note_map_random_list_cents_offset(
+                    point, self._index)
+            if new_pitch_shift != self._pitch_shift.value():
+                self._pitch_shift.setValue(new_pitch_shift)
+            self._pitch_shift.blockSignals(old_block)
+
+            # Update volume shift
+            old_block = self._volume_shift.blockSignals(True)
+            new_volume_shift = sample_params.get_note_map_random_list_volume_adjust(
+                    point, self._index)
+            if new_volume_shift != self._volume_shift.value():
+                self._volume_shift.setValue(new_volume_shift)
+            self._volume_shift.blockSignals(old_block)
+
     def _change_sample(self, item_index):
         sample_params = self._get_sample_params()
         point = sample_params.get_selected_note_map_point()
@@ -700,6 +743,20 @@ class RandomEntryEditor(QWidget):
             sample_id = unicode(self._sample_selector.itemData(item_index).toString())
             sample_params.set_note_map_random_list_sample_id(
                     point, self._index, sample_id)
+
+    def _change_pitch_shift(self, value):
+        sample_params = self._get_sample_params()
+        point = sample_params.get_selected_note_map_point()
+        if point and (point in sample_params.get_note_map_points()):
+            sample_params.set_note_map_random_list_cents_offset(
+                    point, self._index, value)
+
+    def _change_volume_shift(self, value):
+        sample_params = self._get_sample_params()
+        point = sample_params.get_selected_note_map_point()
+        if point and (point in sample_params.get_note_map_points()):
+            sample_params.set_note_map_random_list_volume_adjust(
+                    point, self._index, value)
 
 
 class Samples(QWidget):

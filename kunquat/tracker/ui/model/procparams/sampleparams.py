@@ -163,7 +163,7 @@ class SampleParams(ProcParams):
 
     def get_note_map_random_list_cents_offset(self, coords, index):
         random_list = self._get_random_list(coords)
-        entry = random_list[self._get_note_map_point_index(coords)][1]
+        entry = random_list[index]
         return entry[0]
 
     def set_note_map_random_list_cents_offset(self, coords, index, offset):
@@ -174,7 +174,7 @@ class SampleParams(ProcParams):
 
     def get_note_map_random_list_volume_adjust(self, coords, index):
         random_list = self._get_random_list(coords)
-        entry = random_list[self._get_note_map_point_index(coords)][1]
+        entry = random_list[index]
         return entry[1]
 
     def set_note_map_random_list_volume_adjust(self, coords, index, adjust):
