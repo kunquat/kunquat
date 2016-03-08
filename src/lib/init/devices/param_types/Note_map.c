@@ -316,7 +316,7 @@ const Sample_entry* Note_map_get_entry(
     if (choice->entry_count == 0)
         return NULL;
 
-    assert(choice->entry_count < NOTE_MAP_RANDOMS_MAX);
+    assert(choice->entry_count <= NOTE_MAP_RANDOMS_MAX);
 //    state->middle_tone = choice->freq;
     const int index = Random_get_index(random, choice->entry_count);
     assert(index >= 0);
