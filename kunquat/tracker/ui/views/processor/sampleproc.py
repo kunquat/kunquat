@@ -756,7 +756,8 @@ class RandomEntryEditor(QWidget):
         self._sample_selector.setEnabled(len(sample_ids) > 0)
         for i, info in enumerate(sample_info):
             sample_id, sample_name = info
-            self._sample_selector.addItem(sample_name, QVariant(sample_id))
+            vis_name = sample_name or u'-'
+            self._sample_selector.addItem(vis_name, QVariant(sample_id))
             if sample_id == cur_sample_id:
                 self._sample_selector.setCurrentIndex(i)
         self._sample_selector.blockSignals(old_block)
@@ -852,15 +853,15 @@ class SampleListToolBar(QToolBar):
         self._ui_model = None
         self._updater = None
 
-        self._load_button = QToolButton()
-        self._load_button.setText('Load sample')
-        self._load_button.setEnabled(True)
+        self._import_button = QToolButton()
+        self._import_button.setText('Import sample')
+        self._import_button.setEnabled(True)
 
         self._remove_button = QToolButton()
         self._remove_button.setText('Remove sample')
         self._remove_button.setEnabled(False)
 
-        self.addWidget(self._load_button)
+        self.addWidget(self._import_button)
         self.addWidget(self._remove_button)
 
     def set_au_id(self, au_id):
@@ -874,6 +875,10 @@ class SampleListToolBar(QToolBar):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        QObject.connect(self._import_button, SIGNAL('clicked()'), self._import_sample)
+
+        self._update_enabled()
+
     def _get_update_signal_type(self):
         return 'signal_proc_sample_list_{}'.format(self._proc_id)
 
@@ -884,10 +889,71 @@ class SampleListToolBar(QToolBar):
         if self._get_update_signal_type() in signals:
             self._update_enabled()
 
+    def _get_sample_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
     def _update_enabled(self):
-        sample_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        sample_params = self._get_sample_params()
         id_count = len(sample_params.get_sample_ids())
-        self._load_button.setEnabled(id_count < sample_params.get_max_sample_count())
+        self._import_button.setEnabled(id_count < sample_params.get_max_sample_count())
+        self._remove_button.setEnabled(id_count > 0)
+
+    def _import_sample(self):
+        sample_params = self._get_sample_params()
+        sample_id = sample_params.get_free_sample_id()
+        if not sample_id:
+            return
+
+        sample_path_qstring = QFileDialog.getOpenFileName(
+                caption='Import sample', filter='WavPack audio (*.wv)')
+        if sample_path_qstring:
+            sample_path = str(sample_path_qstring.toUtf8())
+            success = sample_params.import_sample(sample_id, sample_path)
+            if success:
+                self._updater.signal_update(set([self._get_update_signal_type()]))
+            else:
+                icon_bank = self._ui_model.get_icon_bank()
+                # TODO: Add a more descriptive error message
+                error_msg = u'<p>Could not import \'{}\'.</p>'.format(sample_path)
+                dialog = ImportErrorDialog(icon_bank, error_msg)
+                dialog.exec_()
+
+
+class ImportErrorDialog(QDialog):
+
+    def __init__(self, icon_bank, error_msg):
+        QDialog.__init__(self)
+
+        error_img_path = icon_bank.get_icon_path('warning') # TODO: error icon
+        error_label = QLabel()
+        error_label.setPixmap(QPixmap(error_img_path))
+
+        self._message = QLabel()
+        self._message.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
+
+        h = QHBoxLayout()
+        h.setMargin(8)
+        h.setSpacing(16)
+        h.addWidget(error_label)
+        h.addWidget(self._message)
+
+        self._button_layout = QHBoxLayout()
+
+        v = QVBoxLayout()
+        v.addLayout(h)
+        v.addLayout(self._button_layout)
+
+        self.setLayout(v)
+
+        # Dialog contents, TODO: make a common ErrorDialog class
+        self._message.setText(error_msg)
+
+        self._ok_button = QPushButton('OK')
+        self._button_layout.addStretch(1)
+        self._button_layout.addWidget(self._ok_button)
+        self._button_layout.addStretch(1)
+
+        QObject.connect(self._ok_button, SIGNAL('clicked()'), self.close)
 
 
 class SampleListModel(QAbstractListModel):
@@ -1129,7 +1195,7 @@ class SampleEditor(QWidget):
 
         name = u''
         if has_sample:
-            name = sample_params.get_sample_name(sample_id)
+            name = sample_params.get_sample_name(sample_id) or u''
 
         old_block = self._name_editor.blockSignals(True)
         if self._name_editor.text() != name:

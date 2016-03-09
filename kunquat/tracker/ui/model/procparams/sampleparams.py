@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from kunquat.kunquat.kunquat import Kunquat, KunquatFormatError
 from procparams import ProcParams
 
 
@@ -41,6 +42,10 @@ class SampleParams(ProcParams):
     def _get_sample_key(self, sample_id, key):
         return '{}/{}'.format(sample_id, key)
 
+    def _get_full_sample_key(self, sample_id, key):
+        sample_key = self._get_sample_key(sample_id, key)
+        return self._get_conf_key(sample_key)
+
     def _get_sample_num(self, sample_id):
         return int(sample_id.split('_')[1], 16)
 
@@ -64,6 +69,47 @@ class SampleParams(ProcParams):
                 ret_ids.append(cur_id)
 
         return ret_ids
+
+    def get_free_sample_id(self):
+        for i in xrange(self._SAMPLES_MAX):
+            cur_id = self._get_sample_id(i)
+            cur_header = self._get_sample_header(cur_id)
+            if not type(cur_header) == dict:
+                return cur_id
+        return None
+
+    def import_sample(self, sample_id, path):
+        with open(path, 'rb') as f:
+            sample_data = f.read()
+
+        validator = WavPackValidator(sample_data)
+        if not validator.is_data_valid():
+            return False
+        del validator
+
+        sample_data_key = self._get_full_sample_key(sample_id, 'p_sample.wv')
+        sample_header_key = self._get_full_sample_key(sample_id, 'p_sh_sample.json')
+
+        header = { u'format': u'WavPack', u'freq': 48000, }
+
+        transaction = {}
+        transaction[sample_data_key] = sample_data
+        transaction[sample_header_key] = header
+
+        self._store.put(transaction)
+
+        return True
+
+    def remove_sample(self, sample_id):
+        key_prefix = self._get_full_sample_key('')
+
+        transaction = {}
+        for key in (k for k in self._store.iterkeys() if k.startswith(key_prefix)):
+            transaction[key] = None
+
+        # TODO: Remove all references in random lists
+
+        self._store.put(transaction)
 
     def get_selected_sample_id(self):
         return self._session.get_selected_sample_id(self._proc_id)
@@ -188,5 +234,40 @@ class SampleParams(ProcParams):
         point_index = self._get_note_map_point_index(coords)
         note_map[point_index][1][index][1] = adjust
         self._set_note_map(note_map)
+
+
+class WavPackValidator():
+
+    def __init__(self, sample_data):
+        self._validator = Kunquat()
+        self._sample_data = sample_data
+        self._validation_error = None
+
+    def is_data_valid(self):
+        if self._validation_error:
+            return False
+
+        transaction = {
+            'au_00/p_manifest.json'                   : {},
+            'au_00/proc_00/p_manifest.json'           : { u'type': u'sample' },
+            'au_00/proc_00/p_signal_type.json'        : u'voice',
+            'au_00/proc_00/c/smp_000/p_sh_sample.json': {
+                    u'format': u'WavPack', u'freq'  : 48000, },
+            'au_00/proc_00/c/smp_000/p_sample.wv'     : self._sample_data,
+        }
+
+        for key, value in transaction.iteritems():
+            self._validator.set_data(key, value)
+
+        try:
+            self._validator.validate()
+        except KunquatFormatError as e:
+            self._validation_error = e['message']
+            return False
+
+        return True
+
+    def get_validation_error(self):
+        return self._validation_error
 
 

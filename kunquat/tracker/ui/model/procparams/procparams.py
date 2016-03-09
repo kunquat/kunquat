@@ -35,6 +35,9 @@ class ProcParams():
 
     # Protected interface
 
+    def _get_conf_key(self, subkey):
+        return self._get_key('c/', subkey)
+
     def _get_value(self, subkey, default_value):
         conf_key = self._get_key('c/', subkey)
         if conf_key in self._store:
