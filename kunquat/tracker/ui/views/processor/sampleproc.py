@@ -876,17 +876,23 @@ class SampleListToolBar(QToolBar):
         self._updater.register_updater(self._perform_updates)
 
         QObject.connect(self._import_button, SIGNAL('clicked()'), self._import_sample)
+        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_sample)
 
         self._update_enabled()
 
-    def _get_update_signal_type(self):
+    def _get_selection_signal_type(self):
+        return 'signal_proc_select_sample_{}'.format(self._proc_id)
+
+    def _get_list_signal_type(self):
         return 'signal_proc_sample_list_{}'.format(self._proc_id)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        if self._get_update_signal_type() in signals:
+        update_signals = set([
+            self._get_list_signal_type(), self._get_selection_signal_type()])
+        if not signals.isdisjoint(update_signals):
             self._update_enabled()
 
     def _get_sample_params(self):
@@ -895,8 +901,9 @@ class SampleListToolBar(QToolBar):
     def _update_enabled(self):
         sample_params = self._get_sample_params()
         id_count = len(sample_params.get_sample_ids())
+        any_selected = (sample_params.get_selected_sample_id() != None)
         self._import_button.setEnabled(id_count < sample_params.get_max_sample_count())
-        self._remove_button.setEnabled(id_count > 0)
+        self._remove_button.setEnabled(any_selected and (id_count > 0))
 
     def _import_sample(self):
         sample_params = self._get_sample_params()
@@ -910,13 +917,22 @@ class SampleListToolBar(QToolBar):
             sample_path = str(sample_path_qstring.toUtf8())
             success = sample_params.import_sample(sample_id, sample_path)
             if success:
-                self._updater.signal_update(set([self._get_update_signal_type()]))
+                self._updater.signal_update(set([self._get_list_signal_type()]))
             else:
                 icon_bank = self._ui_model.get_icon_bank()
                 # TODO: Add a more descriptive error message
                 error_msg = u'<p>Could not import \'{}\'.</p>'.format(sample_path)
                 dialog = ImportErrorDialog(icon_bank, error_msg)
                 dialog.exec_()
+
+    def _remove_sample(self):
+        sample_params = self._get_sample_params()
+        sample_id = sample_params.get_selected_sample_id()
+        if sample_id:
+            sample_params.remove_sample(sample_id)
+            self._updater.signal_update(set([
+                self._get_list_signal_type(),
+                'signal_sample_note_map_random_list_'.format(self._proc_id)]))
 
 
 class ImportErrorDialog(QDialog):

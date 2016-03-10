@@ -101,13 +101,18 @@ class SampleParams(ProcParams):
         return True
 
     def remove_sample(self, sample_id):
-        key_prefix = self._get_full_sample_key('')
+        key_prefix = self._get_full_sample_key(sample_id, '')
 
         transaction = {}
         for key in (k for k in self._store.iterkeys() if k.startswith(key_prefix)):
             transaction[key] = None
 
-        # TODO: Remove all references in random lists
+        # Remove all references in random lists
+        sample_num = self._get_sample_num(sample_id)
+        note_map = self._get_note_map()
+        for (point, random_list) in note_map:
+            random_list[:] = [e for e in random_list if e[2] != sample_num]
+        transaction[self._get_conf_key('p_nm_note_map.json')] = note_map
 
         self._store.put(transaction)
 
