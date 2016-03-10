@@ -1196,6 +1196,9 @@ class SampleEditor(QWidget):
     def _get_selection_update_signal_type(self):
         return 'signal_proc_select_sample_{}'.format(self._proc_id)
 
+    def _get_random_list_signal_type(self):
+        return 'signal_sample_note_map_random_list_'.format(self._proc_id)
+
     def _perform_updates(self, signals):
         update_signals = set([
             self._get_list_update_signal_type(),
@@ -1222,6 +1225,7 @@ class SampleEditor(QWidget):
         sample_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_name(sample_id, unicode(self._name_editor.text()))
-        self._updater.signal_update(set([self._get_list_update_signal_type()]))
+        self._updater.signal_update(set([
+            self._get_list_update_signal_type(), self._get_random_list_signal_type()]))
 
 
