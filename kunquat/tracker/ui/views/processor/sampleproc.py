@@ -516,7 +516,7 @@ class NoteMapEntry(QWidget):
         self._force.setDecimals(1)
         self._force.setRange(-36, 0)
 
-        self._random_list = RandomList()
+        self._random_list = NoteRandomList()
 
         h = QHBoxLayout()
         h.setMargin(0)
@@ -630,8 +630,19 @@ class RandomList(EditorList):
         self.disconnect_widgets()
         self._updater.unregister_updater(self._perform_updates)
 
+    def _get_callback_info(self):
+        cb_info = {
+            'get_map_points'             : self._get_map_points,
+            'get_selected_map_point'     : self._get_selected_map_point,
+            'get_model_random_list'      : self._get_model_random_list,
+            'get_selection_signal_type'  : self._get_selection_signal_type,
+            'get_random_list_signal_type': self._get_random_list_signal_type,
+            'get_update_signals'         : self._get_update_signals,
+        }
+        return cb_info
+
     def _make_adder_widget(self):
-        self._adder = RandomEntryAdder()
+        self._adder = RandomEntryAdder(self._get_callback_info())
         self._adder.set_au_id(self._au_id)
         self._adder.set_proc_id(self._proc_id)
         self._adder.set_ui_model(self._ui_model)
@@ -639,13 +650,14 @@ class RandomList(EditorList):
 
     def _get_updated_editor_count(self):
         sample_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
-        point = sample_params.get_selected_note_map_point()
-        if point and (point in sample_params.get_note_map_points()):
-            return sample_params.get_note_map_random_list_length(point)
+        point = self._get_selected_map_point()
+        if point and (point in self._get_map_points()):
+            random_list = self._get_model_random_list(point)
+            return random_list.get_length()
         return 0
 
     def _make_editor_widget(self, index):
-        editor = RandomEntryEditor(index)
+        editor = RandomEntryEditor(self._get_callback_info(), index)
         editor.set_au_id(self._au_id)
         editor.set_proc_id(self._proc_id)
         editor.set_ui_model(self._ui_model)
@@ -657,41 +669,58 @@ class RandomList(EditorList):
     def _disconnect_widget(self, widget):
         widget.unregister_updaters()
 
-    def _get_selection_signal_type(self):
-        return 'signal_sample_note_map_selection_{}'.format(self._proc_id)
-
-    def _get_random_list_signal_type(self):
-        return 'signal_sample_note_map_random_list_'.format(self._proc_id)
-
     def _perform_updates(self, signals):
-        update_signals = set([
-            self._get_selection_signal_type(),
-            self._get_random_list_signal_type()])
+        update_signals = self._get_update_signals()
         if not signals.isdisjoint(update_signals):
             self._update_all()
 
     def _update_all(self):
         self.update_list()
 
-        sample_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
-        point = sample_params.get_selected_note_map_point()
-        if point and (point in sample_params.get_note_map_points()):
-            is_full = sample_params.is_note_map_random_list_full(point)
-            self._adder.setVisible(not is_full)
+        point = self._get_selected_map_point()
+        if point and (point in self._get_map_points()):
+            random_list = self._get_model_random_list(point)
+            self._adder.setVisible(not random_list.is_full())
         else:
             self._adder.setVisible(False)
 
+        sample_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         self._adder.setEnabled(len(sample_params.get_sample_ids()) > 0)
+
+    # Protected callbacks
+
+    def _get_map_points(self):
+        raise NotImplementedError
+
+    def _get_selected_map_point(self):
+        raise NotImplementedError
+
+    def _get_model_random_list(self):
+        raise NotImplementedError
+
+    def _get_selection_signal_type(self):
+        raise NotImplementedError
+
+    def _get_random_list_signal_type(self):
+        raise NotImplementedError
+
+    def _get_update_signals(self):
+        raise NotImplementedError
 
 
 class RandomEntryAdder(QPushButton):
 
-    def __init__(self):
+    def __init__(self, cb_info):
         QPushButton.__init__(self, 'Add sample entry')
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
         self._updater = None
+
+        self._get_map_points = cb_info['get_map_points']
+        self._get_selected_map_point = cb_info['get_selected_map_point']
+        self._get_model_random_list = cb_info['get_model_random_list']
+        self._get_update_signal_type = cb_info['get_random_list_signal_type']
 
     def set_au_id(self, au_id):
         self._au_id = au_id
@@ -708,25 +737,28 @@ class RandomEntryAdder(QPushButton):
     def unregister_updaters(self):
         pass
 
-    def _get_update_signal_type(self):
-        return 'signal_sample_note_map_random_list_'.format(self._proc_id)
-
     def _add_entry(self):
-        sample_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
-        point = sample_params.get_selected_note_map_point()
-        if point and (point in sample_params.get_note_map_points()):
-            sample_params.add_note_map_random_list_entry(point)
+        point = self._get_selected_map_point()
+        if point and (point in self._get_map_points()):
+            random_list = self._get_model_random_list(point)
+            random_list.add_entry()
             self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
 class RandomEntryEditor(QWidget):
 
-    def __init__(self, index):
+    def __init__(self, cb_info, index):
         QWidget.__init__(self)
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
         self._updater = None
+
+        self._get_map_points = cb_info['get_map_points']
+        self._get_selected_map_point = cb_info['get_selected_map_point']
+        self._get_model_random_list = cb_info['get_model_random_list']
+        self._get_random_list_signal_type = cb_info['get_random_list_signal_type']
+        self._get_update_signals = cb_info['get_update_signals']
 
         self._index = index
 
@@ -794,15 +826,8 @@ class RandomEntryEditor(QWidget):
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
-    def _get_selection_signal_type(self):
-        return 'signal_sample_note_map_selection_{}'.format(self._proc_id)
-
-    def _get_list_signal_type(self):
-        return 'signal_sample_note_map_random_list_'.format(self._proc_id)
-
     def _perform_updates(self, signals):
-        update_signals = set([
-            self._get_selection_signal_type(), self._get_list_signal_type()])
+        update_signals = self._get_update_signals()
         if not signals.isdisjoint(update_signals):
             self._update_all()
 
@@ -814,15 +839,14 @@ class RandomEntryEditor(QWidget):
 
         sample_ids = sample_params.get_sample_ids()
 
-        point = sample_params.get_selected_note_map_point()
+        point = self._get_selected_map_point()
         cur_sample_id = None
-        if point and (point in sample_params.get_note_map_points()):
-            if self._index >= sample_params.get_note_map_random_list_length(point):
+        if point and (point in self._get_map_points()):
+            random_list = self._get_model_random_list(point)
+            if self._index >= random_list.get_length():
                 # We are being removed
                 return
-
-            cur_sample_id = sample_params.get_note_map_random_list_sample_id(
-                    point, self._index)
+            cur_sample_id = random_list.get_sample_id(self._index)
 
         # Update sample selector contents
         sample_info = sorted([
@@ -839,54 +863,80 @@ class RandomEntryEditor(QWidget):
                 self._sample_selector.setCurrentIndex(i)
         self._sample_selector.blockSignals(old_block)
 
-        if point and (point in sample_params.get_note_map_points()):
+        if point and (point in self._get_map_points()):
+            random_list = self._get_model_random_list(point)
+
             # Update pitch shift
             old_block = self._pitch_shift.blockSignals(True)
-            new_pitch_shift = sample_params.get_note_map_random_list_cents_offset(
-                    point, self._index)
+            new_pitch_shift = random_list.get_cents_offset(self._index)
             if new_pitch_shift != self._pitch_shift.value():
                 self._pitch_shift.setValue(new_pitch_shift)
             self._pitch_shift.blockSignals(old_block)
 
             # Update volume shift
             old_block = self._volume_shift.blockSignals(True)
-            new_volume_shift = sample_params.get_note_map_random_list_volume_adjust(
-                    point, self._index)
+            new_volume_shift = random_list.get_volume_adjust(self._index)
             if new_volume_shift != self._volume_shift.value():
                 self._volume_shift.setValue(new_volume_shift)
             self._volume_shift.blockSignals(old_block)
 
     def _change_sample(self, item_index):
-        sample_params = self._get_sample_params()
-        point = sample_params.get_selected_note_map_point()
-        if point and (point in sample_params.get_note_map_points()):
+        point = self._get_selected_map_point()
+        if point and (point in self._get_map_points()):
             sample_id = unicode(self._sample_selector.itemData(item_index).toString())
-            sample_params.set_note_map_random_list_sample_id(
-                    point, self._index, sample_id)
-            self._updater.signal_update(set([self._get_list_signal_type()]))
+            random_list = self._get_model_random_list(point)
+            random_list.set_sample_id(self._index, sample_id)
+            self._updater.signal_update(set([self._get_random_list_signal_type()]))
 
     def _change_pitch_shift(self, value):
-        sample_params = self._get_sample_params()
-        point = sample_params.get_selected_note_map_point()
-        if point and (point in sample_params.get_note_map_points()):
-            sample_params.set_note_map_random_list_cents_offset(
-                    point, self._index, value)
-            self._updater.signal_update(set([self._get_list_signal_type()]))
+        point = self._get_selected_map_point()
+        if point and (point in self._get_map_points()):
+            random_list = self._get_model_random_list(point)
+            random_list.set_cents_offset(self._index, value)
+            self._updater.signal_update(set([self._get_random_list_signal_type()]))
 
     def _change_volume_shift(self, value):
-        sample_params = self._get_sample_params()
-        point = sample_params.get_selected_note_map_point()
-        if point and (point in sample_params.get_note_map_points()):
-            sample_params.set_note_map_random_list_volume_adjust(
-                    point, self._index, value)
-            self._updater.signal_update(set([self._get_list_signal_type()]))
+        point = self._get_selected_map_point()
+        if point and (point in self._get_map_points()):
+            random_list = self._get_model_random_list(point)
+            random_list.set_volume_adjust(self._index, value)
+            self._updater.signal_update(set([self._get_random_list_signal_type()]))
 
     def _remove_entry(self):
-        sample_params = self._get_sample_params()
-        point = sample_params.get_selected_note_map_point()
-        if point and (point in sample_params.get_note_map_points()):
-            sample_params.remove_note_map_random_list_entry(point, self._index)
-            self._updater.signal_update(set([self._get_list_signal_type()]))
+        point = self._get_selected_map_point()
+        if point and (point in self._get_map_points()):
+            random_list = self._get_model_random_list(point)
+            random_list.remove_entry(self._index)
+            self._updater.signal_update(set([self._get_random_list_signal_type()]))
+
+
+class NoteRandomList(RandomList):
+
+    def __init__(self):
+        RandomList.__init__(self)
+
+    def _get_sample_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _get_map_points(self):
+        return self._get_sample_params().get_note_map_points()
+
+    def _get_selected_map_point(self):
+        return self._get_sample_params().get_selected_note_map_point()
+
+    def _get_model_random_list(self, point):
+        sample_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        return sample_params.get_note_map_random_list(point)
+
+    def _get_selection_signal_type(self):
+        return 'signal_sample_note_map_selection_{}'.format(self._proc_id)
+
+    def _get_random_list_signal_type(self):
+        return 'signal_sample_note_map_random_list_{}'.format(self._proc_id)
+
+    def _get_update_signals(self):
+        return set([
+            self._get_selection_signal_type(), self._get_random_list_signal_type()])
 
 
 class HitMapEditor(QWidget):
@@ -990,7 +1040,7 @@ class HitMap(RandomListMap):
         return 'signal_sample_hit_map_selection_{}'.format(self._proc_id)
 
     def _get_move_signal_type(self):
-        return 'signal_sample_hit_map_selection_{}'.format(self._proc_id)
+        return 'signal_sample_hit_map_move_{}'.format(self._proc_id)
 
     def _get_update_signals(self):
         return set([
@@ -1123,8 +1173,8 @@ class HitMapEntry(QWidget):
         sample_params = self._get_sample_params()
         hit_info = sample_params.get_selected_hit_info()
         selected_force = sample_params.get_selected_hit_map_force()
-        if (selected_force and
-                (selected_force not in sample_params.get_hit_map_forces(hit_info))):
+        if ((selected_force != None) and
+                (new_force not in sample_params.get_hit_map_forces(hit_info))):
             sample_params.move_hit_map_point(hit_info, selected_force, new_force)
             sample_params.set_selected_hit_map_force(new_force)
             self._updater.signal_update(set([self._get_move_signal_type()]))
@@ -1250,7 +1300,7 @@ class SampleListToolBar(QToolBar):
             sample_params.remove_sample(sample_id)
             self._updater.signal_update(set([
                 self._get_list_signal_type(),
-                'signal_sample_note_map_random_list_'.format(self._proc_id)]))
+                'signal_sample_note_map_random_list_{}'.format(self._proc_id)]))
 
 
 class ImportErrorDialog(QDialog):
@@ -1515,7 +1565,7 @@ class SampleEditor(QWidget):
         return 'signal_proc_select_sample_{}'.format(self._proc_id)
 
     def _get_random_list_signal_type(self):
-        return 'signal_sample_note_map_random_list_'.format(self._proc_id)
+        return 'signal_sample_note_map_random_list_{}'.format(self._proc_id)
 
     def _perform_updates(self, signals):
         update_signals = set([

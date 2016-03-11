@@ -18,7 +18,6 @@ from procparams import ProcParams
 class SampleParams(ProcParams):
 
     _SAMPLES_MAX = 512
-    _RANDOM_LIST_LENGTH_MAX = 8
 
     @staticmethod
     def get_default_signal_type():
@@ -176,11 +175,18 @@ class SampleParams(ProcParams):
         del note_map[index]
         self._set_note_map(note_map)
 
-    def _get_note_map_random_list(self, coords):
-        note_map = self._get_note_map()
-        random_list = [r for e, r in note_map if e == coords][0]
-        return random_list
+    def get_note_map_random_list(self, coords):
+        cb_info = {
+            'get_map'        : self._get_note_map,
+            'get_point_index': self._get_note_map_point_index,
+            'set_map'        : self._set_note_map,
+            'get_sample_ids' : self.get_sample_ids,
+            'get_sample_num' : self._get_sample_num,
+            'get_sample_id'  : self._get_sample_id,
+        }
+        return RandomList(cb_info, coords)
 
+    '''
     def get_note_map_random_list_length(self, coords):
         random_list = self._get_note_map_random_list(coords)
         return len(random_list)
@@ -239,6 +245,7 @@ class SampleParams(ProcParams):
         point_index = self._get_note_map_point_index(coords)
         note_map[point_index][1][index][1] = adjust
         self._set_note_map(note_map)
+    '''
 
     def _get_hit_map(self):
         return self._get_value('p_hm_hit_map.json', [])
@@ -282,7 +289,8 @@ class SampleParams(ProcParams):
         key = [hit_index, force]
         return key
 
-    def _get_hit_map_point_index(self, hit_info, force):
+    def _get_hit_map_point_index(self, location):
+        hit_info, force = location
         key = self._get_hit_map_random_list_key(hit_info, force)
         hit_map = self._get_hit_map()
         index = [i for i, entry in enumerate(hit_map) if entry[0] == key][0]
@@ -291,22 +299,31 @@ class SampleParams(ProcParams):
     def move_hit_map_point(self, hit_info, old_force, new_force):
         assert new_force not in self.get_hit_map_forces(hit_info)
         hit_map = self._get_hit_map()
-        index = self._get_hit_map_point_index(hit_info, old_force)
+        location = hit_info, old_force
+        index = self._get_hit_map_point_index(location)
         hit_map[index][0][1] = new_force
         self._set_hit_map(hit_map)
 
     def remove_hit_map_point(self, hit_info, force):
         hit_map = self._get_hit_map()
-        index = self._get_hit_map_point_index(hit_info, force)
+        location = hit_info, force
+        index = self._get_hit_map_point_index(location)
         del hit_map[index]
         self._set_hit_map(hit_map)
 
-    def _get_hit_map_random_list(self, hit_info, force):
-        hit_map = self._get_hit_map()
-        index = self._get_hit_map_point_index(hit_info, force)
-        random_list = hit_map[index]
-        return random_list
+    def get_hit_map_random_list(self, hit_info, force):
+        location = hit_info, force
+        cb_info = {
+            'get_map'        : self._get_hit_map,
+            'get_point_index': self._get_hit_map_point_index,
+            'set_map'        : self._set_hit_map,
+            'get_sample_ids' : self.get_sample_ids,
+            'get_sample_num' : self._get_sample_num,
+            'get_sample_id'  : self._get_sample_id,
+        }
+        return RandomList(cb_info, location)
 
+    '''
     def get_hit_map_random_list_length(self, hit_info, force):
         random_list = self._get_hit_map_random_list(hit_info, force)
         return len(random_list)
@@ -365,6 +382,83 @@ class SampleParams(ProcParams):
         point_index = self._get_hit_map_point_index(hit_info, force)
         hit_map[point_index][1][index][1] = adjust
         self._set_hit_map(hit_map)
+    '''
+
+
+class RandomList():
+
+    _LENGTH_MAX = 8
+
+    def __init__(self, cb_info, location):
+        self._get_map = cb_info['get_map']
+        self._get_point_index = cb_info['get_point_index']
+        self._set_map = cb_info['set_map']
+        self._get_sample_ids = cb_info['get_sample_ids']
+        self._get_sample_num = cb_info['get_sample_num']
+        self._get_sample_id = cb_info['get_sample_id']
+        self._location = location
+
+    def _get_raw_list(self):
+        raw_map = self._get_map()
+        point_index = self._get_point_index(self._location)
+        return raw_map[point_index][1]
+
+    def get_length(self):
+        raw_list = self._get_raw_list()
+        return len(raw_list)
+
+    def is_full(self):
+        return (self.get_length() >= self._LENGTH_MAX)
+
+    def add_entry(self):
+        raw_map = self._get_map()
+        point_index = self._get_point_index(self._location)
+
+        sample_ids = self._get_sample_ids()
+        some_sample_num = self._get_sample_num(sample_ids[0]) if sample_ids else 0
+
+        raw_map[point_index][1].append([0, 0, some_sample_num])
+        self._set_map(raw_map)
+
+    def remove_entry(self, index):
+        raw_map = self._get_map()
+        point_index = self._get_point_index(self._location)
+
+        del raw_map[point_index][1][index]
+        self._set_map(raw_map)
+
+    def get_sample_id(self, index):
+        raw_list = self._get_raw_list()
+        entry = raw_list[index]
+        return self._get_sample_id(entry[2])
+
+    def set_sample_id(self, index, sample_id):
+        raw_map = self._get_map()
+        point_index = self._get_point_index(self._location)
+        raw_map[point_index][1][index][2] = self._get_sample_num(sample_id)
+        self._set_map(raw_map)
+
+    def get_cents_offset(self, index):
+        raw_list = self._get_raw_list()
+        entry = raw_list[index]
+        return entry[0]
+
+    def set_cents_offset(self, index, offset):
+        raw_map = self._get_map()
+        point_index = self._get_point_index(self._location)
+        raw_map[point_index][1][index][0] = offset
+        self._set_map(raw_map)
+
+    def get_volume_adjust(self, index):
+        raw_list = self._get_raw_list()
+        entry = raw_list[index]
+        return entry[1]
+
+    def set_volume_adjust(self, index, adjust):
+        raw_map = self._get_map()
+        point_index = self._get_point_index(self._location)
+        raw_map[point_index][1][index][1] = adjust
+        self._set_map(raw_map)
 
 
 class WavPackValidator():
