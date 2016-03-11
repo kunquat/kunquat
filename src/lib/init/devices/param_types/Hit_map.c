@@ -18,6 +18,7 @@
 #include <debug/assert.h>
 #include <memory.h>
 
+#include <inttypes.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -134,6 +135,16 @@ static bool read_mapping(Streader* sr, int32_t index, void* userdata)
 
     list->force = force;
     list->entry_count = 0;
+    if (AAtree_contains(map->hits[hit_index], list))
+    {
+        Streader_set_error(
+                sr,
+                "Duplicate hit map entry with hit index %" PRId64 ", force %.2f",
+                hit_index,
+                force);
+        memory_free(list);
+        return false;
+    }
     if (!AAtree_ins(map->hits[hit_index], list))
     {
         Streader_set_memory_error(
