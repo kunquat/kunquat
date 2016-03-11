@@ -136,6 +136,16 @@ static bool read_mapping(Streader* sr, int32_t index, void* userdata)
     list->cents = cents;
     list->force = force;
     list->entry_count = 0;
+    if (AAtree_contains(map->map, list))
+    {
+        Streader_set_error(
+                sr,
+                "Duplicate note map entry with pitch %.2f, force %.2f",
+                list->cents,
+                list->force);
+        memory_free(list);
+        return false;
+    }
     if (!AAtree_ins(map->map, list))
     {
         Streader_set_memory_error(
