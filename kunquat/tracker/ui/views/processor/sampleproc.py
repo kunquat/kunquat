@@ -95,7 +95,7 @@ class NoteMapEditor(QWidget):
         self._note_map.unregister_updaters()
 
 
-class NoteMap(QWidget):
+class RandomListMap(QWidget):
 
     _DEFAULT_CONFIG = {
         'padding'                  : 5,
@@ -104,11 +104,11 @@ class NoteMap(QWidget):
         'focused_point_colour'     : QColor(0xff, 0x77, 0x22),
         'focused_point_axis_colour': QColor(0xff, 0x77, 0x22, 0x7f),
         'point_size'               : 7,
-        'point_focus_dist_max'     : 5,
+        'point_focus_dist_max'     : 8,
         'selected_highlight_colour': QColor(0xff, 0xff, 0xdd),
         'selected_highlight_size'  : 11,
         'selected_highlight_width' : 2,
-        'move_snap_dist'           : 10,
+        'move_snap_dist'           : 15,
         'remove_dist_min'          : 200,
     }
 
@@ -153,7 +153,8 @@ class NoteMap(QWidget):
 
         self._axis_y_renderer = VerticalAxisRenderer()
         self._axis_y_renderer.set_config(self._AXIS_CONFIG, self)
-        self._axis_y_renderer.set_val_range([-6000, 6000])
+        y_range = [-6000, 6000] if self._has_pitch_axis() else [0, 0]
+        self._axis_y_renderer.set_val_range(y_range)
 
         self._focused_point = None
 
@@ -189,20 +190,11 @@ class NoteMap(QWidget):
         self._config = self._DEFAULT_CONFIG.copy()
         self._config.update(config)
 
-    def _get_selection_signal_type(self):
-        return 'signal_sample_note_map_selection_{}'.format(self._proc_id)
-
-    def _get_move_signal_type(self):
-        return 'signal_sample_note_map_move_{}'.format(self._proc_id)
-
     def _perform_updates(self, signals):
         if self._get_selection_signal_type() in signals:
             self.update()
         if self._get_move_signal_type() in signals:
             self.update()
-
-    def _get_sample_params(self):
-        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
     def _get_area_offset(self):
         padding = self._config['padding']
@@ -254,11 +246,9 @@ class NoteMap(QWidget):
         return math.sqrt((dx * dx) + (dy * dy))
 
     def _get_nearest_point_with_dist(self, x, y):
-        sample_params = self._get_sample_params()
-
         nearest_dist = float('inf')
         nearest_point = None
-        for point in sample_params.get_note_map_points():
+        for point in self._get_all_points():
             dist = self._coords_dist(self._get_vis_coords(point), (x, y))
             if dist < nearest_dist:
                 nearest_point = point
@@ -275,8 +265,7 @@ class NoteMap(QWidget):
                 self._focused_point = None
             self.update()
         elif self._state == self._STATE_MOVING:
-            sample_params = self._get_sample_params()
-            point = sample_params.get_selected_note_map_point()
+            point = self._get_selected_point()
             if point:
                 point_vis_coords = self._get_vis_coords(point)
                 adjusted_x = event.x() - self._moving_pointer_offset[0]
@@ -288,8 +277,8 @@ class NoteMap(QWidget):
                 keep_area_y = [-remove_dist_min, self.height() + remove_dist_min]
                 if not ((keep_area_x[0] <= event.x() <= keep_area_x[1]) and
                         (keep_area_y[0] <= event.y() <= keep_area_y[1])):
-                    sample_params.remove_note_map_point(point)
-                    sample_params.set_selected_note_map_point(None)
+                    self._remove_point(point)
+                    self._set_selected_point(None)
                     self._focused_point = None
                     self._state = self._STATE_IDLE
                     self._updater.signal_update(set([self._get_selection_signal_type()]))
@@ -301,9 +290,9 @@ class NoteMap(QWidget):
 
                 if not self._is_start_snapping_active:
                     new_point = self._get_point_coords((adjusted_x, adjusted_y))
-                    if new_point not in sample_params.get_note_map_points():
-                        sample_params.move_note_map_point(point, new_point)
-                        sample_params.set_selected_note_map_point(new_point)
+                    if new_point not in self._get_all_points():
+                        self._move_point(point, new_point)
+                        self._set_selected_point(new_point)
                         self._focused_point = new_point
                         self._updater.signal_update(set([self._get_move_signal_type()]))
 
@@ -315,8 +304,7 @@ class NoteMap(QWidget):
             x, y = event.x(), event.y()
             point, dist = self._get_nearest_point_with_dist(x - 1, y - 1)
             if dist <= self._config['point_focus_dist_max']:
-                sample_params = self._get_sample_params()
-                sample_params.set_selected_note_map_point(point)
+                self._set_selected_point(point)
 
                 self._state = self._STATE_MOVING
                 self._is_start_snapping_active = True
@@ -330,9 +318,8 @@ class NoteMap(QWidget):
                 force_range = self._axis_x_renderer.get_val_range()
                 if ((pitch_range[0] <= new_point[0] <= pitch_range[1]) and
                         force_range[0] <= new_point[1] <= force_range[1]):
-                    sample_params = self._get_sample_params()
-                    sample_params.add_note_map_point(new_point)
-                    sample_params.set_selected_note_map_point(new_point)
+                    self._add_point(new_point)
+                    self._set_selected_point(new_point)
 
                     self._state = self._STATE_MOVING
                     self._is_start_snapping_active = True
@@ -371,23 +358,23 @@ class NoteMap(QWidget):
         self._axis_x_renderer.set_y_offset_x(self.width() - axis_y_width - padding * 2)
         self._axis_x_renderer.render(painter)
 
-        painter.setTransform(QTransform().translate(padding, padding))
-        self._axis_y_renderer.set_height(self.height())
-        self._axis_y_renderer.set_axis_length(axis_y_length)
-        self._axis_y_renderer.set_x_offset_y(
-                (self.height() - axis_x_height - padding * 2) // 2)
-        self._axis_y_renderer.render(painter)
+        if self._has_pitch_axis():
+            painter.setTransform(QTransform().translate(padding, padding))
+            self._axis_y_renderer.set_height(self.height())
+            self._axis_y_renderer.set_axis_length(axis_y_length)
+            self._axis_y_renderer.set_x_offset_y(
+                    (self.height() - axis_x_height - padding * 2) // 2)
+            self._axis_y_renderer.render(painter)
 
         # Note map points
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(Qt.NoPen)
         painter.setTransform(QTransform())
-        sample_params = self._get_sample_params()
         point_size = self._config['point_size']
         point_offset = -(point_size // 2)
-        selected_point = sample_params.get_selected_note_map_point()
+        selected_point = self._get_selected_point()
         selected_found = False
-        for point in sample_params.get_note_map_points():
+        for point in self._get_all_points():
             if point == selected_point:
                 selected_found = True
             if point == self._focused_point:
@@ -419,6 +406,77 @@ class NoteMap(QWidget):
 
     def minimumSizeHint(self):
         return QSize(200, 200)
+
+    # Protected callbacks
+
+    def _has_pitch_axis(self):
+        raise NotImplementedError
+
+    def _get_selection_signal_type(self):
+        raise NotImplementedError
+
+    def _get_move_signal_type(self):
+        raise NotImplementedError
+
+    def _get_all_points(self):
+        raise NotImplementedError
+
+    def _get_selected_point(self):
+        raise NotImplementedError
+
+    def _set_selected_point(self, point):
+        raise NotImplementedError
+
+    def _add_point(self, point):
+        raise NotImplementedError
+
+    def _move_point(self, old_point, new_point):
+        raise NotImplementedError
+
+    def _remove_point(self, point):
+        raise NotImplementedError
+
+
+class NoteMap(RandomListMap):
+
+    def __init__(self):
+        RandomListMap.__init__(self)
+
+    def _get_sample_params_b(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _has_pitch_axis(self):
+        return True
+
+    def _get_selection_signal_type(self):
+        return 'signal_sample_note_map_selection_{}'.format(self._proc_id)
+
+    def _get_move_signal_type(self):
+        return 'signal_sample_note_map_move_{}'.format(self._proc_id)
+
+    def _get_all_points(self):
+        sample_params = self._get_sample_params_b()
+        return sample_params.get_note_map_points()
+
+    def _get_selected_point(self):
+        sample_params = self._get_sample_params_b()
+        return sample_params.get_selected_note_map_point()
+
+    def _set_selected_point(self, point):
+        sample_params = self._get_sample_params_b()
+        sample_params.set_selected_note_map_point(point)
+
+    def _add_point(self, point):
+        sample_params = self._get_sample_params_b()
+        sample_params.add_note_map_point(point)
+
+    def _move_point(self, old_point, new_point):
+        sample_params = self._get_sample_params_b()
+        sample_params.move_note_map_point(old_point, new_point)
+
+    def _remove_point(self, point):
+        sample_params = self._get_sample_params_b()
+        sample_params.remove_note_map_point(point)
 
 
 class TightLabel(QLabel):
