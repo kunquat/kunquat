@@ -896,28 +896,33 @@ class HitMapEditor(QWidget):
 
         self._hit_selector = SampleHitSelector()
         self._hit_map = HitMap()
+        self._hit_map_entry = HitMapEntry()
 
         v = QVBoxLayout()
         v.setMargin(2)
         v.setSpacing(2)
         v.addWidget(self._hit_selector)
         v.addWidget(self._hit_map)
-        v.addStretch(1)
+        v.addWidget(self._hit_map_entry)
         self.setLayout(v)
 
     def set_au_id(self, au_id):
         self._hit_selector.set_au_id(au_id)
         self._hit_map.set_au_id(au_id)
+        self._hit_map_entry.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._hit_selector.set_proc_id(proc_id)
         self._hit_map.set_proc_id(proc_id)
+        self._hit_map_entry.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._hit_selector.set_ui_model(ui_model)
         self._hit_map.set_ui_model(ui_model)
+        self._hit_map_entry.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._hit_map_entry.unregister_updaters()
         self._hit_map.unregister_updaters()
         self._hit_selector.unregister_updaters()
 
@@ -1032,6 +1037,97 @@ class HitMap(RandomListMap):
         sample_params = self._get_sample_params()
         hit_info = sample_params.get_selected_hit_info()
         sample_params.remove_hit_map_point(hit_info, force)
+
+
+class HitMapEntry(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._au_id = None
+        self._proc_id = None
+        self._ui_model = None
+        self._updater = None
+
+        self.setEnabled(False)
+
+        self._force = QDoubleSpinBox()
+        self._force.setDecimals(1)
+        self._force.setRange(-36, 0)
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(2)
+        h.addWidget(TightLabel('Force:'))
+        h.addWidget(self._force)
+
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(2)
+        v.addLayout(h)
+        self.setLayout(v)
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(self._force, SIGNAL('valueChanged(double)'), self._move)
+
+        self._update_all()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _get_selection_signal_type(self):
+        return 'signal_sample_hit_map_selection_{}'.format(self._proc_id)
+
+    def _get_move_signal_type(self):
+        return 'signal_sample_hit_map_move_{}'.format(self._proc_id)
+
+    def _get_hit_selection_signal_type(self):
+        return 'signal_sample_hit_map_hit_selection_{}'.format(self._proc_id)
+
+    def _perform_updates(self, signals):
+        update_signals = set([
+            self._get_selection_signal_type(),
+            self._get_move_signal_type(),
+            self._get_hit_selection_signal_type()])
+        if not signals.isdisjoint(update_signals):
+            self._update_all()
+
+    def _get_sample_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_all(self):
+        sample_params = self._get_sample_params()
+        hit_info = sample_params.get_selected_hit_info()
+        selected_force = sample_params.get_selected_hit_map_force()
+        if selected_force not in sample_params.get_hit_map_forces(hit_info):
+            self.setEnabled(False)
+            return
+
+        self.setEnabled(True)
+
+        old_block = self._force.blockSignals(True)
+        if self._force.value() != selected_force:
+            self._force.setValue(selected_force)
+        self._force.blockSignals(old_block)
+
+    def _move(self, new_force):
+        sample_params = self._get_sample_params()
+        hit_info = sample_params.get_selected_hit_info()
+        selected_force = sample_params.get_selected_hit_map_force()
+        if (selected_force and
+                (selected_force not in sample_params.get_hit_map_forces(hit_info))):
+            sample_params.move_hit_map_point(hit_info, selected_force, new_force)
+            sample_params.set_selected_hit_map_force(new_force)
+            self._updater.signal_update(set([self._get_move_signal_type()]))
 
 
 class Samples(QWidget):
