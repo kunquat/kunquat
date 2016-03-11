@@ -1254,6 +1254,12 @@ class SampleListToolBar(QToolBar):
     def _get_list_signal_type(self):
         return 'signal_proc_sample_list_{}'.format(self._proc_id)
 
+    def _get_note_map_random_list_signal_type(self):
+        return 'signal_sample_note_map_random_list_{}'.format(self._proc_id)
+
+    def _get_hit_map_random_list_signal_type(self):
+        return 'signal_sample_hit_map_random_list_{}'.format(self._proc_id)
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
@@ -1285,7 +1291,10 @@ class SampleListToolBar(QToolBar):
             sample_path = str(sample_path_qstring.toUtf8())
             success = sample_params.import_sample(sample_id, sample_path)
             if success:
-                self._updater.signal_update(set([self._get_list_signal_type()]))
+                self._updater.signal_update(set([
+                    self._get_list_signal_type(),
+                    self._get_note_map_random_list_signal_type(),
+                    self._get_hit_map_random_list_signal_type()]))
             else:
                 icon_bank = self._ui_model.get_icon_bank()
                 # TODO: Add a more descriptive error message
@@ -1300,7 +1309,8 @@ class SampleListToolBar(QToolBar):
             sample_params.remove_sample(sample_id)
             self._updater.signal_update(set([
                 self._get_list_signal_type(),
-                'signal_sample_note_map_random_list_{}'.format(self._proc_id)]))
+                self._get_note_map_random_list_signal_type(),
+                self._get_hit_map_random_list_signal_type()]))
 
 
 class ImportErrorDialog(QDialog):
