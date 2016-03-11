@@ -585,7 +585,7 @@ class NoteMapEntry(QWidget):
         sample_params = self._get_sample_params()
         selected_point = sample_params.get_selected_note_map_point()
         if selected_point:
-            new_point = self._pitch.value(), self._force.value()
+            new_point = [self._pitch.value(), self._force.value()]
             if new_point not in sample_params.get_note_map_points():
                 sample_params.move_note_map_point(selected_point, new_point)
                 sample_params.set_selected_note_map_point(new_point)
