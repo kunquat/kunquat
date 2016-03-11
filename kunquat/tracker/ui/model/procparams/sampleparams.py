@@ -176,23 +176,17 @@ class SampleParams(ProcParams):
         del note_map[index]
         self._set_note_map(note_map)
 
-    def get_selected_hit_info(self):
-        return self._session.get_selected_sample_hit_info(self._proc_id)
-
-    def set_selected_hit_info(self, hit_info):
-        self._session.set_selected_sample_hit_info(self._proc_id, hit_info)
-
-    def _get_random_list(self, coords):
+    def _get_note_map_random_list(self, coords):
         note_map = self._get_note_map()
         random_list = [r for e, r in note_map if e == coords][0]
         return random_list
 
     def get_note_map_random_list_length(self, coords):
-        random_list = self._get_random_list(coords)
+        random_list = self._get_note_map_random_list(coords)
         return len(random_list)
 
     def is_note_map_random_list_full(self, coords):
-        random_list = self._get_random_list(coords)
+        random_list = self._get_note_map_random_list(coords)
         return len(random_list) >= self._RANDOM_LIST_LENGTH_MAX
 
     def add_note_map_random_list_entry(self, coords):
@@ -214,7 +208,7 @@ class SampleParams(ProcParams):
         self._set_note_map(note_map)
 
     def get_note_map_random_list_sample_id(self, coords, index):
-        random_list = self._get_random_list(coords)
+        random_list = self._get_note_map_random_list(coords)
         entry = random_list[index]
         return self._get_sample_id(entry[2])
 
@@ -225,7 +219,7 @@ class SampleParams(ProcParams):
         self._set_note_map(note_map)
 
     def get_note_map_random_list_cents_offset(self, coords, index):
-        random_list = self._get_random_list(coords)
+        random_list = self._get_note_map_random_list(coords)
         entry = random_list[index]
         return entry[0]
 
@@ -236,7 +230,7 @@ class SampleParams(ProcParams):
         self._set_note_map(note_map)
 
     def get_note_map_random_list_volume_adjust(self, coords, index):
-        random_list = self._get_random_list(coords)
+        random_list = self._get_note_map_random_list(coords)
         entry = random_list[index]
         return entry[1]
 
@@ -245,6 +239,132 @@ class SampleParams(ProcParams):
         point_index = self._get_note_map_point_index(coords)
         note_map[point_index][1][index][1] = adjust
         self._set_note_map(note_map)
+
+    def _get_hit_map(self):
+        return self._get_value('p_hm_hit_map.json', [])
+
+    def _set_hit_map(self, hit_map):
+        self._set_value('p_hm_hit_map.json', hit_map)
+
+    def get_selected_hit_info(self):
+        return self._session.get_selected_sample_hit_info(self._proc_id)
+
+    def set_selected_hit_info(self, hit_info):
+        self._session.set_selected_sample_hit_info(self._proc_id, hit_info)
+
+    def get_selected_hit_map_force(self):
+        return self._session.get_selected_sample_hit_map_force(self._proc_id)
+
+    def set_selected_hit_map_force(self, force):
+        self._session.set_selected_sample_hit_map_force(self._proc_id, force)
+
+    def _get_hit_index(self, hit_info):
+        BANK_SIZE = 32 # TODO: add common hit_info<->hit_index conversion helpers
+        hit_base, hit_offset = hit_info
+        hit_index = hit_base * BANK_SIZE + hit_offset
+        return hit_index
+
+    def get_hit_map_forces(self, hit_info):
+        hit_index = self._get_hit_index(hit_info)
+        hit_map = self._get_hit_map()
+        forces = [key[1] for key, _ in hit_map if key[0] == hit_index]
+        return forces
+
+    def add_hit_map_point(self, hit_info, force):
+        assert force not in self.get_hit_map_forces(hit_info)
+        hit_index = self._get_hit_index(hit_info)
+        hit_map = self._get_hit_map()
+        hit_map.append([[hit_index, force], []])
+        self._set_hit_map(hit_map)
+
+    def _get_hit_map_random_list_key(self, hit_info, force):
+        hit_index = self._get_hit_index(hit_info)
+        key = [hit_index, force]
+        return key
+
+    def _get_hit_map_point_index(self, hit_info, force):
+        key = self._get_hit_map_random_list_key(hit_info, force)
+        hit_map = self._get_hit_map()
+        index = [i for i, entry in enumerate(hit_map) if entry[0] == key][0]
+        return index
+
+    def move_hit_map_point(self, hit_info, old_force, new_force):
+        assert new_force not in self.get_hit_map_forces(hit_info)
+        hit_map = self._get_hit_map()
+        index = self._get_hit_map_point_index(hit_info, old_force)
+        hit_map[index][0][1] = new_force
+        self._set_hit_map(hit_map)
+
+    def remove_hit_map_point(self, hit_info, force):
+        hit_map = self._get_hit_map()
+        index = self._get_hit_map_point_index(hit_info, force)
+        del hit_map[index]
+        self._set_hit_map(hit_map)
+
+    def _get_hit_map_random_list(self, hit_info, force):
+        hit_map = self._get_hit_map()
+        index = self._get_hit_map_point_index(hit_info, force)
+        random_list = hit_map[index]
+        return random_list
+
+    def get_hit_map_random_list_length(self, hit_info, force):
+        random_list = self._get_hit_map_random_list(hit_info, force)
+        return len(random_list)
+
+    def is_hit_map_random_list_full(self, hit_info, force):
+        random_list = self._get_hit_map_random_list(hit_info, force)
+        return len(random_list) >= self._RANDOM_LIST_LENGTH_MAX
+
+    def add_hit_map_random_list_entry(self, hit_info, force):
+        assert not self.is_hit_map_random_list_full(hit_info, force)
+        hit_map = self._get_hit_map()
+        point_index = self._get_hit_map_point_index(hit_info, force)
+
+        sample_ids = self.get_sample_ids()
+        some_sample_num = self._get_sample_num(sample_ids[0]) if sample_ids else 0
+
+        hit_map[point_index][1].append([0, 0, some_sample_num])
+        self._set_hit_map(hit_map)
+
+    def remove_hit_map_random_list_entry(self, hit_info, force, index):
+        hit_map = self._get_hit_map()
+        point_index = self._get_hit_map_point_index(hit_info, force)
+
+        del hit_map[point_index][1][index]
+        self._set_hit_map(hit_map)
+
+    def get_hit_map_random_list_sample_id(self, hit_info, force, index):
+        random_list = self._get_hit_map_random_list(hit_info, force)
+        entry = random_list[index]
+        return self._get_sample_id(entry[2])
+
+    def set_hit_map_random_list_sample_id(self, hit_info, force, index, sample_id):
+        hit_map = self._get_hit_map()
+        point_index = self._get_hit_map_point_index(hit_info, force)
+        hit_map[point_index][1][index][2] = self._get_sample_num(sample_id)
+        self._set_hit_map(hit_map)
+
+    def get_hit_map_random_list_cents_offset(self, hit_info, force, index):
+        random_list = self._get_hit_map_random_list(hit_info, force)
+        entry = random_list[index]
+        return entry[0]
+
+    def set_hit_map_random_list_cents_offset(self, hit_info, force, index, offset):
+        hit_map = self._get_hit_map()
+        point_index = self._get_hit_map_point_index(hit_info, force)
+        hit_map[point_index][1][index][0] = offset
+        self._set_hit_map(hit_map)
+
+    def get_hit_map_random_list_volume_adjust(self, hit_info, force, index):
+        random_list = self._get_hit_map_random_list(hit_info, force)
+        entry = random_list[index]
+        return entry[1]
+
+    def set_hit_map_random_list_volume_adjust(self, hit_info, force, index, adjust):
+        hit_map = self._get_hit_map()
+        point_index = self._get_hit_map_point_index(hit_info, force)
+        hit_map[point_index][1][index][1] = adjust
+        self._set_hit_map(hit_map)
 
 
 class WavPackValidator():
@@ -263,7 +383,7 @@ class WavPackValidator():
             'au_00/proc_00/p_manifest.json'           : { u'type': u'sample' },
             'au_00/proc_00/p_signal_type.json'        : u'voice',
             'au_00/proc_00/c/smp_000/p_sh_sample.json': {
-                    u'format': u'WavPack', u'freq'  : 48000, },
+                    u'format': u'WavPack', u'freq' : 48000, },
             'au_00/proc_00/c/smp_000/p_sample.wv'     : self._sample_data,
         }
 

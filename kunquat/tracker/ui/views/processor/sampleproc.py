@@ -190,10 +190,14 @@ class RandomListMap(QWidget):
         self._config = self._DEFAULT_CONFIG.copy()
         self._config.update(config)
 
+        if not self._has_pitch_axis():
+            padding = self._config['padding']
+            x_axis_height = self._AXIS_CONFIG['axis_x']['height']
+            self.setFixedHeight(padding * 2 + x_axis_height)
+
     def _perform_updates(self, signals):
-        if self._get_selection_signal_type() in signals:
-            self.update()
-        if self._get_move_signal_type() in signals:
+        update_signals = self._get_update_signals()
+        if not signals.isdisjoint(update_signals):
             self.update()
 
     def _get_area_offset(self):
@@ -203,6 +207,8 @@ class RandomListMap(QWidget):
         return offset_x, offset_y
 
     def _map_range(self, val, src_range, target_range):
+        if src_range[0] == src_range[1]:
+            return target_range[0]
         start_diff = val - src_range[0]
         pos_norm = (val - src_range[0]) / float(src_range[1] - src_range[0])
         return lerp_val(target_range[0], target_range[1], min(max(0, pos_norm), 1))
@@ -211,7 +217,7 @@ class RandomListMap(QWidget):
         cents, dB = point
 
         cents_range = self._axis_y_renderer.get_val_range()
-        y_range = self._axis_y_renderer.get_axis_length() - 1, 0
+        y_range = max(0, self._axis_y_renderer.get_axis_length() - 1), 0
         area_y = self._map_range(cents, cents_range, y_range)
 
         dB_range = self._axis_x_renderer.get_val_range()
@@ -229,7 +235,7 @@ class RandomListMap(QWidget):
         offset_x, offset_y = self._get_area_offset()
         x, y = abs_x - offset_x, abs_y - offset_y
 
-        y_range = self._axis_y_renderer.get_axis_length() - 1, 0
+        y_range = max(0, self._axis_y_renderer.get_axis_length() - 1), 0
         cents_range = self._axis_y_renderer.get_val_range()
         point_y = self._map_range(y, y_range, cents_range)
 
@@ -418,6 +424,9 @@ class RandomListMap(QWidget):
     def _get_move_signal_type(self):
         raise NotImplementedError
 
+    def _get_update_signals(self):
+        raise NotImplementedError
+
     def _get_all_points(self):
         raise NotImplementedError
 
@@ -442,7 +451,7 @@ class NoteMap(RandomListMap):
     def __init__(self):
         RandomListMap.__init__(self)
 
-    def _get_sample_params_b(self):
+    def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
     def _has_pitch_axis(self):
@@ -454,28 +463,31 @@ class NoteMap(RandomListMap):
     def _get_move_signal_type(self):
         return 'signal_sample_note_map_move_{}'.format(self._proc_id)
 
+    def _get_update_signals(self):
+        return set([self._get_selection_signal_type(), self._get_move_signal_type()])
+
     def _get_all_points(self):
-        sample_params = self._get_sample_params_b()
+        sample_params = self._get_sample_params()
         return sample_params.get_note_map_points()
 
     def _get_selected_point(self):
-        sample_params = self._get_sample_params_b()
+        sample_params = self._get_sample_params()
         return sample_params.get_selected_note_map_point()
 
     def _set_selected_point(self, point):
-        sample_params = self._get_sample_params_b()
+        sample_params = self._get_sample_params()
         sample_params.set_selected_note_map_point(point)
 
     def _add_point(self, point):
-        sample_params = self._get_sample_params_b()
+        sample_params = self._get_sample_params()
         sample_params.add_note_map_point(point)
 
     def _move_point(self, old_point, new_point):
-        sample_params = self._get_sample_params_b()
+        sample_params = self._get_sample_params()
         sample_params.move_note_map_point(old_point, new_point)
 
     def _remove_point(self, point):
-        sample_params = self._get_sample_params_b()
+        sample_params = self._get_sample_params()
         sample_params.remove_note_map_point(point)
 
 
@@ -883,24 +895,30 @@ class HitMapEditor(QWidget):
         QWidget.__init__(self)
 
         self._hit_selector = SampleHitSelector()
+        self._hit_map = HitMap()
 
         v = QVBoxLayout()
         v.setMargin(2)
         v.setSpacing(2)
         v.addWidget(self._hit_selector)
+        v.addWidget(self._hit_map)
         v.addStretch(1)
         self.setLayout(v)
 
     def set_au_id(self, au_id):
         self._hit_selector.set_au_id(au_id)
+        self._hit_map.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._hit_selector.set_proc_id(proc_id)
+        self._hit_map.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._hit_selector.set_ui_model(ui_model)
+        self._hit_map.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._hit_map.unregister_updaters()
         self._hit_selector.unregister_updaters()
 
 
@@ -946,8 +964,74 @@ class SampleHitSelector(HitSelector):
 
     def _set_selected_hit_info(self, hit_info):
         sample_params = self._get_sample_params()
+        if hit_info != sample_params.get_selected_hit_info():
+            sample_params.set_selected_hit_map_force(None)
         sample_params.set_selected_hit_info(hit_info)
         self._updater.signal_update(set([self._get_update_signal_type()]))
+
+
+class HitMap(RandomListMap):
+
+    def __init__(self):
+        RandomListMap.__init__(self)
+
+    def _get_sample_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _has_pitch_axis(self):
+        return False
+
+    def _get_selection_signal_type(self):
+        return 'signal_sample_hit_map_selection_{}'.format(self._proc_id)
+
+    def _get_move_signal_type(self):
+        return 'signal_sample_hit_map_selection_{}'.format(self._proc_id)
+
+    def _get_update_signals(self):
+        return set([
+            self._get_selection_signal_type(),
+            self._get_move_signal_type(),
+            'signal_sample_hit_map_hit_selection_{}'.format(self._proc_id)])
+
+    def _get_all_points(self):
+        sample_params = self._get_sample_params()
+        hit_info = sample_params.get_selected_hit_info()
+        return [[0, f] for f in sample_params.get_hit_map_forces(hit_info)]
+
+    def _get_selected_point(self):
+        sample_params = self._get_sample_params()
+        hit_info = sample_params.get_selected_hit_info()
+        force = sample_params.get_selected_hit_map_force()
+        if force == None:
+            return None
+        return [0, force]
+
+    def _set_selected_point(self, point):
+        sample_params = self._get_sample_params()
+        if not point:
+            sample_params.set_selected_hit_map_force(None)
+            return
+        _, force = point
+        sample_params.set_selected_hit_map_force(force)
+
+    def _add_point(self, point):
+        _, force = point
+        sample_params = self._get_sample_params()
+        hit_info = sample_params.get_selected_hit_info()
+        sample_params.add_hit_map_point(hit_info, force)
+
+    def _move_point(self, old_point, new_point):
+        _, old_force = old_point
+        _, new_force = new_point
+        sample_params = self._get_sample_params()
+        hit_info = sample_params.get_selected_hit_info()
+        sample_params.move_hit_map_point(hit_info, old_force, new_force)
+
+    def _remove_point(self, point):
+        _, force = point
+        sample_params = self._get_sample_params()
+        hit_info = sample_params.get_selected_hit_info()
+        sample_params.remove_hit_map_point(hit_info, force)
 
 
 class Samples(QWidget):
