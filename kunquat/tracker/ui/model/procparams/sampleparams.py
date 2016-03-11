@@ -176,6 +176,12 @@ class SampleParams(ProcParams):
         del note_map[index]
         self._set_note_map(note_map)
 
+    def get_selected_hit_info(self):
+        return self._session.get_selected_sample_hit_info(self._proc_id)
+
+    def set_selected_hit_info(self, hit_info):
+        self._session.set_selected_sample_hit_info(self._proc_id, hit_info)
+
     def _get_random_list(self, coords):
         note_map = self._get_note_map()
         random_list = [r for e, r in note_map if e == coords][0]

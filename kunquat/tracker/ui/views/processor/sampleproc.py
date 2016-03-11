@@ -17,6 +17,7 @@ import time
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from kunquat.tracker.ui.views.audio_unit.hitselector import HitSelector
 from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
@@ -34,25 +35,31 @@ class SampleProc(QTabWidget):
         QTabWidget.__init__(self)
 
         self._note_map_editor = NoteMapEditor()
+        self._hit_map_editor = HitMapEditor()
         self._samples = Samples()
 
         self.addTab(self._note_map_editor, 'Note map')
+        self.addTab(self._hit_map_editor, 'Hit map')
         self.addTab(self._samples, 'Samples')
 
     def set_au_id(self, au_id):
         self._note_map_editor.set_au_id(au_id)
+        self._hit_map_editor.set_au_id(au_id)
         self._samples.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._note_map_editor.set_proc_id(proc_id)
+        self._hit_map_editor.set_proc_id(proc_id)
         self._samples.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._note_map_editor.set_ui_model(ui_model)
+        self._hit_map_editor.set_ui_model(ui_model)
         self._samples.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._samples.unregister_updaters()
+        self._hit_map_editor.unregister_updaters()
         self._note_map_editor.unregister_updaters()
 
 
@@ -810,6 +817,79 @@ class RandomEntryEditor(QWidget):
         if point and (point in sample_params.get_note_map_points()):
             sample_params.remove_note_map_random_list_entry(point, self._index)
             self._updater.signal_update(set([self._get_list_signal_type()]))
+
+
+class HitMapEditor(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+
+        self._hit_selector = SampleHitSelector()
+
+        v = QVBoxLayout()
+        v.setMargin(2)
+        v.setSpacing(2)
+        v.addWidget(self._hit_selector)
+        v.addStretch(1)
+        self.setLayout(v)
+
+    def set_au_id(self, au_id):
+        self._hit_selector.set_au_id(au_id)
+
+    def set_proc_id(self, proc_id):
+        self._hit_selector.set_proc_id(proc_id)
+
+    def set_ui_model(self, ui_model):
+        self._hit_selector.set_ui_model(ui_model)
+
+    def unregister_updaters(self):
+        self._hit_selector.unregister_updaters()
+
+
+class SampleHitSelector(HitSelector):
+
+    def __init__(self):
+        HitSelector.__init__(self)
+        self._au_id = None
+        self._proc_id = None
+        self._ui_model = None
+        self._updater = None
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        self.create_layout(self._ui_model.get_typewriter_manager())
+        self.update_contents()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _get_update_signal_type(self):
+        return 'signal_sample_hit_map_hit_selection_{}'.format(self._proc_id)
+
+    def _get_sample_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _perform_updates(self, signals):
+        if self._get_update_signal_type() in signals:
+            self.update_contents()
+
+    def _get_selected_hit_info(self):
+        sample_params = self._get_sample_params()
+        return sample_params.get_selected_hit_info()
+
+    def _set_selected_hit_info(self, hit_info):
+        sample_params = self._get_sample_params()
+        sample_params.set_selected_hit_info(hit_info)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
 class Samples(QWidget):

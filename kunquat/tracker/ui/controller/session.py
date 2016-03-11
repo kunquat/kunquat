@@ -94,6 +94,7 @@ class Session():
         self._edit_selected_hits = {}
         self._selected_sample_ids = {}
         self._selected_sample_note_map_points = {}
+        self._selected_sample_hit_info = {}
 
     def get_output_speed(self):
         return self._output_speed
@@ -585,5 +586,11 @@ class Session():
 
     def get_selected_sample_note_map_point(self, proc_id):
         return self._selected_sample_note_map_points.get(proc_id, None)
+
+    def set_selected_sample_hit_info(self, proc_id, hit_info):
+        self._selected_sample_hit_info[proc_id] = hit_info
+
+    def get_selected_sample_hit_info(self, proc_id):
+        return self._selected_sample_hit_info.get(proc_id, (0, 0))
 
 
