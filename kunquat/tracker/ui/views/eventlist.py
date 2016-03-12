@@ -155,6 +155,8 @@ class EventFilterButton(QCheckBox):
     def _perform_updates(self, signal):
         event_history = self._ui_model.get_event_history()
         self.blockSignals(True)
+        event_count = event_history.get_event_count_with_filter(self._context)
+        self.setText('{} ({})'.format(DISP_CONTEXTS[self._context], event_count))
         is_allowed = event_history.is_context_allowed(self._context)
         if is_allowed != self.isChecked():
             self.setChecked(is_allowed)
