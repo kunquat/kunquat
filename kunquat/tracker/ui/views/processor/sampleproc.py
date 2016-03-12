@@ -1573,13 +1573,19 @@ class SampleEditor(QWidget):
         self._ui_model = None
         self._updater = None
 
-        self._name_editor = QLineEdit()
+        self._name = QLineEdit()
+
+        self._freq = QDoubleSpinBox()
+        self._freq.setDecimals(0)
+        self._freq.setRange(1, 2**32)
 
         gl = QGridLayout()
         gl.setMargin(0)
         gl.setSpacing(2)
         gl.addWidget(QLabel('Name:'), 0, 0)
-        gl.addWidget(self._name_editor, 0, 1)
+        gl.addWidget(self._name, 0, 1)
+        gl.addWidget(QLabel('Middle frequency:'), 1, 0)
+        gl.addWidget(self._freq, 1, 1)
 
         v = QVBoxLayout()
         v.setMargin(0)
@@ -1599,8 +1605,8 @@ class SampleEditor(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
-        QObject.connect(
-                self._name_editor, SIGNAL('editingFinished()'), self._change_name)
+        QObject.connect(self._name, SIGNAL('editingFinished()'), self._change_name)
+        QObject.connect(self._freq, SIGNAL('valueChanged(double)'), self._change_freq)
 
         self._update_all()
 
@@ -1623,8 +1629,11 @@ class SampleEditor(QWidget):
         if not signals.isdisjoint(update_signals):
             self._update_all()
 
+    def _get_sample_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
     def _update_all(self):
-        sample_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
         has_sample = sample_id in sample_params.get_sample_ids()
         self.setEnabled(has_sample)
@@ -1633,16 +1642,28 @@ class SampleEditor(QWidget):
         if has_sample:
             name = sample_params.get_sample_name(sample_id) or u''
 
-        old_block = self._name_editor.blockSignals(True)
-        if self._name_editor.text() != name:
-            self._name_editor.setText(name)
-        self._name_editor.blockSignals(old_block)
+        old_block = self._name.blockSignals(True)
+        if self._name.text() != name:
+            self._name.setText(name)
+        self._name.blockSignals(old_block)
+
+        old_block = self._freq.blockSignals(True)
+        new_freq = sample_params.get_sample_freq(sample_id)
+        if self._freq.value() != new_freq:
+            self._freq.setValue(new_freq)
+        self._freq.blockSignals(old_block)
 
     def _change_name(self):
-        sample_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_name(sample_id, unicode(self._name_editor.text()))
         self._updater.signal_update(set([
             self._get_list_update_signal_type(), self._get_random_list_signal_type()]))
+
+    def _change_freq(self, value):
+        sample_params = self._get_sample_params()
+        sample_id = sample_params.get_selected_sample_id()
+        sample_params.set_sample_freq(sample_id, value)
+        self._updater.signal_update(set([self._get_list_update_signal_type()]))
 
 

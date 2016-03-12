@@ -128,7 +128,8 @@ class SampleParams(ProcParams):
         self._set_value(self._get_sample_key(sample_id, 'm_name.json'), name)
 
     def get_sample_freq(self, sample_id):
-        return self._get_sample_header(sample_id)['freq']
+        header = self._get_sample_header(sample_id) or {}
+        return header.get('freq', 48000)
 
     def set_sample_freq(self, sample_id, freq):
         header = self._get_sample_header(sample_id)
