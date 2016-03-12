@@ -23,6 +23,7 @@ import kunquat.tracker.ui.model.tstamp as tstamp
 
 from drivers.pushaudio import Pushaudio
 
+
 EVENT_SELECT_CONTROL = '.a'
 EVENT_NOTE_ON = 'n+'
 EVENT_HIT = 'h'
@@ -31,6 +32,7 @@ EVENT_NOTE_OFF = 'n-'
 CONTEXT_MIX = 'mix'
 CONTEXT_FIRE = 'fire'
 CONTEXT_TFIRE = 'tfire'
+
 
 def gen_sine(rate):
     # we yield some silence here to comply with tests
@@ -56,6 +58,7 @@ class AudioEngine():
         self._silence = ([0] * self._nframes, [0] * self._nframes)
         self._render_times = deque([], 20)
         self._output_times = deque([], 20)
+        self._post_actions = deque()
 
         self._sine = gen_sine(48000)
 
@@ -115,6 +118,11 @@ class AudioEngine():
             event_type, event_value = tuple(event)
             self._process_event(channel_number, event_type, event_value, context)
 
+    def _process_post_actions(self):
+        while self._post_actions:
+            action_name, args = self._post_actions.popleft()
+            self._ui_engine.call_post_action(action_name, args)
+
     def _mix(self, nframes):
         start = time.time()
         #data_mono = list(islice(self._sine, nframes))
@@ -123,8 +131,10 @@ class AudioEngine():
         audio_data = self._rendering_engine.get_audio()
         event_data = self._rendering_engine.receive_events()
         self._process_events(event_data, CONTEXT_MIX)
+        self._process_post_actions()
         (l,r) = audio_data
         if len(l) < 1:
+            # TODO: clarify intent here
             audio_data = self._silence
         end = time.time()
         self._render_times.append((nframes, start, end))
@@ -168,6 +178,9 @@ class AudioEngine():
         pause_event = ('cpause', None)
         self.tfire_event(0, pause_event)
 
+    def sync_call_post_action(self, action_name, args):
+        self._post_actions.append((action_name, args))
+
     def _average_time(self, times):
         total = sum(end - start for _, start, end in times)
         frames = sum(nframes for nframes, _, _ in times)
@@ -177,8 +190,8 @@ class AudioEngine():
             return frames / total
 
     def acknowledge_audio(self):
-        start = self._push_time
         end = time.time()
+        start = self._push_time
         nframes = self._push_amount
         self._output_times.append((nframes, start, end))
         self._output_fps = math.floor((nframes / (end - start)))
@@ -202,6 +215,7 @@ class AudioEngine():
     def close_device(self):
         pass
 
+
 def create_audio_engine():
     latency = cmdline.get_audio_latency() * 0.001
     rendering_engine = Kunquat()
@@ -214,4 +228,5 @@ def create_audio_engine():
     audio_engine.set_rendering_engine(rendering_engine)
     audio_engine.set_audio_output(audio_output)
     return audio_engine
+
 

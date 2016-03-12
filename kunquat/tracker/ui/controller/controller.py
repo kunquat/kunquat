@@ -214,8 +214,18 @@ class Controller():
             init_expr_name = channel_defaults.get_initial_expression(i)
             self._session.set_default_init_expression(i, init_expr_name)
 
-    def play(self):
+    def call_post_action(self, action_name, args):
+        getattr(self, action_name)(*args)
+
+    def _reset_with_post_action(self, action, *args):
+        assert hasattr(self, action.__name__)
         self._audio_engine.reset_and_pause()
+        self._audio_engine.sync_call_post_action(action.__name__, args)
+
+    def play(self):
+        self._reset_with_post_action(self._play)
+
+    def _play(self):
         self._session.reset_max_audio_levels()
         self._reset_expressions()
         self._reset_runtime_env()
@@ -226,7 +236,11 @@ class Controller():
         self._audio_engine.tfire_event(0, ('cresume', None))
 
     def play_pattern(self, pattern_instance):
-        self._audio_engine.reset_and_pause()
+        self._reset_with_post_action(self._play_pattern, pattern_instance)
+
+    def _play_pattern(self, pattern_instance):
+        self._session.reset_max_audio_levels()
+        self._reset_expressions()
         self._reset_runtime_env()
 
         if self._session.get_infinite_mode():
@@ -240,7 +254,11 @@ class Controller():
         self._audio_engine.tfire_event(0, ('cresume', None))
 
     def play_from_cursor(self, pattern_instance, row_ts):
-        self._audio_engine.reset_and_pause()
+        self._reset_with_post_action(self._play_from_cursor, pattern_instance, row_ts)
+
+    def _play_from_cursor(self, pattern_instance, row_ts):
+        self._session.reset_max_audio_levels()
+        self._reset_expressions()
         self._reset_runtime_env()
 
         if self._session.get_infinite_mode():
@@ -251,26 +269,28 @@ class Controller():
         self._audio_engine.tfire_event(0, set_goto_pinst)
         self._audio_engine.tfire_event(0, set_goto_row)
         self._audio_engine.tfire_event(0, ('cg', None))
+        print('goto')
 
         self._session.reset_max_audio_levels()
         self._reset_expressions()
         self._audio_engine.tfire_event(0, ('cresume', None))
 
     def silence(self):
-        self._audio_engine.reset_and_pause()
+        self._reset_with_post_action(self._silence)
+
+    def _silence(self):
+        self._session.reset_max_audio_levels()
         self._reset_runtime_env()
         self._reset_expressions()
 
         # Note: easy way out for syncing note kills, but causes event noise
         # TODO: figure out a better solution, this may mess things up with bind
-        for ch in xrange(64): # TODO: channel count constant
+        for ch in xrange(CHANNELS_MAX):
             note_off_event = ('n-', None)
             self._audio_engine.tfire_event(ch, note_off_event)
 
         if self._session.get_infinite_mode():
             self._audio_engine.tfire_event(0, ('cinfinite+', None))
-
-        self._session.reset_max_audio_levels()
 
     def set_infinite_mode(self, enabled):
         self._session.set_infinite_mode(enabled)
