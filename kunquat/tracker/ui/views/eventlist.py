@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2014
+# Author: Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -20,7 +20,7 @@ import kunquat.tracker.cmdline as cmdline
 DISP_CONTEXTS = {
         'mix': 'Playback',
         'fire': 'User',
-        'tfire': 'Tracker',
+        #'tfire': 'Tracker',
         }
 
 
@@ -173,22 +173,22 @@ class EventFilterView(QWidget):
         h = QHBoxLayout()
         self._mix_toggle = EventFilterButton('mix')
         self._fire_toggle = EventFilterButton('fire')
-        self._tfire_toggle = EventFilterButton('tfire')
+        #self._tfire_toggle = EventFilterButton('tfire')
         h.addWidget(self._mix_toggle)
         h.addWidget(self._fire_toggle)
-        h.addWidget(self._tfire_toggle)
+        #h.addWidget(self._tfire_toggle)
         h.addStretch()
         self.setLayout(h)
 
     def set_ui_model(self, ui_model):
         self._mix_toggle.set_ui_model(ui_model)
         self._fire_toggle.set_ui_model(ui_model)
-        self._tfire_toggle.set_ui_model(ui_model)
+        #self._tfire_toggle.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._mix_toggle.unregister_updaters()
         self._fire_toggle.unregister_updaters()
-        self._tfire_toggle.unregister_updaters()
+        #self._tfire_toggle.unregister_updaters()
 
 
 class EventList(QWidget):
