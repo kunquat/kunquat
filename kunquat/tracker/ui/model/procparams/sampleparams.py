@@ -324,7 +324,7 @@ class RandomList():
         sample_ids = self._get_sample_ids()
         some_sample_num = self._get_sample_num(sample_ids[0]) if sample_ids else 0
 
-        raw_map[point_index][1].append([0, 0, some_sample_num])
+        raw_map[point_index][1].append([some_sample_num, 0, 0])
         self._set_map(raw_map)
 
     def remove_entry(self, index):
@@ -337,34 +337,34 @@ class RandomList():
     def get_sample_id(self, index):
         raw_list = self._get_raw_list()
         entry = raw_list[index]
-        return self._get_sample_id(entry[2])
+        return self._get_sample_id(entry[0])
 
     def set_sample_id(self, index, sample_id):
         raw_map = self._get_map()
         point_index = self._get_point_index(self._location)
-        raw_map[point_index][1][index][2] = self._get_sample_num(sample_id)
+        raw_map[point_index][1][index][0] = self._get_sample_num(sample_id)
         self._set_map(raw_map)
 
     def get_cents_offset(self, index):
         raw_list = self._get_raw_list()
         entry = raw_list[index]
-        return entry[0]
+        return entry[1]
 
     def set_cents_offset(self, index, offset):
         raw_map = self._get_map()
         point_index = self._get_point_index(self._location)
-        raw_map[point_index][1][index][0] = offset
+        raw_map[point_index][1][index][1] = offset
         self._set_map(raw_map)
 
     def get_volume_adjust(self, index):
         raw_list = self._get_raw_list()
         entry = raw_list[index]
-        return entry[1]
+        return entry[2]
 
     def set_volume_adjust(self, index, adjust):
         raw_map = self._get_map()
         point_index = self._get_point_index(self._location)
-        raw_map[point_index][1][index][1] = adjust
+        raw_map[point_index][1][index][2] = adjust
         self._set_map(raw_map)
 
 

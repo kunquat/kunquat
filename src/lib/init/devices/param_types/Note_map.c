@@ -240,9 +240,9 @@ bool Note_map_add_entry(Note_map* map, double cents, double force, Sample_entry*
     }
 
     list->entries[list->entry_count].ref_freq = list->freq;
+    list->entries[list->entry_count].sample = entry->sample;
     list->entries[list->entry_count].cents = entry->cents;
     list->entries[list->entry_count].vol_scale = entry->vol_scale;
-    list->entries[list->entry_count].sample = entry->sample;
     ++list->entry_count;
 
     return true;
