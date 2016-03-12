@@ -149,10 +149,15 @@ class EventFilterButton(QCheckBox):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        self._update_all()
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signal):
+        self._update_all()
+
+    def _update_all(self):
         event_history = self._ui_model.get_event_history()
         self.blockSignals(True)
         event_count = event_history.get_event_count_with_filter(self._context)
