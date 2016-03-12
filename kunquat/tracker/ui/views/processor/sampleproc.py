@@ -1357,7 +1357,7 @@ class ImportErrorDialog(QDialog):
     def __init__(self, icon_bank, error_msg):
         QDialog.__init__(self)
 
-        error_img_path = icon_bank.get_icon_path('warning') # TODO: error icon
+        error_img_path = icon_bank.get_icon_path('error')
         error_label = QLabel()
         error_label.setPixmap(QPixmap(error_img_path))
 
