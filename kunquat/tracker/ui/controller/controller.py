@@ -283,11 +283,9 @@ class Controller():
         self._reset_runtime_env()
         self._reset_expressions()
 
-        # Note: easy way out for syncing note kills, but causes event noise
-        # TODO: figure out a better solution, this may mess things up with bind
+        # Reset active notes
         for ch in xrange(CHANNELS_MAX):
-            note_off_event = ('n-', None)
-            self._audio_engine.tfire_event(ch, note_off_event)
+            self._session.set_active_note(ch, 'n-', None)
 
         if self._session.get_infinite_mode():
             self._audio_engine.tfire_event(0, ('cinfinite+', None))
