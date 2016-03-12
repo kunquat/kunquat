@@ -262,9 +262,10 @@ class Session():
         return self._visible
 
     def log_event(self, channel, event_type, event_value, context):
-        self._event_log.appendleft(
-                (self._event_index.next(),
-                    channel, event_type, event_value, context))
+        if context != 'tfire':
+            self._event_log.appendleft(
+                    (self._event_index.next(),
+                        channel, event_type, event_value, context))
 
     def get_event_log(self):
         return list(self._event_log)
