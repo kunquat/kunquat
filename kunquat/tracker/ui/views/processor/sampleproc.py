@@ -1579,6 +1579,14 @@ class SampleEditor(QWidget):
         self._freq.setDecimals(0)
         self._freq.setRange(1, 2**32)
 
+        self._loop_mode = QComboBox()
+        loop_modes = (
+                (u'Off', u'off'),
+                (u'Unidirectional', u'uni'),
+                (u'Bidirectional', u'bi'))
+        for vis_mode, mode in loop_modes:
+            self._loop_mode.addItem(vis_mode, QVariant(mode))
+
         gl = QGridLayout()
         gl.setMargin(0)
         gl.setSpacing(2)
@@ -1586,6 +1594,8 @@ class SampleEditor(QWidget):
         gl.addWidget(self._name, 0, 1)
         gl.addWidget(QLabel('Middle frequency:'), 1, 0)
         gl.addWidget(self._freq, 1, 1)
+        gl.addWidget(QLabel('Loop mode:'), 2, 0)
+        gl.addWidget(self._loop_mode, 2, 1)
 
         v = QVBoxLayout()
         v.setMargin(0)
@@ -1607,6 +1617,11 @@ class SampleEditor(QWidget):
 
         QObject.connect(self._name, SIGNAL('editingFinished()'), self._change_name)
         QObject.connect(self._freq, SIGNAL('valueChanged(double)'), self._change_freq)
+
+        QObject.connect(
+                self._loop_mode,
+                SIGNAL('currentIndexChanged(int)'),
+                self._change_loop_mode)
 
         self._update_all()
 
@@ -1653,6 +1668,13 @@ class SampleEditor(QWidget):
             self._freq.setValue(new_freq)
         self._freq.blockSignals(old_block)
 
+        old_block = self._loop_mode.blockSignals(True)
+        new_loop_mode = sample_params.get_sample_loop_mode(sample_id)
+        loop_mode_index = self._loop_mode.findData(QVariant(new_loop_mode))
+        if (loop_mode_index != self._loop_mode.itemData(self._loop_mode.currentIndex())):
+            self._loop_mode.setCurrentIndex(loop_mode_index)
+        self._loop_mode.blockSignals(old_block)
+
     def _change_name(self):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
@@ -1665,5 +1687,11 @@ class SampleEditor(QWidget):
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_freq(sample_id, value)
         self._updater.signal_update(set([self._get_list_update_signal_type()]))
+
+    def _change_loop_mode(self, item_index):
+        loop_mode = unicode(self._loop_mode.itemData(item_index).toString())
+        sample_params = self._get_sample_params()
+        sample_id = sample_params.get_selected_sample_id()
+        sample_params.set_sample_loop_mode(sample_id, loop_mode)
 
 

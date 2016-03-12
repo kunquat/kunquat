@@ -136,6 +136,34 @@ class SampleParams(ProcParams):
         header['freq'] = freq
         self._set_sample_header(sample_id, header)
 
+    def get_sample_loop_mode(self, sample_id):
+        header = self._get_sample_header(sample_id) or {}
+        return header.get('loop_mode', u'off')
+
+    def set_sample_loop_mode(self, sample_id, mode):
+        assert mode in (u'off', u'uni', u'bi')
+        header = self._get_sample_header(sample_id)
+        header['loop_mode'] = mode
+        self._set_sample_header(sample_id, header)
+
+    def get_sample_loop_start(self, sample_id):
+        header = self._get_sample_header(sample_id) or {}
+        return header.get('loop_start', 0)
+
+    def set_sample_loop_start(self, sample_id, start):
+        header = self._get_sample_header(sample_id)
+        header['loop_start'] = start
+        self._set_sample_header(sample_id, header)
+
+    def get_sample_loop_end(self, sample_id):
+        header = self._get_sample_header(sample_id) or {}
+        return header.get('loop_end', 0)
+
+    def set_sample_loop_end(self, sample_id, end):
+        header = self._get_sample_header(sample_id)
+        header['loop_end'] = end
+        self._set_sample_header(sample_id, header)
+
     def _get_note_map(self):
         return self._get_value('p_nm_note_map.json', [])
 
