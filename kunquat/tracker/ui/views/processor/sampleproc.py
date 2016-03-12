@@ -1709,7 +1709,7 @@ class SampleEditor(QWidget):
     def _change_name(self):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
-        sample_params.set_sample_name(sample_id, unicode(self._name_editor.text()))
+        sample_params.set_sample_name(sample_id, unicode(self._name.text()))
         self._updater.signal_update(set([
             self._get_list_update_signal_type(), self._get_random_list_signal_type()]))
 
