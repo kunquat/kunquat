@@ -1472,24 +1472,29 @@ class SampleListView(QListView):
 
         self._keyboard_mapper.set_ui_model(ui_model)
 
-        for signal_type in ('clicked', 'activated'):
-            signal = '{}(const QModelIndex&)'.format(signal_type)
-            QObject.connect(self, SIGNAL(signal), self._select_sample)
-
     def unregister_updaters(self):
         self._keyboard_mapper.unregister_updaters()
 
     def _get_update_signal_type(self):
         return 'signal_proc_select_sample_{}'.format(self._proc_id)
 
-    def _select_sample(self, index):
-        item = self.model().get_item(index)
+    def _select_sample(self, cur_index, prev_index):
+        item = self.model().get_item(cur_index)
         if item:
             sample_id, _ = item
             sample_params = utils.get_proc_params(
                     self._ui_model, self._au_id, self._proc_id)
             sample_params.set_selected_sample_id(sample_id)
             self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def setModel(self, model):
+        QListView.setModel(self, model)
+
+        selection_model = self.selectionModel()
+        QObject.connect(
+            selection_model,
+            SIGNAL('currentChanged(const QModelIndex&, const QModelIndex&)'),
+            self._select_sample)
 
     def keyPressEvent(self, event):
         if self._keyboard_mapper.is_handled_key(event):
@@ -1587,6 +1592,11 @@ class SampleEditor(QWidget):
         for vis_mode, mode in loop_modes:
             self._loop_mode.addItem(vis_mode, QVariant(mode))
 
+        self._loop_start = QSpinBox()
+        self._loop_start.setRange(0, 2**30)
+        self._loop_end = QSpinBox()
+        self._loop_end.setRange(0, 2**30)
+
         gl = QGridLayout()
         gl.setMargin(0)
         gl.setSpacing(2)
@@ -1596,6 +1606,10 @@ class SampleEditor(QWidget):
         gl.addWidget(self._freq, 1, 1)
         gl.addWidget(QLabel('Loop mode:'), 2, 0)
         gl.addWidget(self._loop_mode, 2, 1)
+        gl.addWidget(QLabel('Loop start:'), 3, 0)
+        gl.addWidget(self._loop_start, 3, 1)
+        gl.addWidget(QLabel('Loop end:'), 4, 0)
+        gl.addWidget(self._loop_end, 4, 1)
 
         v = QVBoxLayout()
         v.setMargin(0)
@@ -1622,6 +1636,11 @@ class SampleEditor(QWidget):
                 self._loop_mode,
                 SIGNAL('currentIndexChanged(int)'),
                 self._change_loop_mode)
+
+        QObject.connect(
+                self._loop_start, SIGNAL('valueChanged(int)'), self._change_loop_start)
+        QObject.connect(
+                self._loop_end, SIGNAL('valueChanged(int)'), self._change_loop_end)
 
         self._update_all()
 
@@ -1675,6 +1694,18 @@ class SampleEditor(QWidget):
             self._loop_mode.setCurrentIndex(loop_mode_index)
         self._loop_mode.blockSignals(old_block)
 
+        old_block = self._loop_start.blockSignals(True)
+        new_loop_start = sample_params.get_sample_loop_start(sample_id)
+        if new_loop_start != self._loop_start.value():
+            self._loop_start.setValue(new_loop_start)
+        self._loop_start.blockSignals(old_block)
+
+        old_block = self._loop_end.blockSignals(True)
+        new_loop_end = sample_params.get_sample_loop_end(sample_id)
+        if new_loop_end != self._loop_end.value():
+            self._loop_end.setValue(new_loop_end)
+        self._loop_end.blockSignals(old_block)
+
     def _change_name(self):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
@@ -1693,5 +1724,18 @@ class SampleEditor(QWidget):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_loop_mode(sample_id, loop_mode)
+        self._updater.signal_update(set([self._get_list_update_signal_type()]))
+
+    def _change_loop_start(self, start):
+        sample_params = self._get_sample_params()
+        sample_id = sample_params.get_selected_sample_id()
+        sample_params.set_sample_loop_start(sample_id, start)
+        self._updater.signal_update(set([self._get_list_update_signal_type()]))
+
+    def _change_loop_end(self, end):
+        sample_params = self._get_sample_params()
+        sample_id = sample_params.get_selected_sample_id()
+        sample_params.set_sample_loop_end(sample_id, end)
+        self._updater.signal_update(set([self._get_list_update_signal_type()]))
 
 
