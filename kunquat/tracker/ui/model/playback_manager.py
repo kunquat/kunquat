@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2015
+#          Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -28,6 +28,9 @@ class PlaybackManager():
         if not channel_number in self._channels:
             self._channels[channel_number] = Channel()
         return self._channels[channel_number]
+
+    def is_playback_active(self):
+        return self._session.is_playback_active()
 
     def set_infinite_mode(self, enabled):
         self._controller.set_infinite_mode(enabled)

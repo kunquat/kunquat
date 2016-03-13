@@ -64,6 +64,7 @@ class Session():
         self._edit_mode_enabled = False
         self._typewriter_connected = False
         self._replace_mode_enabled = False
+        self._is_playback_active = False
         self._record_mode_enabled = False
         self._is_grid_enabled = True
         self._selected_grid_pattern_id = None
@@ -392,6 +393,12 @@ class Session():
 
     def get_replace_mode(self):
         return self._replace_mode_enabled
+
+    def set_playback_active(self, active):
+        self._is_playback_active = active
+
+    def is_playback_active(self):
+        return self._is_playback_active
 
     def set_record_mode(self, enabled):
         self._record_mode_enabled = enabled
