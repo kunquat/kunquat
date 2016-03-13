@@ -20,6 +20,7 @@ from PyQt4.QtGui import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
+import kunquat.tracker.ui.model.tstamp as tstamp
 from playbutton import PlayButton
 from playpatternbutton import PlayPatternButton
 from recordbutton import RecordButton
@@ -97,16 +98,12 @@ class PlayFromCursorButton(QToolButton):
         pass
 
 
-def _get_max_digits(limit_value):
-    return len(str(limit_value - 1))
-
-
 class PlaybackPosition(QWidget):
 
-    _NUM_FONT = QFont(QFont().defaultFamily(), 14)
+    _NUM_FONT = QFont(QFont().defaultFamily(), 16)
     _NUM_FONT.setWeight(QFont.Bold)
 
-    _SUB_FONT = QFont(QFont().defaultFamily(), 9)
+    _SUB_FONT = QFont(QFont().defaultFamily(), 8)
     _SUB_FONT.setWeight(QFont.Bold)
 
     _REM_FONT = QFont(QFont().defaultFamily(), 12)
@@ -120,10 +117,10 @@ class PlaybackPosition(QWidget):
         'sub_font'       : _SUB_FONT,
         'rem_font'       : _REM_FONT,
         'narrow_factor'  : 0.5,
-        'track_digits'   : [1, _get_max_digits(TRACKS_MAX)],
-        'system_digits'  : [2, _get_max_digits(SYSTEMS_MAX)],
-        'pat_digits'     : [2, _get_max_digits(PATTERNS_MAX)],
-        'pat_inst_digits': [1, _get_max_digits(PAT_INSTANCES_MAX)],
+        'track_digits'   : [1, len(str(TRACKS_MAX - 1))],
+        'system_digits'  : [2, len(str(SYSTEMS_MAX - 1))],
+        'pat_digits'     : [2, len(str(PATTERNS_MAX - 1))],
+        'pat_inst_digits': [1, len(str(PAT_INSTANCES_MAX - 1))],
         'ts_beat_digits' : [2, 3],
         'ts_rem_digits'  : [1, 1],
         'bg_colour'      : QColor(0, 0, 0),
@@ -148,6 +145,8 @@ class PlaybackPosition(QWidget):
 
         self._state_icons = {}
         self._inf_image = None
+
+        self._baseline_offsets = {}
 
         self._config = None
         self._set_config({})
@@ -339,27 +338,67 @@ class PlaybackPosition(QWidget):
 
         return image
 
-    def _get_state_icon(self):
+    def _draw_state_icon(self, painter):
         if self._state not in self._state_icons:
             pixmap = QPixmap(self._config['icon_width'], self._config['icon_width'])
             pixmap.fill(self._config['bg_colour'])
-            painter = QPainter(pixmap)
+            img_painter = QPainter(pixmap)
 
             playback_state, is_infinite = self._state
             if playback_state == self._STOPPED:
-                self._draw_stop_icon_shape(painter, self._config['stopped_colour'])
+                self._draw_stop_icon_shape(img_painter, self._config['stopped_colour'])
             elif playback_state == self._PLAYING:
-                self._draw_play_icon_shape(painter, self._config['fg_colour'])
+                self._draw_play_icon_shape(img_painter, self._config['fg_colour'])
             elif playback_state == self._RECORDING:
-                self._draw_record_icon_shape(painter, self._config['record_colour'])
+                self._draw_record_icon_shape(img_painter, self._config['record_colour'])
 
             if is_infinite:
                 assert self._inf_image
-                painter.drawImage(0, 0, self._inf_image)
+                img_painter.drawImage(0, 0, self._inf_image)
 
             self._state_icons[self._state] = pixmap
 
-        return self._state_icons[self._state]
+        icon = self._state_icons[self._state]
+        painter.drawPixmap(0, -icon.height() // 2, icon)
+
+    def _get_baseline_offset(self, font):
+        key = font.pointSize()
+        if key not in self._baseline_offsets:
+            fm = QFontMetrics(font)
+            self._baseline_offsets[key] = fm.tightBoundingRect('0').height()
+
+        return self._baseline_offsets[key]
+
+    def _draw_number_str(
+            self,
+            painter,
+            num_str,
+            digit_counts,
+            font,
+            colour,
+            alignment=Qt.AlignCenter):
+        min_digits, max_digits = digit_counts
+
+        painter.save()
+
+        if len(num_str) > min_digits:
+            painter.scale(self._config['narrow_factor'], 1)
+
+        if font != self._config['num_font']:
+            # Match the text baseline of the default font
+            default_baseline = self._get_baseline_offset(self._config['num_font'])
+            cur_baseline = self._get_baseline_offset(font)
+            rect = painter.clipBoundingRect()
+            rect.translate(0, default_baseline - cur_baseline - 1)
+            painter.setClipRect(rect)
+
+        painter.setFont(font)
+        painter.setPen(colour)
+        text_option = QTextOption(alignment)
+        rect = painter.clipBoundingRect()
+        painter.drawText(rect, num_str, text_option)
+
+        painter.restore()
 
     def paintEvent(self, event):
         start = time.time()
@@ -372,11 +411,97 @@ class PlaybackPosition(QWidget):
 
         width_index = count()
         def shift_x():
-            painter.translate(QPoint(self._widths[next(width_index)], 0))
+            cur_width_index = next(width_index)
+            painter.translate(QPoint(self._widths[cur_width_index], 0))
+            cur_width = self._widths[cur_width_index + 1]
+            painter.setClipRect(QRectF(
+                0, -self.height() * 0.5, cur_width, self.height()))
+
+        # State icon
+        shift_x()
+        self._draw_state_icon(painter)
+
+        playback_manager = self._ui_model.get_playback_manager()
+        track_num, system_num, row_ts = playback_manager.get_playback_position()
+
+        # Track number
+        shift_x()
+        shift_x()
+        self._draw_number_str(
+                painter,
+                str(track_num) if track_num >= 0 else '-',
+                self._config['track_digits'],
+                self._config['num_font'],
+                self._config['fg_colour'])
+
+        # System number
+        shift_x()
+        shift_x()
+        self._draw_number_str(
+                painter,
+                str(system_num) if system_num >= 0 else '-',
+                self._config['system_digits'],
+                self._config['num_font'],
+                self._config['fg_colour'])
+
+        # Pattern instance
+        pat_num = 0
+        inst_num = 0
+        album = self._ui_model.get_module().get_album()
+        if album.get_existence():
+            song = album.get_song_by_track(track_num)
+            if song.get_existence():
+                pinst = song.get_pattern_instance(system_num)
+                pat_num = pinst.get_pattern_num()
+                inst_num = pinst.get_instance_num()
 
         shift_x()
-        state_icon = self._get_state_icon()
-        painter.drawPixmap(0, -state_icon.height() // 2, state_icon)
+        shift_x()
+        self._draw_number_str(
+                painter,
+                str(pat_num),
+                self._config['pat_digits'],
+                self._config['num_font'],
+                self._config['fg_colour'],
+                Qt.AlignRight | Qt.AlignVCenter)
+
+        shift_x()
+        self._draw_number_str(
+                painter,
+                str(inst_num),
+                self._config['pat_inst_digits'],
+                self._config['sub_font'],
+                self._config['fg_colour'],
+                Qt.AlignLeft | Qt.AlignVCenter)
+
+        # Timestamp
+        beats, rem = row_ts
+        rem_norm = int(
+                float(rem / float(tstamp.BEAT)) * (10**self._config['ts_rem_digits'][0]))
+
+        shift_x()
+        shift_x()
+        self._draw_number_str(
+                painter,
+                str(beats),
+                self._config['ts_beat_digits'],
+                self._config['num_font'],
+                self._config['fg_colour'],
+                Qt.AlignRight | Qt.AlignVCenter)
+
+        shift_x()
+        painter.setFont(self._config['num_font'])
+        painter.setPen(self._config['fg_colour'])
+        painter.drawText(painter.clipBoundingRect(), '.', QTextOption(Qt.AlignCenter))
+
+        shift_x()
+        self._draw_number_str(
+                painter,
+                str(rem_norm),
+                self._config['ts_rem_digits'],
+                self._config['rem_font'],
+                self._config['fg_colour'],
+                Qt.AlignLeft | Qt.AlignVCenter)
 
         end = time.time()
         elapsed = end - start
