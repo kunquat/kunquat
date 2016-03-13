@@ -106,12 +106,18 @@ class SampleParams(ProcParams):
         for key in (k for k in self._store.iterkeys() if k.startswith(key_prefix)):
             transaction[key] = None
 
-        # Remove all references in random lists
         sample_num = self._get_sample_num(sample_id)
+
+        # Remove all references in random lists
         note_map = self._get_note_map()
-        for (point, random_list) in note_map:
-            random_list[:] = [e for e in random_list if e[2] != sample_num]
+        for (_, random_list) in note_map:
+            random_list[:] = [e for e in random_list if e[0] != sample_num]
         transaction[self._get_conf_key('p_nm_note_map.json')] = note_map
+
+        hit_map = self._get_hit_map()
+        for (_, random_list) in hit_map:
+            random_list[:] = [e for e in random_list if e[0] != sample_num]
+        transaction[self._get_conf_key('p_hm_hit_map.json')] = hit_map
 
         self._store.put(transaction)
 
