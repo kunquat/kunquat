@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -26,13 +26,18 @@ bool Sample_entry_parse(Sample_entry* entry, Streader* sr)
     assert(entry != NULL);
     assert(sr != NULL);
 
+    int64_t sample = -1;
     double sample_cents = NAN;
     double volume = NAN;
-    int64_t sample = -1;
 
-    if (!Streader_readf(sr, "[%f,%f,%i]", &sample_cents, &volume, &sample))
+    if (!Streader_readf(sr, "[%i,%f,%f]", &sample, &sample_cents, &volume))
         return false;
 
+    if (sample < 0)
+    {
+        Streader_set_error(sr, "Sample number must be non-negative");
+        return false;
+    }
     if (!isfinite(sample_cents))
     {
         Streader_set_error(sr, "Sample cent offset is not finite");
@@ -43,15 +48,10 @@ bool Sample_entry_parse(Sample_entry* entry, Streader* sr)
         Streader_set_error(sr, "Volume adjustment is not finite");
         return false;
     }
-    if (sample < 0)
-    {
-        Streader_set_error(sr, "Sample number must be non-negative");
-        return false;
-    }
 
+    entry->sample = sample;
     entry->cents = sample_cents;
     entry->vol_scale = exp2(volume / 6);
-    entry->sample = sample;
 
     return true;
 }

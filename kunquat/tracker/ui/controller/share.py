@@ -131,6 +131,7 @@ class Share():
                 'delete',
                 'delete_small',
                 'edit',
+                'error',
                 'new_pattern',
                 'new_song',
                 'paste',

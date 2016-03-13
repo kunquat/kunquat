@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -136,6 +136,16 @@ static bool read_mapping(Streader* sr, int32_t index, void* userdata)
     list->cents = cents;
     list->force = force;
     list->entry_count = 0;
+    if (AAtree_contains(map->map, list))
+    {
+        Streader_set_error(
+                sr,
+                "Duplicate note map entry with pitch %.2f, force %.2f",
+                list->cents,
+                list->force);
+        memory_free(list);
+        return false;
+    }
     if (!AAtree_ins(map->map, list))
     {
         Streader_set_memory_error(
@@ -146,12 +156,6 @@ static bool read_mapping(Streader* sr, int32_t index, void* userdata)
 
     if (!Streader_read_list(sr, read_random_list_entry, list))
         return false;
-
-    if (list->entry_count == 0)
-    {
-        Streader_set_error(sr, "Empty note mapping random list");
-        return false;
-    }
 
     return Streader_match_char(sr, ']');
 }
@@ -236,9 +240,9 @@ bool Note_map_add_entry(Note_map* map, double cents, double force, Sample_entry*
     }
 
     list->entries[list->entry_count].ref_freq = list->freq;
+    list->entries[list->entry_count].sample = entry->sample;
     list->entries[list->entry_count].cents = entry->cents;
     list->entries[list->entry_count].vol_scale = entry->vol_scale;
-    list->entries[list->entry_count].sample = entry->sample;
     ++list->entry_count;
 
     return true;
@@ -319,8 +323,10 @@ const Sample_entry* Note_map_get_entry(
         return NULL;
     }
 
-    assert(choice->entry_count > 0);
-    assert(choice->entry_count < NOTE_MAP_RANDOMS_MAX);
+    if (choice->entry_count == 0)
+        return NULL;
+
+    assert(choice->entry_count <= NOTE_MAP_RANDOMS_MAX);
 //    state->middle_tone = choice->freq;
     const int index = Random_get_index(random, choice->entry_count);
     assert(index >= 0);

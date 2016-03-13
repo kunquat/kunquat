@@ -92,6 +92,10 @@ class Session():
         self._au_test_expressions = {}
         self._au_test_expressions_enabled = {}
         self._edit_selected_hits = {}
+        self._selected_sample_ids = {}
+        self._selected_sample_note_map_points = {}
+        self._selected_sample_hit_info = {}
+        self._selected_sample_hit_map_force = {}
 
     def get_output_speed(self):
         return self._output_speed
@@ -571,5 +575,29 @@ class Session():
 
     def are_au_test_expressions_enabled(self, au_id):
         return self._au_test_expressions_enabled.get(au_id)
+
+    def set_selected_sample_id(self, proc_id, sample_id):
+        self._selected_sample_ids[proc_id] = sample_id
+
+    def get_selected_sample_id(self, proc_id):
+        return self._selected_sample_ids.get(proc_id, None)
+
+    def set_selected_sample_note_map_point(self, proc_id, point):
+        self._selected_sample_note_map_points[proc_id] = point
+
+    def get_selected_sample_note_map_point(self, proc_id):
+        return self._selected_sample_note_map_points.get(proc_id, None)
+
+    def set_selected_sample_hit_info(self, proc_id, hit_info):
+        self._selected_sample_hit_info[proc_id] = hit_info
+
+    def get_selected_sample_hit_info(self, proc_id):
+        return self._selected_sample_hit_info.get(proc_id, (0, 0))
+
+    def set_selected_sample_hit_map_force(self, proc_id, force):
+        self._selected_sample_hit_map_force[proc_id] = force
+
+    def get_selected_sample_hit_map_force(self, proc_id):
+        return self._selected_sample_hit_map_force.get(proc_id, None)
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 #include <debug/assert.h>
 #include <memory.h>
 
+#include <inttypes.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -134,6 +135,16 @@ static bool read_mapping(Streader* sr, int32_t index, void* userdata)
 
     list->force = force;
     list->entry_count = 0;
+    if (AAtree_contains(map->hits[hit_index], list))
+    {
+        Streader_set_error(
+                sr,
+                "Duplicate hit map entry with hit index %" PRId64 ", force %.2f",
+                hit_index,
+                force);
+        memory_free(list);
+        return false;
+    }
     if (!AAtree_ins(map->hits[hit_index], list))
     {
         Streader_set_memory_error(
@@ -144,12 +155,6 @@ static bool read_mapping(Streader* sr, int32_t index, void* userdata)
 
     if (!Streader_read_list(sr, read_random_list_entry, list))
         return false;
-
-    if (list->entry_count == 0)
-    {
-        Streader_set_error(sr, "Empty hit mapping random list");
-        return false;
-    }
 
     return Streader_match_char(sr, ']');
 }
@@ -215,6 +220,9 @@ const Sample_entry* Hit_map_get_entry(
         list = smaller;
 
     if (list == NULL)
+        return NULL;
+
+    if (list->entry_count == 0)
         return NULL;
 
     const int index = Random_get_index(random, list->entry_count);

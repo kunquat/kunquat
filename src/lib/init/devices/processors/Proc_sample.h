@@ -24,8 +24,6 @@
 
 #define SAMPLES_MAX (512)
 
-#define SAMPLE_SOURCES_MAX (16)
-#define SAMPLE_EXPRESSIONS_MAX (16)
 #define SAMPLE_RANDOMS_MAX (8)
 
 

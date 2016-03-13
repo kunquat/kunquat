@@ -26,12 +26,17 @@ class ProcParams():
         self._key_prefix = '{}/'.format(proc_id)
         self._controller = controller
         self._store = controller.get_store()
+        self._session = controller.get_session()
+        self._proc_id = proc_id
 
     def _get_key(self, impl_or_conf, subkey):
         assert impl_or_conf in ('i/', 'c/')
         return ''.join((self._key_prefix, impl_or_conf, subkey))
 
     # Protected interface
+
+    def _get_conf_key(self, subkey):
+        return self._get_key('c/', subkey)
 
     def _get_value(self, subkey, default_value):
         conf_key = self._get_key('c/', subkey)
