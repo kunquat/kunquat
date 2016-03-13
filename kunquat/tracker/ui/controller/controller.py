@@ -405,9 +405,8 @@ class Controller():
         self._audio_engine.tfire_event(0, old_name_event)
 
     def send_queries(self):
-        if self._session.get_record_mode():
-            location_feedback_event = ('qlocation', None)
-            self._audio_engine.tfire_event(0, location_feedback_event)
+        location_feedback_event = ('qlocation', None)
+        self._audio_engine.tfire_event(0, location_feedback_event)
 
     def update_pending_playback_cursor_track(self, track):
         self._session.set_pending_playback_cursor_track(track)
