@@ -99,6 +99,9 @@ class UiThread(MonitoringThread):
     def confirm_valid_data(self, transaction_id):
         self._q.push('confirm_valid_data', transaction_id)
 
+    def call_post_action(self, action_name, args):
+        self._q.push('call_post_action', action_name, args)
+
     # Threading interface
 
     def halt(self):

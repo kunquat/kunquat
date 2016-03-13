@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2014
+# Author: Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -20,7 +20,7 @@ import kunquat.tracker.cmdline as cmdline
 DISP_CONTEXTS = {
         'mix': 'Playback',
         'fire': 'User',
-        'tfire': 'Tracker',
+        #'tfire': 'Tracker',
         }
 
 
@@ -149,12 +149,19 @@ class EventFilterButton(QCheckBox):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        self._update_all()
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signal):
+        self._update_all()
+
+    def _update_all(self):
         event_history = self._ui_model.get_event_history()
         self.blockSignals(True)
+        event_count = event_history.get_event_count_with_filter(self._context)
+        self.setText('{} ({})'.format(DISP_CONTEXTS[self._context], event_count))
         is_allowed = event_history.is_context_allowed(self._context)
         if is_allowed != self.isChecked():
             self.setChecked(is_allowed)
@@ -173,22 +180,22 @@ class EventFilterView(QWidget):
         h = QHBoxLayout()
         self._mix_toggle = EventFilterButton('mix')
         self._fire_toggle = EventFilterButton('fire')
-        self._tfire_toggle = EventFilterButton('tfire')
+        #self._tfire_toggle = EventFilterButton('tfire')
         h.addWidget(self._mix_toggle)
         h.addWidget(self._fire_toggle)
-        h.addWidget(self._tfire_toggle)
+        #h.addWidget(self._tfire_toggle)
         h.addStretch()
         self.setLayout(h)
 
     def set_ui_model(self, ui_model):
         self._mix_toggle.set_ui_model(ui_model)
         self._fire_toggle.set_ui_model(ui_model)
-        self._tfire_toggle.set_ui_model(ui_model)
+        #self._tfire_toggle.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._mix_toggle.unregister_updaters()
         self._fire_toggle.unregister_updaters()
-        self._tfire_toggle.unregister_updaters()
+        #self._tfire_toggle.unregister_updaters()
 
 
 class EventList(QWidget):

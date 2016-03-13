@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -76,6 +76,9 @@ class AudioThread(MonitoringThread):
 
     def reset_and_pause(self):
         self._q.push('reset_and_pause')
+
+    def sync_call_post_action(self, action_name, args):
+        self._q.push('sync_call_post_action', action_name, args)
 
     # Thread interface
 

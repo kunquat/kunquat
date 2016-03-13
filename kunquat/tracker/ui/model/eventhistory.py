@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2014
+# Author: Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -31,6 +31,9 @@ class EventHistory():
     def get_log(self):
         return [e for e in self._session.get_event_log()
                 if e[4] in self._context_filter]
+
+    def get_event_count_with_filter(self, context):
+        return sum(1 for e in self._session.get_event_log() if e[4] == context)
 
     def allow_context(self, context, allow):
         if allow:

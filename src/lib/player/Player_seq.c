@@ -418,6 +418,9 @@ static void Player_set_new_playback_position(
 
         for (int k = 0; k < KQT_CHANNELS_MAX; ++k)
             Cgiter_reset(&player->cgiters[k], &target_pos);
+
+        // Set the new position as a global reference
+        player->master_params.cur_pos = target_pos;
     }
 
     // Make sure all triggers are processed after the jump
