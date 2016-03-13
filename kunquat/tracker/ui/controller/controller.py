@@ -269,7 +269,6 @@ class Controller():
         self._audio_engine.tfire_event(0, set_goto_pinst)
         self._audio_engine.tfire_event(0, set_goto_row)
         self._audio_engine.tfire_event(0, ('cg', None))
-        print('goto')
 
         self._session.reset_max_audio_levels()
         self._reset_expressions()
