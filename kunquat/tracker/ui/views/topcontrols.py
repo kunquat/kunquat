@@ -11,10 +11,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from itertools import count
-import math
-import time
-
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
