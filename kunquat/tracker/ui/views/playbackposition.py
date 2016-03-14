@@ -34,6 +34,9 @@ class PlaybackPosition(QWidget):
     _REM_FONT = QFont(QFont().defaultFamily(), 12)
     _REM_FONT.setWeight(QFont.Bold)
 
+    _TITLE_FONT = QFont(QFont().defaultFamily(), 5)
+    _TITLE_FONT.setWeight(QFont.Bold)
+
     _DEFAULT_CONFIG = {
         'padding_x'      : 9,
         'padding_y'      : 0,
@@ -42,6 +45,7 @@ class PlaybackPosition(QWidget):
         'num_font'       : _NUM_FONT,
         'sub_font'       : _SUB_FONT,
         'rem_font'       : _REM_FONT,
+        'title_font'     : _TITLE_FONT,
         'narrow_factor'  : 0.6,
         'track_digits'   : [1, len(str(TRACKS_MAX - 1))],
         'system_digits'  : [2, len(str(SYSTEMS_MAX - 1))],
@@ -54,6 +58,7 @@ class PlaybackPosition(QWidget):
         'stopped_colour' : QColor(0x55, 0x55, 0x55),
         'record_colour'  : QColor(0xdd, 0x44, 0x33),
         'infinite_colour': QColor(0xff, 0xdd, 0x55),
+        'title_colour'   : QColor(0x77, 0x77, 0x77),
     }
 
     _STOPPED = 'stopped'
@@ -74,6 +79,8 @@ class PlaybackPosition(QWidget):
 
         self._glyphs = {}
         self._glyph_sizes = {}
+
+        self._titles = {}
 
         self._baseline_offsets = {}
 
@@ -102,6 +109,8 @@ class PlaybackPosition(QWidget):
         self._glyphs = {}
         self._draw_glyphs()
         self._set_dimensions()
+
+        self._draw_titles()
 
     def _draw_glyphs(self):
         font_names = ('num_font', 'sub_font', 'rem_font')
@@ -134,6 +143,24 @@ class PlaybackPosition(QWidget):
 
                 self._glyph_sizes[(font_name, width_factor)] = (width - 1, height)
 
+    def _draw_titles(self):
+        font = self._config['title_font']
+        fm = QFontMetrics(font, self)
+        text_option = QTextOption(Qt.AlignLeft | Qt.AlignTop)
+
+        for title in ('track', 'system', 'pattern', 'row'):
+            vis_text = title.upper()
+            rect = fm.tightBoundingRect(vis_text)
+
+            pixmap = QPixmap(rect.width(), rect.height())
+            pixmap.fill(self._config['bg_colour'])
+            painter = QPainter(pixmap)
+            painter.setFont(font)
+            painter.setPen(self._config['title_colour'])
+            painter.drawText(0, rect.height(), vis_text)
+
+            self._titles[title] = pixmap
+
     def _set_dimensions(self):
         default_fm = QFontMetrics(self._config['num_font'], self)
 
@@ -150,7 +177,7 @@ class PlaybackPosition(QWidget):
         self._widths = [
             padding_x,
             self._config['icon_width'],
-            spacing,
+            spacing * 2,
             track_width,
             spacing,
             system_width,
@@ -389,6 +416,8 @@ class PlaybackPosition(QWidget):
             painter.setClipRect(QRectF(
                 0, -self.height() * 0.5, cur_width, self.height()))
 
+        title_y = self.height() * 0.3
+
         # State icon
         shift_x()
         self._draw_state_icon(painter)
@@ -405,6 +434,9 @@ class PlaybackPosition(QWidget):
                 self._config['track_digits'],
                 'num_font')
 
+        painter.setClipping(False)
+        painter.drawPixmap(0, title_y, self._titles['track'])
+
         # System number
         shift_x()
         shift_x()
@@ -413,6 +445,9 @@ class PlaybackPosition(QWidget):
                 str(system_num) if system_num >= 0 else '-',
                 self._config['system_digits'],
                 'num_font')
+
+        painter.setClipping(False)
+        painter.drawPixmap(2, title_y, self._titles['system'])
 
         # Pattern instance
         pat_num = 0
@@ -442,6 +477,9 @@ class PlaybackPosition(QWidget):
                 'sub_font',
                 Qt.AlignLeft)
 
+        painter.setClipping(False)
+        painter.drawPixmap(-20, title_y, self._titles['pattern'])
+
         # Timestamp
         beats, rem = row_ts
         rem_norm = int(
@@ -470,6 +508,9 @@ class PlaybackPosition(QWidget):
                 self._config['ts_rem_digits'],
                 'rem_font',
                 Qt.AlignLeft)
+
+        painter.setClipping(False)
+        painter.drawPixmap(-10, title_y, self._titles['row'])
 
         end = time.time()
         elapsed = end - start
