@@ -279,6 +279,7 @@ class Controller():
 
     def silence(self):
         self._reset_with_post_action(self._silence)
+        self._session.set_playback_active(False)
 
     def _silence(self):
         self._session.reset_max_audio_levels()
@@ -291,8 +292,6 @@ class Controller():
 
         if self._session.get_infinite_mode():
             self._audio_engine.tfire_event(0, ('cinfinite+', None))
-
-        self._session.set_playback_active(False)
 
     def set_infinite_mode(self, enabled):
         self._session.set_infinite_mode(enabled)
