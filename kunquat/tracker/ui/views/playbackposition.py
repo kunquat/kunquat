@@ -35,7 +35,8 @@ class PlaybackPosition(QWidget):
     _REM_FONT.setWeight(QFont.Bold)
 
     _DEFAULT_CONFIG = {
-        'padding'        : 5,
+        'padding_x'      : 9,
+        'padding_y'      : 0,
         'spacing'        : 2,
         'icon_width'     : 19,
         'num_font'       : _NUM_FONT,
@@ -136,7 +137,7 @@ class PlaybackPosition(QWidget):
     def _set_dimensions(self):
         default_fm = QFontMetrics(self._config['num_font'], self)
 
-        padding = self._config['padding']
+        padding_x = self._config['padding_x']
         spacing = self._config['spacing']
         track_width = self._get_field_width(self._config['track_digits'], 'num_font')
         system_width = self._get_field_width(self._config['system_digits'], 'num_font')
@@ -147,7 +148,7 @@ class PlaybackPosition(QWidget):
         rem_width = self._get_field_width(self._config['ts_rem_digits'], 'rem_font')
 
         self._widths = [
-            padding,
+            padding_x,
             self._config['icon_width'],
             spacing,
             track_width,
@@ -160,9 +161,10 @@ class PlaybackPosition(QWidget):
             beat_width,
             dot_width,
             rem_width,
-            padding]
+            padding_x]
 
-        self._min_height = default_fm.boundingRect('Ag').height() + padding * 2
+        padding_y = self._config['padding_y']
+        self._min_height = default_fm.boundingRect('Ag').height() + padding_y * 2
 
     def _get_field_width(self, digit_counts, font_name):
         min_digits, max_digits = digit_counts
