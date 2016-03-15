@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -63,6 +63,8 @@ class InfiniteToggle(QCheckBox):
         self._updater.register_updater(self._perform_updates)
 
         QObject.connect(self, SIGNAL('stateChanged(int)'), self._toggle_infinite_mode)
+
+        self._update_inf_setting()
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)

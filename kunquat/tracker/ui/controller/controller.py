@@ -234,6 +234,7 @@ class Controller():
             self._audio_engine.tfire_event(0, ('cinfinite+', None))
 
         self._audio_engine.tfire_event(0, ('cresume', None))
+        self._session.set_playback_active(True)
 
     def play_pattern(self, pattern_instance):
         self._reset_with_post_action(self._play_pattern, pattern_instance)
@@ -252,6 +253,7 @@ class Controller():
         self._session.reset_max_audio_levels()
         self._reset_expressions()
         self._audio_engine.tfire_event(0, ('cresume', None))
+        self._session.set_playback_active(True)
 
     def play_from_cursor(self, pattern_instance, row_ts):
         self._reset_with_post_action(self._play_from_cursor, pattern_instance, row_ts)
@@ -273,9 +275,11 @@ class Controller():
         self._session.reset_max_audio_levels()
         self._reset_expressions()
         self._audio_engine.tfire_event(0, ('cresume', None))
+        self._session.set_playback_active(True)
 
     def silence(self):
         self._reset_with_post_action(self._silence)
+        self._session.set_playback_active(False)
 
     def _silence(self):
         self._session.reset_max_audio_levels()
@@ -400,9 +404,8 @@ class Controller():
         self._audio_engine.tfire_event(0, old_name_event)
 
     def send_queries(self):
-        if self._session.get_record_mode():
-            location_feedback_event = ('qlocation', None)
-            self._audio_engine.tfire_event(0, location_feedback_event)
+        location_feedback_event = ('qlocation', None)
+        self._audio_engine.tfire_event(0, location_feedback_event)
 
     def update_pending_playback_cursor_track(self, track):
         self._session.set_pending_playback_cursor_track(track)

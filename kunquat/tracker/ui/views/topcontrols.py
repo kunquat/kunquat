@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
+from playbackposition import PlaybackPosition
 from playbutton import PlayButton
 from playpatternbutton import PlayPatternButton
 from recordbutton import RecordButton
@@ -31,6 +32,7 @@ class TopControls(QToolBar):
         self._play_from_cursor_button = PlayFromCursorButton()
         self._record_button = RecordButton()
         self._silence_button = SilenceButton()
+        self._playback_pos = PlaybackPosition()
         self._interactivity_button = InteractivityButton()
         self._notation_select = NotationSelect()
 
@@ -40,6 +42,8 @@ class TopControls(QToolBar):
         if cmdline.get_experimental():
             self.addWidget(self._record_button)
         self.addWidget(self._silence_button)
+        self.addSeparator()
+        self.addWidget(self._playback_pos)
         self.addSeparator()
         self.addWidget(self._interactivity_button)
         self.addSeparator()
@@ -51,12 +55,14 @@ class TopControls(QToolBar):
         self._play_from_cursor_button.set_ui_model(ui_model)
         self._record_button.set_ui_model(ui_model)
         self._silence_button.set_ui_model(ui_model)
+        self._playback_pos.set_ui_model(ui_model)
         self._interactivity_button.set_ui_model(ui_model)
         self._notation_select.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._notation_select.unregister_updaters()
         self._interactivity_button.unregister_updaters()
+        self._playback_pos.unregister_updaters()
         self._silence_button.unregister_updaters()
         self._record_button.unregister_updaters()
         self._play_from_cursor_button.unregister_updaters()
