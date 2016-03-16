@@ -86,6 +86,7 @@ class Session():
         self._is_saving = False
         self._active_var_names = {}
         self._runtime_env = {}
+        self._selected_binding_index = None
         self._au_conns_edit_mode = {}
         self._au_conns_hit_index = {}
         self._au_conns_expr_name = {}
@@ -528,6 +529,12 @@ class Session():
     def reset_runtime_env(self):
         self._active_var_names.clear()
         self._runtime_env.clear()
+
+    def set_selected_binding_index(self, index):
+        self._selected_binding_index = index
+
+    def get_selected_binding_index(self):
+        return self._selected_binding_index
 
     def set_au_connections_edit_mode(self, au_id, mode):
         self._au_conns_edit_mode[au_id] = mode
