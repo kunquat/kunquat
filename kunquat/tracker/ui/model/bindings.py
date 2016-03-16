@@ -59,6 +59,12 @@ class Bindings():
         binding = Binding(self._get_binding_data, self._set_binding_data, index)
         return binding
 
+    def has_selected_binding(self):
+        return self.get_selected_binding_index() != None
+
+    def get_selected_binding(self):
+        return self.get_binding(self.get_selected_binding_index())
+
     def add_binding(self):
         data = self._get_data()
         data.append(['c.ev', [], []])
