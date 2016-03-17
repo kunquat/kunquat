@@ -459,7 +459,9 @@ class ConstraintEditor(QWidget):
 
         self._index = index
 
-        self._event_selector = QLabel(str(index))
+        self._event = EventBox()
+
+        self._expression = QLineEdit()
 
         self._remove_button = QPushButton()
         self._remove_button.setStyleSheet('padding: 0 -2px;')
@@ -467,7 +469,9 @@ class ConstraintEditor(QWidget):
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(2)
-        h.addWidget(self._event_selector)
+        h.addWidget(self._event)
+        h.addWidget(TightLabel('Test expression:'))
+        h.addWidget(self._expression)
         h.addWidget(self._remove_button)
         self.setLayout(h)
 
@@ -479,6 +483,12 @@ class ConstraintEditor(QWidget):
         icon_bank = self._ui_model.get_icon_bank()
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
         self._remove_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
+
+        QObject.connect(
+                self._event, SIGNAL('currentIndexChanged(int)'), self._change_event)
+
+        QObject.connect(
+                self._expression, SIGNAL('editingFinished()'), self._change_expression)
 
         QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove)
 
@@ -492,7 +502,39 @@ class ConstraintEditor(QWidget):
             self._update_all()
 
     def _update_all(self):
-        pass # TODO
+        bindings = self._ui_model.get_module().get_bindings()
+        if not bindings.has_selected_binding():
+            return
+
+        binding = bindings.get_selected_binding()
+        constraint = binding.get_constraints().get_constraint(self._index)
+
+        event_name = constraint.get_event_name()
+        self._event.try_select_event(event_name)
+
+        old_block = self._expression.blockSignals(True)
+        new_expression = constraint.get_expression()
+        if self._expression.text() != new_expression:
+            self._expression.setText(new_expression)
+        self._expression.blockSignals(old_block)
+
+    def _get_constraint(self):
+        bindings = self._ui_model.get_module().get_bindings()
+        binding = bindings.get_selected_binding()
+        constraint = binding.get_constraints().get_constraint(self._index)
+        return constraint
+
+    def _change_event(self, index):
+        event_name = self._event.get_selected_event()
+        constraint = self._get_constraint()
+        constraint.set_event_name(event_name)
+        self._updater.signal_update(set(['signal_bind']))
+
+    def _change_expression(self):
+        expression = unicode(self._expression.text())
+        constraint = self._get_constraint()
+        constraint.set_expression(expression)
+        self._updater.signal_update(set(['signal_bind']))
 
     def _remove(self):
         bindings = self._ui_model.get_module().get_bindings()
