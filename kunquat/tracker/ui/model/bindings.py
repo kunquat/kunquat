@@ -233,16 +233,12 @@ class Target():
     def get_event_name(self):
         return self._get_data(self._index)[1][0]
 
-    def set_event_name(self, event_name):
-        data = self._get_data(self._index)
-        data[1][0] = event_name
-        self._set_data(self._index, data)
-
     def get_expression(self):
         return self._get_data(self._index)[1][1]
 
-    def set_expression(self, expression):
+    def set_event_info(self, event_name, expression):
         data = self._get_data(self._index)
+        data[1][0] = event_name
         data[1][1] = expression
         self._set_data(self._index, data)
 

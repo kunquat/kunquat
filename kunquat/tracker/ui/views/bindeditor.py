@@ -18,6 +18,7 @@ from editorlist import EditorList
 from headerline import HeaderLine
 
 import kunquat.kunquat.events as events
+from kunquat.kunquat.limits import *
 
 
 class BindEditor(QWidget):
@@ -260,6 +261,45 @@ class BindList(QWidget):
         self._list_view.setModel(self._list_model)
 
 
+class EventBox(QComboBox):
+
+    def __init__(self, excluded=set()):
+        QComboBox.__init__(self)
+        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
+        self.update_names(excluded)
+
+    def update_names(self, excluded=set()):
+        selected = None
+        selected_index = self.currentIndex()
+        if selected_index != -1:
+            selected = unicode(self.findItem(selected_index))
+
+        self.clear()
+
+        all_events = events.all_events_by_name
+        event_names = sorted(list(
+            event['name'] for event in all_events.itervalues()
+            if event['name'] not in excluded))
+        for event_name in event_names:
+            self.addItem(event_name)
+
+        if selected:
+            self.try_select_event_name(selected)
+
+    def try_select_event(self, event_name):
+        old_block = self.blockSignals(True)
+        index = self.findText(event_name)
+        if index != -1:
+            self.setCurrentIndex(index)
+        self.blockSignals(old_block)
+
+    def get_selected_event(self):
+        index = self.currentIndex()
+        if index == -1:
+            return None
+        return unicode(self.itemText(index))
+
+
 class EventSelector(QWidget):
 
     def __init__(self):
@@ -267,13 +307,7 @@ class EventSelector(QWidget):
         self._ui_model = None
         self._updater = None
 
-        self._selector = QComboBox()
-        self._selector.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
-
-        all_events = events.all_events_by_name
-        event_names = sorted(list(event['name'] for event in all_events.itervalues()))
-        for event_name in event_names:
-            self._selector.addItem(event_name)
+        self._selector = EventBox()
 
         h = QHBoxLayout()
         h.setMargin(0)
@@ -305,17 +339,21 @@ class EventSelector(QWidget):
             return
 
         event_name = bindings.get_selected_binding().get_source_event()
-
-        old_block = self._selector.blockSignals(True)
-        self._selector.setCurrentIndex(self._selector.findText(event_name))
-        self._selector.blockSignals(old_block)
+        self._selector.try_select_event(event_name)
 
     def _change_event(self, index):
-        new_event = str(self._selector.itemText(index))
+        new_event = self._selector.get_selected_event()
         bindings = self._ui_model.get_module().get_bindings()
         binding = bindings.get_selected_binding()
         binding.set_source_event(new_event)
         self._updater.signal_update(set(['signal_bind']))
+
+
+class TightLabel(QLabel):
+
+    def __init__(self, text):
+        QLabel.__init__(self, text)
+        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
 
 
 class Constraints(QWidget):
@@ -566,7 +604,12 @@ class TargetEditor(QWidget):
 
         self._index = index
 
-        self._ch_offset = QLabel(str(index))
+        self._ch_offset = QSpinBox()
+        self._ch_offset.setRange(-CHANNELS_MAX + 1, CHANNELS_MAX - 1)
+
+        self._event = EventBox()
+
+        self._expression = QLineEdit()
 
         self._remove_button = QPushButton()
         self._remove_button.setStyleSheet('padding: 0 -2px;')
@@ -574,7 +617,11 @@ class TargetEditor(QWidget):
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(2)
+        h.addWidget(TightLabel('Channel offset:'))
         h.addWidget(self._ch_offset)
+        h.addWidget(self._event)
+        h.addWidget(TightLabel('Expression:'))
+        h.addWidget(self._expression)
         h.addWidget(self._remove_button)
         self.setLayout(h)
 
@@ -586,6 +633,15 @@ class TargetEditor(QWidget):
         icon_bank = self._ui_model.get_icon_bank()
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
         self._remove_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
+
+        QObject.connect(
+                self._ch_offset, SIGNAL('valueChanged(int)'), self._change_ch_offset)
+
+        QObject.connect(
+                self._event, SIGNAL('currentIndexChanged(int)'), self._change_event)
+
+        QObject.connect(
+                self._expression, SIGNAL('editingFinished()'), self._change_expression)
 
         QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove)
 
@@ -599,7 +655,64 @@ class TargetEditor(QWidget):
             self._update_all()
 
     def _update_all(self):
-        pass # TODO
+        bindings = self._ui_model.get_module().get_bindings()
+        if not bindings.has_selected_binding():
+            return
+
+        binding = bindings.get_selected_binding()
+        target = binding.get_targets().get_target(self._index)
+
+        old_block = self._ch_offset.blockSignals(True)
+        new_ch_offset = target.get_channel_offset()
+        if self._ch_offset.value() != new_ch_offset:
+            self._ch_offset.setValue(new_ch_offset)
+        self._ch_offset.blockSignals(old_block)
+
+        event_name = target.get_event_name()
+        self._event.try_select_event(event_name)
+
+        all_events = events.all_events_by_name
+
+        old_block = self._expression.blockSignals(True)
+        if all_events[event_name]['arg_type'] != None:
+            new_expression = target.get_expression()
+            if self._expression.text() != new_expression:
+                self._expression.setText(new_expression)
+            self._expression.setEnabled(True)
+        else:
+            self._expression.setEnabled(False)
+            self._expression.setText('')
+        self._expression.blockSignals(old_block)
+
+    def _get_target(self):
+        bindings = self._ui_model.get_module().get_bindings()
+        binding = bindings.get_selected_binding()
+        target = binding.get_targets().get_target(self._index)
+        return target
+
+    def _change_ch_offset(self, new_offset):
+        target = self._get_target()
+        target.set_channel_offset(new_offset)
+        self._updater.signal_update(set(['signal_bind']))
+
+    def _change_event(self, index):
+        event_name = self._event.get_selected_event()
+        target = self._get_target()
+
+        all_events = events.all_events_by_name
+        if all_events[event_name]['arg_type'] != None:
+            expression = unicode(self._expression.text())
+        else:
+            expression = None
+
+        target.set_event_info(event_name, expression)
+        self._updater.signal_update(set(['signal_bind']))
+
+    def _change_expression(self):
+        expression = unicode(self._expression.text())
+        target = self._get_target()
+        target.set_event_info(self._event.get_selected_event(), expression)
+        self._updater.signal_update(set(['signal_bind']))
 
     def _remove(self):
         bindings = self._ui_model.get_module().get_bindings()
