@@ -11,12 +11,32 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from copy import deepcopy
+
 
 '''
 Format:
 bind = [bind_entry]
 bind_entry = [event_name, constraints, target_events]
 '''
+
+
+class _Node():
+
+    NEW = 'new'
+    REACHED = 'reached'
+    VISITED = 'visited'
+
+    def __init__(self, name):
+        self.name = name
+        self.state = self.NEW
+        self._connected = set()
+
+    def add_connected(self, node):
+        self._connected.add(node)
+
+    def get_connected(self):
+        return self._connected
 
 
 class Bindings():
@@ -32,7 +52,7 @@ class Bindings():
         self._store = controller.get_store()
 
     def _get_data(self):
-        return self._store.get('p_bind.json', [])
+        return deepcopy(self._store.get('p_bind.json', []))
 
     def _set_data(self, data):
         self._store['p_bind.json'] = data
@@ -49,6 +69,117 @@ class Bindings():
         data[index] = binding
         self._set_data(data)
 
+    def _get_used_events(self, exclude):
+        events = set()
+        for i in xrange(self.get_count()):
+            binding = self.get_binding(i)
+            if i != exclude:
+                events.add(binding.get_source_event())
+            targets = binding.get_targets()
+            for k in xrange(targets.get_count()):
+                if (i, k) == exclude:
+                    continue
+                target = targets.get_target(k)
+                events.add(target.get_event_name())
+        return events
+
+    def _test_graph_contains_cycle(self, edges):
+        nodes = {}
+        for (u, v) in edges:
+            if u in nodes:
+                src = nodes[u]
+            else:
+                src = _Node(u)
+                nodes[u] = src
+            if v in nodes:
+                target = nodes[v]
+            else:
+                target = _Node(v)
+                nodes[v] = target
+            src.add_connected(target)
+
+        def dfs(node):
+            if node.state == node.REACHED:
+                return True
+            node.state = node.REACHED
+            for next_node in node.get_connected():
+                if dfs(next_node):
+                    return True
+            node.state = node.VISITED
+            return False
+
+        for node in nodes.itervalues():
+            if (node.state == node.NEW) and dfs(node):
+                return True
+
+        return False
+
+    def _get_excluded_source_events(self, binding_index):
+        used_events = self._get_used_events(exclude=binding_index)
+
+        # TODO: This approach may turn out slow with complex bindings;
+        #       test and optimise if needed
+
+        # Get test graph without the binding at binding_index
+        base_graph = set()
+        for i in xrange(self.get_count()):
+            if i != binding_index:
+                binding = self.get_binding(i)
+                targets = binding.get_targets()
+                for k in xrange(targets.get_count()):
+                    target = targets.get_target(k)
+                    u = binding.get_source_event()
+                    v = target.get_event_name()
+                    base_graph.add((u, v))
+        base_graph = frozenset(base_graph)
+
+        excluded = set()
+
+        # See if we get a cycle if we replace the binding source event
+        for event in used_events:
+            test_graph = set(base_graph)
+            targets = self.get_binding(binding_index).get_targets()
+            for k in xrange(targets.get_count()):
+                target = targets.get_target(k)
+                u = event
+                v = target.get_event_name()
+                test_graph.add((u, v))
+            if self._test_graph_contains_cycle(test_graph):
+                excluded.add(event)
+
+        return excluded
+
+    def _get_excluded_target_events(self, binding_index, target_index):
+        used_events = self._get_used_events(exclude=(binding_index, target_index))
+
+        # Get test graph without the binding target at target_index
+        base_graph = set()
+        for i in xrange(self.get_count()):
+            binding = self.get_binding(i)
+            targets = binding.get_targets()
+            for k in xrange(targets.get_count()):
+                if (i, k) != (binding_index, target_index):
+                    target = targets.get_target(k)
+                    u = binding.get_source_event()
+                    v = target.get_event_name()
+                    base_graph.add((u, v))
+        base_graph = frozenset(base_graph)
+
+        excluded = set()
+
+        # See if we get a cycle if we replace the target event
+        for event in used_events:
+            test_graph = set(base_graph)
+            binding = self.get_binding(binding_index)
+            target = binding.get_targets().get_target(target_index)
+            u = binding.get_source_event()
+            v = event
+            test_graph.add((u, v))
+            if self._test_graph_contains_cycle(test_graph):
+                excluded.add(event)
+
+        return excluded
+
     def get_selected_binding_index(self):
         return self._session.get_selected_binding_index()
 
@@ -56,7 +187,12 @@ class Bindings():
         self._session.set_selected_binding_index(index)
 
     def get_binding(self, index):
-        binding = Binding(self._get_binding_data, self._set_binding_data, index)
+        binding = Binding(
+                self._get_binding_data,
+                self._set_binding_data,
+                self._get_excluded_source_events,
+                self._get_excluded_target_events,
+                index)
         return binding
 
     def has_selected_binding(self):
@@ -78,10 +214,21 @@ class Bindings():
 
 class Binding():
 
-    def __init__(self, get_data, set_data, index):
+    def __init__(
+            self,
+            get_data,
+            set_data,
+            get_excluded_source_events,
+            get_excluded_target_events,
+            index):
         self._get_data = get_data
         self._set_data = set_data
+        self._get_excluded_source_events = get_excluded_source_events
+        self._get_excluded_target_events_at = get_excluded_target_events
         self._index = index
+
+    def get_excluded_source_events(self):
+        return self._get_excluded_source_events(self._index)
 
     def get_source_event(self):
         return self._get_data(self._index)[0]
@@ -103,6 +250,9 @@ class Binding():
         constraints = Constraints(self._get_constraints_data, self._set_constraints_data)
         return constraints
 
+    def _get_excluded_target_events(self, target_index):
+        return self._get_excluded_target_events_at(self._index, target_index)
+
     def _get_targets_data(self):
         return self._get_data(self._index)[2]
 
@@ -112,7 +262,10 @@ class Binding():
         self._set_data(self._index, data)
 
     def get_targets(self):
-        targets = Targets(self._get_targets_data, self._set_targets_data)
+        targets = Targets(
+                self._get_targets_data,
+                self._set_targets_data,
+                self._get_excluded_target_events)
         return targets
 
 
@@ -185,9 +338,10 @@ target_event = [ch_offset, [event_name, maybe_expr]]
 
 class Targets():
 
-    def __init__(self, get_data, set_data):
+    def __init__(self, get_data, set_data, get_excluded_target_events):
         self._get_data = get_data
         self._set_data = set_data
+        self._get_excluded_target_events = get_excluded_target_events
 
     def get_count(self):
         return len(self._get_data())
@@ -201,7 +355,11 @@ class Targets():
         self._set_data(data)
 
     def get_target(self, index):
-        target = Target(self._get_target_data, self._set_target_data, index)
+        target = Target(
+                self._get_target_data,
+                self._set_target_data,
+                self._get_excluded_target_events,
+                index)
         return target
 
     def add_target(self):
@@ -217,9 +375,10 @@ class Targets():
 
 class Target():
 
-    def __init__(self, get_data, set_data, index):
+    def __init__(self, get_data, set_data, get_excluded_target_events, index):
         self._get_data = get_data
         self._set_data = set_data
+        self._get_excluded_target_events = get_excluded_target_events
         self._index = index
 
     def get_channel_offset(self):
@@ -229,6 +388,9 @@ class Target():
         data = self._get_data(self._index)
         data[0] = offset
         self._set_data(self._index, data)
+
+    def get_excluded_events(self):
+        return self._get_excluded_target_events(self._index)
 
     def get_event_name(self):
         return self._get_data(self._index)[1][0]

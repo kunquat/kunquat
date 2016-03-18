@@ -29,7 +29,7 @@ class BindEditor(QWidget):
         self._updater = None
 
         self._bind_list = BindList()
-        self._event_selector = EventSelector()
+        self._source_event = SourceEventSelector()
         self._constraints = Constraints()
         self._targets = Targets()
 
@@ -38,7 +38,7 @@ class BindEditor(QWidget):
         v.setSpacing(2)
         v.addWidget(HeaderLine('Event bindings'))
         v.addWidget(self._bind_list)
-        v.addWidget(self._event_selector)
+        v.addWidget(self._source_event)
         v.addWidget(self._constraints)
         v.addWidget(self._targets)
         self.setLayout(v)
@@ -48,7 +48,7 @@ class BindEditor(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._bind_list.set_ui_model(ui_model)
-        self._event_selector.set_ui_model(ui_model)
+        self._source_event.set_ui_model(ui_model)
         self._constraints.set_ui_model(ui_model)
         self._targets.set_ui_model(ui_model)
 
@@ -57,7 +57,7 @@ class BindEditor(QWidget):
     def unregister_updaters(self):
         self._targets.unregister_updaters()
         self._constraints.unregister_updaters()
-        self._event_selector.unregister_updaters()
+        self._source_event.unregister_updaters()
         self._bind_list.unregister_updaters()
         self._updater.unregister_updater(self._perform_updates)
 
@@ -68,7 +68,7 @@ class BindEditor(QWidget):
     def _update_editor_enabled(self):
         bindings = self._ui_model.get_module().get_bindings()
         enable_editor = bindings.has_selected_binding()
-        self._event_selector.setEnabled(enable_editor)
+        self._source_event.setEnabled(enable_editor)
         self._constraints.setEnabled(enable_editor)
         self._targets.setEnabled(enable_editor)
 
@@ -272,19 +272,21 @@ class EventBox(QComboBox):
         selected = None
         selected_index = self.currentIndex()
         if selected_index != -1:
-            selected = unicode(self.findItem(selected_index))
-
-        self.clear()
+            selected = unicode(self.itemText(selected_index))
 
         all_events = events.all_events_by_name
         event_names = sorted(list(
             event['name'] for event in all_events.itervalues()
             if event['name'] not in excluded))
+
+        old_block = self.blockSignals(True)
+        self.clear()
         for event_name in event_names:
             self.addItem(event_name)
+        self.blockSignals(old_block)
 
         if selected:
-            self.try_select_event_name(selected)
+            self.try_select_event(selected)
 
     def try_select_event(self, event_name):
         old_block = self.blockSignals(True)
@@ -300,7 +302,7 @@ class EventBox(QComboBox):
         return unicode(self.itemText(index))
 
 
-class EventSelector(QWidget):
+class SourceEventSelector(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
@@ -338,7 +340,12 @@ class EventSelector(QWidget):
         if not bindings.has_selected_binding():
             return
 
-        event_name = bindings.get_selected_binding().get_source_event()
+        binding = bindings.get_selected_binding()
+
+        excluded = binding.get_excluded_source_events()
+        self._selector.update_names(excluded)
+
+        event_name = binding.get_source_event()
         self._selector.try_select_event(event_name)
 
     def _change_event(self, index):
@@ -709,6 +716,9 @@ class TargetEditor(QWidget):
         if self._ch_offset.value() != new_ch_offset:
             self._ch_offset.setValue(new_ch_offset)
         self._ch_offset.blockSignals(old_block)
+
+        excluded = target.get_excluded_events()
+        self._event.update_names(excluded)
 
         event_name = target.get_event_name()
         self._event.try_select_event(event_name)
