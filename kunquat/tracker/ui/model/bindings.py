@@ -13,6 +13,8 @@
 
 from copy import deepcopy
 
+import kunquat.kunquat.events as events
+
 
 '''
 Format:
@@ -171,7 +173,6 @@ class Bindings():
         for event in used_events:
             test_graph = set(base_graph)
             binding = self.get_binding(binding_index)
-            target = binding.get_targets().get_target(target_index)
             u = binding.get_source_event()
             v = event
             test_graph.add((u, v))
@@ -364,7 +365,15 @@ class Targets():
 
     def add_target(self):
         data = self._get_data()
-        data.append([0, ['call', '']])
+
+        all_events = events.all_events_by_name
+        all_event_names = set(event['name'] for event in all_events.itervalues())
+        allowed_events = (
+                all_event_names - self._get_excluded_target_events(self.get_count()))
+        event_name = 'call' if 'call' in allowed_events else allowed_events.pop()
+        expression = None if all_events[event_name]['arg_type'] == None else ''
+        data.append([0, [event_name, expression]])
+
         self._set_data(data)
 
     def remove_target(self, index):
