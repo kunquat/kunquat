@@ -514,7 +514,11 @@ class ConstraintEditor(QWidget):
             return
 
         binding = bindings.get_selected_binding()
-        constraint = binding.get_constraints().get_constraint(self._index)
+        constraints = binding.get_constraints()
+        if self._index >= constraints.get_count():
+            return
+
+        constraint = constraints.get_constraint(self._index)
 
         event_name = constraint.get_event_name()
         self._event.try_select_event(event_name)
@@ -709,7 +713,11 @@ class TargetEditor(QWidget):
             return
 
         binding = bindings.get_selected_binding()
-        target = binding.get_targets().get_target(self._index)
+        targets = binding.get_targets()
+        if self._index >= targets.get_count():
+            return
+
+        target = targets.get_target(self._index)
 
         old_block = self._ch_offset.blockSignals(True)
         new_ch_offset = target.get_channel_offset()
