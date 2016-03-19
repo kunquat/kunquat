@@ -22,7 +22,7 @@ from aboutwindow import AboutWindow
 from eventlist import EventList
 from connectionswindow import ConnectionsWindow
 from songschannelswindow import SongsChannelsWindow
-from environmentwindow import EnvironmentWindow
+from envbindwindow import EnvBindWindow
 from auwindow import AuWindow
 from procwindow import ProcWindow
 from sheet.grideditorwindow import GridEditorWindow
@@ -42,7 +42,7 @@ class RootView():
         self._event_log = None
         self._connections = None
         self._songs_channels = None
-        self._environment = None
+        self._env_bind = None
         self._au_windows = {}
         self._proc_windows = {}
         self._grid_editor = None
@@ -107,11 +107,11 @@ class RootView():
                 self._songs_channels.set_ui_model(self._ui_model)
                 if is_show_allowed:
                     self._songs_channels.show()
-            elif ui == UI_ENVIRONMENT:
-                self._environment = EnvironmentWindow()
-                self._environment.set_ui_model(self._ui_model)
+            elif ui == UI_ENV_BIND:
+                self._env_bind = EnvBindWindow()
+                self._env_bind.set_ui_model(self._ui_model)
                 if is_show_allowed:
-                    self._environment.show()
+                    self._env_bind.show()
             elif type(ui) == tuple and ui[0] == UI_AUDIO_UNIT:
                 au_id = ui[1]
                 au_window = AuWindow()
@@ -169,10 +169,10 @@ class RootView():
                 self._songs_channels.unregister_updaters()
                 self._songs_channels.deleteLater()
                 self._songs_channels = None
-            elif ui == UI_ENVIRONMENT:
-                self._environment.unregister_updaters()
-                self._environment.deleteLater()
-                self._environment = None
+            elif ui == UI_ENV_BIND:
+                self._env_bind.unregister_updaters()
+                self._env_bind.deleteLater()
+                self._env_bind = None
             elif type(ui) == tuple and ui[0] == UI_AUDIO_UNIT:
                 au_id = ui[1]
                 au_window = self._au_windows.pop(au_id)

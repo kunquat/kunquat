@@ -165,8 +165,7 @@ void Player_process_event(
 
             Player_process_expr_event(
                     player,
-                    (ch_num + bound->ch_offset + KQT_CHANNELS_MAX) %
-                        KQT_CHANNELS_MAX,
+                    (ch_num + bound->ch_offset + KQT_CHANNELS_MAX) % KQT_CHANNELS_MAX,
                     bound->desc,
                     arg,
                     skip);
@@ -309,7 +308,8 @@ static void Player_process_expr_event(
         return;
     }
 
-    Player_process_event(player, ch_num, event_name, arg, skip);
+    if (!Event_is_control(type) || player->master_params.is_infinite)
+        Player_process_event(player, ch_num, event_name, arg, skip);
 
     if (Event_buffer_is_full(player->event_buffer))
         return;

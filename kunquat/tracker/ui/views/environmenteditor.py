@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -29,8 +29,8 @@ class EnvironmentEditor(QWidget):
         self._vars = VariableList()
 
         v = QVBoxLayout()
-        v.setMargin(4)
-        v.setSpacing(4)
+        v.setMargin(0)
+        v.setSpacing(2)
         v.addWidget(HeaderLine('Initial environment state'))
         v.addWidget(self._vars)
         self.setLayout(v)

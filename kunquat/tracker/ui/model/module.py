@@ -17,6 +17,7 @@ from itertools import chain
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
 from audiounit import AudioUnit
+from bindings import Bindings
 from channeldefaults import ChannelDefaults
 from connections import Connections
 from control import Control
@@ -178,6 +179,11 @@ class Module():
         env = Environment()
         env.set_controller(self._controller)
         return env
+
+    def get_bindings(self):
+        bindings = Bindings()
+        bindings.set_controller(self._controller)
+        return bindings
 
     def remove_controls_to_audio_unit(self, au_id):
         transaction = {}

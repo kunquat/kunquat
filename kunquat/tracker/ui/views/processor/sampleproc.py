@@ -1396,7 +1396,6 @@ class SampleListModel(QAbstractListModel):
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
-        self._updater = None
 
         self._items = []
 

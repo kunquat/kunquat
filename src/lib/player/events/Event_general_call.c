@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -23,27 +23,19 @@
 #include <stdlib.h>
 
 
-bool Event_general_call_bool_process(General_state* gstate, const Value* value)
+bool Event_general_call_name_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);
-    return value->type == VALUE_TYPE_BOOL;
+    return value->type == VALUE_TYPE_STRING;
 }
 
 
-bool Event_general_call_float_process(General_state* gstate, const Value* value)
+bool Event_general_call_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);
-    return value->type == VALUE_TYPE_FLOAT;
-}
-
-
-bool Event_general_call_int_process(General_state* gstate, const Value* value)
-{
-    assert(gstate != NULL);
-    assert(value != NULL);
-    return value->type == VALUE_TYPE_INT;
+    return true;
 }
 
 

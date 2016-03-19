@@ -98,12 +98,12 @@ class VisibilityManager():
         self._session.hide_ui(UI_SONGS_CHS)
         self._updater.signal_update()
 
-    def show_environment(self):
-        self._session.show_ui(UI_ENVIRONMENT)
+    def show_env_and_bindings(self):
+        self._session.show_ui(UI_ENV_BIND)
         self._updater.signal_update()
 
-    def hide_environment(self):
-        self._session.hide_ui(UI_ENVIRONMENT)
+    def hide_env_and_bindings(self):
+        self._session.hide_ui(UI_ENV_BIND)
         self._updater.signal_update()
 
     def show_processor(self, proc_id):
