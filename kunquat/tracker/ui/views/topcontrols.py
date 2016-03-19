@@ -20,7 +20,6 @@ from playbutton import PlayButton
 from playpatternbutton import PlayPatternButton
 from recordbutton import RecordButton
 from silencebutton import SilenceButton
-from notationselect import NotationSelect
 
 
 class TopControls(QToolBar):
@@ -34,7 +33,6 @@ class TopControls(QToolBar):
         self._silence_button = SilenceButton()
         self._playback_pos = PlaybackPosition()
         self._interactivity_button = InteractivityButton()
-        self._notation_select = NotationSelect()
 
         self.addWidget(self._play_button)
         self.addWidget(self._play_pattern_button)
@@ -46,8 +44,6 @@ class TopControls(QToolBar):
         self.addWidget(self._playback_pos)
         self.addSeparator()
         self.addWidget(self._interactivity_button)
-        self.addSeparator()
-        self.addWidget(self._notation_select)
 
     def set_ui_model(self, ui_model):
         self._play_button.set_ui_model(ui_model)
@@ -57,10 +53,8 @@ class TopControls(QToolBar):
         self._silence_button.set_ui_model(ui_model)
         self._playback_pos.set_ui_model(ui_model)
         self._interactivity_button.set_ui_model(ui_model)
-        self._notation_select.set_ui_model(ui_model)
 
     def unregister_updaters(self):
-        self._notation_select.unregister_updaters()
         self._interactivity_button.unregister_updaters()
         self._playback_pos.unregister_updaters()
         self._silence_button.unregister_updaters()

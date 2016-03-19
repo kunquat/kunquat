@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -55,4 +55,5 @@ class NotationManager():
     def set_selected_notation_id(self, notation_id):
         self._session.set_selected_notation_id(notation_id)
         self._updater.signal_update(set(['signal_notation']))
+
 

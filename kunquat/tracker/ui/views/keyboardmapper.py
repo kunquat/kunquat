@@ -68,16 +68,8 @@ class KeyboardMapper():
         elif self.is_hit_keymap_toggle(event):
             if event.type() == QEvent.KeyPress:
                 keymap_manager = self._ui_model.get_keymap_manager()
-                keymap_manager.toggle_hit_keymap()
-
-                # TODO: Copied over from keymapselect.py; clean up
-                keymap_data = keymap_manager.get_selected_keymap()
-                if keymap_data.get('is_hit_keymap', False):
-                    base_octave = 0
-                else:
-                    base_octave = keymap_data['base_octave']
-                self._typewriter_manager.set_octave(base_octave)
-
+                is_hit_keymap_active = keymap_manager.is_hit_keymap_active()
+                keymap_manager.set_hit_keymap_active(not is_hit_keymap_active)
                 self._updater.signal_update(set(['signal_select_keymap']))
             return True
         return False

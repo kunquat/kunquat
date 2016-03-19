@@ -29,58 +29,8 @@ class Share():
         self._keymaps_path = os.path.join(self._path, 'keymaps')
         self._notations_path = os.path.join(self._path, 'notations')
 
-        self._keymaps = {}
         self._notations = {}
-
-        self._read_keymaps()
         self._read_notations()
-
-    def _read_keymaps(self):
-        keymap_paths = glob.glob(os.path.join(self._keymaps_path, '*.json'))
-        for path in keymap_paths:
-            base_name = os.path.basename(path)
-            key = '.'.join(base_name.split('.')[:-1]) # strip the .json suffix
-            with open(path) as f:
-                try:
-                    unsafe_data = json.load(f)
-                except json.JSONDecodeError:
-                    continue
-                keymap = self._get_validated_keymap(unsafe_data)
-                if keymap:
-                    self._keymaps[key] = keymap
-
-    def _get_validated_keymap(self, unsafe_data):
-        keymap = {}
-
-        # Name of the keymap
-        name = unsafe_data.get(u'name', None)
-        if not isinstance(name, unicode):
-            return None
-        keymap[u'name'] = name
-
-        # Base octave
-        base_octave = unsafe_data.get(u'base_octave', None)
-        if not isinstance(base_octave, int):
-            return None
-        keymap[u'base_octave'] = base_octave
-
-        # Keymap
-        unsafe_keymap = unsafe_data.get(u'keymap', None)
-        if not isinstance(unsafe_keymap, list):
-            return None
-        keymap_entries = []
-        for unsafe_octave in unsafe_keymap:
-            if not isinstance(unsafe_octave, list):
-                return None
-            octave = []
-            for unsafe_entry in unsafe_octave:
-                if not isinstance(unsafe_entry, (int, float, NoneType)):
-                    return None
-                octave.append(unsafe_entry)
-            keymap_entries.append(octave)
-        keymap[u'keymap'] = keymap_entries
-
-        return keymap
 
     def _read_notations(self):
         notation_paths = glob.glob(os.path.join(self._notations_path, '*.json'))
@@ -116,6 +66,14 @@ class Share():
             octave_names.append(unsafe_name)
         notation[u'octave_names'] = octave_names
 
+        # Base octave
+        base_octave = unsafe_data.get(u'base_octave', None)
+        if not isinstance(base_octave, int):
+            return None
+        if not 0 <= base_octave < len(octave_names):
+            return None
+        notation[u'base_octave'] = base_octave
+
         # Note names
         unsafe_note_names = unsafe_data.get(u'note_names', None)
         if not isinstance(unsafe_note_names, list) or (len(unsafe_note_names) == 0):
@@ -132,6 +90,22 @@ class Share():
             desc = [unsafe_cents, unsafe_name]
             note_names.append(desc)
         notation[u'note_names'] = note_names
+
+        # Keymap
+        unsafe_keymap = unsafe_data.get(u'keymap', None)
+        if not isinstance(unsafe_keymap, list):
+            return None
+        keymap = []
+        for unsafe_octave in unsafe_keymap:
+            if not isinstance(unsafe_octave, list):
+                return None
+            octave = []
+            for unsafe_entry in unsafe_octave:
+                if not isinstance(unsafe_entry, (int, float, NoneType)):
+                    return None
+                octave.append(unsafe_entry)
+            keymap.append(octave)
+        notation[u'keymap'] = keymap
 
         return notation
 

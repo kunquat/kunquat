@@ -50,52 +50,44 @@ class KeymapManager():
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
-    def get_keymap_ids(self):
-        keymaps = self._share.get_keymaps()
-        keymap_ids = keymaps.keys()
+    def _get_keymap_ids(self):
+        notation_manager = self._ui_model.get_notation_manager()
+        keymap_ids = notation_manager.get_notation_ids()
         keymap_ids.append(HitKeymapID)
         return keymap_ids
 
     def _get_some_keymap_id(self):
-        keymap_ids = self.get_keymap_ids()
+        keymap_ids = self._get_keymap_ids()
         if len(keymap_ids) < 2:
             return HitKeymapID
         some_id = sorted(keymap_ids)[1]
         return some_id
 
     def get_selected_keymap_id(self):
-        keymap_ids = self.get_keymap_ids()
-        selected_id = self._session.get_selected_keymap_id() or self._get_some_keymap_id()
+        #keymap_ids = self.get_keymap_ids()
+        selected_id = self._session.get_selected_notation_id() or self._get_some_keymap_id()
         return selected_id
 
-    def is_hit_keymap_selected(self):
-        return (self.get_selected_keymap_id() == HitKeymapID)
-
-    def set_selected_keymap_id(self, keymap_id):
-        self._session.set_selected_keymap_id(keymap_id)
-        if keymap_id != HitKeymapID:
-            self._session.set_prev_selected_note_keymap_id(keymap_id)
-        self._updater.signal_update()
-
-    def get_keymap(self, keymap_id):
-        if keymap_id == HitKeymapID:
-            return _hit_keymap
-
-        keymaps = self._share.get_keymaps()
-        keymap = keymaps[keymap_id]
-        return keymap
+    def is_hit_keymap_active(self):
+        return self._session.is_hit_keymap_active()
 
     def get_selected_keymap(self):
-        keymap_id = self.get_selected_keymap_id()
-        keymap = self.get_keymap(keymap_id)
-        return keymap
+        if self.is_hit_keymap_active():
+            return _hit_keymap
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_selected_notation()
+        return notation.get_keymap()
 
-    def toggle_hit_keymap(self):
-        if self.is_hit_keymap_selected():
-            new_id = (self._session.get_prev_selected_note_keymap_id() or
-                    self._get_some_keymap_id())
-            self.set_selected_keymap_id(new_id)
+    def set_hit_keymap_active(self, active):
+        self._session.set_hit_keymap_active(active)
+
+        keymap_data = self.get_selected_keymap()
+        if keymap_data.get('is_hit_keymap', False):
+            base_octave = 0
         else:
-            self.set_selected_keymap_id(HitKeymapID)
+            base_octave = keymap_data['base_octave']
+
+        typewriter_manager = self._ui_model.get_typewriter_manager()
+        typewriter_manager.set_octave(base_octave)
 
 
