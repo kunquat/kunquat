@@ -27,16 +27,16 @@ class TypewriterPanel(QFrame):
     def __init__(self):
         QFrame.__init__(self)
         self._ui_model = None
+        self._keymap_select = KeymapSelect()
         self._octave_selector = OctaveSelector()
         self._typewriter = Typewriter()
-        self._keymap_select = KeymapSelect()
         self._profile_control = ProfileControl()
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 0)
         v.setSpacing(2)
-        v.addWidget(self._octave_selector)
         v.addWidget(self._keymap_select)
+        v.addWidget(self._octave_selector)
         v.addWidget(self._typewriter)
         self.setLayout(v)
 
@@ -44,9 +44,9 @@ class TypewriterPanel(QFrame):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._keymap_select.set_ui_model(ui_model)
         self._octave_selector.set_ui_model(ui_model)
         self._typewriter.set_ui_model(ui_model)
-        self._keymap_select.set_ui_model(ui_model)
         self._profile_control.set_ui_model(ui_model)
 
     def keyPressEvent(self, event):
@@ -57,8 +57,8 @@ class TypewriterPanel(QFrame):
                 self._profile_control.show()
 
     def unregister_updaters(self):
-        self._keymap_select.unregister_updaters()
         self._typewriter.unregister_updaters()
         self._octave_selector.unregister_updaters()
+        self._keymap_select.unregister_updaters()
 
 
