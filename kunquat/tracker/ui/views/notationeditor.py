@@ -78,16 +78,28 @@ class NotationListToolBar(QToolBar):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        pass
+        update_signals = set([
+            'signal_notation_list', 'signal_notation_editor_selection'])
+        if not signals.isdisjoint(update_signals):
+            self._update_enabled()
 
     def _update_enabled(self):
-        pass
+        notation_manager = self._ui_model.get_notation_manager()
+        has_custom_notations = len(notation_manager.get_custom_notation_ids()) > 0
+        has_selected_notation = bool(notation_manager.get_editor_selected_notation_id())
+        self._remove_button.setEnabled(has_custom_notations and has_selected_notation)
 
     def _add_notation(self):
-        pass
+        notation_manager = self._ui_model.get_notation_manager()
+        notation_manager.add_custom_notation()
+        self._updater.signal_update(set(['signal_notation_list']))
 
     def _remove_notation(self):
-        pass
+        notation_manager = self._ui_model.get_notation_manager()
+        selected_notation_id = notation_manager.get_editor_selected_notation_id()
+        notation_manager.remove_custom_notation(selected_notation_id)
+        notation_manager.set_editor_selected_notation_id(None)
+        self._updater.signal_update(set(['signal_notation_list']))
 
 
 class NotationListModel(QAbstractListModel):
@@ -101,13 +113,29 @@ class NotationListModel(QAbstractListModel):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
         self._make_items()
 
     def unregister_updaters(self):
         pass
 
+    def get_item(self, index):
+        row = index.row()
+        if 0 <= row < len(self._items):
+            item = self._items[row]
+            return item
+        return None
+
     def _make_items(self):
-        pass
+        notation_manager = self._ui_model.get_notation_manager()
+        notation_ids = notation_manager.get_custom_notation_ids()
+
+        self._items = list((nid, notation_manager.get_notation(nid).get_name())
+                for nid in notation_ids)
+
+    def get_index(self, notation_id):
+        _, list_index = notation_id
+        return self.createIndex(list_index, 0, self._items[list_index])
 
     # Qt interface
 
@@ -115,13 +143,42 @@ class NotationListModel(QAbstractListModel):
         return len(self._items)
 
     def data(self, index, role):
-        if role == Qt.DisplayRole:
+        if role in (Qt.DisplayRole, Qt.EditRole):
             row = index.row()
             if 0 <= row < len(self._items):
-                return QVariant() # TODO
+                _, name = self._items[row]
+                if role == Qt.DisplayRole:
+                    vis_name = name or u'-'
+                    return QVariant(vis_name)
+                elif role == Qt.EditRole:
+                    return QVariant(name)
+
+        return QVariant()
 
     def headerData(self, section, orientation, role):
         return QVariant()
+
+    def flags(self, index):
+        default_flags = QAbstractItemModel.flags(self, index)
+        if not index.isValid():
+            return default_flags
+        if not 0 <= index.row() < len(self._items):
+            return default_flags
+
+        return default_flags | Qt.ItemIsEditable
+
+    def setData(self, index, value, role):
+        if role == Qt.EditRole:
+            if 0 <= index.row() < len(self._items):
+                new_name = unicode(value.toString())
+                notation_manager = self._ui_model.get_notation_manager()
+                selected_notation_id = notation_manager.get_editor_selected_notation_id()
+                notation = notation_manager.get_notation(selected_notation_id)
+                notation.set_name(new_name)
+                self._updater.signal_update(set(['signal_notation_list']))
+                return True
+
+        return False
 
 
 class NotationListView(QListView):
@@ -141,14 +198,23 @@ class NotationListView(QListView):
         pass
 
     def _select_entry(self, cur_index, prev_index):
-        pass # TODO
+        item = self.model().get_item(cur_index)
+        if item:
+            notation_id, _ = item
+            notation_manager = self._ui_model.get_notation_manager()
+            notation_manager.set_editor_selected_notation_id(notation_id)
+            self._updater.signal_update(set(['signal_notation_editor_selection']))
 
     def setModel(self, model):
         QListView.setModel(self, model)
 
         selection_model = self.selectionModel()
 
-        # TODO: Refresh selection
+        notation_manager = self._ui_model.get_notation_manager()
+        selected_notation_id = notation_manager.get_editor_selected_notation_id()
+        if selected_notation_id:
+            selection_model.select(
+                    model.get_index(selected_notation_id), QItemSelectionModel.Select)
 
         QObject.connect(
                 selection_model,
@@ -161,6 +227,7 @@ class Notations(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
+        self._updater = None
 
         self._toolbar = NotationListToolBar()
 
@@ -177,6 +244,8 @@ class Notations(QWidget):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
         self._toolbar.set_ui_model(ui_model)
         self._list_view.set_ui_model(ui_model)
 
@@ -185,6 +254,11 @@ class Notations(QWidget):
     def unregister_updaters(self):
         self._list_view.unregister_updaters()
         self._toolbar.unregister_updaters()
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        if 'signal_notation_list' in signals:
+            self._update_model()
 
     def _update_model(self):
         self._list_model = NotationListModel()

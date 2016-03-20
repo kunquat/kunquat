@@ -16,18 +16,48 @@ from copy import deepcopy
 
 class Notation():
 
-    def __init__(self, data):
-        self._name = data['name']
-        self._octaves = data['octave_names']
-        self._base_octave = data['base_octave']
-        self._notes = dict(data['note_names'])
-        self._keymap = deepcopy(data['keymap'])
+    def __init__(self, notation_id):
+        self._controller = None
+        self._store = None
+        self._share = None
+
+        is_shared, dict_id = notation_id
+        self._is_shared = is_shared
+        self._id = dict_id
+
+    def set_controller(self, controller):
+        self._controller = controller
+        self._store = controller.get_store()
+        self._share = controller.get_share()
+
+    def get_existence(self):
+        if self._is_shared:
+            return self._id in self._share.get_notations()
+        else:
+            return self._id in self._store.get('i_notations.json', [])
+
+    def _get_raw_data(self):
+        if self._is_shared:
+            return self._share.get_notations()[self._id]
+        else:
+            return self._store['i_notations.json'][self._id]
+
+    def _set_raw_data(self, raw_data):
+        assert not self._is_shared
+        notations = self._store['i_notations.json']
+        notations[self._id] = raw_data
+        self._store['i_notations.json'] = notations
 
     def get_name(self):
-        return self._name
+        return self._get_raw_data()['name']
+
+    def set_name(self, name):
+        data = deepcopy(self._get_raw_data())
+        data['name'] = name
+        self._set_raw_data(data)
 
     def get_octave_name(self, octave_id):
-        return self._octaves[octave_id]
+        return self._get_raw_data()['octave_names'][octave_id]
 
     def get_note_name_and_offset(self, cents):
         nearest = self._get_nearest_note(cents)
@@ -48,10 +78,11 @@ class Notation():
 
     def get_keymap(self):
         # TODO: clean up the interface mess
+        data = self._get_raw_data()
         keymap = {
-            'name': self._name,
-            'base_octave': self._base_octave,
-            'keymap': self._keymap,
+            'name':        data['name'],
+            'base_octave': data['base_octave'],
+            'keymap':      deepcopy(data['keymap']),
         }
         return keymap
 
@@ -59,7 +90,8 @@ class Notation():
         nearest = None
         nearest_dist = float('inf')
 
-        for note in self._notes.iteritems():
+        notes = self._get_raw_data()['note_names']
+        for note in notes:
             c, name = note
             dist = abs(c - cents)
             if dist < nearest_dist or (dist == nearest_dist and name < nearest[1]):

@@ -31,6 +31,7 @@ class Session():
         self._selected_control_id = 0
         self._is_hit_keymap_active = False
         self._selected_notation_id = '12tetsharp'
+        self._editor_selected_notation_id = None
         self._control_id_override = None
         # TODO: get default control ids from libkunquat?
         self._channel_selected_control_id = defaultdict(lambda: 0)
@@ -171,6 +172,12 @@ class Session():
 
     def set_selected_notation_id(self, notation_id):
         self._selected_notation_id = notation_id
+
+    def get_notation_editor_selected_notation_id(self):
+        return self._editor_selected_notation_id
+
+    def set_notation_editor_selected_notation_id(self, notation_id):
+        self._editor_selected_notation_id = notation_id
 
     def get_control_id_override(self):
         return self._control_id_override

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2014
+# Authors: Toni Ruottu, Finland 2014
+#          Tomi Jylhä-Ollila, Finland 2016
 #
 # This file is part of Kunquat.
 #
@@ -49,7 +50,7 @@ class NotationSelect(QComboBox):
             self.setItemText(i, notation_name)
 
     def _update_notations(self):
-        notation_ids = self._notation_manager.get_notation_ids()
+        notation_ids = self._notation_manager.get_all_notation_ids()
         self._notation_catalog = dict(enumerate(sorted(notation_ids)))
         selected_notation_id = self._notation_manager.get_selected_notation_id()
         old_block = self.blockSignals(True)
