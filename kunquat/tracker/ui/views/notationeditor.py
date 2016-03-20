@@ -234,6 +234,7 @@ class NotationListView(QListView):
             notation_manager = self._ui_model.get_notation_manager()
             notation_manager.set_editor_selected_notation_id(notation_id)
             notation_manager.set_editor_selected_octave_id(None)
+            notation_manager.set_editor_selected_note_index(None)
             self._updater.signal_update(set(['signal_notation_editor_selection']))
 
     def setModel(self, model):
@@ -794,19 +795,87 @@ class Note(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._cents = QDoubleSpinBox()
+        self._cents.setDecimals(0)
+        self._cents.setRange(-9999, 9999)
+
+        self._name = QLineEdit()
+
+        el = QHBoxLayout()
+        el.setMargin(0)
+        el.setSpacing(2)
+        el.addWidget(QLabel('Name:'))
+        el.addWidget(self._name)
+        el.addWidget(QLabel('Cents:'))
+        el.addWidget(self._cents)
 
         v = QVBoxLayout()
         v.setMargin(0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Current note'))
+        v.addLayout(el)
         v.addStretch(1)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
-        pass
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(self._cents, SIGNAL('valueChanged(double)'), self._change_cents)
+        QObject.connect(
+                self._name, SIGNAL('textChanged(const QString&)'), self._change_name)
+
+        self._update_all()
 
     def unregister_updaters(self):
-        pass
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        update_signals = set([
+            'signal_notation_editor_selection',
+            'signal_notation_editor_notes',
+            'signal_notation_editor_note_selection'])
+        if not signals.isdisjoint(update_signals):
+            self._update_all()
+
+    def _update_all(self):
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_editor_selected_notation()
+        note_index = notation_manager.get_editor_selected_note_index()
+        if not notation or note_index == None:
+            self.setEnabled(False)
+            return
+
+        self.setEnabled(True)
+
+        cents, name = notation.get_note(note_index)
+
+        old_block = self._cents.blockSignals(True)
+        if self._cents.value() != cents:
+            self._cents.setValue(cents)
+        self._cents.blockSignals(old_block)
+
+        old_block = self._name.blockSignals(True)
+        if self._name.text() != name:
+            self._name.setText(name)
+        self._name.blockSignals(old_block)
+
+    def _change_cents(self, value):
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_editor_selected_notation()
+        notation.set_note_cents(notation_manager.get_editor_selected_note_index(), value)
+        self._updater.signal_update(set(['signal_notation_editor_notes']))
+
+    def _change_name(self, name_qstring):
+        name = unicode(name_qstring)
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_editor_selected_notation()
+        notation.set_note_name(notation_manager.get_editor_selected_note_index(), name)
+        self._updater.signal_update(set(['signal_notation_editor_notes']))
 
 
 class Keymap(QWidget):

@@ -90,6 +90,19 @@ class Notation():
     def get_notes(self):
         return (note for note in self._get_raw_data()['note_names'])
 
+    def get_note(self, index):
+        return self._get_raw_data()['note_names'][index]
+
+    def set_note_cents(self, index, cents):
+        data = deepcopy(self._get_raw_data())
+        data['note_names'][index][0] = cents
+        self._set_raw_data(data)
+
+    def set_note_name(self, index, name):
+        data = deepcopy(self._get_raw_data())
+        data['note_names'][index][1] = name
+        self._set_raw_data(data)
+
     def add_note(self):
         data = self._get_raw_data()
         data['note_names'].append((0, 'n{}'.format(len(data['note_names']))))
