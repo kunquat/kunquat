@@ -21,6 +21,7 @@ UI_SONGS_CHS    = 'songs_channels'
 UI_ENV_BIND     = 'env_bind'
 UI_PROCESSOR    = 'processor'
 UI_GRID_EDITOR  = 'grid_editor'
+UI_NOTATION     = 'notation'
 UI_IA_CONTROLS  = 'ia_controls'
 UI_RENDER_STATS = 'render_stats'
 

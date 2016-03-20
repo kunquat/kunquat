@@ -122,6 +122,14 @@ class VisibilityManager():
         self._session.hide_ui(UI_GRID_EDITOR)
         self._updater.signal_update()
 
+    def show_notation_editor(self):
+        self._session.show_ui(UI_NOTATION)
+        self._updater.signal_update()
+
+    def hide_notation_editor(self):
+        self._session.hide_ui(UI_NOTATION)
+        self._updater.signal_update()
+
     def show_render_stats(self):
         self._session.show_ui(UI_RENDER_STATS)
         self._updater.signal_update()
