@@ -56,8 +56,36 @@ class Notation():
         data['name'] = name
         self._set_raw_data(data)
 
+    def get_octave_count(self):
+        return len(self._get_raw_data()['octave_names'])
+
+    def add_octave(self):
+        data = deepcopy(self._get_raw_data())
+        data['octave_names'].append(u'{}'.format(self.get_octave_count()))
+        self._set_raw_data(data)
+
+    def remove_octave(self, octave_id):
+        assert self.get_octave_count() > 1
+        data = deepcopy(self._get_raw_data())
+        del data['octave_names'][octave_id]
+        self._set_raw_data(data)
+
     def get_octave_name(self, octave_id):
         return self._get_raw_data()['octave_names'][octave_id]
+
+    def set_octave_name(self, octave_id, name):
+        data = deepcopy(self._get_raw_data())
+        data['octave_names'][octave_id] = name
+        self._set_raw_data(data)
+
+    def get_base_octave_id(self):
+        return self._get_raw_data()['base_octave']
+
+    def set_base_octave_id(self, octave_id):
+        assert 0 <= octave_id < self.get_octave_count()
+        data = deepcopy(self._get_raw_data())
+        data['base_octave'] = octave_id
+        self._set_raw_data(data)
 
     def get_note_name_and_offset(self, cents):
         nearest = self._get_nearest_note(cents)

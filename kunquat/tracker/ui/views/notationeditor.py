@@ -152,6 +152,8 @@ class NotationListModel(QAbstractListModel):
                     return QVariant(vis_name)
                 elif role == Qt.EditRole:
                     return QVariant(name)
+                else:
+                    assert False
 
         return QVariant()
 
@@ -172,8 +174,7 @@ class NotationListModel(QAbstractListModel):
             if 0 <= index.row() < len(self._items):
                 new_name = unicode(value.toString())
                 notation_manager = self._ui_model.get_notation_manager()
-                selected_notation_id = notation_manager.get_editor_selected_notation_id()
-                notation = notation_manager.get_notation(selected_notation_id)
+                notation = notation_manager.get_editor_selected_notation()
                 notation.set_name(new_name)
                 self._updater.signal_update(set(['signal_notation_list']))
                 return True
@@ -203,6 +204,7 @@ class NotationListView(QListView):
             notation_id, _ = item
             notation_manager = self._ui_model.get_notation_manager()
             notation_manager.set_editor_selected_notation_id(notation_id)
+            notation_manager.set_editor_selected_octave_id(None)
             self._updater.signal_update(set(['signal_notation_editor_selection']))
 
     def setModel(self, model):
@@ -305,19 +307,50 @@ class OctaveListToolBar(QToolBar):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        pass
+        update_signals = set([
+            'signal_notation_editor_selection',
+            'signal_notation_editor_octaves',
+            'signal_notation_editor_octave_selection'])
+        if not signals.isdisjoint(update_signals):
+            self._update_enabled()
 
     def _update_enabled(self):
-        pass
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_editor_selected_notation()
+        if not notation:
+            self.setEnabled(False)
+
+        self.setEnabled(True)
+        has_selected_octave = notation_manager.get_editor_selected_octave_id() != None
+        self._remove_button.setEnabled(
+                has_selected_octave and notation.get_octave_count() > 1)
+        self._set_base_button.setEnabled(has_selected_octave)
 
     def _add_octave(self):
-        pass
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_editor_selected_notation()
+        notation.add_octave()
+        self._updater.signal_update(set(['signal_notation_editor_octaves']))
 
     def _remove_octave(self):
-        pass
+        notation_manager = self._ui_model.get_notation_manager()
+        selected_octave_id = notation_manager.get_editor_selected_octave_id()
+        notation = notation_manager.get_editor_selected_notation()
+        notation.remove_octave(selected_octave_id)
+        base_octave_id = notation.get_base_octave_id()
+        if base_octave_id > 0 and base_octave_id >= selected_octave_id:
+            notation.set_base_octave_id(base_octave_id - 1)
+        notation_manager.set_editor_selected_octave_id(max(0, selected_octave_id - 1))
+        self._updater.signal_update(set([
+            'signal_notation_editor_octaves',
+            'signal_notation_editor_octave_selection']))
 
     def _set_base_octave(self):
-        pass
+        notation_manager = self._ui_model.get_notation_manager()
+        selected_octave_id = notation_manager.get_editor_selected_octave_id()
+        notation = notation_manager.get_editor_selected_notation()
+        notation.set_base_octave_id(selected_octave_id)
+        self._updater.signal_update(set(['signal_notation_editor_octaves']))
 
 
 class OctaveListModel(QAbstractListModel):
@@ -331,13 +364,31 @@ class OctaveListModel(QAbstractListModel):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
         self._make_items()
 
     def unregister_updaters(self):
         pass
 
+    def get_item(self, index):
+        row = index.row()
+        if 0 <= row < len(self._items):
+            item = self._items[row]
+            return item
+        return None
+
     def _make_items(self):
-        pass
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_editor_selected_notation()
+
+        if notation:
+            octave_count = notation.get_octave_count()
+            self._items = [notation.get_octave_name(i) for i in xrange(octave_count)]
+        else:
+            self._items = []
+
+    def get_index(self, octave_index):
+        return self.createIndex(octave_index, 0, self._items[octave_index])
 
     # Qt interface
 
@@ -345,13 +396,47 @@ class OctaveListModel(QAbstractListModel):
         return len(self._items)
 
     def data(self, index, role):
-        if role == Qt.DisplayRole:
+        if role in (Qt.DisplayRole, Qt.EditRole):
             row = index.row()
             if 0 <= row < len(self._items):
-                return QVariant() # TODO
+                name = self._items[row]
+                if role == Qt.DisplayRole:
+                    vis_name = name or u'-'
+                    notation_manager = self._ui_model.get_notation_manager()
+                    notation = notation_manager.get_editor_selected_notation()
+                    if row == notation.get_base_octave_id():
+                        vis_name += u' *'
+                    return QVariant(vis_name)
+                elif role == Qt.EditRole:
+                    return QVariant(name)
+                else:
+                    assert False
+
+        return QVariant()
 
     def headerData(self, section, orientation, role):
         return QVariant()
+
+    def flags(self, index):
+        default_flags = QAbstractItemModel.flags(self, index)
+        if not index.isValid():
+            return default_flags
+        if not 0 <= index.row() < len(self._items):
+            return default_flags
+
+        return default_flags | Qt.ItemIsEditable
+
+    def setData(self, index, value, role):
+        if role == Qt.EditRole:
+            if 0 <= index.row() < len(self._items):
+                new_name = unicode(value.toString())
+                notation_manager = self._ui_model.get_notation_manager()
+                notation = notation_manager.get_editor_selected_notation()
+                notation.set_octave_name(index.row(), new_name)
+                self._updater.signal_update(set(['signal_notation_editor_octaves']))
+                return True
+
+        return False
 
 
 class OctaveListView(QListView):
@@ -371,14 +456,22 @@ class OctaveListView(QListView):
         pass
 
     def _select_entry(self, cur_index, prev_index):
-        pass # TODO
+        item = self.model().get_item(cur_index)
+        if item != None:
+            notation_manager = self._ui_model.get_notation_manager()
+            notation_manager.set_editor_selected_octave_id(cur_index.row())
+            self._updater.signal_update(set(['signal_notation_editor_octave_selection']))
 
     def setModel(self, model):
         QListView.setModel(self, model)
 
         selection_model = self.selectionModel()
 
-        # TODO: Refresh selection
+        notation_manager = self._ui_model.get_notation_manager()
+        selected_octave_id = notation_manager.get_editor_selected_octave_id()
+        if selected_octave_id != None:
+            selection_model.select(
+                    model.get_index(selected_octave_id), QItemSelectionModel.Select)
 
         QObject.connect(
                 selection_model,
@@ -391,6 +484,7 @@ class Octaves(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
+        self._updater = None
 
         self._toolbar = OctaveListToolBar()
 
@@ -407,14 +501,31 @@ class Octaves(QWidget):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
         self._toolbar.set_ui_model(ui_model)
         self._list_view.set_ui_model(ui_model)
 
         self._update_model()
+        self._update_enabled()
 
     def unregister_updaters(self):
         self._list_view.unregister_updaters()
         self._toolbar.unregister_updaters()
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        model_update_signals = set([
+            'signal_notation_editor_selection', 'signal_notation_editor_octaves'])
+        if not signals.isdisjoint(model_update_signals):
+            self._update_model()
+            self._update_enabled()
+        if 'signal_notation_editor_octave_selection' in signals:
+            self._update_enabled()
+
+    def _update_enabled(self):
+        notation_manager = self._ui_model.get_notation_manager()
+        self.setEnabled(notation_manager.get_editor_selected_notation_id() != None)
 
     def _update_model(self):
         self._list_model = OctaveListModel()

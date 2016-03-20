@@ -83,6 +83,18 @@ class NotationManager():
     def get_editor_selected_notation_id(self):
         return self._session.get_notation_editor_selected_notation_id()
 
+    def get_editor_selected_octave_id(self):
+        return self._session.get_notation_editor_selected_octave_id()
+
+    def set_editor_selected_octave_id(self, octave_id):
+        self._session.set_notation_editor_selected_octave_id(octave_id)
+
+    def get_editor_selected_notation(self):
+        selected_id = self.get_editor_selected_notation_id()
+        if not selected_id:
+            return None
+        return self.get_notation(selected_id)
+
     def add_custom_notation(self):
         data = deepcopy(self._get_custom_notation_data() or [])
 
