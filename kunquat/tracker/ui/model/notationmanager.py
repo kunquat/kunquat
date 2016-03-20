@@ -89,6 +89,12 @@ class NotationManager():
     def set_editor_selected_octave_id(self, octave_id):
         self._session.set_notation_editor_selected_octave_id(octave_id)
 
+    def get_editor_selected_note_index(self):
+        return self._session.get_notation_editor_selected_note_index()
+
+    def set_editor_selected_note_index(self, note_index):
+        self._session.set_notation_editor_selected_note_index(note_index)
+
     def get_editor_selected_notation(self):
         selected_id = self.get_editor_selected_notation_id()
         if not selected_id:

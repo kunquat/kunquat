@@ -33,6 +33,7 @@ class Session():
         self._selected_notation_id = '12tetsharp'
         self._editor_selected_notation_id = None
         self._editor_selected_octave_id = None
+        self._editor_selected_note_index = None
         self._control_id_override = None
         # TODO: get default control ids from libkunquat?
         self._channel_selected_control_id = defaultdict(lambda: 0)
@@ -185,6 +186,12 @@ class Session():
 
     def set_notation_editor_selected_octave_id(self, octave_id):
         self._editor_selected_octave_id = octave_id
+
+    def get_notation_editor_selected_note_index(self):
+        return self._editor_selected_note_index
+
+    def set_notation_editor_selected_note_index(self, note_index):
+        self._editor_selected_note_index = note_index
 
     def get_control_id_override(self):
         return self._control_id_override

@@ -331,6 +331,7 @@ class OctaveListToolBar(QToolBar):
         notation = notation_manager.get_editor_selected_notation()
         if not notation:
             self.setEnabled(False)
+            return
 
         self.setEnabled(True)
         has_selected_octave = notation_manager.get_editor_selected_octave_id() != None
@@ -535,14 +536,14 @@ class Octaves(QWidget):
         if 'signal_notation_editor_octave_selection' in signals:
             self._update_enabled()
 
-    def _update_enabled(self):
-        notation_manager = self._ui_model.get_notation_manager()
-        self.setEnabled(notation_manager.get_editor_selected_notation_id() != None)
-
     def _update_model(self):
         self._list_model = OctaveListModel()
         self._list_model.set_ui_model(self._ui_model)
         self._list_view.setModel(self._list_model)
+
+    def _update_enabled(self):
+        notation_manager = self._ui_model.get_notation_manager()
+        self.setEnabled(notation_manager.get_editor_selected_notation_id() != None)
 
 
 class NoteListToolBar(QToolBar):
@@ -583,16 +584,38 @@ class NoteListToolBar(QToolBar):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        pass
+        update_signals = set([
+            'signal_notation_editor_selection',
+            'signal_notation_editor_notes',
+            'signal_notation_editor_note_selection'])
+        if not signals.isdisjoint(update_signals):
+            self._update_enabled()
 
     def _update_enabled(self):
-        pass
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_editor_selected_notation()
+        if not notation:
+            self.setEnabled(False)
+            return
+
+        self.setEnabled(True)
+        has_selected_note = notation_manager.get_editor_selected_note_index() != None
+        has_notes = bool(notation.get_notes())
+        self._remove_button.setEnabled(has_selected_note and has_notes)
 
     def _add_note(self):
-        pass
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_editor_selected_notation()
+        notation.add_note()
+        self._updater.signal_update(set(['signal_notation_editor_notes']))
 
     def _remove_note(self):
-        pass
+        notation_manager = self._ui_model.get_notation_manager()
+        note_index = notation_manager.get_editor_selected_note_index()
+        notation = notation_manager.get_editor_selected_notation()
+        notation.remove_note(note_index)
+        notation_manager.set_editor_selected_note_index(None)
+        self._updater.signal_update(set(['signal_notation_editor_notes']))
 
 
 class NoteListModel(QAbstractListModel):
@@ -606,13 +629,30 @@ class NoteListModel(QAbstractListModel):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
         self._make_items()
 
     def unregister_updaters(self):
         pass
 
+    def get_item(self, index):
+        row = index.row()
+        if 0 <= row < len(self._items):
+            item = self._items[row]
+            return item
+        return None
+
     def _make_items(self):
-        pass
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_editor_selected_notation()
+
+        if notation:
+            self._items = list(notation.get_notes())
+        else:
+            self._items = []
+
+    def get_index(self, list_index):
+        return self.createIndex(list_index, 0, self._items[list_index])
 
     # Qt interface
 
@@ -623,7 +663,9 @@ class NoteListModel(QAbstractListModel):
         if role == Qt.DisplayRole:
             row = index.row()
             if 0 <= row < len(self._items):
-                return QVariant() # TODO
+                _, name = self._items[row]
+                vis_name = name or u'-'
+                return QVariant(vis_name)
 
         return QVariant()
 
@@ -648,14 +690,22 @@ class NoteListView(QListView):
         pass
 
     def _select_entry(self, cur_index, prev_index):
-        pass # TODO
+        item = self.model().get_item(cur_index)
+        if item != None:
+            notation_manager = self._ui_model.get_notation_manager()
+            notation_manager.set_editor_selected_note_index(cur_index.row())
+            self._updater.signal_update(set(['signal_notation_editor_note_selection']))
 
     def setModel(self, model):
         QListView.setModel(self, model)
 
         selection_model = self.selectionModel()
 
-        # TODO: Refresh selection
+        notation_manager = self._ui_model.get_notation_manager()
+        selected_note_index = notation_manager.get_editor_selected_note_index()
+        if selected_note_index != None:
+            selection_model.select(
+                    model.get_index(selected_note_index), QItemSelectionModel.Select)
 
         QObject.connect(
                 selection_model,
@@ -691,6 +741,7 @@ class Notes(QWidget):
         self._list_view.set_ui_model(ui_model)
 
         self._update_model()
+        self._update_enabled()
 
     def unregister_updaters(self):
         self._list_view.unregister_updaters()
@@ -698,11 +749,21 @@ class Notes(QWidget):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        pass
+        model_update_signals = set([
+            'signal_notation_editor_selection', 'signal_notation_editor_notes'])
+        if not signals.isdisjoint(model_update_signals):
+            self._update_model()
+            self._update_enabled()
+        if 'signal_notation_editor_note_selection' in signals:
+            self._update_enabled()
 
     def _update_model(self):
         self._list_model = NoteListModel()
         self._list_model.set_ui_model(self._ui_model)
         self._list_view.setModel(self._list_model)
+
+    def _update_enabled(self):
+        notation_manager = self._ui_model.get_notation_manager()
+        self.setEnabled(notation_manager.get_editor_selected_notation_id() != None)
 
 

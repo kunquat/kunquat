@@ -87,6 +87,19 @@ class Notation():
         data['base_octave'] = octave_id
         self._set_raw_data(data)
 
+    def get_notes(self):
+        return (note for note in self._get_raw_data()['note_names'])
+
+    def add_note(self):
+        data = self._get_raw_data()
+        data['note_names'].append((0, 'n{}'.format(len(data['note_names']))))
+        self._set_raw_data(data)
+
+    def remove_note(self, index):
+        data = self._get_raw_data()
+        del data['note_names'][index]
+        self._set_raw_data(data)
+
     def get_note_name_and_offset(self, cents):
         nearest = self._get_nearest_note(cents)
         if not nearest:
