@@ -16,7 +16,6 @@ from PyQt4.QtGui import *
 
 from editorlist import EditorList
 from headerline import HeaderLine
-
 import kunquat.kunquat.events as events
 from kunquat.kunquat.limits import *
 
