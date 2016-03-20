@@ -25,22 +25,45 @@ class NotationEditor(QWidget):
         self._notations = Notations()
         self._octaves = Octaves()
         self._notes = Notes()
+        self._note = Note()
+        self._keymap = Keymap()
+
+        nlists = QHBoxLayout()
+        nlists.setMargin(0)
+        nlists.setSpacing(2)
+        nlists.addWidget(self._octaves)
+        nlists.addWidget(self._notes)
+        nlists.addWidget(self._note)
+
+        el = QVBoxLayout()
+        el.setMargin(0)
+        el.setSpacing(2)
+        el.addLayout(nlists)
+        el.addWidget(self._keymap)
+
+        separator = QFrame()
+        separator.setFrameShape(QFrame.VLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        separator.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.MinimumExpanding)
 
         h = QHBoxLayout()
         h.setMargin(0)
-        h.setSpacing(2)
+        h.setSpacing(4)
         h.addWidget(self._notations)
-        h.addWidget(self._octaves)
-        h.addWidget(self._notes)
-        h.addStretch(1)
+        h.addWidget(separator)
+        h.addLayout(el, 1)
         self.setLayout(h)
 
     def set_ui_model(self, ui_model):
         self._notations.set_ui_model(ui_model)
         self._octaves.set_ui_model(ui_model)
         self._notes.set_ui_model(ui_model)
+        self._note.set_ui_model(ui_model)
+        self._keymap.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._keymap.unregister_updaters()
+        self._note.unregister_updaters()
         self._notes.unregister_updaters()
         self._octaves.unregister_updaters()
         self._notations.unregister_updaters()
@@ -765,5 +788,43 @@ class Notes(QWidget):
     def _update_enabled(self):
         notation_manager = self._ui_model.get_notation_manager()
         self.setEnabled(notation_manager.get_editor_selected_notation_id() != None)
+
+
+class Note(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(2)
+        v.addWidget(HeaderLine('Current note'))
+        v.addStretch(1)
+        self.setLayout(v)
+
+    def set_ui_model(self, ui_model):
+        pass
+
+    def unregister_updaters(self):
+        pass
+
+
+class Keymap(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(2)
+        v.addWidget(HeaderLine('Keymap'))
+        v.addStretch(1)
+        self.setLayout(v)
+
+    def set_ui_model(self, ui_model):
+        pass
+
+    def unregister_updaters(self):
+        pass
 
 
