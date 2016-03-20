@@ -882,16 +882,93 @@ class Keymap(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._key_selector = KeySelector()
 
         v = QVBoxLayout()
         v.setMargin(0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Keymap'))
+        v.addWidget(self._key_selector)
         v.addStretch(1)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
-        pass
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+        self._key_selector.set_ui_model(ui_model)
+
+        self._update_enabled()
+
+    def unregister_updaters(self):
+        self._key_selector.unregister_updaters()
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        update_signals = set([
+            'signal_notation_editor_selection',
+            'signal_notation_editor_octaves',
+            'signal_notation_editor_octave_selection'])
+        if not signals.isdisjoint(update_signals):
+            self._update_enabled()
+
+    def _update_enabled(self):
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_editor_selected_notation()
+        octave_id = notation_manager.get_editor_selected_octave_id()
+        if not notation or octave_id == None:
+            self.setEnabled(False)
+            return
+
+        self.setEnabled(True)
+
+
+class Key(QPushButton):
+
+    def __init__(self):
+        QPushButton.__init__(self)
+
+        self.setFixedSize(QSize(60, 60))
+        self.setCheckable(True)
+
+
+class KeySelector(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._keys = [Key() for _ in xrange(33)]
+
+        top_row = QHBoxLayout()
+        top_row.setMargin(0)
+        top_row.setSpacing(2)
+        top_row.addSpacing(31)
+        for key in self._keys[1::2]:
+            top_row.addWidget(key)
+        top_row.addStretch(1)
+
+        bottom_row = QHBoxLayout()
+        bottom_row.setMargin(0)
+        bottom_row.setSpacing(2)
+        for key in self._keys[0::2]:
+            bottom_row.addWidget(key)
+        bottom_row.addStretch(1)
+
+        rows = QVBoxLayout()
+        rows.setMargin(0)
+        rows.setSpacing(2)
+        rows.addLayout(top_row)
+        rows.addLayout(bottom_row)
+        self.setLayout(rows)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
 
     def unregister_updaters(self):
         pass
