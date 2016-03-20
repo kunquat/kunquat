@@ -126,6 +126,7 @@ class Share():
 
     def get_icon_path(self, icon_name):
         valid_names = [
+                'add',
                 'arrow_down_small',
                 'arrow_up_small',
                 'col_expand',
@@ -145,6 +146,7 @@ class Share():
                 'play_pattern',
                 'record',
                 'redo',
+                'remove',
                 'remove_pattern',
                 'remove_song',
                 'replace',
