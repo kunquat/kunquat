@@ -55,10 +55,12 @@ class NotationListToolBar(QToolBar):
 
         self._add_button = QToolButton()
         self._add_button.setText('Add notation')
+        self._add_button.setToolTip('Add notation')
         self._add_button.setEnabled(True)
 
         self._remove_button = QToolButton()
         self._remove_button.setText('Remove notation')
+        self._remove_button.setToolTip('Remove notation')
         self._remove_button.setEnabled(False)
 
         self.addWidget(self._add_button)
@@ -68,6 +70,10 @@ class NotationListToolBar(QToolBar):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+
+        icon_bank = self._ui_model.get_icon_bank()
+        self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
+        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
 
         QObject.connect(self._add_button, SIGNAL('clicked()'), self._add_notation)
         QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_notation)
@@ -277,10 +283,12 @@ class OctaveListToolBar(QToolBar):
 
         self._add_button = QToolButton()
         self._add_button.setText('Add octave')
+        self._add_button.setToolTip('Add octave')
         self._add_button.setEnabled(True)
 
         self._remove_button = QToolButton()
         self._remove_button.setText('Remove octave')
+        self._remove_button.setToolTip('Remove octave')
         self._remove_button.setEnabled(False)
 
         self._set_base_button = QToolButton()
@@ -295,6 +303,10 @@ class OctaveListToolBar(QToolBar):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+
+        icon_bank = self._ui_model.get_icon_bank()
+        self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
+        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
 
         QObject.connect(self._add_button, SIGNAL('clicked()'), self._add_octave)
         QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_octave)
@@ -542,10 +554,12 @@ class NoteListToolBar(QToolBar):
 
         self._add_button = QToolButton()
         self._add_button.setText('Add note')
+        self._add_button.setToolTip('Add note')
         self._add_button.setEnabled(True)
 
         self._remove_button = QToolButton()
         self._remove_button.setText('Remove note')
+        self._remove_button.setToolTip('Remove note')
         self._remove_button.setEnabled(False)
 
         self.addWidget(self._add_button)
@@ -555,6 +569,10 @@ class NoteListToolBar(QToolBar):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+
+        icon_bank = self._ui_model.get_icon_bank()
+        self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
+        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
 
         QObject.connect(self._add_button, SIGNAL('clicked()'), self._add_note)
         QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_note)
