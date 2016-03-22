@@ -937,12 +937,14 @@ class Key(QPushButton):
 
 class KeySelector(QWidget):
 
+    _KEY_COUNT = 33
+
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
         self._updater = None
 
-        self._keys = [Key() for _ in xrange(33)]
+        self._keys = [Key() for _ in xrange(self._KEY_COUNT)]
 
         top_row = QHBoxLayout()
         top_row.setMargin(0)
@@ -969,8 +971,35 @@ class KeySelector(QWidget):
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
 
     def unregister_updaters(self):
-        pass
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        update_signals = set([
+            'signal_notation_editor_selection',
+            'signal_notation_editor_octave_selection'])
+        if not signals.isdisjoint(update_signals):
+            self._update_keys()
+
+    def _update_keys(self):
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_editor_selected_notation()
+        octave_id = notation_manager.get_editor_selected_octave_id()
+
+        texts = [''] * self._KEY_COUNT
+        if notation and (octave_id != None):
+            count = notation.get_key_count_in_octave(octave_id)
+            for i in xrange(count):
+                text = '(none)'
+                cents = notation.get_key_cents(octave_id, i)
+                if cents != None:
+                    text = notation.get_full_name(cents)
+                texts[i] = text
+
+        for i, text in enumerate(texts):
+            self._keys[i].setText(text)
+            self._keys[i].setEnabled(bool(text))
 
 

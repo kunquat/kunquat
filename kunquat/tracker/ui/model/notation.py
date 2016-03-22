@@ -113,6 +113,32 @@ class Notation():
         del data['note_names'][index]
         self._set_raw_data(data)
 
+    def get_key_count_in_octave(self, octave_id):
+        data = self._get_raw_data()
+        return len(data['keymap'][octave_id])
+
+    def set_key_count_in_octave(self, octave_id, count):
+        data = deepcopy(self._get_raw_data())
+        keys = data['keymap'][octave_id]
+        cur_count = len(keys)
+        if count < cur_count:
+            keys[:] = data[:count]
+        elif count > cur_count:
+            add_count = count - cur_count
+            keys.extend([None] * add_count)
+        else:
+            return
+        self._set_raw_data(data)
+
+    def get_key_cents(self, octave_id, key_index):
+        data = self._get_raw_data()
+        return data['keymap'][octave_id][key_index]
+
+    def set_key_cents(self, octave_id, key_index, cents):
+        data = deepcopy(self._get_raw_data())
+        data['keymap'][octave_id][key_index] = cents
+        self._set_raw_data(data)
+
     def get_note_name_and_offset(self, cents):
         nearest = self._get_nearest_note(cents)
         if not nearest:
