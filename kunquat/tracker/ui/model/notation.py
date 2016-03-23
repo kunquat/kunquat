@@ -151,7 +151,7 @@ class Notation():
         base, offset = self.get_note_name_and_offset(cents)
         offset_rnd = int(round(offset))
         if offset_rnd != 0:
-            name = '{}{:+d}'.format(base, offset_rnd)
+            name = u'{}{:+d}'.format(base, offset_rnd)
         else:
             name = base
         return name
