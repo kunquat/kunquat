@@ -1126,16 +1126,24 @@ class KeyEditor(QWidget):
         self._enabled = QCheckBox()
         self._enabled.setText('Enabled')
 
+        self._cents_label = QLabel('Cents:')
+
         self._cents = QDoubleSpinBox()
         self._cents.setDecimals(0)
         self._cents.setRange(-9999, 9999)
+
+        self._note_selector_label = QLabel('Select note:')
+
+        self._note_selector = KeyNoteSelector()
 
         el = QHBoxLayout()
         el.setMargin(0)
         el.setSpacing(4)
         el.addWidget(self._enabled)
-        el.addWidget(QLabel('Cents:'))
+        el.addWidget(self._cents_label)
         el.addWidget(self._cents)
+        el.addWidget(self._note_selector_label)
+        el.addWidget(self._note_selector)
         el.addStretch(1)
 
         v = QVBoxLayout()
@@ -1149,6 +1157,7 @@ class KeyEditor(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+        self._note_selector.set_ui_model(ui_model)
 
         QObject.connect(self._enabled, SIGNAL('stateChanged(int)'), self._set_enabled)
         QObject.connect(self._cents, SIGNAL('valueChanged(double)'), self._set_cents)
@@ -1156,6 +1165,7 @@ class KeyEditor(QWidget):
         self._update_all()
 
     def unregister_updaters(self):
+        self._note_selector.unregister_updaters()
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
@@ -1189,11 +1199,17 @@ class KeyEditor(QWidget):
         old_block = self._cents.blockSignals(True)
         self._cents.setEnabled(True)
         if new_cents != None:
+            self._cents_label.setEnabled(True)
             self._cents.setEnabled(True)
+            self._note_selector_label.setEnabled(True)
+            self._note_selector.setEnabled(True)
             if self._cents.value() != new_cents:
                 self._cents.setValue(new_cents)
         else:
+            self._cents_label.setEnabled(False)
             self._cents.setEnabled(False)
+            self._note_selector_label.setEnabled(False)
+            self._note_selector.setEnabled(False)
         self._cents.blockSignals(old_block)
 
     def _set_enabled(self, state):
@@ -1218,6 +1234,89 @@ class KeyEditor(QWidget):
         octave_id = notation_manager.get_editor_selected_octave_id()
         key_index = notation_manager.get_editor_selected_key_index()
 
+        notation.set_key_cents(octave_id, key_index, cents)
+        self._updater.signal_update(set(['signal_notation_editor_key']))
+
+
+class KeyNoteSelector(QComboBox):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(self, SIGNAL('currentIndexChanged(int)'), self._select_note)
+
+        self._update_notes()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        notes_update_signals = set([
+            'signal_notation_editor_selection', 'signal_notation_editor_notes'])
+        if not signals.isdisjoint(notes_update_signals):
+            self._update_notes()
+            return
+
+        selection_update_signals = set([
+            'signal_notation_editor_selection',
+            'signal_notation_editor_octaves',
+            'signal_notation_editor_octave_selection',
+            'signal_notation_editor_key_selection',
+            'signal_notation_editor_key'])
+        if not signals.isdisjoint(selection_update_signals):
+            self._update_selection()
+
+    def _update_notes(self):
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_editor_selected_notation()
+
+        old_block = self.blockSignals(True)
+        self.clear()
+        if notation:
+            for note in notation.get_notes():
+                cents, name = note
+                self.addItem(name, QVariant(cents))
+            self._update_selection()
+        self.blockSignals(old_block)
+
+    def _update_selection(self):
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_editor_selected_notation()
+        octave_id = notation_manager.get_editor_selected_octave_id()
+        key_index = notation_manager.get_editor_selected_key_index()
+
+        if not notation or octave_id == None or key_index == None:
+            return
+
+        cents = notation.get_key_cents(octave_id, key_index)
+        if cents == None:
+            return
+
+        name, _ = notation.get_note_name_and_offset(cents)
+        index = self.findText(name)
+        if index != -1:
+            old_block = self.blockSignals(True)
+            self.setCurrentIndex(index)
+            self.blockSignals(old_block)
+
+    def _select_note(self, index):
+        if index == -1:
+            return
+
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_editor_selected_notation()
+        octave_id = notation_manager.get_editor_selected_octave_id()
+        key_index = notation_manager.get_editor_selected_key_index()
+
+        cents, success = self.itemData(index).toDouble()
+        assert success
         notation.set_key_cents(octave_id, key_index, cents)
         self._updater.signal_update(set(['signal_notation_editor_key']))
 
