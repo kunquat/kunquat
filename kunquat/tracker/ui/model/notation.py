@@ -122,7 +122,7 @@ class Notation():
         keys = data['keymap'][octave_id]
         cur_count = len(keys)
         if count < cur_count:
-            keys[:] = data[:count]
+            keys[:] = keys[:count]
         elif count > cur_count:
             add_count = count - cur_count
             keys.extend([None] * add_count)

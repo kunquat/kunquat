@@ -892,6 +892,7 @@ class Keymap(QWidget):
         self._ui_model = None
         self._updater = None
 
+        self._key_count = KeyCount()
         self._key_selector = KeySelector()
         self._key_editor = KeyEditor()
 
@@ -899,6 +900,7 @@ class Keymap(QWidget):
         v.setMargin(0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Keymap'))
+        v.addWidget(self._key_count)
         v.addWidget(self._key_selector)
         v.addWidget(self._key_editor)
         v.addStretch(1)
@@ -908,6 +910,7 @@ class Keymap(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+        self._key_count.set_ui_model(ui_model)
         self._key_selector.set_ui_model(ui_model)
         self._key_editor.set_ui_model(ui_model)
 
@@ -916,6 +919,7 @@ class Keymap(QWidget):
     def unregister_updaters(self):
         self._key_editor.unregister_updaters()
         self._key_selector.unregister_updaters()
+        self._key_count.unregister_updaters()
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
@@ -935,6 +939,73 @@ class Keymap(QWidget):
             return
 
         self.setEnabled(True)
+
+
+_KEYS_MAX = 33
+
+
+class KeyCount(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._count = QSpinBox()
+        self._count.setRange(0, _KEYS_MAX)
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(4)
+        h.addWidget(QLabel('Number of keys:'))
+        h.addWidget(self._count)
+        h.addStretch(1)
+        self.setLayout(h)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(self._count, SIGNAL('valueChanged(int)'), self._change_key_count)
+
+        self._update_all()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        update_signals = set([
+            'signal_notation_editor_selection',
+            'signal_notation_editor_octaves',
+            'signal_notation_editor_octave_selection'])
+        if not signals.isdisjoint(update_signals):
+            self._update_all()
+
+    def _update_all(self):
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_editor_selected_notation()
+        octave_id = notation_manager.get_editor_selected_octave_id()
+
+        if notation and (octave_id != None):
+            self.setEnabled(True)
+            key_count = notation.get_key_count_in_octave(octave_id)
+        else:
+            self.setEnabled(False)
+            key_count = 0
+
+        old_block = self._count.blockSignals(True)
+        if self._count.value() != key_count:
+            self._count.setValue(key_count)
+        self._count.blockSignals(old_block)
+
+    def _change_key_count(self, new_count):
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_editor_selected_notation()
+        octave_id = notation_manager.get_editor_selected_octave_id()
+
+        notation.set_key_count_in_octave(octave_id, new_count)
+        self._updater.signal_update(set(['signal_notation_editor_key_count']))
 
 
 class KeyButton(QPushButton):
@@ -969,14 +1040,12 @@ class KeyButton(QPushButton):
 
 class KeySelector(QWidget):
 
-    _KEY_COUNT = 33
-
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
         self._updater = None
 
-        self._keys = [KeyButton(i) for i in xrange(self._KEY_COUNT)]
+        self._keys = [KeyButton(i) for i in xrange(_KEYS_MAX)]
 
         top_row = QHBoxLayout()
         top_row.setMargin(0)
@@ -1017,6 +1086,7 @@ class KeySelector(QWidget):
         update_signals = set([
             'signal_notation_editor_selection',
             'signal_notation_editor_octave_selection',
+            'signal_notation_editor_key_count',
             'signal_notation_editor_key_selection',
             'signal_notation_editor_key'])
         if not signals.isdisjoint(update_signals):
@@ -1027,7 +1097,7 @@ class KeySelector(QWidget):
         notation = notation_manager.get_editor_selected_notation()
         octave_id = notation_manager.get_editor_selected_octave_id()
 
-        texts = [''] * self._KEY_COUNT
+        texts = [''] * _KEYS_MAX
         if notation and (octave_id != None):
             count = notation.get_key_count_in_octave(octave_id)
             for i in xrange(count):
