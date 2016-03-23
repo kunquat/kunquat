@@ -23,17 +23,24 @@ class NotationEditor(QWidget):
         QWidget.__init__(self)
 
         self._notations = Notations()
+        self._template = Template()
         self._octaves = Octaves()
         self._notes = Notes()
         self._note = Note()
         self._keymap = Keymap()
 
+        nl = QVBoxLayout()
+        nl.setMargin(0)
+        nl.setSpacing(2)
+        nl.addWidget(self._notes)
+        nl.addWidget(self._note)
+
         nlists = QHBoxLayout()
         nlists.setMargin(0)
         nlists.setSpacing(2)
+        nlists.addWidget(self._template)
         nlists.addWidget(self._octaves)
-        nlists.addWidget(self._notes)
-        nlists.addWidget(self._note)
+        nlists.addLayout(nl)
 
         el = QVBoxLayout()
         el.setMargin(0)
@@ -45,6 +52,7 @@ class NotationEditor(QWidget):
         separator.setFrameShape(QFrame.VLine)
         separator.setFrameShadow(QFrame.Sunken)
         separator.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.MinimumExpanding)
+        separator.setMinimumWidth(2)
 
         h = QHBoxLayout()
         h.setMargin(0)
@@ -56,6 +64,7 @@ class NotationEditor(QWidget):
 
     def set_ui_model(self, ui_model):
         self._notations.set_ui_model(ui_model)
+        self._template.set_ui_model(ui_model)
         self._octaves.set_ui_model(ui_model)
         self._notes.set_ui_model(ui_model)
         self._note.set_ui_model(ui_model)
@@ -66,6 +75,7 @@ class NotationEditor(QWidget):
         self._note.unregister_updaters()
         self._notes.unregister_updaters()
         self._octaves.unregister_updaters()
+        self._template.unregister_updaters()
         self._notations.unregister_updaters()
 
 
@@ -224,6 +234,8 @@ class NotationListView(QListView):
 
         self.setSelectionMode(QAbstractItemView.SingleSelection)
 
+        self.setMinimumWidth(100)
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
@@ -301,6 +313,146 @@ class Notations(QWidget):
         self._list_model = NotationListModel()
         self._list_model.set_ui_model(self._ui_model)
         self._list_view.setModel(self._list_model)
+
+
+class Template(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._notes = TemplateNotes()
+
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(2)
+        v.addWidget(HeaderLine('Template'))
+        v.addWidget(self._notes)
+        self.setLayout(v)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+        self._notes.set_ui_model(ui_model)
+
+    def unregister_updaters(self):
+        self._notes.unregister_updaters()
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        pass
+
+
+class TemplateNoteListToolBar(QToolBar):
+
+    def __init__(self):
+        QToolBar.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._add_button = QToolButton()
+        self._add_button.setText('Add note')
+        self._add_button.setToolTip('Add note')
+        self._add_button.setEnabled(True)
+
+        self._remove_button = QToolButton()
+        self._remove_button.setText('Remove note')
+        self._remove_button.setToolTip('Remove note')
+        self._remove_button.setEnabled(False)
+
+        self.addWidget(self._add_button)
+        self.addWidget(self._remove_button)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        icon_bank = self._ui_model.get_icon_bank()
+        self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
+        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
+
+        QObject.connect(self._add_button, SIGNAL('clicked()'), self._add_note)
+        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_note)
+
+        self._update_enabled()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        pass
+
+    def _update_enabled(self):
+        pass
+
+    def _add_note(self):
+        pass
+
+    def _remove_note(self):
+        pass
+
+
+class TemplateNoteListModel(QAbstractListModel):
+
+    def __init__(self):
+        QAbstractListModel.__init__(self)
+
+
+class TemplateNoteListView(QListView):
+
+    def __init__(self):
+        QListView.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self.setSelectionMode(QAbstractItemView.SingleSelection)
+
+        self.setMinimumWidth(100)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+
+    def unregister_updaters(self):
+        pass
+
+
+class TemplateNotes(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._toolbar = TemplateNoteListToolBar()
+
+        self._list_model = None
+        self._list_view = TemplateNoteListView()
+
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(2)
+        v.addWidget(self._toolbar)
+        v.addWidget(self._list_view)
+        self.setLayout(v)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+        self._toolbar.set_ui_model(ui_model)
+        self._list_view.set_ui_model(ui_model)
+
+    def unregister_updaters(self):
+        self._list_view.unregister_updaters()
+        self._toolbar.unregister_updaters()
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        pass
 
 
 class OctaveListToolBar(QToolBar):
@@ -490,6 +642,8 @@ class OctaveListView(QListView):
         self._updater = None
 
         self.setSelectionMode(QAbstractItemView.SingleSelection)
+
+        self.setMinimumWidth(100)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -713,6 +867,8 @@ class NoteListView(QListView):
 
         self.setSelectionMode(QAbstractItemView.SingleSelection)
 
+        self.setMinimumWidth(100)
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
@@ -824,7 +980,6 @@ class Note(QWidget):
         v.setSpacing(2)
         v.addWidget(HeaderLine('Current note'))
         v.addLayout(el)
-        v.addStretch(1)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
@@ -903,7 +1058,6 @@ class Keymap(QWidget):
         v.addWidget(self._key_count)
         v.addWidget(self._key_selector)
         v.addWidget(self._key_editor)
-        v.addStretch(1)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
