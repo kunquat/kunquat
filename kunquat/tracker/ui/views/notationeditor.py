@@ -1240,6 +1240,7 @@ class KeySelector(QWidget):
         update_signals = set([
             'signal_notation_editor_selection',
             'signal_notation_editor_octave_selection',
+            'signal_notation_editor_notes',
             'signal_notation_editor_key_count',
             'signal_notation_editor_key_selection',
             'signal_notation_editor_key'])
@@ -1404,7 +1405,7 @@ class KeyNoteSelector(QComboBox):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
-        QObject.connect(self, SIGNAL('currentIndexChanged(int)'), self._select_note)
+        QObject.connect(self, SIGNAL('activated(int)'), self._select_note)
 
         self._update_notes()
 
