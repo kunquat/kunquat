@@ -326,8 +326,8 @@ class Template(QWidget):
 
         self._center_pitch = CenterPitch()
         self._octave_ratio = OctaveRatio()
+        self._octaves = TemplateOctaves()
         self._notes = TemplateNotes()
-        #self._note = TemplateNote()
         self._create_button = QPushButton('Create octaves and notes ->')
 
         v = QVBoxLayout()
@@ -336,8 +336,8 @@ class Template(QWidget):
         v.addWidget(HeaderLine('Template'))
         v.addWidget(self._center_pitch)
         v.addWidget(self._octave_ratio)
+        v.addWidget(self._octaves)
         v.addWidget(self._notes)
-        #v.addWidget(self._note)
         v.addWidget(self._create_button)
         self.setLayout(v)
 
@@ -347,16 +347,16 @@ class Template(QWidget):
         self._updater.register_updater(self._perform_updates)
         self._center_pitch.set_ui_model(ui_model)
         self._octave_ratio.set_ui_model(ui_model)
+        self._octaves.set_ui_model(ui_model)
         self._notes.set_ui_model(ui_model)
-        #self._note.set_ui_model(ui_model)
 
         QObject.connect(self._create_button, SIGNAL('clicked()'), self._create)
 
         self._update_enabled()
 
     def unregister_updaters(self):
-        #self._note.unregister_updaters()
         self._notes.unregister_updaters()
+        self._octaves.unregister_updaters()
         self._octave_ratio.unregister_updaters()
         self._center_pitch.unregister_updaters()
         self._updater.unregister_updater(self._perform_updates)
@@ -505,6 +505,39 @@ class OctaveRatio(QWidget):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
+        pass
+
+
+class TemplateOctaves(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._first = QSpinBox()
+        self._first.setRange(0, 15)
+        self._center = QSpinBox()
+        self._center.setRange(0, 15)
+        self._last = QSpinBox()
+        self._last.setRange(0, 15)
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(4)
+        h.addWidget(QLabel('First octave:'))
+        h.addWidget(self._first)
+        h.addWidget(QLabel('Center:'))
+        h.addWidget(self._center)
+        h.addWidget(QLabel('Last:'))
+        h.addWidget(self._last)
+        self.setLayout(h)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+
+    def unregister_updaters(self):
         pass
 
 

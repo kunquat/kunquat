@@ -46,6 +46,6 @@ class NotationWindow(QWidget):
         visibility_manager.hide_notation_editor()
 
     def sizeHint(self):
-        return QSize(1280, 640)
+        return QSize(1280, 768)
 
 
