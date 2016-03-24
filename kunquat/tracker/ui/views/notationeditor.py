@@ -11,6 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import math
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
@@ -322,30 +324,159 @@ class Template(QWidget):
         self._ui_model = None
         self._updater = None
 
+        self._center_pitch = CenterPitch()
+        self._octave_ratio = OctaveRatio()
         self._notes = TemplateNotes()
+        #self._note = TemplateNote()
+        self._create_button = QPushButton('Create octaves and notes ->')
 
         v = QVBoxLayout()
         v.setMargin(0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Template'))
+        v.addWidget(self._center_pitch)
+        v.addWidget(self._octave_ratio)
         v.addWidget(self._notes)
+        #v.addWidget(self._note)
+        v.addWidget(self._create_button)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+        self._center_pitch.set_ui_model(ui_model)
+        self._octave_ratio.set_ui_model(ui_model)
         self._notes.set_ui_model(ui_model)
+        #self._note.set_ui_model(ui_model)
+
+        QObject.connect(self._create_button, SIGNAL('clicked()'), self._create)
+
+        self._update_enabled()
 
     def unregister_updaters(self):
+        #self._note.unregister_updaters()
         self._notes.unregister_updaters()
+        self._octave_ratio.unregister_updaters()
+        self._center_pitch.unregister_updaters()
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        update_signals = set([
+            'signal_notation_list', 'signal_notation_editor_selection'])
+        if not signals.isdisjoint(update_signals):
+            self._update_enabled()
+
+    def _update_enabled(self):
+        notation_manager = self._ui_model.get_notation_manager()
+        selected_notation_id = notation_manager.get_editor_selected_notation_id()
+        self.setEnabled(selected_notation_id != None)
+
+    def _create(self):
+        pass
+
+
+class CenterPitch(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._value = QDoubleSpinBox()
+        self._value.setDecimals(2)
+        self._value.setRange(-9999, 9999)
+        self._value.setValue(0)
+
+        self._units = QComboBox()
+        self._units.addItem('cents')
+        self._units.addItem('Hz')
+        self._units.setCurrentIndex(self._units.findText('cents'))
+
+        self._set_units('Hz')
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(4)
+        h.addWidget(QLabel('Center pitch:'), 0)
+        h.addWidget(self._value, 1)
+        h.addWidget(self._units, 1)
+        self.setLayout(h)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _set_units(self, units):
+        assert units in ('cents', 'Hz')
+
+        old_units = str(self._units.currentText())
+        if units == old_units:
+            return
+
+        old_block = self._value.blockSignals(True)
+        if units == 'cents':
+            value = math.log(self._value.value() / 440.0, 2) * 1200
+            self._value.setRange(-9999, 9999)
+            self._value.setValue(value)
+        elif units == 'Hz':
+            value = 2**(self._value.value() / 1200.0) * 440
+            self._value.setRange(1, 20000)
+            self._value.setValue(value)
+        else:
+            assert False
+
+        self._value.blockSignals(old_block)
+
+        old_block = self._units.blockSignals(True)
+        self._units.setCurrentIndex(self._units.findText(units))
+        self._units.blockSignals(old_block)
+
+    def _perform_updates(self, signals):
+        update_signals = set([
+            'signal_notation_list',
+            'signal_notation_editor_selection',
+            'signal_notation_template_center_pitch'])
+        if not signals.isdisjoint(update_signals):
+            self._update_all()
+
+    def _update_all(self):
+        pass
+
+
+class OctaveRatio(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._ratio = QLineEdit()
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(4)
+        h.addWidget(QLabel('Octave ratio:'))
+        h.addWidget(self._ratio)
+        self.setLayout(h)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+    def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
         pass
 
 
-class TemplateNoteListToolBar(QToolBar):
+class TemplateNotesToolBar(QToolBar):
 
     def __init__(self):
         QToolBar.__init__(self)
@@ -395,22 +526,99 @@ class TemplateNoteListToolBar(QToolBar):
         pass
 
 
-class TemplateNoteListModel(QAbstractListModel):
+class TemplateNoteTableModel(QAbstractTableModel):
 
     def __init__(self):
-        QAbstractListModel.__init__(self)
+        QAbstractTableModel.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._items = []
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._make_items()
+
+    def unregister_updaters(self):
+        pass
+
+    def _make_items(self):
+        pass
+
+    # Qt interface
+
+    def columnCount(self, parent):
+        if parent.isValid():
+            return 0
+        return 2
+
+    def rowCount(self, parent):
+        if parent.isValid():
+            return 0
+        return len(self._items)
+
+    def data(self, index, role):
+        if role in (Qt.DisplayRole, Qt.EditRole):
+            row = index.row()
+            if 0 <= row < len(self._items):
+                pass
+
+        return QVariant()
+
+    def headerData(self, section, orientation, role):
+        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+            if section == 0:
+                return QVariant('Name')
+            elif section == 1:
+                return QVariant('Ratio')
+        return QVariant()
+
+    def flags(self):
+        default_flags = QAbstractTableModel.flags(self, index)
+        if not index.isValid():
+            return default_flags
+        if not 0 <= index.row() < len(self._items):
+            return default_flags
+
+        return default_flags | Qt.ItemIsEditable
+
+    def _get_validated_ratio(self, text):
+        pass # TODO
+
+    def setData(self, index, value, role):
+        if role == Qt.EditRole:
+            row = index.row()
+            column = index.column()
+            if 0 <= row < len(self._items):
+                name, ratio = self._items[row]
+                if column == 0:
+                    new_name = unicode(value.toString())
+                    # TODO: send to model
+                    return True
+                elif column == 1:
+                    new_ratio = self._get_validated_ratio(unicode(value.toString()))
+                    if new_ratio == None:
+                        return False
+                    # TODO: send to model
+                    return True
+
+        return False
 
 
-class TemplateNoteListView(QListView):
+class TemplateNoteTableView(QTableView):
 
     def __init__(self):
-        QListView.__init__(self)
+        QTableView.__init__(self)
         self._ui_model = None
         self._updater = None
 
         self.setSelectionMode(QAbstractItemView.SingleSelection)
 
         self.setMinimumWidth(100)
+
+        header = self.horizontalHeader()
+        header.setStretchLastSection(True)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -427,16 +635,16 @@ class TemplateNotes(QWidget):
         self._ui_model = None
         self._updater = None
 
-        self._toolbar = TemplateNoteListToolBar()
+        self._toolbar = TemplateNotesToolBar()
 
-        self._list_model = None
-        self._list_view = TemplateNoteListView()
+        self._table_model = None
+        self._table_view = TemplateNoteTableView()
 
         v = QVBoxLayout()
         v.setMargin(0)
         v.setSpacing(2)
         v.addWidget(self._toolbar)
-        v.addWidget(self._list_view)
+        v.addWidget(self._table_view)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
@@ -444,15 +652,62 @@ class TemplateNotes(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._toolbar.set_ui_model(ui_model)
-        self._list_view.set_ui_model(ui_model)
+        self._table_view.set_ui_model(ui_model)
+
+        self._update_model()
 
     def unregister_updaters(self):
-        self._list_view.unregister_updaters()
+        self._table_view.unregister_updaters()
         self._toolbar.unregister_updaters()
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
         pass
+
+    def _update_model(self):
+        self._table_model = TemplateNoteTableModel()
+        self._table_model.set_ui_model(self._ui_model)
+        self._table_view.setModel(self._table_model)
+
+
+'''
+class TemplateNote(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._name = QLineEdit()
+        self._ratio = QLineEdit()
+
+        gl = QGridLayout()
+        gl.setMargin(0)
+        gl.setHorizontalSpacing(4)
+        gl.setVerticalSpacing(2)
+        gl.addWidget(QLabel('Name:'), 0, 0)
+        gl.addWidget(self._name, 0, 1)
+        gl.addWidget(QLabel('Ratio:'), 1, 0)
+        gl.addWidget(self._ratio, 1, 1)
+
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(2)
+        v.addWidget(HeaderLine('Template note'))
+        v.addLayout(gl)
+        self.setLayout(v)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        pass
+'''
 
 
 class OctaveListToolBar(QToolBar):
