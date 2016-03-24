@@ -107,6 +107,82 @@ class Share():
             keymap.append(octave)
         notation[u'keymap'] = keymap
 
+        # Optional template
+        if u'template' in unsafe_data:
+            unsafe_template = unsafe_data[u'template']
+            if not isinstance(unsafe_template, dict):
+                return None
+            template = {}
+
+            # Center pitch
+            center_pitch = unsafe_template.get(u'center_pitch', None)
+            if not isinstance(center_pitch, list):
+                return None
+            if len(center_pitch) != 2:
+                return None
+            center, units = center_pitch
+            if not isinstance(center, (int, float)):
+                return None
+            if units == u'cents':
+                if not -9999 <= center <= 9999:
+                    return None
+            elif units == u'Hz':
+                if not 1 <= center <= 20000:
+                    return None
+            else:
+                return None
+            template[u'center_pitch'] = center_pitch
+
+            def _get_validated_ratio(parts):
+                if len(parts) != 2:
+                    return None
+                if not all(isinstance(n, int) for n in parts):
+                    return None
+                if parts[1] <= 0:
+                    return None
+                return parts
+
+            # Octave ratio
+            octave_ratio = unsafe_template.get(u'octave_ratio', None)
+            if isinstance(octave_ratio, list):
+                octave_ratio = _get_validated_ratio(octave_ratio)
+                if not octave_ratio:
+                    return None
+                if abs(octave_ratio[0]) <= octave_ratio[1]:
+                    return None
+            elif isinstance(octave_ratio, (int, float)):
+                if not 0 < octave_ratio <= 9999:
+                    return None
+            else:
+                return None
+            template[u'octave_ratio'] = octave_ratio
+
+            # Notes
+            notes = unsafe_template.get(u'notes', None)
+            if not isinstance(notes, list):
+                return None
+            for note in notes:
+                if not isinstance(note, list) or len(note) != 2:
+                    return None
+                name, ratio = note
+
+                if not isinstance(name, unicode):
+                    return None
+
+                if isinstance(ratio, list):
+                    ratio = _get_validated_ratio(ratio)
+                    if not ratio:
+                        return None
+                elif isinstance(ratio, (int, float)):
+                    if not -9999 <= ratio <= 9999:
+                        return None
+                else:
+                    return None
+
+            template[u'notes'] = notes
+
+            notation[u'template'] = template
+
         return notation
 
     def get_keymaps(self):
