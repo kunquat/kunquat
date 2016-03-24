@@ -180,4 +180,37 @@ class Notation():
 
         return nearest
 
+    def _get_template_data(self):
+        data = self._get_raw_data()
+        if 'template' in data:
+            return data['template']
+        return {
+            'center_pitch': [0, 'cents'],
+            'octave_ratio': [2, 1],
+            'notes':        [],
+        }
+
+    def _set_template_data(self, template_data):
+        data = deepcopy(self._get_raw_data())
+        data['template'] = template_data
+        self._set_raw_data(data)
+
+    def get_template(self):
+        return Template(self._get_template_data, self._set_template_data)
+
+
+class Template():
+
+    def __init__(self, get_data, set_data):
+        self._get_data = get_data
+        self._set_data = set_data
+
+    def get_center_pitch(self):
+        return self._get_data()['center_pitch']
+
+    def set_center_pitch(self, value, units):
+        data = deepcopy(self._get_data())
+        data['center_pitch'] = [value, units]
+        self._set_data(data)
+
 
