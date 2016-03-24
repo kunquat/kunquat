@@ -393,8 +393,6 @@ class CenterPitch(QWidget):
         self._units.addItem('Hz')
         self._units.setCurrentIndex(self._units.findText('cents'))
 
-        self._set_units('Hz')
-
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(4)
@@ -408,33 +406,14 @@ class CenterPitch(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        QObject.connect(self._value, SIGNAL('valueChanged(double)'), self._change_center)
+        QObject.connect(
+                self._units, SIGNAL('currentIndexChanged(int)'), self._change_units)
+
+        self._update_all()
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
-
-    def _set_units(self, units):
-        assert units in ('cents', 'Hz')
-
-        old_units = str(self._units.currentText())
-        if units == old_units:
-            return
-
-        old_block = self._value.blockSignals(True)
-        if units == 'cents':
-            value = math.log(self._value.value() / 440.0, 2) * 1200
-            self._value.setRange(-9999, 9999)
-            self._value.setValue(value)
-        elif units == 'Hz':
-            value = 2**(self._value.value() / 1200.0) * 440
-            self._value.setRange(1, 20000)
-            self._value.setValue(value)
-        else:
-            assert False
-
-        self._value.blockSignals(old_block)
-
-        old_block = self._units.blockSignals(True)
-        self._units.setCurrentIndex(self._units.findText(units))
-        self._units.blockSignals(old_block)
 
     def _perform_updates(self, signals):
         update_signals = set([
@@ -445,7 +424,60 @@ class CenterPitch(QWidget):
             self._update_all()
 
     def _update_all(self):
-        pass
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_selected_notation()
+        if not notation:
+            return
+
+        value, units = notation.get_template().get_center_pitch()
+
+        old_block = self._value.blockSignals(True)
+        if units == 'cents':
+            self._value.setRange(-9999, 9999)
+        elif units == 'Hz':
+            self._value.setRange(1, 20000)
+        else:
+            assert False
+        self._value.setValue(value)
+        self._value.blockSignals(old_block)
+
+        old_block = self._units.blockSignals(True)
+        self._units.setCurrentIndex(self._units.findText(units))
+        self._units.blockSignals(old_block)
+
+    def _change_center(self, new_center):
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_selected_notation()
+        template = notation.get_template()
+
+        _, units = template.get_center_pitch()
+        template.set_center_pitch(new_center, units)
+        self._updater.signal_update(set(['signal_notation_template_center_pitch']))
+
+    def _get_cents(self, hz):
+        return math.log(hz / 440.0, 2) * 1200
+
+    def _get_hz(self, cents):
+        return 2**(cents / 1200.0) * 440
+
+    def _change_units(self, item_index):
+        new_units = unicode(self._units.itemText(item_index))
+
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_selected_notation()
+        template = notation.get_template()
+
+        value, units = template.get_center_pitch()
+        if units == new_units:
+            return
+
+        if new_units == 'cents':
+            new_value = self._get_cents(value)
+        elif new_units == 'Hz':
+            new_value = self._get_hz(value)
+
+        template.set_center_pitch(new_value, new_units)
+        self._updater.signal_update(set(['signal_notation_template_center_pitch']))
 
 
 class OctaveRatio(QWidget):
@@ -668,46 +700,6 @@ class TemplateNotes(QWidget):
         self._table_model = TemplateNoteTableModel()
         self._table_model.set_ui_model(self._ui_model)
         self._table_view.setModel(self._table_model)
-
-
-'''
-class TemplateNote(QWidget):
-
-    def __init__(self):
-        QWidget.__init__(self)
-        self._ui_model = None
-        self._updater = None
-
-        self._name = QLineEdit()
-        self._ratio = QLineEdit()
-
-        gl = QGridLayout()
-        gl.setMargin(0)
-        gl.setHorizontalSpacing(4)
-        gl.setVerticalSpacing(2)
-        gl.addWidget(QLabel('Name:'), 0, 0)
-        gl.addWidget(self._name, 0, 1)
-        gl.addWidget(QLabel('Ratio:'), 1, 0)
-        gl.addWidget(self._ratio, 1, 1)
-
-        v = QVBoxLayout()
-        v.setMargin(0)
-        v.setSpacing(2)
-        v.addWidget(HeaderLine('Template note'))
-        v.addLayout(gl)
-        self.setLayout(v)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        pass
-'''
 
 
 class OctaveListToolBar(QToolBar):
