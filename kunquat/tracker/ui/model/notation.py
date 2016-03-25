@@ -187,7 +187,8 @@ class Notation():
         return {
             'center_pitch': [0, 'cents'],
             'octave_ratio': [2, 1],
-            'notes':        [],
+            'octaves'     : [0, 4, 9],
+            'notes'       : [],
         }
 
     def _set_template_data(self, template_data):
@@ -219,6 +220,14 @@ class Template():
     def set_octave_ratio(self, ratio):
         data = deepcopy(self._get_data())
         data['octave_ratio'] = ratio
+        self._set_data(data)
+
+    def get_octaves(self):
+        return self._get_data()['octaves']
+
+    def set_octaves(self, lowest, center, highest):
+        data = deepcopy(self._get_data())
+        data['octaves'] = [lowest, center, highest]
         self._set_data(data)
 
 

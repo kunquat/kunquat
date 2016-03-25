@@ -598,30 +598,107 @@ class TemplateOctaves(QWidget):
         self._ui_model = None
         self._updater = None
 
-        self._first = QSpinBox()
-        self._first.setRange(0, 15)
+        self._lowest = QSpinBox()
+        self._lowest.setRange(0, 15)
         self._center = QSpinBox()
         self._center.setRange(0, 15)
-        self._last = QSpinBox()
-        self._last.setRange(0, 15)
+        self._highest = QSpinBox()
+        self._highest.setRange(0, 15)
 
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(4)
-        h.addWidget(QLabel('First octave:'))
-        h.addWidget(self._first)
+        h.addWidget(QLabel('Lowest octave:'))
+        h.addWidget(self._lowest)
         h.addWidget(QLabel('Center:'))
         h.addWidget(self._center)
-        h.addWidget(QLabel('Last:'))
-        h.addWidget(self._last)
+        h.addWidget(QLabel('Highest:'))
+        h.addWidget(self._highest)
         self.setLayout(h)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(self._lowest, SIGNAL('valueChanged(int)'), self._change_lowest)
+        QObject.connect(self._center, SIGNAL('valueChanged(int)'), self._change_center)
+        QObject.connect(self._highest, SIGNAL('valueChanged(int)'), self._change_highest)
+
+        self._update_all()
 
     def unregister_updaters(self):
-        pass
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        update_signals = set([
+            'signal_notation_list',
+            'signal_notation_editor_selection',
+            'signal_notation_template_octaves'])
+        if not signals.isdisjoint(update_signals):
+            self._update_all()
+
+    def _update_all(self):
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_selected_notation()
+        if not notation:
+            return
+
+        lowest, center, highest = notation.get_template().get_octaves()
+
+        old_block = self._lowest.blockSignals(True)
+        if self._lowest.value() != lowest:
+            self._lowest.setValue(lowest)
+        self._lowest.blockSignals(old_block)
+
+        old_block = self._center.blockSignals(True)
+        self._center.setRange(lowest, highest)
+        if self._center.value() != center:
+            self._center.setValue(center)
+        self._center.blockSignals(old_block)
+
+        old_block = self._highest.blockSignals(True)
+        if self._highest.value() != highest:
+            self._highest.setValue(highest)
+        self._highest.blockSignals(old_block)
+
+    def _change_lowest(self, value):
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_selected_notation()
+        template = notation.get_template()
+
+        octaves = template.get_octaves()
+        octaves[0] = value
+        octaves[1] = max(octaves[0], octaves[1])
+        octaves[2] = max(octaves[0], octaves[2])
+
+        template.set_octaves(*octaves)
+        self._updater.signal_update(set(['signal_notation_template_octaves']))
+
+    def _change_center(self, value):
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_selected_notation()
+        template = notation.get_template()
+
+        octaves = template.get_octaves()
+        octaves[1] = value
+        assert octaves[0] <= octaves[1] <= octaves[2]
+
+        template.set_octaves(*octaves)
+        self._updater.signal_update(set(['signal_notation_template_octaves']))
+
+    def _change_highest(self, value):
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_selected_notation()
+        template = notation.get_template()
+
+        octaves = template.get_octaves()
+        octaves[2] = value
+        octaves[1] = min(octaves[1], octaves[2])
+        octaves[0] = min(octaves[0], octaves[2])
+
+        template.set_octaves(*octaves)
+        self._updater.signal_update(set(['signal_notation_template_octaves']))
 
 
 class TemplateNotesToolBar(QToolBar):
