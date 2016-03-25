@@ -31,13 +31,15 @@ class NotationSelect(QComboBox):
         self._updater.register_updater(self._perform_updates)
         self._notation_manager = ui_model.get_notation_manager()
         self._typewriter_manager = ui_model.get_typewriter_manager()
+
         self._update_notations()
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        self._update_notation_texts()
+        if 'signal_notation_list' in signals:
+            self._update_notations()
 
     def _select_notation(self, catalog_index):
         notation_id = self._notation_catalog[catalog_index]
