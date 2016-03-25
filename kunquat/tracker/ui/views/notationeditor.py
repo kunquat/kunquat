@@ -448,7 +448,7 @@ class CenterPitch(QWidget):
 
     def _update_all(self):
         notation_manager = self._ui_model.get_notation_manager()
-        notation = notation_manager.get_selected_notation()
+        notation = notation_manager.get_editor_selected_notation()
         if not notation:
             return
 
@@ -471,7 +471,7 @@ class CenterPitch(QWidget):
 
     def _change_center(self, new_center):
         notation_manager = self._ui_model.get_notation_manager()
-        notation = notation_manager.get_selected_notation()
+        notation = notation_manager.get_editor_selected_notation()
         template = notation.get_template()
 
         _, units = template.get_center_pitch()
@@ -488,7 +488,7 @@ class CenterPitch(QWidget):
         new_units = unicode(self._units.itemText(item_index))
 
         notation_manager = self._ui_model.get_notation_manager()
-        notation = notation_manager.get_selected_notation()
+        notation = notation_manager.get_editor_selected_notation()
         template = notation.get_template()
 
         value, units = template.get_center_pitch()
@@ -585,7 +585,7 @@ class OctaveRatio(QWidget):
 
     def _update_all(self):
         notation_manager = self._ui_model.get_notation_manager()
-        notation = notation_manager.get_selected_notation()
+        notation = notation_manager.get_editor_selected_notation()
         if not notation:
             return
 
@@ -607,7 +607,7 @@ class OctaveRatio(QWidget):
             value = float(text)
 
         notation_manager = self._ui_model.get_notation_manager()
-        notation = notation_manager.get_selected_notation()
+        notation = notation_manager.get_editor_selected_notation()
         template = notation.get_template()
 
         template.set_octave_ratio(value)
@@ -663,7 +663,7 @@ class TemplateOctaves(QWidget):
 
     def _update_all(self):
         notation_manager = self._ui_model.get_notation_manager()
-        notation = notation_manager.get_selected_notation()
+        notation = notation_manager.get_editor_selected_notation()
         if not notation:
             return
 
@@ -687,7 +687,7 @@ class TemplateOctaves(QWidget):
 
     def _change_lowest(self, value):
         notation_manager = self._ui_model.get_notation_manager()
-        notation = notation_manager.get_selected_notation()
+        notation = notation_manager.get_editor_selected_notation()
         template = notation.get_template()
 
         octaves = template.get_octaves()
@@ -700,7 +700,7 @@ class TemplateOctaves(QWidget):
 
     def _change_center(self, value):
         notation_manager = self._ui_model.get_notation_manager()
-        notation = notation_manager.get_selected_notation()
+        notation = notation_manager.get_editor_selected_notation()
         template = notation.get_template()
 
         octaves = template.get_octaves()
@@ -712,7 +712,7 @@ class TemplateOctaves(QWidget):
 
     def _change_highest(self, value):
         notation_manager = self._ui_model.get_notation_manager()
-        notation = notation_manager.get_selected_notation()
+        notation = notation_manager.get_editor_selected_notation()
         template = notation.get_template()
 
         octaves = template.get_octaves()
@@ -773,19 +773,19 @@ class TemplateNotesToolBar(QToolBar):
     def _update_enabled(self):
         notation_manager = self._ui_model.get_notation_manager()
         selected_note_coords = notation_manager.get_editor_selected_template_note()
-        notation = notation_manager.get_selected_notation()
+        notation = notation_manager.get_editor_selected_notation()
         self._remove_button.setEnabled(bool(notation and selected_note_coords))
 
     def _add_note(self):
         notation_manager = self._ui_model.get_notation_manager()
-        notation = notation_manager.get_selected_notation()
+        notation = notation_manager.get_editor_selected_notation()
         template = notation.get_template()
         template.add_note()
         self._updater.signal_update(set(['signal_notation_template_notes']))
 
     def _remove_note(self):
         notation_manager = self._ui_model.get_notation_manager()
-        notation = notation_manager.get_selected_notation()
+        notation = notation_manager.get_editor_selected_notation()
         template = notation.get_template()
         index, column = notation_manager.get_editor_selected_template_note()
         template.remove_note(index)
@@ -820,7 +820,7 @@ class TemplateNoteTableModel(QAbstractTableModel):
 
     def _make_items(self):
         notation_manager = self._ui_model.get_notation_manager()
-        notation = notation_manager.get_selected_notation()
+        notation = notation_manager.get_editor_selected_notation()
 
         self._items = []
         if notation:
@@ -908,7 +908,7 @@ class TemplateNoteTableModel(QAbstractTableModel):
                 if column == 0:
                     new_name = unicode(value.toString())
                     notation_manager = self._ui_model.get_notation_manager()
-                    notation = notation_manager.get_selected_notation()
+                    notation = notation_manager.get_editor_selected_notation()
                     template = notation.get_template()
                     template.set_note_name(row, new_name)
                     self._updater.signal_update(set(['signal_notation_template_notes']))
@@ -918,7 +918,7 @@ class TemplateNoteTableModel(QAbstractTableModel):
                     if new_ratio == None:
                         return False
                     notation_manager = self._ui_model.get_notation_manager()
-                    notation = notation_manager.get_selected_notation()
+                    notation = notation_manager.get_editor_selected_notation()
                     template = notation.get_template()
                     template.set_note_ratio(row, new_ratio)
                     self._updater.signal_update(set(['signal_notation_template_notes']))
