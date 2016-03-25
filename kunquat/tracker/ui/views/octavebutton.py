@@ -84,6 +84,9 @@ class OctaveButton(QPushButton):
             self._led.setText('')
 
     def _perform_updates(self, signals):
+        if not self.isVisible():
+            return
+
         if any(s in signals for s in ['signal_octave', 'signal_init']):
             self._update_pressed()
         self.update_leds()
