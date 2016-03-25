@@ -330,7 +330,7 @@ class Template(QWidget):
         self._octave_ratio = OctaveRatio()
         self._octaves = TemplateOctaves()
         self._notes = TemplateNotes()
-        self._create_button = QPushButton('Create octaves and notes ->')
+        self._create_button = QPushButton('Create notation and keymap')
 
         v = QVBoxLayout()
         v.setMargin(0)
@@ -365,17 +365,38 @@ class Template(QWidget):
 
     def _perform_updates(self, signals):
         update_signals = set([
-            'signal_notation_list', 'signal_notation_editor_selection'])
+            'signal_notation_list',
+            'signal_notation_editor_selection',
+            'signal_notation_template_notes'])
         if not signals.isdisjoint(update_signals):
             self._update_enabled()
 
     def _update_enabled(self):
         notation_manager = self._ui_model.get_notation_manager()
-        selected_notation_id = notation_manager.get_editor_selected_notation_id()
-        self.setEnabled(selected_notation_id != None)
+        notation = notation_manager.get_editor_selected_notation()
+        if not notation:
+            self.setEnabled(False)
+            return
+
+        self.setEnabled(True)
+
+        note_count = notation.get_template().get_note_count()
+        self._create_button.setEnabled(note_count > 0)
 
     def _create(self):
-        pass
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_editor_selected_notation()
+        notation.apply_template_settings()
+        notation_manager.set_editor_selected_octave_id(None)
+        notation_manager.set_editor_selected_note_index(None)
+        notation_manager.set_editor_selected_key_index(None)
+        self._updater.signal_update(set([
+            'signal_notation_editor_octaves',
+            'signal_notation_editor_octave_selection',
+            'signal_notation_editor_notes',
+            'signal_notation_editor_note_selection',
+            'signal_notation_editor_key_count',
+            'signal_notation_editor_key_selection']))
 
 
 class CenterPitch(QWidget):

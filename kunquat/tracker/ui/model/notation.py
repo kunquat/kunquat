@@ -12,6 +12,8 @@
 #
 
 from copy import deepcopy
+from itertools import izip
+import math
 
 
 class Notation():
@@ -198,6 +200,81 @@ class Notation():
 
     def get_template(self):
         return Template(self._get_template_data, self._set_template_data)
+
+    def apply_template_settings(self):
+        template = self.get_template()
+
+        # Get center pitch in cents
+        center_pitch_value, center_pitch_units = template.get_center_pitch()
+        if center_pitch_units == 'cents':
+            center = center_pitch_value
+        elif center_pitch_units == 'Hz':
+            center = math.log(center_pitch_value / 440.0, 2) * 1200
+
+        # Get octave width in cents
+        octave_ratio = template.get_octave_ratio()
+        if isinstance(octave_ratio, list):
+            octave_width = math.log(octave_ratio[0] / float(octave_ratio[1]), 2) * 1200
+        else:
+            octave_width = octave_ratio
+
+        note_count = template.get_note_count()
+
+        # Get note offsets in cents
+        note_offsets = []
+        for i in xrange(note_count):
+            ratio = template.get_note_ratio(i)
+            if isinstance(ratio, list):
+                offset = math.log(ratio[0] / float(ratio[1]), 2) * 1200
+            else:
+                offset = ratio
+            note_offsets.append(offset)
+
+        # Get base names of notes
+        base_note_names = []
+        for i in xrange(note_count):
+            base_note_names.append(template.get_note_name(i))
+
+        # Choose keyboard layout strategy, TODO: figure out a better solution
+        if note_count == 12:
+            holes_after = [4, 11]
+        elif note_count % 2 == 1:
+            holes_after = [note_count - 1]
+        else:
+            holes_after = []
+
+        # Get octave range
+        min_octave, center_octave, max_octave = template.get_octaves()
+
+        # Generate new data
+        octave_names = []
+        notes = []
+        keymap = []
+        for octave_id in xrange(min_octave, max_octave + 1):
+            octave_names.append(unicode(octave_id))
+
+            rel_octave = octave_id - center_octave
+            octave_offset = octave_width * rel_octave
+            cur_octave_cents = []
+            for note_offset, base_name in izip(note_offsets, base_note_names):
+                cents = center + octave_offset + note_offset
+                name = u'{}{}'.format(base_name, octave_id)
+                notes.append([cents, name])
+                cur_octave_cents.append(cents)
+
+            key_row = []
+            for i, cents in enumerate(cur_octave_cents):
+                key_row.append(cents)
+                if i in holes_after:
+                    key_row.append(None)
+            keymap.append(key_row)
+
+        # Set new data
+        data = deepcopy(self._get_raw_data())
+        data['octave_names'] = octave_names
+        data['note_names'] = notes
+        data['keymap'] = keymap
+        self._set_raw_data(data)
 
 
 class Template():
