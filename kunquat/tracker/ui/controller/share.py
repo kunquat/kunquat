@@ -157,6 +157,18 @@ class Share():
                 return None
             template[u'octave_ratio'] = octave_ratio
 
+            # Octave range
+            octaves = unsafe_template.get(u'octaves', None)
+            if not isinstance(octaves, list) or len(octaves) != 3:
+                return None
+            if not all(isinstance(o, int) for o in octaves):
+                return None
+            if not all(0 <= 0 < 16 for o in octaves):
+                return None
+            if not (octaves[0] <= octaves[1] <= octaves[2]):
+                return None
+            template[u'octaves'] = octaves
+
             # Notes
             notes = unsafe_template.get(u'notes', None)
             if not isinstance(notes, list):
