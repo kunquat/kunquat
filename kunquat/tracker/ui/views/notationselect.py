@@ -41,7 +41,8 @@ class NotationSelect(QComboBox):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        if 'signal_notation_list' in signals:
+        update_signals = set(['signal_module', 'signal_notation_list'])
+        if not signals.isdisjoint(update_signals):
             self._update_notations()
 
     def _select_notation(self, catalog_index):
