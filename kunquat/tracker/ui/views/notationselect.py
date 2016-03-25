@@ -24,6 +24,9 @@ class NotationSelect(QComboBox):
         self._notation_manager = None
         self._typewriter_manager = None
         self._notation_catalog = dict()
+
+        self.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+
         QObject.connect(self, SIGNAL("currentIndexChanged(int)"), self._select_notation)
 
     def set_ui_model(self, ui_model):
