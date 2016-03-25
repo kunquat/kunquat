@@ -230,4 +230,33 @@ class Template():
         data['octaves'] = [lowest, center, highest]
         self._set_data(data)
 
+    def get_note_count(self):
+        return len(self._get_data()['notes'])
+
+    def get_note_name(self, index):
+        return self._get_data()['notes'][index][0]
+
+    def add_note(self):
+        data = deepcopy(self._get_data())
+        data['notes'].append(['(n)', 0])
+        self._set_data(data)
+
+    def remove_note(self, index):
+        data = deepcopy(self._get_data())
+        del data['notes'][index]
+        self._set_data(data)
+
+    def set_note_name(self, index, name):
+        data = deepcopy(self._get_data())
+        data['notes'][index][0] = name
+        self._set_data(data)
+
+    def get_note_ratio(self, index):
+        return self._get_data()['notes'][index][1]
+
+    def set_note_ratio(self, index, ratio):
+        data = deepcopy(self._get_data())
+        data['notes'][index][1] = ratio
+        self._set_data(data)
+
 

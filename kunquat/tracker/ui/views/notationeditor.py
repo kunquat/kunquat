@@ -143,6 +143,7 @@ class NotationListToolBar(QToolBar):
         notation_manager.set_editor_selected_octave_id(None)
         notation_manager.set_editor_selected_note_index(None)
         notation_manager.set_editor_selected_key_index(None)
+        notation_manager.set_editor_selected_template_note(None)
         self._updater.signal_update(set([
             'signal_notation_list', 'signal_notation_editor_selection']))
 
@@ -254,6 +255,7 @@ class NotationListView(QListView):
             notation_manager.set_editor_selected_octave_id(None)
             notation_manager.set_editor_selected_note_index(None)
             notation_manager.set_editor_selected_key_index(None)
+            notation_manager.set_editor_selected_template_note(None)
             self._updater.signal_update(set(['signal_notation_editor_selection']))
 
     def setModel(self, model):
@@ -739,16 +741,40 @@ class TemplateNotesToolBar(QToolBar):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        pass
+        update_signals = set([
+            'signal_notation_list',
+            'signal_notation_editor_selection',
+            'signal_notation_template_note_selection',
+            'signal_notation_template_notes'])
+        if not signals.isdisjoint(update_signals):
+            self._update_enabled()
 
     def _update_enabled(self):
-        pass
+        notation_manager = self._ui_model.get_notation_manager()
+        selected_note_coords = notation_manager.get_editor_selected_template_note()
+        notation = notation_manager.get_selected_notation()
+        self._remove_button.setEnabled(bool(notation and selected_note_coords))
 
     def _add_note(self):
-        pass
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_selected_notation()
+        template = notation.get_template()
+        template.add_note()
+        self._updater.signal_update(set(['signal_notation_template_notes']))
 
     def _remove_note(self):
-        pass
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_selected_notation()
+        template = notation.get_template()
+        index, column = notation_manager.get_editor_selected_template_note()
+        template.remove_note(index)
+        note_count = template.get_note_count()
+        if note_count > 0:
+            notation_manager.set_editor_selected_template_note(
+                    (min(index, template.get_note_count() - 1), column))
+        else:
+            notation_manager.set_editor_selected_template_note(None)
+        self._updater.signal_update(set(['signal_notation_template_notes']))
 
 
 class TemplateNoteTableModel(QAbstractTableModel):
@@ -768,8 +794,20 @@ class TemplateNoteTableModel(QAbstractTableModel):
     def unregister_updaters(self):
         pass
 
+    def get_index(self, row, column):
+        return self.createIndex(row, column, None)
+
     def _make_items(self):
-        pass
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_selected_notation()
+
+        self._items = []
+        if notation:
+            template = notation.get_template()
+            for i in xrange(template.get_note_count()):
+                name = template.get_note_name(i)
+                ratio = template.get_note_ratio(i)
+                self._items.append((name, ratio))
 
     # Qt interface
 
@@ -786,8 +824,17 @@ class TemplateNoteTableModel(QAbstractTableModel):
     def data(self, index, role):
         if role in (Qt.DisplayRole, Qt.EditRole):
             row = index.row()
+            column = index.column()
             if 0 <= row < len(self._items):
-                pass
+                if column == 0:
+                    name, _ = self._items[row]
+                    return QVariant(name)
+                elif column == 1:
+                    _, ratio = self._items[row]
+                    if isinstance(ratio, list):
+                        return QVariant('{}/{}'.format(*ratio))
+                    else:
+                        return QVariant(str(ratio))
 
         return QVariant()
 
@@ -799,7 +846,7 @@ class TemplateNoteTableModel(QAbstractTableModel):
                 return QVariant('Ratio')
         return QVariant()
 
-    def flags(self):
+    def flags(self, index):
         default_flags = QAbstractTableModel.flags(self, index)
         if not index.isValid():
             return default_flags
@@ -809,7 +856,27 @@ class TemplateNoteTableModel(QAbstractTableModel):
         return default_flags | Qt.ItemIsEditable
 
     def _get_validated_ratio(self, text):
-        pass # TODO
+        if '/' in text:
+            parts = unicode(text).split('/')
+            if len(parts) != 2:
+                return None
+            nums = []
+            for part in parts:
+                try:
+                    nums.append(int(part))
+                except ValueError:
+                    return None
+            if nums[0] <= 0:
+                return None
+            if nums[1] <= 0:
+                return None
+            return nums
+        else:
+            try:
+                value = float(text)
+            except ValueError:
+                return None
+            return value
 
     def setData(self, index, value, role):
         if role == Qt.EditRole:
@@ -819,13 +886,21 @@ class TemplateNoteTableModel(QAbstractTableModel):
                 name, ratio = self._items[row]
                 if column == 0:
                     new_name = unicode(value.toString())
-                    # TODO: send to model
+                    notation_manager = self._ui_model.get_notation_manager()
+                    notation = notation_manager.get_selected_notation()
+                    template = notation.get_template()
+                    template.set_note_name(row, new_name)
+                    self._updater.signal_update(set(['signal_notation_template_notes']))
                     return True
                 elif column == 1:
                     new_ratio = self._get_validated_ratio(unicode(value.toString()))
                     if new_ratio == None:
                         return False
-                    # TODO: send to model
+                    notation_manager = self._ui_model.get_notation_manager()
+                    notation = notation_manager.get_selected_notation()
+                    template = notation.get_template()
+                    template.set_note_ratio(row, new_ratio)
+                    self._updater.signal_update(set(['signal_notation_template_notes']))
                     return True
 
         return False
@@ -851,6 +926,32 @@ class TemplateNoteTableView(QTableView):
 
     def unregister_updaters(self):
         pass
+
+    def _select_entry(self, cur_index, prev_index):
+        if not cur_index.isValid():
+            return
+        row, column = cur_index.row(), cur_index.column()
+
+        notation_manager = self._ui_model.get_notation_manager()
+        notation_manager.set_editor_selected_template_note((row, column))
+        self._updater.signal_update(set(['signal_notation_template_note_selection']))
+
+    def setModel(self, model):
+        QTableView.setModel(self, model)
+
+        selection_model = self.selectionModel()
+
+        notation_manager = self._ui_model.get_notation_manager()
+        coords = notation_manager.get_editor_selected_template_note()
+        if coords:
+            row, column = coords
+            selection_model.select(
+                    model.get_index(row, column), QItemSelectionModel.Select)
+
+        QObject.connect(
+                selection_model,
+                SIGNAL('currentChanged(const QModelIndex&, const QModelIndex&)'),
+                self._select_entry)
 
 
 class TemplateNotes(QWidget):
@@ -887,7 +988,12 @@ class TemplateNotes(QWidget):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        pass
+        update_signals = set([
+            'signal_notation_list',
+            'signal_notation_editor_selection',
+            'signal_notation_template_notes'])
+        if not signals.isdisjoint(update_signals):
+            self._update_model()
 
     def _update_model(self):
         self._table_model = TemplateNoteTableModel()

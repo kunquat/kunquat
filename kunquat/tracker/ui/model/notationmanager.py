@@ -101,6 +101,12 @@ class NotationManager():
     def set_editor_selected_key_index(self, key_index):
         self._session.set_notation_editor_selected_key_index(key_index)
 
+    def get_editor_selected_template_note(self):
+        return self._session.get_notation_editor_selected_template_note()
+
+    def set_editor_selected_template_note(self, coords):
+        self._session.set_notation_editor_selected_template_note(coords)
+
     def get_editor_selected_notation(self):
         selected_id = self.get_editor_selected_notation_id()
         if not selected_id:
