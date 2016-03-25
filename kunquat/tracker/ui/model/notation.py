@@ -164,7 +164,7 @@ class Notation():
         keymap = {
             'name':        data['name'],
             'base_octave': data['base_octave'],
-            'keymap':      deepcopy(data['keymap']),
+            'keymap':      data['keymap'],
         }
         return keymap
 
