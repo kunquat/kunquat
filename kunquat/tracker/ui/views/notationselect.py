@@ -47,6 +47,7 @@ class NotationSelect(QComboBox):
     def _select_notation(self, catalog_index):
         notation_id = self._notation_catalog[catalog_index]
         self._notation_manager.set_selected_notation_id(notation_id)
+        self._updater.signal_update(set(['signal_notation']))
 
     def _update_notation_texts(self):
         for i, notation_id in self._notation_catalog.items():

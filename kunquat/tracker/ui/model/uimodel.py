@@ -208,6 +208,7 @@ class UiModel():
 
     def set_notation_manager(self, notation_manager):
         self._notation_manager = notation_manager
+        self._notation_manager.set_ui_model(self)
 
     def get_notation_manager(self):
         return self._notation_manager

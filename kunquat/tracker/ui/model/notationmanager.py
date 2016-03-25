@@ -24,6 +24,7 @@ class NotationManager():
         self._session = None
         self._share = None
         self._store = None
+        self._ui_model = None
 
     def set_controller(self, controller):
         self._controller = controller
@@ -31,6 +32,9 @@ class NotationManager():
         self._share = controller.get_share()
         self._store = controller.get_store()
         self._updater = controller.get_updater()
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
 
     def get_selected_notation_id(self):
         notation_ids = self.get_all_notation_ids()
@@ -45,6 +49,7 @@ class NotationManager():
     def get_notation(self, notation_id):
         notation = Notation(notation_id)
         notation.set_controller(self._controller)
+        notation.set_ui_model(self._ui_model)
         return notation
 
     def get_selected_notation(self):
@@ -75,7 +80,6 @@ class NotationManager():
 
     def set_selected_notation_id(self, notation_id):
         self._session.set_selected_notation_id(notation_id)
-        self._updater.signal_update(set(['signal_notation']))
 
     def set_editor_selected_notation_id(self, notation_id):
         self._session.set_notation_editor_selected_notation_id(notation_id)
@@ -129,5 +133,8 @@ class NotationManager():
         data = deepcopy(self._get_custom_notation_data())
         del data[sub_id]
         self._set_custom_notation_data(data)
+
+        typewriter_manager = self._ui_model.get_typewriter_manager()
+        typewriter_manager.notify_notation_changed(notation_id)
 
 

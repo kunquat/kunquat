@@ -215,4 +215,8 @@ class TypewriterManager():
         self._current_map_version = None
         self._updater.signal_update(set(['signal_octave']))
 
+    def notify_notation_changed(self, notation_id):
+        if self._current_map_version == notation_id:
+            self._current_map_version = None
+
 

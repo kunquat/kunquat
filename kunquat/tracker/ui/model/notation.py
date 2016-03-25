@@ -22,6 +22,7 @@ class Notation():
         self._controller = None
         self._store = None
         self._share = None
+        self._ui_model = None
 
         is_shared, dict_id = notation_id
         self._is_shared = is_shared
@@ -31,6 +32,9 @@ class Notation():
         self._controller = controller
         self._store = controller.get_store()
         self._share = controller.get_share()
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
 
     def get_existence(self):
         if self._is_shared:
@@ -49,6 +53,11 @@ class Notation():
         notations = self._store['i_notations.json']
         notations[self._id] = raw_data
         self._store['i_notations.json'] = notations
+        self._on_data_changed()
+
+    def _on_data_changed(self):
+        typewriter_manager = self._ui_model.get_typewriter_manager()
+        typewriter_manager.notify_notation_changed((self._is_shared, self._id))
 
     def get_name(self):
         return self._get_raw_data()['name']

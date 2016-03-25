@@ -145,7 +145,9 @@ class NotationListToolBar(QToolBar):
         notation_manager.set_editor_selected_key_index(None)
         notation_manager.set_editor_selected_template_note(None)
         self._updater.signal_update(set([
-            'signal_notation_list', 'signal_notation_editor_selection']))
+            'signal_notation',
+            'signal_notation_list',
+            'signal_notation_editor_selection']))
 
 
 class NotationListModel(QAbstractListModel):
@@ -391,6 +393,7 @@ class Template(QWidget):
         notation_manager.set_editor_selected_note_index(None)
         notation_manager.set_editor_selected_key_index(None)
         self._updater.signal_update(set([
+            'signal_notation',
             'signal_notation_editor_octaves',
             'signal_notation_editor_octave_selection',
             'signal_notation_editor_notes',
@@ -1091,7 +1094,9 @@ class OctaveListToolBar(QToolBar):
         notation_manager = self._ui_model.get_notation_manager()
         notation = notation_manager.get_editor_selected_notation()
         notation.add_octave()
-        self._updater.signal_update(set(['signal_notation_editor_octaves']))
+        self._updater.signal_update(set([
+            'signal_notation',
+            'signal_notation_editor_octaves']))
 
     def _remove_octave(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -1104,6 +1109,7 @@ class OctaveListToolBar(QToolBar):
         notation_manager.set_editor_selected_octave_id(max(0, selected_octave_id - 1))
         notation_manager.set_editor_selected_key_index(None)
         self._updater.signal_update(set([
+            'signal_notation',
             'signal_notation_editor_octaves',
             'signal_notation_editor_octave_selection']))
 
@@ -1195,7 +1201,9 @@ class OctaveListModel(QAbstractListModel):
                 notation_manager = self._ui_model.get_notation_manager()
                 notation = notation_manager.get_editor_selected_notation()
                 notation.set_octave_name(index.row(), new_name)
-                self._updater.signal_update(set(['signal_notation_editor_octaves']))
+                self._updater.signal_update(set([
+                    'signal_notation',
+                    'signal_notation_editor_octaves']))
                 return True
 
         return False
@@ -1359,7 +1367,8 @@ class NoteListToolBar(QToolBar):
         notation_manager = self._ui_model.get_notation_manager()
         notation = notation_manager.get_editor_selected_notation()
         notation.add_note()
-        self._updater.signal_update(set(['signal_notation_editor_notes']))
+        self._updater.signal_update(set([
+            'signal_notation', 'signal_notation_editor_notes']))
 
     def _remove_note(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -1367,7 +1376,8 @@ class NoteListToolBar(QToolBar):
         notation = notation_manager.get_editor_selected_notation()
         notation.remove_note(note_index)
         notation_manager.set_editor_selected_note_index(None)
-        self._updater.signal_update(set(['signal_notation_editor_notes']))
+        self._updater.signal_update(set([
+            'signal_notation', 'signal_notation_editor_notes']))
 
 
 class NoteListModel(QAbstractListModel):
@@ -1597,14 +1607,16 @@ class Note(QWidget):
         notation_manager = self._ui_model.get_notation_manager()
         notation = notation_manager.get_editor_selected_notation()
         notation.set_note_cents(notation_manager.get_editor_selected_note_index(), value)
-        self._updater.signal_update(set(['signal_notation_editor_notes']))
+        self._updater.signal_update(set([
+            'signal_notation', 'signal_notation_editor_notes']))
 
     def _change_name(self, name_qstring):
         name = unicode(name_qstring)
         notation_manager = self._ui_model.get_notation_manager()
         notation = notation_manager.get_editor_selected_notation()
         notation.set_note_name(notation_manager.get_editor_selected_note_index(), name)
-        self._updater.signal_update(set(['signal_notation_editor_notes']))
+        self._updater.signal_update(set([
+            'signal_notation', 'signal_notation_editor_notes']))
 
 
 class Keymap(QWidget):
@@ -1726,7 +1738,9 @@ class KeyCount(QWidget):
         octave_id = notation_manager.get_editor_selected_octave_id()
 
         notation.set_key_count_in_octave(octave_id, new_count)
-        self._updater.signal_update(set(['signal_notation_editor_key_count']))
+        self._updater.signal_update(set([
+            'signal_notation',
+            'signal_notation_editor_key_count']))
 
 
 class KeyButton(QPushButton):
@@ -1948,7 +1962,8 @@ class KeyEditor(QWidget):
         else:
             notation.set_key_cents(octave_id, key_index, None)
 
-        self._updater.signal_update(set(['signal_notation_editor_key']))
+        self._updater.signal_update(set([
+            'signal_notation', 'signal_notation_editor_key']))
 
     def _set_cents(self, cents):
         notation_manager = self._ui_model.get_notation_manager()
@@ -1957,7 +1972,8 @@ class KeyEditor(QWidget):
         key_index = notation_manager.get_editor_selected_key_index()
 
         notation.set_key_cents(octave_id, key_index, cents)
-        self._updater.signal_update(set(['signal_notation_editor_key']))
+        self._updater.signal_update(set([
+            'signal_notation', 'signal_notation_editor_key']))
 
 
 class KeyNoteSelector(QComboBox):
@@ -2040,6 +2056,7 @@ class KeyNoteSelector(QComboBox):
         cents, success = self.itemData(index).toDouble()
         assert success
         notation.set_key_cents(octave_id, key_index, cents)
-        self._updater.signal_update(set(['signal_notation_editor_key']))
+        self._updater.signal_update(set([
+            'signal_notation', 'signal_notation_editor_key']))
 
 
