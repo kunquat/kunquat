@@ -481,6 +481,48 @@ class CenterPitch(QWidget):
         self._updater.signal_update(set(['signal_notation_template_center_pitch']))
 
 
+class RatioValidator(QValidator):
+
+    def __init__(self):
+        QValidator.__init__(self)
+
+    def validate(self, contents, pos):
+        in_str = unicode(contents)
+        if not in_str:
+            return (QValidator.Intermediate, pos)
+
+        if '/' in in_str:
+            parts = in_str.split('/')
+            if len(parts) != 2:
+                return (QValidator.Invalid, pos)
+            nums = []
+            for part in parts:
+                if not part.strip():
+                    continue
+                try:
+                    nums.append(int(part))
+                except ValueError:
+                    return (QValidator.Invalid, pos)
+            if any(num < 0 for num in nums):
+                return (QValidator.Invalid, pos)
+            if len(nums) < 2:
+                return (QValidator.Intermediate, pos)
+            if all(num > 0 for num in nums) and nums[0] > nums[1]:
+                return (QValidator.Acceptable, pos)
+            return (QValidator.Intermediate, pos)
+        else:
+            try:
+                value = float(in_str)
+            except ValueError:
+                return (QValidator.Invalid, pos)
+            if value < 0:
+                return (QValidator.Invalid, pos)
+            if value == 0:
+                return (QValidator.Intermediate, pos)
+
+        return (QValidator.Acceptable, pos)
+
+
 class OctaveRatio(QWidget):
 
     def __init__(self):
@@ -489,6 +531,7 @@ class OctaveRatio(QWidget):
         self._updater = None
 
         self._ratio = QLineEdit()
+        self._ratio.setValidator(RatioValidator())
 
         h = QHBoxLayout()
         h.setMargin(0)
@@ -502,11 +545,50 @@ class OctaveRatio(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        QObject.connect(self._ratio, SIGNAL('editingFinished()'), self._change_ratio)
+
+        self._update_all()
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        pass
+        update_signals = set([
+            'signal_notation_list',
+            'signal_notation_editor_selection',
+            'signal_notation_template_octave_ratio'])
+        if not signals.isdisjoint(update_signals):
+            self._update_all()
+
+    def _update_all(self):
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_selected_notation()
+        if not notation:
+            return
+
+        ratio = notation.get_template().get_octave_ratio()
+
+        old_block = self._ratio.blockSignals(True)
+        if isinstance(ratio, list):
+            self._ratio.setText('{}/{}'.format(*ratio))
+        else:
+            self._ratio.setText(str(ratio))
+        self._ratio.blockSignals(old_block)
+
+    def _change_ratio(self):
+        text = unicode(self._ratio.text())
+        if '/' in text:
+            parts = text.split('/')
+            value = [int(part) for part in parts]
+        else:
+            value = float(text)
+
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_selected_notation()
+        template = notation.get_template()
+
+        template.set_octave_ratio(value)
+        self._updater.signal_update(set(['signal_notation_template_octave_ratio']))
 
 
 class TemplateOctaves(QWidget):

@@ -213,4 +213,12 @@ class Template():
         data['center_pitch'] = [value, units]
         self._set_data(data)
 
+    def get_octave_ratio(self):
+        return self._get_data()['octave_ratio']
+
+    def set_octave_ratio(self, ratio):
+        data = deepcopy(self._get_data())
+        data['octave_ratio'] = ratio
+        self._set_data(data)
+
 
