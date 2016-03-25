@@ -438,7 +438,8 @@ class CenterPitch(QWidget):
             self._value.setRange(1, 20000)
         else:
             assert False
-        self._value.setValue(value)
+        if self._value.value() != value:
+            self._value.setValue(value)
         self._value.blockSignals(old_block)
 
         old_block = self._units.blockSignals(True)
