@@ -30,7 +30,7 @@ class Session():
         self._infinite_mode = False
         self._selected_control_id = 0
         self._is_hit_keymap_active = False
-        self._selected_notation_id = '12tetsharp'
+        self._selected_notation_id = (True, '12tetsharp')
         self._notation_editor_selected_notation_id = None
         self._notation_editor_selected_octave_id = None
         self._notation_editor_selected_note_index = None
