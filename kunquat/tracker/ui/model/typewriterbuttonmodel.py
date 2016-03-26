@@ -76,6 +76,9 @@ class TypewriterButtonModel():
 
         return None, None
 
+    def _get_key_id(self):
+        return self._typewriter_manager.get_key_id((self._row, self._index))
+
     def get_led_state(self):
         selected_control = self._control_manager.get_selected_control()
         if selected_control == None:
@@ -89,6 +92,10 @@ class TypewriterButtonModel():
                 states = [False, True, False]
             return tuple(states)
 
+        key_id = self._get_key_id()
+        if not key_id:
+            return None
+
         pitch = self._get_pitch()
         if pitch == None:
             return None
@@ -96,7 +103,7 @@ class TypewriterButtonModel():
         (left_on, center_on, right_on) = 3 * [False]
         notes = selected_control.get_active_notes()
         for note in notes.itervalues():
-            if self._typewriter_manager.get_closest_keymap_pitch(note) == pitch:
+            if self._typewriter_manager.get_nearest_key_id(note) == key_id:
                 if note < pitch:
                     left_on = True
                 elif note == pitch:

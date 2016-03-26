@@ -74,10 +74,12 @@ class OctaveButton(QPushButton):
         notes = selected_control.get_active_notes()
         is_on = 0
         for note in notes.itervalues():
-            closest = self._typewriter_manager.get_closest_keymap_pitch(note)
-            pitches = self._typewriter_manager.get_pitches_by_octave(self._octave_id)
-            if closest in pitches:
-                is_on = 1
+            nearest_id = self._typewriter_manager.get_nearest_key_id(note)
+            if nearest_id:
+                octave_id, _ = nearest_id
+                if octave_id == self._octave_id:
+                    is_on = 1
+                    break
         if is_on:
             self._led.setText('*')
         else:
