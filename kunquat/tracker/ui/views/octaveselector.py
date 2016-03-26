@@ -48,7 +48,8 @@ class OctaveSelector(QFrame):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        if 'signal_select_keymap' in signals:
+        update_signals = set(['signal_select_keymap', 'signal_notation'])
+        if not signals.isdisjoint(update_signals):
             self._update_layout()
 
     def _update_layout(self):
