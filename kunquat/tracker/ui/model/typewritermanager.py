@@ -115,13 +115,11 @@ class TypewriterManager():
         if len(keymap[cur_octave_index]) > upper_key_limit:
             upper_octaves = [[(cur_octave_index, i)
                     for i in xrange(lower_key_limit, len(keymap[cur_octave_index]))]]
-            #upper_octaves = [keymap[cur_octave_index][lower_key_limit:]]
         else:
             upper_octaves = []
             for octave_index in xrange(cur_octave_index, len(keymap)):
                 octave = [(octave_index, i) for i in xrange(len(keymap[octave_index]))]
                 upper_octaves.append(octave)
-            #upper_octaves = keymap[cur_octave_index:]
 
         return upper_octaves
 
@@ -134,27 +132,18 @@ class TypewriterManager():
             # Use lower part of the keyboard for very large octaves
             fitting_lower_octaves = [[(cur_octave_index, i)
                     for i in xrange(lower_key_limit)]]
-            #fitting_lower_octaves = [keymap[cur_octave_index][:lower_key_limit]]
         else:
             # Find lower octaves that fit inside the lower part of the keyboard
             lower_octave_candidates = []
             for octave_index, pitches in enumerate(keymap[:cur_octave_index]):
                 octave = [(octave_index, i) for i in xrange(len(pitches))]
                 lower_octave_candidates.append(octave)
-            #lower_octave_candidates = keymap[:cur_octave_index]
             workspace = list(lower_octave_candidates) # copy
             while sum([len(i) for i in workspace]) > lower_key_limit:
                 workspace.pop(0)
             fitting_lower_octaves = workspace
 
         return fitting_lower_octaves
-        '''
-        grey_key = None
-        padding_octave = lower_key_limit * [grey_key]
-        padding_octaves = [padding_octave]
-        lower_octaves = fitting_lower_octaves + padding_octaves
-        return lower_octaves
-        '''
 
     def _create_current_map(self, keymap):
         keymap_id = self._keymap_manager.get_selected_keymap_id()
@@ -222,11 +211,6 @@ class TypewriterManager():
             for key_index, pitch in enumerate(keymap_pitches):
                 if pitch != None:
                     pitches.add((pitch, (octave_id, key_index)))
-        '''
-        for pitch in itertools.chain(*octaves):
-            if pitch != None:
-                pitches.add(pitch)
-        '''
         return pitches
 
     def get_nearest_key_id(self, pitch):
