@@ -46,15 +46,16 @@ class NotationSelect(QComboBox):
             self._update_notations()
 
     def _select_notation(self, catalog_index):
+        old_octave_id = self._typewriter_manager.get_octave()
+
         notation_id = self._notation_catalog[catalog_index]
         self._notation_manager.set_selected_notation_id(notation_id)
 
         signals = set(['signal_notation'])
 
         notation = self._notation_manager.get_selected_notation()
-        octave_id = self._typewriter_manager.get_octave()
-        new_octave_id = min(octave_id, notation.get_octave_count() - 1)
-        if new_octave_id != octave_id:
+        new_octave_id = min(old_octave_id, notation.get_octave_count() - 1)
+        if new_octave_id != old_octave_id:
             self._typewriter_manager.set_octave(new_octave_id)
             signals.add('signal_octave')
 

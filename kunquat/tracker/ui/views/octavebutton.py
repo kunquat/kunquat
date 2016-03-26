@@ -52,12 +52,16 @@ class OctaveButton(QPushButton):
         self._typewriter_manager = ui_model.get_typewriter_manager()
         self._button_model = self._typewriter_manager.get_octave_button_model(
                 self._octave_id)
-        octave_name = self._button_model.get_name()
-        self._octavename.setText(octave_name)
+
+        self._update_name()
         self._update_pressed()
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
+
+    def _update_name(self):
+        octave_name = self._button_model.get_name()
+        self._octavename.setText(octave_name)
 
     def _update_pressed(self):
         old_block = self.blockSignals(True)
@@ -86,6 +90,9 @@ class OctaveButton(QPushButton):
             self._led.setText('')
 
     def _perform_updates(self, signals):
+        if 'signal_notation' in signals:
+            self._update_name()
+
         if not self.isVisible():
             return
 
