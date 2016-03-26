@@ -281,6 +281,7 @@ class Notation():
         # Set new data
         data = deepcopy(self._get_raw_data())
         data['octave_names'] = octave_names
+        data['base_octave'] = center_octave
         data['note_names'] = notes
         data['keymap'] = keymap
         self._set_raw_data(data)
