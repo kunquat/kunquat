@@ -36,7 +36,6 @@ class TypewriterPanel(QFrame):
         il = QHBoxLayout()
         il.setMargin(0)
         il.setSpacing(4)
-        il.addWidget(QLabel('Notation:'))
         il.addWidget(self._notation_select)
         il.addWidget(self._hit_map_toggle)
         il.addStretch(1)

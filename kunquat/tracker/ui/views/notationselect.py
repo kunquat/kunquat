@@ -16,25 +16,39 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 
-class NotationSelect(QComboBox):
+class NotationSelect(QWidget):
 
     def __init__(self):
-        QComboBox.__init__(self)
+        QWidget.__init__(self)
+        self._ui_model = None
         self._updater = None
         self._notation_manager = None
         self._typewriter_manager = None
         self._notation_catalog = dict()
 
-        self.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        self._notations = QComboBox()
+        self._notations.setSizeAdjustPolicy(QComboBox.AdjustToContents)
 
-        QObject.connect(self, SIGNAL("currentIndexChanged(int)"), self._select_notation)
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(4)
+        h.addWidget(QLabel('Notation:'))
+        h.addWidget(self._notations)
+        self.setLayout(h)
 
     def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._notation_manager = ui_model.get_notation_manager()
         self._typewriter_manager = ui_model.get_typewriter_manager()
 
+        QObject.connect(
+                self._notations,
+                SIGNAL("currentIndexChanged(int)"),
+                self._select_notation)
+
+        self._update_enabled()
         self._update_notations()
 
     def unregister_updaters(self):
@@ -44,6 +58,9 @@ class NotationSelect(QComboBox):
         update_signals = set(['signal_module', 'signal_notation_list'])
         if not signals.isdisjoint(update_signals):
             self._update_notations()
+
+        if 'signal_select_keymap' in signals:
+            self._update_enabled()
 
     def _select_notation(self, catalog_index):
         old_octave_id = self._typewriter_manager.get_octave()
@@ -61,23 +78,27 @@ class NotationSelect(QComboBox):
 
         self._updater.signal_update(signals)
 
+    def _update_enabled(self):
+        keymap_manager = self._ui_model.get_keymap_manager()
+        self.setEnabled(not keymap_manager.is_hit_keymap_active())
+
     def _update_notation_texts(self):
         for i, notation_id in self._notation_catalog.items():
             notation = self._notation_manager.get_notation(notation_id)
             notation_name = notation.get_name() or '-'
-            self.setItemText(i, notation_name)
+            self._notations.setItemText(i, notation_name)
 
     def _update_notations(self):
         notation_ids = self._notation_manager.get_all_notation_ids()
         self._notation_catalog = dict(enumerate(sorted(notation_ids)))
         selected_notation_id = self._notation_manager.get_selected_notation_id()
-        old_block = self.blockSignals(True)
-        self.clear()
+        old_block = self._notations.blockSignals(True)
+        self._notations.clear()
         for i, notation_id in self._notation_catalog.items():
-            self.addItem('')
+            self._notations.addItem('')
             if selected_notation_id and notation_id == selected_notation_id:
-                self.setCurrentIndex(i)
+                self._notations.setCurrentIndex(i)
         self._update_notation_texts()
-        self.blockSignals(old_block)
+        self._notations.blockSignals(old_block)
 
 
