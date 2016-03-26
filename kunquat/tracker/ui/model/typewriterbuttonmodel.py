@@ -104,10 +104,10 @@ class TypewriterButtonModel():
         notes = selected_control.get_active_notes()
         for note in notes.itervalues():
             if self._typewriter_manager.get_nearest_key_id(note) == key_id:
-                if note < pitch:
-                    left_on = True
-                elif note == pitch:
+                if abs(note - pitch) < 0.1:
                     center_on = True
+                elif note < pitch:
+                    left_on = True
                 elif note > pitch:
                     right_on = True
                 else:
