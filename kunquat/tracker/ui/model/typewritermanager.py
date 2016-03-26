@@ -259,5 +259,7 @@ class TypewriterManager():
     def notify_notation_changed(self, notation_id):
         if self._current_map_version == notation_id:
             self._current_map_version = None
+        if self._pitch_key_info_version == notation_id:
+            self._pitch_key_info_version = None
 
 
