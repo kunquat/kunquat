@@ -254,6 +254,7 @@ class Notation():
 
         # Get octave range
         min_octave, center_octave, max_octave = template.get_octaves()
+        center_octave_id = center_octave - min_octave
 
         # Generate new data
         octave_names = []
@@ -281,7 +282,7 @@ class Notation():
         # Set new data
         data = deepcopy(self._get_raw_data())
         data['octave_names'] = octave_names
-        data['base_octave'] = center_octave
+        data['base_octave'] = center_octave_id
         data['note_names'] = notes
         data['keymap'] = keymap
         self._set_raw_data(data)
