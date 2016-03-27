@@ -90,7 +90,8 @@ class OctaveButton(QPushButton):
             self._led.setText('')
 
     def _perform_updates(self, signals):
-        if 'signal_notation' in signals:
+        name_update_signals = set(['signal_notation', 'signal_select_keymap'])
+        if not signals.isdisjoint(name_update_signals):
             self._update_name()
 
         if not self.isVisible():

@@ -33,6 +33,9 @@ class OctaveButtonModel():
         self._notation_manager = ui_model.get_notation_manager()
 
     def get_name(self):
+        if self._ui_model.get_keymap_manager().is_hit_keymap_active():
+            return unicode(self._octave_id)
+
         notation = self._notation_manager.get_selected_notation()
         if self._octave_id >= notation.get_octave_count():
             return u''
