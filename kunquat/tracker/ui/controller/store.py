@@ -15,15 +15,12 @@
 from collections import deque, MutableMapping
 from itertools import count
 
-from kunquat.kunquat.kunquat import get_default_value
-
 
 class Store(MutableMapping):
 
     def __init__(self):
         self._content = dict()
         self._audio_engine = None
-        self._updater = None
         self._pending_validation = deque()
         self._transaction_ids = count()
         self._flush_callbacks = {}
@@ -33,23 +30,9 @@ class Store(MutableMapping):
     def set_audio_engine(self, audio_engine):
         self._audio_engine = audio_engine
 
-    def set_updater(self, updater):
-        self._updater = updater
-
     def put(self, transaction, mark_modified=True):
         assert not self._is_saving
         transaction_id = self._transaction_ids.next()
-
-        # Add random seed increment to the transaction if the auto-updating is enabled
-        rand_seed_update_key = 'i_random_seed_auto_update.json'
-        rand_seed_key = 'p_random_seed.json'
-        if (self.get(rand_seed_update_key, False) and
-                rand_seed_update_key not in transaction and
-                rand_seed_key not in transaction):
-            old_seed = self.get(rand_seed_key, get_default_value(rand_seed_key))
-            new_seed = (old_seed + 1) % 2**63
-            transaction[rand_seed_key] = new_seed
-            self._updater.signal_update(set(['signal_random_seed']))
 
         self._audio_engine.set_data(transaction_id, transaction)
         self._pending_validation.append((transaction_id, transaction))
