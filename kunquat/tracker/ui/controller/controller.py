@@ -279,6 +279,9 @@ class Controller():
 
     def silence(self):
         self._reset_with_post_action(self._silence)
+        if self._session.is_playback_active():
+            # Trigger random seed auto-update in store if appropriate
+            self._store.put({}, mark_modified=False)
         self._session.set_playback_active(False)
 
     def _silence(self):
@@ -447,6 +450,7 @@ def create_controller():
     share_path = os.path.join(cmdline.get_install_prefix(), 'share', 'kunquat')
     share = Share(share_path)
     updater = Updater()
+    store.set_updater(updater)
     note_channel_mapper = NoteChannelMapper()
     controller = Controller()
     controller.set_store(store)
