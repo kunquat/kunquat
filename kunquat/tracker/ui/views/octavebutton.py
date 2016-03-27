@@ -52,12 +52,16 @@ class OctaveButton(QPushButton):
         self._typewriter_manager = ui_model.get_typewriter_manager()
         self._button_model = self._typewriter_manager.get_octave_button_model(
                 self._octave_id)
-        octave_name = self._button_model.get_name()
-        self._octavename.setText(octave_name)
+
+        self._update_name()
         self._update_pressed()
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
+
+    def _update_name(self):
+        octave_name = self._button_model.get_name()
+        self._octavename.setText(octave_name)
 
     def _update_pressed(self):
         old_block = self.blockSignals(True)
@@ -74,16 +78,25 @@ class OctaveButton(QPushButton):
         notes = selected_control.get_active_notes()
         is_on = 0
         for note in notes.itervalues():
-            closest = self._typewriter_manager.get_closest_keymap_pitch(note)
-            pitches = self._typewriter_manager.get_pitches_by_octave(self._octave_id)
-            if closest in pitches:
-                is_on = 1
+            nearest_id = self._typewriter_manager.get_nearest_key_id(note)
+            if nearest_id:
+                octave_id, _ = nearest_id
+                if octave_id == self._octave_id:
+                    is_on = 1
+                    break
         if is_on:
             self._led.setText('*')
         else:
             self._led.setText('')
 
     def _perform_updates(self, signals):
+        name_update_signals = set(['signal_notation', 'signal_select_keymap'])
+        if not signals.isdisjoint(name_update_signals):
+            self._update_name()
+
+        if not self.isVisible():
+            return
+
         if any(s in signals for s in ['signal_octave', 'signal_init']):
             self._update_pressed()
         self.update_leds()

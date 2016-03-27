@@ -112,7 +112,7 @@ class TypewriterButton(QPushButton):
 
         if not set(['signal_selection', 'signal_hits']).isdisjoint(signals):
             keymap_manager = self._ui_model.get_keymap_manager()
-            if keymap_manager.is_hit_keymap_selected():
+            if keymap_manager.is_hit_keymap_active():
                 self._update_properties()
 
         self._update_leds()

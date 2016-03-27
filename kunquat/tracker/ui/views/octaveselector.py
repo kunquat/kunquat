@@ -48,23 +48,9 @@ class OctaveSelector(QFrame):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        if 'signal_select_keymap' in signals:
+        update_signals = set(['signal_select_keymap', 'signal_notation'])
+        if not signals.isdisjoint(update_signals):
             self._update_layout()
-
-    '''
-    def _remove_buttons(self):
-        layout = self.layout()
-        layout_items = [layout.itemAt(i) for i in xrange(layout.count())]
-        for item in layout_items:
-            button = item.widget()
-            if button:
-                button.unregister_updaters()
-
-        while layout.count() > 0:
-            widget = layout.itemAt(0).widget()
-            if widget:
-                widget.setParent(None)
-    '''
 
     def _update_layout(self):
         layout = self.layout()
@@ -77,11 +63,11 @@ class OctaveSelector(QFrame):
             button = self._get_button(i)
             layout.insertWidget(i, button)
 
-        # Remove excess widgets
+        # Make sure that correct widgets are shown
+        for i in xrange(new_button_count):
+            layout.itemAt(i).widget().show()
         for i in xrange(new_button_count, old_button_count):
-            button = layout.takeAt(new_button_count).widget()
-            button.unregister_updaters()
-            button.setParent(None)
+            layout.itemAt(i).widget().hide()
 
     def _get_buttons(self):
         octave_count = self._typewriter_manager.get_octave_count()

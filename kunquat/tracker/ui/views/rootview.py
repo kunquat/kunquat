@@ -22,6 +22,7 @@ from aboutwindow import AboutWindow
 from eventlist import EventList
 from connectionswindow import ConnectionsWindow
 from songschannelswindow import SongsChannelsWindow
+from notationwindow import NotationWindow
 from envbindwindow import EnvBindWindow
 from auwindow import AuWindow
 from procwindow import ProcWindow
@@ -42,6 +43,7 @@ class RootView():
         self._event_log = None
         self._connections = None
         self._songs_channels = None
+        self._notation = None
         self._env_bind = None
         self._au_windows = {}
         self._proc_windows = {}
@@ -107,6 +109,11 @@ class RootView():
                 self._songs_channels.set_ui_model(self._ui_model)
                 if is_show_allowed:
                     self._songs_channels.show()
+            elif ui == UI_NOTATION:
+                self._notation = NotationWindow()
+                self._notation.set_ui_model(self._ui_model)
+                if is_show_allowed:
+                    self._notation.show()
             elif ui == UI_ENV_BIND:
                 self._env_bind = EnvBindWindow()
                 self._env_bind.set_ui_model(self._ui_model)
@@ -169,6 +176,10 @@ class RootView():
                 self._songs_channels.unregister_updaters()
                 self._songs_channels.deleteLater()
                 self._songs_channels = None
+            elif ui == UI_NOTATION:
+                self._notation.unregister_updaters()
+                self._notation.deleteLater()
+                self._notation = None
             elif ui == UI_ENV_BIND:
                 self._env_bind.unregister_updaters()
                 self._env_bind.deleteLater()

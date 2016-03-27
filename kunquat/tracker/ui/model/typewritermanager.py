@@ -35,8 +35,10 @@ class TypewriterManager():
         # Cached data
         self._current_map = None
         self._current_map_version = None
-        self._pitches = None
-        self._pitches_version = None
+        self._upper_key_ids = None
+        self._lower_key_ids = None
+        self._pitch_key_info = None
+        self._pitch_key_info_version = None
 
     def set_controller(self, controller):
         self._controller = controller
@@ -92,15 +94,32 @@ class TypewriterManager():
         rows = [upper, lower]
         return rows
 
+    def _get_key_pitches(self, keymap, key_id_lists):
+        pitch_lists = []
+        for key_id_list in key_id_lists:
+            pitches = [keymap[o][i] for (o, i) in key_id_list]
+            pitch_lists.append(pitches)
+        return pitch_lists
+
+    def _get_key_id_map(self, key_id_lists):
+        key_id_map = []
+        for key_id_list in key_id_lists:
+            key_id_map.extend(key_id_list)
+        return key_id_map
+
     def _current_upper_octaves(self, keymap):
         lower_key_limit = sum(self._ROW_LENGTHS[2:4])
         upper_key_limit = sum(self._ROW_LENGTHS[0:2])
 
         cur_octave_index = self.get_octave()
         if len(keymap[cur_octave_index]) > upper_key_limit:
-            upper_octaves = [keymap[cur_octave_index][lower_key_limit:]]
+            upper_octaves = [[(cur_octave_index, i)
+                    for i in xrange(lower_key_limit, len(keymap[cur_octave_index]))]]
         else:
-            upper_octaves = keymap[cur_octave_index:]
+            upper_octaves = []
+            for octave_index in xrange(cur_octave_index, len(keymap)):
+                octave = [(octave_index, i) for i in xrange(len(keymap[octave_index]))]
+                upper_octaves.append(octave)
 
         return upper_octaves
 
@@ -111,35 +130,39 @@ class TypewriterManager():
         cur_octave_index = self.get_octave()
         if len(keymap[cur_octave_index]) > upper_key_limit:
             # Use lower part of the keyboard for very large octaves
-            fitting_lower_octaves = [keymap[cur_octave_index][:lower_key_limit]]
+            fitting_lower_octaves = [[(cur_octave_index, i)
+                    for i in xrange(lower_key_limit)]]
         else:
             # Find lower octaves that fit inside the lower part of the keyboard
-            lower_octave_candidates = keymap[:cur_octave_index]
+            lower_octave_candidates = []
+            for octave_index, pitches in enumerate(keymap[:cur_octave_index]):
+                octave = [(octave_index, i) for i in xrange(len(pitches))]
+                lower_octave_candidates.append(octave)
             workspace = list(lower_octave_candidates) # copy
             while sum([len(i) for i in workspace]) > lower_key_limit:
                 workspace.pop(0)
             fitting_lower_octaves = workspace
 
-        grey_key = None
-        padding_octave = lower_key_limit * [grey_key]
-        padding_octaves = [padding_octave]
-        lower_octaves = fitting_lower_octaves + padding_octaves
-        return lower_octaves
+        return fitting_lower_octaves
 
     def _create_current_map(self, keymap):
         keymap_id = self._keymap_manager.get_selected_keymap_id()
         if self._current_map_version == keymap_id:
             return
         self._current_map_version = keymap_id
-        upper_octaves = self._current_upper_octaves(keymap)
-        lower_octaves = self._current_lower_octaves(keymap)
+        upper_key_id_lists = self._current_upper_octaves(keymap)
+        lower_key_id_lists = self._current_lower_octaves(keymap)
+        self._upper_key_ids = self._get_key_id_map(upper_key_id_lists)
+        self._lower_key_ids = self._get_key_id_map(lower_key_id_lists)
+        upper_octaves = self._get_key_pitches(keymap, upper_key_id_lists)
+        lower_octaves = self._get_key_pitches(keymap, lower_key_id_lists)
         (row0, row1) = self._octaves_to_rows(upper_octaves)
         (row2, row3) = self._octaves_to_rows(lower_octaves)
         rows = [row0, row1, row2, row3]
         self._current_map = rows
 
-    def _get_button_param(self, coord, get_pitch):
-        (row, column) = coord
+    def _get_button_param(self, coords, get_pitch):
+        (row, column) = coords
         keymap_data = self._keymap_manager.get_selected_keymap()
         keymap = keymap_data['keymap']
         if keymap_data.get('is_hit_keymap', False) == get_pitch:
@@ -152,11 +175,26 @@ class TypewriterManager():
             param = None
         return param
 
-    def get_button_pitch(self, coord):
-        return self._get_button_param(coord, get_pitch=True)
+    def get_button_pitch(self, coords):
+        return self._get_button_param(coords, get_pitch=True)
 
-    def get_button_hit(self, coord):
-        return self._get_button_param(coord, get_pitch=False)
+    def get_button_hit(self, coords):
+        return self._get_button_param(coords, get_pitch=False)
+
+    def get_key_id(self, coords):
+        (row, column) = coords
+        keymap_data = self._keymap_manager.get_selected_keymap()
+        keymap = keymap_data['keymap']
+        self._create_current_map(keymap)
+
+        key_index = column * 2
+        if row % 2 == 0:
+            key_index += 1
+
+        key_ids = self._upper_key_ids if row in (0, 1) else self._lower_key_ids
+        if key_index >= len(key_ids):
+            return None
+        return key_ids[key_index]
 
     def get_pitches_by_octave(self, octave_id):
         keymap_data = self._keymap_manager.get_selected_keymap()
@@ -165,33 +203,36 @@ class TypewriterManager():
         pitches = set(octave)
         return pitches
 
-    def _get_pitches(self):
+    def _get_pitch_key_info(self):
         keymap_data = self._keymap_manager.get_selected_keymap()
         octaves = keymap_data['keymap']
         pitches = set()
-        for pitch in itertools.chain(*octaves):
-            if pitch != None:
-                pitches.add(pitch)
+        for octave_id, keymap_pitches in enumerate(octaves):
+            for key_index, pitch in enumerate(keymap_pitches):
+                if pitch != None:
+                    pitches.add((pitch, (octave_id, key_index)))
         return pitches
 
-    def get_closest_keymap_pitch(self, pitch):
+    def get_nearest_key_id(self, pitch):
         keymap_id = self._keymap_manager.get_selected_keymap_id()
-        if self._pitches_version != keymap_id:
-            self._pitches_version = keymap_id
-            self._pitches = sorted(self._get_pitches())
-        key_count = len(self._pitches)
-        i = bisect_left(self._pitches, pitch)
+        if self._pitch_key_info_version != keymap_id:
+            self._pitch_key_info_version = keymap_id
+            self._pitch_key_info = sorted(self._get_pitch_key_info(), key=lambda x: x[0])
+        key_count = len(self._pitch_key_info)
+        i = bisect_left(self._pitch_key_info, (pitch, None))
         if i == key_count:
-            return self._pitches[-1]
+            _, key_id = self._pitch_key_info[-1]
+            return key_id
         elif i == 0:
-            return self._pitches[0]
+            _, key_id = self._pitch_key_info[0]
+            return key_id
         else:
-            a = self._pitches[i]
-            b = self._pitches[i - 1]
-            if abs(a - pitch) < abs(b - pitch):
-                return a
+            pitch_a, key_id_a = self._pitch_key_info[i]
+            pitch_b, key_id_b = self._pitch_key_info[i - 1]
+            if abs(pitch_a - pitch) < abs(pitch_b - pitch):
+                return key_id_a
             else:
-                return b
+                return key_id_b
 
     def get_octave_count(self):
         keymap_data = self._keymap_manager.get_selected_keymap()
@@ -214,5 +255,11 @@ class TypewriterManager():
         self._session.set_octave_id(octave_id)
         self._current_map_version = None
         self._updater.signal_update(set(['signal_octave']))
+
+    def notify_notation_changed(self, notation_id):
+        if self._current_map_version == notation_id:
+            self._current_map_version = None
+        if self._pitch_key_info_version == notation_id:
+            self._pitch_key_info_version = None
 
 

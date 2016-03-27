@@ -29,9 +29,13 @@ class Session():
         self._max_audio_levels = [0, 0]
         self._infinite_mode = False
         self._selected_control_id = 0
-        self._selected_keymap_id = None
-        self._prev_selected_note_keymap_id = None
-        self._selected_notation_id = None
+        self._is_hit_keymap_active = False
+        self._selected_notation_id = (True, '12tetsharp')
+        self._notation_editor_selected_notation_id = None
+        self._notation_editor_selected_octave_id = None
+        self._notation_editor_selected_note_index = None
+        self._notation_editor_selected_key_index = None
+        self._notation_editor_selected_template_note = None
         self._control_id_override = None
         # TODO: get default control ids from libkunquat?
         self._channel_selected_control_id = defaultdict(lambda: 0)
@@ -161,23 +165,47 @@ class Session():
     def set_selected_control_id(self, control_id):
         self._selected_control_id = control_id
 
-    def get_selected_keymap_id(self):
-        return self._selected_keymap_id
+    def is_hit_keymap_active(self):
+        return self._is_hit_keymap_active
 
-    def set_selected_keymap_id(self, keymap_id):
-        self._selected_keymap_id = keymap_id
-
-    def get_prev_selected_note_keymap_id(self):
-        return self._prev_selected_note_keymap_id
-
-    def set_prev_selected_note_keymap_id(self, keymap_id):
-        self._prev_selected_note_keymap_id = keymap_id
+    def set_hit_keymap_active(self, active):
+        self._is_hit_keymap_active = active
 
     def get_selected_notation_id(self):
         return self._selected_notation_id
 
     def set_selected_notation_id(self, notation_id):
         self._selected_notation_id = notation_id
+
+    def get_notation_editor_selected_notation_id(self):
+        return self._notation_editor_selected_notation_id
+
+    def set_notation_editor_selected_notation_id(self, notation_id):
+        self._notation_editor_selected_notation_id = notation_id
+
+    def get_notation_editor_selected_octave_id(self):
+        return self._notation_editor_selected_octave_id
+
+    def set_notation_editor_selected_octave_id(self, octave_id):
+        self._notation_editor_selected_octave_id = octave_id
+
+    def get_notation_editor_selected_note_index(self):
+        return self._notation_editor_selected_note_index
+
+    def set_notation_editor_selected_note_index(self, note_index):
+        self._notation_editor_selected_note_index = note_index
+
+    def get_notation_editor_selected_key_index(self):
+        return self._notation_editor_selected_key_index
+
+    def set_notation_editor_selected_key_index(self, key_index):
+        self._notation_editor_selected_key_index = key_index
+
+    def get_notation_editor_selected_template_note(self):
+        return self._notation_editor_selected_template_note
+
+    def set_notation_editor_selected_template_note(self, coords):
+        self._notation_editor_selected_template_note = coords
 
     def get_control_id_override(self):
         return self._control_id_override

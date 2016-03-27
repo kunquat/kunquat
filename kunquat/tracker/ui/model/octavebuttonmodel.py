@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -33,7 +33,12 @@ class OctaveButtonModel():
         self._notation_manager = ui_model.get_notation_manager()
 
     def get_name(self):
+        if self._ui_model.get_keymap_manager().is_hit_keymap_active():
+            return unicode(self._octave_id)
+
         notation = self._notation_manager.get_selected_notation()
+        if self._octave_id >= notation.get_octave_count():
+            return u''
         return notation.get_octave_name(self._octave_id)
 
     def select(self):
