@@ -21,6 +21,7 @@ class GeneralModEditor(QWidget):
         QWidget.__init__(self)
 
         self._title = Title()
+        self._authors = Authors()
 
         self._mixing_volume = MixingVolume()
         self._random_seed = RandomSeed()
@@ -31,6 +32,8 @@ class GeneralModEditor(QWidget):
         ml.setVerticalSpacing(2)
         ml.addWidget(QLabel('Title:'), 0, 0)
         ml.addWidget(self._title, 0, 1)
+        ml.addWidget(QLabel('Authors:'), 1, 0)
+        ml.addWidget(self._authors, 1, 1)
 
         separator = QFrame()
         separator.setFrameShape(QFrame.HLine)
@@ -60,12 +63,14 @@ class GeneralModEditor(QWidget):
 
     def set_ui_model(self, ui_model):
         self._title.set_ui_model(ui_model)
+        self._authors.set_ui_model(ui_model)
         self._mixing_volume.set_ui_model(ui_model)
         self._random_seed.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._random_seed.unregister_updaters()
         self._mixing_volume.unregister_updaters()
+        self._authors.unregister_updaters()
         self._title.unregister_updaters()
 
 
@@ -106,6 +111,155 @@ class Title(QLineEdit):
         module = self._ui_model.get_module()
         module.set_title(title)
         self._updater.signal_update(set(['signal_title']))
+
+
+class AuthorTableModel(QAbstractTableModel):
+
+    def __init__(self):
+        QAbstractTableModel.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._items = [u'']
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._make_items()
+
+    def unregister_updaters(self):
+        pass
+
+    def _make_items(self):
+        module = self._ui_model.get_module()
+        count = module.get_author_count()
+
+        self._items = []
+        for i in xrange(count):
+            self._items.append(module.get_author(i))
+        self._items.append(u'')
+
+    def get_index(self, author_index):
+        return self.createIndex(0, author_index, self._items[author_index])
+
+    # Qt interface
+
+    def columnCount(self, parent):
+        if parent.isValid():
+            return 0
+        return len(self._items)
+
+    def rowCount(self, parent):
+        if parent.isValid():
+            return 0
+        return 1
+
+    def data(self, index, role):
+        if role in (Qt.DisplayRole, Qt.EditRole):
+            row = index.row()
+            column = index.column()
+            if row == 0:
+                if 0 <= column < len(self._items):
+                    return QVariant(self._items[column])
+
+        return QVariant()
+
+    def headerData(self, section, orientation, role):
+        return QVariant()
+
+    def flags(self, index):
+        default_flags = QAbstractTableModel.flags(self, index)
+        if not index.isValid():
+            return default_flags
+        if index.row() != 0 or not 0 <= index.column() < len(self._items):
+            return default_flags
+
+        return default_flags | Qt.ItemIsEditable
+
+    def setData(self, index, value, role):
+        if role == Qt.EditRole:
+            row = index.row()
+            column = index.column()
+            if row == 0 and 0 <= column < len(self._items):
+                new_name = unicode(value.toString())
+                module = self._ui_model.get_module()
+                module.set_author(column, new_name)
+                self._updater.signal_update(set(['signal_authors']))
+                return True
+
+        return False
+
+
+class Authors(QTableView):
+
+    def __init__(self):
+        QTableView.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._model = None
+
+        self.horizontalHeader().hide()
+        self.verticalHeader().hide()
+
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        self.setEditTriggers(
+                QAbstractItemView.SelectedClicked |
+                QAbstractItemView.EditKeyPressed |
+                QAbstractItemView.AnyKeyPressed)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        self._update_model()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        if 'signal_authors' in signals:
+            self._update_model()
+
+    def _update_model(self):
+        selected = None
+        if self._model:
+            selection_model = self.selectionModel()
+            current_index = selection_model.currentIndex()
+            if current_index.isValid():
+                selected = current_index.column()
+
+        self._model = AuthorTableModel()
+        self._model.set_ui_model(self._ui_model)
+        self.setModel(self._model)
+
+        if selected != None:
+            selection_model = self.selectionModel()
+            selection_model.setCurrentIndex(
+                    self._model.get_index(selected), QItemSelectionModel.SelectCurrent)
+
+        # Remove excess height
+        row_height = self.rowHeight(0)
+        opt = QStyleOption()
+        opt.initFrom(self)
+        size = self.style().sizeFromContents(
+                QStyle.CT_LineEdit, opt, QSize(1, row_height), self).expandedTo(
+                        QApplication.globalStrut())
+        self.setFixedHeight(size.height())
+
+        self.resizeColumnsToContents()
+
+    def keyPressEvent(self, event):
+        if self.state() != QAbstractItemView.EditingState:
+            index = self.currentIndex()
+            if event.key() == Qt.Key_Return:
+                if index.isValid() and self.edit(index, self.EditKeyPressed, event):
+                    event.accept()
+                    return
+        return QTableView.keyPressEvent(self, event)
 
 
 class MixingVolume(QDoubleSpinBox):

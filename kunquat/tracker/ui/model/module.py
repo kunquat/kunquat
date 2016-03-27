@@ -56,6 +56,27 @@ class Module():
     def get_name(self):
         return self.get_title()
 
+    def _get_authors(self):
+        return self._store.get('m_authors.json', [])
+
+    def get_author_count(self):
+        return len(self._get_authors())
+
+    def get_author(self, index):
+        return self._get_authors()[index]
+
+    def set_author(self, index, name):
+        authors = self._get_authors()
+        if name:
+            if index == len(authors):
+                authors.append(name)
+            else:
+                authors[index] = name
+        else:
+            if index < len(authors):
+                del authors[index]
+        self._store['m_authors.json'] = authors
+
     def get_mixing_volume(self):
         key = 'p_mixing_volume.json'
         return self._store.get(key, get_default_value(key))
