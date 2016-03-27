@@ -56,6 +56,13 @@ class Module():
     def get_name(self):
         return self.get_title()
 
+    def get_mixing_volume(self):
+        key = 'p_mixing_volume.json'
+        return self._store.get(key, get_default_value(key))
+
+    def set_mixing_volume(self, volume):
+        self._store['p_mixing_volume.json'] = volume
+
     def get_control_ids(self):
         key = 'p_control_map.json'
         input_map = self._store.get(key, get_default_value(key))
