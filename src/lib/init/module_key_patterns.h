@@ -31,8 +31,7 @@
 #define MAKE_STRING(x) MAKE_STRING2(x)
 
 
-MODULE_KEYP(composition, "p_composition.json",
-        "{ \"mix_vol\": " MAKE_STRING(COMP_DEFAULT_MIX_VOL) " }")
+MODULE_KEYP(mixing_volume, "p_mixing_volume.json", MAKE_STRING(COMP_DEFAULT_MIX_VOL))
 MODULE_KEYP(out_port_manifest,      "out_XX/p_manifest.json",               "")
 MODULE_KEYP(connections,            "p_connections.json",                   "[]")
 MODULE_KEYP(control_map,            "p_control_map.json",                   "[]")

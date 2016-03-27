@@ -212,9 +212,9 @@ void set_mix_volume(double vol)
 {
     assert(handle != 0);
 
-    char comp_def[] = "{ \"mix_vol\": -384.00000000 }";
-    snprintf(comp_def, strlen(comp_def) + 1, "{ \"mix_vol\": %.4f }", vol);
-    set_data("p_composition.json", comp_def);
+    char mix_vol_def[128] = "-384.00000000";
+    snprintf(mix_vol_def, strlen(mix_vol_def) + 1, "%.4f", vol);
+    set_data("p_mixing_volume.json", mix_vol_def);
     validate();
 
     return;
