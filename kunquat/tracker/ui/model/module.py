@@ -63,6 +63,19 @@ class Module():
     def set_mixing_volume(self, volume):
         self._store['p_mixing_volume.json'] = volume
 
+    def get_random_seed(self):
+        key = 'p_random_seed.json'
+        return self._store.get(key, get_default_value(key))
+
+    def set_random_seed(self, value):
+        self._store['p_random_seed.json'] = value
+
+    def get_random_seed_auto_update(self):
+        return self._store.get('i_random_seed_auto_update.json', False)
+
+    def set_random_seed_auto_update(self, enabled):
+        self._store['i_random_seed_auto_update.json'] = enabled
+
     def get_control_ids(self):
         key = 'p_control_map.json'
         input_map = self._store.get(key, get_default_value(key))
@@ -257,6 +270,7 @@ class Module():
 
     def finalise_create_sandbox(self):
         yield # make this a generator
+        self._store['i_random_seed_auto_update.json'] = True
         self._store.clear_modified_flag()
 
     def execute_create_sandbox(self, task_executer):
