@@ -50,6 +50,9 @@ class Module():
     def get_title(self):
         return self._store.get('m_title.json')
 
+    def set_title(self, title):
+        self._store['m_title.json'] = title
+
     def get_name(self):
         return self.get_title()
 
