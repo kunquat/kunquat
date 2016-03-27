@@ -392,6 +392,11 @@ class Template(QWidget):
         notation_manager.set_editor_selected_octave_id(None)
         notation_manager.set_editor_selected_note_index(None)
         notation_manager.set_editor_selected_key_index(None)
+
+        typewriter_manager = self._ui_model.get_typewriter_manager()
+        if typewriter_manager.get_octave() >= notation.get_octave_count():
+            typewriter_manager.set_octave(notation.get_octave_count() - 1)
+
         self._updater.signal_update(set([
             'signal_notation',
             'signal_notation_editor_octaves',
