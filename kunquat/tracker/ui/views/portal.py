@@ -37,6 +37,7 @@ class Portal(QToolBar):
         self._songs_channels_button = SongsChannelsButton()
         self._notation_button = NotationButton()
         self._env_bind_button = EnvBindButton()
+        self._general_mod_button = GeneralModButton()
         self._event_list_button = EventListButton()
         self._render_stats_button = RenderStatsButton()
 
@@ -48,6 +49,7 @@ class Portal(QToolBar):
         self.addWidget(self._songs_channels_button)
         self.addWidget(self._notation_button)
         self.addWidget(self._env_bind_button)
+        self.addWidget(self._general_mod_button)
         self.addSeparator()
         self.addWidget(self._event_list_button)
         self.addWidget(self._render_stats_button)
@@ -62,6 +64,7 @@ class Portal(QToolBar):
         self._songs_channels_button.set_ui_model(ui_model)
         self._notation_button.set_ui_model(ui_model)
         self._env_bind_button.set_ui_model(ui_model)
+        self._general_mod_button.set_ui_model(ui_model)
         self._event_list_button.set_ui_model(ui_model)
         self._render_stats_button.set_ui_model(ui_model)
         self._about_button.set_ui_model(ui_model)
@@ -70,6 +73,7 @@ class Portal(QToolBar):
         self._about_button.unregister_updaters()
         self._event_list_button.unregister_updaters()
         self._render_stats_button.unregister_updaters()
+        self._general_mod_button.unregister_updaters()
         self._env_bind_button.unregister_updaters()
         self._notation_button.unregister_updaters()
         self._songs_channels_button.unregister_updaters()
@@ -120,6 +124,15 @@ class NotationButton(WindowOpenerButton):
 
     def _show_action(self, visibility_manager):
         visibility_manager.show_notation_editor()
+
+
+class GeneralModButton(WindowOpenerButton):
+
+    def __init__(self):
+        WindowOpenerButton.__init__(self, 'General')
+
+    def _show_action(self, visibility_manager):
+        visibility_manager.show_general_module_settings()
 
 
 _RENDER_LOAD_METER_CONFIG = {

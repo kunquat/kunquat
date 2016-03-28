@@ -21,6 +21,7 @@ import tempfile
 import StringIO
 import os.path
 
+from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
@@ -214,6 +215,17 @@ class Controller():
             init_expr_name = channel_defaults.get_initial_expression(i)
             self._session.set_default_init_expression(i, init_expr_name)
 
+    def _check_update_random_seed(self):
+        rand_seed_update_key = 'i_random_seed_auto_update.json'
+        rand_seed_key = 'p_random_seed.json'
+        if self._store.get(rand_seed_update_key, False):
+            old_seed = self._store.get(
+                    rand_seed_key, get_default_value(rand_seed_key))
+            new_seed = (old_seed + 1) % 2**63
+            transaction = { rand_seed_key: new_seed }
+            self._store.put(transaction, mark_modified=False)
+            self._updater.signal_update(set(['signal_random_seed']))
+
     def call_post_action(self, action_name, args):
         getattr(self, action_name)(*args)
 
@@ -223,6 +235,8 @@ class Controller():
         self._audio_engine.sync_call_post_action(action.__name__, args)
 
     def play(self):
+        if self._session.is_playback_active():
+            self._check_update_random_seed()
         self._reset_with_post_action(self._play)
 
     def _play(self):
@@ -237,6 +251,8 @@ class Controller():
         self._session.set_playback_active(True)
 
     def play_pattern(self, pattern_instance):
+        if self._session.is_playback_active():
+            self._check_update_random_seed()
         self._reset_with_post_action(self._play_pattern, pattern_instance)
 
     def _play_pattern(self, pattern_instance):
@@ -256,6 +272,8 @@ class Controller():
         self._session.set_playback_active(True)
 
     def play_from_cursor(self, pattern_instance, row_ts):
+        if self._session.is_playback_active():
+            self._check_update_random_seed()
         self._reset_with_post_action(self._play_from_cursor, pattern_instance, row_ts)
 
     def _play_from_cursor(self, pattern_instance, row_ts):
@@ -279,6 +297,10 @@ class Controller():
 
     def silence(self):
         self._reset_with_post_action(self._silence)
+
+        if self._session.is_playback_active():
+            self._check_update_random_seed()
+
         self._session.set_playback_active(False)
 
     def _silence(self):

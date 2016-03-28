@@ -30,12 +30,13 @@ class Store(MutableMapping):
     def set_audio_engine(self, audio_engine):
         self._audio_engine = audio_engine
 
-    def put(self, transaction):
+    def put(self, transaction, mark_modified=True):
         assert not self._is_saving
         transaction_id = self._transaction_ids.next()
         self._audio_engine.set_data(transaction_id, transaction)
         self._pending_validation.append((transaction_id, transaction))
-        self._is_modified = True
+        if mark_modified:
+            self._is_modified = True
 
     def flush(self, callback):
         transaction_id = self._transaction_ids.next()

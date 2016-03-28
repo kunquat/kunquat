@@ -270,11 +270,11 @@ bool parse_data(Handle* handle, const char* key, const void* data, long length)
 }
 
 
-static bool read_composition(Reader_params* params)
+static bool read_mixing_volume(Reader_params* params)
 {
     assert(params != NULL);
 
-    if (!Module_parse_composition(Handle_get_module(params->handle), params->sr))
+    if (!Module_read_mixing_volume(Handle_get_module(params->handle), params->sr))
     {
         set_error(params);
         return false;

@@ -50,8 +50,52 @@ class Module():
     def get_title(self):
         return self._store.get('m_title.json')
 
+    def set_title(self, title):
+        self._store['m_title.json'] = title
+
     def get_name(self):
         return self.get_title()
+
+    def _get_authors(self):
+        return self._store.get('m_authors.json', [])
+
+    def get_author_count(self):
+        return len(self._get_authors())
+
+    def get_author(self, index):
+        return self._get_authors()[index]
+
+    def set_author(self, index, name):
+        authors = self._get_authors()
+        if name:
+            if index == len(authors):
+                authors.append(name)
+            else:
+                authors[index] = name
+        else:
+            if index < len(authors):
+                del authors[index]
+        self._store['m_authors.json'] = authors
+
+    def get_mixing_volume(self):
+        key = 'p_mixing_volume.json'
+        return self._store.get(key, get_default_value(key))
+
+    def set_mixing_volume(self, volume):
+        self._store['p_mixing_volume.json'] = volume
+
+    def get_random_seed(self):
+        key = 'p_random_seed.json'
+        return self._store.get(key, get_default_value(key))
+
+    def set_random_seed(self, value):
+        self._store['p_random_seed.json'] = value
+
+    def get_random_seed_auto_update(self):
+        return self._store.get('i_random_seed_auto_update.json', False)
+
+    def set_random_seed_auto_update(self, enabled):
+        self._store['i_random_seed_auto_update.json'] = enabled
 
     def get_control_ids(self):
         key = 'p_control_map.json'
@@ -247,6 +291,7 @@ class Module():
 
     def finalise_create_sandbox(self):
         yield # make this a generator
+        self._store['i_random_seed_auto_update.json'] = True
         self._store.clear_modified_flag()
 
     def execute_create_sandbox(self, task_executer):

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -79,6 +79,17 @@ Module* new_Module(void);
  * \return   \c true if successful, otherwise \c false.
  */
 bool Module_parse_composition(Module* module, Streader* sr);
+
+
+/**
+ * Read the mixing volume of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ * \param sr       The Streader of the JSON input -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Module_read_mixing_volume(Module* module, Streader* sr);
 
 
 /**

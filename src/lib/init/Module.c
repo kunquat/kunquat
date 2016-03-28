@@ -124,42 +124,7 @@ Module* new_Module(void)
 }
 
 
-typedef struct mod_params
-{
-    double mix_vol;
-} mod_params;
-
-static bool read_mod_param(Streader* sr, const char* key, void* userdata)
-{
-    assert(sr != NULL);
-    assert(key != NULL);
-    assert(userdata != NULL);
-
-    mod_params* mp = userdata;
-
-    if (string_eq(key, "mix_vol"))
-    {
-        if (!Streader_read_float(sr, &mp->mix_vol))
-            return false;
-
-        if (!isfinite(mp->mix_vol) && mp->mix_vol != -INFINITY)
-        {
-            Streader_set_error(sr,
-                     "Invalid mixing volume: %f", mp->mix_vol);
-            return false;
-        }
-    }
-    else
-    {
-        Streader_set_error(sr,
-                 "Unrecognised key in composition info: %s", key);
-        return false;
-    }
-
-    return true;
-}
-
-bool Module_parse_composition(Module* module, Streader* sr)
+bool Module_read_mixing_volume(Module* module, Streader* sr)
 {
     assert(module != NULL);
     assert(sr != NULL);
@@ -167,18 +132,21 @@ bool Module_parse_composition(Module* module, Streader* sr)
     if (Streader_is_error_set(sr))
         return false;
 
-    mod_params* mp = &(mod_params)
-    {
-        .mix_vol = COMP_DEFAULT_MIX_VOL,
-    };
+    double mix_vol = COMP_DEFAULT_MIX_VOL;
 
     if (Streader_has_data(sr))
     {
-        if (!Streader_read_dict(sr, read_mod_param, mp))
+        if (!Streader_read_float(sr, &mix_vol))
             return false;
+
+        if (!isfinite(mix_vol) && mix_vol != -INFINITY)
+        {
+            Streader_set_error(sr, "Invalid mixing volume: %s", mix_vol);
+            return false;
+        }
     }
 
-    module->mix_vol_dB = mp->mix_vol;
+    module->mix_vol_dB = mix_vol;
     module->mix_vol = exp2(module->mix_vol_dB / 6);
 
     return true;
