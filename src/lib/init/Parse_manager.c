@@ -1466,23 +1466,29 @@ static bool read_pat_instance_manifest(Reader_params* params)
 }
 
 
-static bool read_scale(Reader_params* params)
+static bool read_tuning_table(Reader_params* params)
 {
     assert(params != NULL);
 
     const int32_t index = params->indices[0];
 
-    if (index < 0 || index >= KQT_SCALES_MAX)
+    if (index < 0 || index >= KQT_TUNING_TABLES_MAX)
         return true;
 
-    Scale* scale = new_Scale_from_string(params->sr);
-    if (scale == NULL)
+    Tuning_table* tt = NULL;
+    if (Streader_has_data(params->sr))
     {
-        set_error(params);
-        return false;
+        tt = new_Tuning_table_from_string(params->sr);
+        if (tt == NULL)
+        {
+            set_error(params);
+            return false;
+        }
     }
 
-    Module_set_scale(Handle_get_module(params->handle), params->indices[0], scale);
+    Module_set_tuning_table(Handle_get_module(params->handle), params->indices[0], tt);
+
+    // TODO: create new tuning states
 
     return true;
 }

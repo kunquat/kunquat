@@ -22,14 +22,10 @@
 #include <init/devices/param_types/Envelope.h>
 #include <init/devices/Proc_table.h>
 #include <init/devices/Processor.h>
-#include <init/Scale.h>
 #include <kunquat/limits.h>
 #include <string/Streader.h>
 
 #include <stdbool.h>
-
-
-#define AU_DEFAULT_SCALE_INDEX (-1)
 
 
 typedef enum

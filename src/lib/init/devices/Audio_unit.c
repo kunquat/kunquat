@@ -78,8 +78,6 @@ struct Audio_unit
     Au_interface* in_iface;
     Connections* connections;
 
-    int scale_index;            ///< The index of the Scale used (-1 means the default).
-
     Au_params params;   ///< All the Audio unit parameters that Processors need.
 
     Proc_table* procs;
@@ -176,8 +174,6 @@ Audio_unit* new_Audio_unit(void)
         Device_set_port_existence(
                 &au->out_iface->parent, DEVICE_PORT_TYPE_RECEIVE, port, true);
     }
-
-    au->scale_index = AU_DEFAULT_SCALE_INDEX;
 
     return au;
 }

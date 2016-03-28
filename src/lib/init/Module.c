@@ -58,8 +58,8 @@ Module* new_Module(void)
     module->ch_defs = NULL;
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
         module->order_lists[i] = NULL;
-    for (int i = 0; i < KQT_SCALES_MAX; ++i)
-        module->scales[i] = NULL;
+    for (int i = 0; i < KQT_TUNING_TABLES_MAX; ++i)
+        module->tuning_tables[i] = NULL;
 
     // Create fields
     module->songs = new_Song_table();
@@ -70,14 +70,6 @@ Module* new_Module(void)
             module->pats == NULL        ||
             module->au_controls == NULL ||
             module->au_table == NULL)
-    {
-        del_Module(module);
-        return NULL;
-    }
-
-    module->scales[0] = new_Scale(SCALE_DEFAULT_REF_PITCH,
-            SCALE_DEFAULT_OCTAVE_RATIO);
-    if (module->scales[0] == NULL)
     {
         del_Module(module);
         return NULL;
@@ -97,22 +89,6 @@ Module* new_Module(void)
     {
         del_Module(module);
         return NULL;
-    }
-
-    if (Scale_ins_note(module->scales[0], 0,
-                       Real_init_as_frac(REAL_AUTO, 1, 1)) < 0)
-    {
-        del_Module(module);
-        return NULL;
-    }
-
-    for (int i = 1; i < 12; ++i)
-    {
-        if (Scale_ins_note_cents(module->scales[0], i, i * 100) < 0)
-        {
-            del_Module(module);
-            return NULL;
-        }
     }
 
     module->mix_vol_dB = COMP_DEFAULT_MIX_VOL;
@@ -418,65 +394,24 @@ void Module_set_bind(Module* module, Bind* bind)
 }
 
 
-Scale* Module_get_scale(Module* module, int index)
+const Tuning_table* Module_get_tuning_table(const Module* module, int index)
 {
     assert(module != NULL);
     assert(index >= 0);
-    assert(index < KQT_SCALES_MAX);
+    assert(index < KQT_TUNING_TABLES_MAX);
 
-    return module->scales[index];
+    return module->tuning_tables[index];
 }
 
 
-void Module_set_scale(Module* module, int index, Scale* scale)
+void Module_set_tuning_table(Module* module, int index, Tuning_table* tt)
 {
     assert(module != NULL);
     assert(index >= 0);
-    assert(index < KQT_SCALES_MAX);
-    assert(scale != NULL);
+    assert(index < KQT_TUNING_TABLES_MAX);
 
-    if (module->scales[index] != NULL &&
-            module->scales[index] != scale)
-        del_Scale(module->scales[index]);
-
-    module->scales[index] = scale;
-
-    return;
-}
-
-
-bool Module_create_scale(Module* module, int index)
-{
-    assert(module != NULL);
-    assert(index >= 0);
-    assert(index < KQT_SCALES_MAX);
-
-    if (module->scales[index] != NULL)
-    {
-        Scale_clear(module->scales[index]);
-        return true;
-    }
-
-    module->scales[index] = new_Scale(SCALE_DEFAULT_REF_PITCH,
-            SCALE_DEFAULT_OCTAVE_RATIO);
-    if (module->scales[index] == NULL)
-        return false;
-
-    return true;
-}
-
-
-void Module_remove_scale(Module* module, int index)
-{
-    assert(module != NULL);
-    assert(index >= 0);
-    assert(index < KQT_SCALES_MAX);
-
-    if (module->scales[index] != NULL)
-    {
-        del_Scale(module->scales[index]);
-        module->scales[index] = NULL;
-    }
+    del_Tuning_table(module->tuning_tables[index]);
+    module->tuning_tables[index] = tt;
 
     return;
 }
@@ -500,8 +435,8 @@ void del_Module(Module* module)
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
         del_Order_list(module->order_lists[i]);
 
-    for (int i = 0; i < KQT_SCALES_MAX; ++i)
-        del_Scale(module->scales[i]);
+    for (int i = 0; i < KQT_TUNING_TABLES_MAX; ++i)
+        del_Tuning_table(module->tuning_tables[i]);
 
     del_Bind(module->bind);
 

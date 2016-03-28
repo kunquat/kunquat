@@ -238,7 +238,7 @@ bool v_note_entry(const char* param)
     int64_t ne = -1;
     Streader* sr = init_c_streader(param);
 
-    return Streader_read_int(sr, &ne) && (ne >= 0) && (ne < KQT_SCALE_NOTES);
+    return Streader_read_int(sr, &ne) && (ne >= 0) && (ne < KQT_TUNING_TABLE_NOTES);
 }
 
 
@@ -265,19 +265,6 @@ bool v_pitch(const char* param)
 {
     assert(param != NULL);
     return v_finite_float(param);
-}
-
-
-bool v_scale(const char* param)
-{
-    assert(param != NULL);
-
-    int64_t scale = -1;
-    Streader* sr = init_c_streader(param);
-
-    return Streader_read_int(sr, &scale) &&
-        scale >= 0 &&
-        scale < KQT_SCALES_MAX;
 }
 
 
@@ -350,6 +337,19 @@ bool v_tremolo_depth(const char* param)
     Streader* sr = init_c_streader(param);
 
     return Streader_read_float(sr, &depth) && (depth >= 0) && (depth <= 24);
+}
+
+
+bool v_tuning_table(const char* param)
+{
+    assert(param != NULL);
+
+    int64_t tt_index = -1;
+    Streader* sr = init_c_streader(param);
+
+    return Streader_read_int(sr, &tt_index) &&
+        tt_index >= 0 &&
+        tt_index < KQT_TUNING_TABLES_MAX;
 }
 
 

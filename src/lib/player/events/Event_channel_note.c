@@ -20,7 +20,7 @@
 #include <init/devices/Param_proc_filter.h>
 #include <init/Input_map.h>
 #include <init/Module.h>
-#include <init/Scale.h>
+#include <init/Tuning_table.h>
 #include <kunquat/limits.h>
 #include <mathnum/conversions.h>
 #include <mathnum/Tstamp.h>

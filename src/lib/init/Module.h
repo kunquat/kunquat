@@ -23,12 +23,12 @@
 #include <init/Environment.h>
 #include <init/Input_map.h>
 #include <init/Au_table.h>
-#include <init/Scale.h>
 #include <init/sheet/Channel_defaults_list.h>
 #include <init/sheet/Order_list.h>
 #include <init/sheet/Pat_table.h>
 #include <init/sheet/Song_table.h>
 #include <init/sheet/Track_list.h>
+#include <init/Tuning_table.h>
 #include <kunquat/limits.h>
 #include <string/Streader.h>
 
@@ -51,7 +51,7 @@ struct Module
     Bit_array* au_controls;             ///< Audio unit control existence info.
     Au_table* au_table;                 ///< The Audio units.
     Connections* connections;           ///< Device connections.
-    Scale* scales[KQT_SCALES_MAX];      ///< The Scales.
+    Tuning_table* tuning_tables[KQT_TUNING_TABLES_MAX];
     double mix_vol_dB;                  ///< Mixing volume in dB.
     double mix_vol;                     ///< Mixing volume.
     Environment* env;                   ///< Environment variables.
@@ -183,6 +183,27 @@ bool Module_find_pattern_location(
 const Connections* Module_get_connections(const Module* module);
 
 
+/**
+ * Set a Tuning table in the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ * \param index    The table index -- must be >= 0 and < KQT_TUNING_TABLES_MAX.
+ * \param tt       The Tuning table, or \c NULL.
+ */
+void Module_set_tuning_table(Module* module, int index, Tuning_table* tt);
+
+
+/**
+ * Get a Tuning table of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ * \param index    The table index -- must be >= 0 and < KQT_TUNING_TABLES_MAX.
+ *
+ * \return   The Tuning table, or \c NULL if there is no table at \a index.
+ */
+const Tuning_table* Module_get_tuning_table(const Module* module, int index);
+
+
 /*
  * FIXME: Old interface below, clean up
  */
@@ -298,48 +319,6 @@ Au_table* Module_get_au_table(const Module* module);
  * \param bind     The Bind -- must not be \c NULL.
  */
 void Module_set_bind(Module* module, Bind* bind);
-
-
-/**
- * Set a Scale in the Module.
- *
- * \param module   The Module -- must not be \c NULL.
- * \param index    The Scale index -- must be >= 0 and < KQT_SCALES_MAX.
- * \param scale    The Scale -- must not be \c NULL.
- */
-void Module_set_scale(Module* module, int index, Scale* scale);
-
-
-/**
- * Get a Scale of the Module.
- *
- * \param module   The Module -- must not be \c NULL.
- * \param index    The Scale index -- must be >= 0 and < KQT_SCALES_MAX.
- *
- * \return   The Scale.
- */
-Scale* Module_get_scale(Module* module, int index);
-
-
-/**
- * Create a new Scale for the Module.
- *
- * \param module   The Module -- must not be \c NULL.
- * \param index    The Scale index -- must be >= 0 and < KQT_SCALES_MAX.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Module_create_scale(Module* module, int index);
-
-
-/**
- * Remove a Scale from the Module.
- *
- * \param module   The Module -- must not be \c NULL.
- * \param index    The Scale index -- must be >= 0 and < KQT_SCALES_MAX.
- *                 If the Scale doesn't exist, nothing will be done.
- */
-void Module_remove_scale(Module* module, int index);
 
 
 /**

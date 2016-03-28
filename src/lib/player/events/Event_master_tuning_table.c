@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -23,7 +23,7 @@
 #include <stdlib.h>
 
 
-bool Event_master_set_scale_process(Master_params* master_params, const Value* value)
+bool Event_master_set_tt_process(Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
@@ -39,7 +39,7 @@ bool Event_master_set_scale_process(Master_params* master_params, const Value* v
 }
 
 
-bool Event_master_set_scale_fixed_point_process(
+bool Event_master_set_tt_fixed_point_process(
         Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
@@ -56,7 +56,7 @@ bool Event_master_set_scale_fixed_point_process(
 }
 
 
-bool Event_master_set_scale_offset_process(
+bool Event_master_set_tt_offset_process(
         Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
@@ -81,7 +81,7 @@ bool Event_master_set_scale_offset_process(
 }
 
 
-bool Event_master_mimic_scale_process(
+bool Event_master_mimic_tt_process(
         Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
@@ -107,7 +107,7 @@ bool Event_master_mimic_scale_process(
 }
 
 
-bool Event_master_shift_scale_intervals_process(
+bool Event_master_shift_tt_intervals_process(
         Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);

@@ -15,7 +15,7 @@
 #include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
-#include <init/Scale.h>
+#include <init/Tuning_table.h>
 #include <kunquat/limits.h>
 #include <player/devices/processors/Pitch_state.h>
 #include <player/devices/Voice_state.h>
