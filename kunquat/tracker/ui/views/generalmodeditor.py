@@ -433,7 +433,7 @@ class UInt63SpinBox(QAbstractSpinBox):
 
     def fixup(self, in_qstring):
         if not in_qstring:
-            return u'0'
+            in_qstring.append(u'0')
         return QAbstractSpinBox.fixup(self, in_qstring)
 
     def validate(self, in_qstring, pos):
