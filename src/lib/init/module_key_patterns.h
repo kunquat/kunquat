@@ -82,8 +82,8 @@ MODULE_KEYP(tuning_table, "tuning_XX/p_tuning_table.json",
         "{ \"ref_note\": 0"
         ", \"ref_pitch\": 0"
         ", \"pitch_offset\": 0"
-        ", \"octave_ratio\": [2, 1]"
-        ", \"notes\": []"
+        ", \"octave_width\": [2, 1]"
+        ", \"notes\": [0]"
         "}")
 
 MODULE_KEYP(song_manifest,   "song_XX/p_manifest.json",  "")
