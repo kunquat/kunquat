@@ -23,6 +23,7 @@ from eventlist import EventList
 from connectionswindow import ConnectionsWindow
 from songschannelswindow import SongsChannelsWindow
 from notationwindow import NotationWindow
+from tuningtablewindow import TuningTableWindow
 from envbindwindow import EnvBindWindow
 from generalmodwindow import GeneralModWindow
 from auwindow import AuWindow
@@ -45,6 +46,7 @@ class RootView():
         self._connections = None
         self._songs_channels = None
         self._notation = None
+        self._tuning_tables = {}
         self._env_bind = None
         self._general_mod = None
         self._au_windows = {}
@@ -116,6 +118,14 @@ class RootView():
                 self._notation.set_ui_model(self._ui_model)
                 if is_show_allowed:
                     self._notation.show()
+            elif type(ui) == tuple and ui[0] == UI_TUNING_TABLE:
+                table_id = ui[1]
+                tt_window = TuningTableWindow()
+                tt_window.set_tuning_table_id(table_id)
+                tt_window.set_ui_model(self._ui_model)
+                self._tuning_tables[table_id] = tt_window
+                if is_show_allowed:
+                    self._tuning_tables[table_id].show()
             elif ui == UI_ENV_BIND:
                 self._env_bind = EnvBindWindow()
                 self._env_bind.set_ui_model(self._ui_model)
@@ -187,6 +197,11 @@ class RootView():
                 self._notation.unregister_updaters()
                 self._notation.deleteLater()
                 self._notation = None
+            elif type(ui) == tuple and ui[0] == UI_TUNING_TABLE:
+                table_id = ui[1]
+                tt_window = self._tuning_tables.pop(table_id)
+                tt_window.unregister_updaters()
+                tt_window.deleteLater()
             elif ui == UI_ENV_BIND:
                 self._env_bind.unregister_updaters()
                 self._env_bind.deleteLater()
