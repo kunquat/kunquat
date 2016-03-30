@@ -35,4 +35,12 @@ class TuningTable():
         key = self._get_key('m_name.json')
         self._store[key] = name
 
+    def remove(self):
+        key_prefix = '{}/'.format(self._table_id)
+        transaction = {}
+        for key in self._store:
+            if key.startswith(key_prefix):
+                transaction[key] = None
+        self._store.put(transaction)
+
 
