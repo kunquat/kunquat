@@ -190,9 +190,9 @@ static bool Streader_read_tuning(Streader* sr, double* cents)
         if (!Streader_read_float(sr, cents))
             return false;
 
-        if (!isfinite(*cents) || *cents <= 0)
+        if (!isfinite(*cents))
         {
-            Streader_set_error(sr, "Cents value must be finite and positive");
+            Streader_set_error(sr, "Cents value must be finite");
             return false;
         }
     }
@@ -279,6 +279,12 @@ static bool read_tuning_table_item(Streader* sr, const char* key, void* userdata
         double cents = NAN;
         if (!Streader_read_tuning(sr, &cents))
             return false;
+
+        if (cents <= 0)
+        {
+            Streader_set_error(sr, "Octave width must be positive");
+            return false;
+        }
 
         Tuning_table_set_octave_width(tt, cents);
     }
@@ -401,9 +407,13 @@ static void Tuning_table_set_note_cents(Tuning_table* tt, int index, double cent
     assert(tt != NULL);
     assert(index >= 0);
     assert(index < KQT_TUNING_TABLE_NOTES);
+    assert(index <= tt->note_count);
     assert(isfinite(cents));
 
     tt->note_offsets[index] = cents;
+
+    if (index == tt->note_count)
+        tt->note_count = index + 1;
 
     return;
 }
