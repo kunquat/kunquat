@@ -41,6 +41,9 @@ class TuningTableEditor(QWidget):
         self._octave_width = QLineEdit()
         self._octave_width.setValidator(RatioValidator())
 
+        self._center_octave = QSpinBox()
+        self._center_octave.setRange(0, TUNING_TABLE_OCTAVES - 1)
+
         self._tuning_center = QComboBox()
 
         self._notes = Notes()
@@ -57,8 +60,10 @@ class TuningTableEditor(QWidget):
         gl.addWidget(self._pitch_offset, 2, 1)
         gl.addWidget(QLabel('Octave width:'), 3, 0)
         gl.addWidget(self._octave_width, 3, 1)
-        gl.addWidget(QLabel('Tuning center:'), 4, 0)
-        gl.addWidget(self._tuning_center, 4, 1)
+        gl.addWidget(QLabel('Center octave:'), 4, 0)
+        gl.addWidget(self._center_octave, 4, 1)
+        gl.addWidget(QLabel('Tuning center:'), 5, 0)
+        gl.addWidget(self._tuning_center, 5, 1)
 
         v = QVBoxLayout()
         v.setMargin(0)
@@ -89,6 +94,10 @@ class TuningTableEditor(QWidget):
                 self._octave_width,
                 SIGNAL('editingFinished()'),
                 self._change_octave_width)
+        QObject.connect(
+                self._center_octave,
+                SIGNAL('valueChanged(int)'),
+                self._change_center_octave)
         QObject.connect(
                 self._tuning_center,
                 SIGNAL('currentIndexChanged(int)'),
@@ -153,6 +162,14 @@ class TuningTableEditor(QWidget):
             self._octave_width.setText(octave_width_text)
         self._octave_width.blockSignals(old_block)
 
+        # Center octave
+        center_octave = table.get_center_octave()
+
+        old_block = self._center_octave.blockSignals(True)
+        if self._center_octave.value() != center_octave:
+            self._center_octave.setValue(center_octave)
+        self._center_octave.blockSignals(old_block)
+
         # Tuning center
         ref_note_index = table.get_ref_note_index()
 
@@ -190,6 +207,11 @@ class TuningTableEditor(QWidget):
 
         table = self._get_tuning_table()
         table.set_octave_width(octave_width)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _change_center_octave(self, index):
+        table = self._get_tuning_table()
+        table.set_center_octave(index)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _change_tuning_center(self, center):

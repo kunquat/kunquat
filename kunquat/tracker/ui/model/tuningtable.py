@@ -81,6 +81,14 @@ class TuningTable():
         table['octave_width'] = octave_width
         self._set_table(table)
 
+    def get_center_octave(self):
+        return self._get_table()['center_octave']
+
+    def set_center_octave(self, index):
+        table = deepcopy(self._get_table())
+        table['center_octave'] = index
+        self._set_table(table)
+
     def get_note_count(self):
         return len(self._get_table()['notes'])
 
