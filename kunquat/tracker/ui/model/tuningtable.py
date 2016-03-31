@@ -149,6 +149,8 @@ class TuningTable():
         self._set_note_names(names)
 
     def remove(self):
+        self.set_selected_note(None)
+
         key_prefix = '{}/'.format(self._table_id)
         transaction = {}
         for key in self._store:
