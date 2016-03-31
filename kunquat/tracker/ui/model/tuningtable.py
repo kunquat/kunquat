@@ -11,6 +11,10 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from copy import deepcopy
+
+from kunquat.kunquat.kunquat import get_default_value
+
 
 class TuningTable():
 
@@ -34,6 +38,89 @@ class TuningTable():
     def set_name(self, name):
         key = self._get_key('m_name.json')
         self._store[key] = name
+
+    def _get_table(self):
+        key = self._get_key('p_tuning_table.json')
+        return self._store.get(key, get_default_value(key))
+
+    def _set_table(self, table):
+        key = self._get_key('p_tuning_table.json')
+        self._store[key] = table
+
+    def get_ref_note_index(self):
+        return self._get_table()['ref_note']
+
+    def set_ref_note_index(self, index):
+        table = deepcopy(self._get_table())
+        table['ref_note'] = index
+        self._set_table(table)
+
+    def get_ref_pitch(self):
+        return self._get_table()['ref_pitch']
+
+    def set_ref_pitch(self, pitch):
+        table = deepcopy(self._get_table())
+        table['ref_pitch'] = pitch
+        self._set_table(table)
+
+    def get_pitch_offset(self):
+        return self._get_table()['pitch_offset']
+
+    def set_pitch_offset(self, offset):
+        table = deepcopy(self._get_table())
+        table['pitch_offset'] = offset
+        self._set_table(table)
+
+    def get_octave_width(self):
+        return self._get_table()['octave_width']
+
+    def set_octave_width(self, octave_width):
+        table = deepcopy(self._get_table())
+        table['octave_width'] = octave_width
+        self._set_table(table)
+
+    def get_note_count(self):
+        return len(self._get_table()['notes'])
+
+    def _get_note_names(self):
+        key = self._get_key('m_note_names.json')
+        return self._store[key]
+
+    def _set_note_names(self, names):
+        key = self._get_key('m_note_names.json')
+        self._store[key] = names
+
+    def add_note(self):
+        table = deepcopy(self._get_table())
+        table['notes'].append(0)
+        note_count = len(table['notes'])
+
+        names = deepcopy(self._get_note_names())
+        if len(names) < note_count:
+            names.extend([''] * (note_count - len(names)))
+        names[note_count] = '(n)'
+
+        self._set_table(table)
+        self._set_note_names(names)
+
+    def remove_note(self, index):
+        table = deepcopy(self._get_table())
+        del table['notes'][index]
+
+        names = deepcopy(self._get_note_names())
+        if index < len(names):
+            del names[index]
+
+        self._set_table(table)
+        self._set_note_names(names)
+
+    def get_note_pitch(self, index):
+        return self._get_table()['notes'][index]
+
+    def set_note_pitch(self, index, pitch):
+        table = deepcopy(self._get_table())
+        table['notes'][index] = pitch
+        self._set_table(table)
 
     def remove(self):
         key_prefix = '{}/'.format(self._table_id)
