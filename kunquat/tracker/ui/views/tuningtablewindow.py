@@ -41,6 +41,7 @@ class TuningTableWindow(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._editor.set_ui_model(ui_model)
+
         self._update_title()
 
     def unregister_updaters(self):
@@ -48,10 +49,18 @@ class TuningTableWindow(QWidget):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        pass # TODO
+        if 'signal_tuning_tables' in signals:
+            self._update_title()
 
     def _update_title(self):
-        pass # TODO
+        module = self._ui_model.get_module()
+        table = module.get_tuning_table(self._table_id)
+        name = table.get_name()
+        if name:
+            title = u'{} – Kunquat Tracker'.format(name)
+        else:
+            title = u'Kunquat Tracker'
+        self.setWindowTitle(title)
 
     def closeEvent(self, event):
         event.ignore()
