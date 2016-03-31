@@ -29,7 +29,7 @@ typedef struct Tuning_state
     int ref_note;
     double global_offset;
     double drift;
-    double note_offsets[KQT_TUNING_TABLE_NOTES];
+    double note_offsets[KQT_TUNING_TABLE_NOTES_MAX];
 } Tuning_state;
 
 

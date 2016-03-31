@@ -104,7 +104,7 @@ static bool Tuning_table_build_pitch_map(Tuning_table* tt)
  *
  * \param tt      The Tuning table -- must not be \c NULL.
  * \param index   The index of the note to be set -- must be >= \c 0 and
- *                < \c KQT_TUNING_TABLE_NOTES.
+ *                < \c KQT_TUNING_TABLE_NOTES_MAX.
  * \param cents   The pitch ratio between the new note and reference pitch
  *                in cents -- must be a finite value.
  *
@@ -206,7 +206,7 @@ static bool read_note(Streader* sr, int32_t index, void* userdata)
     assert(sr != NULL);
     assert(userdata != NULL);
 
-    if (index >= KQT_TUNING_TABLE_NOTES)
+    if (index >= KQT_TUNING_TABLE_NOTES_MAX)
     {
         Streader_set_error(sr, "Too many notes in the tuning table");
         return false;
@@ -237,7 +237,7 @@ static bool read_tuning_table_item(Streader* sr, const char* key, void* userdata
         if (!Streader_read_int(sr, &num))
             return false;
 
-        if (num < 0 || num >= KQT_TUNING_TABLE_NOTES)
+        if (num < 0 || num >= KQT_TUNING_TABLE_NOTES_MAX)
         {
             Streader_set_error(
                      sr, "Invalid reference note number: %" PRId64, num);
@@ -290,7 +290,7 @@ static bool read_tuning_table_item(Streader* sr, const char* key, void* userdata
     }
     else if (string_eq(key, "notes"))
     {
-        for (int i = 0; i < KQT_TUNING_TABLE_NOTES; ++i)
+        for (int i = 0; i < KQT_TUNING_TABLE_NOTES_MAX; ++i)
             tt->note_offsets[i] = NAN;
 
         if (!Streader_read_list(sr, read_note, tt))
@@ -406,7 +406,7 @@ static void Tuning_table_set_note_cents(Tuning_table* tt, int index, double cent
 {
     assert(tt != NULL);
     assert(index >= 0);
-    assert(index < KQT_TUNING_TABLE_NOTES);
+    assert(index < KQT_TUNING_TABLE_NOTES_MAX);
     assert(index <= tt->note_count);
     assert(isfinite(cents));
 
@@ -436,7 +436,7 @@ double Tuning_table_get_pitch(Tuning_table* tt, int index, int octave)
     Real final_ratio;
     assert(tt != NULL);
     assert(index >= 0);
-    assert(index < KQT_TUNING_TABLE_NOTES);
+    assert(index < KQT_TUNING_TABLE_NOTES_MAX);
     assert(octave >= 0);
     assert(octave < KQT_TUNING_TABLE_OCTAVES);
 
@@ -522,15 +522,15 @@ double Tuning_table_get_pitch_from_cents(Tuning_table* tt, double cents)
 void Tuning_table_retune(Tuning_table* tt, int new_ref, int fixed_point)
 {
     assert(tt != NULL);
-    assert(new_ref < KQT_TUNING_TABLE_NOTES);
+    assert(new_ref < KQT_TUNING_TABLE_NOTES_MAX);
     assert(fixed_point >= 0);
-    assert(fixed_point < KQT_TUNING_TABLE_NOTES);
+    assert(fixed_point < KQT_TUNING_TABLE_NOTES_MAX);
 
     if (new_ref < 0)
     {
         // reset to original
         tt->ref_note_retuned = tt->ref_note;
-        for (int i = 0; (i < KQT_TUNING_TABLE_NOTES) && NOTE_EXISTS(tt, i); ++i)
+        for (int i = 0; (i < KQT_TUNING_TABLE_NOTES_MAX) && NOTE_EXISTS(tt, i); ++i)
         {
             Real_copy(&(tt->notes[i].ratio_retuned),
                       &(tt->notes[i].ratio));
@@ -574,7 +574,7 @@ void Tuning_table_retune(Tuning_table* tt, int new_ref, int fixed_point)
                  &(tt->octave_ratio));
     }
 
-    static Real new_notes[KQT_TUNING_TABLE_NOTES];
+    static Real new_notes[KQT_TUNING_TABLE_NOTES_MAX];
     Real_div(&(new_notes[new_ref]),
              &(tt->notes[fixed_point].ratio_retuned),
              &fixed_to_new_ref_ratio);

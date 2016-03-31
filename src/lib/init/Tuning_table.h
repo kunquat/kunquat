@@ -37,7 +37,7 @@ struct Tuning_table
     double octave_width;
     double octave_offsets[KQT_TUNING_TABLE_OCTAVES];
 
-    double note_offsets[KQT_TUNING_TABLE_NOTES];
+    double note_offsets[KQT_TUNING_TABLE_NOTES_MAX];
 
     AAtree* pitch_map;
 };

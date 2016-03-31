@@ -34,7 +34,7 @@ Tuning_state* new_Tuning_state(void)
     ts->ref_note = 0;
     ts->global_offset = 0;
     ts->drift = 0;
-    for (int i = 0; i < KQT_TUNING_TABLE_NOTES; ++i)
+    for (int i = 0; i < KQT_TUNING_TABLE_NOTES_MAX; ++i)
         ts->note_offsets[i] = 0;
 
     return ts;
@@ -96,7 +96,7 @@ void Tuning_state_retune(
     const double octave_width = Tuning_table_get_octave_width(table);
 
     // Get our current intervals
-    double intervals[KQT_TUNING_TABLE_NOTES] = { 0 };
+    double intervals[KQT_TUNING_TABLE_NOTES_MAX] = { 0 };
     for (int i = 0; i < note_count - 1; ++i)
         intervals[i] = ts->note_offsets[i + 1] - ts->note_offsets[i];
     intervals[note_count - 1] =

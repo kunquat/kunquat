@@ -238,7 +238,7 @@ bool v_note_entry(const char* param)
     int64_t ne = -1;
     Streader* sr = init_c_streader(param);
 
-    return Streader_read_int(sr, &ne) && (ne >= 0) && (ne < KQT_TUNING_TABLE_NOTES);
+    return Streader_read_int(sr, &ne) && (ne >= 0) && (ne < KQT_TUNING_TABLE_NOTES_MAX);
 }
 
 
