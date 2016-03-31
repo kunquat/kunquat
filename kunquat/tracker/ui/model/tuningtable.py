@@ -21,12 +21,14 @@ class TuningTable():
     def __init__(self, table_id):
         self._controller = None
         self._store = None
+        self._session = None
 
         self._table_id = table_id
 
     def set_controller(self, controller):
         self._controller = controller
         self._store = controller.get_store()
+        self._session = controller.get_session()
 
     def _get_key(self, subkey):
         return '{}/{}'.format(self._table_id, subkey)
@@ -90,6 +92,12 @@ class TuningTable():
         key = self._get_key('m_note_names.json')
         self._store[key] = names
 
+    def set_selected_note(self, index):
+        self._session.set_tuning_table_selected_note(self._table_id, index)
+
+    def get_selected_note(self):
+        return self._session.get_tuning_table_selected_note(self._table_id)
+
     def add_note(self):
         table = deepcopy(self._get_table())
         table['notes'].append(0)
@@ -98,7 +106,7 @@ class TuningTable():
         names = deepcopy(self._get_note_names())
         if len(names) < note_count:
             names.extend([''] * (note_count - len(names)))
-        names[note_count] = '(n)'
+        names[note_count - 1] = '(n)'
 
         self._set_table(table)
         self._set_note_names(names)
@@ -106,6 +114,9 @@ class TuningTable():
     def remove_note(self, index):
         table = deepcopy(self._get_table())
         del table['notes'][index]
+
+        if table['ref_note'] >= index:
+            table['ref_note'] = max(0, table['ref_note'] - 1)
 
         names = deepcopy(self._get_note_names())
         if index < len(names):

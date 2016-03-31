@@ -11,9 +11,12 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import re
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from kunquat.kunquat.limits import *
 from notationeditor import RatioValidator
 
 
@@ -236,17 +239,43 @@ class NotesToolBar(QToolBar):
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
+    def _get_update_signal_type(self):
+        return 'signal_tuning_table_{}'.format(self._table_id)
+
+    def _get_selection_signal_type(self):
+        return 'signal_tuning_table_note_selection_{}'.format(self._table_id)
+
     def _perform_updates(self, signals):
-        pass # TODO
+        update_signals = set([
+            self._get_update_signal_type(), self._get_selection_signal_type()])
+        if not signals.isdisjoint(update_signals):
+            self._update_enabled()
+
+    def _get_tuning_table(self):
+        module = self._ui_model.get_module()
+        return module.get_tuning_table(self._table_id)
 
     def _update_enabled(self):
-        pass # TODO
+        table = self._get_tuning_table()
+        note_count = table.get_note_count()
+        self._add_button.setEnabled(note_count < TUNING_TABLE_NOTES_MAX)
+        self._remove_button.setEnabled(
+                note_count > 1 and table.get_selected_note() != None)
 
     def _add_note(self):
-        pass # TODO
+        table = self._get_tuning_table()
+        table.add_note()
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _remove_note(self):
-        pass # TODO
+        table = self._get_tuning_table()
+        coords = table.get_selected_note()
+        selected_index, _ = coords
+        if selected_index != None:
+            table.remove_note(selected_index)
+            table.set_selected_note((max(0, selected_index - 1), coords[1]))
+            self._updater.signal_update(set([
+                self._get_update_signal_type(), self._get_selection_signal_type()]))
 
 
 class NoteTableModel(QAbstractTableModel):
@@ -270,8 +299,24 @@ class NoteTableModel(QAbstractTableModel):
     def unregister_updaters(self):
         pass
 
+    def get_index(self, row, column):
+        return self.createIndex(row, column, None)
+
+    def _get_update_signal_type(self):
+        return 'signal_tuning_table_{}'.format(self._table_id)
+
+    def _get_tuning_table(self):
+        module = self._ui_model.get_module()
+        return module.get_tuning_table(self._table_id)
+
     def _make_items(self):
-        pass # TODO
+        table = self._get_tuning_table()
+
+        self._items = []
+        for i in xrange(table.get_note_count()):
+            name = table.get_note_name(i)
+            pitch = table.get_note_pitch(i)
+            self._items.append((name, pitch))
 
     # Qt interface
 
@@ -291,9 +336,14 @@ class NoteTableModel(QAbstractTableModel):
             column = index.column()
             if 0 <= row < len(self._items):
                 if column == 0:
-                    pass # TODO
+                    name, _ = self._items[row]
+                    return QVariant(name)
                 elif column == 1:
-                    pass # TODO
+                    _, pitch = self._items[row]
+                    if isinstance(pitch, list):
+                        return QVariant('{}/{}'.format(*pitch))
+                    else:
+                        return QVariant(str(pitch))
 
         return QVariant()
 
@@ -314,15 +364,43 @@ class NoteTableModel(QAbstractTableModel):
 
         return default_flags | Qt.ItemIsEditable
 
+    def _get_validated_pitch(self, text):
+        if '/' in text:
+            if re.match('[0-9]+/[0-9]+$', text):
+                parts = unicode(text).split('/')
+                nums = [int(part) for part in parts]
+                if nums[0] <= 0:
+                    return None
+                if nums[1] <= 0:
+                    return None
+                return nums
+        else:
+            try:
+                value = float(text)
+            except ValueError:
+                return None
+            return value
+        return None
+
     def setData(self, index, value, role):
         if role == Qt.EditRole:
             row = index.row()
             column = index.column()
             if 0 <= row < len(self._items):
                 if column == 0:
-                    pass # TODO
+                    new_name = unicode(value.toString())
+                    table = self._get_tuning_table()
+                    table.set_note_name(row, new_name)
+                    self._updater.signal_update(set([self._get_update_signal_type()]))
+                    return True
                 elif column == 1:
-                    pass # TODO
+                    new_pitch = self._get_validated_pitch(unicode(value.toString()))
+                    if new_pitch == None:
+                        return False
+                    table = self._get_tuning_table()
+                    table.set_note_pitch(row, new_pitch)
+                    self._updater.signal_update(set([self._get_update_signal_type()]))
+                    return True
 
         return False
 
@@ -350,19 +428,36 @@ class NoteTableView(QTableView):
     def unregister_updaters(self):
         pass
 
+    def _get_update_signal_type(self):
+        return 'signal_tuning_table_{}'.format(self._table_id)
+
+    def _get_selection_signal_type(self):
+        return 'signal_tuning_table_note_selection_{}'.format(self._table_id)
+
+    def _get_tuning_table(self):
+        module = self._ui_model.get_module()
+        return module.get_tuning_table(self._table_id)
+
     def _select_entry(self, cur_index, prev_index):
         if not cur_index.isValid():
             return
         row, column = cur_index.row(), cur_index.column()
 
-        # TODO
+        table = self._get_tuning_table()
+        table.set_selected_note((row, column))
+        self._updater.signal_update(set([self._get_selection_signal_type()]))
 
     def setModel(self, model):
         QTableView.setModel(self, model)
 
         selection_model = self.selectionModel()
 
-        # TODO: Refresh selection
+        table = self._get_tuning_table()
+        coords = table.get_selected_note()
+        if coords:
+            row, column = coords
+            selection_model.select(
+                    model.get_index(row, column), QItemSelectionModel.Select)
 
         QObject.connect(
                 selection_model,
@@ -409,8 +504,11 @@ class Notes(QWidget):
         self._toolbar.unregister_updaters()
         self._updater.unregister_updater(self._perform_updates)
 
+    def _get_update_signal_type(self):
+        return 'signal_tuning_table_{}'.format(self._table_id)
+
     def _perform_updates(self, signals):
-        if 'signal_tuning_table' in signals:
+        if self._get_update_signal_type() in signals:
             self._update_model()
 
     def _update_model(self):

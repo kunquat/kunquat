@@ -37,6 +37,7 @@ class Session():
         self._notation_editor_selected_key_index = None
         self._notation_editor_selected_template_note = None
         self._notation_editor_selected_tuning_table_id = None
+        self._tuning_table_selected_notes = {}
         self._control_id_override = None
         # TODO: get default control ids from libkunquat?
         self._channel_selected_control_id = defaultdict(lambda: 0)
@@ -213,6 +214,12 @@ class Session():
 
     def set_notation_editor_selected_tuning_table_id(self, table_id):
         self._notation_editor_selected_tuning_table_id = table_id
+
+    def get_tuning_table_selected_note(self, table_id):
+        return self._tuning_table_selected_notes.get(table_id, None)
+
+    def set_tuning_table_selected_note(self, table_id, index):
+        self._tuning_table_selected_notes[table_id] = index
 
     def get_control_id_override(self):
         return self._control_id_override
