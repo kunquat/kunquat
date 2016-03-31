@@ -122,6 +122,21 @@ class TuningTable():
         table['notes'][index] = pitch
         self._set_table(table)
 
+    def get_note_name(self, index):
+        names = self._get_note_names()
+        if index >= len(names):
+            return u''
+        return names[index]
+
+    def set_note_name(self, index, name):
+        names = deepcopy(self._get_note_names())
+
+        if len(names) <= index:
+            names.extend([''] * (index + 1 - len(names)))
+        names[index] = name
+
+        self._set_note_names(names)
+
     def remove(self):
         key_prefix = '{}/'.format(self._table_id)
         transaction = {}

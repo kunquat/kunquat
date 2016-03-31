@@ -14,6 +14,8 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from notationeditor import RatioValidator
+
 
 class TuningTableEditor(QWidget):
 
@@ -34,6 +36,9 @@ class TuningTableEditor(QWidget):
         self._pitch_offset.setRange(-9999, 9999)
 
         self._octave_width = QLineEdit()
+        self._octave_width.setValidator(RatioValidator())
+
+        self._tuning_center = QComboBox()
 
         self._notes = Notes()
 
@@ -49,6 +54,8 @@ class TuningTableEditor(QWidget):
         gl.addWidget(self._pitch_offset, 2, 1)
         gl.addWidget(QLabel('Octave width:'), 3, 0)
         gl.addWidget(self._octave_width, 3, 1)
+        gl.addWidget(QLabel('Tuning center:'), 4, 0)
+        gl.addWidget(self._tuning_center, 4, 1)
 
         v = QVBoxLayout()
         v.setMargin(0)
@@ -69,6 +76,20 @@ class TuningTableEditor(QWidget):
 
         QObject.connect(
                 self._name, SIGNAL('textChanged(const QString&)'), self._change_name)
+        QObject.connect(
+                self._ref_pitch, SIGNAL('valueChanged(double)'), self._change_ref_pitch)
+        QObject.connect(
+                self._pitch_offset,
+                SIGNAL('valueChanged(double)'),
+                self._change_pitch_offset)
+        QObject.connect(
+                self._octave_width,
+                SIGNAL('editingFinished()'),
+                self._change_octave_width)
+        QObject.connect(
+                self._tuning_center,
+                SIGNAL('currentIndexChanged(int)'),
+                self._change_tuning_center)
 
         self._update_name()
         self._update_params()
@@ -100,13 +121,78 @@ class TuningTableEditor(QWidget):
 
     def _update_params(self):
         table = self._get_tuning_table()
-        # TODO
+
+        # Reference pitch
+        ref_pitch = table.get_ref_pitch()
+
+        old_block = self._ref_pitch.blockSignals(True)
+        if self._ref_pitch.value() != ref_pitch:
+            self._ref_pitch.setValue(ref_pitch)
+        self._ref_pitch.blockSignals(old_block)
+
+        # Global pitch offset
+        pitch_offset = table.get_pitch_offset()
+
+        old_block = self._pitch_offset.blockSignals(True)
+        if self._pitch_offset.value() != pitch_offset:
+            self._pitch_offset.setValue(pitch_offset)
+        self._pitch_offset.blockSignals(old_block)
+
+        # Octave width
+        octave_width = table.get_octave_width()
+        if isinstance(octave_width, list):
+            octave_width_text = u'{}/{}'.format(*octave_width)
+        else:
+            octave_width_text = u'{}'.format(octave_width)
+
+        old_block = self._octave_width.blockSignals(True)
+        if self._octave_width.text() != octave_width_text:
+            self._octave_width.setText(octave_width_text)
+        self._octave_width.blockSignals(old_block)
+
+        # Tuning center
+        ref_note_index = table.get_ref_note_index()
+
+        old_block = self._tuning_center.blockSignals(True)
+        self._tuning_center.clear()
+        for i in xrange(table.get_note_count()):
+            note_name = table.get_note_name(i)
+            self._tuning_center.addItem(note_name)
+        self._tuning_center.setCurrentIndex(ref_note_index)
+        self._tuning_center.blockSignals(old_block)
 
     def _change_name(self, name_qstring):
         name = unicode(name_qstring)
         table = self._get_tuning_table()
         table.set_name(name)
         self._updater.signal_update(set(['signal_tuning_tables']))
+
+    def _change_ref_pitch(self, pitch):
+        table = self._get_tuning_table()
+        table.set_ref_pitch(pitch)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _change_pitch_offset(self, offset):
+        table = self._get_tuning_table()
+        table.set_pitch_offset(offset)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _change_octave_width(self):
+        text = unicode(self._octave_width.text())
+        if '/' in text:
+            parts = text.split('/')
+            octave_width = [int(part) for part in parts]
+        else:
+            octave_width = float(text)
+
+        table = self._get_tuning_table()
+        table.set_octave_width(octave_width)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _change_tuning_center(self, center):
+        table = self._get_tuning_table()
+        table.set_ref_note_index(center)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
 class NotesToolBar(QToolBar):
