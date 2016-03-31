@@ -12,6 +12,7 @@
 #
 
 from copy import deepcopy
+import math
 
 from kunquat.kunquat.kunquat import get_default_value
 
@@ -164,6 +165,44 @@ class TuningTable():
         for key in self._store:
             if key.startswith(key_prefix):
                 transaction[key] = None
+        self._store.put(transaction)
+
+    def apply_notation_template(self, notation_name, template):
+        # Get general parameters
+        ref_note_index = 0
+        center_pitch_value, units = template.get_center_pitch()
+        if units == 'cents':
+            ref_pitch = center_pitch_value
+        elif units == 'Hz':
+            ref_pitch = math.log(center_pitch_value / 440.0, 2) * 1200
+        else:
+            assert False
+        pitch_offset = 0
+        octave_width = template.get_octave_ratio()
+        _, center_octave, _ = template.get_octaves()
+
+        # Get notes
+        notes = []
+        for i in xrange(template.get_note_count()):
+            notes.append((template.get_note_name(i), template.get_note_ratio(i)))
+
+        # Make data
+        table = {}
+        table['ref_note'] = ref_note_index
+        table['ref_pitch'] = ref_pitch
+        table['pitch_offset'] = pitch_offset
+        table['octave_width'] = octave_width
+        table['center_octave'] = center_octave
+        table['notes'] = [pitch for _, pitch in notes]
+
+        note_names = [name for name, _ in notes]
+
+        # Apply transaction
+        transaction = {
+            self._get_key('p_tuning_table.json'): table,
+            self._get_key('m_name.json')        : notation_name,
+            self._get_key('m_note_names.json')  : note_names,
+        }
         self._store.put(transaction)
 
 

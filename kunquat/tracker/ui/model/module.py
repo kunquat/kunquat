@@ -311,6 +311,13 @@ class Module():
         }
         self._store.put(transaction)
 
+    def create_tuning_table_from_notation_template(
+            self, table_id, name, notation_template):
+        assert table_id not in self.get_tuning_table_ids()
+        tt = TuningTable(table_id)
+        tt.set_controller(self._controller)
+        tt.apply_notation_template(name, notation_template)
+
     def get_tuning_table(self, table_id):
         tt = TuningTable(table_id)
         tt.set_controller(self._controller)

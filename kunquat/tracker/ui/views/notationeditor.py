@@ -604,6 +604,7 @@ class Template(QWidget):
         self._octaves = TemplateOctaves()
         self._notes = TemplateNotes()
         self._create_button = QPushButton('Create notation and keymap')
+        self._create_tt_button = QPushButton('Create tuning table')
 
         v = QVBoxLayout()
         v.setMargin(0)
@@ -614,6 +615,7 @@ class Template(QWidget):
         v.addWidget(self._octaves)
         v.addWidget(self._notes)
         v.addWidget(self._create_button)
+        v.addWidget(self._create_tt_button)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
@@ -626,6 +628,8 @@ class Template(QWidget):
         self._notes.set_ui_model(ui_model)
 
         QObject.connect(self._create_button, SIGNAL('clicked()'), self._create)
+        QObject.connect(
+                self._create_tt_button, SIGNAL('clicked()'), self._create_tuning_table)
 
         self._update_enabled()
 
@@ -640,7 +644,8 @@ class Template(QWidget):
         update_signals = set([
             'signal_notation_list',
             'signal_notation_editor_selection',
-            'signal_notation_template_notes'])
+            'signal_notation_template_notes',
+            'signal_tuning_tables'])
         if not signals.isdisjoint(update_signals):
             self._update_enabled()
 
@@ -655,6 +660,10 @@ class Template(QWidget):
 
         note_count = notation.get_template().get_note_count()
         self._create_button.setEnabled(note_count > 0)
+
+        module = self._ui_model.get_module()
+        self._create_tt_button.setEnabled(
+                note_count > 0 and module.get_free_tuning_table_id() != None)
 
     def _create(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -678,6 +687,17 @@ class Template(QWidget):
             'signal_notation_editor_note_selection',
             'signal_notation_editor_key_count',
             'signal_notation_editor_key_selection']))
+
+    def _create_tuning_table(self):
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_editor_selected_notation()
+        name = notation.get_name()
+        template = notation.get_template()
+        module = self._ui_model.get_module()
+        table_id = module.get_free_tuning_table_id()
+        assert table_id != None
+        module.create_tuning_table_from_notation_template(table_id, name, template)
+        self._updater.signal_update(set(['signal_tuning_tables']))
 
 
 class CenterPitch(QWidget):
