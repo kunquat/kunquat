@@ -27,8 +27,7 @@ class TuningTableWindow(QWidget):
         self._editor = TuningTableEditor()
 
         v = QVBoxLayout()
-        v.setMargin(0)
-        v.setSpacing(4)
+        v.setMargin(4)
         v.addWidget(self._editor)
         self.setLayout(v)
 
@@ -60,6 +59,6 @@ class TuningTableWindow(QWidget):
         visibility_manager.hide_tuning_table_editor(self._table_id)
 
     def sizeHint(self):
-        return QSize(640, 768)
+        return QSize(480, 640)
 
 
