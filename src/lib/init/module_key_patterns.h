@@ -83,6 +83,7 @@ MODULE_KEYP(tuning_table, "tuning_XX/p_tuning_table.json",
         ", \"ref_pitch\": 0"
         ", \"pitch_offset\": 0"
         ", \"octave_width\": [2, 1]"
+        ", \"center_octave\": 4"
         ", \"notes\": [0]"
         "}")
 
