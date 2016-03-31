@@ -67,22 +67,27 @@ static bool Tuning_table_build_pitch_map(Tuning_table* tt)
     {
         for (int note = 0; note < tt->note_count; ++note)
         {
-            pitch_index* pi = memory_alloc_item(pitch_index);
-            if (pi == NULL)
-            {
-                del_AAtree(pitch_map);
-                return false;
-            }
-
+            pitch_index* pi = &(pitch_index){ .cents = 0 };
             pi->cents =
                 tt->ref_pitch + tt->note_offsets[note] + tt->octave_offsets[octave];
             pi->note = note;
             pi->octave = octave;
 
-            if (!AAtree_ins(pitch_map, pi))
+            if (!AAtree_contains(pitch_map, pi))
             {
-                del_AAtree(pitch_map);
-                return false;
+                pitch_index* pi_entry = memory_alloc_item(pitch_index);
+                if (pi_entry == NULL)
+                {
+                    del_AAtree(pitch_map);
+                    return false;
+                }
+                *pi_entry = *pi;
+
+                if (!AAtree_ins(pitch_map, pi_entry))
+                {
+                    del_AAtree(pitch_map);
+                    return false;
+                }
             }
         }
     }
