@@ -399,10 +399,10 @@ class TuningTableListToolBar(QToolBar):
                 set(['signal_tuning_tables', 'signal_tuning_table_selection']))
 
 
-class TuningTableListModel(QAbstractListModel):
+class TuningTableListModel(QAbstractTableModel):
 
     def __init__(self):
-        QAbstractListModel.__init__(self)
+        QAbstractTableModel.__init__(self)
         self._ui_model = None
         self._updater = None
 
@@ -440,13 +440,21 @@ class TuningTableListModel(QAbstractListModel):
 
     # Qt interface
 
+    def columnCount(self, parent):
+        if parent.isValid():
+            return 0
+        return 1
+
     def rowCount(self, parent):
+        if parent.isValid():
+            return 0
         return len(self._items)
 
     def data(self, index, role):
         if role in (Qt.DisplayRole, Qt.EditRole):
             row = index.row()
-            if 0 <= row < len(self._items):
+            column = index.column()
+            if 0 <= row < len(self._items) and column == 0:
                 _, name = self._items[row]
                 if role == Qt.DisplayRole:
                     vis_name = name or u'-'
@@ -459,13 +467,18 @@ class TuningTableListModel(QAbstractListModel):
         return QVariant()
 
     def headerData(self, section, orientation, role):
+        if role == Qt.DisplayRole and orientation == Qt.Vertical:
+            if 0 <= section < len(self._items):
+                table_id, _ = self._items[section]
+                num = int(table_id.split('_')[1], 16)
+                return QVariant(unicode(num))
         return QVariant()
 
     def flags(self, index):
         default_flags = QAbstractItemModel.flags(self, index)
         if not index.isValid():
             return default_flags
-        if not 0 <= index.row() < len(self._items):
+        if index.column() != 0 or not 0 <= index.row() < len(self._items):
             return default_flags
 
         return default_flags | Qt.ItemIsEditable
@@ -473,7 +486,7 @@ class TuningTableListModel(QAbstractListModel):
     def setData(self, index, value, role):
         if role == Qt.EditRole:
             row = index.row()
-            if 0 <= row < len(self._items):
+            if index.column() == 0 and 0 <= row < len(self._items):
                 new_name = unicode(value.toString())
                 table_id, _ = self._items[row]
                 module = self._ui_model.get_module()
@@ -485,16 +498,20 @@ class TuningTableListModel(QAbstractListModel):
         return False
 
 
-class TuningTableListView(QListView):
+class TuningTableListView(QTableView):
 
     def __init__(self):
-        QListView.__init__(self)
+        QTableView.__init__(self)
         self._ui_model = None
         self._updater = None
 
         self.setSelectionMode(QAbstractItemView.SingleSelection)
 
         self.setMinimumWidth(100)
+
+        hheader = self.horizontalHeader()
+        hheader.setStretchLastSection(True)
+        hheader.hide()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -512,7 +529,7 @@ class TuningTableListView(QListView):
             self._updater.signal_update(set(['signal_tuning_table_selection']))
 
     def setModel(self, model):
-        QListView.setModel(self, model)
+        QTableView.setModel(self, model)
 
         selection_model = self.selectionModel()
 
