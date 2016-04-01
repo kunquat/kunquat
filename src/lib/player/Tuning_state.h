@@ -23,14 +23,14 @@
 #include <stdlib.h>
 
 
-typedef struct Tuning_state
+struct Tuning_state
 {
     int note_count;
     int ref_note;
     double global_offset;
     double drift;
     double note_offsets[KQT_TUNING_TABLE_NOTES_MAX];
-} Tuning_state;
+};
 
 
 /**
@@ -45,7 +45,7 @@ Tuning_state* new_Tuning_state(void);
  * Initialise the Tuning state using a Tuning table as a reference.
  *
  * \param ts      The Tuning state -- must not be \c NULL.
- * \param table   The Tuning table -- must not be \c NULL.
+ * \param table   The Tuning table, or \c NULL.
  */
 void Tuning_state_reset(Tuning_state* ts, const Tuning_table* table);
 

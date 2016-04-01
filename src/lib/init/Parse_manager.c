@@ -1488,7 +1488,13 @@ static bool read_tuning_table(Reader_params* params)
 
     Module_set_tuning_table(Handle_get_module(params->handle), params->indices[0], tt);
 
-    // TODO: create new tuning states
+    // Create new Tuning state
+    if (!Player_create_tuning_state(params->handle->player, params->indices[0]))
+    {
+        Handle_set_error(params->handle, ERROR_MEMORY,
+                "Could not allocate memory for tuning state");
+        return false;
+    }
 
     return true;
 }

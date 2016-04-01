@@ -38,6 +38,7 @@ typedef struct Sample_params Sample_params;
 typedef struct Song Song;
 typedef struct Streader Streader;
 typedef struct Tstamp Tstamp;
+typedef struct Tuning_state Tuning_state;
 typedef struct Tuning_table Tuning_table;
 typedef struct Value Value;
 typedef struct Voice_state Voice_state;

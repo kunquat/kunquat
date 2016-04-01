@@ -25,6 +25,7 @@
 #include <player/Player_private.h>
 #include <player/Player_seq.h>
 #include <player/Position.h>
+#include <player/Tuning_state.h>
 #include <player/Voice_group.h>
 #include <player/Work_buffer.h>
 #include <player/Work_buffers.h>
@@ -92,6 +93,8 @@ Player* new_Player(
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         player->channels[i] = NULL;
     player->event_handler = NULL;
+    for (int i = 0; i < KQT_TUNING_TABLES_MAX; ++i)
+        player->tuning_states[i] = NULL;
 
     player->frame_remainder = 0.0;
 
@@ -294,6 +297,27 @@ bool Player_refresh_bind_state(Player* player)
 
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         Channel_set_event_cache(player->channels[i], caches[i]);
+
+    return true;
+}
+
+
+bool Player_create_tuning_state(Player* player, int index)
+{
+    assert(player != NULL);
+    assert(index >= 0);
+    assert(index < KQT_TUNING_TABLES_MAX);
+
+    if (player->tuning_states[index] == NULL)
+    {
+        player->tuning_states[index] = new_Tuning_state();
+        if (player->tuning_states[index] == NULL)
+            return false;
+    }
+
+    Tuning_state_reset(
+            player->tuning_states[index],
+            Module_get_tuning_table(player->module, index));
 
     return true;
 }
@@ -977,6 +1001,8 @@ void del_Player(Player* player)
     if (player == NULL)
         return;
 
+    for (int i = 0; i < KQT_TUNING_TABLES_MAX; ++i)
+        del_Tuning_state(player->tuning_states[i]);
     del_Event_handler(player->event_handler);
     del_Voice_pool(player->voices);
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)

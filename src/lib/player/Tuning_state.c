@@ -30,12 +30,7 @@ Tuning_state* new_Tuning_state(void)
     if (ts == NULL)
         return NULL;
 
-    ts->note_count = 0;
-    ts->ref_note = 0;
-    ts->global_offset = 0;
-    ts->drift = 0;
-    for (int i = 0; i < KQT_TUNING_TABLE_NOTES_MAX; ++i)
-        ts->note_offsets[i] = 0;
+    Tuning_state_reset(ts, NULL);
 
     return ts;
 }
@@ -44,14 +39,25 @@ Tuning_state* new_Tuning_state(void)
 void Tuning_state_reset(Tuning_state* ts, const Tuning_table* table)
 {
     assert(ts != NULL);
-    assert(table != NULL);
 
-    ts->note_count = Tuning_table_get_note_count(table);
-    ts->ref_note = Tuning_table_get_ref_note(table);
-    ts->global_offset = Tuning_table_get_global_offset(table);
-    ts->drift = 0;
-    for (int i = 0; i < ts->note_count; ++i)
-        ts->note_offsets[i] = Tuning_table_get_pitch_offset(table, i);
+    if (table == NULL)
+    {
+        ts->note_count = 0;
+        ts->ref_note = 0;
+        ts->global_offset = 0;
+        ts->drift = 0;
+        for (int i = 0; i < KQT_TUNING_TABLE_NOTES_MAX; ++i)
+            ts->note_offsets[i] = 0;
+    }
+    else
+    {
+        ts->note_count = Tuning_table_get_note_count(table);
+        ts->ref_note = Tuning_table_get_ref_note(table);
+        ts->global_offset = Tuning_table_get_global_offset(table);
+        ts->drift = 0;
+        for (int i = 0; i < ts->note_count; ++i)
+            ts->note_offsets[i] = Tuning_table_get_pitch_offset(table, i);
+    }
 
     return;
 }

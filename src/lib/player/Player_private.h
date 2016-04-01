@@ -16,6 +16,7 @@
 #define K_PLAYER_PRIVATE_H
 
 
+#include <decl.h>
 #include <init/Environment.h>
 #include <player/Cgiter.h>
 #include <player/Channel.h>
@@ -49,6 +50,7 @@ struct Player
     Master_params  master_params;
     Channel*       channels[KQT_CHANNELS_MAX];
     Event_handler* event_handler;
+    Tuning_state*  tuning_states[KQT_TUNING_TABLES_MAX];
 
     double frame_remainder; // used for sub-frame time tracking
 
