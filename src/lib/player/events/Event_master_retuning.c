@@ -156,3 +156,21 @@ bool Event_master_mimic_retuner_process(
 }
 
 
+bool Event_master_reset_retuner_process(
+        Master_params* master_params, const Value* value)
+{
+    assert(master_params != NULL);
+    ignore(value);
+
+    Tuning_state* state = NULL;
+    const Tuning_table* table = NULL;
+    get_tuning_info(master_params, &state, &table);
+    if (state == NULL)
+        return true;
+
+    Tuning_state_reset(state, table);
+
+    return true;
+}
+
+
