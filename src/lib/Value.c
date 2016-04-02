@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -178,12 +178,6 @@ int Value_serialise(const Value* value, int len, char* str)
         case VALUE_TYPE_FLOAT:
         {
             return serialise_float(str, len, value->value.float_type);
-        }
-        break;
-
-        case VALUE_TYPE_REAL:
-        {
-            return serialise_Real(str, len, &value->value.Real_type);
         }
         break;
 

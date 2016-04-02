@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -93,13 +93,6 @@ Env_var* new_Env_var_from_string(Streader* sr)
         value->type = VALUE_TYPE_FLOAT;
         Streader_read_float(sr, &value->value.float_type);
     }
-#if 0
-    else if (string_eq(type_name, "real"))
-    {
-        value->type = VALUE_TYPE_REAL;
-        *str = read_tuning(*str, &value->value.Real_type, NULL, state);
-    }
-#endif
     else if (string_eq(type_name, "timestamp"))
     {
         value->type = VALUE_TYPE_TSTAMP;

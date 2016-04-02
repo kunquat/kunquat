@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -18,7 +18,6 @@
 
 #include <decl.h>
 #include <kunquat/limits.h>
-#include <mathnum/Real.h>
 #include <mathnum/Tstamp.h>
 #include <Pat_inst_ref.h>
 
@@ -32,7 +31,6 @@ typedef enum
     VALUE_TYPE_BOOL,
     VALUE_TYPE_INT,
     VALUE_TYPE_FLOAT,
-    VALUE_TYPE_REAL,
     VALUE_TYPE_TSTAMP,
     VALUE_TYPE_STRING,
     VALUE_TYPE_PAT_INST_REF,
@@ -50,7 +48,6 @@ struct Value
         bool bool_type;
         int64_t int_type;
         double float_type;
-        Real Real_type;
         Tstamp Tstamp_type;
         char string_type[KQT_VAR_NAME_MAX + 2]; // add 2 chars for quotes
         Pat_inst_ref Pat_inst_ref_type;

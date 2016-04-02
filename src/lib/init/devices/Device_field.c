@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -30,7 +30,6 @@ typedef union
     bool bool_type;
     int64_t int_type;
     double float_type;
-    Real Real_type;
     Tstamp Tstamp_type;
     Envelope* Envelope_type;
     Sample* Sample_type;
@@ -203,15 +202,6 @@ bool Device_field_change(Device_field* field, Streader* sr)
         {
             if (data != NULL)
                 Streader_read_float(sr, &field->data.float_type);
-        }
-        break;
-
-        case DEVICE_FIELD_REAL:
-        {
-            if (data != NULL)
-            {
-                assert(false); // TODO: implement
-            }
         }
         break;
 
@@ -452,18 +442,6 @@ const double* Device_field_get_float(const Device_field* field)
         return NULL;
 
     return &field->data.float_type;
-}
-
-
-const Real* Device_field_get_real(const Device_field* field)
-{
-    assert(field != NULL);
-    assert(field->type == DEVICE_FIELD_REAL);
-
-    if (field->empty)
-        return NULL;
-
-    return &field->data.Real_type;
 }
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -281,20 +281,6 @@ const double* Device_params_get_float(const Device_params* params, const char* k
         return NULL;
 
     get_of_type(params, key, float);
-
-    return NULL;
-}
-
-
-const Real* Device_params_get_real(const Device_params* params, const char* key)
-{
-    assert(params != NULL);
-    assert(key != NULL);
-
-    if (get_keyp_device_field_type(key) != DEVICE_FIELD_REAL)
-        return NULL;
-
-    get_of_type(params, key, real);
 
     return NULL;
 }

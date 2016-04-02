@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -18,7 +18,6 @@
 
 #include <containers/AAtree.h>
 #include <init/devices/Device_field.h>
-#include <mathnum/Real.h>
 #include <mathnum/Tstamp.h>
 #include <string/Streader.h>
 
@@ -278,18 +277,6 @@ const int64_t* Device_params_get_int(const Device_params* params, const char* ke
  * \return   The floating point value, or \c NULL if \a key doesn't exist.
  */
 const double* Device_params_get_float(const Device_params* params, const char* key);
-
-
-/**
- * Retrieve a Real value from Device parameters.
- *
- * \param params   The Device parameters -- must not be \c NULL.
- * \param key      The key -- must be a valid Real subkey starting after the
- *                 c/ or i/ directory.
- *
- * \return   The Real value, or \c NULL if \a key doesn't exist.
- */
-const Real* Device_params_get_real(const Device_params* params, const char* key);
 
 
 /**

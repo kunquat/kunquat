@@ -16,7 +16,6 @@
 
 #include <debug/assert.h>
 #include <mathnum/common.h>
-#include <mathnum/Real.h>
 #include <memory.h>
 #include <init/comp_defaults.h>
 #include <init/sheet/Channel_defaults_list.h>
