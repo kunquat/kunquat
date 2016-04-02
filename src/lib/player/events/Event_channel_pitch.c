@@ -15,11 +15,14 @@
 #include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
+#include <init/Module.h>
 #include <init/Tuning_table.h>
 #include <kunquat/limits.h>
 #include <player/devices/processors/Pitch_state.h>
 #include <player/devices/Voice_state.h>
 #include <player/events/Event_common.h>
+#include <player/Master_params.h>
+#include <player/Tuning_state.h>
 #include <player/Voice.h>
 #include <Value.h>
 
@@ -41,7 +44,20 @@ bool Event_channel_slide_pitch_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    const double pitch = value->value.float_type;
+    double pitch = value->value.float_type;
+
+    // Retune pitch parameter if a retuner is active
+    {
+        const int tuning_index = master_params->cur_tuning_state;
+        if (0 <= tuning_index && tuning_index < KQT_TUNING_TABLES_MAX)
+        {
+            Tuning_state* state = master_params->tuning_states[tuning_index];
+            const Tuning_table* table =
+                Module_get_tuning_table(master_params->parent.module, tuning_index);
+            if (state != NULL && table != NULL)
+                pitch = Tuning_state_get_retuned_pitch(state, table, pitch);
+        }
+    }
 
     if (Slider_in_progress(&ch->pitch_controls.slider))
         Slider_change_target(&ch->pitch_controls.slider, pitch);
