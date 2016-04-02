@@ -36,6 +36,13 @@ Tuning_state* new_Tuning_state(void)
 }
 
 
+bool Tuning_state_can_retune(const Tuning_state* ts)
+{
+    assert(ts != NULL);
+    return (ts->note_count > 0);
+}
+
+
 void Tuning_state_reset(Tuning_state* ts, const Tuning_table* table)
 {
     assert(ts != NULL);
@@ -44,6 +51,7 @@ void Tuning_state_reset(Tuning_state* ts, const Tuning_table* table)
     {
         ts->note_count = 0;
         ts->ref_note = 0;
+        ts->fixed_point = 0;
         ts->global_offset = 0;
         ts->drift = 0;
         for (int i = 0; i < KQT_TUNING_TABLE_NOTES_MAX; ++i)
@@ -53,11 +61,28 @@ void Tuning_state_reset(Tuning_state* ts, const Tuning_table* table)
     {
         ts->note_count = Tuning_table_get_note_count(table);
         ts->ref_note = Tuning_table_get_ref_note(table);
+        ts->fixed_point = 0;
         ts->global_offset = Tuning_table_get_global_offset(table);
         ts->drift = 0;
         for (int i = 0; i < ts->note_count; ++i)
             ts->note_offsets[i] = Tuning_table_get_pitch_offset(table, i);
+        for (int i = ts->note_count; i < KQT_TUNING_TABLE_NOTES_MAX; ++i)
+            ts->note_offsets[i] = 0;
     }
+
+    return;
+}
+
+
+void Tuning_state_set_fixed_pitch(
+        Tuning_state* ts, const Tuning_table* table, double pitch)
+{
+    assert(ts != NULL);
+    assert(table != NULL);
+    assert(isfinite(pitch));
+
+    const int note_index = Tuning_table_get_nearest_note_index(table, pitch);
+    ts->fixed_point = note_index;
 
     return;
 }
@@ -82,20 +107,17 @@ double Tuning_state_get_retuned_pitch(
 }
 
 
-void Tuning_state_retune(
-        Tuning_state* ts, const Tuning_table* table, double new_ref, double fixed)
+void Tuning_state_retune(Tuning_state* ts, const Tuning_table* table, double new_ref)
 {
     assert(ts != NULL);
     assert(table != NULL);
     assert(isfinite(new_ref));
-    assert(isfinite(fixed));
 
     const int note_count = ts->note_count;
     if (note_count == 0)
         return;
 
     const int new_ref_index = Tuning_table_get_nearest_note_index(table, new_ref);
-    const int fixed_index = Tuning_table_get_nearest_note_index(table, fixed);
 
     const int shift_amount = (note_count + new_ref_index - ts->ref_note) % note_count;
 
@@ -109,15 +131,16 @@ void Tuning_state_retune(
         ts->note_offsets[0] - ts->note_offsets[note_count - 1] + octave_width;
 
     // Fill new pitch offsets surrounding fixed point
-    for (int i = fixed_index + 1; i < note_count; ++i)
+    for (int i = ts->fixed_point + 1; i < note_count; ++i)
     {
         const int si = (i - shift_amount + note_count) % note_count;
-        ts->note_offsets[si] = ts->note_offsets[si - 1] + intervals[si - 1];
+        const int prev_si = (si - 1 + note_count) % note_count;
+        ts->note_offsets[i] = ts->note_offsets[i - 1] + intervals[prev_si];
     }
-    for (int i = fixed_index - 1; i >= 0; ++i)
+    for (int i = ts->fixed_point - 1; i >= 0; --i)
     {
         const int si = (i - shift_amount + note_count) % note_count;
-        ts->note_offsets[si] = ts->note_offsets[si + 1] - intervals[si];
+        ts->note_offsets[i] = ts->note_offsets[i + 1] - intervals[si];
     }
 
     ts->ref_note = new_ref_index;

@@ -27,6 +27,7 @@ struct Tuning_state
 {
     int note_count;
     int ref_note;
+    int fixed_point;
     double global_offset;
     double drift;
     double note_offsets[KQT_TUNING_TABLE_NOTES_MAX];
@@ -42,12 +43,33 @@ Tuning_state* new_Tuning_state(void);
 
 
 /**
+ * Check if the Tuning state can retune pitches.
+ *
+ * \param ts   The Tuning state -- must not be \c NULL.
+ *
+ * \return   \c true if \a ts can retune, otherwise \c false.
+ */
+bool Tuning_state_can_retune(const Tuning_state* ts);
+
+
+/**
  * Initialise the Tuning state using a Tuning table as a reference.
  *
  * \param ts      The Tuning state -- must not be \c NULL.
  * \param table   The Tuning table, or \c NULL.
  */
 void Tuning_state_reset(Tuning_state* ts, const Tuning_table* table);
+
+
+/**
+ * Set the fixed pitch in the Tuning state.
+ *
+ * \param ts      The Tuning state -- must not be \c NULL.
+ * \param table   The Tuning table -- must not be \c NULL.
+ * \param pitch   The fixed pitch in cents -- must be fininte.
+ */
+void Tuning_state_set_fixed_pitch(
+        Tuning_state* ts, const Tuning_table* table, double pitch);
 
 
 /**
@@ -69,10 +91,8 @@ double Tuning_state_get_retuned_pitch(
  * \param ts        The Tuning state -- must not be \c NULL.
  * \param table     The Tuning table -- must not be \c NULL.
  * \param new_ref   The new reference pitch -- must be finite.
- * \param fixed     A pitch that should stay unchanged after retuning -- must be finite.
  */
-void Tuning_state_retune(
-        Tuning_state* ts, const Tuning_table* table, double new_ref, double fixed);
+void Tuning_state_retune(Tuning_state* ts, const Tuning_table* table, double new_ref);
 
 
 /**
