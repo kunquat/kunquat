@@ -105,7 +105,11 @@ bool Event_channel_note_on_process(
     {
         Pitch_controls_reset(&ch->pitch_controls);
         ch->pitch_controls.orig_carried_pitch = pitch_param;
+
+        Slider_set_tempo(&ch->pitch_controls.slider, master_params->tempo);
         Slider_set_length(&ch->pitch_controls.slider, &ch->pitch_slide_length);
+
+        LFO_set_tempo(&ch->pitch_controls.vibrato, master_params->tempo);
         LFO_set_speed_slide(&ch->pitch_controls.vibrato, &ch->vibrato_speed_slide);
         LFO_set_depth_slide(&ch->pitch_controls.vibrato, &ch->vibrato_depth_slide);
 
@@ -118,7 +122,11 @@ bool Event_channel_note_on_process(
     {
         Force_controls_reset(&ch->force_controls);
         ch->force_controls.force = 0;
+
+        Slider_set_tempo(&ch->force_controls.slider, master_params->tempo);
         Slider_set_length(&ch->force_controls.slider, &ch->force_slide_length);
+
+        LFO_set_tempo(&ch->force_controls.tremolo, master_params->tempo);
         LFO_set_speed_slide(&ch->force_controls.tremolo, &ch->tremolo_speed_slide);
         LFO_set_depth_slide(&ch->force_controls.tremolo, &ch->tremolo_depth_slide);
     }
@@ -276,7 +284,11 @@ bool Event_channel_hit_process(
     {
         Force_controls_reset(&ch->force_controls);
         ch->force_controls.force = 0;
+
+        Slider_set_tempo(&ch->force_controls.slider, master_params->tempo);
         Slider_set_length(&ch->force_controls.slider, &ch->force_slide_length);
+
+        LFO_set_tempo(&ch->force_controls.tremolo, master_params->tempo);
         LFO_set_speed_slide(&ch->force_controls.tremolo, &ch->tremolo_speed_slide);
         LFO_set_depth_slide(&ch->force_controls.tremolo, &ch->tremolo_depth_slide);
     }
