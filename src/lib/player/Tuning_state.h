@@ -62,6 +62,15 @@ void Tuning_state_reset(Tuning_state* ts, const Tuning_table* table);
 
 
 /**
+ * Set the global offset of the Tuning state.
+ *
+ * \param ts       The Tuning state -- must not be \c NULL.
+ * \param offset   The offset in cents -- must be finite.
+ */
+void Tuning_state_set_global_offset(Tuning_state* ts, double offset);
+
+
+/**
  * Set the fixed pitch in the Tuning state.
  *
  * \param ts      The Tuning state -- must not be \c NULL.
@@ -70,6 +79,16 @@ void Tuning_state_reset(Tuning_state* ts, const Tuning_table* table);
  */
 void Tuning_state_set_fixed_pitch(
         Tuning_state* ts, const Tuning_table* table, double pitch);
+
+
+/**
+ * Retune the Tuning state.
+ *
+ * \param ts        The Tuning state -- must not be \c NULL.
+ * \param table     The Tuning table -- must not be \c NULL.
+ * \param new_ref   The new reference pitch -- must be finite.
+ */
+void Tuning_state_retune(Tuning_state* ts, const Tuning_table* table, double new_ref);
 
 
 /**
@@ -83,16 +102,6 @@ void Tuning_state_set_fixed_pitch(
  */
 double Tuning_state_get_retuned_pitch(
         const Tuning_state* ts, const Tuning_table* table, double cents);
-
-
-/**
- * Retune the Tuning state.
- *
- * \param ts        The Tuning state -- must not be \c NULL.
- * \param table     The Tuning table -- must not be \c NULL.
- * \param new_ref   The new reference pitch -- must be finite.
- */
-void Tuning_state_retune(Tuning_state* ts, const Tuning_table* table, double new_ref);
 
 
 /**

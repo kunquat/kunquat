@@ -74,6 +74,17 @@ void Tuning_state_reset(Tuning_state* ts, const Tuning_table* table)
 }
 
 
+void Tuning_state_set_global_offset(Tuning_state* ts, double offset)
+{
+    assert(ts != NULL);
+    assert(isfinite(offset));
+
+    ts->global_offset = offset;
+
+    return;
+}
+
+
 void Tuning_state_set_fixed_pitch(
         Tuning_state* ts, const Tuning_table* table, double pitch)
 {
@@ -85,25 +96,6 @@ void Tuning_state_set_fixed_pitch(
     ts->fixed_point = note_index;
 
     return;
-}
-
-
-double Tuning_state_get_retuned_pitch(
-        const Tuning_state* ts, const Tuning_table* table, double cents)
-{
-    assert(ts != NULL);
-    assert(table != NULL);
-    assert(isfinite(cents));
-
-    if (ts->note_count == 0)
-        return cents;
-
-    const int note_index = Tuning_table_get_nearest_note_index(table, cents);
-    const double start_offset = Tuning_table_get_pitch_offset(table, note_index);
-
-    const double rel_offset = ts->note_offsets[note_index] - start_offset;
-
-    return cents + rel_offset + ts->global_offset;
 }
 
 
@@ -149,6 +141,25 @@ void Tuning_state_retune(Tuning_state* ts, const Tuning_table* table, double new
         Tuning_table_get_pitch_offset(table, ts->ref_note);
 
     return;
+}
+
+
+double Tuning_state_get_retuned_pitch(
+        const Tuning_state* ts, const Tuning_table* table, double cents)
+{
+    assert(ts != NULL);
+    assert(table != NULL);
+    assert(isfinite(cents));
+
+    if (ts->note_count == 0)
+        return cents;
+
+    const int note_index = Tuning_table_get_nearest_note_index(table, cents);
+    const double start_offset = Tuning_table_get_pitch_offset(table, note_index);
+
+    const double rel_offset = ts->note_offsets[note_index] - start_offset;
+
+    return cents + rel_offset + ts->global_offset;
 }
 
 

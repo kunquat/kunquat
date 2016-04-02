@@ -120,21 +120,15 @@ bool Event_master_set_retuner_pitch_offset_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    return false;
+    Tuning_state* state = NULL;
+    const Tuning_table* table = NULL;
+    get_tuning_info(master_params, &state, &table);
+    if (state == NULL)
+        return true;
 
-#if 0
-    if (global_state->scales == NULL)
-    {
-        return true;
-    }
-    Scale* scale = global_state->scales[global_state->scale];
-    if (scale == NULL)
-    {
-        return true;
-    }
-    Scale_set_pitch_offset(scale, value->value.float_type);
+    Tuning_state_set_global_offset(state, value->value.float_type);
+
     return true;
-#endif
 }
 
 
