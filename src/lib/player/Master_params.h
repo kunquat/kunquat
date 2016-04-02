@@ -17,6 +17,7 @@
 
 
 #include <decl.h>
+#include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <player/Active_jumps.h>
 #include <player/Env_state.h>
@@ -87,6 +88,8 @@ typedef struct Master_params
     int16_t       goto_safety_counter;
     Pat_inst_ref  goto_target_piref;
     Tstamp        goto_target_row;
+
+    Tuning_state* tuning_states[KQT_TUNING_TABLES_MAX];
 
     // Statistics
     int16_t active_voices;

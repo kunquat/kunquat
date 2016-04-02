@@ -18,6 +18,7 @@
 #include <init/Module.h>
 #include <init/sheet/Track_list.h>
 #include <mathnum/Random.h>
+#include <player/Tuning_state.h>
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -70,6 +71,12 @@ static void Master_params_clear(Master_params* params)
     params->goto_target_piref.inst = -1;
     Tstamp_init(&params->goto_target_row);
 
+    for (int i = 0; i < KQT_TUNING_TABLES_MAX; ++i)
+    {
+        if (params->tuning_states[i] != NULL)
+            Tuning_state_reset(params->tuning_states[i], NULL);
+    }
+
     params->active_voices = 0;
 
     return;
@@ -85,6 +92,9 @@ Master_params* Master_params_preinit(Master_params* params)
     params->random = NULL;
     params->active_jumps = NULL;
     params->jump_cache = NULL;
+
+    for (int i = 0; i < KQT_TUNING_TABLES_MAX; ++i)
+        params->tuning_states[i] = NULL;
 
     return params;
 }
@@ -195,6 +205,15 @@ void Master_params_deinit(Master_params* params)
 
     if (params->active_jumps != NULL && params->jump_cache != NULL)
         Active_jumps_reset(params->active_jumps, params->jump_cache);
+
+    for (int i = 0; i < KQT_TUNING_TABLES_MAX; ++i)
+    {
+        if (params->tuning_states[i] != NULL)
+        {
+            del_Tuning_state(params->tuning_states[i]);
+            params->tuning_states[i] = NULL;
+        }
+    }
 
     del_Active_jumps(params->active_jumps);
     del_Jump_cache(params->jump_cache);
