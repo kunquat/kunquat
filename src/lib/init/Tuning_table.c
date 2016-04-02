@@ -153,6 +153,9 @@ Tuning_table* new_Tuning_table(double ref_pitch, double octave_width)
     tt->center_octave = 4;
     Tuning_table_set_octave_width(tt, octave_width);
 
+    for (int i = 0; i < KQT_TUNING_TABLE_NOTES_MAX; ++i)
+        tt->note_offsets[i] = 0;
+
     if (!Tuning_table_build_pitch_map(tt))
     {
         memory_free(tt);
