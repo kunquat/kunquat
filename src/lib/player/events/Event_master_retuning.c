@@ -139,22 +139,20 @@ bool Event_master_mimic_retuner_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
-    return false;
+    const int source_index = value->value.int_type;
+    if (source_index < 0 || source_index >= KQT_TUNING_TABLES_MAX)
+        return true;
 
-#if 0
-    if (global_state->scales == NULL)
-    {
+    Tuning_state* state = NULL;
+    const Tuning_table* table = NULL;
+    get_tuning_info(master_params, &state, &table);
+    if (state == NULL)
         return true;
-    }
-    Scale* scale = global_state->scales[global_state->scale];
-    Scale* modifier = global_state->scales[value->value.int_type];
-    if (scale == NULL || modifier == NULL)
-    {
-        return true;
-    }
-    Scale_retune_with_source(scale, modifier);
-    return true;
-#endif
+
+    const Module* module = master_params->parent.module;
+    const Tuning_table* source = Module_get_tuning_table(module, source_index);
+
+    return Tuning_state_retune_with_source(state, table, source);
 }
 
 
