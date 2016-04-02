@@ -70,23 +70,6 @@ bool Event_channel_slide_pitch_process(
         Voice* voice = ch->fg[i];
 
         Voice_state* vs = voice->state;
-#if 0
-        pitch_t pitch = -1;
-        if (voice->proc->au_params->scale == NULL ||
-                *voice->proc->au_params->scale == NULL ||
-                **voice->proc->au_params->scale == NULL)
-        {
-            pitch = exp2(value->value.float_type / 1200) * 440;
-        }
-        else
-        {
-            pitch = Scale_get_pitch_from_cents(
-                    **voice->proc->au_params->scale,
-                    value->value.float_type);
-        }
-        if (pitch <= 0)
-            continue;
-#endif
 
         if (vs->is_pitch_state)
             Pitch_vstate_set_controls(vs, &ch->pitch_controls);

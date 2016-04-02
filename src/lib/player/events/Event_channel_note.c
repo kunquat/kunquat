@@ -180,29 +180,6 @@ bool Event_channel_note_on_process(
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
 
-#if 0
-        else if (voice->proc->au_params->scale == NULL ||
-                 *voice->proc->au_params->scale == NULL ||
-                 **voice->proc->au_params->scale == NULL)
-        {
-            vs->pitch = exp2(value->value.float_type / 1200) * 440;
-        }
-        else
-        {
-            pitch_t pitch = Scale_get_pitch_from_cents(
-                    **voice->proc->au_params->scale,
-                    value->value.float_type);
-            if (pitch > 0)
-            {
-                vs->pitch = pitch;
-            }
-            else
-            {
-                vs->pitch = exp2(value->value.float_type / 1200) * 440;
-            }
-        }
-#endif
-
         if (vs->is_pitch_state)
             Pitch_vstate_set_controls(vs, &ch->pitch_controls);
 
