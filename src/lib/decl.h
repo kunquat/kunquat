@@ -29,6 +29,7 @@ typedef struct Device_impl Device_impl;
 typedef struct Device_state Device_state;
 typedef struct Envelope Envelope;
 typedef struct Linear_controls Linear_controls;
+typedef struct Master_params Master_params;
 typedef struct Module Module;
 typedef struct Param_proc_filter Param_proc_filter;
 typedef struct Proc_state Proc_state;

@@ -28,10 +28,14 @@
 
 
 bool Event_channel_arpeggio_on_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     ignore(value);
 
     if (isnan(ch->arpeggio_ref))
@@ -56,10 +60,14 @@ bool Event_channel_arpeggio_on_process(
 
 
 bool Event_channel_arpeggio_off_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     ignore(value);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
@@ -76,10 +84,14 @@ bool Event_channel_arpeggio_off_process(
 
 
 bool Event_channel_set_arpeggio_index_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
@@ -90,10 +102,14 @@ bool Event_channel_set_arpeggio_index_process(
 
 
 bool Event_channel_set_arpeggio_note_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -120,10 +136,14 @@ bool Event_channel_set_arpeggio_note_process(
 
 
 bool Event_channel_set_arpeggio_speed_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -143,10 +163,14 @@ bool Event_channel_set_arpeggio_speed_process(
 
 
 bool Event_channel_reset_arpeggio_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     ignore(value);
 
     ch->arpeggio_ref = NAN;

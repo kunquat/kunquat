@@ -32,6 +32,8 @@
 #include <player/events/Event_common.h>
 #include <player/events/note_setup.h>
 #include <player/events/stream_utils.h>
+#include <player/Master_params.h>
+#include <player/Tuning_state.h>
 #include <player/Voice.h>
 #include <Value.h>
 
@@ -43,7 +45,10 @@
 
 
 bool Event_channel_note_on_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(ch->freq != NULL);
@@ -51,11 +56,12 @@ bool Event_channel_note_on_process(
     assert(ch->tempo != NULL);
     assert(*ch->tempo > 0);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
     // Move the old Voices to the background
-    Event_channel_note_off_process(ch, dstates, NULL);
+    Event_channel_note_off_process(ch, dstates, master_params, NULL);
 
     ch->fg_count = 0;
 
@@ -70,29 +76,42 @@ bool Event_channel_note_on_process(
 
     const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
 
+    double pitch_param = value->value.float_type;
+
+    // Retune pitch parameter if a retuner is active
+    {
+        const int tuning_index = master_params->cur_tuning_state;
+        if (0 <= tuning_index && tuning_index < KQT_TUNING_TABLES_MAX)
+        {
+            Tuning_state* state = master_params->tuning_states[tuning_index];
+            const Tuning_table* table =
+                Module_get_tuning_table(master_params->parent.module, tuning_index);
+            if (state != NULL && table != NULL)
+                pitch_param = Tuning_state_get_retuned_pitch(state, table, pitch_param);
+        }
+    }
+
     if (ch->carry_pitch)
     {
-        const double cents = value->value.float_type;
-
         if (isnan(ch->pitch_controls.pitch))
-            ch->pitch_controls.pitch = cents;
+            ch->pitch_controls.pitch = pitch_param;
         if (isnan(ch->pitch_controls.orig_carried_pitch))
-            ch->pitch_controls.orig_carried_pitch = cents;
+            ch->pitch_controls.orig_carried_pitch = pitch_param;
 
-        const double pitch_diff = cents - ch->pitch_controls.orig_carried_pitch;
+        const double pitch_diff = pitch_param - ch->pitch_controls.orig_carried_pitch;
         ch->pitch_controls.pitch_add = pitch_diff;
     }
     else
     {
         Pitch_controls_reset(&ch->pitch_controls);
-        ch->pitch_controls.orig_carried_pitch = value->value.float_type;
+        ch->pitch_controls.orig_carried_pitch = pitch_param;
         Slider_set_length(&ch->pitch_controls.slider, &ch->pitch_slide_length);
         LFO_set_speed_slide(&ch->pitch_controls.vibrato, &ch->vibrato_speed_slide);
         LFO_set_depth_slide(&ch->pitch_controls.vibrato, &ch->vibrato_depth_slide);
 
-        ch->pitch_controls.pitch = value->value.float_type;
+        ch->pitch_controls.pitch = pitch_param;
         if (isnan(ch->pitch_controls.orig_carried_pitch))
-            ch->pitch_controls.orig_carried_pitch = value->value.float_type;
+            ch->pitch_controls.orig_carried_pitch = pitch_param;
     }
 
     if (!ch->carry_force)
@@ -224,17 +243,22 @@ bool Event_channel_note_on_process(
 }
 
 
-bool Event_channel_hit_process(Channel* ch, Device_states* dstates, const Value* value)
+bool Event_channel_hit_process(
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(ch->freq != NULL);
     assert(ch->tempo != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
     // Move the old Voices to the background
-    Event_channel_note_off_process(ch, dstates, NULL);
+    Event_channel_note_off_process(ch, dstates, master_params, NULL);
 
     ch->fg_count = 0;
 
@@ -362,10 +386,14 @@ bool Event_channel_hit_process(Channel* ch, Device_states* dstates, const Value*
 
 
 bool Event_channel_note_off_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     ignore(value);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)

@@ -30,10 +30,14 @@
 
 
 bool Event_channel_slide_pitch_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -77,10 +81,14 @@ bool Event_channel_slide_pitch_process(
 
 
 bool Event_channel_slide_pitch_length_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -102,10 +110,14 @@ bool Event_channel_slide_pitch_length_process(
 
 
 bool Event_channel_vibrato_speed_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -132,10 +144,14 @@ bool Event_channel_vibrato_speed_process(
 
 
 bool Event_channel_vibrato_depth_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -163,10 +179,14 @@ bool Event_channel_vibrato_depth_process(
 
 
 bool Event_channel_vibrato_speed_slide_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -188,10 +208,14 @@ bool Event_channel_vibrato_speed_slide_process(
 
 
 bool Event_channel_vibrato_depth_slide_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -213,10 +237,14 @@ bool Event_channel_vibrato_depth_slide_process(
 
 
 bool Event_channel_carry_pitch_on_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     ignore(value);
 
     ch->carry_pitch = true;
@@ -226,10 +254,14 @@ bool Event_channel_carry_pitch_on_process(
 
 
 bool Event_channel_carry_pitch_off_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     ignore(value);
 
     ch->carry_pitch = false;

@@ -28,10 +28,14 @@
 
 
 bool Event_channel_set_init_expression_process(
-        Channel* channel, Device_states* dstates, const Value* value)
+        Channel* channel,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(channel != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_STRING);
 
@@ -40,10 +44,14 @@ bool Event_channel_set_init_expression_process(
 
 
 bool Event_channel_apply_expression_process(
-        Channel* channel, Device_states* dstates, const Value* value)
+        Channel* channel,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(channel != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_STRING);
 
@@ -82,10 +90,14 @@ bool Event_channel_apply_expression_process(
 
 
 bool Event_channel_carry_expression_on_process(
-        Channel* channel, Device_states* dstates, const Value* value)
+        Channel* channel,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(channel != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     ignore(value);
 
     channel->carry_expression = true;
@@ -95,10 +107,14 @@ bool Event_channel_carry_expression_on_process(
 
 
 bool Event_channel_carry_expression_off_process(
-        Channel* channel, Device_states* dstates, const Value* value)
+        Channel* channel,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(channel != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     ignore(value);
 
     channel->carry_expression = false;

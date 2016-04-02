@@ -15,12 +15,43 @@
 #include <player/events/Event_master_decl.h>
 
 #include <debug/assert.h>
+#include <init/Module.h>
+#include <init/Tuning_table.h>
 #include <kunquat/limits.h>
 #include <player/events/Event_common.h>
+#include <player/Tuning_state.h>
 #include <Value.h>
 
 #include <stdbool.h>
 #include <stdlib.h>
+
+
+static void get_tuning_info(
+        Master_params* master_params,
+        Tuning_state** out_tuning_state,
+        const Tuning_table** out_tuning_table)
+{
+    assert(master_params != NULL);
+    assert(out_tuning_state != NULL);
+    assert(out_tuning_table != NULL);
+
+    const int index = master_params->cur_tuning_state;
+    if (index < 0 || index >= KQT_TUNING_TABLES_MAX)
+        return;
+    Tuning_state* state = master_params->tuning_states[index];
+    if (state == NULL)
+        return;
+
+    const Module* module = master_params->parent.module;
+    const Tuning_table* table = Module_get_tuning_table(module, index);
+    if (table == NULL)
+        return;
+
+    *out_tuning_state = state;
+    *out_tuning_table = table;
+
+    return;
+}
 
 
 bool Event_master_set_retuner_process(Master_params* master_params, const Value* value)
@@ -29,13 +60,18 @@ bool Event_master_set_retuner_process(Master_params* master_params, const Value*
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
-    return false;
+    master_params->cur_tuning_state = value->value.int_type;
 
-#if 0
-    global_state->scale = value->value.int_type;
+    Tuning_state* state = NULL;
+    const Tuning_table* table = NULL;
+    get_tuning_info(master_params, &state, &table);
+    if (state == NULL)
+        return true;
+
+    if (!Tuning_state_can_retune(state))
+        Tuning_state_reset(state, table);
 
     return true;
-#endif
 }
 
 
@@ -44,15 +80,17 @@ bool Event_master_set_retuner_fixed_pitch_process(
 {
     assert(master_params != NULL);
     assert(value != NULL);
-    assert(value->type == VALUE_TYPE_INT);
+    assert(value->type == VALUE_TYPE_FLOAT);
 
-    return false;
+    Tuning_state* state = NULL;
+    const Tuning_table* table = NULL;
+    get_tuning_info(master_params, &state, &table);
+    if (state == NULL)
+        return true;
 
-#if 0
-    global_state->scale_fixed_point = value->value.int_type;
+    Tuning_state_set_fixed_pitch(state, table, value->value.float_type);
 
     return true;
-#endif
 }
 
 
@@ -61,28 +99,17 @@ bool Event_master_set_retuner_tuning_center_process(
 {
     assert(master_params != NULL);
     assert(value != NULL);
-    assert(value->type == VALUE_TYPE_INT);
+    assert(value->type == VALUE_TYPE_FLOAT);
 
-    return false;
+    Tuning_state* state = NULL;
+    const Tuning_table* table = NULL;
+    get_tuning_info(master_params, &state, &table);
+    if (state == NULL)
+        return true;
 
-#if 0
-    if (global_state->scales == NULL)
-    {
-        return true;
-    }
-    Scale* scale = global_state->scales[global_state->scale];
-    if (scale == NULL ||
-            Scale_get_note_count(scale) <= value->value.int_type ||
-            Scale_get_note_count(scale) <= global_state->scale_fixed_point)
-    {
-        return true;
-    }
-    Scale_retune(
-            scale,
-            value->value.int_type,
-            global_state->scale_fixed_point);
+    Tuning_state_retune(state, table, value->value.float_type);
+
     return true;
-#endif
 }
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -97,7 +97,8 @@ bool Event_handler_set_general_process(
 bool Event_handler_set_ch_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ch_process)(Channel*, Device_states*, const Value*));
+        bool (*ch_process)(
+            Channel*, Device_states*, const Master_params*, const Value*));
 
 
 /**

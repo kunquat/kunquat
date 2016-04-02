@@ -89,10 +89,14 @@ static void set_cv_carry(Channel* ch, Device_states* dstates, bool enabled)
 
 
 bool Event_channel_set_cv_name_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_STRING);
 
@@ -101,10 +105,14 @@ bool Event_channel_set_cv_name_process(
 
 
 bool Event_channel_set_cv_value_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(Value_type_is_realtime(value->type));
 
@@ -115,10 +123,14 @@ bool Event_channel_set_cv_value_process(
 
 
 bool Event_channel_carry_cv_on_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     ignore(value);
 
     set_cv_carry(ch, dstates, true);
@@ -128,10 +140,14 @@ bool Event_channel_carry_cv_on_process(
 
 
 bool Event_channel_carry_cv_off_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     ignore(value);
 
     set_cv_carry(ch, dstates, false);

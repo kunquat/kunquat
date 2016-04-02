@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -52,7 +52,8 @@ struct Event_handler
 
     bool (*control_process[Event_control_STOP])(General_state*, Channel*, const Value*);
     bool (*general_process[Event_general_STOP])(General_state*, const Value*);
-    bool (*ch_process[Event_channel_STOP])(Channel*, Device_states*, const Value*);
+    bool (*ch_process[Event_channel_STOP])(
+            Channel*, Device_states*, const Master_params*, const Value*);
     bool (*master_process[Event_master_STOP])(Master_params*, const Value*);
     bool (*au_process[Event_au_STOP])(
             const Audio_unit*,
@@ -132,7 +133,8 @@ const Event_names* Event_handler_get_names(const Event_handler* eh)
 bool Event_handler_set_ch_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ch_process)(Channel*, Device_states*, const Value*))
+        bool (*ch_process)(
+            Channel*, Device_states*, const Master_params*, const Value*))
 {
     assert(eh != NULL);
     assert(Event_is_channel(type));
@@ -234,6 +236,7 @@ static bool Event_handler_handle(
         return eh->ch_process[type](
                 eh->channels[index],
                 eh->device_states,
+                eh->master_params,
                 value);
     }
     else if (Event_is_au(type))

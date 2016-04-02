@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -71,6 +71,7 @@ static void Master_params_clear(Master_params* params)
     params->goto_target_piref.inst = -1;
     Tstamp_init(&params->goto_target_row);
 
+    params->cur_tuning_state = -1;
     for (int i = 0; i < KQT_TUNING_TABLES_MAX; ++i)
     {
         if (params->tuning_states[i] != NULL)
