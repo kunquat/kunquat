@@ -23,7 +23,7 @@
 #include <stdlib.h>
 
 
-bool Event_master_set_tt_process(Master_params* master_params, const Value* value)
+bool Event_master_set_retuner_process(Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
@@ -39,7 +39,7 @@ bool Event_master_set_tt_process(Master_params* master_params, const Value* valu
 }
 
 
-bool Event_master_set_tt_fixed_point_process(
+bool Event_master_set_retuner_fixed_pitch_process(
         Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
@@ -56,58 +56,7 @@ bool Event_master_set_tt_fixed_point_process(
 }
 
 
-bool Event_master_set_tt_offset_process(
-        Master_params* master_params, const Value* value)
-{
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
-
-    return false;
-
-#if 0
-    if (global_state->scales == NULL)
-    {
-        return true;
-    }
-    Scale* scale = global_state->scales[global_state->scale];
-    if (scale == NULL)
-    {
-        return true;
-    }
-    Scale_set_pitch_offset(scale, value->value.float_type);
-    return true;
-#endif
-}
-
-
-bool Event_master_mimic_tt_process(
-        Master_params* master_params, const Value* value)
-{
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_INT);
-
-    return false;
-
-#if 0
-    if (global_state->scales == NULL)
-    {
-        return true;
-    }
-    Scale* scale = global_state->scales[global_state->scale];
-    Scale* modifier = global_state->scales[value->value.int_type];
-    if (scale == NULL || modifier == NULL)
-    {
-        return true;
-    }
-    Scale_retune_with_source(scale, modifier);
-    return true;
-#endif
-}
-
-
-bool Event_master_shift_tt_intervals_process(
+bool Event_master_set_retuner_tuning_center_process(
         Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
@@ -132,6 +81,57 @@ bool Event_master_shift_tt_intervals_process(
             scale,
             value->value.int_type,
             global_state->scale_fixed_point);
+    return true;
+#endif
+}
+
+
+bool Event_master_set_retuner_pitch_offset_process(
+        Master_params* master_params, const Value* value)
+{
+    assert(master_params != NULL);
+    assert(value != NULL);
+    assert(value->type == VALUE_TYPE_FLOAT);
+
+    return false;
+
+#if 0
+    if (global_state->scales == NULL)
+    {
+        return true;
+    }
+    Scale* scale = global_state->scales[global_state->scale];
+    if (scale == NULL)
+    {
+        return true;
+    }
+    Scale_set_pitch_offset(scale, value->value.float_type);
+    return true;
+#endif
+}
+
+
+bool Event_master_mimic_retuner_process(
+        Master_params* master_params, const Value* value)
+{
+    assert(master_params != NULL);
+    assert(value != NULL);
+    assert(value->type == VALUE_TYPE_INT);
+
+    return false;
+
+#if 0
+    if (global_state->scales == NULL)
+    {
+        return true;
+    }
+    Scale* scale = global_state->scales[global_state->scale];
+    Scale* modifier = global_state->scales[value->value.int_type];
+    if (scale == NULL || modifier == NULL)
+    {
+        return true;
+    }
+    Scale_retune_with_source(scale, modifier);
     return true;
 #endif
 }
