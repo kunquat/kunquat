@@ -72,10 +72,12 @@ Device_impl* new_Proc_freeverb(void)
     }
 
     freeverb->gain = 0;
-    freeverb->reflect = 0;
-    freeverb->reflect1 = 0;
-    freeverb->damp = 0;
-    freeverb->damp1 = 0;
+    freeverb->reflect_setting = 0;
+    freeverb->damp_setting = 0;
+    //freeverb->reflect = 0;
+    //freeverb->reflect1 = 0;
+    //freeverb->damp = 0;
+    //freeverb->damp1 = 0;
     freeverb->wet = 0;
     freeverb->wet1 = 0;
     freeverb->wet2 = 0;
@@ -134,8 +136,8 @@ static void Proc_freeverb_update_reflectivity(Proc_freeverb* freeverb, double re
     assert(freeverb != NULL);
 
     freeverb->reflect_setting = reflect;
-    freeverb->reflect = exp2(-5 / freeverb->reflect_setting);
-    freeverb->reflect1 = freeverb->reflect;
+    //freeverb->reflect = exp2(-5 / freeverb->reflect_setting);
+    //freeverb->reflect1 = freeverb->reflect;
 
     return;
 }
@@ -146,8 +148,8 @@ static void Proc_freeverb_update_damp(Proc_freeverb* freeverb, double damp)
     assert(freeverb != NULL);
 
     freeverb->damp_setting = damp;
-    freeverb->damp = freeverb->damp_setting * 0.01;
-    freeverb->damp1 = freeverb->damp;
+    //freeverb->damp = freeverb->damp_setting * 0.01;
+    //freeverb->damp1 = freeverb->damp;
 
     return;
 }
