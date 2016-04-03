@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <init/devices/processors/Proc_freeverb.h>
 #include <mathnum/common.h>
+#include <mathnum/fast_exp2.h>
 #include <memory.h>
 #include <player/devices/processors/Freeverb_allpass.h>
 #include <player/devices/processors/Freeverb_comb.h>
@@ -56,8 +57,8 @@ typedef struct Freeverb_pstate
 {
     Proc_state parent;
 
-    double active_reflect;
-    double active_damp;
+    //double active_reflect;
+    //double active_damp;
 
     Freeverb_comb* combs[2][FREEVERB_COMBS];
     Freeverb_allpass* allpasses[2][FREEVERB_ALLPASSES];
@@ -90,18 +91,18 @@ static void Freeverb_pstate_reset(Device_state* dstate)
     assert(dstate != NULL);
 
     Freeverb_pstate* fstate = (Freeverb_pstate*)dstate;
-    const Proc_freeverb* freeverb = (const Proc_freeverb*)dstate->device->dimpl;
+    //const Proc_freeverb* freeverb = (const Proc_freeverb*)dstate->device->dimpl;
 
-    fstate->active_reflect = freeverb->reflect1;
-    fstate->active_damp = freeverb->damp1;
+    //fstate->active_reflect = freeverb->reflect1;
+    //fstate->active_damp = freeverb->damp1;
 
     for (int ch = 0; ch < 2; ++ch)
     {
         for (int i = 0; i < FREEVERB_COMBS; ++i)
         {
             Freeverb_comb_clear(fstate->combs[ch][i]);
-            Freeverb_comb_set_feedback(fstate->combs[ch][i], fstate->active_reflect);
-            Freeverb_comb_set_damp(fstate->combs[ch][i], fstate->active_damp);
+            //Freeverb_comb_set_feedback(fstate->combs[ch][i], fstate->active_reflect);
+            //Freeverb_comb_set_damp(fstate->combs[ch][i], fstate->active_damp);
         }
 
         for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
@@ -166,6 +167,13 @@ static void Freeverb_pstate_clear_history(Proc_state* proc_state)
 }
 
 
+static const int FREEVERB_WB_LEFT = WORK_BUFFER_IMPL_1;
+static const int FREEVERB_WB_RIGHT = WORK_BUFFER_IMPL_2;
+static const int FREEVERB_WB_FIXED_REFL = WORK_BUFFER_IMPL_3;
+static const int FREEVERB_WB_FIXED_DAMP = WORK_BUFFER_IMPL_4;
+static const int FREEVERB_WB_COMB_INPUT = WORK_BUFFER_IMPL_5;
+
+
 static void Freeverb_pstate_render_mixed(
         Device_state* dstate,
         const Work_buffers* wbs,
@@ -182,6 +190,49 @@ static void Freeverb_pstate_render_mixed(
 
     Proc_freeverb* freeverb = (Proc_freeverb*)dstate->device->dimpl;
 
+    // Get reflectivity parameter stream
+    float* refls =
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 2);
+    if (refls == NULL)
+    {
+        refls = Work_buffers_get_buffer_contents_mut(wbs, FREEVERB_WB_FIXED_REFL);
+        const float fixed_refl = exp2(-5 / freeverb->reflect_setting);
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            refls[i] = fixed_refl;
+    }
+    else
+    {
+        // Convert reflectivity to the domain of our algorithm
+        static const float max_param_inv = -5.0 / 200.0;
+        static const float min_param_inv = -5.0 / 0.001;
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+        {
+            const double orig_refl = refls[i];
+            const double param_inv = -5.0 / max(0, orig_refl);
+            const float refl = fast_exp2(clamp(param_inv, min_param_inv, max_param_inv));
+            refls[i] = refl;
+        }
+    }
+
+    // Get damp parameter stream
+    float* damps =
+        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 3);
+    if (damps == NULL)
+    {
+        damps = Work_buffers_get_buffer_contents_mut(wbs, FREEVERB_WB_FIXED_DAMP);
+        const float fixed_damp = freeverb->damp_setting * 0.01;
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            damps[i] = fixed_damp;
+    }
+    else
+    {
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+        {
+            const float scaled_damp = damps[i] * 0.01f;
+            damps[i] = clamp(scaled_damp, 0, 1);
+        }
+    }
+
     Work_buffer* in_wbs[] =
     {
         Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 0),
@@ -194,6 +245,7 @@ static void Freeverb_pstate_render_mixed(
         Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, 1),
     };
 
+    /*
     if (fstate->active_reflect != freeverb->reflect1)
     {
         // Update reflectivity settings
@@ -217,15 +269,13 @@ static void Freeverb_pstate_render_mixed(
                 Freeverb_comb_set_damp(fstate->combs[ch][i], fstate->active_damp);
         }
     }
+    // */
 
     // TODO: figure out a cleaner way of dealing with the buffers
-    static const int WB_FREEVERB_LEFT = WORK_BUFFER_IMPL_1;
-    static const int WB_FREEVERB_RIGHT = WORK_BUFFER_IMPL_2;
-
     Work_buffer* workspace[] =
     {
-        Work_buffers_get_buffer_mut(wbs, WB_FREEVERB_LEFT),
-        Work_buffers_get_buffer_mut(wbs, WB_FREEVERB_RIGHT),
+        Work_buffers_get_buffer_mut(wbs, FREEVERB_WB_LEFT),
+        Work_buffers_get_buffer_mut(wbs, FREEVERB_WB_RIGHT),
     };
 
     // Get input data
@@ -253,6 +303,41 @@ static void Freeverb_pstate_render_mixed(
     };
 
     // Apply reverb
+    {
+        float* comb_input =
+            Work_buffers_get_buffer_contents_mut(wbs, FREEVERB_WB_COMB_INPUT);
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            comb_input[i] = (ws[0][i] + ws[1][i]) * freeverb->gain;
+
+        for (int ch = 0; ch < 2; ++ch)
+        {
+            float* ws_buf = ws[ch];
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+                ws_buf[i] = 0;
+
+            for (int comb = 0; comb < FREEVERB_COMBS; ++comb)
+                Freeverb_comb_process(
+                        fstate->combs[ch][comb],
+                        ws_buf,
+                        comb_input,
+                        refls,
+                        damps,
+                        buf_start,
+                        buf_stop);
+
+            for (int allpass = 0; allpass < FREEVERB_ALLPASSES; ++allpass)
+                Freeverb_allpass_process(
+                        fstate->allpasses[ch][allpass], ws_buf, buf_start, buf_stop);
+        }
+
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+        {
+            ws[0][i] = ws[0][i] * freeverb->wet1 + ws[1][i] * freeverb->wet2;
+            ws[1][i] = ws[1][i] * freeverb->wet1 + ws[0][i] * freeverb->wet2;
+        }
+    }
+
+    /*
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
         float out_l = 0;
@@ -274,6 +359,7 @@ static void Freeverb_pstate_render_mixed(
         ws[0][i] = out_l * freeverb->wet1 + out_r * freeverb->wet2;
         ws[1][i] = out_r * freeverb->wet1 + out_l * freeverb->wet2;
     }
+    // */
 
     // Copy results to outputs that exist
     for (int ch = 0; ch < 2; ++ch)
@@ -309,10 +395,10 @@ Device_state* new_Freeverb_pstate(
     fpstate->parent.render_mixed = Freeverb_pstate_render_mixed;
     fpstate->parent.clear_history = Freeverb_pstate_clear_history;
 
-    const Proc_freeverb* freeverb = (const Proc_freeverb*)device->dimpl;
+    //const Proc_freeverb* freeverb = (const Proc_freeverb*)device->dimpl;
 
-    fpstate->active_reflect = freeverb->reflect_setting;
-    fpstate->active_damp = freeverb->damp_setting;
+    //fpstate->active_reflect = freeverb->reflect_setting;
+    //fpstate->active_damp = freeverb->damp_setting;
 
     for (int ch = 0; ch < 2; ++ch)
     {

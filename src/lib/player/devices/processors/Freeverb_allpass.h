@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -50,14 +50,15 @@ void Freeverb_allpass_set_feedback(Freeverb_allpass* allpass, float feedback);
 
 
 /**
- * Process one frame of input data.
+ * Process data buffer.
  *
- * \param allpass   The Freeverb allpass filter -- must not be \c NULL.
- * \param input     The input frame.
- *
- * \return   The output frame.
+ * \param allpass     The Freeverb allpass filter -- must not be \c NULL.
+ * \param buffer      The input/output buffer -- must not be \c NULL.
+ * \param buf_start   The buffer start position -- must be >= \c 0.
+ * \param buf_stop    The buffer stop position -- must be > \a buf_start.
  */
-float Freeverb_allpass_process(Freeverb_allpass* allpass, float input);
+void Freeverb_allpass_process(
+        Freeverb_allpass* allpass, float* buffer, int32_t buf_start, int32_t buf_stop);
 
 
 /**

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -67,6 +67,7 @@ void Freeverb_allpass_set_feedback(Freeverb_allpass* allpass, float feedback)
 }
 
 
+/*
 float Freeverb_allpass_process(Freeverb_allpass* allpass, float input)
 {
     assert(allpass != NULL);
@@ -80,6 +81,32 @@ float Freeverb_allpass_process(Freeverb_allpass* allpass, float input)
         allpass->buffer_pos = 0;
 
     return -input + bufout;
+}
+// */
+
+
+void Freeverb_allpass_process(
+        Freeverb_allpass* allpass, float* buffer, int32_t buf_start, int32_t buf_stop)
+{
+    assert(allpass != NULL);
+    assert(buffer != NULL);
+    assert(buf_start >= 0);
+    assert(buf_stop > buf_start);
+
+    for (int32_t i = buf_start; i < buf_stop; ++i)
+    {
+        float bufout = allpass->buffer[allpass->buffer_pos];
+        bufout = undenormalise(bufout);
+        allpass->buffer[allpass->buffer_pos] = buffer[i] + (bufout * allpass->feedback);
+
+        buffer[i] = -buffer[i] + bufout;
+
+        ++allpass->buffer_pos;
+        if (allpass->buffer_pos >= allpass->buffer_size)
+            allpass->buffer_pos = 0;
+    }
+
+    return;
 }
 
 

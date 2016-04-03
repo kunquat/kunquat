@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -44,7 +44,7 @@ Freeverb_comb* new_Freeverb_comb(uint32_t buffer_size);
  * \param comb   The Freeverb comb filter -- must not be \c NULL.
  * \param damp   The damp value -- must be >= \c 0 and <= \c 1.
  */
-void Freeverb_comb_set_damp(Freeverb_comb* comb, float damp);
+//void Freeverb_comb_set_damp(Freeverb_comb* comb, float damp);
 
 
 /**
@@ -53,18 +53,28 @@ void Freeverb_comb_set_damp(Freeverb_comb* comb, float damp);
  * \param comb       The Freeverb comb filter -- must not be \c NULL.
  * \param feedback   The feedback value -- must be > \c -1 and < \c 1.
  */
-void Freeverb_comb_set_feedback(Freeverb_comb* comb, float feedback);
+//void Freeverb_comb_set_feedback(Freeverb_comb* comb, float feedback);
 
 
 /**
- * Process one frame of input data.
+ * Process data buffer.
  *
- * \param comb    The Freeverb comb filter -- must not be \c NULL.
- * \param input   The input frame.
- *
- * \return   The output frame.
+ * \param comb        The Freeverb comb filter -- must not be \c NULL.
+ * \param out_buf     The output buffer where the result is mixed -- must not be \c NULL.
+ * \param in_buf      The input signal buffer -- must not be \c NULL.
+ * \param refls       The reflectivity parameter buffer -- must not be \c NULL.
+ * \param damps       The damp parameter buffer -- must not be \c NULL.
+ * \param buf_start   The buffer start position -- must be >= \c 0.
+ * \param buf_stop    The buffer stop position -- must be > \a buf_start.
  */
-float Freeverb_comb_process(Freeverb_comb* comb, float input);
+void Freeverb_comb_process(
+        Freeverb_comb* comb,
+        float* out_buf,
+        const float* in_buf,
+        const float* refls,
+        const float* damps,
+        int32_t buf_start,
+        int32_t buf_stop);
 
 
 /**
