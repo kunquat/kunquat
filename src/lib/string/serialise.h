@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,7 +12,6 @@
  */
 
 
-#include <mathnum/Real.h>
 #include <mathnum/Tstamp.h>
 #include <Pat_inst_ref.h>
 
@@ -75,20 +74,6 @@ int serialise_float(char* dest, int size, double value);
  *           terminating byte.
  */
 int serialise_Pat_inst_ref(char* dest, int size, const Pat_inst_ref* value);
-
-
-/**
- * Create a JSON representation of a Real value.
- *
- * \param dest    The destination string buffer -- must not be \c NULL.
- * \param size    The size of the string buffer including the terminating
- *                byte -- must be positive.
- * \param value   The value to be serialised -- must not be \c NULL.
- *
- * \return   The number of characters written to \a dest, not including the
- *           terminating byte.
- */
-int serialise_Real(char* dest, int size, const Real* value);
 
 
 /**

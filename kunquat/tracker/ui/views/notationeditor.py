@@ -25,11 +25,18 @@ class NotationEditor(QWidget):
         QWidget.__init__(self)
 
         self._notations = Notations()
+        self._tuning_tables = TuningTables()
         self._template = Template()
         self._octaves = Octaves()
         self._notes = Notes()
         self._note = Note()
         self._keymap = Keymap()
+
+        ll = QVBoxLayout()
+        ll.setMargin(0)
+        ll.setSpacing(2)
+        ll.addWidget(self._notations)
+        ll.addWidget(self._tuning_tables)
 
         nl = QVBoxLayout()
         nl.setMargin(0)
@@ -59,13 +66,14 @@ class NotationEditor(QWidget):
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(4)
-        h.addWidget(self._notations)
+        h.addLayout(ll)
         h.addWidget(separator)
         h.addLayout(el, 1)
         self.setLayout(h)
 
     def set_ui_model(self, ui_model):
         self._notations.set_ui_model(ui_model)
+        self._tuning_tables.set_ui_model(ui_model)
         self._template.set_ui_model(ui_model)
         self._octaves.set_ui_model(ui_model)
         self._notes.set_ui_model(ui_model)
@@ -78,6 +86,7 @@ class NotationEditor(QWidget):
         self._notes.unregister_updaters()
         self._octaves.unregister_updaters()
         self._template.unregister_updaters()
+        self._tuning_tables.unregister_updaters()
         self._notations.unregister_updaters()
 
 
@@ -321,6 +330,285 @@ class Notations(QWidget):
         self._list_view.setModel(self._list_model)
 
 
+class TuningTableListToolBar(QToolBar):
+
+    def __init__(self):
+        QToolBar.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._add_button = QToolButton()
+        self._add_button.setText('Add tuning table')
+        self._add_button.setToolTip('Add tuning table')
+        self._add_button.setEnabled(True)
+
+        self._remove_button = QToolButton()
+        self._remove_button.setText('Remove tuning table')
+        self._remove_button.setToolTip('Remove tuning table')
+        self._remove_button.setEnabled(False)
+
+        self.addWidget(self._add_button)
+        self.addWidget(self._remove_button)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        icon_bank = self._ui_model.get_icon_bank()
+        self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
+        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
+
+        QObject.connect(self._add_button, SIGNAL('clicked()'), self._add_tuning_table)
+        QObject.connect(
+                self._remove_button, SIGNAL('clicked()'), self._remove_tuning_table)
+
+        self._update_enabled()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        update_signals = set(['signal_tuning_tables', 'signal_tuning_table_selection'])
+        if not signals.isdisjoint(update_signals):
+            self._update_enabled()
+
+    def _update_enabled(self):
+        module = self._ui_model.get_module()
+        self._add_button.setEnabled(module.get_free_tuning_table_id() != None)
+
+        notation_manager = self._ui_model.get_notation_manager()
+        selected_table_id = notation_manager.get_editor_selected_tuning_table_id()
+        self._remove_button.setEnabled(selected_table_id != None)
+
+    def _add_tuning_table(self):
+        module = self._ui_model.get_module()
+        module.add_tuning_table(module.get_free_tuning_table_id())
+        self._updater.signal_update(set(['signal_tuning_tables']))
+
+    def _remove_tuning_table(self):
+        notation_manager = self._ui_model.get_notation_manager()
+        selected_table_id = notation_manager.get_editor_selected_tuning_table_id()
+        module = self._ui_model.get_module()
+        table = module.get_tuning_table(selected_table_id)
+        table.remove()
+        notation_manager.set_editor_selected_tuning_table_id(None)
+        visibility_manager = self._ui_model.get_visibility_manager()
+        visibility_manager.hide_tuning_table_editor(selected_table_id)
+        self._updater.signal_update(
+                set(['signal_tuning_tables', 'signal_tuning_table_selection']))
+
+
+class TuningTableListModel(QAbstractTableModel):
+
+    def __init__(self):
+        QAbstractTableModel.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._items = []
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._make_items()
+
+    def unregister_updaters(self):
+        pass
+
+    def get_item(self, index):
+        row = index.row()
+        if 0 <= row < len(self._items):
+            return self._items[row]
+        return None
+
+    def get_index(self, table_id):
+        for i, item in enumerate(self._items):
+            cur_id, _ = item
+            if cur_id == table_id:
+                return self.createIndex(i, 0, item)
+        return QModelIndex()
+
+    def _make_items(self):
+        module = self._ui_model.get_module()
+        table_ids = module.get_tuning_table_ids()
+
+        self._items = []
+        for table_id in sorted(list(table_ids)):
+            table = module.get_tuning_table(table_id)
+            self._items.append((table_id, table.get_name()))
+
+    # Qt interface
+
+    def columnCount(self, parent):
+        if parent.isValid():
+            return 0
+        return 1
+
+    def rowCount(self, parent):
+        if parent.isValid():
+            return 0
+        return len(self._items)
+
+    def data(self, index, role):
+        if role in (Qt.DisplayRole, Qt.EditRole):
+            row = index.row()
+            column = index.column()
+            if 0 <= row < len(self._items) and column == 0:
+                _, name = self._items[row]
+                if role == Qt.DisplayRole:
+                    vis_name = name or u'-'
+                    return QVariant(vis_name)
+                elif role == Qt.EditRole:
+                    return QVariant(name)
+                else:
+                    assert False
+
+        return QVariant()
+
+    def headerData(self, section, orientation, role):
+        if role == Qt.DisplayRole and orientation == Qt.Vertical:
+            if 0 <= section < len(self._items):
+                table_id, _ = self._items[section]
+                num = int(table_id.split('_')[1], 16)
+                return QVariant(unicode(num))
+        return QVariant()
+
+    def flags(self, index):
+        default_flags = QAbstractItemModel.flags(self, index)
+        if not index.isValid():
+            return default_flags
+        if index.column() != 0 or not 0 <= index.row() < len(self._items):
+            return default_flags
+
+        return default_flags | Qt.ItemIsEditable
+
+    def setData(self, index, value, role):
+        if role == Qt.EditRole:
+            row = index.row()
+            if index.column() == 0 and 0 <= row < len(self._items):
+                new_name = unicode(value.toString())
+                table_id, _ = self._items[row]
+                module = self._ui_model.get_module()
+                table = module.get_tuning_table(table_id)
+                table.set_name(new_name)
+                self._updater.signal_update(set(['signal_tuning_tables']))
+                return True
+
+        return False
+
+
+class TuningTableListView(QTableView):
+
+    def __init__(self):
+        QTableView.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self.setSelectionMode(QAbstractItemView.SingleSelection)
+
+        self.setMinimumWidth(100)
+
+        hheader = self.horizontalHeader()
+        hheader.setStretchLastSection(True)
+        hheader.hide()
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+
+    def unregister_updaters(self):
+        pass
+
+    def _select_entry(self, cur_index, prev_index):
+        item = self.model().get_item(cur_index)
+        if item:
+            table_id, _ = item
+            notation_manager = self._ui_model.get_notation_manager()
+            notation_manager.set_editor_selected_tuning_table_id(table_id)
+            self._updater.signal_update(set(['signal_tuning_table_selection']))
+
+    def setModel(self, model):
+        QTableView.setModel(self, model)
+
+        selection_model = self.selectionModel()
+
+        notation_manager = self._ui_model.get_notation_manager()
+        selected_table_id = notation_manager.get_editor_selected_tuning_table_id()
+        if selected_table_id:
+            selection_model.select(
+                    model.get_index(selected_table_id), QItemSelectionModel.Select)
+
+        QObject.connect(
+                selection_model,
+                SIGNAL('currentChanged(const QModelIndex&, const QModelIndex&)'),
+                self._select_entry)
+
+
+class TuningTables(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._toolbar = TuningTableListToolBar()
+
+        self._list_model = None
+        self._list_view = TuningTableListView()
+
+        self._edit_button = QPushButton('Edit tuning table')
+        self._edit_button.setEnabled(False)
+
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(2)
+        v.addWidget(HeaderLine('Tuning tables'))
+        v.addWidget(self._toolbar)
+        v.addWidget(self._list_view)
+        v.addWidget(self._edit_button)
+        self.setLayout(v)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+        self._toolbar.set_ui_model(ui_model)
+        self._list_view.set_ui_model(ui_model)
+
+        QObject.connect(self._edit_button, SIGNAL('clicked()'), self._open_editor)
+
+        self._update_model()
+        self._update_selection()
+
+    def unregister_updaters(self):
+        self._list_view.unregister_updaters()
+        self._toolbar.unregister_updaters()
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        if 'signal_tuning_tables' in signals:
+            self._update_model()
+        if 'signal_tuning_table_selection' in signals:
+            self._update_selection()
+
+    def _update_model(self):
+        self._list_model = TuningTableListModel()
+        self._list_model.set_ui_model(self._ui_model)
+        self._list_view.setModel(self._list_model)
+
+    def _update_selection(self):
+        notation_manager = self._ui_model.get_notation_manager()
+        selected_table_id = notation_manager.get_editor_selected_tuning_table_id()
+        self._edit_button.setEnabled(selected_table_id != None)
+
+    def _open_editor(self):
+        notation_manager = self._ui_model.get_notation_manager()
+        selected_table_id = notation_manager.get_editor_selected_tuning_table_id()
+        visibility_manager = self._ui_model.get_visibility_manager()
+        visibility_manager.show_tuning_table_editor(selected_table_id)
+
+
 class Template(QWidget):
 
     def __init__(self):
@@ -333,6 +621,7 @@ class Template(QWidget):
         self._octaves = TemplateOctaves()
         self._notes = TemplateNotes()
         self._create_button = QPushButton('Create notation and keymap')
+        self._create_tt_button = QPushButton('Create tuning table')
 
         v = QVBoxLayout()
         v.setMargin(0)
@@ -343,6 +632,7 @@ class Template(QWidget):
         v.addWidget(self._octaves)
         v.addWidget(self._notes)
         v.addWidget(self._create_button)
+        v.addWidget(self._create_tt_button)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
@@ -355,6 +645,8 @@ class Template(QWidget):
         self._notes.set_ui_model(ui_model)
 
         QObject.connect(self._create_button, SIGNAL('clicked()'), self._create)
+        QObject.connect(
+                self._create_tt_button, SIGNAL('clicked()'), self._create_tuning_table)
 
         self._update_enabled()
 
@@ -369,7 +661,8 @@ class Template(QWidget):
         update_signals = set([
             'signal_notation_list',
             'signal_notation_editor_selection',
-            'signal_notation_template_notes'])
+            'signal_notation_template_notes',
+            'signal_tuning_tables'])
         if not signals.isdisjoint(update_signals):
             self._update_enabled()
 
@@ -384,6 +677,10 @@ class Template(QWidget):
 
         note_count = notation.get_template().get_note_count()
         self._create_button.setEnabled(note_count > 0)
+
+        module = self._ui_model.get_module()
+        self._create_tt_button.setEnabled(
+                note_count > 0 and module.get_free_tuning_table_id() != None)
 
     def _create(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -407,6 +704,17 @@ class Template(QWidget):
             'signal_notation_editor_note_selection',
             'signal_notation_editor_key_count',
             'signal_notation_editor_key_selection']))
+
+    def _create_tuning_table(self):
+        notation_manager = self._ui_model.get_notation_manager()
+        notation = notation_manager.get_editor_selected_notation()
+        name = notation.get_name()
+        template = notation.get_template()
+        module = self._ui_model.get_module()
+        table_id = module.get_free_tuning_table_id()
+        assert table_id != None
+        module.create_tuning_table_from_notation_template(table_id, name, template)
+        self._updater.signal_update(set(['signal_tuning_tables']))
 
 
 class CenterPitch(QWidget):

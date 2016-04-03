@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -22,7 +22,6 @@
 #include <init/devices/param_types/Num_list.h>
 #include <init/devices/param_types/Sample.h>
 #include <init/devices/param_types/Sample_params.h>
-#include <mathnum/Real.h>
 #include <mathnum/Tstamp.h>
 #include <string/Streader.h>
 
@@ -36,7 +35,6 @@ typedef enum
     DEVICE_FIELD_BOOL,
     DEVICE_FIELD_INT,
     DEVICE_FIELD_FLOAT,
-    DEVICE_FIELD_REAL,
     DEVICE_FIELD_TSTAMP,
     DEVICE_FIELD_ENVELOPE,
     DEVICE_FIELD_WAVPACK,
@@ -189,17 +187,6 @@ const int64_t* Device_field_get_int(const Device_field* field);
  * \return   The floating point value.
  */
 const double* Device_field_get_float(const Device_field* field);
-
-
-/**
- * Get a Real value from the Device field.
- *
- * \param field   The Device field -- must not be \c NULL and must contain
- *                a Real value.
- *
- * \return   The Real value.
- */
-const Real* Device_field_get_real(const Device_field* field);
 
 
 /**

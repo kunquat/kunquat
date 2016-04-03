@@ -37,10 +37,14 @@ static Force_controls* get_force_controls(Voice_state* vstate)
 
 
 bool Event_channel_set_force_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -67,10 +71,14 @@ bool Event_channel_set_force_process(
 
 
 bool Event_channel_slide_force_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -101,10 +109,14 @@ bool Event_channel_slide_force_process(
 
 
 bool Event_channel_slide_force_length_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -127,10 +139,14 @@ bool Event_channel_slide_force_length_process(
 
 
 bool Event_channel_tremolo_speed_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -165,10 +181,14 @@ bool Event_channel_tremolo_speed_process(
 
 
 bool Event_channel_tremolo_depth_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -202,10 +222,14 @@ bool Event_channel_tremolo_depth_process(
 
 
 bool Event_channel_tremolo_speed_slide_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -228,10 +252,14 @@ bool Event_channel_tremolo_speed_slide_process(
 
 
 bool Event_channel_tremolo_depth_slide_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -254,10 +282,14 @@ bool Event_channel_tremolo_depth_slide_process(
 
 
 bool Event_channel_carry_force_on_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     ignore(value);
 
     ch->carry_force = true;
@@ -267,10 +299,14 @@ bool Event_channel_carry_force_on_process(
 
 
 bool Event_channel_carry_force_off_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     ignore(value);
 
     ch->carry_force = false;

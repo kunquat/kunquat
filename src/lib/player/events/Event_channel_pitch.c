@@ -15,11 +15,14 @@
 #include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
-#include <init/Scale.h>
+#include <init/Module.h>
+#include <init/Tuning_table.h>
 #include <kunquat/limits.h>
 #include <player/devices/processors/Pitch_state.h>
 #include <player/devices/Voice_state.h>
 #include <player/events/Event_common.h>
+#include <player/Master_params.h>
+#include <player/Tuning_state.h>
 #include <player/Voice.h>
 #include <Value.h>
 
@@ -30,14 +33,31 @@
 
 
 bool Event_channel_slide_pitch_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    const double pitch = value->value.float_type;
+    double pitch = value->value.float_type;
+
+    // Retune pitch parameter if a retuner is active
+    {
+        const int tuning_index = master_params->cur_tuning_state;
+        if (0 <= tuning_index && tuning_index < KQT_TUNING_TABLES_MAX)
+        {
+            Tuning_state* state = master_params->tuning_states[tuning_index];
+            const Tuning_table* table =
+                Module_get_tuning_table(master_params->parent.module, tuning_index);
+            if (state != NULL && table != NULL)
+                pitch = Tuning_state_get_retuned_pitch(state, table, pitch);
+        }
+    }
 
     if (Slider_in_progress(&ch->pitch_controls.slider))
         Slider_change_target(&ch->pitch_controls.slider, pitch);
@@ -50,23 +70,6 @@ bool Event_channel_slide_pitch_process(
         Voice* voice = ch->fg[i];
 
         Voice_state* vs = voice->state;
-#if 0
-        pitch_t pitch = -1;
-        if (voice->proc->au_params->scale == NULL ||
-                *voice->proc->au_params->scale == NULL ||
-                **voice->proc->au_params->scale == NULL)
-        {
-            pitch = exp2(value->value.float_type / 1200) * 440;
-        }
-        else
-        {
-            pitch = Scale_get_pitch_from_cents(
-                    **voice->proc->au_params->scale,
-                    value->value.float_type);
-        }
-        if (pitch <= 0)
-            continue;
-#endif
 
         if (vs->is_pitch_state)
             Pitch_vstate_set_controls(vs, &ch->pitch_controls);
@@ -77,10 +80,14 @@ bool Event_channel_slide_pitch_process(
 
 
 bool Event_channel_slide_pitch_length_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -102,10 +109,14 @@ bool Event_channel_slide_pitch_length_process(
 
 
 bool Event_channel_vibrato_speed_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -132,10 +143,14 @@ bool Event_channel_vibrato_speed_process(
 
 
 bool Event_channel_vibrato_depth_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -163,10 +178,14 @@ bool Event_channel_vibrato_depth_process(
 
 
 bool Event_channel_vibrato_speed_slide_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -188,10 +207,14 @@ bool Event_channel_vibrato_speed_slide_process(
 
 
 bool Event_channel_vibrato_depth_slide_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -213,10 +236,14 @@ bool Event_channel_vibrato_depth_slide_process(
 
 
 bool Event_channel_carry_pitch_on_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     ignore(value);
 
     ch->carry_pitch = true;
@@ -226,10 +253,14 @@ bool Event_channel_carry_pitch_on_process(
 
 
 bool Event_channel_carry_pitch_off_process(
-        Channel* ch, Device_states* dstates, const Value* value)
+        Channel* ch,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     ignore(value);
 
     ch->carry_pitch = false;

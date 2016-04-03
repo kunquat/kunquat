@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -17,12 +17,12 @@
 
 
 #include <decl.h>
+#include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <player/Active_jumps.h>
 #include <player/Env_state.h>
 #include <player/General_state.h>
 #include <player/Jump_cache.h>
-#include <player/Master_params.h>
 #include <player/Position.h>
 #include <player/Slider.h>
 
@@ -41,7 +41,7 @@ typedef enum
 } Playback_state;
 
 
-typedef struct Master_params
+struct Master_params
 {
     General_state parent;
 
@@ -88,9 +88,12 @@ typedef struct Master_params
     Pat_inst_ref  goto_target_piref;
     Tstamp        goto_target_row;
 
+    int           cur_tuning_state;
+    Tuning_state* tuning_states[KQT_TUNING_TABLES_MAX];
+
     // Statistics
     int16_t active_voices;
-} Master_params;
+};
 
 
 /**

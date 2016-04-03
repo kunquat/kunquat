@@ -90,11 +90,16 @@ class Store(MutableMapping):
 
     def __iter__(self):
         included_keys = set()
+        excluded_keys = set()
         for _, transaction in reversed(self._pending_validation):
-            for key in transaction.iterkeys():
-                included_keys.add(key)
+            for key, value in transaction.iteritems():
+                if value != None:
+                    included_keys.add(key)
+                else:
+                    excluded_keys.add(key)
         for key in self._content.iterkeys():
-            included_keys.add(key)
+            if key not in excluded_keys:
+                included_keys.add(key)
         return (key for key in included_keys)
 
     def __len__(self):

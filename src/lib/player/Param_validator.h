@@ -58,8 +58,6 @@ bool v_piref(const char* param);
 
 bool v_pitch(const char* param);
 
-bool v_scale(const char* param);
-
 bool v_song(const char* param);
 
 bool v_system(const char* param);
@@ -71,6 +69,8 @@ bool v_tempo(const char* param);
 bool v_track(const char* param);
 
 bool v_tremolo_depth(const char* param);
+
+bool v_tuning_table(const char* param);
 
 bool v_var_name(const char* param);
 

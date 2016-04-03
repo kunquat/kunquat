@@ -13,6 +13,7 @@
 #
 
 from itertools import chain
+import re
 
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
@@ -23,6 +24,7 @@ from connections import Connections
 from control import Control
 from album import Album
 from environment import Environment
+from tuningtable import TuningTable
 
 
 class Module():
@@ -277,6 +279,49 @@ class Module():
                 transaction[key] = None
 
         self._store.put(transaction)
+
+    def get_tuning_table_ids(self):
+        table_ids = set()
+        pat = re.compile('tuning_[0-9a-f]{2}/p_tuning_table.json')
+        for key in self._store.keys():
+            if pat.match(key):
+                table_id = key.split('/')[0]
+                num = int(table_id.split('_')[1], 16)
+                if num < TUNING_TABLES_MAX:
+                    table_ids.add(table_id)
+        return table_ids
+
+    def get_free_tuning_table_id(self):
+        all_ids = set('tuning_{:02x}'.format(i) for i in xrange(TUNING_TABLES_MAX))
+        used_ids = self.get_tuning_table_ids()
+        free_ids = all_ids - used_ids
+        if not free_ids:
+            return None
+        return min(free_ids)
+
+    def add_tuning_table(self, table_id):
+        assert table_id not in self.get_tuning_table_ids()
+        table_key = '{}/p_tuning_table.json'.format(table_id)
+        name_key = '{}/m_name.json'.format(table_id)
+        note_names_key = '{}/m_note_names.json'.format(table_id)
+        transaction = {
+            table_key     : get_default_value(table_key),
+            name_key      : 'Tuning {}'.format(int(table_id.split('_')[1], 16)),
+            note_names_key: ['A'],
+        }
+        self._store.put(transaction)
+
+    def create_tuning_table_from_notation_template(
+            self, table_id, name, notation_template):
+        assert table_id not in self.get_tuning_table_ids()
+        tt = TuningTable(table_id)
+        tt.set_controller(self._controller)
+        tt.apply_notation_template(name, notation_template)
+
+    def get_tuning_table(self, table_id):
+        tt = TuningTable(table_id)
+        tt.set_controller(self._controller)
+        return tt
 
     def set_path(self, path):
         self._session.set_module_path(path)

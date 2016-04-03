@@ -44,8 +44,8 @@ inline double fast_log2(double x)
     static const double fac = 2.8853900817779268; // 2 * (1 / ln(2))
     static const double f13 = (1.0 / 3.0);
     static const double f15 = (1.0 / 5.0);
-    static const double facf13 = fac * f13;
-    static const double facf15 = fac * f15;
+#define facf13 (fac * f13)
+#define facf15 (fac * f15)
 
     const double l2sx = sxmp1 * (fac + sxmp1_2 * (facf13 + (facf15 * sxmp1_2)));
 

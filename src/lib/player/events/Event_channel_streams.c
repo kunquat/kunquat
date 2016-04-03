@@ -28,10 +28,14 @@
 
 
 bool Event_channel_set_stream_name_process(
-        Channel* channel, Device_states* dstates, const Value* value)
+        Channel* channel,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(channel != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_STRING);
 
@@ -40,10 +44,14 @@ bool Event_channel_set_stream_name_process(
 
 
 bool Event_channel_set_stream_value_process(
-        Channel* channel, Device_states* dstates, const Value* value)
+        Channel* channel,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(channel != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -92,10 +100,14 @@ static void ensure_valid_stream(
 
 
 bool Event_channel_slide_stream_target_process(
-        Channel* channel, Device_states* dstates, const Value* value)
+        Channel* channel,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(channel != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -124,10 +136,14 @@ bool Event_channel_slide_stream_target_process(
 
 
 bool Event_channel_slide_stream_length_process(
-        Channel* channel, Device_states* dstates, const Value* value)
+        Channel* channel,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(channel != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -156,10 +172,14 @@ bool Event_channel_slide_stream_length_process(
 
 
 bool Event_channel_stream_osc_speed_process(
-        Channel* channel, Device_states* dstates, const Value* value)
+        Channel* channel,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(channel != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -188,10 +208,14 @@ bool Event_channel_stream_osc_speed_process(
 
 
 bool Event_channel_stream_osc_depth_process(
-        Channel* channel, Device_states* dstates, const Value* value)
+        Channel* channel,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(channel != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -220,10 +244,14 @@ bool Event_channel_stream_osc_depth_process(
 
 
 bool Event_channel_stream_osc_speed_slide_process(
-        Channel* channel, Device_states* dstates, const Value* value)
+        Channel* channel,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(channel != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -253,10 +281,14 @@ bool Event_channel_stream_osc_speed_slide_process(
 
 
 bool Event_channel_stream_osc_depth_slide_process(
-        Channel* channel, Device_states* dstates, const Value* value)
+        Channel* channel,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(channel != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -286,10 +318,14 @@ bool Event_channel_stream_osc_depth_slide_process(
 
 
 bool Event_channel_carry_stream_on_process(
-        Channel* channel, Device_states* dstates, const Value* value)
+        Channel* channel,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(channel != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     ignore(value);
 
     const char* stream_name =
@@ -304,10 +340,14 @@ bool Event_channel_carry_stream_on_process(
 
 
 bool Event_channel_carry_stream_off_process(
-        Channel* channel, Device_states* dstates, const Value* value)
+        Channel* channel,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
 {
     assert(channel != NULL);
     assert(dstates != NULL);
+    assert(master_params != NULL);
     ignore(value);
 
     const char* stream_name =

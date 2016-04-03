@@ -111,6 +111,12 @@ class NotationManager():
     def set_editor_selected_template_note(self, coords):
         self._session.set_notation_editor_selected_template_note(coords)
 
+    def get_editor_selected_tuning_table_id(self):
+        return self._session.get_notation_editor_selected_tuning_table_id()
+
+    def set_editor_selected_tuning_table_id(self, table_id):
+        self._session.set_notation_editor_selected_tuning_table_id(table_id)
+
     def get_editor_selected_notation(self):
         selected_id = self.get_editor_selected_notation_id()
         if not selected_id:

@@ -78,16 +78,17 @@ MODULE_KEYP(column,           "pat_XXX/col_XX/p_triggers.json", "[]")
 
 MODULE_KEYP(pat_instance_manifest, "pat_XXX/instance_XXX/p_manifest.json", "")
 
-MODULE_KEYP(scale, "scale_X/p_scale.json",
+MODULE_KEYP(tuning_table, "tuning_XX/p_tuning_table.json",
         "{ \"ref_note\": 0"
         ", \"ref_pitch\": 0"
         ", \"pitch_offset\": 0"
-        ", \"octave_ratio\": [2, 1]"
-        ", \"notes\": []"
+        ", \"octave_width\": [2, 1]"
+        ", \"center_octave\": 4"
+        ", \"notes\": [0]"
         "}")
 
-MODULE_KEYP(song_manifest,  "song_XX/p_manifest.json",  "")
-MODULE_KEYP(song_tempo,     "song_XX/p_tempo.json",     MAKE_STRING(SONG_DEFAULT_TEMPO))
+MODULE_KEYP(song_manifest,   "song_XX/p_manifest.json",  "")
+MODULE_KEYP(song_tempo,      "song_XX/p_tempo.json",     MAKE_STRING(SONG_DEFAULT_TEMPO))
 MODULE_KEYP(song_order_list, "song_XX/p_order_list.json", "[]")
 
 

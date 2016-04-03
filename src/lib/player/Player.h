@@ -127,6 +127,18 @@ bool Player_refresh_bind_state(Player* player);
 
 
 /**
+ * Create a Tuning state based on the current Tuning table.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ * \param index    The Tuning table index -- must be >= \c 0 and
+ *                 < \c KQT_TUNING_TABLES_MAX.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Player_create_tuning_state(Player* player, int index);
+
+
+/**
  * Set audio rate.
  *
  * \param player   The Player -- must not be \c NULL.

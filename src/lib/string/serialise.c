@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -255,34 +255,6 @@ int serialise_Pat_inst_ref(char* dest, int size, const Pat_inst_ref* value)
     serialise_int(inst_buf, INT_BUF_SIZE, value->inst);
 
     int printed = snprintf(dest, size, "[%s, %s]", pat_buf, inst_buf);
-
-    return min(printed, size - 1);
-}
-
-
-int serialise_Real(char* dest, int size, const Real* value)
-{
-    assert(dest != NULL);
-    assert(size > 0);
-    assert(value != NULL);
-
-    if (!Real_is_frac(value))
-    {
-        int printed = snprintf(dest, size, "[\"f\", ");
-        printed = min(printed, size - 1);
-        printed += serialise_float(dest + printed, size - printed,
-                                   Real_get_double(value));
-        printed += snprintf(dest + printed, size - printed, "]");
-        return min(printed, size - 1);
-    }
-
-    char num_buf[INT_BUF_SIZE] = "";
-    char den_buf[INT_BUF_SIZE] = "";
-
-    serialise_int(num_buf, INT_BUF_SIZE, Real_get_numerator(value));
-    serialise_int(den_buf, INT_BUF_SIZE, Real_get_denominator(value));
-
-    int printed = snprintf(dest, size, "[\"/\", [%s, %s]]", num_buf, den_buf);
 
     return min(printed, size - 1);
 }

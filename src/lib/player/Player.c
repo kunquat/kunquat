@@ -25,6 +25,7 @@
 #include <player/Player_private.h>
 #include <player/Player_seq.h>
 #include <player/Position.h>
+#include <player/Tuning_state.h>
 #include <player/Voice_group.h>
 #include <player/Work_buffer.h>
 #include <player/Work_buffers.h>
@@ -294,6 +295,27 @@ bool Player_refresh_bind_state(Player* player)
 
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         Channel_set_event_cache(player->channels[i], caches[i]);
+
+    return true;
+}
+
+
+bool Player_create_tuning_state(Player* player, int index)
+{
+    assert(player != NULL);
+    assert(index >= 0);
+    assert(index < KQT_TUNING_TABLES_MAX);
+
+    if (player->master_params.tuning_states[index] == NULL)
+    {
+        player->master_params.tuning_states[index] = new_Tuning_state();
+        if (player->master_params.tuning_states[index] == NULL)
+            return false;
+    }
+
+    Tuning_state_reset(
+            player->master_params.tuning_states[index],
+            Module_get_tuning_table(player->module, index));
 
     return true;
 }
