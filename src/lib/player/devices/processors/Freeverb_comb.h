@@ -39,24 +39,6 @@ Freeverb_comb* new_Freeverb_comb(uint32_t buffer_size);
 
 
 /**
- * Set the damp value of the Freeverb comb filter.
- *
- * \param comb   The Freeverb comb filter -- must not be \c NULL.
- * \param damp   The damp value -- must be >= \c 0 and <= \c 1.
- */
-//void Freeverb_comb_set_damp(Freeverb_comb* comb, float damp);
-
-
-/**
- * Set the feedback of the Freeverb comb filter.
- *
- * \param comb       The Freeverb comb filter -- must not be \c NULL.
- * \param feedback   The feedback value -- must be > \c -1 and < \c 1.
- */
-//void Freeverb_comb_set_feedback(Freeverb_comb* comb, float feedback);
-
-
-/**
  * Process data buffer.
  *
  * \param comb        The Freeverb comb filter -- must not be \c NULL.

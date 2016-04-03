@@ -26,10 +26,6 @@ typedef struct Proc_freeverb
     Device_impl parent;
 
     double gain;
-    //double reflect;
-    //double reflect1;
-    //double damp;
-    //double damp1;
     double wet;
     double wet1;
     double wet2;

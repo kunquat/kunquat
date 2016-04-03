@@ -67,24 +67,6 @@ void Freeverb_allpass_set_feedback(Freeverb_allpass* allpass, float feedback)
 }
 
 
-/*
-float Freeverb_allpass_process(Freeverb_allpass* allpass, float input)
-{
-    assert(allpass != NULL);
-
-    float bufout = allpass->buffer[allpass->buffer_pos];
-    bufout = undenormalise(bufout);
-    allpass->buffer[allpass->buffer_pos] = input + (bufout * allpass->feedback);
-
-    ++allpass->buffer_pos;
-    if (allpass->buffer_pos >= allpass->buffer_size)
-        allpass->buffer_pos = 0;
-
-    return -input + bufout;
-}
-// */
-
-
 void Freeverb_allpass_process(
         Freeverb_allpass* allpass, float* buffer, int32_t buf_start, int32_t buf_stop)
 {
