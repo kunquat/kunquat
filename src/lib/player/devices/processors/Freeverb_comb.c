@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -19,15 +19,12 @@
 #include <memory.h>
 
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 
 struct Freeverb_comb
 {
-    float feedback;
-    float damp1;
-    float damp2;
-
     float filter_store;
     float* buffer;
     uint32_t buffer_size;
@@ -42,10 +39,6 @@ Freeverb_comb* new_Freeverb_comb(uint32_t buffer_size)
     Freeverb_comb* comb = memory_alloc_item(Freeverb_comb);
     if (comb == NULL)
         return NULL;
-
-    comb->feedback = 0;
-    comb->damp1 = 0;
-    comb->damp2 = 0;
 
     comb->filter_store = 0;
     comb->buffer = NULL;
@@ -65,46 +58,41 @@ Freeverb_comb* new_Freeverb_comb(uint32_t buffer_size)
 }
 
 
-void Freeverb_comb_set_damp(Freeverb_comb* comb, float damp)
+void Freeverb_comb_process(
+        Freeverb_comb* comb,
+        float* out_buf,
+        const float* in_buf,
+        const float* refls,
+        const float* damps,
+        int32_t buf_start,
+        int32_t buf_stop)
 {
     assert(comb != NULL);
-    assert(damp >= 0);
-    assert(damp <= 1);
+    assert(out_buf != NULL);
+    assert(in_buf != NULL);
+    assert(refls != NULL);
+    assert(damps != NULL);
+    assert(buf_start >= 0);
+    assert(buf_stop > buf_start);
 
-    comb->damp1 = damp;
-    comb->damp2 = 1 - damp;
+    for (int32_t i = buf_start; i < buf_stop; ++i)
+    {
+        float output = comb->buffer[comb->buffer_pos];
+        output = undenormalise(output);
+        const float damp1 = damps[i];
+        const float damp2 = 1 - damp1;
+        comb->filter_store = (output * damp2) + (comb->filter_store * damp1);
+        comb->filter_store = undenormalise(comb->filter_store);
+        comb->buffer[comb->buffer_pos] = in_buf[i] + (comb->filter_store * refls[i]);
+
+        out_buf[i] += output;
+
+        ++comb->buffer_pos;
+        if (comb->buffer_pos >= comb->buffer_size)
+            comb->buffer_pos = 0;
+    }
 
     return;
-}
-
-
-void Freeverb_comb_set_feedback(Freeverb_comb* comb, float feedback)
-{
-    assert(comb != NULL);
-    assert(feedback >= 0);
-    assert(feedback < 1);
-
-    comb->feedback = feedback;
-
-    return;
-}
-
-
-float Freeverb_comb_process(Freeverb_comb* comb, float input)
-{
-    assert(comb != NULL);
-
-    float output = comb->buffer[comb->buffer_pos];
-    output = undenormalise(output);
-    comb->filter_store = (output * comb->damp2) + (comb->filter_store * comb->damp1);
-    comb->filter_store = undenormalise(comb->filter_store);
-    comb->buffer[comb->buffer_pos] = input + (comb->filter_store * comb->feedback);
-
-    ++comb->buffer_pos;
-    if (comb->buffer_pos >= comb->buffer_size)
-        comb->buffer_pos = 0;
-
-    return output;
 }
 
 

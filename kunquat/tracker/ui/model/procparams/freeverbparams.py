@@ -25,6 +25,8 @@ class FreeverbParams(ProcParams):
         return {
             'in_00':  u'audio L',
             'in_01':  u'audio R',
+            'in_02':  u'reflect',
+            'in_03':  u'damp',
             'out_00': u'audio L',
             'out_01': u'audio R',
         }
