@@ -434,6 +434,10 @@ class ConnectionsView(QWidget):
         device = self._get_device(dev_id)
         return device.get_out_ports()
 
+    def _get_port_info(self, dev_id):
+        device = self._get_device(dev_id)
+        return device.get_port_info()
+
     def _get_device_name(self, dev_id):
         device = self._get_device(dev_id)
         return device.get_name()
@@ -499,6 +503,7 @@ class ConnectionsView(QWidget):
                         model_device.get_signal_type() == 'voice')
 
                 if (old_device.get_name() == self._get_device_name(dev_id) and
+                        (old_device.get_port_info() == self._get_port_info(dev_id)) and
                         was_proc_voice == is_proc_voice):
                     new_devices[dev_id] = old_device
         self._visible_devices = new_devices
@@ -1303,6 +1308,9 @@ class Device():
             if self._type_config == v:
                 return key
 
+    def get_port_info(self):
+        return self._port_names
+
     def draw_pixmaps(self):
         self._bg = QPixmap(self._config['width'], self._get_height())
         painter = QPainter(self._bg)
@@ -1334,8 +1342,8 @@ class Device():
         port_y = self._get_title_height() + pad
 
         for port_id in self._in_ports:
-            port_str = self._port_names.get(
-                    port_id, str(int(port_id.split('_')[1], 16)))
+            port_num = int(port_id.split('_')[1], 16)
+            port_str = self._port_names.get(port_id, None) or str(port_num)
             painter.drawText(
                     QRectF(pad, port_y, self._bg.width() // 2, port_height),
                     port_str,
@@ -1345,8 +1353,8 @@ class Device():
         text_option = QTextOption(Qt.AlignRight | Qt.AlignVCenter)
         port_y = self._get_title_height() + pad
         for port_id in self._out_ports:
-            port_str = self._port_names.get(
-                    port_id, str(int(port_id.split('_')[1], 16)))
+            port_num = int(port_id.split('_')[1], 16)
+            port_str = self._port_names.get(port_id, None) or str(port_num)
             painter.drawText(
                     QRectF(
                         self._bg.width() // 2,
