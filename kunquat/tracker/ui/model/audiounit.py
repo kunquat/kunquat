@@ -339,6 +339,10 @@ class AudioUnit():
         au.set_port_existence('in_01', True)
         au.set_port_existence('out_00', True)
         au.set_port_existence('out_01', True)
+        au.set_port_name('in_00', u'audio L')
+        au.set_port_name('in_01', u'audio R')
+        au.set_port_name('out_00', u'audio L')
+        au.set_port_name('out_01', u'audio R')
 
     def _remove_device(self, dev_id):
         assert dev_id.startswith(self._au_id)
