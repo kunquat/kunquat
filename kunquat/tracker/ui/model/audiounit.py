@@ -90,7 +90,12 @@ class AudioUnit():
         return out_ports
 
     def get_port_info(self):
-        return {} # TODO
+        info = {}
+        for in_port_id in self.get_in_ports():
+            info[in_port_id] = self.get_port_name(in_port_id)
+        for out_port_id in self.get_out_ports():
+            info[out_port_id] = self.get_port_name(out_port_id)
+        return info
 
     def set_port_existence(self, port_id, existence):
         key = self._get_key('{}/p_manifest.json'.format(port_id))
@@ -98,6 +103,30 @@ class AudioUnit():
             self._store[key] = {}
         else:
             del self._store[key]
+
+    def get_free_input_port_id(self):
+        for i in xrange(0x100):
+            port_id = 'in_{:02x}'.format(i)
+            key = self._get_key('{}/p_manifest.json'.format(port_id))
+            if key not in self._store:
+                return port_id
+        return None
+
+    def get_free_output_port_id(self):
+        for i in xrange(0x100):
+            port_id = 'out_{:02x}'.format(i)
+            key = self._get_key('{}/p_manifest.json'.format(port_id))
+            if key not in self._store:
+                return port_id
+        return None
+
+    def get_port_name(self, port_id):
+        key = self._get_key('{}/m_name.json'.format(port_id))
+        return self._store.get(key, None)
+
+    def set_port_name(self, port_id, name):
+        key = self._get_key('{}/m_name.json'.format(port_id))
+        self._store[key] = name
 
     def get_connections(self):
         connections = Connections()
