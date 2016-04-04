@@ -128,6 +128,27 @@ class AudioUnit():
         key = self._get_key('{}/m_name.json'.format(port_id))
         self._store[key] = name
 
+    def remove_port(self, port_id):
+        transaction = {
+            self._get_key('{}/p_manifest.json'.format(port_id)): None,
+            self._get_key('{}/m_name.json'.format(port_id)):     None,
+        }
+
+        # Remove internal connections to the removed port
+        conns = self.get_connections()
+        transaction.update(conns.get_edit_disconnect_master_port(port_id))
+
+        # Remove external connections to the removed port
+        module = self._ui_model.get_module()
+        if '/' in self._au_id:
+            parent_au_id = self._au_id.split('/')[0]
+            parent_conns = module.get_audio_unit(parent_au_id).get_connections()
+        else:
+            parent_conns = module.get_connections()
+        transaction.update(parent_conns.get_edit_disconnect_port(self._au_id, port_id))
+
+        self._store.put(transaction)
+
     def get_connections(self):
         connections = Connections()
         connections.set_au_id(self._au_id)

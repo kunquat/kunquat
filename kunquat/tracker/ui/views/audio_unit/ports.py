@@ -326,6 +326,14 @@ class PortEditor(QWidget):
                 set([self._get_update_signal_type()]) | self._get_connections_signals())
 
     def _remove(self):
-        pass # TODO
+        port_ids = self._get_port_ids()
+        port_id = port_ids[self._index]
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+
+        au.remove_port(port_id)
+        self._updater.signal_update(
+                set([self._get_update_signal_type()]) | self._get_connections_signals())
 
 
