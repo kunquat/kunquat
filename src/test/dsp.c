@@ -50,13 +50,13 @@ START_TEST(Trivial_delay_is_identity)
     set_mix_volume(0);
     pause();
 
-    set_data("au_03/proc_01/in_01/p_manifest.json", "{}");
+    set_data("au_03/proc_01/in_00/p_manifest.json", "{}");
     set_data("au_03/proc_01/out_00/p_manifest.json", "{}");
     set_data("au_03/proc_01/p_manifest.json", "{ \"type\": \"delay\" }");
     set_data("au_03/proc_01/p_signal_type.json", "\"mixed\"");
 
     set_data("au_03/p_connections.json",
-            "[ [\"in_00\", \"proc_01/C/in_01\"], "
+            "[ [\"in_00\", \"proc_01/C/in_00\"], "
             "  [\"proc_01/C/out_00\", \"out_00\"] ]");
     set_data("au_03/in_00/p_manifest.json", "{}");
     set_data("au_03/out_00/p_manifest.json", "{}");

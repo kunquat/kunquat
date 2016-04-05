@@ -105,6 +105,24 @@ static void Delay_pstate_reset(Device_state* dstate)
 }
 
 
+enum
+{
+    PORT_IN_AUDIO_L = 0,
+    PORT_IN_AUDIO_R,
+    PORT_IN_DELAY,
+    PORT_IN_COUNT,
+
+    PORT_IN_AUDIO_COUNT = PORT_IN_AUDIO_R + 1
+};
+
+enum
+{
+    PORT_OUT_AUDIO_L = 0,
+    PORT_OUT_AUDIO_R,
+    PORT_OUT_COUNT
+};
+
+
 static void Delay_pstate_render_mixed(
         Device_state* dstate,
         const Work_buffers* wbs,
@@ -122,10 +140,12 @@ static void Delay_pstate_render_mixed(
     const Proc_delay* delay = (const Proc_delay*)dstate->device->dimpl;
 
     float* in_data[2] = { NULL };
-    Proc_state_get_mixed_audio_in_buffers(&dpstate->parent, 1, 3, in_data);
+    Proc_state_get_mixed_audio_in_buffers(
+            &dpstate->parent, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_data);
 
     float* out_data[2] = { NULL };
-    Proc_state_get_mixed_audio_out_buffers(&dpstate->parent, 0, 2, out_data);
+    Proc_state_get_mixed_audio_out_buffers(
+            &dpstate->parent, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_data);
 
     float* history_data[] =
     {
@@ -144,8 +164,8 @@ static void Delay_pstate_render_mixed(
             wbs, DELAY_WORK_BUFFER_TOTAL_OFFSETS);
 
     // Get delay stream
-    float* delays =
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
+    float* delays = Device_state_get_audio_buffer_contents_mut(
+            dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_DELAY);
     if (delays == NULL)
     {
         delays =
