@@ -29,6 +29,24 @@
 #include <stdlib.h>
 
 
+enum
+{
+    PORT_IN_AUDIO_L = 0,
+    PORT_IN_AUDIO_R,
+    PORT_IN_FORCE,
+    PORT_IN_COUNT,
+
+    PORT_IN_AUDIO_COUNT = PORT_IN_AUDIO_R + 1
+};
+
+enum
+{
+    PORT_OUT_AUDIO_L = 0,
+    PORT_OUT_AUDIO_R,
+    PORT_OUT_COUNT
+};
+
+
 static void apply_volume(
         int buf_count,
         float* in_buffers[buf_count],
@@ -111,16 +129,18 @@ static void Volume_pstate_render_mixed(
     Volume_pstate* vpstate = (Volume_pstate*)dstate;
 
     // Get control stream
-    float* vol_buf =
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
+    float* vol_buf = Device_state_get_audio_buffer_contents_mut(
+            dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
 
     // Get input
     float* in_bufs[2] = { NULL };
-    Proc_state_get_mixed_audio_in_buffers(&vpstate->parent, 1, 3, in_bufs);
+    Proc_state_get_mixed_audio_in_buffers(
+            &vpstate->parent, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_bufs);
 
     // Get output
     float* out_bufs[2] = { NULL };
-    Proc_state_get_mixed_audio_out_buffers(&vpstate->parent, 0, 2, out_bufs);
+    Proc_state_get_mixed_audio_out_buffers(
+            &vpstate->parent, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_bufs);
 
     apply_volume(2, in_bufs, out_bufs, vol_buf, vpstate->volume, buf_start, buf_stop);
 
@@ -183,11 +203,12 @@ int32_t Volume_vstate_render_voice(
 
     // Get control stream
     float* volume_buf = Proc_state_get_voice_buffer_contents_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
 
     // Get input
     float* in_bufs[2] = { NULL };
-    Proc_state_get_voice_audio_in_buffers(proc_state, 1, 3, in_bufs);
+    Proc_state_get_voice_audio_in_buffers(
+            proc_state, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_bufs);
 
     if ((in_bufs[0] == NULL) && (in_bufs[1] == NULL))
     {
@@ -197,7 +218,8 @@ int32_t Volume_vstate_render_voice(
 
     // Get output
     float* out_bufs[2] = { NULL };
-    Proc_state_get_voice_audio_out_buffers(proc_state, 0, 2, out_bufs);
+    Proc_state_get_voice_audio_out_buffers(
+            proc_state, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_bufs);
 
     const Volume_pstate* vpstate = (const Volume_pstate*)proc_state;
     apply_volume(2, in_bufs, out_bufs, volume_buf, vpstate->volume, buf_start, buf_stop);
