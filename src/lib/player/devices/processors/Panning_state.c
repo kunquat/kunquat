@@ -26,6 +26,24 @@
 #include <stdlib.h>
 
 
+enum
+{
+    PORT_IN_AUDIO_L = 0,
+    PORT_IN_AUDIO_R,
+    PORT_IN_PANNING,
+    PORT_IN_COUNT,
+
+    PORT_IN_AUDIO_COUNT = PORT_IN_AUDIO_R + 1,
+};
+
+enum
+{
+    PORT_OUT_AUDIO_L = 0,
+    PORT_OUT_AUDIO_R,
+    PORT_OUT_COUNT
+};
+
+
 static const int CONTROL_WB_PANNING = WORK_BUFFER_IMPL_1;
 
 
@@ -123,16 +141,18 @@ static void Panning_pstate_render_mixed(
     Panning_pstate* ppstate = (Panning_pstate*)dstate;
 
     // Get panning values
-    const float* pan_values =
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
+    const float* pan_values = Device_state_get_audio_buffer_contents_mut(
+            dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PANNING);
 
     // Get input
     float* in_buffers[2] = { NULL };
-    Proc_state_get_mixed_audio_in_buffers(&ppstate->parent, 1, 3, in_buffers);
+    Proc_state_get_mixed_audio_in_buffers(
+            &ppstate->parent, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_buffers);
 
     // Get output
     float* out_buffers[2] = { NULL };
-    Proc_state_get_mixed_audio_out_buffers(&ppstate->parent, 0, 2, out_buffers);
+    Proc_state_get_mixed_audio_out_buffers(
+            &ppstate->parent, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
 
     apply_panning(
             wbs,
@@ -218,11 +238,12 @@ int32_t Panning_vstate_render_voice(
 
     // Get panning values
     const float* pan_values = Proc_state_get_voice_buffer_contents_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PANNING);
 
     // Get input
     float* in_buffers[2] = { NULL };
-    Proc_state_get_voice_audio_in_buffers(proc_state, 1, 3, in_buffers);
+    Proc_state_get_voice_audio_in_buffers(
+            proc_state, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_buffers);
     if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
     {
         vstate->active = false;
@@ -231,7 +252,8 @@ int32_t Panning_vstate_render_voice(
 
     // Get output
     float* out_buffers[2] = { NULL };
-    Proc_state_get_voice_audio_out_buffers(proc_state, 0, 2, out_buffers);
+    Proc_state_get_voice_audio_out_buffers(
+            proc_state, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
 
     const Device_state* dstate = (const Device_state*)proc_state;
 
