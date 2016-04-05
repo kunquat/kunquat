@@ -42,6 +42,20 @@ size_t Envgen_vstate_get_size(void)
 }
 
 
+enum
+{
+    PORT_IN_PITCH = 0,
+    PORT_IN_FORCE,
+    PORT_IN_COUNT,
+};
+
+enum
+{
+    PORT_OUT_ENV = 0,
+    PORT_OUT_COUNT
+};
+
+
 static const int ENVGEN_WB_FIXED_PITCH = WORK_BUFFER_IMPL_1;
 static const int ENVGEN_WB_FIXED_FORCE = WORK_BUFFER_IMPL_2;
 
@@ -69,7 +83,7 @@ static int32_t Envgen_vstate_render_voice(
 
     // Get pitch input
     float* pitches = Proc_state_get_voice_buffer_contents_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
     if (pitches == NULL)
     {
         pitches = Work_buffers_get_buffer_contents_mut(wbs, ENVGEN_WB_FIXED_PITCH);
@@ -79,11 +93,11 @@ static int32_t Envgen_vstate_render_voice(
 
     // Get force scales
     float* force_scales = Proc_state_get_voice_buffer_contents_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, 1);
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
 
     // Get output buffer for writing
-    float* out_buffer =
-        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0);
+    float* out_buffer = Proc_state_get_voice_buffer_contents_mut(
+            proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_ENV);
     if (out_buffer == NULL)
     {
         vstate->active = false;
