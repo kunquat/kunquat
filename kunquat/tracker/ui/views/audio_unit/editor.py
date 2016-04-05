@@ -17,6 +17,7 @@ from PyQt4.QtGui import *
 from components import Components
 from expressions import Expressions
 from hits import Hits
+from ports import Ports
 from infoeditor import InfoEditor
 from testbutton import TestButton
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
@@ -36,6 +37,7 @@ class Editor(QWidget):
         self._components = Components()
         self._hits = Hits()
         self._expressions = Expressions()
+        self._ports = Ports()
         self._info_editor = InfoEditor()
 
         self._keyboard_mapper = KeyboardMapper()
@@ -46,6 +48,7 @@ class Editor(QWidget):
         self._components.set_au_id(au_id)
         self._hits.set_au_id(au_id)
         self._expressions.set_au_id(au_id)
+        self._ports.set_au_id(au_id)
         self._info_editor.set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
@@ -55,6 +58,7 @@ class Editor(QWidget):
         self._components.set_ui_model(ui_model)
         self._hits.set_ui_model(ui_model)
         self._expressions.set_ui_model(ui_model)
+        self._ports.set_ui_model(ui_model)
         self._info_editor.set_ui_model(ui_model)
         self._keyboard_mapper.set_ui_model(ui_model)
 
@@ -65,6 +69,7 @@ class Editor(QWidget):
         if au.is_instrument():
             self._tabs.addTab(self._hits, 'Hits')
             self._tabs.addTab(self._expressions, 'Expressions')
+        self._tabs.addTab(self._ports, 'Ports')
         self._tabs.addTab(self._info_editor, 'Info')
 
         v = QVBoxLayout()
@@ -78,6 +83,7 @@ class Editor(QWidget):
     def unregister_updaters(self):
         self._keyboard_mapper.unregister_updaters()
         self._info_editor.unregister_updaters()
+        self._ports.unregister_updaters()
         self._expressions.unregister_updaters()
         self._hits.unregister_updaters()
         self._components.unregister_updaters()

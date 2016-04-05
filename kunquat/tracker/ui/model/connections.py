@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -88,5 +88,26 @@ class Connections():
 
         key = self._get_graph_key()
         self._store[key] = keep_conns
+
+    def _get_edit_disconnect_port(self, dev_id, port_id):
+        if dev_id == None:
+            excluded_path = port_id
+        else:
+            sub_dev_id = dev_id.split('/')[-1]
+            excluded_path = '{}/{}'.format(sub_dev_id, port_id)
+
+        keep_conns = []
+        for conn in self.get_connections():
+            if excluded_path not in conn:
+                keep_conns.append(conn)
+
+        transaction = { self._get_graph_key(): keep_conns }
+        return transaction
+
+    def get_edit_disconnect_port(self, dev_id, port_id):
+        return self._get_edit_disconnect_port(dev_id, port_id)
+
+    def get_edit_disconnect_master_port(self, port_id):
+        return self._get_edit_disconnect_port(None, port_id)
 
 

@@ -175,10 +175,10 @@ class Module():
         au.set_controller(self._controller)
         au.set_ui_model(self._ui_model)
         au.set_existence('instrument')
-        au.set_port_existence('in_00', True)
-        au.set_port_existence('in_01', True)
         au.set_port_existence('out_00', True)
         au.set_port_existence('out_01', True)
+        au.set_port_name('out_00', u'audio L')
+        au.set_port_name('out_01', u'audio R')
 
     def add_effect(self, au_id):
         au = AudioUnit(au_id)
@@ -189,6 +189,10 @@ class Module():
         au.set_port_existence('in_01', True)
         au.set_port_existence('out_00', True)
         au.set_port_existence('out_01', True)
+        au.set_port_name('in_00', u'audio L')
+        au.set_port_name('in_01', u'audio R')
+        au.set_port_name('out_00', u'audio L')
+        au.set_port_name('out_01', u'audio R')
 
     def get_out_ports(self):
         out_ports = []

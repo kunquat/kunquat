@@ -90,7 +90,12 @@ class AudioUnit():
         return out_ports
 
     def get_port_info(self):
-        return {} # TODO
+        info = {}
+        for in_port_id in self.get_in_ports():
+            info[in_port_id] = self.get_port_name(in_port_id)
+        for out_port_id in self.get_out_ports():
+            info[out_port_id] = self.get_port_name(out_port_id)
+        return info
 
     def set_port_existence(self, port_id, existence):
         key = self._get_key('{}/p_manifest.json'.format(port_id))
@@ -98,6 +103,51 @@ class AudioUnit():
             self._store[key] = {}
         else:
             del self._store[key]
+
+    def get_free_input_port_id(self):
+        for i in xrange(0x100):
+            port_id = 'in_{:02x}'.format(i)
+            key = self._get_key('{}/p_manifest.json'.format(port_id))
+            if key not in self._store:
+                return port_id
+        return None
+
+    def get_free_output_port_id(self):
+        for i in xrange(0x100):
+            port_id = 'out_{:02x}'.format(i)
+            key = self._get_key('{}/p_manifest.json'.format(port_id))
+            if key not in self._store:
+                return port_id
+        return None
+
+    def get_port_name(self, port_id):
+        key = self._get_key('{}/m_name.json'.format(port_id))
+        return self._store.get(key, None)
+
+    def set_port_name(self, port_id, name):
+        key = self._get_key('{}/m_name.json'.format(port_id))
+        self._store[key] = name
+
+    def remove_port(self, port_id):
+        transaction = {
+            self._get_key('{}/p_manifest.json'.format(port_id)): None,
+            self._get_key('{}/m_name.json'.format(port_id)):     None,
+        }
+
+        # Remove internal connections to the removed port
+        conns = self.get_connections()
+        transaction.update(conns.get_edit_disconnect_master_port(port_id))
+
+        # Remove external connections to the removed port
+        module = self._ui_model.get_module()
+        if '/' in self._au_id:
+            parent_au_id = self._au_id.split('/')[0]
+            parent_conns = module.get_audio_unit(parent_au_id).get_connections()
+        else:
+            parent_conns = module.get_connections()
+        transaction.update(parent_conns.get_edit_disconnect_port(self._au_id, port_id))
+
+        self._store.put(transaction)
 
     def get_connections(self):
         connections = Connections()
@@ -289,6 +339,10 @@ class AudioUnit():
         au.set_port_existence('in_01', True)
         au.set_port_existence('out_00', True)
         au.set_port_existence('out_01', True)
+        au.set_port_name('in_00', u'audio L')
+        au.set_port_name('in_01', u'audio R')
+        au.set_port_name('out_00', u'audio L')
+        au.set_port_name('out_01', u'audio R')
 
     def _remove_device(self, dev_id):
         assert dev_id.startswith(self._au_id)
