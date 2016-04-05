@@ -158,6 +158,23 @@ static void Freeverb_pstate_clear_history(Proc_state* proc_state)
 }
 
 
+enum
+{
+    PORT_IN_AUDIO_L = 0,
+    PORT_IN_AUDIO_R,
+    PORT_IN_REFL,
+    PORT_IN_DAMP,
+    PORT_IN_COUNT
+};
+
+enum
+{
+    PORT_OUT_AUDIO_L = 0,
+    PORT_OUT_AUDIO_R,
+    PORT_OUT_COUNT
+};
+
+
 static const int FREEVERB_WB_LEFT = WORK_BUFFER_IMPL_1;
 static const int FREEVERB_WB_RIGHT = WORK_BUFFER_IMPL_2;
 static const int FREEVERB_WB_FIXED_REFL = WORK_BUFFER_IMPL_3;
@@ -182,8 +199,8 @@ static void Freeverb_pstate_render_mixed(
     Proc_freeverb* freeverb = (Proc_freeverb*)dstate->device->dimpl;
 
     // Get reflectivity parameter stream
-    float* refls =
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 2);
+    float* refls = Device_state_get_audio_buffer_contents_mut(
+            dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_REFL);
     if (refls == NULL)
     {
         refls = Work_buffers_get_buffer_contents_mut(wbs, FREEVERB_WB_FIXED_REFL);
@@ -206,8 +223,8 @@ static void Freeverb_pstate_render_mixed(
     }
 
     // Get damp parameter stream
-    float* damps =
-        Device_state_get_audio_buffer_contents_mut(dstate, DEVICE_PORT_TYPE_RECEIVE, 3);
+    float* damps = Device_state_get_audio_buffer_contents_mut(
+            dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_DAMP);
     if (damps == NULL)
     {
         damps = Work_buffers_get_buffer_contents_mut(wbs, FREEVERB_WB_FIXED_DAMP);
@@ -226,14 +243,14 @@ static void Freeverb_pstate_render_mixed(
 
     Work_buffer* in_wbs[] =
     {
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 0),
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 0),
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_L),
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_R),
     };
 
     Work_buffer* out_wbs[] =
     {
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, 0),
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, 1),
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
     };
 
     // TODO: figure out a cleaner way of dealing with the buffers
