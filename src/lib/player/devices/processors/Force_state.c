@@ -51,6 +51,19 @@ size_t Force_vstate_get_size(void)
 #define RAMP_RELEASE_SPEED 200.0
 
 
+enum
+{
+    PORT_IN_PITCH = 0,
+    PORT_IN_COUNT
+};
+
+enum
+{
+    PORT_OUT_FORCE = 0,
+    PORT_OUT_COUNT
+};
+
+
 static const int FORCE_WB_FIXED_PITCH = WORK_BUFFER_IMPL_1;
 
 
@@ -74,7 +87,7 @@ static int32_t Force_vstate_render_voice(
 
     // Get pitch input
     float* pitches = Proc_state_get_voice_buffer_contents_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
     if (pitches == NULL)
     {
         pitches = Work_buffers_get_buffer_contents_mut(wbs, FORCE_WB_FIXED_PITCH);
@@ -83,8 +96,8 @@ static int32_t Force_vstate_render_voice(
     }
 
     // Get output
-    float* out_buf =
-        Proc_state_get_voice_buffer_contents_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0);
+    float* out_buf = Proc_state_get_voice_buffer_contents_mut(
+            proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_FORCE);
     if (out_buf == NULL)
     {
         vstate->active = false;

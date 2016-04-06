@@ -45,6 +45,23 @@ size_t Add_vstate_get_size(void)
 }
 
 
+enum
+{
+    PORT_IN_PITCH = 0,
+    PORT_IN_FORCE,
+    PORT_IN_PHASE_MOD_L,
+    PORT_IN_PHASE_MOD_R,
+    PORT_IN_COUNT
+};
+
+enum
+{
+    PORT_OUT_AUDIO_L = 0,
+    PORT_OUT_AUDIO_R,
+    PORT_OUT_COUNT
+};
+
+
 static const int ADD_WORK_BUFFER_FIXED_PITCH = WORK_BUFFER_IMPL_1;
 static const int ADD_WORK_BUFFER_FIXED_FORCE = WORK_BUFFER_IMPL_2;
 static const int ADD_WORK_BUFFER_MOD_L = WORK_BUFFER_IMPL_3;
@@ -73,7 +90,7 @@ static int32_t Add_vstate_render_voice(
 
     // Get frequencies
     float* freqs = Proc_state_get_voice_buffer_contents_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
     if (freqs == NULL)
     {
         freqs = Work_buffers_get_buffer_contents_mut(wbs, ADD_WORK_BUFFER_FIXED_PITCH);
@@ -88,7 +105,7 @@ static int32_t Add_vstate_render_voice(
 
     // Get volume scales
     float* scales = Proc_state_get_voice_buffer_contents_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, 1);
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
     if (scales == NULL)
     {
         scales = Work_buffers_get_buffer_contents_mut(wbs, ADD_WORK_BUFFER_FIXED_FORCE);
@@ -103,7 +120,8 @@ static int32_t Add_vstate_render_voice(
 
     // Get output buffer for writing
     float* out_bufs[2] = { NULL };
-    Proc_state_get_voice_audio_out_buffers(proc_state, 0, 2, out_bufs);
+    Proc_state_get_voice_audio_out_buffers(
+            proc_state, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_bufs);
 
     // Get phase modulation signal
     float* mod_values[] =
@@ -117,7 +135,8 @@ static int32_t Add_vstate_render_voice(
         // XXX: not sure if the best way to handle this...
 
         float* in_mod_bufs[2] = { NULL };
-        Proc_state_get_voice_audio_in_buffers(proc_state, 2, 4, in_mod_bufs);
+        Proc_state_get_voice_audio_in_buffers(
+                proc_state, PORT_IN_PHASE_MOD_L, PORT_IN_COUNT, in_mod_bufs);
 
         for (int ch = 0; ch < 2; ++ch)
         {

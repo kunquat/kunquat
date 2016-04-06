@@ -24,6 +24,26 @@
 #include <stdlib.h>
 
 
+enum
+{
+    PORT_IN_AUDIO_1_L = 0,
+    PORT_IN_AUDIO_1_R,
+    PORT_IN_AUDIO_2_L,
+    PORT_IN_AUDIO_2_R,
+    PORT_IN_COUNT,
+
+    PORT_IN_AUDIO_1_STOP = PORT_IN_AUDIO_1_R + 1,
+    PORT_IN_AUDIO_2_STOP = PORT_IN_AUDIO_2_R + 1,
+};
+
+enum
+{
+    PORT_OUT_AUDIO_L = 0,
+    PORT_OUT_AUDIO_R,
+    PORT_OUT_COUNT
+};
+
+
 static void multiply_signals(
         float* in1_buffers[2],
         float* in2_buffers[2],
@@ -70,14 +90,17 @@ static void Ringmod_pstate_render_mixed(
 
     // Get inputs
     float* in1_buffers[2] = { NULL };
-    Proc_state_get_mixed_audio_in_buffers(proc_state, 0, 2, in1_buffers);
+    Proc_state_get_mixed_audio_in_buffers(
+            proc_state, PORT_IN_AUDIO_1_L, PORT_IN_AUDIO_1_STOP, in1_buffers);
 
     float* in2_buffers[2] = { NULL };
-    Proc_state_get_mixed_audio_in_buffers(proc_state, 2, 4, in2_buffers);
+    Proc_state_get_mixed_audio_in_buffers(
+            proc_state, PORT_IN_AUDIO_2_L, PORT_IN_AUDIO_2_STOP, in2_buffers);
 
     // Get outputs
     float* out_buffers[2] = { NULL };
-    Proc_state_get_mixed_audio_out_buffers(proc_state, 0, 2, out_buffers);
+    Proc_state_get_mixed_audio_out_buffers(
+            proc_state, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
 
     // Multiply the signals
     multiply_signals(in1_buffers, in2_buffers, out_buffers, buf_start, buf_stop);
@@ -124,10 +147,12 @@ static int32_t Ringmod_vstate_render_voice(
 
     // Get inputs
     float* in1_buffers[2] = { NULL };
-    Proc_state_get_voice_audio_in_buffers(proc_state, 0, 2, in1_buffers);
+    Proc_state_get_voice_audio_in_buffers(
+            proc_state, PORT_IN_AUDIO_1_L, PORT_IN_AUDIO_1_STOP, in1_buffers);
 
     float* in2_buffers[2] = { NULL };
-    Proc_state_get_voice_audio_in_buffers(proc_state, 2, 4, in2_buffers);
+    Proc_state_get_voice_audio_in_buffers(
+            proc_state, PORT_IN_AUDIO_2_L, PORT_IN_AUDIO_2_STOP, in2_buffers);
 
     if (((in1_buffers[0] == NULL) || (in2_buffers[0] == NULL)) &&
             ((in1_buffers[1] == NULL) || (in2_buffers[1] == NULL)))
@@ -138,7 +163,8 @@ static int32_t Ringmod_vstate_render_voice(
 
     // Get output
     float* out_buffers[2] = { NULL };
-    Proc_state_get_voice_audio_out_buffers(proc_state, 0, 2, out_buffers);
+    Proc_state_get_voice_audio_out_buffers(
+            proc_state, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
 
     // Multiply the signals
     multiply_signals(in1_buffers, in2_buffers, out_buffers, buf_start, buf_stop);

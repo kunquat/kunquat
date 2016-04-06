@@ -27,6 +27,13 @@
 #include <stdlib.h>
 
 
+enum
+{
+    PORT_OUT_STREAM = 0,
+    PORT_OUT_COUNT,
+};
+
+
 static void apply_controls(
         Linear_controls* controls,
         const Work_buffer* out_wb,
@@ -105,8 +112,8 @@ static void Stream_pstate_render_mixed(
     Stream_pstate* spstate = (Stream_pstate*)dstate;
 
     // Get output
-    Work_buffer* out_wb =
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, 0);
+    Work_buffer* out_wb = Device_state_get_audio_buffer(
+            dstate, DEVICE_PORT_TYPE_SEND, PORT_OUT_STREAM);
 
     apply_controls(&spstate->controls, out_wb, buf_start, buf_stop, tempo);
 
@@ -325,8 +332,8 @@ static int32_t Stream_vstate_render_voice(
     Stream_vstate* svstate = (Stream_vstate*)vstate;
 
     // Get output
-    Work_buffer* out_wb =
-        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0);
+    Work_buffer* out_wb = Proc_state_get_voice_buffer_mut(
+            proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_STREAM);
     if (out_wb == NULL)
     {
         vstate->active = false;

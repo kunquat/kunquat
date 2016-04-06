@@ -46,6 +46,21 @@ size_t Sample_vstate_get_size(void)
 }
 
 
+enum
+{
+    PORT_IN_PITCH = 0,
+    PORT_IN_FORCE,
+    PORT_IN_COUNT
+};
+
+enum
+{
+    PORT_OUT_AUDIO_L = 0,
+    PORT_OUT_AUDIO_R,
+    PORT_OUT_COUNT
+};
+
+
 static const int SAMPLE_WORK_BUFFER_POSITIONS = WORK_BUFFER_IMPL_1;
 static const int SAMPLE_WORK_BUFFER_NEXT_POSITIONS = WORK_BUFFER_IMPL_2;
 static const int SAMPLE_WORK_BUFFER_POSITIONS_REM = WORK_BUFFER_IMPL_3;
@@ -89,7 +104,7 @@ static int32_t Sample_render(
 
     // Get actual pitches
     float* freqs = Proc_state_get_voice_buffer_contents_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
     if (freqs == NULL)
     {
         freqs = Work_buffers_get_buffer_contents_mut(wbs, SAMPLE_WB_FIXED_PITCH);
@@ -104,7 +119,7 @@ static int32_t Sample_render(
 
     // Get force input
     float* force_scales = Proc_state_get_voice_buffer_contents_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, 1);
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
     if (force_scales == NULL)
     {
         force_scales = Work_buffers_get_buffer_contents_mut(wbs, SAMPLE_WB_FIXED_FORCE);
@@ -549,7 +564,8 @@ static int32_t Sample_vstate_render_voice(
     // */
 
     float* out_buffers[2] = { NULL };
-    Proc_state_get_voice_audio_out_buffers(proc_state, 0, 2, out_buffers);
+    Proc_state_get_voice_audio_out_buffers(
+            proc_state, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
 
     if ((out_buffers[0] == NULL) && (out_buffers[1] == NULL))
     {

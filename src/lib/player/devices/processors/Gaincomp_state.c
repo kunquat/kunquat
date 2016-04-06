@@ -65,6 +65,21 @@ static void distort(
 }
 
 
+enum
+{
+    PORT_IN_AUDIO_L = 0,
+    PORT_IN_AUDIO_R,
+    PORT_IN_COUNT
+};
+
+enum
+{
+    PORT_OUT_AUDIO_L = 0,
+    PORT_OUT_AUDIO_R,
+    PORT_OUT_COUNT
+};
+
+
 static void Gaincomp_pstate_render_mixed(
         Device_state* dstate,
         const Work_buffers* wbs,
@@ -80,15 +95,15 @@ static void Gaincomp_pstate_render_mixed(
     // Get input
     Work_buffer* in_buffers[] =
     {
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 0),
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 1),
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_L),
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_R),
     };
 
     // Get output
     Work_buffer* out_buffers[] =
     {
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, 0),
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, 1),
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
     };
 
     // Distort the signal
@@ -142,8 +157,10 @@ static int32_t Gaincomp_vstate_render_voice(
     // Get input
     Work_buffer* in_buffers[] =
     {
-        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 0),
-        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_RECEIVE, 1),
+        Proc_state_get_voice_buffer_mut(
+                proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_L),
+        Proc_state_get_voice_buffer_mut(
+                proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_R),
     };
     if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
     {
@@ -154,8 +171,10 @@ static int32_t Gaincomp_vstate_render_voice(
     // Get output
     Work_buffer* out_buffers[] =
     {
-        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_SEND, 0),
-        Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_SEND, 1),
+        Proc_state_get_voice_buffer_mut(
+                proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
+        Proc_state_get_voice_buffer_mut(
+                proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
     };
 
     // Distort the signal

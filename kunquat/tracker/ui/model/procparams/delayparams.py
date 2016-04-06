@@ -25,9 +25,9 @@ class DelayParams(ProcParams):
     @staticmethod
     def get_port_info():
         return {
-            'in_00':  u'delay',
-            'in_01':  u'audio L',
-            'in_02':  u'audio R',
+            'in_00':  u'audio L',
+            'in_01':  u'audio R',
+            'in_02':  u'delay',
             'out_00': u'audio L',
             'out_01': u'audio R',
         }
