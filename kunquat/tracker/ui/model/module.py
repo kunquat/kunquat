@@ -139,6 +139,9 @@ class Module():
         control.set_ui_model(self._ui_model)
         control.set_existence(True)
 
+    def get_reset_au_import_error_info(self):
+        return self._session.get_reset_au_import_error_info()
+
     def get_audio_unit(self, au_id):
         au = AudioUnit(au_id)
         au.set_controller(self._controller)
@@ -342,6 +345,7 @@ class Module():
         yield # make this a generator
         self._store['i_random_seed_auto_update.json'] = True
         self._store.clear_modified_flag()
+        self._updater.signal_update(set(['signal_module']))
 
     def execute_create_sandbox(self, task_executer):
         assert not self.is_saving()

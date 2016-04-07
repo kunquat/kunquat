@@ -27,6 +27,7 @@ import kunquat.tracker.cmdline as cmdline
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 import kunquat.tracker.ui.model.tstamp as tstamp
 
+from kqtivalidator import KqtiValidator
 from store import Store
 from session import Session
 from share import Share
@@ -177,7 +178,15 @@ class Controller():
             yield
         contents = kqtifile.get_contents()
 
-        # TODO: Validate contents
+        # Validate contents
+        validator = KqtiValidator(contents)
+        for _ in validator.get_validation_steps():
+            yield
+        if not validator.is_valid():
+            self._session.set_au_import_error_info(
+                    kqtifile.get_path(), validator.get_validation_error())
+            self._updater.signal_update(set(['signal_au_import_error']))
+            return
 
         au_number = 0
         au_prefix = 'au_{:02x}'.format(au_number)
@@ -201,7 +210,7 @@ class Controller():
 
         # Send data
         self._store.put(transaction)
-        self._updater.signal_update(set(['signal_controls', 'signal_module']))
+        self._updater.signal_update(set(['signal_controls']))
 
     def _reset_runtime_env(self):
         self._session.reset_runtime_env()
