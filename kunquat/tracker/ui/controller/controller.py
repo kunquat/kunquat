@@ -173,7 +173,7 @@ class Controller():
 
         self._updater.signal_update(set(['signal_save_module_finished']))
 
-    def get_task_load_audio_unit(self, kqtifile):
+    def get_task_load_audio_unit(self, kqtifile, au_id, control_id=None):
         for _ in kqtifile.get_read_steps():
             yield
         contents = kqtifile.get_contents()
@@ -188,24 +188,29 @@ class Controller():
             self._updater.signal_update(set(['signal_au_import_error']))
             return
 
-        au_number = 0
-        au_prefix = 'au_{:02x}'.format(au_number)
+        sub_au_id = au_id.split('/')[-1]
         transaction = {}
 
         # TODO: Figure out a proper way of connecting the audio unit
         connections = [
-                ['/'.join((au_prefix, 'out_00')), 'out_00'],
-                ['/'.join((au_prefix, 'out_01')), 'out_01'],
-                ]
+            ['{}/out_00'.format(sub_au_id), 'out_00'],
+            ['{}/out_01'.format(sub_au_id), 'out_01'],
+        ]
         transaction['p_connections.json'] = connections
 
-        control_map = [[0, au_number]]
-        transaction['p_control_map.json'] = control_map
-        transaction['control_00/p_manifest.json'] = {}
+        if ('/' not in au_id) and control_id:
+            control_num = int(control_id.split('_')[1], 16)
+            au_num = int(au_id.split('_')[1], 16)
+
+            control_map = self._store.get('p_control_map.json', [])
+            control_map.append([control_num, au_num])
+
+            transaction['p_control_map.json'] = control_map
+            transaction['{}/p_manifest.json'.format(control_id)] = {}
 
         # Add audio unit data to the transaction
         for (key, value) in contents.iteritems():
-            dest_key = '/'.join((au_prefix, key))
+            dest_key = '{}/{}'.format(au_id, key)
             transaction[dest_key] = value
 
         # Send data

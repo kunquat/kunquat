@@ -351,7 +351,8 @@ class Module():
         assert not self.is_saving()
         self._controller.create_sandbox()
         kqtifile = self._controller.get_share().get_default_instrument()
-        load_au_task = self._controller.get_task_load_audio_unit(kqtifile)
+        load_au_task = self._controller.get_task_load_audio_unit(
+                kqtifile, 'au_00', 'control_00')
         finalise_task = self.finalise_create_sandbox()
         task = chain(load_au_task, finalise_task)
         task_executer(task)
