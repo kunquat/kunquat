@@ -329,6 +329,11 @@ class AudioUnit():
             return None
         return min(free_au_ids)
 
+    def start_import_au(self, path, au_id, control_id=None):
+        assert control_id == None
+        module = self._ui_model.get_module()
+        module.start_import_au(path, au_id)
+
     def add_effect(self, au_id):
         key = '/'.join((self._au_id, au_id))
         au = AudioUnit(au_id)

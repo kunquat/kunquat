@@ -17,6 +17,7 @@ from PyQt4.QtGui import *
 from connections import Connections
 from kunquat.kunquat.limits import *
 import processor.proctypeinfo as proctypeinfo
+from kqtutils import get_kqt_file_path, open_kqt_au
 
 
 class ConnectionsEditor(QWidget):
@@ -75,6 +76,8 @@ class ConnectionsToolBar(QToolBar):
         self._add_effect_button = QToolButton()
         self._add_effect_button.setText('Add effect')
 
+        self._import_button = QToolButton()
+
         self._hit_edit = HitEditingToggle()
         self._hit_selector = HitSelector()
 
@@ -115,6 +118,20 @@ class ConnectionsToolBar(QToolBar):
                     self._add_effect_button,
                     SIGNAL('clicked()'),
                     self._add_effect)
+
+        # Import button if allowed
+        is_import_allowed = is_effect_allowed
+        if is_import_allowed:
+            if self._au_id == None:
+                text = 'Import instrument/effect'
+            else:
+                text = 'Import effect'
+            self._import_button.setText(text)
+            self.addWidget(self._import_button)
+            QObject.connect(
+                    self._import_button,
+                    SIGNAL('clicked()'),
+                    self._import_au)
 
         if self._au_id != None:
             module = self._ui_model.get_module()
@@ -205,6 +222,18 @@ class ConnectionsToolBar(QToolBar):
             update_signals.add(update_signal)
 
             self._updater.signal_update(update_signals)
+
+    def _import_au(self):
+        module = self._ui_model.get_module()
+        if self._au_id == None:
+            au_path = get_kqt_file_path(set(['kqti', 'kqte']))
+        else:
+            au_path = get_kqt_file_path(set(['kqte']))
+        if au_path:
+            container = module
+            if self._au_id != None:
+                container = module.get_audio_unit()
+            open_kqt_au(au_path, self._ui_model, container)
 
 
 def _get_au_hit_signal_type(au_id):
