@@ -243,8 +243,12 @@ class RootView():
                 self._start_save_module()
             if 'signal_save_module_finished' in signals:
                 self._on_save_module_finished()
+            if 'signal_start_import_au' in signals:
+                self._start_import_au()
             if 'signal_au_import_error' in signals:
                 self._on_au_import_error()
+            if 'signal_au_import_finished' in signals:
+                self._on_au_import_finished()
         else:
             QApplication.quit()
 
@@ -265,6 +269,10 @@ class RootView():
         self._module.finish_save()
         self._main_window.setEnabled(True)
 
+    def _start_import_au(self):
+        self._main_window.setEnabled(False)
+        self._module.execute_import_au(self._task_executer)
+
     def _on_au_import_error(self):
         def on_close():
             if self._au_import_error_dialog:
@@ -277,6 +285,11 @@ class RootView():
                 self._ui_model.get_icon_bank(), error_info, on_close)
         self._au_import_error_dialog.setModal(True)
         self._au_import_error_dialog.show()
+
+    def _on_au_import_finished(self):
+        module = self._ui_model.get_module()
+        module.finish_import_au()
+        self._main_window.setEnabled(True)
 
 
 class AuImportErrorDialog(QDialog):

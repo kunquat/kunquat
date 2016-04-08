@@ -17,6 +17,7 @@ import re
 
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
+from kunquat.tracker.ui.controller.kqtifile import KqtiFile
 from audiounit import AudioUnit
 from bindings import Bindings
 from channeldefaults import ChannelDefaults
@@ -352,16 +353,37 @@ class Module():
         self._controller.create_sandbox()
         kqtifile = self._controller.get_share().get_default_instrument()
         load_au_task = self._controller.get_task_load_audio_unit(
-                kqtifile, 'au_00', 'control_00')
+                kqtifile, 'au_00', 'control_00', is_sandbox=True)
         finalise_task = self.finalise_create_sandbox()
         task = chain(load_au_task, finalise_task)
         task_executer(task)
+
+    def start_import_au(self, path, au_id, control_id=None):
+        assert not self.is_saving()
+        assert not self.is_importing_audio_unit()
+        self._session.set_au_import_info((path, au_id, control_id))
+        self._updater.signal_update(set(['signal_start_import_au']))
+
+    def execute_import_au(self, task_executer):
+        assert self.is_importing_audio_unit()
+        path, au_id, control_id = self._session.get_au_import_info()
+        kqtifile = KqtiFile(path)
+        load_task = self._controller.get_task_load_audio_unit(
+                kqtifile, au_id, control_id)
+        task_executer(load_task)
+
+    def finish_import_au(self):
+        self._session.set_au_import_info(None)
+
+    def is_importing_audio_unit(self):
+        return self._session.is_importing_audio_unit()
 
     def is_saving(self):
         return self._session.is_saving()
 
     def start_save(self):
         assert not self.is_saving()
+        assert not self.is_importing_audio_unit()
         self._session.set_saving(True)
         self._store.set_saving(True)
         self._store.clear_modified_flag()
