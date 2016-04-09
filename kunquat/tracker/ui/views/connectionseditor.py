@@ -242,7 +242,7 @@ class ConnectionsToolBar(QToolBar):
         if au_path:
             container = module
             if self._au_id != None:
-                container = module.get_audio_unit()
+                container = module.get_audio_unit(self._au_id)
             open_kqt_au(au_path, self._ui_model, container)
 
     def _export_au(self):
