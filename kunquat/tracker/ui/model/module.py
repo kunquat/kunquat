@@ -378,6 +378,16 @@ class Module():
     def is_importing_audio_unit(self):
         return self._session.is_importing_audio_unit()
 
+    def execute_export_au(self, task_executer):
+        au_id, path = self._session.get_au_export_info()
+        self._session.set_au_export_info(None)
+        task = self._controller.get_task_export_audio_unit(au_id, path)
+        task_executer(task)
+
+    def finish_export_au(self):
+        self._store.set_saving(False)
+        self._session.set_saving(False)
+
     def is_saving(self):
         return self._session.is_saving()
 

@@ -249,6 +249,10 @@ class RootView():
                 self._on_au_import_error()
             if 'signal_au_import_finished' in signals:
                 self._on_au_import_finished()
+            if 'signal_start_export_au' in signals:
+                self._start_export_au()
+            if 'signal_export_au_finished' in signals:
+                self._on_export_au_finished()
         else:
             QApplication.quit()
 
@@ -263,7 +267,7 @@ class RootView():
         self._module.flush(self._execute_save_module)
 
     def _execute_save_module(self):
-        task = self._module.execute_save(self._task_executer)
+        self._module.execute_save(self._task_executer)
 
     def _on_save_module_finished(self):
         self._module.finish_save()
@@ -289,6 +293,17 @@ class RootView():
     def _on_au_import_finished(self):
         module = self._ui_model.get_module()
         module.finish_import_au()
+        self._main_window.setEnabled(True)
+
+    def _start_export_au(self):
+        self._main_window.setEnabled(False)
+        self._module.flush(self._execute_export_au)
+
+    def _execute_export_au(self):
+        self._module.execute_export_au(self._task_executer)
+
+    def _on_export_au_finished(self):
+        self._module.finish_export_au()
         self._main_window.setEnabled(True)
 
 

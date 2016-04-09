@@ -174,6 +174,41 @@ class Controller():
 
         self._updater.signal_update(set(['signal_save_module_finished']))
 
+    def get_task_export_audio_unit(self, au_id, au_path):
+        assert au_path
+        tmpname = None
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            compression_suffix = ''
+            if au_path.endswith('.bz2'):
+                compression_suffix = '|bz2'
+            elif au_path.endswith('.gz'):
+                compression_suffix = '|gz'
+            mode = 'w' + compression_suffix
+
+            with tarfile.open(mode=mode, fileobj=f, format=tarfile.USTAR_FORMAT) as tfile:
+                prefix = 'kqti00'
+                au_prefix = au_id + '/'
+                au_keys = [k for k in self._store.iterkeys() if k.startswith(au_prefix)]
+                for key in au_keys:
+                    yield
+                    value = self._store[key]
+                    path = '{}/{}'.format(prefix, key[len(au_prefix):])
+                    if key.endswith('.json'):
+                        encoded = json.dumps(value)
+                    else:
+                        encoded = value
+                    info = tarfile.TarInfo(name=path)
+                    info.size = len(encoded)
+                    encoded_file = StringIO.StringIO(encoded)
+                    tfile.addfile(info, encoded_file)
+
+                tmpname = f.name
+
+        if tmpname:
+            os.rename(tmpname, au_path)
+
+        self._updater.signal_update(set(['signal_export_au_finished']))
+
     def get_task_load_audio_unit(
             self, kqtifile, au_id, control_id=None, is_sandbox=False):
         for _ in kqtifile.get_read_steps():
