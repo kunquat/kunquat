@@ -40,6 +40,7 @@ class RootView():
         self._task_executer = None
         self._updater = None
         self._visible = set()
+
         self._main_window = MainWindow()
         self._about_window = None
         self._event_log = None
@@ -54,6 +55,7 @@ class RootView():
         self._grid_editor = None
         self._ia_controls = None
         self._render_stats = None
+
         self._module = None
         self._au_import_error_dialog = None
 
@@ -258,12 +260,35 @@ class RootView():
 
         self._ui_model.clock()
 
+    def _set_windows_enabled(self, enabled):
+        def try_set_enabled(window):
+            if window:
+                window.setEnabled(enabled)
+
+        try_set_enabled(self._main_window)
+        try_set_enabled(self._about_window)
+        try_set_enabled(self._event_log)
+        try_set_enabled(self._connections)
+        try_set_enabled(self._songs_channels)
+        try_set_enabled(self._notation)
+        for window in self._tuning_tables.itervalues():
+            window.setEnabled(enabled)
+        try_set_enabled(self._env_bind)
+        try_set_enabled(self._general_mod)
+        for window in self._au_windows.itervalues():
+            window.setEnabled(enabled)
+        for window in self._proc_windows.itervalues():
+            window.setEnabled(enabled)
+        try_set_enabled(self._grid_editor)
+        try_set_enabled(self._ia_controls)
+        try_set_enabled(self._render_stats)
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
         self._main_window.unregister_updaters()
 
     def _start_save_module(self):
-        self._main_window.setEnabled(False)
+        self._set_windows_enabled(False)
         self._module.flush(self._execute_save_module)
 
     def _execute_save_module(self):
@@ -271,10 +296,10 @@ class RootView():
 
     def _on_save_module_finished(self):
         self._module.finish_save()
-        self._main_window.setEnabled(True)
+        self._set_windows_enabled(True)
 
     def _start_import_au(self):
-        self._main_window.setEnabled(False)
+        self._set_windows_enabled(False)
         self._module.execute_import_au(self._task_executer)
 
     def _on_au_import_error(self):
@@ -293,10 +318,10 @@ class RootView():
     def _on_au_import_finished(self):
         module = self._ui_model.get_module()
         module.finish_import_au()
-        self._main_window.setEnabled(True)
+        self._set_windows_enabled(True)
 
     def _start_export_au(self):
-        self._main_window.setEnabled(False)
+        self._set_windows_enabled(False)
         self._module.flush(self._execute_export_au)
 
     def _execute_export_au(self):
@@ -304,7 +329,7 @@ class RootView():
 
     def _on_export_au_finished(self):
         self._module.finish_export_au()
-        self._main_window.setEnabled(True)
+        self._set_windows_enabled(True)
 
 
 class AuImportErrorDialog(QDialog):
