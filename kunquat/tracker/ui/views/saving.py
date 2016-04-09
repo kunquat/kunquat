@@ -32,8 +32,12 @@ def _get_suggested_au_base_file_name(au_name):
 
 
 def get_instrument_save_path(au_name, instruments_dir):
-    suggested_name = _get_suggested_au_base_file_name(au_name) + '.kqti.bz2'
-    suggested_path = os.path.join(instruments_dir, suggested_name)
+    suggested_path = instruments_dir
+    if au_name:
+        suggested_base_name = _get_suggested_au_base_file_name(au_name)
+        if suggested_base_name:
+            suggested_name = suggested_base_name + '.kqti.bz2'
+            suggested_path = os.path.join(instruments_dir, suggested_name)
     au_path_qstring = QFileDialog.getSaveFileName(
             caption='Save Kunquat instrument',
             directory=suggested_path,
@@ -45,8 +49,12 @@ def get_instrument_save_path(au_name, instruments_dir):
 
 
 def get_effect_save_path(au_name, effects_dir):
-    suggested_name = _get_suggested_au_base_file_name(au_name) + '.kqte.bz2'
-    suggested_path = os.path.join(effects_dir, suggested_name)
+    suggested_path = effects_dir
+    if au_name:
+        suggested_base_name = _get_suggested_au_base_file_name(au_name)
+        if suggested_base_name:
+            suggested_name = suggested_base_name + '.kqte.bz2'
+            suggested_path = os.path.join(effects_dir, suggested_name)
     au_path_qstring = QFileDialog.getSaveFileName(
             caption='Save Kunquat effect',
             directory=suggested_path,
