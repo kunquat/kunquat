@@ -14,6 +14,8 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from kunquat.kunquat.limits import *
+
 
 def get_kqt_file_path(types):
     filters = []
@@ -47,16 +49,18 @@ def get_kqt_file_path(types):
 
 
 def open_kqt_au(au_path, ui_model, container):
+    is_inside_instrument = not (container is ui_model.get_module())
+
     if au_path.endswith(('.kqti', '.kqti.gz', '.kqti.bz2')):
         au_id = container.get_free_au_id()
         if au_id == None:
-            dialog = OutOfIDsErrorDialog(self._ui_model.get_icon_bank(), 'au')
+            dialog = OutOfIDsErrorDialog(ui_model.get_icon_bank(), 'au')
             dialog.exec_()
             return
-        if container is ui_model.get_module():
+        if not is_inside_instrument:
             control_id = container.get_free_control_id()
             if control_id == None:
-                dialog = OutOfIDsErrorDialog(self._ui_model.get_icon_bank(), 'control')
+                dialog = OutOfIDsErrorDialog(ui_model.get_icon_bank(), 'control')
                 dialog.exec_()
                 return
         else:
@@ -66,7 +70,8 @@ def open_kqt_au(au_path, ui_model, container):
     elif au_path.endswith(('.kqte', '.kqte.gz', '.kqte.bz2')):
         au_id = container.get_free_au_id()
         if au_id == None:
-            dialog = OutOfIDsErrorDialog(self._ui_model.get_icon_bank(), 'au')
+            dialog = OutOfIDsErrorDialog(
+                    ui_model.get_icon_bank(), 'au', is_inside_instrument)
             dialog.exec_()
             return
         container.start_import_au(au_path, au_id)
@@ -77,7 +82,7 @@ def open_kqt_au(au_path, ui_model, container):
 
 class OutOfIDsErrorDialog(QDialog):
 
-    def __init__(self, icon_bank, id_type):
+    def __init__(self, icon_bank, id_type, is_inside_instrument=False):
         QDialog.__init__(self)
 
         error_img_path = icon_bank.get_icon_path('error')
@@ -105,8 +110,12 @@ class OutOfIDsErrorDialog(QDialog):
 
         if id_type == 'au':
             title = 'Out of instrument/effect IDs'
-            message = ('<p>The composition has reached the maximum of {}'
-                ' instruments and/or effects.</p>'.format(AUDIO_UNITS_MAX))
+            if is_inside_instrument:
+                message = ('<p>The containing instrument has reached the maximum of'
+                    ' {} effects.</p>'.format(AUDIO_UNITS_MAX))
+            else:
+                message = ('<p>The composition has reached the maximum of {}'
+                    ' instruments and/or effects.</p>'.format(AUDIO_UNITS_MAX))
         elif id_type == 'control':
             title = 'Out of instrument control IDs'
             message = ('<p>The composition has reached the maximum of {}'
