@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -27,7 +27,6 @@ def build_examples(builder):
     packages = {
             'kqtc00': 'example.kqt.bz2',
             'kqti00': 'example_ins.kqti.bz2',
-            'kqte00': 'example_effect.kqte.bz2',
             'kqts00': 'example_scale.kqts.bz2',
         }
 
