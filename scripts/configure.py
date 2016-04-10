@@ -11,7 +11,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
 from copy import deepcopy
 import os.path
 import sys
@@ -23,7 +22,7 @@ except ImportError:
     assert '--unsafe' in sys.argv
     import support.fabricate_unverified as fabricate
 
-import command
+from . import command
 
 
 def test_add_external_deps(builder, options, cc):
@@ -109,7 +108,7 @@ def test_add_test_deps(builder, options, cc):
 
 def _write_external_header_test(builder, out_base, header_name):
     script_path = os.path.join('scripts', 'write_external_header_test.py')
-    command.run_command(builder, 'python', script_path, out_base, header_name, echo='')
+    command.PythonCommand().run(builder, script_path, out_base, header_name, echo='')
 
 
 def _get_fresh_cc(from_cc):

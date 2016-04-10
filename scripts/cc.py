@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -11,12 +11,11 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
 import os.path
 import subprocess
 import sys
 
-import command
+from . import command
 
 
 def get_cc(cmd=None):
@@ -43,9 +42,9 @@ def get_gcc():
     try:
         output = subprocess.check_output(
                 ['gcc', '--version'], stderr=subprocess.STDOUT)
-    except OSError, subprocess.CalledProcessError:
-        output = ''
-    if output.startswith('gcc'):
+    except (OSError, subprocess.CalledProcessError):
+        output = b''
+    if output.startswith(b'gcc'):
         return GccCommand()
     else:
         return None
