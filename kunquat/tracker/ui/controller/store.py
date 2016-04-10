@@ -75,7 +75,7 @@ class Store(MutableMapping):
             if key in transaction:
                 if transaction[key] == None:
                     # None won't be stored in validated contents, so act accordingly
-                    raise KeyError, key
+                    raise KeyError(key)
                 return transaction[key]
 
         return self._content[key]
