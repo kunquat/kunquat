@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2013
+# Author: Tomi Jylhä-Ollila, Finland 2010-2016
 #
 # This file is part of Kunquat.
 #
@@ -24,7 +24,7 @@ becomes available in major distributions, this module will be removed.
 from __future__ import print_function
 import ctypes
 
-from pulseaudio_def import *
+from .pulseaudio_def import *
 
 __all__ = ['Simple', 'PulseAudioError']
 
