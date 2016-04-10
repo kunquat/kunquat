@@ -152,7 +152,7 @@ class BindListModel(QAbstractListModel):
 
     def _make_items(self):
         bindings = self._ui_model.get_module().get_bindings()
-        bs = (bindings.get_binding(i) for i in xrange(bindings.get_count()))
+        bs = (bindings.get_binding(i) for i in range(bindings.get_count()))
         self._items = [(i, b.get_source_event()) for (i, b) in enumerate(bs)]
 
     def get_index(self, list_index):

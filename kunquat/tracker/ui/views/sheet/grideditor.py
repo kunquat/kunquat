@@ -1183,7 +1183,7 @@ class LineStyleDelegate(QItemDelegate):
         self._pixmap_height = p_height
 
         # Create line pixmaps
-        for i in xrange(STYLE_COUNT):
+        for i in range(STYLE_COUNT):
             pixmap = self._create_line_pixmap(i, p_width, p_height, h_margin, v_margin)
             self._pixmaps[i] = pixmap
 
@@ -1193,7 +1193,7 @@ class LineStyleDelegate(QItemDelegate):
         self._list_pixmap = QPixmap(list_width, list_height)
 
         lpainter = QPainter(self._list_pixmap)
-        for i in xrange(self._first_style, STYLE_COUNT):
+        for i in range(self._first_style, STYLE_COUNT):
             pixmap = self._pixmaps[i]
             lpainter.drawPixmap(0, 0, pixmap)
             lpainter.translate(0, pixmap.height())
@@ -1308,7 +1308,7 @@ class LineStyle(QComboBox):
 
         self.setItemDelegate(self._ls_delegate)
 
-        for i in xrange(self._first_style, STYLE_COUNT):
+        for i in range(self._first_style, STYLE_COUNT):
             self.addItem(str(i), QVariant(i))
 
     def get_current_line_style(self):

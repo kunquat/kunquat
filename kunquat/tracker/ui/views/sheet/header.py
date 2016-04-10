@@ -53,13 +53,13 @@ class Header(QWidget):
     def _resize_layout(self, max_visible_cols):
         visible_cols = utils.get_visible_cols(self._first_col, max_visible_cols)
 
-        for i in xrange(len(self._headers), visible_cols):
+        for i in range(len(self._headers), visible_cols):
             header = ColumnHeader()
             header.set_config(self._config)
             header.setParent(self)
             header.show()
             self._headers.append(header)
-        for i in xrange(visible_cols, len(self._headers)):
+        for i in range(visible_cols, len(self._headers)):
             h = self._headers.pop()
             h.hide()
 

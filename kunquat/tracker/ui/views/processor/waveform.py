@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -63,7 +63,7 @@ class Waveform(QWidget):
         if not self._path:
             self._path = QPainterPath()
             self._path.moveTo(-16, self._waveform[-16])
-            for i in xrange(-15, 0):
+            for i in range(-15, 0):
                 self._path.lineTo(i, self._waveform[i])
             for i, sample in enumerate(self._waveform):
                 self._path.lineTo(i, sample)

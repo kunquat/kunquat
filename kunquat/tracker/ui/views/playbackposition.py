@@ -282,7 +282,7 @@ class PlaybackPosition(QWidget):
 
             points = []
             point_count = 15
-            for i in xrange(point_count):
+            for i in range(point_count):
                 norm_t = i / float(point_count - 1)
                 if norm_t < 0.5:
                     t = utils.lerp_val(math.pi, math.pi * 1.5, norm_t * 2)

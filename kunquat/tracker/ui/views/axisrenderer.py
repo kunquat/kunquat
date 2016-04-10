@@ -167,7 +167,7 @@ class AbstractAxisRenderer():
             start_px = zero_px
             pos_len = axis_length - start_px - 1
 
-            for i in xrange(0, display_val_max):
+            for i in range(0, display_val_max):
                 end_px = int(zero_px + ((i + 1) * pos_len / display_val_max))
 
                 draw_marker(painter, end_px, init_marker_width)
@@ -193,7 +193,7 @@ class AbstractAxisRenderer():
             start_px = zero_px
             neg_len = start_px
 
-            for i in xrange(0, -display_val_min):
+            for i in range(0, -display_val_min):
                 end_px = int(zero_px - ((i + 1) * neg_len / -display_val_min))
 
                 draw_marker(painter, end_px, init_marker_width)
@@ -225,7 +225,7 @@ class AbstractAxisRenderer():
             pos_len = axis_length - start_px - 1
 
             range_stop = display_val_max - whole_marker_interval + 1
-            for i in xrange(0, range_stop, whole_marker_interval):
+            for i in range(0, range_stop, whole_marker_interval):
                 end_val = i + whole_marker_interval
                 end_px = int(zero_px + end_val * pos_len / display_val_max)
 
@@ -239,7 +239,7 @@ class AbstractAxisRenderer():
             neg_len = start_px
 
             range_stop = -display_val_min - whole_marker_interval + 1
-            for i in xrange(0, range_stop, whole_marker_interval):
+            for i in range(0, range_stop, whole_marker_interval):
                 end_val = -(i + whole_marker_interval)
                 end_px = int(zero_px - end_val * neg_len / display_val_min)
 

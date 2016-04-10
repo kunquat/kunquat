@@ -132,7 +132,7 @@ class View(QWidget):
         self._first_col = 0
         self._visible_cols = 0
 
-        self._col_rends = [ColumnGroupRenderer(i) for i in xrange(COLUMNS_MAX)]
+        self._col_rends = [ColumnGroupRenderer(i) for i in range(COLUMNS_MAX)]
 
         self._heights = []
         self._start_heights = []
@@ -209,9 +209,9 @@ class View(QWidget):
 
                 if len(signal_pinst.get_pattern().get_instance_ids()) > 1:
                     # Update columns of other instances
-                    for cur_track_num in xrange(album.get_track_count()):
+                    for cur_track_num in range(album.get_track_count()):
                         cur_song = album.get_song_by_track(cur_track_num)
-                        for cur_system_num in xrange(cur_song.get_system_count()):
+                        for cur_system_num in range(cur_song.get_system_count()):
                             cur_pinst = song.get_pattern_instance(cur_system_num)
                             if ((cur_pinst.get_pattern_num() == signal_pat_num) and
                                     (cur_pinst.get_instance_num() != signal_pinst_num)):
@@ -390,7 +390,7 @@ class View(QWidget):
                 trigger_index = location.get_trigger_index()
                 trigger_count = cur_column.get_trigger_count_at_row(row_ts)
                 triggers = [cur_column.get_trigger(row_ts, i)
-                        for i in xrange(trigger_count)]
+                        for i in range(trigger_count)]
                 rends = [TriggerRenderer(self._config, t, notation) for t in triggers]
                 row_width = sum(r.get_total_width() for r in rends)
 
@@ -494,7 +494,7 @@ class View(QWidget):
         # Draw guide extension line
         if self._sheet_manager.is_editing_enabled():
             painter.setPen(self._config['edit_cursor']['guide_colour'])
-            visible_col_nums = list(xrange(
+            visible_col_nums = list(range(
                 self._first_col, self._first_col + self._visible_cols))
             for col_num in visible_col_nums:
                 if col_num != selected_col:
@@ -525,7 +525,7 @@ class View(QWidget):
             # Draw the trigger row
             trigger_count = column.get_trigger_count_at_row(row_ts)
             triggers = [column.get_trigger(row_ts, i)
-                    for i in xrange(trigger_count)]
+                    for i in range(trigger_count)]
             self._draw_trigger_row_with_edit_cursor(
                     painter, triggers, trigger_index)
 
@@ -585,7 +585,7 @@ class View(QWidget):
 
         orig_trow_tfm = QTransform(trigger_tfm)
 
-        for i, trigger, renderer in zip(xrange(len(triggers)), triggers, rends):
+        for i, trigger, renderer in zip(range(len(triggers)), triggers, rends):
             # Identify selected field
             if self._sheet_manager.get_replace_mode():
                 select_replace = (i == trigger_index)
@@ -655,7 +655,7 @@ class View(QWidget):
         bottom_left = rect.bottomLeft()
         bottom_right = rect.bottomRight()
 
-        for col_index in xrange(area_col_start, area_col_stop):
+        for col_index in range(area_col_start, area_col_stop):
             painter.fillRect(rect, self._config['area_selection']['fill_colour'])
             painter.drawLine(top_left, top_right)
             if col_index == first_area_col:
@@ -1008,7 +1008,7 @@ class View(QWidget):
 
         trigger_count = column.get_trigger_count_at_row(row_ts)
         triggers = (column.get_trigger(row_ts, i)
-                for i in xrange(trigger_count))
+                for i in range(trigger_count))
         notation = self._notation_manager.get_selected_notation()
         rends = (TriggerRenderer(self._config, trigger, notation)
                 for trigger in triggers)
@@ -1040,7 +1040,7 @@ class View(QWidget):
         if not album:
             return None
         track_count = album.get_track_count()
-        songs = (album.get_song_by_track(i) for i in xrange(track_count))
+        songs = (album.get_song_by_track(i) for i in range(track_count))
         if not songs:
             return None
 
@@ -1292,7 +1292,7 @@ class View(QWidget):
         try:
             trigger_count = column.get_trigger_count_at_row(row_ts)
             triggers = [column.get_trigger(row_ts, i)
-                    for i in xrange(min(trigger_count, location.get_trigger_index()))]
+                    for i in range(min(trigger_count, location.get_trigger_index()))]
             rends = [TriggerRenderer(self._config, trigger, notation)
                     for trigger in triggers]
             widths = [r.get_total_width() for r in rends]
@@ -1769,7 +1769,7 @@ class View(QWidget):
 
         # Draw columns
         pixmaps_created = 0
-        for rel_col_index in xrange(draw_col_start, draw_col_stop):
+        for rel_col_index in range(draw_col_start, draw_col_stop):
             x_offset = rel_col_index * self._col_width
             tfm = QTransform().translate(x_offset, 0)
             painter.setTransform(tfm)
@@ -1779,7 +1779,7 @@ class View(QWidget):
         # Flush caches of (most) out-of-view columns
         first_kept_col = max(0, self._first_col - 1)
         last_kept_col = min(COLUMNS_MAX - 1, self._first_col + draw_col_stop)
-        for col_index in xrange(COLUMNS_MAX):
+        for col_index in range(COLUMNS_MAX):
             if not (first_kept_col <= col_index <= last_kept_col):
                 self._col_rends[col_index].flush_caches()
 

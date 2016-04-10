@@ -1000,11 +1000,11 @@ class ControlVariableBindings(QWidget):
         return layout.itemAt(layout.count() - 1).widget()
 
     def _get_widgets(self):
-        for i in xrange(self.layout().count()):
+        for i in range(self.layout().count()):
             yield self.layout().itemAt(i).widget()
 
     def _get_editors(self):
-        for i in xrange(self.layout().count() - 1):
+        for i in range(self.layout().count() - 1):
             yield self.layout().itemAt(i).widget()
 
     def set_au_id(self, au_id):
@@ -1046,7 +1046,7 @@ class ControlVariableBindings(QWidget):
 
         # Add missing editors
         layout = self.layout()
-        for i in xrange(cur_binding_count, len(binding_targets)):
+        for i in range(cur_binding_count, len(binding_targets)):
             editor = BindTargetEditor()
             editor.set_au_id(self._au_id)
             layout.insertWidget(i, editor)

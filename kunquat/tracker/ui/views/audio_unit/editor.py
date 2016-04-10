@@ -117,7 +117,7 @@ class TestPanel(QWidget):
         self._ui_model = None
 
         self._test_button = TestButton()
-        self._expressions = [TestExpression(i) for i in xrange(2)]
+        self._expressions = [TestExpression(i) for i in range(2)]
 
         expr_label = QLabel('Expressions:')
         expr_label.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)

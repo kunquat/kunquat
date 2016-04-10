@@ -335,7 +335,7 @@ class HitEditingToggle(EditingToggle):
 
         cur_mode = au.get_connections_edit_mode()
 
-        for i in xrange(HITS_MAX):
+        for i in range(HITS_MAX):
             hit = au.get_hit(i)
             if hit.get_existence():
                 allow_toggle = True
@@ -435,7 +435,7 @@ class HitSelector(QComboBox):
         old_block = self.blockSignals(True)
         self.clear()
         is_enabled = False
-        for i in xrange(HITS_MAX):
+        for i in range(HITS_MAX):
             hit = au.get_hit(i)
             if hit.get_existence():
                 is_enabled = True

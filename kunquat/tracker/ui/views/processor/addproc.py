@@ -426,7 +426,7 @@ class WarpEditor(QWidget):
                 self._wave_type, self._warp_type, self._index)
 
         old_block = self._func_selector.blockSignals(True)
-        for i in xrange(self._func_selector.count()):
+        for i in range(self._func_selector.count()):
             if self._func_selector.itemText(i) == name:
                 self._func_selector.setCurrentIndex(i)
                 break

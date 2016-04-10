@@ -113,13 +113,13 @@ class ColumnGroupRenderer():
 
     def _create_caches(self):
         self._caches = [ColumnCache(self._num, i)
-                for i in xrange(len(self._heights))]
+                for i in range(len(self._heights))]
         for cache in self._caches:
             cache.set_config(self._config)
             cache.set_ui_model(self._ui_model)
 
         self._inactive_caches = [ColumnCache(self._num, i)
-                for i in xrange(len(self._heights))]
+                for i in range(len(self._heights))]
         for cache in self._inactive_caches:
             cache.set_inactive()
             cache.set_config(self._config)
@@ -177,7 +177,7 @@ class ColumnGroupRenderer():
         else:
             active_pattern_index = None
 
-        for pi in xrange(first_index, len(self._heights)):
+        for pi in range(first_index, len(self._heights)):
             if self._start_heights[pi] > self._px_offset + height:
                 break
 
@@ -351,7 +351,7 @@ class ColumnCache():
 
         self._pixmaps_created = 0
 
-        for i in xrange(start_index, stop_index):
+        for i in range(start_index, stop_index):
             if i not in self._pixmaps:
                 pixmap = self._create_pixmap(i, grid)
                 self._pixmaps[i] = pixmap
@@ -492,7 +492,7 @@ class TRCache():
         trs = {}
         for ts in column.get_trigger_row_positions():
             trow = [column.get_trigger(ts, i)
-                    for i in xrange(column.get_trigger_count_at_row(ts))]
+                    for i in range(column.get_trigger_count_at_row(ts))]
             trs[ts] = trow
 
         trlist = list(trs.items())
@@ -555,7 +555,7 @@ class TRCache():
         painter.setPen(Qt.red)
         painter.drawRect(QRect(0, 0, image.width() - 1, image.height() - 1))
         painter.setTransform(QTransform().rotate(-45))
-        for i in xrange(4):
+        for i in range(4):
             side = self._config['tr_height']
             painter.fillRect(QRect(i * side * 2, 0, side, (i + 1) * side * 3), Qt.red)
         """

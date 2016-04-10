@@ -52,7 +52,7 @@ class Typewriter(QFrame):
         rows = QVBoxLayout()
         rows.setContentsMargins(0, 0, 0, 0)
         rows.setSpacing(2)
-        for row_index in xrange(self._typewriter_manager.get_row_count()):
+        for row_index in range(self._typewriter_manager.get_row_count()):
             rows.addLayout(self._get_row(row_index))
         return rows
 
@@ -63,7 +63,7 @@ class Typewriter(QFrame):
         pad_px = self._PAD * self._typewriter_manager.get_pad_factor_at_row(index)
         row.addWidget(self._get_pad(pad_px))
 
-        for i in xrange(self._typewriter_manager.get_button_count_at_row(index)):
+        for i in range(self._typewriter_manager.get_button_count_at_row(index)):
             button = TypewriterButton(index, i)
             button.set_ui_model(self._ui_model)
             row.addWidget(button)

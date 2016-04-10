@@ -169,7 +169,7 @@ class Ruler(QWidget):
         else:
             active_pattern_index = None
 
-        for pi in xrange(first_index, len(self._heights)):
+        for pi in range(first_index, len(self._heights)):
             if self._start_heights[pi] > self._px_offset + self.height():
                 break
 
@@ -428,7 +428,7 @@ class RulerCache():
             stop_beat = (stop_ts - tstamp.Tstamp(0, 1)).beats + 1
 
             # Draw markers
-            for marker_pos in xrange(
+            for marker_pos in range(
                     start_marker_in_beat, stop_beat, beats_per_marker):
                 y = float(marker_pos - start_ts) * self._px_per_beat
                 draw_fn(painter, y, [marker_pos, 0], 1)

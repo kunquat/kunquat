@@ -1143,7 +1143,7 @@ class TemplateNoteTableModel(QAbstractTableModel):
         self._items = []
         if notation:
             template = notation.get_template()
-            for i in xrange(template.get_note_count()):
+            for i in range(template.get_note_count()):
                 name = template.get_note_name(i)
                 ratio = template.get_note_ratio(i)
                 self._items.append((name, ratio))
@@ -1466,7 +1466,7 @@ class OctaveListModel(QAbstractListModel):
 
         if notation:
             octave_count = notation.get_octave_count()
-            self._items = [notation.get_octave_name(i) for i in xrange(octave_count)]
+            self._items = [notation.get_octave_name(i) for i in range(octave_count)]
         else:
             self._items = []
 
@@ -2095,7 +2095,7 @@ class KeySelector(QWidget):
         self._ui_model = None
         self._updater = None
 
-        self._keys = [KeyButton(i) for i in xrange(_KEYS_MAX)]
+        self._keys = [KeyButton(i) for i in range(_KEYS_MAX)]
 
         top_row = QHBoxLayout()
         top_row.setMargin(0)
@@ -2151,7 +2151,7 @@ class KeySelector(QWidget):
         texts = [''] * _KEYS_MAX
         if notation and (octave_id != None):
             count = notation.get_key_count_in_octave(octave_id)
-            for i in xrange(count):
+            for i in range(count):
                 text = '(none)'
                 cents = notation.get_key_cents(octave_id, i)
                 if cents != None:

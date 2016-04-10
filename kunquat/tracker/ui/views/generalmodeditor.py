@@ -135,7 +135,7 @@ class AuthorTableModel(QAbstractTableModel):
         count = module.get_author_count()
 
         self._items = []
-        for i in xrange(count):
+        for i in range(count):
             self._items.append(module.get_author(i))
         self._items.append('')
 

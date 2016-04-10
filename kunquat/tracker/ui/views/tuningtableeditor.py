@@ -175,7 +175,7 @@ class TuningTableEditor(QWidget):
 
         old_block = self._tuning_center.blockSignals(True)
         self._tuning_center.clear()
-        for i in xrange(table.get_note_count()):
+        for i in range(table.get_note_count()):
             note_name = table.get_note_name(i)
             self._tuning_center.addItem(note_name)
         self._tuning_center.setCurrentIndex(ref_note_index)
@@ -335,7 +335,7 @@ class NoteTableModel(QAbstractTableModel):
         table = self._get_tuning_table()
 
         self._items = []
-        for i in xrange(table.get_note_count()):
+        for i in range(table.get_note_count()):
             name = table.get_note_name(i)
             pitch = table.get_note_pitch(i)
             self._items.append((name, pitch))

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -21,16 +21,16 @@ import utils
 class TestUtils(unittest.TestCase):
 
     def test_px_from_tstamp_from_px_is_identity(self):
-        for px_per_beat in xrange(1, 600):
-            for px_offset in xrange(2 * px_per_beat):
+        for px_per_beat in range(1, 600):
+            for px_offset in range(2 * px_per_beat):
                 def_ts = utils.get_tstamp_from_px(px_offset, px_per_beat)
                 new_px_offset = utils.get_px_from_tstamp(def_ts, px_per_beat)
                 self.assertEqual(px_offset, new_px_offset)
 
     def test_beat_is_divided_optimally(self):
-        for px_per_beat in xrange(1, 300):
+        for px_per_beat in range(1, 300):
             offsets = [utils.get_tstamp_from_px(offset, px_per_beat)
-                    for offset in xrange(px_per_beat)]
+                    for offset in range(px_per_beat)]
             self.assertEqual(offsets[0], 0)
             expected_px = 0
             lens = set()

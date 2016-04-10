@@ -32,11 +32,11 @@ def get_all_pattern_instances_with_locations(ui_model):
         return
 
     track_count = album.get_track_count()
-    songs = (album.get_song_by_track(i) for i in xrange(track_count))
+    songs = (album.get_song_by_track(i) for i in range(track_count))
     for track, song in enumerate(songs):
         system_count = song.get_system_count()
         pattern_instances = (song.get_pattern_instance(i)
-                for i in xrange(system_count))
+                for i in range(system_count))
         for system, pinst in enumerate(pattern_instances):
             yield (track, system), pinst
 
@@ -117,7 +117,7 @@ def get_px_from_tstamp(ts, px_per_beat):
 def get_pixmap_indices(start_px, stop_px, pixmap_height):
     start_index = start_px // pixmap_height
     stop_index = 1 + (stop_px - 1) // pixmap_height
-    return xrange(start_index, stop_index)
+    return range(start_index, stop_index)
 
 def get_pixmap_rect(index, start_px, stop_px, width, pixmap_height):
     pixmap_start_px = index * pixmap_height

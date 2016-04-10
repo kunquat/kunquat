@@ -62,10 +62,10 @@ class AlbumTreeModel(QAbstractItemModel):
         self._make_nodes()
 
     def _make_nodes(self):
-        for track_num in xrange(self._album.get_track_count()):
+        for track_num in range(self._album.get_track_count()):
             song = self._album.get_song_by_track(track_num)
             song_node = AlbumTreeModelNode(song)
-            for system_num in xrange(song.get_system_count()):
+            for system_num in range(song.get_system_count()):
                 pat_instance = song.get_pattern_instance(system_num)
                 pat_inst_node = AlbumTreeModelNode(pat_instance, song_node)
                 song_node.add_child(pat_inst_node)
