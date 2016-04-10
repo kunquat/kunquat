@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -66,7 +66,7 @@ class NoteChannelMapper():
         return new_note
 
     def _get_free_channel(self, preferred):
-        channels = deque(xrange(CHANNELS_MAX))
+        channels = deque(range(CHANNELS_MAX))
         channels.rotate(-preferred) # Start searching from preferred
 
         for ch in channels:

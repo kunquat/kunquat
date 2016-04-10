@@ -290,7 +290,7 @@ class Controller():
         self._session.reset_active_init_expressions()
 
         channel_defaults = self._ui_model.get_module().get_channel_defaults()
-        for i in xrange(CHANNELS_MAX):
+        for i in range(CHANNELS_MAX):
             init_expr_name = channel_defaults.get_initial_expression(i)
             self._session.set_default_init_expression(i, init_expr_name)
 
@@ -388,7 +388,7 @@ class Controller():
         self._reset_expressions()
 
         # Reset active notes
-        for ch in xrange(CHANNELS_MAX):
+        for ch in range(CHANNELS_MAX):
             self._session.set_active_note(ch, 'n-', None)
 
         if self._session.get_infinite_mode():
@@ -412,7 +412,7 @@ class Controller():
 
         if self._session.are_au_test_expressions_enabled(au.get_id()):
             expressions = []
-            for i in xrange(2):
+            for i in range(2):
                 expr_name = au.get_test_expression(i)
                 if expr_name:
                     expressions.append(expr_name)
