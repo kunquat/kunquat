@@ -285,7 +285,7 @@ class GridPattern():
         # Get the length of the interval
         all_cur_line_tss = (ts for (ts, _) in lines)
         cur_line_tss = [ts for ts in all_cur_line_tss if ts < gp['length']]
-        following_line_tss = filter(lambda ts: line_ts < ts < gp['length'], cur_line_tss)
+        following_line_tss = [ts for ts in cur_line_tss if line_ts < ts < gp['length']]
         if following_line_tss:
             next_ts = following_line_tss[0]
         else:

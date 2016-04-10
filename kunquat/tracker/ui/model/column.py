@@ -268,8 +268,8 @@ class Column():
     def get_overlay_grid_info_slice(self, start_ts, stop_ts):
         info = self._get_validated_overlay_grid_info()
 
-        smaller = filter(lambda x: x[0] < start_ts, info)
-        contained = filter(lambda x: start_ts <= x[0] < stop_ts, info)
+        smaller = [x for x in info if x[0] < start_ts]
+        contained = [x for x in info if start_ts <= x[0] < stop_ts]
 
         # See if contained can be used as-is
         if contained and contained[0][0] == start_ts:
@@ -288,9 +288,9 @@ class Column():
         assert (gp_id == None) or isinstance(gp_id, str)
         info = self._get_validated_overlay_grid_info()
 
-        smaller = filter(lambda x: x[0] < start_ts, info)
-        contained = filter(lambda x: start_ts <= x[0] <= stop_ts, info)
-        greater = filter(lambda x: x[0] > stop_ts, info)
+        smaller = [x for x in info if x[0] < start_ts]
+        contained = [x for x in info if start_ts <= x[0] <= stop_ts]
+        greater = [x for x in info if x[0] > stop_ts]
 
         # Get active grid settings at stop_ts
         following_gp_id = None
@@ -324,7 +324,7 @@ class Column():
 
     def _get_overlay_grids_with_start_index(self, row_ts):
         info = self._get_validated_overlay_grid_info()
-        smaller_eq = filter(lambda x: x[0] <= row_ts, info)
+        smaller_eq = [x for x in info if x[0] <= row_ts]
         return info, len(smaller_eq) - 1
 
     def get_overlay_grid_info_at(self, row_ts):

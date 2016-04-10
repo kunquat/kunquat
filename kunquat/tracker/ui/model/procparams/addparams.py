@@ -236,7 +236,7 @@ class AddParams(ProcParams):
                     (type(warp[1]) not in (int, float)) or
                     (not -1 <= warp[1] <= 1)):
                 warps[i] = None
-        warps = filter(lambda w: w != None, warps)
+        warps = [w for w in warps if w != None]
         warps = warps[:self._WARPS_MAX]
         return warps
 
@@ -421,7 +421,7 @@ class AddParams(ProcParams):
         tones = self._get_tones_raw(wave_type)
         has_holes = (None in tones) and (
                 tones.index(None) < sum(1 for t in tones if t != None))
-        tones = filter(lambda x: x != None, tones)
+        tones = [x for x in tones if x != None]
         return tones, has_holes
 
     def _get_tones(self, wave_type):
