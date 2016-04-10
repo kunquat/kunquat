@@ -13,7 +13,7 @@
 
 import math
 
-from procparams import ProcParams
+from .procparams import ProcParams
 
 
 class DelayParams(ProcParams):

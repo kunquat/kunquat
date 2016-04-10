@@ -14,10 +14,10 @@
 
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
-from connections import Connections
-from hit import Hit
-from processor import Processor
-import tstamp
+from .connections import Connections
+from .hit import Hit
+from .processor import Processor
+from . import tstamp
 
 
 class AudioUnit():

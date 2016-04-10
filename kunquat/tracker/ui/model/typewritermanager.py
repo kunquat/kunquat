@@ -16,8 +16,8 @@ import random
 import itertools
 from bisect import bisect_left
 
-from octavebuttonmodel import OctaveButtonModel
-from typewriterbuttonmodel import TypewriterButtonModel
+from .octavebuttonmodel import OctaveButtonModel
+from .typewriterbuttonmodel import TypewriterButtonModel
 
 
 class TypewriterManager():

@@ -15,7 +15,7 @@ import math
 
 from kunquat.extras.sndfile import SndFileRMem, SndFileWMem
 
-from procparams import ProcParams
+from .procparams import ProcParams
 
 
 # Base wave functions

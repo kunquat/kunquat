@@ -15,10 +15,10 @@ from copy import deepcopy
 from types import NoneType
 
 from kunquat.kunquat.limits import PATTERNS_MAX
-import tstamp
-from gridpattern import GridPattern, STYLE_COUNT, DEFAULT_GRID_PATTERN
-from pattern import Pattern
-from patterninstance import PatternInstance
+from . import tstamp
+from .gridpattern import GridPattern, STYLE_COUNT, DEFAULT_GRID_PATTERN
+from .pattern import Pattern
+from .patterninstance import PatternInstance
 
 
 class GridManager():

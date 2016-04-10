@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from control import Control
 import kunquat.kunquat.events as events
+from .control import Control
 
 
 class InvArg():

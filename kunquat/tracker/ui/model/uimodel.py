@@ -12,22 +12,22 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from stat_manager import StatManager
-from controlmanager import ControlManager
-from keymapmanager import KeymapManager
-from playback_manager import PlaybackManager
-from typewritermanager import TypewriterManager
-from eventhistory import EventHistory
-from module import Module
-from visibilitymanager import VisibilityManager
-from selection import Selection
-from sheethistory import SheetHistory
-from sheetmanager import SheetManager
-from notationmanager import NotationManager
-from gridmanager import GridManager
-from orderlistmanager import OrderlistManager
-from processmanager import ProcessManager
-from iconbank import IconBank
+from .stat_manager import StatManager
+from .controlmanager import ControlManager
+from .keymapmanager import KeymapManager
+from .playback_manager import PlaybackManager
+from .typewritermanager import TypewriterManager
+from .eventhistory import EventHistory
+from .module import Module
+from .visibilitymanager import VisibilityManager
+from .selection import Selection
+from .sheethistory import SheetHistory
+from .sheetmanager import SheetManager
+from .notationmanager import NotationManager
+from .gridmanager import GridManager
+from .orderlistmanager import OrderlistManager
+from .processmanager import ProcessManager
+from .iconbank import IconBank
 
 
 class UiModel():

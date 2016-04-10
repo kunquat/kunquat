@@ -12,8 +12,8 @@
 #
 
 import kunquat.kunquat.events as events
-from trigger import Trigger
-from triggerposition import TriggerPosition
+from .trigger import Trigger
+from .triggerposition import TriggerPosition
 
 
 class TypewriterButtonModel():

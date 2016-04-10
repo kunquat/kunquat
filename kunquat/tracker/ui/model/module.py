@@ -18,14 +18,14 @@ import re
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
 from kunquat.tracker.ui.controller.kqtifile import KqtiFile
-from audiounit import AudioUnit
-from bindings import Bindings
-from channeldefaults import ChannelDefaults
-from connections import Connections
-from control import Control
-from album import Album
-from environment import Environment
-from tuningtable import TuningTable
+from .audiounit import AudioUnit
+from .bindings import Bindings
+from .channeldefaults import ChannelDefaults
+from .connections import Connections
+from .control import Control
+from .album import Album
+from .environment import Environment
+from .tuningtable import TuningTable
 
 
 class Module():

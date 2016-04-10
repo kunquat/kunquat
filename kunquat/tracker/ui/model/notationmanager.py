@@ -14,7 +14,7 @@
 
 from copy import deepcopy
 
-from notation import Notation
+from .notation import Notation
 
 
 class NotationManager():

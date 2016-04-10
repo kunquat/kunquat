@@ -12,9 +12,9 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from column import Column
 from kunquat.kunquat.limits import *
-from pattern import Pattern
+from .column import Column
+from .pattern import Pattern
 
 
 class PatternInstance():

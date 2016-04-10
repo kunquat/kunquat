@@ -16,10 +16,10 @@ import types
 
 from kunquat.kunquat.events import trigger_events_by_name
 from kunquat.kunquat.limits import *
-from grid import Grid
-from trigger import Trigger
-from triggerposition import TriggerPosition
-import tstamp
+from .grid import Grid
+from .trigger import Trigger
+from .triggerposition import TriggerPosition
+from . import tstamp
 
 
 class SheetManager():

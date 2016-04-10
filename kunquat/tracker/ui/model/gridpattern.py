@@ -12,17 +12,16 @@
 #
 
 from copy import deepcopy
-from itertools import izip
 import math
 
-import tstamp
+from . import tstamp
 
 
 STYLE_COUNT = 9
 
 def _get_default_lines_raw():
     lines_raw = []
-    for i in xrange(32):
+    for i in range(32):
         ts = tstamp.Tstamp(i) / 8
         ts_raw = list(ts)
         style = 0
@@ -116,7 +115,7 @@ class GridPattern():
             return None
         if not all(self._is_valid_grid_line(line) for line in gp['lines']):
             return None
-        for prev_line, line in izip(gp['lines'], gp['lines'][1:]):
+        for prev_line, line in zip(gp['lines'], gp['lines'][1:]):
             prev_ts, _ = prev_line
             cur_ts, _ = line
             if prev_ts >= cur_ts:
@@ -299,7 +298,7 @@ class GridPattern():
         # Get the timestamps of new lines
         warp_func = self._get_warp_func(warp_value)
         new_line_tss = []
-        for i in xrange(1, part_count):
+        for i in range(1, part_count):
             if warp_value == 0.5:
                 rel_ts = tstamp.Tstamp(i * interval_length) / part_count
             else:

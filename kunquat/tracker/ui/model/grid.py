@@ -12,10 +12,9 @@
 #
 
 import math
-from types import NoneType
 
-import tstamp
-from gridpattern import STYLE_COUNT
+from . import tstamp
+from .gridpattern import STYLE_COUNT
 
 
 class Grid():
@@ -157,7 +156,7 @@ class Grid():
         info_slice = column.get_overlay_grid_info_slice(row_ts, pat_length)
 
         base_gp_id = self._get_base_grid_pattern_id(pinst)
-        assert isinstance(base_gp_id, (NoneType, unicode))
+        assert isinstance(base_gp_id, (type(None), unicode))
 
         for i, info in enumerate(info_slice):
             part_start_ts, gp_id, _ = info
@@ -219,7 +218,7 @@ class Grid():
         info_slice = column.get_overlay_grid_info_slice(tstamp.Tstamp(0), row_ts)
 
         base_gp_id = self._get_base_grid_pattern_id(pinst)
-        assert isinstance(base_gp_id, (NoneType, unicode))
+        assert isinstance(base_gp_id, (type(None), unicode))
 
         for i, info in reversed(list(enumerate(info_slice))):
             part_start_ts, gp_id, _ = info
@@ -275,7 +274,7 @@ class Grid():
         info_slice = column.get_overlay_grid_info_slice(start_ts, stop_ts)
 
         base_gp_id = self._get_base_grid_pattern_id(pinst)
-        assert isinstance(base_gp_id, (NoneType, unicode))
+        assert isinstance(base_gp_id, (type(None), unicode))
 
         lines = []
         for i, info in enumerate(info_slice):

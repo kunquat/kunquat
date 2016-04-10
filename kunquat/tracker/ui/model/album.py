@@ -15,8 +15,8 @@
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
 
-from patterninstance import PatternInstance
-from song import Song
+from .patterninstance import PatternInstance
+from .song import Song
 
 
 class Album():

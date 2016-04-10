@@ -13,7 +13,7 @@
 
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
-import tstamp
+from . import tstamp
 
 
 class Pattern():

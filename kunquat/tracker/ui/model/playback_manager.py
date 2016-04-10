@@ -12,7 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from channel import Channel
+from .channel import Channel
+
 
 class PlaybackManager():
 

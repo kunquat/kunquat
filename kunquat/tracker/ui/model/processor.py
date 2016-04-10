@@ -12,19 +12,19 @@
 #
 
 from kunquat.kunquat.kunquat import get_default_value
-from procparams.addparams import AddParams
-from procparams.delayparams import DelayParams
-from procparams.envgenparams import EnvgenParams
-from procparams.filterparams import FilterParams
-from procparams.forceparams import ForceParams
-from procparams.freeverbparams import FreeverbParams
-from procparams.gaincompparams import GainCompParams
-from procparams.panningparams import PanningParams
-from procparams.pitchparams import PitchParams
-from procparams.ringmodparams import RingmodParams
-from procparams.sampleparams import SampleParams
-from procparams.streamparams import StreamParams
-from procparams.volumeparams import VolumeParams
+from .procparams.addparams import AddParams
+from .procparams.delayparams import DelayParams
+from .procparams.envgenparams import EnvgenParams
+from .procparams.filterparams import FilterParams
+from .procparams.forceparams import ForceParams
+from .procparams.freeverbparams import FreeverbParams
+from .procparams.gaincompparams import GainCompParams
+from .procparams.panningparams import PanningParams
+from .procparams.pitchparams import PitchParams
+from .procparams.ringmodparams import RingmodParams
+from .procparams.sampleparams import SampleParams
+from .procparams.streamparams import StreamParams
+from .procparams.volumeparams import VolumeParams
 
 
 _proc_classes = {

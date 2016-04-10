@@ -11,7 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from procparams import ProcParams
+from .procparams import ProcParams
 
 
 class EnvgenParams(ProcParams):

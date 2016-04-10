@@ -12,9 +12,9 @@
 #
 
 from kunquat.kunquat.limits import *
-from trigger import Trigger
-from triggerposition import TriggerPosition
-import tstamp
+from .trigger import Trigger
+from .triggerposition import TriggerPosition
+from . import tstamp
 
 
 class Column():

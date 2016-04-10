@@ -12,7 +12,7 @@
 #
 
 from kunquat.kunquat.kunquat import Kunquat, KunquatFormatError
-from procparams import ProcParams
+from .procparams import ProcParams
 
 
 class SampleParams(ProcParams):

@@ -11,7 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from triggerposition import TriggerPosition
+from .triggerposition import TriggerPosition
 
 
 class SheetHistory():

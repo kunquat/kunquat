@@ -14,7 +14,7 @@
 
 from kunquat.kunquat.kunquat import get_default_value
 
-from patterninstance import PatternInstance
+from .patterninstance import PatternInstance
 
 
 class Song():
