@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -86,7 +86,7 @@ _STEP_MAX = 16
 _STEPS = [0] + [min(int(_STEP_BASE**e), _STEP_MAX) for e in
         takewhile(lambda n: _STEP_BASE**(n-1) <= _STEP_MAX, count(0))]
 
-_SNAP_DELAYS = list(reversed(xrange(7)))
+_SNAP_DELAYS = list(reversed(range(7)))
 
 
 class VerticalMoveState(AbstractMoveState):
