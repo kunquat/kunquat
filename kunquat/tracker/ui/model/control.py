@@ -71,7 +71,7 @@ class Control():
         control_map = self._store.get(cmap_key, get_default_value(cmap_key))
         controls = dict(control_map)
         controls[control_num] = au_num
-        self._store[cmap_key] = list(controls.iteritems())
+        self._store[cmap_key] = list(controls.items())
 
         self._au_number = au_num
 

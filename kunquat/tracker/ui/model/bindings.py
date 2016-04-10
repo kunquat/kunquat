@@ -110,7 +110,7 @@ class Bindings():
             node.state = node.VISITED
             return False
 
-        for node in nodes.itervalues():
+        for node in nodes.values():
             if (node.state == node.NEW) and dfs(node):
                 return True
 
@@ -367,7 +367,7 @@ class Targets():
         data = self._get_data()
 
         all_events = events.all_events_by_name
-        all_event_names = set(event['name'] for event in all_events.itervalues())
+        all_event_names = set(event['name'] for event in all_events.values())
         allowed_events = (
                 all_event_names - self._get_excluded_target_events(self.get_count()))
         event_name = 'call' if 'call' in allowed_events else allowed_events.pop()

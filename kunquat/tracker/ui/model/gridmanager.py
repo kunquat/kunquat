@@ -54,7 +54,7 @@ class GridManager():
 
     def get_editable_grid_pattern_ids(self):
         raw_dict = self._get_raw_master_dict()
-        valid_keys = list(raw_dict.iterkeys())
+        valid_keys = list(raw_dict.keys())
         return valid_keys
 
     def select_grid_pattern(self, gp_id):
@@ -77,7 +77,7 @@ class GridManager():
         raw_master_dict = self._get_raw_master_dict()
 
         # Find a new unique ID
-        used_ids = set(raw_master_dict.iterkeys())
+        used_ids = set(raw_master_dict.keys())
         for i in range(1, len(used_ids) + 2):
             new_id = str(i)
             if new_id not in used_ids:
@@ -88,7 +88,7 @@ class GridManager():
 
         # Get used names
         used_names = set()
-        for raw_grid in raw_master_dict.itervalues():
+        for raw_grid in raw_master_dict.values():
             if isinstance(raw_grid, dict) and 'name' in raw_grid:
                 name = raw_grid['name']
                 if isinstance(name, str):

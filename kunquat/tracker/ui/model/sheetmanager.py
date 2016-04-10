@@ -482,7 +482,7 @@ class SheetManager():
                     if col_key in unsafe_area_info:
                         col_area_data = unsafe_area_info[col_key]
                         col_data = {}
-                        for ts_str, triggers in col_area_data.iteritems():
+                        for ts_str, triggers in col_area_data.items():
                             row_ts = self._unpack_tstamp_str(ts_str)
                             if row_ts == None:
                                 return None

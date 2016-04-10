@@ -113,7 +113,7 @@ class Column():
     def _copy_trigger_rows(self, trows):
         new_trows = {}
 
-        for row_ts, row in trows.iteritems():
+        for row_ts, row in trows.items():
             new_row = []
             for trigger in row:
                 new_row.append(Trigger(trigger))
@@ -183,7 +183,7 @@ class Column():
 
         length = self._get_length()
 
-        for row_ts, row in new_trows.iteritems():
+        for row_ts, row in new_trows.items():
             abs_ts = start_ts + row_ts
             if abs_ts > length:
                 continue
@@ -396,7 +396,7 @@ class Column():
 
     def _make_raw_data(self, trigger_rows):
         raw_data = []
-        for (ts, triggers) in trigger_rows.iteritems():
+        for (ts, triggers) in trigger_rows.items():
             for trigger in triggers:
                 evspec = [trigger.get_type(), trigger.get_argument()]
                 raw_data.append([tuple(ts), evspec])

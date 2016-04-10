@@ -282,7 +282,7 @@ class Module():
     def remove_audio_unit(self, au_id):
         transaction = {}
         start = au_id + '/'
-        for key in self._store.iterkeys():
+        for key in self._store.keys():
             if key.startswith(start):
                 transaction[key] = None
 

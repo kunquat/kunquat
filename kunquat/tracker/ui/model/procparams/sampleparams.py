@@ -103,7 +103,7 @@ class SampleParams(ProcParams):
         key_prefix = self._get_full_sample_key(sample_id, '')
 
         transaction = {}
-        for key in (k for k in self._store.iterkeys() if k.startswith(key_prefix)):
+        for key in (k for k in self._store.keys() if k.startswith(key_prefix)):
             transaction[key] = None
 
         sample_num = self._get_sample_num(sample_id)
@@ -394,7 +394,7 @@ class WavPackValidator():
             'au_00/proc_00/c/smp_000/p_sample.wv'     : self._sample_data,
         }
 
-        for key, value in transaction.iteritems():
+        for key, value in transaction.items():
             self._validator.set_data(key, value)
 
         try:

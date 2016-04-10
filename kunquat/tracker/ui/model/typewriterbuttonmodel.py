@@ -88,7 +88,7 @@ class TypewriterButtonModel():
         if hit_index != None:
             hits = selected_control.get_active_hits()
             states = 3 * [False]
-            if hit_index in hits.itervalues():
+            if hit_index in hits.values():
                 states = [False, True, False]
             return tuple(states)
 
@@ -102,7 +102,7 @@ class TypewriterButtonModel():
 
         (left_on, center_on, right_on) = 3 * [False]
         notes = selected_control.get_active_notes()
-        for note in notes.itervalues():
+        for note in notes.values():
             if self._typewriter_manager.get_nearest_key_id(note) == key_id:
                 if abs(note - pitch) < 0.1:
                     center_on = True

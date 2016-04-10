@@ -204,7 +204,7 @@ class AudioUnit():
         signal_type_key = '{}/p_signal_type.json'.format(key_prefix)
         transaction[signal_type_key] = params_class.get_default_signal_type()
 
-        for port_id in params_class.get_port_info().iterkeys():
+        for port_id in params_class.get_port_info().keys():
             port_manifest_key = '{}/{}/p_manifest.json'.format(key_prefix, port_id)
             transaction[port_manifest_key] = {}
 
@@ -365,7 +365,7 @@ class AudioUnit():
 
         transaction = {}
         start = dev_id + '/'
-        for key in self._store.iterkeys():
+        for key in self._store.keys():
             if key.startswith(start):
                 transaction[key] = None
 
