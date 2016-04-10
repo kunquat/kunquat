@@ -21,7 +21,7 @@ from kunquat.kunquat.kunquat import Kunquat
 import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.ui.model.tstamp as tstamp
 
-from drivers.pushaudio import Pushaudio
+from .drivers.pushaudio import Pushaudio
 
 
 EVENT_SELECT_CONTROL = '.a'
