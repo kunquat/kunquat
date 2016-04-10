@@ -251,7 +251,7 @@ class Controller():
                 parent_au_id = au_id.split('/')[0]
                 module = self._ui_model.get_module()
                 parent_au = module.get_audio_unit(parent_au_id)
-                parent_out_ports = parent_au.get_out_ports()
+                parent_out_ports = sorted(parent_au.get_out_ports())
             else:
                 parent_out_ports = ['out_00', 'out_01']
 
@@ -263,6 +263,7 @@ class Controller():
                 if key_pattern.match(path) and transaction[path] != None:
                     ins_out_port = path.split('/')[-2]
                     ins_out_ports.append(ins_out_port)
+            ins_out_ports = sorted(ins_out_ports)
 
             # Connect if the number of output ports match
             if parent_out_ports and (len(parent_out_ports) == len(ins_out_ports)):
