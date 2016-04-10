@@ -20,7 +20,7 @@ from PyQt4.QtGui import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
-import utils
+from . import utils
 
 
 class PlaybackPosition(QWidget):

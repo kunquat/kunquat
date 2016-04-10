@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -14,7 +14,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from saving import get_module_save_path
+from .saving import get_module_save_path
 
 
 class SaveButton(QToolButton):

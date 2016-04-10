@@ -22,7 +22,7 @@ from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, Vertic
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 from kunquat.tracker.ui.views.utils import lerp_val
-import utils
+from . import utils
 
 
 class SampleProc(QTabWidget):

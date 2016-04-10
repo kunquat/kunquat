@@ -14,7 +14,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from tuningtableeditor import TuningTableEditor
+from .tuningtableeditor import TuningTableEditor
 
 
 class TuningTableWindow(QWidget):

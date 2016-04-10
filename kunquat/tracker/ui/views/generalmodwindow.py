@@ -14,7 +14,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from generalmodeditor import GeneralModEditor
+from .generalmodeditor import GeneralModEditor
 
 
 class GeneralModWindow(QWidget):

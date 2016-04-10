@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -17,7 +17,7 @@ from PyQt4.QtGui import *
 
 from kunquat.tracker.version import KUNQUAT_VERSION
 from kunquat.kunquat.kunquat import get_version
-from logo import Logo
+from .logo import Logo
 
 
 class AboutMessage(QWidget):

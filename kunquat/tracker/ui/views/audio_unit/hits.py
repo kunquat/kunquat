@@ -16,9 +16,9 @@ import math
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from hitselector import HitSelector
 from kunquat.kunquat.limits import *
 from kunquat.tracker.ui.views.headerline import HeaderLine
+from .hitselector import HitSelector
 
 
 def _get_update_signal_type(au_id):

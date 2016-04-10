@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -11,12 +11,12 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-
 import cProfile
 import pstats
-import StringIO
+from io import StringIO
+
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 
 
 class ProfileControl(QDialog):
@@ -73,7 +73,7 @@ class ProfileControl(QDialog):
         self._ui_model = ui_model
 
     def _set_profile_stats(self, profile):
-        self._stats_output = StringIO.StringIO()
+        self._stats_output = StringIO()
         self._stats = pstats.Stats(profile, stream=self._stats_output)
         self._stats.sort_stats(self.SORT_HACKS[self._sort_key])
         self._stats.print_stats()

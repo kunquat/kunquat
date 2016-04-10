@@ -16,11 +16,11 @@ import os
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from connections import Connections
 from kunquat.kunquat.limits import *
-import processor.proctypeinfo as proctypeinfo
-from kqtutils import get_kqt_file_path, open_kqt_au
-from saving import get_instrument_save_path, get_effect_save_path
+from .connections import Connections
+from .processor import proctypeinfo
+from .kqtutils import get_kqt_file_path, open_kqt_au
+from .saving import get_instrument_save_path, get_effect_save_path
 
 
 class ConnectionsEditor(QWidget):

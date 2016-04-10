@@ -15,9 +15,9 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from chdefaultseditor import ChDefaultsEditor
-from orderlisteditor import OrderlistEditor
-from songeditor import SongEditor
+from .chdefaultseditor import ChDefaultsEditor
+from .orderlisteditor import OrderlistEditor
+from .songeditor import SongEditor
 
 
 class SongsChannelsWindow(QWidget):

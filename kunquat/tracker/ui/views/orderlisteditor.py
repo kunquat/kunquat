@@ -14,10 +14,10 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from headerline import HeaderLine
 from kunquat.tracker.ui.model.patterninstance import PatternInstance
 from kunquat.tracker.ui.model.song import Song
-from orderlist import Orderlist
+from .headerline import HeaderLine
+from .orderlist import Orderlist
 
 
 class OrderlistEditor(QWidget):

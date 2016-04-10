@@ -14,13 +14,13 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from components import Components
-from expressions import Expressions
-from hits import Hits
-from ports import Ports
-from infoeditor import InfoEditor
-from testbutton import TestButton
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
+from .components import Components
+from .expressions import Expressions
+from .hits import Hits
+from .ports import Ports
+from .infoeditor import InfoEditor
+from .testbutton import TestButton
 
 
 class Editor(QWidget):

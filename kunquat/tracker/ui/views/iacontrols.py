@@ -17,9 +17,9 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.tracker.ui.model.tstamp as tstamp
-from editorlist import EditorList
-from headerline import HeaderLine
-from varvalidators import *
+from .editorlist import EditorList
+from .headerline import HeaderLine
+from .varvalidators import *
 
 
 class IAControls(QWidget):

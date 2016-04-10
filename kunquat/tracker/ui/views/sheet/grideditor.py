@@ -17,13 +17,13 @@ import time
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from config import *
-from ruler import Ruler
 import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.model.gridpattern import STYLE_COUNT
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.numberslider import NumberSlider
-import utils
+from .config import *
+from .ruler import Ruler
+from . import utils
 
 
 class GridEditor(QWidget):

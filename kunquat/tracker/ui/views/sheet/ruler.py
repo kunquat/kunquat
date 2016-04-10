@@ -18,9 +18,9 @@ import time
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from config import *
-import utils
 import kunquat.tracker.ui.model.tstamp as tstamp
+from .config import *
+from . import utils
 
 
 class Ruler(QWidget):

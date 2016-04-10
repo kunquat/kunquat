@@ -14,11 +14,11 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from procnumslider import ProcNumSlider
-from waveform import Waveform
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
-import utils
+from .procnumslider import ProcNumSlider
+from .waveform import Waveform
+from . import utils
 
 
 class AddProc(QWidget):

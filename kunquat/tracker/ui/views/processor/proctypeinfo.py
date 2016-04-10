@@ -11,20 +11,20 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from addproc import AddProc
-from delayproc import DelayProc
-from envgenproc import EnvgenProc
-from filterproc import FilterProc
-from forceproc import ForceProc
-from freeverbproc import FreeverbProc
-from gaincomp_proc import GainCompProc
-from panningproc import PanningProc
-from pitchproc import PitchProc
-from ringmodproc import RingmodProc
-from sampleproc import SampleProc
-from streamproc import StreamProc
-from volumeproc import VolumeProc
-from unsupportedproc import UnsupportedProc
+from .addproc import AddProc
+from .delayproc import DelayProc
+from .envgenproc import EnvgenProc
+from .filterproc import FilterProc
+from .forceproc import ForceProc
+from .freeverbproc import FreeverbProc
+from .gaincomp_proc import GainCompProc
+from .panningproc import PanningProc
+from .pitchproc import PitchProc
+from .ringmodproc import RingmodProc
+from .sampleproc import SampleProc
+from .streamproc import StreamProc
+from .volumeproc import VolumeProc
+from .unsupportedproc import UnsupportedProc
 
 
 _proc_classes = {

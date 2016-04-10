@@ -16,10 +16,10 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
-from octaveselector import OctaveSelector
-from typewriter import Typewriter
-from notationselect import NotationSelect
-from profilecontrol import ProfileControl
+from .octaveselector import OctaveSelector
+from .typewriter import Typewriter
+from .notationselect import NotationSelect
+from .profilecontrol import ProfileControl
 
 
 class TypewriterPanel(QFrame):

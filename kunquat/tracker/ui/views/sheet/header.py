@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2015
+# Author: Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -16,8 +16,8 @@ from __future__ import print_function
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from config import *
-import utils
+from .config import *
+from . import utils
 
 
 class Header(QWidget):

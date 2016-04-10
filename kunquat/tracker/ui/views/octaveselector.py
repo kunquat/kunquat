@@ -15,7 +15,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from octavebutton import OctaveButton
+from .octavebutton import OctaveButton
 
 
 class OctaveSelector(QFrame):

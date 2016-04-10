@@ -14,8 +14,8 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from bindeditor import BindEditor
-from environmenteditor import EnvironmentEditor
+from .bindeditor import BindEditor
+from .environmenteditor import EnvironmentEditor
 
 
 class EnvBindWindow(QWidget):

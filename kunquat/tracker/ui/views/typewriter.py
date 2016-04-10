@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2014-2015
+#          Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -15,8 +15,8 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from keyboardmapper import KeyboardMapper
-from typewriterbutton import TypewriterButton
+from .keyboardmapper import KeyboardMapper
+from .typewriterbutton import TypewriterButton
 
 
 class Typewriter(QFrame):

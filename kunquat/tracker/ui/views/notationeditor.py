@@ -16,7 +16,7 @@ import math
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from headerline import HeaderLine
+from .headerline import HeaderLine
 
 
 class NotationEditor(QWidget):

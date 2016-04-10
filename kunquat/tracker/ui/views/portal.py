@@ -15,14 +15,14 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from newbutton import NewButton
-from openbutton import OpenButton
-from savebutton import SaveButton
-from connectionsbutton import ConnectionsButton
-from songschannelsbutton import SongsChannelsButton
-from eventlistbutton import EventListButton
-from aboutbutton import AboutButton
-import utils
+from .newbutton import NewButton
+from .openbutton import OpenButton
+from .savebutton import SaveButton
+from .connectionsbutton import ConnectionsButton
+from .songschannelsbutton import SongsChannelsButton
+from .eventlistbutton import EventListButton
+from .aboutbutton import AboutButton
+from . import utils
 
 
 class Portal(QToolBar):

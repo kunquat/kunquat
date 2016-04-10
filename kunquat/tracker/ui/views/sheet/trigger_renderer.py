@@ -15,7 +15,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.kunquat.events as events
-from config import *
+from .config import *
 
 
 class TriggerRenderer():

@@ -11,15 +11,15 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from itertools import count, islice, izip
+from itertools import count, islice
 import math
 import time
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
-from linesegment import LineSegment
+from .axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
+from .linesegment import LineSegment
 
 
 _font = QFont(QFont().defaultFamily(), 9)
@@ -262,7 +262,7 @@ class Envelope(QWidget):
         return int(math.floor(val_range[0]))
 
     def _get_ls_coords(self, nodes):
-        return izip(nodes, islice(nodes, 1, None))
+        return zip(nodes, islice(nodes, 1, None))
 
     def _get_zero_x_envelope(self):
         return (self._axis_y_offset_x + self._axis_config['axis_y']['width'] -

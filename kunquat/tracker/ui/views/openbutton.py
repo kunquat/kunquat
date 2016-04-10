@@ -16,7 +16,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from kunquat.kunquat.limits import *
-from kqtutils import get_kqt_file_path, open_kqt_au
+from .kqtutils import get_kqt_file_path, open_kqt_au
 
 
 class OpenButton(QToolButton):

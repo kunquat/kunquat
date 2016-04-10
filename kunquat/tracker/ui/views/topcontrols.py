@@ -15,11 +15,11 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
-from playbackposition import PlaybackPosition
-from playbutton import PlayButton
-from playpatternbutton import PlayPatternButton
-from recordbutton import RecordButton
-from silencebutton import SilenceButton
+from .playbackposition import PlaybackPosition
+from .playbutton import PlayButton
+from .playpatternbutton import PlayPatternButton
+from .recordbutton import RecordButton
+from .silencebutton import SilenceButton
 
 
 class TopControls(QToolBar):

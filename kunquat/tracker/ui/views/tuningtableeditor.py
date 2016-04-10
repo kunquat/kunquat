@@ -17,7 +17,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from kunquat.kunquat.limits import *
-from notationeditor import RatioValidator
+from .notationeditor import RatioValidator
 
 
 class TuningTableEditor(QWidget):

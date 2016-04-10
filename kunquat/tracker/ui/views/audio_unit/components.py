@@ -11,8 +11,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from itertools import izip
-
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
@@ -1055,7 +1053,7 @@ class ControlVariableBindings(QWidget):
 
         self._get_adder().set_context(var_name)
 
-        for target_info, editor in izip(binding_targets, self._get_editors()):
+        for target_info, editor in zip(binding_targets, self._get_editors()):
             target_dev_id, target_var_name = target_info
             context = (var_name, target_dev_id, target_var_name)
             editor.set_context(context)

@@ -14,9 +14,9 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from procnumslider import ProcNumSlider
 from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.audio_unit.time_env import TimeEnvelope
+from .procnumslider import ProcNumSlider
 
 
 class ForceProc(QWidget):

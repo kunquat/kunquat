@@ -12,7 +12,6 @@
 #
 
 from collections import defaultdict
-from itertools import izip
 import math
 import time
 
@@ -21,8 +20,8 @@ from PyQt4.QtGui import *
 
 from kunquat.tracker.ui.model.module import Module
 from kunquat.tracker.ui.model.processor import Processor
-from confirmdialog import ConfirmDialog
-from linesegment import LineSegment
+from .confirmdialog import ConfirmDialog
+from .linesegment import LineSegment
 
 
 _title_font = QFont(QFont().defaultFamily(), 10)
@@ -106,10 +105,10 @@ class Vec(tuple):
         return tuple.__new__(cls, (float(x) for x in coords))
 
     def __add__(self, other):
-        return Vec(x + y for (x, y) in izip(self, other))
+        return Vec(x + y for (x, y) in zip(self, other))
 
     def __sub__(self, other):
-        return Vec(x - y for (x, y) in izip(self, other))
+        return Vec(x - y for (x, y) in zip(self, other))
 
     def __mul__(self, other):
         return Vec(x * other for x in self)
@@ -118,7 +117,7 @@ class Vec(tuple):
         return self.__mul__(other)
 
 def dot(a, b):
-    return sum(x * y for (x, y) in izip(a, b))
+    return sum(x * y for (x, y) in zip(a, b))
 
 def norm_sq(a):
     return sum(x * x for x in a)

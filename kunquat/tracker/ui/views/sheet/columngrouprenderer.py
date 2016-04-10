@@ -12,16 +12,16 @@
 #
 
 from __future__ import print_function
-from itertools import islice, izip, izip_longest
+from itertools import islice, zip_longest
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.tracker.ui.model.tstamp as tstamp
-from config import *
-import utils
-from buffercache import BufferCache
-from trigger_renderer import TriggerRenderer
+from .config import *
+from . import utils
+from .buffercache import BufferCache
+from .trigger_renderer import TriggerRenderer
 
 
 class ColumnGroupRenderer():
@@ -504,7 +504,7 @@ class TRCache():
 
         next_tstamps = (row[0] for row in islice(self._rows, 1, None))
 
-        for row, next_ts in izip_longest(self._rows, next_tstamps):
+        for row, next_ts in zip_longest(self._rows, next_tstamps):
             ts, triggers = row
             if ts < start_ts:
                 continue
@@ -544,7 +544,7 @@ class TRCache():
 
         painter = QPainter(image)
         painter.setCompositionMode(QPainter.CompositionMode_Plus)
-        for renderer, width in izip(rends, widths):
+        for renderer, width in zip(rends, widths):
             renderer.draw_trigger(painter)
             painter.setTransform(QTransform().translate(width, 0), True)
 

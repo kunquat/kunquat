@@ -14,7 +14,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from procnumslider import ProcNumSlider
+from .procnumslider import ProcNumSlider
 
 
 class FilterProc(QWidget):

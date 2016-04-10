@@ -14,7 +14,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from notationeditor import NotationEditor
+from .notationeditor import NotationEditor
 
 
 class NotationWindow(QWidget):

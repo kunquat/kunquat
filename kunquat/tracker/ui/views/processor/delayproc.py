@@ -14,10 +14,10 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from procnumslider import ProcNumSlider
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
-import utils
+from .procnumslider import ProcNumSlider
+from . import utils
 
 
 class DelayProc(QWidget):

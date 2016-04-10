@@ -15,7 +15,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from kunquat.kunquat.limits import *
-from headerline import HeaderLine
+from .headerline import HeaderLine
 
 
 class SongEditor(QWidget):

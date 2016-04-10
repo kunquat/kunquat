@@ -15,9 +15,9 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from kunquat.kunquat.limits import *
-from editorlist import EditorList
-from headerline import HeaderLine
-from varnamevalidator import MaybeVarNameValidator
+from .editorlist import EditorList
+from .headerline import HeaderLine
+from .varnamevalidator import MaybeVarNameValidator
 
 
 class ChDefaultsEditor(QWidget):

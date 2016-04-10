@@ -17,20 +17,20 @@ from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
 from kunquat.tracker.ui.identifiers import *
-from mainwindow import MainWindow
-from aboutwindow import AboutWindow
-from eventlist import EventList
-from connectionswindow import ConnectionsWindow
-from songschannelswindow import SongsChannelsWindow
-from notationwindow import NotationWindow
-from tuningtablewindow import TuningTableWindow
-from envbindwindow import EnvBindWindow
-from generalmodwindow import GeneralModWindow
-from auwindow import AuWindow
-from procwindow import ProcWindow
-from sheet.grideditorwindow import GridEditorWindow
-from iawindow import IAWindow
-from renderstatswindow import RenderStatsWindow
+from .mainwindow import MainWindow
+from .aboutwindow import AboutWindow
+from .eventlist import EventList
+from .connectionswindow import ConnectionsWindow
+from .songschannelswindow import SongsChannelsWindow
+from .notationwindow import NotationWindow
+from .tuningtablewindow import TuningTableWindow
+from .envbindwindow import EnvBindWindow
+from .generalmodwindow import GeneralModWindow
+from .auwindow import AuWindow
+from .procwindow import ProcWindow
+from .sheet.grideditorwindow import GridEditorWindow
+from .iawindow import IAWindow
+from .renderstatswindow import RenderStatsWindow
 
 
 class RootView():

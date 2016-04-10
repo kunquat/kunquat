@@ -18,13 +18,13 @@ import time
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from config import *
-from header import Header
-from ruler import Ruler
-import utils
-from view import View
 from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
+from .config import *
+from .header import Header
+from .ruler import Ruler
+from . import utils
+from .view import View
 
 
 class LongScrollBar(QScrollBar):

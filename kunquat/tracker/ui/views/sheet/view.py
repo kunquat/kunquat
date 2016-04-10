@@ -13,7 +13,7 @@
 #
 
 from __future__ import print_function
-from itertools import islice, izip
+from itertools import islice
 import math
 import time
 
@@ -28,11 +28,11 @@ from kunquat.tracker.ui.model.sheetmanager import SheetManager
 from kunquat.tracker.ui.model.trigger import Trigger
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
-from config import *
-import utils
-from columngrouprenderer import ColumnGroupRenderer
-from trigger_renderer import TriggerRenderer
-from movestate import HorizontalMoveState, VerticalMoveState
+from .config import *
+from . import utils
+from .columngrouprenderer import ColumnGroupRenderer
+from .trigger_renderer import TriggerRenderer
+from .movestate import HorizontalMoveState, VerticalMoveState
 
 
 class TriggerTypeValidator(QValidator):
@@ -359,7 +359,7 @@ class View(QWidget):
         except (IndexError, AttributeError):
             return None
 
-        for pinst, start_height in izip(self._pinsts, self._start_heights):
+        for pinst, start_height in zip(self._pinsts, self._start_heights):
             if cur_pinst == pinst:
                 start_px = start_height - ref_offset
                 location_from_start_px = (
@@ -585,7 +585,7 @@ class View(QWidget):
 
         orig_trow_tfm = QTransform(trigger_tfm)
 
-        for i, trigger, renderer in izip(xrange(len(triggers)), triggers, rends):
+        for i, trigger, renderer in zip(xrange(len(triggers)), triggers, rends):
             # Identify selected field
             if self._sheet_manager.get_replace_mode():
                 select_replace = (i == trigger_index)

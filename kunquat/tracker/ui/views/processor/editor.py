@@ -14,10 +14,10 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from infoeditor import InfoEditor
-import proctypeinfo
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
+from .infoeditor import InfoEditor
+from . import proctypeinfo
 
 
 class Editor(QWidget):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -16,9 +16,9 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
-from confirmdialog import ConfirmDialog
-from mainview import MainView
-from saving import get_module_save_path
+from .confirmdialog import ConfirmDialog
+from .mainview import MainView
+from .saving import get_module_save_path
 
 
 class MainWindow(QWidget):

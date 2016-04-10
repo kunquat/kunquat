@@ -14,12 +14,12 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from procnumslider import ProcNumSlider
 from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.audio_unit.simple_env import SimpleEnvelope
 from kunquat.tracker.ui.views.audio_unit.time_env import TimeEnvelope
-import utils
+from .procnumslider import ProcNumSlider
+from . import utils
 
 
 class EnvgenProc(QWidget):
