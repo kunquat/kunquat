@@ -102,8 +102,8 @@ def build():
             output = subprocess.check_output(
                     ['valgrind', '--version'], stderr=subprocess.STDOUT)
         except (OSError, subprocess.CalledProcessError):
-            output = ''
-        if not output.startswith('valgrind'):
+            output = b''
+        if not output.startswith(b'valgrind'):
             print('Memory debugging of libkunquat tests was requested'
                     ' but Valgrind was not found.',
                     file=sys.stderr)
