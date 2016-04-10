@@ -12,7 +12,6 @@
 #
 
 from copy import deepcopy
-from itertools import izip
 import math
 
 
@@ -266,7 +265,7 @@ class Notation():
             rel_octave = octave_id - center_octave
             octave_offset = octave_width * rel_octave
             cur_octave_cents = []
-            for note_offset, base_name in izip(note_offsets, base_note_names):
+            for note_offset, base_name in zip(note_offsets, base_note_names):
                 cents = center + octave_offset + note_offset
                 name = u'{}{}'.format(base_name, octave_id)
                 notes.append([cents, name])
