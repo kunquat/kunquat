@@ -45,7 +45,7 @@ class KqtiFile():
 
                 value = tfile.extractfile(entry).read()
                 if stripped_path.endswith('.json'):
-                    decoded = json.loads(value)
+                    decoded = json.loads(str(value, encoding='utf-8'))
                 else:
                     decoded = value
 
