@@ -191,7 +191,8 @@ class BaseHandle(object):
                  A4, i.e. C5 in 12-tone Equal Temperament).
 
         """
-        _kunquat.kqt_Handle_fire_event(self._handle, channel, json.dumps(event))
+        event_data = bytes(json.dumps(event), encoding='utf-8')
+        _kunquat.kqt_Handle_fire_event(self._handle, channel, event_data)
 
     def receive_events(self):
         """Receive outgoing events.
@@ -202,10 +203,12 @@ class BaseHandle(object):
 
         """
         all_events = []
-        el = json.loads(str(_kunquat.kqt_Handle_receive_events(self._handle)))
+        raw_el_data = _kunquat.kqt_Handle_receive_events(self._handle)
+        el = json.loads(str(raw_el_data, encoding='utf-8'))
         while el:
             all_events += el
-            el = json.loads(str(_kunquat.kqt_Handle_receive_events(self._handle)))
+            raw_el_data = _kunquat.kqt_Handle_receive_events(self._handle)
+            el = json.loads(str(raw_el_data, encoding='utf-8'))
         return all_events
 
 
@@ -375,7 +378,7 @@ class KunquatError(Exception):
     """Base class for errors in Kunquat."""
 
     def __init__(self, obj):
-        if isinstance(obj, str) or isinstance(obj, unicode):
+        if isinstance(obj, str):
             obj = { 'message': obj }
         self.obj = obj
 
