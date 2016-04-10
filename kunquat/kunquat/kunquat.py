@@ -412,7 +412,7 @@ def get_default_value(key):
 
 
 def get_version():
-    ret = str(_kunquat.kqt_get_version())
+    ret = str(_kunquat.kqt_get_version(), encoding='utf-8')
     return ret
 
 
