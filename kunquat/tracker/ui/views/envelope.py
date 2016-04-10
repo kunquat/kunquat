@@ -357,7 +357,7 @@ class Envelope(QWidget):
 
         # Remove obsolete entries from cache
         obsolete_keys = []
-        for k, v in self._ls_cache.iteritems():
+        for k, v in self._ls_cache.items():
             if v.get_update_id() != cur_update_id:
                 obsolete_keys.append(k)
 

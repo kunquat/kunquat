@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -46,7 +46,7 @@ class BufferCache(MutableMapping):
 
         amount_to_free += self._memory_limit * self._reduce_ahead
 
-        items_by_age = sorted(self._items.iteritems(), key=lambda item: item[1][0])
+        items_by_age = sorted(self._items.items(), key=lambda item: item[1][0])
         for key, _ in items_by_age:
             del self._items[key]
             amount_to_free -= self._item_mem
@@ -74,7 +74,7 @@ class BufferCache(MutableMapping):
         del self._items[key]
 
     def __iter__(self):
-        for key, item in self._items.iteritems():
+        for key, item in self._items.items():
             (_, buf) = item
             yield (key, buf)
 

@@ -275,7 +275,7 @@ class EventBox(QComboBox):
 
         all_events = events.all_events_by_name
         event_names = sorted(list(
-            event['name'] for event in all_events.itervalues()
+            event['name'] for event in all_events.values()
             if event['name'] not in excluded),
             key=lambda x: x.lstrip('/=.->+<') or x)
 

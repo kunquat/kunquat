@@ -271,13 +271,13 @@ class RootView():
         try_set_enabled(self._connections)
         try_set_enabled(self._songs_channels)
         try_set_enabled(self._notation)
-        for window in self._tuning_tables.itervalues():
+        for window in self._tuning_tables.values():
             window.setEnabled(enabled)
         try_set_enabled(self._env_bind)
         try_set_enabled(self._general_mod)
-        for window in self._au_windows.itervalues():
+        for window in self._au_windows.values():
             window.setEnabled(enabled)
-        for window in self._proc_windows.itervalues():
+        for window in self._proc_windows.values():
             window.setEnabled(enabled)
         try_set_enabled(self._grid_editor)
         try_set_enabled(self._ia_controls)

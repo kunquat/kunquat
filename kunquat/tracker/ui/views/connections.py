@@ -319,7 +319,7 @@ class ConnectionsView(QWidget):
 
     def get_area_rect(self):
         area_rect = None
-        for device in self._visible_devices.itervalues():
+        for device in self._visible_devices.values():
             dev_rect = device.get_rect_in_area()
             if not area_rect:
                 area_rect = dev_rect
@@ -355,7 +355,7 @@ class ConnectionsView(QWidget):
         layout[key] = value
 
         # Also set entries for default offsets that were not changed
-        for dev_id, offset in self._default_offsets.iteritems():
+        for dev_id, offset in self._default_offsets.items():
             if (dev_id not in layout) or ('offset' not in layout[dev_id]):
                 dev_layout = layout.get(dev_id, {})
                 dev_layout['offset'] = offset
@@ -638,7 +638,7 @@ class ConnectionsView(QWidget):
                 new_ls_cache[key] = ls
 
         self._ls_cache = new_ls_cache
-        for ls in self._ls_cache.itervalues():
+        for ls in self._ls_cache.values():
             ls.copy_line(painter)
 
         # Highlight focused connection
@@ -1303,7 +1303,7 @@ class Device():
         return self._name
 
     def get_type_config_name(self):
-        for key, v in self._config.iteritems():
+        for key, v in self._config.items():
             if self._type_config == v:
                 return key
 

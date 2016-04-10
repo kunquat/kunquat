@@ -77,7 +77,7 @@ class OctaveButton(QPushButton):
             return
         notes = selected_control.get_active_notes()
         is_on = 0
-        for note in notes.itervalues():
+        for note in notes.values():
             nearest_id = self._typewriter_manager.get_nearest_key_id(note)
             if nearest_id:
                 octave_id, _ = nearest_id
