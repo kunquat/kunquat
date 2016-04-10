@@ -642,7 +642,7 @@ class Session():
 
     def get_active_init_expression(self, ch):
         return self._channel_active_init_expression.get(ch,
-                self._channel_default_init_expression.get(ch, u''))
+                self._channel_default_init_expression.get(ch, ''))
 
     def reset_active_init_expressions(self):
         self._channel_active_init_expression = {}
@@ -651,7 +651,7 @@ class Session():
         self._au_test_expressions[(au_id, index)] = expr_name
 
     def get_au_test_expression(self, au_id, index):
-        return self._au_test_expressions.get((au_id, index), u'')
+        return self._au_test_expressions.get((au_id, index), '')
 
     def set_au_test_expressions_enabled(self, au_id, enabled):
         self._au_test_expressions_enabled[au_id] = enabled
