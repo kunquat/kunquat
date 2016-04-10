@@ -32,14 +32,14 @@ class Store(MutableMapping):
 
     def put(self, transaction, mark_modified=True):
         assert not self._is_saving
-        transaction_id = self._transaction_ids.next()
+        transaction_id = next(self._transaction_ids)
         self._audio_engine.set_data(transaction_id, transaction)
         self._pending_validation.append((transaction_id, transaction))
         if mark_modified:
             self._is_modified = True
 
     def flush(self, callback):
-        transaction_id = self._transaction_ids.next()
+        transaction_id = next(self._transaction_ids)
         self._audio_engine.set_data(transaction_id, None)
         self._flush_callbacks[transaction_id] = callback
 

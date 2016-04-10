@@ -336,7 +336,7 @@ class Envelope(QWidget):
         #painter.setPen(QColor(0xff, 0, 0))
         #painter.drawRect(0, 0, self._envelope_width - 1, self._envelope_height - 1)
 
-        cur_update_id = self._ls_update_id.next()
+        cur_update_id = next(self._ls_update_id)
 
         new_ls_count = 0
 

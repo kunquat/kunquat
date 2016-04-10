@@ -61,13 +61,13 @@ class BufferCache(MutableMapping):
 
     def __getitem__(self, key):
         (_, buf) = self._items[key]
-        self._items[key] = (self._access_counter.next(), buf)
+        self._items[key] = (next(self._access_counter), buf)
         return buf
 
     def __setitem__(self, key, buf):
         if not self._item_mem:
             self._item_mem = self._estimate_buf_size(buf)
-        self._items[key] = (self._access_counter.next(), buf)
+        self._items[key] = (next(self._access_counter), buf)
         self._limit_memory_usage()
 
     def __delitem__(self, key):

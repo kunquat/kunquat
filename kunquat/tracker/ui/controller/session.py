@@ -311,7 +311,7 @@ class Session():
     def log_event(self, channel, event_type, event_value, context):
         if context != 'tfire':
             self._event_log.appendleft(
-                    (self._event_index.next(),
+                    (next(self._event_index),
                         channel, event_type, event_value, context))
 
     def get_event_log(self):
