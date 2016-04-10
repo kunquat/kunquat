@@ -82,16 +82,16 @@ class Simple(object):
         # Create connection
         self._connection = _simple.pa_simple_new(
                 None, # server name
-                client_name,
+                bytes(client_name, encoding='utf-8'),
                 PA_STREAM_PLAYBACK,
                 None, # sink name
-                stream_name,
+                bytes(stream_name, encoding='utf-8'),
                 ctypes.byref(ss),
                 None, # channel map
                 ctypes.byref(buf_attr),
                 ctypes.byref(error))
         if not self._connection:
-            raise PulseAudioError(_simple.pa_strerror(error))
+            raise PulseAudioError(str(_simple.pa_strerror(error), encoding='utf-8'))
 
     def write(self, *data):
         """Write audio data to the output stream.
@@ -110,7 +110,7 @@ class Simple(object):
             raise ValueError('Wrong number of output channel buffers')
         frame_count = len(data[0])
         cdata = (ctypes.c_float * (frame_count * self._channels))()
-        for channel in xrange(self._channels):
+        for channel in range(self._channels):
             if len(data[channel]) != frame_count:
                 raise ValueError('Output channel buffer lengths do not match')
             cdata[channel::self._channels] = data[channel]
@@ -120,7 +120,7 @@ class Simple(object):
                                    cdata,
                                    bytes_per_frame * frame_count,
                                    ctypes.byref(error)) < 0:
-            raise PulseAudioError(_simple.pa_strerror(error))
+            raise PulseAudioError(str(_simple.pa_strerror(error), encoding='utf-8'))
 
     def drain(self):
         """Wait until all data written is actually played.
@@ -131,7 +131,7 @@ class Simple(object):
         """
         error = ctypes.c_int(0)
         if _simple.pa_simple_drain(self._connection, ctypes.byref(error)) < 0:
-            raise PulseAudioError(_simple.pa_strerror(error))
+            raise PulseAudioError(str(_simple.pa_strerror(error), encoding='utf-8'))
 
     def __del__(self):
         if self._connection:
