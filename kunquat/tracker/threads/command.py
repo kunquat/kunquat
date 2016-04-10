@@ -55,14 +55,14 @@ class Command():
     def _freeze_arg(self, arg):
         if isinstance(arg, Thread):
             return (ARG_THREAD, arg)
-        return (ARG_PICKLE, cPickle.dumps(arg))
+        return (ARG_PICKLE, pickle.dumps(arg))
 
     def _melt_arg(self, frozen):
         (arg_type, value) = frozen
         if arg_type == ARG_THREAD:
             return value
         if arg_type == ARG_PICKLE:
-            return cPickle.loads(value)
+            return pickle.loads(value)
         assert(False)
 
 
