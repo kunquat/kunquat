@@ -398,7 +398,7 @@ class GridArea(QAbstractScrollArea):
         vscrollbar.setRange(0, total_height_px - vp_height)
 
     def _follow_cursor(self, new_y_offset_str):
-        new_y_offset = long(new_y_offset_str)
+        new_y_offset = int(new_y_offset_str)
 
         vscrollbar = self.verticalScrollBar()
         old_y_offset = vscrollbar.value()

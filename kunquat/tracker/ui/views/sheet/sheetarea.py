@@ -219,7 +219,7 @@ class SheetArea(QAbstractScrollArea):
         hscrollbar.setRange(0, COLUMNS_MAX - max_visible_cols)
 
     def _follow_cursor(self, new_y_offset_str, new_first_col):
-        new_y_offset = long(new_y_offset_str)
+        new_y_offset = int(new_y_offset_str)
         vscrollbar = self.verticalScrollBar()
         hscrollbar = self.horizontalScrollBar()
         old_y_offset = vscrollbar.get_actual_value()
