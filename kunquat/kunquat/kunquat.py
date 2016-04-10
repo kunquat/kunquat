@@ -406,8 +406,8 @@ class KunquatResourceError(KunquatError):
 
 
 def get_default_value(key):
-    raw = _kunquat.kqt_get_default_value(key)
-    obj = json.loads(raw) if raw else None
+    raw = _kunquat.kqt_get_default_value(bytes(key, encoding='utf-8'))
+    obj = json.loads(str(raw, encoding='utf-8')) if raw else None
     return obj
 
 
