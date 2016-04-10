@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -21,7 +21,7 @@ class IntValidator(QValidator):
         QValidator.__init__(self)
 
     def validate(self, contents, pos):
-        in_str = unicode(contents)
+        in_str = str(contents)
         if not in_str:
             return (QValidator.Intermediate, pos)
 
@@ -43,7 +43,7 @@ class FloatValidator(QValidator):
         QValidator.__init__(self)
 
     def validate(self, contents, pos):
-        in_str = unicode(contents)
+        in_str = str(contents)
         if not in_str:
             return (QValidator.Intermediate, pos)
 

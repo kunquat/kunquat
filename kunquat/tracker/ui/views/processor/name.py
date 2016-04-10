@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -56,12 +56,12 @@ class Name(QWidget):
         au = module.get_audio_unit(self._au_id)
         proc = au.get_processor(self._proc_id)
         vis_name = proc.get_name() or ''
-        if vis_name != unicode(self._edit.text()):
+        if vis_name != str(self._edit.text()):
             self._edit.setText(vis_name)
         self._edit.blockSignals(old_block)
 
     def _text_edited(self, text):
-        text = unicode(text)
+        text = str(text)
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         proc = au.get_processor(self._proc_id)

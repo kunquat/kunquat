@@ -32,7 +32,7 @@ def _get_default_lines_raw():
     return lines_raw
 
 DEFAULT_GRID_PATTERN = {
-    'name'  : u'<default grid>',
+    'name'  : '<default grid>',
     'length': [4, 0],
     'offset': [0, 0],
     'min_style_spacing': [0.6] * STYLE_COUNT,
@@ -47,7 +47,7 @@ class GridPattern():
         self._session = None
         self._store = None
 
-        assert isinstance(gp_id, unicode)
+        assert isinstance(gp_id, str)
         self._id = gp_id
 
         self._model_data = None
@@ -81,7 +81,7 @@ class GridPattern():
 
         result = {}
 
-        if ('name' not in gp) or (not isinstance(gp['name'], unicode)):
+        if ('name' not in gp) or (not isinstance(gp['name'], str)):
             return None
         result['name'] = gp['name']
 
@@ -138,7 +138,7 @@ class GridPattern():
 
     def _make_placeholder_grid_pattern(self):
         raw_gp = deepcopy(DEFAULT_GRID_PATTERN)
-        raw_gp['name'] = u'<invalid>'
+        raw_gp['name'] = '<invalid>'
         return self._make_model_dict(raw_gp)
 
     def _get_model_data(self):
@@ -240,7 +240,7 @@ class GridPattern():
 
     def set_name(self, name):
         assert self._id != 0
-        assert isinstance(name, unicode)
+        assert isinstance(name, str)
         gp = self._get_model_data()
         gp['name'] = name
         self._set_grid_pattern_data(gp)
