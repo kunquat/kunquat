@@ -51,7 +51,7 @@ class Store(MutableMapping):
 
         transaction = self._get_validated_transaction(transaction_id)
         self._content.update(transaction)
-        for (key, value) in transaction.iteritems():
+        for (key, value) in transaction.items():
             if value == None:
                 del self._content[key]
 
@@ -92,12 +92,12 @@ class Store(MutableMapping):
         included_keys = set()
         excluded_keys = set()
         for _, transaction in reversed(self._pending_validation):
-            for key, value in transaction.iteritems():
+            for key, value in transaction.items():
                 if value != None:
                     included_keys.add(key)
                 else:
                     excluded_keys.add(key)
-        for key in self._content.iterkeys():
+        for key in self._content.keys():
             if key not in excluded_keys:
                 included_keys.add(key)
         return (key for key in included_keys)

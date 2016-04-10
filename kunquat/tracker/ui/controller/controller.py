@@ -154,7 +154,7 @@ class Controller():
 
             with tarfile.open(mode=mode, fileobj=f, format=tarfile.USTAR_FORMAT) as tfile:
                 prefix = 'kqtc00'
-                for key, value in self._store.iteritems():
+                for key, value in self._store.items():
                     yield
                     path = '/'.join((prefix, key))
                     if key.endswith('.json'):
@@ -187,7 +187,7 @@ class Controller():
             with tarfile.open(mode=mode, fileobj=f, format=tarfile.USTAR_FORMAT) as tfile:
                 prefix = 'kqti00'
                 au_prefix = au_id + '/'
-                au_keys = [k for k in self._store.iterkeys() if k.startswith(au_prefix)]
+                au_keys = [k for k in self._store.keys() if k.startswith(au_prefix)]
                 for key in au_keys:
                     yield
                     value = self._store[key]
@@ -228,7 +228,7 @@ class Controller():
         transaction = {}
 
         # Add audio unit data to the transaction
-        for (key, value) in contents.iteritems():
+        for (key, value) in contents.items():
             dest_key = '{}/{}'.format(au_id, key)
             transaction[dest_key] = value
 

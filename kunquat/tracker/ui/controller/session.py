@@ -255,7 +255,7 @@ class Session():
     def get_active_notes_by_control_id(self, control_id):
         notes = self._control_active_notes.get(control_id, {})
         ret = {}
-        for (k, v) in notes.iteritems():
+        for (k, v) in notes.items():
             event_type, pitch = v
             if event_type == 'n+':
                 ret[k] = pitch
@@ -264,7 +264,7 @@ class Session():
     def get_active_hits_by_control_id(self, control_id):
         notes = self._control_active_notes.get(control_id, {})
         hits = {}
-        for (k, v) in notes.iteritems():
+        for (k, v) in notes.items():
             event_type, hit = v
             if event_type == 'h':
                 hits[k] = hit
