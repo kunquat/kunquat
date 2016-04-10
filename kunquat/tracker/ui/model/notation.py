@@ -230,7 +230,7 @@ class Notation():
 
         # Get note offsets in cents
         note_offsets = []
-        for i in xrange(note_count):
+        for i in range(note_count):
             ratio = template.get_note_ratio(i)
             if isinstance(ratio, list):
                 offset = math.log(ratio[0] / float(ratio[1]), 2) * 1200
@@ -240,7 +240,7 @@ class Notation():
 
         # Get base names of notes
         base_note_names = []
-        for i in xrange(note_count):
+        for i in range(note_count):
             base_note_names.append(template.get_note_name(i))
 
         # Choose keyboard layout strategy, TODO: figure out a better solution
@@ -259,7 +259,7 @@ class Notation():
         octave_names = []
         notes = []
         keymap = []
-        for octave_id in xrange(min_octave, max_octave + 1):
+        for octave_id in range(min_octave, max_octave + 1):
             octave_names.append(str(octave_id))
 
             rel_octave = octave_id - center_octave

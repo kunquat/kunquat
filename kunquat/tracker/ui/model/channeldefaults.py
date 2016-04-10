@@ -54,7 +54,7 @@ class ChannelDefaults():
         key = self._get_key()
         chd_list = self._store.get(key, [])
         def_entry = self._get_default_entry()
-        for _ in xrange(ch_num + 1 - len(chd_list)):
+        for _ in range(ch_num + 1 - len(chd_list)):
             chd_list.append(def_entry.copy())
         assert ch_num < len(chd_list)
         return chd_list
@@ -78,7 +78,7 @@ class ChannelDefaults():
 
         transaction = {}
 
-        for ch_num in xrange(CHANNELS_MAX):
+        for ch_num in range(CHANNELS_MAX):
             control_id = self.get_default_control_id(ch_num)
             if control_id != fallback_control_id:
                 control = Control(control_id)

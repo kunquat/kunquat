@@ -73,12 +73,12 @@ class Bindings():
 
     def _get_used_events(self, exclude):
         events = set()
-        for i in xrange(self.get_count()):
+        for i in range(self.get_count()):
             binding = self.get_binding(i)
             if i != exclude:
                 events.add(binding.get_source_event())
             targets = binding.get_targets()
-            for k in xrange(targets.get_count()):
+            for k in range(targets.get_count()):
                 if (i, k) == exclude:
                     continue
                 target = targets.get_target(k)
@@ -124,11 +124,11 @@ class Bindings():
 
         # Get test graph without the binding at binding_index
         base_graph = set()
-        for i in xrange(self.get_count()):
+        for i in range(self.get_count()):
             if i != binding_index:
                 binding = self.get_binding(i)
                 targets = binding.get_targets()
-                for k in xrange(targets.get_count()):
+                for k in range(targets.get_count()):
                     target = targets.get_target(k)
                     u = binding.get_source_event()
                     v = target.get_event_name()
@@ -141,7 +141,7 @@ class Bindings():
         for event in used_events:
             test_graph = set(base_graph)
             targets = self.get_binding(binding_index).get_targets()
-            for k in xrange(targets.get_count()):
+            for k in range(targets.get_count()):
                 target = targets.get_target(k)
                 u = event
                 v = target.get_event_name()
@@ -156,10 +156,10 @@ class Bindings():
 
         # Get test graph without the binding target at target_index
         base_graph = set()
-        for i in xrange(self.get_count()):
+        for i in range(self.get_count()):
             binding = self.get_binding(i)
             targets = binding.get_targets()
-            for k in xrange(targets.get_count()):
+            for k in range(targets.get_count()):
                 if (i, k) != (binding_index, target_index):
                     target = targets.get_target(k)
                     u = binding.get_source_event()

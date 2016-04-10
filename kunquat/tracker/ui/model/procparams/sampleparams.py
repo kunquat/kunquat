@@ -61,7 +61,7 @@ class SampleParams(ProcParams):
 
     def get_sample_ids(self):
         ret_ids = []
-        for i in xrange(self._SAMPLES_MAX):
+        for i in range(self._SAMPLES_MAX):
             cur_id = self._get_sample_id(i)
             cur_header = self._get_sample_header(cur_id)
             if type(cur_header) == dict:
@@ -70,7 +70,7 @@ class SampleParams(ProcParams):
         return ret_ids
 
     def get_free_sample_id(self):
-        for i in xrange(self._SAMPLES_MAX):
+        for i in range(self._SAMPLES_MAX):
             cur_id = self._get_sample_id(i)
             cur_header = self._get_sample_header(cur_id)
             if not type(cur_header) == dict:

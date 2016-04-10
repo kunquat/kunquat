@@ -119,7 +119,7 @@ class SheetManager():
         column = self.get_column_at_location(clamped_loc)
         if column.has_trigger(clamped_loc.get_row_ts(), 0):
             triggers = [column.get_trigger(clamped_loc.get_row_ts(), i)
-                    for i in xrange(clamped_loc.get_trigger_index())]
+                    for i in range(clamped_loc.get_trigger_index())]
             for trigger in reversed(triggers):
                 if trigger.get_type() == '.a':
                     try:
@@ -134,7 +134,7 @@ class SheetManager():
                 tstamp.Tstamp(0), clamped_loc.get_row_ts())
         for row_ts in reversed(trow_positions):
             tr_count = column.get_trigger_count_at_row(row_ts)
-            triggers = [column.get_trigger(row_ts, i) for i in xrange(tr_count)]
+            triggers = [column.get_trigger(row_ts, i) for i in range(tr_count)]
             for trigger in reversed(triggers):
                 if trigger.get_type() == '.a':
                     try:
@@ -334,7 +334,7 @@ class SheetManager():
             stop_ts = bottom_right.get_row_ts()
 
             transaction = {}
-            for col_num in xrange(start_col, stop_col):
+            for col_num in range(start_col, stop_col):
                 cur_location = TriggerPosition(
                     top_left.get_track(), top_left.get_system(), col_num, start_ts, 0)
                 cur_column = self.get_column_at_location(cur_location)
@@ -374,7 +374,7 @@ class SheetManager():
             column = self.get_column_at_location(top_left)
             row_ts = top_left.get_row_ts()
             triggers = (column.get_trigger(row_ts, i)
-                    for i in xrange(start_index, stop_index))
+                    for i in range(start_index, stop_index))
             trigger_tuples = [(t.get_type(), t.get_argument()) for t in triggers]
 
             area_info['triggers'] = trigger_tuples
@@ -391,7 +391,7 @@ class SheetManager():
             area_info['height'] = tuple(stop_ts - start_ts)
 
             # Extract triggers with relative locations
-            for col_index in xrange(start_col, stop_col):
+            for col_index in range(start_col, stop_col):
                 cur_location = TriggerPosition(
                     top_left.get_track(), top_left.get_system(), col_index, start_ts, 0)
                 cur_column = self.get_column_at_location(cur_location)
@@ -400,7 +400,7 @@ class SheetManager():
                         start_ts, stop_ts):
                     trigger_count = cur_column.get_trigger_count_at_row(row_ts)
                     triggers = []
-                    for trigger_index in xrange(trigger_count):
+                    for trigger_index in range(trigger_count):
                         trigger = cur_column.get_trigger(row_ts, trigger_index)
                         triggers.append((trigger.get_type(), trigger.get_argument()))
 
@@ -477,7 +477,7 @@ class SheetManager():
                 area_info['width'] = width
                 area_info['height'] = tstamp.Tstamp(height_beats, height_rem)
 
-                for col_index in xrange(COLUMNS_MAX):
+                for col_index in range(COLUMNS_MAX):
                     col_key = self._get_col_key(col_index)
                     if col_key in unsafe_area_info:
                         col_area_data = unsafe_area_info[col_key]
@@ -553,7 +553,7 @@ class SheetManager():
             stop_ts = start_ts + height
 
             transaction = {}
-            for rel_col_num in xrange(width):
+            for rel_col_num in range(width):
                 col_num = location.get_col_num() + rel_col_num
                 if col_num >= COLUMNS_MAX:
                     break
@@ -583,14 +583,14 @@ class SheetManager():
 
     def set_overlay_grid(
             self, pinst, start_col, stop_col, start_ts, stop_ts, gp_id, offset):
-        for col_num in xrange(start_col, stop_col):
+        for col_num in range(start_col, stop_col):
             column = pinst.get_column(col_num)
             transaction = column.get_edit_set_overlay_grid(
                     start_ts, stop_ts, gp_id, offset)
             self._add_transaction(transaction, commit=(col_num == stop_col - 1))
 
     def clear_overlay_grids(self, pinst, start_col, stop_col):
-        for col_num in xrange(start_col, stop_col):
+        for col_num in range(start_col, stop_col):
             column = pinst.get_column(col_num)
             transaction = column.get_edit_clear_overlay_grids()
             self._add_transaction(transaction, commit=(col_num == stop_col - 1))

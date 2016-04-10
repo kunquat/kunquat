@@ -72,7 +72,7 @@ class NotationManager():
     def get_custom_notation_ids(self):
         custom_notations = self._get_custom_notation_data() or []
         is_shared = False
-        custom_notation_ids = [(is_shared, i) for i in xrange(len(custom_notations))]
+        custom_notation_ids = [(is_shared, i) for i in range(len(custom_notations))]
         return custom_notation_ids
 
     def get_all_notation_ids(self):

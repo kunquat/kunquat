@@ -78,7 +78,7 @@ class GridManager():
 
         # Find a new unique ID
         used_ids = set(raw_master_dict.iterkeys())
-        for i in xrange(1, len(used_ids) + 2):
+        for i in range(1, len(used_ids) + 2):
             new_id = str(i)
             if new_id not in used_ids:
                 break
@@ -95,7 +95,7 @@ class GridManager():
                     used_names.add(raw_grid['name'])
 
         # Find a unique placeholder name for the new grid pattern
-        for i in xrange(len(used_names) + 1):
+        for i in range(len(used_names) + 1):
             placeholder = 'New grid{}'.format(' ' + str(i + 1) if i > 0 else '')
             if placeholder not in used_names:
                 break
@@ -104,7 +104,7 @@ class GridManager():
 
         # Create new grid pattern
         lines = []
-        for i in xrange(32):
+        for i in range(32):
             line_ts_raw = list(tstamp.Tstamp(i) / 8)
             style = 0
             if i > 0:
@@ -118,7 +118,7 @@ class GridManager():
         self._set_raw_master_dict(raw_master_dict)
 
     def _get_all_patterns(self):
-        for i in xrange(PATTERNS_MAX):
+        for i in range(PATTERNS_MAX):
             pinst = PatternInstance(i, 0)
             pinst.set_controller(self._controller)
             pinst.set_ui_model(self._ui_model)

@@ -35,9 +35,9 @@ class Grid():
         self._ui_model = ui_model
 
     def _get_allowed_line_styles(self, spec, tr_height_ts):
-        allowed_styles = set(xrange(STYLE_COUNT))
+        allowed_styles = set(range(STYLE_COUNT))
 
-        for style in xrange(1, STYLE_COUNT):
+        for style in range(1, STYLE_COUNT):
             min_line_dist = spec['min_style_spacing'][style] * tr_height_ts
             first_ts = None
             prev_ts = None
@@ -80,7 +80,7 @@ class Grid():
 
         gp_length = gp.get_length()
         gp_lines = gp.get_lines()
-        gp_style_spacing = [gp.get_line_style_spacing(i) for i in xrange(STYLE_COUNT)]
+        gp_style_spacing = [gp.get_line_style_spacing(i) for i in range(STYLE_COUNT)]
 
         spec = {
             'length': gp_length,

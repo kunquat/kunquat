@@ -183,7 +183,7 @@ class TuningTable():
 
         # Get notes
         notes = []
-        for i in xrange(template.get_note_count()):
+        for i in range(template.get_note_count()):
             notes.append((template.get_note_name(i), template.get_note_ratio(i)))
 
         # Make data

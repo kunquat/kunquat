@@ -74,7 +74,7 @@ class Processor():
 
     def _get_ports(self, port_format):
         ports = []
-        for i in xrange(0x100):
+        for i in range(0x100):
             port_id = port_format.format(i)
             key = self._get_key('{}/p_manifest.json'.format(port_id))
             if key in self._store:

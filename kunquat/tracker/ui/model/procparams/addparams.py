@@ -214,7 +214,7 @@ class AddParams(ProcParams):
             sf.close()
         else:
             waveform = [-math.sin(phase * math.pi * 2 / self._WAVEFORM_SAMPLE_COUNT)
-                    for phase in xrange(self._WAVEFORM_SAMPLE_COUNT)]
+                    for phase in range(self._WAVEFORM_SAMPLE_COUNT)]
 
         if len(waveform) != self._WAVEFORM_SAMPLE_COUNT:
             waveform = waveform[:self._WAVEFORM_SAMPLE_COUNT]
@@ -228,7 +228,7 @@ class AddParams(ProcParams):
         if type(warps) != list:
             warps = []
         warp_count = len(warps)
-        for i in xrange(warp_count):
+        for i in range(warp_count):
             warp = warps[i]
             if ((type(warp) != list) or
                     (len(warp) != 2) or
@@ -280,7 +280,7 @@ class AddParams(ProcParams):
         postwarp_chain = [(post_info['funcs_dict'][name], value)
                 for (name, value) in base_def[post_info['def_key']] if name != 'None']
 
-        for i in xrange(self._WAVEFORM_SAMPLE_COUNT):
+        for i in range(self._WAVEFORM_SAMPLE_COUNT):
             x = i * 2 / float(self._WAVEFORM_SAMPLE_COUNT) - 1
             for (f, a) in prewarp_chain:
                 x = normalise(f(x, a))
@@ -394,7 +394,7 @@ class AddParams(ProcParams):
             self._set_tone_volume(wave_type, i, volume)
             if wave_type == 'base':
                 self._set_tone_panning(wave_type, i, panning)
-        for i in xrange(len(tones), self._TONES_MAX):
+        for i in range(len(tones), self._TONES_MAX):
             self._remove_tone(wave_type, i)
 
     def _get_tone_existence(self, wave_type, index):
@@ -404,7 +404,7 @@ class AddParams(ProcParams):
 
     def _get_tones_raw(self, wave_type):
         tones_raw = []
-        for i in xrange(self._TONES_MAX):
+        for i in range(self._TONES_MAX):
             if self._get_tone_existence(wave_type, i):
                 pitch = self._get_tone_pitch(wave_type, i)
                 volume = self._get_tone_volume(wave_type, i)

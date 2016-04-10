@@ -110,7 +110,7 @@ class Module():
         return control_ids
 
     def get_free_control_id(self):
-        all_control_ids = set('control_{:02x}'.format(i) for i in xrange(CONTROLS_MAX))
+        all_control_ids = set('control_{:02x}'.format(i) for i in range(CONTROLS_MAX))
         used_control_ids = self.get_control_ids()
         free_control_ids = all_control_ids - used_control_ids
         if not free_control_ids:
@@ -158,7 +158,7 @@ class Module():
         return au_ids
 
     def get_free_au_id(self):
-        all_au_ids = set('au_{:02x}'.format(i) for i in xrange(AUDIO_UNITS_MAX))
+        all_au_ids = set('au_{:02x}'.format(i) for i in range(AUDIO_UNITS_MAX))
         used_au_ids = self.get_au_ids()
         free_au_ids = all_au_ids - used_au_ids
         if not free_au_ids:
@@ -200,7 +200,7 @@ class Module():
 
     def get_out_ports(self):
         out_ports = []
-        for i in xrange(0x100):
+        for i in range(0x100):
             port_id = 'out_{:02x}'.format(i)
             key = '{}/p_manifest.json'.format(port_id)
             if key in self._store:
@@ -257,7 +257,7 @@ class Module():
 
         # Remove controls
         remove_control_nums = []
-        for i in xrange(CONTROLS_MAX):
+        for i in range(CONTROLS_MAX):
             control_id = 'control_{:02x}'.format(i)
             control = Control(control_id)
             control.set_controller(self._controller)
@@ -300,7 +300,7 @@ class Module():
         return table_ids
 
     def get_free_tuning_table_id(self):
-        all_ids = set('tuning_{:02x}'.format(i) for i in xrange(TUNING_TABLES_MAX))
+        all_ids = set('tuning_{:02x}'.format(i) for i in range(TUNING_TABLES_MAX))
         used_ids = self.get_tuning_table_ids()
         free_ids = all_ids - used_ids
         if not free_ids:
