@@ -104,7 +104,7 @@ class GridListModel(QAbstractListModel):
             gp_name = gp.get_name()
             self._items.append((gp_id, gp_name))
 
-        self._items = sorted(self._items, lambda x, y: cmp(x[1], y[1]))
+        self._items = sorted(self._items, key=lambda x: x[1])
 
     def unregister_updaters(self):
         pass

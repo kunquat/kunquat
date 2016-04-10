@@ -456,7 +456,7 @@ class GridSelector(QComboBox):
 
         gp_items = [(gp_id, grid_manager.get_grid_pattern(gp_id).get_name())
             for gp_id in gp_ids]
-        gp_items = sorted(gp_items, lambda x, y: cmp(x[1], y[1]))
+        gp_items = sorted(gp_items, key=lambda x: x[1])
 
         old_block = self.blockSignals(True)
         self.clear()
