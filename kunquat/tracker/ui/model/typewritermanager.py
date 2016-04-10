@@ -219,7 +219,7 @@ class TypewriterManager():
             self._pitch_key_info_version = keymap_id
             self._pitch_key_info = sorted(self._get_pitch_key_info(), key=lambda x: x[0])
         key_count = len(self._pitch_key_info)
-        i = bisect_left(self._pitch_key_info, (pitch, None))
+        i = bisect_left(self._pitch_key_info, (pitch, (float('-inf'),)))
         if i == key_count:
             _, key_id = self._pitch_key_info[-1]
             return key_id
