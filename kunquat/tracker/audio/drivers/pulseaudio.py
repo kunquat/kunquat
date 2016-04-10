@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -15,7 +15,7 @@
 from __future__ import print_function
 import sys
 import time
-import Queue
+import queue
 
 from kunquat.extras.pulseaudio_async import Async
 
@@ -70,8 +70,8 @@ class Pulseaudio():
                 'Kunquat Tracker',
                 'Editor output',
                 self._pa_callback)
-        self._buffer = Queue.Queue()
-        self._acks = Queue.Queue()
+        self._buffer = queue.Queue()
+        self._acks = queue.Queue()
         self._workspace = ([],[])
         self._pa.init()
 
@@ -101,7 +101,7 @@ class Pulseaudio():
             try:
                 fresh_audio = self._buffer.get(True, 1.0)
                 self._acks.put('ack')
-            except Queue.Empty:
+            except queue.Empty:
                 fresh_audio = ([0.0] * missing, [0.0] * missing)
             self._add_audio_to_workspace(fresh_audio)
             missing = nframes - audio_len(self._workspace)
