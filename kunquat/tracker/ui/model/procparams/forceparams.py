@@ -18,11 +18,11 @@ class ForceParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():
-        return u'voice'
+        return 'voice'
 
     @staticmethod
     def get_port_info():
-        return { 'in_00': u'pitch', 'out_00': u'force' }
+        return { 'in_00': 'pitch', 'out_00': 'force' }
 
     def __init__(self, proc_id, controller):
         ProcParams.__init__(self, proc_id, controller)

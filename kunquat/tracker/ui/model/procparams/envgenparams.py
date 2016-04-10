@@ -18,11 +18,11 @@ class EnvgenParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():
-        return u'voice'
+        return 'voice'
 
     @staticmethod
     def get_port_info():
-        return { 'in_00': u'pitch', 'in_01': u'force', 'out_00': u'env' }
+        return { 'in_00': 'pitch', 'in_01': 'force', 'out_00': 'env' }
 
     def __init__(self, proc_id, controller):
         ProcParams.__init__(self, proc_id, controller)

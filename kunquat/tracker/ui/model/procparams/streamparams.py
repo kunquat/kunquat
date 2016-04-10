@@ -18,11 +18,11 @@ class StreamParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():
-        return u'voice'
+        return 'voice'
 
     @staticmethod
     def get_port_info():
-        return { 'out_00': u'stream' }
+        return { 'out_00': 'stream' }
 
     def __init__(self, proc_id, controller):
         ProcParams.__init__(self, proc_id, controller)

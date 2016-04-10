@@ -18,17 +18,17 @@ class FreeverbParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():
-        return u'mixed'
+        return 'mixed'
 
     @staticmethod
     def get_port_info():
         return {
-            'in_00':  u'audio L',
-            'in_01':  u'audio R',
-            'in_02':  u'reflect',
-            'in_03':  u'damp',
-            'out_00': u'audio L',
-            'out_01': u'audio R',
+            'in_00':  'audio L',
+            'in_01':  'audio R',
+            'in_02':  'reflect',
+            'in_03':  'damp',
+            'out_00': 'audio L',
+            'out_01': 'audio R',
         }
 
     def __init__(self, proc_id, controller):

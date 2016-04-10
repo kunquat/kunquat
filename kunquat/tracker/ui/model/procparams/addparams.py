@@ -127,17 +127,17 @@ class AddParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():
-        return u'voice'
+        return 'voice'
 
     @staticmethod
     def get_port_info():
         return {
-            'in_00':  u'pitch',
-            'in_01':  u'force',
-            'in_02':  u'phmod L',
-            'in_03':  u'phmod R',
-            'out_00': u'audio L',
-            'out_01': u'audio R'
+            'in_00':  'pitch',
+            'in_01':  'force',
+            'in_02':  'phmod L',
+            'in_03':  'phmod R',
+            'out_00': 'audio L',
+            'out_01': 'audio R'
         }
 
     _PREWARP_FUNCS = [
