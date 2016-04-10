@@ -129,7 +129,7 @@ class Controller():
                 if entry.isfile():
                     value = tfile.extractfile(entry).read()
                     if key.endswith('.json'):
-                        decoded = json.loads(value)
+                        decoded = json.loads(str(value, encoding='utf-8'))
                     else:
                         decoded = value
                     values[key] = decoded
