@@ -18,9 +18,8 @@ import json
 import time
 import tarfile
 import tempfile
-import StringIO
+from io import StringIO
 import os.path
-from itertools import izip
 
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
@@ -28,12 +27,12 @@ import kunquat.tracker.cmdline as cmdline
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 import kunquat.tracker.ui.model.tstamp as tstamp
 
-from kqtivalidator import KqtiValidator
-from store import Store
-from session import Session
-from share import Share
-from updater import Updater
-from notechannelmapper import NoteChannelMapper
+from .kqtivalidator import KqtiValidator
+from .store import Store
+from .session import Session
+from .share import Share
+from .updater import Updater
+from .notechannelmapper import NoteChannelMapper
 
 #TODO: figure a place for the events
 EVENT_SELECT_CONTROL = '.a'
@@ -164,7 +163,7 @@ class Controller():
                         encoded = value
                     info = tarfile.TarInfo(name=path)
                     info.size = len(encoded)
-                    encoded_file = StringIO.StringIO(encoded)
+                    encoded_file = StringIO(encoded)
                     tfile.addfile(info, encoded_file)
 
                 tmpname = f.name
@@ -199,7 +198,7 @@ class Controller():
                         encoded = value
                     info = tarfile.TarInfo(name=path)
                     info.size = len(encoded)
-                    encoded_file = StringIO.StringIO(encoded)
+                    encoded_file = StringIO(encoded)
                     tfile.addfile(info, encoded_file)
 
                 tmpname = f.name
@@ -269,7 +268,7 @@ class Controller():
             if parent_out_ports and (len(parent_out_ports) == len(ins_out_ports)):
                 sub_au_id = au_id.split('/')[-1]
                 conns = self._store.get('p_connections.json', [])
-                for (send_port, recv_port) in izip(ins_out_ports, parent_out_ports):
+                for (send_port, recv_port) in zip(ins_out_ports, parent_out_ports):
                     conns.append(['{}/{}'.format(sub_au_id, send_port), recv_port])
                 transaction['p_connections.json'] = conns
 

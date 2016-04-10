@@ -15,9 +15,8 @@
 import json
 import glob
 import os.path
-from types import NoneType
 
-from kqtifile import KqtiFile
+from .kqtifile import KqtiFile
 
 
 class Share():
@@ -101,7 +100,7 @@ class Share():
                 return None
             octave = []
             for unsafe_entry in unsafe_octave:
-                if not isinstance(unsafe_entry, (int, float, NoneType)):
+                if not isinstance(unsafe_entry, (int, float, type(None))):
                     return None
                 octave.append(unsafe_entry)
             keymap.append(octave)
