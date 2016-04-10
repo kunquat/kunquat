@@ -92,14 +92,14 @@ class Pattern():
         return edit
 
     def get_edit_set_base_grid_pattern_id(self, gp_id):
-        assert (gp_id == None) or isinstance(gp_id, unicode)
+        assert (gp_id == None) or isinstance(gp_id, str)
         key = '{}/i_base_grid.json'.format(self._pattern_id)
         transaction = { key: gp_id }
         return transaction
 
     def get_base_grid_pattern_id(self):
         key = '{}/i_base_grid.json'.format(self._pattern_id)
-        return self._store.get(key, u'0')
+        return self._store.get(key, '0')
 
     def get_edit_set_base_grid_pattern_offset(self, offset):
         raise NotImplementedError

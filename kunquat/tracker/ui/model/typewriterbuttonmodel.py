@@ -141,13 +141,13 @@ class TypewriterButtonModel():
                 if ((event_type == 'n+' and
                         trigger.get_argument_type() == events.EVENT_ARG_PITCH) or
                         (event_type == 'h' and trigger.get_type() == 'h')):
-                    new_trigger = Trigger(trigger.get_type(), unicode(param))
+                    new_trigger = Trigger(trigger.get_type(), str(param))
                     self._sheet_manager.add_trigger(new_trigger)
                 elif trigger.get_type() == 'n-':
-                    new_trigger = Trigger(event_type, unicode(param))
+                    new_trigger = Trigger(event_type, str(param))
                     self._sheet_manager.add_trigger(new_trigger)
             else:
-                trigger = Trigger(event_type, unicode(param))
+                trigger = Trigger(event_type, str(param))
                 self._sheet_manager.add_trigger(trigger)
 
     def stop_tracked_note(self):

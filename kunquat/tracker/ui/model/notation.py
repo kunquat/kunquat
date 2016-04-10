@@ -71,7 +71,7 @@ class Notation():
 
     def add_octave(self):
         data = deepcopy(self._get_raw_data())
-        data['octave_names'].append(u'{}'.format(self.get_octave_count()))
+        data['octave_names'].append('{}'.format(self.get_octave_count()))
         self._set_raw_data(data)
 
     def remove_octave(self, octave_id):
@@ -161,7 +161,7 @@ class Notation():
         base, offset = self.get_note_name_and_offset(cents)
         offset_rnd = int(round(offset))
         if offset_rnd != 0:
-            name = u'{}{:+d}'.format(base, offset_rnd)
+            name = '{}{:+d}'.format(base, offset_rnd)
         else:
             name = base
         return name
@@ -260,14 +260,14 @@ class Notation():
         notes = []
         keymap = []
         for octave_id in xrange(min_octave, max_octave + 1):
-            octave_names.append(unicode(octave_id))
+            octave_names.append(str(octave_id))
 
             rel_octave = octave_id - center_octave
             octave_offset = octave_width * rel_octave
             cur_octave_cents = []
             for note_offset, base_name in zip(note_offsets, base_note_names):
                 cents = center + octave_offset + note_offset
-                name = u'{}{}'.format(base_name, octave_id)
+                name = '{}{}'.format(base_name, octave_id)
                 notes.append([cents, name])
                 cur_octave_cents.append(cents)
 

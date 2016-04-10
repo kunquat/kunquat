@@ -65,10 +65,10 @@ class PatternInstance():
     def subscript(self, number):
         nums = [int(i) for i in str(number)]
         subs = [unichr(0x2080 + i) for i in nums]
-        return u''.join(subs)
+        return ''.join(subs)
 
     def get_name(self):
-        ambiguous_name = u'pattern {0}'.format(self._pattern_num)
+        ambiguous_name = 'pattern {}'.format(self._pattern_num)
         fullname = ambiguous_name + self.subscript(self._instance_num)
         return fullname
 

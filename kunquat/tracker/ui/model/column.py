@@ -241,7 +241,7 @@ class Column():
                     return []
                 if row <= prev_ts:
                     return []
-                if (gp_id != None) and (not isinstance(gp_id, unicode)):
+                if (gp_id != None) and (not isinstance(gp_id, str)):
                     return []
                 prev_ts = row
 
@@ -285,7 +285,7 @@ class Column():
         return info_slice
 
     def get_edit_set_overlay_grid(self, start_ts, stop_ts, gp_id, offset):
-        assert (gp_id == None) or isinstance(gp_id, unicode)
+        assert (gp_id == None) or isinstance(gp_id, str)
         info = self._get_validated_overlay_grid_info()
 
         smaller = filter(lambda x: x[0] < start_ts, info)

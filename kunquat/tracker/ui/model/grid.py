@@ -68,8 +68,8 @@ class Grid():
 
     def _get_grid_spec(self, gp_id, tr_height_ts):
         if gp_id == None:
-            gp_id = u'0'
-        assert isinstance(gp_id, unicode)
+            gp_id = '0'
+        assert isinstance(gp_id, str)
 
         if gp_id in self._cached_grid_patterns:
             gp = self._cached_grid_patterns[gp_id]
@@ -156,7 +156,7 @@ class Grid():
         info_slice = column.get_overlay_grid_info_slice(row_ts, pat_length)
 
         base_gp_id = self._get_base_grid_pattern_id(pinst)
-        assert isinstance(base_gp_id, (type(None), unicode))
+        assert isinstance(base_gp_id, (type(None), str))
 
         for i, info in enumerate(info_slice):
             part_start_ts, gp_id, _ = info
@@ -218,7 +218,7 @@ class Grid():
         info_slice = column.get_overlay_grid_info_slice(tstamp.Tstamp(0), row_ts)
 
         base_gp_id = self._get_base_grid_pattern_id(pinst)
-        assert isinstance(base_gp_id, (type(None), unicode))
+        assert isinstance(base_gp_id, (type(None), str))
 
         for i, info in reversed(list(enumerate(info_slice))):
             part_start_ts, gp_id, _ = info
@@ -274,7 +274,7 @@ class Grid():
         info_slice = column.get_overlay_grid_info_slice(start_ts, stop_ts)
 
         base_gp_id = self._get_base_grid_pattern_id(pinst)
-        assert isinstance(base_gp_id, (type(None), unicode))
+        assert isinstance(base_gp_id, (type(None), str))
 
         lines = []
         for i, info in enumerate(info_slice):

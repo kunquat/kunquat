@@ -145,7 +145,7 @@ class TuningTable():
     def get_note_name(self, index):
         names = self._get_note_names()
         if index >= len(names):
-            return u''
+            return ''
         return names[index]
 
     def set_note_name(self, index, name):

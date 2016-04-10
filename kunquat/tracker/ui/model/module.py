@@ -181,8 +181,8 @@ class Module():
         au.set_existence('instrument')
         au.set_port_existence('out_00', True)
         au.set_port_existence('out_01', True)
-        au.set_port_name('out_00', u'audio L')
-        au.set_port_name('out_01', u'audio R')
+        au.set_port_name('out_00', 'audio L')
+        au.set_port_name('out_01', 'audio R')
 
     def add_effect(self, au_id):
         au = AudioUnit(au_id)
@@ -193,10 +193,10 @@ class Module():
         au.set_port_existence('in_01', True)
         au.set_port_existence('out_00', True)
         au.set_port_existence('out_01', True)
-        au.set_port_name('in_00', u'audio L')
-        au.set_port_name('in_01', u'audio R')
-        au.set_port_name('out_00', u'audio L')
-        au.set_port_name('out_01', u'audio R')
+        au.set_port_name('in_00', 'audio L')
+        au.set_port_name('in_01', 'audio R')
+        au.set_port_name('out_00', 'audio L')
+        au.set_port_name('out_01', 'audio R')
 
     def get_out_ports(self):
         out_ports = []
@@ -209,7 +209,7 @@ class Module():
         return out_ports
 
     def get_port_info(self):
-        return { 'out_00': u'out L', 'out_01': u'out R' }
+        return { 'out_00': 'out L', 'out_01': 'out R' }
 
     def get_connections(self):
         connections = Connections()

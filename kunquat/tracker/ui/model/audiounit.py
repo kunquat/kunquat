@@ -355,10 +355,10 @@ class AudioUnit():
         au.set_port_existence('in_01', True)
         au.set_port_existence('out_00', True)
         au.set_port_existence('out_01', True)
-        au.set_port_name('in_00', u'audio L')
-        au.set_port_name('in_01', u'audio R')
-        au.set_port_name('out_00', u'audio L')
-        au.set_port_name('out_01', u'audio R')
+        au.set_port_name('in_00', 'audio L')
+        au.set_port_name('in_01', 'audio R')
+        au.set_port_name('out_00', 'audio L')
+        au.set_port_name('out_01', 'audio R')
 
     def _remove_device(self, dev_id):
         assert dev_id.startswith(self._au_id)
@@ -386,7 +386,7 @@ class AudioUnit():
         return name
 
     def set_name(self, name):
-        assert isinstance(name, unicode)
+        assert isinstance(name, str)
         key = self._get_key('m_name.json')
         self._store[key] = name
 

@@ -30,7 +30,7 @@ class Trigger():
         else:
             assert argument != InvArg
 
-        assert (argument == None) or (type(argument) == unicode)
+        assert (argument == None) or (type(argument) == str)
         self._type = trigger_type
         self._argument = argument
         self._location = location
@@ -55,7 +55,7 @@ class Trigger():
         assert self._type == 'h'
         assert self._location
 
-        name = unicode(self._argument)
+        name = str(self._argument)
         try:
             hit_index = int(self._argument)
         except ValueError:
