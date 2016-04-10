@@ -291,18 +291,18 @@ class Kunquat(BaseHandle):
         KunquatArgumentError -- The key is not valid.
 
         """
-        if isinstance(value, str):
-            json_value = value
+        if isinstance(value, bytes):
+            data = value
         else:
             json_value = json.dumps(value) if value != None else ''
-        data = buffer(json_value)
+            data = bytes(json_value, encoding='utf-8')
         cdata = (ctypes.c_ubyte * len(data))()
-        cdata[:] = [ord(b) for b in data][:]
-        _kunquat.kqt_Handle_set_data(self._handle,
-                                     key,
-                                     ctypes.cast(cdata,
-                                         ctypes.POINTER(ctypes.c_ubyte)),
-                                     len(data))
+        cdata[:] = data[:]
+        _kunquat.kqt_Handle_set_data(
+                self._handle,
+                bytes(key, encoding='utf-8'),
+                ctypes.cast(cdata, ctypes.POINTER(ctypes.c_ubyte)),
+                len(data))
 
     def validate(self):
         """Validate data in the Kunquat instance.
