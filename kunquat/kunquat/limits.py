@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2015
+# Authors: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -11,7 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from kunquat import get_limit_info
+from .kunquat import get_limit_info
 
 
 """Kunquat limit constants.
@@ -20,7 +20,7 @@ from kunquat import get_limit_info
 
 
 # Define libkunquat limit constants in the module namespace
-for (limit_name, limit_value) in get_limit_info().iteritems():
+for (limit_name, limit_value) in get_limit_info().items():
     globals()[limit_name] = limit_value
 
 

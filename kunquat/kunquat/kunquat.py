@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2010-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2010-2016
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -324,9 +324,10 @@ def get_event_info():
 
     i = 0
     while event_names_raw[i]:
-        event_name = str(event_names_raw[i])
-        arg_type_raw = _kunquat.kqt_get_event_arg_type(event_name)
-        arg_type = str(arg_type_raw) if arg_type_raw else None
+        event_name_raw = bytes(event_names_raw[i])
+        arg_type_raw = _kunquat.kqt_get_event_arg_type(event_name_raw)
+        arg_type = str(arg_type_raw, encoding='utf-8') if arg_type_raw else None
+        event_name = str(event_name_raw, encoding='utf-8')
         event_info[event_name] = { 'name': event_name, 'arg_type': arg_type }
         i += 1
 
@@ -339,8 +340,9 @@ def get_limit_info():
 
     i = 0
     while limit_names_raw[i]:
-        limit_name = str(limit_names_raw[i])
-        limit_value = int(_kunquat.kqt_get_int_limit(limit_name))
+        limit_name_raw = bytes(limit_names_raw[i])
+        limit_value = int(_kunquat.kqt_get_int_limit(limit_name_raw))
+        limit_name = str(limit_name_raw, encoding='utf-8')
         limit_info[limit_name] = limit_value
         i += 1
 
