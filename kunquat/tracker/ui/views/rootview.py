@@ -365,8 +365,8 @@ class AuImportErrorDialog(QDialog):
         self.setLayout(v)
 
         # Dialog contents
-        error_msg = (u'<p>Could not import \'{}\' due to the following error:</p>'
-            u'<p>{}</p>'.format(path, details))
+        error_msg = ('<p>Could not import \'{}\' due to the following error:</p>'
+            '<p>{}</p>'.format(path, details))
         self._message.setText(error_msg)
 
         ok_button = QPushButton('OK')

@@ -57,9 +57,9 @@ class TuningTableWindow(QWidget):
         table = module.get_tuning_table(self._table_id)
         name = table.get_name()
         if name:
-            title = u'{} – Kunquat Tracker'.format(name)
+            title = '{} – Kunquat Tracker'.format(name)
         else:
-            title = u'Kunquat Tracker'
+            title = 'Kunquat Tracker'
         self.setWindowTitle(title)
 
     def closeEvent(self, event):

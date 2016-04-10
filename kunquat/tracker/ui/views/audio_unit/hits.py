@@ -231,13 +231,13 @@ class HitName(QWidget):
         hit = _get_current_hit(self._ui_model, self._au_id)
 
         old_block = self._edit.blockSignals(True)
-        name = hit.get_name() or u''
-        if name != unicode(self._edit.text()):
+        name = hit.get_name() or ''
+        if name != str(self._edit.text()):
             self._edit.setText(name)
         self._edit.blockSignals(old_block)
 
     def _change_name(self, text_qstring):
-        name = unicode(text_qstring)
+        name = str(text_qstring)
 
         hit = _get_current_hit(self._ui_model, self._au_id)
         hit.set_name(name)

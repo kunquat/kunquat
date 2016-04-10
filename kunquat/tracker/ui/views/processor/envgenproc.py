@@ -26,7 +26,7 @@ class EnvgenProc(QWidget):
 
     @staticmethod
     def get_name():
-        return u'Envelope generation'
+        return 'Envelope generation'
 
     def __init__(self):
         QWidget.__init__(self)

@@ -527,7 +527,7 @@ class GridSelector(QComboBox):
             self._update_grid_pattern_selection()
 
     def _change_grid_pattern(self, index):
-        gp_id = unicode(self.itemData(index).toString())
+        gp_id = str(self.itemData(index).toString())
         if not gp_id:
             return
 

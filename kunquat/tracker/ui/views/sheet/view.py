@@ -69,7 +69,7 @@ class FieldEdit(QLineEdit):
 
     def _finished(self):
         assert self._finished_callback
-        text = unicode(self.text())
+        text = str(self.text())
         cb = self._finished_callback
         self._finished_callback = None
         cb(text)
@@ -1327,18 +1327,18 @@ class View(QWidget):
 
         # Special case: tempo values
         if info['name'] in ('m.t', 'm/t'):
-            return u'120'
+            return '120'
 
         ex = {
             None                        : None,
-            events.EVENT_ARG_BOOL       : u'false',
-            events.EVENT_ARG_INT        : u'0',
-            events.EVENT_ARG_FLOAT      : u'0',
-            events.EVENT_ARG_TSTAMP     : u'0',
-            events.EVENT_ARG_STRING     : u"''",
-            events.EVENT_ARG_PAT        : u'pat(0, 0)',
-            events.EVENT_ARG_PITCH      : u'0',
-            events.EVENT_ARG_REALTIME   : u'0',
+            events.EVENT_ARG_BOOL       : 'false',
+            events.EVENT_ARG_INT        : '0',
+            events.EVENT_ARG_FLOAT      : '0',
+            events.EVENT_ARG_TSTAMP     : '0',
+            events.EVENT_ARG_STRING     : "''",
+            events.EVENT_ARG_PAT        : 'pat(0, 0)',
+            events.EVENT_ARG_PITCH      : '0',
+            events.EVENT_ARG_REALTIME   : '0',
         }
 
         return ex[info['arg_type']]

@@ -56,9 +56,9 @@ class AuWindow(QWidget):
         au = module.get_audio_unit(self._au_id)
         name = au.get_name()
         if name:
-            title = u'{} – Kunquat Tracker'.format(name)
+            title = '{} – Kunquat Tracker'.format(name)
         else:
-            title = u'Kunquat Tracker'
+            title = 'Kunquat Tracker'
         self.setWindowTitle(title)
 
     def closeEvent(self, ev):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -26,7 +26,7 @@ class RestButton(QToolButton):
         self._sheet_manager = None
 
         self.setAutoRaise(True)
-        self.setText(u'══')
+        self.setText('══')
         self.setToolTip('Add rest (1)')
 
     def set_ui_model(self, ui_model):

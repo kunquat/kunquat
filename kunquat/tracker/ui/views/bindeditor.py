@@ -271,7 +271,7 @@ class EventBox(QComboBox):
         selected = None
         selected_index = self.currentIndex()
         if selected_index != -1:
-            selected = unicode(self.itemText(selected_index))
+            selected = str(self.itemText(selected_index))
 
         all_events = events.all_events_by_name
         event_names = sorted(list(
@@ -299,7 +299,7 @@ class EventBox(QComboBox):
         index = self.currentIndex()
         if index == -1:
             return None
-        return unicode(self.itemText(index))
+        return str(self.itemText(index))
 
 
 class SourceEventSelector(QWidget):
@@ -542,7 +542,7 @@ class ConstraintEditor(QWidget):
         self._updater.signal_update(set(['signal_bind']))
 
     def _change_expression(self):
-        expression = unicode(self._expression.text())
+        expression = str(self._expression.text())
         constraint = self._get_constraint()
         constraint.set_expression(expression)
         self._updater.signal_update(set(['signal_bind']))
@@ -761,7 +761,7 @@ class TargetEditor(QWidget):
 
         all_events = events.all_events_by_name
         if all_events[event_name]['arg_type'] != None:
-            expression = unicode(self._expression.text())
+            expression = str(self._expression.text())
         else:
             expression = None
 
@@ -769,7 +769,7 @@ class TargetEditor(QWidget):
         self._updater.signal_update(set(['signal_bind']))
 
     def _change_expression(self):
-        expression = unicode(self._expression.text())
+        expression = str(self._expression.text())
         target = self._get_target()
         target.set_event_info(self._event.get_selected_event(), expression)
         self._updater.signal_update(set(['signal_bind']))

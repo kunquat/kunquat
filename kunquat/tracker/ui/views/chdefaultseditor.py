@@ -144,8 +144,8 @@ class ChDefaults(QWidget):
         control = self._module.get_control(control_id)
         au = control.get_audio_unit()
         au_type = 'Instrument' if au.is_instrument() else 'Effect'
-        au_name = au.get_name() or u'-'
-        text = u'{} {}: {}'.format(au_type, control_num, au_name)
+        au_name = au.get_name() or '-'
+        text = '{} {}: {}'.format(au_type, control_num, au_name)
         return text
 
     def _update_all(self):
@@ -176,7 +176,7 @@ class ChDefaults(QWidget):
             chd.set_default_control_id(self._ch_num, control_id)
 
     def _change_init_expr(self):
-        expr_name = unicode(self._init_expr.text())
+        expr_name = str(self._init_expr.text())
         chd = self._module.get_channel_defaults()
         if chd:
             chd.set_initial_expression(self._ch_num, expr_name)

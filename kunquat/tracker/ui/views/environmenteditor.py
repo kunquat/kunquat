@@ -179,7 +179,7 @@ class VarNameEditor(QLineEdit):
         self.setValidator(self._validator)
 
     def _change_name(self):
-        new_name = unicode(self.text())
+        new_name = str(self.text())
         if new_name == self._var_name:
             return
 
@@ -323,11 +323,11 @@ class VarValueEditor(QWidget):
         if var_type == bool:
             editor.setCheckState(Qt.Checked if var_value else Qt.Unchecked)
         elif var_type == int:
-            editor.setText(unicode(var_value))
+            editor.setText(str(var_value))
         elif var_type == float:
-            editor.setText(unicode(var_value))
+            editor.setText(str(var_value))
         elif var_type == tstamp.Tstamp:
-            editor.setText(unicode(float(var_value)))
+            editor.setText(str(float(var_value)))
         else:
             assert False
         editor.blockSignals(old_block)
@@ -344,17 +344,17 @@ class VarValueEditor(QWidget):
 
     def _change_int_value(self):
         new_qstring = self._editors[int].text()
-        new_value = int(unicode(new_qstring))
+        new_value = int(str(new_qstring))
         self._change_value(new_value)
 
     def _change_float_value(self):
         new_qstring = self._editors[float].text()
-        new_value = float(unicode(new_qstring))
+        new_value = float(str(new_qstring))
         self._change_value(new_value)
 
     def _change_tstamp_value(self):
         new_qstring = self._editors[tstamp.Tstamp].text()
-        new_value = tstamp.Tstamp(float(unicode(new_qstring)))
+        new_value = tstamp.Tstamp(float(str(new_qstring)))
         self._change_value(new_value)
 
 
@@ -446,12 +446,12 @@ class VariableAdder(QWidget):
         self._var_add_button.setEnabled(bool(self._var_name.text()))
 
     def _text_changed(self, text):
-        text = unicode(text)
+        text = str(text)
         used_names = self._get_used_names()
         self._var_add_button.setEnabled(bool(text) and (text not in used_names))
 
     def _add_new_var(self):
-        text = unicode(self._var_name.text())
+        text = str(self._var_name.text())
         assert text and (text not in self._get_used_names())
 
         module = self._ui_model.get_module()

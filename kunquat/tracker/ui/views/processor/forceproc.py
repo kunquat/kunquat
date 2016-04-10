@@ -23,7 +23,7 @@ class ForceProc(QWidget):
 
     @staticmethod
     def get_name():
-        return u'Force'
+        return 'Force'
 
     def __init__(self):
         QWidget.__init__(self)
@@ -209,7 +209,7 @@ class ForceEnvelope(ForceEnvelopeBase):
         ForceEnvelopeBase.__init__(self)
 
     def _get_title(self):
-        return u'Force envelope'
+        return 'Force envelope'
 
     def _allow_loop(self):
         return True
@@ -263,7 +263,7 @@ class ForceReleaseEnvelope(ForceEnvelopeBase):
         ForceEnvelopeBase.__init__(self)
 
     def _get_title(self):
-        return u'Force release envelope'
+        return 'Force release envelope'
 
     def _allow_loop(self):
         return False

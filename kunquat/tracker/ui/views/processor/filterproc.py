@@ -21,7 +21,7 @@ class FilterProc(QWidget):
 
     @staticmethod
     def get_name():
-        return u'Filter'
+        return 'Filter'
 
     def __init__(self):
         QWidget.__init__(self)

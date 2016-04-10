@@ -19,7 +19,7 @@ class RingmodProc(QWidget):
 
     @staticmethod
     def get_name():
-        return u'Ring modulation'
+        return 'Ring modulation'
 
     def __init__(self):
         QWidget.__init__(self)

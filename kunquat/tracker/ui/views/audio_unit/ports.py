@@ -92,10 +92,10 @@ class PortsEditor(QWidget):
 class InputPorts(PortsEditor):
 
     def _get_title(self):
-        return u'Input ports'
+        return 'Input ports'
 
     def _get_add_text(self):
-        return u'Add input port'
+        return 'Add input port'
 
     def _get_port_ids(self):
         module = self._ui_model.get_module()
@@ -111,10 +111,10 @@ class InputPorts(PortsEditor):
 class OutputPorts(PortsEditor):
 
     def _get_title(self):
-        return u'Output ports'
+        return 'Output ports'
 
     def _get_add_text(self):
-        return u'Add output port'
+        return 'Add output port'
 
     def _get_port_ids(self):
         module = self._ui_model.get_module()
@@ -297,7 +297,7 @@ class PortEditor(QWidget):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
-        port_name = au.get_port_name(port_id) or u''
+        port_name = au.get_port_name(port_id) or ''
 
         old_block = self._name_editor.blockSignals(True)
         if self._name_editor.text() != port_name:
@@ -313,7 +313,7 @@ class PortEditor(QWidget):
         return set([au_signal, parent_signal])
 
     def _change_name(self, name_qstring):
-        name = unicode(name_qstring)
+        name = str(name_qstring)
 
         port_ids = self._get_port_ids()
         port_id = port_ids[self._index]

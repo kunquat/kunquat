@@ -25,7 +25,7 @@ class AddProc(QWidget):
 
     @staticmethod
     def get_name():
-        return u'Additive synthesis'
+        return 'Additive synthesis'
 
     def __init__(self):
         QWidget.__init__(self)

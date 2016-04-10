@@ -203,9 +203,9 @@ class TestExpression(QComboBox):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         if item_index == 0:
-            au.set_test_expression(self._index, u'')
+            au.set_test_expression(self._index, '')
         else:
-            expr_name = unicode(self.itemText(item_index))
+            expr_name = str(self.itemText(item_index))
             au.set_test_expression(self._index, expr_name)
 
 

@@ -21,7 +21,7 @@ class VolumeProc(QWidget):
 
     @staticmethod
     def get_name():
-        return u'Volume'
+        return 'Volume'
 
     def __init__(self):
         QWidget.__init__(self)

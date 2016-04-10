@@ -51,18 +51,18 @@ class AboutMessage(QWidget):
         main_authors = QLabel('Main design and programming:')
         main_authors.setFont(QFont(default_family, default_size, QFont.DemiBold))
 
-        main_authors_list_str = u'\n'.join((
-            u'Tomi Jylhä-Ollila',
-            u'Toni Ruottu',
+        main_authors_list_str = '\n'.join((
+            'Tomi Jylhä-Ollila',
+            'Toni Ruottu',
             ))
         main_authors_list = QLabel(main_authors_list_str)
 
         add_authors = QLabel('Additional contributors:')
         add_authors.setFont(QFont(default_family, default_size, QFont.DemiBold))
 
-        add_authors_list_str = u'\n'.join((
-            u'Ossi Saresoja',
-            u'Sami Ketola',
+        add_authors_list_str = '\n'.join((
+            'Ossi Saresoja',
+            'Sami Ketola',
             ))
         add_authors_list = QLabel(add_authors_list_str)
 

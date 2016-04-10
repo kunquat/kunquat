@@ -260,11 +260,11 @@ class RuntimeVarValueEditor(QWidget):
         if var_type == bool:
             editor.setCheckState(Qt.Checked if runtime_var_value else Qt.Unchecked)
         elif var_type == int:
-            editor.setText(unicode(int(runtime_var_value)))
+            editor.setText(str(int(runtime_var_value)))
         elif var_type == float:
-            editor.setText(unicode(float(runtime_var_value)))
+            editor.setText(str(float(runtime_var_value)))
         elif var_type == tstamp.Tstamp:
-            editor.setText(unicode(float(runtime_var_value)))
+            editor.setText(str(float(runtime_var_value)))
         else:
             assert False
         editor.blockSignals(old_block)

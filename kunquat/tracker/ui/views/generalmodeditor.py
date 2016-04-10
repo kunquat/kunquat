@@ -99,7 +99,7 @@ class Title(QLineEdit):
 
     def _update_title(self):
         module = self._ui_model.get_module()
-        title = module.get_title() or u''
+        title = module.get_title() or ''
 
         if self.text() != title:
             old_block = self.blockSignals(True)
@@ -107,7 +107,7 @@ class Title(QLineEdit):
             self.blockSignals(old_block)
 
     def _change_title(self, text_qstring):
-        title = unicode(text_qstring)
+        title = str(text_qstring)
         module = self._ui_model.get_module()
         module.set_title(title)
         self._updater.signal_update(set(['signal_title']))
@@ -120,7 +120,7 @@ class AuthorTableModel(QAbstractTableModel):
         self._ui_model = None
         self._updater = None
 
-        self._items = [u'']
+        self._items = ['']
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -137,7 +137,7 @@ class AuthorTableModel(QAbstractTableModel):
         self._items = []
         for i in xrange(count):
             self._items.append(module.get_author(i))
-        self._items.append(u'')
+        self._items.append('')
 
     def get_index(self, author_index):
         return self.createIndex(0, author_index, self._items[author_index])
@@ -181,7 +181,7 @@ class AuthorTableModel(QAbstractTableModel):
             row = index.row()
             column = index.column()
             if row == 0 and 0 <= column < len(self._items):
-                new_name = unicode(value.toString())
+                new_name = str(value.toString())
                 module = self._ui_model.get_module()
                 module.set_author(column, new_name)
                 self._updater.signal_update(set(['signal_authors']))
@@ -374,14 +374,14 @@ class UInt63SpinBox(QAbstractSpinBox):
         self._minimum_size = None
 
         line_edit = self.lineEdit()
-        line_edit.setText(unicode(self._value))
+        line_edit.setText(str(self._value))
         QObject.connect(
                 line_edit, SIGNAL('textChanged(const QString&)'), self._change_value)
 
     def set_value(self, value):
         old_block = self.blockSignals(True)
         self._value = value
-        self.lineEdit().setText(unicode(self._value))
+        self.lineEdit().setText(str(self._value))
         self.blockSignals(old_block)
         self.update()
 
@@ -390,7 +390,7 @@ class UInt63SpinBox(QAbstractSpinBox):
 
     def _change_value(self, in_qstring):
         try:
-            value = int(unicode(in_qstring))
+            value = int(str(in_qstring))
         except ValueError:
             return
 
@@ -422,22 +422,22 @@ class UInt63SpinBox(QAbstractSpinBox):
 
         line_edit = self.lineEdit()
         old_block = line_edit.blockSignals(True)
-        line_edit.setText(unicode(self._value))
+        line_edit.setText(str(self._value))
         line_edit.blockSignals(old_block)
 
         QObject.emit(self, SIGNAL('valueChanged()'))
         self.update()
 
     def text(self):
-        return unicode(self._value)
+        return str(self._value)
 
     def fixup(self, in_qstring):
         if not in_qstring:
-            in_qstring.append(u'0')
+            in_qstring.append('0')
         return QAbstractSpinBox.fixup(self, in_qstring)
 
     def validate(self, in_qstring, pos):
-        in_str = unicode(in_qstring)
+        in_str = str(in_qstring)
         if not in_str:
             return (QValidator.Intermediate, pos)
 
@@ -454,7 +454,7 @@ class UInt63SpinBox(QAbstractSpinBox):
     def minimumSizeHint(self):
         if not self._minimum_size:
             fm = self.fontMetrics()
-            width = fm.width(unicode(self._LIMIT - 1)) + 2
+            width = fm.width(str(self._LIMIT - 1)) + 2
             height = self.lineEdit().minimumSizeHint().height()
 
             opt = QStyleOptionSpinBox()

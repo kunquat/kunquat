@@ -24,7 +24,7 @@ class DelayProc(QWidget):
 
     @staticmethod
     def get_name():
-        return u'Delay'
+        return 'Delay'
 
     def __init__(self):
         QWidget.__init__(self)

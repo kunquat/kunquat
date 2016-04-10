@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -22,7 +22,7 @@ class GainCompProc(QWidget):
 
     @staticmethod
     def get_name():
-        return u'Gain compression'
+        return 'Gain compression'
 
     def __init__(self):
         QWidget.__init__(self)

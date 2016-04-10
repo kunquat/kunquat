@@ -125,7 +125,7 @@ class TuningTableEditor(QWidget):
 
     def _update_name(self):
         table = self._get_tuning_table()
-        name = table.get_name() or u''
+        name = table.get_name() or ''
         old_block = self._name.blockSignals(True)
         if self._name.text() != name:
             self._name.setText(name)
@@ -153,9 +153,9 @@ class TuningTableEditor(QWidget):
         # Octave width
         octave_width = table.get_octave_width()
         if isinstance(octave_width, list):
-            octave_width_text = u'{}/{}'.format(*octave_width)
+            octave_width_text = '{}/{}'.format(*octave_width)
         else:
-            octave_width_text = u'{}'.format(octave_width)
+            octave_width_text = '{}'.format(octave_width)
 
         old_block = self._octave_width.blockSignals(True)
         if self._octave_width.text() != octave_width_text:
@@ -182,7 +182,7 @@ class TuningTableEditor(QWidget):
         self._tuning_center.blockSignals(old_block)
 
     def _change_name(self, name_qstring):
-        name = unicode(name_qstring)
+        name = str(name_qstring)
         table = self._get_tuning_table()
         table.set_name(name)
         self._updater.signal_update(set(['signal_tuning_tables']))
@@ -198,7 +198,7 @@ class TuningTableEditor(QWidget):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _change_octave_width(self):
-        text = unicode(self._octave_width.text())
+        text = str(self._octave_width.text())
         if '/' in text:
             parts = text.split('/')
             octave_width = [int(part) for part in parts]
@@ -389,7 +389,7 @@ class NoteTableModel(QAbstractTableModel):
     def _get_validated_pitch(self, text):
         if '/' in text:
             if re.match('[0-9]+/[0-9]+$', text):
-                parts = unicode(text).split('/')
+                parts = str(text).split('/')
                 nums = [int(part) for part in parts]
                 if nums[0] <= 0:
                     return None
@@ -410,13 +410,13 @@ class NoteTableModel(QAbstractTableModel):
             column = index.column()
             if 0 <= row < len(self._items):
                 if column == 0:
-                    new_name = unicode(value.toString())
+                    new_name = str(value.toString())
                     table = self._get_tuning_table()
                     table.set_note_name(row, new_name)
                     self._updater.signal_update(set([self._get_update_signal_type()]))
                     return True
                 elif column == 1:
-                    new_pitch = self._get_validated_pitch(unicode(value.toString()))
+                    new_pitch = self._get_validated_pitch(str(value.toString()))
                     if new_pitch == None:
                         return False
                     table = self._get_tuning_table()

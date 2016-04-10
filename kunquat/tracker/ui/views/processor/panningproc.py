@@ -21,7 +21,7 @@ class PanningProc(QWidget):
 
     @staticmethod
     def get_name():
-        return u'Panning'
+        return 'Panning'
 
     def __init__(self):
         QWidget.__init__(self)

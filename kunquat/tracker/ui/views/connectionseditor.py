@@ -423,7 +423,7 @@ class HitSelector(QComboBox):
 
     def _get_hit_vis_name(self, hit):
         name = hit.get_name()
-        name = name if (type(name) == unicode) else u'-'
+        name = name if (type(name) == str) else '-'
         return name
 
     def _update_hit_list(self):
@@ -440,7 +440,7 @@ class HitSelector(QComboBox):
             if hit.get_existence():
                 is_enabled = True
                 vis_name = self._get_hit_vis_name(hit)
-                self.addItem(u'{}: {}'.format(i, vis_name), QVariant(i))
+                self.addItem('{}: {}'.format(i, vis_name), QVariant(i))
         self.setEnabled(is_enabled)
         self.blockSignals(old_block)
 
@@ -507,7 +507,7 @@ class ExpressionSelector(QComboBox):
             au.set_connections_expr_name(expr_names[0])
 
     def _change_expression(self, item_index):
-        expr_name = unicode(self.itemText(item_index))
+        expr_name = str(self.itemText(item_index))
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)

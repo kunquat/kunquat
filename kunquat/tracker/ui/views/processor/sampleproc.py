@@ -29,7 +29,7 @@ class SampleProc(QTabWidget):
 
     @staticmethod
     def get_name():
-        return u'Sample synthesis'
+        return 'Sample synthesis'
 
     def __init__(self):
         QTabWidget.__init__(self)
@@ -857,7 +857,7 @@ class RandomEntryEditor(QWidget):
         self._sample_selector.setEnabled(len(sample_ids) > 0)
         for i, info in enumerate(sample_info):
             sample_id, sample_name = info
-            vis_name = sample_name or u'-'
+            vis_name = sample_name or '-'
             self._sample_selector.addItem(vis_name, QVariant(sample_id))
             if sample_id == cur_sample_id:
                 self._sample_selector.setCurrentIndex(i)
@@ -1337,7 +1337,7 @@ class SampleListToolBar(QToolBar):
             else:
                 icon_bank = self._ui_model.get_icon_bank()
                 # TODO: Add a more descriptive error message
-                error_msg = u'<p>Could not import \'{}\'.</p>'.format(sample_path)
+                error_msg = '<p>Could not import \'{}\'.</p>'.format(sample_path)
                 dialog = ImportErrorDialog(icon_bank, error_msg)
                 dialog.exec_()
 
@@ -1585,9 +1585,9 @@ class SampleEditor(QWidget):
 
         self._loop_mode = QComboBox()
         loop_modes = (
-                (u'Off', u'off'),
-                (u'Unidirectional', u'uni'),
-                (u'Bidirectional', u'bi'))
+                ('Off', 'off'),
+                ('Unidirectional', 'uni'),
+                ('Bidirectional', 'bi'))
         for vis_mode, mode in loop_modes:
             self._loop_mode.addItem(vis_mode, QVariant(mode))
 
@@ -1671,9 +1671,9 @@ class SampleEditor(QWidget):
         has_sample = sample_id in sample_params.get_sample_ids()
         self.setEnabled(has_sample)
 
-        name = u''
+        name = ''
         if has_sample:
-            name = sample_params.get_sample_name(sample_id) or u''
+            name = sample_params.get_sample_name(sample_id) or ''
 
         old_block = self._name.blockSignals(True)
         if self._name.text() != name:

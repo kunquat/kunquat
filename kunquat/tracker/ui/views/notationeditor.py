@@ -205,7 +205,7 @@ class NotationListModel(QAbstractListModel):
             if 0 <= row < len(self._items):
                 _, name = self._items[row]
                 if role == Qt.DisplayRole:
-                    vis_name = name or u'-'
+                    vis_name = name or '-'
                     return QVariant(vis_name)
                 elif role == Qt.EditRole:
                     return QVariant(name)
@@ -229,7 +229,7 @@ class NotationListModel(QAbstractListModel):
     def setData(self, index, value, role):
         if role == Qt.EditRole:
             if 0 <= index.row() < len(self._items):
-                new_name = unicode(value.toString())
+                new_name = str(value.toString())
                 notation_manager = self._ui_model.get_notation_manager()
                 notation = notation_manager.get_editor_selected_notation()
                 notation.set_name(new_name)
@@ -457,7 +457,7 @@ class TuningTableListModel(QAbstractTableModel):
             if 0 <= row < len(self._items) and column == 0:
                 _, name = self._items[row]
                 if role == Qt.DisplayRole:
-                    vis_name = name or u'-'
+                    vis_name = name or '-'
                     return QVariant(vis_name)
                 elif role == Qt.EditRole:
                     return QVariant(name)
@@ -471,7 +471,7 @@ class TuningTableListModel(QAbstractTableModel):
             if 0 <= section < len(self._items):
                 table_id, _ = self._items[section]
                 num = int(table_id.split('_')[1], 16)
-                return QVariant(unicode(num))
+                return QVariant(str(num))
         return QVariant()
 
     def flags(self, index):
@@ -487,7 +487,7 @@ class TuningTableListModel(QAbstractTableModel):
         if role == Qt.EditRole:
             row = index.row()
             if index.column() == 0 and 0 <= row < len(self._items):
-                new_name = unicode(value.toString())
+                new_name = str(value.toString())
                 table_id, _ = self._items[row]
                 module = self._ui_model.get_module()
                 table = module.get_tuning_table(table_id)
@@ -803,7 +803,7 @@ class CenterPitch(QWidget):
         return 2**(cents / 1200.0) * 440
 
     def _change_units(self, item_index):
-        new_units = unicode(self._units.itemText(item_index))
+        new_units = str(self._units.itemText(item_index))
 
         notation_manager = self._ui_model.get_notation_manager()
         notation = notation_manager.get_editor_selected_notation()
@@ -828,7 +828,7 @@ class RatioValidator(QValidator):
         QValidator.__init__(self)
 
     def validate(self, contents, pos):
-        in_str = unicode(contents)
+        in_str = str(contents)
         if not in_str:
             return (QValidator.Intermediate, pos)
 
@@ -917,7 +917,7 @@ class OctaveRatio(QWidget):
         self._ratio.blockSignals(old_block)
 
     def _change_ratio(self):
-        text = unicode(self._ratio.text())
+        text = str(self._ratio.text())
         if '/' in text:
             parts = text.split('/')
             value = [int(part) for part in parts]
@@ -1196,7 +1196,7 @@ class TemplateNoteTableModel(QAbstractTableModel):
 
     def _get_validated_ratio(self, text):
         if '/' in text:
-            parts = unicode(text).split('/')
+            parts = str(text).split('/')
             if len(parts) != 2:
                 return None
             nums = []
@@ -1224,7 +1224,7 @@ class TemplateNoteTableModel(QAbstractTableModel):
             if 0 <= row < len(self._items):
                 name, ratio = self._items[row]
                 if column == 0:
-                    new_name = unicode(value.toString())
+                    new_name = str(value.toString())
                     notation_manager = self._ui_model.get_notation_manager()
                     notation = notation_manager.get_editor_selected_notation()
                     template = notation.get_template()
@@ -1232,7 +1232,7 @@ class TemplateNoteTableModel(QAbstractTableModel):
                     self._updater.signal_update(set(['signal_notation_template_notes']))
                     return True
                 elif column == 1:
-                    new_ratio = self._get_validated_ratio(unicode(value.toString()))
+                    new_ratio = self._get_validated_ratio(str(value.toString()))
                     if new_ratio == None:
                         return False
                     notation_manager = self._ui_model.get_notation_manager()
@@ -1484,11 +1484,11 @@ class OctaveListModel(QAbstractListModel):
             if 0 <= row < len(self._items):
                 name = self._items[row]
                 if role == Qt.DisplayRole:
-                    vis_name = name or u'-'
+                    vis_name = name or '-'
                     notation_manager = self._ui_model.get_notation_manager()
                     notation = notation_manager.get_editor_selected_notation()
                     if row == notation.get_base_octave_id():
-                        vis_name += u' *'
+                        vis_name += ' *'
                     return QVariant(vis_name)
                 elif role == Qt.EditRole:
                     return QVariant(name)
@@ -1512,7 +1512,7 @@ class OctaveListModel(QAbstractListModel):
     def setData(self, index, value, role):
         if role == Qt.EditRole:
             if 0 <= index.row() < len(self._items):
-                new_name = unicode(value.toString())
+                new_name = str(value.toString())
                 notation_manager = self._ui_model.get_notation_manager()
                 notation = notation_manager.get_editor_selected_notation()
                 notation.set_octave_name(index.row(), new_name)
@@ -1741,7 +1741,7 @@ class NoteListModel(QAbstractListModel):
             row = index.row()
             if 0 <= row < len(self._items):
                 _, name = self._items[row]
-                vis_name = name or u'-'
+                vis_name = name or '-'
                 return QVariant(vis_name)
 
         return QVariant()
@@ -1926,7 +1926,7 @@ class Note(QWidget):
             'signal_notation', 'signal_notation_editor_notes']))
 
     def _change_name(self, name_qstring):
-        name = unicode(name_qstring)
+        name = str(name_qstring)
         notation_manager = self._ui_model.get_notation_manager()
         notation = notation_manager.get_editor_selected_notation()
         notation.set_note_name(notation_manager.get_editor_selected_note_index(), name)

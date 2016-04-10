@@ -83,7 +83,7 @@ class NameEditor(QLineEdit):
         album = self._ui_model.get_module().get_album()
         track_num = album.get_selected_track_num()
         if track_num < 0:
-            self._set_name(u'')
+            self._set_name('')
             self.setEnabled(False)
             return
         song = album.get_song_by_track(track_num)
@@ -96,7 +96,7 @@ class NameEditor(QLineEdit):
         if track_num < 0:
             return
         song = album.get_song_by_track(track_num)
-        song.set_name(unicode(self.text()))
+        song.set_name(str(self.text()))
 
         self._updater.signal_update(set(['signal_song', 'signal_order_list']))
 

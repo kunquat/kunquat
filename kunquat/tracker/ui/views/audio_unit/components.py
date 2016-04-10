@@ -110,7 +110,7 @@ class NameEditor(QLineEdit):
         self.setValidator(self._validator)
 
     def _change_name_handler(self):
-        new_name = unicode(self.text())
+        new_name = str(self.text())
         self._change_name(new_name)
 
     def keyPressEvent(self, event):
@@ -872,17 +872,17 @@ class ControlVariableValueEditor(QWidget):
 
     def _change_int_value(self):
         new_qstring = self._editor.text()
-        new_value = int(unicode(new_qstring))
+        new_value = int(str(new_qstring))
         self._change_value(new_value)
 
     def _change_float_value(self):
         new_qstring = self._editor.text()
-        new_value = float(unicode(new_qstring))
+        new_value = float(str(new_qstring))
         self._change_value(new_value)
 
     def _change_tstamp_value(self):
         new_qstring = self._editor.text()
-        new_value = tstamp.Tstamp(float(unicode(new_qstring)))
+        new_value = tstamp.Tstamp(float(str(new_qstring)))
         self._change_value(new_value)
 
     # Protected interface
@@ -906,9 +906,9 @@ class ControlVariableValueEditor(QWidget):
         if var_type == bool:
             self._editor.setCheckState(Qt.Checked if var_value else Qt.Unchecked)
         elif var_type in (int, float):
-            self._editor.setText(unicode(var_value))
+            self._editor.setText(str(var_value))
         elif var_type == tstamp.Tstamp:
-            self._editor.setText(unicode(float(var_value)))
+            self._editor.setText(str(float(var_value)))
         else:
             assert False
         self._editor.blockSignals(old_block)
@@ -1251,7 +1251,7 @@ class BindTargetNameValidator(QValidator):
         self._used_names = used_names
 
     def validate(self, contents, pos):
-        in_str = unicode(contents)
+        in_str = str(contents)
         parts = in_str.split('/')
         status = min(get_var_name_validation_status(part) for part in parts)
         if (status == QValidator.Acceptable) and (in_str in self._used_names):
@@ -1364,7 +1364,7 @@ class ExpressionValidator(QValidator):
         QValidator.__init__(self)
 
     def validate(self, contents, pos):
-        in_str = unicode(contents)
+        in_str = str(contents)
 
         ranges_ok = all(0x20 <= ord(ch) <= 0x7e for ch in in_str)
         if not ranges_ok:
@@ -1434,7 +1434,7 @@ class BindTargetExpressionEditor(QWidget):
 
     def _change_expression(self, expr_qstring):
         try:
-            expr = unicode(expr_qstring)
+            expr = str(expr_qstring)
         except ValueError:
             return
 

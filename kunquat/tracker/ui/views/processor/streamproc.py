@@ -19,7 +19,7 @@ class StreamProc(QWidget):
 
     @staticmethod
     def get_name():
-        return u'Stream'
+        return 'Stream'
 
     def __init__(self):
         QWidget.__init__(self)

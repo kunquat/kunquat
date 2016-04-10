@@ -126,8 +126,8 @@ class HeaderFrame(QWidget):
 class Signals(QWidget):
 
     _SIGNAL_INFO = [
-        (u'voice', 'Voice signals'),
-        (u'mixed', 'Mixed signals'),
+        ('voice', 'Voice signals'),
+        ('mixed', 'Mixed signals'),
     ]
 
     def __init__(self):

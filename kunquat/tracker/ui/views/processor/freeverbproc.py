@@ -21,7 +21,7 @@ class FreeverbProc(QWidget):
 
     @staticmethod
     def get_name():
-        return u'Freeverb'
+        return 'Freeverb'
 
     def __init__(self):
         QWidget.__init__(self)

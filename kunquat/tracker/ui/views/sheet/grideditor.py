@@ -845,7 +845,7 @@ class GeneralEditor(QWidget):
             return
 
         gp_name = gp.get_name()
-        if gp_name != unicode(self._name.text()):
+        if gp_name != str(self._name.text()):
             old_block = self._name.blockSignals(True)
             self._name.setText(gp_name)
             self._name.blockSignals(old_block)
@@ -875,7 +875,7 @@ class GeneralEditor(QWidget):
             self._offset.blockSignals(old_block)
 
     def _change_name(self, text):
-        text = unicode(text)
+        text = str(text)
 
         gp = self._get_selected_grid_pattern()
         if gp == None:

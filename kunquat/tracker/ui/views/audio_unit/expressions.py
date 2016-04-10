@@ -326,7 +326,7 @@ class ExpressionName(QWidget):
 
     def _update_name(self):
         au = self._get_audio_unit()
-        self._name = au.get_selected_expression() or u''
+        self._name = au.get_selected_expression() or ''
 
         if self._name_editor.text() != self._name:
             old_block = self._name_editor.blockSignals(True)
@@ -339,7 +339,7 @@ class ExpressionName(QWidget):
         if not old_name:
             return
 
-        new_name = unicode(self._name_editor.text())
+        new_name = str(self._name_editor.text())
         au.change_expression_name(old_name, new_name)
         au.set_selected_expression(new_name)
         if au.get_connections_expr_name() == old_name:

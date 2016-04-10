@@ -68,12 +68,12 @@ class ProcWindow(QWidget):
         if proc_name:
             parts.append(proc_name)
         if au_name:
-            parts.append(u'[{}]'.format(au_name))
+            parts.append('[{}]'.format(au_name))
 
         if parts:
-            title = u'{} – Kunquat Tracker'.format(u' '.join(parts))
+            title = '{} – Kunquat Tracker'.format(' '.join(parts))
         else:
-            title = u'Kunquat Tracker'
+            title = 'Kunquat Tracker'
         self.setWindowTitle(title)
 
     def closeEvent(self, event):

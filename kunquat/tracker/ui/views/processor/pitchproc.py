@@ -19,7 +19,7 @@ class PitchProc(QWidget):
 
     @staticmethod
     def get_name():
-        return u'Pitch'
+        return 'Pitch'
 
     def __init__(self):
         QWidget.__init__(self)

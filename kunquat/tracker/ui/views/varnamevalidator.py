@@ -18,7 +18,7 @@ from PyQt4.QtGui import *
 
 
 def get_var_name_validation_status(text):
-    assert isinstance(text, unicode)
+    assert isinstance(text, str)
 
     if not text:
         return QValidator.Intermediate
@@ -42,7 +42,7 @@ class VarNameValidator(QValidator):
         self._used_names = used_names
 
     def validate(self, contents, pos):
-        in_str = unicode(contents)
+        in_str = str(contents)
         status = get_var_name_validation_status(in_str)
         if (status == QValidator.Acceptable) and (in_str in self._used_names):
             return (QValidator.Intermediate, pos)
@@ -56,7 +56,7 @@ class MaybeVarNameValidator(QValidator):
         self._used_names = used_names
 
     def validate(self, contents, pos):
-        in_str = unicode(contents)
+        in_str = str(contents)
         if not in_str:
             return (QValidator.Acceptable, pos)
 
