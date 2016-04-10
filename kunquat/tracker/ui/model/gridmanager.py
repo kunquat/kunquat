@@ -12,7 +12,6 @@
 #
 
 from copy import deepcopy
-from types import NoneType
 
 from kunquat.kunquat.limits import PATTERNS_MAX
 from . import tstamp
@@ -59,7 +58,7 @@ class GridManager():
         return valid_keys
 
     def select_grid_pattern(self, gp_id):
-        assert isinstance(gp_id, (NoneType, unicode))
+        assert isinstance(gp_id, (type(None), unicode))
         if gp_id != self.get_selected_grid_pattern_id():
             self._session.select_grid_pattern_line(None)
         self._session.select_grid_pattern(gp_id)
@@ -68,7 +67,7 @@ class GridManager():
         return self._session.get_selected_grid_pattern_id()
 
     def get_grid_pattern(self, gp_id):
-        assert isinstance(gp_id, (NoneType, unicode))
+        assert isinstance(gp_id, (type(None), unicode))
         gp_id = gp_id or u'0'
         gp = GridPattern(gp_id)
         gp.set_controller(self._controller)
@@ -177,7 +176,7 @@ class GridManager():
         return self._session.get_grid_pattern_zoom_range()
 
     def set_default_grid_pattern_id(self, gp_id):
-        assert isinstance(gp_id, (NoneType, unicode))
+        assert isinstance(gp_id, (type(None), unicode))
         self._session.set_default_grid_pattern_id(gp_id)
 
     def get_default_grid_pattern_id(self):
