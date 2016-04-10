@@ -12,7 +12,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
 from itertools import islice
 import math
 import time

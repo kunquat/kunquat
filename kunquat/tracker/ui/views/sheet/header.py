@@ -11,8 +11,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
-
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
