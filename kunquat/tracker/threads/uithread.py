@@ -17,10 +17,10 @@ from PyQt4.QtGui import *
 
 from kunquat.tracker.ui.ui_launcher import create_ui_launcher
 
-from command import Command
-from commandqueue import CommandQueue
-from qeventpump import QEventPump
-from monitoringthread import MonitoringThread
+from .command import Command
+from .commandqueue import CommandQueue
+from .qeventpump import QEventPump
+from .monitoringthread import MonitoringThread
 
 
 HALT = None
@@ -140,4 +140,5 @@ def create_ui_thread():
     ui_thread = UiThread()
     ui_thread.set_ui_launcher(ui_launcher)
     return ui_thread
+
 

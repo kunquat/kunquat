@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -12,7 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from monitoringthread import MonitoringThread
+from .monitoringthread import MonitoringThread
 
 
 class EventPump(MonitoringThread):
@@ -34,4 +34,5 @@ class EventPump(MonitoringThread):
             self._blocker()
             if self._signaler:
                 self._signaler()
+
 

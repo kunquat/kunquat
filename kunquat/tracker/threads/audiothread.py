@@ -16,10 +16,10 @@ import time
 
 from kunquat.tracker.audio.audio_engine import create_audio_engine
 
-from command import Command
-from commandqueue import CommandQueue
-from eventpump import EventPump
-from monitoringthread import MonitoringThread
+from .command import Command
+from .commandqueue import CommandQueue
+from .eventpump import EventPump
+from .monitoringthread import MonitoringThread
 
 HALT = None
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -12,7 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-import cPickle
+import pickle
 
 from threading import Thread
 
