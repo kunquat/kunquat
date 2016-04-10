@@ -40,6 +40,7 @@ class RootView():
         self._task_executer = None
         self._updater = None
         self._visible = set()
+
         self._main_window = MainWindow()
         self._about_window = None
         self._event_log = None
@@ -54,7 +55,9 @@ class RootView():
         self._grid_editor = None
         self._ia_controls = None
         self._render_stats = None
+
         self._module = None
+        self._au_import_error_dialog = None
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -242,24 +245,135 @@ class RootView():
                 self._start_save_module()
             if 'signal_save_module_finished' in signals:
                 self._on_save_module_finished()
+            if 'signal_start_import_au' in signals:
+                self._start_import_au()
+            if 'signal_au_import_error' in signals:
+                self._on_au_import_error()
+            if 'signal_au_import_finished' in signals:
+                self._on_au_import_finished()
+            if 'signal_start_export_au' in signals:
+                self._start_export_au()
+            if 'signal_export_au_finished' in signals:
+                self._on_export_au_finished()
         else:
             QApplication.quit()
 
         self._ui_model.clock()
+
+    def _set_windows_enabled(self, enabled):
+        def try_set_enabled(window):
+            if window:
+                window.setEnabled(enabled)
+
+        try_set_enabled(self._main_window)
+        try_set_enabled(self._about_window)
+        try_set_enabled(self._event_log)
+        try_set_enabled(self._connections)
+        try_set_enabled(self._songs_channels)
+        try_set_enabled(self._notation)
+        for window in self._tuning_tables.itervalues():
+            window.setEnabled(enabled)
+        try_set_enabled(self._env_bind)
+        try_set_enabled(self._general_mod)
+        for window in self._au_windows.itervalues():
+            window.setEnabled(enabled)
+        for window in self._proc_windows.itervalues():
+            window.setEnabled(enabled)
+        try_set_enabled(self._grid_editor)
+        try_set_enabled(self._ia_controls)
+        try_set_enabled(self._render_stats)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
         self._main_window.unregister_updaters()
 
     def _start_save_module(self):
-        self._main_window.setEnabled(False)
+        self._set_windows_enabled(False)
         self._module.flush(self._execute_save_module)
 
     def _execute_save_module(self):
-        task = self._module.execute_save(self._task_executer)
+        self._module.execute_save(self._task_executer)
 
     def _on_save_module_finished(self):
         self._module.finish_save()
-        self._main_window.setEnabled(True)
+        self._set_windows_enabled(True)
+
+    def _start_import_au(self):
+        self._set_windows_enabled(False)
+        self._module.execute_import_au(self._task_executer)
+
+    def _on_au_import_error(self):
+        def on_close():
+            if self._au_import_error_dialog:
+                self._au_import_error_dialog.close()
+                self._au_import_error_dialog = None
+
+        error_info = self._module.get_reset_au_import_error_info()
+        assert error_info
+        self._au_import_error_dialog = AuImportErrorDialog(
+                self._ui_model.get_icon_bank(), error_info, on_close)
+        self._au_import_error_dialog.setModal(True)
+        self._au_import_error_dialog.show()
+
+    def _on_au_import_finished(self):
+        module = self._ui_model.get_module()
+        module.finish_import_au()
+        self._set_windows_enabled(True)
+
+    def _start_export_au(self):
+        self._set_windows_enabled(False)
+        self._module.flush(self._execute_export_au)
+
+    def _execute_export_au(self):
+        self._module.execute_export_au(self._task_executer)
+
+    def _on_export_au_finished(self):
+        self._module.finish_export_au()
+        self._set_windows_enabled(True)
+
+
+class AuImportErrorDialog(QDialog):
+
+    def __init__(self, icon_bank, error_info, on_close):
+        QDialog.__init__(self)
+
+        self.setWindowTitle('Importing failed')
+
+        self._on_close = on_close
+
+        path, details = error_info
+
+        error_img_path = icon_bank.get_icon_path('error')
+        error_label = QLabel()
+        error_label.setPixmap(QPixmap(error_img_path))
+
+        self._message = QLabel()
+        self._message.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
+
+        h = QHBoxLayout()
+        h.setMargin(8)
+        h.setSpacing(16)
+        h.addWidget(error_label)
+        h.addWidget(self._message)
+
+        self._button_layout = QHBoxLayout()
+
+        v = QVBoxLayout()
+        v.addLayout(h)
+        v.addLayout(self._button_layout)
+
+        self.setLayout(v)
+
+        # Dialog contents
+        error_msg = (u'<p>Could not import \'{}\' due to the following error:</p>'
+            u'<p>{}</p>'.format(path, details))
+        self._message.setText(error_msg)
+
+        ok_button = QPushButton('OK')
+        self._button_layout.addStretch(1)
+        self._button_layout.addWidget(ok_button)
+        self._button_layout.addStretch(1)
+
+        QObject.connect(ok_button, SIGNAL('clicked()'), self._on_close)
 
 

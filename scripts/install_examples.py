@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -27,7 +27,6 @@ def install_examples(builder, install_prefix):
     names = [
             'example.kqt.bz2',
             'example_ins.kqti.bz2',
-            'example_effect.kqte.bz2',
             'example_scale.kqts.bz2',
         ]
 

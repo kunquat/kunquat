@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -20,6 +20,9 @@ class KqtiFile():
     def __init__(self, path):
         self._path = path
         self._contents = None
+
+    def get_path(self):
+        return self._path
 
     def get_read_steps(self):
         au_prefix = 'kqti00'

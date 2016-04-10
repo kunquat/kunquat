@@ -30,6 +30,7 @@ class AudioUnit():
         self._controller = None
         self._session = None
         self._ui_model = None
+        self._updater = None
 
     def set_controller(self, controller):
         self._store = controller.get_store()
@@ -38,6 +39,7 @@ class AudioUnit():
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
 
     def get_id(self):
         return self._au_id
@@ -328,6 +330,20 @@ class AudioUnit():
         if not free_au_ids:
             return None
         return min(free_au_ids)
+
+    def start_import_au(self, path, au_id, control_id=None):
+        assert control_id == None
+        module = self._ui_model.get_module()
+        module.start_import_au(path, au_id)
+
+    def start_export_au(self, path):
+        module = self._ui_model.get_module()
+        assert not module.is_saving()
+        assert not module.is_importing_audio_unit()
+        self._session.set_saving(True)
+        self._store.set_saving(True)
+        self._session.set_au_export_info((self._au_id, path))
+        self._updater.signal_update(set(['signal_start_export_au']))
 
     def add_effect(self, au_id):
         key = '/'.join((self._au_id, au_id))

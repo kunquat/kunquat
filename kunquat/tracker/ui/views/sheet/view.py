@@ -1818,9 +1818,11 @@ class View(QWidget):
         self._sheet_manager.set_edit_mode(True)
 
     def focusOutEvent(self, ev):
+        module = self._ui_model.get_module()
         allow_signals = (
                 self._visibility_manager.is_show_allowed() and
-                not self._ui_model.get_module().is_saving())
+                not module.is_saving() and
+                not module.is_importing_audio_unit())
 
         if allow_signals:
             self._sheet_manager.set_edit_mode(False)

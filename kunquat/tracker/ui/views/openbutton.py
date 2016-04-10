@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -14,6 +14,10 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+
+from kunquat.kunquat.limits import *
+from kqtutils import get_kqt_file_path, open_kqt_au
+
 
 class OpenButton(QToolButton):
 
@@ -31,10 +35,12 @@ class OpenButton(QToolButton):
         pass
 
     def _clicked(self):
-        module_path_qstring = QFileDialog.getOpenFileName(
-                caption='Open Kunquat Composition',
-                filter='Kunquat compositions (*.kqt *.kqt.gz *.kqt.bz2)')
-        if module_path_qstring:
-            module_path = str(module_path_qstring.toUtf8())
-            process_manager = self._ui_model.get_process_manager()
-            process_manager.new_kunquat(module_path)
+        file_path = get_kqt_file_path(set(['kqt', 'kqti', 'kqte']))
+        if file_path:
+            if file_path.endswith(('.kqt', '.kqt.gz', 'kqt.bz2')):
+                process_manager = self._ui_model.get_process_manager()
+                process_manager.new_kunquat(file_path)
+            else:
+                open_kqt_au(file_path, self._ui_model, self._ui_model.get_module())
+
+

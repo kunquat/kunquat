@@ -93,6 +93,9 @@ class Session():
         self._active_var_names = {}
         self._runtime_env = {}
         self._selected_binding_index = None
+        self._au_import_info = None
+        self._au_import_error_info = None
+        self._au_export_info = None
         self._au_conns_edit_mode = {}
         self._au_conns_hit_index = {}
         self._au_conns_expr_name = {}
@@ -577,6 +580,29 @@ class Session():
 
     def get_selected_binding_index(self):
         return self._selected_binding_index
+
+    def set_au_import_info(self, info):
+        self._au_import_info = info
+
+    def get_au_import_info(self):
+        return self._au_import_info
+
+    def is_importing_audio_unit(self):
+        return self._au_import_info != None
+
+    def set_au_import_error_info(self, path, error):
+        self._au_import_error_info = (path, error)
+
+    def get_reset_au_import_error_info(self):
+        info = self._au_import_error_info
+        self._au_import_error_info = None
+        return info
+
+    def set_au_export_info(self, info):
+        self._au_export_info = info
+
+    def get_au_export_info(self):
+        return self._au_export_info
 
     def set_au_connections_edit_mode(self, au_id, mode):
         self._au_conns_edit_mode[au_id] = mode

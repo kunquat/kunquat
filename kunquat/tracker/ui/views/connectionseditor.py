@@ -11,12 +11,16 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import os
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from connections import Connections
 from kunquat.kunquat.limits import *
 import processor.proctypeinfo as proctypeinfo
+from kqtutils import get_kqt_file_path, open_kqt_au
+from saving import get_instrument_save_path, get_effect_save_path
 
 
 class ConnectionsEditor(QWidget):
@@ -75,11 +79,16 @@ class ConnectionsToolBar(QToolBar):
         self._add_effect_button = QToolButton()
         self._add_effect_button.setText('Add effect')
 
+        self._import_button = QToolButton()
+
         self._hit_edit = HitEditingToggle()
         self._hit_selector = HitSelector()
 
         self._expr_edit = ExpressionEditingToggle()
         self._expr_selector = ExpressionSelector()
+
+        self._export_button = QToolButton()
+        self._export_button.setText('Export')
 
     def set_au_id(self, au_id):
         assert self._ui_model == None, "Audio unit ID must be set before UI model"
@@ -116,6 +125,20 @@ class ConnectionsToolBar(QToolBar):
                     SIGNAL('clicked()'),
                     self._add_effect)
 
+        # Import button if allowed
+        is_import_allowed = is_effect_allowed
+        if is_import_allowed:
+            if self._au_id == None:
+                text = 'Import instrument/effect'
+            else:
+                text = 'Import effect'
+            self._import_button.setText(text)
+            self.addWidget(self._import_button)
+            QObject.connect(
+                    self._import_button,
+                    SIGNAL('clicked()'),
+                    self._import_au)
+
         if self._au_id != None:
             module = self._ui_model.get_module()
             au = module.get_audio_unit(self._au_id)
@@ -142,6 +165,10 @@ class ConnectionsToolBar(QToolBar):
                 self._expr_selector.set_au_id(self._au_id)
                 self._expr_selector.set_ui_model(self._ui_model)
                 self.addWidget(self._expr_selector)
+
+            # Export
+            self.addWidget(self._export_button)
+            QObject.connect(self._export_button, SIGNAL('clicked()'), self._export_au)
 
     def unregister_updaters(self):
         if self._au_id != None:
@@ -205,6 +232,33 @@ class ConnectionsToolBar(QToolBar):
             update_signals.add(update_signal)
 
             self._updater.signal_update(update_signals)
+
+    def _import_au(self):
+        module = self._ui_model.get_module()
+        if self._au_id == None:
+            au_path = get_kqt_file_path(set(['kqti', 'kqte']))
+        else:
+            au_path = get_kqt_file_path(set(['kqte']))
+        if au_path:
+            container = module
+            if self._au_id != None:
+                container = module.get_audio_unit(self._au_id)
+            open_kqt_au(au_path, self._ui_model, container)
+
+    def _export_au(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+
+        if au.is_instrument():
+            instruments_dir = os.getcwd() # TODO: get a better directory
+            au_path = get_instrument_save_path(au.get_name(), instruments_dir)
+        else:
+            effects_dir = os.getcwd() # TODO: get a better directory
+            au_path = get_effect_save_path(au.get_name(), effects_dir)
+        if not au_path:
+            return
+
+        au.start_export_au(au_path)
 
 
 def _get_au_hit_signal_type(au_id):

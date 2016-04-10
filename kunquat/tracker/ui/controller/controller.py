@@ -20,6 +20,7 @@ import tarfile
 import tempfile
 import StringIO
 import os.path
+from itertools import izip
 
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
@@ -27,6 +28,7 @@ import kunquat.tracker.cmdline as cmdline
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 import kunquat.tracker.ui.model.tstamp as tstamp
 
+from kqtivalidator import KqtiValidator
 from store import Store
 from session import Session
 from share import Share
@@ -172,36 +174,114 @@ class Controller():
 
         self._updater.signal_update(set(['signal_save_module_finished']))
 
-    def get_task_load_audio_unit(self, kqtifile):
+    def get_task_export_audio_unit(self, au_id, au_path):
+        assert au_path
+        tmpname = None
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            compression_suffix = ''
+            if au_path.endswith('.bz2'):
+                compression_suffix = '|bz2'
+            elif au_path.endswith('.gz'):
+                compression_suffix = '|gz'
+            mode = 'w' + compression_suffix
+
+            with tarfile.open(mode=mode, fileobj=f, format=tarfile.USTAR_FORMAT) as tfile:
+                prefix = 'kqti00'
+                au_prefix = au_id + '/'
+                au_keys = [k for k in self._store.iterkeys() if k.startswith(au_prefix)]
+                for key in au_keys:
+                    yield
+                    value = self._store[key]
+                    path = '{}/{}'.format(prefix, key[len(au_prefix):])
+                    if key.endswith('.json'):
+                        encoded = json.dumps(value)
+                    else:
+                        encoded = value
+                    info = tarfile.TarInfo(name=path)
+                    info.size = len(encoded)
+                    encoded_file = StringIO.StringIO(encoded)
+                    tfile.addfile(info, encoded_file)
+
+                tmpname = f.name
+
+        if tmpname:
+            os.rename(tmpname, au_path)
+
+        self._updater.signal_update(set(['signal_export_au_finished']))
+
+    def get_task_load_audio_unit(
+            self, kqtifile, au_id, control_id=None, is_sandbox=False):
         for _ in kqtifile.get_read_steps():
             yield
         contents = kqtifile.get_contents()
 
-        # TODO: Validate contents
+        # Validate contents
+        validator = KqtiValidator(contents)
+        for _ in validator.get_validation_steps():
+            yield
+        if not validator.is_valid():
+            self._session.set_au_import_error_info(
+                    kqtifile.get_path(), validator.get_validation_error())
+            self._updater.signal_update(
+                    set(['signal_au_import_error', 'signal_au_import_finished']))
+            return
 
-        au_number = 0
-        au_prefix = 'au_{:02x}'.format(au_number)
         transaction = {}
-
-        # TODO: Figure out a proper way of connecting the audio unit
-        connections = [
-                ['/'.join((au_prefix, 'out_00')), 'out_00'],
-                ['/'.join((au_prefix, 'out_01')), 'out_01'],
-                ]
-        transaction['p_connections.json'] = connections
-
-        control_map = [[0, au_number]]
-        transaction['p_control_map.json'] = control_map
-        transaction['control_00/p_manifest.json'] = {}
 
         # Add audio unit data to the transaction
         for (key, value) in contents.iteritems():
-            dest_key = '/'.join((au_prefix, key))
+            dest_key = '{}/{}'.format(au_id, key)
             transaction[dest_key] = value
+
+        # Connect instrument
+        if transaction['{}/p_manifest.json'.format(au_id)]['type'] == 'instrument':
+            # Add instrument control
+            if ('/' not in au_id) and control_id:
+                control_num = int(control_id.split('_')[1], 16)
+                au_num = int(au_id.split('_')[1], 16)
+
+                control_map = self._store.get('p_control_map.json', [])
+                control_map.append([control_num, au_num])
+
+                transaction['p_control_map.json'] = control_map
+                transaction['{}/p_manifest.json'.format(control_id)] = {}
+
+            # Get output ports of the containing device
+            if '/' in au_id:
+                parent_au_id = au_id.split('/')[0]
+                module = self._ui_model.get_module()
+                parent_au = module.get_audio_unit(parent_au_id)
+                parent_out_ports = sorted(parent_au.get_out_ports())
+            else:
+                parent_out_ports = ['out_00', 'out_01']
+
+            # Get instrument output ports (manually since the model has no access yet)
+            ins_out_ports = []
+            key_pattern = re.compile(
+                    '{}/out_[0-9a-f]{{2}}/p_manifest.json'.format(au_id))
+            for path in transaction:
+                if key_pattern.match(path) and transaction[path] != None:
+                    ins_out_port = path.split('/')[-2]
+                    ins_out_ports.append(ins_out_port)
+            ins_out_ports = sorted(ins_out_ports)
+
+            # Connect if the number of output ports match
+            if parent_out_ports and (len(parent_out_ports) == len(ins_out_ports)):
+                sub_au_id = au_id.split('/')[-1]
+                conns = self._store.get('p_connections.json', [])
+                for (send_port, recv_port) in izip(ins_out_ports, parent_out_ports):
+                    conns.append(['{}/{}'.format(sub_au_id, send_port), recv_port])
+                transaction['p_connections.json'] = conns
 
         # Send data
         self._store.put(transaction)
-        self._updater.signal_update(set(['signal_controls', 'signal_module']))
+
+        self._updater.signal_update(
+                set(['signal_controls', 'signal_au_import_finished']))
+
+        if (not is_sandbox) and ('/' not in au_id):
+            visibility_manager = self._ui_model.get_visibility_manager()
+            visibility_manager.show_connections()
 
     def _reset_runtime_env(self):
         self._session.reset_runtime_env()
