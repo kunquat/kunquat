@@ -179,7 +179,7 @@ def copy_selected_area(sheet_manager):
     area = sheet_manager.get_serialised_area()
     clipboard = QApplication.clipboard()
     mimedata = QMimeData()
-    mimedata.setData(area_type, area)
+    mimedata.setData(area_type, bytes(area, encoding='utf-8'))
     clipboard.setMimeData(mimedata)
 
 def is_clipboard_area_valid(sheet_manager):
@@ -188,7 +188,7 @@ def is_clipboard_area_valid(sheet_manager):
     area_type = sheet_manager.get_serialised_area_type()
     if not mimedata.hasFormat(area_type):
         return False
-    area_data = str(mimedata.data(area_type))
+    area_data = str(mimedata.data(area_type), encoding='utf-8')
     return sheet_manager.is_area_data_valid(area_data)
 
 def try_paste_area(sheet_manager):
@@ -196,7 +196,7 @@ def try_paste_area(sheet_manager):
     mimedata = clipboard.mimeData()
     area_type = sheet_manager.get_serialised_area_type()
     if mimedata.hasFormat(area_type):
-        area_data = str(mimedata.data(area_type))
+        area_data = str(mimedata.data(area_type), encoding='utf-8')
         sheet_manager.try_paste_serialised_area(area_data)
 
 

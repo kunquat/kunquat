@@ -422,7 +422,7 @@ class SheetManager():
         if ((type(tr_type) != str) or
                 (tr_type not in trigger_events_by_name)):
             return False
-        if type(tr_arg) not in (str, types.NoneType):
+        if type(tr_arg) not in (str, type(None)):
             return False
         if ((type(tr_arg) == None) !=
                 (trigger_events_by_name[tr_type] == None)):
