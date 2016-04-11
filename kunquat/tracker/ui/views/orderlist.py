@@ -191,7 +191,7 @@ class AlbumTreeModel(QAbstractItemModel):
             return False
 
         data = mimedata.data('application/json')
-        items = json.loads(str(data))
+        items = json.loads(str(data, encoding='utf-8'))
         assert len(items) == 1
         item = items[0]
 
