@@ -430,7 +430,7 @@ class StreamTargetProcEditor(QComboBox):
         if index < 0:
             return
 
-        new_target_proc_id = str(self.itemData(index).toString())
+        new_target_proc_id = self.itemData(index)
         new_target_proc_num = int(new_target_proc_id.split('_')[-1], 16)
 
         stream_name = self._context
@@ -1232,7 +1232,7 @@ class BindTargetDeviceSelector(QComboBox):
         if index < 0:
             return
 
-        new_target_dev_id = str(self.itemData(index).toString())
+        new_target_dev_id = self.itemData(index)
 
         var_name, target_dev_id, target_var_name = self._context
 

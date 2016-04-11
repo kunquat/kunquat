@@ -883,7 +883,7 @@ class RandomEntryEditor(QWidget):
     def _change_sample(self, item_index):
         point = self._get_selected_map_point()
         if (point != None) and (point in self._get_map_points()):
-            sample_id = str(self._sample_selector.itemData(item_index).toString())
+            sample_id = self._sample_selector.itemData(item_index)
             random_list = self._get_model_random_list(point)
             random_list.set_sample_id(self._index, sample_id)
             self._updater.signal_update(set([self._get_random_list_signal_type()]))
@@ -1719,7 +1719,7 @@ class SampleEditor(QWidget):
         self._updater.signal_update(set([self._get_list_update_signal_type()]))
 
     def _change_loop_mode(self, item_index):
-        loop_mode = str(self._loop_mode.itemData(item_index).toString())
+        loop_mode = self._loop_mode.itemData(item_index)
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_loop_mode(sample_id, loop_mode)

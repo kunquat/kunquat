@@ -229,7 +229,7 @@ class NotationListModel(QAbstractListModel):
     def setData(self, index, value, role):
         if role == Qt.EditRole:
             if 0 <= index.row() < len(self._items):
-                new_name = str(value.toString())
+                new_name = value
                 notation_manager = self._ui_model.get_notation_manager()
                 notation = notation_manager.get_editor_selected_notation()
                 notation.set_name(new_name)
@@ -487,7 +487,7 @@ class TuningTableListModel(QAbstractTableModel):
         if role == Qt.EditRole:
             row = index.row()
             if index.column() == 0 and 0 <= row < len(self._items):
-                new_name = str(value.toString())
+                new_name = value
                 table_id, _ = self._items[row]
                 module = self._ui_model.get_module()
                 table = module.get_tuning_table(table_id)
@@ -1224,7 +1224,7 @@ class TemplateNoteTableModel(QAbstractTableModel):
             if 0 <= row < len(self._items):
                 name, ratio = self._items[row]
                 if column == 0:
-                    new_name = str(value.toString())
+                    new_name = value
                     notation_manager = self._ui_model.get_notation_manager()
                     notation = notation_manager.get_editor_selected_notation()
                     template = notation.get_template()
@@ -1232,7 +1232,7 @@ class TemplateNoteTableModel(QAbstractTableModel):
                     self._updater.signal_update(set(['signal_notation_template_notes']))
                     return True
                 elif column == 1:
-                    new_ratio = self._get_validated_ratio(str(value.toString()))
+                    new_ratio = self._get_validated_ratio(value)
                     if new_ratio == None:
                         return False
                     notation_manager = self._ui_model.get_notation_manager()
@@ -1512,7 +1512,7 @@ class OctaveListModel(QAbstractListModel):
     def setData(self, index, value, role):
         if role == Qt.EditRole:
             if 0 <= index.row() < len(self._items):
-                new_name = str(value.toString())
+                new_name = value
                 notation_manager = self._ui_model.get_notation_manager()
                 notation = notation_manager.get_editor_selected_notation()
                 notation.set_octave_name(index.row(), new_name)

@@ -195,7 +195,7 @@ class ConnectionsToolBar(QToolBar):
 
     def _add_processor(self, action):
         assert action != None
-        proc_type = str(action.data().toString())
+        proc_type = action.data()
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)

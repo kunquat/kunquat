@@ -181,7 +181,7 @@ class AuthorTableModel(QAbstractTableModel):
             row = index.row()
             column = index.column()
             if row == 0 and 0 <= column < len(self._items):
-                new_name = str(value.toString())
+                new_name = value
                 module = self._ui_model.get_module()
                 module.set_author(column, new_name)
                 self._updater.signal_update(set(['signal_authors']))

@@ -410,13 +410,13 @@ class NoteTableModel(QAbstractTableModel):
             column = index.column()
             if 0 <= row < len(self._items):
                 if column == 0:
-                    new_name = str(value.toString())
+                    new_name = value
                     table = self._get_tuning_table()
                     table.set_note_name(row, new_name)
                     self._updater.signal_update(set([self._get_update_signal_type()]))
                     return True
                 elif column == 1:
-                    new_pitch = self._get_validated_pitch(str(value.toString()))
+                    new_pitch = self._get_validated_pitch(value)
                     if new_pitch == None:
                         return False
                     table = self._get_tuning_table()
