@@ -1423,7 +1423,7 @@ class SampleListModel(QAbstractListModel):
         for sample_id in sample_params.get_sample_ids():
             name = sample_params.get_sample_name(sample_id)
             self._items.append((sample_id, name))
-        self._items = sorted(self._items, key=lambda x: x[1])
+        self._items = sorted(self._items, key=lambda x: x[1] or '')
 
     # Qt interface
 
