@@ -366,10 +366,11 @@ def _get_error(obj):
 
 def _error_check(result, func, arguments):
     chandle = arguments[0]
-    error_str = _kunquat.kqt_Handle_get_error(chandle)
-    if not error_str:
+    error_str_raw = _kunquat.kqt_Handle_get_error(chandle)
+    if not error_str_raw:
         return result
     _kunquat.kqt_Handle_clear_error(chandle)
+    error_str = str(error_str_raw, encoding='utf-8')
     raise _get_error(json.loads(error_str))
 
 
