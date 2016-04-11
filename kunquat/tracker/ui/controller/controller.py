@@ -18,7 +18,7 @@ import json
 import time
 import tarfile
 import tempfile
-from io import StringIO
+from io import BytesIO
 import os.path
 
 from kunquat.kunquat.kunquat import get_default_value
@@ -158,12 +158,12 @@ class Controller():
                     yield
                     path = '/'.join((prefix, key))
                     if key.endswith('.json'):
-                        encoded = json.dumps(value)
+                        encoded = bytes(json.dumps(value), encoding='utf-8')
                     else:
                         encoded = value
                     info = tarfile.TarInfo(name=path)
                     info.size = len(encoded)
-                    encoded_file = StringIO(encoded)
+                    encoded_file = BytesIO(encoded)
                     tfile.addfile(info, encoded_file)
 
                 tmpname = f.name
@@ -193,12 +193,12 @@ class Controller():
                     value = self._store[key]
                     path = '{}/{}'.format(prefix, key[len(au_prefix):])
                     if key.endswith('.json'):
-                        encoded = json.dumps(value)
+                        encoded = bytes(json.dumps(value), encoding='utf-8')
                     else:
                         encoded = value
                     info = tarfile.TarInfo(name=path)
                     info.size = len(encoded)
-                    encoded_file = StringIO(encoded)
+                    encoded_file = BytesIO(encoded)
                     tfile.addfile(info, encoded_file)
 
                 tmpname = f.name
