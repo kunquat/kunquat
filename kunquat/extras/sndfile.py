@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2012-2015
+# Author: Tomi Jylhä-Ollila, Finland 2012-2016
 #
 # This file is part of Kunquat.
 #
@@ -113,7 +113,7 @@ class _SndFileBase():
     def _read(self, ptr, count, user_data):
         assert self._bytes != None
         actual_count = min(count, len(self._bytes) - self._pos)
-        for i in xrange(actual_count):
+        for i in range(actual_count):
             ptr[i] = self._bytes[self._pos + i]
         self._pos += actual_count
         return actual_count
@@ -152,11 +152,11 @@ class _SndFileRBase(_SndFileBase):
             frame_count = 4096
 
         cdata = (ctypes.c_float * (frame_count * self._channels))()
-        chunk = [[] for _ in xrange(self._channels)]
+        chunk = [[] for _ in range(self._channels)]
 
         while frames_left > 0:
             actual_frame_count = _sndfile.sf_readf_float(self._sf, cdata, frame_count)
-            for ch in xrange(self._channels):
+            for ch in range(self._channels):
                 channel_data = cdata[ch:actual_frame_count * self._channels:self._channels]
                 chunk[ch].extend(channel_data)
 
@@ -258,7 +258,7 @@ class _SndFileWBase(_SndFileBase):
 
         frame_count = len(data[0])
         cdata = (ctypes.c_float * (frame_count * self._channels))()
-        for ch in xrange(self._channels):
+        for ch in range(self._channels):
             if len(data[ch]) != frame_count:
                 raise ValueError('Output channel buffer lengths do not match')
             cdata[ch::self._channels] = data[ch]
