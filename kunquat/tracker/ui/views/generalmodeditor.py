@@ -160,12 +160,12 @@ class AuthorTableModel(QAbstractTableModel):
             column = index.column()
             if row == 0:
                 if 0 <= column < len(self._items):
-                    return QVariant(self._items[column])
+                    return self._items[column]
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role):
-        return QVariant()
+        return None
 
     def flags(self, index):
         default_flags = QAbstractTableModel.flags(self, index)

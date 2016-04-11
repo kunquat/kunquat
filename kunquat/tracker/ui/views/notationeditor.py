@@ -206,16 +206,16 @@ class NotationListModel(QAbstractListModel):
                 _, name = self._items[row]
                 if role == Qt.DisplayRole:
                     vis_name = name or '-'
-                    return QVariant(vis_name)
+                    return vis_name
                 elif role == Qt.EditRole:
-                    return QVariant(name)
+                    return name
                 else:
                     assert False
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role):
-        return QVariant()
+        return None
 
     def flags(self, index):
         default_flags = QAbstractItemModel.flags(self, index)
@@ -458,21 +458,21 @@ class TuningTableListModel(QAbstractTableModel):
                 _, name = self._items[row]
                 if role == Qt.DisplayRole:
                     vis_name = name or '-'
-                    return QVariant(vis_name)
+                    return vis_name
                 elif role == Qt.EditRole:
-                    return QVariant(name)
+                    return name
                 else:
                     assert False
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole and orientation == Qt.Vertical:
             if 0 <= section < len(self._items):
                 table_id, _ = self._items[section]
                 num = int(table_id.split('_')[1], 16)
-                return QVariant(str(num))
-        return QVariant()
+                return str(num)
+        return None
 
     def flags(self, index):
         default_flags = QAbstractItemModel.flags(self, index)
@@ -1167,23 +1167,23 @@ class TemplateNoteTableModel(QAbstractTableModel):
             if 0 <= row < len(self._items):
                 if column == 0:
                     name, _ = self._items[row]
-                    return QVariant(name)
+                    return name
                 elif column == 1:
                     _, ratio = self._items[row]
                     if isinstance(ratio, list):
-                        return QVariant('{}/{}'.format(*ratio))
+                        return '{}/{}'.format(*ratio)
                     else:
-                        return QVariant(str(ratio))
+                        return str(ratio)
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
             if section == 0:
-                return QVariant('Name')
+                return 'Name'
             elif section == 1:
-                return QVariant('Ratio')
-        return QVariant()
+                return 'Ratio'
+        return None
 
     def flags(self, index):
         default_flags = QAbstractTableModel.flags(self, index)
@@ -1489,16 +1489,16 @@ class OctaveListModel(QAbstractListModel):
                     notation = notation_manager.get_editor_selected_notation()
                     if row == notation.get_base_octave_id():
                         vis_name += ' *'
-                    return QVariant(vis_name)
+                    return vis_name
                 elif role == Qt.EditRole:
-                    return QVariant(name)
+                    return name
                 else:
                     assert False
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role):
-        return QVariant()
+        return None
 
     def flags(self, index):
         default_flags = QAbstractItemModel.flags(self, index)
@@ -1742,12 +1742,12 @@ class NoteListModel(QAbstractListModel):
             if 0 <= row < len(self._items):
                 _, name = self._items[row]
                 vis_name = name or '-'
-                return QVariant(vis_name)
+                return vis_name
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role):
-        return QVariant()
+        return None
 
 
 class NoteListView(QListView):
@@ -2335,7 +2335,7 @@ class KeyNoteSelector(QComboBox):
         if notation:
             for note in notation.get_notes():
                 cents, name = note
-                self.addItem(name, QVariant(cents))
+                self.addItem(name, cents)
             self._update_selection()
         self.blockSignals(old_block)
 

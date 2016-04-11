@@ -172,12 +172,12 @@ class ExpressionListModel(QAbstractListModel):
             row = index.row()
             if 0 <= row < len(self._items):
                 expr_name = self._items[row]
-                return QVariant(expr_name)
+                return expr_name
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role):
-        return QVariant()
+        return None
 
 
 class ExpressionListView(QListView):

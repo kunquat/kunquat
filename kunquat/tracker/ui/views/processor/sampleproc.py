@@ -858,7 +858,7 @@ class RandomEntryEditor(QWidget):
         for i, info in enumerate(sample_info):
             sample_id, sample_name = info
             vis_name = sample_name or '-'
-            self._sample_selector.addItem(vis_name, QVariant(sample_id))
+            self._sample_selector.addItem(vis_name, sample_id)
             if sample_id == cur_sample_id:
                 self._sample_selector.setCurrentIndex(i)
         self._sample_selector.blockSignals(old_block)
@@ -1438,12 +1438,12 @@ class SampleListModel(QAbstractListModel):
                 _, vis_name = self._items[row]
                 if vis_name == None:
                     vis_name = '-'
-                return QVariant(vis_name)
+                return vis_name
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role):
-        return QVariant()
+        return None
 
 
 class SampleListView(QListView):
@@ -1589,7 +1589,7 @@ class SampleEditor(QWidget):
                 ('Unidirectional', 'uni'),
                 ('Bidirectional', 'bi'))
         for vis_mode, mode in loop_modes:
-            self._loop_mode.addItem(vis_mode, QVariant(mode))
+            self._loop_mode.addItem(vis_mode, mode)
 
         self._loop_start = QSpinBox()
         self._loop_start.setRange(0, 2**30)
@@ -1688,7 +1688,7 @@ class SampleEditor(QWidget):
 
         old_block = self._loop_mode.blockSignals(True)
         new_loop_mode = sample_params.get_sample_loop_mode(sample_id)
-        loop_mode_index = self._loop_mode.findData(QVariant(new_loop_mode))
+        loop_mode_index = self._loop_mode.findData(new_loop_mode)
         if (loop_mode_index != self._loop_mode.itemData(self._loop_mode.currentIndex())):
             self._loop_mode.setCurrentIndex(loop_mode_index)
         self._loop_mode.blockSignals(old_block)

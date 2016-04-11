@@ -411,9 +411,9 @@ class StreamTargetProcEditor(QComboBox):
                 name = proc.get_name() or '-'
                 cur_target_proc_id = proc_id.split('/')[-1]
                 cur_target_proc_num = int(cur_target_proc_id.split('_')[-1], 16)
-                self.addItem(name, QVariant(cur_target_proc_num))
+                self.addItem(name, cur_target_proc_num)
 
-            selected_index = self.findData(QVariant(target_proc_num))
+            selected_index = self.findData(target_proc_num)
             if selected_index >= 0:
                 self.setCurrentIndex(selected_index)
 
@@ -1213,9 +1213,9 @@ class BindTargetDeviceSelector(QComboBox):
             if dev.get_existence():
                 name = dev.get_name() or '-'
                 cur_target_dev_id = dev_id.split('/')[-1]
-                self.addItem(name, QVariant(cur_target_dev_id))
+                self.addItem(name, cur_target_dev_id)
 
-        selected_index = self.findData(QVariant(target_dev_id))
+        selected_index = self.findData(target_dev_id)
         if selected_index >= 0:
             self.setCurrentIndex(selected_index)
 

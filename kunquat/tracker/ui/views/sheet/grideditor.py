@@ -120,12 +120,12 @@ class GridListModel(QAbstractListModel):
             if 0 <= row < len(self._items):
                 item = self._items[row]
                 _, gp_name = item
-                return QVariant(gp_name)
+                return gp_name
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role):
-        return QVariant()
+        return None
 
 
 class GridListView(QListView):
@@ -1309,7 +1309,7 @@ class LineStyle(QComboBox):
         self.setItemDelegate(self._ls_delegate)
 
         for i in range(self._first_style, STYLE_COUNT):
-            self.addItem(str(i), QVariant(i))
+            self.addItem(str(i), i)
 
     def get_current_line_style(self):
         line_style, success = self.itemData(self.currentIndex()).toInt()

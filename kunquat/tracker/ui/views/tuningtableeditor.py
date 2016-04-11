@@ -359,23 +359,23 @@ class NoteTableModel(QAbstractTableModel):
             if 0 <= row < len(self._items):
                 if column == 0:
                     name, _ = self._items[row]
-                    return QVariant(name)
+                    return name
                 elif column == 1:
                     _, pitch = self._items[row]
                     if isinstance(pitch, list):
-                        return QVariant('{}/{}'.format(*pitch))
+                        return '{}/{}'.format(*pitch)
                     else:
-                        return QVariant(str(pitch))
+                        return str(pitch)
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
             if section == 0:
-                return QVariant('Name')
+                return 'Name'
             elif section == 1:
-                return QVariant('Pitch')
-        return QVariant()
+                return 'Pitch'
+        return None
 
     def flags(self, index):
         default_flags = QAbstractTableModel.flags(self, index)

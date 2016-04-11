@@ -168,12 +168,12 @@ class BindListModel(QAbstractListModel):
             row = index.row()
             if 0 <= row < len(self._items):
                 _, event_name = self._items[row]
-                return QVariant(event_name)
+                return event_name
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role):
-        return QVariant()
+        return None
 
 
 class BindListView(QListView):

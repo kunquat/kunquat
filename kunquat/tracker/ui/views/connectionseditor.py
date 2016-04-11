@@ -440,7 +440,7 @@ class HitSelector(QComboBox):
             if hit.get_existence():
                 is_enabled = True
                 vis_name = self._get_hit_vis_name(hit)
-                self.addItem('{}: {}'.format(i, vis_name), QVariant(i))
+                self.addItem('{}: {}'.format(i, vis_name), i)
         self.setEnabled(is_enabled)
         self.blockSignals(old_block)
 

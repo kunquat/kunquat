@@ -85,17 +85,17 @@ class EventListModel(QAbstractTableModel):
                 value = str(self._log[len(self._log) - row - 1][column])
                 if self.HEADERS[column] == 'Context':
                     value = DISP_CONTEXTS[value]
-                return QVariant(value)
+                return value
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
             if orientation == Qt.Horizontal:
                 if 0 <= section < len(self.HEADERS):
-                    return QVariant(self.HEADERS[section])
+                    return self.HEADERS[section]
 
-        return QVariant()
+        return None
 
 
 class EventTable(QTableView):
