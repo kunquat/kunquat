@@ -204,7 +204,7 @@ class SndFileRMem(_SndFileRBase):
         _SndFileRBase.__init__(self)
         self._data = data
 
-        self._bytes = buffer(self._data)
+        self._bytes = bytes(self._data)
 
         vio = self._get_virtual_io_info()
         info = _SF_INFO(0, 0, 0, 0, 0, 0)
