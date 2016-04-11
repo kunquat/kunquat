@@ -446,13 +446,11 @@ class HitSelector(QComboBox):
 
         if is_enabled and (prev_list_index == -1):
             self.setCurrentIndex(0)
-            cur_hit_index, success = self.itemData(0).toInt()
-            assert success
+            cur_hit_index = self.itemData(0)
             au.set_connections_hit_index(cur_hit_index)
 
     def _change_hit(self, item_index):
-        hit_index, success = self.itemData(item_index).toInt()
-        assert success
+        hit_index = self.itemData(item_index)
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
