@@ -296,7 +296,7 @@ class AddParams(ProcParams):
         sf = SndFileWMem(channels=1, use_float=True, bits=32)
         sf.write(base)
         sf.close()
-        self._set_value(waveform_key, str(sf.get_file_contents()))
+        self._set_value(waveform_key, bytes(sf.get_file_contents()))
 
     def get_waveform_func(self, wave_type):
         base_def = self._get_waveform_def(wave_type)
