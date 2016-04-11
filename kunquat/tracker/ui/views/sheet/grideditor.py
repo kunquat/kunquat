@@ -1217,8 +1217,7 @@ class LineStyleDelegate(QItemDelegate):
         return pixmap
 
     def paint(self, painter, option, index):
-        pixmap_index_data = index.data(Qt.UserRole).toInt()
-        pixmap_index, _ = pixmap_index_data
+        pixmap_index = index.data(Qt.UserRole)
         assert pixmap_index in self._pixmaps
 
         # Background
@@ -1280,8 +1279,7 @@ class LineStyleDelegate(QItemDelegate):
             painter.restore()
 
     def sizeHint(self, option, index):
-        pixmap_index_data = index.data(Qt.UserRole).toInt()
-        pixmap_index, _ = pixmap_index_data
+        pixmap_index = index.data(Qt.UserRole)
         assert pixmap_index in self._pixmaps
 
         pixmap = self._pixmaps[pixmap_index]
@@ -1312,8 +1310,7 @@ class LineStyle(QComboBox):
             self.addItem(str(i), i)
 
     def get_current_line_style(self):
-        line_style, success = self.itemData(self.currentIndex()).toInt()
-        return line_style if success else None
+        return self.itemData(self.currentIndex())
 
     def select_line_style(self, new_style):
         old_block = self.blockSignals(True)
