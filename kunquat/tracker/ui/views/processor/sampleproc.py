@@ -1324,10 +1324,9 @@ class SampleListToolBar(QToolBar):
         if not sample_id:
             return
 
-        sample_path_qstring = QFileDialog.getOpenFileName(
+        sample_path = QFileDialog.getOpenFileName(
                 caption='Import sample', filter='WavPack audio (*.wv)')
-        if sample_path_qstring:
-            sample_path = str(sample_path_qstring.toUtf8())
+        if sample_path:
             success = sample_params.import_sample(sample_id, sample_path)
             if success:
                 self._updater.signal_update(set([
