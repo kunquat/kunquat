@@ -64,7 +64,7 @@ class PatternInstance():
 
     def subscript(self, number):
         nums = [int(i) for i in str(number)]
-        subs = [unichr(0x2080 + i) for i in nums]
+        subs = [chr(0x2080 + i) for i in nums]
         return ''.join(subs)
 
     def get_name(self):
