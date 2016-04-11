@@ -430,8 +430,7 @@ class StreamTargetProcEditor(QComboBox):
         if index < 0:
             return
 
-        new_target_proc_id = self.itemData(index)
-        new_target_proc_num = int(new_target_proc_id.split('_')[-1], 16)
+        new_target_proc_num = self.itemData(index)
 
         stream_name = self._context
 
