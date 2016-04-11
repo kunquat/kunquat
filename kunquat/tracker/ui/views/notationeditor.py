@@ -2368,8 +2368,7 @@ class KeyNoteSelector(QComboBox):
         octave_id = notation_manager.get_editor_selected_octave_id()
         key_index = notation_manager.get_editor_selected_key_index()
 
-        cents, success = self.itemData(index).toDouble()
-        assert success
+        cents = self.itemData(index)
         notation.set_key_cents(octave_id, key_index, cents)
         self._updater.signal_update(set([
             'signal_notation', 'signal_notation_editor_key']))
