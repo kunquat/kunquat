@@ -830,12 +830,12 @@ class RatioValidator(QValidator):
     def validate(self, contents, pos):
         in_str = str(contents)
         if not in_str:
-            return (QValidator.Intermediate, pos)
+            return (QValidator.Intermediate, contents, pos)
 
         if '/' in in_str:
             parts = in_str.split('/')
             if len(parts) != 2:
-                return (QValidator.Invalid, pos)
+                return (QValidator.Invalid, contents, pos)
             nums = []
             for part in parts:
                 if not part.strip():
@@ -843,25 +843,25 @@ class RatioValidator(QValidator):
                 try:
                     nums.append(int(part))
                 except ValueError:
-                    return (QValidator.Invalid, pos)
+                    return (QValidator.Invalid, contents, pos)
             if any(num < 0 for num in nums):
-                return (QValidator.Invalid, pos)
+                return (QValidator.Invalid, contents, pos)
             if len(nums) < 2:
-                return (QValidator.Intermediate, pos)
+                return (QValidator.Intermediate, contents, pos)
             if all(num > 0 for num in nums) and nums[0] > nums[1]:
-                return (QValidator.Acceptable, pos)
-            return (QValidator.Intermediate, pos)
+                return (QValidator.Acceptable, contents, pos)
+            return (QValidator.Intermediate, contents, pos)
         else:
             try:
                 value = float(in_str)
             except ValueError:
-                return (QValidator.Invalid, pos)
+                return (QValidator.Invalid, contents, pos)
             if value < 0:
-                return (QValidator.Invalid, pos)
+                return (QValidator.Invalid, contents, pos)
             if value == 0:
-                return (QValidator.Intermediate, pos)
+                return (QValidator.Intermediate, contents, pos)
 
-        return (QValidator.Acceptable, pos)
+        return (QValidator.Acceptable, contents, pos)
 
 
 class OctaveRatio(QWidget):

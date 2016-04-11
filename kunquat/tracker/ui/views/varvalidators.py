@@ -23,18 +23,18 @@ class IntValidator(QValidator):
     def validate(self, contents, pos):
         in_str = str(contents)
         if not in_str:
-            return (QValidator.Intermediate, pos)
+            return (QValidator.Intermediate, contents, pos)
 
         stripped = in_str.strip()
         if stripped in ('+', '-'):
-            return (QValidator.Intermediate, pos)
+            return (QValidator.Intermediate, contents, pos)
 
         try:
             value = int(stripped)
         except ValueError:
-            return (QValidator.Invalid, pos)
+            return (QValidator.Invalid, contents, pos)
 
-        return (QValidator.Acceptable, pos)
+        return (QValidator.Acceptable, contents, pos)
 
 
 class FloatValidator(QValidator):
@@ -45,17 +45,17 @@ class FloatValidator(QValidator):
     def validate(self, contents, pos):
         in_str = str(contents)
         if not in_str:
-            return (QValidator.Intermediate, pos)
+            return (QValidator.Intermediate, contents, pos)
 
         stripped = in_str.strip()
         if stripped in ('+', '-', '.', '+.', '-.'):
-            return (QValidator.Intermediate, pos)
+            return (QValidator.Intermediate, contents, pos)
 
         try:
             value = float(in_str)
         except ValueError:
-            return (QValidator.Invalid, pos)
+            return (QValidator.Invalid, contents, pos)
 
-        return (QValidator.Acceptable, pos)
+        return (QValidator.Acceptable, contents, pos)
 
 

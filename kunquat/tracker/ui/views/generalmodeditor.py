@@ -431,25 +431,24 @@ class UInt63SpinBox(QAbstractSpinBox):
     def text(self):
         return str(self._value)
 
-    def fixup(self, in_qstring):
-        if not in_qstring:
-            in_qstring.append('0')
-        return QAbstractSpinBox.fixup(self, in_qstring)
-
-    def validate(self, in_qstring, pos):
-        in_str = str(in_qstring)
+    def fixup(self, in_str):
         if not in_str:
-            return (QValidator.Intermediate, pos)
+            in_str = '0'
+        return QAbstractSpinBox.fixup(self, in_str)
+
+    def validate(self, in_str, pos):
+        if not in_str:
+            return (QValidator.Intermediate, in_str, pos)
 
         try:
             value = int(in_str)
         except ValueError:
-            return (QValidator.Invalid, pos)
+            return (QValidator.Invalid, in_str, pos)
 
         if value >= self._LIMIT:
-            return (QValidator.Invalid, pos)
+            return (QValidator.Invalid, in_str, pos)
 
-        return (QValidator.Acceptable, pos)
+        return (QValidator.Acceptable, in_str, pos)
 
     def minimumSizeHint(self):
         if not self._minimum_size:

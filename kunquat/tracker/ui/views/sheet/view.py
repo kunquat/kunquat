@@ -42,9 +42,9 @@ class TriggerTypeValidator(QValidator):
     def validate(self, contents, pos):
         in_str = str(contents)
         if in_str in events.trigger_events_by_name:
-            return (QValidator.Acceptable, pos)
+            return (QValidator.Acceptable, contents, pos)
         else:
-            return (QValidator.Intermediate, pos)
+            return (QValidator.Intermediate, contents, pos)
 
 
 class TriggerArgumentValidator(QValidator):
@@ -53,7 +53,7 @@ class TriggerArgumentValidator(QValidator):
         QValidator.__init__(self)
 
     def validate(self, contents, pos):
-        return (QValidator.Acceptable, pos)
+        return (QValidator.Acceptable, contents, pos)
 
 
 class FieldEdit(QLineEdit):

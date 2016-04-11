@@ -45,8 +45,8 @@ class VarNameValidator(QValidator):
         in_str = str(contents)
         status = get_var_name_validation_status(in_str)
         if (status == QValidator.Acceptable) and (in_str in self._used_names):
-            return (QValidator.Intermediate, pos)
-        return (status, pos)
+            return (QValidator.Intermediate, contents, pos)
+        return (status, contents, pos)
 
 
 class MaybeVarNameValidator(QValidator):
@@ -58,11 +58,11 @@ class MaybeVarNameValidator(QValidator):
     def validate(self, contents, pos):
         in_str = str(contents)
         if not in_str:
-            return (QValidator.Acceptable, pos)
+            return (QValidator.Acceptable, contents, pos)
 
         status = get_var_name_validation_status(in_str)
         if (status == QValidator.Acceptable) and (in_str in self._used_names):
-            return (QValidator.Intermediate, pos)
-        return (status, pos)
+            return (QValidator.Intermediate, contents, pos)
+        return (status, contents, pos)
 
 

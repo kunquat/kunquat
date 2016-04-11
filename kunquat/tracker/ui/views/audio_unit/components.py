@@ -1255,8 +1255,8 @@ class BindTargetNameValidator(QValidator):
         parts = in_str.split('/')
         status = min(get_var_name_validation_status(part) for part in parts)
         if (status == QValidator.Acceptable) and (in_str in self._used_names):
-            return (QValidator.Intermediate, pos)
-        return (status, pos)
+            return (QValidator.Intermediate, contents, pos)
+        return (status, contents, pos)
 
 
 class BindTargetNameEditor(NameEditor):
@@ -1368,9 +1368,9 @@ class ExpressionValidator(QValidator):
 
         ranges_ok = all(0x20 <= ord(ch) <= 0x7e for ch in in_str)
         if not ranges_ok:
-            return (QValidator.Invalid, pos)
+            return (QValidator.Invalid, contents, pos)
 
-        return (QValidator.Acceptable, pos)
+        return (QValidator.Acceptable, contents, pos)
 
 
 class BindTargetExpressionEditor(QWidget):
