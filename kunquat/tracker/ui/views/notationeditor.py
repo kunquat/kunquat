@@ -1925,8 +1925,7 @@ class Note(QWidget):
         self._updater.signal_update(set([
             'signal_notation', 'signal_notation_editor_notes']))
 
-    def _change_name(self, name_qstring):
-        name = str(name_qstring)
+    def _change_name(self, name):
         notation_manager = self._ui_model.get_notation_manager()
         notation = notation_manager.get_editor_selected_notation()
         notation.set_note_name(notation_manager.get_editor_selected_note_index(), name)

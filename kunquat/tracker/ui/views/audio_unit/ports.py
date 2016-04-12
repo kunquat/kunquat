@@ -312,9 +312,7 @@ class PortEditor(QWidget):
             parent_signal = 'signal_connections'
         return set([au_signal, parent_signal])
 
-    def _change_name(self, name_qstring):
-        name = str(name_qstring)
-
+    def _change_name(self, name):
         port_ids = self._get_port_ids()
         port_id = port_ids[self._index]
 

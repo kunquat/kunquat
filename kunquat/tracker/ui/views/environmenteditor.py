@@ -343,18 +343,18 @@ class VarValueEditor(QWidget):
         self._change_value(new_value)
 
     def _change_int_value(self):
-        new_qstring = self._editors[int].text()
-        new_value = int(str(new_qstring))
+        new_str = self._editors[int].text()
+        new_value = int(new_str)
         self._change_value(new_value)
 
     def _change_float_value(self):
-        new_qstring = self._editors[float].text()
-        new_value = float(str(new_qstring))
+        new_str = self._editors[float].text()
+        new_value = float(new_str)
         self._change_value(new_value)
 
     def _change_tstamp_value(self):
-        new_qstring = self._editors[tstamp.Tstamp].text()
-        new_value = tstamp.Tstamp(float(str(new_qstring)))
+        new_str = self._editors[tstamp.Tstamp].text()
+        new_value = tstamp.Tstamp(float(new_str))
         self._change_value(new_value)
 
 

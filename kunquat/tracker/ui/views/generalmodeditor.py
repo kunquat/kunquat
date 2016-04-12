@@ -106,8 +106,7 @@ class Title(QLineEdit):
             self.setText(title)
             self.blockSignals(old_block)
 
-    def _change_title(self, text_qstring):
-        title = str(text_qstring)
+    def _change_title(self, title):
         module = self._ui_model.get_module()
         module.set_title(title)
         self._updater.signal_update(set(['signal_title']))
@@ -388,9 +387,9 @@ class UInt63SpinBox(QAbstractSpinBox):
     def get_value(self):
         return self._value
 
-    def _change_value(self, in_qstring):
+    def _change_value(self, value_str):
         try:
-            value = int(str(in_qstring))
+            value = int(value_str)
         except ValueError:
             return
 

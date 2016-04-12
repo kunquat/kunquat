@@ -55,8 +55,7 @@ class Name(QWidget):
             self._edit.setText(vis_text)
         self._edit.blockSignals(old_block)
 
-    def _text_edited(self, text_qstring):
-        text = str(text_qstring)
+    def _text_edited(self, text):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         au.set_name(text)

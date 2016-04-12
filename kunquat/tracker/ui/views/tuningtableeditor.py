@@ -181,8 +181,7 @@ class TuningTableEditor(QWidget):
         self._tuning_center.setCurrentIndex(ref_note_index)
         self._tuning_center.blockSignals(old_block)
 
-    def _change_name(self, name_qstring):
-        name = str(name_qstring)
+    def _change_name(self, name):
         table = self._get_tuning_table()
         table.set_name(name)
         self._updater.signal_update(set(['signal_tuning_tables']))

@@ -236,9 +236,7 @@ class HitName(QWidget):
             self._edit.setText(name)
         self._edit.blockSignals(old_block)
 
-    def _change_name(self, text_qstring):
-        name = str(text_qstring)
-
+    def _change_name(self, name):
         hit = _get_current_hit(self._ui_model, self._au_id)
         hit.set_name(name)
         self._updater.signal_update(set([

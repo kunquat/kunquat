@@ -870,18 +870,18 @@ class ControlVariableValueEditor(QWidget):
         self._change_value(new_value)
 
     def _change_int_value(self):
-        new_qstring = self._editor.text()
-        new_value = int(str(new_qstring))
+        new_str = self._editor.text()
+        new_value = int(new_str)
         self._change_value(new_value)
 
     def _change_float_value(self):
-        new_qstring = self._editor.text()
-        new_value = float(str(new_qstring))
+        new_str = self._editor.text()
+        new_value = float(new_str)
         self._change_value(new_value)
 
     def _change_tstamp_value(self):
-        new_qstring = self._editor.text()
-        new_value = tstamp.Tstamp(float(str(new_qstring)))
+        new_str = self._editor.text()
+        new_value = tstamp.Tstamp(float(new_str))
         self._change_value(new_value)
 
     # Protected interface
@@ -1431,12 +1431,7 @@ class BindTargetExpressionEditor(QWidget):
             self._editor.setText(expr)
         self._editor.blockSignals(old_block)
 
-    def _change_expression(self, expr_qstring):
-        try:
-            expr = str(expr_qstring)
-        except ValueError:
-            return
-
+    def _change_expression(self, expr):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
