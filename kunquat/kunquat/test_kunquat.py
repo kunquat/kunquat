@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -15,8 +15,8 @@
 import doctest
 import unittest
 
-import kunquat as wrapper
-from kunquat import Kunquat
+from . import kunquat as wrapper
+from .kunquat import Kunquat
 
 
 def load_tests(loader, tests, ignore):
