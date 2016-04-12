@@ -25,7 +25,7 @@ _BANK_SIZE = 32
 class HitSelector(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
 
         cb_info = {
@@ -66,7 +66,7 @@ class HitKeyboardLayout(QWidget):
     _ROW_LENGTHS = [9, 9, 7, 7]
 
     def __init__(self, cb_info):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._cb_info = cb_info
         self._get_selected_hit_info = cb_info['get_hit_info']
@@ -122,7 +122,7 @@ class HitKeyboardLayout(QWidget):
 class HitBankSelector(QWidget):
 
     def __init__(self, cb_info):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._cb_info = cb_info
         self._get_selected_hit_info = cb_info['get_hit_info']
@@ -153,7 +153,7 @@ class HitBankSelector(QWidget):
 class HitBankButton(QPushButton):
 
     def __init__(self, cb_info, index):
-        QPushButton.__init__(self)
+        super().__init__()
 
         self._get_selected_hit_info = cb_info['get_hit_info']
         self._set_selected_hit_info = cb_info['set_hit_info']
@@ -179,7 +179,7 @@ class HitBankButton(QPushButton):
 class HitButton(QPushButton):
 
     def __init__(self, cb_info, index_offset):
-        QPushButton.__init__(self)
+        super().__init__()
 
         self.setFixedSize(QSize(60, 60))
         self.setCheckable(True)

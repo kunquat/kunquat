@@ -20,7 +20,7 @@ from .name import Name
 class InfoEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._au_id = None
         self._name = Name()

@@ -21,7 +21,7 @@ from kunquat.tracker.ui.views.headerline import HeaderLine
 class Ports(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._input_ports = InputPorts()
         self._output_ports = OutputPorts()
@@ -49,7 +49,7 @@ class Ports(QWidget):
 class PortsEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
 
@@ -130,7 +130,7 @@ class OutputPorts(PortsEditor):
 class PortList(EditorList):
 
     def __init__(self, get_add_text, get_port_ids, get_free_port_id):
-        EditorList.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
 
@@ -190,7 +190,7 @@ class PortList(EditorList):
 class PortAdder(QPushButton):
 
     def __init__(self, get_add_text, get_free_port_id):
-        QPushButton.__init__(self, get_add_text())
+        super().__init__(get_add_text())
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -235,7 +235,7 @@ class PortAdder(QPushButton):
 class PortEditor(QWidget):
 
     def __init__(self, index, get_port_ids):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None

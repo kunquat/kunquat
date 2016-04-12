@@ -21,7 +21,7 @@ from kunquat.tracker.ui.views.varnamevalidator import VarNameValidator
 class Expressions(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._expr_list = ExpressionList()
         self._expr_editor = ExpressionEditor()
@@ -50,7 +50,7 @@ class Expressions(QWidget):
 class ExpressionListToolBar(QToolBar):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -129,7 +129,7 @@ class ExpressionListToolBar(QToolBar):
 class ExpressionListModel(QAbstractListModel):
 
     def __init__(self):
-        QAbstractListModel.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -183,7 +183,7 @@ class ExpressionListModel(QAbstractListModel):
 class ExpressionListView(QListView):
 
     def __init__(self):
-        QListView.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -220,7 +220,7 @@ class ExpressionListView(QListView):
 class ExpressionList(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -273,7 +273,7 @@ class ExpressionList(QWidget):
 class ExpressionName(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -352,7 +352,7 @@ class ExpressionName(QWidget):
 class ExpressionEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._name = ExpressionName()
 

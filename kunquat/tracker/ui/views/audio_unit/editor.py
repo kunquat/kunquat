@@ -26,7 +26,7 @@ from .testbutton import TestButton
 class Editor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._au_id = None
         self._control_manager = None
@@ -112,7 +112,7 @@ class Editor(QWidget):
 class TestPanel(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
 
@@ -152,7 +152,7 @@ class TestPanel(QWidget):
 class TestExpression(QComboBox):
 
     def __init__(self, index):
-        QComboBox.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None

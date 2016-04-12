@@ -18,7 +18,7 @@ from PyQt4.QtGui import *
 class TestButton(QPushButton):
 
     def __init__(self):
-        QPushButton.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._au_id = None
         self._control_manager = None

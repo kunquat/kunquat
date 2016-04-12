@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -20,7 +20,7 @@ from kunquat.tracker.ui.views.numberslider import NumberSlider
 class AuNumSlider(NumberSlider):
 
     def __init__(self, decimal_count, min_val, max_val, title='', width_txt=''):
-        NumberSlider.__init__(self, decimal_count, min_val, max_val, title, width_txt)
+        super().__init__(decimal_count, min_val, max_val, title, width_txt)
         self._au_id = None
         self._ui_model = None
         self._updater = None
