@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013
+# Author: Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -23,9 +23,9 @@ becomes available in major distributions, this module will be removed.
 
 from __future__ import division, print_function
 import ctypes
-import Queue
+import queue
 
-from pulseaudio_def import *
+from .pulseaudio_def import *
 
 __all__ = ['Simple', 'PulseAudioError']
 
@@ -78,8 +78,8 @@ class Async(object):
         self._ml = None
         self._context = None
         self._stream = None
-        self._context_q = Queue.Queue()
-        self._stream_q = Queue.Queue()
+        self._context_q = queue.Queue()
+        self._stream_q = queue.Queue()
 
         # Create C callback objects
         def cs_cb(context, userdata):
@@ -119,7 +119,8 @@ class Async(object):
                     'Could not retrieve abstraction layer vtable')
 
         # Create context
-        self._context = _pa.pa_context_new(api, self._client_name)
+        self._context = _pa.pa_context_new(
+                api, bytes(self._client_name, encoding='utf-8'))
         if not self._context:
             raise PulseAudioError('Could not create context')
 
@@ -149,7 +150,7 @@ class Async(object):
         ss = SampleSpec(PA_SAMPLE_FLOAT32, self._rate, self._channels)
         self._stream = _pa.pa_stream_new(
                 self._context,
-                self._stream_name,
+                bytes(self._stream_name, encoding='utf-8'),
                 ss, None)
         if not self._stream:
             raise PulseAudioError('Could not create stream')
@@ -225,7 +226,7 @@ class Async(object):
             assert len(bufs) == self._channels
 
             # Fill buffer with audio data
-            for ch in xrange(self._channels):
+            for ch in range(self._channels):
                 received_frames = len(bufs[ch])
                 if received_frames != frame_count:
                     raise PulseAudioError(
