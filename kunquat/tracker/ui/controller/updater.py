@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2014
+#          Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -13,7 +13,7 @@
 #
 
 
-class Updater(object):
+class Updater():
 
     def __init__(self):
         self._update_signals = set(['signal_init'])
