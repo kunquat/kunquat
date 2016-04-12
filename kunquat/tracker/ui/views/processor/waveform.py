@@ -28,7 +28,7 @@ DEFAULT_CONFIG = {
 class Waveform(QWidget):
 
     def __init__(self, config={}):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._config = None
         self._set_config(config)

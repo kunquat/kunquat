@@ -32,7 +32,7 @@ class SampleProc(QTabWidget):
         return 'Sample synthesis'
 
     def __init__(self):
-        QTabWidget.__init__(self)
+        super().__init__()
 
         self._note_map_editor = NoteMapEditor()
         self._hit_map_editor = HitMapEditor()
@@ -66,7 +66,7 @@ class SampleProc(QTabWidget):
 class NoteMapEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._note_map = NoteMap()
         self._note_map_entry = NoteMapEntry()
@@ -141,7 +141,7 @@ class RandomListMap(QWidget):
     _STATE_MOVING = 'moving'
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -449,7 +449,7 @@ class RandomListMap(QWidget):
 class NoteMap(RandomListMap):
 
     def __init__(self):
-        RandomListMap.__init__(self)
+        super().__init__()
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -494,14 +494,14 @@ class NoteMap(RandomListMap):
 class TightLabel(QLabel):
 
     def __init__(self, text):
-        QLabel.__init__(self, text)
+        super().__init__(text)
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
 
 
 class NoteMapEntry(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -607,7 +607,7 @@ class NoteMapEntry(QWidget):
 class RandomList(EditorList):
 
     def __init__(self):
-        EditorList.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -711,7 +711,7 @@ class RandomList(EditorList):
 class RandomEntryAdder(QPushButton):
 
     def __init__(self, cb_info):
-        QPushButton.__init__(self, 'Add sample entry')
+        super().__init__('Add sample entry')
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -748,7 +748,7 @@ class RandomEntryAdder(QPushButton):
 class RandomEntryEditor(QWidget):
 
     def __init__(self, cb_info, index):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -913,7 +913,7 @@ class RandomEntryEditor(QWidget):
 class NoteRandomList(RandomList):
 
     def __init__(self):
-        RandomList.__init__(self)
+        super().__init__()
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -941,7 +941,7 @@ class NoteRandomList(RandomList):
 class HitMapEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._hit_selector = SampleHitSelector()
         self._hit_map = HitMap()
@@ -979,7 +979,7 @@ class HitMapEditor(QWidget):
 class SampleHitSelector(HitSelector):
 
     def __init__(self):
-        HitSelector.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -1025,7 +1025,7 @@ class SampleHitSelector(HitSelector):
 class HitMap(RandomListMap):
 
     def __init__(self):
-        RandomListMap.__init__(self)
+        super().__init__()
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -1089,7 +1089,7 @@ class HitMap(RandomListMap):
 class HitMapEntry(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -1187,7 +1187,7 @@ class HitMapEntry(QWidget):
 class HitRandomList(RandomList):
 
     def __init__(self):
-        RandomList.__init__(self)
+        super().__init__()
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -1222,7 +1222,7 @@ class HitRandomList(RandomList):
 class Samples(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._sample_list = SampleList()
         self._sample_editor = SampleEditor()
@@ -1254,7 +1254,7 @@ class Samples(QWidget):
 class SampleListToolBar(QToolBar):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -1354,7 +1354,7 @@ class SampleListToolBar(QToolBar):
 class ImportErrorDialog(QDialog):
 
     def __init__(self, icon_bank, error_msg):
-        QDialog.__init__(self)
+        super().__init__()
 
         error_img_path = icon_bank.get_icon_path('error')
         error_label = QLabel()
@@ -1391,7 +1391,7 @@ class ImportErrorDialog(QDialog):
 class SampleListModel(QAbstractListModel):
 
     def __init__(self):
-        QAbstractListModel.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -1448,7 +1448,7 @@ class SampleListModel(QAbstractListModel):
 class SampleListView(QListView):
 
     def __init__(self):
-        QListView.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -1486,7 +1486,7 @@ class SampleListView(QListView):
             self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def setModel(self, model):
-        QListView.setModel(self, model)
+        super().setModel(model)
 
         selection_model = self.selectionModel()
         QObject.connect(
@@ -1498,19 +1498,19 @@ class SampleListView(QListView):
         if self._keyboard_mapper.is_handled_key(event):
             event.ignore()
         else:
-            QListView.keyPressEvent(self, event)
+            super().keyPressEvent(event)
 
     def keyReleaseEvent(self, event):
         if self._keyboard_mapper.is_handled_key(event):
             event.ignore()
         else:
-            QListView.keyReleaseEvent(self, event)
+            super().keyReleaseEvent(event)
 
 
 class SampleList(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -1570,7 +1570,7 @@ class SampleList(QWidget):
 class SampleEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None

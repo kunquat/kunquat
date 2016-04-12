@@ -26,7 +26,7 @@ class ForceProc(QWidget):
         return 'Force'
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._global_force = GlobalForceSlider()
         self._force_variation = ForceVarSlider()
@@ -79,7 +79,7 @@ class ForceProc(QWidget):
 class ForceNumSlider(ProcNumSlider):
 
     def __init__(self, decimals, min_value, max_value):
-        ProcNumSlider.__init__(self, decimals, min_value, max_value, '')
+        super().__init__(decimals, min_value, max_value, '')
 
     def _get_force_params(self):
         module = self._ui_model.get_module()
@@ -92,7 +92,7 @@ class ForceNumSlider(ProcNumSlider):
 class GlobalForceSlider(ForceNumSlider):
 
     def __init__(self):
-        ForceNumSlider.__init__(self, 1, -64.0, 18.0)
+        super().__init__(1, -64.0, 18.0)
 
     def _get_update_signal_type(self):
         return '_'.join(('signal_force_global_force', self._proc_id))
@@ -110,7 +110,7 @@ class GlobalForceSlider(ForceNumSlider):
 class ForceVarSlider(ForceNumSlider):
 
     def __init__(self):
-        ForceNumSlider.__init__(self, 1, 0.0, 32.0)
+        super().__init__(1, 0.0, 32.0)
 
     def _get_update_signal_type(self):
         return '_'.join(('signal_force_force_variation', self._proc_id))
@@ -128,7 +128,7 @@ class ForceVarSlider(ForceNumSlider):
 class RampReleaseToggle(QCheckBox):
 
     def __init__(self):
-        QCheckBox.__init__(self)
+        super().__init__()
         self.setText('Ramp release')
         self._au_id = None
         self._proc_id = None
@@ -189,7 +189,7 @@ class RampReleaseToggle(QCheckBox):
 class ForceEnvelopeBase(TimeEnvelope):
 
     def __init__(self):
-        TimeEnvelope.__init__(self)
+        super().__init__()
         self._proc_id = None
 
     def set_proc_id(self, proc_id):
@@ -206,7 +206,7 @@ class ForceEnvelopeBase(TimeEnvelope):
 class ForceEnvelope(ForceEnvelopeBase):
 
     def __init__(self):
-        ForceEnvelopeBase.__init__(self)
+        super().__init__()
 
     def _get_title(self):
         return 'Force envelope'
@@ -260,7 +260,7 @@ class ForceEnvelope(ForceEnvelopeBase):
 class ForceReleaseEnvelope(ForceEnvelopeBase):
 
     def __init__(self):
-        ForceEnvelopeBase.__init__(self)
+        super().__init__()
 
     def _get_title(self):
         return 'Force release envelope'

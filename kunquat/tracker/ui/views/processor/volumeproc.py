@@ -24,7 +24,7 @@ class VolumeProc(QWidget):
         return 'Volume'
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -54,7 +54,7 @@ class VolumeProc(QWidget):
 class VolumeSlider(ProcNumSlider):
 
     def __init__(self):
-        ProcNumSlider.__init__(self, 2, -64.0, 24.0, title='Volume')
+        super().__init__(2, -64.0, 24.0, title='Volume')
 
     def _get_vol_params(self):
         module = self._ui_model.get_module()

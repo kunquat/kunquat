@@ -27,7 +27,7 @@ class DelayProc(QWidget):
         return 'Delay'
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._max_delay = MaxDelay()
         self._init_delay = InitDelay()
@@ -63,7 +63,7 @@ class DelayProc(QWidget):
 class MaxDelay(QDoubleSpinBox):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -116,7 +116,7 @@ class MaxDelay(QDoubleSpinBox):
 class InitDelay(ProcNumSlider):
 
     def __init__(self):
-        ProcNumSlider.__init__(self, 4, 0, 60, title='')
+        super().__init__(4, 0, 60, title='')
         self.set_number(0)
 
     def _update_value(self):

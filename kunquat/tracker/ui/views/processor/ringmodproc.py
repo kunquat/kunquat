@@ -22,7 +22,7 @@ class RingmodProc(QWidget):
         return 'Ring modulation'
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         v = QVBoxLayout()
         v.addWidget(QLabel('The Ring modulator does not support additional parameters.'))

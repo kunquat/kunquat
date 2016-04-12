@@ -23,7 +23,7 @@ from . import proctypeinfo
 class Editor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -113,7 +113,7 @@ class Editor(QWidget):
 class HeaderFrame(QWidget):
 
     def __init__(self, header_text, contents):
-        QWidget.__init__(self)
+        super().__init__()
 
         v = QVBoxLayout()
         v.setMargin(0)
@@ -131,7 +131,7 @@ class Signals(QWidget):
     ]
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None

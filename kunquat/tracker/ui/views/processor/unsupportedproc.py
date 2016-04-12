@@ -22,7 +22,7 @@ class UnsupportedProc(QWidget):
         return '(Unsupported)'
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
     def set_au_id(self, au_id):

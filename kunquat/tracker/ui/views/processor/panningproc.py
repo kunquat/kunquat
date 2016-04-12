@@ -24,7 +24,7 @@ class PanningProc(QWidget):
         return 'Panning'
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._panning = PanningSlider()
 
@@ -49,7 +49,7 @@ class PanningProc(QWidget):
 class PanningSlider(ProcNumSlider):
 
     def __init__(self):
-        ProcNumSlider.__init__(self, 2, -1.0, 1.0, title='Panning')
+        super().__init__(2, -1.0, 1.0, title='Panning')
 
     def _get_panning_params(self):
         module = self._ui_model.get_module()

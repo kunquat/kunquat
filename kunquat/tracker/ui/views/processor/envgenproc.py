@@ -29,7 +29,7 @@ class EnvgenProc(QWidget):
         return 'Envelope generation'
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -123,7 +123,7 @@ class EnvgenProc(QWidget):
 class GlobalAdjustSlider(ProcNumSlider):
 
     def __init__(self):
-        ProcNumSlider.__init__(self, 2, -128.0, 128.0, title='Global adjust')
+        super().__init__(2, -128.0, 128.0, title='Global adjust')
         self.set_number(0)
 
     def _update_value(self):
@@ -142,7 +142,7 @@ class GlobalAdjustSlider(ProcNumSlider):
 class RangeEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -225,7 +225,7 @@ class RangeEditor(QWidget):
 class EgenTimeEnv(TimeEnvelope):
 
     def __init__(self):
-        TimeEnvelope.__init__(self)
+        super().__init__()
         self._proc_id = None
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
@@ -297,7 +297,7 @@ class EgenTimeEnv(TimeEnvelope):
 class ForceEnv(SimpleEnvelope):
 
     def __init__(self):
-        SimpleEnvelope.__init__(self)
+        super().__init__()
         self._proc_id = None
 
     def set_proc_id(self, proc_id):

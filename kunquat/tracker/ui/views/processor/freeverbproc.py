@@ -24,7 +24,7 @@ class FreeverbProc(QWidget):
         return 'Freeverb'
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -65,7 +65,7 @@ class FreeverbProc(QWidget):
 class FreeverbSlider(ProcNumSlider):
 
     def __init__(self, decimals, min_value, max_value):
-        ProcNumSlider.__init__(self, decimals, min_value, max_value, '')
+        super().__init__(decimals, min_value, max_value, '')
 
     def _get_fv_params(self):
         module = self._ui_model.get_module()
@@ -78,7 +78,7 @@ class FreeverbSlider(ProcNumSlider):
 class ReflSlider(FreeverbSlider):
 
     def __init__(self):
-        FreeverbSlider.__init__(self, 1, 0, 200)
+        super().__init__(1, 0, 200)
 
     def _get_update_signal_type(self):
         return '_'.join(('signal_freeverb_refl', self._proc_id))
@@ -96,7 +96,7 @@ class ReflSlider(FreeverbSlider):
 class DampSlider(FreeverbSlider):
 
     def __init__(self):
-        FreeverbSlider.__init__(self, 1, 0, 100)
+        super().__init__(1, 0, 100)
 
     def _get_update_signal_type(self):
         return '_'.join(('signal_freeverb_damp', self._proc_id))

@@ -18,7 +18,7 @@ from PyQt4.QtGui import *
 class Name(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
