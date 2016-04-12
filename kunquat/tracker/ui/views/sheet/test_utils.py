@@ -11,11 +11,11 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from itertools import islice, izip_longest
+from itertools import islice, zip_longest
 import unittest
 
 import kunquat.tracker.ui.model.tstamp as tstamp
-import utils
+from . import utils
 
 
 class TestUtils(unittest.TestCase):
@@ -34,7 +34,7 @@ class TestUtils(unittest.TestCase):
             self.assertEqual(offsets[0], 0)
             expected_px = 0
             lens = set()
-            for start, stop in izip_longest(offsets, islice(offsets, 1, None)):
+            for start, stop in zip_longest(offsets, islice(offsets, 1, None)):
                 if stop == None:
                     stop = tstamp.Tstamp(1, 0)
                 end = stop - tstamp.Tstamp(0, 1)
