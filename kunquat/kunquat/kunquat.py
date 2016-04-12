@@ -261,8 +261,8 @@ class Kunquat(BaseHandle):
         if '_handle' not in self.__dict__:
             self._handle = _kunquat.kqt_new_Handle()
             if not self._handle:
-                raise _get_error(json.loads(
-                                 _kunquat.kqt_Handle_get_error(0)))
+                error_str = str(_kunquat.kqt_Handle_get_error(0), encoding='utf-8')
+                raise _get_error(json.loads(error_str))
         self._track = None
         self._nanoseconds = 0
         self._audio_buffer_size = _kunquat.kqt_Handle_get_audio_buffer_size(
