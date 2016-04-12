@@ -15,7 +15,7 @@ from itertools import product
 import numbers
 import unittest
 
-import tstamp
+from . import tstamp
 
 
 def default_order(x, y):
