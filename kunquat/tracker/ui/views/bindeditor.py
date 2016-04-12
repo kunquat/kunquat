@@ -23,7 +23,7 @@ from .headerline import HeaderLine
 class BindEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -75,7 +75,7 @@ class BindEditor(QWidget):
 class BindListToolBar(QToolBar):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -130,7 +130,7 @@ class BindListToolBar(QToolBar):
 class BindListModel(QAbstractListModel):
 
     def __init__(self):
-        QAbstractListModel.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -179,7 +179,7 @@ class BindListModel(QAbstractListModel):
 class BindListView(QListView):
 
     def __init__(self):
-        QListView.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -201,7 +201,7 @@ class BindListView(QListView):
             self._updater.signal_update(set(['signal_bind']))
 
     def setModel(self, model):
-        QListView.setModel(self, model)
+        super().setModel(model)
 
         selection_model = self.selectionModel()
 
@@ -220,7 +220,7 @@ class BindListView(QListView):
 class BindList(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -263,7 +263,7 @@ class BindList(QWidget):
 class EventBox(QComboBox):
 
     def __init__(self, excluded=set()):
-        QComboBox.__init__(self)
+        super().__init__()
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
         self.update_names(excluded)
 
@@ -305,7 +305,7 @@ class EventBox(QComboBox):
 class SourceEventSelector(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -359,14 +359,14 @@ class SourceEventSelector(QWidget):
 class TightLabel(QLabel):
 
     def __init__(self, text):
-        QLabel.__init__(self, text)
+        super().__init__(text)
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
 
 
 class Constraints(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._cblist = ConstraintList()
 
@@ -387,7 +387,7 @@ class Constraints(QWidget):
 class ConstraintList(EditorList):
 
     def __init__(self):
-        EditorList.__init__(self)
+        super().__init__()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -435,7 +435,7 @@ class ConstraintList(EditorList):
 class ConstraintAdder(QPushButton):
 
     def __init__(self):
-        QPushButton.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -460,7 +460,7 @@ class ConstraintAdder(QPushButton):
 class ConstraintEditor(QWidget):
 
     def __init__(self, index):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -557,7 +557,7 @@ class ConstraintEditor(QWidget):
 class Targets(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._target_list = TargetList()
 
@@ -578,7 +578,7 @@ class Targets(QWidget):
 class TargetList(EditorList):
 
     def __init__(self):
-        EditorList.__init__(self)
+        super().__init__()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -626,7 +626,7 @@ class TargetList(EditorList):
 class TargetAdder(QPushButton):
 
     def __init__(self):
-        QPushButton.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -651,7 +651,7 @@ class TargetAdder(QPushButton):
 class TargetEditor(QWidget):
 
     def __init__(self, index):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 

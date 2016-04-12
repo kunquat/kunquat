@@ -23,7 +23,7 @@ from .logo import Logo
 class AboutMessage(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         default_font = QFont()
         default_family = default_font.defaultFamily()
@@ -92,7 +92,7 @@ class AboutMessage(QWidget):
 class About(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
 
         self._logo = Logo()

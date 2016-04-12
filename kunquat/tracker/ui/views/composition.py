@@ -21,7 +21,7 @@ from .sheet.sheet import Sheet
 class Composition(QFrame):
 
     def __init__(self):
-        QFrame.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._sheet = Sheet()
 

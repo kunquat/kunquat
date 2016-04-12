@@ -26,7 +26,7 @@ from .saving import get_instrument_save_path, get_effect_save_path
 class ConnectionsEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._toolbar = ConnectionsToolBar()
         self._connections = Connections()
@@ -54,7 +54,7 @@ class ConnectionsEditor(QWidget):
 class ConnectionsToolBar(QToolBar):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -272,7 +272,7 @@ def _get_au_conns_edit_signal_type(au_id):
 class EditingToggle(QPushButton):
 
     def __init__(self, text):
-        QPushButton.__init__(self, text)
+        super().__init__(text)
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -322,7 +322,7 @@ class EditingToggle(QPushButton):
 class HitEditingToggle(EditingToggle):
 
     def __init__(self):
-        EditingToggle.__init__(self, 'Edit hit:')
+        super().__init__('Edit hit:')
 
     def _get_update_signal_types(self):
         return set([
@@ -363,7 +363,7 @@ class HitEditingToggle(EditingToggle):
 class ExpressionEditingToggle(EditingToggle):
 
     def __init__(self):
-        EditingToggle.__init__(self, 'Edit expression:')
+        super().__init__('Edit expression:')
 
     def _get_update_signal_types(self):
         return set([
@@ -400,7 +400,7 @@ class ExpressionEditingToggle(EditingToggle):
 class HitSelector(QComboBox):
 
     def __init__(self):
-        QComboBox.__init__(self)
+        super().__init__()
 
     def set_au_id(self, au_id):
         self._au_id = au_id
@@ -461,7 +461,7 @@ class HitSelector(QComboBox):
 class ExpressionSelector(QComboBox):
 
     def __init__(self):
-        QComboBox.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
 

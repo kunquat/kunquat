@@ -20,6 +20,7 @@ from PyQt4.QtGui import *
 from kunquat.tracker.ui.model.patterninstance import PatternInstance
 from kunquat.tracker.ui.model.song import Song
 
+
 class AlbumTreeModelNode():
 
     def __init__(self, payload, parent=None):
@@ -49,7 +50,7 @@ class AlbumTreeModelNode():
 class AlbumTreeModel(QAbstractItemModel):
 
     def __init__(self):
-        QAbstractItemModel.__init__(self)
+        super().__init__()
 
         # We store the nodes because PyQt fails reference handling
         self._songs = []
@@ -151,7 +152,7 @@ class AlbumTreeModel(QAbstractItemModel):
         return Qt.MoveAction
 
     def flags(self, index):
-        default_flags = QAbstractItemModel.flags(self, index)
+        default_flags = super().flags(index)
         if not index.isValid():
             return default_flags
         node = index.internalPointer()
@@ -248,7 +249,7 @@ class AlbumTreeModel(QAbstractItemModel):
 class AlbumTree(QTreeView):
 
     def __init__(self):
-        QTreeView.__init__(self)
+        super().__init__()
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
@@ -261,13 +262,13 @@ class AlbumTree(QTreeView):
                 (event.key() in (Qt.Key_Up, Qt.Key_Down))):
             event.ignore()
         else:
-            QTreeView.keyPressEvent(self, event)
+            super().keyPressEvent(event)
 
 
 class Orderlist(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
         self._album = None

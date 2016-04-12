@@ -23,7 +23,7 @@ from .notationeditor import RatioValidator
 class TuningTableEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._table_id = None
         self._ui_model = None
         self._updater = None
@@ -222,7 +222,7 @@ class TuningTableEditor(QWidget):
 class NotesToolBar(QToolBar):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._table_id = None
         self._ui_model = None
         self._updater = None
@@ -302,7 +302,7 @@ class NotesToolBar(QToolBar):
 class NoteTableModel(QAbstractTableModel):
 
     def __init__(self):
-        QAbstractTableModel.__init__(self)
+        super().__init__()
         self._table_id = None
         self._ui_model = None
         self._updater = None
@@ -377,7 +377,7 @@ class NoteTableModel(QAbstractTableModel):
         return None
 
     def flags(self, index):
-        default_flags = QAbstractTableModel.flags(self, index)
+        default_flags = super().flags(index)
         if not index.isValid():
             return default_flags
         if not 0 <= index.row() < len(self._items):
@@ -429,7 +429,7 @@ class NoteTableModel(QAbstractTableModel):
 class NoteTableView(QTableView):
 
     def __init__(self):
-        QTableView.__init__(self)
+        super().__init__()
         self._table_id = None
         self._ui_model = None
         self._updater = None
@@ -469,7 +469,7 @@ class NoteTableView(QTableView):
         self._updater.signal_update(set([self._get_selection_signal_type()]))
 
     def setModel(self, model):
-        QTableView.setModel(self, model)
+        super().setModel(model)
 
         selection_model = self.selectionModel()
 
@@ -489,7 +489,7 @@ class NoteTableView(QTableView):
 class Notes(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._table_id = None
         self._ui_model = None
         self._updater = None

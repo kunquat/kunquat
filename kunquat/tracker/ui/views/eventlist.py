@@ -29,7 +29,7 @@ class EventListModel(QAbstractTableModel):
     HEADERS = ["#", "Chn", "Type", "Value", "Context"]
 
     def __init__(self):
-        QAbstractTableModel.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -101,7 +101,7 @@ class EventListModel(QAbstractTableModel):
 class EventTable(QTableView):
 
     def __init__(self):
-        QTableView.__init__(self)
+        super().__init__()
         self._focusbottom = True
 
         vscrollbar = self.verticalScrollBar()
@@ -115,7 +115,7 @@ class EventTable(QTableView):
                 self._on_valueChanged)
 
     def setModel(self, model):
-        QTableView.setModel(self, model)
+        super().setModel(model)
 
         hh = self.horizontalHeader()
         hh.resizeSection(0, 60)
@@ -137,7 +137,7 @@ class EventTable(QTableView):
 class EventFilterButton(QCheckBox):
 
     def __init__(self, context):
-        QWidget.__init__(self, DISP_CONTEXTS[context])
+        super().__init__(DISP_CONTEXTS[context])
         self._ui_model = None
         self._updater = None
         self._context = context
@@ -175,7 +175,7 @@ class EventFilterButton(QCheckBox):
 class EventFilterView(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         h = QHBoxLayout()
         self._mix_toggle = EventFilterButton('mix')
@@ -201,7 +201,7 @@ class EventFilterView(QWidget):
 class EventList(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
 
         self.setWindowTitle('Event Log')

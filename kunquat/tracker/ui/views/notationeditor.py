@@ -22,7 +22,7 @@ from .headerline import HeaderLine
 class NotationEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._notations = Notations()
         self._tuning_tables = TuningTables()
@@ -93,7 +93,7 @@ class NotationEditor(QWidget):
 class NotationListToolBar(QToolBar):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -162,7 +162,7 @@ class NotationListToolBar(QToolBar):
 class NotationListModel(QAbstractListModel):
 
     def __init__(self):
-        QAbstractListModel.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -242,7 +242,7 @@ class NotationListModel(QAbstractListModel):
 class NotationListView(QListView):
 
     def __init__(self):
-        QListView.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -270,7 +270,7 @@ class NotationListView(QListView):
             self._updater.signal_update(set(['signal_notation_editor_selection']))
 
     def setModel(self, model):
-        QListView.setModel(self, model)
+        super().setModel(model)
 
         selection_model = self.selectionModel()
 
@@ -289,7 +289,7 @@ class NotationListView(QListView):
 class Notations(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -333,7 +333,7 @@ class Notations(QWidget):
 class TuningTableListToolBar(QToolBar):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -402,7 +402,7 @@ class TuningTableListToolBar(QToolBar):
 class TuningTableListModel(QAbstractTableModel):
 
     def __init__(self):
-        QAbstractTableModel.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -501,7 +501,7 @@ class TuningTableListModel(QAbstractTableModel):
 class TuningTableListView(QTableView):
 
     def __init__(self):
-        QTableView.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -529,7 +529,7 @@ class TuningTableListView(QTableView):
             self._updater.signal_update(set(['signal_tuning_table_selection']))
 
     def setModel(self, model):
-        QTableView.setModel(self, model)
+        super().setModel(model)
 
         selection_model = self.selectionModel()
 
@@ -548,7 +548,7 @@ class TuningTableListView(QTableView):
 class TuningTables(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -612,7 +612,7 @@ class TuningTables(QWidget):
 class Template(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -720,7 +720,7 @@ class Template(QWidget):
 class CenterPitch(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -825,7 +825,7 @@ class CenterPitch(QWidget):
 class RatioValidator(QValidator):
 
     def __init__(self):
-        QValidator.__init__(self)
+        super().__init__()
 
     def validate(self, contents, pos):
         in_str = str(contents)
@@ -867,7 +867,7 @@ class RatioValidator(QValidator):
 class OctaveRatio(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -935,7 +935,7 @@ class OctaveRatio(QWidget):
 class TemplateOctaves(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -1045,7 +1045,7 @@ class TemplateOctaves(QWidget):
 class TemplateNotesToolBar(QToolBar):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -1119,7 +1119,7 @@ class TemplateNotesToolBar(QToolBar):
 class TemplateNoteTableModel(QAbstractTableModel):
 
     def __init__(self):
-        QAbstractTableModel.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -1186,7 +1186,7 @@ class TemplateNoteTableModel(QAbstractTableModel):
         return None
 
     def flags(self, index):
-        default_flags = QAbstractTableModel.flags(self, index)
+        default_flags = super().flags(index)
         if not index.isValid():
             return default_flags
         if not 0 <= index.row() < len(self._items):
@@ -1248,7 +1248,7 @@ class TemplateNoteTableModel(QAbstractTableModel):
 class TemplateNoteTableView(QTableView):
 
     def __init__(self):
-        QTableView.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -1276,7 +1276,7 @@ class TemplateNoteTableView(QTableView):
         self._updater.signal_update(set(['signal_notation_template_note_selection']))
 
     def setModel(self, model):
-        QTableView.setModel(self, model)
+        super().setModel(model)
 
         selection_model = self.selectionModel()
 
@@ -1296,7 +1296,7 @@ class TemplateNoteTableView(QTableView):
 class TemplateNotes(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -1343,7 +1343,7 @@ class TemplateNotes(QWidget):
 class OctaveListToolBar(QToolBar):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -1439,7 +1439,7 @@ class OctaveListToolBar(QToolBar):
 class OctaveListModel(QAbstractListModel):
 
     def __init__(self):
-        QAbstractListModel.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -1527,7 +1527,7 @@ class OctaveListModel(QAbstractListModel):
 class OctaveListView(QListView):
 
     def __init__(self):
-        QListView.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -1551,7 +1551,7 @@ class OctaveListView(QListView):
             self._updater.signal_update(set(['signal_notation_editor_octave_selection']))
 
     def setModel(self, model):
-        QListView.setModel(self, model)
+        super().setModel(model)
 
         selection_model = self.selectionModel()
 
@@ -1570,7 +1570,7 @@ class OctaveListView(QListView):
 class Octaves(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -1624,7 +1624,7 @@ class Octaves(QWidget):
 class NoteListToolBar(QToolBar):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -1698,7 +1698,7 @@ class NoteListToolBar(QToolBar):
 class NoteListModel(QAbstractListModel):
 
     def __init__(self):
-        QAbstractListModel.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -1753,7 +1753,7 @@ class NoteListModel(QAbstractListModel):
 class NoteListView(QListView):
 
     def __init__(self):
-        QListView.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -1776,7 +1776,7 @@ class NoteListView(QListView):
             self._updater.signal_update(set(['signal_notation_editor_note_selection']))
 
     def setModel(self, model):
-        QListView.setModel(self, model)
+        super().setModel(model)
 
         selection_model = self.selectionModel()
 
@@ -1795,7 +1795,7 @@ class NoteListView(QListView):
 class Notes(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -1849,7 +1849,7 @@ class Notes(QWidget):
 class Note(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -1936,7 +1936,7 @@ class Note(QWidget):
 class Keymap(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -1994,7 +1994,7 @@ _KEYS_MAX = 33
 class KeyCount(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -2060,7 +2060,7 @@ class KeyCount(QWidget):
 class KeyButton(QPushButton):
 
     def __init__(self, index):
-        QPushButton.__init__(self)
+        super().__init__()
         self._ui_model = None
 
         self._index = index
@@ -2090,7 +2090,7 @@ class KeyButton(QPushButton):
 class KeySelector(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -2169,7 +2169,7 @@ class KeySelector(QWidget):
 class KeyEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -2293,7 +2293,7 @@ class KeyEditor(QWidget):
 class KeyNoteSelector(QComboBox):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 

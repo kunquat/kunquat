@@ -23,7 +23,7 @@ from .typewriterpanel import TypewriterPanel
 class MainSplitter(QSplitter):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self.setOrientation(Qt.Vertical)
         self._composition = Composition()

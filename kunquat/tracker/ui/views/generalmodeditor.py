@@ -18,7 +18,7 @@ from PyQt4.QtGui import *
 class GeneralModEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._title = Title()
         self._authors = Authors()
@@ -77,7 +77,7 @@ class GeneralModEditor(QWidget):
 class Title(QLineEdit):
 
     def __init__(self):
-        QLineEdit.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -115,7 +115,7 @@ class Title(QLineEdit):
 class AuthorTableModel(QAbstractTableModel):
 
     def __init__(self):
-        QAbstractTableModel.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -167,7 +167,7 @@ class AuthorTableModel(QAbstractTableModel):
         return None
 
     def flags(self, index):
-        default_flags = QAbstractTableModel.flags(self, index)
+        default_flags = super().flags(index)
         if not index.isValid():
             return default_flags
         if index.row() != 0 or not 0 <= index.column() < len(self._items):
@@ -192,7 +192,7 @@ class AuthorTableModel(QAbstractTableModel):
 class Authors(QTableView):
 
     def __init__(self):
-        QTableView.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -258,13 +258,13 @@ class Authors(QTableView):
                 if index.isValid() and self.edit(index, self.EditKeyPressed, event):
                     event.accept()
                     return
-        return QTableView.keyPressEvent(self, event)
+        return super().keyPressEvent(event)
 
 
 class MixingVolume(QDoubleSpinBox):
 
     def __init__(self):
-        QDoubleSpinBox.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -304,7 +304,7 @@ class MixingVolume(QDoubleSpinBox):
 class RandomSeed(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -367,7 +367,7 @@ class UInt63SpinBox(QAbstractSpinBox):
     valueChanged = pyqtSignal(name='valueChanged')
 
     def __init__(self):
-        QAbstractSpinBox.__init__(self)
+        super().__init__()
 
         self._value = 0
         self._minimum_size = None
@@ -433,7 +433,7 @@ class UInt63SpinBox(QAbstractSpinBox):
     def fixup(self, in_str):
         if not in_str:
             in_str = '0'
-        return QAbstractSpinBox.fixup(self, in_str)
+        return super().fixup(in_str)
 
     def validate(self, in_str, pos):
         if not in_str:

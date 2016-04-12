@@ -21,7 +21,7 @@ from .octavebutton import OctaveButton
 class OctaveSelector(QFrame):
 
     def __init__(self):
-        QFrame.__init__(self)
+        super().__init__()
         self.setFocusPolicy(Qt.NoFocus)
         self._ui_model = None
         self._updater = None

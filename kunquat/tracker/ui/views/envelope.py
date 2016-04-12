@@ -91,7 +91,7 @@ class Envelope(QWidget):
     envelopeChanged = pyqtSignal(name='envelopeChanged')
 
     def __init__(self, config={}):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._range_x = None
         self._range_y = None

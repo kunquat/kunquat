@@ -19,7 +19,7 @@ from PyQt4.QtGui import *
 class InstrumentSelect(QComboBox):
 
     def __init__(self):
-        QComboBox.__init__(self)
+        super().__init__()
         self._updater = None
         self._control_manager = None
         self._module = None

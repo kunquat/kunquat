@@ -257,13 +257,13 @@ class AbstractAxisRenderer():
 class HorizontalAxisRenderer(AbstractAxisRenderer):
 
     def __init__(self):
-        AbstractAxisRenderer.__init__(self)
+        super().__init__()
 
         self._x_offset = 0
         self._axis_y_offset_x = 0
 
     def set_config(self, config, containing_widget):
-        AbstractAxisRenderer.set_config(self, config, containing_widget)
+        super().set_config(config, containing_widget)
         self.set_height(config['axis_x']['height'])
 
     def set_x_offset(self, x_offset):
@@ -332,13 +332,13 @@ class HorizontalAxisRenderer(AbstractAxisRenderer):
 class VerticalAxisRenderer(AbstractAxisRenderer):
 
     def __init__(self):
-        AbstractAxisRenderer.__init__(self)
+        super().__init__()
 
         self._padding = 0
         self._axis_x_offset_y = 0
 
     def set_config(self, config, containing_widget):
-        AbstractAxisRenderer.set_config(self, config, containing_widget)
+        super().set_config(config, containing_widget)
         self.set_width(config['axis_y']['width'])
 
     def set_padding(self, padding):

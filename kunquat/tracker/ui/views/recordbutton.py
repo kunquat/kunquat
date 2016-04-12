@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2014
+#          Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -19,7 +19,7 @@ from PyQt4.QtGui import *
 class RecordButton(QToolButton):
 
     def __init__(self):
-        QToolButton.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
         self._sheet_manager = None
@@ -64,4 +64,5 @@ class RecordButton(QToolButton):
             self._playback_manager.start_recording()
             self._sheet_manager.set_typewriter_connected(True)
             self._ui_model.play()
+
 

@@ -25,7 +25,7 @@ from .varvalidators import *
 class EnvironmentEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._vars = VariableList()
 
         v = QVBoxLayout()
@@ -45,7 +45,7 @@ class EnvironmentEditor(QWidget):
 class VariableList(EditorList):
 
     def __init__(self):
-        EditorList.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -102,7 +102,7 @@ class VariableList(EditorList):
 class VariableEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._var_name = None
 
@@ -149,7 +149,7 @@ class VariableEditor(QWidget):
 class VarNameEditor(QLineEdit):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
         self._validator = None
@@ -193,13 +193,13 @@ class VarNameEditor(QLineEdit):
             event.accept()
             self.set_var_name(self._var_name)
         else:
-            return QLineEdit.keyPressEvent(self, event)
+            return super().keyPressEvent(event)
 
 
 class VarTypeEditor(QComboBox):
 
     def __init__(self):
-        QComboBox.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -253,7 +253,7 @@ class VarTypeEditor(QComboBox):
 class VarValueEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -361,7 +361,7 @@ class VarValueEditor(QWidget):
 class VarRemoveButton(QPushButton):
 
     def __init__(self):
-        QPushButton.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -396,7 +396,7 @@ class VarRemoveButton(QPushButton):
 class VariableAdder(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -466,7 +466,7 @@ class VariableAdder(QWidget):
 class NewVarNameEditor(QLineEdit):
 
     def __init__(self):
-        QLineEdit.__init__(self)
+        super().__init__()
         self.setMaxLength(VAR_NAME_MAX - 1)
         self._validator = VarNameValidator(set())
         self.setValidator(self._validator)

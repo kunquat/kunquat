@@ -20,7 +20,7 @@ from .tuningtableeditor import TuningTableEditor
 class TuningTableWindow(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._table_id = None
         self._ui_model = None
 

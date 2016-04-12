@@ -28,7 +28,7 @@ from . import utils
 class Portal(QToolBar):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._new_button = NewButton()
         self._open_button = OpenButton()
         self._save_button = SaveButton()
@@ -86,7 +86,7 @@ class Portal(QToolBar):
 class WindowOpenerButton(QToolButton):
 
     def __init__(self, text):
-        QToolButton.__init__(self)
+        super().__init__()
         self._ui_model = None
 
         self.setText(text)
@@ -111,7 +111,7 @@ class WindowOpenerButton(QToolButton):
 class EnvBindButton(WindowOpenerButton):
 
     def __init__(self):
-        WindowOpenerButton.__init__(self, 'Environment && bindings')
+        super().__init__('Environment && bindings')
 
     def _show_action(self, visibility_manager):
         visibility_manager.show_env_and_bindings()
@@ -120,7 +120,7 @@ class EnvBindButton(WindowOpenerButton):
 class NotationButton(WindowOpenerButton):
 
     def __init__(self):
-        WindowOpenerButton.__init__(self, 'Notations')
+        super().__init__('Notations')
 
     def _show_action(self, visibility_manager):
         visibility_manager.show_notation_editor()
@@ -129,7 +129,7 @@ class NotationButton(WindowOpenerButton):
 class GeneralModButton(WindowOpenerButton):
 
     def __init__(self):
-        WindowOpenerButton.__init__(self, 'General')
+        super().__init__('General')
 
     def _show_action(self, visibility_manager):
         visibility_manager.show_general_module_settings()
@@ -147,7 +147,7 @@ _RENDER_LOAD_METER_CONFIG = {
 class RenderLoadMeter(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._config = _RENDER_LOAD_METER_CONFIG.copy()
         self._load_norm = 0
 
@@ -187,7 +187,7 @@ class RenderLoadMeter(QWidget):
 class RenderStatsButton(QToolButton):
 
     def __init__(self):
-        QToolButton.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
         self._stat_manager = None

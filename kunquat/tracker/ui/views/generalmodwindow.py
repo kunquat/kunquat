@@ -20,7 +20,7 @@ from .generalmodeditor import GeneralModEditor
 class GeneralModWindow(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
 
         self.setWindowTitle('General module settings')

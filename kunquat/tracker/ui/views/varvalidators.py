@@ -18,7 +18,7 @@ from PyQt4.QtGui import *
 class IntValidator(QValidator):
 
     def __init__(self):
-        QValidator.__init__(self)
+        super().__init__()
 
     def validate(self, contents, pos):
         in_str = str(contents)
@@ -40,7 +40,7 @@ class IntValidator(QValidator):
 class FloatValidator(QValidator):
 
     def __init__(self):
-        QValidator.__init__(self)
+        super().__init__()
 
     def validate(self, contents, pos):
         in_str = str(contents)

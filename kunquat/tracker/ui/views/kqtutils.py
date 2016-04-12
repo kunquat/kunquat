@@ -83,7 +83,7 @@ def open_kqt_au(au_path, ui_model, container):
 class OutOfIDsErrorDialog(QDialog):
 
     def __init__(self, icon_bank, id_type, is_inside_instrument=False):
-        QDialog.__init__(self)
+        super().__init__()
 
         error_img_path = icon_bank.get_icon_path('error')
         error_label = QLabel()

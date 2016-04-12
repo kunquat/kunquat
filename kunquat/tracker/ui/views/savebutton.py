@@ -20,7 +20,7 @@ from .saving import get_module_save_path
 class SaveButton(QToolButton):
 
     def __init__(self):
-        QToolButton.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 

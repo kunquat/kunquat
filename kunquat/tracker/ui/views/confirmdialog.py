@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -18,7 +18,7 @@ from PyQt4.QtGui import *
 class ConfirmDialog(QDialog):
 
     def __init__(self, icon_bank):
-        QDialog.__init__(self)
+        super().__init__()
 
         warning_img_path = icon_bank.get_icon_path('warning')
         warning_label = QLabel()

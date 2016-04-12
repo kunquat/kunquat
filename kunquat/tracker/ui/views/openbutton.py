@@ -22,7 +22,7 @@ from .kqtutils import get_kqt_file_path, open_kqt_au
 class OpenButton(QToolButton):
 
     def __init__(self):
-        QToolButton.__init__(self)
+        super().__init__()
         self._ui_model = None
 
         self.setText('Open')

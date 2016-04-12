@@ -24,7 +24,7 @@ from .saving import get_module_save_path
 class MainWindow(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self.setWindowTitle('Kunquat Tracker')
         self._ui_model = None
         self._updater = None
@@ -99,7 +99,7 @@ class MainWindow(QWidget):
 class ExitUnsavedConfirmDialog(ConfirmDialog):
 
     def __init__(self, icon_bank, action_save, action_discard):
-        ConfirmDialog.__init__(self, icon_bank)
+        super().__init__(icon_bank)
 
         self._action_save = action_save
         self._action_discard = action_discard

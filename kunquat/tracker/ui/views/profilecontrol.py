@@ -35,7 +35,7 @@ class ProfileControl(QDialog):
             }
 
     def __init__(self):
-        QDialog.__init__(self)
+        super().__init__()
         self.resize(1360, 720)
         self._stats = None
         self._stats_output = None

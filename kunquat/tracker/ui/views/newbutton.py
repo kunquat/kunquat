@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -18,7 +18,7 @@ from PyQt4.QtGui import *
 class NewButton(QToolButton):
 
     def __init__(self):
-        QToolButton.__init__(self)
+        super().__init__()
         self._ui_model = None
 
         self.setText('New')
@@ -33,3 +33,5 @@ class NewButton(QToolButton):
     def _clicked(self):
         process_manager = self._ui_model.get_process_manager()
         process_manager.new_kunquat()
+
+

@@ -47,7 +47,7 @@ def lerp(from_val, to_val, lerp_val):
 class PeakMeter(QWidget):
 
     def __init__(self, config={}):
-        QWidget.__init__(self)
+        super().__init__()
         self._updater = None
 
         self._config = None

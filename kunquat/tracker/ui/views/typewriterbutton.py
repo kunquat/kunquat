@@ -19,7 +19,7 @@ from PyQt4.QtGui import *
 class TWLight(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._state = 0
         self._colours = [QColor(x, 0, 0) for x in (0x44, 0xcc, 0xff)]
         self._disabled_colour = QColor(0x88, 0x88, 0x88)
@@ -41,7 +41,7 @@ class TWLight(QWidget):
 class TWLed(QFrame):
 
     def __init__(self):
-        super(QFrame, self).__init__()
+        super().__init__()
         self.setFixedSize(QSize(35, 15))
         self.setFrameStyle(QFrame.Panel | QFrame.Sunken)
         self.setLineWidth(2)
@@ -71,7 +71,7 @@ class TWLed(QFrame):
 class TypewriterButton(QPushButton):
 
     def __init__(self, row, index):
-        QPushButton.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
         self._control_manager = None

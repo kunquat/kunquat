@@ -24,7 +24,7 @@ class Typewriter(QFrame):
     _PAD = 35
 
     def __init__(self):
-        QFrame.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
         self._typewriter_manager = None
@@ -97,4 +97,5 @@ class Typewriter(QFrame):
     def keyReleaseEvent(self, event):
         if not self._keyboard_mapper.process_typewriter_button_event(event):
             event.ignore()
+
 

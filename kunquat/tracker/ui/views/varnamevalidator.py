@@ -38,7 +38,7 @@ def get_var_name_validation_status(text):
 class VarNameValidator(QValidator):
 
     def __init__(self, used_names):
-        QValidator.__init__(self)
+        super().__init__()
         self._used_names = used_names
 
     def validate(self, contents, pos):
@@ -52,7 +52,7 @@ class VarNameValidator(QValidator):
 class MaybeVarNameValidator(QValidator):
 
     def __init__(self, used_names=set()):
-        QValidator.__init__(self)
+        super().__init__()
         self._used_names = used_names
 
     def validate(self, contents, pos):

@@ -21,7 +21,7 @@ from .environmenteditor import EnvironmentEditor
 class EnvBindWindow(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._bind_editor = BindEditor()
         self._env_editor = EnvironmentEditor()

@@ -154,7 +154,7 @@ def get_dist_to_ls(point, ls_a, ls_b):
 class Connections(QAbstractScrollArea):
 
     def __init__(self):
-        QAbstractScrollArea.__init__(self)
+        super().__init__()
 
         self.setViewport(ConnectionsView())
         self.viewport().setFocusProxy(None)
@@ -232,7 +232,7 @@ class Connections(QAbstractScrollArea):
 class EdgeMenu(QMenu):
 
     def __init__(self, parent):
-        QMenu.__init__(self, parent)
+        super().__init__(parent)
         self.hide()
         self.addAction('Remove')
         self._edge = None
@@ -257,7 +257,7 @@ class ConnectionsView(QWidget):
     positionsChanged = pyqtSignal(name='positionsChanged')
 
     def __init__(self, config={}):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._au_id = None
         self._updater = None
@@ -1233,7 +1233,7 @@ class ConnectionsView(QWidget):
 class RemoveDeviceConfirmDialog(ConfirmDialog):
 
     def __init__(self, icon_bank, action_on_confirm):
-        ConfirmDialog.__init__(self, icon_bank)
+        super().__init__(icon_bank)
 
         self._action_on_confirm = action_on_confirm
 

@@ -25,7 +25,7 @@ from .varvalidators import *
 class IAControls(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._inf_toggle = InfiniteToggle()
         self._runtime_var_list = RuntimeVarList()
@@ -51,7 +51,7 @@ class IAControls(QWidget):
 class InfiniteToggle(QCheckBox):
 
     def __init__(self):
-        QCheckBox.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -92,7 +92,7 @@ class InfiniteToggle(QCheckBox):
 class RuntimeVarList(EditorList):
 
     def __init__(self):
-        EditorList.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -141,7 +141,7 @@ class RuntimeVarList(EditorList):
 class RuntimeVarEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -178,7 +178,7 @@ class RuntimeVarEditor(QWidget):
 class RuntimeVarValueEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 

@@ -18,7 +18,7 @@ from PyQt4.QtGui import *
 class EditorList(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._area = EditorListArea()
         self._has_adder = False
 
@@ -104,7 +104,7 @@ class EditorList(QWidget):
 class EditorListContainer(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         v = QVBoxLayout()
         v.setMargin(0)
         v.setSpacing(0)
@@ -115,7 +115,7 @@ class EditorListContainer(QWidget):
 class EditorListArea(QScrollArea):
 
     def __init__(self):
-        QScrollArea.__init__(self)
+        super().__init__()
 
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)

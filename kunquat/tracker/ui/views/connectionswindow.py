@@ -21,7 +21,7 @@ from .keyboardmapper import KeyboardMapper
 class ConnectionsWindow(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._conns_editor = ConnectionsEditor()
 

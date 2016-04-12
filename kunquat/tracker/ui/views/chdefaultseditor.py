@@ -23,7 +23,7 @@ from .varnamevalidator import MaybeVarNameValidator
 class ChDefaultsEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._ch_defaults_list = ChDefaultsList()
 
@@ -44,7 +44,7 @@ class ChDefaultsEditor(QWidget):
 class ChDefaultsList(EditorList):
 
     def __init__(self):
-        EditorList.__init__(self)
+        super().__init__()
         self._ui_model = None
 
     def set_ui_model(self, ui_model):
@@ -72,7 +72,7 @@ class ChDefaultsList(EditorList):
 class ChDefaults(QWidget):
 
     def __init__(self, ch_num):
-        QWidget.__init__(self)
+        super().__init__()
         self._ch_num = ch_num
         self._ui_model = None
         self._module = None

@@ -335,7 +335,7 @@ class RootView():
 class AuImportErrorDialog(QDialog):
 
     def __init__(self, icon_bank, error_info, on_close):
-        QDialog.__init__(self)
+        super().__init__()
 
         self.setWindowTitle('Importing failed')
 

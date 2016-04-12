@@ -21,7 +21,7 @@ from .headerline import HeaderLine
 class SongEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._name = NameEditor()
         self._tempo_editor = TempoEditor()
@@ -52,7 +52,7 @@ class SongEditor(QWidget):
 class NameEditor(QLineEdit):
 
     def __init__(self):
-        QLineEdit.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -104,7 +104,7 @@ class NameEditor(QLineEdit):
 class TempoEditor(QDoubleSpinBox):
 
     def __init__(self):
-        QDoubleSpinBox.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -19,7 +19,7 @@ from PyQt4.QtGui import *
 class RenderStats(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._stat_manaer = None
 
@@ -70,3 +70,5 @@ class RenderStats(QWidget):
         self.update_render_speed()
         self.update_render_load()
         self.update_ui_lag()
+
+
