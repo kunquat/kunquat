@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -38,8 +38,7 @@ int kqt_Handle_play(kqt_Handle handle, long nframes)
 
     if (nframes <= 0)
     {
-        Handle_set_error(
-                h, ERROR_ARGUMENT, "Number of frames must be positive.");
+        Handle_set_error(h, ERROR_ARGUMENT, "Number of frames must be positive.");
         return 0;
     }
 
@@ -89,8 +88,8 @@ int kqt_Handle_set_audio_rate(kqt_Handle handle, long rate)
 
     if (!Player_set_audio_rate(h->player, rate))
     {
-        Handle_set_error(h, ERROR_MEMORY,
-                "Couldn't allocate memory after change of audio rate.");
+        Handle_set_error(
+                h, ERROR_MEMORY, "Couldn't allocate memory after change of audio rate.");
         return 0;
     }
 
@@ -125,15 +124,17 @@ int kqt_Handle_set_audio_buffer_size(kqt_Handle handle, long size)
     }
     if (size > KQT_AUDIO_BUFFER_SIZE_MAX)
     {
-        Handle_set_error(h, ERROR_ARGUMENT, "Buffer size must not be"
-                " greater than %ld frames", KQT_AUDIO_BUFFER_SIZE_MAX);
+        Handle_set_error(
+                h,
+                ERROR_ARGUMENT,
+                "Buffer size must not be greater than %ld frames",
+                KQT_AUDIO_BUFFER_SIZE_MAX);
         return 0;
     }
 
     if (!Player_set_audio_buffer_size(h->player, size))
     {
-        Handle_set_error(h, ERROR_MEMORY,
-                "Couldn't allocate memory for new buffers");
+        Handle_set_error(h, ERROR_MEMORY, "Couldn't allocate memory for new buffers");
         return 0;
     }
 
@@ -177,8 +178,7 @@ const float* kqt_Handle_get_audio(kqt_Handle handle, int index)
 
     if (index < 0 || index >= KQT_BUFFERS_MAX)
     {
-        Handle_set_error(h, ERROR_ARGUMENT,
-                "Buffer #%d does not exist", index);
+        Handle_set_error(h, ERROR_ARGUMENT, "Buffer #%d does not exist", index);
         return NULL;
     }
 
@@ -196,8 +196,7 @@ long long kqt_Handle_get_duration(kqt_Handle handle, int track)
 
     if (track < -1 || track >= KQT_TRACKS_MAX)
     {
-        Handle_set_error(h, ERROR_ARGUMENT,
-                "Invalid track number: %d", track);
+        Handle_set_error(h, ERROR_ARGUMENT, "Invalid track number: %d", track);
         return -1;
     }
 
@@ -261,14 +260,12 @@ int kqt_Handle_fire_event(kqt_Handle handle, int channel, const char* event)
 
     if (channel < 0 || channel >= KQT_COLUMNS_MAX)
     {
-        Handle_set_error(h, ERROR_ARGUMENT,
-                "Invalid channel number: %d", channel);
+        Handle_set_error(h, ERROR_ARGUMENT, "Invalid channel number: %d", channel);
         return 0;
     }
     if (event == NULL)
     {
-        Handle_set_error(h, ERROR_ARGUMENT,
-                "No event description given.");
+        Handle_set_error(h, ERROR_ARGUMENT, "No event description given.");
         return 0;
     }
 
@@ -276,7 +273,9 @@ int kqt_Handle_fire_event(kqt_Handle handle, int channel, const char* event)
     if (!Player_fire(h->player, channel, sr))
     {
         assert(Streader_is_error_set(sr));
-        Handle_set_error(h, ERROR_ARGUMENT,
+        Handle_set_error(
+                h,
+                ERROR_ARGUMENT,
                 "Invalid event description `%s`: %s",
                 event, Streader_get_error_desc(sr));
         return 0;
