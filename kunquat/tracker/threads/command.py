@@ -63,6 +63,6 @@ class Command():
             return value
         if arg_type == ARG_PICKLE:
             return pickle.loads(value)
-        assert(False)
+        assert False
 
 
