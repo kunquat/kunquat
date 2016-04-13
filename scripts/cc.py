@@ -30,9 +30,9 @@ def get_cc(cmd=None):
 
     if not cc:
         if cmd:
-            print('Could not find a C compiler.', file=sys.stderr)
-        else:
             print('Could not find {}'.format(cmd), file=sys.stderr)
+        else:
+            print('Could not find a C compiler.', file=sys.stderr)
         sys.exit(1)
 
     return cc
