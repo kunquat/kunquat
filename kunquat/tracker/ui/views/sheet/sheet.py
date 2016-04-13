@@ -21,7 +21,7 @@ from .toolbar import Toolbar
 class Sheet(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._toolbar = Toolbar()
         self._sheet_area = SheetArea()

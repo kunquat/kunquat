@@ -29,7 +29,7 @@ from . import utils
 class Toolbar(QWidget):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._ui_model = None
 
         self._edit_button = EditButton()
@@ -126,7 +126,7 @@ class Toolbar(QWidget):
 class UndoButton(QToolButton):
 
     def __init__(self):
-        QToolButton.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -173,7 +173,7 @@ class UndoButton(QToolButton):
 class RedoButton(QToolButton):
 
     def __init__(self):
-        QToolButton.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -220,7 +220,7 @@ class RedoButton(QToolButton):
 class CutOrCopyButton(QToolButton):
 
     def __init__(self, button_type):
-        QToolButton.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
         self._sheet_manager = None
@@ -284,19 +284,19 @@ class CutOrCopyButton(QToolButton):
 class CutButton(CutOrCopyButton):
 
     def __init__(self):
-        CutOrCopyButton.__init__(self, 'cut')
+        super().__init__('cut')
 
 
 class CopyButton(CutOrCopyButton):
 
     def __init__(self):
-        CutOrCopyButton.__init__(self, 'copy')
+        super().__init__('copy')
 
 
 class PasteButton(QToolButton):
 
     def __init__(self):
-        QToolButton.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
         self._sheet_manager = None
@@ -354,7 +354,7 @@ class PasteButton(QToolButton):
 class GridToggle(QCheckBox):
 
     def __init__(self):
-        QCheckBox.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -395,7 +395,7 @@ class GridToggle(QCheckBox):
 class GridEditorButton(QToolButton):
 
     def __init__(self):
-        QToolButton.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -433,7 +433,7 @@ class GridEditorButton(QToolButton):
 class GridSelector(QComboBox):
 
     def __init__(self):
-        QComboBox.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -602,7 +602,7 @@ class GridSelector(QComboBox):
 class HackSeparator(QFrame):
 
     def __init__(self):
-        QFrame.__init__(self)
+        super().__init__()
         self.setFrameShape(QFrame.VLine)
         self.setFrameShadow(QFrame.Sunken)
 

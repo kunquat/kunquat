@@ -20,7 +20,7 @@ from kunquat.tracker.ui.model.trigger import Trigger
 class RestButton(QToolButton):
 
     def __init__(self):
-        QToolButton.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
         self._sheet_manager = None

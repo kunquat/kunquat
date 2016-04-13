@@ -27,7 +27,7 @@ class Ruler(QWidget):
     heightChanged = pyqtSignal(name='heightChanged')
 
     def __init__(self, is_grid_ruler=False):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 

@@ -20,7 +20,7 @@ from .grideditor import GridEditor
 class GridEditorWindow(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._grid_editor = GridEditor()
 

@@ -63,7 +63,7 @@ class AbstractMoveState():
 class HorizontalMoveState(AbstractMoveState):
 
     def __init__(self):
-        AbstractMoveState.__init__(self)
+        super().__init__()
 
     def press_left(self):
         self.press(-1)
@@ -92,7 +92,7 @@ _SNAP_DELAYS = list(reversed(range(7)))
 class VerticalMoveState(AbstractMoveState):
 
     def __init__(self):
-        AbstractMoveState.__init__(self)
+        super().__init__()
         self._step_index = 0
 
         self._is_snap_delay_enabled = False

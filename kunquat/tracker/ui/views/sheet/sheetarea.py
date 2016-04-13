@@ -29,7 +29,7 @@ from .view import View
 class LongScrollBar(QScrollBar):
 
     def __init__(self):
-        QScrollBar.__init__(self)
+        super().__init__()
         self._range_factor = 1
         self._actual_min = self.minimum()
         self._actual_max = self.maximum()
@@ -47,18 +47,18 @@ class LongScrollBar(QScrollBar):
 
         scaled_min = self._actual_min / self._range_factor
         scaled_max = self._actual_max / self._range_factor
-        QScrollBar.setRange(self, scaled_min, scaled_max)
+        super().setRange(scaled_min, scaled_max)
         self.set_actual_value(self._actual_value)
 
     def set_actual_value(self, actual_value):
         self._actual_value = min(max(self._actual_min, actual_value), self._actual_max)
-        QScrollBar.setValue(self, self._actual_value / self._range_factor)
+        super().setValue(self._actual_value / self._range_factor)
 
     def get_actual_value(self):
         return self._actual_value
 
     def sliderChange(self, change):
-        QScrollBar.sliderChange(self, change)
+        super().sliderChange(change)
         if change == QAbstractSlider.SliderValueChange:
             self._update_actual_value(self.value())
 
@@ -70,7 +70,7 @@ class LongScrollBar(QScrollBar):
 class SheetArea(QAbstractScrollArea):
 
     def __init__(self, config={}):
-        QAbstractScrollArea.__init__(self)
+        super().__init__()
         self.setFocusPolicy(Qt.NoFocus)
 
         self._ui_model = None

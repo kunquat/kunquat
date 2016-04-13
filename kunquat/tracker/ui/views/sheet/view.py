@@ -37,7 +37,7 @@ from .movestate import HorizontalMoveState, VerticalMoveState
 class TriggerTypeValidator(QValidator):
 
     def __init__(self):
-        QValidator.__init__(self)
+        super().__init__()
 
     def validate(self, contents, pos):
         in_str = str(contents)
@@ -50,7 +50,7 @@ class TriggerTypeValidator(QValidator):
 class TriggerArgumentValidator(QValidator):
 
     def __init__(self):
-        QValidator.__init__(self)
+        super().__init__()
 
     def validate(self, contents, pos):
         return (QValidator.Acceptable, contents, pos)
@@ -59,7 +59,7 @@ class TriggerArgumentValidator(QValidator):
 class FieldEdit(QLineEdit):
 
     def __init__(self, parent):
-        QLineEdit.__init__(self, parent)
+        super().__init__(parent)
         self.hide()
 
         self._finished_callback = None
@@ -90,7 +90,7 @@ class FieldEdit(QLineEdit):
         self.setFocus()
 
     def keyPressEvent(self, event):
-        if QLineEdit.keyPressEvent(self, event):
+        if super().keyPressEvent(event):
             return
         if event.key() == Qt.Key_Escape:
             self.parent().setFocus()
@@ -107,7 +107,7 @@ class View(QWidget):
     followCursor = pyqtSignal(str, int, name='followCursor')
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._ui_model = None
         self._updater = None

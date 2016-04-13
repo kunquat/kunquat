@@ -29,7 +29,7 @@ from . import utils
 class GridEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._grid_list = GridList()
         self._general_editor = GeneralEditor()
@@ -78,7 +78,7 @@ class GridEditor(QWidget):
 class GridListModel(QAbstractListModel):
 
     def __init__(self):
-        QAbstractListModel.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -131,7 +131,7 @@ class GridListModel(QAbstractListModel):
 class GridListView(QListView):
 
     def __init__(self):
-        QListView.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -163,7 +163,7 @@ class GridListView(QListView):
 class GridList(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -205,7 +205,7 @@ class GridList(QWidget):
 class GridListToolBar(QToolBar):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -269,7 +269,7 @@ class GridListToolBar(QToolBar):
 class GridArea(QAbstractScrollArea):
 
     def __init__(self):
-        QAbstractScrollArea.__init__(self)
+        super().__init__()
         self.setFocusPolicy(Qt.NoFocus)
 
         self._ui_model = None
@@ -432,7 +432,7 @@ class GridArea(QAbstractScrollArea):
 class GridHeader(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._width = DEFAULT_CONFIG['col_width']
 
@@ -465,7 +465,7 @@ class GridView(QWidget):
     followCursor = pyqtSignal(str, name='followCursor')
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._ui_model = None
         self._updater = None
@@ -737,7 +737,7 @@ class GridView(QWidget):
 class GeneralEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -922,7 +922,7 @@ class GeneralEditor(QWidget):
 class SubdivEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -1050,7 +1050,7 @@ class SubdivEditor(QWidget):
 class LineEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -1153,7 +1153,7 @@ class LineEditor(QWidget):
 class LineStyleDelegate(QItemDelegate):
 
     def __init__(self, is_major_enabled):
-        QItemDelegate.__init__(self)
+        super().__init__()
         self._config = None
 
         self._first_style = 0 if is_major_enabled else 1
@@ -1229,7 +1229,7 @@ class LineStyleDelegate(QItemDelegate):
         pixmap = self._pixmaps[pixmap_index]
         pixmap_pos = option.rect.translated(cursor_width, 0).topLeft()
         painter.drawPixmap(QRect(pixmap_pos, pixmap.size()), pixmap)
-        QItemDelegate.paint(self, painter, option, index)
+        super().paint(painter, option, index)
 
     def drawBackground(self, painter, option, index):
         pass
@@ -1289,7 +1289,7 @@ class LineStyleDelegate(QItemDelegate):
 class LineStyle(QComboBox):
 
     def __init__(self, is_major_enabled=False):
-        QComboBox.__init__(self)
+        super().__init__()
 
         self._first_style = 0 if is_major_enabled else 1
         self._is_major_displayed = True

@@ -21,7 +21,7 @@ from . import utils
 class Header(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._col_width = DEFAULT_CONFIG['col_width']
         self._first_col = 0
@@ -84,7 +84,7 @@ class Header(QWidget):
 class ColumnHeader(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
     def set_config(self, config):
         self._config = config
