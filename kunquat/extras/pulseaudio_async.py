@@ -27,10 +27,10 @@ import queue
 
 from .pulseaudio_def import *
 
-__all__ = ['Simple', 'PulseAudioError']
+__all__ = ['Async', 'PulseAudioError']
 
 
-class Async(object):
+class Async():
 
     """Asynchronous access to PulseAudio.
 

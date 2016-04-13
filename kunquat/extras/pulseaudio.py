@@ -29,7 +29,7 @@ from .pulseaudio_def import *
 __all__ = ['Simple', 'PulseAudioError']
 
 
-class Simple(object):
+class Simple():
 
     """An interface for a simple PulseAudio connection.
 
