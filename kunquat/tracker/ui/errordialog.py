@@ -33,7 +33,7 @@ with the following information attached.</p>'''
 class ErrorDetails(QTextEdit):
 
     def __init__(self):
-        QTextEdit.__init__(self)
+        super().__init__()
         self.setAcceptRichText(False)
         self.setReadOnly(True)
         self._details = ''
@@ -54,7 +54,7 @@ class ErrorDialog(QDialog):
     exceptionReceived = pyqtSignal(str, name='exceptionReceived')
 
     def __init__(self):
-        QDialog.__init__(self)
+        super().__init__()
 
         self.setWindowTitle('Oh no!')
         self._message = QLabel(MESSAGE_RICH)
