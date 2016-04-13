@@ -30,7 +30,7 @@ class GainCompParams(ProcParams):
         }
 
     def __init__(self, proc_id, controller):
-        ProcParams.__init__(self, proc_id, controller)
+        super().__init__(proc_id, controller)
 
     def get_mapping_enabled(self):
         return self._get_value('p_b_map_enabled.json', False)

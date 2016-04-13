@@ -196,7 +196,7 @@ class AddParams(ProcParams):
         }
 
     def __init__(self, proc_id, controller):
-        ProcParams.__init__(self, proc_id, controller)
+        super().__init__(proc_id, controller)
 
     def get_ramp_attack_enabled(self):
         return self._get_value('p_b_ramp_attack.json', True)

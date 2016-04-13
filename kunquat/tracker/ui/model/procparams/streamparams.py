@@ -25,7 +25,7 @@ class StreamParams(ProcParams):
         return { 'out_00': 'stream' }
 
     def __init__(self, proc_id, controller):
-        ProcParams.__init__(self, proc_id, controller)
+        super().__init__(proc_id, controller)
 
     def get_init_value(self):
         return self._get_value('p_f_init_value.json', 0.0)

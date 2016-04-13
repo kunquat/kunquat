@@ -33,7 +33,7 @@ class SampleParams(ProcParams):
         }
 
     def __init__(self, proc_id, controller):
-        ProcParams.__init__(self, proc_id, controller)
+        super().__init__(proc_id, controller)
 
     def _get_sample_id(self, sample_num):
         return 'smp_{:03x}'.format(sample_num)

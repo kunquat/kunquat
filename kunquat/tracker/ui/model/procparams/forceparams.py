@@ -25,7 +25,7 @@ class ForceParams(ProcParams):
         return { 'in_00': 'pitch', 'out_00': 'force' }
 
     def __init__(self, proc_id, controller):
-        ProcParams.__init__(self, proc_id, controller)
+        super().__init__(proc_id, controller)
 
     def get_global_force(self):
         return self._get_value('p_f_global_force.json', 0.0)

@@ -32,7 +32,7 @@ class FilterParams(ProcParams):
         }
 
     def __init__(self, proc_id, controller):
-        ProcParams.__init__(self, proc_id, controller)
+        super().__init__(proc_id, controller)
 
     def get_cutoff(self):
         return self._get_value('p_f_cutoff.json', 100.0)

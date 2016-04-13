@@ -33,7 +33,7 @@ class DelayParams(ProcParams):
         }
 
     def __init__(self, proc_id, controller):
-        ProcParams.__init__(self, proc_id, controller)
+        super().__init__(proc_id, controller)
 
     def get_max_delay(self):
         return self._get_value('p_f_max_delay.json', 2.0)

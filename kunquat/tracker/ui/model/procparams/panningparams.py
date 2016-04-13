@@ -31,7 +31,7 @@ class PanningParams(ProcParams):
         }
 
     def __init__(self, proc_id, controller):
-        ProcParams.__init__(self, proc_id, controller)
+        super().__init__(proc_id, controller)
 
     def get_panning(self):
         return self._get_value('p_f_panning.json', 0.0)

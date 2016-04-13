@@ -25,7 +25,7 @@ class EnvgenParams(ProcParams):
         return { 'in_00': 'pitch', 'in_01': 'force', 'out_00': 'env' }
 
     def __init__(self, proc_id, controller):
-        ProcParams.__init__(self, proc_id, controller)
+        super().__init__(proc_id, controller)
 
     def get_time_env_enabled(self):
         return self._get_value('p_b_env_enabled.json', False)

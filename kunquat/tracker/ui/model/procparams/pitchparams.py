@@ -25,6 +25,6 @@ class PitchParams(ProcParams):
         return { 'out_00': 'pitch' }
 
     def __init__(self, proc_id, controller):
-        ProcParams.__init__(self, proc_id, controller)
+        super().__init__(proc_id, controller)
 
 
