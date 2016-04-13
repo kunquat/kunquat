@@ -596,7 +596,8 @@ START_TEST(Skipping_moves_position_forwards)
 
     validate();
 
-    kqt_Handle_set_position(handle, 0, _i * 1000000000LL / 2);
+    static const long long second = 1000000000LL;
+    kqt_Handle_set_position(handle, 0, _i * second / 2);
     //Player_skip(player, _i * mixing_rates[MIXING_RATE_LOW] / 2);
     check_unexpected_error();
 
