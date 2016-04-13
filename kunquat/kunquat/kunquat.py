@@ -245,7 +245,7 @@ class Kunquat():
 
         """
         if not frame_count:
-            frame_count = self._buffer_size
+            frame_count = self._audio_buffer_size
         _kunquat.kqt_Handle_play(self._handle, frame_count)
         self._nanoseconds = _kunquat.kqt_Handle_get_position(self._handle)
 
