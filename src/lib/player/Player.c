@@ -449,8 +449,16 @@ int64_t Player_get_nanoseconds(const Player* player)
 {
     assert(player != NULL);
 
-    const int64_t ns_this_audio_rate =
-        player->audio_frames_processed * 1000000000LL / player->audio_rate;
+    static const int64_t ns_second = 1000000000LL;
+
+    int64_t ns_this_audio_rate = 0;
+    if (INT64_MAX / ns_second < player->audio_frames_processed)
+        ns_this_audio_rate =
+            player->audio_frames_processed * (ns_second / (double)player->audio_rate);
+    else
+        ns_this_audio_rate =
+            player->audio_frames_processed * ns_second / player->audio_rate;
+
     return player->nanoseconds_history + ns_this_audio_rate;
 }
 
