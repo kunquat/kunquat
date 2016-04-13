@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -14,14 +14,15 @@
 
 import unittest
 
-from pulseaudio import Pulseaudio
-from stress_abstract_driver import StressTestAbstractDriver
+from .pulseaudio import Pulseaudio
+from .stress_abstract_driver import StressTestAbstractDriver
 
 
 class StressTestPulseaudio(StressTestAbstractDriver, unittest.TestCase):
 
     def setUp(self):
         self._DriverClass = Pulseaudio
+        self._cls_args = tuple()
 
 
 if __name__ == '__main__':

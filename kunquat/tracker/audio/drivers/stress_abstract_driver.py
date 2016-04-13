@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -30,10 +30,11 @@ class StressTestAbstractDriver():
 
     def setUp(self):
         self._self._DriverClass = None
+        self._cls_args = tuple()
 
     def test_rapid_reboot(self):
         for _ in range(100):
-            driver = self._DriverClass()
+            driver = self._DriverClass(*self._cls_args)
             audio_source = SilentAudioSource()
             audio_source.set_audio_output(driver)
             driver.set_audio_source(audio_source)
