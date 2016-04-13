@@ -293,7 +293,7 @@ class SndFileW(_SndFileWBase):
 
         info = self._get_validated_sf_info(format, rate, channels, use_float, bits)
 
-        self._sf = _sndfile.sf_open(fname, SFM_WRITE, info)
+        self._sf = _sndfile.sf_open(bytes(fname, encoding='utf-8'), SFM_WRITE, info)
         if not self._sf:
             raise SndFileError('Could not create file {}: {}'.format(
                 fname, _sndfile.sf_strerror(None)))
