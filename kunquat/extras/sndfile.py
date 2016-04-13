@@ -181,7 +181,7 @@ class SndFileR(_SndFileRBase):
 
         info = _SF_INFO(0, 0, 0, 0, 0, 0)
 
-        self._sf = _sndfile.sf_open(fname, SFM_READ, info)
+        self._sf = _sndfile.sf_open(bytes(fname, encoding='utf-8'), SFM_READ, info)
         if not self._sf:
             raise SndFileError('Could not open file {}: {}'.format(
                 fname, _sndfile.sf_strerror(None)))
