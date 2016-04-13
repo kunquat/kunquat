@@ -18,7 +18,7 @@ from PyQt4.QtCore import QThread
 class QEventPump(QThread):
 
     def __init__(self):
-        QThread.__init__(self)
+        super().__init__()
         self._signaler = None
         self._blocker = None
 

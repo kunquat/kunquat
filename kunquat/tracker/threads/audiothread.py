@@ -21,12 +21,14 @@ from .commandqueue import CommandQueue
 from .eventpump import EventPump
 from .monitoringthread import MonitoringThread
 
+
 HALT = None
+
 
 class AudioThread(MonitoringThread):
 
     def __init__(self):
-        MonitoringThread.__init__(self, name="Audio")
+        super().__init__(name="Audio")
         self._ui_engine = None
         self._engine = None
         self._q = CommandQueue()
@@ -102,9 +104,11 @@ class AudioThread(MonitoringThread):
         self._pump.set_signaler(None)
         self._close_device()
 
+
 def create_audio_thread():
     audio_engine = create_audio_engine()
     audio_thread = AudioThread()
     audio_thread.set_handler(audio_engine)
     return audio_thread
+
 

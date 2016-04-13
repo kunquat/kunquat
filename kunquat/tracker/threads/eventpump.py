@@ -18,7 +18,7 @@ from .monitoringthread import MonitoringThread
 class EventPump(MonitoringThread):
 
     def __init__(self):
-        MonitoringThread.__init__(self, name="EventPump")
+        super().__init__(name="EventPump")
         self.daemon = True
         self._signaler = None
         self._blocker = None

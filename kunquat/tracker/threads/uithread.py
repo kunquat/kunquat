@@ -30,7 +30,7 @@ class UiThread(MonitoringThread):
     process_queue = pyqtSignal(name='process_queue')
 
     def __init__(self):
-        MonitoringThread.__init__(self, name="Ui")
+        super().__init__(name="Ui")
         self._q = CommandQueue()
         self._ui_launcher = None
         self._controller = None
@@ -134,6 +134,7 @@ class UiThread(MonitoringThread):
     def run_monitored(self):
         self._ui_launcher.set_event_pump_starter(self._start_event_pump)
         self._ui_launcher.run_ui()
+
 
 def create_ui_thread():
     ui_launcher = create_ui_launcher()
