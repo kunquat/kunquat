@@ -132,7 +132,7 @@ class _SndFileBase():
 class _SndFileRBase(_SndFileBase):
 
     def __init__(self):
-        _SndFileBase.__init__(self)
+        super().__init__()
 
     def read(self, frame_count=float('inf')):
         """Read audio data.
@@ -177,7 +177,7 @@ class SndFileR(_SndFileRBase):
         fname -- Input file name.
 
         """
-        _SndFileRBase.__init__(self)
+        super().__init__()
 
         info = _SF_INFO(0, 0, 0, 0, 0, 0)
 
@@ -201,7 +201,7 @@ class SndFileRMem(_SndFileRBase):
         data -- Input data.
 
         """
-        _SndFileRBase.__init__(self)
+        super().__init__()
         self._data = data
 
         self._bytes = bytes(self._data)
@@ -223,7 +223,7 @@ class SndFileRMem(_SndFileRBase):
 class _SndFileWBase(_SndFileBase):
 
     def __init__(self):
-        _SndFileBase.__init__(self)
+        super().__init__()
 
     def _get_validated_sf_info(self, format, rate, channels, use_float, bits):
         fspec = formats_map[format]
@@ -288,7 +288,7 @@ class SndFileW(_SndFileWBase):
         bits      -- Bits per item.
 
         """
-        _SndFileWBase.__init__(self)
+        super().__init__()
         self._channels = channels
 
         info = self._get_validated_sf_info(format, rate, channels, use_float, bits)
@@ -323,7 +323,7 @@ class SndFileWMem(_SndFileWBase):
         bits      -- Bits per item.
 
         """
-        _SndFileWBase.__init__(self)
+        super().__init__()
         self._channels = channels
 
         self._bytes = bytearray()
