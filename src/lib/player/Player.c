@@ -656,6 +656,39 @@ static void Player_apply_master_volume(
 }
 
 
+static void Player_init_final(Player* player)
+{
+    assert(player != NULL);
+
+    Master_params_set_starting_tempo(&player->master_params);
+
+    Device_states_set_tempo(player->device_states, player->master_params.tempo);
+
+    // Init control variables
+    {
+        Au_table* aus = Module_get_au_table(player->module);
+        for (int i = 0; i < KQT_AUDIO_UNITS_MAX; ++i)
+        {
+            const Audio_unit* au = Au_table_get(aus, i);
+            if (au != NULL)
+                Device_init_control_vars(
+                        (const Device*)au,
+                        player->device_states,
+                        DEVICE_CONTROL_VAR_MODE_MIXED,
+                        player->master_params.random,
+                        NULL);
+        }
+    }
+
+    Player_reset_channels(player);
+
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        Cgiter_reset(&player->cgiters[i], &player->master_params.cur_pos);
+
+    return;
+}
+
+
 void Player_play(Player* player, int32_t nframes)
 {
     assert(player != NULL);
@@ -689,34 +722,7 @@ void Player_play(Player* player, int32_t nframes)
             {
                 // We are reading notes for the first time, do final inits
                 player->cgiters_accessed = true;
-
-                Master_params_set_starting_tempo(&player->master_params);
-
-                Device_states_set_tempo(
-                        player->device_states, player->master_params.tempo);
-
-                // Init control variables
-                {
-                    Au_table* aus = Module_get_au_table(player->module);
-                    for (int i = 0; i < KQT_AUDIO_UNITS_MAX; ++i)
-                    {
-                        const Audio_unit* au = Au_table_get(aus, i);
-                        if (au != NULL)
-                            Device_init_control_vars(
-                                    (const Device*)au,
-                                    player->device_states,
-                                    DEVICE_CONTROL_VAR_MODE_MIXED,
-                                    player->master_params.random,
-                                    NULL);
-                    }
-                }
-
-                Player_reset_channels(player);
-
-                for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
-                    Cgiter_reset(
-                            &player->cgiters[i],
-                            &player->master_params.cur_pos);
+                Player_init_final(player);
             }
             to_be_rendered = Player_move_forwards(player, to_be_rendered, false);
         }
@@ -836,6 +842,13 @@ void Player_skip(Player* player, int64_t nframes)
     int64_t skipped = 0;
     while (skipped < nframes)
     {
+        if (!player->cgiters_accessed)
+        {
+            // We are reading notes for the first time, do final inits
+            player->cgiters_accessed = true;
+            Player_init_final(player);
+        }
+
         // Move forwards in composition
         int32_t to_be_skipped = min(nframes - skipped, INT32_MAX);
         to_be_skipped = Player_move_forwards(player, to_be_skipped, true);
