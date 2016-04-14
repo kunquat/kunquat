@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from . import utils
 
@@ -76,7 +76,7 @@ class EventListButton(QToolButton):
         self._text = QLabel(self._get_text(0))
 
         h = QHBoxLayout()
-        h.setMargin(6)
+        h.setContentsMargins(6, 6, 6, 6)
         h.addItem(light_layout)
         h.addWidget(self._text)
         self.setLayout(h)

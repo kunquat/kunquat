@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from .tuningtableeditor import TuningTableEditor
 
@@ -27,7 +27,7 @@ class TuningTableWindow(QWidget):
         self._editor = TuningTableEditor()
 
         v = QVBoxLayout()
-        v.setMargin(4)
+        v.setContentsMargins(4, 4, 4, 4)
         v.addWidget(self._editor)
         self.setLayout(v)
 

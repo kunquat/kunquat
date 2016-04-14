@@ -13,8 +13,8 @@
 
 import math
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 
@@ -37,7 +37,7 @@ class HitSelector(QWidget):
         self._hit_keyboard_layout = HitKeyboardLayout(cb_info)
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(4)
         v.addWidget(self._hit_bank_selector)
         v.addWidget(self._hit_keyboard_layout)
@@ -81,12 +81,12 @@ class HitKeyboardLayout(QWidget):
         assert sum(self._ROW_LENGTHS) == _BANK_SIZE
 
         rows = QVBoxLayout()
-        rows.setMargin(0)
+        rows.setContentsMargins(0, 0, 0, 0)
         rows.setSpacing(2)
         self.setLayout(rows)
         for row_index in range(min(4, typewriter_manager.get_row_count())):
             row = QHBoxLayout()
-            row.setMargin(0)
+            row.setContentsMargins(0, 0, 0, 0)
             row.setSpacing(4)
 
             # Initial padding
@@ -132,7 +132,7 @@ class HitBankSelector(QWidget):
         bank_count = int(math.ceil(HITS_MAX / float(_BANK_SIZE)))
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
         h.addWidget(QLabel('Hit banks:'))
         for i in range(bank_count):

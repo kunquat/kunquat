@@ -11,7 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
+from PySide.QtCore import QThread
 
 
 class QtEventPump(QThread):

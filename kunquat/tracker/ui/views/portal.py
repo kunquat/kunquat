@@ -12,8 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from .newbutton import NewButton
 from .openbutton import OpenButton
@@ -195,7 +195,7 @@ class RenderStatsButton(QToolButton):
         self._load_meter = RenderLoadMeter()
 
         h = QHBoxLayout()
-        h.setMargin(6)
+        h.setContentsMargins(6, 6, 6, 6)
         h.addWidget(self._load_meter, 0, Qt.AlignVCenter)
         h.addWidget(QLabel('System load'))
         self.setLayout(h)

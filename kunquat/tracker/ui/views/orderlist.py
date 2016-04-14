@@ -14,8 +14,8 @@
 
 import json
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.tracker.ui.model.patterninstance import PatternInstance
 from kunquat.tracker.ui.model.song import Song
@@ -52,7 +52,7 @@ class AlbumTreeModel(QAbstractItemModel):
     def __init__(self):
         super().__init__()
 
-        # We store the nodes because PyQt fails reference handling
+        # We store the nodes because of reference handling issues
         self._songs = []
 
     def set_ui_model(self, ui_model):
@@ -280,7 +280,7 @@ class Orderlist(QWidget):
         self._album_tree.setRootIsDecorated(True)
 
         layout = QVBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         layout.addWidget(self._album_tree)
 

@@ -13,8 +13,8 @@
 
 import string
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 
 def get_var_name_validation_status(text):

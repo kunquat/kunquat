@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 from .editorlist import EditorList
@@ -28,7 +28,7 @@ class ChDefaultsEditor(QWidget):
         self._ch_defaults_list = ChDefaultsList()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Channel defaults'))
         v.addWidget(self._ch_defaults_list, 1000)
@@ -99,7 +99,7 @@ class ChDefaults(QWidget):
         self._init_expr.setValidator(MaybeVarNameValidator())
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(5)
         h.addWidget(num_widget)
         h.addWidget(self._au_selector)

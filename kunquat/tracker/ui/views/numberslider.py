@@ -11,13 +11,13 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 
 class NumberSlider(QWidget):
 
-    numberChanged = pyqtSignal(float, name='numberChanged')
+    numberChanged = Signal(float, name='numberChanged')
 
     def __init__(self, decimal_count, min_val, max_val, title='', width_txt=''):
         super().__init__()

@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 from .components import Components
@@ -73,7 +73,7 @@ class Editor(QWidget):
         self._tabs.addTab(self._info_editor, 'Info')
 
         v = QVBoxLayout()
-        v.setMargin(4)
+        v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
         if au.is_instrument():
             v.addWidget(self._test_panel)
@@ -123,7 +123,7 @@ class TestPanel(QWidget):
         expr_label.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
         h.addWidget(self._test_button)
         h.addWidget(expr_label)

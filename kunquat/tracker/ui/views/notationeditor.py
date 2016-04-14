@@ -13,8 +13,8 @@
 
 import math
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from .headerline import HeaderLine
 
@@ -33,26 +33,26 @@ class NotationEditor(QWidget):
         self._keymap = Keymap()
 
         ll = QVBoxLayout()
-        ll.setMargin(0)
+        ll.setContentsMargins(0, 0, 0, 0)
         ll.setSpacing(2)
         ll.addWidget(self._notations)
         ll.addWidget(self._tuning_tables)
 
         nl = QVBoxLayout()
-        nl.setMargin(0)
+        nl.setContentsMargins(0, 0, 0, 0)
         nl.setSpacing(2)
         nl.addWidget(self._notes)
         nl.addWidget(self._note)
 
         nlists = QHBoxLayout()
-        nlists.setMargin(0)
+        nlists.setContentsMargins(0, 0, 0, 0)
         nlists.setSpacing(2)
         nlists.addWidget(self._template)
         nlists.addWidget(self._octaves)
         nlists.addLayout(nl)
 
         el = QVBoxLayout()
-        el.setMargin(0)
+        el.setContentsMargins(0, 0, 0, 0)
         el.setSpacing(2)
         el.addLayout(nlists)
         el.addWidget(self._keymap)
@@ -64,7 +64,7 @@ class NotationEditor(QWidget):
         separator.setMinimumWidth(2)
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
         h.addLayout(ll)
         h.addWidget(separator)
@@ -299,7 +299,7 @@ class Notations(QWidget):
         self._list_view = NotationListView()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Custom notations'))
         v.addWidget(self._toolbar)
@@ -561,7 +561,7 @@ class TuningTables(QWidget):
         self._edit_button.setEnabled(False)
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Tuning tables'))
         v.addWidget(self._toolbar)
@@ -624,7 +624,7 @@ class Template(QWidget):
         self._create_tt_button = QPushButton('Create tuning table')
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Template'))
         v.addWidget(self._center_pitch)
@@ -735,7 +735,7 @@ class CenterPitch(QWidget):
         self._units.setCurrentIndex(self._units.findText('cents'))
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
         h.addWidget(QLabel('Center pitch:'), 0)
         h.addWidget(self._value, 1)
@@ -875,7 +875,7 @@ class OctaveRatio(QWidget):
         self._ratio.setValidator(RatioValidator())
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
         h.addWidget(QLabel('Octave ratio:'))
         h.addWidget(self._ratio)
@@ -947,7 +947,7 @@ class TemplateOctaves(QWidget):
         self._highest.setRange(0, 15)
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
         h.addWidget(QLabel('Lowest octave:'))
         h.addWidget(self._lowest)
@@ -1306,7 +1306,7 @@ class TemplateNotes(QWidget):
         self._table_view = TemplateNoteTableView()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(self._toolbar)
         v.addWidget(self._table_view)
@@ -1580,7 +1580,7 @@ class Octaves(QWidget):
         self._list_view = OctaveListView()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Octaves'))
         v.addWidget(self._toolbar)
@@ -1805,7 +1805,7 @@ class Notes(QWidget):
         self._list_view = NoteListView()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Notes'))
         v.addWidget(self._toolbar)
@@ -1860,7 +1860,7 @@ class Note(QWidget):
         self._name = QLineEdit()
 
         el = QHBoxLayout()
-        el.setMargin(0)
+        el.setContentsMargins(0, 0, 0, 0)
         el.setSpacing(4)
         el.addWidget(QLabel('Name:'))
         el.addWidget(self._name)
@@ -1868,7 +1868,7 @@ class Note(QWidget):
         el.addWidget(self._cents)
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Current note'))
         v.addLayout(el)
@@ -1945,7 +1945,7 @@ class Keymap(QWidget):
         self._key_editor = KeyEditor()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Keymap'))
         v.addWidget(self._key_count)
@@ -2002,7 +2002,7 @@ class KeyCount(QWidget):
         self._count.setRange(0, _KEYS_MAX)
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
         h.addWidget(QLabel('Number of keys:'))
         h.addWidget(self._count)
@@ -2097,7 +2097,7 @@ class KeySelector(QWidget):
         self._keys = [KeyButton(i) for i in range(_KEYS_MAX)]
 
         top_row = QHBoxLayout()
-        top_row.setMargin(0)
+        top_row.setContentsMargins(0, 0, 0, 0)
         top_row.setSpacing(2)
         top_row.addSpacing(31)
         for key in self._keys[1::2]:
@@ -2105,14 +2105,14 @@ class KeySelector(QWidget):
         top_row.addStretch(1)
 
         bottom_row = QHBoxLayout()
-        bottom_row.setMargin(0)
+        bottom_row.setContentsMargins(0, 0, 0, 0)
         bottom_row.setSpacing(2)
         for key in self._keys[0::2]:
             bottom_row.addWidget(key)
         bottom_row.addStretch(1)
 
         rows = QVBoxLayout()
-        rows.setMargin(0)
+        rows.setContentsMargins(0, 0, 0, 0)
         rows.setSpacing(2)
         rows.addLayout(top_row)
         rows.addLayout(bottom_row)
@@ -2187,7 +2187,7 @@ class KeyEditor(QWidget):
         self._note_selector = KeyNoteSelector()
 
         el = QHBoxLayout()
-        el.setMargin(0)
+        el.setContentsMargins(0, 0, 0, 0)
         el.setSpacing(4)
         el.addWidget(self._enabled)
         el.addWidget(self._cents_label)
@@ -2197,7 +2197,7 @@ class KeyEditor(QWidget):
         el.addStretch(1)
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Key'))
         v.addLayout(el)

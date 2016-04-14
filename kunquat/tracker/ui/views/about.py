@@ -12,8 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.tracker.version import KUNQUAT_VERSION
 from kunquat.kunquat.kunquat import get_version
@@ -99,7 +99,7 @@ class About(QWidget):
         self._about_message = AboutMessage()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
         v.setAlignment(Qt.AlignHCenter)
         v.addWidget(self._logo)

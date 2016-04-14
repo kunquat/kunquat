@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
@@ -123,7 +123,7 @@ class WaveformEditor(QWidget):
         ed_layout.addWidget(self._waveform)
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Waveshaping'))
         v.addLayout(ed_layout)
@@ -357,7 +357,7 @@ class WarpEditor(QWidget):
         self._value_display.setFixedWidth(value_width)
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
         h.addWidget(self._down_button)
         h.addWidget(self._up_button)
@@ -599,7 +599,7 @@ class ToneEditor(QWidget):
         self._remove_button.setEnabled(self._index != 0)
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
         h.addWidget(self._pitch_spin)
         h.addWidget(self._volume_slider)
@@ -664,7 +664,7 @@ class TonePitchSpin(QWidget):
         self._spin.setValue(1)
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.addWidget(QLabel('Pitch'))
         h.addWidget(self._spin)
         self.setLayout(h)

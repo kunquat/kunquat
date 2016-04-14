@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 
 class ConfirmDialog(QDialog):
@@ -28,7 +28,7 @@ class ConfirmDialog(QDialog):
         self._message.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
 
         h = QHBoxLayout()
-        h.setMargin(8)
+        h.setContentsMargins(8, 8, 8, 8)
         h.setSpacing(16)
         h.addWidget(warning_label)
         h.addWidget(self._message)

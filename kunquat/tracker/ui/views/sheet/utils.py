@@ -13,8 +13,8 @@
 
 import math
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp

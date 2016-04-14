@@ -12,8 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
 from .confirmdialog import ConfirmDialog
@@ -33,7 +33,7 @@ class MainWindow(QWidget):
 
         self._main_view = MainView()
         layout = QVBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._main_view)
         self.setLayout(layout)
 

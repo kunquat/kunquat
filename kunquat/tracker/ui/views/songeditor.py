@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 from .headerline import HeaderLine
@@ -33,7 +33,7 @@ class SongEditor(QWidget):
         gl.addWidget(self._tempo_editor, 1, 1)
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Song'))
         v.addLayout(gl)

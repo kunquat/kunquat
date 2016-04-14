@@ -13,8 +13,8 @@
 
 import os
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 from .connections import Connections
@@ -32,7 +32,7 @@ class ConnectionsEditor(QWidget):
         self._connections = Connections()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
         v.addWidget(self._toolbar)
         v.addWidget(self._connections)

@@ -12,8 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from .sheet.sheet import Sheet
 
@@ -26,7 +26,7 @@ class Composition(QFrame):
         self._sheet = Sheet()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
         v.addWidget(self._sheet)
         self.setLayout(v)

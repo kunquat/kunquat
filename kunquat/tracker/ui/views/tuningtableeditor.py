@@ -13,8 +13,8 @@
 
 import re
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 from .notationeditor import RatioValidator
@@ -49,7 +49,7 @@ class TuningTableEditor(QWidget):
         self._notes = Notes()
 
         gl = QGridLayout()
-        gl.setMargin(0)
+        gl.setContentsMargins(0, 0, 0, 0)
         gl.setHorizontalSpacing(4)
         gl.setVerticalSpacing(2)
         gl.addWidget(QLabel('Name:'), 0, 0)
@@ -66,7 +66,7 @@ class TuningTableEditor(QWidget):
         gl.addWidget(self._tuning_center, 5, 1)
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addLayout(gl)
         v.addWidget(self._notes)
@@ -500,7 +500,7 @@ class Notes(QWidget):
         self._table_view = NoteTableView()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(self._toolbar)
         v.addWidget(self._table_view)

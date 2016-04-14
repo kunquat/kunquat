@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from .bindeditor import BindEditor
 from .environmenteditor import EnvironmentEditor
@@ -29,7 +29,7 @@ class EnvBindWindow(QWidget):
         self.setWindowTitle('Environment & bindings')
 
         h = QHBoxLayout()
-        h.setMargin(4)
+        h.setContentsMargins(4, 4, 4, 4)
         h.setSpacing(4)
         h.addWidget(self._env_editor)
         h.addWidget(self._bind_editor)

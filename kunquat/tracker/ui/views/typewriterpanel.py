@@ -12,8 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
 from .octaveselector import OctaveSelector
@@ -34,7 +34,7 @@ class TypewriterPanel(QFrame):
         self._profile_control = ProfileControl()
 
         il = QHBoxLayout()
-        il.setMargin(0)
+        il.setContentsMargins(0, 0, 0, 0)
         il.setSpacing(4)
         il.addWidget(self._notation_select)
         il.addWidget(self._hit_map_toggle)

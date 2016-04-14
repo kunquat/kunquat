@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 import kunquat.kunquat.events as events
 from kunquat.kunquat.limits import *
@@ -33,7 +33,7 @@ class BindEditor(QWidget):
         self._targets = Targets()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Event bindings'))
         v.addWidget(self._bind_list)
@@ -230,7 +230,7 @@ class BindList(QWidget):
         self._list_view = BindListView()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
         v.addWidget(self._toolbar)
         v.addWidget(self._list_view)
@@ -312,7 +312,7 @@ class SourceEventSelector(QWidget):
         self._selector = EventBox()
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
         h.addWidget(QLabel('Event:'))
         h.addWidget(self._selector)
@@ -371,7 +371,7 @@ class Constraints(QWidget):
         self._cblist = ConstraintList()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Binding constraints'))
         v.addWidget(self._cblist)
@@ -474,7 +474,7 @@ class ConstraintEditor(QWidget):
         self._remove_button.setStyleSheet('padding: 0 -2px;')
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
         h.addWidget(self._event)
         h.addWidget(TightLabel('Test expression:'))
@@ -562,7 +562,7 @@ class Targets(QWidget):
         self._target_list = TargetList()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Event targets'))
         v.addWidget(self._target_list)
@@ -668,7 +668,7 @@ class TargetEditor(QWidget):
         self._remove_button.setStyleSheet('padding: 0 -2px;')
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
         h.addWidget(TightLabel('Channel offset:'))
         h.addWidget(self._ch_offset)

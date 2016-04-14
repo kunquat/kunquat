@@ -14,7 +14,7 @@
 from collections import MutableMapping
 from itertools import count
 
-from PyQt4.QtGui import *
+from PySide.QtGui import *
 
 
 class BufferCache(MutableMapping):

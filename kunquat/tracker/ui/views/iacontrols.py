@@ -13,8 +13,8 @@
 
 import string
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 import kunquat.tracker.ui.model.tstamp as tstamp
 from .editorlist import EditorList
@@ -31,7 +31,7 @@ class IAControls(QWidget):
         self._runtime_var_list = RuntimeVarList()
 
         v = QVBoxLayout()
-        v.setMargin(4)
+        v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
         v.addWidget(self._inf_toggle)
         v.addWidget(HeaderLine('Runtime environment state'))
@@ -150,7 +150,7 @@ class RuntimeVarEditor(QWidget):
         self._editor = RuntimeVarValueEditor()
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
         h.addWidget(self._header, 2)
         h.addWidget(self._editor, 1)

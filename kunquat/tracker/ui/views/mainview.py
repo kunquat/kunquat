@@ -12,8 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
 from .portal import Portal
@@ -35,7 +35,7 @@ class MainView(QWidget):
         self._peak_meter = PeakMeter()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
         v.addWidget(self._portal)
         v.addWidget(self._top_controls)

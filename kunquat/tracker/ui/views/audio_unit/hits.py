@@ -13,8 +13,8 @@
 
 import math
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 from kunquat.tracker.ui.views.headerline import HeaderLine
@@ -36,7 +36,7 @@ class Hits(QWidget):
         self._hit_editor = HitEditor()
 
         v = QVBoxLayout()
-        v.setMargin(4)
+        v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
         v.addWidget(HeaderLine('Hits'))
         v.addWidget(self._hit_selector)
@@ -117,7 +117,7 @@ class HitEditor(QWidget):
         self._name = HitName()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(self._enabled)
         v.addWidget(self._name)
@@ -202,7 +202,7 @@ class HitName(QWidget):
         self._edit = QLineEdit()
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
         h.addWidget(QLabel('Name:'))
         h.addWidget(self._edit)

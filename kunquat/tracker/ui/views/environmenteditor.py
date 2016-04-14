@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
@@ -29,7 +29,7 @@ class EnvironmentEditor(QWidget):
         self._vars = VariableList()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Initial environment state'))
         v.addWidget(self._vars)
@@ -112,7 +112,7 @@ class VariableEditor(QWidget):
         self._remove_button = VarRemoveButton()
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
         h.addWidget(self._name_editor)
         h.addWidget(self._type_editor)
@@ -407,7 +407,7 @@ class VariableAdder(QWidget):
         self._var_add_button.setEnabled(False)
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
         h.addWidget(self._var_name)
         h.addWidget(self._var_add_button)
