@@ -15,7 +15,7 @@ import math
 
 from kunquat.extras.sndfile import SndFileRMem, SndFileWMem
 
-from procparams import ProcParams
+from .procparams import ProcParams
 
 
 # Base wave functions
@@ -127,17 +127,17 @@ class AddParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():
-        return u'voice'
+        return 'voice'
 
     @staticmethod
     def get_port_info():
         return {
-            'in_00':  u'pitch',
-            'in_01':  u'force',
-            'in_02':  u'phmod L',
-            'in_03':  u'phmod R',
-            'out_00': u'audio L',
-            'out_01': u'audio R'
+            'in_00':  'pitch',
+            'in_01':  'force',
+            'in_02':  'phmod L',
+            'in_03':  'phmod R',
+            'out_00': 'audio L',
+            'out_01': 'audio R'
         }
 
     _PREWARP_FUNCS = [
@@ -196,7 +196,7 @@ class AddParams(ProcParams):
         }
 
     def __init__(self, proc_id, controller):
-        ProcParams.__init__(self, proc_id, controller)
+        super().__init__(proc_id, controller)
 
     def get_ramp_attack_enabled(self):
         return self._get_value('p_b_ramp_attack.json', True)
@@ -214,7 +214,7 @@ class AddParams(ProcParams):
             sf.close()
         else:
             waveform = [-math.sin(phase * math.pi * 2 / self._WAVEFORM_SAMPLE_COUNT)
-                    for phase in xrange(self._WAVEFORM_SAMPLE_COUNT)]
+                    for phase in range(self._WAVEFORM_SAMPLE_COUNT)]
 
         if len(waveform) != self._WAVEFORM_SAMPLE_COUNT:
             waveform = waveform[:self._WAVEFORM_SAMPLE_COUNT]
@@ -228,7 +228,7 @@ class AddParams(ProcParams):
         if type(warps) != list:
             warps = []
         warp_count = len(warps)
-        for i in xrange(warp_count):
+        for i in range(warp_count):
             warp = warps[i]
             if ((type(warp) != list) or
                     (len(warp) != 2) or
@@ -236,7 +236,7 @@ class AddParams(ProcParams):
                     (type(warp[1]) not in (int, float)) or
                     (not -1 <= warp[1] <= 1)):
                 warps[i] = None
-        warps = filter(lambda w: w != None, warps)
+        warps = [w for w in warps if w != None]
         warps = warps[:self._WARPS_MAX]
         return warps
 
@@ -280,7 +280,7 @@ class AddParams(ProcParams):
         postwarp_chain = [(post_info['funcs_dict'][name], value)
                 for (name, value) in base_def[post_info['def_key']] if name != 'None']
 
-        for i in xrange(self._WAVEFORM_SAMPLE_COUNT):
+        for i in range(self._WAVEFORM_SAMPLE_COUNT):
             x = i * 2 / float(self._WAVEFORM_SAMPLE_COUNT) - 1
             for (f, a) in prewarp_chain:
                 x = normalise(f(x, a))
@@ -296,7 +296,7 @@ class AddParams(ProcParams):
         sf = SndFileWMem(channels=1, use_float=True, bits=32)
         sf.write(base)
         sf.close()
-        self._set_value(waveform_key, str(sf.get_file_contents()))
+        self._set_value(waveform_key, bytes(sf.get_file_contents()))
 
     def get_waveform_func(self, wave_type):
         base_def = self._get_waveform_def(wave_type)
@@ -394,7 +394,7 @@ class AddParams(ProcParams):
             self._set_tone_volume(wave_type, i, volume)
             if wave_type == 'base':
                 self._set_tone_panning(wave_type, i, panning)
-        for i in xrange(len(tones), self._TONES_MAX):
+        for i in range(len(tones), self._TONES_MAX):
             self._remove_tone(wave_type, i)
 
     def _get_tone_existence(self, wave_type, index):
@@ -404,7 +404,7 @@ class AddParams(ProcParams):
 
     def _get_tones_raw(self, wave_type):
         tones_raw = []
-        for i in xrange(self._TONES_MAX):
+        for i in range(self._TONES_MAX):
             if self._get_tone_existence(wave_type, i):
                 pitch = self._get_tone_pitch(wave_type, i)
                 volume = self._get_tone_volume(wave_type, i)
@@ -421,7 +421,7 @@ class AddParams(ProcParams):
         tones = self._get_tones_raw(wave_type)
         has_holes = (None in tones) and (
                 tones.index(None) < sum(1 for t in tones if t != None))
-        tones = filter(lambda x: x != None, tones)
+        tones = [x for x in tones if x != None]
         return tones, has_holes
 
     def _get_tones(self, wave_type):

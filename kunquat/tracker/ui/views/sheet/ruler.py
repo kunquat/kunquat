@@ -11,16 +11,15 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
 import math
 import time
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from config import *
-import utils
 import kunquat.tracker.ui.model.tstamp as tstamp
+from .config import *
+from . import utils
 
 
 class Ruler(QWidget):
@@ -28,7 +27,7 @@ class Ruler(QWidget):
     heightChanged = pyqtSignal(name='heightChanged')
 
     def __init__(self, is_grid_ruler=False):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -169,7 +168,7 @@ class Ruler(QWidget):
         else:
             active_pattern_index = None
 
-        for pi in xrange(first_index, len(self._heights)):
+        for pi in range(first_index, len(self._heights)):
             if self._start_heights[pi] > self._px_offset + self.height():
                 break
 
@@ -428,7 +427,7 @@ class RulerCache():
             stop_beat = (stop_ts - tstamp.Tstamp(0, 1)).beats + 1
 
             # Draw markers
-            for marker_pos in xrange(
+            for marker_pos in range(
                     start_marker_in_beat, stop_beat, beats_per_marker):
                 y = float(marker_pos - start_ts) * self._px_per_beat
                 draw_fn(painter, y, [marker_pos, 0], 1)

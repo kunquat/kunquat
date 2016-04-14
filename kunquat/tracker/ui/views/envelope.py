@@ -11,15 +11,15 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from itertools import count, islice, izip
+from itertools import count, islice
 import math
 import time
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
-from linesegment import LineSegment
+from .axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
+from .linesegment import LineSegment
 
 
 _font = QFont(QFont().defaultFamily(), 9)
@@ -91,7 +91,7 @@ class Envelope(QWidget):
     envelopeChanged = pyqtSignal(name='envelopeChanged')
 
     def __init__(self, config={}):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._range_x = None
         self._range_y = None
@@ -262,7 +262,7 @@ class Envelope(QWidget):
         return int(math.floor(val_range[0]))
 
     def _get_ls_coords(self, nodes):
-        return izip(nodes, islice(nodes, 1, None))
+        return zip(nodes, islice(nodes, 1, None))
 
     def _get_zero_x_envelope(self):
         return (self._axis_y_offset_x + self._axis_config['axis_y']['width'] -
@@ -336,7 +336,7 @@ class Envelope(QWidget):
         #painter.setPen(QColor(0xff, 0, 0))
         #painter.drawRect(0, 0, self._envelope_width - 1, self._envelope_height - 1)
 
-        cur_update_id = self._ls_update_id.next()
+        cur_update_id = next(self._ls_update_id)
 
         new_ls_count = 0
 
@@ -357,7 +357,7 @@ class Envelope(QWidget):
 
         # Remove obsolete entries from cache
         obsolete_keys = []
-        for k, v in self._ls_cache.iteritems():
+        for k, v in self._ls_cache.items():
             if v.get_update_id() != cur_update_id:
                 obsolete_keys.append(k)
 

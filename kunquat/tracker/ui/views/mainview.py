@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -16,17 +16,17 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
-from portal import Portal
-from topcontrols import TopControls
-from mainsplitter import MainSplitter
-from importprogress import ImportProgress
-from peakmeter import PeakMeter
+from .portal import Portal
+from .topcontrols import TopControls
+from .mainsplitter import MainSplitter
+from .importprogress import ImportProgress
+from .peakmeter import PeakMeter
 
 
 class MainView(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._portal = Portal()
         self._top_controls = TopControls()

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -90,7 +90,7 @@ class UiLauncher():
         if self._tasks:
             cur_task = self._tasks.popleft()
             try:
-                cur_task.next()
+                next(cur_task)
                 self._tasks.appendleft(cur_task)
             except StopIteration:
                 pass

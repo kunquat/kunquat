@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -18,7 +18,7 @@ from PyQt4.QtGui import *
 class EditorList(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._area = EditorListArea()
         self._has_adder = False
 
@@ -56,12 +56,12 @@ class EditorList(QWidget):
                 assert cur_editor_count >= 0
 
         # Create new editors (if needed)
-        for i in xrange(cur_editor_count, new_editor_count):
+        for i in range(cur_editor_count, new_editor_count):
             editor = self._make_editor_widget(i)
             layout.insertWidget(i, editor)
 
         # Update editor contents
-        for i in xrange(new_editor_count):
+        for i in range(new_editor_count):
             editor = layout.itemAt(i).widget()
             self._update_editor(i, editor)
 
@@ -69,7 +69,7 @@ class EditorList(QWidget):
 
     def disconnect_widgets(self):
         layout = self._area.widget().layout()
-        for i in xrange(layout.count()):
+        for i in range(layout.count()):
             widget = layout.itemAt(i).widget()
             self._disconnect_widget(widget)
 
@@ -104,7 +104,7 @@ class EditorList(QWidget):
 class EditorListContainer(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         v = QVBoxLayout()
         v.setMargin(0)
         v.setSpacing(0)
@@ -115,7 +115,7 @@ class EditorListContainer(QWidget):
 class EditorListArea(QScrollArea):
 
     def __init__(self):
-        QScrollArea.__init__(self)
+        super().__init__()
 
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)

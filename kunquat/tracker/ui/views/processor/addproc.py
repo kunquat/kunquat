@@ -14,21 +14,21 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from procnumslider import ProcNumSlider
-from waveform import Waveform
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
-import utils
+from .procnumslider import ProcNumSlider
+from .waveform import Waveform
+from . import utils
 
 
 class AddProc(QWidget):
 
     @staticmethod
     def get_name():
-        return u'Additive synthesis'
+        return 'Additive synthesis'
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -99,7 +99,7 @@ class AddProc(QWidget):
 class WaveformEditor(QWidget):
 
     def __init__(self, wave_type):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -203,7 +203,7 @@ class WaveformEditor(QWidget):
 class WarpList(EditorList):
 
     def __init__(self, wave_type, warp_type):
-        EditorList.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -281,7 +281,7 @@ class WarpList(EditorList):
 class WarpAdder(QPushButton):
 
     def __init__(self, wave_type, warp_type):
-        QPushButton.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -320,7 +320,7 @@ class WarpAdder(QPushButton):
 class SmallButton(QPushButton):
 
     def __init__(self, icon):
-        QPushButton.__init__(self)
+        super().__init__()
         self.setStyleSheet('padding: 0 -2px;')
         self.setIcon(QIcon(icon))
 
@@ -330,7 +330,7 @@ class WarpEditor(QWidget):
     _ARG_SCALE = 1000
 
     def __init__(self, wave_type, warp_type, index, icon_bank):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -426,7 +426,7 @@ class WarpEditor(QWidget):
                 self._wave_type, self._warp_type, self._index)
 
         old_block = self._func_selector.blockSignals(True)
-        for i in xrange(self._func_selector.count()):
+        for i in range(self._func_selector.count()):
             if self._func_selector.itemText(i) == name:
                 self._func_selector.setCurrentIndex(i)
                 break
@@ -474,7 +474,7 @@ class WarpEditor(QWidget):
 class ToneList(EditorList):
 
     def __init__(self, wave_type):
-        EditorList.__init__(self)
+        super().__init__()
 
         self._au_id = None
         self._proc_id = None
@@ -548,7 +548,7 @@ class ToneList(EditorList):
 class ToneAdder(QPushButton):
 
     def __init__(self, wave_type):
-        QPushButton.__init__(self, 'Add tone')
+        super().__init__('Add tone')
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -584,7 +584,7 @@ class ToneEditor(QWidget):
     _ARG_SCALE = 1000
 
     def __init__(self, wave_type, index, icon_bank):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -649,7 +649,7 @@ class ToneEditor(QWidget):
 class TonePitchSpin(QWidget):
 
     def __init__(self, wave_type, index):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -716,7 +716,7 @@ class TonePitchSpin(QWidget):
 class ToneVolumeSlider(ProcNumSlider):
 
     def __init__(self, wave_type, index):
-        ProcNumSlider.__init__(self, 1, -64.0, 24.0, title='Volume')
+        super().__init__(1, -64.0, 24.0, title='Volume')
         self._wave_type = wave_type
         self._index = index
         self.set_number(0)
@@ -742,7 +742,7 @@ class ToneVolumeSlider(ProcNumSlider):
 class TonePanningSlider(ProcNumSlider):
 
     def __init__(self, wave_type, index):
-        ProcNumSlider.__init__(self, 3, -1.0, 1.0, title='Panning')
+        super().__init__(3, -1.0, 1.0, title='Panning')
         self._wave_type = wave_type
         self._index = index
         self.set_number(0)

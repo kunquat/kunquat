@@ -12,13 +12,12 @@
 #
 
 from copy import deepcopy
-from types import NoneType
 
 from kunquat.kunquat.limits import PATTERNS_MAX
-import tstamp
-from gridpattern import GridPattern, STYLE_COUNT, DEFAULT_GRID_PATTERN
-from pattern import Pattern
-from patterninstance import PatternInstance
+from . import tstamp
+from .gridpattern import GridPattern, STYLE_COUNT, DEFAULT_GRID_PATTERN
+from .pattern import Pattern
+from .patterninstance import PatternInstance
 
 
 class GridManager():
@@ -51,15 +50,15 @@ class GridManager():
         return data if isinstance(data, dict) else {}
 
     def get_all_grid_pattern_ids(self):
-        return [u'0'] + self.get_editable_grid_pattern_ids()
+        return ['0'] + self.get_editable_grid_pattern_ids()
 
     def get_editable_grid_pattern_ids(self):
         raw_dict = self._get_raw_master_dict()
-        valid_keys = list(raw_dict.iterkeys())
+        valid_keys = list(raw_dict.keys())
         return valid_keys
 
     def select_grid_pattern(self, gp_id):
-        assert isinstance(gp_id, (NoneType, unicode))
+        assert isinstance(gp_id, (type(None), str))
         if gp_id != self.get_selected_grid_pattern_id():
             self._session.select_grid_pattern_line(None)
         self._session.select_grid_pattern(gp_id)
@@ -68,8 +67,8 @@ class GridManager():
         return self._session.get_selected_grid_pattern_id()
 
     def get_grid_pattern(self, gp_id):
-        assert isinstance(gp_id, (NoneType, unicode))
-        gp_id = gp_id or u'0'
+        assert isinstance(gp_id, (type(None), str))
+        gp_id = gp_id or '0'
         gp = GridPattern(gp_id)
         gp.set_controller(self._controller)
         return gp
@@ -78,9 +77,9 @@ class GridManager():
         raw_master_dict = self._get_raw_master_dict()
 
         # Find a new unique ID
-        used_ids = set(raw_master_dict.iterkeys())
-        for i in xrange(1, len(used_ids) + 2):
-            new_id = unicode(i)
+        used_ids = set(raw_master_dict.keys())
+        for i in range(1, len(used_ids) + 2):
+            new_id = str(i)
             if new_id not in used_ids:
                 break
         else:
@@ -89,15 +88,15 @@ class GridManager():
 
         # Get used names
         used_names = set()
-        for raw_grid in raw_master_dict.itervalues():
+        for raw_grid in raw_master_dict.values():
             if isinstance(raw_grid, dict) and 'name' in raw_grid:
                 name = raw_grid['name']
-                if isinstance(name, unicode):
+                if isinstance(name, str):
                     used_names.add(raw_grid['name'])
 
         # Find a unique placeholder name for the new grid pattern
-        for i in xrange(len(used_names) + 1):
-            placeholder = u'New grid{}'.format(' ' + str(i + 1) if i > 0 else '')
+        for i in range(len(used_names) + 1):
+            placeholder = 'New grid{}'.format(' ' + str(i + 1) if i > 0 else '')
             if placeholder not in used_names:
                 break
         else:
@@ -105,7 +104,7 @@ class GridManager():
 
         # Create new grid pattern
         lines = []
-        for i in xrange(32):
+        for i in range(32):
             line_ts_raw = list(tstamp.Tstamp(i) / 8)
             style = 0
             if i > 0:
@@ -119,7 +118,7 @@ class GridManager():
         self._set_raw_master_dict(raw_master_dict)
 
     def _get_all_patterns(self):
-        for i in xrange(PATTERNS_MAX):
+        for i in range(PATTERNS_MAX):
             pinst = PatternInstance(i, 0)
             pinst.set_controller(self._controller)
             pinst.set_ui_model(self._ui_model)
@@ -128,8 +127,8 @@ class GridManager():
                 yield pattern
 
     def remove_grid_pattern(self, gp_id):
-        assert gp_id != u'0'
-        assert isinstance(gp_id, unicode)
+        assert gp_id != '0'
+        assert isinstance(gp_id, str)
 
         raw_master_dict = self._get_raw_master_dict()
         del raw_master_dict[gp_id]
@@ -177,7 +176,7 @@ class GridManager():
         return self._session.get_grid_pattern_zoom_range()
 
     def set_default_grid_pattern_id(self, gp_id):
-        assert isinstance(gp_id, (NoneType, unicode))
+        assert isinstance(gp_id, (type(None), str))
         self._session.set_default_grid_pattern_id(gp_id)
 
     def get_default_grid_pattern_id(self):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2012-2015
+# Author: Tomi Jylhä-Ollila, Finland 2012-2016
 #
 # This file is part of Kunquat.
 #
@@ -113,7 +113,7 @@ class _SndFileBase():
     def _read(self, ptr, count, user_data):
         assert self._bytes != None
         actual_count = min(count, len(self._bytes) - self._pos)
-        for i in xrange(actual_count):
+        for i in range(actual_count):
             ptr[i] = self._bytes[self._pos + i]
         self._pos += actual_count
         return actual_count
@@ -132,7 +132,7 @@ class _SndFileBase():
 class _SndFileRBase(_SndFileBase):
 
     def __init__(self):
-        _SndFileBase.__init__(self)
+        super().__init__()
 
     def read(self, frame_count=float('inf')):
         """Read audio data.
@@ -152,11 +152,11 @@ class _SndFileRBase(_SndFileBase):
             frame_count = 4096
 
         cdata = (ctypes.c_float * (frame_count * self._channels))()
-        chunk = [[] for _ in xrange(self._channels)]
+        chunk = [[] for _ in range(self._channels)]
 
         while frames_left > 0:
             actual_frame_count = _sndfile.sf_readf_float(self._sf, cdata, frame_count)
-            for ch in xrange(self._channels):
+            for ch in range(self._channels):
                 channel_data = cdata[ch:actual_frame_count * self._channels:self._channels]
                 chunk[ch].extend(channel_data)
 
@@ -177,11 +177,11 @@ class SndFileR(_SndFileRBase):
         fname -- Input file name.
 
         """
-        _SndFileRBase.__init__(self)
+        super().__init__()
 
         info = _SF_INFO(0, 0, 0, 0, 0, 0)
 
-        self._sf = _sndfile.sf_open(fname, SFM_READ, info)
+        self._sf = _sndfile.sf_open(bytes(fname, encoding='utf-8'), SFM_READ, info)
         if not self._sf:
             raise SndFileError('Could not open file {}: {}'.format(
                 fname, _sndfile.sf_strerror(None)))
@@ -201,10 +201,10 @@ class SndFileRMem(_SndFileRBase):
         data -- Input data.
 
         """
-        _SndFileRBase.__init__(self)
+        super().__init__()
         self._data = data
 
-        self._bytes = buffer(self._data)
+        self._bytes = bytes(self._data)
 
         vio = self._get_virtual_io_info()
         info = _SF_INFO(0, 0, 0, 0, 0, 0)
@@ -223,7 +223,7 @@ class SndFileRMem(_SndFileRBase):
 class _SndFileWBase(_SndFileBase):
 
     def __init__(self):
-        _SndFileBase.__init__(self)
+        super().__init__()
 
     def _get_validated_sf_info(self, format, rate, channels, use_float, bits):
         fspec = formats_map[format]
@@ -258,7 +258,7 @@ class _SndFileWBase(_SndFileBase):
 
         frame_count = len(data[0])
         cdata = (ctypes.c_float * (frame_count * self._channels))()
-        for ch in xrange(self._channels):
+        for ch in range(self._channels):
             if len(data[ch]) != frame_count:
                 raise ValueError('Output channel buffer lengths do not match')
             cdata[ch::self._channels] = data[ch]
@@ -288,12 +288,12 @@ class SndFileW(_SndFileWBase):
         bits      -- Bits per item.
 
         """
-        _SndFileWBase.__init__(self)
+        super().__init__()
         self._channels = channels
 
         info = self._get_validated_sf_info(format, rate, channels, use_float, bits)
 
-        self._sf = _sndfile.sf_open(fname, SFM_WRITE, info)
+        self._sf = _sndfile.sf_open(bytes(fname, encoding='utf-8'), SFM_WRITE, info)
         if not self._sf:
             raise SndFileError('Could not create file {}: {}'.format(
                 fname, _sndfile.sf_strerror(None)))
@@ -323,7 +323,7 @@ class SndFileWMem(_SndFileWBase):
         bits      -- Bits per item.
 
         """
-        _SndFileWBase.__init__(self)
+        super().__init__()
         self._channels = channels
 
         self._bytes = bytearray()

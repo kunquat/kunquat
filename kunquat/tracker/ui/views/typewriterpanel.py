@@ -16,16 +16,16 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
-from octaveselector import OctaveSelector
-from typewriter import Typewriter
-from notationselect import NotationSelect
-from profilecontrol import ProfileControl
+from .octaveselector import OctaveSelector
+from .typewriter import Typewriter
+from .notationselect import NotationSelect
+from .profilecontrol import ProfileControl
 
 
 class TypewriterPanel(QFrame):
 
     def __init__(self):
-        QFrame.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._notation_select = NotationSelect()
         self._hit_map_toggle = HitMapToggle()
@@ -75,7 +75,7 @@ class TypewriterPanel(QFrame):
 class HitMapToggle(QCheckBox):
 
     def __init__(self):
-        QCheckBox.__init__(self, 'Use hit keymap')
+        super().__init__('Use hit keymap')
         self._ui_model = None
         self._updater = None
 

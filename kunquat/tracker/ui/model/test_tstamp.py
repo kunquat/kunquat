@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013
+# Author: Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -13,8 +13,9 @@
 
 from itertools import product
 import numbers
-import tstamp
 import unittest
+
+from . import tstamp
 
 
 def default_order(x, y):
@@ -30,7 +31,7 @@ class TestTstamp(unittest.TestCase):
     def _check_types(self, ts):
         self.assertIsInstance(ts, tstamp.Tstamp)
         self.assertIsInstance(ts, numbers.Real)
-        self.assertIsInstance(ts.beats, (int, long))
+        self.assertIsInstance(ts.beats, int)
         self.assertIsInstance(ts.rem, int)
         self.assertTrue(ts.rem >= 0)
         self.assertTrue(ts.rem < tstamp.BEAT)
@@ -46,7 +47,7 @@ class TestTstamp(unittest.TestCase):
         self._check_values(ts, beats, rem)
 
     def _simple_init_values(self):
-        return ((b, r) for b in xrange(-4, 4) for r in xrange(4))
+        return ((b, r) for b in range(-4, 4) for r in range(4))
 
     def test_is_immutable(self):
         ts = tstamp.Tstamp()
@@ -74,7 +75,7 @@ class TestTstamp(unittest.TestCase):
         self._check_types_and_values(ts, 0, 0)
 
     def test_init_with_single_int_arg_sets_beats(self):
-        for beats in xrange(-4, 4):
+        for beats in range(-4, 4):
             ts = tstamp.Tstamp(beats)
             self._check_types_and_values(ts, beats, 0)
 
@@ -473,7 +474,7 @@ class TestTstamp(unittest.TestCase):
             self.assertEqual(from_ts, float_source)
 
     def test_int(self):
-        for int_source in xrange(-4, 4):
+        for int_source in range(-4, 4):
             from_ts = int(tstamp.Tstamp(int_source))
             self.assertIsInstance(from_ts, int)
             self.assertEqual(from_ts, int_source)
@@ -487,7 +488,7 @@ class TestTstamp(unittest.TestCase):
         self.assertEqual(int(tstamp.Tstamp(1, -1)), 0)
 
     def test_hash_int(self):
-        for int_source in xrange(-256, 256):
+        for int_source in range(-256, 256):
             ts = tstamp.Tstamp(int_source)
             self.assertEqual(hash(ts), hash(int_source))
 

@@ -22,17 +22,17 @@ from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, Vertic
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 from kunquat.tracker.ui.views.utils import lerp_val
-import utils
+from . import utils
 
 
 class SampleProc(QTabWidget):
 
     @staticmethod
     def get_name():
-        return u'Sample synthesis'
+        return 'Sample synthesis'
 
     def __init__(self):
-        QTabWidget.__init__(self)
+        super().__init__()
 
         self._note_map_editor = NoteMapEditor()
         self._hit_map_editor = HitMapEditor()
@@ -66,7 +66,7 @@ class SampleProc(QTabWidget):
 class NoteMapEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._note_map = NoteMap()
         self._note_map_entry = NoteMapEntry()
@@ -141,7 +141,7 @@ class RandomListMap(QWidget):
     _STATE_MOVING = 'moving'
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -449,7 +449,7 @@ class RandomListMap(QWidget):
 class NoteMap(RandomListMap):
 
     def __init__(self):
-        RandomListMap.__init__(self)
+        super().__init__()
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -494,14 +494,14 @@ class NoteMap(RandomListMap):
 class TightLabel(QLabel):
 
     def __init__(self, text):
-        QLabel.__init__(self, text)
+        super().__init__(text)
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
 
 
 class NoteMapEntry(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -607,7 +607,7 @@ class NoteMapEntry(QWidget):
 class RandomList(EditorList):
 
     def __init__(self):
-        EditorList.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -711,7 +711,7 @@ class RandomList(EditorList):
 class RandomEntryAdder(QPushButton):
 
     def __init__(self, cb_info):
-        QPushButton.__init__(self, 'Add sample entry')
+        super().__init__('Add sample entry')
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -748,7 +748,7 @@ class RandomEntryAdder(QPushButton):
 class RandomEntryEditor(QWidget):
 
     def __init__(self, cb_info, index):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -857,8 +857,8 @@ class RandomEntryEditor(QWidget):
         self._sample_selector.setEnabled(len(sample_ids) > 0)
         for i, info in enumerate(sample_info):
             sample_id, sample_name = info
-            vis_name = sample_name or u'-'
-            self._sample_selector.addItem(vis_name, QVariant(sample_id))
+            vis_name = sample_name or '-'
+            self._sample_selector.addItem(vis_name, sample_id)
             if sample_id == cur_sample_id:
                 self._sample_selector.setCurrentIndex(i)
         self._sample_selector.blockSignals(old_block)
@@ -883,7 +883,7 @@ class RandomEntryEditor(QWidget):
     def _change_sample(self, item_index):
         point = self._get_selected_map_point()
         if (point != None) and (point in self._get_map_points()):
-            sample_id = unicode(self._sample_selector.itemData(item_index).toString())
+            sample_id = self._sample_selector.itemData(item_index)
             random_list = self._get_model_random_list(point)
             random_list.set_sample_id(self._index, sample_id)
             self._updater.signal_update(set([self._get_random_list_signal_type()]))
@@ -913,7 +913,7 @@ class RandomEntryEditor(QWidget):
 class NoteRandomList(RandomList):
 
     def __init__(self):
-        RandomList.__init__(self)
+        super().__init__()
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -941,7 +941,7 @@ class NoteRandomList(RandomList):
 class HitMapEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._hit_selector = SampleHitSelector()
         self._hit_map = HitMap()
@@ -979,7 +979,7 @@ class HitMapEditor(QWidget):
 class SampleHitSelector(HitSelector):
 
     def __init__(self):
-        HitSelector.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -1025,7 +1025,7 @@ class SampleHitSelector(HitSelector):
 class HitMap(RandomListMap):
 
     def __init__(self):
-        RandomListMap.__init__(self)
+        super().__init__()
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -1089,7 +1089,7 @@ class HitMap(RandomListMap):
 class HitMapEntry(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -1187,7 +1187,7 @@ class HitMapEntry(QWidget):
 class HitRandomList(RandomList):
 
     def __init__(self):
-        RandomList.__init__(self)
+        super().__init__()
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -1222,7 +1222,7 @@ class HitRandomList(RandomList):
 class Samples(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._sample_list = SampleList()
         self._sample_editor = SampleEditor()
@@ -1254,7 +1254,7 @@ class Samples(QWidget):
 class SampleListToolBar(QToolBar):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -1324,10 +1324,9 @@ class SampleListToolBar(QToolBar):
         if not sample_id:
             return
 
-        sample_path_qstring = QFileDialog.getOpenFileName(
+        sample_path = QFileDialog.getOpenFileName(
                 caption='Import sample', filter='WavPack audio (*.wv)')
-        if sample_path_qstring:
-            sample_path = str(sample_path_qstring.toUtf8())
+        if sample_path:
             success = sample_params.import_sample(sample_id, sample_path)
             if success:
                 self._updater.signal_update(set([
@@ -1337,7 +1336,7 @@ class SampleListToolBar(QToolBar):
             else:
                 icon_bank = self._ui_model.get_icon_bank()
                 # TODO: Add a more descriptive error message
-                error_msg = u'<p>Could not import \'{}\'.</p>'.format(sample_path)
+                error_msg = '<p>Could not import \'{}\'.</p>'.format(sample_path)
                 dialog = ImportErrorDialog(icon_bank, error_msg)
                 dialog.exec_()
 
@@ -1355,7 +1354,7 @@ class SampleListToolBar(QToolBar):
 class ImportErrorDialog(QDialog):
 
     def __init__(self, icon_bank, error_msg):
-        QDialog.__init__(self)
+        super().__init__()
 
         error_img_path = icon_bank.get_icon_path('error')
         error_label = QLabel()
@@ -1392,7 +1391,7 @@ class ImportErrorDialog(QDialog):
 class SampleListModel(QAbstractListModel):
 
     def __init__(self):
-        QAbstractListModel.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -1424,7 +1423,7 @@ class SampleListModel(QAbstractListModel):
         for sample_id in sample_params.get_sample_ids():
             name = sample_params.get_sample_name(sample_id)
             self._items.append((sample_id, name))
-        self._items = sorted(self._items, key=lambda x: x[1])
+        self._items = sorted(self._items, key=lambda x: x[1] or '')
 
     # Qt interface
 
@@ -1438,18 +1437,18 @@ class SampleListModel(QAbstractListModel):
                 _, vis_name = self._items[row]
                 if vis_name == None:
                     vis_name = '-'
-                return QVariant(vis_name)
+                return vis_name
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role):
-        return QVariant()
+        return None
 
 
 class SampleListView(QListView):
 
     def __init__(self):
-        QListView.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -1487,7 +1486,7 @@ class SampleListView(QListView):
             self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def setModel(self, model):
-        QListView.setModel(self, model)
+        super().setModel(model)
 
         selection_model = self.selectionModel()
         QObject.connect(
@@ -1499,19 +1498,19 @@ class SampleListView(QListView):
         if self._keyboard_mapper.is_handled_key(event):
             event.ignore()
         else:
-            QListView.keyPressEvent(self, event)
+            super().keyPressEvent(event)
 
     def keyReleaseEvent(self, event):
         if self._keyboard_mapper.is_handled_key(event):
             event.ignore()
         else:
-            QListView.keyReleaseEvent(self, event)
+            super().keyReleaseEvent(event)
 
 
 class SampleList(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -1571,7 +1570,7 @@ class SampleList(QWidget):
 class SampleEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -1585,11 +1584,11 @@ class SampleEditor(QWidget):
 
         self._loop_mode = QComboBox()
         loop_modes = (
-                (u'Off', u'off'),
-                (u'Unidirectional', u'uni'),
-                (u'Bidirectional', u'bi'))
+                ('Off', 'off'),
+                ('Unidirectional', 'uni'),
+                ('Bidirectional', 'bi'))
         for vis_mode, mode in loop_modes:
-            self._loop_mode.addItem(vis_mode, QVariant(mode))
+            self._loop_mode.addItem(vis_mode, mode)
 
         self._loop_start = QSpinBox()
         self._loop_start.setRange(0, 2**30)
@@ -1671,9 +1670,9 @@ class SampleEditor(QWidget):
         has_sample = sample_id in sample_params.get_sample_ids()
         self.setEnabled(has_sample)
 
-        name = u''
+        name = ''
         if has_sample:
-            name = sample_params.get_sample_name(sample_id) or u''
+            name = sample_params.get_sample_name(sample_id) or ''
 
         old_block = self._name.blockSignals(True)
         if self._name.text() != name:
@@ -1688,7 +1687,7 @@ class SampleEditor(QWidget):
 
         old_block = self._loop_mode.blockSignals(True)
         new_loop_mode = sample_params.get_sample_loop_mode(sample_id)
-        loop_mode_index = self._loop_mode.findData(QVariant(new_loop_mode))
+        loop_mode_index = self._loop_mode.findData(new_loop_mode)
         if (loop_mode_index != self._loop_mode.itemData(self._loop_mode.currentIndex())):
             self._loop_mode.setCurrentIndex(loop_mode_index)
         self._loop_mode.blockSignals(old_block)
@@ -1708,7 +1707,7 @@ class SampleEditor(QWidget):
     def _change_name(self):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
-        sample_params.set_sample_name(sample_id, unicode(self._name.text()))
+        sample_params.set_sample_name(sample_id, str(self._name.text()))
         self._updater.signal_update(set([
             self._get_list_update_signal_type(), self._get_random_list_signal_type()]))
 
@@ -1719,7 +1718,7 @@ class SampleEditor(QWidget):
         self._updater.signal_update(set([self._get_list_update_signal_type()]))
 
     def _change_loop_mode(self, item_index):
-        loop_mode = unicode(self._loop_mode.itemData(item_index).toString())
+        loop_mode = self._loop_mode.itemData(item_index)
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_loop_mode(sample_id, loop_mode)

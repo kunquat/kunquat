@@ -11,21 +11,21 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from procparams import ProcParams
+from .procparams import ProcParams
 
 
 class ForceParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():
-        return u'voice'
+        return 'voice'
 
     @staticmethod
     def get_port_info():
-        return { 'in_00': u'pitch', 'out_00': u'force' }
+        return { 'in_00': 'pitch', 'out_00': 'force' }
 
     def __init__(self, proc_id, controller):
-        ProcParams.__init__(self, proc_id, controller)
+        super().__init__(proc_id, controller)
 
     def get_global_force(self):
         return self._get_value('p_f_global_force.json', 0.0)

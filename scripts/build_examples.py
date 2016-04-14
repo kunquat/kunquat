@@ -11,11 +11,10 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
 import os
 import os.path
 
-import command
+from . import command
 
 
 def build_examples(builder):
@@ -31,7 +30,7 @@ def build_examples(builder):
         }
 
     echo_prefix = '\n   Building example files\n\n'
-    for src, dest in packages.iteritems():
+    for src, dest in packages.items():
         dest_path = os.path.join(build_dir, dest)
         echo = echo_prefix + 'Building {}'.format(dest)
 
@@ -44,8 +43,8 @@ def build_examples(builder):
                 fpath = os.path.join(dir_path, fname)
                 in_files.append(fpath)
 
-        if command.run_command(
-                builder, 'python', script_path, dest_path, in_dir, *in_files, echo=echo):
+        if command.PythonCommand().run(
+                builder, script_path, dest_path, in_dir, *in_files, echo=echo):
             echo_prefix = ''
 
         # The proper way to do it (probably) as soon as Fabricate supports it

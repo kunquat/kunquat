@@ -15,8 +15,8 @@
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
 
-from patterninstance import PatternInstance
-from song import Song
+from .patterninstance import PatternInstance
+from .song import Song
 
 
 class Album():
@@ -64,9 +64,9 @@ class Album():
         return min(self._session.get_selected_track_num(), self.get_track_count() - 1)
 
     def get_pattern_instance_location(self, pattern_instance):
-        for track_num in xrange(self.get_track_count()):
+        for track_num in range(self.get_track_count()):
             song = self.get_song_by_track(track_num)
-            for system_num in xrange(song.get_system_count()):
+            for system_num in range(song.get_system_count()):
                 cur_pinst = song.get_pattern_instance(system_num)
                 if cur_pinst == pattern_instance:
                     return (track_num, system_num)
@@ -79,7 +79,7 @@ class Album():
         return self.get_pattern_instance_location(pinst)
 
     def get_new_song_num(self):
-        free_nums = set(xrange(SONGS_MAX))
+        free_nums = set(range(SONGS_MAX))
 
         used_songs = self._get_used_songs()
         free_nums -= set(s.get_number() for s in used_songs)
@@ -93,7 +93,7 @@ class Album():
         return free_num
 
     def get_new_pattern_num(self):
-        free_nums = set(xrange(PATTERNS_MAX))
+        free_nums = set(range(PATTERNS_MAX))
 
         used_pinsts = self._get_used_pattern_instances()
         free_nums -= set(p.get_pattern_num() for p in used_pinsts)
@@ -107,7 +107,7 @@ class Album():
         return free_num
 
     def get_new_pattern_instance_num(self, pattern_num):
-        free_nums = set(xrange(PAT_INSTANCES_MAX))
+        free_nums = set(range(PAT_INSTANCES_MAX))
 
         used_pinsts = self._get_used_pattern_instances()
         free_nums -= set(p.get_instance_num()
@@ -235,16 +235,16 @@ class Album():
 
     def _get_used_songs(self):
         songs = []
-        for track_num in xrange(self.get_track_count()):
+        for track_num in range(self.get_track_count()):
             song = self.get_song_by_track(track_num)
             songs.append(song)
         return songs
 
     def _get_used_pattern_instances(self):
         pattern_instances = []
-        for track_num in xrange(self.get_track_count()):
+        for track_num in range(self.get_track_count()):
             song = self.get_song_by_track(track_num)
-            for system_num in xrange(song.get_system_count()):
+            for system_num in range(song.get_system_count()):
                 pinst = song.get_pattern_instance(system_num)
                 pattern_instances.append(pinst)
         return pattern_instances

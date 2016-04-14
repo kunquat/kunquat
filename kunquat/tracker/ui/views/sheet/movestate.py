@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -63,7 +63,7 @@ class AbstractMoveState():
 class HorizontalMoveState(AbstractMoveState):
 
     def __init__(self):
-        AbstractMoveState.__init__(self)
+        super().__init__()
 
     def press_left(self):
         self.press(-1)
@@ -86,13 +86,13 @@ _STEP_MAX = 16
 _STEPS = [0] + [min(int(_STEP_BASE**e), _STEP_MAX) for e in
         takewhile(lambda n: _STEP_BASE**(n-1) <= _STEP_MAX, count(0))]
 
-_SNAP_DELAYS = list(reversed(xrange(7)))
+_SNAP_DELAYS = list(reversed(range(7)))
 
 
 class VerticalMoveState(AbstractMoveState):
 
     def __init__(self):
-        AbstractMoveState.__init__(self)
+        super().__init__()
         self._step_index = 0
 
         self._is_snap_delay_enabled = False

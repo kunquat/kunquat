@@ -20,7 +20,7 @@ import kunquat.tracker.ui.model.tstamp as tstamp
 class LengthEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -17,13 +17,13 @@ from PyQt4.QtGui import *
 
 from kunquat.tracker.version import KUNQUAT_VERSION
 from kunquat.kunquat.kunquat import get_version
-from logo import Logo
+from .logo import Logo
 
 
 class AboutMessage(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         default_font = QFont()
         default_family = default_font.defaultFamily()
@@ -51,18 +51,18 @@ class AboutMessage(QWidget):
         main_authors = QLabel('Main design and programming:')
         main_authors.setFont(QFont(default_family, default_size, QFont.DemiBold))
 
-        main_authors_list_str = u'\n'.join((
-            u'Tomi Jylhä-Ollila',
-            u'Toni Ruottu',
+        main_authors_list_str = '\n'.join((
+            'Tomi Jylhä-Ollila',
+            'Toni Ruottu',
             ))
         main_authors_list = QLabel(main_authors_list_str)
 
         add_authors = QLabel('Additional contributors:')
         add_authors.setFont(QFont(default_family, default_size, QFont.DemiBold))
 
-        add_authors_list_str = u'\n'.join((
-            u'Ossi Saresoja',
-            u'Sami Ketola',
+        add_authors_list_str = '\n'.join((
+            'Ossi Saresoja',
+            'Sami Ketola',
             ))
         add_authors_list = QLabel(add_authors_list_str)
 
@@ -92,7 +92,7 @@ class AboutMessage(QWidget):
 class About(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
 
         self._logo = Logo()

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -11,7 +11,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
 from collections import MutableMapping
 from itertools import count
 
@@ -46,7 +45,7 @@ class BufferCache(MutableMapping):
 
         amount_to_free += self._memory_limit * self._reduce_ahead
 
-        items_by_age = sorted(self._items.iteritems(), key=lambda item: item[1][0])
+        items_by_age = sorted(self._items.items(), key=lambda item: item[1][0])
         for key, _ in items_by_age:
             del self._items[key]
             amount_to_free -= self._item_mem
@@ -61,20 +60,20 @@ class BufferCache(MutableMapping):
 
     def __getitem__(self, key):
         (_, buf) = self._items[key]
-        self._items[key] = (self._access_counter.next(), buf)
+        self._items[key] = (next(self._access_counter), buf)
         return buf
 
     def __setitem__(self, key, buf):
         if not self._item_mem:
             self._item_mem = self._estimate_buf_size(buf)
-        self._items[key] = (self._access_counter.next(), buf)
+        self._items[key] = (next(self._access_counter), buf)
         self._limit_memory_usage()
 
     def __delitem__(self, key):
         del self._items[key]
 
     def __iter__(self):
-        for key, item in self._items.iteritems():
+        for key, item in self._items.items():
             (_, buf) = item
             yield (key, buf)
 

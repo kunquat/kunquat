@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -14,7 +14,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-import utils
+from . import utils
 
 
 _LIGHT_CONFIG = {
@@ -30,7 +30,7 @@ _LIGHT_CONFIG = {
 class EventLight(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._config = _LIGHT_CONFIG.copy()
 
         self._light_norm = 0
@@ -65,7 +65,7 @@ class EventLight(QWidget):
 class EventListButton(QToolButton):
 
     def __init__(self):
-        QToolButton.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
         self._last_event_count = 0

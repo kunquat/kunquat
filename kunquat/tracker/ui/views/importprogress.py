@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2014
+#          Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -19,7 +19,7 @@ from PyQt4.QtGui import *
 class ImportProgress(QProgressBar):
 
     def __init__(self):
-        QProgressBar.__init__(self)
+        super().__init__()
         self._updater = None
         self._stat_manager = None
 

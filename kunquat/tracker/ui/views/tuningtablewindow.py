@@ -14,13 +14,13 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from tuningtableeditor import TuningTableEditor
+from .tuningtableeditor import TuningTableEditor
 
 
 class TuningTableWindow(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._table_id = None
         self._ui_model = None
 
@@ -57,9 +57,9 @@ class TuningTableWindow(QWidget):
         table = module.get_tuning_table(self._table_id)
         name = table.get_name()
         if name:
-            title = u'{} – Kunquat Tracker'.format(name)
+            title = '{} – Kunquat Tracker'.format(name)
         else:
-            title = u'Kunquat Tracker'
+            title = 'Kunquat Tracker'
         self.setWindowTitle(title)
 
     def closeEvent(self, event):

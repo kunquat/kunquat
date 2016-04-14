@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2015
+# Author: Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -11,19 +11,17 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
-
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from config import *
-import utils
+from .config import *
+from . import utils
 
 
 class Header(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._col_width = DEFAULT_CONFIG['col_width']
         self._first_col = 0
@@ -53,13 +51,13 @@ class Header(QWidget):
     def _resize_layout(self, max_visible_cols):
         visible_cols = utils.get_visible_cols(self._first_col, max_visible_cols)
 
-        for i in xrange(len(self._headers), visible_cols):
+        for i in range(len(self._headers), visible_cols):
             header = ColumnHeader()
             header.set_config(self._config)
             header.setParent(self)
             header.show()
             self._headers.append(header)
-        for i in xrange(visible_cols, len(self._headers)):
+        for i in range(visible_cols, len(self._headers)):
             h = self._headers.pop()
             h.hide()
 
@@ -86,7 +84,7 @@ class Header(QWidget):
 class ColumnHeader(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
     def set_config(self, config):
         self._config = config

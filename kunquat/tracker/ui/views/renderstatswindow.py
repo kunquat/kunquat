@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -14,13 +14,13 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from renderstats import RenderStats
+from .renderstats import RenderStats
 
 
 class RenderStatsWindow(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._render_stats = RenderStats()
 

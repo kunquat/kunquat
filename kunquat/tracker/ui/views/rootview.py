@@ -17,20 +17,20 @@ from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
 from kunquat.tracker.ui.identifiers import *
-from mainwindow import MainWindow
-from aboutwindow import AboutWindow
-from eventlist import EventList
-from connectionswindow import ConnectionsWindow
-from songschannelswindow import SongsChannelsWindow
-from notationwindow import NotationWindow
-from tuningtablewindow import TuningTableWindow
-from envbindwindow import EnvBindWindow
-from generalmodwindow import GeneralModWindow
-from auwindow import AuWindow
-from procwindow import ProcWindow
-from sheet.grideditorwindow import GridEditorWindow
-from iawindow import IAWindow
-from renderstatswindow import RenderStatsWindow
+from .mainwindow import MainWindow
+from .aboutwindow import AboutWindow
+from .eventlist import EventList
+from .connectionswindow import ConnectionsWindow
+from .songschannelswindow import SongsChannelsWindow
+from .notationwindow import NotationWindow
+from .tuningtablewindow import TuningTableWindow
+from .envbindwindow import EnvBindWindow
+from .generalmodwindow import GeneralModWindow
+from .auwindow import AuWindow
+from .procwindow import ProcWindow
+from .sheet.grideditorwindow import GridEditorWindow
+from .iawindow import IAWindow
+from .renderstatswindow import RenderStatsWindow
 
 
 class RootView():
@@ -271,13 +271,13 @@ class RootView():
         try_set_enabled(self._connections)
         try_set_enabled(self._songs_channels)
         try_set_enabled(self._notation)
-        for window in self._tuning_tables.itervalues():
+        for window in self._tuning_tables.values():
             window.setEnabled(enabled)
         try_set_enabled(self._env_bind)
         try_set_enabled(self._general_mod)
-        for window in self._au_windows.itervalues():
+        for window in self._au_windows.values():
             window.setEnabled(enabled)
-        for window in self._proc_windows.itervalues():
+        for window in self._proc_windows.values():
             window.setEnabled(enabled)
         try_set_enabled(self._grid_editor)
         try_set_enabled(self._ia_controls)
@@ -335,7 +335,7 @@ class RootView():
 class AuImportErrorDialog(QDialog):
 
     def __init__(self, icon_bank, error_info, on_close):
-        QDialog.__init__(self)
+        super().__init__()
 
         self.setWindowTitle('Importing failed')
 
@@ -365,8 +365,8 @@ class AuImportErrorDialog(QDialog):
         self.setLayout(v)
 
         # Dialog contents
-        error_msg = (u'<p>Could not import \'{}\' due to the following error:</p>'
-            u'<p>{}</p>'.format(path, details))
+        error_msg = ('<p>Could not import \'{}\' due to the following error:</p>'
+            '<p>{}</p>'.format(path, details))
         self._message.setText(error_msg)
 
         ok_button = QPushButton('OK')

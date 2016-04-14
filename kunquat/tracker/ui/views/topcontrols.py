@@ -15,17 +15,17 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
-from playbackposition import PlaybackPosition
-from playbutton import PlayButton
-from playpatternbutton import PlayPatternButton
-from recordbutton import RecordButton
-from silencebutton import SilenceButton
+from .playbackposition import PlaybackPosition
+from .playbutton import PlayButton
+from .playpatternbutton import PlayPatternButton
+from .recordbutton import RecordButton
+from .silencebutton import SilenceButton
 
 
 class TopControls(QToolBar):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._play_button = PlayButton()
         self._play_pattern_button = PlayPatternButton()
         self._play_from_cursor_button = PlayFromCursorButton()
@@ -67,7 +67,7 @@ class TopControls(QToolBar):
 class PlayFromCursorButton(QToolButton):
 
     def __init__(self):
-        QToolButton.__init__(self)
+        super().__init__()
         self._ui_model = None
 
         self.setText('Play from Cursor')
@@ -89,7 +89,7 @@ class PlayFromCursorButton(QToolButton):
 class InteractivityButton(QToolButton):
 
     def __init__(self):
-        QToolButton.__init__(self)
+        super().__init__()
         self._ui_model = None
 
         self.setText('Interactivity')

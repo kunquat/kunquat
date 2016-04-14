@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -12,7 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from Queue import Queue
+from queue import Queue
 import threading
 import unittest
 from time import sleep
@@ -27,10 +27,11 @@ class TestAbstractDriver():
 
     def setUp(self):
         self._self._DriverClass = None
+        self._cls_args = tuple()
 
     def test_threadleak_on_close(self):
         start = threading.active_count()
-        driver = self._DriverClass()
+        driver = self._DriverClass(*self._cls_args)
         driver.set_audio_source(DummyAudioSource())
         driver.start()
         sleep(0.2)
@@ -40,7 +41,7 @@ class TestAbstractDriver():
         self.assertEqual(start, end)
 
     def test_no_fake_acknowledge(self):
-        driver = self._DriverClass()
+        driver = self._DriverClass(*self._cls_args)
         class AudioSourceWithQueue():
             def __init__(self):
                 self.acks = 0
@@ -55,7 +56,7 @@ class TestAbstractDriver():
 
     def test_audio_gets_acknowledged(self):
         q = Queue()
-        driver = self._DriverClass()
+        driver = self._DriverClass(*self._cls_args)
         class AudioSourceWithQueue():
             def __init__(self):
                 # in the real case there is no recursion
@@ -76,39 +77,39 @@ class TestAbstractDriver():
         driver.close()
 
     def test_emptypush(self):
-        driver = self._DriverClass()
+        driver = self._DriverClass(*self._cls_args)
         driver.set_audio_source(DummyAudioSource())
         driver.start()
         driver.put_audio(([],[]))
         driver.close()
 
     def test_quickpush(self):
-        driver = self._DriverClass()
+        driver = self._DriverClass(*self._cls_args)
         driver.set_audio_source(DummyAudioSource())
         driver.start()
         driver.put_audio(([0],[0]))
         driver.close()
 
     def test_prefeed(self):
-        driver = self._DriverClass()
+        driver = self._DriverClass(*self._cls_args)
         driver.set_audio_source(DummyAudioSource())
         self.assertRaises(AssertionError, driver.put_audio, ([0],[0]))
 
     def _boot_driver(self):
-        driver = self._DriverClass()
+        driver = self._DriverClass(*self._cls_args)
         driver.set_audio_source(DummyAudioSource())
         driver.start()
         driver.close()
 
     def test_driver_cleanup(self):
         initial_threads = threading.active_count()
-        for i in xrange(50):
+        for i in range(50):
             self._boot_driver()
         remaining_threads = threading.active_count()
         self.assertEqual(initial_threads, remaining_threads)
 
     def test_interrupt_driver(self):
-        driver = self._DriverClass()
+        driver = self._DriverClass(*self._cls_args)
         driver.set_audio_source(DummyAudioSource())
         driver.start()
         sleep(0.2)
@@ -116,4 +117,5 @@ class TestAbstractDriver():
 
     def test_get_id(self):
         self._DriverClass.get_id()
+
 

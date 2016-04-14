@@ -15,15 +15,15 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from chdefaultseditor import ChDefaultsEditor
-from orderlisteditor import OrderlistEditor
-from songeditor import SongEditor
+from .chdefaultseditor import ChDefaultsEditor
+from .orderlisteditor import OrderlistEditor
+from .songeditor import SongEditor
 
 
 class SongsChannelsWindow(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
 
         self._orderlist_editor = OrderlistEditor()

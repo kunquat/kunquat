@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -19,10 +19,10 @@ class UnsupportedProc(QWidget):
 
     @staticmethod
     def get_name():
-        return u'(Unsupported)'
+        return '(Unsupported)'
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
     def set_au_id(self, au_id):

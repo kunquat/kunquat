@@ -11,15 +11,14 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
 import math
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from config import *
 from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
+from .config import *
 
 
 # Model utils
@@ -32,11 +31,11 @@ def get_all_pattern_instances_with_locations(ui_model):
         return
 
     track_count = album.get_track_count()
-    songs = (album.get_song_by_track(i) for i in xrange(track_count))
+    songs = (album.get_song_by_track(i) for i in range(track_count))
     for track, song in enumerate(songs):
         system_count = song.get_system_count()
         pattern_instances = (song.get_pattern_instance(i)
-                for i in xrange(system_count))
+                for i in range(system_count))
         for system, pinst in enumerate(pattern_instances):
             yield (track, system), pinst
 
@@ -117,7 +116,7 @@ def get_px_from_tstamp(ts, px_per_beat):
 def get_pixmap_indices(start_px, stop_px, pixmap_height):
     start_index = start_px // pixmap_height
     stop_index = 1 + (stop_px - 1) // pixmap_height
-    return xrange(start_index, stop_index)
+    return range(start_index, stop_index)
 
 def get_pixmap_rect(index, start_px, stop_px, width, pixmap_height):
     pixmap_start_px = index * pixmap_height
@@ -180,7 +179,7 @@ def copy_selected_area(sheet_manager):
     area = sheet_manager.get_serialised_area()
     clipboard = QApplication.clipboard()
     mimedata = QMimeData()
-    mimedata.setData(area_type, area)
+    mimedata.setData(area_type, bytes(area, encoding='utf-8'))
     clipboard.setMimeData(mimedata)
 
 def is_clipboard_area_valid(sheet_manager):
@@ -189,7 +188,7 @@ def is_clipboard_area_valid(sheet_manager):
     area_type = sheet_manager.get_serialised_area_type()
     if not mimedata.hasFormat(area_type):
         return False
-    area_data = unicode(mimedata.data(area_type))
+    area_data = str(mimedata.data(area_type), encoding='utf-8')
     return sheet_manager.is_area_data_valid(area_data)
 
 def try_paste_area(sheet_manager):
@@ -197,7 +196,7 @@ def try_paste_area(sheet_manager):
     mimedata = clipboard.mimeData()
     area_type = sheet_manager.get_serialised_area_type()
     if mimedata.hasFormat(area_type):
-        area_data = unicode(mimedata.data(area_type))
+        area_data = str(mimedata.data(area_type), encoding='utf-8')
         sheet_manager.try_paste_serialised_area(area_data)
 
 

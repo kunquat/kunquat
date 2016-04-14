@@ -11,7 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from triggerposition import TriggerPosition
+from .triggerposition import TriggerPosition
 
 
 class SheetHistory():
@@ -104,7 +104,7 @@ class Step():
         self._pinst = None
 
     def add_transaction(self, transaction, location):
-        for k in transaction.iterkeys():
+        for k in transaction.keys():
             if k not in self._old_data:
                 self._old_data[k] = self._store.get(k, None)
         self._new_data.update(transaction)
@@ -140,7 +140,7 @@ class Step():
                 self._location.get_trigger_index())
 
     def apply_old_data(self):
-        for k, v in self._old_data.iteritems():
+        for k, v in self._old_data.items():
             self._store[k] = v
 
         new_location = self._get_new_location()
@@ -149,7 +149,7 @@ class Step():
             selection.set_location(new_location)
 
     def apply_new_data(self):
-        for k, v in self._new_data.iteritems():
+        for k, v in self._new_data.items():
             self._store[k] = v
 
         new_location = self._get_new_location()
@@ -158,6 +158,6 @@ class Step():
             selection.set_location(new_location)
 
     def has_changes_with_prefix(self, prefix):
-        return any(k.startswith(prefix) for k in self._new_data.iterkeys())
+        return any(k.startswith(prefix) for k in self._new_data.keys())
 
 

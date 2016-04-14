@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -11,12 +11,11 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
 import glob
 from itertools import dropwhile, islice, takewhile
 import os.path
 
-import command
+from . import command
 
 
 def _get_man_funcs(man_file_path):

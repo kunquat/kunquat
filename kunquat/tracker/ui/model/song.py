@@ -14,7 +14,7 @@
 
 from kunquat.kunquat.kunquat import get_default_value
 
-from patterninstance import PatternInstance
+from .patterninstance import PatternInstance
 
 
 class Song():
@@ -74,13 +74,13 @@ class Song():
         return self._track_num
 
     def set_name(self, name):
-        assert isinstance(name, unicode)
+        assert isinstance(name, str)
         key = '{}/m_name.json'.format(self._song_id)
         self._store[key] = name
 
     def get_name(self):
         key = '{}/m_name.json'.format(self._song_id)
-        return self._store.get(key, u'')
+        return self._store.get(key, '')
 
     def get_edit_create_song(self):
         key = '{}/p_manifest.json'.format(self._song_id)

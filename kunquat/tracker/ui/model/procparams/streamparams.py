@@ -11,21 +11,21 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from procparams import ProcParams
+from .procparams import ProcParams
 
 
 class StreamParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():
-        return u'voice'
+        return 'voice'
 
     @staticmethod
     def get_port_info():
-        return { 'out_00': u'stream' }
+        return { 'out_00': 'stream' }
 
     def __init__(self, proc_id, controller):
-        ProcParams.__init__(self, proc_id, controller)
+        super().__init__(proc_id, controller)
 
     def get_init_value(self):
         return self._get_value('p_f_init_value.json', 0.0)

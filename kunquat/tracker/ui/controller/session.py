@@ -255,7 +255,7 @@ class Session():
     def get_active_notes_by_control_id(self, control_id):
         notes = self._control_active_notes.get(control_id, {})
         ret = {}
-        for (k, v) in notes.iteritems():
+        for (k, v) in notes.items():
             event_type, pitch = v
             if event_type == 'n+':
                 ret[k] = pitch
@@ -264,7 +264,7 @@ class Session():
     def get_active_hits_by_control_id(self, control_id):
         notes = self._control_active_notes.get(control_id, {})
         hits = {}
-        for (k, v) in notes.iteritems():
+        for (k, v) in notes.items():
             event_type, hit = v
             if event_type == 'h':
                 hits[k] = hit
@@ -311,7 +311,7 @@ class Session():
     def log_event(self, channel, event_type, event_value, context):
         if context != 'tfire':
             self._event_log.appendleft(
-                    (self._event_index.next(),
+                    (next(self._event_index),
                         channel, event_type, event_value, context))
 
     def get_event_log(self):
@@ -642,7 +642,7 @@ class Session():
 
     def get_active_init_expression(self, ch):
         return self._channel_active_init_expression.get(ch,
-                self._channel_default_init_expression.get(ch, u''))
+                self._channel_default_init_expression.get(ch, ''))
 
     def reset_active_init_expressions(self):
         self._channel_active_init_expression = {}
@@ -651,7 +651,7 @@ class Session():
         self._au_test_expressions[(au_id, index)] = expr_name
 
     def get_au_test_expression(self, au_id, index):
-        return self._au_test_expressions.get((au_id, index), u'')
+        return self._au_test_expressions.get((au_id, index), '')
 
     def set_au_test_expressions_enabled(self, au_id, enabled):
         self._au_test_expressions_enabled[au_id] = enabled

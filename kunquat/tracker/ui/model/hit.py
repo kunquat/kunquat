@@ -54,7 +54,7 @@ class Hit():
         return self._store.get(key, None)
 
     def set_name(self, name):
-        assert isinstance(name, unicode)
+        assert isinstance(name, str)
         key = self._get_key('m_name.json')
         self._store[key] = name
 

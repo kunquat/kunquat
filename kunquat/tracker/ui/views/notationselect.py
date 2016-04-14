@@ -19,7 +19,7 @@ from PyQt4.QtGui import *
 class NotationSelect(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
         self._notation_manager = None

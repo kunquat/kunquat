@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -18,7 +18,7 @@ from PyQt4.QtGui import *
 class Name(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._au_id = None
         self._updater = None
@@ -51,12 +51,11 @@ class Name(QWidget):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         vis_text = au.get_name() or ''
-        if vis_text != unicode(self._edit.text()):
+        if vis_text != str(self._edit.text()):
             self._edit.setText(vis_text)
         self._edit.blockSignals(old_block)
 
-    def _text_edited(self, text_qstring):
-        text = unicode(text_qstring)
+    def _text_edited(self, text):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         au.set_name(text)

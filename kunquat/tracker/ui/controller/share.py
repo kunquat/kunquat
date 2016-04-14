@@ -15,9 +15,8 @@
 import json
 import glob
 import os.path
-from types import NoneType
 
-from kqtifile import KqtiFile
+from .kqtifile import KqtiFile
 
 
 class Share():
@@ -50,32 +49,32 @@ class Share():
         notation = {}
 
         # Name of the notation
-        name = unsafe_data.get(u'name', None)
-        if not isinstance(name, unicode):
+        name = unsafe_data.get('name', None)
+        if not isinstance(name, str):
             return None
-        notation[u'name'] = name
+        notation['name'] = name
 
         # Octave names
-        unsafe_octave_names = unsafe_data.get(u'octave_names', None)
+        unsafe_octave_names = unsafe_data.get('octave_names', None)
         if not isinstance(unsafe_octave_names, list) or (len(unsafe_octave_names) == 0):
             return None
         octave_names = []
         for unsafe_name in unsafe_octave_names:
-            if not isinstance(unsafe_name, unicode):
+            if not isinstance(unsafe_name, str):
                 return None
             octave_names.append(unsafe_name)
-        notation[u'octave_names'] = octave_names
+        notation['octave_names'] = octave_names
 
         # Base octave
-        base_octave = unsafe_data.get(u'base_octave', None)
+        base_octave = unsafe_data.get('base_octave', None)
         if not isinstance(base_octave, int):
             return None
         if not 0 <= base_octave < len(octave_names):
             return None
-        notation[u'base_octave'] = base_octave
+        notation['base_octave'] = base_octave
 
         # Note names
-        unsafe_note_names = unsafe_data.get(u'note_names', None)
+        unsafe_note_names = unsafe_data.get('note_names', None)
         if not isinstance(unsafe_note_names, list) or (len(unsafe_note_names) == 0):
             return None
         note_names = []
@@ -85,14 +84,14 @@ class Share():
             unsafe_cents, unsafe_name = unsafe_desc
             if not isinstance(unsafe_cents, (int, float)):
                 return None
-            if not isinstance(unsafe_name, unicode):
+            if not isinstance(unsafe_name, str):
                 return None
             desc = [unsafe_cents, unsafe_name]
             note_names.append(desc)
-        notation[u'note_names'] = note_names
+        notation['note_names'] = note_names
 
         # Keymap
-        unsafe_keymap = unsafe_data.get(u'keymap', None)
+        unsafe_keymap = unsafe_data.get('keymap', None)
         if not isinstance(unsafe_keymap, list):
             return None
         keymap = []
@@ -101,21 +100,21 @@ class Share():
                 return None
             octave = []
             for unsafe_entry in unsafe_octave:
-                if not isinstance(unsafe_entry, (int, float, NoneType)):
+                if not isinstance(unsafe_entry, (int, float, type(None))):
                     return None
                 octave.append(unsafe_entry)
             keymap.append(octave)
-        notation[u'keymap'] = keymap
+        notation['keymap'] = keymap
 
         # Optional template
-        if u'template' in unsafe_data:
-            unsafe_template = unsafe_data[u'template']
+        if 'template' in unsafe_data:
+            unsafe_template = unsafe_data['template']
             if not isinstance(unsafe_template, dict):
                 return None
             template = {}
 
             # Center pitch
-            center_pitch = unsafe_template.get(u'center_pitch', None)
+            center_pitch = unsafe_template.get('center_pitch', None)
             if not isinstance(center_pitch, list):
                 return None
             if len(center_pitch) != 2:
@@ -123,15 +122,15 @@ class Share():
             center, units = center_pitch
             if not isinstance(center, (int, float)):
                 return None
-            if units == u'cents':
+            if units == 'cents':
                 if not -9999 <= center <= 9999:
                     return None
-            elif units == u'Hz':
+            elif units == 'Hz':
                 if not 1 <= center <= 20000:
                     return None
             else:
                 return None
-            template[u'center_pitch'] = center_pitch
+            template['center_pitch'] = center_pitch
 
             def _get_validated_ratio(parts):
                 if len(parts) != 2:
@@ -143,7 +142,7 @@ class Share():
                 return parts
 
             # Octave ratio
-            octave_ratio = unsafe_template.get(u'octave_ratio', None)
+            octave_ratio = unsafe_template.get('octave_ratio', None)
             if isinstance(octave_ratio, list):
                 octave_ratio = _get_validated_ratio(octave_ratio)
                 if not octave_ratio:
@@ -155,10 +154,10 @@ class Share():
                     return None
             else:
                 return None
-            template[u'octave_ratio'] = octave_ratio
+            template['octave_ratio'] = octave_ratio
 
             # Octave range
-            octaves = unsafe_template.get(u'octaves', None)
+            octaves = unsafe_template.get('octaves', None)
             if not isinstance(octaves, list) or len(octaves) != 3:
                 return None
             if not all(isinstance(o, int) for o in octaves):
@@ -167,10 +166,10 @@ class Share():
                 return None
             if not (octaves[0] <= octaves[1] <= octaves[2]):
                 return None
-            template[u'octaves'] = octaves
+            template['octaves'] = octaves
 
             # Notes
-            notes = unsafe_template.get(u'notes', None)
+            notes = unsafe_template.get('notes', None)
             if not isinstance(notes, list):
                 return None
             for note in notes:
@@ -178,7 +177,7 @@ class Share():
                     return None
                 name, ratio = note
 
-                if not isinstance(name, unicode):
+                if not isinstance(name, str):
                     return None
 
                 if isinstance(ratio, list):
@@ -191,9 +190,9 @@ class Share():
                 else:
                     return None
 
-            template[u'notes'] = notes
+            template['notes'] = notes
 
-            notation[u'template'] = template
+            notation['template'] = template
 
         return notation
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -20,7 +20,7 @@ class NumberSlider(QWidget):
     numberChanged = pyqtSignal(float, name='numberChanged')
 
     def __init__(self, decimal_count, min_val, max_val, title='', width_txt=''):
-        QWidget.__init__(self)
+        super().__init__()
 
         assert decimal_count >= 0
 

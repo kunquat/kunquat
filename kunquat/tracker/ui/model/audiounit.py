@@ -14,10 +14,10 @@
 
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
-from connections import Connections
-from hit import Hit
-from processor import Processor
-import tstamp
+from .connections import Connections
+from .hit import Hit
+from .processor import Processor
+from . import tstamp
 
 
 class AudioUnit():
@@ -73,7 +73,7 @@ class AudioUnit():
 
     def get_in_ports(self):
         in_ports = []
-        for i in xrange(0x100):
+        for i in range(0x100):
             port_id = 'in_{:02x}'.format(i)
             key = self._get_key('{}/p_manifest.json'.format(port_id))
             if key in self._store:
@@ -83,7 +83,7 @@ class AudioUnit():
 
     def get_out_ports(self):
         out_ports = []
-        for i in xrange(0x100):
+        for i in range(0x100):
             port_id = 'out_{:02x}'.format(i)
             key = self._get_key('{}/p_manifest.json'.format(port_id))
             if key in self._store:
@@ -107,7 +107,7 @@ class AudioUnit():
             del self._store[key]
 
     def get_free_input_port_id(self):
-        for i in xrange(0x100):
+        for i in range(0x100):
             port_id = 'in_{:02x}'.format(i)
             key = self._get_key('{}/p_manifest.json'.format(port_id))
             if key not in self._store:
@@ -115,7 +115,7 @@ class AudioUnit():
         return None
 
     def get_free_output_port_id(self):
-        for i in xrange(0x100):
+        for i in range(0x100):
             port_id = 'out_{:02x}'.format(i)
             key = self._get_key('{}/p_manifest.json'.format(port_id))
             if key not in self._store:
@@ -184,7 +184,7 @@ class AudioUnit():
     def get_free_processor_id(self):
         used_proc_ids = self.get_processor_ids()
         all_proc_ids = set('{}/proc_{:02x}'.format(self._au_id, i)
-                for i in xrange(PROCESSORS_MAX))
+                for i in range(PROCESSORS_MAX))
         free_proc_ids = all_proc_ids - used_proc_ids
         free_list = sorted(list(free_proc_ids))
         if not free_list:
@@ -204,7 +204,7 @@ class AudioUnit():
         signal_type_key = '{}/p_signal_type.json'.format(key_prefix)
         transaction[signal_type_key] = params_class.get_default_signal_type()
 
-        for port_id in params_class.get_port_info().iterkeys():
+        for port_id in params_class.get_port_info().keys():
             port_manifest_key = '{}/{}/p_manifest.json'.format(key_prefix, port_id)
             transaction[port_manifest_key] = {}
 
@@ -214,7 +214,7 @@ class AudioUnit():
         return self._get_key('hit_{:02x}'.format(hit_index))
 
     def has_hits(self):
-        return any(self.get_hit(i).get_existence() for i in xrange(HITS_MAX))
+        return any(self.get_hit(i).get_existence() for i in range(HITS_MAX))
 
     def get_hit(self, hit_index):
         hit = Hit(self._au_id, hit_index)
@@ -260,7 +260,7 @@ class AudioUnit():
 
     def add_expression(self):
         expressions = self._get_expressions()
-        init_names = ('expr{:02}'.format(i) for i in xrange(len(expressions) + 1))
+        init_names = ('expr{:02d}'.format(i) for i in range(len(expressions) + 1))
         for name in init_names:
             if name not in expressions:
                 unique_name = name
@@ -324,7 +324,7 @@ class AudioUnit():
 
     def get_free_au_id(self):
         all_au_ids = set('{}/au_{:02x}'.format(self._au_id, i)
-                for i in xrange(AUDIO_UNITS_MAX))
+                for i in range(AUDIO_UNITS_MAX))
         used_au_ids = self.get_au_ids()
         free_au_ids = all_au_ids - used_au_ids
         if not free_au_ids:
@@ -355,17 +355,17 @@ class AudioUnit():
         au.set_port_existence('in_01', True)
         au.set_port_existence('out_00', True)
         au.set_port_existence('out_01', True)
-        au.set_port_name('in_00', u'audio L')
-        au.set_port_name('in_01', u'audio R')
-        au.set_port_name('out_00', u'audio L')
-        au.set_port_name('out_01', u'audio R')
+        au.set_port_name('in_00', 'audio L')
+        au.set_port_name('in_01', 'audio R')
+        au.set_port_name('out_00', 'audio L')
+        au.set_port_name('out_01', 'audio R')
 
     def _remove_device(self, dev_id):
         assert dev_id.startswith(self._au_id)
 
         transaction = {}
         start = dev_id + '/'
-        for key in self._store.iterkeys():
+        for key in self._store.keys():
             if key.startswith(start):
                 transaction[key] = None
 
@@ -386,7 +386,7 @@ class AudioUnit():
         return name
 
     def set_name(self, name):
-        assert isinstance(name, unicode)
+        assert isinstance(name, str)
         key = self._get_key('m_name.json')
         self._store[key] = name
 
@@ -463,7 +463,7 @@ class AudioUnit():
         return [bool, int, float, tstamp.Tstamp]
 
     def _get_unique_control_var_name(self, var_list):
-        names = set('var{:02d}'.format(i) for i in xrange(1, 100))
+        names = set('var{:02d}'.format(i) for i in range(1, 100))
         for entry in var_list:
             used_name = entry[1]
             names.discard(used_name)
@@ -545,7 +545,7 @@ class AudioUnit():
         return [(entry[0], entry[1]) for entry in binding_list]
 
     def _get_unique_binding_var_name(self, binding_list):
-        names = set('var{:02d}'.format(i) for i in xrange(1, 100))
+        names = set('var{:02d}'.format(i) for i in range(1, 100))
         for entry in binding_list:
             used_name = entry[1]
             names.discard(used_name)
@@ -648,7 +648,7 @@ class AudioUnit():
         return entry[1]
 
     def _get_unique_stream_name(self, stream_list):
-        names = set('var{:02d}'.format(i) for i in xrange(1, len(stream_list) + 2))
+        names = set('var{:02d}'.format(i) for i in range(1, len(stream_list) + 2))
         for entry in stream_list:
             used_name = entry[0]
             names.discard(used_name)

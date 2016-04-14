@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -14,13 +14,13 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from processor.editor import Editor
+from .processor.editor import Editor
 
 
 class ProcWindow(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -68,12 +68,12 @@ class ProcWindow(QWidget):
         if proc_name:
             parts.append(proc_name)
         if au_name:
-            parts.append(u'[{}]'.format(au_name))
+            parts.append('[{}]'.format(au_name))
 
         if parts:
-            title = u'{} – Kunquat Tracker'.format(u' '.join(parts))
+            title = '{} – Kunquat Tracker'.format(' '.join(parts))
         else:
-            title = u'Kunquat Tracker'
+            title = 'Kunquat Tracker'
         self.setWindowTitle(title)
 
     def closeEvent(self, event):

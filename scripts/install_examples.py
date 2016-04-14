@@ -11,11 +11,10 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
 import glob
 import os.path
 
-import command
+from . import command
 
 
 def install_examples(builder, install_prefix):

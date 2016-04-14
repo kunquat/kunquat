@@ -11,20 +11,20 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from procparams import ProcParams
+from .procparams import ProcParams
 
 
 class PitchParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():
-        return u'voice'
+        return 'voice'
 
     @staticmethod
     def get_port_info():
-        return { 'out_00': u'pitch' }
+        return { 'out_00': 'pitch' }
 
     def __init__(self, proc_id, controller):
-        ProcParams.__init__(self, proc_id, controller)
+        super().__init__(proc_id, controller)
 
 

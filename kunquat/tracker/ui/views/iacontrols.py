@@ -17,15 +17,15 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.tracker.ui.model.tstamp as tstamp
-from editorlist import EditorList
-from headerline import HeaderLine
-from varvalidators import *
+from .editorlist import EditorList
+from .headerline import HeaderLine
+from .varvalidators import *
 
 
 class IAControls(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._inf_toggle = InfiniteToggle()
         self._runtime_var_list = RuntimeVarList()
@@ -51,7 +51,7 @@ class IAControls(QWidget):
 class InfiniteToggle(QCheckBox):
 
     def __init__(self):
-        QCheckBox.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -92,7 +92,7 @@ class InfiniteToggle(QCheckBox):
 class RuntimeVarList(EditorList):
 
     def __init__(self):
-        EditorList.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -141,7 +141,7 @@ class RuntimeVarList(EditorList):
 class RuntimeVarEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -178,7 +178,7 @@ class RuntimeVarEditor(QWidget):
 class RuntimeVarValueEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -260,11 +260,11 @@ class RuntimeVarValueEditor(QWidget):
         if var_type == bool:
             editor.setCheckState(Qt.Checked if runtime_var_value else Qt.Unchecked)
         elif var_type == int:
-            editor.setText(unicode(int(runtime_var_value)))
+            editor.setText(str(int(runtime_var_value)))
         elif var_type == float:
-            editor.setText(unicode(float(runtime_var_value)))
+            editor.setText(str(float(runtime_var_value)))
         elif var_type == tstamp.Tstamp:
-            editor.setText(unicode(float(runtime_var_value)))
+            editor.setText(str(float(runtime_var_value)))
         else:
             assert False
         editor.blockSignals(old_block)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -11,7 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-import kunquat
+from .kunquat import get_event_info
 
 
 """Kunquat event type descriptions.
@@ -30,11 +30,11 @@ EVENT_ARG_REALTIME = 'realtime'
 
 
 """Event information indexed by event name."""
-all_events_by_name = kunquat.get_event_info()
+all_events_by_name = get_event_info()
 
 
 """Trigger event information indexed by event name."""
 trigger_events_by_name = dict(
-        e for e in all_events_by_name.iteritems() if not e[0].startswith('A'))
+        e for e in all_events_by_name.items() if not e[0].startswith('A'))
 
 

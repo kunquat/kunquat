@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -15,9 +15,9 @@
 import doctest
 import unittest
 
-import pulseaudio
-from pulseaudio import Pulseaudio
-from test_abstract_driver import TestAbstractDriver
+from . import pulseaudio
+from .pulseaudio import Pulseaudio
+from .test_abstract_driver import TestAbstractDriver
 
 
 def load_tests(loader, tests, ignore):
@@ -29,6 +29,7 @@ class TestPulseaudio(TestAbstractDriver, unittest.TestCase):
 
     def setUp(self):
         self._DriverClass = Pulseaudio
+        self._cls_args = tuple()
 
 
 if __name__ == '__main__':

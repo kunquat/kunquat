@@ -12,7 +12,6 @@
 #
 
 from copy import deepcopy
-from itertools import izip
 import math
 
 
@@ -72,7 +71,7 @@ class Notation():
 
     def add_octave(self):
         data = deepcopy(self._get_raw_data())
-        data['octave_names'].append(u'{}'.format(self.get_octave_count()))
+        data['octave_names'].append('{}'.format(self.get_octave_count()))
         self._set_raw_data(data)
 
     def remove_octave(self, octave_id):
@@ -162,7 +161,7 @@ class Notation():
         base, offset = self.get_note_name_and_offset(cents)
         offset_rnd = int(round(offset))
         if offset_rnd != 0:
-            name = u'{}{:+d}'.format(base, offset_rnd)
+            name = '{}{:+d}'.format(base, offset_rnd)
         else:
             name = base
         return name
@@ -231,7 +230,7 @@ class Notation():
 
         # Get note offsets in cents
         note_offsets = []
-        for i in xrange(note_count):
+        for i in range(note_count):
             ratio = template.get_note_ratio(i)
             if isinstance(ratio, list):
                 offset = math.log(ratio[0] / float(ratio[1]), 2) * 1200
@@ -241,7 +240,7 @@ class Notation():
 
         # Get base names of notes
         base_note_names = []
-        for i in xrange(note_count):
+        for i in range(note_count):
             base_note_names.append(template.get_note_name(i))
 
         # Choose keyboard layout strategy, TODO: figure out a better solution
@@ -260,15 +259,15 @@ class Notation():
         octave_names = []
         notes = []
         keymap = []
-        for octave_id in xrange(min_octave, max_octave + 1):
-            octave_names.append(unicode(octave_id))
+        for octave_id in range(min_octave, max_octave + 1):
+            octave_names.append(str(octave_id))
 
             rel_octave = octave_id - center_octave
             octave_offset = octave_width * rel_octave
             cur_octave_cents = []
-            for note_offset, base_name in izip(note_offsets, base_note_names):
+            for note_offset, base_name in zip(note_offsets, base_note_names):
                 cents = center + octave_offset + note_offset
-                name = u'{}{}'.format(base_name, octave_id)
+                name = '{}{}'.format(base_name, octave_id)
                 notes.append([cents, name])
                 cur_octave_cents.append(cents)
 

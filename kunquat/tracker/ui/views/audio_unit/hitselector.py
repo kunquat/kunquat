@@ -25,7 +25,7 @@ _BANK_SIZE = 32
 class HitSelector(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
 
         cb_info = {
@@ -66,7 +66,7 @@ class HitKeyboardLayout(QWidget):
     _ROW_LENGTHS = [9, 9, 7, 7]
 
     def __init__(self, cb_info):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._cb_info = cb_info
         self._get_selected_hit_info = cb_info['get_hit_info']
@@ -84,7 +84,7 @@ class HitKeyboardLayout(QWidget):
         rows.setMargin(0)
         rows.setSpacing(2)
         self.setLayout(rows)
-        for row_index in xrange(min(4, typewriter_manager.get_row_count())):
+        for row_index in range(min(4, typewriter_manager.get_row_count())):
             row = QHBoxLayout()
             row.setMargin(0)
             row.setSpacing(4)
@@ -98,7 +98,7 @@ class HitKeyboardLayout(QWidget):
             # Buttons
             row_length = self._ROW_LENGTHS[row_index]
             row_index_offset_base = self._get_row_index_offset_base(row_index)
-            for i in xrange(row_length):
+            for i in range(row_length):
                 button = HitButton(self._cb_info, row_index_offset_base + i)
                 row.addWidget(button)
 
@@ -108,10 +108,10 @@ class HitKeyboardLayout(QWidget):
     def update_contents(self):
         hit_base, hit_offset = self._get_selected_hit_info()
 
-        for row_index in xrange(self.layout().count()):
+        for row_index in range(self.layout().count()):
             row_index_offset_base = self._get_row_index_offset_base(row_index)
             row_layout = self.layout().itemAt(row_index).layout()
-            for widget_index in xrange(1, row_layout.count() - 1):
+            for widget_index in range(1, row_layout.count() - 1):
                 button_index = widget_index - 1
                 button = row_layout.itemAt(widget_index).widget()
                 button.set_index_base(hit_base)
@@ -122,7 +122,7 @@ class HitKeyboardLayout(QWidget):
 class HitBankSelector(QWidget):
 
     def __init__(self, cb_info):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._cb_info = cb_info
         self._get_selected_hit_info = cb_info['get_hit_info']
@@ -135,7 +135,7 @@ class HitBankSelector(QWidget):
         h.setMargin(0)
         h.setSpacing(2)
         h.addWidget(QLabel('Hit banks:'))
-        for i in xrange(bank_count):
+        for i in range(bank_count):
             button = HitBankButton(self._cb_info, i)
             h.addWidget(button)
         h.addStretch(1)
@@ -144,7 +144,7 @@ class HitBankSelector(QWidget):
     def update_contents(self):
         hit_base, _ = self._get_selected_hit_info()
 
-        for i in xrange(1, self.layout().count() - 1):
+        for i in range(1, self.layout().count() - 1):
             button_index = i - 1
             button = self.layout().itemAt(i).widget()
             button.set_pressed((button_index * _BANK_SIZE) == hit_base)
@@ -153,7 +153,7 @@ class HitBankSelector(QWidget):
 class HitBankButton(QPushButton):
 
     def __init__(self, cb_info, index):
-        QPushButton.__init__(self)
+        super().__init__()
 
         self._get_selected_hit_info = cb_info['get_hit_info']
         self._set_selected_hit_info = cb_info['set_hit_info']
@@ -179,7 +179,7 @@ class HitBankButton(QPushButton):
 class HitButton(QPushButton):
 
     def __init__(self, cb_info, index_offset):
-        QPushButton.__init__(self)
+        super().__init__()
 
         self.setFixedSize(QSize(60, 60))
         self.setCheckable(True)

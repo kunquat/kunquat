@@ -32,14 +32,14 @@ class Store(MutableMapping):
 
     def put(self, transaction, mark_modified=True):
         assert not self._is_saving
-        transaction_id = self._transaction_ids.next()
+        transaction_id = next(self._transaction_ids)
         self._audio_engine.set_data(transaction_id, transaction)
         self._pending_validation.append((transaction_id, transaction))
         if mark_modified:
             self._is_modified = True
 
     def flush(self, callback):
-        transaction_id = self._transaction_ids.next()
+        transaction_id = next(self._transaction_ids)
         self._audio_engine.set_data(transaction_id, None)
         self._flush_callbacks[transaction_id] = callback
 
@@ -51,7 +51,7 @@ class Store(MutableMapping):
 
         transaction = self._get_validated_transaction(transaction_id)
         self._content.update(transaction)
-        for (key, value) in transaction.iteritems():
+        for (key, value) in transaction.items():
             if value == None:
                 del self._content[key]
 
@@ -75,7 +75,7 @@ class Store(MutableMapping):
             if key in transaction:
                 if transaction[key] == None:
                     # None won't be stored in validated contents, so act accordingly
-                    raise KeyError, key
+                    raise KeyError(key)
                 return transaction[key]
 
         return self._content[key]
@@ -92,12 +92,12 @@ class Store(MutableMapping):
         included_keys = set()
         excluded_keys = set()
         for _, transaction in reversed(self._pending_validation):
-            for key, value in transaction.iteritems():
+            for key, value in transaction.items():
                 if value != None:
                     included_keys.add(key)
                 else:
                     excluded_keys.add(key)
-        for key in self._content.iterkeys():
+        for key in self._content.keys():
             if key not in excluded_keys:
                 included_keys.add(key)
         return (key for key in included_keys)

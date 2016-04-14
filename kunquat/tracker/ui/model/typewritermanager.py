@@ -16,8 +16,8 @@ import random
 import itertools
 from bisect import bisect_left
 
-from octavebuttonmodel import OctaveButtonModel
-from typewriterbuttonmodel import TypewriterButtonModel
+from .octavebuttonmodel import OctaveButtonModel
+from .typewriterbuttonmodel import TypewriterButtonModel
 
 
 class TypewriterManager():
@@ -59,7 +59,7 @@ class TypewriterManager():
     def get_random_button_model(self):
         active_coords = []
         for ri, row_length in enumerate(self._ROW_LENGTHS):
-            active_coords.extend((ri, ci) for ci in xrange(row_length)
+            active_coords.extend((ri, ci) for ci in range(row_length)
                     if self.get_button_pitch((ri, ci)) != None)
         if not active_coords:
             return None
@@ -114,11 +114,11 @@ class TypewriterManager():
         cur_octave_index = self.get_octave()
         if len(keymap[cur_octave_index]) > upper_key_limit:
             upper_octaves = [[(cur_octave_index, i)
-                    for i in xrange(lower_key_limit, len(keymap[cur_octave_index]))]]
+                    for i in range(lower_key_limit, len(keymap[cur_octave_index]))]]
         else:
             upper_octaves = []
-            for octave_index in xrange(cur_octave_index, len(keymap)):
-                octave = [(octave_index, i) for i in xrange(len(keymap[octave_index]))]
+            for octave_index in range(cur_octave_index, len(keymap)):
+                octave = [(octave_index, i) for i in range(len(keymap[octave_index]))]
                 upper_octaves.append(octave)
 
         return upper_octaves
@@ -131,12 +131,12 @@ class TypewriterManager():
         if len(keymap[cur_octave_index]) > upper_key_limit:
             # Use lower part of the keyboard for very large octaves
             fitting_lower_octaves = [[(cur_octave_index, i)
-                    for i in xrange(lower_key_limit)]]
+                    for i in range(lower_key_limit)]]
         else:
             # Find lower octaves that fit inside the lower part of the keyboard
             lower_octave_candidates = []
             for octave_index, pitches in enumerate(keymap[:cur_octave_index]):
-                octave = [(octave_index, i) for i in xrange(len(pitches))]
+                octave = [(octave_index, i) for i in range(len(pitches))]
                 lower_octave_candidates.append(octave)
             workspace = list(lower_octave_candidates) # copy
             while sum([len(i) for i in workspace]) > lower_key_limit:
@@ -219,7 +219,7 @@ class TypewriterManager():
             self._pitch_key_info_version = keymap_id
             self._pitch_key_info = sorted(self._get_pitch_key_info(), key=lambda x: x[0])
         key_count = len(self._pitch_key_info)
-        i = bisect_left(self._pitch_key_info, (pitch, None))
+        i = bisect_left(self._pitch_key_info, (pitch, (float('-inf'),)))
         if i == key_count:
             _, key_id = self._pitch_key_info[-1]
             return key_id

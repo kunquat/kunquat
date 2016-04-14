@@ -167,7 +167,7 @@ class AbstractAxisRenderer():
             start_px = zero_px
             pos_len = axis_length - start_px - 1
 
-            for i in xrange(0, display_val_max):
+            for i in range(0, display_val_max):
                 end_px = int(zero_px + ((i + 1) * pos_len / display_val_max))
 
                 draw_marker(painter, end_px, init_marker_width)
@@ -193,7 +193,7 @@ class AbstractAxisRenderer():
             start_px = zero_px
             neg_len = start_px
 
-            for i in xrange(0, -display_val_min):
+            for i in range(0, -display_val_min):
                 end_px = int(zero_px - ((i + 1) * neg_len / -display_val_min))
 
                 draw_marker(painter, end_px, init_marker_width)
@@ -225,7 +225,7 @@ class AbstractAxisRenderer():
             pos_len = axis_length - start_px - 1
 
             range_stop = display_val_max - whole_marker_interval + 1
-            for i in xrange(0, range_stop, whole_marker_interval):
+            for i in range(0, range_stop, whole_marker_interval):
                 end_val = i + whole_marker_interval
                 end_px = int(zero_px + end_val * pos_len / display_val_max)
 
@@ -239,7 +239,7 @@ class AbstractAxisRenderer():
             neg_len = start_px
 
             range_stop = -display_val_min - whole_marker_interval + 1
-            for i in xrange(0, range_stop, whole_marker_interval):
+            for i in range(0, range_stop, whole_marker_interval):
                 end_val = -(i + whole_marker_interval)
                 end_px = int(zero_px - end_val * neg_len / display_val_min)
 
@@ -257,13 +257,13 @@ class AbstractAxisRenderer():
 class HorizontalAxisRenderer(AbstractAxisRenderer):
 
     def __init__(self):
-        AbstractAxisRenderer.__init__(self)
+        super().__init__()
 
         self._x_offset = 0
         self._axis_y_offset_x = 0
 
     def set_config(self, config, containing_widget):
-        AbstractAxisRenderer.set_config(self, config, containing_widget)
+        super().set_config(config, containing_widget)
         self.set_height(config['axis_x']['height'])
 
     def set_x_offset(self, x_offset):
@@ -332,13 +332,13 @@ class HorizontalAxisRenderer(AbstractAxisRenderer):
 class VerticalAxisRenderer(AbstractAxisRenderer):
 
     def __init__(self):
-        AbstractAxisRenderer.__init__(self)
+        super().__init__()
 
         self._padding = 0
         self._axis_x_offset_y = 0
 
     def set_config(self, config, containing_widget):
-        AbstractAxisRenderer.set_config(self, config, containing_widget)
+        super().set_config(config, containing_widget)
         self.set_width(config['axis_y']['width'])
 
     def set_padding(self, padding):

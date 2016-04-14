@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -12,7 +12,7 @@
 #
 
 from kunquat.kunquat.kunquat import get_default_value
-import tstamp
+from . import tstamp
 
 
 class Environment():

@@ -12,8 +12,8 @@
 #
 
 import kunquat.kunquat.events as events
-from trigger import Trigger
-from triggerposition import TriggerPosition
+from .trigger import Trigger
+from .triggerposition import TriggerPosition
 
 
 class TypewriterButtonModel():
@@ -88,7 +88,7 @@ class TypewriterButtonModel():
         if hit_index != None:
             hits = selected_control.get_active_hits()
             states = 3 * [False]
-            if hit_index in hits.itervalues():
+            if hit_index in hits.values():
                 states = [False, True, False]
             return tuple(states)
 
@@ -102,7 +102,7 @@ class TypewriterButtonModel():
 
         (left_on, center_on, right_on) = 3 * [False]
         notes = selected_control.get_active_notes()
-        for note in notes.itervalues():
+        for note in notes.values():
             if self._typewriter_manager.get_nearest_key_id(note) == key_id:
                 if abs(note - pitch) < 0.1:
                     center_on = True
@@ -141,13 +141,13 @@ class TypewriterButtonModel():
                 if ((event_type == 'n+' and
                         trigger.get_argument_type() == events.EVENT_ARG_PITCH) or
                         (event_type == 'h' and trigger.get_type() == 'h')):
-                    new_trigger = Trigger(trigger.get_type(), unicode(param))
+                    new_trigger = Trigger(trigger.get_type(), str(param))
                     self._sheet_manager.add_trigger(new_trigger)
                 elif trigger.get_type() == 'n-':
-                    new_trigger = Trigger(event_type, unicode(param))
+                    new_trigger = Trigger(event_type, str(param))
                     self._sheet_manager.add_trigger(new_trigger)
             else:
-                trigger = Trigger(event_type, unicode(param))
+                trigger = Trigger(event_type, str(param))
                 self._sheet_manager.add_trigger(trigger)
 
     def stop_tracked_note(self):

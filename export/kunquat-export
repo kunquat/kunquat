@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2012-2013
+# Author: Tomi Jylhä-Ollila, Finland 2012-2016
 #
 # This file is part of Kunquat.
 #
@@ -12,7 +12,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import division, print_function
 import getopt
 import itertools as it
 import json
@@ -22,31 +21,34 @@ import sys
 import tarfile
 import time
 
-import kunquat
+from kunquat.kunquat.kunquat import Kunquat, KunquatError
 import kunquat.extras.sndfile as sndfile
 
 
 PROGRAM_NAME = 'kunquat-export'
-PROGRAM_VERSION = '0.5.4'
-AUTHORS = [ u'Tomi Jylhä-Ollila' ]
+PROGRAM_VERSION = '0.7.2'
+AUTHORS = [ 'Tomi Jylhä-Ollila' ]
 
 
-def load_kqt(path, freq):
-    handle = kunquat.Handle(freq)
+def load_kqt(path, audio_rate):
+    handle = Kunquat(audio_rate)
     meta = {}
     tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
 
     for entry in tfile.getmembers():
         key = entry.name
         if not key.startswith('kqtc'):
-            raise kunquat.KunquatError('Invalid composition')
+            raise KunquatError('Invalid composition')
         if entry.isfile():
             if '/' not in key:
-                raise kunquat.KunquatError('Invalid composition')
+                raise KunquatError('Invalid composition')
             key = key[key.index('/') + 1:]
             value = tfile.extractfile(entry).read()
-            value = json.loads(value) if '.json' in key else value
-            handle.set_data(key, value)
+            if key.endswith('.json'):
+                encoded = json.loads(str(value, encoding='utf-8'))
+            else:
+                encoded = value
+            handle.set_data(key, encoded)
 
             last_elem = key.split('/')[-1]
             if last_elem.startswith('m_'):
@@ -61,16 +63,16 @@ def export(in_path, out_path, options):
     try:
         handle, _ = load_kqt(in_path, options['rate'])
     except IOError as e:
-        print('Couldn\'t open \'{0}\': {1}'.format(in_path, e))
+        print('Couldn\'t open \'{}\': {}'.format(in_path, e))
         return
-    except kunquat.KunquatError as e:
-        print('Couldn\'t load \'{0}\': {1}'.format(in_path, e))
+    except KunquatError as e:
+        print('Couldn\'t load \'{}\': {}'.format(in_path, e))
         return
     handle.track = options['track']
     duration = handle.get_duration(options['track'])
 
     if not options['quiet']:
-        print('Exporting {0} to {1}'.format(in_path, out_path))
+        print('Exporting {} to {}'.format(in_path, out_path))
 
     try:
         sf = sndfile.SndFileW(
@@ -90,20 +92,23 @@ def export(in_path, out_path, options):
     peak = 0
     clipped = 0
     line_len = 0
+
     start_time = time.time()
-    bufs = handle.mix()
-    while bufs[0]:
+    handle.play()
+    bufs = handle.get_audio()
+    while not handle.has_stopped():
         sf.write(*bufs)
 
         if not options['quiet']:
-            clipped += sum(1 for (x, y) in it.izip(*bufs)
-                           if abs(x) > 1.0 or abs(y) > 1.0)
-            cur_peak = max(max(abs(x), abs(y)) for (x, y) in it.izip(*bufs))
+            clipped += sum(1 for (x, y) in zip(*bufs) if abs(x) > 1.0 or abs(y) > 1.0)
+            cur_peak = max(max(abs(x), abs(y)) for (x, y) in zip(*bufs))
             peak = max(peak, cur_peak)
             clen = print_status_line(handle.nanoseconds, duration, clipped)
             line_len = max(line_len, clen)
 
-        bufs = handle.mix()
+        handle.play()
+        bufs = handle.get_audio()
+
     end_time = time.time()
 
     if not options['quiet']:
@@ -134,9 +139,9 @@ def export_all(options, paths):
 def print_status_line(pos, duration, clipped):
     completed = pos / duration
     line = progress_str(completed, 30)
-    line += u' {:4.1f} %'.format(100 * completed)
+    line += ' {:4.1f} %'.format(100 * completed)
     if clipped:
-        line += u', clipped: {0}'.format(clipped)
+        line += ', clipped: {}'.format(clipped)
     print(line, end='\r')
     sys.stdout.flush()
     return len(line)
@@ -153,9 +158,9 @@ def print_summary(duration, elapsed, peak, clipped):
         peak_dB = '{:+.2f}'.format(math.log(peak, 2) * 6)
     except ValueError:
         peak_dB = '-inf'
-    print('    Peak amplitude: {0} dBFS'.format(peak_dB))
+    print('    Peak amplitude: {} dBFS'.format(peak_dB))
     if clipped:
-        print('    Clipped:        {0} frames'.format(clipped))
+        print('    Clipped:        {} frames'.format(clipped))
     print()
 
 
@@ -173,14 +178,14 @@ def progress_str(progress, area_width):
     nums     = [1] + list(it.chain(bar, trailing)) + [1]
 
     compressed = (a + 2 * b for (a, b) in
-            it.izip(it.islice(nums, 0, None, 2), it.islice(nums, 1, None, 2)))
-    block_map = [u'⣉', u'⣏', u'⣹', u'⣿']
-    return u''.join([block_map[x] for x in compressed])
+            zip(it.islice(nums, 0, None, 2), it.islice(nums, 1, None, 2)))
+    block_map = ['⣉', '⣏', '⣹', '⣿']
+    return ''.join([block_map[x] for x in compressed])
 
 
 def author_list(authors):
     s = 's' if len(authors) > 1 else ''
-    head = 'Author{0}:'.format(s)
+    head = 'Author{}:'.format(s)
     space = it.cycle([len(head) * ' '])
     left = it.chain([head], space)
     right = authors
@@ -199,7 +204,7 @@ def print_version():
 
 
 def print_help():
-    print('Usage: {0} [options] <files>'.format(PROGRAM_NAME))
+    print('Usage: {} [options] <files>'.format(PROGRAM_NAME))
     print('\nOptions:')
     print('  -o, --output out    Use output file out')
     print('  -f, --format fmt    Use output file format fmt\n'
@@ -312,7 +317,7 @@ def set_output(options, value):
 
 def set_format(options, value):
     if value not in ('wav', 'au', 'flac'):
-        option_error('Unsupported format: {0}'.format(value))
+        option_error('Unsupported format: {}'.format(value))
     options['format'] = value
 
 

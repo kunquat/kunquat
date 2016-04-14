@@ -14,19 +14,19 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from components import Components
-from expressions import Expressions
-from hits import Hits
-from ports import Ports
-from infoeditor import InfoEditor
-from testbutton import TestButton
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
+from .components import Components
+from .expressions import Expressions
+from .hits import Hits
+from .ports import Ports
+from .infoeditor import InfoEditor
+from .testbutton import TestButton
 
 
 class Editor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._au_id = None
         self._control_manager = None
@@ -112,12 +112,12 @@ class Editor(QWidget):
 class TestPanel(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
 
         self._test_button = TestButton()
-        self._expressions = [TestExpression(i) for i in xrange(2)]
+        self._expressions = [TestExpression(i) for i in range(2)]
 
         expr_label = QLabel('Expressions:')
         expr_label.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
@@ -152,7 +152,7 @@ class TestPanel(QWidget):
 class TestExpression(QComboBox):
 
     def __init__(self, index):
-        QComboBox.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -203,9 +203,9 @@ class TestExpression(QComboBox):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         if item_index == 0:
-            au.set_test_expression(self._index, u'')
+            au.set_test_expression(self._index, '')
         else:
-            expr_name = unicode(self.itemText(item_index))
+            expr_name = str(self.itemText(item_index))
             au.set_test_expression(self._index, expr_name)
 
 

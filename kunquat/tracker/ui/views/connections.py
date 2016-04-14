@@ -12,7 +12,6 @@
 #
 
 from collections import defaultdict
-from itertools import izip
 import math
 import time
 
@@ -21,8 +20,8 @@ from PyQt4.QtGui import *
 
 from kunquat.tracker.ui.model.module import Module
 from kunquat.tracker.ui.model.processor import Processor
-from confirmdialog import ConfirmDialog
-from linesegment import LineSegment
+from .confirmdialog import ConfirmDialog
+from .linesegment import LineSegment
 
 
 _title_font = QFont(QFont().defaultFamily(), 10)
@@ -106,10 +105,10 @@ class Vec(tuple):
         return tuple.__new__(cls, (float(x) for x in coords))
 
     def __add__(self, other):
-        return Vec(x + y for (x, y) in izip(self, other))
+        return Vec(x + y for (x, y) in zip(self, other))
 
     def __sub__(self, other):
-        return Vec(x - y for (x, y) in izip(self, other))
+        return Vec(x - y for (x, y) in zip(self, other))
 
     def __mul__(self, other):
         return Vec(x * other for x in self)
@@ -118,7 +117,7 @@ class Vec(tuple):
         return self.__mul__(other)
 
 def dot(a, b):
-    return sum(x * y for (x, y) in izip(a, b))
+    return sum(x * y for (x, y) in zip(a, b))
 
 def norm_sq(a):
     return sum(x * x for x in a)
@@ -155,7 +154,7 @@ def get_dist_to_ls(point, ls_a, ls_b):
 class Connections(QAbstractScrollArea):
 
     def __init__(self):
-        QAbstractScrollArea.__init__(self)
+        super().__init__()
 
         self.setViewport(ConnectionsView())
         self.viewport().setFocusProxy(None)
@@ -233,7 +232,7 @@ class Connections(QAbstractScrollArea):
 class EdgeMenu(QMenu):
 
     def __init__(self, parent):
-        QMenu.__init__(self, parent)
+        super().__init__(parent)
         self.hide()
         self.addAction('Remove')
         self._edge = None
@@ -258,7 +257,7 @@ class ConnectionsView(QWidget):
     positionsChanged = pyqtSignal(name='positionsChanged')
 
     def __init__(self, config={}):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._au_id = None
         self._updater = None
@@ -320,7 +319,7 @@ class ConnectionsView(QWidget):
 
     def get_area_rect(self):
         area_rect = None
-        for device in self._visible_devices.itervalues():
+        for device in self._visible_devices.values():
             dev_rect = device.get_rect_in_area()
             if not area_rect:
                 area_rect = dev_rect
@@ -356,7 +355,7 @@ class ConnectionsView(QWidget):
         layout[key] = value
 
         # Also set entries for default offsets that were not changed
-        for dev_id, offset in self._default_offsets.iteritems():
+        for dev_id, offset in self._default_offsets.items():
             if (dev_id not in layout) or ('offset' not in layout[dev_id]):
                 dev_layout = layout.get(dev_id, {})
                 dev_layout['offset'] = offset
@@ -639,7 +638,7 @@ class ConnectionsView(QWidget):
                 new_ls_cache[key] = ls
 
         self._ls_cache = new_ls_cache
-        for ls in self._ls_cache.itervalues():
+        for ls in self._ls_cache.values():
             ls.copy_line(painter)
 
         # Highlight focused connection
@@ -1234,7 +1233,7 @@ class ConnectionsView(QWidget):
 class RemoveDeviceConfirmDialog(ConfirmDialog):
 
     def __init__(self, icon_bank, action_on_confirm):
-        ConfirmDialog.__init__(self, icon_bank)
+        super().__init__(icon_bank)
 
         self._action_on_confirm = action_on_confirm
 
@@ -1304,7 +1303,7 @@ class Device():
         return self._name
 
     def get_type_config_name(self):
-        for key, v in self._config.iteritems():
+        for key, v in self._config.items():
             if self._type_config == v:
                 return key
 

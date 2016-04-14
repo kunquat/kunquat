@@ -15,13 +15,13 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from octavebutton import OctaveButton
+from .octavebutton import OctaveButton
 
 
 class OctaveSelector(QFrame):
 
     def __init__(self):
-        QFrame.__init__(self)
+        super().__init__()
         self.setFocusPolicy(Qt.NoFocus)
         self._ui_model = None
         self._updater = None
@@ -42,7 +42,7 @@ class OctaveSelector(QFrame):
         self._update_layout()
 
     def unregister_updaters(self):
-        for i in xrange(self.layout().count() - 1):
+        for i in range(self.layout().count() - 1):
             button = self.layout().itemAt(i).widget()
             button.unregister_updaters()
         self._updater.unregister_updater(self._perform_updates)
@@ -59,19 +59,19 @@ class OctaveSelector(QFrame):
         new_button_count = self._typewriter_manager.get_octave_count()
 
         # Create new widgets
-        for i in xrange(old_button_count, new_button_count):
+        for i in range(old_button_count, new_button_count):
             button = self._get_button(i)
             layout.insertWidget(i, button)
 
         # Make sure that correct widgets are shown
-        for i in xrange(new_button_count):
+        for i in range(new_button_count):
             layout.itemAt(i).widget().show()
-        for i in xrange(new_button_count, old_button_count):
+        for i in range(new_button_count, old_button_count):
             layout.itemAt(i).widget().hide()
 
     def _get_buttons(self):
         octave_count = self._typewriter_manager.get_octave_count()
-        buttons = (self._get_button(i) for i in xrange(octave_count))
+        buttons = (self._get_button(i) for i in range(octave_count))
         return buttons
 
     def _get_button(self, octave_id):

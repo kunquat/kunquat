@@ -18,7 +18,7 @@ from PyQt4.QtGui import *
 class GeneralModEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._title = Title()
         self._authors = Authors()
@@ -77,7 +77,7 @@ class GeneralModEditor(QWidget):
 class Title(QLineEdit):
 
     def __init__(self):
-        QLineEdit.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -99,15 +99,14 @@ class Title(QLineEdit):
 
     def _update_title(self):
         module = self._ui_model.get_module()
-        title = module.get_title() or u''
+        title = module.get_title() or ''
 
         if self.text() != title:
             old_block = self.blockSignals(True)
             self.setText(title)
             self.blockSignals(old_block)
 
-    def _change_title(self, text_qstring):
-        title = unicode(text_qstring)
+    def _change_title(self, title):
         module = self._ui_model.get_module()
         module.set_title(title)
         self._updater.signal_update(set(['signal_title']))
@@ -116,11 +115,11 @@ class Title(QLineEdit):
 class AuthorTableModel(QAbstractTableModel):
 
     def __init__(self):
-        QAbstractTableModel.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
-        self._items = [u'']
+        self._items = ['']
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -135,9 +134,9 @@ class AuthorTableModel(QAbstractTableModel):
         count = module.get_author_count()
 
         self._items = []
-        for i in xrange(count):
+        for i in range(count):
             self._items.append(module.get_author(i))
-        self._items.append(u'')
+        self._items.append('')
 
     def get_index(self, author_index):
         return self.createIndex(0, author_index, self._items[author_index])
@@ -160,15 +159,15 @@ class AuthorTableModel(QAbstractTableModel):
             column = index.column()
             if row == 0:
                 if 0 <= column < len(self._items):
-                    return QVariant(self._items[column])
+                    return self._items[column]
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role):
-        return QVariant()
+        return None
 
     def flags(self, index):
-        default_flags = QAbstractTableModel.flags(self, index)
+        default_flags = super().flags(index)
         if not index.isValid():
             return default_flags
         if index.row() != 0 or not 0 <= index.column() < len(self._items):
@@ -181,7 +180,7 @@ class AuthorTableModel(QAbstractTableModel):
             row = index.row()
             column = index.column()
             if row == 0 and 0 <= column < len(self._items):
-                new_name = unicode(value.toString())
+                new_name = value
                 module = self._ui_model.get_module()
                 module.set_author(column, new_name)
                 self._updater.signal_update(set(['signal_authors']))
@@ -193,7 +192,7 @@ class AuthorTableModel(QAbstractTableModel):
 class Authors(QTableView):
 
     def __init__(self):
-        QTableView.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -259,13 +258,13 @@ class Authors(QTableView):
                 if index.isValid() and self.edit(index, self.EditKeyPressed, event):
                     event.accept()
                     return
-        return QTableView.keyPressEvent(self, event)
+        return super().keyPressEvent(event)
 
 
 class MixingVolume(QDoubleSpinBox):
 
     def __init__(self):
-        QDoubleSpinBox.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -305,7 +304,7 @@ class MixingVolume(QDoubleSpinBox):
 class RandomSeed(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -368,29 +367,29 @@ class UInt63SpinBox(QAbstractSpinBox):
     valueChanged = pyqtSignal(name='valueChanged')
 
     def __init__(self):
-        QAbstractSpinBox.__init__(self)
+        super().__init__()
 
         self._value = 0
         self._minimum_size = None
 
         line_edit = self.lineEdit()
-        line_edit.setText(unicode(self._value))
+        line_edit.setText(str(self._value))
         QObject.connect(
                 line_edit, SIGNAL('textChanged(const QString&)'), self._change_value)
 
     def set_value(self, value):
         old_block = self.blockSignals(True)
         self._value = value
-        self.lineEdit().setText(unicode(self._value))
+        self.lineEdit().setText(str(self._value))
         self.blockSignals(old_block)
         self.update()
 
     def get_value(self):
         return self._value
 
-    def _change_value(self, in_qstring):
+    def _change_value(self, value_str):
         try:
-            value = int(unicode(in_qstring))
+            value = int(value_str)
         except ValueError:
             return
 
@@ -422,39 +421,38 @@ class UInt63SpinBox(QAbstractSpinBox):
 
         line_edit = self.lineEdit()
         old_block = line_edit.blockSignals(True)
-        line_edit.setText(unicode(self._value))
+        line_edit.setText(str(self._value))
         line_edit.blockSignals(old_block)
 
         QObject.emit(self, SIGNAL('valueChanged()'))
         self.update()
 
     def text(self):
-        return unicode(self._value)
+        return str(self._value)
 
-    def fixup(self, in_qstring):
-        if not in_qstring:
-            in_qstring.append(u'0')
-        return QAbstractSpinBox.fixup(self, in_qstring)
-
-    def validate(self, in_qstring, pos):
-        in_str = unicode(in_qstring)
+    def fixup(self, in_str):
         if not in_str:
-            return (QValidator.Intermediate, pos)
+            in_str = '0'
+        return super().fixup(in_str)
+
+    def validate(self, in_str, pos):
+        if not in_str:
+            return (QValidator.Intermediate, in_str, pos)
 
         try:
             value = int(in_str)
         except ValueError:
-            return (QValidator.Invalid, pos)
+            return (QValidator.Invalid, in_str, pos)
 
         if value >= self._LIMIT:
-            return (QValidator.Invalid, pos)
+            return (QValidator.Invalid, in_str, pos)
 
-        return (QValidator.Acceptable, pos)
+        return (QValidator.Acceptable, in_str, pos)
 
     def minimumSizeHint(self):
         if not self._minimum_size:
             fm = self.fontMetrics()
-            width = fm.width(unicode(self._LIMIT - 1)) + 2
+            width = fm.width(str(self._LIMIT - 1)) + 2
             height = self.lineEdit().minimumSizeHint().height()
 
             opt = QStyleOptionSpinBox()

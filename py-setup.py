@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 
 
-from __future__ import print_function
 from distutils.core import setup
 import os
 import os.path
 import sys
 
 
-if sys.version_info[0] != 2 or sys.version_info[1] != 7:
-    print('Error: Kunquat Python modules require Python 2.7.', file=sys.stderr)
+if (sys.version_info[0], sys.version_info[1]) < (3, 1):
+    print('Error: Kunquat Python modules require Python 3.1 or later.', file=sys.stderr)
     sys.exit(1)
 
 
@@ -49,7 +48,7 @@ else:
     sys.argv.remove('--disable-tracker')
 
 setup(name='kunquat',
-      version='0.6.2',
+      version='0.7.2',
       author='Tomi Jylhä-Ollila',
       author_email='tomi.jylha-ollila@iki.fi',
       url='http://kunquat.org/',

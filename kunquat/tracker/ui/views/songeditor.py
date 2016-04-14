@@ -15,13 +15,13 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from kunquat.kunquat.limits import *
-from headerline import HeaderLine
+from .headerline import HeaderLine
 
 
 class SongEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._name = NameEditor()
         self._tempo_editor = TempoEditor()
@@ -52,7 +52,7 @@ class SongEditor(QWidget):
 class NameEditor(QLineEdit):
 
     def __init__(self):
-        QLineEdit.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -83,20 +83,20 @@ class NameEditor(QLineEdit):
         album = self._ui_model.get_module().get_album()
         track_num = album.get_selected_track_num()
         if track_num < 0:
-            self._set_name(u'')
+            self._set_name('')
             self.setEnabled(False)
             return
         song = album.get_song_by_track(track_num)
         self.setEnabled(True)
         self._set_name(song.get_name())
 
-    def _change_name(self, text_qstring):
+    def _change_name(self, text):
         album = self._ui_model.get_module().get_album()
         track_num = album.get_selected_track_num()
         if track_num < 0:
             return
         song = album.get_song_by_track(track_num)
-        song.set_name(unicode(self.text()))
+        song.set_name(text)
 
         self._updater.signal_update(set(['signal_song', 'signal_order_list']))
 
@@ -104,7 +104,7 @@ class NameEditor(QLineEdit):
 class TempoEditor(QDoubleSpinBox):
 
     def __init__(self):
-        QDoubleSpinBox.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 

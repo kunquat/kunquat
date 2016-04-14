@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -18,7 +18,7 @@ import threading
 class MonitoringThread(threading.Thread):
 
     def __init__(self, group=None, target=None, name=None, args=(), kwargs={}):
-        threading.Thread.__init__(self, group, target, name, args, kwargs)
+        super().__init__(group, target, name, args, kwargs)
 
     def run(self):
         try:
@@ -29,7 +29,6 @@ class MonitoringThread(threading.Thread):
 
     def run_monitored(self):
         raise NotImplementedError(
-                'MonitoringThread {} does not implement run_monitored'.format(
-                    self.name))
+                'MonitoringThread {} does not implement run_monitored'.format(self.name))
 
 

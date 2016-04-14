@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2014-2015
+#          Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -15,8 +15,8 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from keyboardmapper import KeyboardMapper
-from typewriterbutton import TypewriterButton
+from .keyboardmapper import KeyboardMapper
+from .typewriterbutton import TypewriterButton
 
 
 class Typewriter(QFrame):
@@ -24,7 +24,7 @@ class Typewriter(QFrame):
     _PAD = 35
 
     def __init__(self):
-        QFrame.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
         self._typewriter_manager = None
@@ -52,7 +52,7 @@ class Typewriter(QFrame):
         rows = QVBoxLayout()
         rows.setContentsMargins(0, 0, 0, 0)
         rows.setSpacing(2)
-        for row_index in xrange(self._typewriter_manager.get_row_count()):
+        for row_index in range(self._typewriter_manager.get_row_count()):
             rows.addLayout(self._get_row(row_index))
         return rows
 
@@ -63,7 +63,7 @@ class Typewriter(QFrame):
         pad_px = self._PAD * self._typewriter_manager.get_pad_factor_at_row(index)
         row.addWidget(self._get_pad(pad_px))
 
-        for i in xrange(self._typewriter_manager.get_button_count_at_row(index)):
+        for i in range(self._typewriter_manager.get_button_count_at_row(index)):
             button = TypewriterButton(index, i)
             button.set_ui_model(self._ui_model)
             row.addWidget(button)
@@ -97,4 +97,5 @@ class Typewriter(QFrame):
     def keyReleaseEvent(self, event):
         if not self._keyboard_mapper.process_typewriter_button_event(event):
             event.ignore()
+
 

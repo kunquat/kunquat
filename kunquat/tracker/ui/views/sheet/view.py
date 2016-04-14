@@ -12,8 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
-from itertools import islice, izip
+from itertools import islice
 import math
 import time
 
@@ -28,39 +27,39 @@ from kunquat.tracker.ui.model.sheetmanager import SheetManager
 from kunquat.tracker.ui.model.trigger import Trigger
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
-from config import *
-import utils
-from columngrouprenderer import ColumnGroupRenderer
-from trigger_renderer import TriggerRenderer
-from movestate import HorizontalMoveState, VerticalMoveState
+from .config import *
+from . import utils
+from .columngrouprenderer import ColumnGroupRenderer
+from .trigger_renderer import TriggerRenderer
+from .movestate import HorizontalMoveState, VerticalMoveState
 
 
 class TriggerTypeValidator(QValidator):
 
     def __init__(self):
-        QValidator.__init__(self)
+        super().__init__()
 
     def validate(self, contents, pos):
         in_str = str(contents)
         if in_str in events.trigger_events_by_name:
-            return (QValidator.Acceptable, pos)
+            return (QValidator.Acceptable, contents, pos)
         else:
-            return (QValidator.Intermediate, pos)
+            return (QValidator.Intermediate, contents, pos)
 
 
 class TriggerArgumentValidator(QValidator):
 
     def __init__(self):
-        QValidator.__init__(self)
+        super().__init__()
 
     def validate(self, contents, pos):
-        return (QValidator.Acceptable, pos)
+        return (QValidator.Acceptable, contents, pos)
 
 
 class FieldEdit(QLineEdit):
 
     def __init__(self, parent):
-        QLineEdit.__init__(self, parent)
+        super().__init__(parent)
         self.hide()
 
         self._finished_callback = None
@@ -69,7 +68,7 @@ class FieldEdit(QLineEdit):
 
     def _finished(self):
         assert self._finished_callback
-        text = unicode(self.text())
+        text = str(self.text())
         cb = self._finished_callback
         self._finished_callback = None
         cb(text)
@@ -91,7 +90,7 @@ class FieldEdit(QLineEdit):
         self.setFocus()
 
     def keyPressEvent(self, event):
-        if QLineEdit.keyPressEvent(self, event):
+        if super().keyPressEvent(event):
             return
         if event.key() == Qt.Key_Escape:
             self.parent().setFocus()
@@ -108,7 +107,7 @@ class View(QWidget):
     followCursor = pyqtSignal(str, int, name='followCursor')
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._ui_model = None
         self._updater = None
@@ -132,7 +131,7 @@ class View(QWidget):
         self._first_col = 0
         self._visible_cols = 0
 
-        self._col_rends = [ColumnGroupRenderer(i) for i in xrange(COLUMNS_MAX)]
+        self._col_rends = [ColumnGroupRenderer(i) for i in range(COLUMNS_MAX)]
 
         self._heights = []
         self._start_heights = []
@@ -209,9 +208,9 @@ class View(QWidget):
 
                 if len(signal_pinst.get_pattern().get_instance_ids()) > 1:
                     # Update columns of other instances
-                    for cur_track_num in xrange(album.get_track_count()):
+                    for cur_track_num in range(album.get_track_count()):
                         cur_song = album.get_song_by_track(cur_track_num)
-                        for cur_system_num in xrange(cur_song.get_system_count()):
+                        for cur_system_num in range(cur_song.get_system_count()):
                             cur_pinst = song.get_pattern_instance(cur_system_num)
                             if ((cur_pinst.get_pattern_num() == signal_pat_num) and
                                     (cur_pinst.get_instance_num() != signal_pinst_num)):
@@ -359,7 +358,7 @@ class View(QWidget):
         except (IndexError, AttributeError):
             return None
 
-        for pinst, start_height in izip(self._pinsts, self._start_heights):
+        for pinst, start_height in zip(self._pinsts, self._start_heights):
             if cur_pinst == pinst:
                 start_px = start_height - ref_offset
                 location_from_start_px = (
@@ -390,7 +389,7 @@ class View(QWidget):
                 trigger_index = location.get_trigger_index()
                 trigger_count = cur_column.get_trigger_count_at_row(row_ts)
                 triggers = [cur_column.get_trigger(row_ts, i)
-                        for i in xrange(trigger_count)]
+                        for i in range(trigger_count)]
                 rends = [TriggerRenderer(self._config, t, notation) for t in triggers]
                 row_width = sum(r.get_total_width() for r in rends)
 
@@ -494,7 +493,7 @@ class View(QWidget):
         # Draw guide extension line
         if self._sheet_manager.is_editing_enabled():
             painter.setPen(self._config['edit_cursor']['guide_colour'])
-            visible_col_nums = list(xrange(
+            visible_col_nums = list(range(
                 self._first_col, self._first_col + self._visible_cols))
             for col_num in visible_col_nums:
                 if col_num != selected_col:
@@ -525,7 +524,7 @@ class View(QWidget):
             # Draw the trigger row
             trigger_count = column.get_trigger_count_at_row(row_ts)
             triggers = [column.get_trigger(row_ts, i)
-                    for i in xrange(trigger_count)]
+                    for i in range(trigger_count)]
             self._draw_trigger_row_with_edit_cursor(
                     painter, triggers, trigger_index)
 
@@ -585,7 +584,7 @@ class View(QWidget):
 
         orig_trow_tfm = QTransform(trigger_tfm)
 
-        for i, trigger, renderer in izip(xrange(len(triggers)), triggers, rends):
+        for i, trigger, renderer in zip(range(len(triggers)), triggers, rends):
             # Identify selected field
             if self._sheet_manager.get_replace_mode():
                 select_replace = (i == trigger_index)
@@ -655,7 +654,7 @@ class View(QWidget):
         bottom_left = rect.bottomLeft()
         bottom_right = rect.bottomRight()
 
-        for col_index in xrange(area_col_start, area_col_stop):
+        for col_index in range(area_col_start, area_col_stop):
             painter.fillRect(rect, self._config['area_selection']['fill_colour'])
             painter.drawLine(top_left, top_right)
             if col_index == first_area_col:
@@ -1008,7 +1007,7 @@ class View(QWidget):
 
         trigger_count = column.get_trigger_count_at_row(row_ts)
         triggers = (column.get_trigger(row_ts, i)
-                for i in xrange(trigger_count))
+                for i in range(trigger_count))
         notation = self._notation_manager.get_selected_notation()
         rends = (TriggerRenderer(self._config, trigger, notation)
                 for trigger in triggers)
@@ -1040,7 +1039,7 @@ class View(QWidget):
         if not album:
             return None
         track_count = album.get_track_count()
-        songs = (album.get_song_by_track(i) for i in xrange(track_count))
+        songs = (album.get_song_by_track(i) for i in range(track_count))
         if not songs:
             return None
 
@@ -1292,7 +1291,7 @@ class View(QWidget):
         try:
             trigger_count = column.get_trigger_count_at_row(row_ts)
             triggers = [column.get_trigger(row_ts, i)
-                    for i in xrange(min(trigger_count, location.get_trigger_index()))]
+                    for i in range(min(trigger_count, location.get_trigger_index()))]
             rends = [TriggerRenderer(self._config, trigger, notation)
                     for trigger in triggers]
             widths = [r.get_total_width() for r in rends]
@@ -1327,18 +1326,18 @@ class View(QWidget):
 
         # Special case: tempo values
         if info['name'] in ('m.t', 'm/t'):
-            return u'120'
+            return '120'
 
         ex = {
             None                        : None,
-            events.EVENT_ARG_BOOL       : u'false',
-            events.EVENT_ARG_INT        : u'0',
-            events.EVENT_ARG_FLOAT      : u'0',
-            events.EVENT_ARG_TSTAMP     : u'0',
-            events.EVENT_ARG_STRING     : u"''",
-            events.EVENT_ARG_PAT        : u'pat(0, 0)',
-            events.EVENT_ARG_PITCH      : u'0',
-            events.EVENT_ARG_REALTIME   : u'0',
+            events.EVENT_ARG_BOOL       : 'false',
+            events.EVENT_ARG_INT        : '0',
+            events.EVENT_ARG_FLOAT      : '0',
+            events.EVENT_ARG_TSTAMP     : '0',
+            events.EVENT_ARG_STRING     : "''",
+            events.EVENT_ARG_PAT        : 'pat(0, 0)',
+            events.EVENT_ARG_PITCH      : '0',
+            events.EVENT_ARG_REALTIME   : '0',
         }
 
         return ex[info['arg_type']]
@@ -1769,7 +1768,7 @@ class View(QWidget):
 
         # Draw columns
         pixmaps_created = 0
-        for rel_col_index in xrange(draw_col_start, draw_col_stop):
+        for rel_col_index in range(draw_col_start, draw_col_stop):
             x_offset = rel_col_index * self._col_width
             tfm = QTransform().translate(x_offset, 0)
             painter.setTransform(tfm)
@@ -1779,7 +1778,7 @@ class View(QWidget):
         # Flush caches of (most) out-of-view columns
         first_kept_col = max(0, self._first_col - 1)
         last_kept_col = min(COLUMNS_MAX - 1, self._first_col + draw_col_stop)
-        for col_index in xrange(COLUMNS_MAX):
+        for col_index in range(COLUMNS_MAX):
             if not (first_kept_col <= col_index <= last_kept_col):
                 self._col_rends[col_index].flush_caches()
 

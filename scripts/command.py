@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -11,7 +11,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
 import os.path
 import subprocess
 import sys
@@ -22,22 +21,22 @@ class PythonCommand():
     def __init__(self):
         self._cmd = self._get_python_cmd()
 
-    def run(self, builder, *args):
+    def run(self, builder, *args, **kwargs):
         all_args = [self._cmd] + list(args)
-        return run_command(builder, *all_args)
+        return run_command(builder, *all_args, **kwargs)
 
     def _get_python_cmd(self):
-        test_cmds = ['python', 'python2.7', 'python2']
+        test_cmds = ['python3']
         for cmd in test_cmds:
             try:
                 output = subprocess.check_output(
                         [cmd, '--version'], stderr=subprocess.STDOUT)
-            except OSError, subprocess.CalledProcessError:
-                output = ''
-            if output.startswith('Python 2.7'):
+            except (OSError, subprocess.CalledProcessError):
+                output = b''
+            if output.startswith(b'Python 3'):
                 return cmd
         else:
-            raise RuntimeError('Python 2.7 not found')
+            raise RuntimeError('Python 3 not found')
 
 
 def copy(builder, src, dest, echo=None):

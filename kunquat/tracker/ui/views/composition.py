@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -15,13 +15,13 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from sheet.sheet import Sheet
+from .sheet.sheet import Sheet
 
 
 class Composition(QFrame):
 
     def __init__(self):
-        QFrame.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._sheet = Sheet()
 

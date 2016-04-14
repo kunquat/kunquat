@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2010-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2010-2016
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -40,19 +40,108 @@ __all__ = ['Kunquat',
            'KunquatResourceError']
 
 
-class BaseHandle(object):
+class Kunquat():
 
-    """Base class for all Kunquat Handles. Do not use directly."""
+    """Kunquat instance for playing and modifying compositions in memory.
 
-    @property
-    def song(self):
-        """Obsolete"""
-        assert False
+    Public methods:
+    set_data     -- Set composition data.
+    get_duration -- Calculate the length of a track.
+    play         -- Play audio.
+    get_audio    -- Get audio data.
+    fire         -- Fire an event.
 
-    @song.setter
-    def song(self, value):
-        """Obsolete"""
-        assert False
+    Public instance variables:
+    buffer_size -- Audio buffer size.
+    audio_rate  -- Audio rate.
+    nanoseconds -- The current position in nanoseconds.
+    track       -- The current track (None or [0,255]).
+
+    To produce two frames of silence, do the following:
+    >>> k = Kunquat()
+    >>> k.set_data('album/p_manifest.json', {})
+    >>> k.set_data('album/p_tracks.json', [0])
+    >>> k.set_data('song_00/p_manifest.json', {})
+    >>> k.set_data('song_00/p_order_list.json', [ [0, 0] ])
+    >>> k.set_data('pat_000/p_manifest.json', {})
+    >>> k.set_data('pat_000/p_pattern.json', { 'length': [16, 0] })
+    >>> k.set_data('pat_000/instance_000/p_manifest.json', {})
+    >>> k.validate()
+    >>> k.play(2)
+    >>> audio_data = k.get_audio()
+    >>> audio_data
+    ([0.0, 0.0], [0.0, 0.0])
+
+    """
+
+    def __init__(self, audio_rate=48000):
+        """Create a new Kunquat instance.
+
+        Optional arguments:
+        audio_rate -- Audio rate in frames per second.  Typical
+                      values include 48000 (the default) and 44100
+                      ("CD quality").
+
+        Exceptions:
+        KunquatArgumentError -- audio_rate is not positive.
+
+        """
+        if '_handle' not in self.__dict__:
+            self._handle = _kunquat.kqt_new_Handle()
+            if not self._handle:
+                error_str = str(_kunquat.kqt_Handle_get_error(0), encoding='utf-8')
+                raise _get_error(json.loads(error_str))
+        self._track = None
+        self._nanoseconds = 0
+        self._audio_buffer_size = _kunquat.kqt_Handle_get_audio_buffer_size(
+                self._handle)
+        if audio_rate <= 0:
+            raise KunquatArgumentError('Audio rate must be positive')
+        self.audio_rate = audio_rate
+
+    def set_data(self, key, value):
+        """Set data in the Kunquat instance.
+
+        Arguments:
+        key --   The key of the data in the composition.  A key
+                 consists of one or more textual elements separated by
+                 forward slashes ('/').  The last element is the only
+                 one that is allowed and required to contain a period.
+                 Examples:
+                 'p_composition.json'
+                 'pat_000/col_00/p_triggers.json'
+                 'ins_01/p_instrument.json'
+        value -- The data to be set.  For JSON keys, this should be a
+                 Python object -- it is automatically converted to a
+                 JSON string.
+
+        Exceptions:
+        KunquatArgumentError -- The key is not valid.
+
+        """
+        if isinstance(value, bytes):
+            data = value
+        else:
+            json_value = json.dumps(value) if value != None else ''
+            data = bytes(json_value, encoding='utf-8')
+        cdata = (ctypes.c_ubyte * len(data))()
+        cdata[:] = data[:]
+        _kunquat.kqt_Handle_set_data(
+                self._handle,
+                bytes(key, encoding='utf-8'),
+                ctypes.cast(cdata, ctypes.POINTER(ctypes.c_ubyte)),
+                len(data))
+
+    def validate(self):
+        """Validate data in the Kunquat instance.
+
+        Exceptions:
+        KunquatFormatError -- The module data is not valid.  This
+                              indicates that the handle is useless and
+                              should be discarded.
+
+        """
+        _kunquat.kqt_Handle_validate(self._handle)
 
     @property
     def track(self):
@@ -148,7 +237,7 @@ class BaseHandle(object):
         """Play audio according to the state of the handle.
 
         Optional arguments:
-        frame_count -- The number of frames to be mixed.  The default
+        frame_count -- The number of frames to be played.  The default
                        value is self.audio_buffer_size.
 
         Exceptions:
@@ -156,7 +245,7 @@ class BaseHandle(object):
 
         """
         if not frame_count:
-            frame_count = self._buffer_size
+            frame_count = self._audio_buffer_size
         _kunquat.kqt_Handle_play(self._handle, frame_count)
         self._nanoseconds = _kunquat.kqt_Handle_get_position(self._handle)
 
@@ -191,7 +280,8 @@ class BaseHandle(object):
                  A4, i.e. C5 in 12-tone Equal Temperament).
 
         """
-        _kunquat.kqt_Handle_fire_event(self._handle, channel, json.dumps(event))
+        event_data = bytes(json.dumps(event), encoding='utf-8')
+        _kunquat.kqt_Handle_fire_event(self._handle, channel, event_data)
 
     def receive_events(self):
         """Receive outgoing events.
@@ -202,115 +292,13 @@ class BaseHandle(object):
 
         """
         all_events = []
-        el = json.loads(str(_kunquat.kqt_Handle_receive_events(self._handle)))
+        raw_el_data = _kunquat.kqt_Handle_receive_events(self._handle)
+        el = json.loads(str(raw_el_data, encoding='utf-8'))
         while el:
             all_events += el
-            el = json.loads(str(_kunquat.kqt_Handle_receive_events(self._handle)))
+            raw_el_data = _kunquat.kqt_Handle_receive_events(self._handle)
+            el = json.loads(str(raw_el_data, encoding='utf-8'))
         return all_events
-
-
-class Kunquat(BaseHandle):
-
-    """Kunquat instance for playing and modifying compositions in memory.
-
-    Public methods:
-    set_data     -- Set composition data.
-    get_duration -- Calculate the length of a track.
-    play         -- Play audio.
-    get_audio    -- Get audio data.
-    fire         -- Fire an event.
-
-    Public instance variables:
-    buffer_size -- Mixing buffer size.
-    mixing_rate -- Mixing rate.
-    nanoseconds -- The current position in nanoseconds.
-    track       -- The current track (None or [0,255]).
-
-    To produce two frames of silence, do the following:
-    >>> k = Kunquat()
-    >>> k.set_data('album/p_manifest.json', {})
-    >>> k.set_data('album/p_tracks.json', [0])
-    >>> k.set_data('song_00/p_manifest.json', {})
-    >>> k.set_data('song_00/p_order_list.json', [ [0, 0] ])
-    >>> k.set_data('pat_000/p_manifest.json', {})
-    >>> k.set_data('pat_000/p_pattern.json', { 'length': [16, 0] })
-    >>> k.set_data('pat_000/instance_000/p_manifest.json', {})
-    >>> k.validate()
-    >>> k.play(2)
-    >>> audio_data = k.get_audio()
-    >>> audio_data
-    ([0.0, 0.0], [0.0, 0.0])
-
-    """
-
-    def __init__(self, audio_rate=48000):
-        """Create a new Kunquat instance.
-
-        Optional arguments:
-        audio_rate -- Audio rate in frames per second.  Typical
-                      values include 48000 (the default) and 44100
-                      ("CD quality").
-
-        Exceptions:
-        KunquatArgumentError -- audio_rate is not positive.
-
-        """
-        if '_handle' not in self.__dict__:
-            self._handle = _kunquat.kqt_new_Handle()
-            if not self._handle:
-                raise _get_error(json.loads(
-                                 _kunquat.kqt_Handle_get_error(0)))
-        self._track = None
-        self._nanoseconds = 0
-        self._audio_buffer_size = _kunquat.kqt_Handle_get_audio_buffer_size(
-                self._handle)
-        if audio_rate <= 0:
-            raise KunquatArgumentError('Mixing rate must be positive')
-        self.audio_rate = audio_rate
-
-    def set_data(self, key, value):
-        """Set data in the Kunquat instance.
-
-        Arguments:
-        key --   The key of the data in the composition.  A key
-                 consists of one or more textual elements separated by
-                 forward slashes ('/').  The last element is the only
-                 one that is allowed and required to contain a period.
-                 Examples:
-                 'p_composition.json'
-                 'pat_000/col_00/p_triggers.json'
-                 'ins_01/p_instrument.json'
-        value -- The data to be set.  For JSON keys, this should be a
-                 Python object -- it is automatically converted to a
-                 JSON string.
-
-        Exceptions:
-        KunquatArgumentError -- The key is not valid.
-
-        """
-        if isinstance(value, str):
-            json_value = value
-        else:
-            json_value = json.dumps(value) if value != None else ''
-        data = buffer(json_value)
-        cdata = (ctypes.c_ubyte * len(data))()
-        cdata[:] = [ord(b) for b in data][:]
-        _kunquat.kqt_Handle_set_data(self._handle,
-                                     key,
-                                     ctypes.cast(cdata,
-                                         ctypes.POINTER(ctypes.c_ubyte)),
-                                     len(data))
-
-    def validate(self):
-        """Validate data in the Kunquat instance.
-
-        Exceptions:
-        KunquatFormatError -- The module data is not valid.  This
-                              indicates that the handle is useless and
-                              should be discarded.
-
-        """
-        _kunquat.kqt_Handle_validate(self._handle)
 
     def __del__(self):
         if self._handle:
@@ -324,9 +312,10 @@ def get_event_info():
 
     i = 0
     while event_names_raw[i]:
-        event_name = str(event_names_raw[i])
-        arg_type_raw = _kunquat.kqt_get_event_arg_type(event_name)
-        arg_type = str(arg_type_raw) if arg_type_raw else None
+        event_name_raw = bytes(event_names_raw[i])
+        arg_type_raw = _kunquat.kqt_get_event_arg_type(event_name_raw)
+        arg_type = str(arg_type_raw, encoding='utf-8') if arg_type_raw else None
+        event_name = str(event_name_raw, encoding='utf-8')
         event_info[event_name] = { 'name': event_name, 'arg_type': arg_type }
         i += 1
 
@@ -339,8 +328,9 @@ def get_limit_info():
 
     i = 0
     while limit_names_raw[i]:
-        limit_name = str(limit_names_raw[i])
-        limit_value = int(_kunquat.kqt_get_int_limit(limit_name))
+        limit_name_raw = bytes(limit_names_raw[i])
+        limit_value = int(_kunquat.kqt_get_int_limit(limit_name_raw))
+        limit_name = str(limit_name_raw, encoding='utf-8')
         limit_info[limit_name] = limit_value
         i += 1
 
@@ -361,10 +351,11 @@ def _get_error(obj):
 
 def _error_check(result, func, arguments):
     chandle = arguments[0]
-    error_str = _kunquat.kqt_Handle_get_error(chandle)
-    if not error_str:
+    error_str_raw = _kunquat.kqt_Handle_get_error(chandle)
+    if not error_str_raw:
         return result
     _kunquat.kqt_Handle_clear_error(chandle)
+    error_str = str(error_str_raw, encoding='utf-8')
     raise _get_error(json.loads(error_str))
 
 
@@ -373,7 +364,7 @@ class KunquatError(Exception):
     """Base class for errors in Kunquat."""
 
     def __init__(self, obj):
-        if isinstance(obj, str) or isinstance(obj, unicode):
+        if isinstance(obj, str):
             obj = { 'message': obj }
         self.obj = obj
 
@@ -401,13 +392,13 @@ class KunquatResourceError(KunquatError):
 
 
 def get_default_value(key):
-    raw = _kunquat.kqt_get_default_value(key)
-    obj = json.loads(raw) if raw else None
+    raw = _kunquat.kqt_get_default_value(bytes(key, encoding='utf-8'))
+    obj = json.loads(str(raw, encoding='utf-8')) if raw else None
     return obj
 
 
 def get_version():
-    ret = str(_kunquat.kqt_get_version())
+    ret = str(_kunquat.kqt_get_version(), encoding='utf-8')
     return ret
 
 

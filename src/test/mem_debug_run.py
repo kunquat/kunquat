@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # coding=utf-8
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2012
+# Author: Tomi Jylhä-Ollila, Finland 2012-2016
 #
 # This file is part of Kunquat.
 #
@@ -12,10 +12,9 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
 import itertools as it
 import os.path
-import Queue
+import queue
 import shlex
 import subprocess
 import sys
@@ -37,36 +36,36 @@ def progress_str(bar_width, area_width, offset):
     nums     = list(it.chain(leading, bar, trailing))
 
     compressed = (a + 2 * b for (a, b) in
-            it.izip(it.islice(nums, 0, None, 2), it.islice(nums, 1, None, 2)))
-    block_map = [u' ', u'⡇', u'⢸', u'⣿']
-    return u'⢾' + u''.join([block_map[x] for x in compressed]) + u'⡷'
+            zip(it.islice(nums, 0, None, 2), it.islice(nums, 1, None, 2)))
+    block_map = ['⣉', '⣏', '⣹', '⣿']
+    return '⢸' + ''.join([block_map[x] for x in compressed]) + '⡇'
 
 
 def show_beat(q, test_name, bar_width, area_width):
     offset_bound = area_width - bar_width + 1
     bars_fwd = [progress_str(bar_width, area_width, i)
-            for i in xrange(offset_bound)]
+            for i in range(offset_bound)]
     bars = bars_fwd + bars_fwd[-2:0:-1]
     beat = it.cycle(bars)
-    info = u'Running test: {0} '.format(test_name)
-    line = info + beat.next()
+    info = 'Running test: {} '.format(test_name)
+    line = info + next(beat)
     line_len = len(line)
     while q.empty():
-        print(line.encode('utf-8'), end='\r')
-        line = info + beat.next()
+        print(line, end='\r')
+        line = info + next(beat)
         sys.stdout.flush()
         time.sleep(0.1)
     print(' ' * line_len, end='\r')
 
 
 def strip_valgrind(output):
-    lines = (line for line in output.splitlines()
-             if not line.startswith('=='))
+    lines = (str(line, encoding='utf-8') for line in output.splitlines()
+             if not line.startswith(b'=='))
     return '\n'.join(lines)
 
 
 def run_test(program):
-    q = Queue.Queue()
+    q = queue.Queue()
     name = os.path.basename(program)
     beater = threading.Thread(target=show_beat, args=(q, name, 4, 10))
 
@@ -85,7 +84,7 @@ def run_test(program):
         q.put('done')
         beater.join()
 
-    leaks = not 'no leaks are possible' in output
+    leaks = not b'no leaks are possible' in output
 
     if leaks:
         print(output)

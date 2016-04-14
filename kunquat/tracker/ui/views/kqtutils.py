@@ -41,10 +41,10 @@ def get_kqt_file_path(types):
     if 'kqte' in types:
         filters.append('Kunquat effects (*.kqte *.kqte.gz *.kqte.bz2)')
 
-    file_path_qstring = QFileDialog.getOpenFileName(
+    file_path = QFileDialog.getOpenFileName(
             caption=caption, filter=';;'.join(filters))
-    if file_path_qstring:
-        return str(file_path_qstring.toUtf8())
+    if file_path:
+        return file_path
     return None
 
 
@@ -83,7 +83,7 @@ def open_kqt_au(au_path, ui_model, container):
 class OutOfIDsErrorDialog(QDialog):
 
     def __init__(self, icon_bank, id_type, is_inside_instrument=False):
-        QDialog.__init__(self)
+        super().__init__()
 
         error_img_path = icon_bank.get_icon_path('error')
         error_label = QLabel()

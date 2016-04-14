@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -11,7 +11,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
 import sys
 import traceback
 import os

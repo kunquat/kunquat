@@ -14,16 +14,16 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from infoeditor import InfoEditor
-import proctypeinfo
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
+from .infoeditor import InfoEditor
+from . import proctypeinfo
 
 
 class Editor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
@@ -113,7 +113,7 @@ class Editor(QWidget):
 class HeaderFrame(QWidget):
 
     def __init__(self, header_text, contents):
-        QWidget.__init__(self)
+        super().__init__()
 
         v = QVBoxLayout()
         v.setMargin(0)
@@ -126,12 +126,12 @@ class HeaderFrame(QWidget):
 class Signals(QWidget):
 
     _SIGNAL_INFO = [
-        (u'voice', 'Voice signals'),
-        (u'mixed', 'Mixed signals'),
+        ('voice', 'Voice signals'),
+        ('mixed', 'Mixed signals'),
     ]
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None

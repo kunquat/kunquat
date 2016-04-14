@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from triggerposition import TriggerPosition
-import tstamp
+from .triggerposition import TriggerPosition
+from . import tstamp
 
 
 class Selection():

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -18,7 +18,7 @@ from PyQt4.QtCore import QThread
 class QEventPump(QThread):
 
     def __init__(self):
-        QThread.__init__(self)
+        super().__init__()
         self._signaler = None
         self._blocker = None
 
@@ -32,4 +32,5 @@ class QEventPump(QThread):
         while True:
             self._blocker()
             self._signaler()
+
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -16,14 +16,14 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
-from composition import Composition
-from typewriterpanel import TypewriterPanel
+from .composition import Composition
+from .typewriterpanel import TypewriterPanel
 
 
 class MainSplitter(QSplitter):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self.setOrientation(Qt.Vertical)
         self._composition = Composition()

@@ -18,9 +18,8 @@ import json
 import time
 import tarfile
 import tempfile
-import StringIO
+from io import BytesIO
 import os.path
-from itertools import izip
 
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
@@ -28,12 +27,12 @@ import kunquat.tracker.cmdline as cmdline
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 import kunquat.tracker.ui.model.tstamp as tstamp
 
-from kqtivalidator import KqtiValidator
-from store import Store
-from session import Session
-from share import Share
-from updater import Updater
-from notechannelmapper import NoteChannelMapper
+from .kqtivalidator import KqtiValidator
+from .store import Store
+from .session import Session
+from .share import Share
+from .updater import Updater
+from .notechannelmapper import NoteChannelMapper
 
 #TODO: figure a place for the events
 EVENT_SELECT_CONTROL = '.a'
@@ -130,7 +129,7 @@ class Controller():
                 if entry.isfile():
                     value = tfile.extractfile(entry).read()
                     if key.endswith('.json'):
-                        decoded = json.loads(value)
+                        decoded = json.loads(str(value, encoding='utf-8'))
                     else:
                         decoded = value
                     values[key] = decoded
@@ -155,16 +154,16 @@ class Controller():
 
             with tarfile.open(mode=mode, fileobj=f, format=tarfile.USTAR_FORMAT) as tfile:
                 prefix = 'kqtc00'
-                for key, value in self._store.iteritems():
+                for key, value in self._store.items():
                     yield
                     path = '/'.join((prefix, key))
                     if key.endswith('.json'):
-                        encoded = json.dumps(value)
+                        encoded = bytes(json.dumps(value), encoding='utf-8')
                     else:
                         encoded = value
                     info = tarfile.TarInfo(name=path)
                     info.size = len(encoded)
-                    encoded_file = StringIO.StringIO(encoded)
+                    encoded_file = BytesIO(encoded)
                     tfile.addfile(info, encoded_file)
 
                 tmpname = f.name
@@ -188,18 +187,18 @@ class Controller():
             with tarfile.open(mode=mode, fileobj=f, format=tarfile.USTAR_FORMAT) as tfile:
                 prefix = 'kqti00'
                 au_prefix = au_id + '/'
-                au_keys = [k for k in self._store.iterkeys() if k.startswith(au_prefix)]
+                au_keys = [k for k in self._store.keys() if k.startswith(au_prefix)]
                 for key in au_keys:
                     yield
                     value = self._store[key]
                     path = '{}/{}'.format(prefix, key[len(au_prefix):])
                     if key.endswith('.json'):
-                        encoded = json.dumps(value)
+                        encoded = bytes(json.dumps(value), encoding='utf-8')
                     else:
                         encoded = value
                     info = tarfile.TarInfo(name=path)
                     info.size = len(encoded)
-                    encoded_file = StringIO.StringIO(encoded)
+                    encoded_file = BytesIO(encoded)
                     tfile.addfile(info, encoded_file)
 
                 tmpname = f.name
@@ -229,7 +228,7 @@ class Controller():
         transaction = {}
 
         # Add audio unit data to the transaction
-        for (key, value) in contents.iteritems():
+        for (key, value) in contents.items():
             dest_key = '{}/{}'.format(au_id, key)
             transaction[dest_key] = value
 
@@ -269,7 +268,7 @@ class Controller():
             if parent_out_ports and (len(parent_out_ports) == len(ins_out_ports)):
                 sub_au_id = au_id.split('/')[-1]
                 conns = self._store.get('p_connections.json', [])
-                for (send_port, recv_port) in izip(ins_out_ports, parent_out_ports):
+                for (send_port, recv_port) in zip(ins_out_ports, parent_out_ports):
                     conns.append(['{}/{}'.format(sub_au_id, send_port), recv_port])
                 transaction['p_connections.json'] = conns
 
@@ -291,7 +290,7 @@ class Controller():
         self._session.reset_active_init_expressions()
 
         channel_defaults = self._ui_model.get_module().get_channel_defaults()
-        for i in xrange(CHANNELS_MAX):
+        for i in range(CHANNELS_MAX):
             init_expr_name = channel_defaults.get_initial_expression(i)
             self._session.set_default_init_expression(i, init_expr_name)
 
@@ -389,7 +388,7 @@ class Controller():
         self._reset_expressions()
 
         # Reset active notes
-        for ch in xrange(CHANNELS_MAX):
+        for ch in range(CHANNELS_MAX):
             self._session.set_active_note(ch, 'n-', None)
 
         if self._session.get_infinite_mode():
@@ -413,7 +412,7 @@ class Controller():
 
         if self._session.are_au_test_expressions_enabled(au.get_id()):
             expressions = []
-            for i in xrange(2):
+            for i in range(2):
                 expr_name = au.get_test_expression(i)
                 if expr_name:
                     expressions.append(expr_name)

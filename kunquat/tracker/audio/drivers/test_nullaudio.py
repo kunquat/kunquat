@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -14,15 +14,15 @@
 
 import unittest
 
-import nullaudio
-from nullaudio import Nullaudio
-from test_abstract_driver import TestAbstractDriver
+from .nullaudio import Nullaudio
+from .test_abstract_driver import TestAbstractDriver
 
 
 class TestNullaudio(TestAbstractDriver, unittest.TestCase):
 
     def setUp(self):
         self._DriverClass = Nullaudio
+        self._cls_args = tuple()
 
 
 if __name__ == '__main__':

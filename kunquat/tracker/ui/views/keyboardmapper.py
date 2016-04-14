@@ -18,10 +18,10 @@ from PyQt4.QtGui import *
 # TODO: Define alternatives for different environments if/when needed
 _TYPEWRITER_MAP = {}
 
-_TYPEWRITER_MAP.update(dict((11 + x, (0, x)) for x in xrange(9)))
-_TYPEWRITER_MAP.update(dict((24 + x, (1, x)) for x in xrange(10)))
-_TYPEWRITER_MAP.update(dict((39 + x, (2, x)) for x in xrange(7)))
-_TYPEWRITER_MAP.update(dict((52 + x, (3, x)) for x in xrange(7)))
+_TYPEWRITER_MAP.update(dict((11 + x, (0, x)) for x in range(9)))
+_TYPEWRITER_MAP.update(dict((24 + x, (1, x)) for x in range(10)))
+_TYPEWRITER_MAP.update(dict((39 + x, (2, x)) for x in range(7)))
+_TYPEWRITER_MAP.update(dict((52 + x, (3, x)) for x in range(7)))
 
 
 class KeyboardMapper():

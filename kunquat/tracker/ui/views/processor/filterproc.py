@@ -14,17 +14,17 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from procnumslider import ProcNumSlider
+from .procnumslider import ProcNumSlider
 
 
 class FilterProc(QWidget):
 
     @staticmethod
     def get_name():
-        return u'Filter'
+        return 'Filter'
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._cutoff = CutoffSlider()
         self._resonance = ResonanceSlider()
@@ -60,7 +60,7 @@ class FilterProc(QWidget):
 class FilterSlider(ProcNumSlider):
 
     def __init__(self, decimals, min_value, max_value):
-        ProcNumSlider.__init__(self, decimals, min_value, max_value, '')
+        super().__init__(decimals, min_value, max_value, '')
 
     def _get_filter_params(self):
         module = self._ui_model.get_module()
@@ -73,7 +73,7 @@ class FilterSlider(ProcNumSlider):
 class CutoffSlider(FilterSlider):
 
     def __init__(self):
-        FilterSlider.__init__(self, 2, 0.0, 100.0)
+        super().__init__(2, 0.0, 100.0)
 
     def _get_update_signal_type(self):
         return '_'.join(('signal_filter_cutoff', self._proc_id))
@@ -91,7 +91,7 @@ class CutoffSlider(FilterSlider):
 class ResonanceSlider(FilterSlider):
 
     def __init__(self):
-        FilterSlider.__init__(self, 2, 0.0, 100.0)
+        super().__init__(2, 0.0, 100.0)
 
     def _get_update_signal_type(self):
         return '_'.join(('signal_filter_resonance', self._proc_id))

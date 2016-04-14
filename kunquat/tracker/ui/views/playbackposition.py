@@ -20,7 +20,7 @@ from PyQt4.QtGui import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
-import utils
+from . import utils
 
 
 class PlaybackPosition(QWidget):
@@ -66,7 +66,7 @@ class PlaybackPosition(QWidget):
     _RECORDING = 'recording'
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
 
         self._widths = None
@@ -282,7 +282,7 @@ class PlaybackPosition(QWidget):
 
             points = []
             point_count = 15
-            for i in xrange(point_count):
+            for i in range(point_count):
                 norm_t = i / float(point_count - 1)
                 if norm_t < 0.5:
                     t = utils.lerp_val(math.pi, math.pi * 1.5, norm_t * 2)

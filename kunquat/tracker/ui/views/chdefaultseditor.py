@@ -15,15 +15,15 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from kunquat.kunquat.limits import *
-from editorlist import EditorList
-from headerline import HeaderLine
-from varnamevalidator import MaybeVarNameValidator
+from .editorlist import EditorList
+from .headerline import HeaderLine
+from .varnamevalidator import MaybeVarNameValidator
 
 
 class ChDefaultsEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._ch_defaults_list = ChDefaultsList()
 
@@ -44,7 +44,7 @@ class ChDefaultsEditor(QWidget):
 class ChDefaultsList(EditorList):
 
     def __init__(self):
-        EditorList.__init__(self)
+        super().__init__()
         self._ui_model = None
 
     def set_ui_model(self, ui_model):
@@ -72,7 +72,7 @@ class ChDefaultsList(EditorList):
 class ChDefaults(QWidget):
 
     def __init__(self, ch_num):
-        QWidget.__init__(self)
+        super().__init__()
         self._ch_num = ch_num
         self._ui_model = None
         self._module = None
@@ -144,8 +144,8 @@ class ChDefaults(QWidget):
         control = self._module.get_control(control_id)
         au = control.get_audio_unit()
         au_type = 'Instrument' if au.is_instrument() else 'Effect'
-        au_name = au.get_name() or u'-'
-        text = u'{} {}: {}'.format(au_type, control_num, au_name)
+        au_name = au.get_name() or '-'
+        text = '{} {}: {}'.format(au_type, control_num, au_name)
         return text
 
     def _update_all(self):
@@ -176,7 +176,7 @@ class ChDefaults(QWidget):
             chd.set_default_control_id(self._ch_num, control_id)
 
     def _change_init_expr(self):
-        expr_name = unicode(self._init_expr.text())
+        expr_name = str(self._init_expr.text())
         chd = self._module.get_channel_defaults()
         if chd:
             chd.set_initial_expression(self._ch_num, expr_name)

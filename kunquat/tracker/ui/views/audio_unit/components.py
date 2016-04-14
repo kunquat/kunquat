@@ -11,8 +11,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from itertools import izip
-
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
@@ -38,7 +36,7 @@ def _get_stream_update_signal_type(au_id):
 class Components(QSplitter):
 
     def __init__(self):
-        QSplitter.__init__(self, Qt.Vertical)
+        super().__init__(Qt.Vertical)
 
         self._conns_editor = ConnectionsEditor()
         self._streams = Streams()
@@ -77,7 +75,7 @@ class Components(QSplitter):
 class NameEditor(QLineEdit):
 
     def __init__(self, validator_cls):
-        QLineEdit.__init__(self)
+        super().__init__()
         self._au_id = None
         self._context = None
         self._ui_model = None
@@ -112,7 +110,7 @@ class NameEditor(QLineEdit):
         self.setValidator(self._validator)
 
     def _change_name_handler(self):
-        new_name = unicode(self.text())
+        new_name = str(self.text())
         self._change_name(new_name)
 
     def keyPressEvent(self, event):
@@ -120,7 +118,7 @@ class NameEditor(QLineEdit):
             event.accept()
             self.set_context(self._context)
         else:
-            return QLineEdit.keyPressEvent(self, event)
+            return super().keyPressEvent(event)
 
     # Protected interface
 
@@ -134,7 +132,7 @@ class NameEditor(QLineEdit):
 class RemoveButton(QPushButton):
 
     def __init__(self):
-        QPushButton.__init__(self)
+        super().__init__()
         self._au_id = None
         self._context = None
         self._ui_model = None
@@ -174,7 +172,7 @@ class RemoveButton(QPushButton):
 class Streams(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._stream_list = StreamList()
 
@@ -198,7 +196,7 @@ class Streams(QWidget):
 class StreamList(EditorList):
 
     def __init__(self):
-        EditorList.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -264,7 +262,7 @@ class StreamList(EditorList):
 class StreamAdder(QPushButton):
 
     def __init__(self):
-        QPushButton.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -294,7 +292,7 @@ class StreamAdder(QPushButton):
 class StreamEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._context = None
         self._ui_model = None
@@ -343,7 +341,7 @@ class StreamEditor(QWidget):
 class StreamNameEditor(NameEditor):
 
     def __init__(self):
-        NameEditor.__init__(self, VarNameValidator)
+        super().__init__(VarNameValidator)
 
     def _update_contents(self):
         old_block = self.blockSignals(True)
@@ -363,7 +361,7 @@ class StreamNameEditor(NameEditor):
 class StreamTargetProcEditor(QComboBox):
 
     def __init__(self):
-        QComboBox.__init__(self)
+        super().__init__()
         self._au_id = None
         self._context = None
         self._ui_model = None
@@ -413,9 +411,9 @@ class StreamTargetProcEditor(QComboBox):
                 name = proc.get_name() or '-'
                 cur_target_proc_id = proc_id.split('/')[-1]
                 cur_target_proc_num = int(cur_target_proc_id.split('_')[-1], 16)
-                self.addItem(name, QVariant(cur_target_proc_num))
+                self.addItem(name, cur_target_proc_num)
 
-            selected_index = self.findData(QVariant(target_proc_num))
+            selected_index = self.findData(target_proc_num)
             if selected_index >= 0:
                 self.setCurrentIndex(selected_index)
 
@@ -432,8 +430,7 @@ class StreamTargetProcEditor(QComboBox):
         if index < 0:
             return
 
-        new_target_proc_id = str(self.itemData(index).toString())
-        new_target_proc_num = int(new_target_proc_id.split('_')[-1], 16)
+        new_target_proc_num = self.itemData(index)
 
         stream_name = self._context
 
@@ -447,7 +444,7 @@ class StreamTargetProcEditor(QComboBox):
 class StreamRemoveButton(RemoveButton):
 
     def __init__(self):
-        RemoveButton.__init__(self)
+        super().__init__()
 
     def _remove(self):
         stream_name = self._context
@@ -461,7 +458,7 @@ class StreamRemoveButton(RemoveButton):
 class ControlVariables(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._var_list = ControlVariableList()
 
@@ -485,7 +482,7 @@ class ControlVariables(QWidget):
 class ControlVariableList(EditorList):
 
     def __init__(self):
-        EditorList.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -552,7 +549,7 @@ class ControlVariableList(EditorList):
 class ControlVariableEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._context = None
         self._ui_model = None
@@ -652,11 +649,11 @@ class ControlVariableEditor(QWidget):
 class ControlVariableTypeExpander(QPushButton):
 
     def __init__(self):
-        QPushButton.__init__(self)
+        super().__init__()
         self.setCheckable(True)
 
     def sizeHint(self):
-        sh = QPushButton.sizeHint(self)
+        sh = super().sizeHint()
         return QSize(sh.height(), sh.height())
 
     def paintEvent(self, event):
@@ -687,7 +684,7 @@ class ControlVariableTypeExpander(QPushButton):
 class ControlVariableNameEditor(NameEditor):
 
     def __init__(self):
-        NameEditor.__init__(self, VarNameValidator)
+        super().__init__(VarNameValidator)
 
     def _update_contents(self):
         old_block = self.blockSignals(True)
@@ -707,7 +704,7 @@ class ControlVariableNameEditor(NameEditor):
 class ControlVariableTypeEditor(QComboBox):
 
     def __init__(self):
-        QComboBox.__init__(self)
+        super().__init__()
         self._au_id = None
         self._context = None
         self._ui_model = None
@@ -772,7 +769,7 @@ class ControlVariableTypeEditor(QComboBox):
 class ControlVariableValueEditor(QWidget):
 
     def __init__(self, label):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._context = None
         self._ui_model = None
@@ -873,18 +870,18 @@ class ControlVariableValueEditor(QWidget):
         self._change_value(new_value)
 
     def _change_int_value(self):
-        new_qstring = self._editor.text()
-        new_value = int(unicode(new_qstring))
+        new_str = self._editor.text()
+        new_value = int(new_str)
         self._change_value(new_value)
 
     def _change_float_value(self):
-        new_qstring = self._editor.text()
-        new_value = float(unicode(new_qstring))
+        new_str = self._editor.text()
+        new_value = float(new_str)
         self._change_value(new_value)
 
     def _change_tstamp_value(self):
-        new_qstring = self._editor.text()
-        new_value = tstamp.Tstamp(float(unicode(new_qstring)))
+        new_str = self._editor.text()
+        new_value = tstamp.Tstamp(float(new_str))
         self._change_value(new_value)
 
     # Protected interface
@@ -908,9 +905,9 @@ class ControlVariableValueEditor(QWidget):
         if var_type == bool:
             self._editor.setCheckState(Qt.Checked if var_value else Qt.Unchecked)
         elif var_type in (int, float):
-            self._editor.setText(unicode(var_value))
+            self._editor.setText(str(var_value))
         elif var_type == tstamp.Tstamp:
-            self._editor.setText(unicode(float(var_value)))
+            self._editor.setText(str(float(var_value)))
         else:
             assert False
         self._editor.blockSignals(old_block)
@@ -925,7 +922,7 @@ class ControlVariableValueEditor(QWidget):
 class ControlVariableInitValueEditor(ControlVariableValueEditor):
 
     def __init__(self):
-        ControlVariableValueEditor.__init__(self, 'Initial value:')
+        super().__init__('Initial value:')
 
     def _get_value(self, au):
         return au.get_control_var_init_value(self._context)
@@ -937,7 +934,7 @@ class ControlVariableInitValueEditor(ControlVariableValueEditor):
 class ControlVariableAdder(QPushButton):
 
     def __init__(self):
-        QPushButton.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -967,7 +964,7 @@ class ControlVariableAdder(QPushButton):
 class ControlVariableRemoveButton(RemoveButton):
 
     def __init__(self):
-        RemoveButton.__init__(self)
+        super().__init__()
 
     def _remove(self):
         var_name = self._context
@@ -981,7 +978,7 @@ class ControlVariableRemoveButton(RemoveButton):
 class ControlVariableBindings(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._context = None
         self._ui_model = None
@@ -1002,11 +999,11 @@ class ControlVariableBindings(QWidget):
         return layout.itemAt(layout.count() - 1).widget()
 
     def _get_widgets(self):
-        for i in xrange(self.layout().count()):
+        for i in range(self.layout().count()):
             yield self.layout().itemAt(i).widget()
 
     def _get_editors(self):
-        for i in xrange(self.layout().count() - 1):
+        for i in range(self.layout().count() - 1):
             yield self.layout().itemAt(i).widget()
 
     def set_au_id(self, au_id):
@@ -1048,14 +1045,14 @@ class ControlVariableBindings(QWidget):
 
         # Add missing editors
         layout = self.layout()
-        for i in xrange(cur_binding_count, len(binding_targets)):
+        for i in range(cur_binding_count, len(binding_targets)):
             editor = BindTargetEditor()
             editor.set_au_id(self._au_id)
             layout.insertWidget(i, editor)
 
         self._get_adder().set_context(var_name)
 
-        for target_info, editor in izip(binding_targets, self._get_editors()):
+        for target_info, editor in zip(binding_targets, self._get_editors()):
             target_dev_id, target_var_name = target_info
             context = (var_name, target_dev_id, target_var_name)
             editor.set_context(context)
@@ -1069,7 +1066,7 @@ class ControlVariableBindings(QWidget):
 class BindTargetEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._context = None
         self._ui_model = None
@@ -1143,7 +1140,7 @@ class BindTargetEditor(QWidget):
 class BindTargetDeviceSelector(QComboBox):
 
     def __init__(self):
-        QComboBox.__init__(self)
+        super().__init__()
         self._au_id = None
         self._context = None
         self._ui_model = None
@@ -1215,9 +1212,9 @@ class BindTargetDeviceSelector(QComboBox):
             if dev.get_existence():
                 name = dev.get_name() or '-'
                 cur_target_dev_id = dev_id.split('/')[-1]
-                self.addItem(name, QVariant(cur_target_dev_id))
+                self.addItem(name, cur_target_dev_id)
 
-        selected_index = self.findData(QVariant(target_dev_id))
+        selected_index = self.findData(target_dev_id)
         if selected_index >= 0:
             self.setCurrentIndex(selected_index)
 
@@ -1234,7 +1231,7 @@ class BindTargetDeviceSelector(QComboBox):
         if index < 0:
             return
 
-        new_target_dev_id = str(self.itemData(index).toString())
+        new_target_dev_id = self.itemData(index)
 
         var_name, target_dev_id, target_var_name = self._context
 
@@ -1249,22 +1246,22 @@ class BindTargetDeviceSelector(QComboBox):
 class BindTargetNameValidator(QValidator):
 
     def __init__(self, used_names):
-        QValidator.__init__(self)
+        super().__init__()
         self._used_names = used_names
 
     def validate(self, contents, pos):
-        in_str = unicode(contents)
+        in_str = str(contents)
         parts = in_str.split('/')
         status = min(get_var_name_validation_status(part) for part in parts)
         if (status == QValidator.Acceptable) and (in_str in self._used_names):
-            return (QValidator.Intermediate, pos)
-        return (status, pos)
+            return (QValidator.Intermediate, contents, pos)
+        return (status, contents, pos)
 
 
 class BindTargetNameEditor(NameEditor):
 
     def __init__(self):
-        NameEditor.__init__(self, BindTargetNameValidator)
+        super().__init__(BindTargetNameValidator)
 
     def _change_name(self, new_name):
         var_name, target_dev_id, target_var_name = self._context
@@ -1292,7 +1289,7 @@ class BindTargetNameEditor(NameEditor):
 class BindTargetVariableTypeEditor(QComboBox):
 
     def __init__(self):
-        QComboBox.__init__(self)
+        super().__init__()
         self._au_id = None
         self._context = None
         self._ui_model = None
@@ -1363,22 +1360,22 @@ class BindTargetVariableTypeEditor(QComboBox):
 class ExpressionValidator(QValidator):
 
     def __init__(self):
-        QValidator.__init__(self)
+        super().__init__()
 
     def validate(self, contents, pos):
-        in_str = unicode(contents)
+        in_str = str(contents)
 
         ranges_ok = all(0x20 <= ord(ch) <= 0x7e for ch in in_str)
         if not ranges_ok:
-            return (QValidator.Invalid, pos)
+            return (QValidator.Invalid, contents, pos)
 
-        return (QValidator.Acceptable, pos)
+        return (QValidator.Acceptable, contents, pos)
 
 
 class BindTargetExpressionEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._context = None
         self._ui_model = None
@@ -1434,12 +1431,7 @@ class BindTargetExpressionEditor(QWidget):
             self._editor.setText(expr)
         self._editor.blockSignals(old_block)
 
-    def _change_expression(self, expr_qstring):
-        try:
-            expr = unicode(expr_qstring)
-        except ValueError:
-            return
-
+    def _change_expression(self, expr):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
@@ -1453,7 +1445,7 @@ class BindTargetExpressionEditor(QWidget):
 class BindTargetRemoveButton(RemoveButton):
 
     def __init__(self):
-        RemoveButton.__init__(self)
+        super().__init__()
 
     def _remove(self):
         var_name, target_dev_id, target_var_name = self._context
@@ -1468,7 +1460,7 @@ class BindTargetRemoveButton(RemoveButton):
 class BindTargetAdder(QPushButton):
 
     def __init__(self):
-        QPushButton.__init__(self)
+        super().__init__()
         self._au_id = None
         self._context = None
         self._ui_model = None

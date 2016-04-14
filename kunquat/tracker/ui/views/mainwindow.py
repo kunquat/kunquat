@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -16,15 +16,15 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
-from confirmdialog import ConfirmDialog
-from mainview import MainView
-from saving import get_module_save_path
+from .confirmdialog import ConfirmDialog
+from .mainview import MainView
+from .saving import get_module_save_path
 
 
 class MainWindow(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self.setWindowTitle('Kunquat Tracker')
         self._ui_model = None
         self._updater = None
@@ -99,7 +99,7 @@ class MainWindow(QWidget):
 class ExitUnsavedConfirmDialog(ConfirmDialog):
 
     def __init__(self, icon_bank, action_save, action_discard):
-        ConfirmDialog.__init__(self, icon_bank)
+        super().__init__(icon_bank)
 
         self._action_save = action_save
         self._action_discard = action_discard

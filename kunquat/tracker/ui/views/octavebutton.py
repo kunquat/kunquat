@@ -19,7 +19,7 @@ from PyQt4.QtGui import *
 class OctaveButton(QPushButton):
 
     def __init__(self, octave_id):
-        QPushButton.__init__(self)
+        super().__init__()
         self.setFocusPolicy(Qt.NoFocus)
         self._octave_id = octave_id
         self._typewriter_manager = None
@@ -77,7 +77,7 @@ class OctaveButton(QPushButton):
             return
         notes = selected_control.get_active_notes()
         is_on = 0
-        for note in notes.itervalues():
+        for note in notes.values():
             nearest_id = self._typewriter_manager.get_nearest_key_id(note)
             if nearest_id:
                 octave_id, _ = nearest_id

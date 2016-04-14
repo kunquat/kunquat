@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -14,13 +14,13 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from audio_unit.editor import Editor
+from .audio_unit.editor import Editor
 
 
 class AuWindow(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._au_id = None
         self._updater = None
@@ -56,9 +56,9 @@ class AuWindow(QWidget):
         au = module.get_audio_unit(self._au_id)
         name = au.get_name()
         if name:
-            title = u'{} – Kunquat Tracker'.format(name)
+            title = '{} – Kunquat Tracker'.format(name)
         else:
-            title = u'Kunquat Tracker'
+            title = 'Kunquat Tracker'
         self.setWindowTitle(title)
 
     def closeEvent(self, ev):

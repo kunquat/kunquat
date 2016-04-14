@@ -11,26 +11,25 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
 import math
 import time
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from config import *
-from header import Header
-from ruler import Ruler
-import utils
-from view import View
 from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
+from .config import *
+from .header import Header
+from .ruler import Ruler
+from . import utils
+from .view import View
 
 
 class LongScrollBar(QScrollBar):
 
     def __init__(self):
-        QScrollBar.__init__(self)
+        super().__init__()
         self._range_factor = 1
         self._actual_min = self.minimum()
         self._actual_max = self.maximum()
@@ -48,18 +47,18 @@ class LongScrollBar(QScrollBar):
 
         scaled_min = self._actual_min / self._range_factor
         scaled_max = self._actual_max / self._range_factor
-        QScrollBar.setRange(self, scaled_min, scaled_max)
+        super().setRange(scaled_min, scaled_max)
         self.set_actual_value(self._actual_value)
 
     def set_actual_value(self, actual_value):
         self._actual_value = min(max(self._actual_min, actual_value), self._actual_max)
-        QScrollBar.setValue(self, self._actual_value / self._range_factor)
+        super().setValue(self._actual_value / self._range_factor)
 
     def get_actual_value(self):
         return self._actual_value
 
     def sliderChange(self, change):
-        QScrollBar.sliderChange(self, change)
+        super().sliderChange(change)
         if change == QAbstractSlider.SliderValueChange:
             self._update_actual_value(self.value())
 
@@ -71,7 +70,7 @@ class LongScrollBar(QScrollBar):
 class SheetArea(QAbstractScrollArea):
 
     def __init__(self, config={}):
-        QAbstractScrollArea.__init__(self)
+        super().__init__()
         self.setFocusPolicy(Qt.NoFocus)
 
         self._ui_model = None
@@ -219,7 +218,7 @@ class SheetArea(QAbstractScrollArea):
         hscrollbar.setRange(0, COLUMNS_MAX - max_visible_cols)
 
     def _follow_cursor(self, new_y_offset_str, new_first_col):
-        new_y_offset = long(new_y_offset_str)
+        new_y_offset = int(new_y_offset_str)
         vscrollbar = self.verticalScrollBar()
         hscrollbar = self.horizontalScrollBar()
         old_y_offset = vscrollbar.get_actual_value()

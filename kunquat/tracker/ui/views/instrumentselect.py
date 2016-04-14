@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2015
+#          Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -19,7 +19,7 @@ from PyQt4.QtGui import *
 class InstrumentSelect(QComboBox):
 
     def __init__(self):
-        QComboBox.__init__(self)
+        super().__init__()
         self._updater = None
         self._control_manager = None
         self._module = None
@@ -52,8 +52,8 @@ class InstrumentSelect(QComboBox):
             control = self._module.get_control(control_id)
             au = control.get_audio_unit()
             au_name = au.get_name() or '-'
-            play = '' if len(control.get_active_notes()) < 1 else u'*'
-            text = 'instrument %s: %s %s' % (control_number, au_name, play)
+            play = '' if len(control.get_active_notes()) < 1 else '*'
+            text = 'instrument {}: {} {}'.format(control_number, au_name, play)
             self.setItemText(i, text)
 
     def _update_controls(self):

@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -14,14 +14,15 @@
 
 import unittest
 
-from pushaudio import Pushaudio
-from test_abstract_driver import TestAbstractDriver
+from .pushaudio import Pushaudio
+from .test_abstract_driver import TestAbstractDriver
 
 
 class TestPushaudio(TestAbstractDriver, unittest.TestCase):
 
     def setUp(self):
         self._DriverClass = Pushaudio
+        self._cls_args = (0.02,)
 
 
 if __name__ == '__main__':

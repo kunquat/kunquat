@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2016
 #
 # This file is part of Kunquat.
 #
@@ -14,17 +15,16 @@
 import time
 import unittest
 
-from pulseaudio import Simple
+from .pulseaudio import Simple
 
 
 class TestPulseaudio(unittest.TestCase):
 
     def test_basics(self):
-        self._pa = Simple('PulseAudio Simple Python Wrapper Unit Test',
-                          'Basic Test')
+        self._pa = Simple('PulseAudio Simple Python Wrapper Unit Test', 'Basic Test')
         mono_sound = 200 * [0.2]
         for _ in range(10):
-          self._pa.write(mono_sound, mono_sound)
+            self._pa.write(mono_sound, mono_sound)
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015
+# Author: Tomi Jylhä-Ollila, Finland 2015-2016
 #
 # This file is part of Kunquat.
 #
@@ -18,7 +18,7 @@ from PyQt4.QtGui import *
 class HeaderLine(QWidget):
 
     def __init__(self, text):
-        QWidget.__init__(self)
+        super().__init__()
 
         header = QLabel(text)
         header.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)

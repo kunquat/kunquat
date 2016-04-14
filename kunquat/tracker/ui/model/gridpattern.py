@@ -12,17 +12,16 @@
 #
 
 from copy import deepcopy
-from itertools import izip
 import math
 
-import tstamp
+from . import tstamp
 
 
 STYLE_COUNT = 9
 
 def _get_default_lines_raw():
     lines_raw = []
-    for i in xrange(32):
+    for i in range(32):
         ts = tstamp.Tstamp(i) / 8
         ts_raw = list(ts)
         style = 0
@@ -33,7 +32,7 @@ def _get_default_lines_raw():
     return lines_raw
 
 DEFAULT_GRID_PATTERN = {
-    'name'  : u'<default grid>',
+    'name'  : '<default grid>',
     'length': [4, 0],
     'offset': [0, 0],
     'min_style_spacing': [0.6] * STYLE_COUNT,
@@ -48,7 +47,7 @@ class GridPattern():
         self._session = None
         self._store = None
 
-        assert isinstance(gp_id, unicode)
+        assert isinstance(gp_id, str)
         self._id = gp_id
 
         self._model_data = None
@@ -82,7 +81,7 @@ class GridPattern():
 
         result = {}
 
-        if ('name' not in gp) or (not isinstance(gp['name'], unicode)):
+        if ('name' not in gp) or (not isinstance(gp['name'], str)):
             return None
         result['name'] = gp['name']
 
@@ -116,7 +115,7 @@ class GridPattern():
             return None
         if not all(self._is_valid_grid_line(line) for line in gp['lines']):
             return None
-        for prev_line, line in izip(gp['lines'], gp['lines'][1:]):
+        for prev_line, line in zip(gp['lines'], gp['lines'][1:]):
             prev_ts, _ = prev_line
             cur_ts, _ = line
             if prev_ts >= cur_ts:
@@ -139,7 +138,7 @@ class GridPattern():
 
     def _make_placeholder_grid_pattern(self):
         raw_gp = deepcopy(DEFAULT_GRID_PATTERN)
-        raw_gp['name'] = u'<invalid>'
+        raw_gp['name'] = '<invalid>'
         return self._make_model_dict(raw_gp)
 
     def _get_model_data(self):
@@ -241,7 +240,7 @@ class GridPattern():
 
     def set_name(self, name):
         assert self._id != 0
-        assert isinstance(name, unicode)
+        assert isinstance(name, str)
         gp = self._get_model_data()
         gp['name'] = name
         self._set_grid_pattern_data(gp)
@@ -286,7 +285,7 @@ class GridPattern():
         # Get the length of the interval
         all_cur_line_tss = (ts for (ts, _) in lines)
         cur_line_tss = [ts for ts in all_cur_line_tss if ts < gp['length']]
-        following_line_tss = filter(lambda ts: line_ts < ts < gp['length'], cur_line_tss)
+        following_line_tss = [ts for ts in cur_line_tss if line_ts < ts < gp['length']]
         if following_line_tss:
             next_ts = following_line_tss[0]
         else:
@@ -299,7 +298,7 @@ class GridPattern():
         # Get the timestamps of new lines
         warp_func = self._get_warp_func(warp_value)
         new_line_tss = []
-        for i in xrange(1, part_count):
+        for i in range(1, part_count):
             if warp_value == 0.5:
                 rel_ts = tstamp.Tstamp(i * interval_length) / part_count
             else:

@@ -121,7 +121,7 @@ void Player_process_event(
         Player* player, int ch_num, const char* event_name, const Value* arg, bool skip)
 {
     assert(player != NULL);
-    assert(!Event_buffer_is_full(player->event_buffer));
+    assert(implies(!skip, !Event_buffer_is_full(player->event_buffer)));
     assert(ch_num >= 0);
     assert(ch_num < KQT_CHANNELS_MAX);
     assert(event_name != NULL);
@@ -258,7 +258,7 @@ static void Player_process_expr_event(
         bool skip)
 {
     assert(player != NULL);
-    assert(!Event_buffer_is_full(player->event_buffer));
+    assert(implies(!skip, !Event_buffer_is_full(player->event_buffer)));
     assert(ch_num >= 0);
     assert(ch_num < KQT_CHANNELS_MAX);
     assert(trigger_desc != NULL);
@@ -573,7 +573,7 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                                 player->master_params.is_infinite)
                         {
                             // Break if event buffer is full
-                            if (Event_buffer_is_full(player->event_buffer))
+                            if (!skip && Event_buffer_is_full(player->event_buffer))
                             {
                                 Tstamp_set(limit, 0, 0);
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2015
+# Author: Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -45,13 +45,6 @@ class Tstamp(numbers.Real, tuple):
     def __add__(self, other):
         other_ts = Tstamp(other)
         return Tstamp(self.beats + other_ts.beats, self.rem + other_ts.rem)
-
-    def __div__(self, other):
-        if isinstance(other, Tstamp):
-            raise NotImplementedError
-
-        rems = self.beats * BEAT + self.rem
-        return Tstamp(0, rems / other)
 
     def __eq__(self, other):
         if other == None:
@@ -157,8 +150,12 @@ class Tstamp(numbers.Real, tuple):
     def __rtruediv__(self):
         raise NotImplementedError
 
-    def __truediv__(self):
-        raise NotImplementedError
+    def __truediv__(self, other):
+        if isinstance(other, Tstamp):
+            raise NotImplementedError
+
+        rems = self.beats * BEAT + self.rem
+        return Tstamp(0, rems / other)
 
     def __trunc__(self):
         if self.beats < 0 and self.rem > 0:

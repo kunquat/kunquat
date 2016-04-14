@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013-2016
 #
 # This file is part of Kunquat.
 #
@@ -12,9 +12,10 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from Queue import Queue
+from queue import Queue
 from threading import Thread
-from command import Command
+
+from .command import Command
 
 
 class CommandQueue():
@@ -47,4 +48,5 @@ class CommandQueue():
 
     def get(self):
         return self._out.get()
+
 

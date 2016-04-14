@@ -12,9 +12,9 @@
 #
 
 from kunquat.kunquat.limits import *
-from trigger import Trigger
-from triggerposition import TriggerPosition
-import tstamp
+from .trigger import Trigger
+from .triggerposition import TriggerPosition
+from . import tstamp
 
 
 class Column():
@@ -113,7 +113,7 @@ class Column():
     def _copy_trigger_rows(self, trows):
         new_trows = {}
 
-        for row_ts, row in trows.iteritems():
+        for row_ts, row in trows.items():
             new_row = []
             for trigger in row:
                 new_row.append(Trigger(trigger))
@@ -183,7 +183,7 @@ class Column():
 
         length = self._get_length()
 
-        for row_ts, row in new_trows.iteritems():
+        for row_ts, row in new_trows.items():
             abs_ts = start_ts + row_ts
             if abs_ts > length:
                 continue
@@ -241,7 +241,7 @@ class Column():
                     return []
                 if row <= prev_ts:
                     return []
-                if (gp_id != None) and (not isinstance(gp_id, unicode)):
+                if (gp_id != None) and (not isinstance(gp_id, str)):
                     return []
                 prev_ts = row
 
@@ -268,8 +268,8 @@ class Column():
     def get_overlay_grid_info_slice(self, start_ts, stop_ts):
         info = self._get_validated_overlay_grid_info()
 
-        smaller = filter(lambda x: x[0] < start_ts, info)
-        contained = filter(lambda x: start_ts <= x[0] < stop_ts, info)
+        smaller = [x for x in info if x[0] < start_ts]
+        contained = [x for x in info if start_ts <= x[0] < stop_ts]
 
         # See if contained can be used as-is
         if contained and contained[0][0] == start_ts:
@@ -285,12 +285,12 @@ class Column():
         return info_slice
 
     def get_edit_set_overlay_grid(self, start_ts, stop_ts, gp_id, offset):
-        assert (gp_id == None) or isinstance(gp_id, unicode)
+        assert (gp_id == None) or isinstance(gp_id, str)
         info = self._get_validated_overlay_grid_info()
 
-        smaller = filter(lambda x: x[0] < start_ts, info)
-        contained = filter(lambda x: start_ts <= x[0] <= stop_ts, info)
-        greater = filter(lambda x: x[0] > stop_ts, info)
+        smaller = [x for x in info if x[0] < start_ts]
+        contained = [x for x in info if start_ts <= x[0] <= stop_ts]
+        greater = [x for x in info if x[0] > stop_ts]
 
         # Get active grid settings at stop_ts
         following_gp_id = None
@@ -324,7 +324,7 @@ class Column():
 
     def _get_overlay_grids_with_start_index(self, row_ts):
         info = self._get_validated_overlay_grid_info()
-        smaller_eq = filter(lambda x: x[0] <= row_ts, info)
+        smaller_eq = [x for x in info if x[0] <= row_ts]
         return info, len(smaller_eq) - 1
 
     def get_overlay_grid_info_at(self, row_ts):
@@ -396,7 +396,7 @@ class Column():
 
     def _make_raw_data(self, trigger_rows):
         raw_data = []
-        for (ts, triggers) in trigger_rows.iteritems():
+        for (ts, triggers) in trigger_rows.items():
             for trigger in triggers:
                 evspec = [trigger.get_type(), trigger.get_argument()]
                 raw_data.append([tuple(ts), evspec])

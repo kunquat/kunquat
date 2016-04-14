@@ -20,6 +20,7 @@ from PyQt4.QtGui import *
 from kunquat.tracker.ui.model.patterninstance import PatternInstance
 from kunquat.tracker.ui.model.song import Song
 
+
 class AlbumTreeModelNode():
 
     def __init__(self, payload, parent=None):
@@ -49,7 +50,7 @@ class AlbumTreeModelNode():
 class AlbumTreeModel(QAbstractItemModel):
 
     def __init__(self):
-        QAbstractItemModel.__init__(self)
+        super().__init__()
 
         # We store the nodes because PyQt fails reference handling
         self._songs = []
@@ -62,10 +63,10 @@ class AlbumTreeModel(QAbstractItemModel):
         self._make_nodes()
 
     def _make_nodes(self):
-        for track_num in xrange(self._album.get_track_count()):
+        for track_num in range(self._album.get_track_count()):
             song = self._album.get_song_by_track(track_num)
             song_node = AlbumTreeModelNode(song)
-            for system_num in xrange(song.get_system_count()):
+            for system_num in range(song.get_system_count()):
                 pat_instance = song.get_pattern_instance(system_num)
                 pat_inst_node = AlbumTreeModelNode(pat_instance, song_node)
                 song_node.add_child(pat_inst_node)
@@ -151,7 +152,7 @@ class AlbumTreeModel(QAbstractItemModel):
         return Qt.MoveAction
 
     def flags(self, index):
-        default_flags = QAbstractItemModel.flags(self, index)
+        default_flags = super().flags(index)
         if not index.isValid():
             return default_flags
         node = index.internalPointer()
@@ -191,7 +192,7 @@ class AlbumTreeModel(QAbstractItemModel):
             return False
 
         data = mimedata.data('application/json')
-        items = json.loads(str(data))
+        items = json.loads(str(data, encoding='utf-8'))
         assert len(items) == 1
         item = items[0]
 
@@ -248,7 +249,7 @@ class AlbumTreeModel(QAbstractItemModel):
 class AlbumTree(QTreeView):
 
     def __init__(self):
-        QTreeView.__init__(self)
+        super().__init__()
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
@@ -261,13 +262,13 @@ class AlbumTree(QTreeView):
                 (event.key() in (Qt.Key_Up, Qt.Key_Down))):
             event.ignore()
         else:
-            QTreeView.keyPressEvent(self, event)
+            super().keyPressEvent(event)
 
 
 class Orderlist(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
         self._album = None

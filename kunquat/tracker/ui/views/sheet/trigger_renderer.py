@@ -15,7 +15,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.kunquat.events as events
-from config import *
+from .config import *
 
 
 class TriggerRenderer():
@@ -133,7 +133,7 @@ class TriggerRenderer():
             hit_field = self._make_field_data(padding, hit_name)
             self._fields.append(hit_field)
         elif evtype == 'n-':
-            vis_text = u'══'
+            vis_text = '══'
             note_off_field = self._make_field_data(padding, vis_text)
             self._fields.append(note_off_field)
         else:

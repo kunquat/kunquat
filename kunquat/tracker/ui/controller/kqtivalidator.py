@@ -23,7 +23,7 @@ class KqtiValidator():
 
     def get_validation_steps(self):
         target_prefix = 'au_00'
-        for (au_key, value) in self._contents.iteritems():
+        for (au_key, value) in self._contents.items():
             yield
             key = '/'.join((target_prefix, au_key))
             self._validator.set_data(key, value)

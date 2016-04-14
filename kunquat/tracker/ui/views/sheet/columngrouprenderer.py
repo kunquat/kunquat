@@ -11,17 +11,16 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
-from itertools import islice, izip, izip_longest
+from itertools import islice, zip_longest
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.tracker.ui.model.tstamp as tstamp
-from config import *
-import utils
-from buffercache import BufferCache
-from trigger_renderer import TriggerRenderer
+from .config import *
+from . import utils
+from .buffercache import BufferCache
+from .trigger_renderer import TriggerRenderer
 
 
 class ColumnGroupRenderer():
@@ -113,13 +112,13 @@ class ColumnGroupRenderer():
 
     def _create_caches(self):
         self._caches = [ColumnCache(self._num, i)
-                for i in xrange(len(self._heights))]
+                for i in range(len(self._heights))]
         for cache in self._caches:
             cache.set_config(self._config)
             cache.set_ui_model(self._ui_model)
 
         self._inactive_caches = [ColumnCache(self._num, i)
-                for i in xrange(len(self._heights))]
+                for i in range(len(self._heights))]
         for cache in self._inactive_caches:
             cache.set_inactive()
             cache.set_config(self._config)
@@ -177,7 +176,7 @@ class ColumnGroupRenderer():
         else:
             active_pattern_index = None
 
-        for pi in xrange(first_index, len(self._heights)):
+        for pi in range(first_index, len(self._heights)):
             if self._start_heights[pi] > self._px_offset + height:
                 break
 
@@ -351,7 +350,7 @@ class ColumnCache():
 
         self._pixmaps_created = 0
 
-        for i in xrange(start_index, stop_index):
+        for i in range(start_index, stop_index):
             if i not in self._pixmaps:
                 pixmap = self._create_pixmap(i, grid)
                 self._pixmaps[i] = pixmap
@@ -492,7 +491,7 @@ class TRCache():
         trs = {}
         for ts in column.get_trigger_row_positions():
             trow = [column.get_trigger(ts, i)
-                    for i in xrange(column.get_trigger_count_at_row(ts))]
+                    for i in range(column.get_trigger_count_at_row(ts))]
             trs[ts] = trow
 
         trlist = list(trs.items())
@@ -504,7 +503,7 @@ class TRCache():
 
         next_tstamps = (row[0] for row in islice(self._rows, 1, None))
 
-        for row, next_ts in izip_longest(self._rows, next_tstamps):
+        for row, next_ts in zip_longest(self._rows, next_tstamps):
             ts, triggers = row
             if ts < start_ts:
                 continue
@@ -544,7 +543,7 @@ class TRCache():
 
         painter = QPainter(image)
         painter.setCompositionMode(QPainter.CompositionMode_Plus)
-        for renderer, width in izip(rends, widths):
+        for renderer, width in zip(rends, widths):
             renderer.draw_trigger(painter)
             painter.setTransform(QTransform().translate(width, 0), True)
 
@@ -555,7 +554,7 @@ class TRCache():
         painter.setPen(Qt.red)
         painter.drawRect(QRect(0, 0, image.width() - 1, image.height() - 1))
         painter.setTransform(QTransform().rotate(-45))
-        for i in xrange(4):
+        for i in range(4):
             side = self._config['tr_height']
             painter.fillRect(QRect(i * side * 2, 0, side, (i + 1) * side * 3), Qt.red)
         """

@@ -21,7 +21,7 @@ from kunquat.tracker.ui.views.varnamevalidator import VarNameValidator
 class Expressions(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._expr_list = ExpressionList()
         self._expr_editor = ExpressionEditor()
@@ -50,7 +50,7 @@ class Expressions(QWidget):
 class ExpressionListToolBar(QToolBar):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -129,7 +129,7 @@ class ExpressionListToolBar(QToolBar):
 class ExpressionListModel(QAbstractListModel):
 
     def __init__(self):
-        QAbstractListModel.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -172,18 +172,18 @@ class ExpressionListModel(QAbstractListModel):
             row = index.row()
             if 0 <= row < len(self._items):
                 expr_name = self._items[row]
-                return QVariant(expr_name)
+                return expr_name
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role):
-        return QVariant()
+        return None
 
 
 class ExpressionListView(QListView):
 
     def __init__(self):
-        QListView.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -220,7 +220,7 @@ class ExpressionListView(QListView):
 class ExpressionList(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -273,7 +273,7 @@ class ExpressionList(QWidget):
 class ExpressionName(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -326,7 +326,7 @@ class ExpressionName(QWidget):
 
     def _update_name(self):
         au = self._get_audio_unit()
-        self._name = au.get_selected_expression() or u''
+        self._name = au.get_selected_expression() or ''
 
         if self._name_editor.text() != self._name:
             old_block = self._name_editor.blockSignals(True)
@@ -339,7 +339,7 @@ class ExpressionName(QWidget):
         if not old_name:
             return
 
-        new_name = unicode(self._name_editor.text())
+        new_name = str(self._name_editor.text())
         au.change_expression_name(old_name, new_name)
         au.set_selected_expression(new_name)
         if au.get_connections_expr_name() == old_name:
@@ -352,7 +352,7 @@ class ExpressionName(QWidget):
 class ExpressionEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._name = ExpressionName()
 

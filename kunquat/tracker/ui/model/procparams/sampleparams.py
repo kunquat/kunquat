@@ -12,7 +12,7 @@
 #
 
 from kunquat.kunquat.kunquat import Kunquat, KunquatFormatError
-from procparams import ProcParams
+from .procparams import ProcParams
 
 
 class SampleParams(ProcParams):
@@ -21,19 +21,19 @@ class SampleParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():
-        return u'voice'
+        return 'voice'
 
     @staticmethod
     def get_port_info():
         return {
-            'in_00':  u'pitch',
-            'in_01':  u'force',
-            'out_00': u'audio L',
-            'out_01': u'audio R',
+            'in_00':  'pitch',
+            'in_01':  'force',
+            'out_00': 'audio L',
+            'out_01': 'audio R',
         }
 
     def __init__(self, proc_id, controller):
-        ProcParams.__init__(self, proc_id, controller)
+        super().__init__(proc_id, controller)
 
     def _get_sample_id(self, sample_num):
         return 'smp_{:03x}'.format(sample_num)
@@ -61,7 +61,7 @@ class SampleParams(ProcParams):
 
     def get_sample_ids(self):
         ret_ids = []
-        for i in xrange(self._SAMPLES_MAX):
+        for i in range(self._SAMPLES_MAX):
             cur_id = self._get_sample_id(i)
             cur_header = self._get_sample_header(cur_id)
             if type(cur_header) == dict:
@@ -70,7 +70,7 @@ class SampleParams(ProcParams):
         return ret_ids
 
     def get_free_sample_id(self):
-        for i in xrange(self._SAMPLES_MAX):
+        for i in range(self._SAMPLES_MAX):
             cur_id = self._get_sample_id(i)
             cur_header = self._get_sample_header(cur_id)
             if not type(cur_header) == dict:
@@ -89,7 +89,7 @@ class SampleParams(ProcParams):
         sample_data_key = self._get_full_sample_key(sample_id, 'p_sample.wv')
         sample_header_key = self._get_full_sample_key(sample_id, 'p_sh_sample.json')
 
-        header = { u'format': u'WavPack', u'freq': 48000, }
+        header = { 'format': 'WavPack', 'freq': 48000, }
 
         transaction = {}
         transaction[sample_data_key] = sample_data
@@ -103,7 +103,7 @@ class SampleParams(ProcParams):
         key_prefix = self._get_full_sample_key(sample_id, '')
 
         transaction = {}
-        for key in (k for k in self._store.iterkeys() if k.startswith(key_prefix)):
+        for key in (k for k in self._store.keys() if k.startswith(key_prefix)):
             transaction[key] = None
 
         sample_num = self._get_sample_num(sample_id)
@@ -144,10 +144,10 @@ class SampleParams(ProcParams):
 
     def get_sample_loop_mode(self, sample_id):
         header = self._get_sample_header(sample_id) or {}
-        return header.get('loop_mode', u'off')
+        return header.get('loop_mode', 'off')
 
     def set_sample_loop_mode(self, sample_id, mode):
-        assert mode in (u'off', u'uni', u'bi')
+        assert mode in ('off', 'uni', 'bi')
         header = self._get_sample_header(sample_id)
         header['loop_mode'] = mode
         self._set_sample_header(sample_id, header)
@@ -387,14 +387,14 @@ class WavPackValidator():
 
         transaction = {
             'au_00/p_manifest.json'                   : {},
-            'au_00/proc_00/p_manifest.json'           : { u'type': u'sample' },
-            'au_00/proc_00/p_signal_type.json'        : u'voice',
+            'au_00/proc_00/p_manifest.json'           : { 'type': 'sample' },
+            'au_00/proc_00/p_signal_type.json'        : 'voice',
             'au_00/proc_00/c/smp_000/p_sh_sample.json': {
-                    u'format': u'WavPack', u'freq' : 48000, },
+                    'format': 'WavPack', 'freq' : 48000, },
             'au_00/proc_00/c/smp_000/p_sample.wv'     : self._sample_data,
         }
 
-        for key, value in transaction.iteritems():
+        for key, value in transaction.items():
             self._validator.set_data(key, value)
 
         try:

@@ -14,16 +14,16 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from editorlist import EditorList
-from headerline import HeaderLine
 import kunquat.kunquat.events as events
 from kunquat.kunquat.limits import *
+from .editorlist import EditorList
+from .headerline import HeaderLine
 
 
 class BindEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -75,7 +75,7 @@ class BindEditor(QWidget):
 class BindListToolBar(QToolBar):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -130,7 +130,7 @@ class BindListToolBar(QToolBar):
 class BindListModel(QAbstractListModel):
 
     def __init__(self):
-        QAbstractListModel.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -152,7 +152,7 @@ class BindListModel(QAbstractListModel):
 
     def _make_items(self):
         bindings = self._ui_model.get_module().get_bindings()
-        bs = (bindings.get_binding(i) for i in xrange(bindings.get_count()))
+        bs = (bindings.get_binding(i) for i in range(bindings.get_count()))
         self._items = [(i, b.get_source_event()) for (i, b) in enumerate(bs)]
 
     def get_index(self, list_index):
@@ -168,18 +168,18 @@ class BindListModel(QAbstractListModel):
             row = index.row()
             if 0 <= row < len(self._items):
                 _, event_name = self._items[row]
-                return QVariant(event_name)
+                return event_name
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role):
-        return QVariant()
+        return None
 
 
 class BindListView(QListView):
 
     def __init__(self):
-        QListView.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -201,7 +201,7 @@ class BindListView(QListView):
             self._updater.signal_update(set(['signal_bind']))
 
     def setModel(self, model):
-        QListView.setModel(self, model)
+        super().setModel(model)
 
         selection_model = self.selectionModel()
 
@@ -220,7 +220,7 @@ class BindListView(QListView):
 class BindList(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -263,7 +263,7 @@ class BindList(QWidget):
 class EventBox(QComboBox):
 
     def __init__(self, excluded=set()):
-        QComboBox.__init__(self)
+        super().__init__()
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
         self.update_names(excluded)
 
@@ -271,11 +271,11 @@ class EventBox(QComboBox):
         selected = None
         selected_index = self.currentIndex()
         if selected_index != -1:
-            selected = unicode(self.itemText(selected_index))
+            selected = str(self.itemText(selected_index))
 
         all_events = events.all_events_by_name
         event_names = sorted(list(
-            event['name'] for event in all_events.itervalues()
+            event['name'] for event in all_events.values()
             if event['name'] not in excluded),
             key=lambda x: x.lstrip('/=.->+<') or x)
 
@@ -299,13 +299,13 @@ class EventBox(QComboBox):
         index = self.currentIndex()
         if index == -1:
             return None
-        return unicode(self.itemText(index))
+        return str(self.itemText(index))
 
 
 class SourceEventSelector(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -359,14 +359,14 @@ class SourceEventSelector(QWidget):
 class TightLabel(QLabel):
 
     def __init__(self, text):
-        QLabel.__init__(self, text)
+        super().__init__(text)
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
 
 
 class Constraints(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._cblist = ConstraintList()
 
@@ -387,7 +387,7 @@ class Constraints(QWidget):
 class ConstraintList(EditorList):
 
     def __init__(self):
-        EditorList.__init__(self)
+        super().__init__()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -435,7 +435,7 @@ class ConstraintList(EditorList):
 class ConstraintAdder(QPushButton):
 
     def __init__(self):
-        QPushButton.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -460,7 +460,7 @@ class ConstraintAdder(QPushButton):
 class ConstraintEditor(QWidget):
 
     def __init__(self, index):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -542,7 +542,7 @@ class ConstraintEditor(QWidget):
         self._updater.signal_update(set(['signal_bind']))
 
     def _change_expression(self):
-        expression = unicode(self._expression.text())
+        expression = str(self._expression.text())
         constraint = self._get_constraint()
         constraint.set_expression(expression)
         self._updater.signal_update(set(['signal_bind']))
@@ -557,7 +557,7 @@ class ConstraintEditor(QWidget):
 class Targets(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._target_list = TargetList()
 
@@ -578,7 +578,7 @@ class Targets(QWidget):
 class TargetList(EditorList):
 
     def __init__(self):
-        EditorList.__init__(self)
+        super().__init__()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -626,7 +626,7 @@ class TargetList(EditorList):
 class TargetAdder(QPushButton):
 
     def __init__(self):
-        QPushButton.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -651,7 +651,7 @@ class TargetAdder(QPushButton):
 class TargetEditor(QWidget):
 
     def __init__(self, index):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -761,7 +761,7 @@ class TargetEditor(QWidget):
 
         all_events = events.all_events_by_name
         if all_events[event_name]['arg_type'] != None:
-            expression = unicode(self._expression.text())
+            expression = str(self._expression.text())
         else:
             expression = None
 
@@ -769,7 +769,7 @@ class TargetEditor(QWidget):
         self._updater.signal_update(set(['signal_bind']))
 
     def _change_expression(self):
-        expression = unicode(self._expression.text())
+        expression = str(self._expression.text())
         target = self._get_target()
         target.set_event_info(self._event.get_selected_event(), expression)
         self._updater.signal_update(set(['signal_bind']))

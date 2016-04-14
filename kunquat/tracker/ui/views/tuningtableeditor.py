@@ -17,13 +17,13 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from kunquat.kunquat.limits import *
-from notationeditor import RatioValidator
+from .notationeditor import RatioValidator
 
 
 class TuningTableEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._table_id = None
         self._ui_model = None
         self._updater = None
@@ -125,7 +125,7 @@ class TuningTableEditor(QWidget):
 
     def _update_name(self):
         table = self._get_tuning_table()
-        name = table.get_name() or u''
+        name = table.get_name() or ''
         old_block = self._name.blockSignals(True)
         if self._name.text() != name:
             self._name.setText(name)
@@ -153,9 +153,9 @@ class TuningTableEditor(QWidget):
         # Octave width
         octave_width = table.get_octave_width()
         if isinstance(octave_width, list):
-            octave_width_text = u'{}/{}'.format(*octave_width)
+            octave_width_text = '{}/{}'.format(*octave_width)
         else:
-            octave_width_text = u'{}'.format(octave_width)
+            octave_width_text = '{}'.format(octave_width)
 
         old_block = self._octave_width.blockSignals(True)
         if self._octave_width.text() != octave_width_text:
@@ -175,14 +175,13 @@ class TuningTableEditor(QWidget):
 
         old_block = self._tuning_center.blockSignals(True)
         self._tuning_center.clear()
-        for i in xrange(table.get_note_count()):
+        for i in range(table.get_note_count()):
             note_name = table.get_note_name(i)
             self._tuning_center.addItem(note_name)
         self._tuning_center.setCurrentIndex(ref_note_index)
         self._tuning_center.blockSignals(old_block)
 
-    def _change_name(self, name_qstring):
-        name = unicode(name_qstring)
+    def _change_name(self, name):
         table = self._get_tuning_table()
         table.set_name(name)
         self._updater.signal_update(set(['signal_tuning_tables']))
@@ -198,7 +197,7 @@ class TuningTableEditor(QWidget):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _change_octave_width(self):
-        text = unicode(self._octave_width.text())
+        text = str(self._octave_width.text())
         if '/' in text:
             parts = text.split('/')
             octave_width = [int(part) for part in parts]
@@ -223,7 +222,7 @@ class TuningTableEditor(QWidget):
 class NotesToolBar(QToolBar):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._table_id = None
         self._ui_model = None
         self._updater = None
@@ -303,7 +302,7 @@ class NotesToolBar(QToolBar):
 class NoteTableModel(QAbstractTableModel):
 
     def __init__(self):
-        QAbstractTableModel.__init__(self)
+        super().__init__()
         self._table_id = None
         self._ui_model = None
         self._updater = None
@@ -335,7 +334,7 @@ class NoteTableModel(QAbstractTableModel):
         table = self._get_tuning_table()
 
         self._items = []
-        for i in xrange(table.get_note_count()):
+        for i in range(table.get_note_count()):
             name = table.get_note_name(i)
             pitch = table.get_note_pitch(i)
             self._items.append((name, pitch))
@@ -359,26 +358,26 @@ class NoteTableModel(QAbstractTableModel):
             if 0 <= row < len(self._items):
                 if column == 0:
                     name, _ = self._items[row]
-                    return QVariant(name)
+                    return name
                 elif column == 1:
                     _, pitch = self._items[row]
                     if isinstance(pitch, list):
-                        return QVariant('{}/{}'.format(*pitch))
+                        return '{}/{}'.format(*pitch)
                     else:
-                        return QVariant(str(pitch))
+                        return str(pitch)
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
             if section == 0:
-                return QVariant('Name')
+                return 'Name'
             elif section == 1:
-                return QVariant('Pitch')
-        return QVariant()
+                return 'Pitch'
+        return None
 
     def flags(self, index):
-        default_flags = QAbstractTableModel.flags(self, index)
+        default_flags = super().flags(index)
         if not index.isValid():
             return default_flags
         if not 0 <= index.row() < len(self._items):
@@ -389,7 +388,7 @@ class NoteTableModel(QAbstractTableModel):
     def _get_validated_pitch(self, text):
         if '/' in text:
             if re.match('[0-9]+/[0-9]+$', text):
-                parts = unicode(text).split('/')
+                parts = str(text).split('/')
                 nums = [int(part) for part in parts]
                 if nums[0] <= 0:
                     return None
@@ -410,13 +409,13 @@ class NoteTableModel(QAbstractTableModel):
             column = index.column()
             if 0 <= row < len(self._items):
                 if column == 0:
-                    new_name = unicode(value.toString())
+                    new_name = value
                     table = self._get_tuning_table()
                     table.set_note_name(row, new_name)
                     self._updater.signal_update(set([self._get_update_signal_type()]))
                     return True
                 elif column == 1:
-                    new_pitch = self._get_validated_pitch(unicode(value.toString()))
+                    new_pitch = self._get_validated_pitch(value)
                     if new_pitch == None:
                         return False
                     table = self._get_tuning_table()
@@ -430,7 +429,7 @@ class NoteTableModel(QAbstractTableModel):
 class NoteTableView(QTableView):
 
     def __init__(self):
-        QTableView.__init__(self)
+        super().__init__()
         self._table_id = None
         self._ui_model = None
         self._updater = None
@@ -470,7 +469,7 @@ class NoteTableView(QTableView):
         self._updater.signal_update(set([self._get_selection_signal_type()]))
 
     def setModel(self, model):
-        QTableView.setModel(self, model)
+        super().setModel(model)
 
         selection_model = self.selectionModel()
 
@@ -490,7 +489,7 @@ class NoteTableView(QTableView):
 class Notes(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._table_id = None
         self._ui_model = None
         self._updater = None

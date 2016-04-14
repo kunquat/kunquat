@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -12,7 +12,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
 from copy import deepcopy
 from optparse import Option
 import os
@@ -82,7 +81,7 @@ def build():
     #    compile_flags.append('-pg')
     #    link_flags.append('-pg')
 
-    if options.optimise not in xrange(5):
+    if options.optimise not in range(5):
         print('Unsupported optimisation level: {}'.format(options.optimise),
                 file=sys.stderr)
         sys.exit(1)
@@ -102,9 +101,9 @@ def build():
         try:
             output = subprocess.check_output(
                     ['valgrind', '--version'], stderr=subprocess.STDOUT)
-        except OSError, subprocess.CalledProcessError:
-            output = ''
-        if not output.startswith('valgrind'):
+        except (OSError, subprocess.CalledProcessError):
+            output = b''
+        if not output.startswith(b'valgrind'):
             print('Memory debugging of libkunquat tests was requested'
                     ' but Valgrind was not found.',
                     file=sys.stderr)
@@ -126,8 +125,10 @@ def build():
 
 def clean():
     if os.path.exists('build'):
+        # Remove Python-specific build directories first
         for name in os.listdir('build'):
-            if name.endswith('-2.7'):
+            expected_suffix = '-{}.{}'.format(sys.version_info[0], sys.version_info[1])
+            if name.endswith(expected_suffix) or name == 'lib':
                 path = os.path.join('build', name)
                 shutil.rmtree(path)
 

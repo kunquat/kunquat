@@ -16,9 +16,9 @@ import math
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from hitselector import HitSelector
 from kunquat.kunquat.limits import *
 from kunquat.tracker.ui.views.headerline import HeaderLine
+from .hitselector import HitSelector
 
 
 def _get_update_signal_type(au_id):
@@ -28,7 +28,7 @@ def _get_update_signal_type(au_id):
 class Hits(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
 
@@ -69,7 +69,7 @@ class Hits(QWidget):
 class AuHitSelector(HitSelector):
 
     def __init__(self):
-        HitSelector.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -111,7 +111,7 @@ class AuHitSelector(HitSelector):
 class HitEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._enabled = HitEnabled()
         self._name = HitName()
@@ -148,7 +148,7 @@ def _get_current_hit(ui_model, au_id):
 class HitEnabled(QCheckBox):
 
     def __init__(self):
-        QCheckBox.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -194,7 +194,7 @@ class HitEnabled(QCheckBox):
 class HitName(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -231,14 +231,12 @@ class HitName(QWidget):
         hit = _get_current_hit(self._ui_model, self._au_id)
 
         old_block = self._edit.blockSignals(True)
-        name = hit.get_name() or u''
-        if name != unicode(self._edit.text()):
+        name = hit.get_name() or ''
+        if name != str(self._edit.text()):
             self._edit.setText(name)
         self._edit.blockSignals(old_block)
 
-    def _change_name(self, text_qstring):
-        name = unicode(text_qstring)
-
+    def _change_name(self, name):
         hit = _get_current_hit(self._ui_model, self._au_id)
         hit.set_name(name)
         self._updater.signal_update(set([

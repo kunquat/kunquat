@@ -17,19 +17,19 @@ import time
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from config import *
-from ruler import Ruler
 import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.model.gridpattern import STYLE_COUNT
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.numberslider import NumberSlider
-import utils
+from .config import *
+from .ruler import Ruler
+from . import utils
 
 
 class GridEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._grid_list = GridList()
         self._general_editor = GeneralEditor()
@@ -78,7 +78,7 @@ class GridEditor(QWidget):
 class GridListModel(QAbstractListModel):
 
     def __init__(self):
-        QAbstractListModel.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -104,7 +104,7 @@ class GridListModel(QAbstractListModel):
             gp_name = gp.get_name()
             self._items.append((gp_id, gp_name))
 
-        self._items = sorted(self._items, lambda x, y: cmp(x[1], y[1]))
+        self._items = sorted(self._items, key=lambda x: x[1])
 
     def unregister_updaters(self):
         pass
@@ -120,18 +120,18 @@ class GridListModel(QAbstractListModel):
             if 0 <= row < len(self._items):
                 item = self._items[row]
                 _, gp_name = item
-                return QVariant(gp_name)
+                return gp_name
 
-        return QVariant()
+        return None
 
     def headerData(self, section, orientation, role):
-        return QVariant()
+        return None
 
 
 class GridListView(QListView):
 
     def __init__(self):
-        QListView.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -163,7 +163,7 @@ class GridListView(QListView):
 class GridList(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -205,7 +205,7 @@ class GridList(QWidget):
 class GridListToolBar(QToolBar):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -269,7 +269,7 @@ class GridListToolBar(QToolBar):
 class GridArea(QAbstractScrollArea):
 
     def __init__(self):
-        QAbstractScrollArea.__init__(self)
+        super().__init__()
         self.setFocusPolicy(Qt.NoFocus)
 
         self._ui_model = None
@@ -398,7 +398,7 @@ class GridArea(QAbstractScrollArea):
         vscrollbar.setRange(0, total_height_px - vp_height)
 
     def _follow_cursor(self, new_y_offset_str):
-        new_y_offset = long(new_y_offset_str)
+        new_y_offset = int(new_y_offset_str)
 
         vscrollbar = self.verticalScrollBar()
         old_y_offset = vscrollbar.value()
@@ -432,7 +432,7 @@ class GridArea(QAbstractScrollArea):
 class GridHeader(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._width = DEFAULT_CONFIG['col_width']
 
@@ -465,7 +465,7 @@ class GridView(QWidget):
     followCursor = pyqtSignal(str, name='followCursor')
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._ui_model = None
         self._updater = None
@@ -737,7 +737,7 @@ class GridView(QWidget):
 class GeneralEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -845,7 +845,7 @@ class GeneralEditor(QWidget):
             return
 
         gp_name = gp.get_name()
-        if gp_name != unicode(self._name.text()):
+        if gp_name != str(self._name.text()):
             old_block = self._name.blockSignals(True)
             self._name.setText(gp_name)
             self._name.blockSignals(old_block)
@@ -875,7 +875,7 @@ class GeneralEditor(QWidget):
             self._offset.blockSignals(old_block)
 
     def _change_name(self, text):
-        text = unicode(text)
+        text = str(text)
 
         gp = self._get_selected_grid_pattern()
         if gp == None:
@@ -922,7 +922,7 @@ class GeneralEditor(QWidget):
 class SubdivEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -1050,7 +1050,7 @@ class SubdivEditor(QWidget):
 class LineEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -1153,7 +1153,7 @@ class LineEditor(QWidget):
 class LineStyleDelegate(QItemDelegate):
 
     def __init__(self, is_major_enabled):
-        QItemDelegate.__init__(self)
+        super().__init__()
         self._config = None
 
         self._first_style = 0 if is_major_enabled else 1
@@ -1183,7 +1183,7 @@ class LineStyleDelegate(QItemDelegate):
         self._pixmap_height = p_height
 
         # Create line pixmaps
-        for i in xrange(STYLE_COUNT):
+        for i in range(STYLE_COUNT):
             pixmap = self._create_line_pixmap(i, p_width, p_height, h_margin, v_margin)
             self._pixmaps[i] = pixmap
 
@@ -1193,7 +1193,7 @@ class LineStyleDelegate(QItemDelegate):
         self._list_pixmap = QPixmap(list_width, list_height)
 
         lpainter = QPainter(self._list_pixmap)
-        for i in xrange(self._first_style, STYLE_COUNT):
+        for i in range(self._first_style, STYLE_COUNT):
             pixmap = self._pixmaps[i]
             lpainter.drawPixmap(0, 0, pixmap)
             lpainter.translate(0, pixmap.height())
@@ -1217,8 +1217,7 @@ class LineStyleDelegate(QItemDelegate):
         return pixmap
 
     def paint(self, painter, option, index):
-        pixmap_index_data = index.data(Qt.UserRole).toInt()
-        pixmap_index, _ = pixmap_index_data
+        pixmap_index = index.data(Qt.UserRole)
         assert pixmap_index in self._pixmaps
 
         # Background
@@ -1230,7 +1229,7 @@ class LineStyleDelegate(QItemDelegate):
         pixmap = self._pixmaps[pixmap_index]
         pixmap_pos = option.rect.translated(cursor_width, 0).topLeft()
         painter.drawPixmap(QRect(pixmap_pos, pixmap.size()), pixmap)
-        QItemDelegate.paint(self, painter, option, index)
+        super().paint(painter, option, index)
 
     def drawBackground(self, painter, option, index):
         pass
@@ -1280,8 +1279,7 @@ class LineStyleDelegate(QItemDelegate):
             painter.restore()
 
     def sizeHint(self, option, index):
-        pixmap_index_data = index.data(Qt.UserRole).toInt()
-        pixmap_index, _ = pixmap_index_data
+        pixmap_index = index.data(Qt.UserRole)
         assert pixmap_index in self._pixmaps
 
         pixmap = self._pixmaps[pixmap_index]
@@ -1291,7 +1289,7 @@ class LineStyleDelegate(QItemDelegate):
 class LineStyle(QComboBox):
 
     def __init__(self, is_major_enabled=False):
-        QComboBox.__init__(self)
+        super().__init__()
 
         self._first_style = 0 if is_major_enabled else 1
         self._is_major_displayed = True
@@ -1308,12 +1306,11 @@ class LineStyle(QComboBox):
 
         self.setItemDelegate(self._ls_delegate)
 
-        for i in xrange(self._first_style, STYLE_COUNT):
-            self.addItem(str(i), QVariant(i))
+        for i in range(self._first_style, STYLE_COUNT):
+            self.addItem(str(i), i)
 
     def get_current_line_style(self):
-        line_style, success = self.itemData(self.currentIndex()).toInt()
-        return line_style if success else None
+        return self.itemData(self.currentIndex())
 
     def select_line_style(self, new_style):
         old_block = self.blockSignals(True)

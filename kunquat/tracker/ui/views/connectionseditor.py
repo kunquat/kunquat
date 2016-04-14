@@ -16,17 +16,17 @@ import os
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from connections import Connections
 from kunquat.kunquat.limits import *
-import processor.proctypeinfo as proctypeinfo
-from kqtutils import get_kqt_file_path, open_kqt_au
-from saving import get_instrument_save_path, get_effect_save_path
+from .connections import Connections
+from .processor import proctypeinfo
+from .kqtutils import get_kqt_file_path, open_kqt_au
+from .saving import get_instrument_save_path, get_effect_save_path
 
 
 class ConnectionsEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._toolbar = ConnectionsToolBar()
         self._connections = Connections()
@@ -54,7 +54,7 @@ class ConnectionsEditor(QWidget):
 class ConnectionsToolBar(QToolBar):
 
     def __init__(self):
-        QToolBar.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -195,7 +195,7 @@ class ConnectionsToolBar(QToolBar):
 
     def _add_processor(self, action):
         assert action != None
-        proc_type = str(action.data().toString())
+        proc_type = action.data()
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
@@ -272,7 +272,7 @@ def _get_au_conns_edit_signal_type(au_id):
 class EditingToggle(QPushButton):
 
     def __init__(self, text):
-        QPushButton.__init__(self, text)
+        super().__init__(text)
         self._au_id = None
         self._ui_model = None
         self._updater = None
@@ -322,7 +322,7 @@ class EditingToggle(QPushButton):
 class HitEditingToggle(EditingToggle):
 
     def __init__(self):
-        EditingToggle.__init__(self, 'Edit hit:')
+        super().__init__('Edit hit:')
 
     def _get_update_signal_types(self):
         return set([
@@ -335,7 +335,7 @@ class HitEditingToggle(EditingToggle):
 
         cur_mode = au.get_connections_edit_mode()
 
-        for i in xrange(HITS_MAX):
+        for i in range(HITS_MAX):
             hit = au.get_hit(i)
             if hit.get_existence():
                 allow_toggle = True
@@ -363,7 +363,7 @@ class HitEditingToggle(EditingToggle):
 class ExpressionEditingToggle(EditingToggle):
 
     def __init__(self):
-        EditingToggle.__init__(self, 'Edit expression:')
+        super().__init__('Edit expression:')
 
     def _get_update_signal_types(self):
         return set([
@@ -400,7 +400,7 @@ class ExpressionEditingToggle(EditingToggle):
 class HitSelector(QComboBox):
 
     def __init__(self):
-        QComboBox.__init__(self)
+        super().__init__()
 
     def set_au_id(self, au_id):
         self._au_id = au_id
@@ -423,7 +423,7 @@ class HitSelector(QComboBox):
 
     def _get_hit_vis_name(self, hit):
         name = hit.get_name()
-        name = name if (type(name) == unicode) else u'-'
+        name = name if (type(name) == str) else '-'
         return name
 
     def _update_hit_list(self):
@@ -435,24 +435,22 @@ class HitSelector(QComboBox):
         old_block = self.blockSignals(True)
         self.clear()
         is_enabled = False
-        for i in xrange(HITS_MAX):
+        for i in range(HITS_MAX):
             hit = au.get_hit(i)
             if hit.get_existence():
                 is_enabled = True
                 vis_name = self._get_hit_vis_name(hit)
-                self.addItem(u'{}: {}'.format(i, vis_name), QVariant(i))
+                self.addItem('{}: {}'.format(i, vis_name), i)
         self.setEnabled(is_enabled)
         self.blockSignals(old_block)
 
         if is_enabled and (prev_list_index == -1):
             self.setCurrentIndex(0)
-            cur_hit_index, success = self.itemData(0).toInt()
-            assert success
+            cur_hit_index = self.itemData(0)
             au.set_connections_hit_index(cur_hit_index)
 
     def _change_hit(self, item_index):
-        hit_index, success = self.itemData(item_index).toInt()
-        assert success
+        hit_index = self.itemData(item_index)
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
@@ -463,7 +461,7 @@ class HitSelector(QComboBox):
 class ExpressionSelector(QComboBox):
 
     def __init__(self):
-        QComboBox.__init__(self)
+        super().__init__()
         self._au_id = None
         self._ui_model = None
 
@@ -507,7 +505,7 @@ class ExpressionSelector(QComboBox):
             au.set_connections_expr_name(expr_names[0])
 
     def _change_expression(self, item_index):
-        expr_name = unicode(self.itemText(item_index))
+        expr_name = str(self.itemText(item_index))
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)

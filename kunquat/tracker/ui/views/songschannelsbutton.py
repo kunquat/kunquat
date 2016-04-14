@@ -19,7 +19,7 @@ from PyQt4.QtGui import *
 class SongsChannelsButton(QToolButton):
 
     def __init__(self):
-        QToolButton.__init__(self)
+        super().__init__()
         self._ui_model = None
 
         self.setText('Songs && channels')

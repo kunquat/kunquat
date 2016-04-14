@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2016
 #
 # This file is part of Kunquat.
 #
@@ -14,7 +15,7 @@
 import time
 import unittest
 
-from pulseaudio_async import Async
+from .pulseaudio_async import Async
 
 
 class TestPulseaudioAsync(unittest.TestCase):

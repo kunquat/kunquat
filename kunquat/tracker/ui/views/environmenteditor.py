@@ -16,16 +16,16 @@ from PyQt4.QtGui import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
-from editorlist import EditorList
-from headerline import HeaderLine
-from varnamevalidator import VarNameValidator
-from varvalidators import *
+from .editorlist import EditorList
+from .headerline import HeaderLine
+from .varnamevalidator import VarNameValidator
+from .varvalidators import *
 
 
 class EnvironmentEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._vars = VariableList()
 
         v = QVBoxLayout()
@@ -45,7 +45,7 @@ class EnvironmentEditor(QWidget):
 class VariableList(EditorList):
 
     def __init__(self):
-        EditorList.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -102,7 +102,7 @@ class VariableList(EditorList):
 class VariableEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._var_name = None
 
@@ -149,7 +149,7 @@ class VariableEditor(QWidget):
 class VarNameEditor(QLineEdit):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
         self._validator = None
@@ -179,7 +179,7 @@ class VarNameEditor(QLineEdit):
         self.setValidator(self._validator)
 
     def _change_name(self):
-        new_name = unicode(self.text())
+        new_name = str(self.text())
         if new_name == self._var_name:
             return
 
@@ -193,13 +193,13 @@ class VarNameEditor(QLineEdit):
             event.accept()
             self.set_var_name(self._var_name)
         else:
-            return QLineEdit.keyPressEvent(self, event)
+            return super().keyPressEvent(event)
 
 
 class VarTypeEditor(QComboBox):
 
     def __init__(self):
-        QComboBox.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -253,7 +253,7 @@ class VarTypeEditor(QComboBox):
 class VarValueEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -323,11 +323,11 @@ class VarValueEditor(QWidget):
         if var_type == bool:
             editor.setCheckState(Qt.Checked if var_value else Qt.Unchecked)
         elif var_type == int:
-            editor.setText(unicode(var_value))
+            editor.setText(str(var_value))
         elif var_type == float:
-            editor.setText(unicode(var_value))
+            editor.setText(str(var_value))
         elif var_type == tstamp.Tstamp:
-            editor.setText(unicode(float(var_value)))
+            editor.setText(str(float(var_value)))
         else:
             assert False
         editor.blockSignals(old_block)
@@ -343,25 +343,25 @@ class VarValueEditor(QWidget):
         self._change_value(new_value)
 
     def _change_int_value(self):
-        new_qstring = self._editors[int].text()
-        new_value = int(unicode(new_qstring))
+        new_str = self._editors[int].text()
+        new_value = int(new_str)
         self._change_value(new_value)
 
     def _change_float_value(self):
-        new_qstring = self._editors[float].text()
-        new_value = float(unicode(new_qstring))
+        new_str = self._editors[float].text()
+        new_value = float(new_str)
         self._change_value(new_value)
 
     def _change_tstamp_value(self):
-        new_qstring = self._editors[tstamp.Tstamp].text()
-        new_value = tstamp.Tstamp(float(unicode(new_qstring)))
+        new_str = self._editors[tstamp.Tstamp].text()
+        new_value = tstamp.Tstamp(float(new_str))
         self._change_value(new_value)
 
 
 class VarRemoveButton(QPushButton):
 
     def __init__(self):
-        QPushButton.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -396,7 +396,7 @@ class VarRemoveButton(QPushButton):
 class VariableAdder(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
         self._updater = None
 
@@ -446,12 +446,12 @@ class VariableAdder(QWidget):
         self._var_add_button.setEnabled(bool(self._var_name.text()))
 
     def _text_changed(self, text):
-        text = unicode(text)
+        text = str(text)
         used_names = self._get_used_names()
         self._var_add_button.setEnabled(bool(text) and (text not in used_names))
 
     def _add_new_var(self):
-        text = unicode(self._var_name.text())
+        text = str(self._var_name.text())
         assert text and (text not in self._get_used_names())
 
         module = self._ui_model.get_module()
@@ -466,7 +466,7 @@ class VariableAdder(QWidget):
 class NewVarNameEditor(QLineEdit):
 
     def __init__(self):
-        QLineEdit.__init__(self)
+        super().__init__()
         self.setMaxLength(VAR_NAME_MAX - 1)
         self._validator = VarNameValidator(set())
         self.setValidator(self._validator)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -11,7 +11,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
 import os
 import sys
 import traceback
@@ -34,7 +33,7 @@ with the following information attached.</p>'''
 class ErrorDetails(QTextEdit):
 
     def __init__(self):
-        QTextEdit.__init__(self)
+        super().__init__()
         self.setAcceptRichText(False)
         self.setReadOnly(True)
         self._details = ''
@@ -55,7 +54,7 @@ class ErrorDialog(QDialog):
     exceptionReceived = pyqtSignal(str, name='exceptionReceived')
 
     def __init__(self):
-        QDialog.__init__(self)
+        super().__init__()
 
         self.setWindowTitle('Oh no!')
         self._message = QLabel(MESSAGE_RICH)

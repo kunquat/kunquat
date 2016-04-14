@@ -12,10 +12,9 @@
 #
 
 import math
-from types import NoneType
 
-import tstamp
-from gridpattern import STYLE_COUNT
+from . import tstamp
+from .gridpattern import STYLE_COUNT
 
 
 class Grid():
@@ -36,9 +35,9 @@ class Grid():
         self._ui_model = ui_model
 
     def _get_allowed_line_styles(self, spec, tr_height_ts):
-        allowed_styles = set(xrange(STYLE_COUNT))
+        allowed_styles = set(range(STYLE_COUNT))
 
-        for style in xrange(1, STYLE_COUNT):
+        for style in range(1, STYLE_COUNT):
             min_line_dist = spec['min_style_spacing'][style] * tr_height_ts
             first_ts = None
             prev_ts = None
@@ -69,8 +68,8 @@ class Grid():
 
     def _get_grid_spec(self, gp_id, tr_height_ts):
         if gp_id == None:
-            gp_id = u'0'
-        assert isinstance(gp_id, unicode)
+            gp_id = '0'
+        assert isinstance(gp_id, str)
 
         if gp_id in self._cached_grid_patterns:
             gp = self._cached_grid_patterns[gp_id]
@@ -81,7 +80,7 @@ class Grid():
 
         gp_length = gp.get_length()
         gp_lines = gp.get_lines()
-        gp_style_spacing = [gp.get_line_style_spacing(i) for i in xrange(STYLE_COUNT)]
+        gp_style_spacing = [gp.get_line_style_spacing(i) for i in range(STYLE_COUNT)]
 
         spec = {
             'length': gp_length,
@@ -157,7 +156,7 @@ class Grid():
         info_slice = column.get_overlay_grid_info_slice(row_ts, pat_length)
 
         base_gp_id = self._get_base_grid_pattern_id(pinst)
-        assert isinstance(base_gp_id, (NoneType, unicode))
+        assert isinstance(base_gp_id, (type(None), str))
 
         for i, info in enumerate(info_slice):
             part_start_ts, gp_id, _ = info
@@ -219,7 +218,7 @@ class Grid():
         info_slice = column.get_overlay_grid_info_slice(tstamp.Tstamp(0), row_ts)
 
         base_gp_id = self._get_base_grid_pattern_id(pinst)
-        assert isinstance(base_gp_id, (NoneType, unicode))
+        assert isinstance(base_gp_id, (type(None), str))
 
         for i, info in reversed(list(enumerate(info_slice))):
             part_start_ts, gp_id, _ = info
@@ -275,7 +274,7 @@ class Grid():
         info_slice = column.get_overlay_grid_info_slice(start_ts, stop_ts)
 
         base_gp_id = self._get_base_grid_pattern_id(pinst)
-        assert isinstance(base_gp_id, (NoneType, unicode))
+        assert isinstance(base_gp_id, (type(None), str))
 
         lines = []
         for i, info in enumerate(info_slice):

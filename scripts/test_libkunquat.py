@@ -11,14 +11,13 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
 from collections import defaultdict, deque
 import glob
 import os.path
 import subprocess
 import sys
 
-import command
+from . import command
 
 
 def test_libkunquat(builder, options, cc):

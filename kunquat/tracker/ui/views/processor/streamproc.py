@@ -19,10 +19,10 @@ class StreamProc(QWidget):
 
     @staticmethod
     def get_name():
-        return u'Stream'
+        return 'Stream'
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
 
         self._init_state_editor = InitStateEditor()
 
@@ -47,7 +47,7 @@ class StreamProc(QWidget):
 class InitStateEditor(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._au_id = None
         self._proc_id = None
         self._ui_model = None

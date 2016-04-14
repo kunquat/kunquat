@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -16,7 +16,7 @@ import os
 import time
 import signal
 
-import cmdline
+from . import cmdline
 from kunquat.tracker.errorbase import *
 from kunquat.tracker.threads.audiothread import create_audio_thread
 from kunquat.tracker.threads.uithread import create_ui_thread

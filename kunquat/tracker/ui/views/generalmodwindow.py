@@ -14,13 +14,13 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from generalmodeditor import GeneralModEditor
+from .generalmodeditor import GeneralModEditor
 
 
 class GeneralModWindow(QWidget):
 
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self._ui_model = None
 
         self.setWindowTitle('General module settings')

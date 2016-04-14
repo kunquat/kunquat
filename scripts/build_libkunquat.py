@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -17,7 +17,7 @@ import os
 import os.path
 import stat
 
-import command
+from . import command
 
 
 def build_libkunquat(builder, options, cc):
