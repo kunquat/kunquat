@@ -25,14 +25,15 @@ information attached.'''
 
 
 def get_error_details(eclass, einst, trace):
+    if hasattr(einst, 'kunquat_desc_override'):
+        return einst.kunquat_desc_override
     details_list = traceback.format_exception(eclass, einst, trace)
     return ''.join(details_list)
 
 
 def print_error_msg(eclass, einst, trace):
     details = get_error_details(eclass, einst, trace)
-    print('\n{}\n{}\n\n{}'.format(_ERROR_BRIEF, _SUBMIT_INFO, details),
-            file=sys.stderr)
+    print('\n{}\n{}\n\n{}'.format(_ERROR_BRIEF, _SUBMIT_INFO, details), file=sys.stderr)
 
 
 def log_error(eclass, einst, trace):
