@@ -37,9 +37,9 @@ class CommandQueue():
         self._terminating_commands = ('notify_kunquat_exception',)
 
     def block(self):
-        block = self._state != self._STATE_FLUSHING
+        timeout = 0.001 if self._state == self._STATE_FLUSHING else None
         try:
-            command_data = self._in.get(block)
+            command_data = self._in.get(block=True, timeout=timeout)
         except Empty:
             return
 
