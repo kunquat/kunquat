@@ -13,7 +13,6 @@
 #
 
 import os
-import time
 import signal
 
 from . import cmdline
@@ -40,8 +39,7 @@ class Tracker():
         ui_process.start()
 
         try:
-            while ui_process.is_alive():
-                time.sleep(1)
+            ui_process.join()
         except KeyboardInterrupt:
             pass
 
