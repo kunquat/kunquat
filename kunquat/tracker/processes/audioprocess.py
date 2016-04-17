@@ -17,6 +17,7 @@ import traceback
 from multiprocessing import Process, Queue
 from queue import Empty
 
+from kunquat.kunquat.kunquat import KunquatError, set_assert_hook
 from kunquat.tracker.audio.audio_engine import create_audio_engine
 
 
@@ -33,6 +34,13 @@ class SimpleCommandQueue():
 
     def get(self):
         return self._q.get_nowait()
+
+
+class KunquatAssertionError(KunquatError):
+
+    def __init__(self, info):
+        super().__init__('Assertion failure in libkunquat')
+        self.kunquat_desc_override = info
 
 
 class AudioProcess(Process):
@@ -71,10 +79,20 @@ class AudioProcess(Process):
     def halt(self):
         self._q.put(HALT)
 
+    def _on_assert(self, info):
+        e = KunquatAssertionError(info)
+        self._ui_engine.notify_kunquat_assertion(e)
+
+        # We will get destroyed along with our communication channel after returning,
+        # so give the UI some time to receive our message
+        time.sleep(1)
+
     def run(self):
         # Create the audio engine inside the correct process
         self._audio_engine = create_audio_engine()
         self._audio_engine.set_ui_engine(self._ui_engine)
+
+        set_assert_hook(self._on_assert)
 
         try:
             self._run_audio_engine()

@@ -455,6 +455,9 @@ class Controller():
     def notify_kunquat_exception(self, e):
         raise e
 
+    def notify_kunquat_assertion(self, e):
+        raise e
+
     def update_output_speed(self, fps):
         self._session.set_output_speed(fps)
         self._updater.signal_update()
