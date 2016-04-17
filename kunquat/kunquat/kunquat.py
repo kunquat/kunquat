@@ -30,9 +30,12 @@ KunquatResourceError -- An error for resource access errors.
 
 """
 
-from __future__ import print_function
 import ctypes
+import itertools
 import json
+import os
+import select
+import signal
 
 __all__ = ['Kunquat',
            'KunquatError', 'KunquatArgumentError',
@@ -404,6 +407,52 @@ def get_version():
 
 def fake_out_of_memory():
     _kunquat.kqt_fake_out_of_memory(0)
+
+
+class _AssertHookRef():
+
+    def __init__(self):
+        self.func = None
+        self._pipe_r = None
+        self._pipe_w = None
+        self._orig_stderr = None
+
+    def redirect_stderr(self):
+        self._pipe_r, self._pipe_w = os.pipe()
+        self._orig_stderr = os.dup(2)
+        os.dup2(_assert_hook_ref._pipe_w, 2)
+
+    def _has_more_data(self):
+        ready_r, _, _ = select.select([self._pipe_r], [], [], 0)
+        return bool(ready_r)
+
+    def get_assert_info(self):
+        out_bytes = b''
+        while self._has_more_data():
+            out_bytes += os.read(self._pipe_r, 1024)
+        os.dup2(self._orig_stderr, 2)
+
+        all_lines = out_bytes.split(b'\n')
+        msg_start = sum(1 for _ in itertools.takewhile(
+                lambda x: not (x.startswith(b'libkunquat') and b'Assertion' in x),
+                all_lines))
+        msg_lines = all_lines[msg_start:]
+        info = str(b'\n'.join(msg_lines), encoding='utf-8')
+        return info
+
+
+_assert_hook_ref = _AssertHookRef()
+
+@ctypes.CFUNCTYPE(None, ctypes.c_int)
+def _decor_assert_hook(sig):
+    if _assert_hook_ref.func:
+        info = _assert_hook_ref.get_assert_info()
+        _assert_hook_ref.func(info)
+
+def set_assert_hook(f):
+    _assert_hook_ref.func = f
+    _assert_hook_ref.redirect_stderr()
+    ctypes.CDLL(None).signal(signal.SIGABRT, _decor_assert_hook)
 
 
 _kunquat = ctypes.CDLL('libkunquat.so')
