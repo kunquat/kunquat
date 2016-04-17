@@ -21,7 +21,6 @@ becomes available in major distributions, this module will be removed.
 """
 
 
-from __future__ import division, print_function
 import ctypes
 import queue
 
