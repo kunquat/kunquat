@@ -41,7 +41,7 @@ def get_kqt_file_path(types):
     if 'kqte' in types:
         filters.append('Kunquat effects (*.kqte *.kqte.gz *.kqte.bz2)')
 
-    file_path = QFileDialog.getOpenFileName(
+    file_path, _ = QFileDialog.getOpenFileName(
             caption=caption, filter=';;'.join(filters))
     if file_path:
         return file_path
