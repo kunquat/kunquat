@@ -452,6 +452,12 @@ class Controller():
         note_off_event = (EVENT_NOTE_OFF, None)
         self._audio_engine.fire_event(channel_number, note_off_event)
 
+    def notify_kunquat_exception(self, e):
+        raise e
+
+    def notify_kunquat_assertion(self, e):
+        raise e
+
     def update_output_speed(self, fps):
         self._session.set_output_speed(fps)
         self._updater.signal_update()

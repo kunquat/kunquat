@@ -70,23 +70,21 @@ class ErrorDialog(QDialog):
         v.addItem(h)
         self.setLayout(v)
 
-        QObject.connect(
-                self,
-                SIGNAL('exceptionReceived(QString)'),
-                self._show_dialog)
+        QObject.connect(self, SIGNAL('exceptionReceived(QString)'), self._show_dialog)
         QObject.connect(self._closebutton, SIGNAL('clicked()'), self.close)
 
         sys.excepthook = self._excepthook
 
     def _excepthook(self, eclass, einst, trace):
+        if eclass == KeyboardInterrupt:
+            os.abort()
+            return
+
         print_error_msg(eclass, einst, trace)
         log_error(eclass, einst, trace)
         details = get_error_details(eclass, einst, trace)
 
-        QObject.emit(
-                self,
-                SIGNAL('exceptionReceived(QString)'),
-                details)
+        QObject.emit(self, SIGNAL('exceptionReceived(QString)'), details)
 
     def _show_dialog(self, details):
         details = str(details)

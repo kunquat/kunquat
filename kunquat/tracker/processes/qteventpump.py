@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
-#          Toni Ruottu, Finland 2013
+# Author: Tomi Jylhä-Ollila, Finland 2016
 #
 # This file is part of Kunquat.
 #
@@ -12,18 +11,16 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import QThread
+from PyQt4.QtCore import *
 
 
-class QEventPump(QThread):
+class QtEventPump(QThread):
+
+    process_queue = pyqtSignal(name='process_queue')
 
     def __init__(self):
         super().__init__()
-        self._signaler = None
         self._blocker = None
-
-    def set_signaler(self, signaler):
-        self._signaler = signaler
 
     def set_blocker(self, blocker):
         self._blocker = blocker
@@ -31,6 +28,6 @@ class QEventPump(QThread):
     def run(self):
         while True:
             self._blocker()
-            self._signaler()
+            self.emit(SIGNAL('process_queue()'))
 
 
