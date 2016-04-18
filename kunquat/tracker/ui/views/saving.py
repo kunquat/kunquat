@@ -39,7 +39,7 @@ def get_instrument_save_path(au_name, instruments_dir):
             suggested_path = os.path.join(instruments_dir, suggested_name)
     au_path, _ = QFileDialog.getSaveFileName(
             caption='Save Kunquat instrument',
-            directory=suggested_path,
+            dir=suggested_path,
             filter='Kunquat instruments (*.kqti *.kqti.gz *.kqti.bz2)')
     if not au_path:
         return None
@@ -55,7 +55,7 @@ def get_effect_save_path(au_name, effects_dir):
             suggested_path = os.path.join(effects_dir, suggested_name)
     au_path, _ = QFileDialog.getSaveFileName(
             caption='Save Kunquat effect',
-            directory=suggested_path,
+            dir=suggested_path,
             filter='Kunquat effects (*.kqte *.kqte.gz *.kqte.bz2)')
     if not au_path:
         return None
