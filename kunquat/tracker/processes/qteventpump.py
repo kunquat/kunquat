@@ -11,8 +11,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from queue import Queue
-
 from PySide.QtCore import *
 
 
@@ -23,17 +21,13 @@ class QtEventPump(QThread):
     def __init__(self):
         super().__init__()
         self._blocker = None
-        self._stop_q = Queue()
 
     def set_blocker(self, blocker):
         self._blocker = blocker
 
     def run(self):
-        while self._stop_q.empty():
+        while True:
             self._blocker()
             self.emit(SIGNAL('process_queue()'))
-
-    def stop(self):
-        self._stop_q.put('stop')
 
 
