@@ -13,12 +13,12 @@
 
 from queue import Queue
 
-from PySide.QtCore import QThread
+from PySide.QtCore import *
 
 
 class QtEventPump(QThread):
 
-    process_queue = pyqtSignal(name='process_queue')
+    process_queue = Signal(name='process_queue')
 
     def __init__(self):
         super().__init__()
