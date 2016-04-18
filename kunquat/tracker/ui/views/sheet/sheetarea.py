@@ -67,6 +67,26 @@ class LongScrollBar(QScrollBar):
             self._actual_min, scaled_value * self._range_factor), self._actual_max)
 
 
+class Corner(QWidget):
+
+    def __init__(self):
+        super().__init__()
+
+        self._bg_colour = QColor(0, 0, 0)
+
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_OpaquePaintEvent)
+        self.setAttribute(Qt.WA_NoSystemBackground)
+
+    def set_config(self, config):
+        self._bg_colour = config['bg_colour']
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setBackground(self._bg_colour)
+        painter.eraseRect(event.rect())
+
+
 class SheetArea(QAbstractScrollArea):
 
     def __init__(self, config={}):
@@ -79,8 +99,7 @@ class SheetArea(QAbstractScrollArea):
         # Widgets
         self.setViewport(View())
 
-        self._corner = QWidget()
-        self._corner.setStyleSheet('QWidget { background-color: #000 }')
+        self._corner = Corner()
 
         self._ruler = Ruler()
         self._header = Header()
@@ -167,6 +186,7 @@ class SheetArea(QAbstractScrollArea):
             if subcfg in config:
                 self._config[subcfg].update(config[subcfg])
 
+        self._corner.set_config(self._config)
         self._header.set_config(self._config)
         self._ruler.set_config(self._config['ruler'])
 
