@@ -13,12 +13,12 @@
 
 import os.path
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 
 def get_module_save_path():
-    module_path = QFileDialog.getSaveFileName(
+    module_path, _ = QFileDialog.getSaveFileName(
             caption='Save Kunquat composition',
             filter='Kunquat compositions (*.kqt *.kqt.gz *.kqt.bz2)')
     if not module_path:
@@ -37,9 +37,9 @@ def get_instrument_save_path(au_name, instruments_dir):
         if suggested_base_name:
             suggested_name = suggested_base_name + '.kqti.bz2'
             suggested_path = os.path.join(instruments_dir, suggested_name)
-    au_path = QFileDialog.getSaveFileName(
+    au_path, _ = QFileDialog.getSaveFileName(
             caption='Save Kunquat instrument',
-            directory=suggested_path,
+            dir=suggested_path,
             filter='Kunquat instruments (*.kqti *.kqti.gz *.kqti.bz2)')
     if not au_path:
         return None
@@ -53,9 +53,9 @@ def get_effect_save_path(au_name, effects_dir):
         if suggested_base_name:
             suggested_name = suggested_base_name + '.kqte.bz2'
             suggested_path = os.path.join(effects_dir, suggested_name)
-    au_path = QFileDialog.getSaveFileName(
+    au_path, _ = QFileDialog.getSaveFileName(
             caption='Save Kunquat effect',
-            directory=suggested_path,
+            dir=suggested_path,
             filter='Kunquat effects (*.kqte *.kqte.gz *.kqte.bz2)')
     if not au_path:
         return None

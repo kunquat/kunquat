@@ -12,8 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from .octavebutton import OctaveButton
 
@@ -28,7 +28,7 @@ class OctaveSelector(QFrame):
         self._typewriter_manager = None
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
         h.addStretch(1)
         self.setLayout(h)

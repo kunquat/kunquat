@@ -12,8 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
 from .composition import Composition
@@ -30,7 +30,7 @@ class MainSplitter(QSplitter):
         self._typewriter_panel = TypewriterPanel()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
         v.addWidget(self._composition)
         v.addWidget(self._typewriter_panel)

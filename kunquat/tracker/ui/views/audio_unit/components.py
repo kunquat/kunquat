@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
@@ -43,7 +43,7 @@ class Components(QSplitter):
         self._control_vars = ControlVariables()
 
         cl = QHBoxLayout()
-        cl.setMargin(0)
+        cl.setContentsMargins(0, 0, 0, 0)
         cl.setSpacing(4)
         cl.addWidget(self._streams, 1)
         #cl.addWidget(self._control_vars, 3)
@@ -177,7 +177,7 @@ class Streams(QWidget):
         self._stream_list = StreamList()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Streams'))
         v.addWidget(self._stream_list)
@@ -303,7 +303,7 @@ class StreamEditor(QWidget):
         self._remove_button = StreamRemoveButton()
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
         h.addWidget(self._name_editor)
         h.addWidget(self._target_proc_editor)
@@ -463,7 +463,7 @@ class ControlVariables(QWidget):
         self._var_list = ControlVariableList()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Control variables'))
         v.addWidget(self._var_list)
@@ -563,7 +563,7 @@ class ControlVariableEditor(QWidget):
         self._bindings = ControlVariableBindings()
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
         h.addWidget(self._name_editor)
         h.addWidget(self._type_editor)
@@ -571,7 +571,7 @@ class ControlVariableEditor(QWidget):
         h.addWidget(self._remove_button)
 
         g = QGridLayout()
-        g.setMargin(0)
+        g.setContentsMargins(0, 0, 0, 0)
         g.setSpacing(0)
         g.addWidget(self._expander, 0, 0)
         g.addLayout(h, 0, 1)
@@ -780,7 +780,7 @@ class ControlVariableValueEditor(QWidget):
 
         '''
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
         h.addWidget(QLabel(label))
         self.setLayout(h)
@@ -848,7 +848,7 @@ class ControlVariableValueEditor(QWidget):
         '''
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
         h.addWidget(QLabel(self._label))
         h.addWidget(self._editor)
@@ -989,7 +989,7 @@ class ControlVariableBindings(QWidget):
         self.setVisible(False)
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(self._adder)
         self.setLayout(v)
@@ -1117,7 +1117,7 @@ class BindTargetEditor(QWidget):
             editor.set_ui_model(self._ui_model)
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
         h.addWidget(self._target_dev_selector)
         h.addWidget(self._name_editor)
@@ -1385,7 +1385,7 @@ class BindTargetExpressionEditor(QWidget):
         self._editor.setValidator(ExpressionValidator())
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
         h.addWidget(QLabel('Value expression:'))
         h.addWidget(self._editor)

@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 
@@ -41,7 +41,7 @@ def get_kqt_file_path(types):
     if 'kqte' in types:
         filters.append('Kunquat effects (*.kqte *.kqte.gz *.kqte.bz2)')
 
-    file_path = QFileDialog.getOpenFileName(
+    file_path, _ = QFileDialog.getOpenFileName(
             caption=caption, filter=';;'.join(filters))
     if file_path:
         return file_path
@@ -93,7 +93,7 @@ class OutOfIDsErrorDialog(QDialog):
         self._message.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
 
         h = QHBoxLayout()
-        h.setMargin(8)
+        h.setContentsMargins(8, 8, 8, 8)
         h.setSpacing(16)
         h.addWidget(error_label)
         h.addWidget(self._message)

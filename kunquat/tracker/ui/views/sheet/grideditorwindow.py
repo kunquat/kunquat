@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from .grideditor import GridEditor
 
@@ -27,7 +27,7 @@ class GridEditorWindow(QWidget):
         self.setWindowTitle('Grid patterns')
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
         v.addWidget(self._grid_editor)
         self.setLayout(v)

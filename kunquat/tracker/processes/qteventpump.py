@@ -11,12 +11,12 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
+from PySide.QtCore import *
 
 
 class QtEventPump(QThread):
 
-    process_queue = pyqtSignal(name='process_queue')
+    process_queue = Signal(name='process_queue')
 
     def __init__(self):
         super().__init__()

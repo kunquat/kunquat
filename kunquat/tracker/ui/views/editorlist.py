@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 
 class EditorList(QWidget):
@@ -23,7 +23,7 @@ class EditorList(QWidget):
         self._has_adder = False
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
         v.addWidget(self._area)
         self.setLayout(v)
@@ -106,7 +106,7 @@ class EditorListContainer(QWidget):
     def __init__(self):
         super().__init__()
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
         v.setSizeConstraint(QLayout.SetMinimumSize)
         self.setLayout(v)

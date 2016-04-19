@@ -12,8 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from .chdefaultseditor import ChDefaultsEditor
 from .orderlisteditor import OrderlistEditor
@@ -33,7 +33,7 @@ class SongsChannelsWindow(QWidget):
         self.setWindowTitle('Songs & channels')
 
         h = QHBoxLayout()
-        h.setMargin(4)
+        h.setContentsMargins(4, 4, 4, 4)
         h.setSpacing(4)
         h.addWidget(self._orderlist_editor)
         h.addWidget(self._song_editor)

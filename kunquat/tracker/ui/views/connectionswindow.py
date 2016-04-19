@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from .connectionseditor import ConnectionsEditor
 from .keyboardmapper import KeyboardMapper
@@ -30,7 +30,7 @@ class ConnectionsWindow(QWidget):
         self.setWindowTitle('Connections')
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
         v.addWidget(self._conns_editor)
         self.setLayout(v)

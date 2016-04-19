@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 
 class GeneralModEditor(QWidget):
@@ -27,7 +27,7 @@ class GeneralModEditor(QWidget):
         self._random_seed = RandomSeed()
 
         ml = QGridLayout()
-        ml.setMargin(0)
+        ml.setContentsMargins(0, 0, 0, 0)
         ml.setHorizontalSpacing(4)
         ml.setVerticalSpacing(2)
         ml.addWidget(QLabel('Title:'), 0, 0)
@@ -42,7 +42,7 @@ class GeneralModEditor(QWidget):
         separator.setMinimumHeight(2)
 
         gl = QGridLayout()
-        gl.setMargin(0)
+        gl.setContentsMargins(0, 0, 0, 0)
         gl.setHorizontalSpacing(4)
         gl.setVerticalSpacing(2)
         gl.setColumnStretch(2, 1)
@@ -53,7 +53,7 @@ class GeneralModEditor(QWidget):
         gl.addWidget(self._random_seed, 1, 1)
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(4)
         v.addLayout(ml)
         v.addWidget(separator)
@@ -312,7 +312,7 @@ class RandomSeed(QWidget):
         self._auto_update = QCheckBox('Update automatically')
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
         h.addWidget(self._seed)
         h.addWidget(self._auto_update)
@@ -364,7 +364,7 @@ class UInt63SpinBox(QAbstractSpinBox):
 
     _LIMIT = 2**63
 
-    valueChanged = pyqtSignal(name='valueChanged')
+    valueChanged = Signal(name='valueChanged')
 
     def __init__(self):
         super().__init__()

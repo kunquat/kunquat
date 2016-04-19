@@ -14,8 +14,8 @@
 import math
 import time
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.audio_unit.hitselector import HitSelector
 from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
@@ -72,7 +72,7 @@ class NoteMapEditor(QWidget):
         self._note_map_entry = NoteMapEntry()
 
         h = QHBoxLayout()
-        h.setMargin(2)
+        h.setContentsMargins(2, 2, 2, 2)
         h.setSpacing(4)
         h.addWidget(self._note_map, 1)
         h.addWidget(self._note_map_entry, 2)
@@ -519,7 +519,7 @@ class NoteMapEntry(QWidget):
         self._random_list = NoteRandomList()
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
         h.addWidget(TightLabel('Pitch:'))
         h.addWidget(self._pitch)
@@ -528,7 +528,7 @@ class NoteMapEntry(QWidget):
         h.addWidget(self._force)
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addLayout(h)
         v.addWidget(self._random_list)
@@ -777,7 +777,7 @@ class RandomEntryEditor(QWidget):
         self._remove_button.setStyleSheet('padding: 0 -2px;')
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
         h.addWidget(self._sample_selector)
         h.addSpacing(2)
@@ -948,7 +948,7 @@ class HitMapEditor(QWidget):
         self._hit_map_entry = HitMapEntry()
 
         v = QVBoxLayout()
-        v.setMargin(2)
+        v.setContentsMargins(2, 2, 2, 2)
         v.setSpacing(2)
         v.addWidget(self._hit_selector)
         v.addWidget(self._hit_map)
@@ -1104,13 +1104,13 @@ class HitMapEntry(QWidget):
         self._random_list = HitRandomList()
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
         h.addWidget(TightLabel('Force:'))
         h.addWidget(self._force)
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addLayout(h)
         v.addWidget(self._random_list)
@@ -1228,7 +1228,7 @@ class Samples(QWidget):
         self._sample_editor = SampleEditor()
 
         h = QHBoxLayout()
-        h.setMargin(2)
+        h.setContentsMargins(2, 2, 2, 2)
         h.setSpacing(4)
         h.addWidget(self._sample_list)
         h.addWidget(self._sample_editor)
@@ -1324,7 +1324,7 @@ class SampleListToolBar(QToolBar):
         if not sample_id:
             return
 
-        sample_path = QFileDialog.getOpenFileName(
+        sample_path, _ = QFileDialog.getOpenFileName(
                 caption='Import sample', filter='WavPack audio (*.wv)')
         if sample_path:
             success = sample_params.import_sample(sample_id, sample_path)
@@ -1364,7 +1364,7 @@ class ImportErrorDialog(QDialog):
         self._message.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
 
         h = QHBoxLayout()
-        h.setMargin(8)
+        h.setContentsMargins(8, 8, 8, 8)
         h.setSpacing(16)
         h.addWidget(error_label)
         h.addWidget(self._message)
@@ -1522,7 +1522,7 @@ class SampleList(QWidget):
         self._list_view = SampleListView()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
         v.addWidget(self._toolbar)
         v.addWidget(self._list_view)
@@ -1596,7 +1596,7 @@ class SampleEditor(QWidget):
         self._loop_end.setRange(0, 2**30)
 
         gl = QGridLayout()
-        gl.setMargin(0)
+        gl.setContentsMargins(0, 0, 0, 0)
         gl.setSpacing(2)
         gl.addWidget(QLabel('Name:'), 0, 0)
         gl.addWidget(self._name, 0, 1)
@@ -1610,7 +1610,7 @@ class SampleEditor(QWidget):
         gl.addWidget(self._loop_end, 4, 1)
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
         v.addLayout(gl)
         v.addStretch(1)

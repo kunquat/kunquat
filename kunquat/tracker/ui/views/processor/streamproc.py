@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 
 class StreamProc(QWidget):
@@ -69,7 +69,7 @@ class InitStateEditor(QWidget):
         self._osc_depth.setDecimals(5)
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
         h.addWidget(QLabel('Initial value:'), 0)
         h.addWidget(self._init_val, 1)

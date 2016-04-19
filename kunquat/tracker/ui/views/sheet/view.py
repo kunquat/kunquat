@@ -16,8 +16,8 @@ from itertools import islice
 import math
 import time
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 import kunquat.kunquat.events as events
 from kunquat.kunquat.limits import *
@@ -103,8 +103,8 @@ class FieldEdit(QLineEdit):
 
 class View(QWidget):
 
-    heightChanged = pyqtSignal(name='heightChanged')
-    followCursor = pyqtSignal(str, int, name='followCursor')
+    heightChanged = Signal(name='heightChanged')
+    followCursor = Signal(str, int, name='followCursor')
 
     def __init__(self):
         super().__init__()

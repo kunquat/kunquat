@@ -14,8 +14,8 @@
 import math
 import time
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.model.gridpattern import STYLE_COUNT
@@ -39,19 +39,19 @@ class GridEditor(QWidget):
         self._line_editor = LineEditor()
 
         r = QVBoxLayout()
-        r.setMargin(0)
+        r.setContentsMargins(0, 0, 0, 0)
         r.setSpacing(8)
         r.addWidget(self._subdiv_editor)
         r.addWidget(self._line_editor)
 
         el = QHBoxLayout()
-        el.setMargin(0)
+        el.setContentsMargins(0, 0, 0, 0)
         el.setSpacing(4)
         el.addWidget(self._grid_area)
         el.addLayout(r)
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(self._grid_list, 1)
         v.addSpacing(2)
@@ -173,7 +173,7 @@ class GridList(QWidget):
         self._grid_list_view = GridListView()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
         v.addWidget(self._toolbar)
         v.addWidget(self._grid_list_view)
@@ -291,7 +291,7 @@ class GridArea(QAbstractScrollArea):
         # Layout
         g = QGridLayout()
         g.setSpacing(0)
-        g.setMargin(0)
+        g.setContentsMargins(0, 0, 0, 0)
         g.addWidget(self._corner, 0, 0)
         g.addWidget(self._ruler, 1, 0)
         g.addWidget(self._header, 0, 1)
@@ -462,7 +462,7 @@ class GridHeader(QWidget):
 
 class GridView(QWidget):
 
-    followCursor = pyqtSignal(str, name='followCursor')
+    followCursor = Signal(str, name='followCursor')
 
     def __init__(self):
         super().__init__()
@@ -760,19 +760,19 @@ class GeneralEditor(QWidget):
         self._offset.setDecimals(3)
 
         nl = QHBoxLayout()
-        nl.setMargin(0)
+        nl.setContentsMargins(0, 0, 0, 0)
         nl.setSpacing(2)
         nl.addWidget(QLabel('Name:'), 0)
         nl.addWidget(self._name, 1)
 
         ll = QHBoxLayout()
-        ll.setMargin(0)
+        ll.setContentsMargins(0, 0, 0, 0)
         ll.setSpacing(2)
         ll.addWidget(QLabel('Grid length:'), 0)
         ll.addWidget(self._length, 1)
 
         sl = QHBoxLayout()
-        sl.setMargin(0)
+        sl.setContentsMargins(0, 0, 0, 0)
         sl.setSpacing(2)
         sl.addWidget(QLabel('Min. spacing of style'), 0)
         sl.addWidget(self._spacing_style, 2)
@@ -780,7 +780,7 @@ class GeneralEditor(QWidget):
         sl.addWidget(self._spacing_value, 1)
 
         ol = QHBoxLayout()
-        ol.setMargin(0)
+        ol.setContentsMargins(0, 0, 0, 0)
         ol.setSpacing(2)
         ol.addWidget(QLabel('Grid offset:'), 0)
         ol.addWidget(self._offset, 1)
@@ -936,7 +936,7 @@ class SubdivEditor(QWidget):
         self._subdiv_line_style.select_line_style(1)
 
         sl = QGridLayout()
-        sl.setMargin(0)
+        sl.setContentsMargins(0, 0, 0, 0)
         sl.setSpacing(2)
         sl.setColumnStretch(0, 0)
         sl.setColumnStretch(1, 1)
@@ -948,7 +948,7 @@ class SubdivEditor(QWidget):
         sl.addWidget(self._subdiv_warp, 2, 1)
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Create subdivision'), 0, Qt.AlignTop)
         v.addLayout(sl, 0)
@@ -1058,13 +1058,13 @@ class LineEditor(QWidget):
         self._remove_button = QPushButton('Remove line (Delete)')
 
         ls = QHBoxLayout()
-        ls.setMargin(0)
+        ls.setContentsMargins(0, 0, 0, 0)
         ls.setSpacing(2)
         ls.addWidget(QLabel('Style:'), 0)
         ls.addWidget(self._line_style, 1)
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Current line'), 0, Qt.AlignTop)
         v.addLayout(ls, 0)

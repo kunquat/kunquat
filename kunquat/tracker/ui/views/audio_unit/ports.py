@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
@@ -27,7 +27,7 @@ class Ports(QWidget):
         self._output_ports = OutputPorts()
 
         h = QHBoxLayout()
-        h.setMargin(4)
+        h.setContentsMargins(4, 4, 4, 4)
         h.setSpacing(4)
         h.addWidget(self._input_ports)
         h.addWidget(self._output_ports)
@@ -57,7 +57,7 @@ class PortsEditor(QWidget):
                 self._get_add_text, self._get_port_ids, self._get_free_port_id)
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine(self._get_title()))
         v.addWidget(self._editor)
@@ -250,7 +250,7 @@ class PortEditor(QWidget):
         self._remove_button.setStyleSheet('padding: 0 -2px;')
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
         h.addWidget(self._name_editor)
         h.addWidget(self._remove_button)

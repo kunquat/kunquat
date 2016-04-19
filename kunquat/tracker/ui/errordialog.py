@@ -15,8 +15,8 @@ import os
 import sys
 import traceback
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.tracker.errorbase import *
 
@@ -51,7 +51,7 @@ class ErrorDetails(QTextEdit):
 
 class ErrorDialog(QDialog):
 
-    exceptionReceived = pyqtSignal(str, name='exceptionReceived')
+    exceptionReceived = Signal(str, name='exceptionReceived')
 
     def __init__(self):
         super().__init__()

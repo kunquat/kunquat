@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
@@ -37,7 +37,7 @@ class Editor(QWidget):
         self._keyboard_mapper = KeyboardMapper()
 
         v = QVBoxLayout()
-        v.setMargin(4)
+        v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(5)
         self.setLayout(v)
 
@@ -116,7 +116,7 @@ class HeaderFrame(QWidget):
         super().__init__()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(5)
         v.addWidget(HeaderLine(header_text), 0, Qt.AlignTop)
         v.addWidget(contents, 1, Qt.AlignTop)

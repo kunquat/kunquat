@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from .generalmodeditor import GeneralModEditor
 
@@ -28,7 +28,7 @@ class GeneralModWindow(QWidget):
         self._editor = GeneralModEditor()
 
         v = QVBoxLayout()
-        v.setMargin(4)
+        v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
         v.addWidget(self._editor)
         self.setLayout(v)

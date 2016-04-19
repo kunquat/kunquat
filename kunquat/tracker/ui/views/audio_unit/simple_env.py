@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.headerline import HeaderLine
 
@@ -32,7 +32,7 @@ class SimpleEnvelope(QWidget):
         self._envelope = self._make_envelope_widget()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(6)
         v.addWidget(header)
         v.addWidget(self._enabled_toggle)

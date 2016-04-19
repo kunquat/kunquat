@@ -15,8 +15,8 @@ from collections import defaultdict
 import math
 import time
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.tracker.ui.model.module import Module
 from kunquat.tracker.ui.model.processor import Processor
@@ -254,7 +254,7 @@ STATE_ADDING_EDGE = 'adding_edge'
 
 class ConnectionsView(QWidget):
 
-    positionsChanged = pyqtSignal(name='positionsChanged')
+    positionsChanged = Signal(name='positionsChanged')
 
     def __init__(self, config={}):
         super().__init__()

@@ -12,8 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 
 class NotationSelect(QWidget):
@@ -30,7 +30,7 @@ class NotationSelect(QWidget):
         self._notations.setSizeAdjustPolicy(QComboBox.AdjustToContents)
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
         h.addWidget(QLabel('Notation:'))
         h.addWidget(self._notations)

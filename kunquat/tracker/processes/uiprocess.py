@@ -14,7 +14,7 @@
 from multiprocessing import Process, Queue
 from queue import Empty
 
-from PyQt4.QtCore import *
+from PySide.QtCore import *
 
 from .qteventpump import QtEventPump
 

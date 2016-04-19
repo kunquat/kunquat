@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from .audio_unit.editor import Editor
 
@@ -27,7 +27,7 @@ class AuWindow(QWidget):
         self._editor = Editor()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.addWidget(self._editor)
         self.setLayout(v)
 

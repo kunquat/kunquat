@@ -11,8 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 from kunquat.tracker.ui.views.varnamevalidator import VarNameValidator
@@ -27,7 +27,7 @@ class Expressions(QWidget):
         self._expr_editor = ExpressionEditor()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(4)
         v.addWidget(self._expr_list)
         v.addWidget(self._expr_editor)
@@ -231,7 +231,7 @@ class ExpressionList(QWidget):
         self._expr_list_view = ExpressionListView()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
         v.addWidget(self._toolbar)
         v.addWidget(self._expr_list_view)
@@ -281,7 +281,7 @@ class ExpressionName(QWidget):
         self._name_editor = QLineEdit()
 
         h = QHBoxLayout()
-        h.setMargin(0)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
         h.addWidget(QLabel('Name:'))
         h.addWidget(self._name_editor)
@@ -357,7 +357,7 @@ class ExpressionEditor(QWidget):
         self._name = ExpressionName()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(self._name)
         self.setLayout(v)

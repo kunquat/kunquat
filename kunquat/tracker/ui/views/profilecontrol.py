@@ -15,8 +15,8 @@ import cProfile
 import pstats
 from io import StringIO
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 
 class ProfileControl(QDialog):
