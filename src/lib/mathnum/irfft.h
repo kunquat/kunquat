@@ -24,6 +24,7 @@
  *
  * \param data     The input/output array -- must not be \c NULL. Upon return,
  *                 the array will contain the real values of the transformed signal.
+ *                 The result will not be normalised.
  * \param length   The number of elements in \a input -- must be a positive power of 2.
  */
 void irfft(float* array, size_t length);
