@@ -18,11 +18,11 @@
 #include <mathnum/common.h>
 
 #include <math.h>
-#include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 
-static size_t reverse_bits(size_t n, int bit_count)
+static uint32_t reverse_bits(uint32_t n, int bit_count)
 {
     assert(bit_count > 0);
     assert(bit_count <= 32);
