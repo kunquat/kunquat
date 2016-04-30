@@ -49,6 +49,9 @@ Device_impl* new_Proc_add(void)
     if (add == NULL)
         return NULL;
 
+    add->base = NULL;
+    add->is_ramp_attack_enabled = true;
+
     if (!Device_impl_init(&add->parent, del_Proc_add))
     {
         del_Device_impl(&add->parent);
@@ -76,9 +79,6 @@ Device_impl* new_Proc_add(void)
 
 #undef REG_KEY
 #undef REG_KEY_BOOL
-
-    add->base = NULL;
-    add->is_ramp_attack_enabled = true;
 
     float* buf = memory_alloc_items(float, ADD_BASE_FUNC_SIZE + 1);
     if (buf == NULL)
