@@ -16,6 +16,8 @@
 #define K_VECTOR_H
 
 
+#include <decl.h>
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -26,7 +28,7 @@
  * A dynamically expanding container for objects that do not require internal
  * memory management.
  */
-typedef struct Vector Vector;
+//typedef struct Vector Vector;
 
 
 /**
