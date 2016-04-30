@@ -20,6 +20,7 @@
 #include <init/devices/param_types/Hit_map.h>
 #include <init/devices/param_types/Note_map.h>
 #include <init/devices/param_types/Num_list.h>
+#include <init/devices/param_types/Padsynth_params.h>
 #include <init/devices/param_types/Sample.h>
 #include <init/devices/param_types/Sample_params.h>
 #include <mathnum/Tstamp.h>
@@ -44,6 +45,7 @@ typedef enum
     DEVICE_FIELD_NOTE_MAP,
     DEVICE_FIELD_HIT_MAP,
     DEVICE_FIELD_NUM_LIST,
+    DEVICE_FIELD_PADSYNTH_PARAMS,
 
     DEVICE_FIELD_COUNT_
 } Device_field_type;
@@ -153,7 +155,7 @@ bool Device_field_get_empty(const Device_field* field);
  * \return   \c true if the Device field was successfully modified,
  *           otherwise \c false.
  */
-bool Device_field_modify(Device_field* field, void* data);
+//bool Device_field_modify(Device_field* field, void* data);
 
 
 /**
@@ -264,6 +266,17 @@ const Hit_map* Device_field_get_hit_map(const Device_field* field);
  * \return   The Number list.
  */
 const Num_list* Device_field_get_num_list(const Device_field* field);
+
+
+/**
+ * Get PADsynth parameters from the Device field.
+ *
+ * \param field   The Device field -- must not be \c NULL and must contain
+ *                PADsynth parameters.
+ *
+ * \return   The PADsynth parameters.
+ */
+const Padsynth_params* Device_field_get_padsynth_params(const Device_field* field);
 
 
 /**

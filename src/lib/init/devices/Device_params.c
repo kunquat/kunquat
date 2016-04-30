@@ -149,7 +149,8 @@ bool key_is_text_device_param(const char* key)
         type == DEVICE_FIELD_NOTE_MAP ||
         type == DEVICE_FIELD_HIT_MAP ||
         type == DEVICE_FIELD_SAMPLE_PARAMS ||
-        type == DEVICE_FIELD_NUM_LIST;
+        type == DEVICE_FIELD_NUM_LIST ||
+        type == DEVICE_FIELD_PADSYNTH_PARAMS;
 }
 
 
@@ -381,6 +382,21 @@ const Num_list* Device_params_get_num_list(const Device_params* params, const ch
         return NULL;
 
     get_of_type(params, key, num_list);
+
+    return NULL;
+}
+
+
+const Padsynth_params* Device_params_get_padsynth_params(
+        const Device_params* params, const char* key)
+{
+    assert(params != NULL);
+    assert(key != NULL);
+
+    if (get_keyp_device_field_type(key) != DEVICE_FIELD_PADSYNTH_PARAMS)
+        return NULL;
+
+    get_of_type(params, key, padsynth_params);
 
     return NULL;
 }
