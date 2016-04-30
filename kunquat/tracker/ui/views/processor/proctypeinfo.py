@@ -18,6 +18,7 @@ from .filterproc import FilterProc
 from .forceproc import ForceProc
 from .freeverbproc import FreeverbProc
 from .gaincomp_proc import GainCompProc
+from .padsynthproc import PadsynthProc
 from .panningproc import PanningProc
 from .pitchproc import PitchProc
 from .ringmodproc import RingmodProc
@@ -35,6 +36,7 @@ _proc_classes = {
     'force':    ForceProc,
     'freeverb': FreeverbProc,
     'gaincomp': GainCompProc,
+    'padsynth': PadsynthProc,
     'panning':  PanningProc,
     'pitch':    PitchProc,
     'ringmod':  RingmodProc,
