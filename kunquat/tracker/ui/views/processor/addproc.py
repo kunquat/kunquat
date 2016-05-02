@@ -169,15 +169,16 @@ class WaveformEditor(QWidget):
 
     def _update_all(self):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        base_wave = add_params.get_base_wave()
 
-        selected_base_func = add_params.get_waveform_func()
+        selected_base_func = base_wave.get_waveform_func()
         enable_warps = (selected_base_func != None)
 
         self._prewarp_list.setEnabled(enable_warps)
 
         old_block = self._base_func_selector.blockSignals(True)
         self._base_func_selector.clear()
-        func_names = add_params.get_waveform_func_names()
+        func_names = base_wave.get_waveform_func_names()
         for i, name in enumerate(func_names):
             self._base_func_selector.addItem(name)
             if name == selected_base_func:
@@ -189,12 +190,13 @@ class WaveformEditor(QWidget):
 
         self._postwarp_list.setEnabled(enable_warps)
 
-        self._waveform.set_waveform(add_params.get_waveform())
+        self._waveform.set_waveform(base_wave.get_waveform())
 
     def _base_func_selected(self, index):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
-        func_names = add_params.get_waveform_func_names()
-        add_params.set_waveform_func(func_names[index])
+        base_wave = add_params.get_base_wave()
+        func_names = base_wave.get_waveform_func_names()
+        base_wave.set_waveform_func(func_names[index])
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
@@ -237,9 +239,10 @@ class WarpList(EditorList):
 
     def _get_updated_editor_count(self):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
-        count = add_params.get_warp_func_count(self._warp_type)
+        base_wave = add_params.get_base_wave()
+        count = base_wave.get_warp_func_count(self._warp_type)
 
-        max_count_reached = (count >= add_params.get_max_warp_func_count())
+        max_count_reached = (count >= base_wave.get_max_warp_func_count())
         self._adder.setVisible(not max_count_reached)
 
         return count
@@ -269,8 +272,9 @@ class WarpList(EditorList):
         self.update_list()
 
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
-        warp_count = add_params.get_warp_func_count(self._warp_type)
-        max_count_reached = (warp_count >= add_params.get_max_warp_func_count())
+        base_wave = add_params.get_base_wave()
+        warp_count = base_wave.get_warp_func_count(self._warp_type)
+        max_count_reached = (warp_count >= base_wave.get_max_warp_func_count())
         self._adder.setVisible(not max_count_reached)
 
 
@@ -307,7 +311,8 @@ class WarpAdder(QPushButton):
 
     def _add_warp(self):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
-        add_params.add_warp_func(self._warp_type)
+        base_wave = add_params.get_base_wave()
+        base_wave.add_warp_func(self._warp_type)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
@@ -372,8 +377,9 @@ class WarpEditor(QWidget):
         self._updater.register_updater(self._perform_updates)
 
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        base_wave = add_params.get_base_wave()
 
-        func_names = add_params.get_warp_func_names(self._warp_type)
+        func_names = base_wave.get_warp_func_names(self._warp_type)
         old_block = self._func_selector.blockSignals(True)
         self._func_selector.clear()
         for name in func_names:
@@ -404,8 +410,9 @@ class WarpEditor(QWidget):
 
     def _update_all(self):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        base_wave = add_params.get_base_wave()
 
-        warp_func_count = add_params.get_warp_func_count(self._warp_type)
+        warp_func_count = base_wave.get_warp_func_count(self._warp_type)
 
         if self._index >= warp_func_count:
             # We have been removed
@@ -413,7 +420,7 @@ class WarpEditor(QWidget):
 
         self._down_button.setEnabled(self._index < warp_func_count - 1)
 
-        name, arg = add_params.get_warp_func(self._warp_type, self._index)
+        name, arg = base_wave.get_warp_func(self._warp_type, self._index)
 
         old_block = self._func_selector.blockSignals(True)
         for i in range(self._func_selector.count()):
@@ -431,19 +438,22 @@ class WarpEditor(QWidget):
 
     def _moved_down(self):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
-        add_params.move_warp_func(self._warp_type, self._index, self._index + 1)
+        base_wave = add_params.get_base_wave()
+        base_wave.move_warp_func(self._warp_type, self._index, self._index + 1)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _moved_up(self):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
-        add_params.move_warp_func(self._warp_type, self._index, self._index - 1)
+        base_wave = add_params.get_base_wave()
+        base_wave.move_warp_func(self._warp_type, self._index, self._index - 1)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _set_warp(self):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        base_wave = add_params.get_base_wave()
         name = str(self._func_selector.currentText())
         arg = self._slider.value() / float(self._ARG_SCALE)
-        add_params.set_warp_func(self._warp_type, self._index, name, arg)
+        base_wave.set_warp_func(self._warp_type, self._index, name, arg)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _func_selected(self, index):
@@ -454,7 +464,8 @@ class WarpEditor(QWidget):
 
     def _removed(self):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
-        add_params.remove_warp_func(self._warp_type, self._index)
+        base_wave = add_params.get_base_wave()
+        base_wave.remove_warp_func(self._warp_type, self._index)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
