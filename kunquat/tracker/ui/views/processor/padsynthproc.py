@@ -138,6 +138,7 @@ class BandwidthEditor(QWidget):
         self._updater = None
 
         self._base = BandwidthBaseEditor()
+        self._scale = BandwidthScaleEditor()
 
         g = QGridLayout()
         g.setContentsMargins(0, 0, 0, 0)
@@ -145,18 +146,24 @@ class BandwidthEditor(QWidget):
         g.setVerticalSpacing(0)
         g.addWidget(QLabel('Bandwidth base:'), 0, 0)
         g.addWidget(self._base, 0, 1)
+        g.addWidget(QLabel('Bandwidth scale:'), 1, 0)
+        g.addWidget(self._scale, 1, 1)
         self.setLayout(g)
 
     def set_au_id(self, au_id):
         self._base.set_au_id(au_id)
+        self._scale.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._base.set_proc_id(proc_id)
+        self._scale.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._base.set_ui_model(ui_model)
+        self._scale.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._scale.unregister_updaters()
         self._base.unregister_updaters()
 
 
@@ -176,6 +183,25 @@ class BandwidthBaseEditor(ProcNumSlider):
 
     def _value_changed(self, bandwidth):
         self._get_params().set_bandwidth_base(bandwidth)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+
+class BandwidthScaleEditor(ProcNumSlider):
+
+    def __init__(self):
+        super().__init__(2, 1.0, 10.0)
+
+    def _get_update_signal_type(self):
+        return 'signal_padsynth_{}'.format(self._proc_id)
+
+    def _get_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_value(self):
+        self.set_number(self._get_params().get_bandwidth_scale())
+
+    def _value_changed(self, scale):
+        self._get_params().set_bandwidth_scale(scale)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 

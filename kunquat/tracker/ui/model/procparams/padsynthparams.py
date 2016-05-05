@@ -78,6 +78,9 @@ class PadsynthParams(ProcParams):
 
     _DEFAULT_AUDIO_RATE = 48000
 
+    _DEFAULT_BANDWIDTH_BASE = 0.1
+    _DEFAULT_BANDWIDTH_SCALE = 1
+
     @staticmethod
     def get_default_signal_type():
         return 'voice'
@@ -96,9 +99,11 @@ class PadsynthParams(ProcParams):
 
     def _get_applied_params(self):
         ret = {
-            'sample_length': self._DEFAULT_SAMPLE_LENGTH,
-            'audio_rate'   : self._DEFAULT_AUDIO_RATE,
-            'harmonics'    : [[1, 1, 1]],
+            'sample_length'  : self._DEFAULT_SAMPLE_LENGTH,
+            'audio_rate'     : self._DEFAULT_AUDIO_RATE,
+            'bandwidth_base' : self._DEFAULT_BANDWIDTH_BASE,
+            'bandwidth_scale': self._DEFAULT_BANDWIDTH_SCALE,
+            'harmonics'      : [[1, 1]],
         }
         stored = self._get_value('p_ps_params.json', {})
         ret.update(stored)
@@ -153,6 +158,7 @@ class PadsynthParams(ProcParams):
 
     def _update_harmonics(self):
         bw_base = self.get_bandwidth_base()
+        bw_scale = self.get_bandwidth_scale()
 
         waveform = self._get_harmonics_wave_data()
         if waveform:
@@ -163,20 +169,18 @@ class PadsynthParams(ProcParams):
                     fr = waveform[i]
                     fi = waveform[-i]
                     amplitude = math.sqrt(fr * fr + fi * fi)
-                    bandwidth = bw_base # TODO: scaling
-                    hl.append([i * freq_mult, amplitude * amp_mult, bandwidth])
+                    hl.append([i * freq_mult, amplitude * amp_mult])
         else:
             hl = []
             for freq_mult, amp_mult in self._get_harmonic_scales_data():
-                bandwidth = bw_base # TODO: scaling
-                hl.append([freq_mult, amp_mult, bandwidth])
+                hl.append([freq_mult, amp_mult])
 
         self._set_value('i_harmonics.json', hl)
 
     def _get_harmonics_data(self):
         hl = self._get_value('i_harmonics.json', [])
         if not hl:
-            hl = [[1, 1, 1]]
+            hl = [[1, 1]]
         return hl
 
     def _get_harmonic_scales_data(self):
@@ -200,11 +204,20 @@ class PadsynthParams(ProcParams):
         self._set_value('i_bandwidth_base.json', cents)
         self._update_harmonics()
 
+    def get_bandwidth_scale(self):
+        return self._get_value('i_bandwidth_scale.json', 1)
+
+    def set_bandwidth_scale(self, scale):
+        self._set_value('i_bandwidth_scale.json', scale)
+        self._update_harmonics()
+
     def _get_config_params(self):
         return {
-            'sample_length': self.get_sample_length(),
-            'audio_rate'   : self.get_audio_rate(),
-            'harmonics'    : self._get_harmonics_data(),
+            'sample_length'  : self.get_sample_length(),
+            'audio_rate'     : self.get_audio_rate(),
+            'harmonics'      : self._get_harmonics_data(),
+            'bandwidth_base' : self.get_bandwidth_base(),
+            'bandwidth_scale': self.get_bandwidth_scale(),
         }
 
     def is_config_applied(self):
