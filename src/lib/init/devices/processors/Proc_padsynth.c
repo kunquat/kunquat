@@ -151,9 +151,16 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
     {
         static const double freq = 440; // TODO: add multi-sample support
 
+        const int32_t nyquist = audio_rate / 2;
+
         for (size_t h = 0; h < Vector_size(params->harmonics); ++h)
         {
             const Padsynth_harmonic* harmonic = Vector_get_ref(params->harmonics, h);
+
+            // Skip harmonics that are not representable
+            // NOTE: this only considers the center frequency
+            if (freq * harmonic->freq_mul >= nyquist)
+                continue;
 
             const double bandwidth_Hz =
                 (exp2(harmonic->bandwidth / 1200.0) - 1.0) * freq;
