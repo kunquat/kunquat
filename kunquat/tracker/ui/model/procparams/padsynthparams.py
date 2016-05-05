@@ -152,6 +152,8 @@ class PadsynthParams(ProcParams):
                 self._set_harmonics_wave_data)
 
     def _update_harmonics(self):
+        bw_base = self.get_bandwidth_base()
+
         waveform = self._get_harmonics_wave_data()
         if waveform:
             rfft(waveform)
@@ -161,12 +163,13 @@ class PadsynthParams(ProcParams):
                     fr = waveform[i]
                     fi = waveform[-i]
                     amplitude = math.sqrt(fr * fr + fi * fi)
-                    bandwidth = 1 # TODO
+                    bandwidth = bw_base # TODO: scaling
                     hl.append([i * freq_mult, amplitude * amp_mult, bandwidth])
         else:
             hl = []
             for freq_mult, amp_mult in self._get_harmonic_scales_data():
-                hl.append([freq_mult, amp_mult, 1])
+                bandwidth = bw_base # TODO: scaling
+                hl.append([freq_mult, amp_mult, bandwidth])
 
         self._set_value('i_harmonics.json', hl)
 
@@ -189,6 +192,13 @@ class PadsynthParams(ProcParams):
     def get_harmonic_scales(self):
         return HarmonicScales(
                 self._get_harmonic_scales_data, self._set_harmonic_scales_data)
+
+    def get_bandwidth_base(self):
+        return self._get_value('i_bandwidth_base.json', 1)
+
+    def set_bandwidth_base(self, cents):
+        self._set_value('i_bandwidth_base.json', cents)
+        self._update_harmonics()
 
     def _get_config_params(self):
         return {

@@ -34,6 +34,7 @@ class PadsynthProc(QWidget):
         super().__init__()
 
         self._apply_button = ApplyButton()
+        self._bandwidth = BandwidthEditor()
         self._harmonics_base = HarmonicsBaseEditor()
         self._harmonic_scales = HarmonicScales()
 
@@ -41,28 +42,33 @@ class PadsynthProc(QWidget):
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(4)
         v.addWidget(self._apply_button)
+        v.addWidget(self._bandwidth)
         v.addWidget(self._harmonics_base)
         v.addWidget(self._harmonic_scales)
         self.setLayout(v)
 
     def set_au_id(self, au_id):
         self._apply_button.set_au_id(au_id)
+        self._bandwidth.set_au_id(au_id)
         self._harmonics_base.set_au_id(au_id)
         self._harmonic_scales.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._apply_button.set_proc_id(proc_id)
+        self._bandwidth.set_proc_id(proc_id)
         self._harmonics_base.set_proc_id(proc_id)
         self._harmonic_scales.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._apply_button.set_ui_model(ui_model)
+        self._bandwidth.set_ui_model(ui_model)
         self._harmonics_base.set_ui_model(ui_model)
         self._harmonic_scales.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._harmonic_scales.unregister_updaters()
         self._harmonics_base.unregister_updaters()
+        self._bandwidth.unregister_updaters()
         self._apply_button.unregister_updaters()
 
 
@@ -119,6 +125,57 @@ class ApplyButton(QPushButton):
     def _apply_params(self):
         params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         params.apply_config()
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+
+class BandwidthEditor(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        self._au_id = None
+        self._proc_id = None
+        self._ui_model = None
+        self._updater = None
+
+        self._base = BandwidthBaseEditor()
+
+        g = QGridLayout()
+        g.setContentsMargins(0, 0, 0, 0)
+        g.setHorizontalSpacing(2)
+        g.setVerticalSpacing(0)
+        g.addWidget(QLabel('Bandwidth base:'), 0, 0)
+        g.addWidget(self._base, 0, 1)
+        self.setLayout(g)
+
+    def set_au_id(self, au_id):
+        self._base.set_au_id(au_id)
+
+    def set_proc_id(self, proc_id):
+        self._base.set_proc_id(proc_id)
+
+    def set_ui_model(self, ui_model):
+        self._base.set_ui_model(ui_model)
+
+    def unregister_updaters(self):
+        self._base.unregister_updaters()
+
+
+class BandwidthBaseEditor(ProcNumSlider):
+
+    def __init__(self):
+        super().__init__(1, 0.1, 1200.0)
+
+    def _get_update_signal_type(self):
+        return 'signal_padsynth_{}'.format(self._proc_id)
+
+    def _get_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_value(self):
+        self.set_number(self._get_params().get_bandwidth_base())
+
+    def _value_changed(self, bandwidth):
+        self._get_params().set_bandwidth_base(bandwidth)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
