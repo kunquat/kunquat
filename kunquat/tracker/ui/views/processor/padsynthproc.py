@@ -412,7 +412,7 @@ class HarmonicScaleEditor(QWidget):
         if self._index >= scales.get_count():
             return
 
-        scales.remove_harmonic(self._index)
+        scales.remove_scale(self._index)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
