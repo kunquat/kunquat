@@ -33,6 +33,7 @@ class PadsynthProc(QWidget):
     def __init__(self):
         super().__init__()
 
+        self._playback_params = PlaybackParams()
         self._apply_button = ApplyButton()
         self._bandwidth = BandwidthEditor()
         self._harmonics_base = HarmonicsBaseEditor()
@@ -41,6 +42,7 @@ class PadsynthProc(QWidget):
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(4)
+        v.addWidget(self._playback_params)
         v.addWidget(self._apply_button)
         v.addWidget(self._bandwidth)
         v.addWidget(self._harmonics_base)
@@ -48,18 +50,21 @@ class PadsynthProc(QWidget):
         self.setLayout(v)
 
     def set_au_id(self, au_id):
+        self._playback_params.set_au_id(au_id)
         self._apply_button.set_au_id(au_id)
         self._bandwidth.set_au_id(au_id)
         self._harmonics_base.set_au_id(au_id)
         self._harmonic_scales.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
+        self._playback_params.set_proc_id(proc_id)
         self._apply_button.set_proc_id(proc_id)
         self._bandwidth.set_proc_id(proc_id)
         self._harmonics_base.set_proc_id(proc_id)
         self._harmonic_scales.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
+        self._playback_params.set_ui_model(ui_model)
         self._apply_button.set_ui_model(ui_model)
         self._bandwidth.set_ui_model(ui_model)
         self._harmonics_base.set_ui_model(ui_model)
@@ -70,6 +75,67 @@ class PadsynthProc(QWidget):
         self._harmonics_base.unregister_updaters()
         self._bandwidth.unregister_updaters()
         self._apply_button.unregister_updaters()
+        self._playback_params.unregister_updaters()
+
+
+class PlaybackParams(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        self._au_id = None
+        self._proc_id = None
+        self._ui_model = None
+        self._updater = None
+
+        self._ramp_attack = QCheckBox('Ramp attack')
+
+        h = QHBoxLayout()
+        h.setContentsMargins(0, 0, 0, 0)
+        h.setSpacing(4)
+        h.addWidget(self._ramp_attack)
+        h.addStretch(1)
+        self.setLayout(h)
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(
+                self._ramp_attack, SIGNAL('stateChanged(int)'), self._toggle_ramp_attack)
+
+        self._update_all()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _get_update_signal_type(self):
+        return 'signal_padsynth_rt_{}'.format(self._proc_id)
+
+    def _perform_updates(self, signals):
+        update_signals = set(['signal_au', self._get_update_signal_type()])
+        if not signals.isdisjoint(update_signals):
+            self._update_all()
+
+    def _update_all(self):
+        params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+        old_block = self._ramp_attack.blockSignals(True)
+        self._ramp_attack.setCheckState(
+                Qt.Checked if params.get_ramp_attack_enabled() else Qt.Unchecked)
+        self._ramp_attack.blockSignals(old_block)
+
+    def _toggle_ramp_attack(self, state):
+        enabled = (state == Qt.Checked)
+        params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        params.set_ramp_attack_enabled(enabled)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
 class ApplyButton(QPushButton):

@@ -229,6 +229,12 @@ class PadsynthParams(ProcParams):
         new_params = deepcopy(self._get_config_params())
         self._set_value('p_ps_params.json', new_params)
 
+    def get_ramp_attack_enabled(self):
+        return self._get_value('p_b_ramp_attack.json', True)
+
+    def set_ramp_attack_enabled(self, enabled):
+        self._set_value('p_b_ramp_attack.json', enabled)
+
 
 class HarmonicScales():
 
