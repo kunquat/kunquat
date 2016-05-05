@@ -21,6 +21,7 @@ from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from . import utils
 from .procnumslider import ProcNumSlider
+from .waveformeditor import WaveformEditor
 
 
 class PadsynthProc(QWidget):
@@ -33,29 +34,35 @@ class PadsynthProc(QWidget):
         super().__init__()
 
         self._apply_button = ApplyButton()
-        self._harmonics = Harmonics()
+        self._harmonics_base = HarmonicsBaseEditor()
+        #self._harmonics = Harmonics()
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(4)
         v.addWidget(self._apply_button)
-        v.addWidget(self._harmonics)
+        v.addWidget(self._harmonics_base)
+        #v.addWidget(self._harmonics)
         self.setLayout(v)
 
     def set_au_id(self, au_id):
         self._apply_button.set_au_id(au_id)
-        self._harmonics.set_au_id(au_id)
+        self._harmonics_base.set_au_id(au_id)
+        #self._harmonics.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._apply_button.set_proc_id(proc_id)
-        self._harmonics.set_proc_id(proc_id)
+        self._harmonics_base.set_proc_id(proc_id)
+        #self._harmonics.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._apply_button.set_ui_model(ui_model)
-        self._harmonics.set_ui_model(ui_model)
+        self._harmonics_base.set_ui_model(ui_model)
+        #self._harmonics.set_ui_model(ui_model)
 
     def unregister_updaters(self):
-        self._harmonics.unregister_updaters()
+        #self._harmonics.unregister_updaters()
+        self._harmonics_base.unregister_updaters()
         self._apply_button.unregister_updaters()
 
 
@@ -113,6 +120,17 @@ class ApplyButton(QPushButton):
         params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         params.apply_config()
         self._updater.signal_update(set([self._get_update_signal_type()]))
+
+
+class HarmonicsBaseEditor(WaveformEditor):
+
+    def _get_update_signal_type(self):
+        return 'signal_padsynth_{}'.format(self._proc_id)
+
+    def _get_base_wave(self):
+        params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        base_wave = params.get_harmonics_wave()
+        return base_wave
 
 
 class HarmonicsList(EditorList):

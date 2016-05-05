@@ -11,9 +11,63 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import math
 from copy import deepcopy
 
+from kunquat.extras.sndfile import SndFileRMem, SndFileWMem
+
+from .basewave import BaseWave
 from .procparams import ProcParams
+
+
+def bit_reversal_permute(data):
+    bit_count = int(round(math.log(len(data), 2)))
+    assert bit_count < 32
+
+    def reverse_bits(n):
+        n = ((n & 0xaaaaaaaa) >> 1) | ((n & 0x55555555) << 1)
+        n = ((n & 0xcccccccc) >> 2) | ((n & 0x33333333) << 2)
+        n = ((n & 0xf0f0f0f0) >> 4) | ((n & 0x0f0f0f0f) << 4)
+        n = ((n & 0xff00ff00) >> 8) | ((n & 0x00ff00ff) << 8)
+        n = ((n & 0xffff0000) >> 16) | ((n & 0x0000ffff) << 16)
+        return n >> (32 - bit_count)
+
+    for i in range(len(data)):
+        rev_i = reverse_bits(i)
+        if rev_i > i:
+            data[i], data[rev_i] = data[rev_i], data[i]
+
+
+def W(index, count):
+    u = 2 * math.pi * index / count
+    return complex(math.cos(u), math.sin(u))
+
+
+def rfft(data):
+    bit_reversal_permute(data)
+
+    bit_count = int(round(math.log(len(data), 2)))
+    for i in range(1, bit_count + 1):
+        p_i = 1 << i
+        p_im1 = p_i >> 1
+        q_i = len(data) // p_i
+
+        for b in range(q_i):
+            ix0 = b * p_i
+            ix1 = b * p_i + p_im1
+            data[ix0], data[ix1] = data[ix0] + data[ix1], data[ix0] - data[ix1]
+
+        for a in range(1, p_im1 >> 1):
+            for b in range(q_i):
+                bp_i = b * p_i
+
+                z0 = complex(data[bp_i + a], data[bp_i + p_im1 - a])
+                z1 = complex(data[bp_i + p_im1 + a], data[bp_i + p_i - a])
+                Wa_p_iz1 = W(a, p_i) * z1
+                t0 = z0 + Wa_p_iz1
+                t1 = z0 - Wa_p_iz1
+                data[bp_i + a], data[bp_i + p_i - a] = t0.real, t0.imag
+                data[bp_i + p_im1 - a], data[bp_i + p_im1 + a] = t1.real, -t1.imag
 
 
 class PadsynthParams(ProcParams):
@@ -62,17 +116,70 @@ class PadsynthParams(ProcParams):
     def set_audio_rate(self, rate):
         self._set_value('i_audio_rate.json', rate)
 
+    def _get_harmonics_wave_def_data(self):
+        key = 'i_harmonics_base.json'
+        return self._get_value(key, None)
+
+    def _get_harmonics_wave_data(self):
+        key = 'i_harmonics_base.wav'
+        wav_data = self._get_value(key, None)
+        if not wav_data:
+            return None
+
+        sf = SndFileRMem(wav_data)
+        channels = sf.read()
+        waveform = channels[0]
+        sf.close()
+
+        return waveform
+
+    def _set_harmonics_wave_data(self, def_data, wave_data):
+        def_key = 'i_harmonics_base.json'
+        self._set_value(def_key, def_data)
+
+        waveform_key = 'i_harmonics_base.wav'
+        sf = SndFileWMem(channels=1, use_float=True, bits=32)
+        sf.write(wave_data)
+        sf.close()
+        self._set_value(waveform_key, bytes(sf.get_file_contents()))
+
+        self._update_harmonics()
+
+    def get_harmonics_wave(self):
+        return BaseWave(
+                self._get_harmonics_wave_def_data,
+                self._get_harmonics_wave_data,
+                self._set_harmonics_wave_data)
+
+    def _update_harmonics(self):
+        waveform = self._get_harmonics_wave_data()
+        if waveform:
+            rfft(waveform)
+            hl = []
+            for i in range(1, len(waveform) // 2):
+                fr = waveform[i]
+                fi = waveform[-i]
+                amplitude = math.sqrt(fr * fr + fi * fi)
+                bandwidth = 1 # TODO
+                hl.append([i, amplitude, bandwidth])
+        else:
+            hl = [[1, 1, 1]]
+
+        self._set_value('i_harmonics.json', hl)
+
     def _get_harmonics_data(self):
         hl = self._get_value('i_harmonics.json', [])
         if not hl:
             hl = [[1, 1, 1]]
         return hl
 
+    '''
     def _set_harmonics_data(self, data):
         self._set_value('i_harmonics.json', data)
 
     def get_harmonics(self):
         return PadsynthHarmonics(self._get_harmonics_data, self._set_harmonics_data)
+    '''
 
     def _get_config_params(self):
         return {
