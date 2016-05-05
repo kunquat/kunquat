@@ -35,33 +35,33 @@ class PadsynthProc(QWidget):
 
         self._apply_button = ApplyButton()
         self._harmonics_base = HarmonicsBaseEditor()
-        #self._harmonics = Harmonics()
+        self._harmonic_scales = HarmonicScales()
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(4)
         v.addWidget(self._apply_button)
         v.addWidget(self._harmonics_base)
-        #v.addWidget(self._harmonics)
+        v.addWidget(self._harmonic_scales)
         self.setLayout(v)
 
     def set_au_id(self, au_id):
         self._apply_button.set_au_id(au_id)
         self._harmonics_base.set_au_id(au_id)
-        #self._harmonics.set_au_id(au_id)
+        self._harmonic_scales.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._apply_button.set_proc_id(proc_id)
         self._harmonics_base.set_proc_id(proc_id)
-        #self._harmonics.set_proc_id(proc_id)
+        self._harmonic_scales.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._apply_button.set_ui_model(ui_model)
         self._harmonics_base.set_ui_model(ui_model)
-        #self._harmonics.set_ui_model(ui_model)
+        self._harmonic_scales.set_ui_model(ui_model)
 
     def unregister_updaters(self):
-        #self._harmonics.unregister_updaters()
+        self._harmonic_scales.unregister_updaters()
         self._harmonics_base.unregister_updaters()
         self._apply_button.unregister_updaters()
 
@@ -133,7 +133,7 @@ class HarmonicsBaseEditor(WaveformEditor):
         return base_wave
 
 
-class HarmonicsList(EditorList):
+class HarmonicScalesList(EditorList):
 
     def __init__(self):
         super().__init__()
@@ -159,7 +159,7 @@ class HarmonicsList(EditorList):
         self._updater.unregister_updater(self._perform_updates)
 
     def _make_adder_widget(self):
-        adder = HarmonicAdder()
+        adder = HarmonicScaleAdder()
         adder.set_au_id(self._au_id)
         adder.set_proc_id(self._proc_id)
         adder.set_ui_model(self._ui_model)
@@ -167,11 +167,11 @@ class HarmonicsList(EditorList):
 
     def _get_updated_editor_count(self):
         params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
-        count = params.get_harmonics().get_count()
+        count = params.get_harmonic_scales().get_count()
         return count
 
     def _make_editor_widget(self, index):
-        editor = HarmonicEditor(index)
+        editor = HarmonicScaleEditor(index)
         editor.set_au_id(self._au_id)
         editor.set_proc_id(self._proc_id)
         editor.set_ui_model(self._ui_model)
@@ -195,7 +195,7 @@ class HarmonicsList(EditorList):
         self.update_list()
 
 
-class HarmonicAdder(QPushButton):
+class HarmonicScaleAdder(QPushButton):
 
     def __init__(self):
         super().__init__()
@@ -204,7 +204,7 @@ class HarmonicAdder(QPushButton):
         self._ui_model = None
         self._updater = None
 
-        self.setText('Add harmonic')
+        self.setText('Add harmonic scale')
 
     def set_au_id(self, au_id):
         self._au_id = au_id
@@ -227,12 +227,12 @@ class HarmonicAdder(QPushButton):
     def _add_harmonic(self):
         params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
-        harmonics = params.get_harmonics()
-        harmonics.append_harmonic()
+        scales = params.get_harmonic_scales()
+        scales.append_scale()
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
-class HarmonicEditor(QWidget):
+class HarmonicScaleEditor(QWidget):
 
     def __init__(self, index):
         super().__init__()
@@ -250,8 +250,6 @@ class HarmonicEditor(QWidget):
 
         self._amplitude = AmplitudeEditor(index)
 
-        self._bandwidth = BandwidthEditor(index)
-
         self._remove_button = QPushButton()
         self._remove_button.setStyleSheet('padding: 0 -2px;')
         self._remove_button.setEnabled(self._index != 0)
@@ -262,26 +260,22 @@ class HarmonicEditor(QWidget):
         h.addWidget(QLabel('Pitch factor:'))
         h.addWidget(self._pitch_factor)
         h.addWidget(self._amplitude)
-        h.addWidget(self._bandwidth)
         h.addWidget(self._remove_button)
         self.setLayout(h)
 
     def set_au_id(self, au_id):
         self._au_id = au_id
         self._amplitude.set_au_id(au_id)
-        self._bandwidth.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._proc_id = proc_id
         self._amplitude.set_proc_id(proc_id)
-        self._bandwidth.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
 
         self._amplitude.set_ui_model(ui_model)
-        self._bandwidth.set_ui_model(ui_model)
 
         icon_bank = self._ui_model.get_icon_bank()
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
@@ -296,7 +290,6 @@ class HarmonicEditor(QWidget):
         self.update_index(self._index)
 
     def unregister_updaters(self):
-        self._bandwidth.unregister_updaters()
         self._amplitude.unregister_updaters()
 
     def _get_params(self):
@@ -305,38 +298,38 @@ class HarmonicEditor(QWidget):
     def update_index(self, index):
         self._index = index
 
-        harmonics = self._get_params().get_harmonics()
-        if self._index >= harmonics.get_count():
+        scales = self._get_params().get_harmonic_scales()
+        if self._index >= scales.get_count():
             return
 
-        harmonic = harmonics.get_harmonic(self._index)
+        scale = scales.get_scale(self._index)
 
         old_block = self._pitch_factor.blockSignals(True)
-        new_pitch_factor = harmonic.get_freq_mul()
+        new_pitch_factor = scale.get_freq_mul()
         if new_pitch_factor != self._pitch_factor.value():
             self._pitch_factor.setValue(new_pitch_factor)
         self._pitch_factor.blockSignals(old_block)
 
-        self._remove_button.setEnabled(harmonics.get_count() > 1)
+        self._remove_button.setEnabled(scales.get_count() > 1)
 
     def _get_update_signal_type(self):
         return 'signal_padsynth_{}'.format(self._proc_id)
 
     def _change_pitch_factor(self, value):
-        harmonics = self._get_params().get_harmonics()
-        if self._index >= harmonics.get_count():
+        scales = self._get_params().get_harmonic_scales()
+        if self._index >= scales.get_count():
             return
 
-        harmonic = harmonics.get_harmonic(self._index)
-        harmonic.set_freq_mul(value)
+        scale = scales.get_scale(self._index)
+        scale.set_freq_mul(value)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _remove_harmonic(self):
-        harmonics = self._get_params().get_harmonics()
-        if self._index >= harmonics.get_count():
+        scales = self._get_params().get_harmonic_scales()
+        if self._index >= scales.get_count():
             return
 
-        harmonics.remove_harmonic(self._index)
+        scales.remove_harmonic(self._index)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
@@ -353,62 +346,32 @@ class AmplitudeEditor(ProcNumSlider):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
     def _update_value(self):
-        harmonics = self._get_params().get_harmonics()
-        if self._index >= harmonics.get_count():
+        scales = self._get_params().get_harmonic_scales()
+        if self._index >= scales.get_count():
             return
 
-        harmonic = harmonics.get_harmonic(self._index)
-        self.set_number(harmonic.get_amplitude())
+        scale = scales.get_scale(self._index)
+        self.set_number(scale.get_amplitude())
 
     def _value_changed(self, amplitude):
-        harmonics = self._get_params().get_harmonics()
-        if self._index >= harmonics.get_count():
+        scales = self._get_params().get_harmonic_scales()
+        if self._index >= scales.get_count():
             return
 
-        harmonic = harmonics.get_harmonic(self._index)
-        harmonic.set_amplitude(amplitude)
+        scale = scales.get_scale(self._index)
+        scale.set_amplitude(amplitude)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
-class BandwidthEditor(ProcNumSlider):
-
-    def __init__(self, index):
-        super().__init__(1, 0.1, 1200.0, title='Bandwidth:')
-        self._index = index
-
-    def _get_update_signal_type(self):
-        return 'signal_padsynth_{}'.format(self._proc_id)
-
-    def _get_params(self):
-        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
-
-    def _update_value(self):
-        harmonics = self._get_params().get_harmonics()
-        if self._index >= harmonics.get_count():
-            return
-
-        harmonic = harmonics.get_harmonic(self._index)
-        self.set_number(harmonic.get_bandwidth())
-
-    def _value_changed(self, bandwidth):
-        harmonics = self._get_params().get_harmonics()
-        if self._index >= harmonics.get_count():
-            return
-
-        harmonic = harmonics.get_harmonic(self._index)
-        harmonic.set_bandwidth(bandwidth)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
-
-
-class Harmonics(QWidget):
+class HarmonicScales(QWidget):
 
     def __init__(self):
         super().__init__()
 
-        self._editor = HarmonicsList()
+        self._editor = HarmonicScalesList()
 
         v = QVBoxLayout()
-        v.addWidget(HeaderLine('Harmonics'))
+        v.addWidget(HeaderLine('Harmonic scales'))
         v.addWidget(self._editor)
         self.setLayout(v)
 

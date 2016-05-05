@@ -156,14 +156,17 @@ class PadsynthParams(ProcParams):
         if waveform:
             rfft(waveform)
             hl = []
-            for i in range(1, len(waveform) // 2):
-                fr = waveform[i]
-                fi = waveform[-i]
-                amplitude = math.sqrt(fr * fr + fi * fi)
-                bandwidth = 1 # TODO
-                hl.append([i, amplitude, bandwidth])
+            for freq_mult, amp_mult in self._get_harmonic_scales_data():
+                for i in range(1, len(waveform) // 2):
+                    fr = waveform[i]
+                    fi = waveform[-i]
+                    amplitude = math.sqrt(fr * fr + fi * fi)
+                    bandwidth = 1 # TODO
+                    hl.append([i * freq_mult, amplitude * amp_mult, bandwidth])
         else:
-            hl = [[1, 1, 1]]
+            hl = []
+            for freq_mult, amp_mult in self._get_harmonic_scales_data():
+                hl.append([freq_mult, amp_mult, 1])
 
         self._set_value('i_harmonics.json', hl)
 
@@ -173,13 +176,19 @@ class PadsynthParams(ProcParams):
             hl = [[1, 1, 1]]
         return hl
 
-    '''
-    def _set_harmonics_data(self, data):
-        self._set_value('i_harmonics.json', data)
+    def _get_harmonic_scales_data(self):
+        mults = self._get_value('i_harmonic_scales.json', None)
+        if not mults:
+            return [[1, 1]]
+        return mults
 
-    def get_harmonics(self):
-        return PadsynthHarmonics(self._get_harmonics_data, self._set_harmonics_data)
-    '''
+    def _set_harmonic_scales_data(self, data):
+        self._set_value('i_harmonic_scales.json', data)
+        self._update_harmonics()
+
+    def get_harmonic_scales(self):
+        return HarmonicScales(
+                self._get_harmonic_scales_data, self._set_harmonic_scales_data)
 
     def _get_config_params(self):
         return {
@@ -198,7 +207,7 @@ class PadsynthParams(ProcParams):
         self._set_value('p_ps_params.json', new_params)
 
 
-class PadsynthHarmonics():
+class HarmonicScales():
 
     def __init__(self, get_data, set_data):
         self._get_data = get_data
@@ -208,30 +217,30 @@ class PadsynthHarmonics():
         data = self._get_data()
         return len(data)
 
-    def append_harmonic(self):
+    def append_scale(self):
         data = self._get_data()
-        data.append([1, 1, 1])
+        data.append([len(data) + 1, 1])
         self._set_data(data)
 
-    def remove_harmonic(self, index):
+    def remove_scale(self, index):
         data = self._get_data()
         del data[index]
         self._set_data(data)
 
-    def _get_harmonic_data(self, index):
+    def _get_scale_data(self, index):
         data = self._get_data()
         return data[index]
 
-    def _set_harmonic_data(self, index, hdata):
+    def _set_scale_data(self, index, hdata):
         data = self._get_data()
         data[index] = hdata
         self._set_data(data)
 
-    def get_harmonic(self, index):
-        return PadsynthHarmonic(index, self._get_harmonic_data, self._set_harmonic_data)
+    def get_scale(self, index):
+        return HarmonicScale(index, self._get_scale_data, self._set_scale_data)
 
 
-class PadsynthHarmonic():
+class HarmonicScale():
 
     def __init__(self, index, get_data, set_data):
         self._index = index
@@ -252,14 +261,6 @@ class PadsynthHarmonic():
     def set_amplitude(self, amplitude):
         data = self._get_data(self._index)
         data[1] = amplitude
-        self._set_data(self._index, data)
-
-    def get_bandwidth(self):
-        return self._get_data(self._index)[2]
-
-    def set_bandwidth(self, bandwidth):
-        data = self._get_data(self._index)
-        data[2] = bandwidth
         self._set_data(self._index, data)
 
 
