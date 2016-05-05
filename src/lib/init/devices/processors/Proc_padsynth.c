@@ -123,10 +123,14 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
 
     int32_t sample_length = PADSYNTH_DEFAULT_SAMPLE_LENGTH;
     int32_t audio_rate = PADSYNTH_DEFAULT_AUDIO_RATE;
+    double bandwidth_base = PADSYNTH_DEFAULT_BANDWIDTH_BASE;
+    double bandwidth_scale = PADSYNTH_DEFAULT_BANDWIDTH_SCALE;
     if (params != NULL)
     {
         sample_length = params->sample_length;
         audio_rate = params->audio_rate;
+        bandwidth_base = params->bandwidth_base;
+        bandwidth_scale = params->bandwidth_scale;
     }
 
     const int32_t buf_length = sample_length / 2;
@@ -163,7 +167,9 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
                 continue;
 
             const double bandwidth_Hz =
-                (exp2(harmonic->bandwidth / 1200.0) - 1.0) * freq;
+                (exp2(bandwidth_base / 1200.0) - 1.0) *
+                freq *
+                pow(harmonic->freq_mul, bandwidth_scale);
             const double bandwidth_i = bandwidth_Hz / (2.0 * audio_rate);
             const double freq_i = freq * harmonic->freq_mul / audio_rate;
 
@@ -178,8 +184,7 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
     else
     {
         static const double freq = 440;
-        static const double bandwidth_cents = 1;
-        const double bandwidth_Hz = (exp2(bandwidth_cents / 1200.0) - 1.0) * freq;
+        const double bandwidth_Hz = (exp2(bandwidth_base / 1200.0) - 1.0) * freq;
         const double bandwidth_i = bandwidth_Hz / (2.0 * audio_rate);
         const double freq_i = freq / audio_rate;
 

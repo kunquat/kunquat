@@ -28,12 +28,14 @@
 
 #define PADSYNTH_DEFAULT_AUDIO_RATE 48000
 
+#define PADSYNTH_DEFAULT_BANDWIDTH_BASE 0.1
+#define PADSYNTH_DEFAULT_BANDWIDTH_SCALE 1
+
 
 typedef struct Padsynth_harmonic
 {
     double freq_mul;
     double amplitude;
-    double bandwidth;
 } Padsynth_harmonic;
 
 
@@ -41,6 +43,8 @@ typedef struct Padsynth_params
 {
     int32_t sample_length;
     int32_t audio_rate;
+    double bandwidth_base;
+    double bandwidth_scale;
     Vector* harmonics;
 } Padsynth_params;
 

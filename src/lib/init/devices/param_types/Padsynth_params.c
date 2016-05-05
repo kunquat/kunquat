@@ -32,9 +32,8 @@ static bool read_harmonic(Streader* sr, int32_t index, void* userdata)
     Vector* harmonics = userdata;
 
     Padsynth_harmonic* info =
-        &(Padsynth_harmonic){ .freq_mul = NAN, .amplitude = NAN, .bandwidth = NAN };
-    if (!Streader_readf(
-                sr, "[%f,%f,%f]", &info->freq_mul, &info->amplitude, &info->bandwidth))
+        &(Padsynth_harmonic){ .freq_mul = NAN, .amplitude = NAN };
+    if (!Streader_readf(sr, "[%f,%f]", &info->freq_mul, &info->amplitude))
         return false;
 
     if (info->freq_mul <= 0)
@@ -47,12 +46,6 @@ static bool read_harmonic(Streader* sr, int32_t index, void* userdata)
     if (info->amplitude < 0)
     {
         Streader_set_error(sr, "PADsynth harmonic amplitude must be non-negative");
-        return false;
-    }
-
-    if (info->bandwidth <= 0)
-    {
-        Streader_set_error(sr, "PADsynth harmonic bandwidth must be positive");
         return false;
     }
 
@@ -116,6 +109,34 @@ static bool read_param(Streader* sr, const char* key, void* userdata)
 
         pp->audio_rate = rate;
     }
+    else if (string_eq(key, "bandwidth_base"))
+    {
+        double base = NAN;
+        if (!Streader_read_float(sr, &base))
+            return false;
+
+        if (base <= 0)
+        {
+            Streader_set_error(sr, "PADsynth bandwidth base must be positive");
+            return false;
+        }
+
+        pp->bandwidth_base = base;
+    }
+    else if (string_eq(key, "bandwidth_scale"))
+    {
+        double scale = NAN;
+        if (!Streader_read_float(sr, &scale))
+            return false;
+
+        if (scale < 1)
+        {
+            Streader_set_error(sr, "PADsynth bandwidth scale must be at least 1");
+            return false;
+        }
+
+        pp->bandwidth_scale = scale;
+    }
     else if (string_eq(key, "harmonics"))
     {
         if (!Streader_read_list(sr, read_harmonic, pp->harmonics))
@@ -158,6 +179,8 @@ Padsynth_params* new_Padsynth_params(Streader* sr)
 
     pp->sample_length = PADSYNTH_DEFAULT_SAMPLE_LENGTH;
     pp->audio_rate = PADSYNTH_DEFAULT_AUDIO_RATE;
+    pp->bandwidth_base = PADSYNTH_DEFAULT_BANDWIDTH_BASE;
+    pp->bandwidth_scale = PADSYNTH_DEFAULT_BANDWIDTH_SCALE;
 
     if (!Streader_read_dict(sr, read_param, pp))
     {
