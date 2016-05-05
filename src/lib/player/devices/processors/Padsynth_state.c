@@ -129,7 +129,6 @@ static int32_t Padsynth_vstate_render_voice(
 
     const double audio_rate = dstate->audio_rate;
 
-
     double pos = ps_vstate->pos;
 
     for (int32_t ch = 0; ch < 2; ++ch)
@@ -175,8 +174,11 @@ void Padsynth_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
     vstate->render_voice = Padsynth_vstate_render_voice;
 
+    const Proc_padsynth* ps = (const Proc_padsynth*)proc_state->parent.device->dimpl;
+    const int32_t sample_length = Sample_get_len(ps->sample);
+
     Padsynth_vstate* ps_vstate = (Padsynth_vstate*)vstate;
-    ps_vstate->pos = 0; // TODO: randomise
+    ps_vstate->pos = Random_get_index(vstate->rand_p, sample_length);
 
     return;
 }
