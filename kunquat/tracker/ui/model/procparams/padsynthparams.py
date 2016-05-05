@@ -235,6 +235,12 @@ class PadsynthParams(ProcParams):
     def set_ramp_attack_enabled(self, enabled):
         self._set_value('p_b_ramp_attack.json', enabled)
 
+    def get_stereo_enabled(self):
+        return self._get_value('p_b_stereo.json', False)
+
+    def set_stereo_enabled(self, enabled):
+        self._set_value('p_b_stereo.json', enabled)
+
 
 class HarmonicScales():
 

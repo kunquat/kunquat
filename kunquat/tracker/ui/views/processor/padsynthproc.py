@@ -88,11 +88,13 @@ class PlaybackParams(QWidget):
         self._updater = None
 
         self._ramp_attack = QCheckBox('Ramp attack')
+        self._stereo = QCheckBox('Stereo')
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
         h.addWidget(self._ramp_attack)
+        h.addWidget(self._stereo)
         h.addStretch(1)
         self.setLayout(h)
 
@@ -109,6 +111,8 @@ class PlaybackParams(QWidget):
 
         QObject.connect(
                 self._ramp_attack, SIGNAL('stateChanged(int)'), self._toggle_ramp_attack)
+        QObject.connect(
+                self._stereo, SIGNAL('stateChanged(int)'), self._toggle_stereo)
 
         self._update_all()
 
@@ -131,10 +135,21 @@ class PlaybackParams(QWidget):
                 Qt.Checked if params.get_ramp_attack_enabled() else Qt.Unchecked)
         self._ramp_attack.blockSignals(old_block)
 
+        old_block = self._stereo.blockSignals(True)
+        self._stereo.setCheckState(
+                Qt.Checked if params.get_stereo_enabled() else Qt.Unchecked)
+        self._stereo.blockSignals(old_block)
+
     def _toggle_ramp_attack(self, state):
         enabled = (state == Qt.Checked)
         params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         params.set_ramp_attack_enabled(enabled)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _toggle_stereo(self, state):
+        enabled = (state == Qt.Checked)
+        params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        params.set_stereo_enabled(enabled)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
