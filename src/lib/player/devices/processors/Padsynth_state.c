@@ -163,6 +163,9 @@ static int32_t Padsynth_vstate_render_voice(
 
     ps_vstate->pos = pos;
 
+    if (ps->is_ramp_attack_enabled)
+        Proc_ramp_attack(vstate, 2, out_bufs, buf_start, buf_stop, dstate->audio_rate);
+
     return buf_stop;
 }
 

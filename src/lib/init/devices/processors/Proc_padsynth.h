@@ -27,6 +27,7 @@ typedef struct Proc_padsynth
 
     Random* random;
     Sample* sample;
+    bool is_ramp_attack_enabled;
 } Proc_padsynth;
 
 
