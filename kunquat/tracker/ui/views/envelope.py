@@ -447,16 +447,16 @@ class Envelope(QWidget):
         focused = self._focused_loop_marker
 
         painter.setBrush(get_handle_colour(0))
-        painter.drawConvexPolygon(
+        painter.drawConvexPolygon(QPolygon([
                 QPoint(start_x - handle_size + 1, 0),
                 QPoint(start_x + handle_size, 0),
-                QPoint(start_x, handle_size))
+                QPoint(start_x, handle_size)]))
 
         painter.setBrush(get_handle_colour(1))
-        painter.drawConvexPolygon(
+        painter.drawConvexPolygon(QPolygon([
                 QPoint(end_x - handle_size, self._envelope_height),
                 QPoint(end_x + handle_size + 1, self._envelope_height),
-                QPoint(end_x, self._envelope_height - handle_size))
+                QPoint(end_x, self._envelope_height - handle_size)]))
 
         painter.restore()
 
