@@ -33,6 +33,7 @@
 
 static Set_padsynth_params_func Proc_padsynth_set_params;
 static Set_bool_func            Proc_padsynth_set_ramp_attack;
+static Set_bool_func            Proc_padsynth_set_stereo;
 
 static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* params);
 
@@ -48,6 +49,7 @@ Device_impl* new_Proc_padsynth(void)
     padsynth->random = NULL;
     padsynth->sample = NULL;
     padsynth->is_ramp_attack_enabled = true;
+    padsynth->is_stereo_enabled = false;
 
     if (!Device_impl_init(&padsynth->parent, del_Proc_padsynth))
     {
@@ -61,7 +63,9 @@ Device_impl* new_Proc_padsynth(void)
     if (!(REGISTER_SET_FIXED_STATE(
                 padsynth, padsynth_params, params, "p_ps_params.json", NULL) &&
             REGISTER_SET_FIXED_STATE(
-                padsynth, bool, ramp_attack, "p_b_ramp_attack.json", true)))
+                padsynth, bool, ramp_attack, "p_b_ramp_attack.json", true) &&
+            REGISTER_SET_FIXED_STATE(
+                padsynth, bool, stereo, "p_b_stereo.json", false)))
     {
         del_Device_impl(&padsynth->parent);
         return NULL;
@@ -122,6 +126,19 @@ static bool Proc_padsynth_set_ramp_attack(
 
     Proc_padsynth* padsynth = (Proc_padsynth*)dimpl;
     padsynth->is_ramp_attack_enabled = enabled;
+
+    return true;
+}
+
+
+static bool Proc_padsynth_set_stereo(
+        Device_impl* dimpl, const Key_indices indices, bool enabled)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+
+    Proc_padsynth* padsynth = (Proc_padsynth*)dimpl;
+    padsynth->is_stereo_enabled = enabled;
 
     return true;
 }

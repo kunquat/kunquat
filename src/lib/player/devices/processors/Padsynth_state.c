@@ -129,7 +129,8 @@ static int32_t Padsynth_vstate_render_voice(
 
     const double audio_rate = dstate->audio_rate;
 
-    double pos = ps_vstate->pos;
+    const double init_pos = ps_vstate->pos;
+    bool is_state_pos_updated = false;
 
     for (int32_t ch = 0; ch < 2; ++ch)
     {
@@ -137,7 +138,13 @@ static int32_t Padsynth_vstate_render_voice(
         if (out_buf == NULL)
             continue;
 
-        pos = ps_vstate->pos;
+        double pos = init_pos;
+        if (ps->is_stereo_enabled && is_state_pos_updated)
+        {
+            pos += (length / 2);
+            if (pos >= length)
+                pos -= length;
+        }
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
@@ -159,9 +166,14 @@ static int32_t Padsynth_vstate_render_voice(
             while (pos >= length)
                 pos -= length;
         }
+
+        if (!ps->is_stereo_enabled || !is_state_pos_updated)
+        {
+            ps_vstate->pos = pos;
+            is_state_pos_updated = true;
+        }
     }
 
-    ps_vstate->pos = pos;
 
     if (ps->is_ramp_attack_enabled)
         Proc_ramp_attack(vstate, 2, out_bufs, buf_start, buf_stop, dstate->audio_rate);
