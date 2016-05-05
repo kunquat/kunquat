@@ -206,11 +206,13 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
     // Set up frequencies in half-complex representation
     float* buf = Sample_get_buffer(padsynth->sample, 0);
 
+    buf[0] = 0;
     buf[buf_length] = 0;
-    for (int32_t i = 0; i < buf_length; ++i)
-        buf[i] = freq_amp[i] * cos(freq_phase[i]);
     for (int32_t i = 1; i < buf_length; ++i)
+    {
+        buf[i] = freq_amp[i] * cos(freq_phase[i]);
         buf[sample_length - i] = freq_amp[i] * sin(freq_phase[i]);
+    }
 
     // Apply IFFT
     irfft(buf, sample_length);
