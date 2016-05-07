@@ -31,6 +31,8 @@
 typedef struct Padsynth_vstate
 {
     Voice_state parent;
+
+    double init_pitch;
     double pos;
 } Padsynth_vstate;
 
@@ -76,10 +78,15 @@ static int32_t Padsynth_vstate_render_voice(
     assert(wbs != NULL);
     assert(tempo > 0);
 
+    if (buf_start == buf_stop)
+        return buf_start;
+
     const Device_state* dstate = &proc_state->parent;
 
+    Padsynth_vstate* ps_vstate = (Padsynth_vstate*)vstate;
+
     const Proc_padsynth* ps = (const Proc_padsynth*)dstate->device->dimpl;
-    if (ps->sample == NULL)
+    if (ps->sample_map == NULL)
     {
         vstate->active = false;
         return buf_start;
@@ -90,12 +97,18 @@ static int32_t Padsynth_vstate_render_voice(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
     if (freqs == NULL)
     {
+        if (isnan(ps_vstate->init_pitch))
+            ps_vstate->init_pitch = 0;
+
         freqs = Work_buffers_get_buffer_contents_mut(wbs, PADSYNTH_WB_FIXED_PITCH);
         for (int32_t i = buf_start; i < buf_stop; ++i)
             freqs[i] = 440;
     }
     else
     {
+        if (isnan(ps_vstate->init_pitch))
+            ps_vstate->init_pitch = freqs[buf_start];
+
         for (int32_t i = buf_start; i < buf_stop; ++i)
             freqs[i] = fast_cents_to_Hz(freqs[i]);
     }
@@ -120,16 +133,24 @@ static int32_t Padsynth_vstate_render_voice(
     Proc_state_get_voice_audio_out_buffers(
             proc_state, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_bufs);
 
-    Padsynth_vstate* ps_vstate = (Padsynth_vstate*)vstate;
+    // Choose our sample
+    const Padsynth_sample_entry* entry =
+        Padsynth_sample_map_get_entry(ps->sample_map, ps_vstate->init_pitch);
+    if (entry == NULL)
+    {
+        vstate->active = false;
+        return buf_start;
+    }
 
     // Render audio
-    const float* sample_buf = Sample_get_buffer(ps->sample, 0);
-    const int32_t length = Sample_get_len(ps->sample);
+    const float* sample_buf = Sample_get_buffer(entry->sample, 0);
+    const int32_t length = Padsynth_sample_map_get_sample_length(ps->sample_map);
     const int32_t sample_rate = PADSYNTH_DEFAULT_AUDIO_RATE;
+    const double sample_freq = cents_to_Hz(entry->center_pitch);
 
     const double audio_rate = dstate->audio_rate;
 
-    const double init_pos = ps_vstate->pos;
+    const double init_pos = fmod(ps_vstate->pos, length); // the length may have changed
     bool is_state_pos_updated = false;
 
     for (int32_t ch = 0; ch < 2; ++ch)
@@ -161,7 +182,7 @@ static int32_t Padsynth_vstate_render_voice(
 
             out_buf[i] = value * scale;
 
-            pos += (freq / 440.0) * (sample_rate / audio_rate);
+            pos += (freq / sample_freq) * (sample_rate / audio_rate);
 
             while (pos >= length)
                 pos -= length;
@@ -190,9 +211,10 @@ void Padsynth_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     vstate->render_voice = Padsynth_vstate_render_voice;
 
     const Proc_padsynth* ps = (const Proc_padsynth*)proc_state->parent.device->dimpl;
-    const int32_t sample_length = Sample_get_len(ps->sample);
+    const int32_t sample_length = Padsynth_sample_map_get_sample_length(ps->sample_map);
 
     Padsynth_vstate* ps_vstate = (Padsynth_vstate*)vstate;
+    ps_vstate->init_pitch = NAN;
     ps_vstate->pos = Random_get_index(vstate->rand_p, sample_length);
 
     return;

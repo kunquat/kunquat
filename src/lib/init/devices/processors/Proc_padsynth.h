@@ -20,13 +20,33 @@
 #include <init/devices/Device_impl.h>
 #include <mathnum/Random.h>
 
+#include <stdbool.h>
+#include <stdint.h>
+
+
+typedef struct Padsynth_sample_map Padsynth_sample_map;
+
+
+typedef struct Padsynth_sample_entry
+{
+    double center_pitch;
+    Sample* sample;
+} Padsynth_sample_entry;
+
+
+const Padsynth_sample_entry* Padsynth_sample_map_get_entry(
+        const Padsynth_sample_map* sm, double pitch);
+
+
+int32_t Padsynth_sample_map_get_sample_length(const Padsynth_sample_map* sm);
+
 
 typedef struct Proc_padsynth
 {
     Device_impl parent;
 
     Random* random;
-    Sample* sample;
+    Padsynth_sample_map* sample_map;
     bool is_ramp_attack_enabled;
     bool is_stereo_enabled;
 } Proc_padsynth;

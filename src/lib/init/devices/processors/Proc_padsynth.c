@@ -14,11 +14,13 @@
 
 #include <init/devices/processors/Proc_padsynth.h>
 
+#include <containers/AAtree.h>
 #include <containers/Vector.h>
 #include <debug/assert.h>
 #include <init/devices/param_types/Padsynth_params.h>
 #include <init/devices/processors/Proc_init_utils.h>
 #include <mathnum/common.h>
+#include <mathnum/conversions.h>
 #include <mathnum/irfft.h>
 #include <mathnum/Random.h>
 #include <memory.h>
@@ -40,6 +42,218 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
 static void del_Proc_padsynth(Device_impl* dimpl);
 
 
+struct Padsynth_sample_map
+{
+    int sample_count;
+    int32_t sample_length;
+    double min_pitch;
+    double max_pitch;
+    double center_pitch;
+    AAtree* map;
+};
+
+
+#define PADSYNTH_SAMPLE_ENTRY_KEY(pitch) \
+    (&(Padsynth_sample_entry){ .center_pitch = pitch, .sample = NULL })
+
+
+static int Padsynth_sample_entry_cmp(
+        const Padsynth_sample_entry* entry1, const Padsynth_sample_entry* entry2)
+{
+    assert(entry1 != NULL);
+    assert(entry2 != NULL);
+
+    if (entry1->center_pitch < entry2->center_pitch)
+        return -1;
+    else if (entry1->center_pitch > entry2->center_pitch)
+        return 1;
+    return 0;
+}
+
+
+static void del_Padsynth_sample_entry(Padsynth_sample_entry* entry)
+{
+    if (entry == NULL)
+        return;
+
+    del_Sample(entry->sample);
+    memory_free(entry);
+
+    return;
+}
+
+
+static void del_Padsynth_sample_map(Padsynth_sample_map* sm);
+
+
+static Padsynth_sample_map* new_Padsynth_sample_map(
+        int sample_count,
+        int32_t sample_length,
+        double min_pitch,
+        double max_pitch,
+        double center_pitch)
+{
+    assert(sample_count > 0);
+    assert(sample_count <= 128);
+    assert(sample_length >= PADSYNTH_MIN_SAMPLE_LENGTH);
+    assert(sample_length <= PADSYNTH_MAX_SAMPLE_LENGTH);
+    assert(is_p2(sample_length));
+    assert(isfinite(min_pitch));
+    assert(isfinite(max_pitch));
+    assert(min_pitch <= max_pitch);
+    assert(isfinite(center_pitch));
+
+    Padsynth_sample_map* sm = memory_alloc_item(Padsynth_sample_map);
+    if (sm == NULL)
+        return NULL;
+
+    sm->sample_count = sample_count;
+    sm->sample_length = sample_length;
+    sm->min_pitch = min_pitch;
+    sm->max_pitch = max_pitch;
+    sm->center_pitch = center_pitch;
+    sm->map = NULL;
+
+    sm->map = new_AAtree(
+            (int (*)(const void*, const void*))Padsynth_sample_entry_cmp,
+            (void (*)(void*))del_Padsynth_sample_entry);
+    if (sm->map == NULL)
+    {
+        del_Padsynth_sample_map(sm);
+        return NULL;
+    }
+
+    for (int i = 0; i < sample_count; ++i)
+    {
+        float* buf = memory_alloc_items(float, sample_length + 1);
+        if (buf == NULL)
+        {
+            del_Padsynth_sample_map(sm);
+            return NULL;
+        }
+
+        Sample* sample = new_Sample_from_buffers(&buf, 1, sample_length + 1);
+        if (sample == NULL)
+        {
+            memory_free(buf);
+            del_Padsynth_sample_map(sm);
+            return NULL;
+        }
+
+        Padsynth_sample_entry* entry = memory_alloc_item(Padsynth_sample_entry);
+        if (entry == NULL)
+        {
+            del_Sample(sample);
+            del_Padsynth_sample_map(sm);
+            return NULL;
+        }
+
+        if (sample_count > 1)
+            entry->center_pitch =
+                lerp(min_pitch, max_pitch, i / (float)(sample_count - 1));
+        else
+            entry->center_pitch = (min_pitch + max_pitch) * 0.5;
+
+        entry->sample = sample;
+
+        if (!AAtree_ins(sm->map, entry))
+        {
+            del_Padsynth_sample_entry(entry);
+            del_Padsynth_sample_map(sm);
+            return NULL;
+        }
+    }
+
+    return sm;
+}
+
+
+static void Padsynth_sample_map_set_center_pitch(
+        Padsynth_sample_map* sm, double center_pitch)
+{
+    assert(sm != NULL);
+    assert(isfinite(center_pitch));
+
+    sm->center_pitch = center_pitch;
+
+    return;
+}
+
+
+static void Padsynth_sample_map_set_pitch_range(
+        Padsynth_sample_map* sm, double min_pitch, double max_pitch)
+{
+    assert(sm != NULL);
+    assert(isfinite(min_pitch));
+    assert(isfinite(max_pitch));
+    assert(min_pitch <= max_pitch);
+
+    if (sm->min_pitch == min_pitch && sm->max_pitch == max_pitch)
+        return;
+
+    sm->min_pitch = min_pitch;
+    sm->max_pitch = max_pitch;
+
+    AAiter* iter = AAITER_AUTO;
+    AAiter_change_tree(iter, sm->map);
+
+    const Padsynth_sample_entry* key = PADSYNTH_SAMPLE_ENTRY_KEY(-INFINITY);
+    Padsynth_sample_entry* entry = AAiter_get_at_least(iter, key);
+    for (int i = 0; i < sm->sample_count; ++i)
+    {
+        assert(entry != NULL);
+        entry->center_pitch =
+            lerp(min_pitch, max_pitch, i / (float)(sm->sample_count - 1));
+
+        entry = AAiter_get_next(iter);
+    }
+
+    assert(entry == NULL);
+
+    return;
+}
+
+
+const Padsynth_sample_entry* Padsynth_sample_map_get_entry(
+        const Padsynth_sample_map* sm, double pitch)
+{
+    assert(sm != NULL);
+    assert(isfinite(pitch));
+
+    const Padsynth_sample_entry* key = PADSYNTH_SAMPLE_ENTRY_KEY(pitch);
+    const Padsynth_sample_entry* prev = AAtree_get_at_most(sm->map, key);
+    const Padsynth_sample_entry* next = AAtree_get_at_least(sm->map, key);
+
+    if (prev == NULL)
+        return next;
+    else if (next == NULL)
+        return prev;
+
+    if (fabs(next->center_pitch - pitch) < fabs(prev->center_pitch - pitch))
+        return next;
+    return prev;
+}
+
+
+int32_t Padsynth_sample_map_get_sample_length(const Padsynth_sample_map* sm)
+{
+    assert(sm != NULL);
+    return sm->sample_length;
+}
+
+
+static void del_Padsynth_sample_map(Padsynth_sample_map* sm)
+{
+    if (sm == NULL)
+        return;
+
+    del_AAtree(sm->map);
+    memory_free(sm);
+
+    return;
+}
+
+
 Device_impl* new_Proc_padsynth(void)
 {
     Proc_padsynth* padsynth = memory_alloc_item(Proc_padsynth);
@@ -47,7 +261,7 @@ Device_impl* new_Proc_padsynth(void)
         return NULL;
 
     padsynth->random = NULL;
-    padsynth->sample = NULL;
+    padsynth->sample_map = NULL;
     padsynth->is_ramp_attack_enabled = true;
     padsynth->is_stereo_enabled = false;
 
@@ -79,22 +293,6 @@ Device_impl* new_Proc_padsynth(void)
     }
 
     Random_set_context(padsynth->random, "PADsynth");
-
-    // Create a single sample as a temporary solution for now
-    float* buf = memory_alloc_items(float, 262144 + 1);
-    if (buf == NULL)
-    {
-        del_Device_impl(&padsynth->parent);
-        return NULL;
-    }
-
-    padsynth->sample = new_Sample_from_buffers(&buf, 1, 262144 + 1);
-    if (padsynth->sample == NULL)
-    {
-        memory_free(buf);
-        del_Device_impl(&padsynth->parent);
-        return NULL;
-    }
 
     if (!apply_padsynth(padsynth, NULL))
     {
@@ -151,32 +349,22 @@ static double profile(double freq_i, double bandwidth_i)
 }
 
 
-static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* params)
+static void make_padsynth_sample(
+        Padsynth_sample_entry* entry,
+        Random* random,
+        double* freq_amp,
+        double* freq_phase,
+        const Padsynth_params* params)
 {
-    assert(padsynth != NULL);
+    assert(entry != NULL);
+    assert(freq_amp != NULL);
+    assert(freq_phase != NULL);
 
     int32_t sample_length = PADSYNTH_DEFAULT_SAMPLE_LENGTH;
-    int32_t audio_rate = PADSYNTH_DEFAULT_AUDIO_RATE;
-    double bandwidth_base = PADSYNTH_DEFAULT_BANDWIDTH_BASE;
-    double bandwidth_scale = PADSYNTH_DEFAULT_BANDWIDTH_SCALE;
     if (params != NULL)
-    {
         sample_length = params->sample_length;
-        audio_rate = params->audio_rate;
-        bandwidth_base = params->bandwidth_base;
-        bandwidth_scale = params->bandwidth_scale;
-    }
 
     const int32_t buf_length = sample_length / 2;
-
-    double* freq_amp = memory_alloc_items(double, buf_length);
-    double* freq_phase = memory_alloc_items(double, buf_length);
-    if (freq_amp == NULL || freq_phase == NULL)
-    {
-        memory_free(freq_amp);
-        memory_free(freq_phase);
-        return false;
-    }
 
     for (int32_t i = 0; i < buf_length; ++i)
     {
@@ -184,19 +372,22 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
         freq_phase[i] = 0;
     }
 
-    // Apply harmonics
     if (params != NULL)
     {
-        static const double freq = 440; // TODO: add multi-sample support
+        const int32_t audio_rate = params->audio_rate;
+        const double bandwidth_base = params->bandwidth_base;
+        const double bandwidth_scale = params->bandwidth_scale;
 
-        const int32_t nyquist = audio_rate / 2;
+        const double freq = cents_to_Hz(entry->center_pitch);
+
+        const int32_t nyquist = params->audio_rate / 2;
 
         for (size_t h = 0; h < Vector_size(params->harmonics); ++h)
         {
             const Padsynth_harmonic* harmonic = Vector_get_ref(params->harmonics, h);
 
             // Skip harmonics that are not representable
-            // NOTE: this only considers the center frequency
+            // NOTE: this only checks the center frequency
             if (freq * harmonic->freq_mul >= nyquist)
                 continue;
 
@@ -217,6 +408,9 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
     }
     else
     {
+        static const int32_t audio_rate = PADSYNTH_DEFAULT_AUDIO_RATE;
+        static const double bandwidth_base = PADSYNTH_DEFAULT_BANDWIDTH_BASE;
+
         static const double freq = 440;
         const double bandwidth_Hz = (exp2(bandwidth_base / 1200.0) - 1.0) * freq;
         const double bandwidth_i = bandwidth_Hz / (2.0 * audio_rate);
@@ -232,13 +426,12 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
 
     // Add randomised phases
     {
-        Random_reset(padsynth->random);
         for (int32_t i = 0; i < buf_length; ++i)
-            freq_phase[i] = Random_get_float_lb(padsynth->random) * 2 * PI;
+            freq_phase[i] = Random_get_float_lb(random) * 2 * PI;
     }
 
     // Set up frequencies in half-complex representation
-    float* buf = Sample_get_buffer(padsynth->sample, 0);
+    float* buf = Sample_get_buffer(entry->sample, 0);
 
     buf[0] = 0;
     buf[buf_length] = 0;
@@ -265,6 +458,96 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
     // Duplicate first frame (for interpolation code)
     buf[sample_length] = buf[0];
 
+    return;
+}
+
+
+static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* params)
+{
+    assert(padsynth != NULL);
+
+    int32_t sample_length = PADSYNTH_DEFAULT_SAMPLE_LENGTH;
+    int sample_count = 1;
+    double min_pitch = 0;
+    double max_pitch = 0;
+    double center_pitch = 0;
+    if (params != NULL)
+    {
+        sample_length = params->sample_length;
+        sample_count = params->sample_count;
+        min_pitch = params->min_pitch;
+        max_pitch = params->max_pitch;
+        center_pitch = params->center_pitch;
+    }
+
+    // Use only one sample with very small pitch ranges
+    if (fabs(min_pitch - max_pitch) < 1)
+        sample_count = 1;
+
+    const int32_t buf_length = sample_length / 2;
+
+    double* freq_amp = memory_alloc_items(double, buf_length);
+    double* freq_phase = memory_alloc_items(double, buf_length);
+    if (freq_amp == NULL || freq_phase == NULL)
+    {
+        memory_free(freq_amp);
+        memory_free(freq_phase);
+        return false;
+    }
+
+    // Allocate new sample map here so that we don't lose old data on allocation failure
+    if (padsynth->sample_map == NULL ||
+            padsynth->sample_map->sample_length != sample_length ||
+            padsynth->sample_map->sample_count != sample_count)
+    {
+        Padsynth_sample_map* new_sm = new_Padsynth_sample_map(
+                sample_count,
+                sample_length,
+                min_pitch,
+                max_pitch,
+                center_pitch);
+        if (new_sm == NULL)
+        {
+            memory_free(freq_amp);
+            memory_free(freq_phase);
+            return false;
+        }
+
+        del_Padsynth_sample_map(padsynth->sample_map);
+        padsynth->sample_map = new_sm;
+    }
+    else
+    {
+        Padsynth_sample_map_set_center_pitch(padsynth->sample_map, center_pitch);
+        Padsynth_sample_map_set_pitch_range(padsynth->sample_map, min_pitch, max_pitch);
+    }
+
+    Random_reset(padsynth->random);
+
+    // Build samples
+    if (params != NULL)
+    {
+        AAiter* iter = AAITER_AUTO;
+        AAiter_change_tree(iter, padsynth->sample_map->map);
+
+        const Padsynth_sample_entry* key = PADSYNTH_SAMPLE_ENTRY_KEY(-INFINITY);
+        Padsynth_sample_entry* entry = AAiter_get_at_least(iter, key);
+        while (entry != NULL)
+        {
+            make_padsynth_sample(entry, padsynth->random, freq_amp, freq_phase, params);
+            entry = AAiter_get_next(iter);
+        }
+    }
+    else
+    {
+        const Padsynth_sample_entry* key = PADSYNTH_SAMPLE_ENTRY_KEY(-INFINITY);
+        Padsynth_sample_entry* entry =
+            AAtree_get_at_least(padsynth->sample_map->map, key);
+        assert(entry != NULL);
+
+        make_padsynth_sample(entry, padsynth->random, freq_amp, freq_phase, NULL);
+    }
+
     memory_free(freq_amp);
     memory_free(freq_phase);
 
@@ -278,7 +561,7 @@ static void del_Proc_padsynth(Device_impl* dimpl)
         return;
 
     Proc_padsynth* padsynth = (Proc_padsynth*)dimpl;
-    del_Sample(padsynth->sample);
+    del_Padsynth_sample_map(padsynth->sample_map);
     del_Random(padsynth->random);
     memory_free(padsynth);
 
