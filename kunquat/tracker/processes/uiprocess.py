@@ -35,7 +35,7 @@ class CommandQueue():
         self._out = Queue()
         self._state = self._STATE_NORMAL
         self._terminating_commands = (
-                'notify_kunquat_exception', 'notify_kunquat_assertion')
+                'notify_kunquat_exception', 'notify_libkunquat_error')
 
     def block(self):
         timeout = 0.001 if self._state == self._STATE_FLUSHING else None
@@ -81,8 +81,8 @@ class UiProcess(Process):
     def notify_kunquat_exception(self, exception):
         self._q.put('notify_kunquat_exception', exception)
 
-    def notify_kunquat_assertion(self, info):
-        self._q.put('notify_kunquat_assertion', info)
+    def notify_libkunquat_error(self, info):
+        self._q.put('notify_libkunquat_error', info)
 
     def update_drivers(self, drivers):
         self._q.put('update_drivers', drivers)

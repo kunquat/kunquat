@@ -409,27 +409,35 @@ def fake_out_of_memory():
     _kunquat.kqt_fake_out_of_memory(0)
 
 
-class _AssertHookRef():
+class _ErrorHookRef():
 
     def __init__(self):
-        self.func = None
+        self.on_abrt_func = None
+        self.on_segv_func = None
         self._pipe_r = None
         self._pipe_w = None
         self._orig_stderr = None
 
     def redirect_stderr(self):
+        if self._orig_stderr != None:
+            return
+
         self._pipe_r, self._pipe_w = os.pipe()
         self._orig_stderr = os.dup(2)
-        os.dup2(_assert_hook_ref._pipe_w, 2)
+        os.dup2(_error_hook_ref._pipe_w, 2)
 
     def _has_more_data(self):
         ready_r, _, _ = select.select([self._pipe_r], [], [], 0)
         return bool(ready_r)
 
-    def get_assert_info(self):
+    def _get_output_data(self):
         out_bytes = b''
         while self._has_more_data():
             out_bytes += os.read(self._pipe_r, 1024)
+        return out_bytes
+
+    def get_abrt_info(self):
+        out_bytes = self._get_output_data()
         os.dup2(self._orig_stderr, 2)
 
         all_lines = out_bytes.split(b'\n')
@@ -441,18 +449,28 @@ class _AssertHookRef():
         return info
 
 
-_assert_hook_ref = _AssertHookRef()
+_error_hook_ref = _ErrorHookRef()
 
 @ctypes.CFUNCTYPE(None, ctypes.c_int)
-def _decor_assert_hook(sig):
-    if _assert_hook_ref.func:
-        info = _assert_hook_ref.get_assert_info()
-        _assert_hook_ref.func(info)
+def _wrapped_assert_hook(sig):
+    if _error_hook_ref.on_abrt_func:
+        info = _error_hook_ref.get_abrt_info()
+        _error_hook_ref.on_abrt_func(info)
+
+@ctypes.CFUNCTYPE(None, ctypes.c_int)
+def _wrapped_segfault_hook(sig):
+    if _error_hook_ref.on_segv_func:
+        _error_hook_ref.on_segv_func()
 
 def set_assert_hook(f):
-    _assert_hook_ref.func = f
-    _assert_hook_ref.redirect_stderr()
-    ctypes.CDLL(None).signal(signal.SIGABRT, _decor_assert_hook)
+    _error_hook_ref.on_abrt_func = f
+    _error_hook_ref.redirect_stderr()
+    ctypes.CDLL(None).signal(signal.SIGABRT, _wrapped_assert_hook)
+
+def set_segfault_hook(f):
+    _error_hook_ref.on_segv_func = f
+    _error_hook_ref.redirect_stderr()
+    ctypes.CDLL(None).signal(signal.SIGSEGV, _wrapped_segfault_hook)
 
 
 _kunquat = ctypes.CDLL('libkunquat.so')
