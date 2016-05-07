@@ -344,8 +344,11 @@ static bool Proc_padsynth_set_stereo(
 
 static double profile(double freq_i, double bandwidth_i)
 {
-    const double x = freq_i / bandwidth_i;
-    return exp(-x * x) / bandwidth_i;
+    double x = freq_i / bandwidth_i;
+    x *= x;
+    if (x > 27.2972)
+        return 0.0;
+    return exp(-x) / bandwidth_i;
 }
 
 
