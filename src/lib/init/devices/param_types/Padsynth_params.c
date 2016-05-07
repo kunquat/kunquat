@@ -109,6 +109,48 @@ static bool read_param(Streader* sr, const char* key, void* userdata)
 
         pp->audio_rate = rate;
     }
+    else if (string_eq(key, "sample_count"))
+    {
+        int64_t sample_count = 0;
+        if (!Streader_read_int(sr, &sample_count))
+            return false;
+
+        if (!(0 < sample_count && sample_count <= 128))
+        {
+            Streader_set_error(
+                    sr, "PADsynth sample count must be within range [1, 128]");
+            return false;
+        }
+
+        pp->sample_count = sample_count;
+    }
+    else if (string_eq(key, "pitch_range"))
+    {
+        double min_pitch = NAN;
+        double max_pitch = NAN;
+        if (!Streader_readf(sr, "[%f,%f]", &min_pitch, &max_pitch))
+            return false;
+
+        if (min_pitch > max_pitch)
+        {
+            Streader_set_error(
+                    sr,
+                    "PADsynth minimum sample map pitch must not be greater"
+                        " than the maximum pitch");
+            return false;
+        }
+
+        pp->min_pitch = min_pitch;
+        pp->max_pitch = max_pitch;
+    }
+    else if (string_eq(key, "center_pitch"))
+    {
+        double center_pitch = NAN;
+        if (!Streader_read_float(sr, &center_pitch))
+            return false;
+
+        pp->center_pitch = center_pitch;
+    }
     else if (string_eq(key, "bandwidth_base"))
     {
         double base = NAN;
@@ -179,6 +221,11 @@ Padsynth_params* new_Padsynth_params(Streader* sr)
 
     pp->sample_length = PADSYNTH_DEFAULT_SAMPLE_LENGTH;
     pp->audio_rate = PADSYNTH_DEFAULT_AUDIO_RATE;
+    pp->sample_count = 1;
+    pp->min_pitch = 0;
+    pp->max_pitch = 0;
+    pp->center_pitch = 0;
+
     pp->bandwidth_base = PADSYNTH_DEFAULT_BANDWIDTH_BASE;
     pp->bandwidth_scale = PADSYNTH_DEFAULT_BANDWIDTH_SCALE;
 

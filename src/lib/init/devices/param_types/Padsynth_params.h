@@ -43,6 +43,11 @@ typedef struct Padsynth_params
 {
     int32_t sample_length;
     int32_t audio_rate;
+    int sample_count;
+    double min_pitch;
+    double max_pitch;
+    double center_pitch;
+
     double bandwidth_base;
     double bandwidth_scale;
     Vector* harmonics;
