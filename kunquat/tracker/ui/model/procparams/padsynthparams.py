@@ -198,14 +198,14 @@ class PadsynthParams(ProcParams):
                 self._get_harmonic_scales_data, self._set_harmonic_scales_data)
 
     def get_bandwidth_base(self):
-        return self._get_value('i_bandwidth_base.json', 1)
+        return self._get_value('i_bandwidth_base.json', self._DEFAULT_BANDWIDTH_BASE)
 
     def set_bandwidth_base(self, cents):
         self._set_value('i_bandwidth_base.json', cents)
         self._update_harmonics()
 
     def get_bandwidth_scale(self):
-        return self._get_value('i_bandwidth_scale.json', 1)
+        return self._get_value('i_bandwidth_scale.json', self._DEFAULT_BANDWIDTH_SCALE)
 
     def set_bandwidth_scale(self, scale):
         self._set_value('i_bandwidth_scale.json', scale)
