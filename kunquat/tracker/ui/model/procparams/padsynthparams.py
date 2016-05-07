@@ -101,6 +101,9 @@ class PadsynthParams(ProcParams):
         ret = {
             'sample_length'  : self._DEFAULT_SAMPLE_LENGTH,
             'audio_rate'     : self._DEFAULT_AUDIO_RATE,
+            'sample_count'   : 1,
+            'pitch_range'    : [0, 0],
+            'center_pitch'   : 0,
             'bandwidth_base' : self._DEFAULT_BANDWIDTH_BASE,
             'bandwidth_scale': self._DEFAULT_BANDWIDTH_SCALE,
             'harmonics'      : [[1, 1]],
@@ -120,6 +123,24 @@ class PadsynthParams(ProcParams):
 
     def set_audio_rate(self, rate):
         self._set_value('i_audio_rate.json', rate)
+
+    def get_sample_count(self):
+        return self._get_value('i_sample_count.json', 1)
+
+    def set_sample_count(self, count):
+        self._set_value('i_sample_count.json', count)
+
+    def get_sample_pitch_range(self):
+        return self._get_value('i_pitch_range.json', [0, 0])
+
+    def set_sample_pitch_range(self, min_pitch, max_pitch):
+        self._set_value('i_pitch_range.json', [min_pitch, max_pitch])
+
+    def get_sample_center_pitch(self):
+        return self._get_value('i_center_pitch.json', 0)
+
+    def set_sample_center_pitch(self, pitch):
+        self._set_value('i_center_pitch.json', pitch)
 
     def _get_harmonics_wave_def_data(self):
         key = 'i_harmonics_base.json'
@@ -215,9 +236,12 @@ class PadsynthParams(ProcParams):
         return {
             'sample_length'  : self.get_sample_length(),
             'audio_rate'     : self.get_audio_rate(),
-            'harmonics'      : self._get_harmonics_data(),
+            'sample_count'   : self.get_sample_count(),
+            'pitch_range'    : self.get_sample_pitch_range(),
+            'center_pitch'   : self.get_sample_center_pitch(),
             'bandwidth_base' : self.get_bandwidth_base(),
             'bandwidth_scale': self.get_bandwidth_scale(),
+            'harmonics'      : self._get_harmonics_data(),
         }
 
     def is_config_applied(self):

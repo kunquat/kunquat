@@ -35,6 +35,7 @@ class PadsynthProc(QWidget):
 
         self._playback_params = PlaybackParams()
         self._apply_button = ApplyButton()
+        self._sample_config = SampleConfigEditor()
         self._bandwidth = BandwidthEditor()
         self._harmonics_base = HarmonicsBaseEditor()
         self._harmonic_scales = HarmonicScales()
@@ -44,6 +45,7 @@ class PadsynthProc(QWidget):
         v.setSpacing(4)
         v.addWidget(self._playback_params)
         v.addWidget(self._apply_button)
+        v.addWidget(self._sample_config)
         v.addWidget(self._bandwidth)
         v.addWidget(self._harmonics_base)
         v.addWidget(self._harmonic_scales)
@@ -52,6 +54,7 @@ class PadsynthProc(QWidget):
     def set_au_id(self, au_id):
         self._playback_params.set_au_id(au_id)
         self._apply_button.set_au_id(au_id)
+        self._sample_config.set_au_id(au_id)
         self._bandwidth.set_au_id(au_id)
         self._harmonics_base.set_au_id(au_id)
         self._harmonic_scales.set_au_id(au_id)
@@ -59,6 +62,7 @@ class PadsynthProc(QWidget):
     def set_proc_id(self, proc_id):
         self._playback_params.set_proc_id(proc_id)
         self._apply_button.set_proc_id(proc_id)
+        self._sample_config.set_proc_id(proc_id)
         self._bandwidth.set_proc_id(proc_id)
         self._harmonics_base.set_proc_id(proc_id)
         self._harmonic_scales.set_proc_id(proc_id)
@@ -66,6 +70,7 @@ class PadsynthProc(QWidget):
     def set_ui_model(self, ui_model):
         self._playback_params.set_ui_model(ui_model)
         self._apply_button.set_ui_model(ui_model)
+        self._sample_config.set_ui_model(ui_model)
         self._bandwidth.set_ui_model(ui_model)
         self._harmonics_base.set_ui_model(ui_model)
         self._harmonic_scales.set_ui_model(ui_model)
@@ -74,6 +79,7 @@ class PadsynthProc(QWidget):
         self._harmonic_scales.unregister_updaters()
         self._harmonics_base.unregister_updaters()
         self._bandwidth.unregister_updaters()
+        self._sample_config.unregister_updaters()
         self._apply_button.unregister_updaters()
         self._playback_params.unregister_updaters()
 
@@ -209,6 +215,146 @@ class ApplyButton(QPushButton):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
+class PadsynthParamSlider(ProcNumSlider):
+
+    def _get_update_signal_type(self):
+        return 'signal_padsynth_{}'.format(self._proc_id)
+
+    def _get_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+
+class SampleConfigEditor(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        self._au_id = None
+        self._proc_id = None
+        self._ui_model = None
+        self._updater = None
+
+        self._sample_count = QSpinBox()
+        self._sample_count.setRange(1, 128)
+        self._range_min = SamplePitchRangeMinEditor()
+        self._range_max = SamplePitchRangeMaxEditor()
+        self._center_pitch = SampleCenterPitchEditor()
+
+        h = QHBoxLayout()
+        h.setContentsMargins(0, 0, 0, 0)
+        h.setSpacing(2)
+        h.addWidget(QLabel('Sample count:'))
+        h.addWidget(self._sample_count)
+        h.addWidget(QLabel('Pitch range:'))
+        h.addWidget(self._range_min)
+        h.addWidget(self._range_max)
+        h.addWidget(QLabel('Center pitch:'))
+        h.addWidget(self._center_pitch)
+        self.setLayout(h)
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+        self._range_min.set_au_id(au_id)
+        self._range_max.set_au_id(au_id)
+        self._center_pitch.set_au_id(au_id)
+
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+        self._range_min.set_proc_id(proc_id)
+        self._range_max.set_proc_id(proc_id)
+        self._center_pitch.set_proc_id(proc_id)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+        self._range_min.set_ui_model(ui_model)
+        self._range_max.set_ui_model(ui_model)
+        self._center_pitch.set_ui_model(ui_model)
+
+        QObject.connect(
+                self._sample_count,
+                SIGNAL('valueChanged(int)'),
+                self._change_sample_count)
+
+        self._update_sample_count()
+
+    def unregister_updaters(self):
+        self._center_pitch.unregister_updaters()
+        self._range_max.unregister_updaters()
+        self._range_min.unregister_updaters()
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _get_update_signal_type(self):
+        return 'signal_padsynth_{}'.format(self._proc_id)
+
+    def _perform_updates(self, signals):
+        update_signals = set(['signal_au', self._get_update_signal_type()])
+        if not signals.isdisjoint(update_signals):
+            self._update_sample_count()
+
+    def _update_sample_count(self):
+        params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+        old_block = self._sample_count.blockSignals(True)
+        new_sample_count = params.get_sample_count()
+        if self._sample_count.value() != new_sample_count:
+            self._sample_count.setValue(new_sample_count)
+        self._sample_count.blockSignals(old_block)
+
+    def _change_sample_count(self, count):
+        params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        params.set_sample_count(count)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+
+class SamplePitchRangeMinEditor(PadsynthParamSlider):
+
+    def __init__(self):
+        super().__init__(0, -6000.0, 6000.0)
+
+    def _update_value(self):
+        min_pitch, _ = self._get_params().get_sample_pitch_range()
+        self.set_number(min_pitch)
+
+    def _value_changed(self, min_pitch):
+        params = self._get_params()
+        _, max_pitch = params.get_sample_pitch_range()
+        max_pitch = max(min_pitch, max_pitch)
+        params.set_sample_pitch_range(min_pitch, max_pitch)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+
+class SamplePitchRangeMaxEditor(PadsynthParamSlider):
+
+    def __init__(self):
+        super().__init__(0, -6000.0, 6000.0)
+
+    def _update_value(self):
+        _, max_pitch = self._get_params().get_sample_pitch_range()
+        self.set_number(max_pitch)
+
+    def _value_changed(self, max_pitch):
+        params = self._get_params()
+        min_pitch, _ = params.get_sample_pitch_range()
+        min_pitch = min(min_pitch, max_pitch)
+        params.set_sample_pitch_range(min_pitch, max_pitch)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+
+class SampleCenterPitchEditor(PadsynthParamSlider):
+
+    def __init__(self):
+        super().__init__(0, -6000.0, 6000.0)
+
+    def _update_value(self):
+        center_pitch = self._get_params().get_sample_center_pitch()
+        self.set_number(center_pitch)
+
+    def _value_changed(self, center_pitch):
+        self._get_params().set_sample_center_pitch(center_pitch)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+
 class BandwidthEditor(QWidget):
 
     def __init__(self):
@@ -248,16 +394,10 @@ class BandwidthEditor(QWidget):
         self._base.unregister_updaters()
 
 
-class BandwidthBaseEditor(ProcNumSlider):
+class BandwidthBaseEditor(PadsynthParamSlider):
 
     def __init__(self):
         super().__init__(1, 0.1, 1200.0)
-
-    def _get_update_signal_type(self):
-        return 'signal_padsynth_{}'.format(self._proc_id)
-
-    def _get_params(self):
-        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
     def _update_value(self):
         self.set_number(self._get_params().get_bandwidth_base())
@@ -267,7 +407,7 @@ class BandwidthBaseEditor(ProcNumSlider):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
-class BandwidthScaleEditor(ProcNumSlider):
+class BandwidthScaleEditor(PadsynthParamSlider):
 
     def __init__(self):
         super().__init__(2, 1.0, 10.0)
@@ -497,17 +637,11 @@ class HarmonicScaleEditor(QWidget):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
-class AmplitudeEditor(ProcNumSlider):
+class AmplitudeEditor(PadsynthParamSlider):
 
     def __init__(self, index):
         super().__init__(3, 0.0, 1.0, title='Amplitude:')
         self._index = index
-
-    def _get_update_signal_type(self):
-        return 'signal_padsynth_{}'.format(self._proc_id)
-
-    def _get_params(self):
-        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
     def _update_value(self):
         scales = self._get_params().get_harmonic_scales()
