@@ -233,6 +233,7 @@ class SampleConfigEditor(QWidget):
         self._ui_model = None
         self._updater = None
 
+        self._sample_size = QComboBox()
         self._sample_count = QSpinBox()
         self._sample_count.setRange(1, 128)
         self._range_min = SamplePitchRangeMinEditor()
@@ -242,6 +243,8 @@ class SampleConfigEditor(QWidget):
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
+        h.addWidget(QLabel('Sample size:'))
+        h.addWidget(self._sample_size)
         h.addWidget(QLabel('Sample count:'))
         h.addWidget(self._sample_count)
         h.addWidget(QLabel('Pitch range:'))
@@ -271,12 +274,20 @@ class SampleConfigEditor(QWidget):
         self._range_max.set_ui_model(ui_model)
         self._center_pitch.set_ui_model(ui_model)
 
+        for sample_length in self._get_params().get_allowed_sample_lengths():
+            self._sample_size.addItem(str(sample_length), userData=sample_length)
+
+        QObject.connect(
+                self._sample_size,
+                SIGNAL('currentIndexChanged(int)'),
+                self._change_sample_size)
+
         QObject.connect(
                 self._sample_count,
                 SIGNAL('valueChanged(int)'),
                 self._change_sample_count)
 
-        self._update_sample_count()
+        self._update_sample_params()
 
     def unregister_updaters(self):
         self._center_pitch.unregister_updaters()
@@ -290,10 +301,21 @@ class SampleConfigEditor(QWidget):
     def _perform_updates(self, signals):
         update_signals = set(['signal_au', self._get_update_signal_type()])
         if not signals.isdisjoint(update_signals):
-            self._update_sample_count()
+            self._update_sample_params()
 
-    def _update_sample_count(self):
-        params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+    def _get_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_sample_params(self):
+        params = self._get_params()
+
+        old_block = self._sample_size.blockSignals(True)
+        new_sample_size = params.get_sample_length()
+        if (self._sample_size.itemData(self._sample_size.currentIndex()) !=
+                new_sample_size):
+            self._sample_size.setCurrentIndex(
+                    self._sample_size.findData(new_sample_size))
+        self._sample_size.blockSignals(old_block)
 
         old_block = self._sample_count.blockSignals(True)
         new_sample_count = params.get_sample_count()
@@ -301,8 +323,13 @@ class SampleConfigEditor(QWidget):
             self._sample_count.setValue(new_sample_count)
         self._sample_count.blockSignals(old_block)
 
+    def _change_sample_size(self, index):
+        sample_size = self._sample_size.itemData(index)
+        self._get_params().set_sample_length(sample_size)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
     def _change_sample_count(self, count):
-        params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        params = self._get_params()
         params.set_sample_count(count)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 

@@ -72,7 +72,7 @@ def rfft(data):
 
 class PadsynthParams(ProcParams):
 
-    _MIN_SAMPLE_LENGTH = 64
+    _MIN_SAMPLE_LENGTH = 16384
     _DEFAULT_SAMPLE_LENGTH = 262144
     _MAX_SAMPLE_LENGTH = 1048576
 
@@ -111,6 +111,14 @@ class PadsynthParams(ProcParams):
         stored = self._get_value('p_ps_params.json', {})
         ret.update(stored)
         return ret
+
+    def get_allowed_sample_lengths(self):
+        sl = self._MIN_SAMPLE_LENGTH
+        lengths = []
+        while sl <= self._MAX_SAMPLE_LENGTH:
+            lengths.append(sl)
+            sl <<= 1
+        return lengths
 
     def get_sample_length(self):
         return self._get_value('i_sample_length.json', self._DEFAULT_SAMPLE_LENGTH)
