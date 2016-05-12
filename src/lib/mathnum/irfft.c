@@ -75,9 +75,29 @@ static void bit_reversal_permute(float* data, size_t length)
 }
 
 
-void irfft(float* data, size_t length)
+void fill_Ws(float* Ws, size_t tlength)
+{
+    assert(Ws != NULL);
+    assert(tlength >= 4);
+    assert(is_p2(tlength));
+
+    const size_t Wlength = tlength / 4;
+
+    for (size_t i = 0; i < Wlength; ++i)
+    {
+        const double u = -2.0 * PI * i / (double)tlength;
+        Ws[2 * i] = cos(u);
+        Ws[2 * i + 1] = sin(u);
+    }
+
+    return;
+}
+
+
+void irfft(float* data, const float* Ws, size_t length)
 {
     assert(data != NULL);
+    assert(Ws != NULL);
     assert(length > 0);
     assert(is_p2(length));
 
@@ -120,10 +140,8 @@ void irfft(float* data, size_t length)
                 data[bp_i + a] = t0_re;
                 data[bp_i + p_im1 - a] = t0_im;
 
-                // TODO: add cache for complex roots of unity
-                const double u = -2.0 * PI * a / (double)p_i;
-                const float Wa_p_i_re = cos(u);
-                const float Wa_p_i_im = sin(u);
+                const float Wa_p_i_re = Ws[2 * a * q_i];
+                const float Wa_p_i_im = Ws[2 * a * q_i + 1];
 
                 const float rot_t1_re = Wa_p_i_re * t1_re - Wa_p_i_im * t1_im;
                 const float rot_t1_im = Wa_p_i_im * t1_re + Wa_p_i_re * t1_im;

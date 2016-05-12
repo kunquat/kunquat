@@ -357,11 +357,13 @@ static void make_padsynth_sample(
         Random* random,
         double* freq_amp,
         double* freq_phase,
+        const float* Ws,
         const Padsynth_params* params)
 {
     assert(entry != NULL);
     assert(freq_amp != NULL);
     assert(freq_phase != NULL);
+    assert(Ws != NULL);
 
     int32_t sample_length = PADSYNTH_DEFAULT_SAMPLE_LENGTH;
     if (params != NULL)
@@ -445,7 +447,7 @@ static void make_padsynth_sample(
     }
 
     // Apply IFFT
-    irfft(buf, sample_length);
+    irfft(buf, Ws, sample_length);
 
     // Normalise
     {
@@ -491,10 +493,12 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
 
     double* freq_amp = memory_alloc_items(double, buf_length);
     double* freq_phase = memory_alloc_items(double, buf_length);
-    if (freq_amp == NULL || freq_phase == NULL)
+    float* Ws = memory_alloc_items(float, buf_length);
+    if (freq_amp == NULL || freq_phase == NULL || Ws == NULL)
     {
         memory_free(freq_amp);
         memory_free(freq_phase);
+        memory_free(Ws);
         return false;
     }
 
@@ -513,6 +517,7 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
         {
             memory_free(freq_amp);
             memory_free(freq_phase);
+            memory_free(Ws);
             return false;
         }
 
@@ -527,6 +532,8 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
 
     Random_reset(padsynth->random);
 
+    fill_Ws(Ws, sample_length);
+
     // Build samples
     if (params != NULL)
     {
@@ -537,7 +544,8 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
         Padsynth_sample_entry* entry = AAiter_get_at_least(iter, key);
         while (entry != NULL)
         {
-            make_padsynth_sample(entry, padsynth->random, freq_amp, freq_phase, params);
+            make_padsynth_sample(
+                    entry, padsynth->random, freq_amp, freq_phase, Ws, params);
             entry = AAiter_get_next(iter);
         }
     }
@@ -548,11 +556,12 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
             AAtree_get_at_least(padsynth->sample_map->map, key);
         assert(entry != NULL);
 
-        make_padsynth_sample(entry, padsynth->random, freq_amp, freq_phase, NULL);
+        make_padsynth_sample(entry, padsynth->random, freq_amp, freq_phase, Ws, NULL);
     }
 
     memory_free(freq_amp);
     memory_free(freq_phase);
+    memory_free(Ws);
 
     return true;
 }
