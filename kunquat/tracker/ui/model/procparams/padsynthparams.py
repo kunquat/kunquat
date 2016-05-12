@@ -46,6 +46,8 @@ def W(index, count):
 def rfft(data):
     bit_reversal_permute(data)
 
+    Ws = [W(x, len(data)) for x in range(len(data) // 4)]
+
     bit_count = int(round(math.log(len(data), 2)))
     for i in range(1, bit_count + 1):
         p_i = 1 << i
@@ -63,7 +65,8 @@ def rfft(data):
 
                 z0 = complex(data[bp_i + a], data[bp_i + p_im1 - a])
                 z1 = complex(data[bp_i + p_im1 + a], data[bp_i + p_i - a])
-                Wa_p_iz1 = W(a, p_i) * z1
+                #Wa_p_iz1 = W(a, p_i) * z1
+                Wa_p_iz1 = Ws[a * q_i] * z1
                 t0 = z0 + Wa_p_iz1
                 t1 = z0 - Wa_p_iz1
                 data[bp_i + a], data[bp_i + p_i - a] = t0.real, t0.imag
