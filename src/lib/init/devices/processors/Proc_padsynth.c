@@ -352,6 +352,15 @@ static double profile(double freq_i, double bandwidth_i)
 }
 
 
+static double get_profile_bound(double bandwidth_i)
+{
+    assert(isfinite(bandwidth_i));
+    assert(bandwidth_i > 0);
+
+    return 5.2247 * bandwidth_i; // 5.2247 ~ sqrt(27.2972), see profile() above
+}
+
+
 static void make_padsynth_sample(
         Padsynth_sample_entry* entry,
         Random* random,
@@ -403,7 +412,20 @@ static void make_padsynth_sample(
             const double bandwidth_i = bandwidth_Hz / (2.0 * audio_rate);
             const double freq_i = freq * harmonic->freq_mul / audio_rate;
 
-            for (int32_t i = 0; i < buf_length; ++i)
+            // Get index range with non-zero data
+            const double profile_bound = get_profile_bound(bandwidth_i);
+            int32_t buf_start = (int32_t)ceil(sample_length * (freq_i - profile_bound));
+            int32_t buf_stop = (int32_t)ceil(sample_length * (freq_i + profile_bound));
+
+            if (buf_start >= buf_length || buf_stop <= 0)
+                continue;
+
+            //assert(profile((buf_start - 1) / (double)sample_length - freq_i, bandwidth_i) == 0.0);
+            //assert(profile((buf_stop + 1) / (double)sample_length - freq_i, bandwidth_i) == 0.0);
+
+            buf_start = max(0, buf_start);
+            buf_stop = min(buf_stop, buf_length);
+            for (int32_t i = buf_start; i < buf_stop; ++i)
             {
                 const double harmonic_profile =
                     profile((i / (double)sample_length) - freq_i, bandwidth_i);
