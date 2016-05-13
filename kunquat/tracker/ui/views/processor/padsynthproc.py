@@ -424,7 +424,7 @@ class BandwidthEditor(QWidget):
 class BandwidthBaseEditor(PadsynthParamSlider):
 
     def __init__(self):
-        super().__init__(1, 0.1, 1200.0)
+        super().__init__(1, 1.0, 1200.0)
 
     def _update_value(self):
         self.set_number(self._get_params().get_bandwidth_base())

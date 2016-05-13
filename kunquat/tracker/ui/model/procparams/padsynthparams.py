@@ -81,7 +81,7 @@ class PadsynthParams(ProcParams):
 
     _DEFAULT_AUDIO_RATE = 48000
 
-    _DEFAULT_BANDWIDTH_BASE = 0.1
+    _DEFAULT_BANDWIDTH_BASE = 1
     _DEFAULT_BANDWIDTH_SCALE = 1
 
     @staticmethod
