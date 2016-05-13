@@ -48,6 +48,8 @@ def rfft(data):
 
     Ws = [W(x, len(data)) for x in range(len(data) // 4)]
 
+    # Algorithmically based on the description in the LaTeX documentation
+    # of GNU Scientific Library, http://www.gnu.org/software/gsl/
     bit_count = int(round(math.log(len(data), 2)))
     for i in range(1, bit_count + 1):
         p_i = 1 << i

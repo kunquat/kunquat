@@ -105,6 +105,8 @@ void irfft(float* data, const float* Ws, size_t length)
     assert(bit_count > 0);
     assert(bit_count < 32);
 
+    // Algorithmically mostly based on the description in the LaTeX documentation
+    // of GNU Scientific Library, http://www.gnu.org/software/gsl/
     for (int i = bit_count; i > 0; --i)
     {
         const size_t p_i = 1 << i;
