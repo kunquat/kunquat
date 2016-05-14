@@ -210,11 +210,17 @@ Padsynth_params* new_Padsynth_params(Streader* sr)
 
     Padsynth_params* pp = memory_alloc_item(Padsynth_params);
     if (pp == NULL)
+    {
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for PADsynth parameters");
         return NULL;
+    }
 
     pp->harmonics = new_Vector(sizeof(Padsynth_harmonic));
     if (pp->harmonics == NULL)
     {
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for PADsynth parameters");
         del_Padsynth_params(pp);
         return NULL;
     }
@@ -228,6 +234,19 @@ Padsynth_params* new_Padsynth_params(Streader* sr)
 
     pp->bandwidth_base = PADSYNTH_DEFAULT_BANDWIDTH_BASE;
     pp->bandwidth_scale = PADSYNTH_DEFAULT_BANDWIDTH_SCALE;
+
+    if (!Streader_has_data(sr))
+    {
+        Padsynth_harmonic* info = &(Padsynth_harmonic){ .freq_mul = 1, .amplitude = 1 };
+        if (!Vector_append(pp->harmonics, info))
+        {
+            Streader_set_error(sr, "Could not allocate memory for PADsynth harmonics");
+            del_Padsynth_params(pp);
+            return NULL;
+        }
+
+        return pp;
+    }
 
     if (!Streader_read_dict(sr, read_param, pp))
     {
