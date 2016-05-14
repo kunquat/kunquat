@@ -364,6 +364,19 @@ const Num_list* Device_params_get_num_list(const Device_params* params, const ch
 
 
 /**
+ * Retrieve PADsynth parameters from Device parameters.
+ *
+ * \param params   The Device parameters -- must not be \c NULL.
+ * \param key      The key -- must be a valid Number list subkey starting
+ *                 after the c/ or i/ directory.
+ *
+ * \return   The PADsynth parameters, or \c NULL if \a key doesn't exist.
+ */
+const Padsynth_params* Device_params_get_padsynth_params(
+        const Device_params* params, const char* key);
+
+
+/**
  * Destroy existing Device parameters.
  *
  * \param params   The Device parameters, or \c NULL.

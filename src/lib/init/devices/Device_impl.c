@@ -51,6 +51,7 @@ typedef struct Set_cb
         cb_info(note_map, const Note_map*, const Note_map*);
         cb_info(hit_map, const Hit_map*, const Hit_map*);
         cb_info(num_list, const Num_list*, const Num_list*);
+        cb_info(padsynth_params, const Padsynth_params*, const Padsynth_params*);
 
 #undef cb_info
     } cb;
@@ -311,6 +312,37 @@ bool Device_impl_register_set_num_list(
 }
 
 
+bool Device_impl_register_set_padsynth_params(
+        Device_impl* dimpl,
+        const char* keyp,
+        const Padsynth_params* default_val,
+        Set_padsynth_params_func set_func,
+        Set_state_padsynth_params_func set_state_func)
+{
+    assert(dimpl != NULL);
+    assert(keyp != NULL);
+    assert(strlen(keyp) < KQT_KEY_LENGTH_MAX);
+    assert(set_func != NULL);
+
+    Set_cb* set_cb = memory_alloc_item(Set_cb);
+    if (set_cb == NULL)
+        return false;
+
+    strcpy(set_cb->key_pattern, keyp);
+    set_cb->cb.padsynth_params_type.default_val = default_val;
+    set_cb->cb.padsynth_params_type.set = set_func;
+    set_cb->cb.padsynth_params_type.set_state = set_state_func;
+
+    if (!AAtree_ins(dimpl->set_cbs, set_cb))
+    {
+        memory_free(set_cb);
+        return false;
+    }
+
+    return true;
+}
+
+
 static Update_control_var_cb* Device_impl_create_update_cv_cb(
         Device_impl* dimpl, const char* keyp, Value_type type)
 {
@@ -508,6 +540,10 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key)
                 SET_FIELDP(num_list, Num_list);
                 break;
 
+            case DEVICE_FIELD_PADSYNTH_PARAMS:
+                SET_FIELDP(padsynth_params, Padsynth_params);
+                break;
+
             default:
                 assert(false);
         }
@@ -609,6 +645,10 @@ bool Device_impl_set_state_key(
 
             case DEVICE_FIELD_NUM_LIST:
                 SET_FIELDP(num_list, Num_list);
+                break;
+
+            case DEVICE_FIELD_PADSYNTH_PARAMS:
+                SET_FIELDP(padsynth_params, Padsynth_params);
                 break;
 
             default:

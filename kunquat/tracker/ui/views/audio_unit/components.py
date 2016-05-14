@@ -670,15 +670,15 @@ class ControlVariableTypeExpander(QPushButton):
 
         painter.translate(QPoint(center_x, center_y))
         if self.isChecked():
-            painter.drawPolygon(
+            painter.drawPolygon(QPolygon([
                     QPoint(-triangle_extent, 0),
                     QPoint(0, triangle_extent),
-                    QPoint(triangle_extent, 0))
+                    QPoint(triangle_extent, 0)]))
         else:
-            painter.drawPolygon(
+            painter.drawPolygon(QPolygon([
                     QPoint(0, -triangle_extent),
                     QPoint(triangle_extent, 0),
-                    QPoint(0, triangle_extent))
+                    QPoint(0, triangle_extent)]))
 
 
 class ControlVariableNameEditor(NameEditor):

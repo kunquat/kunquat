@@ -42,6 +42,7 @@ typedef struct Tstamp Tstamp;
 typedef struct Tuning_state Tuning_state;
 typedef struct Tuning_table Tuning_table;
 typedef struct Value Value;
+typedef struct Vector Vector;
 typedef struct Voice_state Voice_state;
 typedef struct Work_buffer Work_buffer;
 typedef struct Work_buffers Work_buffers;

@@ -637,10 +637,10 @@ class GridView(QWidget):
             painter.translate(QPointF(0.5, 0.5 + y_offset))
             painter.setPen(cursor_config['colour'])
             painter.setBrush(cursor_config['colour'])
-            painter.drawPolygon(
+            painter.drawPolygon(QPolygon([
                     QPoint(0, cursor_max_y),
                     QPoint(cursor_config['width'], 0),
-                    QPoint(0, -cursor_max_y))
+                    QPoint(0, -cursor_max_y)]))
 
         end = time.time()
         elapsed = end - start
@@ -1271,10 +1271,10 @@ class LineStyleDelegate(QItemDelegate):
             painter.setPen(cursor_config['colour'])
             painter.setBrush(cursor_config['colour'])
 
-            painter.drawPolygon(
+            painter.drawPolygon(QPolygon([
                     QPoint(0, cursor_max_y),
                     QPoint(cursor_config['width'], 0),
-                    QPoint(0, -cursor_max_y))
+                    QPoint(0, -cursor_max_y)]))
 
             painter.restore()
 

@@ -22,6 +22,7 @@
 #include <init/devices/param_types/Hit_map.h>
 #include <init/devices/param_types/Note_map.h>
 #include <init/devices/param_types/Num_list.h>
+#include <init/devices/param_types/Padsynth_params.h>
 #include <init/devices/param_types/Sample.h>
 #include <mathnum/Tstamp.h>
 #include <player/devices/Device_state.h>
@@ -52,6 +53,7 @@ SET_FUNC_TYPE(sample_params,    const Sample_params*);
 SET_FUNC_TYPE(note_map,         const Note_map*);
 SET_FUNC_TYPE(hit_map,          const Hit_map*);
 SET_FUNC_TYPE(num_list,         const Num_list*);
+SET_FUNC_TYPE(padsynth_params,  const Padsynth_params*);
 #undef SET_FUNC_TYPE
 
 
@@ -381,6 +383,29 @@ bool Device_impl_register_set_num_list(
         const Num_list* default_val,
         Set_num_list_func set_func,
         Set_state_num_list_func set_state_func);
+
+
+/**
+ * Register a PADsynth parameters value set function.
+ *
+ * See \a Device_impl_register_set_bool for a detailed description of the
+ * \a keyp argument.
+ *
+ * \param dimpl            The Device implementation -- must not be \c NULL.
+ * \param keyp             The key pattern -- must not be \c NULL.
+ * \param default_val      The default value passed to callbacks
+ *                         -- must not be \c NULL.
+ * \param set_func         The set function -- must not be \c NULL.
+ * \param set_state_func   The set state function, or \c NULL if not used.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_impl_register_set_padsynth_params(
+        Device_impl* dimpl,
+        const char* keyp,
+        const Padsynth_params* default_val,
+        Set_padsynth_params_func set_func,
+        Set_state_padsynth_params_func set_state_func);
 
 
 /**

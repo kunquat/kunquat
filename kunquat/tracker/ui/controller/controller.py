@@ -455,7 +455,7 @@ class Controller():
     def notify_kunquat_exception(self, e):
         raise e
 
-    def notify_kunquat_assertion(self, e):
+    def notify_libkunquat_error(self, e):
         raise e
 
     def update_output_speed(self, fps):

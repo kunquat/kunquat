@@ -37,6 +37,7 @@ typedef union
     Note_map* Note_map_type;
     Hit_map* Hit_map_type;
     Num_list* Num_list_type;
+    Padsynth_params* Padsynth_params_type;
 } Dev_fields;
 
 
@@ -79,6 +80,8 @@ Device_field_type get_keyp_device_field_type(const char* keyp)
             return DEVICE_FIELD_HIT_MAP;
         else if (string_has_prefix(last_elem, "p_ln_"))
             return DEVICE_FIELD_NUM_LIST;
+        else if (string_has_prefix(last_elem, "p_ps_"))
+            return DEVICE_FIELD_PADSYNTH_PARAMS;
     }
     else if (string_has_suffix(last_elem, ".wv"))
         return DEVICE_FIELD_WAVPACK;
@@ -105,6 +108,7 @@ Device_field* new_Device_field(const char* key, void* data)
         [DEVICE_FIELD_NOTE_MAP]         = sizeof(Note_map*),
         [DEVICE_FIELD_HIT_MAP]          = sizeof(Hit_map*),
         [DEVICE_FIELD_NUM_LIST]         = sizeof(Num_list*),
+        [DEVICE_FIELD_PADSYNTH_PARAMS]  = sizeof(Padsynth_params*),
         [DEVICE_FIELD_WAVPACK]          = sizeof(Sample*),
         [DEVICE_FIELD_WAV]              = sizeof(Sample*),
     };
@@ -181,6 +185,8 @@ bool Device_field_change(Device_field* field, Streader* sr)
         return false;
 
     const void* data = sr->str;
+
+    // FIXME: Check for empty field before destroying dynamically allocated objects!
 
     switch (field->type)
     {
@@ -325,6 +331,17 @@ bool Device_field_change(Device_field* field, Streader* sr)
         }
         break;
 
+        case DEVICE_FIELD_PADSYNTH_PARAMS:
+        {
+            Padsynth_params* pp = new_Padsynth_params(sr);
+            if (pp == NULL)
+                return false;
+
+            del_Padsynth_params(field->data.Padsynth_params_type);
+            field->data.Padsynth_params_type = pp;
+        }
+        break;
+
         default:
             assert(false);
     }
@@ -371,6 +388,7 @@ bool Device_field_get_empty(const Device_field* field)
 }
 
 
+#if 0
 bool Device_field_modify(Device_field* field, void* data)
 {
     assert(field != NULL);
@@ -407,6 +425,7 @@ bool Device_field_modify(Device_field* field, void* data)
 
     return true;
 }
+#endif
 
 
 const bool* Device_field_get_bool(const Device_field* field)
@@ -529,10 +548,24 @@ const Num_list* Device_field_get_num_list(const Device_field* field)
 }
 
 
+const Padsynth_params* Device_field_get_padsynth_params(const Device_field* field)
+{
+    assert(field != NULL);
+    assert(field->type == DEVICE_FIELD_PADSYNTH_PARAMS);
+
+    if (field->empty)
+        return NULL;
+
+    return field->data.Padsynth_params_type;
+}
+
+
 void del_Device_field(Device_field* field)
 {
     if (field == NULL)
         return;
+
+    // FIXME: Check for empty field before destroying dynamically allocated objects!
 
     if (field->type == DEVICE_FIELD_ENVELOPE)
         del_Envelope(field->data.Envelope_type);
@@ -544,6 +577,8 @@ void del_Device_field(Device_field* field)
         del_Hit_map(field->data.Hit_map_type);
     else if (field->type == DEVICE_FIELD_NUM_LIST)
         del_Num_list(field->data.Num_list_type);
+    else if (field->type == DEVICE_FIELD_PADSYNTH_PARAMS)
+        del_Padsynth_params(field->data.Padsynth_params_type);
 
     memory_free(field);
 

@@ -17,7 +17,7 @@ import traceback
 from multiprocessing import Process, Queue
 from queue import Empty
 
-from kunquat.kunquat.kunquat import KunquatError, set_assert_hook
+from kunquat.kunquat.kunquat import KunquatError, set_assert_hook, set_segfault_hook
 from kunquat.tracker.audio.audio_engine import create_audio_engine
 
 
@@ -41,6 +41,14 @@ class KunquatAssertionError(KunquatError):
     def __init__(self, info):
         super().__init__('Assertion failure in libkunquat')
         self.kunquat_desc_override = info
+
+
+class KunquatSegFaultError(KunquatError):
+
+    def __init__(self):
+        msg = 'A segmentation fault occurred inside libkunquat'
+        super().__init__(msg)
+        self.kunquat_desc_override = msg
 
 
 class AudioProcess(Process):
@@ -81,11 +89,21 @@ class AudioProcess(Process):
 
     def _on_assert(self, info):
         e = KunquatAssertionError(info)
-        self._ui_engine.notify_kunquat_assertion(e)
+        self._ui_engine.notify_libkunquat_error(e)
 
         # We will get destroyed along with our communication channel after returning,
         # so give the UI some time to receive our message
         time.sleep(1)
+
+    def _on_segfault(self):
+        e = KunquatSegFaultError()
+        self._ui_engine.notify_libkunquat_error(e)
+
+        # Give the UI some time to receive our message
+        time.sleep(1)
+
+        # Stop libkunquat
+        sys.exit(1)
 
     def run(self):
         # Create the audio engine inside the correct process
@@ -93,6 +111,7 @@ class AudioProcess(Process):
         self._audio_engine.set_ui_engine(self._ui_engine)
 
         set_assert_hook(self._on_assert)
+        set_segfault_hook(self._on_segfault)
 
         try:
             self._run_audio_engine()
