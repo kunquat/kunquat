@@ -93,8 +93,7 @@ class ColumnGroupRenderer():
         else:
             self._create_caches()
 
-    def rearrange_patterns(self):
-        new_pinsts = utils.get_all_pattern_instances(self._ui_model)
+    def rearrange_patterns(self, new_pinsts):
         cur_caches = {}
         for cache in (self._caches or []):
             cur_caches[cache.get_pinst_ref()] = cache

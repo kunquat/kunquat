@@ -229,7 +229,7 @@ class View(QWidget):
         self._pinsts = utils.get_all_pattern_instances(self._ui_model)
         lengths = [pinst.get_pattern().get_length() for pinst in self._pinsts]
         for cr in self._col_rends:
-            cr.rearrange_patterns()
+            cr.rearrange_patterns(self._pinsts)
             cr.set_pattern_lengths(lengths)
         self._set_pattern_heights()
 
