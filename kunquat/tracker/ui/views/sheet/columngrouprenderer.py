@@ -94,7 +94,10 @@ class ColumnGroupRenderer():
             self._create_caches()
 
     def _create_caches(self):
-        self._caches = [ColumnCachePair(self._num, i) for i in range(len(self._heights))]
+        pinsts = utils.get_all_pattern_instances(self._ui_model)
+        self._caches = [
+                ColumnCachePair(self._num, (p.get_pattern_num(), p.get_instance_num()))
+                for p in pinsts]
         for cache in self._caches:
             cache.set_config(self._config)
             cache.set_ui_model(self._ui_model)
@@ -243,9 +246,9 @@ class ColumnGroupRenderer():
 
 class ColumnCachePair():
 
-    def __init__(self, col_num, pat_index):
-        self._active = ColumnCache(col_num, pat_index, inactive=False)
-        self._inactive = ColumnCache(col_num, pat_index, inactive=True)
+    def __init__(self, col_num, pinst_ref):
+        self._active = ColumnCache(col_num, pinst_ref, inactive=False)
+        self._inactive = ColumnCache(col_num, pinst_ref, inactive=True)
 
     def set_config(self, config):
         self._active.set_config(config)
@@ -289,9 +292,9 @@ class ColumnCache():
 
     PIXMAP_HEIGHT = 256
 
-    def __init__(self, col_num, pat_index, *, inactive):
+    def __init__(self, col_num, pinst_ref, *, inactive):
         self._col_num = col_num
-        self._pat_index = pat_index
+        self._pinst_ref = pinst_ref
         self._inactive = inactive
         self._ui_model = None
 
@@ -392,6 +395,11 @@ class ColumnCache():
 
         painter = QPainter(pixmap)
 
+        album = self._ui_model.get_module().get_album()
+        track, system = album.get_pattern_instance_location_by_nums(*self._pinst_ref)
+        pat_index = utils.get_pattern_index_at_location(self._ui_model, track, system)
+        assert pat_index != None
+
         # Background
         painter.setBackground(self._get_final_colour(self._config['bg_colour']))
         painter.eraseRect(QRect(0, 0, self._width - 1, ColumnCache.PIXMAP_HEIGHT))
@@ -416,7 +424,7 @@ class ColumnCache():
         sheet_manager = self._ui_model.get_sheet_manager()
         if sheet_manager.is_grid_enabled():
             pinsts = utils.get_all_pattern_instances(self._ui_model)
-            pinst = pinsts[self._pat_index]
+            pinst = pinsts[pat_index]
 
             grid_start_ts = tstamp.Tstamp(0, start_px * tstamp.BEAT // self._px_per_beat)
             tr_height_ts = utils.get_tstamp_from_px(
@@ -461,7 +469,7 @@ class ColumnCache():
         painter.eraseRect(QRect(0, 0, self._width, ColumnCache.PIXMAP_HEIGHT))
         painter.setPen(Qt.white)
         painter.drawRect(0, 0, self._width - 1, ColumnCache.PIXMAP_HEIGHT - 1)
-        pixmap_desc = '{}-{}-{}'.format(self._col_num, self._pat_index, index)
+        pixmap_desc = '{}-{}-{}'.format(self._col_num, pat_index, index)
         painter.drawText(QPoint(2, 12), pixmap_desc)
         """
 
