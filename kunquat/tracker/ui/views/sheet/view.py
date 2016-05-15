@@ -174,7 +174,7 @@ class View(QWidget):
             self._update_all_patterns()
             self.update()
         if 'signal_order_list' in signals:
-            self._update_all_patterns()
+            self._rearrange_patterns()
             self.update()
         if 'signal_pattern_length' in signals:
             self._update_all_patterns()
@@ -224,6 +224,14 @@ class View(QWidget):
             cr.flush_caches()
         all_pinsts = utils.get_all_pattern_instances(self._ui_model)
         self.set_pattern_instances(all_pinsts)
+
+    def _rearrange_patterns(self):
+        self._pinsts = utils.get_all_pattern_instances(self._ui_model)
+        lengths = [pinst.get_pattern().get_length() for pinst in self._pinsts]
+        for cr in self._col_rends:
+            cr.rearrange_patterns()
+            cr.set_pattern_lengths(lengths)
+        self._set_pattern_heights()
 
     def _update_grid(self):
         for cr in self._col_rends:

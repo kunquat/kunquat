@@ -93,6 +93,32 @@ class ColumnGroupRenderer():
         else:
             self._create_caches()
 
+    def rearrange_patterns(self):
+        new_pinsts = utils.get_all_pattern_instances(self._ui_model)
+        cur_caches = {}
+        for cache in (self._caches or []):
+            cur_caches[cache.get_pinst_ref()] = cache
+
+        new_caches = []
+        new_columns = []
+        for pinst in new_pinsts:
+            column = pinst.get_column(self._num)
+            new_columns.append(column)
+
+            pinst_ref = (pinst.get_pattern_num(), pinst.get_instance_num())
+            if pinst_ref in cur_caches:
+                cache = cur_caches[pinst_ref]
+            else:
+                cache = ColumnCachePair(self._num, pinst_ref)
+                cache.set_config(self._config)
+                cache.set_ui_model(self._ui_model)
+                cache.set_column(column)
+            new_caches.append(cache)
+        self._caches = new_caches
+        self._columns = new_columns
+
+        self._sync_caches()
+
     def _create_caches(self):
         pinsts = utils.get_all_pattern_instances(self._ui_model)
         self._caches = [
@@ -247,8 +273,12 @@ class ColumnGroupRenderer():
 class ColumnCachePair():
 
     def __init__(self, col_num, pinst_ref):
+        self._pinst_ref = pinst_ref
         self._active = ColumnCache(col_num, pinst_ref, inactive=False)
         self._inactive = ColumnCache(col_num, pinst_ref, inactive=True)
+
+    def get_pinst_ref(self):
+        return self._pinst_ref
 
     def set_config(self, config):
         self._active.set_config(config)
