@@ -35,7 +35,6 @@ class ColumnGroupRenderer():
         self._ui_model = None
 
         self._caches = None
-        self._inactive_caches = None
 
         self._width = DEFAULT_CONFIG['col_width']
         self._px_offset = 0
@@ -53,9 +52,6 @@ class ColumnGroupRenderer():
         if self._caches:
             for cache in self._caches:
                 cache.set_ui_model(ui_model)
-        if self._inactive_caches:
-            for cache in self._inactive_caches:
-                cache.set_ui_model(ui_model)
 
     def set_width(self, width):
         if self._width != width:
@@ -66,8 +62,6 @@ class ColumnGroupRenderer():
         self._columns = columns
         for i, cache in enumerate(self._caches):
             cache.set_column(self._columns[i])
-        for i, cache in enumerate(self._inactive_caches):
-            cache.set_column(self._columns[i])
 
     def update_column(self, pattern_index, col_data):
         self._columns[pattern_index] = col_data
@@ -75,25 +69,15 @@ class ColumnGroupRenderer():
             cache = self._caches[pattern_index]
             cache.flush()
             cache.set_column(self._columns[pattern_index])
-        if self._inactive_caches:
-            cache = self._inactive_caches[pattern_index]
-            cache.flush()
-            cache.set_column(self._columns[pattern_index])
 
     def flush_caches(self):
         if self._caches:
             for cache in self._caches:
                 cache.flush()
-        if self._inactive_caches:
-            for cache in self._inactive_caches:
-                cache.flush()
 
     def flush_final_pixmaps(self):
         if self._caches:
             for cache in self._caches:
-                cache.flush_final_pixmaps()
-        if self._inactive_caches:
-            for cache in self._inactive_caches:
                 cache.flush_final_pixmaps()
 
     def set_pattern_lengths(self, lengths):
@@ -105,22 +89,41 @@ class ColumnGroupRenderer():
 
         # FIXME: revisit cache creation
         if self._caches and (len(self._caches) == len(self._heights)):
-            assert self._inactive_caches
             self._sync_caches()
         else:
             self._create_caches()
 
-    def _create_caches(self):
-        self._caches = [ColumnCache(self._num, i)
-                for i in range(len(self._heights))]
-        for cache in self._caches:
-            cache.set_config(self._config)
-            cache.set_ui_model(self._ui_model)
+    def rearrange_patterns(self, new_pinsts):
+        cur_caches = {}
+        for cache in (self._caches or []):
+            cur_caches[cache.get_pinst_ref()] = cache
 
-        self._inactive_caches = [ColumnCache(self._num, i)
-                for i in range(len(self._heights))]
-        for cache in self._inactive_caches:
-            cache.set_inactive()
+        new_caches = []
+        new_columns = []
+        for pinst in new_pinsts:
+            column = pinst.get_column(self._num)
+            new_columns.append(column)
+
+            pinst_ref = (pinst.get_pattern_num(), pinst.get_instance_num())
+            if pinst_ref in cur_caches:
+                cache = cur_caches[pinst_ref]
+            else:
+                cache = ColumnCachePair(self._num, pinst_ref)
+                cache.set_config(self._config)
+                cache.set_ui_model(self._ui_model)
+                cache.set_column(column)
+            new_caches.append(cache)
+        self._caches = new_caches
+        self._columns = new_columns
+
+        self._sync_caches()
+
+    def _create_caches(self):
+        pinsts = utils.get_all_pattern_instances(self._ui_model)
+        self._caches = [
+                ColumnCachePair(self._num, (p.get_pattern_num(), p.get_instance_num()))
+                for p in pinsts]
+        for cache in self._caches:
             cache.set_config(self._config)
             cache.set_ui_model(self._ui_model)
 
@@ -129,10 +132,6 @@ class ColumnGroupRenderer():
     def _sync_caches(self):
         if self._caches:
             for cache in self._caches:
-                cache.set_width(self._width)
-                cache.set_px_per_beat(self._px_per_beat)
-        if self._inactive_caches:
-            for cache in self._inactive_caches:
                 cache.set_width(self._width)
                 cache.set_px_per_beat(self._px_per_beat)
 
@@ -146,17 +145,14 @@ class ColumnGroupRenderer():
             self._px_offset = px_offset
 
     def get_memory_usage(self):
-        try:
-            return (sum(cache.get_memory_usage() for cache in self._caches) +
-                    sum(cache.get_memory_usage() for cache in self._inactive_caches))
-        except TypeError:
+        if not self._caches:
             return 0
+        return sum(cache.get_memory_usage() for cache in self._caches)
 
     def draw(self, painter, height, grid):
         # Render columns of visible patterns
         first_index = utils.get_first_visible_pat_index(
-                self._px_offset,
-                self._start_heights)
+                self._px_offset, self._start_heights)
 
         pixmaps_created = 0
 
@@ -186,8 +182,10 @@ class ColumnGroupRenderer():
             cur_offset = max(0, -rel_start_height)
 
             # Choose cache based on whether this pattern contains the edit cursor
-            cache = (self._caches[pi] if (pi == active_pattern_index)
-                    else self._inactive_caches[pi])
+            if pi == active_pattern_index:
+                cache = self._caches[pi].get_active_cache()
+            else:
+                cache = self._caches[pi].get_inactive_cache()
 
             # Draw pixmaps
             canvas_y = max(0, rel_start_height)
@@ -271,14 +269,62 @@ class ColumnGroupRenderer():
         return pixmaps_created
 
 
+class ColumnCachePair():
+
+    def __init__(self, col_num, pinst_ref):
+        self._pinst_ref = pinst_ref
+        self._active = ColumnCache(col_num, pinst_ref, inactive=False)
+        self._inactive = ColumnCache(col_num, pinst_ref, inactive=True)
+
+    def get_pinst_ref(self):
+        return self._pinst_ref
+
+    def set_config(self, config):
+        self._active.set_config(config)
+        self._inactive.set_config(config)
+
+    def set_ui_model(self, ui_model):
+        self._active.set_ui_model(ui_model)
+        self._inactive.set_ui_model(ui_model)
+
+    def set_column(self, column):
+        self._active.set_column(column)
+        self._inactive.set_column(column)
+
+    def set_width(self, width):
+        self._active.set_width(width)
+        self._inactive.set_width(width)
+
+    def set_px_per_beat(self, px_per_beat):
+        self._active.set_px_per_beat(px_per_beat)
+        self._inactive.set_px_per_beat(px_per_beat)
+
+    def flush(self):
+        self._active.flush()
+        self._inactive.flush()
+
+    def flush_final_pixmaps(self):
+        self._active.flush_final_pixmaps()
+        self._inactive.flush_final_pixmaps()
+
+    def get_memory_usage(self):
+        return self._active.get_memory_usage() + self._inactive.get_memory_usage()
+
+    def get_active_cache(self):
+        return self._active
+
+    def get_inactive_cache(self):
+        return self._inactive
+
+
 class ColumnCache():
 
     PIXMAP_HEIGHT = 256
 
-    def __init__(self, col_num, pat_index):
+    def __init__(self, col_num, pinst_ref, *, inactive):
         self._col_num = col_num
-        self._pat_index = pat_index
-        self._inactive = False
+        self._pinst_ref = pinst_ref
+        self._inactive = inactive
         self._ui_model = None
 
         self._pixmaps = BufferCache()
@@ -287,13 +333,12 @@ class ColumnCache():
         self._tr_cache = TRCache()
         self._gl_cache = GridLineCache()
 
+        if self._inactive:
+            self._tr_cache.set_inactive()
+            self._gl_cache.set_inactive()
+
         self._width = DEFAULT_CONFIG['col_width']
         self._px_per_beat = None
-
-    def set_inactive(self):
-        self._inactive = True
-        self._tr_cache.set_inactive()
-        self._gl_cache.set_inactive()
 
     def set_config(self, config):
         self._config = config
@@ -379,6 +424,11 @@ class ColumnCache():
 
         painter = QPainter(pixmap)
 
+        album = self._ui_model.get_module().get_album()
+        track, system = album.get_pattern_instance_location_by_nums(*self._pinst_ref)
+        pat_index = utils.get_pattern_index_at_location(self._ui_model, track, system)
+        assert pat_index != None
+
         # Background
         painter.setBackground(self._get_final_colour(self._config['bg_colour']))
         painter.eraseRect(QRect(0, 0, self._width - 1, ColumnCache.PIXMAP_HEIGHT))
@@ -403,7 +453,7 @@ class ColumnCache():
         sheet_manager = self._ui_model.get_sheet_manager()
         if sheet_manager.is_grid_enabled():
             pinsts = utils.get_all_pattern_instances(self._ui_model)
-            pinst = pinsts[self._pat_index]
+            pinst = pinsts[pat_index]
 
             grid_start_ts = tstamp.Tstamp(0, start_px * tstamp.BEAT // self._px_per_beat)
             tr_height_ts = utils.get_tstamp_from_px(
@@ -448,7 +498,7 @@ class ColumnCache():
         painter.eraseRect(QRect(0, 0, self._width, ColumnCache.PIXMAP_HEIGHT))
         painter.setPen(Qt.white)
         painter.drawRect(0, 0, self._width - 1, ColumnCache.PIXMAP_HEIGHT - 1)
-        pixmap_desc = '{}-{}-{}'.format(self._col_num, self._pat_index, index)
+        pixmap_desc = '{}-{}-{}'.format(self._col_num, pat_index, index)
         painter.drawText(QPoint(2, 12), pixmap_desc)
         """
 
