@@ -70,7 +70,7 @@ class _WavPackWBase(_WavPackBase):
         if self._wpc == None:
             raise MemoryError('Could not allocate memory for WavPack context')
 
-        flags = _CONFIG_VERY_HIGH_FLAG | _CONFIG_SKIP_WVX
+        flags = _CONFIG_VERY_HIGH_FLAG
         float_norm_exp = 0
         if self._use_float:
             flags |= _CONFIG_FLOAT_DATA
