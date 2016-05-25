@@ -119,8 +119,8 @@ class _WavPackWBase(_WavPackBase):
         assert self._wpc
 
         if len(data) != self._channels:
-            raise ValueError('Expected {} output channels, got {}'.format(
-                self._channels, len(data)))
+            raise ValueError('Expected {} output channel{}, got {}'.format(
+                self._channels, '' if self._channels == 1 else 's', len(data)))
 
         frame_count = len(data[0])
         if self._use_float:
