@@ -220,8 +220,9 @@ class WavPackWMem(_WavPackWBase):
     def close(self):
         self.finalise()
 
-        self._f.seek(0)
-        self._data = self._f.read()
+        if self._f:
+            self._f.seek(0)
+            self._data = self._f.read()
 
         super().close()
 
