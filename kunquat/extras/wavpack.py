@@ -130,6 +130,9 @@ class _WavPackWBase(_WavPackBase):
         else:
             cdata = (ctypes.c_int32 * (frame_count * self._channels))()
             self._fill_buffer(frame_count, cdata, data)
+            if self._bits == 24:
+                for i in range(frame_count * self._channels):
+                    cdata[i] <<= 8
 
         if not _wavpack.WavpackPackSamples(self._wpc, cdata, frame_count):
             raise WavPackError('Error while writing WavPack data: {}'.format(
