@@ -11,6 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from kunquat.extras.sndfile import SndFileR
+from kunquat.extras.wavpack import WavPackWMem
 from kunquat.kunquat.kunquat import Kunquat, KunquatFormatError
 from .procparams import ProcParams
 
@@ -78,13 +80,26 @@ class SampleParams(ProcParams):
         return None
 
     def import_sample(self, sample_id, path):
-        with open(path, 'rb') as f:
-            sample_data = f.read()
+        if path.endswith('.wv'):
+            with open(path, 'rb') as f:
+                sample_data = f.read()
 
-        validator = WavPackValidator(sample_data)
-        if not validator.is_data_valid():
-            return False
-        del validator
+            validator = WavPackValidator(sample_data)
+            if not validator.is_data_valid():
+                return False
+            del validator
+        else:
+            sf = SndFileR(path, convert_to_float=False)
+            wv = WavPackWMem(
+                    sf.get_audio_rate(), sf.get_channels(), sf.is_float(), sf.get_bits())
+            sdata = list(sf.read())
+            if sf.get_bits() < 32:
+                rshift = 32 - sf.get_bits()
+                for buf in sdata:
+                    for i in range(len(buf)):
+                        buf[i] >>= rshift
+            wv.write(*sdata)
+            sample_data = wv.get_contents()
 
         sample_data_key = self._get_full_sample_key(sample_id, 'p_sample.wv')
         sample_header_key = self._get_full_sample_key(sample_id, 'p_sh_sample.json')

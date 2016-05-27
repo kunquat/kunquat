@@ -1324,8 +1324,17 @@ class SampleListToolBar(QToolBar):
         if not sample_id:
             return
 
+        filters = [
+            'All supported types (*.wav *.aiff *.aif *.aifc *.au *.snd *.wv *.flac)',
+            'Waveform Audio File Format (*.wav)',
+            'Audio Interchange File Format (*.aiff *.aif *.aifc)',
+            'Sun Au (*.au *.snd)',
+            'WavPack (*.wv)',
+            'Free Lossless Audio Codec (*.flac)',
+        ]
+
         sample_path, _ = QFileDialog.getOpenFileName(
-                caption='Import sample', filter='WavPack audio (*.wv)')
+                caption='Import sample', filter=';;'.join(filters))
         if sample_path:
             success = sample_params.import_sample(sample_id, sample_path)
             if success:
