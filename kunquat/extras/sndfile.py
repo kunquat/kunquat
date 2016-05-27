@@ -239,8 +239,8 @@ class SndFileR(_SndFileRBase):
 
         self._sf = _sndfile.sf_open(bytes(fname, encoding='utf-8'), SFM_READ, info)
         if not self._sf:
-            raise SndFileError('Could not open file {}: {}'.format(
-                fname, _sndfile.sf_strerror(None)))
+            err_cstr = _sndfile.sf_strerror(None)
+            raise SndFileError(str(err_cstr, encoding='utf-8'))
 
         self.set_format_info(info)
 
@@ -272,8 +272,9 @@ class SndFileRMem(_SndFileRBase):
 
         self._sf = _sndfile.sf_open_virtual(vio, SFM_READ, info, None)
         if not self._sf:
+            err_cstr = _sndfile.sf_strerror(None)
             raise SndFileError('Could not set up data access: {}'.format(
-                _sndfile.sf_strerror(None)))
+                str(err_cstr, encoding='utf-8')))
 
         self.set_format_info(info)
 
@@ -356,8 +357,9 @@ class SndFileW(_SndFileWBase):
 
         self._sf = _sndfile.sf_open(bytes(fname, encoding='utf-8'), SFM_WRITE, info)
         if not self._sf:
+            err_cstr = _sndfile.sf_strerror(None)
             raise SndFileError('Could not create file {}: {}'.format(
-                fname, _sndfile.sf_strerror(None)))
+                fname, str(err_cstr, encoding='utf-8')))
 
         if not use_float:
             _sndfile.sf_command(self._sf, SFC_SET_CLIPPING, None, SF_TRUE)
@@ -394,8 +396,9 @@ class SndFileWMem(_SndFileWBase):
 
         self._sf = _sndfile.sf_open_virtual(vio, SFM_WRITE, info, None)
         if not self._sf:
+            err_cstr = _sndfile.sf_strerror(None)
             raise SndFileError('Could not set up data access: {}'.format(
-                _sndfile.sf_strerror(None)))
+                str(err_cstr, encoding='utf-8')))
 
         if not use_float:
             _sndfile.sf_command(self._sf, SFC_SET_CLIPPING, None, SF_TRUE)
