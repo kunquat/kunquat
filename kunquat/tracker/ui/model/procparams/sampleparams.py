@@ -11,10 +11,14 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from kunquat.extras.sndfile import SndFileR
+from kunquat.extras.sndfile import SndFileR, SndFileError
 from kunquat.extras.wavpack import WavPackWMem
 from kunquat.kunquat.kunquat import Kunquat, KunquatFormatError
 from .procparams import ProcParams
+
+
+class SampleImportError(ValueError):
+    '''Error raised when sample importing fails.'''
 
 
 class SampleParams(ProcParams):
@@ -86,18 +90,24 @@ class SampleParams(ProcParams):
 
             validator = WavPackValidator(sample_data)
             if not validator.is_data_valid():
-                return False
+                raise SampleImportError('Could not import {}:\n{}'.format(
+                    path, validator.get_validation_error()))
             del validator
+
         else:
-            sf = SndFileR(path, convert_to_float=False)
-            wv = WavPackWMem(
-                    sf.get_audio_rate(), sf.get_channels(), sf.is_float(), sf.get_bits())
-            sdata = list(sf.read())
+            try:
+                sf = SndFileR(path, convert_to_float=False)
+                sdata = list(sf.read())
+            except SndFileError as e:
+                raise SampleImportError('Could not import {}:\n{}'.format(path, str(e)))
+
             if sf.get_bits() < 32:
                 rshift = 32 - sf.get_bits()
                 for buf in sdata:
                     for i in range(len(buf)):
                         buf[i] >>= rshift
+            wv = WavPackWMem(
+                    sf.get_audio_rate(), sf.get_channels(), sf.is_float(), sf.get_bits())
             wv.write(*sdata)
             sample_data = wv.get_contents()
 
@@ -111,8 +121,6 @@ class SampleParams(ProcParams):
         transaction[sample_header_key] = header
 
         self._store.put(transaction)
-
-        return True
 
     def remove_sample(self, sample_id):
         key_prefix = self._get_full_sample_key(sample_id, '')
