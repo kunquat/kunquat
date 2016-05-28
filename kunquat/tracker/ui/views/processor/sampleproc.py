@@ -17,6 +17,7 @@ import time
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from kunquat.tracker.ui.model.procparams.sampleparams import SampleImportError
 from kunquat.tracker.ui.views.audio_unit.hitselector import HitSelector
 from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
 from kunquat.tracker.ui.views.editorlist import EditorList
@@ -1324,19 +1325,28 @@ class SampleListToolBar(QToolBar):
         if not sample_id:
             return
 
+        filters = [
+            'All supported types (*.wav *.aiff *.aif *.aifc *.au *.snd *.wv *.flac)',
+            'Waveform Audio File Format (*.wav)',
+            'Audio Interchange File Format (*.aiff *.aif *.aifc)',
+            'Sun Au (*.au *.snd)',
+            'WavPack (*.wv)',
+            'Free Lossless Audio Codec (*.flac)',
+        ]
+
         sample_path, _ = QFileDialog.getOpenFileName(
-                caption='Import sample', filter='WavPack audio (*.wv)')
+                caption='Import sample', filter=';;'.join(filters))
         if sample_path:
-            success = sample_params.import_sample(sample_id, sample_path)
-            if success:
+            try:
+                sample_params.import_sample(sample_id, sample_path)
                 self._updater.signal_update(set([
                     self._get_list_signal_type(),
                     self._get_note_map_random_list_signal_type(),
                     self._get_hit_map_random_list_signal_type()]))
-            else:
+            except SampleImportError as e:
                 icon_bank = self._ui_model.get_icon_bank()
-                # TODO: Add a more descriptive error message
-                error_msg = '<p>Could not import \'{}\'.</p>'.format(sample_path)
+                error_msg_lines = str(e).split('\n')
+                error_msg = '<p>{}</p>'.format('<br>'.join(error_msg_lines))
                 dialog = ImportErrorDialog(icon_bank, error_msg)
                 dialog.exec_()
 

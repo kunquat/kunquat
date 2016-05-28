@@ -30,7 +30,12 @@ FORMAT_PCM_32 = 0x0004
 
 FORMAT_PCM_U8 = 0x0005
 
-FORMAT_FLOAT = 0x0006
+FORMAT_FLOAT  = 0x0006
+FORMAT_DOUBLE = 0x0007
+
+FORMAT_SUBMASK  = 0x0000ffff
+FORMAT_TYPEMASK = 0x0fff0000
+FORMAT_ENDMASK  = 0x30000000
 
 SF_FALSE = 0
 SF_TRUE = 1
@@ -130,8 +135,47 @@ class _SndFileBase():
 
 class _SndFileRBase(_SndFileBase):
 
-    def __init__(self):
+    def __init__(self, convert_to_float):
         super().__init__()
+        self._convert_to_float = convert_to_float
+        self._is_float = False
+        self._bits = 0
+        self._audio_rate = 0
+
+    def set_format_info(self, sf_info):
+        self._channels = sf_info.channels
+        self._audio_rate = sf_info.samplerate
+
+        sub_format = sf_info.format & FORMAT_SUBMASK
+        if sub_format in (FORMAT_FLOAT, FORMAT_DOUBLE):
+            self._is_float = True
+            self._bits = 32
+        else:
+            self._is_float = False
+            format_bit_map = {
+                FORMAT_PCM_S8: 8,
+                FORMAT_PCM_U8: 8,
+                FORMAT_PCM_16: 16,
+                FORMAT_PCM_24: 24,
+                FORMAT_PCM_32: 32,
+            }
+            if sub_format in format_bit_map:
+                self._bits = format_bit_map[sub_format]
+            else:
+                self._bits = 32
+                self._convert_to_float = True
+
+    def get_bits(self):
+        return self._bits
+
+    def is_float(self):
+        return self._is_float or self._convert_to_float
+
+    def get_channels(self):
+        return self._channels
+
+    def get_audio_rate(self):
+        return self._audio_rate
 
     def read(self, frame_count=float('inf')):
         """Read audio data.
@@ -150,11 +194,19 @@ class _SndFileRBase(_SndFileBase):
         if frames_left == float('inf'):
             frame_count = 4096
 
-        cdata = (ctypes.c_float * (frame_count * self._channels))()
+        use_float = self._convert_to_float or self._is_float
+
+        if use_float:
+            cdata = (ctypes.c_float * (frame_count * self._channels))()
+        else:
+            cdata = (ctypes.c_int32 * (frame_count * self._channels))()
         chunk = [[] for _ in range(self._channels)]
 
         while frames_left > 0:
-            actual_frame_count = _sndfile.sf_readf_float(self._sf, cdata, frame_count)
+            if use_float:
+                actual_frame_count = _sndfile.sf_readf_float(self._sf, cdata, frame_count)
+            else:
+                actual_frame_count = _sndfile.sf_readf_int(self._sf, cdata, frame_count)
             for ch in range(self._channels):
                 channel_data = cdata[ch:actual_frame_count * self._channels:self._channels]
                 chunk[ch].extend(channel_data)
@@ -169,23 +221,28 @@ class _SndFileRBase(_SndFileBase):
 
 class SndFileR(_SndFileRBase):
 
-    def __init__(self, fname):
+    def __init__(self, fname, convert_to_float=True):
         """Create a new readable audio file.
 
         Arguments:
         fname -- Input file name.
 
+        Optional arguments:
+        convert_to_float -- Convert audio data to float.  If set to
+                            False, integer audio data will be scaled
+                            to 32-bit integers.
+
         """
-        super().__init__()
+        super().__init__(convert_to_float)
 
         info = _SF_INFO(0, 0, 0, 0, 0, 0)
 
         self._sf = _sndfile.sf_open(bytes(fname, encoding='utf-8'), SFM_READ, info)
         if not self._sf:
-            raise SndFileError('Could not open file {}: {}'.format(
-                fname, _sndfile.sf_strerror(None)))
+            err_cstr = _sndfile.sf_strerror(None)
+            raise SndFileError(str(err_cstr, encoding='utf-8'))
 
-        self._channels = info.channels
+        self.set_format_info(info)
 
     def __del__(self):
         self.close()
@@ -193,14 +250,19 @@ class SndFileR(_SndFileRBase):
 
 class SndFileRMem(_SndFileRBase):
 
-    def __init__(self, data):
+    def __init__(self, data, convert_to_float=True):
         """Create a new readable audio stream from data in memory.
 
         Arguments:
         data -- Input data.
 
+        Optional arguments:
+        convert_to_float -- Convert audio data to float.  If set to
+                            False, integer audio data will be scaled
+                            to 32-bit integers.
+
         """
-        super().__init__()
+        super().__init__(convert_to_float)
         self._data = data
 
         self._bytes = bytes(self._data)
@@ -210,10 +272,11 @@ class SndFileRMem(_SndFileRBase):
 
         self._sf = _sndfile.sf_open_virtual(vio, SFM_READ, info, None)
         if not self._sf:
+            err_cstr = _sndfile.sf_strerror(None)
             raise SndFileError('Could not set up data access: {}'.format(
-                _sndfile.sf_strerror(None)))
+                str(err_cstr, encoding='utf-8')))
 
-        self._channels = info.channels
+        self.set_format_info(info)
 
     def __del__(self):
         self.close()
@@ -294,8 +357,9 @@ class SndFileW(_SndFileWBase):
 
         self._sf = _sndfile.sf_open(bytes(fname, encoding='utf-8'), SFM_WRITE, info)
         if not self._sf:
+            err_cstr = _sndfile.sf_strerror(None)
             raise SndFileError('Could not create file {}: {}'.format(
-                fname, _sndfile.sf_strerror(None)))
+                fname, str(err_cstr, encoding='utf-8')))
 
         if not use_float:
             _sndfile.sf_command(self._sf, SFC_SET_CLIPPING, None, SF_TRUE)
@@ -332,8 +396,9 @@ class SndFileWMem(_SndFileWBase):
 
         self._sf = _sndfile.sf_open_virtual(vio, SFM_WRITE, info, None)
         if not self._sf:
+            err_cstr = _sndfile.sf_strerror(None)
             raise SndFileError('Could not set up data access: {}'.format(
-                _sndfile.sf_strerror(None)))
+                str(err_cstr, encoding='utf-8')))
 
         if not use_float:
             _sndfile.sf_command(self._sf, SFC_SET_CLIPPING, None, SF_TRUE)
@@ -424,17 +489,23 @@ _sndfile.sf_command.argtypes = [
         ctypes.c_int]
 _sndfile.sf_command.restype = ctypes.c_int
 
+_sndfile.sf_readf_int.argtypes = [
+        ctypes.c_void_p,
+        ctypes.POINTER(ctypes.c_int),
+        _sf_count_t]
+_sndfile.sf_readf_int.restype = _sf_count_t
+
 _sndfile.sf_readf_float.argtypes = [
         ctypes.c_void_p,
         ctypes.POINTER(ctypes.c_float),
-        ctypes.c_int64]
-_sndfile.sf_readf_float.restype = ctypes.c_int64
+        _sf_count_t]
+_sndfile.sf_readf_float.restype = _sf_count_t
 
 _sndfile.sf_writef_float.argtypes = [
         ctypes.c_void_p,
         ctypes.POINTER(ctypes.c_float),
-        ctypes.c_int64]
-_sndfile.sf_writef_float.restype = ctypes.c_int64
+        _sf_count_t]
+_sndfile.sf_writef_float.restype = _sf_count_t
 
 _sndfile.sf_close.argtypes = [ctypes.c_void_p]
 _sndfile.sf_close.restype = ctypes.c_int
