@@ -240,7 +240,7 @@ bool Module_find_pattern_location(
 
     const size_t track_count = Track_list_get_len(module->track_list);
 
-    // Linear search all track lists
+    // Linear search our track list
     for (size_t ti = 0; ti < track_count; ++ti)
     {
         const int16_t si = Track_list_get_song_index(module->track_list, ti);
