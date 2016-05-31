@@ -89,19 +89,13 @@ static int32_t Add_vstate_render_voice(
     assert(is_p2(ADD_BASE_FUNC_SIZE));
 
     // Get frequencies
-    float* freqs = Proc_state_get_voice_buffer_contents_mut(
+    Work_buffer* freqs_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
-    if (freqs == NULL)
-    {
-        freqs = Work_buffers_get_buffer_contents_mut(wbs, ADD_WORK_BUFFER_FIXED_PITCH);
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            freqs[i] = 440;
-    }
-    else
-    {
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            freqs[i] = fast_cents_to_Hz(freqs[i]);
-    }
+    const Work_buffer* pitches_wb = freqs_wb;
+    if (freqs_wb == NULL)
+        freqs_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_PITCH);
+    Proc_fill_freq_buffer(freqs_wb, pitches_wb, buf_start, buf_stop);
+    const float* freqs = Work_buffer_get_contents(freqs_wb);
 
     // Get volume scales
     float* scales = Proc_state_get_voice_buffer_contents_mut(
