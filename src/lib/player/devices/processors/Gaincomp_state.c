@@ -28,7 +28,7 @@
 
 static void distort(
         const Proc_gaincomp* gc,
-        Work_buffer* in_buffer,
+        const Work_buffer* in_buffer,
         Work_buffer* out_buffer,
         int32_t buf_start,
         int32_t buf_stop)

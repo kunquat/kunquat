@@ -159,8 +159,8 @@ static int32_t Force_vstate_render_voice(
                 new_buf_stop,
                 proc_state->parent.audio_rate);
 
-        const Work_buffer* wb_time_env =
-            Work_buffers_get_buffer(wbs, WORK_BUFFER_TIME_ENV);
+        Work_buffer* wb_time_env =
+            Work_buffers_get_buffer_mut(wbs, WORK_BUFFER_TIME_ENV);
         float* time_env = Work_buffer_get_contents_mut(wb_time_env);
 
         // Convert envelope data to dB
@@ -224,8 +224,8 @@ static int32_t Force_vstate_render_voice(
             if (fvstate->release_env_state.is_finished)
                 new_buf_stop = env_force_rel_stop;
 
-            const Work_buffer* wb_time_env = Work_buffers_get_buffer(
-                    wbs, WORK_BUFFER_TIME_ENV);
+            Work_buffer* wb_time_env =
+                Work_buffers_get_buffer_mut(wbs, WORK_BUFFER_TIME_ENV);
             float* time_env = Work_buffer_get_contents_mut(wb_time_env);
 
             // Convert envelope data to dB

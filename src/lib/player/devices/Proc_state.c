@@ -236,7 +236,7 @@ float* Proc_state_get_voice_buffer_contents_mut(
     assert(port_num >= 0);
     assert(port_num < KQT_DEVICE_PORTS_MAX);
 
-    const Work_buffer* wb =
+    Work_buffer* wb =
         Proc_state_get_voice_buffer_mut(proc_state, port_type, port_num);
     if (wb == NULL)
         return NULL;

@@ -36,7 +36,7 @@ enum
 
 static void apply_controls(
         Linear_controls* controls,
-        const Work_buffer* out_wb,
+        Work_buffer* out_wb,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
