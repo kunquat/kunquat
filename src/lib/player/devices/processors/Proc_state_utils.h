@@ -132,6 +132,27 @@ void Proc_ramp_attack(
 
 
 /**
+ * Convert pitch values to frequencies.
+ *
+ * NOTE: This function assumes that the index range defined by \a buf_start
+ *       and \a buf_stop is the full range used in the current mixing cycle.
+ *       If that is not the case, the const start value of \a freqs may be
+ *       incorrect.
+ *
+ * \param freqs       The destination buffer -- must not be \c NULL.
+ * \param pitches     The pitch buffer -- must not be \c NULL. This buffer may
+ *                    be the same as \a freqs.
+ * \param buf_start   The start index of the buffer area to be processed.
+ * \param buf_stop    The stop index of the buffer area to be processed.
+ */
+void Proc_fill_freq_buffer(
+        Work_buffer* freqs,
+        const Work_buffer* pitches,
+        int32_t buf_start,
+        int32_t buf_stop);
+
+
+/**
  * A helper for conditional Work buffer access.
  *
  * If a voice feature is disabled, this class provides an interface to a
