@@ -15,6 +15,7 @@
 #include <player/Work_buffer.h>
 
 #include <debug/assert.h>
+#include <mathnum/common.h>
 #include <memory.h>
 
 #include <stdbool.h>
@@ -32,6 +33,7 @@ static_assert(sizeof(int32_t) <= WORK_BUFFER_ELEM_SIZE,
 struct Work_buffer
 {
     int32_t size;
+    int32_t const_start;
     char* contents;
 };
 
@@ -47,6 +49,7 @@ Work_buffer* new_Work_buffer(int32_t size)
 
     // Sanitise fields
     buffer->size = size;
+    buffer->const_start = INT32_MAX;
     buffer->contents = NULL;
 
     if (buffer->size > 0)
@@ -89,6 +92,8 @@ bool Work_buffer_resize(Work_buffer* buffer, int32_t new_size)
     buffer->size = new_size;
     buffer->contents = new_contents;
 
+    Work_buffer_clear_const_start(buffer);
+
     return true;
 }
 
@@ -104,6 +109,8 @@ void Work_buffer_clear(Work_buffer* buffer, int32_t buf_start, int32_t buf_stop)
     float* fcontents = Work_buffer_get_contents_mut(buffer);
     for (int32_t i = buf_start; i < buf_stop; ++i)
         fcontents[i] = 0;
+
+    Work_buffer_set_const_start(buffer, buf_start);
 
     return;
 }
@@ -123,22 +130,35 @@ const float* Work_buffer_get_contents(const Work_buffer* buffer)
 }
 
 
-float* Work_buffer_get_contents_mut(const Work_buffer* buffer)
+float* Work_buffer_get_contents_mut(Work_buffer* buffer)
+{
+    assert(buffer != NULL);
+
+    Work_buffer_clear_const_start(buffer);
+
+    return (float*)buffer->contents + 1;
+}
+
+
+float* Work_buffer_get_contents_mut_keep_const(Work_buffer* buffer)
 {
     assert(buffer != NULL);
     return (float*)buffer->contents + 1;
 }
 
 
-int32_t* Work_buffer_get_contents_int_mut(const Work_buffer* buffer)
+int32_t* Work_buffer_get_contents_int_mut(Work_buffer* buffer)
 {
     assert(buffer != NULL);
+
+    Work_buffer_clear_const_start(buffer);
+
     return (int32_t*)buffer->contents + 1;
 }
 
 
 void Work_buffer_copy(
-        const Work_buffer* restrict dest,
+        Work_buffer* restrict dest,
         const Work_buffer* restrict src,
         int32_t buf_start,
         int32_t buf_stop)
@@ -162,7 +182,35 @@ void Work_buffer_copy(
     const uint32_t elem_count = actual_stop - actual_start;
     memcpy(dest_start, src_start, elem_count * WORK_BUFFER_ELEM_SIZE);
 
+    Work_buffer_set_const_start(dest, Work_buffer_get_const_start(src));
+
     return;
+}
+
+
+void Work_buffer_set_const_start(Work_buffer* buffer, int32_t start)
+{
+    assert(buffer != NULL);
+    assert(start >= 0);
+
+    buffer->const_start = start;
+
+    return;
+}
+
+
+void Work_buffer_clear_const_start(Work_buffer* buffer)
+{
+    assert(buffer != NULL);
+    buffer->const_start = INT32_MAX;
+    return;
+}
+
+
+int32_t Work_buffer_get_const_start(const Work_buffer* buffer)
+{
+    assert(buffer != NULL);
+    return buffer->const_start;
 }
 
 
@@ -183,11 +231,13 @@ void Work_buffer_mix(
     if (buffer == in)
         return;
 
-    float* buf_contents = Work_buffer_get_contents_mut(buffer);
+    float* buf_contents = Work_buffer_get_contents_mut_keep_const(buffer);
     const float* in_contents = Work_buffer_get_contents(in);
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
         buf_contents[i] += in_contents[i];
+
+    Work_buffer_set_const_start(buffer, max(buffer->const_start, in->const_start));
 
     return;
 }

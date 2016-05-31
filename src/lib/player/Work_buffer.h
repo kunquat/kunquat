@@ -88,13 +88,30 @@ const float* Work_buffer_get_contents(const Work_buffer* buffer);
 /**
  * Get the mutable contents of the Work buffer.
  *
+ * Note: This function clears the const start index of the buffer as it no
+ *       longer makes any assumptions of the buffer contents. If you wish to
+ *       utilise this optimisation feature, call the function
+ *       \a Work_buffer_get_contents_mut_keep_const instead.
+ *
  * \param buffer   The Work buffer -- must not be \c NULL.
  *
  * \return   The address of the internal buffer, with a valid index range of
  *           [-1, Work_buffer_get_size(\a buffer)]. For devices that receive
  *           the buffer from a caller, this function never returns \c NULL.
  */
-float* Work_buffer_get_contents_mut(const Work_buffer* buffer);
+float* Work_buffer_get_contents_mut(Work_buffer* buffer);
+
+
+/**
+ * Get the mutable contents of the Work buffer with the current const start.
+ *
+ * \param buffer   The Work buffer -- must not be \c NULL.
+ *
+ * \return   The address of the internal buffer, with a valid index range of
+ *           [-1, Work_buffer_get_size(\a buffer)]. For devices that receive
+ *           the buffer from a caller, this function never returns \c NULL.
+ */
+float* Work_buffer_get_contents_mut_keep_const(Work_buffer* buffer);
 
 
 /**
@@ -106,7 +123,7 @@ float* Work_buffer_get_contents_mut(const Work_buffer* buffer);
  *           [-1, Work_buffer_get_size(\a buffer)]. For devices that receive
  *           the buffer from a caller, this function never returns \c NULL.
  */
-int32_t* Work_buffer_get_contents_int_mut(const Work_buffer* buffer);
+int32_t* Work_buffer_get_contents_int_mut(Work_buffer* buffer);
 
 
 /**
@@ -120,10 +137,41 @@ int32_t* Work_buffer_get_contents_int_mut(const Work_buffer* buffer);
  *                    >= \c -1 and less than or equal to buffer size + \c 1.
  */
 void Work_buffer_copy(
-        const Work_buffer* restrict dest,
+        Work_buffer* restrict dest,
         const Work_buffer* restrict src,
         int32_t buf_start,
         int32_t buf_stop);
+
+
+/**
+ * Mark a trailing part of Work buffer contents as having constant value.
+ *
+ * NOTE: This is used as an optional performance optimisation. The caller
+ * must still fill the marked buffer area with constant values for code
+ * that does not take advantage of this information.
+ *
+ * \param buffer   The Work buffer -- must not be \c NULL.
+ * \param start    The start index in \a buffer -- must be non-negative.
+ */
+void Work_buffer_set_const_start(Work_buffer* buffer, int32_t start);
+
+
+/**
+ * Clear Work buffer constant-value part marker.
+ *
+ * \param buffer   The Work buffer -- must not be \c NULL.
+ */
+void Work_buffer_clear_const_start(Work_buffer* buffer);
+
+
+/**
+ * Get Work buffer constant-value part marker.
+ *
+ * \param buffer   The Work buffer -- must not be \c NULL.
+ *
+ * \return   The constant-value start marker, or \c INT32_MAX if not set.
+ */
+int32_t Work_buffer_get_const_start(const Work_buffer* buffer);
 
 
 /**
