@@ -129,7 +129,7 @@ double Slider_skip(Slider* slider, uint64_t steps);
  *           \a slider is inactive. Note that this value becomes obsolete if
  *           audio rate or tempo changes.
  */
-int64_t Slider_estimate_active_steps_left(const Slider* slider);
+int32_t Slider_estimate_active_steps_left(const Slider* slider);
 
 
 /**

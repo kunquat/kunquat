@@ -103,7 +103,7 @@ static int32_t Pitch_vstate_render_voice(
         int32_t cur_pos = buf_start;
         while (cur_pos < buf_stop)
         {
-            const int64_t estimated_steps =
+            const int32_t estimated_steps =
                 Slider_estimate_active_steps_left(&pc->slider);
             if (estimated_steps > 0)
             {

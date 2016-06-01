@@ -121,7 +121,7 @@ double Slider_skip(Slider* slider, uint64_t steps)
 }
 
 
-int64_t Slider_estimate_active_steps_left(const Slider* slider)
+int32_t Slider_estimate_active_steps_left(const Slider* slider)
 {
     assert(slider != NULL);
 
@@ -129,7 +129,7 @@ int64_t Slider_estimate_active_steps_left(const Slider* slider)
         return 0;
 
     const double steps = ceil((1 - slider->progress) / slider->progress_update);
-    const int64_t steps_i = (steps > INT64_MAX) ? INT64_MAX : (int64_t)steps;
+    const int32_t steps_i = (steps > INT32_MAX) ? INT32_MAX : (int32_t)steps;
 
     return max(1, steps_i);
 }
