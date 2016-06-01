@@ -364,6 +364,17 @@ bool LFO_active(const LFO* lfo)
 }
 
 
+int32_t LFO_estimate_active_steps_left(const LFO* lfo)
+{
+    assert(lfo != NULL);
+
+    if (Slider_in_progress(&lfo->depth_slider) && lfo->target_depth == 0)
+        return Slider_estimate_active_steps_left(&lfo->depth_slider);
+
+    return LFO_active(lfo) ? INT32_MAX : 0;
+}
+
+
 double LFO_get_target_speed(const LFO* lfo)
 {
     assert(lfo != NULL);
