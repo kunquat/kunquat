@@ -131,23 +131,6 @@ static int32_t Pitch_vstate_render_voice(
             }
         }
     }
-    /*
-    if (Slider_in_progress(&pc->slider))
-    {
-        float new_pitch = pc->pitch;
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-        {
-            new_pitch = Slider_step(&pc->slider);
-            out_buf[i] = new_pitch;
-        }
-        pc->pitch = new_pitch;
-    }
-    else
-    {
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            out_buf[i] = pc->pitch;
-    }
-    // */
 
     // Adjust carried pitch
     if (pc->pitch_add != 0)
