@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/processors/Proc_pitch.h>
+#include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <player/Pitch_controls.h>
 
@@ -140,13 +141,33 @@ static int32_t Pitch_vstate_render_voice(
     }
 
     // Apply vibrato
-    if (LFO_active(&pc->vibrato))
     {
-        // TODO: estimate end of vibrato
-        const_start = buf_stop;
+        int32_t cur_pos = buf_start;
+        int32_t final_lfo_stop = buf_start;
+        while (cur_pos < buf_stop)
+        {
+            const int32_t estimated_steps =
+                LFO_estimate_active_steps_left(&pc->vibrato);
+            if (estimated_steps > 0)
+            {
+                int32_t lfo_stop = buf_stop;
+                if (estimated_steps < buf_stop - cur_pos)
+                    lfo_stop = cur_pos + estimated_steps;
 
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            out_buf[i] += LFO_step(&pc->vibrato);
+                for (int32_t i = cur_pos; i < lfo_stop; ++i)
+                    out_buf[i] += LFO_step(&pc->vibrato);
+
+                final_lfo_stop = lfo_stop;
+                cur_pos = lfo_stop;
+            }
+            else
+            {
+                final_lfo_stop = cur_pos;
+                break;
+            }
+        }
+
+        const_start = max(const_start, final_lfo_stop);
     }
 
     // Apply arpeggio
