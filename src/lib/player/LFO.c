@@ -274,8 +274,10 @@ double LFO_step(LFO* lfo)
     if (new_phase >= (2 * PI))
         new_phase = fmod(new_phase, 2 * PI);
 
-    if (!lfo->on && (new_phase < lfo->phase ||
-                (new_phase >= PI && lfo->phase < PI))) // TODO: offset
+    if ((!Slider_in_progress(&lfo->depth_slider) && cur_depth == 0) ||
+            (!lfo->on &&
+            (new_phase < lfo->phase ||
+             (new_phase >= PI && lfo->phase < PI)))) // TODO: offset
     {
         lfo->phase = 0;
         lfo->update = 0;
