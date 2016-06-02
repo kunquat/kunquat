@@ -274,7 +274,7 @@ void Proc_fill_scale_buffer(
         for (int32_t i = buf_start; i < fast_stop; ++i)
             scales_data[i] = fast_dB_to_scale(dBs_data[i]);
 
-        fprintf(stdout, "%d %d %d\n", (int)buf_start, (int)fast_stop, (int)buf_stop);
+        //fprintf(stdout, "%d %d %d\n", (int)buf_start, (int)fast_stop, (int)buf_stop);
 
         if (fast_stop < buf_stop)
         {
