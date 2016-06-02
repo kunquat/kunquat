@@ -71,6 +71,9 @@ int32_t Time_env_state_process(
     assert(buf_stop >= 0);
     assert(audio_rate > 0);
 
+    if (testate->is_finished)
+        return buf_start;
+
     // Get constant values used inside the loop
     const double slowdown_fac = 1.0 - sustain;
     const double inv_audio_rate = 1.0 / audio_rate;
