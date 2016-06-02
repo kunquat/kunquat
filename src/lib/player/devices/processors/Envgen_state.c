@@ -96,13 +96,14 @@ static int32_t Envgen_vstate_render_voice(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
 
     // Get output buffer for writing
-    float* out_buffer = Proc_state_get_voice_buffer_contents_mut(
+    Work_buffer* out_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_ENV);
-    if (out_buffer == NULL)
+    if (out_wb == NULL)
     {
         vstate->active = false;
         return buf_start;
     }
+    float* out_buffer = Work_buffer_get_contents_mut(out_wb);
 
     const bool is_time_env_enabled =
         egen->is_time_env_enabled && (egen->time_env != NULL);
@@ -112,6 +113,8 @@ static int32_t Envgen_vstate_render_voice(
     const double range_width = egen->y_max - egen->y_min;
 
     int32_t new_buf_stop = buf_stop;
+
+    int32_t const_start = buf_start;
 
     if (is_time_env_enabled && (!egen->is_release_env || !vstate->note_on))
     {
@@ -154,6 +157,8 @@ static int32_t Envgen_vstate_render_voice(
             }
         }
 
+        const_start = env_stop;
+
         // Write to signal output
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
             out_buffer[i] = time_env[i];
@@ -169,6 +174,8 @@ static int32_t Envgen_vstate_render_voice(
     {
         if (force_scales != NULL)
         {
+            const_start = buf_stop; // TODO
+
             // Convert input force to linear scale
             for (int32_t i = buf_start; i < buf_stop; ++i)
                 force_scales[i] = fast_dB_to_scale(force_scales[i]);
@@ -224,6 +231,8 @@ static int32_t Envgen_vstate_render_voice(
 
         if (force_scales != NULL)
         {
+            const_start = buf_stop; // TODO
+
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
                 out_buffer[i] += force_scales[i] + global_adjust;
         }
@@ -234,6 +243,8 @@ static int32_t Envgen_vstate_render_voice(
         }
     }
 
+    // Mark constant region of the buffer
+    Work_buffer_set_const_start(out_wb, const_start);
 
     return new_buf_stop;
 }
