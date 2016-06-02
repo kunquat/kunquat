@@ -218,9 +218,21 @@ static int32_t Envgen_vstate_render_voice(
         }
 
         // Convert to dB
-        const double global_adjust = egen->global_adjust;
-        for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            out_buffer[i] = fast_scale_to_dB(out_buffer[i]) + global_adjust;
+        {
+            const double global_adjust = egen->global_adjust;
+
+            const int32_t fast_stop = min(const_start, new_buf_stop);
+
+            for (int32_t i = buf_start; i < fast_stop; ++i)
+                out_buffer[i] = fast_scale_to_dB(out_buffer[i]) + global_adjust;
+
+            if (fast_stop < new_buf_stop)
+            {
+                const float dB = scale_to_dB(out_buffer[fast_stop]) + global_adjust;
+                for (int32_t i = fast_stop; i < new_buf_stop; ++i)
+                    out_buffer[i] = dB;
+            }
+        }
     }
     else
     {
