@@ -220,23 +220,6 @@ void Linear_controls_fill_work_buffer(
             }
         }
     }
-    /*
-    if (Slider_in_progress(&lc->slider))
-    {
-        float new_value = lc->value;
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-        {
-            new_value = Slider_step(&lc->slider);
-            values[i] = new_value;
-        }
-        lc->value = new_value;
-    }
-    else
-    {
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            values[i] = lc->value;
-    }
-    // */
 
     // Apply LFO
     {
@@ -266,15 +249,6 @@ void Linear_controls_fill_work_buffer(
 
         const_start = max(const_start, final_lfo_stop);
     }
-    /*
-    if (LFO_active(&lc->lfo))
-    {
-        const_start = buf_stop;
-
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            values[i] += LFO_step(&lc->lfo);
-    }
-    // */
 
     // Clamp values
     if (lc->min_value > -INFINITY)
