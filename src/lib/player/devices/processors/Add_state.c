@@ -98,6 +98,14 @@ static int32_t Add_vstate_render_voice(
     const float* freqs = Work_buffer_get_contents(freqs_wb);
 
     // Get volume scales
+    Work_buffer* scales_wb = Proc_state_get_voice_buffer_mut(
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
+    const Work_buffer* dBs_wb = scales_wb;
+    if (scales_wb == NULL)
+        scales_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_FORCE);
+    Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);
+    const float* scales = Work_buffer_get_contents(scales_wb);
+    /*
     float* scales = Proc_state_get_voice_buffer_contents_mut(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
     if (scales == NULL)
@@ -111,6 +119,7 @@ static int32_t Add_vstate_render_voice(
         for (int32_t i = buf_start; i < buf_stop; ++i)
             scales[i] = fast_dB_to_scale(scales[i]);
     }
+    // */
 
     // Get output buffer for writing
     float* out_bufs[2] = { NULL };

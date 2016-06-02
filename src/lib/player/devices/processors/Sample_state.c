@@ -112,6 +112,14 @@ static int32_t Sample_render(
     const float* freqs = Work_buffer_get_contents(freqs_wb);
 
     // Get force input
+    Work_buffer* force_scales_wb = Proc_state_get_voice_buffer_mut(
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
+    const Work_buffer* dBs_wb = force_scales_wb;
+    if (force_scales_wb == NULL)
+        force_scales_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_FORCE);
+    Proc_fill_scale_buffer(force_scales_wb, dBs_wb, buf_start, buf_stop);
+    const float* force_scales = Work_buffer_get_contents(force_scales_wb);
+    /*
     float* force_scales = Proc_state_get_voice_buffer_contents_mut(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
     if (force_scales == NULL)
@@ -125,6 +133,7 @@ static int32_t Sample_render(
         for (int32_t i = buf_start; i < buf_stop; ++i)
             force_scales[i] = fast_dB_to_scale(force_scales[i]);
     }
+    // */
 
     float* abufs[KQT_BUFFERS_MAX] = { out_buffers[0], out_buffers[1] };
     if ((sample->channels == 1) && (out_buffers[0] == NULL))
@@ -433,7 +442,8 @@ static int32_t Sample_vstate_render_voice(
     // Get volume scales
     const Cond_work_buffer* vols = Cond_work_buffer_init(
             COND_WORK_BUFFER_AUTO,
-            Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, 1),
+            Proc_state_get_voice_buffer(
+                proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE),
             0.0);
 
     if (sample_state->sample < 0)
@@ -474,7 +484,7 @@ static int32_t Sample_vstate_render_voice(
             // Get starting pitch
             float start_pitch = 0;
             const float* pitches = Proc_state_get_voice_buffer_contents(
-                    proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
+                    proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
             if (pitches != NULL)
                 start_pitch = pitches[buf_start];
 
