@@ -151,27 +151,6 @@ static int32_t Force_vstate_render_voice(
             }
         }
     }
-    /*
-    {
-        const double fixed_adjust = fvstate->fixed_adjust;
-        if (Slider_in_progress(&fc->slider))
-        {
-            float new_force = fc->force;
-            for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            {
-                new_force = Slider_step(&fc->slider);
-                out_buf[i] = new_force + fixed_adjust;
-            }
-            fc->force = new_force;
-        }
-        else
-        {
-            const float actual_force = fc->force + fixed_adjust;
-            for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                out_buf[i] = actual_force;
-        }
-    }
-    // */
 
     // Apply tremolo
     {
@@ -202,15 +181,6 @@ static int32_t Force_vstate_render_voice(
 
         const_start = max(const_start, final_lfo_stop);
     }
-    /*
-    if (LFO_active(&fc->tremolo))
-    {
-        const_start = buf_stop;
-
-        for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            out_buf[i] += LFO_step(&fc->tremolo);
-    }
-    // */
 
     // Apply force envelope
     if (force->is_force_env_enabled && (force->force_env != NULL))

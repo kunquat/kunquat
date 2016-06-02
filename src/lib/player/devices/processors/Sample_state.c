@@ -119,21 +119,6 @@ static int32_t Sample_render(
         force_scales_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_FORCE);
     Proc_fill_scale_buffer(force_scales_wb, dBs_wb, buf_start, buf_stop);
     const float* force_scales = Work_buffer_get_contents(force_scales_wb);
-    /*
-    float* force_scales = Proc_state_get_voice_buffer_contents_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
-    if (force_scales == NULL)
-    {
-        force_scales = Work_buffers_get_buffer_contents_mut(wbs, SAMPLE_WB_FIXED_FORCE);
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            force_scales[i] = 1;
-    }
-    else
-    {
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            force_scales[i] = fast_dB_to_scale(force_scales[i]);
-    }
-    // */
 
     float* abufs[KQT_BUFFERS_MAX] = { out_buffers[0], out_buffers[1] };
     if ((sample->channels == 1) && (out_buffers[0] == NULL))
