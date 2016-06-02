@@ -185,8 +185,6 @@ static int32_t Force_vstate_render_voice(
     // Apply force envelope
     if (force->is_force_env_enabled && (force->force_env != NULL))
     {
-        const_start = buf_stop; // TODO: check end of envelope
-
         const Envelope* env = force->force_env;
 
         const int32_t env_force_stop = Time_env_state_process(
@@ -202,6 +200,8 @@ static int32_t Force_vstate_render_voice(
                 buf_start,
                 new_buf_stop,
                 proc_state->parent.audio_rate);
+
+        const_start = max(const_start, env_force_stop);
 
         Work_buffer* wb_time_env =
             Work_buffers_get_buffer_mut(wbs, WORK_BUFFER_TIME_ENV);
