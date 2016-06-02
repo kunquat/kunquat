@@ -92,7 +92,7 @@ static int32_t Envgen_vstate_render_voice(
     }
 
     // Get force scales
-    float* force_scales = Proc_state_get_voice_buffer_contents_mut(
+    Work_buffer* forces_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
 
     // Get output buffer for writing
@@ -170,15 +170,20 @@ static int32_t Envgen_vstate_render_voice(
             out_buffer[i] = 1;
     }
 
+    // Apply const start of input force buffer
+    if (forces_wb != NULL)
+    {
+        const int32_t force_const_start = Work_buffer_get_const_start(forces_wb);
+        const_start = max(const_start, force_const_start);
+    }
+
     if (egen->is_linear_force)
     {
-        if (force_scales != NULL)
+        if (forces_wb != NULL)
         {
-            const_start = buf_stop; // TODO
-
             // Convert input force to linear scale
-            for (int32_t i = buf_start; i < buf_stop; ++i)
-                force_scales[i] = fast_dB_to_scale(force_scales[i]);
+            Proc_fill_scale_buffer(forces_wb, forces_wb, buf_start, buf_stop);
+            const float* force_scales = Work_buffer_get_contents(forces_wb);
 
             if (is_force_env_enabled)
             {
@@ -229,9 +234,9 @@ static int32_t Envgen_vstate_render_voice(
 
         const double global_adjust = egen->global_adjust;
 
-        if (force_scales != NULL)
+        if (forces_wb != NULL)
         {
-            const_start = buf_stop; // TODO
+            const float* force_scales = Work_buffer_get_contents(forces_wb);
 
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
                 out_buffer[i] += force_scales[i] + global_adjust;
