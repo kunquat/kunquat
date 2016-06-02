@@ -252,6 +252,51 @@ void Proc_fill_freq_buffer(
 }
 
 
+void Proc_fill_scale_buffer(
+        Work_buffer* scales,
+        const Work_buffer* dBs,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    assert(scales != NULL);
+    assert(buf_start >= 0);
+    assert(buf_stop >= 0);
+
+    float* scales_data = Work_buffer_get_contents_mut_keep_const(scales);
+
+    if (dBs != NULL)
+    {
+        const float* dBs_data = Work_buffer_get_contents(dBs);
+
+        const int32_t const_start = Work_buffer_get_const_start(dBs);
+        const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
+
+        for (int32_t i = buf_start; i < fast_stop; ++i)
+            scales_data[i] = fast_dB_to_scale(dBs_data[i]);
+
+        fprintf(stdout, "%d %d %d\n", (int)buf_start, (int)fast_stop, (int)buf_stop);
+
+        if (fast_stop < buf_stop)
+        {
+            float scale = dB_to_scale(dBs_data[fast_stop]);
+            for (int32_t i = fast_stop; i < buf_stop; ++i)
+                scales_data[i] = scale;
+        }
+
+        Work_buffer_set_const_start(scales, Work_buffer_get_const_start(dBs));
+    }
+    else
+    {
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            scales_data[i] = 1;
+
+        Work_buffer_set_const_start(scales, buf_start);
+    }
+
+    return;
+}
+
+
 Cond_work_buffer* Cond_work_buffer_init(
         Cond_work_buffer* cwb, const Work_buffer* wb, float def_value)
 {
