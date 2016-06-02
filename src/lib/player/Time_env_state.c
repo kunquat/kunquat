@@ -51,7 +51,7 @@ int32_t Time_env_state_process(
         double sustain,
         double min_value,
         double max_value,
-        const float* pitch_buf,
+        const Work_buffer* pitch_wb,
         float* env_buf,
         int32_t buf_start,
         int32_t buf_stop,
@@ -65,7 +65,7 @@ int32_t Time_env_state_process(
     assert(sustain <= 1);
     assert(isfinite(min_value));
     assert(isfinite(max_value));
-    assert(pitch_buf != NULL);
+    assert(pitch_wb != NULL);
     assert(env_buf != NULL);
     assert(buf_start >= 0);
     assert(buf_stop >= 0);
@@ -73,6 +73,13 @@ int32_t Time_env_state_process(
 
     if (testate->is_finished)
         return buf_start;
+
+    const float* pitch_buf = Work_buffer_get_contents(pitch_wb);
+    const int32_t pitch_const_start = Work_buffer_get_const_start(pitch_wb);
+    double fixed_scale_factor = 1.0;
+    if (pitch_const_start < buf_stop)
+        fixed_scale_factor =
+            exp2((pitch_buf[pitch_const_start] - scale_center) * scale_amount / 1200.0);
 
     // Get constant values used inside the loop
     const double slowdown_fac = 1.0 - sustain;
@@ -106,7 +113,9 @@ int32_t Time_env_state_process(
         const float pitch = pitch_buf[i];
 
         // Apply pitch-based scaling
-        scale_factor = fast_exp2((pitch - scale_center) * scale_amount / 1200.0);
+        scale_factor = fixed_scale_factor;
+        if (i < pitch_const_start)
+            scale_factor = fast_exp2((pitch - scale_center) * scale_amount / 1200.0);
 
         // Get envelope value at current position
         double value = last_node[1]; // initial value is used if next_node == NULL

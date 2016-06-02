@@ -82,13 +82,15 @@ static int32_t Envgen_vstate_render_voice(
     Envgen_vstate* egen_state = (Envgen_vstate*)vstate;
 
     // Get pitch input
-    float* pitches = Proc_state_get_voice_buffer_contents_mut(
+    Work_buffer* pitches_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
-    if (pitches == NULL)
+    if (pitches_wb == NULL)
     {
-        pitches = Work_buffers_get_buffer_contents_mut(wbs, ENVGEN_WB_FIXED_PITCH);
+        pitches_wb = Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_PITCH);
+        float* pitches = Work_buffer_get_contents_mut(pitches_wb);
         for (int32_t i = buf_start; i < buf_stop; ++i)
             pitches[i] = 0;
+        Work_buffer_set_const_start(pitches_wb, buf_start);
     }
 
     // Get force scales
@@ -127,7 +129,7 @@ static int32_t Envgen_vstate_render_voice(
                 egen->env_scale_center,
                 0, // sustain
                 0, 1, // range, NOTE: this needs to be mapped to our [y_min, y_max]!
-                pitches,
+                pitches_wb,
                 Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
                 buf_start,
                 new_buf_stop,

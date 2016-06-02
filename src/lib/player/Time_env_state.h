@@ -57,7 +57,7 @@ void Time_env_state_init(Time_env_state* testate);
  *                        (0 indicates no sustain).
  * \param min_value       Minimum envelope value -- must be finite.
  * \param max_value       Maximum envelope value -- must be finite.
- * \param pitch_buf       Input pitch values -- must not be \c NULL.
+ * \param pitch_wb        Input pitch values -- must not be \c NULL.
  * \param env_buf         Destination buffer for envelope values
  *                        -- must not be \c NULL.
  * \param buf_start       Write starting position of the work buffer
@@ -77,7 +77,7 @@ int32_t Time_env_state_process(
         double sustain,
         double min_value,
         double max_value,
-        const float* pitch_buf,
+        const Work_buffer* pitch_wb,
         float* env_buf,
         int32_t buf_start,
         int32_t buf_stop,
