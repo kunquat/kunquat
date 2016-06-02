@@ -77,12 +77,12 @@ static int32_t Pitch_vstate_render_voice(
     // Get output
     Work_buffer* out_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_PITCH);
-    float* out_buf = Work_buffer_get_contents_mut(out_wb);
-    if (out_buf == NULL)
+    if (out_wb == NULL)
     {
         vstate->active = false;
         return buf_start;
     }
+    float* out_buf = Work_buffer_get_contents_mut(out_wb);
 
     Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
 
