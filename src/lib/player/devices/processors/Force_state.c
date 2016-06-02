@@ -96,8 +96,9 @@ static int32_t Force_vstate_render_voice(
     }
 
     // Get output
-    float* out_buf = Proc_state_get_voice_buffer_contents_mut(
+    Work_buffer* out_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_FORCE);
+    float* out_buf = Work_buffer_get_contents_mut(out_wb);
     if (out_buf == NULL)
     {
         vstate->active = false;
@@ -110,9 +111,47 @@ static int32_t Force_vstate_render_voice(
     Force_controls* fc = &fvstate->controls;
     Force_controls_set_tempo(fc, tempo);
 
+    int32_t const_start = buf_start;
+
     int32_t new_buf_stop = buf_stop;
 
     // Apply force slide & fixed adjust
+    {
+        const double fixed_adjust = fvstate->fixed_adjust;
+
+        int32_t cur_pos = buf_start;
+        while (cur_pos < buf_stop)
+        {
+            const int32_t estimated_steps =
+                Slider_estimate_active_steps_left(&fc->slider);
+            if (estimated_steps > 0)
+            {
+                int32_t slide_stop = buf_stop;
+                if (estimated_steps < buf_stop - cur_pos)
+                    slide_stop = cur_pos + estimated_steps;
+
+                float new_force = fc->force;
+                for (int32_t i = cur_pos; i < slide_stop; ++i)
+                {
+                    new_force = Slider_step(&fc->slider);
+                    out_buf[i] = new_force + fixed_adjust;
+                }
+                fc->force = new_force;
+
+                const_start = slide_stop;
+                cur_pos = slide_stop;
+            }
+            else
+            {
+                const float actual_force = fc->force + fixed_adjust;
+                for (int32_t i = cur_pos; i < buf_stop; ++i)
+                    out_buf[i] = actual_force;
+
+                cur_pos = buf_stop;
+            }
+        }
+    }
+    /*
     {
         const double fixed_adjust = fvstate->fixed_adjust;
         if (Slider_in_progress(&fc->slider))
@@ -132,17 +171,52 @@ static int32_t Force_vstate_render_voice(
                 out_buf[i] = actual_force;
         }
     }
+    // */
 
     // Apply tremolo
+    {
+        int32_t cur_pos = buf_start;
+        int32_t final_lfo_stop = buf_start;
+        while (cur_pos < buf_stop)
+        {
+            const int32_t estimated_steps =
+                LFO_estimate_active_steps_left(&fc->tremolo);
+            if (estimated_steps > 0)
+            {
+                int32_t lfo_stop = buf_stop;
+                if (estimated_steps < buf_stop - cur_pos)
+                    lfo_stop = cur_pos + estimated_steps;
+
+                for (int32_t i = cur_pos; i < lfo_stop; ++i)
+                    out_buf[i] += LFO_step(&fc->tremolo);
+
+                final_lfo_stop = lfo_stop;
+                cur_pos = lfo_stop;
+            }
+            else
+            {
+                final_lfo_stop = cur_pos;
+                break;
+            }
+        }
+
+        const_start = max(const_start, final_lfo_stop);
+    }
+    /*
     if (LFO_active(&fc->tremolo))
     {
+        const_start = buf_stop;
+
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
             out_buf[i] += LFO_step(&fc->tremolo);
     }
+    // */
 
     // Apply force envelope
     if (force->is_force_env_enabled && (force->force_env != NULL))
     {
+        const_start = buf_stop; // TODO: check end of envelope
+
         const Envelope* env = force->force_env;
 
         const int32_t env_force_stop = Time_env_state_process(
@@ -201,6 +275,8 @@ static int32_t Force_vstate_render_voice(
 
     if (!vstate->note_on)
     {
+        const_start = buf_stop;
+
         if (force->is_force_release_env_enabled)
         {
             // Apply force release envelope
@@ -282,6 +358,9 @@ static int32_t Force_vstate_render_voice(
             return new_buf_stop;
         }
     }
+
+    // Mark constant region of the buffer
+    Work_buffer_set_const_start(out_wb, const_start);
 
     return buf_stop;
 }
