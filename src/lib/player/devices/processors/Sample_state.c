@@ -236,6 +236,23 @@ static int32_t Sample_render(
             const int32_t step_count = uni_loop_length * 2;
             const int32_t loop_length = max(1, step_count);
 
+            // Next positions
+            // NOTE: These must be processed first as the current positions
+            //       will be wrapped in-place below
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+            {
+                int32_t next_pos = positions[i] + 1;
+                if (next_pos > loop_start)
+                {
+                    int32_t next_loop_pos = next_pos - loop_start;
+                    next_loop_pos %= loop_length;
+                    if (next_loop_pos >= uni_loop_length)
+                        next_loop_pos = step_count - next_loop_pos;
+                    next_pos = loop_start + next_loop_pos;
+                }
+                next_positions[i] = next_pos;
+            }
+
             // Current positions
             for (int32_t i = buf_start; i < buf_stop; ++i)
             {
@@ -250,21 +267,6 @@ static int32_t Sample_render(
                     positions[i] = cur_pos;
                     assert(cur_pos >= 0);
                 }
-            }
-
-            // Next positions
-            for (int32_t i = buf_start; i < buf_stop; ++i)
-            {
-                int32_t next_pos = positions[i] + 1;
-                if (next_pos > loop_start)
-                {
-                    int32_t next_loop_pos = next_pos - loop_start;
-                    next_loop_pos %= loop_length;
-                    if (next_loop_pos >= uni_loop_length)
-                        next_loop_pos = step_count - next_loop_pos;
-                    next_pos = loop_start + next_loop_pos;
-                }
-                next_positions[i] = next_pos;
             }
         }
         break;
