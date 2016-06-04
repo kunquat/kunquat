@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -16,7 +16,10 @@
 #define K_COMMON_H
 
 
-#define ignore(arg) ((void)sizeof((arg)))
+#include <stdint.h>
+
+
+#define ignore(arg) ((void)sizeof((intptr_t)(arg)))
 
 
 #endif // K_COMMON_H
