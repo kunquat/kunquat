@@ -93,40 +93,27 @@ static int32_t Padsynth_vstate_render_voice(
     }
 
     // Get frequencies
-    float* freqs = Proc_state_get_voice_buffer_contents_mut(
+    Work_buffer* freqs_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
-    if (freqs == NULL)
-    {
-        if (isnan(ps_vstate->init_pitch))
-            ps_vstate->init_pitch = 0;
+    const Work_buffer* pitches_wb = freqs_wb;
 
-        freqs = Work_buffers_get_buffer_contents_mut(wbs, PADSYNTH_WB_FIXED_PITCH);
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            freqs[i] = 440;
-    }
-    else
-    {
-        if (isnan(ps_vstate->init_pitch))
-            ps_vstate->init_pitch = freqs[buf_start];
+    if (isnan(ps_vstate->init_pitch))
+        ps_vstate->init_pitch =
+            (pitches_wb != NULL) ? Work_buffer_get_contents(pitches_wb)[buf_start] : 0;
 
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            freqs[i] = fast_cents_to_Hz(freqs[i]);
-    }
+    if (freqs_wb == NULL)
+        freqs_wb = Work_buffers_get_buffer_mut(wbs, PADSYNTH_WB_FIXED_PITCH);
+    Proc_fill_freq_buffer(freqs_wb, pitches_wb, buf_start, buf_stop);
+    const float* freqs = Work_buffer_get_contents(freqs_wb);
 
     // Get volume scales
-    float* scales = Proc_state_get_voice_buffer_contents_mut(
+    Work_buffer* scales_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
-    if (scales == NULL)
-    {
-        scales = Work_buffers_get_buffer_contents_mut(wbs, PADSYNTH_WB_FIXED_FORCE);
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            scales[i] = 1;
-    }
-    else
-    {
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            scales[i] = fast_dB_to_scale(scales[i]);
-    }
+    const Work_buffer* dBs_wb = scales_wb;
+    if (scales_wb == NULL)
+        scales_wb = Work_buffers_get_buffer_mut(wbs, PADSYNTH_WB_FIXED_FORCE);
+    Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);
+    const float* scales = Work_buffer_get_contents(scales_wb);
 
     // Get output buffer for writing
     float* out_bufs[2] = { NULL };

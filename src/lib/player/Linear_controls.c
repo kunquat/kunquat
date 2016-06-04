@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -175,7 +175,7 @@ void Linear_controls_osc_depth_slide_value(Linear_controls* lc, const Tstamp* le
 
 void Linear_controls_fill_work_buffer(
         Linear_controls* lc,
-        const Work_buffer* wb,
+        Work_buffer* wb,
         int32_t buf_start,
         int32_t buf_stop)
 {
@@ -185,28 +185,72 @@ void Linear_controls_fill_work_buffer(
 
     float* values = Work_buffer_get_contents_mut(wb);
 
-    if (Slider_in_progress(&lc->slider))
+    int32_t const_start = buf_start;
+
+    // Apply slider
     {
-        float new_value = lc->value;
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        int32_t cur_pos = buf_start;
+        while (cur_pos < buf_stop)
         {
-            new_value = Slider_step(&lc->slider);
-            values[i] = new_value;
+            const int32_t estimated_steps =
+                Slider_estimate_active_steps_left(&lc->slider);
+            if (estimated_steps > 0)
+            {
+                int32_t slide_stop = buf_stop;
+                if (estimated_steps < buf_stop - cur_pos)
+                    slide_stop = cur_pos + estimated_steps;
+
+                float new_value = lc->value;
+                for (int32_t i = cur_pos; i < slide_stop; ++i)
+                {
+                    new_value = Slider_step(&lc->slider);
+                    values[i] = new_value;
+                }
+                lc->value = new_value;
+
+                const_start = slide_stop;
+                cur_pos = slide_stop;
+            }
+            else
+            {
+                for (int32_t i = cur_pos; i < buf_stop; ++i)
+                    values[i] = lc->value;
+
+                cur_pos = buf_stop;
+            }
         }
-        lc->value = new_value;
-    }
-    else
-    {
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            values[i] = lc->value;
     }
 
-    if (LFO_active(&lc->lfo))
+    // Apply LFO
     {
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            values[i] += LFO_step(&lc->lfo);
+        int32_t cur_pos = buf_start;
+        int32_t final_lfo_stop = buf_start;
+        while (cur_pos < buf_stop)
+        {
+            const int32_t estimated_steps = LFO_estimate_active_steps_left(&lc->lfo);
+            if (estimated_steps > 0)
+            {
+                int32_t lfo_stop = buf_stop;
+                if (estimated_steps < buf_stop - cur_pos)
+                    lfo_stop = cur_pos + estimated_steps;
+
+                for (int32_t i = cur_pos; i < lfo_stop; ++i)
+                    values[i] += LFO_step(&lc->lfo);
+
+                final_lfo_stop = lfo_stop;
+                cur_pos = lfo_stop;
+            }
+            else
+            {
+                final_lfo_stop = cur_pos;
+                break;
+            }
+        }
+
+        const_start = max(const_start, final_lfo_stop);
     }
 
+    // Clamp values
     if (lc->min_value > -INFINITY)
     {
         for (int32_t i = buf_start; i < buf_stop; ++i)
@@ -218,6 +262,9 @@ void Linear_controls_fill_work_buffer(
         for (int32_t i = buf_start; i < buf_stop; ++i)
             values[i] = min(lc->max_value, values[i]);
     }
+
+    // Mark constant region of the buffer
+    Work_buffer_set_const_start(wb, const_start);
 
     return;
 }

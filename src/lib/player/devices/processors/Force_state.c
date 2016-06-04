@@ -86,23 +86,26 @@ static int32_t Force_vstate_render_voice(
     assert(tempo > 0);
 
     // Get pitch input
-    float* pitches = Proc_state_get_voice_buffer_contents_mut(
+    Work_buffer* pitches_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
-    if (pitches == NULL)
+    if (pitches_wb == NULL)
     {
-        pitches = Work_buffers_get_buffer_contents_mut(wbs, FORCE_WB_FIXED_PITCH);
+        pitches_wb = Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_PITCH);
+        float* pitches = Work_buffer_get_contents_mut(pitches_wb);
         for (int32_t i = buf_start; i < buf_stop; ++i)
             pitches[i] = 0;
+        Work_buffer_set_const_start(pitches_wb, buf_start);
     }
 
     // Get output
-    float* out_buf = Proc_state_get_voice_buffer_contents_mut(
+    Work_buffer* out_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_FORCE);
-    if (out_buf == NULL)
+    if (out_wb == NULL)
     {
         vstate->active = false;
         return buf_start;
     }
+    float* out_buf = Work_buffer_get_contents_mut(out_wb);
 
     Force_vstate* fvstate = (Force_vstate*)vstate;
     const Proc_force* force = (const Proc_force*)proc_state->parent.device->dimpl;
@@ -110,34 +113,75 @@ static int32_t Force_vstate_render_voice(
     Force_controls* fc = &fvstate->controls;
     Force_controls_set_tempo(fc, tempo);
 
+    int32_t const_start = buf_start;
+
     int32_t new_buf_stop = buf_stop;
 
     // Apply force slide & fixed adjust
     {
         const double fixed_adjust = fvstate->fixed_adjust;
-        if (Slider_in_progress(&fc->slider))
+
+        int32_t cur_pos = buf_start;
+        while (cur_pos < buf_stop)
         {
-            float new_force = fc->force;
-            for (int32_t i = buf_start; i < new_buf_stop; ++i)
+            const int32_t estimated_steps =
+                Slider_estimate_active_steps_left(&fc->slider);
+            if (estimated_steps > 0)
             {
-                new_force = Slider_step(&fc->slider);
-                out_buf[i] = new_force + fixed_adjust;
+                int32_t slide_stop = buf_stop;
+                if (estimated_steps < buf_stop - cur_pos)
+                    slide_stop = cur_pos + estimated_steps;
+
+                float new_force = fc->force;
+                for (int32_t i = cur_pos; i < slide_stop; ++i)
+                {
+                    new_force = Slider_step(&fc->slider);
+                    out_buf[i] = new_force + fixed_adjust;
+                }
+                fc->force = new_force;
+
+                const_start = slide_stop;
+                cur_pos = slide_stop;
             }
-            fc->force = new_force;
-        }
-        else
-        {
-            const float actual_force = fc->force + fixed_adjust;
-            for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                out_buf[i] = actual_force;
+            else
+            {
+                const float actual_force = fc->force + fixed_adjust;
+                for (int32_t i = cur_pos; i < buf_stop; ++i)
+                    out_buf[i] = actual_force;
+
+                cur_pos = buf_stop;
+            }
         }
     }
 
     // Apply tremolo
-    if (LFO_active(&fc->tremolo))
     {
-        for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            out_buf[i] += LFO_step(&fc->tremolo);
+        int32_t cur_pos = buf_start;
+        int32_t final_lfo_stop = buf_start;
+        while (cur_pos < buf_stop)
+        {
+            const int32_t estimated_steps =
+                LFO_estimate_active_steps_left(&fc->tremolo);
+            if (estimated_steps > 0)
+            {
+                int32_t lfo_stop = buf_stop;
+                if (estimated_steps < buf_stop - cur_pos)
+                    lfo_stop = cur_pos + estimated_steps;
+
+                for (int32_t i = cur_pos; i < lfo_stop; ++i)
+                    out_buf[i] += LFO_step(&fc->tremolo);
+
+                final_lfo_stop = lfo_stop;
+                cur_pos = lfo_stop;
+            }
+            else
+            {
+                final_lfo_stop = cur_pos;
+                break;
+            }
+        }
+
+        const_start = max(const_start, final_lfo_stop);
     }
 
     // Apply force envelope
@@ -153,14 +197,16 @@ static int32_t Force_vstate_render_voice(
                 force->force_env_scale_center,
                 0, // sustain
                 0, 1, // range
-                pitches,
+                pitches_wb,
                 Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
                 buf_start,
                 new_buf_stop,
                 proc_state->parent.audio_rate);
 
-        const Work_buffer* wb_time_env =
-            Work_buffers_get_buffer(wbs, WORK_BUFFER_TIME_ENV);
+        const_start = max(const_start, env_force_stop);
+
+        Work_buffer* wb_time_env =
+            Work_buffers_get_buffer_mut(wbs, WORK_BUFFER_TIME_ENV);
         float* time_env = Work_buffer_get_contents_mut(wb_time_env);
 
         // Convert envelope data to dB
@@ -201,6 +247,8 @@ static int32_t Force_vstate_render_voice(
 
     if (!vstate->note_on)
     {
+        const_start = buf_stop;
+
         if (force->is_force_release_env_enabled)
         {
             // Apply force release envelope
@@ -215,7 +263,7 @@ static int32_t Force_vstate_render_voice(
                     force->force_release_env_scale_center,
                     au_state->sustain,
                     0, 1, // range
-                    pitches,
+                    pitches_wb,
                     Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
                     buf_start,
                     new_buf_stop,
@@ -224,8 +272,8 @@ static int32_t Force_vstate_render_voice(
             if (fvstate->release_env_state.is_finished)
                 new_buf_stop = env_force_rel_stop;
 
-            const Work_buffer* wb_time_env = Work_buffers_get_buffer(
-                    wbs, WORK_BUFFER_TIME_ENV);
+            Work_buffer* wb_time_env =
+                Work_buffers_get_buffer_mut(wbs, WORK_BUFFER_TIME_ENV);
             float* time_env = Work_buffer_get_contents_mut(wb_time_env);
 
             // Convert envelope data to dB
@@ -282,6 +330,9 @@ static int32_t Force_vstate_render_voice(
             return new_buf_stop;
         }
     }
+
+    // Mark constant region of the buffer
+    Work_buffer_set_const_start(out_wb, const_start);
 
     return buf_stop;
 }

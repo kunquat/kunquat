@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -158,7 +158,7 @@ void Linear_controls_osc_depth_slide_value(Linear_controls* lc, const Tstamp* le
  */
 void Linear_controls_fill_work_buffer(
         Linear_controls* lc,
-        const Work_buffer* wb,
+        Work_buffer* wb,
         int32_t buf_start,
         int32_t buf_stop);
 

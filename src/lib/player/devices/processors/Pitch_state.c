@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/processors/Proc_pitch.h>
+#include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <player/Pitch_controls.h>
 
@@ -74,13 +75,14 @@ static int32_t Pitch_vstate_render_voice(
     assert(tempo > 0);
 
     // Get output
-    float* out_buf = Proc_state_get_voice_buffer_contents_mut(
+    Work_buffer* out_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_PITCH);
-    if (out_buf == NULL)
+    if (out_wb == NULL)
     {
         vstate->active = false;
         return buf_start;
     }
+    float* out_buf = Work_buffer_get_contents_mut(out_wb);
 
     Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
 
@@ -95,21 +97,40 @@ static int32_t Pitch_vstate_render_voice(
 
     out_buf[buf_start - 1] = pc->pitch;
 
+    int32_t const_start = buf_start;
+
     // Apply pitch slide
-    if (Slider_in_progress(&pc->slider))
     {
-        float new_pitch = pc->pitch;
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        int32_t cur_pos = buf_start;
+        while (cur_pos < buf_stop)
         {
-            new_pitch = Slider_step(&pc->slider);
-            out_buf[i] = new_pitch;
+            const int32_t estimated_steps =
+                Slider_estimate_active_steps_left(&pc->slider);
+            if (estimated_steps > 0)
+            {
+                int32_t slide_stop = buf_stop;
+                if (estimated_steps < buf_stop - cur_pos)
+                    slide_stop = cur_pos + estimated_steps;
+
+                float new_pitch = pc->pitch;
+                for (int32_t i = cur_pos; i < slide_stop; ++i)
+                {
+                    new_pitch = Slider_step(&pc->slider);
+                    out_buf[i] = new_pitch;
+                }
+                pc->pitch = new_pitch;
+
+                const_start = slide_stop;
+                cur_pos = slide_stop;
+            }
+            else
+            {
+                for (int32_t i = cur_pos; i < buf_stop; ++i)
+                    out_buf[i] = pc->pitch;
+
+                cur_pos = buf_stop;
+            }
         }
-        pc->pitch = new_pitch;
-    }
-    else
-    {
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            out_buf[i] = pc->pitch;
     }
 
     // Adjust carried pitch
@@ -120,15 +141,40 @@ static int32_t Pitch_vstate_render_voice(
     }
 
     // Apply vibrato
-    if (LFO_active(&pc->vibrato))
     {
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            out_buf[i] += LFO_step(&pc->vibrato);
+        int32_t cur_pos = buf_start;
+        int32_t final_lfo_stop = buf_start;
+        while (cur_pos < buf_stop)
+        {
+            const int32_t estimated_steps =
+                LFO_estimate_active_steps_left(&pc->vibrato);
+            if (estimated_steps > 0)
+            {
+                int32_t lfo_stop = buf_stop;
+                if (estimated_steps < buf_stop - cur_pos)
+                    lfo_stop = cur_pos + estimated_steps;
+
+                for (int32_t i = cur_pos; i < lfo_stop; ++i)
+                    out_buf[i] += LFO_step(&pc->vibrato);
+
+                final_lfo_stop = lfo_stop;
+                cur_pos = lfo_stop;
+            }
+            else
+            {
+                final_lfo_stop = cur_pos;
+                break;
+            }
+        }
+
+        const_start = max(const_start, final_lfo_stop);
     }
 
     // Apply arpeggio
     if (pvstate->is_arpeggio_enabled)
     {
+        const_start = buf_stop;
+
         const Device_state* dstate = &proc_state->parent;
         const double progress_update =
             (pvstate->arpeggio_speed / dstate->audio_rate) * (tempo / 60.0);
@@ -156,6 +202,9 @@ static int32_t Pitch_vstate_render_voice(
 
     // Update pitch for next iteration
     pvstate->pitch = out_buf[buf_stop - 1];
+
+    // Mark constant region of the buffer
+    Work_buffer_set_const_start(out_wb, const_start);
 
     return buf_stop;
 }

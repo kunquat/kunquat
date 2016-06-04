@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -197,6 +197,21 @@ double LFO_skip(LFO* lfo, uint64_t steps);
  * \return   \c true if \a lfo is active, otherwise \c false.
  */
 bool LFO_active(const LFO* lfo);
+
+
+/**
+ * Estimate the number of active steps left in the LFO.
+ *
+ * This may be different from the actual number of steps with very slow depth
+ * slides.
+ *
+ * \param lfo   The LFO -- must not be \c NULL.
+ *
+ * \return   The estimated number of steps left (always positive), or \c 0 if
+ *           \a lfo is inactive. Note that this value becomes obsolete if
+ *           audio rate or tempo changes.
+ */
+int32_t LFO_estimate_active_steps_left(const LFO* lfo);
 
 
 /**

@@ -82,27 +82,30 @@ static int32_t Envgen_vstate_render_voice(
     Envgen_vstate* egen_state = (Envgen_vstate*)vstate;
 
     // Get pitch input
-    float* pitches = Proc_state_get_voice_buffer_contents_mut(
+    Work_buffer* pitches_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
-    if (pitches == NULL)
+    if (pitches_wb == NULL)
     {
-        pitches = Work_buffers_get_buffer_contents_mut(wbs, ENVGEN_WB_FIXED_PITCH);
+        pitches_wb = Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_PITCH);
+        float* pitches = Work_buffer_get_contents_mut(pitches_wb);
         for (int32_t i = buf_start; i < buf_stop; ++i)
             pitches[i] = 0;
+        Work_buffer_set_const_start(pitches_wb, buf_start);
     }
 
     // Get force scales
-    float* force_scales = Proc_state_get_voice_buffer_contents_mut(
+    Work_buffer* forces_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
 
     // Get output buffer for writing
-    float* out_buffer = Proc_state_get_voice_buffer_contents_mut(
+    Work_buffer* out_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_ENV);
-    if (out_buffer == NULL)
+    if (out_wb == NULL)
     {
         vstate->active = false;
         return buf_start;
     }
+    float* out_buffer = Work_buffer_get_contents_mut(out_wb);
 
     const bool is_time_env_enabled =
         egen->is_time_env_enabled && (egen->time_env != NULL);
@@ -112,6 +115,8 @@ static int32_t Envgen_vstate_render_voice(
     const double range_width = egen->y_max - egen->y_min;
 
     int32_t new_buf_stop = buf_stop;
+
+    int32_t const_start = buf_start;
 
     if (is_time_env_enabled && (!egen->is_release_env || !vstate->note_on))
     {
@@ -124,7 +129,7 @@ static int32_t Envgen_vstate_render_voice(
                 egen->env_scale_center,
                 0, // sustain
                 0, 1, // range, NOTE: this needs to be mapped to our [y_min, y_max]!
-                pitches,
+                pitches_wb,
                 Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
                 buf_start,
                 new_buf_stop,
@@ -154,6 +159,8 @@ static int32_t Envgen_vstate_render_voice(
             }
         }
 
+        const_start = env_stop;
+
         // Write to signal output
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
             out_buffer[i] = time_env[i];
@@ -165,13 +172,20 @@ static int32_t Envgen_vstate_render_voice(
             out_buffer[i] = 1;
     }
 
+    // Apply const start of input force buffer
+    if (forces_wb != NULL)
+    {
+        const int32_t force_const_start = Work_buffer_get_const_start(forces_wb);
+        const_start = max(const_start, force_const_start);
+    }
+
     if (egen->is_linear_force)
     {
-        if (force_scales != NULL)
+        if (forces_wb != NULL)
         {
             // Convert input force to linear scale
-            for (int32_t i = buf_start; i < buf_stop; ++i)
-                force_scales[i] = fast_dB_to_scale(force_scales[i]);
+            Proc_fill_scale_buffer(forces_wb, forces_wb, buf_start, buf_stop);
+            const float* force_scales = Work_buffer_get_contents(forces_wb);
 
             if (is_force_env_enabled)
             {
@@ -206,9 +220,21 @@ static int32_t Envgen_vstate_render_voice(
         }
 
         // Convert to dB
-        const double global_adjust = egen->global_adjust;
-        for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            out_buffer[i] = fast_scale_to_dB(out_buffer[i]) + global_adjust;
+        {
+            const double global_adjust = egen->global_adjust;
+
+            const int32_t fast_stop = min(const_start, new_buf_stop);
+
+            for (int32_t i = buf_start; i < fast_stop; ++i)
+                out_buffer[i] = fast_scale_to_dB(out_buffer[i]) + global_adjust;
+
+            if (fast_stop < new_buf_stop)
+            {
+                const float dB = scale_to_dB(out_buffer[fast_stop]) + global_adjust;
+                for (int32_t i = fast_stop; i < new_buf_stop; ++i)
+                    out_buffer[i] = dB;
+            }
+        }
     }
     else
     {
@@ -222,8 +248,10 @@ static int32_t Envgen_vstate_render_voice(
 
         const double global_adjust = egen->global_adjust;
 
-        if (force_scales != NULL)
+        if (forces_wb != NULL)
         {
+            const float* force_scales = Work_buffer_get_contents(forces_wb);
+
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
                 out_buffer[i] += force_scales[i] + global_adjust;
         }
@@ -234,6 +262,8 @@ static int32_t Envgen_vstate_render_voice(
         }
     }
 
+    // Mark constant region of the buffer
+    Work_buffer_set_const_start(out_wb, const_start);
 
     return new_buf_stop;
 }

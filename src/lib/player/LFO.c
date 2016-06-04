@@ -274,8 +274,10 @@ double LFO_step(LFO* lfo)
     if (new_phase >= (2 * PI))
         new_phase = fmod(new_phase, 2 * PI);
 
-    if (!lfo->on && (new_phase < lfo->phase ||
-                (new_phase >= PI && lfo->phase < PI))) // TODO: offset
+    if ((!Slider_in_progress(&lfo->depth_slider) && cur_depth == 0) ||
+            (!lfo->on &&
+            (new_phase < lfo->phase ||
+             (new_phase >= PI && lfo->phase < PI)))) // TODO: offset
     {
         lfo->phase = 0;
         lfo->update = 0;
@@ -359,6 +361,17 @@ bool LFO_active(const LFO* lfo)
     return lfo->update > 0 ||
            Slider_in_progress(&lfo->speed_slider) ||
            Slider_in_progress(&lfo->depth_slider);
+}
+
+
+int32_t LFO_estimate_active_steps_left(const LFO* lfo)
+{
+    assert(lfo != NULL);
+
+    if (Slider_in_progress(&lfo->depth_slider) && lfo->target_depth == 0)
+        return Slider_estimate_active_steps_left(&lfo->depth_slider);
+
+    return LFO_active(lfo) ? INT32_MAX : 0;
 }
 
 

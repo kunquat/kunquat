@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -116,6 +116,20 @@ double Slider_step(Slider* slider);
  * \return   The new intermediate (or target) value in \a slider.
  */
 double Slider_skip(Slider* slider, uint64_t steps);
+
+
+/**
+ * Estimate the number of active steps left in the Slider.
+ *
+ * This may be different from the actual number of steps with very slow slides.
+ *
+ * \param slider   The Slider -- must not be \c NULL.
+ *
+ * \return   The estimated number of steps left (always positive), or \c 0 if
+ *           \a slider is inactive. Note that this value becomes obsolete if
+ *           audio rate or tempo changes.
+ */
+int32_t Slider_estimate_active_steps_left(const Slider* slider);
 
 
 /**

@@ -17,6 +17,8 @@
 #include <debug/assert.h>
 #include <init/devices/Processor.h>
 #include <kunquat/limits.h>
+#include <mathnum/common.h>
+#include <mathnum/conversions.h>
 #include <memory.h>
 #include <player/devices/Proc_state.h>
 #include <player/devices/Voice_state.h>
@@ -199,6 +201,96 @@ void Proc_ramp_attack(
         }
 
         vstate->ramp_attack = ramp_attack;
+    }
+
+    return;
+}
+
+
+void Proc_fill_freq_buffer(
+        Work_buffer* freqs,
+        const Work_buffer* pitches,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    assert(freqs != NULL);
+    assert(buf_start >= 0);
+    assert(buf_stop >= 0);
+
+    float* freqs_data = Work_buffer_get_contents_mut_keep_const(freqs);
+
+    if (pitches != NULL)
+    {
+        const float* pitches_data = Work_buffer_get_contents(pitches);
+
+        const int32_t const_start = Work_buffer_get_const_start(pitches);
+        const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
+
+        for (int32_t i = buf_start; i < fast_stop; ++i)
+            freqs_data[i] = fast_cents_to_Hz(pitches_data[i]);
+
+        //fprintf(stdout, "%d %d %d\n", (int)buf_start, (int)fast_stop, (int)buf_stop);
+
+        if (fast_stop < buf_stop)
+        {
+            float freq = cents_to_Hz(pitches_data[fast_stop]);
+            for (int32_t i = fast_stop; i < buf_stop; ++i)
+                freqs_data[i] = freq;
+        }
+
+        Work_buffer_set_const_start(freqs, Work_buffer_get_const_start(pitches));
+    }
+    else
+    {
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            freqs_data[i] = 440;
+
+        Work_buffer_set_const_start(freqs, buf_start);
+    }
+
+    return;
+}
+
+
+void Proc_fill_scale_buffer(
+        Work_buffer* scales,
+        const Work_buffer* dBs,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    assert(scales != NULL);
+    assert(buf_start >= 0);
+    assert(buf_stop >= 0);
+
+    float* scales_data = Work_buffer_get_contents_mut_keep_const(scales);
+
+    if (dBs != NULL)
+    {
+        const float* dBs_data = Work_buffer_get_contents(dBs);
+
+        const int32_t const_start = Work_buffer_get_const_start(dBs);
+        const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
+
+        for (int32_t i = buf_start; i < fast_stop; ++i)
+            scales_data[i] = fast_dB_to_scale(dBs_data[i]);
+
+        //fprintf(stdout, "%d %d %d\n", (int)buf_start, (int)fast_stop, (int)buf_stop);
+
+        if (fast_stop < buf_stop)
+        {
+            float scale = dB_to_scale(dBs_data[fast_stop]);
+            for (int32_t i = fast_stop; i < buf_stop; ++i)
+                scales_data[i] = scale;
+        }
+
+        Work_buffer_set_const_start(scales, Work_buffer_get_const_start(dBs));
+    }
+    else
+    {
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            scales_data[i] = 1;
+
+        Work_buffer_set_const_start(scales, buf_start);
     }
 
     return;
