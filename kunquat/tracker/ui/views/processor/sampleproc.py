@@ -17,6 +17,7 @@ import time
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from kunquat.extras.wavpack import WavPackRMem
 from kunquat.tracker.ui.model.procparams.sampleparams import SampleImportError
 from kunquat.tracker.ui.views.audio_unit.hitselector import HitSelector
 from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
@@ -1604,6 +1605,7 @@ class SampleEditor(QWidget):
         self._loop_start.setRange(0, 2**30)
         self._loop_end = QSpinBox()
         self._loop_end.setRange(0, 2**30)
+        self._length = QLabel('?')
 
         gl = QGridLayout()
         gl.setContentsMargins(0, 0, 0, 0)
@@ -1618,6 +1620,8 @@ class SampleEditor(QWidget):
         gl.addWidget(self._loop_start, 3, 1)
         gl.addWidget(QLabel('Loop end:'), 4, 0)
         gl.addWidget(self._loop_end, 4, 1)
+        gl.addWidget(QLabel('Length:'), 5, 0)
+        gl.addWidget(self._length, 5, 1)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -1702,17 +1706,23 @@ class SampleEditor(QWidget):
             self._loop_mode.setCurrentIndex(loop_mode_index)
         self._loop_mode.blockSignals(old_block)
 
+        sample_length = sample_params.get_sample_length(sample_id)
+
         old_block = self._loop_start.blockSignals(True)
+        self._loop_start.setMaximum(sample_length)
         new_loop_start = sample_params.get_sample_loop_start(sample_id)
         if new_loop_start != self._loop_start.value():
             self._loop_start.setValue(new_loop_start)
         self._loop_start.blockSignals(old_block)
 
         old_block = self._loop_end.blockSignals(True)
+        self._loop_end.setMaximum(sample_length)
         new_loop_end = sample_params.get_sample_loop_end(sample_id)
         if new_loop_end != self._loop_end.value():
             self._loop_end.setValue(new_loop_end)
         self._loop_end.blockSignals(old_block)
+
+        self._length.setText(str(sample_length))
 
     def _change_name(self):
         sample_params = self._get_sample_params()
