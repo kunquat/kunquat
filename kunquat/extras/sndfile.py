@@ -212,7 +212,7 @@ class _SndFileRBase(_SndFileBase):
                 chunk[ch].extend(channel_data)
 
             if actual_frame_count < frame_count:
-                break;
+                break
 
             frames_left -= actual_frame_count
 
