@@ -24,6 +24,7 @@ from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, Vertic
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 from kunquat.tracker.ui.views.utils import lerp_val
+from .sampleview import SampleView
 from . import utils
 
 
@@ -1623,10 +1624,13 @@ class SampleEditor(QWidget):
         gl.addWidget(QLabel('Length:'), 5, 0)
         gl.addWidget(self._length, 5, 1)
 
+        self._sample_view = SampleView()
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
         v.addLayout(gl)
+        v.addWidget(self._sample_view)
         v.addStretch(1)
         self.setLayout(v)
 
@@ -1653,6 +1657,8 @@ class SampleEditor(QWidget):
                 self._loop_start, SIGNAL('valueChanged(int)'), self._change_loop_start)
         QObject.connect(
                 self._loop_end, SIGNAL('valueChanged(int)'), self._change_loop_end)
+
+        self._sample_view.set_icon_bank(self._ui_model.get_icon_bank())
 
         self._update_all()
 
@@ -1723,6 +1729,8 @@ class SampleEditor(QWidget):
         self._loop_end.blockSignals(old_block)
 
         self._length.setText(str(sample_length))
+
+        self._sample_view.set_length(sample_length)
 
     def _change_name(self):
         sample_params = self._get_sample_params()
