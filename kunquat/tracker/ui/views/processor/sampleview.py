@@ -92,12 +92,12 @@ class SampleViewArea(QAbstractScrollArea):
 
     def zoom_in(self):
         start, stop = self.viewport().get_range()
-        width = stop - start - 1
+        width = stop - start
         shrink = width // 4
         shrink_l, shrink_r = shrink, shrink
 
         # Make sure that at least 8 frames are visible
-        max_shrink_total = width - 7
+        max_shrink_total = width - 8
         if shrink * 2 > max_shrink_total:
             shrink_l = max_shrink_total // 2
             shrink_r = max_shrink_total - shrink_l
@@ -107,7 +107,7 @@ class SampleViewArea(QAbstractScrollArea):
     def zoom_out(self):
         start, stop = self.viewport().get_range()
         length = self.viewport().get_length()
-        width = stop - start - 1
+        width = stop - start
         expand = width // 2
         start -= expand
         stop += expand
@@ -166,10 +166,12 @@ class SampleViewArea(QAbstractScrollArea):
         self.viewport().mouseReleaseEvent(event)
 
     def resizeEvent(self, event):
-        pass
+        self.viewport().resizeEvent(event)
 
 
 class SampleViewCanvas(QWidget):
+
+    _REF_PIXMAP_WIDTH = 256
 
     def __init__(self):
         super().__init__()
@@ -177,6 +179,9 @@ class SampleViewCanvas(QWidget):
         self._length = 0
 
         self._range = [0, 0]
+
+        self._shape_caches = {}
+        self._pixmap_caches = {}
 
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
@@ -209,6 +214,57 @@ class SampleViewCanvas(QWidget):
         self._range = [start, stop]
         self.update()
 
+    def _get_ref_frames_per_px(self, frames_per_px):
+        return 2**math.floor(math.log(frames_per_px, 2))
+
+    def _get_visible_pixmaps(self):
+        height = self.height()
+
+        # Get frames per pixel
+        start, stop = self._range
+        range_width = stop - start
+        frames_per_px = range_width / self.width()
+
+        # Get range width covered by a single shape slice
+        ref_fpp = self._get_ref_frames_per_px(frames_per_px)
+        pixmap_range_width = int(ref_fpp * self._REF_PIXMAP_WIDTH)
+
+        src_rect = QRect(0, 0, self._REF_PIXMAP_WIDTH, height)
+        dest_rect_width = (ref_fpp / frames_per_px) * self._REF_PIXMAP_WIDTH
+
+        # Get pixmap indices
+        start, stop = self._range
+        start_i = start // pixmap_range_width
+        stop_i = 1 + stop // pixmap_range_width
+
+        # Get our pixmap cache
+        pc = self._pixmap_caches.get(ref_fpp, {})
+        self._pixmap_caches[ref_fpp] = pc
+
+        view_start = start / frames_per_px
+        x_offset = (start_i * dest_rect_width) - view_start
+
+        for i in range(start_i, stop_i):
+            dest_rect = QRect(x_offset, 0, int(dest_rect_width), height)
+            if i not in pc:
+                pixmap = QPixmap(self._REF_PIXMAP_WIDTH, height)
+                pixmap.fill(QColor(0, 0, 0))
+
+                painter = QPainter(pixmap)
+                painter.setPen(QColor(0xff, 0xff, 0xff))
+                test_rect = src_rect.adjusted(0, 0, -1, -1)
+                painter.drawRect(test_rect)
+
+                slice_start = i * pixmap_range_width
+                slice_stop = (i + 1) * pixmap_range_width
+                painter.drawText(2, 14, '[{}, {})'.format(slice_start, slice_stop))
+
+                pc[i] = pixmap
+
+            pixmap = pc[i]
+            yield dest_rect, src_rect, pixmap
+            x_offset += int(dest_rect_width)
+
     def paintEvent(self, event):
         start = time.time()
 
@@ -219,10 +275,15 @@ class SampleViewCanvas(QWidget):
         if self._length == 0:
             return
 
-        print(self._range)
+        for dest_rect, src_rect, pixmap in self._get_visible_pixmaps():
+            if pixmap:
+                painter.drawPixmap(dest_rect, pixmap, src_rect)
 
         end = time.time()
         elapsed = end - start
         #print('Sample view updated in {:.2f} ms'.format(elapsed * 1000))
+
+    def resizeEvent(self, event):
+        self.update()
 
 
