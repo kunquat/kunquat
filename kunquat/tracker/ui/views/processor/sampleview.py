@@ -90,6 +90,7 @@ class SampleViewArea(QAbstractScrollArea):
 
     def set_sample(self, length, get_sample_data):
         self.viewport().set_sample(length, get_sample_data)
+        self._update_scrollbars()
 
     def zoom_in(self):
         start, stop = self.viewport().get_range()
