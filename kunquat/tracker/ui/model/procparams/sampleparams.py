@@ -206,6 +206,10 @@ class SampleParams(ProcParams):
             return 0
         return handle.get_length()
 
+    def get_sample_data_retriever(self, sample_id):
+        handle = self._get_sample_data_handle(sample_id)
+        return lambda: handle.read(65536)
+
     def _get_note_map(self):
         return self._get_value('p_nm_note_map.json', [])
 

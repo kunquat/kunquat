@@ -40,8 +40,8 @@ class SampleView(QWidget):
     def set_icon_bank(self, icon_bank):
         self._toolbar.set_icon_bank(icon_bank)
 
-    def set_length(self, length):
-        self._area.set_length(length)
+    def set_sample(self, length, get_sample_data):
+        self._area.set_sample(length, get_sample_data)
 
 
 class SampleViewToolBar(QToolBar):
@@ -88,8 +88,8 @@ class SampleViewArea(QAbstractScrollArea):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
-    def set_length(self, length):
-        self.viewport().set_length(length)
+    def set_sample(self, length, get_sample_data):
+        self.viewport().set_sample(length, get_sample_data)
 
     def zoom_in(self):
         start, stop = self.viewport().get_range()
@@ -194,11 +194,11 @@ class SampleViewCanvas(QWidget):
 
         QObject.connect(self, SIGNAL('refresh()'), self._refresh)
 
-    def set_length(self, length):
+    def set_sample(self, length, get_sample_data):
         self._length = length
         self.set_range(0, length)
 
-        self._shape_worker.reset(self._length, None)
+        self._shape_worker.reset(self._length, get_sample_data)
         self._pixmap_caches = {}
 
         self.update()
