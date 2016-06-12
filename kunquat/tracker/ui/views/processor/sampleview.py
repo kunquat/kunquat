@@ -276,10 +276,19 @@ class SampleViewCanvas(QWidget):
 
                     painter = QPainter(pixmap)
                     painter.setPen(QColor(0xff, 0xff, 0xff))
+                    painter.setBrush(QColor(0xff, 0xff, 0xff))
+                    painter.scale(1, height / 2)
+                    painter.translate(0, 1)
+                    shape.draw_shape(painter)
+
+                    '''
+                    painter = QPainter(pixmap)
+                    painter.setPen(QColor(0xff, 0xff, 0xff))
                     test_rect = src_rect.adjusted(0, 0, -1, -1)
                     painter.drawRect(test_rect)
 
                     painter.drawText(2, 14, '[{}, {})'.format(slice_start, slice_stop))
+                    '''
 
                     pc[i] = pixmap
                 else:
@@ -323,6 +332,70 @@ class DummyShape():
     '''Temporary type for testing purposes'''
 
 
+class Shape():
+
+    def __init__(self):
+        self._shapes = []
+
+    def draw_shape(self, painter):
+        if not self._shapes:
+            return
+
+        ch_count = len(self._shapes)
+
+        painter.save()
+        painter.scale(1, 1 / ch_count)
+        painter.translate(0, -(ch_count // 2))
+
+        for shape in self._shapes:
+            if isinstance(shape, QPolygonF):
+                painter.drawPolygon(shape)
+                painter.translate(0, 2)
+            else:
+                pass # TODO
+
+        painter.restore()
+
+    def make_shape(self, sample_data, ref_fpp, slice_range):
+        if not sample_data:
+            return
+
+        start, stop = slice_range
+        slice_range_width = stop - start
+        assert slice_range_width > 0
+        actual_stop = min(stop, len(sample_data[0]))
+
+        if ref_fpp > 1:
+            # Filled blob
+            ref_fpp_i = int(ref_fpp)
+            for ch_data in sample_data:
+                min_vals = []
+                max_vals = []
+
+                subslice_start = start
+                while subslice_start < actual_stop:
+                    subslice_stop = min(subslice_start + ref_fpp_i, actual_stop)
+                    sl = ch_data[subslice_start:subslice_stop]
+                    min_val = max(-1.0, min(sl))
+                    max_val = min(1.0, max(sl))
+                    min_vals.append(-min_val)
+                    max_vals.append(-max_val)
+                    subslice_start = subslice_stop
+
+                min_vals = list(reversed(min_vals))
+                sample_count = len(min_vals)
+
+                points = [QPointF(i, val) for i, val in enumerate(max_vals)]
+                points.extend([QPointF(sample_count - i - 1, val)
+                    for i, val in enumerate(min_vals)])
+
+                shape = QPolygonF(points)
+                self._shapes.append(shape)
+
+        else:
+            pass # TODO: Line
+
+
 class ShapeWorker():
 
     def __init__(self):
@@ -332,20 +405,38 @@ class ShapeWorker():
 
         self._sample_length = 0
         self._get_sample_data = None
-        self._sample_data = tuple()
+        self._sample_data = []
 
     def reset(self, length, get_sample_data):
         self._sample_length = length
         self._get_sample_data = get_sample_data
-        self._sample_data = tuple()
+        self._sample_data = []
 
         self._shapes = {}
         self._requests = []
         self._cur_shape_prio = 0
 
     def _try_make_shape(self, ref_fpp, slice_range):
-        time.sleep(0.03)
-        return DummyShape()
+        start, stop = slice_range
+        assert start < self._sample_length
+
+        # Get new sample data if needed
+        if not self._sample_data or (len(self._sample_data[0]) < stop):
+            new_data = self._get_sample_data()
+            if not self._sample_data:
+                self._sample_data = list(new_data)
+            else:
+                assert len(self._sample_data) == len(new_data)
+                for i, new_ch_data in enumerate(new_data):
+                    self._sample_data[i].extend(new_ch_data)
+
+        read_count = len(self._sample_data[0]) if self._sample_data else 0
+        if read_count < stop and read_count < self._sample_length:
+            return None
+
+        shape = Shape()
+        shape.make_shape(self._sample_data, ref_fpp, slice_range)
+        return shape
 
     def update(self):
         if not self._requests:
