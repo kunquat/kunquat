@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import heapq
 import math
 import time
 
@@ -171,6 +172,8 @@ class SampleViewArea(QAbstractScrollArea):
 
 class SampleViewCanvas(QWidget):
 
+    refresh = Signal(name='refresh')
+
     _REF_PIXMAP_WIDTH = 256
 
     def __init__(self):
@@ -180,7 +183,7 @@ class SampleViewCanvas(QWidget):
 
         self._range = [0, 0]
 
-        self._shape_caches = {}
+        self._shape_worker = ShapeWorker()
         self._pixmap_caches = {}
 
         self.setAutoFillBackground(False)
@@ -189,9 +192,15 @@ class SampleViewCanvas(QWidget):
 
         self.setMouseTracking(True)
 
+        QObject.connect(self, SIGNAL('refresh()'), self._refresh)
+
     def set_length(self, length):
         self._length = length
         self.set_range(0, length)
+
+        self._shape_worker.reset(self._length, None)
+        self._pixmap_caches = {}
+
         self.update()
 
     def get_length(self):
@@ -244,26 +253,45 @@ class SampleViewCanvas(QWidget):
         view_start = start / frames_per_px
         x_offset = (start_i * dest_rect_width) - view_start
 
+        # Update worker
+        self._shape_worker.update()
+
+        refresh_required = False
+
         for i in range(start_i, stop_i):
             dest_rect = QRect(x_offset, 0, int(dest_rect_width), height)
             if i not in pc:
-                pixmap = QPixmap(self._REF_PIXMAP_WIDTH, height)
-                pixmap.fill(QColor(0, 0, 0))
-
-                painter = QPainter(pixmap)
-                painter.setPen(QColor(0xff, 0xff, 0xff))
-                test_rect = src_rect.adjusted(0, 0, -1, -1)
-                painter.drawRect(test_rect)
-
                 slice_start = i * pixmap_range_width
                 slice_stop = (i + 1) * pixmap_range_width
-                painter.drawText(2, 14, '[{}, {})'.format(slice_start, slice_stop))
+                if slice_start >= stop:
+                    break
 
-                pc[i] = pixmap
+                shape = self._shape_worker.request_shape(
+                        ref_fpp, (slice_start, slice_stop))
 
-            pixmap = pc[i]
-            yield dest_rect, src_rect, pixmap
+                if shape:
+                    pixmap = QPixmap(self._REF_PIXMAP_WIDTH, height)
+                    pixmap.fill(QColor(0, 0, 0))
+
+                    painter = QPainter(pixmap)
+                    painter.setPen(QColor(0xff, 0xff, 0xff))
+                    test_rect = src_rect.adjusted(0, 0, -1, -1)
+                    painter.drawRect(test_rect)
+
+                    painter.drawText(2, 14, '[{}, {})'.format(slice_start, slice_stop))
+
+                    pc[i] = pixmap
+                else:
+                    refresh_required = True
+
+            if i in pc:
+                yield dest_rect, src_rect, pc[i]
+
             x_offset += int(dest_rect_width)
+
+        # Schedule another update if we didn't get all the required image data yet
+        if refresh_required:
+            QObject.emit(self, SIGNAL('refresh()'))
 
     def paintEvent(self, event):
         start = time.time()
@@ -285,5 +313,80 @@ class SampleViewCanvas(QWidget):
 
     def resizeEvent(self, event):
         self.update()
+
+    def _refresh(self):
+        self.update()
+
+
+class DummyShape():
+    '''Temporary type for testing purposes'''
+
+
+class ShapeWorker():
+
+    def __init__(self):
+        self._shapes = {}
+        self._requests = []
+        self._cur_shape_prio = 0
+
+        self._sample_length = 0
+        self._get_sample_data = None
+        self._sample_data = tuple()
+
+    def reset(self, length, get_sample_data):
+        self._sample_length = length
+        self._get_sample_data = get_sample_data
+        self._sample_data = tuple()
+
+        self._shapes = {}
+        self._requests = []
+        self._cur_shape_prio = 0
+
+    def _try_make_shape(self, ref_fpp, slice_range):
+        time.sleep(0.03)
+        return DummyShape()
+
+    def update(self):
+        if not self._requests:
+            self._cur_shape_prio = 0
+            return
+
+        # Give priority to future requests as they are
+        # probably more relevant to current view
+        self._cur_shape_prio -= 1
+
+        time_limit = 0.01
+        start_time = None
+
+        while (start_time == None or
+                time.time() - start_time < time_limit) and self._requests:
+            if start_time == None:
+                start_time = time.time()
+
+            prio, request = heapq.heappop(self._requests)
+
+            ref_fpp, slice_range = request
+            shape = self._try_make_shape(ref_fpp, slice_range)
+            if shape:
+                key = (ref_fpp, slice_range)
+                assert key not in self._shapes
+                self._shapes[key] = shape
+            else:
+                # Shape is not finished yet, so push the request back
+                heapq.heappush(self._requests, (prio + 1, request))
+
+    def request_shape(self, ref_fpp, slice_range):
+        # Return a completed shape
+        key = (ref_fpp, slice_range)
+        if key in self._shapes:
+            return self._shapes[key]
+
+        # Check if we are working on the requested shape
+        if any(1 for p, k in self._requests if k == key):
+            return None
+
+        # Add request for a new shape
+        heapq.heappush(self._requests, (self._cur_shape_prio, key))
+        return None
 
 
