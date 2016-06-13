@@ -14,6 +14,7 @@
 import heapq
 import math
 import time
+from itertools import chain, islice
 
 from PySide.QtCore import *
 from PySide.QtGui import *
@@ -277,6 +278,8 @@ class SampleViewCanvas(QWidget):
                     pixmap.fill(QColor(0, 0, 0))
 
                     painter = QPainter(pixmap)
+                    painter.setRenderHint(QPainter.Antialiasing)
+                    painter.translate(0.5, 0.5)
                     painter.setPen(QColor(0xff, 0xff, 0xff))
                     painter.setBrush(QColor(0xff, 0xff, 0xff))
                     painter.scale(1, height / 2)
@@ -309,6 +312,7 @@ class SampleViewCanvas(QWidget):
         painter = QPainter(self)
         painter.setBackground(QColor(0, 0, 0))
         painter.eraseRect(0, 0, self.width(), self.height())
+        painter.setRenderHint(QPainter.SmoothPixmapTransform)
 
         if self._length == 0:
             return
@@ -366,7 +370,7 @@ class Shape():
         assert slice_range_width > 0
         actual_stop = min(stop, len(sample_data[0]))
 
-        if ref_fpp > 1:
+        if ref_fpp > 2:
             # Filled blob
             ref_fpp_i = int(ref_fpp)
             for ch_data in sample_data:
@@ -396,21 +400,27 @@ class Shape():
         else:
             # Line
             frame_step = 1 / ref_fpp
+            margin = 2
+
             for ch_data in sample_data:
                 shape = QPainterPath()
 
-                prev_val = ch_data[start - 1] if start > 0 else 0.0
-                prev_point = QPointF(-frame_step * 0.5, -prev_val)
+                prev_vals = list(ch_data[max(0, start - margin):start])
+                if len(prev_vals) < margin:
+                    prev_vals = ([0.0] * (margin - len(prev_vals))) + prev_vals
+
+                tail_vals = list(ch_data[stop:stop + margin])
+                if len(tail_vals) < margin:
+                    tail_vals.extend([0.0] * (margin - len(tail_vals)))
+
+                prev_point = QPointF((-margin - 0.5) * frame_step, prev_vals[0])
                 shape.moveTo(prev_point)
 
-                for i, val in enumerate(ch_data[start:stop]):
+                vals = chain(prev_vals, ch_data[start:stop], tail_vals)
+                for i, val in enumerate(islice(vals, 1, None)):
                     val = min(max(-1, -val), 1)
-                    point = QPointF((i + 0.5) * frame_step, val)
+                    point = QPointF((i - margin + 0.5) * frame_step, val)
                     shape.lineTo(point)
-
-                next_val = ch_data[stop] if stop < len(ch_data) else 0.0
-                next_point = QPointF((slice_range_width + 0.5) * frame_step, -next_val)
-                shape.lineTo(next_point)
 
                 self._shapes.append(shape)
 
@@ -440,7 +450,8 @@ class ShapeWorker():
         assert start < self._sample_length
 
         # Get new sample data if needed
-        if not self._sample_data or (len(self._sample_data[0]) < stop + 1):
+        margin = 2
+        if not self._sample_data or (len(self._sample_data[0]) < stop + margin):
             new_data = self._get_sample_data()
             if not self._sample_data:
                 self._sample_data = list(new_data)
@@ -450,7 +461,7 @@ class ShapeWorker():
                     self._sample_data[i].extend(new_ch_data)
 
         read_count = len(self._sample_data[0]) if self._sample_data else 0
-        if read_count < stop + 1 and read_count < self._sample_length:
+        if read_count < stop + margin and read_count < self._sample_length:
             return None
 
         shape = Shape()
