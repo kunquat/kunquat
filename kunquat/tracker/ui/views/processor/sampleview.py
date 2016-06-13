@@ -252,7 +252,6 @@ class SampleViewCanvas(QWidget):
         self._pixmap_caches[ref_fpp] = pc
 
         view_start = start / frames_per_px
-        x_offset = (start_i * dest_rect_width) - view_start
 
         # Update worker
         self._shape_worker.update()
@@ -260,7 +259,10 @@ class SampleViewCanvas(QWidget):
         refresh_required = False
 
         for i in range(start_i, stop_i):
-            dest_rect = QRect(x_offset, 0, int(dest_rect_width), height)
+            start_x = int(i * dest_rect_width - view_start)
+            stop_x = int((i + 1) * dest_rect_width - view_start)
+
+            dest_rect = QRect(start_x, 0, stop_x - start_x, height)
             if i not in pc:
                 slice_start = i * pixmap_range_width
                 slice_stop = (i + 1) * pixmap_range_width
@@ -296,8 +298,6 @@ class SampleViewCanvas(QWidget):
 
             if i in pc:
                 yield dest_rect, src_rect, pc[i]
-
-            x_offset += int(dest_rect_width)
 
         # Schedule another update if we didn't get all the required image data yet
         if refresh_required:
