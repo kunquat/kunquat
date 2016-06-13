@@ -345,14 +345,15 @@ class Shape():
 
         painter.save()
         painter.scale(1, 1 / ch_count)
-        painter.translate(0, -(ch_count // 2))
+        painter.translate(0, -ch_count + 1)
 
         for shape in self._shapes:
             if isinstance(shape, QPolygonF):
                 painter.drawPolygon(shape)
-                painter.translate(0, 2)
-            else:
-                pass # TODO
+            elif isinstance(shape, QPainterPath):
+                painter.setBrush(Qt.NoBrush)
+                painter.drawPath(shape)
+            painter.translate(0, 2)
 
         painter.restore()
 
@@ -393,7 +394,25 @@ class Shape():
                 self._shapes.append(shape)
 
         else:
-            pass # TODO: Line
+            # Line
+            frame_step = 1 / ref_fpp
+            for ch_data in sample_data:
+                shape = QPainterPath()
+
+                prev_val = ch_data[start - 1] if start > 0 else 0.0
+                prev_point = QPointF(-frame_step * 0.5, -prev_val)
+                shape.moveTo(prev_point)
+
+                for i, val in enumerate(ch_data[start:stop]):
+                    val = min(max(-1, -val), 1)
+                    point = QPointF((i + 0.5) * frame_step, val)
+                    shape.lineTo(point)
+
+                next_val = ch_data[stop] if stop < len(ch_data) else 0.0
+                next_point = QPointF((slice_range_width + 0.5) * frame_step, -next_val)
+                shape.lineTo(next_point)
+
+                self._shapes.append(shape)
 
 
 class ShapeWorker():
@@ -421,7 +440,7 @@ class ShapeWorker():
         assert start < self._sample_length
 
         # Get new sample data if needed
-        if not self._sample_data or (len(self._sample_data[0]) < stop):
+        if not self._sample_data or (len(self._sample_data[0]) < stop + 1):
             new_data = self._get_sample_data()
             if not self._sample_data:
                 self._sample_data = list(new_data)
@@ -431,7 +450,7 @@ class ShapeWorker():
                     self._sample_data[i].extend(new_ch_data)
 
         read_count = len(self._sample_data[0]) if self._sample_data else 0
-        if read_count < stop and read_count < self._sample_length:
+        if read_count < stop + 1 and read_count < self._sample_length:
             return None
 
         shape = Shape()
