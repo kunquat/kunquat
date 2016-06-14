@@ -494,6 +494,9 @@ class SampleViewCanvas(QWidget):
             for pos in (first_pos, second_pos):
                 vis_x = self._get_frame_start_vis_x(pos)
                 if 0 <= vis_x < width:
+                    painter.setPen(self._config['bg_colour'])
+                    painter.drawLine(vis_x, 0, vis_x, height)
+
                     pen.setColor(get_line_colour(pos))
                     painter.setPen(pen)
                     painter.drawLine(vis_x, 0, vis_x, height)
