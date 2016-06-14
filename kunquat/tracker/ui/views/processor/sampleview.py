@@ -20,6 +20,15 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 
+DEFAULT_CONFIG = {
+    'bg_colour'         : QColor(0, 0, 0),
+    'center_line_colour': QColor(0x66, 0x66, 0x66),
+    'sample_colour'     : QColor(0x44, 0xcc, 0xff),
+    'interp_colour'     : QColor(0x22, 0x88, 0xaa),
+    'max_node_size'     : 6,
+}
+
+
 class SampleView(QWidget):
 
     def __init__(self):
@@ -178,11 +187,13 @@ class SampleViewCanvas(QWidget):
 
     _REF_PIXMAP_WIDTH = 256
 
-    def __init__(self):
+    def __init__(self, config={}):
         super().__init__()
 
-        self._length = 0
+        self._config = None
+        self._set_config(config)
 
+        self._length = 0
         self._range = [0, 0]
 
         self._shape_worker = ShapeWorker()
@@ -195,6 +206,10 @@ class SampleViewCanvas(QWidget):
         self.setMouseTracking(True)
 
         QObject.connect(self, SIGNAL('refresh()'), self._refresh)
+
+    def _set_config(self, config):
+        self._config = DEFAULT_CONFIG.copy()
+        self._config.update(config)
 
     def set_sample(self, length, get_sample_data):
         self._length = length
@@ -280,11 +295,9 @@ class SampleViewCanvas(QWidget):
                     painter = QPainter(pixmap)
                     painter.setRenderHint(QPainter.Antialiasing)
                     painter.translate(0.5, 0.5)
-                    painter.setPen(QColor(0xff, 0xff, 0xff))
-                    painter.setBrush(QColor(0xff, 0xff, 0xff))
                     painter.scale(1, height / 2)
                     painter.translate(0, 1)
-                    shape.draw_shape(painter)
+                    shape.draw_shape(painter, self._config)
 
                     '''
                     painter = QPainter(pixmap)
@@ -340,10 +353,17 @@ class Shape():
 
     def __init__(self):
         self._shapes = []
+        self._center_line_length = 0
 
-    def draw_shape(self, painter):
+        # Additional information required when displaying individual items
+        self._items = []
+        self._frame_step = 0
+
+    def draw_shape(self, painter, config):
         if not self._shapes:
             return
+
+        sample_colour = config['sample_colour']
 
         ch_count = len(self._shapes)
 
@@ -351,12 +371,42 @@ class Shape():
         painter.scale(1, 1 / ch_count)
         painter.translate(0, -ch_count + 1)
 
-        for shape in self._shapes:
+        for i, shape in enumerate(self._shapes):
+            # Center line
+            painter.setPen(config['center_line_colour'])
+            painter.drawLine(QPointF(0, 0), QPointF(self._center_line_length, 0))
+
             if isinstance(shape, QPolygonF):
+                # Filled blob
+                painter.setPen(sample_colour)
+                painter.setBrush(sample_colour)
                 painter.drawPolygon(shape)
+
             elif isinstance(shape, QPainterPath):
+                # Line that connects the samples
+                painter.setPen(config['interp_colour'])
                 painter.setBrush(Qt.NoBrush)
                 painter.drawPath(shape)
+
+                # Get transformed positions of individual items
+                tfm = painter.transform()
+                item_points = []
+                for item_i, val in enumerate(self._items[i]):
+                    item_points.append(tfm.map(QPointF(item_i, -val)))
+
+                # Draw items
+                node_width = min(max(2.0, self._frame_step / 2), config['max_node_size'])
+                node_height = 0.9 * node_width
+                painter.save()
+                painter.setTransform(QTransform())
+                for point in item_points:
+                    x, y = point.x() * self._frame_step, point.y()
+                    painter.fillRect(
+                            QRectF(x - node_width / 2, y - node_height / 2,
+                                node_width, node_height),
+                            sample_colour)
+                painter.restore()
+
             painter.translate(0, 2)
 
         painter.restore()
@@ -369,6 +419,8 @@ class Shape():
         slice_range_width = stop - start
         assert slice_range_width > 0
         actual_stop = min(stop, len(sample_data[0]))
+
+        self._center_line_length = slice_range_width / ref_fpp
 
         if ref_fpp > 2:
             # Filled blob
@@ -399,7 +451,7 @@ class Shape():
 
         else:
             # Line
-            frame_step = 1 / ref_fpp
+            self._frame_step = 1 / ref_fpp
             margin = 2
 
             for ch_data in sample_data:
@@ -413,13 +465,16 @@ class Shape():
                 if len(tail_vals) < margin:
                     tail_vals.extend([0.0] * (margin - len(tail_vals)))
 
-                prev_point = QPointF((-margin - 0.5) * frame_step, prev_vals[0])
+                prev_point = QPointF((-margin + 0.5) * self._frame_step, -prev_vals[0])
                 shape.moveTo(prev_point)
 
+                items = ch_data[start:stop]
+                self._items.append(items)
+
                 vals = chain(prev_vals, ch_data[start:stop], tail_vals)
-                for i, val in enumerate(islice(vals, 1, None)):
+                for i, val in islice(enumerate(vals), 1, None):
                     val = min(max(-1, -val), 1)
-                    point = QPointF((i - margin + 0.5) * frame_step, val)
+                    point = QPointF((i - margin + 0.5) * self._frame_step, val)
                     shape.lineTo(point)
 
                 self._shapes.append(shape)
