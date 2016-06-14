@@ -202,6 +202,10 @@ class SampleViewCanvas(QWidget):
 
     _REF_PIXMAP_WIDTH = 256
 
+    _STATE_IDLE = 'idle'
+    _STATE_WAITING = 'waiting'
+    _STATE_MOVING_MARKER = 'moving_marker'
+
     def __init__(self, config={}):
         super().__init__()
 
@@ -213,6 +217,8 @@ class SampleViewCanvas(QWidget):
         self._loop_range = None
 
         self._focused_loop_marker = None
+
+        self._state = self._STATE_IDLE
 
         self._shape_worker = ShapeWorker()
         self._pixmap_caches = {}
@@ -270,8 +276,39 @@ class SampleViewCanvas(QWidget):
         frames_per_px = range_width / self.width()
         return (frame - start) / frames_per_px
 
+    def _find_focused_loop_handle(self, pointer_pos):
+        if not self._loop_range:
+            return None
+
+        # Shift focus position so that it matches better what is seen
+        pos_x, pos_y = (pointer_pos[0] - 1, pointer_pos[1] - 1)
+
+        lstart, lstop = self._loop_range
+        lstart_x = self._get_frame_start_vis_x(lstart)
+        lstop_x = self._get_frame_start_vis_x(lstop)
+
+        dist_max = self._config['loop_handle_focus_dist_max']
+        dist_size_diff = dist_max - self._config['loop_handle_size']
+
+        dist_to_start = abs(lstart_x - pos_x) + pos_y
+        if dist_to_start <= dist_max:
+            return lstart
+
+        dist_to_stop = abs(lstop_x - pos_x) + abs(self.height() - pos_y)
+        if dist_to_stop <= dist_max:
+            return lstop
+
+        return None
+
     def mouseMoveEvent(self, event):
-        pass
+        pointer_pos = event.x(), event.y()
+
+        if self._state == self._STATE_MOVING_MARKER:
+            pass
+
+        elif self._state == self._STATE_IDLE:
+            self._focused_loop_marker = self._find_focused_loop_handle(pointer_pos)
+            self.update()
 
     def mousePressEvent(self, event):
         if event.buttons() != Qt.LeftButton:
