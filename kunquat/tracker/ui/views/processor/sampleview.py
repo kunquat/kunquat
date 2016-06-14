@@ -155,6 +155,8 @@ class SampleViewArea(QAbstractScrollArea):
 
         start, stop = view.get_range()
         width = stop - start
+        single_step_px = 40
+        scrollbar.setSingleStep(max(1, int(single_step_px * width / view.width())))
         scrollbar.setPageStep(width)
         scrollbar.setRange(0, length - width)
         scrollbar.setValue(start)
