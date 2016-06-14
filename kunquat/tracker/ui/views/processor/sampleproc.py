@@ -1674,12 +1674,17 @@ class SampleEditor(QWidget):
     def _get_random_list_signal_type(self):
         return 'signal_sample_note_map_random_list_{}'.format(self._proc_id)
 
+    def _get_loop_signal_type(self):
+        return 'signal_sample_loop_{}'.format(self._proc_id)
+
     def _perform_updates(self, signals):
-        update_signals = set([
+        update_all_signals = set([
             self._get_list_update_signal_type(),
             self._get_selection_update_signal_type()])
-        if not signals.isdisjoint(update_signals):
+        if not signals.isdisjoint(update_all_signals):
             self._update_all()
+        elif self._get_loop_signal_type() in signals:
+            self._update_loop()
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -1705,8 +1710,24 @@ class SampleEditor(QWidget):
             self._freq.setValue(new_freq)
         self._freq.blockSignals(old_block)
 
-        old_block = self._loop_mode.blockSignals(True)
+        sample_length = sample_params.get_sample_length(sample_id)
+
+        self._length.setText(str(sample_length))
+
+        get_sample_data = sample_params.get_sample_data_retriever(sample_id)
+        self._sample_view.set_sample(sample_length, get_sample_data)
+
+        self._update_loop()
+
+    def _update_loop(self):
+        sample_params = self._get_sample_params()
+        sample_id = sample_params.get_selected_sample_id()
+
         new_loop_mode = sample_params.get_sample_loop_mode(sample_id)
+        new_loop_start = sample_params.get_sample_loop_start(sample_id)
+        new_loop_end = sample_params.get_sample_loop_end(sample_id)
+
+        old_block = self._loop_mode.blockSignals(True)
         loop_mode_index = self._loop_mode.findData(new_loop_mode)
         if (loop_mode_index != self._loop_mode.itemData(self._loop_mode.currentIndex())):
             self._loop_mode.setCurrentIndex(loop_mode_index)
@@ -1716,25 +1737,25 @@ class SampleEditor(QWidget):
 
         old_block = self._loop_start.blockSignals(True)
         self._loop_start.setMaximum(sample_length)
-        new_loop_start = sample_params.get_sample_loop_start(sample_id)
         if new_loop_start != self._loop_start.value():
             self._loop_start.setValue(new_loop_start)
+        self._loop_start.setEnabled(new_loop_mode != 'off')
         self._loop_start.blockSignals(old_block)
 
         old_block = self._loop_end.blockSignals(True)
         self._loop_end.setMaximum(sample_length)
-        new_loop_end = sample_params.get_sample_loop_end(sample_id)
         if new_loop_end != self._loop_end.value():
             self._loop_end.setValue(new_loop_end)
+        self._loop_end.setEnabled(new_loop_mode != 'off')
         self._loop_end.blockSignals(old_block)
 
-        self._length.setText(str(sample_length))
-
-        get_sample_data = sample_params.get_sample_data_retriever(sample_id)
-        self._sample_view.set_sample(sample_length, get_sample_data)
-        self._sample_view.set_loop_range([
-            sample_params.get_sample_loop_start(sample_id),
-            sample_params.get_sample_loop_end(sample_id)])
+        loop_range = [
+                sample_params.get_sample_loop_start(sample_id),
+                sample_params.get_sample_loop_end(sample_id)]
+        if new_loop_mode != 'off':
+            self._sample_view.set_loop_range(loop_range)
+        else:
+            self._sample_view.set_loop_range(None)
 
     def _change_name(self):
         sample_params = self._get_sample_params()
@@ -1754,18 +1775,18 @@ class SampleEditor(QWidget):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_loop_mode(sample_id, loop_mode)
-        self._updater.signal_update(set([self._get_list_update_signal_type()]))
+        self._updater.signal_update(set([self._get_loop_signal_type()]))
 
     def _change_loop_start(self, start):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_loop_start(sample_id, start)
-        self._updater.signal_update(set([self._get_list_update_signal_type()]))
+        self._updater.signal_update(set([self._get_loop_signal_type()]))
 
     def _change_loop_end(self, end):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_loop_end(sample_id, end)
-        self._updater.signal_update(set([self._get_list_update_signal_type()]))
+        self._updater.signal_update(set([self._get_loop_signal_type()]))
 
 
