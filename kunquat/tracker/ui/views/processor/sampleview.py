@@ -38,11 +38,15 @@ DEFAULT_CONFIG = {
 
 class SampleView(QWidget):
 
+    loopStartChanged = Signal(int, name='loopStartChanged')
+    loopStopChanged = Signal(int, name='loopStopChanged')
+
     def __init__(self):
         super().__init__()
 
         self._toolbar = SampleViewToolBar()
-        self._area = SampleViewArea()
+        self._area = SampleViewArea(
+                self._on_loop_start_changed, self._on_loop_stop_changed)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -62,6 +66,12 @@ class SampleView(QWidget):
 
     def set_loop_range(self, loop_range):
         self._area.set_loop_range(loop_range)
+
+    def _on_loop_start_changed(self, lstart):
+        QObject.emit(self, SIGNAL('loopStartChanged(int)'), lstart)
+
+    def _on_loop_stop_changed(self, lstop):
+        QObject.emit(self, SIGNAL('loopStopChanged(int)'), lstop)
 
 
 class SampleViewToolBar(QToolBar):
@@ -99,10 +109,11 @@ class SampleViewToolBar(QToolBar):
 
 class SampleViewArea(QAbstractScrollArea):
 
-    def __init__(self):
+    def __init__(self, signal_loop_start_changed, signal_loop_stop_changed):
         super().__init__()
 
-        self.setViewport(SampleViewCanvas())
+        self.setViewport(SampleViewCanvas(
+            signal_loop_start_changed, signal_loop_stop_changed))
         self.viewport().setFocusProxy(None)
 
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
@@ -206,8 +217,11 @@ class SampleViewCanvas(QWidget):
     _STATE_WAITING = 'waiting'
     _STATE_MOVING_MARKER = 'moving_marker'
 
-    def __init__(self, config={}):
+    def __init__(self, signal_loop_start_changed, signal_loop_stop_changed, config={}):
         super().__init__()
+
+        self._signal_loop_start_changed = signal_loop_start_changed
+        self._signal_loop_stop_changed = signal_loop_stop_changed
 
         self._config = None
         self._set_config(config)
@@ -217,6 +231,7 @@ class SampleViewCanvas(QWidget):
         self._loop_range = None
 
         self._focused_loop_marker = None
+        self._moving_pointer_offset_x = 0
 
         self._state = self._STATE_IDLE
 
@@ -249,6 +264,9 @@ class SampleViewCanvas(QWidget):
         if self._loop_range != loop_range:
             self._loop_range = loop_range
             self.update()
+
+        if self._state == self._STATE_WAITING:
+            self._state = self._STATE_MOVING_MARKER
 
     def get_length(self):
         return self._length
@@ -304,7 +322,27 @@ class SampleViewCanvas(QWidget):
         pointer_pos = event.x(), event.y()
 
         if self._state == self._STATE_MOVING_MARKER:
-            pass
+            assert self._focused_loop_marker in self._loop_range
+
+            pointer_x, _ = pointer_pos
+            target_x = pointer_x + self._moving_pointer_offset_x
+
+            # Find the nearest frame
+            start, stop = self._range
+            range_width = stop - start
+            frames_per_px = range_width / self.width()
+
+            target_frame = int(round(start + frames_per_px * target_x))
+            lstart, lstop = self._loop_range
+            if self._focused_loop_marker == lstart:
+                target_frame = min(max(0, target_frame), min(self._length, lstop) - 1)
+                self._signal_loop_start_changed(target_frame)
+            else:
+                target_frame = min(max(max(0, lstart) + 1, target_frame), self._length)
+                self._signal_loop_stop_changed(target_frame)
+
+            self._focused_loop_marker = target_frame
+            self._state = self._STATE_WAITING
 
         elif self._state == self._STATE_IDLE:
             self._focused_loop_marker = self._find_focused_loop_handle(pointer_pos)
@@ -314,9 +352,22 @@ class SampleViewCanvas(QWidget):
         if event.buttons() != Qt.LeftButton:
             return
 
-    def mouseReleaseEvent(self, event):
-        if event.buttons() != Qt.LeftButton:
+        if self._state != self._STATE_IDLE:
             return
+
+        pointer_pos = event.x(), event.y()
+        self._focused_loop_marker = self._find_focused_loop_handle(pointer_pos)
+        if self._focused_loop_marker != None:
+            self._state = self._STATE_MOVING_MARKER
+            marker_x = self._get_frame_start_vis_x(self._focused_loop_marker)
+            self._moving_pointer_offset_x = marker_x - event.x()
+
+    def mouseReleaseEvent(self, event):
+        self._state = self._STATE_IDLE
+
+        pointer_pos = event.x(), event.y()
+        self._focused_loop_marker = self._find_focused_loop_handle(pointer_pos)
+        self.update()
 
     def _get_ref_frames_per_px(self, frames_per_px):
         return 2**math.floor(math.log(frames_per_px, 2))

@@ -1659,6 +1659,14 @@ class SampleEditor(QWidget):
                 self._loop_end, SIGNAL('valueChanged(int)'), self._change_loop_end)
 
         self._sample_view.set_icon_bank(self._ui_model.get_icon_bank())
+        QObject.connect(
+                self._sample_view,
+                SIGNAL('loopStartChanged(int)'),
+                self._change_loop_start)
+        QObject.connect(
+                self._sample_view,
+                SIGNAL('loopStopChanged(int)'),
+                self._change_loop_end)
 
         self._update_all()
 
