@@ -21,11 +21,18 @@ from PySide.QtGui import *
 
 
 DEFAULT_CONFIG = {
-    'bg_colour'         : QColor(0, 0, 0),
-    'center_line_colour': QColor(0x66, 0x66, 0x66),
-    'sample_colour'     : QColor(0x44, 0xcc, 0xff),
-    'interp_colour'     : QColor(0x22, 0x88, 0xaa),
-    'max_node_size'     : 6,
+    'bg_colour'                 : QColor(0, 0, 0),
+    'center_line_colour'        : QColor(0x66, 0x66, 0x66),
+    'sample_colour'             : QColor(0x44, 0xcc, 0xff),
+    'interp_colour'             : QColor(0x22, 0x88, 0xaa),
+    'max_node_size'             : 6,
+    'loop_line_colour'          : QColor(0x77, 0x99, 0xbb),
+    'focused_loop_line_colour'  : QColor(0xff, 0xaa, 0x55),
+    'loop_line_dash'            : [4, 4],
+    'loop_handle_colour'        : QColor(0x88, 0xbb, 0xee),
+    'focused_loop_handle_colour': QColor(0xff, 0xaa, 0x55),
+    'loop_handle_size'          : 12,
+    'loop_handle_focus_dist_max': 14,
 }
 
 
@@ -52,6 +59,9 @@ class SampleView(QWidget):
 
     def set_sample(self, length, get_sample_data):
         self._area.set_sample(length, get_sample_data)
+
+    def set_loop_range(self, loop_range):
+        self._area.set_loop_range(loop_range)
 
 
 class SampleViewToolBar(QToolBar):
@@ -101,6 +111,9 @@ class SampleViewArea(QAbstractScrollArea):
     def set_sample(self, length, get_sample_data):
         self.viewport().set_sample(length, get_sample_data)
         self._update_scrollbars()
+
+    def set_loop_range(self, loop_range):
+        self.viewport().set_loop_range(loop_range)
 
     def zoom_in(self):
         start, stop = self.viewport().get_range()
@@ -197,6 +210,9 @@ class SampleViewCanvas(QWidget):
 
         self._length = 0
         self._range = [0, 0]
+        self._loop_range = None
+
+        self._focused_loop_marker = None
 
         self._shape_worker = ShapeWorker()
         self._pixmap_caches = {}
@@ -216,11 +232,17 @@ class SampleViewCanvas(QWidget):
     def set_sample(self, length, get_sample_data):
         self._length = length
         self.set_range(0, length)
+        self._loop_range = None
 
         self._shape_worker.reset(self._length, get_sample_data)
         self._pixmap_caches = {}
 
         self.update()
+
+    def set_loop_range(self, loop_range):
+        if self._loop_range != loop_range:
+            self._loop_range = loop_range
+            self.update()
 
     def get_length(self):
         return self._length
@@ -242,6 +264,23 @@ class SampleViewCanvas(QWidget):
         self._range = [start, stop]
         self.update()
 
+    def _get_frame_start_vis_x(self, frame):
+        start, stop = self._range
+        range_width = stop - start
+        frames_per_px = range_width / self.width()
+        return (frame - start) / frames_per_px
+
+    def mouseMoveEvent(self, event):
+        pass
+
+    def mousePressEvent(self, event):
+        if event.buttons() != Qt.LeftButton:
+            return
+
+    def mouseReleaseEvent(self, event):
+        if event.buttons() != Qt.LeftButton:
+            return
+
     def _get_ref_frames_per_px(self, frames_per_px):
         return 2**math.floor(math.log(frames_per_px, 2))
 
@@ -261,7 +300,6 @@ class SampleViewCanvas(QWidget):
         dest_rect_width = (ref_fpp / frames_per_px) * self._REF_PIXMAP_WIDTH
 
         # Get pixmap indices
-        start, stop = self._range
         start_i = start // pixmap_range_width
         stop_i = 1 + stop // pixmap_range_width
 
@@ -321,6 +359,13 @@ class SampleViewCanvas(QWidget):
         if refresh_required:
             QObject.emit(self, SIGNAL('refresh()'))
 
+    def _has_valid_loop_range(self):
+        if not self._loop_range:
+            return False
+
+        lstart, lstop = self._loop_range
+        return 0 <= lstart < lstop <= self._length
+
     def paintEvent(self, event):
         start = time.time()
 
@@ -332,9 +377,64 @@ class SampleViewCanvas(QWidget):
         if self._length == 0:
             return
 
+        # Draw waveform
         for dest_rect, src_rect, pixmap in self._get_visible_pixmaps():
-            if pixmap:
-                painter.drawPixmap(dest_rect, pixmap, src_rect)
+            painter.drawPixmap(dest_rect, pixmap, src_rect)
+
+        # Draw loop markers
+        if self._has_valid_loop_range():
+            lstart, lstop = self._loop_range
+
+            width = self.width()
+            height = self.height()
+
+            # Draw lines
+            def get_line_colour(pos):
+                normal_colour = self._config['loop_line_colour']
+                focused_colour = self._config['focused_loop_line_colour']
+                return (focused_colour if self._focused_loop_marker == pos
+                        else normal_colour)
+
+            pen = QPen()
+            pen.setDashPattern(self._config['loop_line_dash'])
+
+            # Make sure we draw the focused line on top
+            first_pos, second_pos = lstart, lstop
+            if self._focused_loop_marker == lstart:
+                first_pos, second_pos = second_pos, first_pos
+
+            for pos in (first_pos, second_pos):
+                vis_x = self._get_frame_start_vis_x(pos)
+                if 0 <= vis_x < width:
+                    pen.setColor(get_line_colour(pos))
+                    painter.setPen(pen)
+                    painter.drawLine(vis_x, 0, vis_x, height)
+
+            # Draw handles
+            def get_handle_colour(pos):
+                normal_colour = self._config['loop_handle_colour']
+                focused_colour = self._config['focused_loop_handle_colour']
+                return (focused_colour if self._focused_loop_marker == pos
+                        else normal_colour)
+
+            painter.setPen(Qt.NoPen)
+            handle_size = self._config['loop_handle_size']
+
+            lstart_x = self._get_frame_start_vis_x(lstart)
+            if -handle_size < lstart_x < width + handle_size:
+                painter.setBrush(get_handle_colour(lstart))
+                painter.drawConvexPolygon(QPolygon([
+                    QPoint(lstart_x - handle_size + 1, 0),
+                    QPoint(lstart_x + handle_size, 0),
+                    QPoint(lstart_x, handle_size)]))
+
+            lstop_x = self._get_frame_start_vis_x(lstop)
+            if -handle_size < lstop_x < width + handle_size:
+                painter.setBrush(get_handle_colour(lstop))
+                painter.drawConvexPolygon(QPolygon([
+                    QPoint(lstop_x - handle_size, height),
+                    QPoint(lstop_x + handle_size + 1, height),
+                    QPoint(lstop_x, height - handle_size)]))
 
         end = time.time()
         elapsed = end - start

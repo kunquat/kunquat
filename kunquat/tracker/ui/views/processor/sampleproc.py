@@ -1732,6 +1732,9 @@ class SampleEditor(QWidget):
 
         get_sample_data = sample_params.get_sample_data_retriever(sample_id)
         self._sample_view.set_sample(sample_length, get_sample_data)
+        self._sample_view.set_loop_range([
+            sample_params.get_sample_loop_start(sample_id),
+            sample_params.get_sample_loop_end(sample_id)])
 
     def _change_name(self):
         sample_params = self._get_sample_params()
