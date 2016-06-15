@@ -532,6 +532,8 @@ class SampleViewCanvas(QWidget):
         #print('Sample view updated in {:.2f} ms'.format(elapsed * 1000))
 
     def resizeEvent(self, event):
+        if event.oldSize().height() != event.size().height():
+            self._pixmap_caches = {}
         self.update()
 
     def _refresh(self):
