@@ -611,16 +611,27 @@ class Shape():
         start, stop = slice_range
         slice_range_width = stop - start
         assert slice_range_width > 0
-        actual_stop = min(stop, len(sample_data[0]))
 
         self._center_line_length = slice_range_width / ref_fpp
 
         if ref_fpp > 2:
             # Filled blob
             ref_fpp_i = int(ref_fpp)
+            actual_stop = min(stop + 1, len(sample_data[0]))
+
             for ch_data in sample_data:
                 min_vals = []
                 max_vals = []
+
+                points = []
+
+                if start > 0:
+                    pre_subslice_start = max(0, start - ref_fpp_i)
+                    sl = ch_data[pre_subslice_start:start]
+                    min_val = max(-1.0, min(sl))
+                    max_val = min(1.0, max(sl))
+                    points.append(QPointF(-1, -min_val))
+                    points.append(QPointF(-1, -max_val))
 
                 subslice_start = start
                 while subslice_start < actual_stop:
@@ -635,7 +646,7 @@ class Shape():
                 min_vals = list(reversed(min_vals))
                 sample_count = len(min_vals)
 
-                points = [QPointF(i, val) for i, val in enumerate(max_vals)]
+                points.extend([QPointF(i, val) for i, val in enumerate(max_vals)])
                 points.extend([QPointF(sample_count - i - 1, val)
                     for i, val in enumerate(min_vals)])
 
