@@ -1568,8 +1568,12 @@ class SampleList(QWidget):
     def _get_update_signal_type(self):
         return 'signal_proc_sample_list_{}'.format(self._proc_id)
 
+    def _get_rename_signal_type(self):
+        return 'signal_sample_rename_{}'.format(self._proc_id)
+
     def _perform_updates(self, signals):
-        if self._get_update_signal_type() in signals:
+        update_signals = [self._get_update_signal_type(), self._get_rename_signal_type()]
+        if not signals.isdisjoint(update_signals):
             self._update_model()
 
     def _update_model(self):
@@ -1682,6 +1686,12 @@ class SampleEditor(QWidget):
     def _get_random_list_signal_type(self):
         return 'signal_sample_note_map_random_list_{}'.format(self._proc_id)
 
+    def _get_rename_signal_type(self):
+        return 'signal_sample_rename_{}'.format(self._proc_id)
+
+    def _get_freq_signal_type(self):
+        return 'signal_sample_freq_{}'.format(self._proc_id)
+
     def _get_loop_signal_type(self):
         return 'signal_sample_loop_{}'.format(self._proc_id)
 
@@ -1691,6 +1701,10 @@ class SampleEditor(QWidget):
             self._get_selection_update_signal_type()])
         if not signals.isdisjoint(update_all_signals):
             self._update_all()
+        elif self._get_rename_signal_type() in signals:
+            self._update_name()
+        elif self._get_freq_signal_type() in signals:
+            self._update_freq()
         elif self._get_loop_signal_type() in signals:
             self._update_loop()
 
@@ -1703,6 +1717,22 @@ class SampleEditor(QWidget):
         has_sample = sample_id in sample_params.get_sample_ids()
         self.setEnabled(has_sample)
 
+        self._update_name()
+
+        self._update_freq()
+
+        sample_length = sample_params.get_sample_length(sample_id)
+        self._length.setText(str(sample_length))
+        get_sample_data = sample_params.get_sample_data_retriever(sample_id)
+        self._sample_view.set_sample(sample_length, get_sample_data)
+
+        self._update_loop()
+
+    def _update_name(self):
+        sample_params = self._get_sample_params()
+        sample_id = sample_params.get_selected_sample_id()
+        has_sample = sample_id in sample_params.get_sample_ids()
+
         name = ''
         if has_sample:
             name = sample_params.get_sample_name(sample_id) or ''
@@ -1712,20 +1742,15 @@ class SampleEditor(QWidget):
             self._name.setText(name)
         self._name.blockSignals(old_block)
 
+    def _update_freq(self):
+        sample_params = self._get_sample_params()
+        sample_id = sample_params.get_selected_sample_id()
+
         old_block = self._freq.blockSignals(True)
         new_freq = sample_params.get_sample_freq(sample_id)
         if self._freq.value() != new_freq:
             self._freq.setValue(new_freq)
         self._freq.blockSignals(old_block)
-
-        sample_length = sample_params.get_sample_length(sample_id)
-
-        self._length.setText(str(sample_length))
-
-        get_sample_data = sample_params.get_sample_data_retriever(sample_id)
-        self._sample_view.set_sample(sample_length, get_sample_data)
-
-        self._update_loop()
 
     def _update_loop(self):
         sample_params = self._get_sample_params()
@@ -1778,13 +1803,13 @@ class SampleEditor(QWidget):
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_name(sample_id, str(self._name.text()))
         self._updater.signal_update(set([
-            self._get_list_update_signal_type(), self._get_random_list_signal_type()]))
+            self._get_rename_signal_type(), self._get_random_list_signal_type()]))
 
     def _change_freq(self, value):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_freq(sample_id, value)
-        self._updater.signal_update(set([self._get_list_update_signal_type()]))
+        self._updater.signal_update(set([self._get_freq_signal_type()]))
 
     def _change_loop_mode(self, item_index):
         loop_mode = self._loop_mode.itemData(item_index)
