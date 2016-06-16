@@ -1631,8 +1631,7 @@ class SampleEditor(QWidget):
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
         v.addLayout(gl)
-        v.addWidget(self._sample_view)
-        v.addStretch(1)
+        v.addWidget(self._sample_view, 1)
         self.setLayout(v)
 
     def set_au_id(self, au_id):
