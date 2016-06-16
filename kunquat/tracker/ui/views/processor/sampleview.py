@@ -57,11 +57,16 @@ class SampleView(QWidget):
 
         QObject.connect(self._toolbar, SIGNAL('zoomIn()'), self._area.zoom_in)
         QObject.connect(self._toolbar, SIGNAL('zoomOut()'), self._area.zoom_out)
+        QObject.connect(
+                self._area,
+                SIGNAL('rangeChanged(int, int)'),
+                self._toolbar.set_view_range)
 
     def set_icon_bank(self, icon_bank):
         self._toolbar.set_icon_bank(icon_bank)
 
     def set_sample(self, length, get_sample_data):
+        self._toolbar.set_sample_length(length)
         self._area.set_sample(length, get_sample_data)
 
     def set_loop_range(self, loop_range):
@@ -81,6 +86,8 @@ class SampleViewToolBar(QToolBar):
 
     def __init__(self):
         super().__init__()
+        self._sample_length = 0
+        self._range = [0, 0]
 
         self._zoom_in = QToolButton()
         self._zoom_in.setText('Zoom In')
@@ -96,9 +103,20 @@ class SampleViewToolBar(QToolBar):
         QObject.connect(self._zoom_in, SIGNAL('clicked()'), self._signal_zoom_in)
         QObject.connect(self._zoom_out, SIGNAL('clicked()'), self._signal_zoom_out)
 
+        self._update_buttons()
+
     def set_icon_bank(self, icon_bank):
         self._zoom_in.setIcon(QIcon(icon_bank.get_icon_path('zoom_in')))
         self._zoom_out.setIcon(QIcon(icon_bank.get_icon_path('zoom_out')))
+
+    def set_sample_length(self, sample_length):
+        self._sample_length = sample_length
+        self._range = [0, sample_length]
+        self._update_buttons()
+
+    def set_view_range(self, start, stop):
+        self._range = [start, stop]
+        self._update_buttons()
 
     def _signal_zoom_in(self):
         QObject.emit(self, SIGNAL('zoomIn()'))
@@ -106,8 +124,20 @@ class SampleViewToolBar(QToolBar):
     def _signal_zoom_out(self):
         QObject.emit(self, SIGNAL('zoomOut()'))
 
+    def _update_buttons(self):
+        if self._sample_length == 0:
+            self._zoom_in.setEnabled(False)
+            self._zoom_out.setEnabled(False)
+            return
+
+        start, stop = self._range
+        self._zoom_in.setEnabled(stop - start > 8)
+        self._zoom_out.setEnabled((start != 0) or (stop != self._sample_length))
+
 
 class SampleViewArea(QAbstractScrollArea):
+
+    rangeChanged = Signal(int, int, name='rangeChanged')
 
     def __init__(self, signal_loop_start_changed, signal_loop_stop_changed):
         super().__init__()
@@ -184,6 +214,8 @@ class SampleViewArea(QAbstractScrollArea):
         scrollbar.setPageStep(width)
         scrollbar.setRange(0, length - width)
         scrollbar.setValue(start)
+
+        QObject.emit(self, SIGNAL('rangeChanged(int, int)'), start, stop)
 
     def paintEvent(self, event):
         self.viewport().paintEvent(event)
