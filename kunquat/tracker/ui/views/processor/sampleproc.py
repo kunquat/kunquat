@@ -1735,26 +1735,34 @@ class SampleEditor(QWidget):
         new_loop_start = sample_params.get_sample_loop_start(sample_id)
         new_loop_end = sample_params.get_sample_loop_end(sample_id)
 
+        sample_length = sample_params.get_sample_length(sample_id)
+        is_loop_range_valid = 0 <= new_loop_start < new_loop_end <= sample_length
+        is_loop_enabled = new_loop_mode != 'off' and is_loop_range_valid
+
         old_block = self._loop_mode.blockSignals(True)
         loop_mode_index = self._loop_mode.findData(new_loop_mode)
         if (loop_mode_index != self._loop_mode.itemData(self._loop_mode.currentIndex())):
             self._loop_mode.setCurrentIndex(loop_mode_index)
         self._loop_mode.blockSignals(old_block)
 
-        sample_length = sample_params.get_sample_length(sample_id)
-
         old_block = self._loop_start.blockSignals(True)
-        self._loop_start.setMaximum(sample_length)
+        self._loop_start.setMinimum(0)
+        self._loop_start.setMaximum(max(0, sample_length - 1))
         if new_loop_start != self._loop_start.value():
             self._loop_start.setValue(new_loop_start)
-        self._loop_start.setEnabled(new_loop_mode != 'off')
+        self._loop_start.setEnabled(is_loop_enabled)
+        if is_loop_enabled:
+            self._loop_start.setMaximum(new_loop_end - 1)
         self._loop_start.blockSignals(old_block)
 
         old_block = self._loop_end.blockSignals(True)
+        self._loop_end.setMinimum(min(1, sample_length))
         self._loop_end.setMaximum(sample_length)
         if new_loop_end != self._loop_end.value():
             self._loop_end.setValue(new_loop_end)
-        self._loop_end.setEnabled(new_loop_mode != 'off')
+        self._loop_end.setEnabled(is_loop_enabled)
+        if is_loop_enabled:
+            self._loop_end.setMinimum(new_loop_start + 1)
         self._loop_end.blockSignals(old_block)
 
         loop_range = [
