@@ -1222,10 +1222,11 @@ class HitRandomList(RandomList):
             'signal_sample_hit_map_hit_selection_{}'.format(self._proc_id)])
 
 
-class Samples(QWidget):
+class Samples(QSplitter):
 
     def __init__(self):
         super().__init__()
+        self.setOrientation(Qt.Horizontal)
 
         self._sample_list = SampleList()
         self._sample_editor = SampleEditor()
@@ -1233,8 +1234,8 @@ class Samples(QWidget):
         h = QHBoxLayout()
         h.setContentsMargins(2, 2, 2, 2)
         h.setSpacing(4)
-        h.addWidget(self._sample_list)
-        h.addWidget(self._sample_editor)
+        h.addWidget(self._sample_list, 1)
+        h.addWidget(self._sample_editor, 2)
         self.setLayout(h)
 
     def set_au_id(self, au_id):
