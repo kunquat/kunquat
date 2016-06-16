@@ -17,7 +17,6 @@ import time
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from kunquat.extras.wavpack import WavPackRMem
 from kunquat.tracker.ui.model.procparams.sampleparams import SampleImportError
 from kunquat.tracker.ui.views.audio_unit.hitselector import HitSelector
 from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
