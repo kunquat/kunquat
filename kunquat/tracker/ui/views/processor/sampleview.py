@@ -572,10 +572,6 @@ class SampleViewCanvas(QWidget):
         self.update()
 
 
-class DummyShape():
-    '''Temporary type for testing purposes'''
-
-
 class Shape():
 
     def __init__(self):
