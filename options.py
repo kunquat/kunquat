@@ -18,6 +18,9 @@ enable_python_bindings = True
 # Build and run libkunquat tests.
 enable_tests = True
 
+# Build and run long libkunquat tests.
+enable_long_tests = False
+
 # Run tests with memory debugging (requires valgrind, disables assert tests).
 enable_tests_mem_debug = False
 
