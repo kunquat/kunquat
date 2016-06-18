@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 #include <string.h>
 
 
+#ifdef KQT_LONG_TESTS
 START_TEST(Out_of_memory_at_handle_creation_fails_cleanly)
 {
     assert(handle == 0);
@@ -72,6 +73,7 @@ START_TEST(Out_of_memory_at_handle_creation_fails_cleanly)
     handle = 0;
 }
 END_TEST
+#endif // KQT_LONG_TESTS
 
 
 Suite* Memory_suite(void)
@@ -85,7 +87,10 @@ Suite* Memory_suite(void)
     tcase_set_timeout(tc_create, timeout);
     //tcase_add_checked_fixture(tc_create, setup_empty, handle_teardown);
 
+#ifdef KQT_LONG_TESTS
+    tcase_set_timeout(tc_create, LONG_TIMEOUT);
     tcase_add_test(tc_create, Out_of_memory_at_handle_creation_fails_cleanly);
+#endif
 
     return s;
 }
