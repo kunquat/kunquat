@@ -16,7 +16,10 @@
 """
 
 import ctypes
-from io import BytesIO
+from io import BytesIO, SEEK_SET, SEEK_CUR, SEEK_END
+
+
+_EOF = -1
 
 
 class _WavPackBase():
@@ -28,6 +31,262 @@ class _WavPackBase():
         if self._wpc != None:
             _wavpack.WavpackCloseFile(self._wpc)
             self._wpc = None
+
+
+class _WavPackRBase(_WavPackBase):
+
+    def __init__(self, file_obj, convert_to_float):
+        super().__init__()
+        self._f = file_obj
+        self._convert_to_float = convert_to_float
+
+        self._channels = 0
+        self._length = 0
+        self._is_float = False
+        self._bits = 0
+        self._rate = 0
+
+        self._reader = None
+        self._bytes_per_sample = 0
+        self._push_back = None
+
+        self._f.seek(0, SEEK_END)
+        self._file_length = self._f.tell()
+        self._f.seek(0, SEEK_SET)
+
+    def get_channels(self):
+        return self._channels
+
+    def get_length(self):
+        return self._length
+
+    def is_float(self):
+        return self._is_float or self._convert_to_float
+
+    def get_bits(self):
+        return self._bits
+
+    def get_audio_rate(self):
+        return self._rate
+
+    def read(self, frame_count=float('inf')):
+        '''Read audio data.
+
+        Optional arguments:
+        frame_count -- Maximum number of frames to be read.  If this
+                       argument is omitted, all the data will be read.
+
+        Return value:
+        A tuple containing audio data for each channel.  Buffers
+        shorter than frame_count frames indicate that the end has
+        been reached.
+
+        '''
+        frames_left = frame_count
+        if frames_left == float('inf'):
+            frame_count = 65536
+
+        chunk = [[] for _ in range(self._channels)]
+
+        cdata = (ctypes.c_int32 * (frame_count * self._channels))()
+
+        # Read data
+        while frames_left > 0:
+            actual_frame_count = _wavpack.WavpackUnpackSamples(
+                    self._wpc, cdata, frame_count)
+            if self._is_float:
+                fdata = ctypes.cast(cdata, ctypes.POINTER(ctypes.c_float))
+                for ch in range(self._channels):
+                    ch_data = fdata[ch:actual_frame_count * self._channels:self._channels]
+                    chunk[ch].extend(ch_data)
+            else:
+                for ch in range(self._channels):
+                    ch_data = cdata[ch:actual_frame_count * self._channels:self._channels]
+                    chunk[ch].extend(ch_data)
+
+            if actual_frame_count < frame_count:
+                break
+
+            frames_left -= actual_frame_count
+
+        # Scale integer data
+        if not self._is_float:
+            if self._convert_to_float:
+                scale = 1 / 2**(self._bits - 1)
+                for ch in range(self._channels):
+                    chunk[ch] = [s * scale for s in chunk[ch]]
+            else:
+                shift = 32 - self._bits
+                for ch in range(self._channels):
+                    chunk[ch] = [s << shift for s in chunk[ch]]
+
+        return tuple(chunk)
+
+    def close(self):
+        super().close()
+        if self._f:
+            self._f.close()
+            self._f = None
+
+    def _prepare(self):
+        def read_bytes_cb(id_, data, bcount):
+            return self._read_bytes(data, bcount)
+        self._read_bytes_cb = _read_bytes(read_bytes_cb)
+
+        def get_pos_cb(id_):
+            return self._get_pos()
+        self._get_pos_cb = _get_pos(get_pos_cb)
+
+        def set_pos_abs_cb(id_, pos):
+            return self._set_pos_abs(pos)
+        self._set_pos_abs_cb = _set_pos_abs(set_pos_abs_cb)
+
+        def set_pos_rel_cb(id_, delta, mode):
+            return self._set_pos_rel(delta, mode)
+        self._set_pos_rel_cb = _set_pos_rel(set_pos_rel_cb)
+
+        def push_back_byte_cb(id_, c):
+            return self._push_back_byte(c)
+        self._push_back_byte_cb = _push_back_byte(push_back_byte_cb)
+
+        def get_length_cb(id_):
+            return self._get_length()
+        self._get_length_cb = _get_length(get_length_cb)
+
+        def can_seek_cb(id_):
+            return self._can_seek()
+        self._can_seek_cb = _can_seek(can_seek_cb)
+
+        def write_bytes_cb(id_, data, bcount):
+            return self._write_bytes(data, bcount)
+        self._write_bytes_cb = _write_bytes(write_bytes_cb)
+
+        self._reader = _WavpackStreamReader(
+            self._read_bytes_cb,
+            self._get_pos_cb,
+            self._set_pos_abs_cb,
+            self._set_pos_rel_cb,
+            self._push_back_byte_cb,
+            self._get_length_cb,
+            self._can_seek_cb,
+            self._write_bytes_cb)
+
+        error_msg = (ctypes.c_char * 81)()
+        flags = _OPEN_2CH_MAX | _OPEN_NORMALIZE
+
+        self._wpc = _wavpack.WavpackOpenFileInputEx(
+                self._reader, None, None, error_msg, flags, 0)
+        if not self._wpc:
+            error_str = str(error_msg, encoding='utf-8')
+            raise WavPackError(
+                    'Error while setting up WavPack reader: {}'.format(error_str))
+
+        mode = _wavpack.WavpackGetMode(self._wpc)
+
+        self._channels = _wavpack.WavpackGetReducedChannels(self._wpc)
+        self._length = _wavpack.WavpackGetNumSamples(self._wpc)
+        self._is_float = (mode & _MODE_FLOAT) != 0
+        self._bits = _wavpack.WavpackGetBitsPerSample(self._wpc)
+        self._bytes_per_sample = _wavpack.WavpackGetBytesPerSample(self._wpc)
+        self._rate = _wavpack.WavpackGetSampleRate(self._wpc)
+
+    def _read_bytes(self, data, bcount):
+        read_data = bytearray(bcount)
+
+        read_start = 0
+        read_count = bcount
+        if self._push_back != None:
+            read_data[0] = self._push_back
+            self._push_back = None
+            read_start = 1
+            read_count -= 1
+            self._f.seek(1, SEEK_CUR)
+
+        fbytes = self._f.read(read_count)
+        available_count = read_start + len(fbytes)
+        assert available_count <= bcount
+        read_data[read_start:] = fbytes
+
+        for i in range(available_count):
+            data[i] = read_data[i]
+
+        return available_count
+
+    def _get_pos(self):
+        pos = self._f.tell()
+        return pos
+
+    def _set_pos_abs(self, pos):
+        self._f.seek(pos)
+        self._push_back = None
+        return 0
+
+    def _set_pos_rel(self, delta, mode):
+        self._f.seek(delta, mode)
+        self._push_back = None
+        return 0
+
+    def _push_back_byte(self, c):
+        if self._push_back != None:
+            return _EOF
+        if self._get_pos() == 0:
+            return _EOF
+
+        self._f.seek(-1, SEEK_CUR)
+        self._push_back = c
+
+        return c
+
+    def _get_length(self):
+        return self._file_length
+
+    def _can_seek(self):
+        return 1
+
+    def _write_bytes(self, data, bcount):
+        assert False
+
+
+class WavPackR(_WavPackRBase):
+
+    def __init__(self, fname, convert_to_float=True):
+        '''Create a new readable WavPack audio file.
+
+        Arguments:
+        fname -- Input file name.
+
+        Optional arguemnts:
+        convert_to_float -- Convert audio data to float.  If set to
+                            False, integer audio data will be scaled
+                            to 32-bit integers.
+
+        '''
+        super().__init__(open(fname, 'rb'), convert_to_float)
+        self._prepare()
+
+    def __del__(self):
+        self.close()
+
+
+class WavPackRMem(_WavPackRBase):
+
+    def __init__(self, data, convert_to_float=True):
+        '''Create a new readable WavPack stream from data in memory.
+
+        Arguments:
+        data -- Input data.
+
+        Optional arguments:
+        convert_to_float -- Convert audio data to float.  If set to
+                            False, integer audio data will be scaled
+                            to 32-bit integers.
+
+        '''
+        super().__init__(BytesIO(data), convert_to_float)
+        self._prepare()
+
+    def __del__(self):
+        self.close()
 
 
 class _WavPackWBase(_WavPackBase):
@@ -255,7 +514,7 @@ _OPEN_NORMALIZE = 0x10
 _read_bytes = ctypes.CFUNCTYPE(
         ctypes.c_int32,
         ctypes.c_void_p, # id
-        ctypes.c_void_p, # data
+        ctypes.POINTER(ctypes.c_char), # data
         ctypes.c_int32) # bcount
 
 _get_pos = ctypes.CFUNCTYPE(
@@ -289,7 +548,7 @@ _can_seek = ctypes.CFUNCTYPE(
 _write_bytes = ctypes.CFUNCTYPE(
         ctypes.c_int32,
         ctypes.c_void_p, # id
-        ctypes.c_void_p, # data
+        ctypes.POINTER(ctypes.c_char), # data
         ctypes.c_int32) # bcount
 
 class _WavpackStreamReader(ctypes.Structure):

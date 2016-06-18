@@ -12,7 +12,7 @@
 #
 
 from kunquat.extras.sndfile import SndFileR, SndFileError
-from kunquat.extras.wavpack import WavPackWMem
+from kunquat.extras.wavpack import WavPackRMem, WavPackWMem
 from kunquat.kunquat.kunquat import Kunquat, KunquatFormatError
 from .procparams import ProcParams
 
@@ -61,6 +61,13 @@ class SampleParams(ProcParams):
 
     def _set_sample_header(self, sample_id, header):
         self._set_value(self._get_sample_key(sample_id, 'p_sh_sample.json'), header)
+
+    def _get_sample_data_handle(self, sample_id):
+        data_key = self._get_sample_key(sample_id, 'p_sample.wv')
+        data = self._get_value(data_key, None)
+        if not data:
+            return None
+        return WavPackRMem(data)
 
     def get_max_sample_count(self):
         return self._SAMPLES_MAX
@@ -192,6 +199,16 @@ class SampleParams(ProcParams):
         header = self._get_sample_header(sample_id)
         header['loop_end'] = end
         self._set_sample_header(sample_id, header)
+
+    def get_sample_length(self, sample_id):
+        handle = self._get_sample_data_handle(sample_id)
+        if not handle:
+            return 0
+        return handle.get_length()
+
+    def get_sample_data_retriever(self, sample_id):
+        handle = self._get_sample_data_handle(sample_id)
+        return lambda: handle.read(65536)
 
     def _get_note_map(self):
         return self._get_value('p_nm_note_map.json', [])
