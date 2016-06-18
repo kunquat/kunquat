@@ -109,6 +109,12 @@ class GccCommand():
     def add_lib(self, lib_name):
         self._link_flags.append('-l{}'.format(lib_name))
 
+    def add_compile_flag(self, flag):
+        self._compile_flags.append(flag)
+
+    def add_link_flag(self, flag):
+        self._link_flags.append(flag)
+
     def compile(self, builder, source_path, obj_path, echo=None):
         command.make_dirs(builder, os.path.dirname(obj_path), echo='')
         args = ([self._cmd] +

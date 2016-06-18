@@ -13,6 +13,8 @@
 
 from copy import deepcopy
 import os.path
+import shlex
+import subprocess
 import sys
 
 try:
@@ -86,18 +88,10 @@ def test_add_test_deps(builder, options, cc):
     conf_errors = []
 
     if options.enable_tests:
-        if _test_add_lib_with_header(builder, cc, 'check', 'check.h'):
-            cc.add_lib('m')
-        else:
+        if not _test_add_lib_with_pkgconfig(builder, cc, 'check', 'check.h'):
             conf_errors.append(
                     'Building of libkunquat tests was requested'
-                    ' but Check was not found.')
-
-        if not _test_add_lib_with_header(builder, cc, 'pthread', 'pthread.h'):
-            conf_errors.append('Building of unit tests requires libpthread.')
-
-        if not _test_add_lib_with_header(builder, cc, 'rt', 'time.h'):
-            conf_errors.append('Building of unit tests requires librt.')
+                    ' but not all Check dependencies were found.')
 
     if conf_errors:
         print('\nCould not configure Kunquat due to the following error{}:\n'.format(
@@ -144,6 +138,40 @@ def _test_add_lib_with_header(builder, cc, lib_name, header_name):
         return False
     print('{}ok'.format('' if was_run else '(cached) '))
     cc.add_lib(lib_name)
+    return True
+
+
+def _test_add_lib_with_pkgconfig(builder, cc, lib_name, header_name):
+    out_dir = 'conf_tests'
+    command.make_dirs(builder, out_dir, echo='')
+
+    print('Checking for {}... '.format(lib_name), end='')
+
+    # Get flags
+    cflags_cmd = 'pkg-config --cflags {}'.format(lib_name)
+    libs_cmd = 'pkg-config --libs {}'.format(lib_name)
+    try:
+        cflags_b = subprocess.check_output(shlex.split(cflags_cmd))
+        libs_b = subprocess.check_output(shlex.split(libs_cmd))
+    except subprocess.CalledProcessError as e:
+        return False
+    cflags = shlex.split(str(cflags_b, encoding='utf-8'))
+    libs = shlex.split(str(libs_b, encoding='utf-8'))
+
+    # Build the test
+    out_base = os.path.join(out_dir, lib_name)
+    _write_external_header_test(builder, out_base, header_name)
+    try:
+        was_run = _build_external_lib_test(builder, cc, out_base, lib_name)
+    except fabricate.ExecutionError:
+        return False
+
+    # Add flags
+    print('{}ok'.format('' if was_run else '(cached) '))
+    for flag in cflags:
+        cc.add_compile_flag(flag)
+    for flag in libs:
+        cc.add_link_flag(flag)
     return True
 
 
