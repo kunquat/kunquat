@@ -1682,8 +1682,11 @@ class SampleEditor(QWidget):
     def _get_selection_update_signal_type(self):
         return 'signal_proc_select_sample_{}'.format(self._proc_id)
 
-    def _get_random_list_signal_type(self):
+    def _get_note_random_list_signal_type(self):
         return 'signal_sample_note_map_random_list_{}'.format(self._proc_id)
+
+    def _get_hit_random_list_signal_type(self):
+        return 'signal_sample_hit_map_random_list_{}'.format(self._proc_id)
 
     def _get_rename_signal_type(self):
         return 'signal_sample_rename_{}'.format(self._proc_id)
@@ -1802,7 +1805,9 @@ class SampleEditor(QWidget):
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_name(sample_id, str(self._name.text()))
         self._updater.signal_update(set([
-            self._get_rename_signal_type(), self._get_random_list_signal_type()]))
+            self._get_rename_signal_type(),
+            self._get_note_random_list_signal_type(),
+            self._get_hit_random_list_signal_type()]))
 
     def _change_freq(self, value):
         sample_params = self._get_sample_params()
