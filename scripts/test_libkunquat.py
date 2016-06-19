@@ -38,6 +38,8 @@ def test_libkunquat(builder, options, cc):
     cc.add_lib_dir(libkunquat_dir)
     cc.add_lib('kunquat')
 
+    if options.enable_long_tests:
+        cc.add_define('KQT_LONG_TESTS')
     if options.enable_tests_mem_debug:
         cc.add_define('K_MEM_DEBUG')
 

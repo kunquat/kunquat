@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -34,6 +34,7 @@
 
 
 #define DEFAULT_TIMEOUT 30
+#define LONG_TIMEOUT 300
 
 
 #endif // KT_TEST_COMMON_H
