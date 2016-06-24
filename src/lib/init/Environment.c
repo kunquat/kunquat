@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -35,7 +35,7 @@ Environment_iter* Environment_iter_init(Environment_iter* iter, const Environmen
     assert(iter != NULL);
     assert(env != NULL);
 
-    AAiter_change_tree(&iter->iter, env->vars);
+    AAiter_init(&iter->iter, env->vars);
     iter->next = AAiter_get_at_least(&iter->iter, "");
 
     return iter;
@@ -117,7 +117,7 @@ bool Environment_parse(Environment* env, Streader* sr)
     if (!Streader_has_data(sr))
     {
         AAtree_clear(env->vars);
-        AAiter_change_tree(env->iter, env->vars);
+        AAiter_init(env->iter, env->vars);
         return true;
     }
 
@@ -137,7 +137,7 @@ bool Environment_parse(Environment* env, Streader* sr)
         return false;
     }
 
-    AAiter_change_tree(env->iter, new_vars);
+    AAiter_init(env->iter, new_vars);
     AAtree* old_vars = env->vars;
     env->vars = new_vars;
     del_AAtree(old_vars);

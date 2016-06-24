@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -132,7 +132,7 @@ void Column_iter_change_col(Column_iter* iter, Column* col)
 
     iter->col = col;
     iter->version = col->version;
-    AAiter_change_tree(&iter->tree_iter, col->triggers);
+    AAiter_init(&iter->tree_iter, col->triggers);
     iter->trlist = NULL;
 
     return;

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -59,12 +59,14 @@ AAiter* new_AAiter(AAtree* tree);
 
 
 /**
- * Change the AAtree associated with the AAiter.
+ * Initialise an AAtree iterator.
  *
  * \param iter   The AAiter -- must not be \c NULL.
- * \param tree   The AAtree -- must not be \c NULL.
+ * \param tree   The AAtree associated with \a iter -- must not be \c NULL.
+ *
+ * \return   The parameter \a iter.
  */
-void AAiter_change_tree(AAiter* iter, const AAtree* tree);
+AAiter* AAiter_init(AAiter* iter, const AAtree* tree);
 
 
 /**

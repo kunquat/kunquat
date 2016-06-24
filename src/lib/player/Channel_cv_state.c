@@ -192,8 +192,7 @@ void Channel_cv_state_reset(Channel_cv_state* state)
 
     const Entry* key = Entry_init(ENTRY_AUTO, "");
 
-    AAiter* iter = AAITER_AUTO;
-    AAiter_change_tree(iter, state->tree);
+    AAiter* iter = AAiter_init(AAITER_AUTO, state->tree);
 
     Entry* entry = AAiter_get_at_least(iter, key);
     while (entry != NULL)

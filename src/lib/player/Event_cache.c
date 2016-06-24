@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -119,7 +119,7 @@ void Event_cache_reset(Event_cache* cache)
 {
     assert(cache != NULL);
 
-    AAiter_change_tree(cache->iter, cache->cache);
+    AAiter_init(cache->iter, cache->cache);
     Event_state* es = AAiter_get_at_least(cache->iter, "");
     while (es != NULL)
     {

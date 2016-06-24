@@ -40,8 +40,8 @@ Device_params_iter* Device_params_iter_init(
     assert(dparams != NULL);
 
     // Init tree iterators
-    AAiter_change_tree(&iter->impl_iter, dparams->implement);
-    AAiter_change_tree(&iter->config_iter, dparams->config);
+    AAiter_init(&iter->impl_iter, dparams->implement);
+    AAiter_init(&iter->config_iter, dparams->config);
 
     // Retrieve first keys of each tree
     const Device_field* impl_field = AAiter_get_at_least(&iter->impl_iter, "");

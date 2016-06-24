@@ -49,7 +49,7 @@ Stream_target_dev_iter* Stream_target_dev_iter_init(
     assert(iter != NULL);
     assert(streams != NULL);
 
-    AAiter_change_tree(&iter->iter, streams->tree);
+    AAiter_init(&iter->iter, streams->tree);
 
     const Entry* entry = AAiter_get_at_least(&iter->iter, "");
     iter->next_name = (entry != NULL) ? entry->name : NULL;

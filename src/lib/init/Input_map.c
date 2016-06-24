@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -154,8 +154,7 @@ bool Input_map_is_valid(const Input_map* im, const Bit_array* existents)
     assert(existents != NULL);
 
     const Entry* key = ENTRY_KEY(0);
-    AAiter* iter = AAITER_AUTO;
-    AAiter_change_tree(iter, im->map);
+    AAiter* iter = AAiter_init(AAITER_AUTO, im->map);
 
     const Entry* pair = AAiter_get_at_least(iter, key);
     while (pair != NULL)

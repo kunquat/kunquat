@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -213,7 +213,7 @@ Event_cache* Bind_create_cache(const Bind* map)
     if (cache == NULL)
         return NULL;
 
-    AAiter_change_tree(map->iter, map->cblists);
+    AAiter_init(map->iter, map->cblists);
     Cblist* cblist = AAiter_get_at_least(map->iter, "");
     while (cblist != NULL)
     {
@@ -304,7 +304,7 @@ static bool Bind_is_cyclic(Bind* map)
 {
     assert(map != NULL);
 
-    AAiter_change_tree(map->iter, map->cblists);
+    AAiter_init(map->iter, map->cblists);
     Cblist* cblist = AAiter_get_at_least(map->iter, "");
     while (cblist != NULL)
     {

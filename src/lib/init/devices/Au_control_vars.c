@@ -153,7 +153,7 @@ Au_control_var_iter* Au_control_var_iter_init(
     assert(aucv != NULL);
 
     // Get the first entry
-    AAiter_change_tree(&iter->iter, aucv->vars);
+    AAiter_init(&iter->iter, aucv->vars);
     const Var_entry* var_entry = AAiter_get_at_least(&iter->iter, "");
     if (var_entry != NULL)
     {

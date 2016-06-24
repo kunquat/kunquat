@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -70,7 +70,7 @@ AAiter* new_AAiter(AAtree* tree)
 }
 
 
-void AAiter_change_tree(AAiter* iter, const AAtree* tree)
+AAiter* AAiter_init(AAiter* iter, const AAtree* tree)
 {
     assert(iter != NULL);
     assert(tree != NULL);
@@ -78,7 +78,7 @@ void AAiter_change_tree(AAiter* iter, const AAtree* tree)
     iter->tree = tree;
     iter->node = NULL;
 
-    return;
+    return iter;
 }
 
 
