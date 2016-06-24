@@ -58,18 +58,6 @@ static bool aavalidate_(const AAnode* node, const char* msg);
 #endif
 
 
-AAiter* new_AAiter(AAtree* tree)
-{
-    AAiter* iter = memory_alloc_item(AAiter);
-    if (iter == NULL)
-        return NULL;
-
-    iter->tree = tree;
-    iter->node = NULL;
-    return iter;
-}
-
-
 AAiter* AAiter_init(AAiter* iter, const AAtree* tree)
 {
     assert(iter != NULL);
@@ -79,13 +67,6 @@ AAiter* AAiter_init(AAiter* iter, const AAtree* tree)
     iter->node = NULL;
 
     return iter;
-}
-
-
-void del_AAiter(AAiter* iter)
-{
-    memory_free(iter);
-    return;
 }
 
 

@@ -25,7 +25,6 @@
 struct Note_map
 {
     AAtree* map;
-    AAiter* iter;
 };
 
 
@@ -175,21 +174,10 @@ Note_map* new_Note_map_from_string(Streader* sr)
         return NULL;
     }
 
-    map->map = NULL;
-    map->iter = NULL;
     map->map = new_AAtree(
             (int (*)(const void*, const void*))Random_list_cmp,
             (void (*)(void*))del_Random_list);
     if (map->map == NULL)
-    {
-        del_Note_map(map);
-        Streader_set_memory_error(
-                sr, "Could not allocate memory for note map");
-        return NULL;
-    }
-
-    map->iter = new_AAiter(map->map);
-    if (map->iter == NULL)
     {
         del_Note_map(map);
         Streader_set_memory_error(
@@ -269,7 +257,8 @@ const Sample_entry* Note_map_get_entry(
 
     const Random_list* key =
         &(Random_list){ .force = force, .freq = NAN, .cents = cents };
-    Random_list* estimate_low = AAiter_get_at_most(map->iter, key);
+    AAiter* iter = AAiter_init(AAITER_AUTO, map->map);
+    Random_list* estimate_low = AAiter_get_at_most(iter, key);
     Random_list* choice = NULL;
     double choice_d = INFINITY;
 
@@ -278,7 +267,7 @@ const Sample_entry* Note_map_get_entry(
         choice = estimate_low;
         choice_d = distance(choice, key);
         double min_tone = key->cents - choice_d;
-        Random_list* candidate = AAiter_get_prev(map->iter);
+        Random_list* candidate = AAiter_get_prev(iter);
         while (candidate != NULL && candidate->cents >= min_tone)
         {
             double d = distance(candidate, key);
@@ -288,11 +277,11 @@ const Sample_entry* Note_map_get_entry(
                 choice_d = d;
                 min_tone = key->cents - choice_d;
             }
-            candidate = AAiter_get_prev(map->iter);
+            candidate = AAiter_get_prev(iter);
         }
     }
 
-    Random_list* estimate_high = AAiter_get_at_least(map->iter, key);
+    Random_list* estimate_high = AAiter_get_at_least(iter, key);
     if (estimate_high != NULL)
     {
         double d = distance(estimate_high, key);
@@ -303,7 +292,7 @@ const Sample_entry* Note_map_get_entry(
         }
 
         double max_tone = key->cents + choice_d;
-        Random_list* candidate = AAiter_get_next(map->iter);
+        Random_list* candidate = AAiter_get_next(iter);
         while (candidate != NULL && candidate->cents <= max_tone)
         {
             d = distance(candidate, key);
@@ -313,7 +302,7 @@ const Sample_entry* Note_map_get_entry(
                 choice_d = d;
                 max_tone = key->cents + choice_d;
             }
-            candidate = AAiter_get_next(map->iter);
+            candidate = AAiter_get_next(iter);
         }
     }
 
@@ -341,7 +330,6 @@ void del_Note_map(Note_map* map)
     if (map == NULL)
         return;
 
-    del_AAiter(map->iter);
     del_AAtree(map->map);
     memory_free(map);
 

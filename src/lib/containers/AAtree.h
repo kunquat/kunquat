@@ -48,17 +48,6 @@ typedef struct AAiter
 
 
 /**
- * Create an iterator for the AAtree.
- *
- * \param tree   The AAtree, or \c NULL.
- *
- * \return   The new iterator if successful, or \c NULL if memory allocation
- *           failed.
- */
-AAiter* new_AAiter(AAtree* tree);
-
-
-/**
  * Initialise an AAtree iterator.
  *
  * \param iter   The AAiter -- must not be \c NULL.
@@ -115,14 +104,6 @@ void* AAiter_get_next(AAiter* iter);
  * \return   The element if one exists, otherwise \c NULL.
  */
 void* AAiter_get_prev(AAiter* iter);
-
-
-/**
- * Destroy an existing AAiter.
- *
- * \param iter   The AAiter, or \c NULL.
- */
-void del_AAiter(AAiter* iter);
 
 
 /**

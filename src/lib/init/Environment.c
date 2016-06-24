@@ -26,7 +26,6 @@
 struct Environment
 {
     AAtree* vars;
-    AAiter* iter;
 };
 
 
@@ -60,12 +59,10 @@ Environment* new_Environment(void)
         return NULL;
 
     env->vars = NULL;
-    env->iter = NULL;
     env->vars = new_AAtree(
             (int (*)(const void*, const void*))strcmp,
             (void (*)(void*))del_Env_var);
-    env->iter = new_AAiter(env->vars);
-    if (env->vars == NULL || env->iter == NULL)
+    if (env->vars == NULL)
     {
         del_Environment(env);
         return NULL;
@@ -117,7 +114,6 @@ bool Environment_parse(Environment* env, Streader* sr)
     if (!Streader_has_data(sr))
     {
         AAtree_clear(env->vars);
-        AAiter_init(env->iter, env->vars);
         return true;
     }
 
@@ -137,7 +133,6 @@ bool Environment_parse(Environment* env, Streader* sr)
         return false;
     }
 
-    AAiter_init(env->iter, new_vars);
     AAtree* old_vars = env->vars;
     env->vars = new_vars;
     del_AAtree(old_vars);
@@ -160,7 +155,6 @@ void del_Environment(Environment* env)
     if (env == NULL)
         return;
 
-    del_AAiter(env->iter);
     del_AAtree(env->vars);
     memory_free(env);
 
