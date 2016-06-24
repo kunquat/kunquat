@@ -249,8 +249,8 @@ Column* new_Column(const Tstamp* len)
         return NULL;
 
     col->version = 1;
-    col->triggers = new_AAtree((int (*)(const void*, const void*))Trigger_list_cmp,
-            (void (*)(void*))del_Trigger_list);
+    col->triggers = new_AAtree(
+            (AAtree_item_cmp*)Trigger_list_cmp, (AAtree_item_destroy*)del_Trigger_list);
     if (col->triggers == NULL)
     {
         memory_free(col);

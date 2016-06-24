@@ -164,11 +164,9 @@ Device_params* new_Device_params(void)
     params->config = NULL;
 
     params->implement = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))del_Device_field);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Device_field);
     params->config = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))del_Device_field);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Device_field);
     if (params->implement == NULL || params->config == NULL)
     {
         del_Device_params(params);

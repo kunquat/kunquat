@@ -34,6 +34,9 @@ typedef struct AAtree AAtree;
 
 typedef struct AAnode AAnode;
 
+typedef int AAtree_item_cmp(const void*, const void*);
+typedef void AAtree_item_destroy(void*);
+
 
 /**
  * AAiter is an iterator used for getting elements from an AAtree.
@@ -126,7 +129,7 @@ void* AAnode_get_data(AAnode* node);
  * \return   The new AAtree if successful, or \c NULL if memory allocation
  *           failed.
  */
-AAtree* new_AAtree(int (*cmp)(const void*, const void*), void (*destroy)(void*));
+AAtree* new_AAtree(AAtree_item_cmp* cmp, AAtree_item_destroy* destroy);
 
 
 /**

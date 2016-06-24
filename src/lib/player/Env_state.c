@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -51,8 +51,7 @@ bool Env_state_refresh_space(Env_state* estate)
     assert(estate != NULL);
 
     AAtree* vars = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))del_Env_var);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Env_var);
     if (vars == NULL)
         return false;
 

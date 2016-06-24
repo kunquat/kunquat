@@ -115,8 +115,8 @@ static Padsynth_sample_map* new_Padsynth_sample_map(
     sm->map = NULL;
 
     sm->map = new_AAtree(
-            (int (*)(const void*, const void*))Padsynth_sample_entry_cmp,
-            (void (*)(void*))del_Padsynth_sample_entry);
+            (AAtree_item_cmp*)Padsynth_sample_entry_cmp,
+            (AAtree_item_destroy*)del_Padsynth_sample_entry);
     if (sm->map == NULL)
     {
         del_Padsynth_sample_map(sm);

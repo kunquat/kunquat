@@ -58,8 +58,7 @@ static bool Tuning_table_build_pitch_map(Tuning_table* tt)
     assert(tt != NULL);
 
     AAtree* pitch_map = new_AAtree(
-            (int (*)(const void*, const void*))pitch_index_cmp,
-            memory_free);
+            (AAtree_item_cmp*)pitch_index_cmp, (AAtree_item_destroy*)memory_free);
     if (pitch_map == NULL)
         return false;
 

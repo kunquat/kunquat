@@ -172,8 +172,7 @@ Bind* new_Bind(Streader* sr, const Event_names* names)
     }
 
     map->cblists = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))del_Cblist);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Cblist);
     if (map->cblists == NULL)
     {
         del_Bind(map);

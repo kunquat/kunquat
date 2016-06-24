@@ -639,8 +639,7 @@ Au_control_vars* new_Au_control_vars(Streader* sr)
     }
 
     aucv->vars = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))del_Var_entry);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Var_entry);
     if (aucv->vars == NULL)
     {
         del_Au_control_vars(aucv);

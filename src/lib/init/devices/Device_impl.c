@@ -113,11 +113,9 @@ bool Device_impl_init(Device_impl* dimpl, Device_impl_destroy_func* destroy)
     dimpl->update_cv_cbs = NULL;
 
     dimpl->set_cbs = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            memory_free);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)memory_free);
     dimpl->update_cv_cbs = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            memory_free);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)memory_free);
     if ((dimpl->set_cbs == NULL) || (dimpl->update_cv_cbs == NULL))
     {
         Device_impl_deinit(dimpl);

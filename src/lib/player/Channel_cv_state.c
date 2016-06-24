@@ -72,8 +72,7 @@ Channel_cv_state* new_Channel_cv_state(void)
     state->tree = NULL;
 
     state->tree = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))memory_free);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)memory_free);
     if (state->tree == NULL)
     {
         del_Channel_cv_state(state);

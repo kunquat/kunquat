@@ -175,8 +175,7 @@ Note_map* new_Note_map_from_string(Streader* sr)
     }
 
     map->map = new_AAtree(
-            (int (*)(const void*, const void*))Random_list_cmp,
-            (void (*)(void*))del_Random_list);
+            (AAtree_item_cmp*)Random_list_cmp, (AAtree_item_destroy*)del_Random_list);
     if (map->map == NULL)
     {
         del_Note_map(map);

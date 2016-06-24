@@ -35,8 +35,8 @@ struct AAtree
 {
     AAnode* nil;
     AAnode* root;
-    int (*cmp)(const void*, const void*);
-    void (*destroy)(void*);
+    AAtree_item_cmp* cmp;
+    AAtree_item_destroy* destroy;
 };
 
 
@@ -105,7 +105,7 @@ void* AAnode_get_data(AAnode* node)
 }
 
 
-AAtree* new_AAtree(int (*cmp)(const void*, const void*), void (*destroy)(void*))
+AAtree* new_AAtree(AAtree_item_cmp* cmp, AAtree_item_destroy* destroy)
 {
     assert(cmp != NULL);
     assert(destroy != NULL);

@@ -60,8 +60,7 @@ Environment* new_Environment(void)
 
     env->vars = NULL;
     env->vars = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))del_Env_var);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Env_var);
     if (env->vars == NULL)
     {
         del_Environment(env);
@@ -118,8 +117,7 @@ bool Environment_parse(Environment* env, Streader* sr)
     }
 
     AAtree* new_vars = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))del_Env_var);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Env_var);
     if (new_vars == NULL)
     {
         Streader_set_memory_error(

@@ -151,8 +151,7 @@ Au_streams* new_Au_streams(Streader* sr)
     streams->tree = NULL;
 
     streams->tree = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))memory_free);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)memory_free);
     if (streams->tree == NULL)
     {
         del_Au_streams(streams);

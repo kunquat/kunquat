@@ -40,8 +40,7 @@ Device_states* new_Device_states(void)
     states->states = NULL;
 
     states->states = new_AAtree(
-            (int (*)(const void*, const void*))Device_state_cmp,
-            (void (*)(void*))del_Device_state);
+            (AAtree_item_cmp*)Device_state_cmp, (AAtree_item_destroy*)del_Device_state);
     if (states->states == NULL)
     {
         del_Device_states(states);

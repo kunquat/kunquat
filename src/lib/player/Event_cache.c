@@ -55,8 +55,7 @@ Event_cache* new_Event_cache(void)
         return NULL;
 
     cache->cache = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))del_Event_state);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Event_state);
     if (cache->cache == NULL)
     {
         del_Event_cache(cache);

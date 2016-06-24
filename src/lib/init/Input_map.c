@@ -131,7 +131,7 @@ Input_map* new_Input_map(Streader* sr, int32_t num_inputs, int32_t num_outputs)
     im->num_outputs = num_outputs;
 
     im->map = new_AAtree(
-            (int (*)(const void*, const void*))Entry_cmp, memory_free);
+            (AAtree_item_cmp*)Entry_cmp, (AAtree_item_destroy*)memory_free);
     if (im->map == NULL)
     {
         del_Input_map(im);
