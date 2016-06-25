@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -34,6 +34,9 @@ typedef struct AAtree AAtree;
 
 typedef struct AAnode AAnode;
 
+typedef int AAtree_item_cmp(const void*, const void*);
+typedef void AAtree_item_destroy(void*);
+
 
 /**
  * AAiter is an iterator used for getting elements from an AAtree.
@@ -48,23 +51,14 @@ typedef struct AAiter
 
 
 /**
- * Create an iterator for the AAtree.
- *
- * \param tree   The AAtree, or \c NULL.
- *
- * \return   The new iterator if successful, or \c NULL if memory allocation
- *           failed.
- */
-AAiter* new_AAiter(AAtree* tree);
-
-
-/**
- * Change the AAtree associated with the AAiter.
+ * Initialise an AAtree iterator.
  *
  * \param iter   The AAiter -- must not be \c NULL.
- * \param tree   The AAtree -- must not be \c NULL.
+ * \param tree   The AAtree associated with \a iter -- must not be \c NULL.
+ *
+ * \return   The parameter \a iter.
  */
-void AAiter_change_tree(AAiter* iter, const AAtree* tree);
+AAiter* AAiter_init(AAiter* iter, const AAtree* tree);
 
 
 /**
@@ -116,14 +110,6 @@ void* AAiter_get_prev(AAiter* iter);
 
 
 /**
- * Destroy an existing AAiter.
- *
- * \param iter   The AAiter, or \c NULL.
- */
-void del_AAiter(AAiter* iter);
-
-
-/**
  * Get data from an AAnode.
  *
  * \param node   The AAnode -- must not be \c NULL.
@@ -143,7 +129,7 @@ void* AAnode_get_data(AAnode* node);
  * \return   The new AAtree if successful, or \c NULL if memory allocation
  *           failed.
  */
-AAtree* new_AAtree(int (*cmp)(const void*, const void*), void (*destroy)(void*));
+AAtree* new_AAtree(AAtree_item_cmp* cmp, AAtree_item_destroy* destroy);
 
 
 /**

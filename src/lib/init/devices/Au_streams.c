@@ -49,7 +49,7 @@ Stream_target_dev_iter* Stream_target_dev_iter_init(
     assert(iter != NULL);
     assert(streams != NULL);
 
-    AAiter_change_tree(&iter->iter, streams->tree);
+    AAiter_init(&iter->iter, streams->tree);
 
     const Entry* entry = AAiter_get_at_least(&iter->iter, "");
     iter->next_name = (entry != NULL) ? entry->name : NULL;
@@ -151,8 +151,7 @@ Au_streams* new_Au_streams(Streader* sr)
     streams->tree = NULL;
 
     streams->tree = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))memory_free);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)memory_free);
     if (streams->tree == NULL)
     {
         del_Au_streams(streams);

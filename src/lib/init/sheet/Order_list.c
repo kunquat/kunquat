@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -131,8 +131,7 @@ Order_list* new_Order_list(Streader* sr)
 
     // Create reverse index of ol->pat_insts
     ol->index_map = new_AAtree(
-            (int (*)(const void*, const void*))Pat_inst_ref_cmp,
-            memory_free);
+            (AAtree_item_cmp*)Pat_inst_ref_cmp, (AAtree_item_destroy*)memory_free);
     if (ol->index_map == NULL)
     {
         Streader_set_memory_error(

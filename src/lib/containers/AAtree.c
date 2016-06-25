@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -35,8 +35,8 @@ struct AAtree
 {
     AAnode* nil;
     AAnode* root;
-    int (*cmp)(const void*, const void*);
-    void (*destroy)(void*);
+    AAtree_item_cmp* cmp;
+    AAtree_item_destroy* destroy;
 };
 
 
@@ -58,19 +58,7 @@ static bool aavalidate_(const AAnode* node, const char* msg);
 #endif
 
 
-AAiter* new_AAiter(AAtree* tree)
-{
-    AAiter* iter = memory_alloc_item(AAiter);
-    if (iter == NULL)
-        return NULL;
-
-    iter->tree = tree;
-    iter->node = NULL;
-    return iter;
-}
-
-
-void AAiter_change_tree(AAiter* iter, const AAtree* tree)
+AAiter* AAiter_init(AAiter* iter, const AAtree* tree)
 {
     assert(iter != NULL);
     assert(tree != NULL);
@@ -78,14 +66,7 @@ void AAiter_change_tree(AAiter* iter, const AAtree* tree)
     iter->tree = tree;
     iter->node = NULL;
 
-    return;
-}
-
-
-void del_AAiter(AAiter* iter)
-{
-    memory_free(iter);
-    return;
+    return iter;
 }
 
 
@@ -124,7 +105,7 @@ void* AAnode_get_data(AAnode* node)
 }
 
 
-AAtree* new_AAtree(int (*cmp)(const void*, const void*), void (*destroy)(void*))
+AAtree* new_AAtree(AAtree_item_cmp* cmp, AAtree_item_destroy* destroy)
 {
     assert(cmp != NULL);
     assert(destroy != NULL);

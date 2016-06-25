@@ -153,7 +153,7 @@ Au_control_var_iter* Au_control_var_iter_init(
     assert(aucv != NULL);
 
     // Get the first entry
-    AAiter_change_tree(&iter->iter, aucv->vars);
+    AAiter_init(&iter->iter, aucv->vars);
     const Var_entry* var_entry = AAiter_get_at_least(&iter->iter, "");
     if (var_entry != NULL)
     {
@@ -639,8 +639,7 @@ Au_control_vars* new_Au_control_vars(Streader* sr)
     }
 
     aucv->vars = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))del_Var_entry);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Var_entry);
     if (aucv->vars == NULL)
     {
         del_Au_control_vars(aucv);

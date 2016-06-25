@@ -53,8 +53,7 @@ Channel_stream_state* new_Channel_stream_state(void)
     state->tree = NULL;
 
     state->tree = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))memory_free);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)memory_free);
     if (state->tree == NULL)
     {
         del_Channel_stream_state(state);
@@ -71,8 +70,7 @@ void Channel_stream_state_set_audio_rate(
     assert(state != NULL);
     assert(audio_rate > 0);
 
-    AAiter* iter = AAITER_AUTO;
-    AAiter_change_tree(iter, state->tree);
+    AAiter* iter = AAiter_init(AAITER_AUTO, state->tree);
 
     Entry* entry = AAiter_get_at_least(iter, "");
     while (entry != NULL)
@@ -91,8 +89,7 @@ void Channel_stream_state_set_tempo(Channel_stream_state* state, double tempo)
     assert(isfinite(tempo));
     assert(tempo > 0);
 
-    AAiter* iter = AAITER_AUTO;
-    AAiter_change_tree(iter, state->tree);
+    AAiter* iter = AAiter_init(AAITER_AUTO, state->tree);
 
     Entry* entry = AAiter_get_at_least(iter, "");
     while (entry != NULL)
@@ -333,8 +330,7 @@ void Channel_stream_state_update(Channel_stream_state* state, uint64_t step_coun
 {
     assert(state != NULL);
 
-    AAiter* iter = AAITER_AUTO;
-    AAiter_change_tree(iter, state->tree);
+    AAiter* iter = AAiter_init(AAITER_AUTO, state->tree);
 
     Entry* entry = AAiter_get_at_least(iter, "");
     while (entry != NULL)
@@ -353,8 +349,7 @@ void Channel_stream_state_reset(Channel_stream_state* state)
 {
     assert(state != NULL);
 
-    AAiter* iter = AAITER_AUTO;
-    AAiter_change_tree(iter, state->tree);
+    AAiter* iter = AAiter_init(AAITER_AUTO, state->tree);
 
     Entry* entry = AAiter_get_at_least(iter, "");
     while (entry != NULL)

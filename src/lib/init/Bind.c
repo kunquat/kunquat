@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -30,7 +30,6 @@
 
 struct Bind
 {
-    AAiter* iter;
     AAtree* cblists;
 };
 
@@ -106,7 +105,7 @@ static bool read_constraints(Streader* sr, Bind* map, Cblist_item* item);
 static bool read_events(Streader* sr, Cblist_item* item, const Event_names* names);
 
 
-static bool Bind_is_cyclic(Bind* map);
+static bool Bind_is_cyclic(const Bind* map);
 
 
 typedef struct bedata
@@ -172,11 +171,9 @@ Bind* new_Bind(Streader* sr, const Event_names* names)
         return NULL;
     }
 
-    map->iter = new_AAiter(NULL);
     map->cblists = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))del_Cblist);
-    if (map->iter == NULL || map->cblists == NULL)
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Cblist);
+    if (map->cblists == NULL)
     {
         del_Bind(map);
         Streader_set_memory_error(sr, "Could not allocate memory for bind");
@@ -213,8 +210,8 @@ Event_cache* Bind_create_cache(const Bind* map)
     if (cache == NULL)
         return NULL;
 
-    AAiter_change_tree(map->iter, map->cblists);
-    Cblist* cblist = AAiter_get_at_least(map->iter, "");
+    AAiter* iter = AAiter_init(AAITER_AUTO, map->cblists);
+    Cblist* cblist = AAiter_get_at_least(iter, "");
     while (cblist != NULL)
     {
         Cblist_item* item = cblist->first;
@@ -232,7 +229,7 @@ Event_cache* Bind_create_cache(const Bind* map)
             }
             item = item->next;
         }
-        cblist = AAiter_get_next(map->iter);
+        cblist = AAiter_get_next(iter);
     }
 
     return cache;
@@ -289,7 +286,6 @@ void del_Bind(Bind* map)
     if (map == NULL)
         return;
 
-    del_AAiter(map->iter);
     del_AAtree(map->cblists);
     memory_free(map);
 
@@ -297,21 +293,21 @@ void del_Bind(Bind* map)
 }
 
 
-static bool Bind_dfs(Bind* map, char* name);
+static bool Bind_dfs(const Bind* map, char* name);
 
 
-static bool Bind_is_cyclic(Bind* map)
+static bool Bind_is_cyclic(const Bind* map)
 {
     assert(map != NULL);
 
-    AAiter_change_tree(map->iter, map->cblists);
-    Cblist* cblist = AAiter_get_at_least(map->iter, "");
+    AAiter* iter = AAiter_init(AAITER_AUTO, map->cblists);
+    Cblist* cblist = AAiter_get_at_least(iter, "");
     while (cblist != NULL)
     {
         assert(cblist->source_state != SOURCE_STATE_REACHED);
         if (cblist->source_state == SOURCE_STATE_VISITED)
         {
-            cblist = AAiter_get_next(map->iter);
+            cblist = AAiter_get_next(iter);
             continue;
         }
 
@@ -319,14 +315,14 @@ static bool Bind_is_cyclic(Bind* map)
         if (Bind_dfs(map, cblist->event_name))
             return true;
 
-        cblist = AAiter_get_next(map->iter);
+        cblist = AAiter_get_next(iter);
     }
 
     return false;
 }
 
 
-static bool Bind_dfs(Bind* map, char* name)
+static bool Bind_dfs(const Bind* map, char* name)
 {
     assert(map != NULL);
     assert(name != NULL);

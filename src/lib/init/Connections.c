@@ -33,7 +33,6 @@
 struct Connections
 {
     AAtree* nodes;
-    AAiter* iter;
 };
 
 
@@ -185,13 +184,10 @@ Connections* new_Connections_from_string(
     }
 
     graph->nodes = NULL;
-    graph->iter = NULL;
     graph->nodes = new_AAtree(
             (int (*)(const void*, const void*))Device_node_cmp,
             (void (*)(void*))del_Device_node);
     mem_error_if(graph->nodes == NULL, graph, NULL, sr);
-    graph->iter = new_AAiter(graph->nodes);
-    mem_error_if(graph->iter == NULL, graph, NULL, sr);
 
     Device_node* master_node = NULL;
     if (level == CONNECTION_LEVEL_AU)
@@ -235,8 +231,7 @@ bool Connections_check_connections(
     assert(graph != NULL);
     assert(err != NULL);
 
-    AAiter* iter = AAITER_AUTO;
-    AAiter_change_tree(iter, graph->nodes);
+    AAiter* iter = AAiter_init(AAITER_AUTO, graph->nodes);
 
     Device_node* node = AAiter_get_at_least(iter, "");
     while (node != NULL)
@@ -411,8 +406,7 @@ static bool Connections_is_cyclic(const Connections* graph)
 
     // Reset testing states
     {
-        AAiter* iter = AAITER_AUTO;
-        AAiter_change_tree(iter, graph->nodes);
+        AAiter* iter = AAiter_init(AAITER_AUTO, graph->nodes);
 
         Device_node* node = AAiter_get_at_least(iter, "");
         while (node != NULL)
@@ -424,8 +418,7 @@ static bool Connections_is_cyclic(const Connections* graph)
 
     // Test for cycles
     {
-        AAiter* iter = AAITER_AUTO;
-        AAiter_change_tree(iter, graph->nodes);
+        AAiter* iter = AAiter_init(AAITER_AUTO, graph->nodes);
 
         Device_node* node = AAiter_get_at_least(iter, "");
         while (node != NULL)
@@ -461,7 +454,6 @@ void del_Connections(Connections* graph)
     if (graph == NULL)
         return;
 
-    del_AAiter(graph->iter);
     del_AAtree(graph->nodes);
     memory_free(graph);
 

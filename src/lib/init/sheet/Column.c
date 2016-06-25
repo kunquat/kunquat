@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -132,7 +132,7 @@ void Column_iter_change_col(Column_iter* iter, Column* col)
 
     iter->col = col;
     iter->version = col->version;
-    AAiter_change_tree(&iter->tree_iter, col->triggers);
+    AAiter_init(&iter->tree_iter, col->triggers);
     iter->trlist = NULL;
 
     return;
@@ -249,8 +249,8 @@ Column* new_Column(const Tstamp* len)
         return NULL;
 
     col->version = 1;
-    col->triggers = new_AAtree((int (*)(const void*, const void*))Trigger_list_cmp,
-            (void (*)(void*))del_Trigger_list);
+    col->triggers = new_AAtree(
+            (AAtree_item_cmp*)Trigger_list_cmp, (AAtree_item_destroy*)del_Trigger_list);
     if (col->triggers == NULL)
     {
         memory_free(col);

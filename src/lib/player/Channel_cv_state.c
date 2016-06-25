@@ -72,8 +72,7 @@ Channel_cv_state* new_Channel_cv_state(void)
     state->tree = NULL;
 
     state->tree = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))memory_free);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)memory_free);
     if (state->tree == NULL)
     {
         del_Channel_cv_state(state);
@@ -192,8 +191,7 @@ void Channel_cv_state_reset(Channel_cv_state* state)
 
     const Entry* key = Entry_init(ENTRY_AUTO, "");
 
-    AAiter* iter = AAITER_AUTO;
-    AAiter_change_tree(iter, state->tree);
+    AAiter* iter = AAiter_init(AAITER_AUTO, state->tree);
 
     Entry* entry = AAiter_get_at_least(iter, key);
     while (entry != NULL)

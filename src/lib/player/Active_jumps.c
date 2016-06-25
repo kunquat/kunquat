@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -37,8 +37,7 @@ Active_jumps* new_Active_jumps(void)
     jumps->use_count = 0;
 
     jumps->jumps = new_AAtree(
-            (int (*)(const void*, const void*))Jump_context_cmp,
-            (void (*)(void*))del_Jump_context);
+            (AAtree_item_cmp*)Jump_context_cmp, (AAtree_item_destroy*)del_Jump_context);
 
     if (jumps->jumps == NULL)
     {

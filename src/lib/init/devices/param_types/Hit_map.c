@@ -122,8 +122,7 @@ static bool read_mapping(Streader* sr, int32_t index, void* userdata)
     if (map->hits[hit_index] == NULL)
     {
         map->hits[hit_index] = new_AAtree(
-                (int (*)(const void*, const void*))Random_list_cmp,
-                memory_free);
+                (AAtree_item_cmp*)Random_list_cmp, (AAtree_item_destroy*)memory_free);
         if (map->hits[hit_index] == NULL)
         {
             Streader_set_memory_error(

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -47,8 +47,7 @@ Jump_cache* new_Jump_cache(size_t num_contexts)
     jcache->use_count = 0;
 
     jcache->contexts = new_AAtree(
-            (int (*)(const void*, const void*))Jump_context_cmp,
-            (void (*)(void*))del_Jump_context);
+            (AAtree_item_cmp*)Jump_context_cmp, (AAtree_item_destroy*)del_Jump_context);
     if (jcache->contexts == NULL)
     {
         del_Jump_cache(jcache);

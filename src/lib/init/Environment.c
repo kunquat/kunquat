@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -26,7 +26,6 @@
 struct Environment
 {
     AAtree* vars;
-    AAiter* iter;
 };
 
 
@@ -35,7 +34,7 @@ Environment_iter* Environment_iter_init(Environment_iter* iter, const Environmen
     assert(iter != NULL);
     assert(env != NULL);
 
-    AAiter_change_tree(&iter->iter, env->vars);
+    AAiter_init(&iter->iter, env->vars);
     iter->next = AAiter_get_at_least(&iter->iter, "");
 
     return iter;
@@ -60,12 +59,9 @@ Environment* new_Environment(void)
         return NULL;
 
     env->vars = NULL;
-    env->iter = NULL;
     env->vars = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))del_Env_var);
-    env->iter = new_AAiter(env->vars);
-    if (env->vars == NULL || env->iter == NULL)
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Env_var);
+    if (env->vars == NULL)
     {
         del_Environment(env);
         return NULL;
@@ -117,13 +113,11 @@ bool Environment_parse(Environment* env, Streader* sr)
     if (!Streader_has_data(sr))
     {
         AAtree_clear(env->vars);
-        AAiter_change_tree(env->iter, env->vars);
         return true;
     }
 
     AAtree* new_vars = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))del_Env_var);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Env_var);
     if (new_vars == NULL)
     {
         Streader_set_memory_error(
@@ -137,7 +131,6 @@ bool Environment_parse(Environment* env, Streader* sr)
         return false;
     }
 
-    AAiter_change_tree(env->iter, new_vars);
     AAtree* old_vars = env->vars;
     env->vars = new_vars;
     del_AAtree(old_vars);
@@ -160,7 +153,6 @@ void del_Environment(Environment* env)
     if (env == NULL)
         return;
 
-    del_AAiter(env->iter);
     del_AAtree(env->vars);
     memory_free(env);
 

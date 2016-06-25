@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -40,8 +40,7 @@ Device_states* new_Device_states(void)
     states->states = NULL;
 
     states->states = new_AAtree(
-            (int (*)(const void*, const void*))Device_state_cmp,
-            (void (*)(void*))del_Device_state);
+            (AAtree_item_cmp*)Device_state_cmp, (AAtree_item_destroy*)del_Device_state);
     if (states->states == NULL)
     {
         del_Device_states(states);
@@ -96,8 +95,7 @@ bool Device_states_set_audio_rate(Device_states* states, int32_t rate)
     assert(states != NULL);
     assert(rate > 0);
 
-    AAiter* iter = AAITER_AUTO;
-    AAiter_change_tree(iter, states->states);
+    AAiter* iter = AAiter_init(AAITER_AUTO, states->states);
 
     Device_state* ds = AAiter_get_at_least(iter, DEVICE_STATE_KEY(0));
 
@@ -118,8 +116,7 @@ bool Device_states_set_audio_buffer_size(Device_states* states, int32_t size)
     assert(states != NULL);
     assert(size >= 0);
 
-    AAiter* iter = AAITER_AUTO;
-    AAiter_change_tree(iter, states->states);
+    AAiter* iter = AAiter_init(AAITER_AUTO, states->states);
 
     Device_state* ds = AAiter_get_at_least(iter, DEVICE_STATE_KEY(0));
 
@@ -140,8 +137,7 @@ bool Device_states_allocate_space(Device_states* states, char* key)
     assert(states != NULL);
     assert(key != NULL);
 
-    AAiter* iter = AAITER_AUTO;
-    AAiter_change_tree(iter, states->states);
+    AAiter* iter = AAiter_init(AAITER_AUTO, states->states);
 
     Device_state* ds = AAiter_get_at_least(iter, DEVICE_STATE_KEY(0));
 
@@ -162,8 +158,7 @@ void Device_states_clear_audio_buffers(
 {
     assert(states != NULL);
 
-    AAiter* iter = AAITER_AUTO;
-    AAiter_change_tree(iter, states->states);
+    AAiter* iter = AAiter_init(AAITER_AUTO, states->states);
 
     Device_state* ds = AAiter_get_at_least(iter, DEVICE_STATE_KEY(0));
 
@@ -184,8 +179,7 @@ void Device_states_set_tempo(Device_states* states, double tempo)
     assert(isfinite(tempo));
     assert(tempo > 0);
 
-    AAiter* iter = AAITER_AUTO;
-    AAiter_change_tree(iter, states->states);
+    AAiter* iter = AAiter_init(AAITER_AUTO, states->states);
 
     Device_state* ds = AAiter_get_at_least(iter, DEVICE_STATE_KEY(0));
 
@@ -203,8 +197,7 @@ void Device_states_reset(Device_states* states)
 {
     assert(states != NULL);
 
-    AAiter* iter = AAITER_AUTO;
-    AAiter_change_tree(iter, states->states);
+    AAiter* iter = AAiter_init(AAITER_AUTO, states->states);
 
     Device_state* ds = AAiter_get_at_least(iter, DEVICE_STATE_KEY(0));
 
@@ -222,8 +215,7 @@ void Device_states_reset_node_states(Device_states* states)
 {
     assert(states != NULL);
 
-    AAiter* iter = AAITER_AUTO;
-    AAiter_change_tree(iter, states->states);
+    AAiter* iter = AAiter_init(AAITER_AUTO, states->states);
 
     Device_state* ds = AAiter_get_at_least(iter, DEVICE_STATE_KEY(0));
 

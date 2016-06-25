@@ -40,8 +40,8 @@ Device_params_iter* Device_params_iter_init(
     assert(dparams != NULL);
 
     // Init tree iterators
-    AAiter_change_tree(&iter->impl_iter, dparams->implement);
-    AAiter_change_tree(&iter->config_iter, dparams->config);
+    AAiter_init(&iter->impl_iter, dparams->implement);
+    AAiter_init(&iter->config_iter, dparams->config);
 
     // Retrieve first keys of each tree
     const Device_field* impl_field = AAiter_get_at_least(&iter->impl_iter, "");
@@ -164,11 +164,9 @@ Device_params* new_Device_params(void)
     params->config = NULL;
 
     params->implement = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))del_Device_field);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Device_field);
     params->config = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))del_Device_field);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Device_field);
     if (params->implement == NULL || params->config == NULL)
     {
         del_Device_params(params);

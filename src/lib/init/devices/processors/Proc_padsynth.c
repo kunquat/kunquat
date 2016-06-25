@@ -115,8 +115,8 @@ static Padsynth_sample_map* new_Padsynth_sample_map(
     sm->map = NULL;
 
     sm->map = new_AAtree(
-            (int (*)(const void*, const void*))Padsynth_sample_entry_cmp,
-            (void (*)(void*))del_Padsynth_sample_entry);
+            (AAtree_item_cmp*)Padsynth_sample_entry_cmp,
+            (AAtree_item_destroy*)del_Padsynth_sample_entry);
     if (sm->map == NULL)
     {
         del_Padsynth_sample_map(sm);
@@ -194,8 +194,7 @@ static void Padsynth_sample_map_set_pitch_range(
     sm->min_pitch = min_pitch;
     sm->max_pitch = max_pitch;
 
-    AAiter* iter = AAITER_AUTO;
-    AAiter_change_tree(iter, sm->map);
+    AAiter* iter = AAiter_init(AAITER_AUTO, sm->map);
 
     const Padsynth_sample_entry* key = PADSYNTH_SAMPLE_ENTRY_KEY(-INFINITY);
     Padsynth_sample_entry* entry = AAiter_get_at_least(iter, key);
@@ -559,8 +558,7 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
     // Build samples
     if (params != NULL)
     {
-        AAiter* iter = AAITER_AUTO;
-        AAiter_change_tree(iter, padsynth->sample_map->map);
+        AAiter* iter = AAiter_init(AAITER_AUTO, padsynth->sample_map->map);
 
         const Padsynth_sample_entry* key = PADSYNTH_SAMPLE_ENTRY_KEY(-INFINITY);
         Padsynth_sample_entry* entry = AAiter_get_at_least(iter, key);

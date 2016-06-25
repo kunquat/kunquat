@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -73,8 +73,7 @@ Event_names* new_Event_names(void)
 
     names->error = false;
     names->names = new_AAtree(
-            (int (*)(const void*, const void*))event_name_cmp,
-            (void (*)(void*))del_Name_info);
+            (AAtree_item_cmp*)event_name_cmp, (AAtree_item_destroy*)del_Name_info);
     if (names->names == NULL)
     {
         del_Event_names(names);

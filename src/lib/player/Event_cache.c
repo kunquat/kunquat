@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -28,7 +28,6 @@
 
 struct Event_cache
 {
-    AAiter* iter;
     AAtree* cache;
 };
 
@@ -55,11 +54,9 @@ Event_cache* new_Event_cache(void)
     if (cache == NULL)
         return NULL;
 
-    cache->iter = new_AAiter(NULL);
     cache->cache = new_AAtree(
-            (int (*)(const void*, const void*))strcmp,
-            (void (*)(void*))del_Event_state);
-    if (cache->iter == NULL || cache->cache == NULL)
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Event_state);
+    if (cache->cache == NULL)
     {
         del_Event_cache(cache);
         return NULL;
@@ -119,12 +116,12 @@ void Event_cache_reset(Event_cache* cache)
 {
     assert(cache != NULL);
 
-    AAiter_change_tree(cache->iter, cache->cache);
-    Event_state* es = AAiter_get_at_least(cache->iter, "");
+    AAiter* iter = AAiter_init(AAITER_AUTO, cache->cache);
+    Event_state* es = AAiter_get_at_least(iter, "");
     while (es != NULL)
     {
         Event_state_reset(es);
-        es = AAiter_get_next(cache->iter);
+        es = AAiter_get_next(iter);
     }
 
     return;
@@ -136,7 +133,6 @@ void del_Event_cache(Event_cache* cache)
     if (cache == NULL)
         return;
 
-    del_AAiter(cache->iter);
     del_AAtree(cache->cache);
     memory_free(cache);
     return;

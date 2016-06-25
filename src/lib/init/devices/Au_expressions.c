@@ -109,7 +109,7 @@ Au_expressions* new_Au_expressions(Streader* sr)
     }
 
     ae->entries = new_AAtree(
-            (int (*)(const void*, const void*))strcmp, (void (*)(void*))del_Entry);
+            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Entry);
     if (ae->entries == NULL)
     {
         Streader_set_memory_error(
