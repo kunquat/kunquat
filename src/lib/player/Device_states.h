@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_DEVICE_STATES_H
-#define K_DEVICE_STATES_H
+#ifndef KQT_DEVICE_STATES_H
+#define KQT_DEVICE_STATES_H
 
 
 #include <player/devices/Device_state.h>
@@ -135,6 +135,6 @@ void Device_states_reset_node_states(Device_states* states);
 void del_Device_states(Device_states* states);
 
 
-#endif // K_DEVICE_STATES_H
+#endif // KQT_DEVICE_STATES_H
 
 

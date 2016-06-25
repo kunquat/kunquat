@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_WORK_BUFFERS_H
-#define K_WORK_BUFFERS_H
+#ifndef KQT_WORK_BUFFERS_H
+#define KQT_WORK_BUFFERS_H
 
 
 #include <decl.h>
@@ -143,6 +143,6 @@ int32_t* Work_buffers_get_buffer_contents_int_mut(
 void del_Work_buffers(Work_buffers* buffers);
 
 
-#endif // K_WORK_BUFFERS_H
+#endif // KQT_WORK_BUFFERS_H
 
 

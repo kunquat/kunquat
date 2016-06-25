@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_DEVICE_NODE_H
-#define K_DEVICE_NODE_H
+#ifndef KQT_DEVICE_NODE_H
+#define KQT_DEVICE_NODE_H
 
 
 #include <init/Au_table.h>
@@ -290,6 +290,6 @@ void Device_node_print(const Device_node* node, FILE* out);
 void del_Device_node(Device_node* node);
 
 
-#endif // K_DEVICE_NODE_H
+#endif // KQT_DEVICE_NODE_H
 
 

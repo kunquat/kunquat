@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EVENT_CACHE_H
-#define K_EVENT_CACHE_H
+#ifndef KQT_EVENT_CACHE_H
+#define KQT_EVENT_CACHE_H
 
 
 #include <Value.h>
@@ -86,6 +86,6 @@ void Event_cache_reset(Event_cache* cache);
 void del_Event_cache(Event_cache* cache);
 
 
-#endif // K_EVENT_CACHE_H
+#endif // KQT_EVENT_CACHE_H
 
 

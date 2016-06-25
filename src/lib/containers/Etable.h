@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_ETABLE_H
-#define K_ETABLE_H
+#ifndef KQT_ETABLE_H
+#define KQT_ETABLE_H
 
 
 #include <stdbool.h>
@@ -93,6 +93,6 @@ void Etable_clear(Etable* table);
 void del_Etable(Etable* table);
 
 
-#endif // K_ETABLE_H
+#endif // KQT_ETABLE_H
 
 

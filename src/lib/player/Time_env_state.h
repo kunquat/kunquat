@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_TIME_ENV_STATE_H
-#define K_TIME_ENV_STATE_H
+#ifndef KQT_TIME_ENV_STATE_H
+#define KQT_TIME_ENV_STATE_H
 
 
 #include <init/devices/param_types/Envelope.h>
@@ -84,6 +84,6 @@ int32_t Time_env_state_process(
         uint32_t audio_rate);
 
 
-#endif // K_TIME_ENV_STATE_H
+#endif // KQT_TIME_ENV_STATE_H
 
 

@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_FREEVERB_H
-#define K_PROC_FREEVERB_H
+#ifndef KQT_PROC_FREEVERB_H
+#define KQT_PROC_FREEVERB_H
 
 
 #include <init/devices/Device_impl.h>
@@ -35,6 +35,6 @@ typedef struct Proc_freeverb
 } Proc_freeverb;
 
 
-#endif // K_PROC_FREEVERB_H
+#endif // KQT_PROC_FREEVERB_H
 
 

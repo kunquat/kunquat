@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_SONG_H
-#define K_SONG_H
+#ifndef KQT_SONG_H
+#define KQT_SONG_H
 
 
 #include <decl.h>
@@ -87,6 +87,6 @@ double Song_get_global_vol(const Song* song);
 void del_Song(Song* song);
 
 
-#endif // K_SONG_H
+#endif // KQT_SONG_H
 
 

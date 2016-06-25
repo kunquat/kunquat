@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_ENVIRONMENT_H
-#define K_ENVIRONMENT_H
+#ifndef KQT_ENVIRONMENT_H
+#define KQT_ENVIRONMENT_H
 
 
 #include <containers/AAtree.h>
@@ -99,6 +99,6 @@ const Env_var* Environment_get(const Environment* env, const char* name);
 void del_Environment(Environment* env);
 
 
-#endif // K_ENVIRONMENT_H
+#endif // KQT_ENVIRONMENT_H
 
 

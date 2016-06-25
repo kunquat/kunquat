@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_FORCE_STATE_H
-#define K_FORCE_STATE_H
+#ifndef KQT_FORCE_STATE_H
+#define KQT_FORCE_STATE_H
 
 
 #include <decl.h>
@@ -29,6 +29,6 @@ void Force_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
 Force_controls* Force_vstate_get_force_controls_mut(Voice_state* vstate);
 
 
-#endif // K_FORCE_STATE_H
+#endif // KQT_FORCE_STATE_H
 
 

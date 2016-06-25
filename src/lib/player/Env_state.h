@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_ENV_STATE_H
-#define K_ENV_STATE_H
+#ifndef KQT_ENV_STATE_H
+#define KQT_ENV_STATE_H
 
 
 #include <init/Env_var.h>
@@ -74,6 +74,6 @@ void Env_state_reset(Env_state* estate);
 void del_Env_state(Env_state* estate);
 
 
-#endif // K_ENV_STATE_H
+#endif // KQT_ENV_STATE_H
 
 

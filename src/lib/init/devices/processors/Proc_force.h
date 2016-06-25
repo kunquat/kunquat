@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_FORCE_H
-#define K_PROC_FORCE_H
+#ifndef KQT_PROC_FORCE_H
+#define KQT_PROC_FORCE_H
 
 
 #include <decl.h>
@@ -44,6 +44,6 @@ typedef struct Proc_force
 } Proc_force;
 
 
-#endif // K_PROC_FORCE_H
+#endif // KQT_PROC_FORCE_H
 
 

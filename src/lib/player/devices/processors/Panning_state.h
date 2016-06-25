@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PANNING_STATE_H
-#define K_PANNING_STATE_H
+#ifndef KQT_PANNING_STATE_H
+#define KQT_PANNING_STATE_H
 
 
 #include <decl.h>
@@ -36,6 +36,6 @@ Voice_state_get_size_func Panning_vstate_get_size;
 void Panning_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
 
 
-#endif // K_PANNING_STATE_H
+#endif // KQT_PANNING_STATE_H
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_ENVELOPE_H
-#define K_ENVELOPE_H
+#ifndef KQT_ENVELOPE_H
+#define KQT_ENVELOPE_H
 
 
 #include <string/Streader.h>
@@ -224,6 +224,6 @@ void Envelope_set_last_lock(Envelope* env, bool lock_x, bool lock_y);
 void del_Envelope(Envelope* env);
 
 
-#endif // K_ENVELOPE_H
+#endif // KQT_ENVELOPE_H
 
 

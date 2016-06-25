@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_VAR_NAME_H
-#define K_VAR_NAME_H
+#ifndef KQT_VAR_NAME_H
+#define KQT_VAR_NAME_H
 
 
 #include <stdbool.h>
@@ -40,6 +40,6 @@ bool is_valid_var_name(const char* str);
 bool is_valid_var_path(const char* str);
 
 
-#endif // K_VAR_NAME_H
+#endif // KQT_VAR_NAME_H
 
 

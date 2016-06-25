@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_PANNING_H
-#define K_PROC_PANNING_H
+#ifndef KQT_PROC_PANNING_H
+#define KQT_PROC_PANNING_H
 
 
 #include <init/devices/Device_impl.h>
@@ -26,6 +26,6 @@ typedef struct Proc_panning
 } Proc_panning;
 
 
-#endif // K_PROC_PANNING_H
+#endif // KQT_PROC_PANNING_H
 
 

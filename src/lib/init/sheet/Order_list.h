@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_ORDER_LIST_H
-#define K_ORDER_LIST_H
+#ifndef KQT_ORDER_LIST_H
+#define KQT_ORDER_LIST_H
 
 
 #include <string/Streader.h>
@@ -83,6 +83,6 @@ bool Order_list_contains_pat_inst_ref(const Order_list* ol, const Pat_inst_ref* 
 void del_Order_list(Order_list* ol);
 
 
-#endif // K_ORDER_LIST_H
+#endif // KQT_ORDER_LIST_H
 
 

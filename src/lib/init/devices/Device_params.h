@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_DEVICE_PARAMS_H
-#define K_DEVICE_PARAMS_H
+#ifndef KQT_DEVICE_PARAMS_H
+#define KQT_DEVICE_PARAMS_H
 
 
 #include <containers/AAtree.h>
@@ -384,6 +384,6 @@ const Padsynth_params* Device_params_get_padsynth_params(
 void del_Device_params(Device_params* params);
 
 
-#endif // K_DEVICE_PARAMS_H
+#endif // KQT_DEVICE_PARAMS_H
 
 

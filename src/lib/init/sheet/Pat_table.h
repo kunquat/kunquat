@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PAT_TABLE_H
-#define K_PAT_TABLE_H
+#ifndef KQT_PAT_TABLE_H
+#define KQT_PAT_TABLE_H
 
 
 #include <containers/Etable.h>
@@ -109,6 +109,6 @@ void Pat_table_clear(Pat_table* table);
 void del_Pat_table(Pat_table* table);
 
 
-#endif // K_PAT_TABLE_H
+#endif // KQT_PAT_TABLE_H
 
 

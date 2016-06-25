@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_SAMPLE_H
-#define K_PROC_SAMPLE_H
+#ifndef KQT_PROC_SAMPLE_H
+#define KQT_PROC_SAMPLE_H
 
 
 #include <init/devices/Device_impl.h>
@@ -33,6 +33,6 @@ typedef struct Proc_sample
 } Proc_sample;
 
 
-#endif // K_PROC_SAMPLE_H
+#endif // KQT_PROC_SAMPLE_H
 
 

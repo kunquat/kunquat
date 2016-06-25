@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PARAM_VALIDATOR_H
-#define K_PARAM_VALIDATOR_H
+#ifndef KQT_PARAM_VALIDATOR_H
+#define KQT_PARAM_VALIDATOR_H
 
 
 #include <stdbool.h>
@@ -77,6 +77,6 @@ bool v_var_name(const char* param);
 bool v_volume(const char* param);
 
 
-#endif // K_PARAM_VALIDATOR_H
+#endif // KQT_PARAM_VALIDATOR_H
 
 

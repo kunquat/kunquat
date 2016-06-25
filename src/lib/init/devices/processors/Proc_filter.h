@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_FILTER_H
-#define K_PROC_FILTER_H
+#ifndef KQT_PROC_FILTER_H
+#define KQT_PROC_FILTER_H
 
 
 #include <init/devices/Device_impl.h>
@@ -31,6 +31,6 @@ typedef struct Proc_filter
 } Proc_filter;
 
 
-#endif // K_PROC_FILTER_H
+#endif // KQT_PROC_FILTER_H
 
 

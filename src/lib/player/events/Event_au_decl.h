@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EVENT_AU_DECL_H
-#define K_EVENT_AU_DECL_H
+#ifndef KQT_EVENT_AU_DECL_H
+#define KQT_EVENT_AU_DECL_H
 
 
 #include <init/devices/Au_params.h>
@@ -40,6 +40,6 @@
 #include <player/events/Event_au_types.h>
 
 
-#endif // K_EVENT_AU_DECL_H
+#endif // KQT_EVENT_AU_DECL_H
 
 

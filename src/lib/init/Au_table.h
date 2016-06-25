@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_AU_TABLE_H
-#define K_AU_TABLE_H
+#ifndef KQT_AU_TABLE_H
+#define KQT_AU_TABLE_H
 
 
 #include <decl.h>
@@ -93,6 +93,6 @@ void Au_table_clear(Au_table* table);
 void del_Au_table(Au_table* table);
 
 
-#endif // K_AU_TABLE_H
+#endif // KQT_AU_TABLE_H
 
 

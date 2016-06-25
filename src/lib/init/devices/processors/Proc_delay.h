@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_DELAY_H
-#define K_PROC_DELAY_H
+#ifndef KQT_PROC_DELAY_H
+#define KQT_PROC_DELAY_H
 
 
 #include <init/devices/Device_impl.h>
@@ -34,6 +34,6 @@ typedef struct Proc_delay
 } Proc_delay;
 
 
-#endif // K_PROC_DELAY_H
+#endif // KQT_PROC_DELAY_H
 
 

@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_LFO_H
-#define K_LFO_H
+#ifndef KQT_LFO_H
+#define KQT_LFO_H
 
 
 #include <mathnum/Tstamp.h>
@@ -244,6 +244,6 @@ double LFO_get_target_depth(const LFO* lfo);
 void LFO_change_depth_range(LFO* lfo, double from_depth, double to_depth);
 
 
-#endif // K_LFO_H
+#endif // KQT_LFO_H
 
 

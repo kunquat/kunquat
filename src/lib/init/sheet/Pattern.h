@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PATTERN_H
-#define K_PATTERN_H
+#ifndef KQT_PATTERN_H
+#define KQT_PATTERN_H
 
 
 #include <containers/AAtree.h>
@@ -122,6 +122,6 @@ const Tstamp* Pattern_get_length(const Pattern* pat);
 void del_Pattern(Pattern* pat);
 
 
-#endif // K_PATTERN_H
+#endif // KQT_PATTERN_H
 
 

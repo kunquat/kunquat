@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_BIND_H
-#define K_BIND_H
+#ifndef KQT_BIND_H
+#define KQT_BIND_H
 
 
 #include <kunquat/limits.h>
@@ -96,6 +96,6 @@ Target_event* Bind_get_first(
 void del_Bind(Bind* map);
 
 
-#endif // K_BIND_H
+#endif // KQT_BIND_H
 
 

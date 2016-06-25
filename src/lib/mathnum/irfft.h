@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_IRFFT_H
-#define K_IRFFT_H
+#ifndef KQT_IRFFT_H
+#define KQT_IRFFT_H
 
 
 #include <stdlib.h>
@@ -43,6 +43,6 @@ void fill_Ws(float* Ws, size_t tlength);
 void irfft(float* array, const float* Ws, size_t length);
 
 
-#endif // K_IRFFT_H
+#endif // KQT_IRFFT_H
 
 

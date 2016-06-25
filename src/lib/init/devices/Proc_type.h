@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_TYPE_H
-#define K_PROC_TYPE_H
+#ifndef KQT_PROC_TYPE_H
+#define KQT_PROC_TYPE_H
 
 
 #include <init/devices/Device_impl.h>
@@ -44,6 +44,6 @@ typedef Device_impl* Proc_cons(void);
 Proc_cons* Proc_type_find_cons(const char* type);
 
 
-#endif // K_PROC_TYPE_H
+#endif // KQT_PROC_TYPE_H
 
 

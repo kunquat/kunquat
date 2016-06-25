@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_NOTE_SETUP_H
-#define K_NOTE_SETUP_H
+#ifndef KQT_NOTE_SETUP_H
+#define KQT_NOTE_SETUP_H
 
 
 #include <init/devices/Audio_unit.h>
@@ -44,6 +44,6 @@ void reserve_voice(
         uint64_t rand_seed);
 
 
-#endif // K_NOTE_SETUP_H
+#endif // KQT_NOTE_SETUP_H
 
 

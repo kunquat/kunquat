@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_DELAY_STATE_H
-#define K_DELAY_STATE_H
+#ifndef KQT_DELAY_STATE_H
+#define KQT_DELAY_STATE_H
 
 
 #include <decl.h>
@@ -32,6 +32,6 @@ bool Delay_pstate_set_max_delay(
         Device_state* dstate, const Key_indices indices, double value);
 
 
-#endif // K_DELAY_STATE_H
+#endif // KQT_DELAY_STATE_H
 
 

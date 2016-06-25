@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PITCH_STATE_H
-#define K_PITCH_STATE_H
+#ifndef KQT_PITCH_STATE_H
+#define KQT_PITCH_STATE_H
 
 
 #include <decl.h>
@@ -45,6 +45,6 @@ void Pitch_vstate_update_arpeggio_speed(Voice_state* vstate, double speed);
 void Pitch_vstate_reset_arpeggio(Voice_state* vstate);
 
 
-#endif // K_PITCH_STATE_H
+#endif // KQT_PITCH_STATE_H
 
 

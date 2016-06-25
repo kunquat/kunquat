@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_WORK_BUFFER_H
-#define K_WORK_BUFFER_H
+#ifndef KQT_WORK_BUFFER_H
+#define KQT_WORK_BUFFER_H
 
 
 #include <decl.h>
@@ -203,6 +203,6 @@ void Work_buffer_mix(
 void del_Work_buffer(Work_buffer* buffer);
 
 
-#endif // K_WORK_BUFFER_H
+#endif // KQT_WORK_BUFFER_H
 
 

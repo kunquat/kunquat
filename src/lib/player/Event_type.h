@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EVENT_TYPE_H
-#define K_EVENT_TYPE_H
+#ifndef KQT_EVENT_TYPE_H
+#define KQT_EVENT_TYPE_H
 
 
 typedef enum
@@ -97,6 +97,6 @@ typedef enum
                                   Event_is_auto((type)))
 
 
-#endif // K_EVENT_TYPE_H
+#endif // KQT_EVENT_TYPE_H
 
 

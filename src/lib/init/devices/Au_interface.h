@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_AU_INTERFACE_H
-#define K_AU_INTERFACE_H
+#ifndef KQT_AU_INTERFACE_H
+#define KQT_AU_INTERFACE_H
 
 
 #include <init/devices/Device.h>
@@ -44,6 +44,6 @@ Au_interface* new_Au_interface(void);
 void del_Au_interface(Au_interface* iface);
 
 
-#endif // K_AU_INTERFACE_H
+#endif // KQT_AU_INTERFACE_H
 
 

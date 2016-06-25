@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROCESSOR_H
-#define K_PROCESSOR_H
+#ifndef KQT_PROCESSOR_H
+#define KQT_PROCESSOR_H
 
 
 #include <debug/assert.h>
@@ -97,6 +97,6 @@ const Au_params* Processor_get_au_params(const Processor* proc);
 void del_Processor(Processor* proc);
 
 
-#endif // K_PROCESSOR_H
+#endif // KQT_PROCESSOR_H
 
 

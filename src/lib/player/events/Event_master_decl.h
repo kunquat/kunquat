@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EVENT_MASTER_DECL_H
-#define K_EVENT_MASTER_DECL_H
+#ifndef KQT_EVENT_MASTER_DECL_H
+#define KQT_EVENT_MASTER_DECL_H
 
 
 #include <player/Master_params.h>
@@ -30,6 +30,6 @@
 #include <player/events/Event_master_types.h>
 
 
-#endif // K_EVENT_MASTER_DECL_H
+#endif // KQT_EVENT_MASTER_DECL_H
 
 

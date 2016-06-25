@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_ENV_VAR_H
-#define K_ENV_VAR_H
+#ifndef KQT_ENV_VAR_H
+#define KQT_ENV_VAR_H
 
 
 #include <string/Streader.h>
@@ -105,6 +105,6 @@ const Value* Env_var_get_value(const Env_var* var);
 void del_Env_var(Env_var* var);
 
 
-#endif // K_ENV_VAR_H
+#endif // KQT_ENV_VAR_H
 
 

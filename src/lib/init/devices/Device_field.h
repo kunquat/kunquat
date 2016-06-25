@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_DEVICE_FIELD_H
-#define K_DEVICE_FIELD_H
+#ifndef KQT_DEVICE_FIELD_H
+#define KQT_DEVICE_FIELD_H
 
 
 #include <init/devices/param_types/Envelope.h>
@@ -287,6 +287,6 @@ const Padsynth_params* Device_field_get_padsynth_params(const Device_field* fiel
 void del_Device_field(Device_field* field);
 
 
-#endif // K_DEVICE_FIELD_H
+#endif // KQT_DEVICE_FIELD_H
 
 

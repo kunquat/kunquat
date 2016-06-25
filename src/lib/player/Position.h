@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_POSITION_H
-#define K_POSITION_H
+#ifndef KQT_POSITION_H
+#define KQT_POSITION_H
 
 
 #include <mathnum/Tstamp.h>
@@ -65,6 +65,6 @@ bool Position_is_valid(const Position* pos);
 bool Position_has_valid_pattern_pos(const Position* pos);
 
 
-#endif // K_POSITION_H
+#endif // KQT_POSITION_H
 
 

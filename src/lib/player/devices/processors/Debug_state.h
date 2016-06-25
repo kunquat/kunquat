@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_DEBUG_STATE_H
-#define K_PROC_DEBUG_STATE_H
+#ifndef KQT_DEBUG_STATE_H
+#define KQT_DEBUG_STATE_H
 
 
 #include <decl.h>
@@ -26,6 +26,6 @@
 void Debug_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
 
 
-#endif // K_PROC_DEBUG_STATE_H
+#endif // KQT_DEBUG_STATE_H
 
 

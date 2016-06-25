@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_VOICE_GROUP_H
-#define K_VOICE_GROUP_H
+#ifndef KQT_VOICE_GROUP_H
+#define KQT_VOICE_GROUP_H
 
 
 #include <player/Voice.h>
@@ -109,6 +109,6 @@ void Voice_group_deactivate_all(Voice_group* vg);
 void Voice_group_deactivate_unreachable(Voice_group* vg);
 
 
-#endif // K_VOICE_GROUP_H
+#endif // KQT_VOICE_GROUP_H
 
 

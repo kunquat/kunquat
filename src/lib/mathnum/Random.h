@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_RANDOM_H
-#define K_RANDOM_H
+#ifndef KQT_RANDOM_H
+#define KQT_RANDOM_H
 
 
 #include <stdint.h>
@@ -162,6 +162,6 @@ double Random_get_float_signal(Random* random);
 void del_Random(Random* random);
 
 
-#endif // K_RANDOM_H
+#endif // KQT_RANDOM_H
 
 

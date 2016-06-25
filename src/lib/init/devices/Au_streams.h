@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_AU_STREAMS_H
-#define K_AU_STREAMS_H
+#ifndef KQT_AU_STREAMS_H
+#define KQT_AU_STREAMS_H
 
 
 #include <containers/AAtree.h>
@@ -107,6 +107,6 @@ int Au_streams_get_target_proc_index(const Au_streams* streams, const char* stre
 void del_Au_streams(Au_streams* streams);
 
 
-#endif // K_AU_STREAMS_H
+#endif // KQT_AU_STREAMS_H
 
 

@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EVENT_CHANNEL_DECL_H
-#define K_EVENT_CHANNEL_DECL_H
+#ifndef KQT_EVENT_CHANNEL_DECL_H
+#define KQT_EVENT_CHANNEL_DECL_H
 
 
 #include <decl.h>
@@ -35,6 +35,6 @@
 #include <player/events/Event_channel_types.h>
 
 
-#endif // K_EVENT_CHANNEL_DECL_H
+#endif // KQT_EVENT_CHANNEL_DECL_H
 
 

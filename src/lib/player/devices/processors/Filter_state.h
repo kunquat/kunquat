@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_FILTER_STATE_H
-#define K_FILTER_STATE_H
+#ifndef KQT_FILTER_STATE_H
+#define KQT_FILTER_STATE_H
 
 
 #include <decl.h>
@@ -40,6 +40,6 @@ Voice_state_get_size_func Filter_vstate_get_size;
 void Filter_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
 
 
-#endif // K_FILTER_STATE_H
+#endif // KQT_FILTER_STATE_H
 
 

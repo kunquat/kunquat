@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_ERROR_H
-#define K_ERROR_H
+#ifndef KQT_ERROR_H
+#define KQT_ERROR_H
 
 
 #include <stdarg.h>
@@ -131,6 +131,6 @@ void Error_set_desc_va_list(
 void Error_clear(Error* error);
 
 
-#endif // K_ERROR_H
+#endif // KQT_ERROR_H
 
 

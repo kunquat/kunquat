@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_SONG_TABLE_H
-#define K_SONG_TABLE_H
+#ifndef KQT_SONG_TABLE_H
+#define KQT_SONG_TABLE_H
 
 
 #include <init/sheet/Song.h>
@@ -98,6 +98,6 @@ bool Song_table_get_existent(Song_table* table, uint16_t index);
 void del_Song_table(Song_table* table);
 
 
-#endif // K_SONG_TABLE_H
+#endif // KQT_SONG_TABLE_H
 
 

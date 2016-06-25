@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_MEMORY_H
-#define K_MEMORY_H
+#ifndef KQT_MEMORY_H
+#define KQT_MEMORY_H
 
 
 #include <stdint.h>
@@ -94,6 +94,6 @@ void memory_fake_out_of_memory(int32_t steps);
 int32_t memory_get_alloc_count(void);
 
 
-#endif // K_MEMORY_H
+#endif // KQT_MEMORY_H
 
 

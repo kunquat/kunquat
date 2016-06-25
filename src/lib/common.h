@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_COMMON_H
-#define K_COMMON_H
+#ifndef KQT_COMMON_H
+#define KQT_COMMON_H
 
 
 #include <stdint.h>
@@ -22,6 +22,6 @@
 #define ignore(arg) ((void)sizeof((intptr_t)(arg)))
 
 
-#endif // K_COMMON_H
+#endif // KQT_COMMON_H
 
 

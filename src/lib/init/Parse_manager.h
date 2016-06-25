@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PARSE_MANAGER_H
-#define K_PARSE_MANAGER_H
+#ifndef KQT_PARSE_MANAGER_H
+#define KQT_PARSE_MANAGER_H
 
 
 #include <Handle_private.h>
@@ -41,6 +41,6 @@
 bool parse_data(Handle* handle, const char* key, const void* data, long length);
 
 
-#endif // K_PARSE_MANAGER_H
+#endif // KQT_PARSE_MANAGER_H
 
 

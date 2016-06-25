@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_SAMPLE_H
-#define K_SAMPLE_H
+#ifndef KQT_SAMPLE_H
+#define KQT_SAMPLE_H
 
 
 #include <decl.h>
@@ -98,6 +98,6 @@ void* Sample_get_buffer(Sample* sample, int ch);
 void del_Sample(Sample* sample);
 
 
-#endif // K_SAMPLE_H
+#endif // KQT_SAMPLE_H
 
 

@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PLAYER_PRIVATE_H
-#define K_PLAYER_PRIVATE_H
+#ifndef KQT_PLAYER_PRIVATE_H
+#define KQT_PLAYER_PRIVATE_H
 
 
 #include <decl.h>
@@ -69,6 +69,6 @@ struct Player
 };
 
 
-#endif // K_PLAYER_PRIVATE_H
+#endif // KQT_PLAYER_PRIVATE_H
 
 

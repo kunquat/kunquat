@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PAT_INST_REF_H
-#define K_PAT_INST_REF_H
+#ifndef KQT_PAT_INST_REF_H
+#define KQT_PAT_INST_REF_H
 
 
 #include <kunquat/limits.h>
@@ -55,6 +55,6 @@ typedef struct Pat_inst_ref
 int Pat_inst_ref_cmp(const Pat_inst_ref* p1, const Pat_inst_ref* p2);
 
 
-#endif // K_PAT_INST_REF_H
+#endif // KQT_PAT_INST_REF_H
 
 

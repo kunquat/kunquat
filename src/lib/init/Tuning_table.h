@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_TUNING_TABLE_H
-#define K_TUNING_TABLE_H
+#ifndef KQT_TUNING_TABLE_H
+#define KQT_TUNING_TABLE_H
 
 
 #include <containers/AAtree.h>
@@ -135,6 +135,6 @@ int Tuning_table_get_nearest_note_index(const Tuning_table* tt, double cents);
 void del_Tuning_table(Tuning_table* tt);
 
 
-#endif // K_TUNING_TABLE_H
+#endif // KQT_TUNING_TABLE_H
 
 

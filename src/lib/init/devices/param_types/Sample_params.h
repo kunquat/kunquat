@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_SAMPLE_PARAMS_H
-#define K_SAMPLE_PARAMS_H
+#ifndef KQT_SAMPLE_PARAMS_H
+#define KQT_SAMPLE_PARAMS_H
 
 
 #include <decl.h>
@@ -89,6 +89,6 @@ bool Sample_params_parse(Sample_params* params, Streader* sr);
 Sample_params* Sample_params_copy(Sample_params* dest, const Sample_params* src);
 
 
-#endif // K_SAMPLE_PARAMS_H
+#endif // KQT_SAMPLE_PARAMS_H
 
 

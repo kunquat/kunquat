@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EXPR_H
-#define K_EXPR_H
+#ifndef KQT_EXPR_H
+#define KQT_EXPR_H
 
 
 #include <mathnum/Random.h>
@@ -38,6 +38,6 @@ bool evaluate_expr(
         Streader* sr, Env_state* estate, const Value* meta, Value* res, Random* rand);
 
 
-#endif // K_EXPR_H
+#endif // KQT_EXPR_H
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,13 +12,13 @@
  */
 
 
-#ifndef K_COMP_DEFAULTS_H
-#define K_COMP_DEFAULTS_H
+#ifndef KQT_COMP_DEFAULTS_H
+#define KQT_COMP_DEFAULTS_H
 
 
 #define COMP_DEFAULT_MIX_VOL -8
 
 
-#endif // K_COMP_DEFAULTS_H
+#endif // KQT_COMP_DEFAULTS_H
 
 

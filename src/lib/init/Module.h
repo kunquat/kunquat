@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_MODULE_H
-#define K_MODULE_H
+#ifndef KQT_MODULE_H
+#define KQT_MODULE_H
 
 
 #include <decl.h>
@@ -329,6 +329,6 @@ void Module_set_bind(Module* module, Bind* bind);
 void del_Module(Module* module);
 
 
-#endif // K_MODULE_H
+#endif // KQT_MODULE_H
 
 

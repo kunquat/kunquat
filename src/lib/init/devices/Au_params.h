@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_AU_PARAMS_H
-#define K_AU_PARAMS_H
+#ifndef KQT_AU_PARAMS_H
+#define KQT_AU_PARAMS_H
 
 
 #include <stdint.h>
@@ -46,6 +46,6 @@ Au_params* Au_params_init(Au_params* aup, uint32_t device_id);
 void Au_params_deinit(Au_params* aup);
 
 
-#endif // K_AU_PARAMS_H
+#endif // KQT_AU_PARAMS_H
 
 

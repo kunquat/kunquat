@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_NOTE_MAP_H
-#define K_NOTE_MAP_H
+#ifndef KQT_NOTE_MAP_H
+#define KQT_NOTE_MAP_H
 
 
 #include <init/devices/param_types/Sample_entry.h>
@@ -82,6 +82,6 @@ const Sample_entry* Note_map_get_entry(
 void del_Note_map(Note_map* map);
 
 
-#endif // K_NOTE_MAP_H
+#endif // KQT_NOTE_MAP_H
 
 

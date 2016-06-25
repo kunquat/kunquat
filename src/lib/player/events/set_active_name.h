@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_SET_ACTIVE_NAME_H
-#define K_SET_ACTIVE_NAME_H
+#ifndef KQT_SET_ACTIVE_NAME_H
+#define KQT_SET_ACTIVE_NAME_H
 
 
 #include <player/Active_names.h>
@@ -36,6 +36,6 @@
 bool set_active_name(General_state* gstate, Active_cat cat, const Value* value);
 
 
-#endif // K_SET_ACTIVE_NAME_H
+#endif // KQT_SET_ACTIVE_NAME_H
 
 

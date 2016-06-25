@@ -12,6 +12,10 @@
  */
 
 
+#ifndef KQT_SERIALISE_H
+#define KQT_SERIALISE_H
+
+
 #include <mathnum/Tstamp.h>
 #include <Pat_inst_ref.h>
 
@@ -88,5 +92,8 @@ int serialise_Pat_inst_ref(char* dest, int size, const Pat_inst_ref* value);
  *           terminating byte.
  */
 int serialise_Tstamp(char* dest, int size, const Tstamp* value);
+
+
+#endif // KQT_SERIALISE_H
 
 

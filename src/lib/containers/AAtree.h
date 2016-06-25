@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_AATREE_H
-#define K_AATREE_H
+#ifndef KQT_AATREE_H
+#define KQT_AATREE_H
 
 
 #include <stdbool.h>
@@ -241,6 +241,6 @@ void AAtree_clear(AAtree* tree);
 void del_AAtree(AAtree* tree);
 
 
-#endif // K_AATREE_H
+#endif // KQT_AATREE_H
 
 

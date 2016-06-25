@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_PITCH_H
-#define K_PROC_PITCH_H
+#ifndef KQT_PROC_PITCH_H
+#define KQT_PROC_PITCH_H
 
 
 #include <decl.h>
@@ -26,6 +26,6 @@ typedef struct Proc_pitch
 } Proc_pitch;
 
 
-#endif // K_PROC_PITCH_H
+#endif // KQT_PROC_PITCH_H
 
 

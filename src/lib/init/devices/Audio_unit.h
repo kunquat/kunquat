@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_AUDIO_UNIT_H
-#define K_AUDIO_UNIT_H
+#ifndef KQT_AUDIO_UNIT_H
+#define KQT_AUDIO_UNIT_H
 
 
 #include <decl.h>
@@ -280,6 +280,6 @@ const Au_expressions* Audio_unit_get_expressions(const Audio_unit* au);
 void del_Audio_unit(Audio_unit* au);
 
 
-#endif // K_AUDIO_UNIT_H
+#endif // KQT_AUDIO_UNIT_H
 
 
