@@ -158,6 +158,10 @@ class AudioEngine():
         self._fire_event(channel, event, CONTEXT_TFIRE)
 
     def set_data(self, transaction_id, transaction):
+        # This method should never be called directly. Feeding data to the
+        # audio engine needs to be done through the store to keep module state
+        # synchronised.
+
         if transaction == None:
             # We received a token instead of actual data
             self._ui_engine.confirm_valid_data(transaction_id)
