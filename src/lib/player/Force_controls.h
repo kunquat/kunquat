@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_FORCE_CONTROLS_H
-#define K_FORCE_CONTROLS_H
+#ifndef KQT_FORCE_CONTROLS_H
+#define KQT_FORCE_CONTROLS_H
 
 
 #include <player/LFO.h>
@@ -80,6 +80,6 @@ void Force_controls_copy(
         Force_controls* restrict dest, const Force_controls* restrict src);
 
 
-#endif // K_FORCE_CONTROLS_H
+#endif // KQT_FORCE_CONTROLS_H
 
 

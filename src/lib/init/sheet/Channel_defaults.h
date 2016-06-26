@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_CHANNEL_DEFAULTS_H
-#define K_CHANNEL_DEFAULTS_H
+#ifndef KQT_CHANNEL_DEFAULTS_H
+#define KQT_CHANNEL_DEFAULTS_H
 
 
 #include <kunquat/limits.h>
@@ -59,6 +59,6 @@ Channel_defaults* Channel_defaults_init(Channel_defaults* chd);
 bool Channel_defaults_read(Channel_defaults* chd, Streader* sr);
 
 
-#endif // K_CHANNEL_DEFAULTS_H
+#endif // KQT_CHANNEL_DEFAULTS_H
 
 

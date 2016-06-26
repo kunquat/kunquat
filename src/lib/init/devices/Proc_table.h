@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_TABLE_H
-#define K_PROC_TABLE_H
+#ifndef KQT_PROC_TABLE_H
+#define KQT_PROC_TABLE_H
 
 
 #include <init/devices/Processor.h>
@@ -116,6 +116,6 @@ void Proc_table_clear(Proc_table* table);
 void del_Proc_table(Proc_table* table);
 
 
-#endif // K_PROC_TABLE_H
+#endif // KQT_PROC_TABLE_H
 
 

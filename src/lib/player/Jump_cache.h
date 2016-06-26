@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_JUMP_CACHE_H
-#define K_JUMP_CACHE_H
+#ifndef KQT_JUMP_CACHE_H
+#define KQT_JUMP_CACHE_H
 
 
 #include <containers/AAtree.h>
@@ -67,6 +67,6 @@ void Jump_cache_release_context(Jump_cache* jcache, AAnode* handle);
 void del_Jump_cache(Jump_cache* jcache);
 
 
-#endif // K_JUMP_CACHE_H
+#endif // KQT_JUMP_CACHE_H
 
 

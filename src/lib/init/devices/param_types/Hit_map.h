@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_HIT_MAP_H
-#define K_HIT_MAP_H
+#ifndef KQT_HIT_MAP_H
+#define KQT_HIT_MAP_H
 
 
 #include <init/devices/param_types/Sample_entry.h>
@@ -62,6 +62,6 @@ const Sample_entry* Hit_map_get_entry(
 void del_Hit_map(Hit_map* map);
 
 
-#endif // K_HIT_MAP_H
+#endif // KQT_HIT_MAP_H
 
 

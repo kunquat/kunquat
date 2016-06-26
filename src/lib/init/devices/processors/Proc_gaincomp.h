@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_GAINCOMP_H
-#define K_PROC_GAINCOMP_H
+#ifndef KQT_PROC_GAINCOMP_H
+#define KQT_PROC_GAINCOMP_H
 
 
 #include <decl.h>
@@ -31,6 +31,6 @@ typedef struct Proc_gaincomp
 } Proc_gaincomp;
 
 
-#endif // K_PROC_GAINCOMP_H
+#endif // KQT_PROC_GAINCOMP_H
 
 

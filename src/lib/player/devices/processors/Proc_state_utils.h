@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_STATE_UTILS_H
-#define K_PROC_STATE_UTILS_H
+#ifndef KQT_PROC_STATE_UTILS_H
+#define KQT_PROC_STATE_UTILS_H
 
 
 #include <decl.h>
@@ -219,6 +219,6 @@ inline float Cond_work_buffer_get_value(const Cond_work_buffer* cwb, int32_t ind
 }
 
 
-#endif // K_PROC_STATE_UTILS_H
+#endif // KQT_PROC_STATE_UTILS_H
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_KEY_PATTERN_H
-#define K_KEY_PATTERN_H
+#ifndef KQT_KEY_PATTERN_H
+#define KQT_KEY_PATTERN_H
 
 
 #include <kunquat/limits.h>
@@ -48,6 +48,6 @@ typedef int32_t Key_indices[KEY_INDICES_MAX];
 bool extract_key_pattern(const char* key, char* key_pattern, Key_indices indices);
 
 
-#endif // K_KEY_PATTERN_H
+#endif // KQT_KEY_PATTERN_H
 
 

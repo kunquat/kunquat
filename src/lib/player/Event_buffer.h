@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EVENT_BUFFER_H
-#define K_EVENT_BUFFER_H
+#ifndef KQT_EVENT_BUFFER_H
+#define KQT_EVENT_BUFFER_H
 
 
 #include <kunquat/limits.h>
@@ -139,6 +139,6 @@ void Event_buffer_clear(Event_buffer* ebuf);
 void del_Event_buffer(Event_buffer* ebuf);
 
 
-#endif // K_EVENT_BUFFER_H
+#endif // KQT_EVENT_BUFFER_H
 
 

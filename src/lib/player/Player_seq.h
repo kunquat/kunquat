@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PLAYER_SEQ_H
-#define K_PLAYER_SEQ_H
+#ifndef KQT_PLAYER_SEQ_H
+#define KQT_PLAYER_SEQ_H
 
 
 #include <player/Player_private.h>
@@ -62,6 +62,6 @@ void Player_update_sliders_and_lfos_tempo(Player* player);
 int32_t Player_move_forwards(Player* player, int32_t nframes, bool skip);
 
 
-#endif // K_PLAYER_SEQ_H
+#endif // KQT_PLAYER_SEQ_H
 
 

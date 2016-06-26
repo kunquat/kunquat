@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PITCH_CONTROLS_H
-#define K_PITCH_CONTROLS_H
+#ifndef KQT_PITCH_CONTROLS_H
+#define KQT_PITCH_CONTROLS_H
 
 
 #include <player/LFO.h>
@@ -82,6 +82,6 @@ void Pitch_controls_copy(
         Pitch_controls* restrict dest, const Pitch_controls* restrict src);
 
 
-#endif // K_PITCH_CONTROLS_H
+#endif // KQT_PITCH_CONTROLS_H
 
 

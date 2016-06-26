@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_AU_CONTROL_VARS_H
-#define K_AU_CONTROL_VARS_H
+#ifndef KQT_AU_CONTROL_VARS_H
+#define KQT_AU_CONTROL_VARS_H
 
 
 #include <containers/AAtree.h>
@@ -180,6 +180,6 @@ const Value* Au_control_vars_get_init_value(
 void del_Au_control_vars(Au_control_vars* aucv);
 
 
-#endif // K_AU_CONTROL_VARS_H
+#endif // KQT_AU_CONTROL_VARS_H
 
 

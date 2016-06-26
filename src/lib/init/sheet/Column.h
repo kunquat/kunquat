@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_COLUMN_H
-#define K_COLUMN_H
+#ifndef KQT_COLUMN_H
+#define KQT_COLUMN_H
 
 
 #include <containers/AAtree.h>
@@ -169,6 +169,6 @@ bool Column_ins(Column* col, Trigger* trigger);
 void del_Column(Column* col);
 
 
-#endif // K_COLUMN_H
+#endif // KQT_COLUMN_H
 
 

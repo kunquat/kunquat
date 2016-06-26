@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_FREEVERB_COMB_H
-#define K_FREEVERB_COMB_H
+#ifndef KQT_FREEVERB_COMB_H
+#define KQT_FREEVERB_COMB_H
 
 
 #include <stdbool.h>
@@ -86,6 +86,6 @@ void Freeverb_comb_clear(Freeverb_comb* comb);
 void del_Freeverb_comb(Freeverb_comb* comb);
 
 
-#endif // K_FREEVERB_COMB_H
+#endif // KQT_FREEVERB_COMB_H
 
 

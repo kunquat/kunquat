@@ -12,8 +12,8 @@
  */
 
 
-#ifndef KT_HANDLE_UTILS_H
-#define KT_HANDLE_UTILS_H
+#ifndef KQT_HANDLE_UTILS_H
+#define KQT_HANDLE_UTILS_H
 
 
 #include <test_common.h>
@@ -324,6 +324,6 @@ void setup_debug_single_pulse(void)
 }
 
 
-#endif // KT_HANDLE_UTILS_H
+#endif // KQT_HANDLE_UTILS_H
 
 

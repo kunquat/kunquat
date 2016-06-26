@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_STREAM_UTILS_H
-#define K_STREAM_UTILS_H
+#ifndef KQT_STREAM_UTILS_H
+#define KQT_STREAM_UTILS_H
 
 
 #include <decl.h>
@@ -33,6 +33,6 @@
 Voice_state* get_target_stream_vstate(Channel* channel, const char* stream_name);
 
 
-#endif // K_STREAM_UTILS_H
+#endif // KQT_STREAM_UTILS_H
 
 

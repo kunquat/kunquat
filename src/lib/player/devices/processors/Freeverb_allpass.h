@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_FREEVERB_ALLPASS_H
-#define K_FREEVERB_ALLPASS_H
+#ifndef KQT_FREEVERB_ALLPASS_H
+#define KQT_FREEVERB_ALLPASS_H
 
 
 #include <stdbool.h>
@@ -88,6 +88,6 @@ void Freeverb_allpass_clear(Freeverb_allpass* allpass);
 void del_Freeverb_allpass(Freeverb_allpass* allpass);
 
 
-#endif // K_FREEVERB_ALLPASS_H
+#endif // KQT_FREEVERB_ALLPASS_H
 
 

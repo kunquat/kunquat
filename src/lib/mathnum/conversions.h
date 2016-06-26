@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_CONVERSIONS_H
-#define K_CONVERSIONS_H
+#ifndef KQT_CONVERSIONS_H
+#define KQT_CONVERSIONS_H
 
 
 #include <debug/assert.h>
@@ -104,6 +104,6 @@ inline double fast_cents_to_Hz(double cents)
 }
 
 
-#endif // K_CONVERSIONS_H
+#endif // KQT_CONVERSIONS_H
 
 

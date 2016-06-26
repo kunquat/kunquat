@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_INIT_UTILS_H
-#define K_PROC_INIT_UTILS_H
+#ifndef KQT_PROC_INIT_UTILS_H
+#define KQT_PROC_INIT_UTILS_H
 
 
 #include <init/devices/Device_impl.h>
@@ -67,6 +67,6 @@
             NULL))
 
 
-#endif // K_PROC_INIT_UTILS_H
+#endif // KQT_PROC_INIT_UTILS_H
 
 

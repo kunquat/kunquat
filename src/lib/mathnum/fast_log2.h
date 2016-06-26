@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_FAST_LOG2_H
-#define K_FAST_LOG2_H
+#ifndef KQT_FAST_LOG2_H
+#define KQT_FAST_LOG2_H
 
 
 #include <debug/assert.h>
@@ -53,6 +53,6 @@ inline double fast_log2(double x)
 }
 
 
-#endif // K_FAST_LOG2_H
+#endif // KQT_FAST_LOG2_H
 
 

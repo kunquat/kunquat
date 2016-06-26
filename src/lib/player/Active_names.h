@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_ACTIVE_NAMES_H
-#define K_ACTIVE_NAMES_H
+#ifndef KQT_ACTIVE_NAMES_H
+#define KQT_ACTIVE_NAMES_H
 
 
 #include <stdbool.h>
@@ -86,6 +86,6 @@ void Active_names_reset(Active_names* names);
 void del_Active_names(Active_names* names);
 
 
-#endif // K_ACTIVE_NAMES_H
+#endif // KQT_ACTIVE_NAMES_H
 
 

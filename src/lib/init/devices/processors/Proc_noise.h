@@ -13,8 +13,8 @@
  */
 
 
-#ifndef K_PROC_NOISE_H
-#define K_PROC_NOISE_H
+#ifndef KQT_PROC_NOISE_H
+#define KQT_PROC_NOISE_H
 
 
 #include <init/devices/Device_impl.h>
@@ -29,6 +29,6 @@ typedef struct Proc_noise
 } Proc_noise;
 
 
-#endif // K_PROC_NOISE_H
+#endif // KQT_PROC_NOISE_H
 
 

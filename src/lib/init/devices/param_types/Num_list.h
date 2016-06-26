@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_NUM_LIST_H
-#define K_NUM_LIST_H
+#ifndef KQT_NUM_LIST_H
+#define KQT_NUM_LIST_H
 
 
 #include <string/Streader.h>
@@ -68,6 +68,6 @@ double Num_list_get_num(const Num_list* nl, int32_t index);
 void del_Num_list(Num_list* nl);
 
 
-#endif // K_NUM_LIST_H
+#endif // KQT_NUM_LIST_H
 
 

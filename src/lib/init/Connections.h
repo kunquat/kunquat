@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_CONNECTIONS_H
-#define K_CONNECTIONS_H
+#ifndef KQT_CONNECTIONS_H
+#define KQT_CONNECTIONS_H
 
 
 #include <decl.h>
@@ -209,6 +209,6 @@ void Connections_print(const Connections* graph, FILE* out);
 void del_Connections(Connections* graph);
 
 
-#endif // K_CONNECTIONS_H
+#endif // KQT_CONNECTIONS_H
 
 

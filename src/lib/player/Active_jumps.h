@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_ACTIVE_JUMPS_H
-#define K_ACTIVE_JUMPS_H
+#ifndef KQT_ACTIVE_JUMPS_H
+#define KQT_ACTIVE_JUMPS_H
 
 
 #include <containers/AAtree.h>
@@ -105,6 +105,6 @@ void Active_jumps_reset(Active_jumps* jumps, Jump_cache* jcache);
 void del_Active_jumps(Active_jumps* jumps);
 
 
-#endif // K_ACTIVE_JUMPS_H
+#endif // KQT_ACTIVE_JUMPS_H
 
 

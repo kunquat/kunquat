@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_SAMPLE_ENTRY_H
-#define K_SAMPLE_ENTRY_H
+#ifndef KQT_SAMPLE_ENTRY_H
+#define KQT_SAMPLE_ENTRY_H
 
 
 #include <string/Streader.h>
@@ -44,6 +44,6 @@ typedef struct Sample_entry
 bool Sample_entry_parse(Sample_entry* entry, Streader* sr);
 
 
-#endif // K_SAMPLE_ENTRY_H
+#endif // KQT_SAMPLE_ENTRY_H
 
 

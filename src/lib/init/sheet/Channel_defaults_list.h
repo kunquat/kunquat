@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_CHANNEL_DEFAULTS_LIST_H
-#define K_CHANNEL_DEFAULTS_LIST_H
+#ifndef KQT_CHANNEL_DEFAULTS_LIST_H
+#define KQT_CHANNEL_DEFAULTS_LIST_H
 
 
 #include <kunquat/limits.h>
@@ -65,6 +65,6 @@ const Channel_defaults* Channel_defaults_list_get(
 void del_Channel_defaults_list(Channel_defaults_list* cdl);
 
 
-#endif // K_CHANNEL_DEFAULTS_LIST_H
+#endif // KQT_CHANNEL_DEFAULTS_LIST_H
 
 

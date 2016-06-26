@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_LINEAR_CONTROLS_H
-#define K_LINEAR_CONTROLS_H
+#ifndef KQT_LINEAR_CONTROLS_H
+#define KQT_LINEAR_CONTROLS_H
 
 
 #include <decl.h>
@@ -201,6 +201,6 @@ void Linear_controls_convert(
         double range_max);
 
 
-#endif // K_LINEAR_CONTROLS_H
+#endif // KQT_LINEAR_CONTROLS_H
 
 

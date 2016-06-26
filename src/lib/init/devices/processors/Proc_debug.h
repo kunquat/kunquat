@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_DEBUG_H
-#define K_PROC_DEBUG_H
+#ifndef KQT_PROC_DEBUG_H
+#define KQT_PROC_DEBUG_H
 
 
 #include <init/devices/Device_impl.h>
@@ -28,6 +28,6 @@ typedef struct Proc_debug
 } Proc_debug;
 
 
-#endif // K_PROC_DEBUG_H
+#endif // KQT_PROC_DEBUG_H
 
 

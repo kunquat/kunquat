@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_MATHNUM_COMMON_H
-#define K_MATHNUM_COMMON_H
+#ifndef KQT_MATHNUM_COMMON_H
+#define KQT_MATHNUM_COMMON_H
 
 
 #include <debug/assert.h>
@@ -133,6 +133,6 @@ double get_range_norm(double value, double start_value, double end_value);
 double sinc(double x);
 
 
-#endif // K_MATH_COMMON_H
+#endif // KQT_MATHNUM_COMMON_H
 
 

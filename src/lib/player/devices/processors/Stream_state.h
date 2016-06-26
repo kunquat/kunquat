@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_STREAM_STATE_H
-#define K_STREAM_STATE_H
+#ifndef KQT_STREAM_STATE_H
+#define KQT_STREAM_STATE_H
 
 
 #include <decl.h>
@@ -56,6 +56,6 @@ const Linear_controls* Stream_vstate_get_controls(const Voice_state* vstate);
 void Stream_vstate_set_controls(Voice_state* vstate, const Linear_controls* controls);
 
 
-#endif // K_STREAM_STATE_H
+#endif // KQT_STREAM_STATE_H
 
 

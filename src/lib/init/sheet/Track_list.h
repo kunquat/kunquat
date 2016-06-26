@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_TRACK_LIST_H
-#define K_TRACK_LIST_H
+#ifndef KQT_TRACK_LIST_H
+#define KQT_TRACK_LIST_H
 
 
 #include <string/Streader.h>
@@ -82,6 +82,6 @@ int16_t Track_list_get_track_by_song(const Track_list* tl, int16_t song_index);
 void del_Track_list(Track_list* tl);
 
 
-#endif // K_TRACK_LIST_H
+#endif // KQT_TRACK_LIST_H
 
 

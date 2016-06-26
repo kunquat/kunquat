@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_RINGMOD_H
-#define K_PROC_RINGMOD_H
+#ifndef KQT_PROC_RINGMOD_H
+#define KQT_PROC_RINGMOD_H
 
 
 #include <init/devices/Device_impl.h>
@@ -27,6 +27,6 @@ typedef struct Proc_ringmod
 } Proc_ringmod;
 
 
-#endif // K_PROC_RINGMOD_H
+#endif // KQT_PROC_RINGMOD_H
 
 

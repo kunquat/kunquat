@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PADSYNTH_PARAMS_H
-#define K_PADSYNTH_PARAMS_H
+#ifndef KQT_PADSYNTH_PARAMS_H
+#define KQT_PADSYNTH_PARAMS_H
 
 
 #include <decl.h>
@@ -72,6 +72,6 @@ Padsynth_params* new_Padsynth_params(Streader* sr);
 void del_Padsynth_params(Padsynth_params* pp);
 
 
-#endif // K_PADSYNTH_PARAMS_H
+#endif // KQT_PADSYNTH_PARAMS_H
 
 

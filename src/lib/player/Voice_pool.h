@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_VOICE_POOL_H
-#define K_VOICE_POOL_H
+#ifndef KQT_VOICE_POOL_H
+#define KQT_VOICE_POOL_H
 
 
 #include <player/Voice.h>
@@ -157,6 +157,6 @@ void Voice_pool_reset(Voice_pool* pool);
 void del_Voice_pool(Voice_pool* pool);
 
 
-#endif // K_VOICE_POOL_H
+#endif // KQT_VOICE_POOL_H
 
 

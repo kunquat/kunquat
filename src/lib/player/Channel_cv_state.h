@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_CHANNEL_CV_STATE_H
-#define K_CHANNEL_CV_STATE_H
+#ifndef KQT_CHANNEL_CV_STATE_H
+#define KQT_CHANNEL_CV_STATE_H
 
 
 #include <kunquat/limits.h>
@@ -121,6 +121,6 @@ void Channel_cv_state_reset(Channel_cv_state* state);
 void del_Channel_cv_state(Channel_cv_state* state);
 
 
-#endif // K_CHANNEL_CV_STATE_H
+#endif // KQT_CHANNEL_CV_STATE_H
 
 

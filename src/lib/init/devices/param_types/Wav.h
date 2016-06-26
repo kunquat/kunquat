@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_WAV_H
-#define K_WAV_H
+#ifndef KQT_WAV_H
+#define KQT_WAV_H
 
 
 #include <init/devices/param_types/Sample.h>
@@ -25,6 +25,6 @@
 bool Sample_parse_wav(Sample* sample, Streader* sr);
 
 
-#endif // K_WAV_H
+#endif // KQT_WAV_H
 
 

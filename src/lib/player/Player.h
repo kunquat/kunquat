@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PLAYER_H
-#define K_PLAYER_H
+#ifndef KQT_PLAYER_PLAYER_H
+#define KQT_PLAYER_PLAYER_H
 
 
 #include <init/devices/Au_control_vars.h>
@@ -285,6 +285,6 @@ bool Player_fire(Player* player, int ch, Streader* event_reader);
 void del_Player(Player* player);
 
 
-#endif // K_PLAYER_H
+#endif // KQT_PLAYER_PLAYER_H
 
 

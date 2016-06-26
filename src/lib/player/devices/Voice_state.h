@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_VOICE_STATE_H
-#define K_VOICE_STATE_H
+#ifndef KQT_VOICE_STATE_H
+#define KQT_VOICE_STATE_H
 
 
 #include <decl.h>
@@ -189,6 +189,6 @@ void Voice_state_cv_generic_set(
         const Value* value);
 
 
-#endif // K_VOICE_STATE_H
+#endif // KQT_VOICE_STATE_H
 
 

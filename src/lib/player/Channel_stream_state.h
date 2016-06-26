@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_CHANNEL_STREAM_STATE_H
-#define K_CHANNEL_STREAM_STATE_H
+#ifndef KQT_CHANNEL_STREAM_STATE_H
+#define KQT_CHANNEL_STREAM_STATE_H
 
 
 #include <decl.h>
@@ -247,6 +247,6 @@ void Channel_stream_state_reset(Channel_stream_state* state);
 void del_Channel_stream_state(Channel_stream_state* state);
 
 
-#endif // K_CHANNEL_STREAM_STATE_H
+#endif // KQT_CHANNEL_STREAM_STATE_H
 
 

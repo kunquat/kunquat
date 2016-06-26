@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_TRIGGER_H
-#define K_TRIGGER_H
+#ifndef KQT_TRIGGER_H
+#define KQT_TRIGGER_H
 
 
 #include <kunquat/limits.h>
@@ -98,6 +98,6 @@ const char* Trigger_get_desc(const Trigger* trigger);
 void del_Trigger(Trigger* trigger);
 
 
-#endif // K_TRIGGER_H
+#endif // KQT_TRIGGER_H
 
 

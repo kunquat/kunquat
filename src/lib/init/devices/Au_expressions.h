@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_AU_EXPRESSIONS_H
-#define K_AU_EXPRESSIONS_H
+#ifndef KQT_AU_EXPRESSIONS_H
+#define KQT_AU_EXPRESSIONS_H
 
 
 #include <decl.h>
@@ -52,6 +52,6 @@ const Param_proc_filter* Au_expressions_get_proc_filter(
 void del_Au_expressions(Au_expressions* ae);
 
 
-#endif // K_AU_EXPRESSIONS_H
+#endif // KQT_AU_EXPRESSIONS_H
 
 

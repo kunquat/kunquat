@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_STRING_COMMON_H
-#define K_STRING_COMMON_H
+#ifndef KQT_STRING_COMMON_H
+#define KQT_STRING_COMMON_H
 
 
 #include <stdbool.h>
@@ -76,6 +76,6 @@ int string_extract_index(
         const char* path, const char* prefix, int digits, const char* after);
 
 
-#endif // K_STRING_COMMON_H
+#endif // KQT_STRING_COMMON_H
 
 

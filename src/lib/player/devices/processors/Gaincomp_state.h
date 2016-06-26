@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_GAINCOMP_STATE_H
-#define K_GAINCOMP_STATE_H
+#ifndef KQT_GAINCOMP_STATE_H
+#define KQT_GAINCOMP_STATE_H
 
 
 #include <decl.h>
@@ -28,6 +28,6 @@ Device_state* new_Gaincomp_pstate(
 void Gaincomp_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
 
 
-#endif // K_GAINCOMP_STATE_H
+#endif // KQT_GAINCOMP_STATE_H
 
 

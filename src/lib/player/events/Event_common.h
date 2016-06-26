@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EVENT_COMMON_H
-#define K_EVENT_COMMON_H
+#ifndef KQT_EVENT_COMMON_H
+#define KQT_EVENT_COMMON_H
 
 
 #include <mathnum/Tstamp.h>
@@ -38,6 +38,6 @@
     else (void)0
 
 
-#endif // K_EVENT_COMMON_H
+#endif // KQT_EVENT_COMMON_H
 
 

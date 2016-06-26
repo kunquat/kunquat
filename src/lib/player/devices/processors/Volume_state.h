@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_VOLUME_STATE_H
-#define K_VOLUME_STATE_H
+#ifndef KQT_VOLUME_STATE_H
+#define KQT_VOLUME_STATE_H
 
 
 #include <decl.h>
@@ -38,6 +38,6 @@ Voice_state_get_size_func Volume_vstate_get_size;
 void Volume_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
 
 
-#endif // K_VOLUME_STATE_H
+#endif // KQT_VOLUME_STATE_H
 
 

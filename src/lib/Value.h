@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_VALUE_H
-#define K_VALUE_H
+#ifndef KQT_VALUE_H
+#define KQT_VALUE_H
 
 
 #include <decl.h>
@@ -108,6 +108,6 @@ bool Value_convert(Value* dest, const Value* src, Value_type new_type);
 int Value_serialise(const Value* value, int len, char* str);
 
 
-#endif // K_VALUE_H
+#endif // KQT_VALUE_H
 
 

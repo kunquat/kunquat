@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_HMAC_H
-#define K_HMAC_H
+#ifndef KQT_HMAC_H
+#define KQT_HMAC_H
 
 
 #include <stdint.h>
@@ -35,6 +35,6 @@
 void hmac_md5(uint64_t key, const char* msg, uint64_t* lower, uint64_t* upper);
 
 
-#endif // K_HMAC_H
+#endif // KQT_HMAC_H
 
 

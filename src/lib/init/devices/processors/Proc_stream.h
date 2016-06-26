@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_STREAM_H
-#define K_PROC_STREAM_H
+#ifndef KQT_PROC_STREAM_H
+#define KQT_PROC_STREAM_H
 
 
 #include <decl.h>
@@ -30,6 +30,6 @@ typedef struct Proc_stream
 } Proc_stream;
 
 
-#endif // K_PROC_STREAM_H
+#endif // KQT_PROC_STREAM_H
 
 

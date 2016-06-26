@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_PADSYNTH_H
-#define K_PROC_PADSYNTH_H
+#ifndef KQT_PROC_PADSYNTH_H
+#define KQT_PROC_PADSYNTH_H
 
 
 #include <decl.h>
@@ -52,6 +52,6 @@ typedef struct Proc_padsynth
 } Proc_padsynth;
 
 
-#endif // K_PROC_PADSYNTH_H
+#endif // KQT_PROC_PADSYNTH_H
 
 

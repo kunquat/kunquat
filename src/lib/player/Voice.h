@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_VOICE_H
-#define K_VOICE_H
+#ifndef KQT_VOICE_H
+#define KQT_VOICE_H
 
 
 #include <decl.h>
@@ -180,6 +180,6 @@ int32_t Voice_render(
 void del_Voice(Voice* voice);
 
 
-#endif // K_VOICE_H
+#endif // KQT_VOICE_H
 
 

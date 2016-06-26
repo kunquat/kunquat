@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_DECL_H
-#define K_DECL_H
+#ifndef KQT_DECL_H
+#define KQT_DECL_H
 
 
 typedef struct Au_expressions Au_expressions;
@@ -48,6 +48,6 @@ typedef struct Work_buffer Work_buffer;
 typedef struct Work_buffers Work_buffers;
 
 
-#endif // K_DECL_H
+#endif // KQT_DECL_H
 
 

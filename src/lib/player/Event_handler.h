@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EVENT_HANDLER_H
-#define K_EVENT_HANDLER_H
+#ifndef KQT_EVENT_HANDLER_H
+#define KQT_EVENT_HANDLER_H
 
 
 #include <init/devices/Processor.h>
@@ -179,6 +179,6 @@ bool Event_handler_trigger(
 void del_Event_handler(Event_handler* eh);
 
 
-#endif // K_EVENT_HANDLER_H
+#endif // KQT_EVENT_HANDLER_H
 
 

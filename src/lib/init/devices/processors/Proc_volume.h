@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_VOLUME_H
-#define K_PROC_VOLUME_H
+#ifndef KQT_PROC_VOLUME_H
+#define KQT_PROC_VOLUME_H
 
 
 #include <init/devices/Device_impl.h>
@@ -29,6 +29,6 @@ typedef struct Proc_volume
 } Proc_volume;
 
 
-#endif // K_PROC_VOLUME_H
+#endif // KQT_PROC_VOLUME_H
 
 

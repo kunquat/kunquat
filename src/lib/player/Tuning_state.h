@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_TUNING_STATE_H
-#define K_TUNING_STATE_H
+#ifndef KQT_TUNING_STATE_H
+#define KQT_TUNING_STATE_H
 
 
 #include <decl.h>
@@ -138,6 +138,6 @@ double Tuning_state_get_estimated_drift(const Tuning_state* ts);
 void del_Tuning_state(Tuning_state* ts);
 
 
-#endif // K_TUNING_STATE_H
+#endif // KQT_TUNING_STATE_H
 
 

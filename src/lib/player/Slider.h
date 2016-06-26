@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_SLIDER_H
-#define K_SLIDER_H
+#ifndef KQT_SLIDER_H
+#define KQT_SLIDER_H
 
 
 #include <mathnum/Tstamp.h>
@@ -207,6 +207,6 @@ void Slider_change_range(
         double to_end);
 
 
-#endif // K_SLIDER_H
+#endif // KQT_SLIDER_H
 
 

@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_ASSERT_H
-#define K_ASSERT_H
+#ifndef KQT_ASSERT_H
+#define KQT_ASSERT_H
 
 
 #include <common.h>
@@ -100,6 +100,6 @@ void assert_print_msg(
 #endif // NDEBUG
 
 
-#endif // K_ASSERT_H
+#endif // KQT_ASSERT_H
 
 

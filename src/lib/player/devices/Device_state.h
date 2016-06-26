@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_DEVICE_STATE_H
-#define K_DEVICE_STATE_H
+#ifndef KQT_DEVICE_STATE_H
+#define KQT_DEVICE_STATE_H
 
 
 #include <decl.h>
@@ -349,6 +349,6 @@ void Device_state_deinit(Device_state* ds);
 void del_Device_state(Device_state* ds);
 
 
-#endif // K_DEVICE_STATE_H
+#endif // KQT_DEVICE_STATE_H
 
 

@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_STATE_H
-#define K_PROC_STATE_H
+#ifndef KQT_PROC_STATE_H
+#define KQT_PROC_STATE_H
 
 
 #include <decl.h>
@@ -158,6 +158,6 @@ void Proc_state_cv_generic_set(
         Device_state* dstate, const char* key, const Value* value);
 
 
-#endif // K_PROC_STATE_H
+#endif // KQT_PROC_STATE_H
 
 

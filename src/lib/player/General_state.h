@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_GENERAL_STATE_H
-#define K_GENERAL_STATE_H
+#ifndef KQT_GENERAL_STATE_H
+#define KQT_GENERAL_STATE_H
 
 
 #include <decl.h>
@@ -107,6 +107,6 @@ void General_state_reset(General_state* state);
 void General_state_deinit(General_state* state);
 
 
-#endif // K_GENERAL_STATE_H
+#endif // KQT_GENERAL_STATE_H
 
 

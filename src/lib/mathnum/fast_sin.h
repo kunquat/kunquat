@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_FAST_SIN_H
-#define K_FAST_SIN_H
+#ifndef KQT_FAST_SIN_H
+#define KQT_FAST_SIN_H
 
 
 #include <mathnum/common.h>
@@ -53,6 +53,6 @@ inline double fast_sin(double x)
 }
 
 
-#endif // K_FAST_SIN_H
+#endif // KQT_FAST_SIN_H
 
 

@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_DEVICE_H
-#define K_DEVICE_H
+#ifndef KQT_DEVICE_H
+#define KQT_DEVICE_H
 
 
 #include <decl.h>
@@ -347,6 +347,6 @@ void Device_print(const Device* device, FILE* out);
 void Device_deinit(Device* device);
 
 
-#endif // K_DEVICE_H
+#endif // KQT_DEVICE_H
 
 

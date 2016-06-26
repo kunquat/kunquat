@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EVENT_NAMES_H
-#define K_EVENT_NAMES_H
+#ifndef KQT_EVENT_NAMES_H
+#define KQT_EVENT_NAMES_H
 
 
 #include <player/Event_type.h>
@@ -93,6 +93,6 @@ Value_type Event_names_get_param_type(const Event_names* names, const char* name
 void del_Event_names(Event_names* names);
 
 
-#endif // K_EVENT_NAMES_H
+#endif // KQT_EVENT_NAMES_H
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_TSTAMP_H
-#define K_TSTAMP_H
+#ifndef KQT_TSTAMP_H
+#define KQT_TSTAMP_H
 
 
 #include <decl.h>
@@ -206,6 +206,6 @@ double Tstamp_toframes(const Tstamp* ts, double tempo, uint32_t rate);
 Tstamp* Tstamp_fromframes(Tstamp* ts, uint32_t frames, double tempo, uint32_t rate);
 
 
-#endif // K_TSTAMP_H
+#endif // KQT_TSTAMP_H
 
 

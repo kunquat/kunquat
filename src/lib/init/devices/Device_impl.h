@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_DEVICE_IMPL_H
-#define K_DEVICE_IMPL_H
+#ifndef KQT_DEVICE_IMPL_H
+#define KQT_DEVICE_IMPL_H
 
 
 #include <containers/AAtree.h>
@@ -550,6 +550,6 @@ void Device_impl_deinit(Device_impl* dimpl);
 void del_Device_impl(Device_impl* dimpl);
 
 
-#endif // K_DEVICE_IMPL_H
+#endif // KQT_DEVICE_IMPL_H
 
 

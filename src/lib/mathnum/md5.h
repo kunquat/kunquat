@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_MD5_H
-#define K_MD5_H
+#ifndef KQT_MD5_H
+#define KQT_MD5_H
 
 
 #include <stdbool.h>
@@ -72,6 +72,6 @@ void md5_with_state(
 void md5_str(const char* str, uint64_t* lower, uint64_t* upper);
 
 
-#endif // K_MD5_H
+#endif // KQT_MD5_H
 
 

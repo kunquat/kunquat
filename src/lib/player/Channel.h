@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_CHANNEL_H
-#define K_CHANNEL_H
+#ifndef KQT_CHANNEL_H
+#define KQT_CHANNEL_H
 
 
 #include <decl.h>
@@ -254,6 +254,6 @@ void Channel_deinit(Channel* ch);
 void del_Channel(Channel* ch);
 
 
-#endif // K_CHANNEL_H
+#endif // KQT_CHANNEL_H
 
 

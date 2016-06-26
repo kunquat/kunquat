@@ -12,14 +12,14 @@
  */
 
 
-#ifndef K_SONG_DEFAULTS_H
-#define K_SONG_DEFAULTS_H
+#ifndef KQT_SONG_DEFAULTS_H
+#define KQT_SONG_DEFAULTS_H
 
 
 #define SONG_DEFAULT_TEMPO 120
 #define SONG_DEFAULT_GLOBAL_VOL 0
 
 
-#endif // K_SONG_DEFAULTS_H
+#endif // KQT_SONG_DEFAULTS_H
 
 

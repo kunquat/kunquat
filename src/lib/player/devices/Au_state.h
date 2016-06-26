@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_AU_STATE_H
-#define K_AU_STATE_H
+#ifndef KQT_AU_STATE_H
+#define KQT_AU_STATE_H
 
 
 #include <decl.h>
@@ -58,6 +58,6 @@ Device_state* new_Au_state(
 void Au_state_set_device_states(Au_state* au_state, Device_states* dstates);
 
 
-#endif // K_AU_STATE_H
+#endif // KQT_AU_STATE_H
 
 

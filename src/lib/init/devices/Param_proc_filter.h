@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PARAM_PROC_FILTER_H
-#define K_PARAM_PROC_FILTER_H
+#ifndef KQT_PARAM_PROC_FILTER_H
+#define KQT_PARAM_PROC_FILTER_H
 
 
 #include <decl.h>
@@ -54,6 +54,6 @@ bool Param_proc_filter_is_proc_allowed(const Param_proc_filter* pf, int proc_ind
 void del_Param_proc_filter(Param_proc_filter* pf);
 
 
-#endif // K_PARAM_PROC_FILTER_H
+#endif // KQT_PARAM_PROC_FILTER_H
 
 

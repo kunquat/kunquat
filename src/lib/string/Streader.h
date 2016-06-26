@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_STREADER_H
-#define K_STREADER_H
+#ifndef KQT_STREADER_H
+#define KQT_STREADER_H
 
 
 #include <decl.h>
@@ -363,6 +363,6 @@ bool Streader_read_dict(Streader* sr, Dict_item_reader ir, void* userdata);
 bool Streader_readf(Streader* sr, const char* format, ...);
 
 
-#endif // K_STREADER_H
+#endif // KQT_STREADER_H
 
 

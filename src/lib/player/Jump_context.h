@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_JUMP_CONTEXT_H
-#define K_JUMP_CONTEXT_H
+#ifndef KQT_JUMP_CONTEXT_H
+#define KQT_JUMP_CONTEXT_H
 
 
 #include <mathnum/Tstamp.h>
@@ -76,6 +76,6 @@ int Jump_context_cmp(const Jump_context* jc1, const Jump_context* jc2);
 void del_Jump_context(Jump_context* jc);
 
 
-#endif // K_JUMP_CONTEXT_H
+#endif // KQT_JUMP_CONTEXT_H
 
 

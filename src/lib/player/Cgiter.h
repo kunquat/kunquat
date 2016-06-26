@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_CGITER_H
-#define K_CGITER_H
+#ifndef KQT_CGITER_H
+#define KQT_CGITER_H
 
 
 #include <init/Module.h>
@@ -124,6 +124,6 @@ void Cgiter_move(Cgiter* cgiter, const Tstamp* dist);
 bool Cgiter_has_finished(const Cgiter* cgiter);
 
 
-#endif // K_CGITER_H
+#endif // KQT_CGITER_H
 
 

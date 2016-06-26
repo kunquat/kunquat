@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_MANIFEST_H
-#define K_MANIFEST_H
+#ifndef KQT_MANIFEST_H
+#define KQT_MANIFEST_H
 
 
 #include <string/Streader.h>
@@ -33,6 +33,6 @@
 bool read_default_manifest(Streader* sr);
 
 
-#endif // K_MANIFEST_H
+#endif // KQT_MANIFEST_H
 
 

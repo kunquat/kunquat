@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_SAMPLE_STATE_H
-#define K_SAMPLE_STATE_H
+#ifndef KQT_SAMPLE_STATE_H
+#define KQT_SAMPLE_STATE_H
 
 
 #include <decl.h>
@@ -27,6 +27,6 @@ Voice_state_get_size_func Sample_vstate_get_size;
 void Sample_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
 
 
-#endif // K_SAMPLE_STATE_H
+#endif // KQT_SAMPLE_STATE_H
 
 

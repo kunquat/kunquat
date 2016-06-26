@@ -12,8 +12,8 @@
  */
 
 
-#ifndef KT_TEST_COMMON_H
-#define KT_TEST_COMMON_H
+#ifndef KQT_TEST_COMMON_H
+#define KQT_TEST_COMMON_H
 
 
 #include <check.h>
@@ -37,6 +37,6 @@
 #define LONG_TIMEOUT 300
 
 
-#endif // KT_TEST_COMMON_H
+#endif // KQT_TEST_COMMON_H
 
 

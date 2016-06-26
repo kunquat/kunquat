@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_ADD_H
-#define K_PROC_ADD_H
+#ifndef KQT_PROC_ADD_H
+#define KQT_PROC_ADD_H
 
 
 #include <decl.h>
@@ -46,6 +46,6 @@ typedef struct Proc_add
 } Proc_add;
 
 
-#endif // K_PROC_ADD_H
+#endif // KQT_PROC_ADD_H
 
 

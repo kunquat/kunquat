@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_BIT_ARRAY_H
-#define K_BIT_ARRAY_H
+#ifndef KQT_BIT_ARRAY_H
+#define KQT_BIT_ARRAY_H
 
 
 #include <decl.h>
@@ -69,6 +69,6 @@ bool Bit_array_get(const Bit_array* ba, size_t index);
 void del_Bit_array(Bit_array* ba);
 
 
-#endif // K_BIT_ARRAY_H
+#endif // KQT_BIT_ARRAY_H
 
 

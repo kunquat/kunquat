@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_ENVGEN_H
-#define K_PROC_ENVGEN_H
+#ifndef KQT_PROC_ENVGEN_H
+#define KQT_PROC_ENVGEN_H
 
 
 #include <decl.h>
@@ -46,6 +46,6 @@ typedef struct Proc_envgen
 } Proc_envgen;
 
 
-#endif // K_PROC_ENVGEN_H
+#endif // KQT_PROC_ENVGEN_H
 
 

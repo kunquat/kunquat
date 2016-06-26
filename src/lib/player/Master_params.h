@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_MASTER_PARAMS_H
-#define K_MASTER_PARAMS_H
+#ifndef KQT_MASTER_PARAMS_H
+#define KQT_MASTER_PARAMS_H
 
 
 #include <decl.h>
@@ -148,6 +148,6 @@ void Master_params_reset(Master_params* params);
 void Master_params_deinit(Master_params* params);
 
 
-#endif // K_MASTER_PARAMS_H
+#endif // KQT_MASTER_PARAMS_H
 
 

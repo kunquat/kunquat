@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_VECTOR_H
-#define K_VECTOR_H
+#ifndef KQT_VECTOR_H
+#define KQT_VECTOR_H
 
 
 #include <decl.h>
@@ -94,6 +94,6 @@ bool Vector_append(Vector* v, const void* elem);
 void del_Vector(Vector* v);
 
 
-#endif // K_VECTOR_H
+#endif // KQT_VECTOR_H
 
 

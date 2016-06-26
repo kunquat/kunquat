@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_INPUT_MAP_H
-#define K_INPUT_MAP_H
+#ifndef KQT_INPUT_MAP_H
+#define KQT_INPUT_MAP_H
 
 
 #include <containers/Bit_array.h>
@@ -72,6 +72,6 @@ int32_t Input_map_get_device_index(const Input_map* im, int32_t input_id);
 void del_Input_map(Input_map* im);
 
 
-#endif // K_INPUT_MAP_H
+#endif // KQT_INPUT_MAP_H
 
 
