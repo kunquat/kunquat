@@ -1095,9 +1095,13 @@ bool Streader_readf(Streader* sr, const char* format, ...)
 
                 case 's':
                 {
-                    size_t max_bytes = va_arg(args, size_t);
-                    char* dest = va_arg(args, char*);
-                    Streader_read_string(sr, (int64_t)max_bytes, dest);
+                    Streader_readf_str_info info =
+                        va_arg(args, Streader_readf_str_info);
+                    assert(info.guard == Streader_readf_str_guard);
+
+                    const int64_t max_bytes = info.max_bytes;
+                    char* dest = info.dest;
+                    Streader_read_string(sr, max_bytes, dest);
                 }
                 break;
 

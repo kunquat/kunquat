@@ -124,7 +124,7 @@ static bool read_bind_entry(Streader* sr, int32_t index, void* userdata)
     bedata* bd = userdata;
 
     char event_name[EVENT_NAME_MAX + 1] = "";
-    if (!Streader_readf(sr, "[%s,", EVENT_NAME_MAX + 1, event_name))
+    if (!Streader_readf(sr, "[%s,", READF_STR(EVENT_NAME_MAX + 1, event_name)))
         return false;
 
     Cblist* cblist = AAtree_get_exact(bd->map->cblists, event_name);
@@ -347,7 +347,7 @@ static bool Bind_dfs(const Bind* map, char* name)
             Streader* sr = Streader_init(
                     STREADER_AUTO, event->desc, (int64_t)strlen(event->desc));
             char next_name[EVENT_NAME_MAX + 1] = "";
-            Streader_readf(sr, "[%s", EVENT_NAME_MAX, next_name);
+            Streader_readf(sr, "[%s", READF_STR(EVENT_NAME_MAX, next_name));
             assert(!Streader_is_error_set(sr));
 
             if (Bind_dfs(map, next_name))
@@ -553,7 +553,7 @@ static Constraint* new_Constraint(Streader* sr)
     c->expr = NULL;
     c->next = NULL;
 
-    if (!Streader_readf(sr, "[%s,", EVENT_NAME_MAX + 1, c->event_name))
+    if (!Streader_readf(sr, "[%s,", READF_STR(EVENT_NAME_MAX + 1, c->event_name)))
     {
         del_Constraint(c);
         return NULL;
@@ -667,7 +667,7 @@ static Target_event* new_Target_event(Streader* sr, const Event_names* names)
     const char* const desc = Streader_get_remaining_data(sr);
 
     char event_name[EVENT_NAME_MAX + 1] = "";
-    if (!Streader_readf(sr, "[%s,", EVENT_NAME_MAX + 1, event_name))
+    if (!Streader_readf(sr, "[%s,", READF_STR(EVENT_NAME_MAX + 1, event_name)))
     {
         del_Target_event(event);
         return NULL;

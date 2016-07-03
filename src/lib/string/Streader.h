@@ -42,8 +42,23 @@ struct Streader
     Error error;
 };
 
-
 #define STREADER_AUTO (&(Streader){ .pos = 0, .len = 0, .str = "" })
+
+
+/**
+ * A helper structure used to catch inadvertent misuse of formatted string reading.
+ */
+typedef struct Streader_readf_str_info
+{
+    int32_t guard;
+    int64_t max_bytes;
+    char* dest;
+} Streader_readf_str_info;
+
+static const int32_t Streader_readf_str_guard = (int32_t)0x7fffff7f;
+
+#define READF_STR(mb, d) ((Streader_readf_str_info){ \
+        .guard = Streader_readf_str_guard, .max_bytes = (mb), .dest = (d) })
 
 
 /**
@@ -342,8 +357,8 @@ bool Streader_read_dict(Streader* sr, Dict_item_reader ir, void* userdata);
  *  - b -- Read a boolean value and store it into a bool.
  *  - i -- Read an integer value and store it into an int64_t.
  *  - f -- Read a decimal number and store it into a double.
- *  - s -- Read a string of given maximum length (including null byte) given
- *         as a size_t and store it into a location given as a char*.
+ *  - s -- Read a string of given maximum length (including null byte) and
+ *         storage location passed with READF_STR().
  *  - t -- Read a timestamp and store it into a Tstamp.
  *  - p -- Read a Pattern instance reference and store it into a Pat_inst_ref.
  *  - l -- Read a list of values and call a given List_item_reader for each

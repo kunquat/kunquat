@@ -84,7 +84,10 @@ static bool read_stream_entry(Streader* sr, int32_t index, void* userdata)
 
     // Read stream name and target processor index
     if (!Streader_readf(
-                sr, "[%s,%i]", KQT_VAR_NAME_MAX + 1, stream_name, &target_proc_index))
+                sr,
+                "[%s,%i]",
+                READF_STR(KQT_VAR_NAME_MAX + 1, stream_name),
+                &target_proc_index))
         return false;
 
     if (!is_valid_var_name(stream_name))

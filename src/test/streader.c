@@ -1091,7 +1091,7 @@ START_TEST(Read_formatted_input)
     Streader_readf(
             sr,
             "[%n,%b] -%s :%t%p--%l%i %d %f",
-            &b, 4, s, ts, piref,
+            &b, READF_STR(4, s), ts, piref,
             readf_list, &list_userdata,
             &i,
             readf_dict, &dict_userdata,

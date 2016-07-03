@@ -366,10 +366,8 @@ static Bind_entry* new_Bind_entry_common(Streader* sr)
     if (!Streader_readf(
                 sr,
                 "%s,%s,",
-                16,
-                target_dev_name,
-                KQT_VAR_NAME_MAX,
-                target_var_name))
+                READF_STR(16, target_dev_name),
+                READF_STR(KQT_VAR_NAME_MAX, target_var_name)))
         return NULL;
 
     // Parse target device name
@@ -454,7 +452,7 @@ static bool read_binding_targets_generic(Streader* sr, int32_t index, void* user
 
     // Get target variable type
     char type_name[16] = "";
-    if (!Streader_readf(sr, "%s,", 16, type_name))
+    if (!Streader_readf(sr, "%s,", READF_STR(16, type_name)))
         return false;
 
     if (string_eq(type_name, "bool"))
@@ -518,7 +516,11 @@ static bool read_var_entry(Streader* sr, int32_t index, void* userdata)
     char type_name[16] = "";
     char var_name[KQT_VAR_NAME_MAX + 1] = "";
 
-    if (!Streader_readf(sr, "[%s,%s,", 16, type_name, KQT_VAR_NAME_MAX + 1, var_name))
+    if (!Streader_readf(
+                sr,
+                "[%s,%s,",
+                READF_STR(16, type_name),
+                READF_STR(KQT_VAR_NAME_MAX + 1, var_name)))
         return false;
 
     if (!is_valid_var_name(var_name))

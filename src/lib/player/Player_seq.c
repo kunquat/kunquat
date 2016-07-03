@@ -41,7 +41,7 @@ bool get_event_type_info(
         return false;
 
     // Read event name
-    if (!Streader_readf(desc_reader, "[%s,", EVENT_NAME_MAX, ret_name))
+    if (!Streader_readf(desc_reader, "[%s,", READF_STR(EVENT_NAME_MAX, ret_name)))
         return false;
 
     // Check event type
