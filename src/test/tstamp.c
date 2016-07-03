@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -25,7 +25,7 @@
 #include <stdlib.h>
 
 
-void silent_assert(void)
+static void silent_assert(void)
 {
     kqt_suppress_assert_messages();
 }
@@ -1163,13 +1163,13 @@ START_TEST (toframes)
     res = Tstamp_toframes(r, DBL_MIN, 1);
     fail_unless(res == 0,
             "Tstamp_toframes() returned %.4f instead of 0.", res);
-    res = Tstamp_toframes(r, DBL_MIN, UINT32_MAX);
+    res = Tstamp_toframes(r, DBL_MIN, INT32_MAX);
     fail_unless(res == 0,
             "Tstamp_toframes() returned %.4f instead of 0.", res);
     res = Tstamp_toframes(r, DBL_MAX, 1);
     fail_unless(res == 0,
             "Tstamp_toframes() returned %.4f instead of 0.", res);
-    res = Tstamp_toframes(r, DBL_MAX, UINT32_MAX);
+    res = Tstamp_toframes(r, DBL_MAX, INT32_MAX);
     fail_unless(res == 0,
             "Tstamp_toframes() returned %.4f instead of 0.", res);
 
@@ -1288,21 +1288,21 @@ START_TEST (fromframes)
             "Tstamp_fromframes() returned %lld:%ld instead of %lld:%ld.",
             (long long)r->beats, (long)r->rem,
             (long long)exp->beats, (long)exp->rem);
-    ret = Tstamp_fromframes(r, 0, DBL_MIN, UINT32_MAX);
+    ret = Tstamp_fromframes(r, 0, DBL_MIN, INT32_MAX);
     fail_unless(ret == r,
             "Tstamp_fromframes() returned %p instead of %p.", ret, r);
     fail_unless(Tstamp_cmp(r, exp) == 0,
             "Tstamp_fromframes() returned %lld:%ld instead of %lld:%ld.",
             (long long)r->beats, (long)r->rem,
             (long long)exp->beats, (long)exp->rem);
-    ret = Tstamp_fromframes(r, 0, DBL_MAX, UINT32_MAX);
+    ret = Tstamp_fromframes(r, 0, DBL_MAX, INT32_MAX);
     fail_unless(ret == r,
             "Tstamp_fromframes() returned %p instead of %p.", ret, r);
     fail_unless(Tstamp_cmp(r, exp) == 0,
             "Tstamp_fromframes() returned %lld:%ld instead of %lld:%ld.",
             (long long)r->beats, (long)r->rem,
             (long long)exp->beats, (long)exp->rem);
-    ret = Tstamp_fromframes(r, 0, DBL_MAX, UINT32_MAX);
+    ret = Tstamp_fromframes(r, 0, DBL_MAX, INT32_MAX);
     fail_unless(ret == r,
             "Tstamp_fromframes() returned %p instead of %p.", ret, r);
     fail_unless(Tstamp_cmp(r, exp) == 0,
@@ -1387,7 +1387,7 @@ END_TEST
 #endif
 
 
-Suite* Tstamp_suite(void)
+static Suite* Tstamp_suite(void)
 {
     Suite* s = suite_create("Tstamp");
     TCase* tc_init = tcase_create("init");

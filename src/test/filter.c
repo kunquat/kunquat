@@ -30,10 +30,10 @@
 #define default_q (1.0 / sqrt(2.0))
 
 #define lowpass 0
-#define highpass 1
+//#define highpass 1
 
 
-double fwarp(double f)
+static double fwarp(double f)
 {
     if (f == -0.5)
         return -INFINITY;
@@ -44,13 +44,13 @@ double fwarp(double f)
 }
 
 
-double lpass2lpass(double f, double f1)
+static double lpass2lpass(double f, double f1)
 {
     return f / f1;
 }
 
 
-double two_pole_power(double f, double q)
+static double two_pole_power(double f, double q)
 {
     const double ff = f * f;
     const double iq = 1 / q;
@@ -108,7 +108,7 @@ START_TEST(Two_Pole_Frequency_Response)
 END_TEST
 
 
-Suite* Filter_suite(void)
+static Suite* Filter_suite(void)
 {
     Suite* s = suite_create("Filter");
 

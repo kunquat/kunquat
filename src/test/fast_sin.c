@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -65,7 +65,7 @@ START_TEST(Maximum_absolute_error_is_small)
 END_TEST
 
 
-Suite* Fast_sin_suite(void)
+static Suite* Fast_sin_suite(void)
 {
     Suite* s = suite_create("Fast_sin");
 

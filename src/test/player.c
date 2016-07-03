@@ -212,7 +212,7 @@ START_TEST(Empty_pattern_contains_silence)
     validate();
 
     const long expected_length = 8 * mixing_rates[_i];
-    int32_t actual_length = 0;
+    long actual_length = 0;
 
     kqt_Handle_play(handle, 4096);
     check_unexpected_error();
@@ -248,7 +248,7 @@ START_TEST(Empty_pattern_contains_silence)
 
     fail_unless(actual_length == expected_length,
             "Wrong number of frames rendered"
-            KT_VALUES("%ld", expected_length, (long)actual_length));
+            KT_VALUES("%ld", expected_length, actual_length));
 }
 END_TEST
 
@@ -398,7 +398,7 @@ START_TEST(Pattern_playback_repeats_pattern)
     mix_and_fill(actual_buf, buf_len);
 
     float expected_buf[buf_len] = { 0.0f };
-    for (int i = 0; i < buf_len; i += mixing_rates[MIXING_RATE_LOW] / 2)
+    for (long i = 0; i < buf_len; i += mixing_rates[MIXING_RATE_LOW] / 2)
         expected_buf[i] = 1.0f;
 
     check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
@@ -444,7 +444,9 @@ START_TEST(Pattern_playback_pauses_zero_length_pattern)
         const long frames_available = kqt_Handle_get_frames_available(handle);
         const float* ret_buf = kqt_Handle_get_audio(handle, 0);
         check_unexpected_error();
-        memcpy(actual_buf + buf_offset, ret_buf, frames_available * sizeof(float));
+        memcpy(actual_buf + buf_offset,
+                ret_buf,
+                (size_t)frames_available * sizeof(float));
 
         buf_offset += frames_available;
         frames_left -= frames_available;
@@ -565,7 +567,7 @@ START_TEST(Infinite_mode_loops_composition)
             KT_VALUES("%ld", buf_len, mixed));
 
     float expected_buf[buf_len] = { 0.0f };
-    for (int i = 0; i < buf_len; i += mixing_rates[MIXING_RATE_LOW])
+    for (long i = 0; i < buf_len; i += mixing_rates[MIXING_RATE_LOW])
         expected_buf[i] = 1.0f;
 
     check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
@@ -714,9 +716,9 @@ START_TEST(Tempo_change_affects_playback_cursor)
 
     float expected_buf[buf_len] = { 0.0f };
     expected_buf[0] = 1.0f;
-    const int second_offset = mixing_rates[MIXING_RATE_LOW] / 2;
+    const long second_offset = mixing_rates[MIXING_RATE_LOW] / 2;
     expected_buf[second_offset] = 1.0f;
-    const int beat_len = mixing_rates[MIXING_RATE_LOW] * 60 / tempos[_i];
+    const long beat_len = mixing_rates[MIXING_RATE_LOW] * 60 / tempos[_i];
     expected_buf[second_offset + beat_len] = 1.0f;
 
     check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
@@ -757,11 +759,11 @@ START_TEST(Tempo_slide_affects_playback_cursor)
 
     float expected_buf[buf_len] = { 0.0f };
     expected_buf[0] = 1.0f;
-    const int second_offset = mixing_rates[MIXING_RATE_LOW] / 2;
+    const long second_offset = mixing_rates[MIXING_RATE_LOW] / 2;
     expected_buf[second_offset] = 1.0f;
 
-    int third_offset = 0;
-    for (int i = second_offset + 1; i < buf_len; ++i)
+    long third_offset = 0;
+    for (long i = second_offset + 1; i < buf_len; ++i)
     {
         if (actual_buf[i] == 1.0f)
         {
@@ -788,7 +790,7 @@ START_TEST(Tempo_slide_affects_playback_cursor)
                 "Pulse interval was changed without slide");
     }
 
-    const int beat_len = mixing_rates[MIXING_RATE_LOW] * 60 / tempos[_i];
+    const long beat_len = mixing_rates[MIXING_RATE_LOW] * 60 / tempos[_i];
     expected_buf[third_offset + beat_len] = 1.0f;
 
     check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
@@ -826,7 +828,7 @@ START_TEST(Jump_backwards_creates_a_loop)
     expected_buf[0] = 1.0f;
     for (int i = 0; i < _i; ++i)
     {
-        const int dist = mixing_rates[MIXING_RATE_LOW];
+        const long dist = mixing_rates[MIXING_RATE_LOW];
         expected_buf[dist + (i * dist)] = 1.0f;
     }
 
@@ -897,13 +899,13 @@ void setup_many_triggers(int event_count)
         assert(cur_pos - triggers < 65000);
         cur_pos += snprintf(
                 cur_pos,
-                65536 - (cur_pos - triggers),
+                (size_t)(65536 - (cur_pos - triggers)),
                 ", [[0, 0], [\"%s\", \"%d\"]]",
                 (i % 16 == 0) ? "n+" : "vs",
                 i);
     }
 
-    cur_pos += snprintf(cur_pos, 65536 - (cur_pos - triggers), " ]");
+    cur_pos += snprintf(cur_pos, (size_t)(65536 - (cur_pos - triggers)), " ]");
 
     set_data("pat_000/col_00/p_triggers.json", triggers);
     free(triggers);
@@ -973,7 +975,7 @@ START_TEST(Events_from_many_triggers_can_be_retrieved_with_multiple_receives)
     int loop_count = 0;
     while (strcmp("[]", events) != 0)
     {
-        Streader* sr = Streader_init(STREADER_AUTO, events, strlen(events));
+        Streader* sr = Streader_init(STREADER_AUTO, events, (int64_t)strlen(events));
         fail_if(!Streader_read_list(sr, read_received_events, &expected),
                 "Event list reading failed: %s",
                 Streader_get_error_desc(sr));
@@ -1032,11 +1034,11 @@ void setup_complex_bind(int event_count)
     for (int i = 1; i < event_count; ++i)
     {
         assert(cur_pos - bind < 65000);
-        cur_pos += snprintf(cur_pos, 65536 - (cur_pos - bind),
+        cur_pos += snprintf(cur_pos, (size_t)(65536 - (cur_pos - bind)),
                 ", [0, [\"n+\", \"%d\"]]", i);
     }
 
-    cur_pos += snprintf(cur_pos, 65536 - (cur_pos - bind), " ]]]");
+    cur_pos += snprintf(cur_pos, (size_t)(65536 - (cur_pos - bind)), " ]]]");
 
     set_data("p_bind.json", bind);
     free(bind);
@@ -1130,7 +1132,7 @@ START_TEST(Events_from_complex_bind_can_be_retrieved_with_multiple_receives)
     int loop_count = 0;
     while (strcmp("[]", events) != 0)
     {
-        Streader* sr = Streader_init(STREADER_AUTO, events, strlen(events));
+        Streader* sr = Streader_init(STREADER_AUTO, events, (int64_t)strlen(events));
         fail_if(!Streader_read_list(sr, read_received_events_bind, &expected),
                 "Event list reading failed: %s",
                 Streader_get_error_desc(sr));
@@ -1179,7 +1181,7 @@ START_TEST(Fire_with_complex_bind_can_be_processed_with_multiple_receives)
     int loop_count = 0;
     while (strcmp("[]", events) != 0)
     {
-        Streader* sr = Streader_init(STREADER_AUTO, events, strlen(events));
+        Streader* sr = Streader_init(STREADER_AUTO, events, (int64_t)strlen(events));
         fail_if(!Streader_read_list(sr, read_received_events_bind, &expected),
                 "Event list reading failed: %s",
                 Streader_get_error_desc(sr));
@@ -1352,19 +1354,19 @@ START_TEST(Query_note_force)
 
     kqt_Handle_fire_event(handle, 0, "[\"qf\", null]");
     const char* events0 = kqt_Handle_receive_events(handle);
-    Streader* sr0 = Streader_init(STREADER_AUTO, events0, strlen(events0));
+    Streader* sr0 = Streader_init(STREADER_AUTO, events0, (int64_t)strlen(events0));
     fail_if(!test_reported_force(sr0, 0.0), Streader_get_error_desc(sr0));
 
     kqt_Handle_fire_event(handle, 0, "[\".f\", -6]");
     kqt_Handle_fire_event(handle, 0, "[\"qf\", null]");
     const char* events6 = kqt_Handle_receive_events(handle);
-    Streader* sr6 = Streader_init(STREADER_AUTO, events6, strlen(events6));
+    Streader* sr6 = Streader_init(STREADER_AUTO, events6, (int64_t)strlen(events6));
     fail_if(!test_reported_force(sr6, -6.0), Streader_get_error_desc(sr6));
 }
 END_TEST
 
 
-Suite* Player_suite(void)
+static Suite* Player_suite(void)
 {
     Suite* s = suite_create("Player");
 

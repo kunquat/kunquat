@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -33,23 +33,23 @@ START_TEST(Handle_creation_prefers_unused_ids)
 
     for (int i = 0; i < KQT_HANDLES_MAX; ++i)
     {
-        kqt_Handle handle = kqt_new_Handle();
+        kqt_Handle cur_handle = kqt_new_Handle();
         check_unexpected_error();
 
-        handles[i] = handle;
+        handles[i] = cur_handle;
 
         if (i == 5)
-            stored_handle = handle;
+            stored_handle = cur_handle;
         else
-            kqt_del_Handle(handle);
+            kqt_del_Handle(cur_handle);
 
         check_unexpected_error();
 
         for (int k = 0; k < i; ++k)
         {
-            fail_if(handles[k] == handle,
+            fail_if(handles[k] == cur_handle,
                     "libkunquat reused handle %d",
-                    handle);
+                    cur_handle);
         }
     }
 
@@ -115,10 +115,7 @@ START_TEST(Set_audio_rate)
 END_TEST
 
 
-#define buf_len 128
-
-
-Suite* Handle_suite(void)
+static Suite* Handle_suite(void)
 {
     Suite* s = suite_create("Handle");
 

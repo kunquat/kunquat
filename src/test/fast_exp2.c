@@ -41,7 +41,7 @@ START_TEST(Maximum_relative_error_is_small)
 END_TEST
 
 
-Suite* Fast_exp2_suite(void)
+static Suite* Fast_exp2_suite(void)
 {
     Suite* s = suite_create("Fast_exp2");
 
