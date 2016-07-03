@@ -36,7 +36,7 @@ typedef struct Envgen_vstate
 } Envgen_vstate;
 
 
-size_t Envgen_vstate_get_size(void)
+int32_t Envgen_vstate_get_size(void)
 {
     return sizeof(Envgen_vstate);
 }
@@ -57,7 +57,6 @@ enum
 
 
 static const int ENVGEN_WB_FIXED_PITCH = WORK_BUFFER_IMPL_1;
-static const int ENVGEN_WB_FIXED_FORCE = WORK_BUFFER_IMPL_2;
 
 
 static int32_t Envgen_vstate_render_voice(
@@ -143,7 +142,7 @@ static int32_t Envgen_vstate_render_voice(
         {
             const double* last_node = Envelope_get_node(
                     egen->time_env, Envelope_node_count(egen->time_env) - 1);
-            const double last_value = last_node[1];
+            const float last_value = (float)last_node[1];
             /*
             if (fabs(egen->y_min + last_value * range_width) < 0.0001)
             {
@@ -195,7 +194,8 @@ static int32_t Envgen_vstate_render_voice(
                     const float force_scale = force_scales[i];
 
                     const double vol_clamped = min(1, force_scale);
-                    const double factor = Envelope_get_value(egen->force_env, vol_clamped);
+                    const float factor =
+                        (float)Envelope_get_value(egen->force_env, vol_clamped);
                     assert(isfinite(factor));
                     out_buffer[i] *= factor;
                 }
@@ -212,7 +212,7 @@ static int32_t Envgen_vstate_render_voice(
             if (is_force_env_enabled)
             {
                 // Just apply the rightmost force envelope value (as we assume force 0 dB)
-                const double factor = Envelope_get_node(
+                const float factor = (float)Envelope_get_node(
                         egen->force_env, Envelope_node_count(egen->force_env) - 1)[1];
                 for (int32_t i = buf_start; i < new_buf_stop; ++i)
                     out_buffer[i] *= factor;
@@ -226,11 +226,12 @@ static int32_t Envgen_vstate_render_voice(
             const int32_t fast_stop = min(const_start, new_buf_stop);
 
             for (int32_t i = buf_start; i < fast_stop; ++i)
-                out_buffer[i] = fast_scale_to_dB(out_buffer[i]) + global_adjust;
+                out_buffer[i] = (float)(fast_scale_to_dB(out_buffer[i]) + global_adjust);
 
             if (fast_stop < new_buf_stop)
             {
-                const float dB = scale_to_dB(out_buffer[fast_stop]) + global_adjust;
+                const float dB =
+                    (float)(scale_to_dB(out_buffer[fast_stop]) + global_adjust);
                 for (int32_t i = fast_stop; i < new_buf_stop; ++i)
                     out_buffer[i] = dB;
             }
@@ -243,10 +244,10 @@ static int32_t Envgen_vstate_render_voice(
             // Apply range
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
                 out_buffer[i] =
-                    egen->y_min + out_buffer[i] * range_width;
+                    (float)(egen->y_min + out_buffer[i] * range_width);
         }
 
-        const double global_adjust = egen->global_adjust;
+        const float global_adjust = (float)egen->global_adjust;
 
         if (forces_wb != NULL)
         {

@@ -47,9 +47,9 @@ static void distort(
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             const float in_value = in_values[i];
-            const float abs_value = fabs(in_value);
+            const float abs_value = fabsf(in_value);
 
-            float out_value = Envelope_get_value(gc->map, min(abs_value, 1));
+            float out_value = (float)Envelope_get_value(gc->map, min(abs_value, 1));
             if (in_value < 0)
                 out_value = -out_value;
 

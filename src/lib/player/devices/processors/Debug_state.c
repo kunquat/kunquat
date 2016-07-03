@@ -72,7 +72,7 @@ static int32_t Debug_vstate_render_voice(
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
-        const float freq = cents_to_Hz(
+        const double freq = cents_to_Hz(
                 Cond_work_buffer_get_value(actual_pitches, i));
 
         double vals[KQT_BUFFERS_MAX] = { 0 };
@@ -96,9 +96,9 @@ static int32_t Debug_vstate_render_voice(
         }
 
         if (out_buffers[0] != NULL)
-            out_buffers[0][i] = vals[0];
+            out_buffers[0][i] = (float)vals[0];
         if (out_buffers[1] != NULL)
-            out_buffers[1][i] = vals[1];
+            out_buffers[1][i] = (float)vals[1];
 
         vstate->rel_pos_rem += freq / audio_rate;
 

@@ -117,7 +117,8 @@ void Proc_state_get_voice_audio_out_buffers(
  *
  * \param vstate       The Voice state -- must not be \c NULL.
  * \param buf_count    The number of output buffers -- must be > \c 0.
- * \param out_bufs     The signal output buffers -- must not be \c NULL.
+ * \param out_bufs     The signal output buffers -- must not be \c NULL and
+ *                     must contain at least \a buf_count buffers.
  * \param buf_start    The start index of the buffer area to be processed.
  * \param buf_stop     The stop index of the buffer area to be processed.
  * \param audio_rate   The audio rate -- must be positive.
@@ -212,7 +213,8 @@ Cond_work_buffer* Cond_work_buffer_init(
  *
  * \return   The value at \a index.
  */
-inline float Cond_work_buffer_get_value(const Cond_work_buffer* cwb, int32_t index)
+static inline float Cond_work_buffer_get_value(
+        const Cond_work_buffer* cwb, int32_t index)
 {
     assert(cwb != NULL);
     return cwb->wb_contents[index & cwb->index_mask];

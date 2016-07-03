@@ -27,12 +27,12 @@ struct Freeverb_allpass
 {
     float feedback;
     float* buffer;
-    uint32_t buffer_size;
-    uint32_t buffer_pos;
+    int32_t buffer_size;
+    int32_t buffer_pos;
 };
 
 
-Freeverb_allpass* new_Freeverb_allpass(uint32_t buffer_size)
+Freeverb_allpass* new_Freeverb_allpass(int32_t buffer_size)
 {
     assert(buffer_size > 0);
 
@@ -92,7 +92,7 @@ void Freeverb_allpass_process(
 }
 
 
-bool Freeverb_allpass_resize_buffer(Freeverb_allpass* allpass, uint32_t new_size)
+bool Freeverb_allpass_resize_buffer(Freeverb_allpass* allpass, int32_t new_size)
 {
     assert(allpass != NULL);
     assert(new_size > 0);
@@ -118,7 +118,7 @@ void Freeverb_allpass_clear(Freeverb_allpass* allpass)
     assert(allpass != NULL);
     assert(allpass->buffer != NULL);
 
-    for (uint32_t i = 0; i < allpass->buffer_size; ++i)
+    for (int32_t i = 0; i < allpass->buffer_size; ++i)
         allpass->buffer[i] = 0;
 
     return;

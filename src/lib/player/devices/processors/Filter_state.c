@@ -184,7 +184,7 @@ static void Filter_state_impl_apply_filter_settings(
                 xfade += xfade_step;
             }
 
-            out_buf[i] = result;
+            out_buf[i] = (float)result;
         }
     }
 
@@ -265,7 +265,7 @@ static void Filter_state_impl_apply_input_buffers(
     else
     {
         // Get our default cutoff
-        const float def_cutoff = fimpl->def_cutoff;
+        const float def_cutoff = (float)fimpl->def_cutoff;
         for (int32_t i = buf_start; i < buf_stop; ++i)
             cutoffs[i] = def_cutoff;
     }
@@ -281,7 +281,7 @@ static void Filter_state_impl_apply_input_buffers(
     else
     {
         // Get our default resonance
-        const float def_resonance = fimpl->def_resonance;
+        const float def_resonance = (float)fimpl->def_resonance;
         for (int32_t i = buf_start; i < buf_stop; ++i)
             resonances[i] = def_resonance;
     }
@@ -555,13 +555,13 @@ typedef struct Filter_vstate
 } Filter_vstate;
 
 
-size_t Filter_vstate_get_size(void)
+int32_t Filter_vstate_get_size(void)
 {
     return sizeof(Filter_vstate);
 }
 
 
-int32_t Filter_vstate_render_voice(
+static int32_t Filter_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
         const Au_state* au_state,

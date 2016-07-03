@@ -184,8 +184,8 @@ void Proc_ramp_attack(
     assert(buf_stop >= 0);
     assert(audio_rate > 0);
 
-    const float start_ramp_attack = vstate->ramp_attack;
-    const float inc = RAMP_ATTACK_TIME / audio_rate;
+    const float start_ramp_attack = (float)vstate->ramp_attack;
+    const float inc = (float)(RAMP_ATTACK_TIME / audio_rate);
 
     for (int ch = 0; ch < buf_count; ++ch)
     {
@@ -227,13 +227,13 @@ void Proc_fill_freq_buffer(
         const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
 
         for (int32_t i = buf_start; i < fast_stop; ++i)
-            freqs_data[i] = fast_cents_to_Hz(pitches_data[i]);
+            freqs_data[i] = (float)fast_cents_to_Hz(pitches_data[i]);
 
         //fprintf(stdout, "%d %d %d\n", (int)buf_start, (int)fast_stop, (int)buf_stop);
 
         if (fast_stop < buf_stop)
         {
-            float freq = cents_to_Hz(pitches_data[fast_stop]);
+            const float freq = (float)cents_to_Hz(pitches_data[fast_stop]);
             for (int32_t i = fast_stop; i < buf_stop; ++i)
                 freqs_data[i] = freq;
         }
@@ -272,13 +272,13 @@ void Proc_fill_scale_buffer(
         const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
 
         for (int32_t i = buf_start; i < fast_stop; ++i)
-            scales_data[i] = fast_dB_to_scale(dBs_data[i]);
+            scales_data[i] = (float)fast_dB_to_scale(dBs_data[i]);
 
         //fprintf(stdout, "%d %d %d\n", (int)buf_start, (int)fast_stop, (int)buf_stop);
 
         if (fast_stop < buf_stop)
         {
-            float scale = dB_to_scale(dBs_data[fast_stop]);
+            const float scale = (float)dB_to_scale(dBs_data[fast_stop]);
             for (int32_t i = fast_stop; i < buf_stop; ++i)
                 scales_data[i] = scale;
         }

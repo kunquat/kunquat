@@ -43,7 +43,7 @@ typedef struct Pitch_vstate
 } Pitch_vstate;
 
 
-size_t Pitch_vstate_get_size(void)
+int32_t Pitch_vstate_get_size(void)
 {
     return sizeof(Pitch_vstate);
 }
@@ -95,7 +95,7 @@ static int32_t Pitch_vstate_render_voice(
 
     Pitch_controls_set_tempo(pc, tempo);
 
-    out_buf[buf_start - 1] = pc->pitch;
+    out_buf[buf_start - 1] = (float)pc->pitch;
 
     int32_t const_start = buf_start;
 
@@ -112,11 +112,11 @@ static int32_t Pitch_vstate_render_voice(
                 if (estimated_steps < buf_stop - cur_pos)
                     slide_stop = cur_pos + estimated_steps;
 
-                float new_pitch = pc->pitch;
+                double new_pitch = pc->pitch;
                 for (int32_t i = cur_pos; i < slide_stop; ++i)
                 {
                     new_pitch = Slider_step(&pc->slider);
-                    out_buf[i] = new_pitch;
+                    out_buf[i] = (float)new_pitch;
                 }
                 pc->pitch = new_pitch;
 
@@ -125,8 +125,9 @@ static int32_t Pitch_vstate_render_voice(
             }
             else
             {
+                const float pitch = (float)pc->pitch;
                 for (int32_t i = cur_pos; i < buf_stop; ++i)
-                    out_buf[i] = pc->pitch;
+                    out_buf[i] = pitch;
 
                 cur_pos = buf_stop;
             }
@@ -137,7 +138,7 @@ static int32_t Pitch_vstate_render_voice(
     if (pc->pitch_add != 0)
     {
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            out_buf[i] += pc->pitch_add;
+            out_buf[i] += (float)pc->pitch_add;
     }
 
     // Apply vibrato
@@ -155,7 +156,7 @@ static int32_t Pitch_vstate_render_voice(
                     lfo_stop = cur_pos + estimated_steps;
 
                 for (int32_t i = cur_pos; i < lfo_stop; ++i)
-                    out_buf[i] += LFO_step(&pc->vibrato);
+                    out_buf[i] += (float)LFO_step(&pc->vibrato);
 
                 final_lfo_stop = lfo_stop;
                 cur_pos = lfo_stop;
@@ -185,7 +186,7 @@ static int32_t Pitch_vstate_render_voice(
             assert(!isnan(pvstate->arpeggio_tones[0]));
             const double diff = (pvstate->arpeggio_tones[pvstate->arpeggio_tone_index] -
                     pvstate->arpeggio_ref_pitch);
-            out_buf[i] += diff;
+            out_buf[i] += (float)diff;
 
             // Update arpeggio state
             pvstate->arpeggio_tone_progress += progress_update;

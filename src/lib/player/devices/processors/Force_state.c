@@ -42,7 +42,7 @@ typedef struct Force_vstate
 } Force_vstate;
 
 
-size_t Force_vstate_get_size(void)
+int32_t Force_vstate_get_size(void)
 {
     return sizeof(Force_vstate);
 }
@@ -132,11 +132,11 @@ static int32_t Force_vstate_render_voice(
                 if (estimated_steps < buf_stop - cur_pos)
                     slide_stop = cur_pos + estimated_steps;
 
-                float new_force = fc->force;
+                double new_force = fc->force;
                 for (int32_t i = cur_pos; i < slide_stop; ++i)
                 {
                     new_force = Slider_step(&fc->slider);
-                    out_buf[i] = new_force + fixed_adjust;
+                    out_buf[i] = (float)(new_force + fixed_adjust);
                 }
                 fc->force = new_force;
 
@@ -145,7 +145,7 @@ static int32_t Force_vstate_render_voice(
             }
             else
             {
-                const float actual_force = fc->force + fixed_adjust;
+                const float actual_force = (float)(fc->force + fixed_adjust);
                 for (int32_t i = cur_pos; i < buf_stop; ++i)
                     out_buf[i] = actual_force;
 
@@ -169,7 +169,7 @@ static int32_t Force_vstate_render_voice(
                     lfo_stop = cur_pos + estimated_steps;
 
                 for (int32_t i = cur_pos; i < lfo_stop; ++i)
-                    out_buf[i] += LFO_step(&fc->tremolo);
+                    out_buf[i] += (float)LFO_step(&fc->tremolo);
 
                 final_lfo_stop = lfo_stop;
                 cur_pos = lfo_stop;
@@ -211,7 +211,7 @@ static int32_t Force_vstate_render_voice(
 
         // Convert envelope data to dB
         for (int32_t i = buf_start; i < env_force_stop; ++i)
-            time_env[i] = fast_scale_to_dB(time_env[i]);
+            time_env[i] = (float)fast_scale_to_dB(time_env[i]);
 
         // Check the end of envelope processing
         if (fvstate->env_state.is_finished)
@@ -232,7 +232,7 @@ static int32_t Force_vstate_render_voice(
             else
             {
                 // Fill the rest of the envelope buffer with the last value
-                const double last_value_dB = scale_to_dB(last_value);
+                const float last_value_dB = (float)scale_to_dB(last_value);
                 for (int32_t i = env_force_stop; i < new_buf_stop; ++i)
                     time_env[i] = last_value_dB;
             }
@@ -278,7 +278,7 @@ static int32_t Force_vstate_render_voice(
 
             // Convert envelope data to dB
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                time_env[i] = fast_scale_to_dB(time_env[i]);
+                time_env[i] = (float)fast_scale_to_dB(time_env[i]);
 
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
                 out_buf[i] += time_env[i];
@@ -298,9 +298,10 @@ static int32_t Force_vstate_render_voice(
         else if (force->is_release_ramping_enabled)
         {
             // Apply release ramping
-            int32_t new_buf_stop = buf_stop;
+            new_buf_stop = buf_stop;
 
-            const float ramp_step = RAMP_RELEASE_SPEED / proc_state->parent.audio_rate;
+            const float ramp_step =
+                (float)(RAMP_RELEASE_SPEED / proc_state->parent.audio_rate);
 
             if (au_state->sustain < 0.5)
             {
@@ -309,7 +310,7 @@ static int32_t Force_vstate_render_voice(
 
                 for (i = buf_start; (i < buf_stop) && (progress < 1); ++i)
                 {
-                    out_buf[i] += fast_scale_to_dB(1 - progress);
+                    out_buf[i] += (float)fast_scale_to_dB(1 - progress);
                     progress += ramp_step;
                 }
 

@@ -39,7 +39,7 @@ typedef struct Add_vstate
 } Add_vstate;
 
 
-size_t Add_vstate_get_size(void)
+int32_t Add_vstate_get_size(void)
 {
     return sizeof(Add_vstate);
 }
@@ -200,7 +200,7 @@ static int32_t Add_vstate_render_voice(
                 const double value =
                     (item1 + (lerp_val * item_diff)) * volume_factor * panning_factor;
 
-                out_buf_ch[i] += value * vol_scale;
+                out_buf_ch[i] += (float)value * vol_scale;
 
                 phase += freq * pitch_factor_inv_audio_rate;
 

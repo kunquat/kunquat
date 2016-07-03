@@ -27,12 +27,12 @@ struct Freeverb_comb
 {
     float filter_store;
     float* buffer;
-    uint32_t buffer_size;
-    uint32_t buffer_pos;
+    int32_t buffer_size;
+    int32_t buffer_pos;
 };
 
 
-Freeverb_comb* new_Freeverb_comb(uint32_t buffer_size)
+Freeverb_comb* new_Freeverb_comb(int32_t buffer_size)
 {
     assert(buffer_size > 0);
 
@@ -96,7 +96,7 @@ void Freeverb_comb_process(
 }
 
 
-bool Freeverb_comb_resize_buffer(Freeverb_comb* comb, uint32_t new_size)
+bool Freeverb_comb_resize_buffer(Freeverb_comb* comb, int32_t new_size)
 {
     assert(comb != NULL);
     assert(new_size > 0);
@@ -124,7 +124,7 @@ void Freeverb_comb_clear(Freeverb_comb* comb)
 
     comb->filter_store = 0;
 
-    for (uint32_t i = 0; i < comb->buffer_size; ++i)
+    for (int32_t i = 0; i < comb->buffer_size; ++i)
         comb->buffer[i] = 0;
 
     return;

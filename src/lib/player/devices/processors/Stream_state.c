@@ -305,7 +305,7 @@ typedef struct Stream_vstate
 } Stream_vstate;
 
 
-size_t Stream_vstate_get_size(void)
+int32_t Stream_vstate_get_size(void)
 {
     return sizeof(Stream_vstate);
 }

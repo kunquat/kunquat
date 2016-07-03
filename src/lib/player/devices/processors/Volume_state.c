@@ -62,7 +62,7 @@ static void apply_volume(
     assert(isfinite(global_vol));
     assert(buf_start >= 0);
 
-    const float global_scale = dB_to_scale(global_vol);
+    const float global_scale = (float)dB_to_scale(global_vol);
 
     // Copy input to output with global volume adjustment
     for (int ch = 0; ch < buf_count; ++ch)
@@ -86,7 +86,7 @@ static void apply_volume(
                 continue;
 
             for (int32_t i = buf_start; i < buf_stop; ++i)
-                out[i] *= fast_dB_to_scale(vol_buffer[i]);
+                out[i] *= (float)fast_dB_to_scale(vol_buffer[i]);
         }
     }
 
@@ -142,7 +142,8 @@ static void Volume_pstate_render_mixed(
     Proc_state_get_mixed_audio_out_buffers(
             &vpstate->parent, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_bufs);
 
-    apply_volume(2, in_bufs, out_bufs, vol_buf, vpstate->volume, buf_start, buf_stop);
+    apply_volume(
+            2, in_bufs, out_bufs, vol_buf, (float)vpstate->volume, buf_start, buf_stop);
 
     return;
 }
@@ -177,13 +178,13 @@ typedef struct Volume_vstate
 } Volume_vstate;
 
 
-size_t Volume_vstate_get_size(void)
+int32_t Volume_vstate_get_size(void)
 {
     return sizeof(Volume_vstate);
 }
 
 
-int32_t Volume_vstate_render_voice(
+static int32_t Volume_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
         const Au_state* au_state,
@@ -222,7 +223,14 @@ int32_t Volume_vstate_render_voice(
             proc_state, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_bufs);
 
     const Volume_pstate* vpstate = (const Volume_pstate*)proc_state;
-    apply_volume(2, in_bufs, out_bufs, volume_buf, vpstate->volume, buf_start, buf_stop);
+    apply_volume(
+            2,
+            in_bufs,
+            out_bufs,
+            volume_buf,
+            (float)vpstate->volume,
+            buf_start,
+            buf_stop);
 
     return buf_stop;
 }

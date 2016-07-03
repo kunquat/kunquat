@@ -50,7 +50,7 @@ static const int CONTROL_WB_PANNING = WORK_BUFFER_IMPL_1;
 static void apply_panning(
         const Work_buffers* wbs,
         const float* pan_values,
-        double def_pan,
+        float def_pan,
         float* in_buffers[2],
         float* out_buffers[2],
         int32_t buf_start,
@@ -157,7 +157,7 @@ static void Panning_pstate_render_mixed(
     apply_panning(
             wbs,
             pan_values,
-            ppstate->def_panning,
+            (float)ppstate->def_panning,
             in_buffers,
             out_buffers,
             buf_start,
@@ -210,13 +210,13 @@ typedef struct Panning_vstate
 } Panning_vstate;
 
 
-size_t Panning_vstate_get_size(void)
+int32_t Panning_vstate_get_size(void)
 {
     return sizeof(Panning_vstate);
 }
 
 
-int32_t Panning_vstate_render_voice(
+static int32_t Panning_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
         const Au_state* au_state,
@@ -260,7 +260,7 @@ int32_t Panning_vstate_render_voice(
     apply_panning(
             wbs,
             pan_values,
-            pvstate->def_panning,
+            (float)pvstate->def_panning,
             in_buffers,
             out_buffers,
             buf_start,
