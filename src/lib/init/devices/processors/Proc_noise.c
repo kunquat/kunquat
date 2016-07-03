@@ -1,7 +1,7 @@
 
 
 /*
- * Authors: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Authors: Tomi Jylhä-Ollila, Finland 2010-2016
  *          Ossi Saresoja, Finland 2010
  *
  * This file is part of Kunquat.
@@ -17,6 +17,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/Device_params.h>
+#include <init/devices/Proc_cons.h>
 #include <init/devices/Processor.h>
 #include <kunquat/limits.h>
 #include <memory.h>

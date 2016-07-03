@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/Device_impl.h>
+#include <init/devices/Proc_cons.h>
 #include <memory.h>
 #include <player/devices/processors/Pitch_state.h>
 

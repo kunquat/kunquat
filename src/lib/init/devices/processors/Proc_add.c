@@ -15,6 +15,7 @@
 #include <init/devices/processors/Proc_add.h>
 
 #include <debug/assert.h>
+#include <init/devices/Proc_cons.h>
 #include <init/devices/Processor.h>
 #include <init/devices/param_types/Sample.h>
 #include <init/devices/processors/Proc_init_utils.h>
@@ -32,7 +33,7 @@
 #include <string.h>
 
 
-static double sine(double phase, double modifier);
+static float sine(double phase, double modifier);
 
 static Set_sample_func  Proc_add_set_base;
 static Set_bool_func    Proc_add_set_ramp_attack;
@@ -113,10 +114,10 @@ Device_impl* new_Proc_add(void)
 }
 
 
-static double sine(double phase, double modifier)
+static float sine(double phase, double modifier)
 {
     ignore(modifier);
-    return -sin(phase * PI * 2);
+    return (float)(-sin(phase * PI * 2));
 }
 
 
@@ -126,12 +127,12 @@ static void fill_buf(float* buf, const Sample* sample)
 
     if ((sample != NULL) && (sample->data[0] != NULL) && sample->is_float)
     {
-        int32_t available = min(sample->len, ADD_BASE_FUNC_SIZE);
+        int available = (int)min(sample->len, ADD_BASE_FUNC_SIZE);
 
         const float* from_buf = sample->data[0];
 
         for (int i = 0; i < available; ++i)
-            buf[i] = clamp(from_buf[i], -1.0, 1.0);
+            buf[i] = clamp(from_buf[i], -1.0f, 1.0f);
         for (int i = available; i < ADD_BASE_FUNC_SIZE; ++i)
             buf[i] = 0;
     }
