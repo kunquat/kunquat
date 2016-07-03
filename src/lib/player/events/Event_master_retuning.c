@@ -60,7 +60,7 @@ bool Event_master_set_retuner_process(Master_params* master_params, const Value*
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
-    master_params->cur_tuning_state = value->value.int_type;
+    master_params->cur_tuning_state = (int)value->value.int_type;
 
     Tuning_state* state = NULL;
     const Tuning_table* table = NULL;
@@ -139,7 +139,7 @@ bool Event_master_mimic_retuner_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
-    const int source_index = value->value.int_type;
+    const int source_index = (int)value->value.int_type;
     if (source_index < 0 || source_index >= KQT_TUNING_TABLES_MAX)
         return true;
 

@@ -35,7 +35,7 @@ bool Event_channel_set_au_input_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
-    ch->au_input = value->value.int_type;
+    ch->au_input = (int)value->value.int_type;
 
     return true;
 }

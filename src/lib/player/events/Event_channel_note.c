@@ -274,7 +274,7 @@ bool Event_channel_hit_process(
     if (Audio_unit_get_type(au) != AU_TYPE_INSTRUMENT)
         return true;
 
-    const int hit_index = value->value.int_type;
+    const int hit_index = (int)value->value.int_type;
 
     if (!Audio_unit_get_hit_existence(au, hit_index))
         return true;

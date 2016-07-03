@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -32,7 +32,7 @@ bool Event_master_set_jump_counter_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
-    master_params->jump_counter = value->value.int_type;
+    master_params->jump_counter = (int16_t)value->value.int_type;
 
     return true;
 }

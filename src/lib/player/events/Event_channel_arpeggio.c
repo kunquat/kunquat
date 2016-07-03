@@ -95,7 +95,7 @@ bool Event_channel_set_arpeggio_index_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
-    ch->arpeggio_edit_pos = value->value.int_type;
+    ch->arpeggio_edit_pos = (int)value->value.int_type;
 
     return true;
 }
