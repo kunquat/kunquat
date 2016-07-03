@@ -45,7 +45,7 @@ Track_list* new_Track_list(Streader* sr);
  *
  * \return   The length.
  */
-size_t Track_list_get_len(const Track_list* tl);
+int Track_list_get_len(const Track_list* tl);
 
 
 /**
@@ -57,7 +57,7 @@ size_t Track_list_get_len(const Track_list* tl);
  *
  * \return   The song index.
  */
-int16_t Track_list_get_song_index(const Track_list* tl, size_t index);
+int Track_list_get_song_index(const Track_list* tl, int index);
 
 
 /**
@@ -71,7 +71,7 @@ int16_t Track_list_get_song_index(const Track_list* tl, size_t index);
  * \return   The track that contains the song with \a song_index, or \c -1 if
  *           not found.
  */
-int16_t Track_list_get_track_by_song(const Track_list* tl, int16_t song_index);
+int Track_list_get_track_by_song(const Track_list* tl, int song_index);
 
 
 /**

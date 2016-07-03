@@ -46,7 +46,7 @@ Order_list* new_Order_list(Streader* sr);
  *
  * \return   The length.
  */
-size_t Order_list_get_len(const Order_list* ol);
+int Order_list_get_len(const Order_list* ol);
 
 
 /**
@@ -58,7 +58,7 @@ size_t Order_list_get_len(const Order_list* ol);
  *
  * \return   The Pattern instance reference.
  */
-Pat_inst_ref* Order_list_get_pat_inst_ref(const Order_list* ol, size_t index);
+Pat_inst_ref* Order_list_get_pat_inst_ref(const Order_list* ol, int index);
 
 
 /**

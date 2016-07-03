@@ -55,7 +55,7 @@ Song_table* new_Song_table(void)
 }
 
 
-bool Song_table_set(Song_table* table, uint16_t index, Song* song)
+bool Song_table_set(Song_table* table, int index, Song* song)
 {
     assert(table != NULL);
     assert(index < KQT_SONGS_MAX);
@@ -78,7 +78,7 @@ bool Song_table_set(Song_table* table, uint16_t index, Song* song)
 }
 
 
-Song* Song_table_get(Song_table* table, uint16_t index)
+Song* Song_table_get(Song_table* table, int index)
 {
     assert(table != NULL);
     assert(index < KQT_SONGS_MAX);
@@ -90,7 +90,7 @@ Song* Song_table_get(Song_table* table, uint16_t index)
 }
 
 
-void Song_table_set_existent(Song_table* table, uint16_t index, bool existent)
+void Song_table_set_existent(Song_table* table, int index, bool existent)
 {
     assert(table != NULL);
     assert(index < KQT_SONGS_MAX);
@@ -101,7 +101,7 @@ void Song_table_set_existent(Song_table* table, uint16_t index, bool existent)
 }
 
 
-bool Song_table_get_existent(Song_table* table, uint16_t index)
+bool Song_table_get_existent(Song_table* table, int index)
 {
     assert(table != NULL);
     assert(index < KQT_SONGS_MAX);

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -103,7 +103,7 @@ Trigger* new_Trigger_from_string(Streader* sr, const Event_names* names)
         return NULL;
     }
 
-    strncpy(trigger->desc, event_desc, &sr->str[sr->pos] - event_desc);
+    strncpy(trigger->desc, event_desc, (size_t)(&sr->str[sr->pos] - event_desc));
 
     // End of trigger
     Streader_match_char(sr, ']');

@@ -124,8 +124,8 @@ void del_Column_iter(Column_iter* iter);
 /**
  * Create a new Column.
  *
- * \param length   The length of the column. If this is \c NULL, the length is
- *                 set to INT64_MAX beats.
+ * \param len   The length of the column. If this is \c NULL, the length is
+ *              set to INT64_MAX beats.
  *
  * \return   The new Column if successful, or \c NULL if memory allocation
  *           failed.

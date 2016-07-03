@@ -30,7 +30,7 @@
  */
 typedef struct Channel_defaults
 {
-    int16_t control_num;
+    int control_num;
     char init_expr[KQT_VAR_NAME_MAX];
 } Channel_defaults;
 

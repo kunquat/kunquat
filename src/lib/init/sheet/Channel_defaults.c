@@ -57,7 +57,7 @@ static bool read_ch_defaults_item(Streader* sr, const char* key, void* userdata)
             return false;
         }
 
-        chd->control_num = cnum;
+        chd->control_num = (int)cnum;
     }
     else if (string_eq(key, "init_expr"))
     {
