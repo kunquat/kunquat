@@ -82,7 +82,7 @@ static bool read_entry(Streader* sr, int32_t index, void* userdata)
         return false;
     }
 
-    const Entry* key = ENTRY_KEY(in);
+    const Entry* key = ENTRY_KEY((int32_t)in);
     if (AAtree_contains(im->map, key))
     {
         Streader_set_error(sr, "Duplicate entry for input %" PRId64, in);
@@ -99,8 +99,8 @@ static bool read_entry(Streader* sr, int32_t index, void* userdata)
         return false;
     }
 
-    entry->input = in;
-    entry->output = out;
+    entry->input = (int32_t)in;
+    entry->output = (int32_t)out;
 
     if (!AAtree_ins(im->map, entry))
     {

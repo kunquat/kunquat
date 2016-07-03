@@ -23,6 +23,7 @@
 #include <player/Event_type.h>
 #include <Value.h>
 
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -344,7 +345,7 @@ static bool Bind_dfs(const Bind* map, char* name)
         while (event != NULL)
         {
             Streader* sr = Streader_init(
-                    STREADER_AUTO, event->desc, strlen(event->desc));
+                    STREADER_AUTO, event->desc, (int64_t)strlen(event->desc));
             char next_name[EVENT_NAME_MAX + 1] = "";
             Streader_readf(sr, "[%s", EVENT_NAME_MAX, next_name);
             assert(!Streader_is_error_set(sr));
@@ -576,7 +577,7 @@ static Constraint* new_Constraint(Streader* sr)
 
     assert(expr_end != NULL);
     assert(expr_end > expr);
-    int len = expr_end - expr;
+    const ptrdiff_t len = expr_end - expr;
 
     c->expr = memory_calloc_items(char, len + 1);
     if (c->expr == NULL)
@@ -586,7 +587,7 @@ static Constraint* new_Constraint(Streader* sr)
         return NULL;
     }
 
-    strncpy(c->expr, expr, len);
+    strncpy(c->expr, expr, (size_t)len);
     c->expr[len] = '\0';
 
     return c;
@@ -606,7 +607,7 @@ static bool Constraint_match(
 
     Value* result = VALUE_AUTO;
     Streader* sr = Streader_init(
-            STREADER_AUTO, constraint->expr, strlen(constraint->expr));
+            STREADER_AUTO, constraint->expr, (int64_t)strlen(constraint->expr));
     //fprintf(stderr, "%s, %s", constraint->event_name, constraint->expr);
     evaluate_expr(sr, estate, value, result, rand);
     //fprintf(stderr, ", %s", state->message);
@@ -699,7 +700,7 @@ static Target_event* new_Target_event(Streader* sr, const Event_names* names)
         return NULL;
     }
 
-    int len = desc_end - desc;
+    const ptrdiff_t len = desc_end - desc;
     assert(len > 0);
     event->desc = memory_alloc_items(char, len + 1);
     if (event->desc == NULL)
@@ -709,8 +710,8 @@ static Target_event* new_Target_event(Streader* sr, const Event_names* names)
         return NULL;
     }
 
-    event->ch_offset = ch_offset;
-    memcpy(event->desc, desc, len);
+    event->ch_offset = (int)ch_offset;
+    memcpy(event->desc, desc, (size_t)len);
     event->desc[len] = '\0';
 
     return event;

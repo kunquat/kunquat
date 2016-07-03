@@ -150,7 +150,7 @@ bool Module_parse_random_seed(Module* module, Streader* sr)
         }
     }
 
-    module->random_seed = seed;
+    module->random_seed = (uint64_t)seed;
 
     return true;
 }
@@ -168,7 +168,7 @@ const Track_list* Module_get_track_list(const Module* module)
 }
 
 
-const Order_list* Module_get_order_list(const Module* module, int16_t song)
+const Order_list* Module_get_order_list(const Module* module, int song)
 {
     assert(module != NULL);
     assert(song >= 0);
@@ -221,10 +221,7 @@ const Pattern* Module_get_pattern(
 
 
 bool Module_find_pattern_location(
-        const Module* module,
-        const Pat_inst_ref* piref,
-        int16_t* track,
-        int16_t* system)
+        const Module* module, const Pat_inst_ref* piref, int* track, int* system)
 {
     assert(module != NULL);
     assert(piref != NULL);
@@ -238,12 +235,12 @@ bool Module_find_pattern_location(
     if (module->track_list == NULL)
         return false;
 
-    const size_t track_count = Track_list_get_len(module->track_list);
+    const int track_count = Track_list_get_len(module->track_list);
 
     // Linear search our track list
-    for (size_t ti = 0; ti < track_count; ++ti)
+    for (int ti = 0; ti < track_count; ++ti)
     {
-        const int16_t si = Track_list_get_song_index(module->track_list, ti);
+        const int si = Track_list_get_song_index(module->track_list, ti);
 
         if (!Song_table_get_existent(module->songs, si))
             continue;
@@ -251,7 +248,7 @@ bool Module_find_pattern_location(
         const Order_list* ol = module->order_lists[si];
         assert(ol != NULL);
 
-        for (size_t i = 0; i < Order_list_get_len(ol); ++i)
+        for (int i = 0; i < Order_list_get_len(ol); ++i)
         {
             const Pat_inst_ref* cur_piref = Order_list_get_pat_inst_ref(ol, i);
             assert(cur_piref != NULL);
@@ -309,7 +306,7 @@ Pat_table* Module_get_pats(Module* module)
 }
 
 
-int32_t Module_get_au_index_from_input(const Module* module, int32_t input)
+static int32_t Module_get_au_index_from_input(const Module* module, int32_t input)
 {
     assert(module != NULL);
     assert(input >= 0);

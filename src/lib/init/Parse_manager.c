@@ -1127,7 +1127,7 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
 
     // Allocate Voice state space
     {
-        const size_t size = Device_impl_get_vstate_size(proc_impl);
+        const int32_t size = Device_impl_get_vstate_size(proc_impl);
         if (!Player_reserve_voice_state_space(params->handle->player, size) ||
                 !Player_reserve_voice_state_space(params->handle->length_counter, size))
         {
@@ -1531,7 +1531,7 @@ static bool read_song_manifest(Reader_params* params)
 }
 
 
-Song* add_song(Handle* handle, int index)
+static Song* add_song(Handle* handle, int index)
 {
     assert(handle != NULL);
     assert(index >= 0);

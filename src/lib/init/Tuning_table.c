@@ -108,12 +108,9 @@ static bool Tuning_table_build_pitch_map(Tuning_table* tt)
  *
  * \param tt      The Tuning table -- must not be \c NULL.
  * \param index   The index of the note to be set -- must be >= \c 0 and
- *                < \c KQT_TUNING_TABLE_NOTES_MAX.
+ *                less than the current note count.
  * \param cents   The pitch ratio between the new note and reference pitch
  *                in cents -- must be a finite value.
- *
- * \return   The index that was actually set. This is never larger than
- *           \a index.
  */
 static void Tuning_table_set_note_cents(Tuning_table* tt, int index, double cents);
 
@@ -121,7 +118,7 @@ static void Tuning_table_set_note_cents(Tuning_table* tt, int index, double cent
 void Tuning_table_set_octave_width(Tuning_table* tt, double octave_width);
 
 
-Tuning_table* new_Tuning_table(double ref_pitch, double octave_width)
+static Tuning_table* new_Tuning_table(double ref_pitch, double octave_width)
 {
     assert(ref_pitch > 0);
     assert(isfinite(octave_width));
@@ -239,7 +236,7 @@ static bool read_tuning_table_item(Streader* sr, const char* key, void* userdata
             return false;
         }
 
-        tt->ref_note = num;
+        tt->ref_note = (int)num;
     }
     else if (string_eq(key, "ref_pitch"))
     {
@@ -295,7 +292,7 @@ static bool read_tuning_table_item(Streader* sr, const char* key, void* userdata
             return false;
         }
 
-        tt->center_octave = octave;
+        tt->center_octave = (int)octave;
         Tuning_table_set_octave_width(tt, tt->octave_width);
     }
     else if (string_eq(key, "notes"))
