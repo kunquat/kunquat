@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -101,12 +101,12 @@ Tstamp* Tstamp_add(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2)
     if (result->rem >= KQT_TSTAMP_BEAT)
     {
         ++result->beats;
-        result->rem -= KQT_TSTAMP_BEAT;
+        result->rem -= (int32_t)KQT_TSTAMP_BEAT;
     }
     else if (result->rem < 0)
     {
         --result->beats;
-        result->rem += KQT_TSTAMP_BEAT;
+        result->rem += (int32_t)KQT_TSTAMP_BEAT;
     }
     assert(result->rem >= 0);
     assert(result->rem < KQT_TSTAMP_BEAT);
@@ -126,12 +126,12 @@ Tstamp* Tstamp_sub(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2)
     if (result->rem < 0)
     {
         --result->beats;
-        result->rem += KQT_TSTAMP_BEAT;
+        result->rem += (int32_t)KQT_TSTAMP_BEAT;
     }
     else if (result->rem >= KQT_TSTAMP_BEAT)
     {
         ++result->beats;
-        result->rem -= KQT_TSTAMP_BEAT;
+        result->rem -= (int32_t)KQT_TSTAMP_BEAT;
     }
     assert(result->rem >= 0);
     assert(result->rem < KQT_TSTAMP_BEAT);
@@ -167,27 +167,28 @@ Tstamp* Tstamp_min(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2)
 }
 
 
-double Tstamp_toframes(const Tstamp* ts, double tempo, uint32_t rate)
+double Tstamp_toframes(const Tstamp* ts, double tempo, int32_t rate)
 {
     Tstamp_validate(ts);
     assert(ts->beats >= 0);
     assert(tempo > 0);
     assert(rate > 0);
 
-    return (ts->beats + ((double)ts->rem / KQT_TSTAMP_BEAT)) *
+    return ((double)ts->beats + ((double)ts->rem / KQT_TSTAMP_BEAT)) *
             60 * rate / tempo;
 }
 
 
-Tstamp* Tstamp_fromframes(Tstamp* ts, uint32_t frames, double tempo, uint32_t rate)
+Tstamp* Tstamp_fromframes(Tstamp* ts, int32_t frames, double tempo, int32_t rate)
 {
     assert(ts != NULL);
+    assert(frames >= 0);
     assert(tempo > 0);
     assert(rate > 0);
 
     double val = (double)frames * tempo / rate / 60;
     ts->beats = (int64_t)val;
-    ts->rem = (int32_t)((val - ts->beats) * KQT_TSTAMP_BEAT);
+    ts->rem = (int32_t)((val - (double)ts->beats) * KQT_TSTAMP_BEAT);
 
     return ts;
 }

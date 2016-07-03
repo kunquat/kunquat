@@ -28,7 +28,7 @@
  *
  * \return   The sine of \a x.
  */
-inline double fast_sin(double x)
+static inline double fast_sin(double x)
 {
     assert(x >= 0);
     assert(x <= 2.0 * PI);

@@ -40,7 +40,7 @@ double dB_to_scale(double dB);
  *
  * \return   The approximate scale factor.
  */
-inline double fast_dB_to_scale(double dB)
+static inline double fast_dB_to_scale(double dB)
 {
     assert(isfinite(dB) || (dB == -INFINITY));
 
@@ -68,7 +68,7 @@ double scale_to_dB(double scale);
  *
  * \return   The approximate dB value.
  */
-inline double fast_scale_to_dB(double scale)
+static inline double fast_scale_to_dB(double scale)
 {
     assert(scale >= 0);
     if (scale == 0)
@@ -95,7 +95,7 @@ double cents_to_Hz(double cents);
  *
  * \return   The approximate pitch in Hz if \a cents is finite, otherwise \c 0.
  */
-inline double fast_cents_to_Hz(double cents)
+static inline double fast_cents_to_Hz(double cents)
 {
     if (!isfinite(cents))
         return 0;

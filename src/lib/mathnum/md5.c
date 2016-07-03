@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -36,7 +36,7 @@ static uint32_t I(uint32_t x, uint32_t y, uint32_t z);
 static uint32_t left_rotate(uint32_t value, int steps);
 
 
-#define PADDED_LEN ((MSG_LEN_MAX) + 1 + 8)
+//#define PADDED_LEN ((MSG_LEN_MAX) + 1 + 8)
 
 
 static const uint32_t T[] =
@@ -71,7 +71,7 @@ void md5_str(const char* str, uint64_t* lower, uint64_t* upper)
     assert(lower != NULL);
     assert(upper != NULL);
 
-    md5(str, strlen(str), lower, upper, true);
+    md5(str, (int)strlen(str), lower, upper, true);
 
     return;
 }
@@ -114,10 +114,10 @@ void md5_with_state(
 
     int cur_len = len;
     len += prev_len;
-    uint32_t a = lower_init;
-    uint32_t b = lower_init >> 32;
-    uint32_t c = upper_init;
-    uint32_t d = upper_init >> 32;
+    uint32_t a = (uint32_t)lower_init;
+    uint32_t b = (uint32_t)(lower_init >> 32);
+    uint32_t c = (uint32_t)upper_init;
+    uint32_t d = (uint32_t)(upper_init >> 32);
     unsigned char padded[CHUNK_BYTES] = { 0 };
     uint32_t X[16] = { 0 };
 
@@ -129,10 +129,10 @@ void md5_with_state(
             if (!last && cur_len == 0)
                 break;
 
-            memcpy((char*)padded, seq, cur_len);
+            memcpy((char*)padded, seq, (size_t)cur_len);
             padded[cur_len] = 0x80;
             if (cur_len < LENGTH_POS)
-                add_length(padded + LENGTH_POS, len);
+                add_length(padded + LENGTH_POS, (uint64_t)len);
 
             p = padded;
         }
@@ -144,7 +144,7 @@ void md5_with_state(
     if (last && cur_len >= LENGTH_POS - CHUNK_BYTES)
     {
         memset((char*)padded, 0, CHUNK_BYTES);
-        add_length(padded + LENGTH_POS, len);
+        add_length(padded + LENGTH_POS, (uint64_t)len);
         prepare_X(X, padded);
         md5_rounds(X, &a, &b, &c, &d);
     }

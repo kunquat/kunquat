@@ -19,6 +19,7 @@
 
 #include <debug/assert.h>
 
+#include <limits.h>
 #include <math.h>
 #include <stdint.h>
 
@@ -30,7 +31,7 @@
  *
  * \return   Roughly 2 ^ \a x.
  */
-inline double fast_exp2(double x)
+static inline double fast_exp2(double x)
 {
     assert(isfinite(x));
 
@@ -53,7 +54,9 @@ inline double fast_exp2(double x)
 
     x *= N;
     const double i = floor(x + L);
-    const int j = i;
+    assert(i >= INT_MIN);
+    assert(i <= INT_MAX);
+    const int j = (int)i;
     const int k = j & (N - 1);
     return ldexp(b[k] * (x - i + A), j >> K);
 

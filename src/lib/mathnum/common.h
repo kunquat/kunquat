@@ -39,7 +39,7 @@
 #define clamp(val, min_val, max_val) min(max_val, max(min_val, val))
 
 
-#define undenormalise(x) (fpclassify((x)) != FP_SUBNORMAL ? (x) : 0.0)
+#define undenormalise(x) (fpclassify((x)) != FP_SUBNORMAL ? (x) : 0.0f)
 
 
 #define implies(antecedent, consequent) (!(antecedent) || (consequent))
@@ -98,7 +98,7 @@ int64_t ipowi(int64_t base, int64_t exp);
  *
  * \return   The value base^exp.
  */
-double powi(double x, int n);
+double powi(double base, int exp);
 
 
 /**

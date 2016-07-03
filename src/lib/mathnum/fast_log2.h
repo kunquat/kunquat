@@ -28,7 +28,7 @@
  *
  * \return   Roughly log2(\a x).
  */
-inline double fast_log2(double x)
+static inline double fast_log2(double x)
 {
     assert(isfinite(x));
     assert(x > 0);

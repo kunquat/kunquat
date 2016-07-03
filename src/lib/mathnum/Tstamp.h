@@ -190,20 +190,20 @@ Tstamp* Tstamp_min(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2);
  *
  * \return   The number of frames.
  */
-double Tstamp_toframes(const Tstamp* ts, double tempo, uint32_t rate);
+double Tstamp_toframes(const Tstamp* ts, double tempo, int32_t rate);
 
 
 /**
  * Convert the time represented by frames into a Tstamp object.
  *
  * \param ts       The Tstamp -- must not be \c NULL.
- * \param frames   The number of frames.
+ * \param frames   The number of frames -- must be >= \c 0.
  * \param tempo    The tempo -- must be > \c 0.
  * \param rate     The audio rate -- must be > \c 0.
  *
  * \return   The parameter \a ts.
  */
-Tstamp* Tstamp_fromframes(Tstamp* ts, uint32_t frames, double tempo, uint32_t rate);
+Tstamp* Tstamp_fromframes(Tstamp* ts, int32_t frames, double tempo, int32_t rate);
 
 
 #endif // KQT_TSTAMP_H
