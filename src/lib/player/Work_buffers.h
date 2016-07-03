@@ -39,13 +39,13 @@ typedef enum
 /**
  * Create new Work buffers.
  *
- * \param size   The buffer size -- must be >= \c 0 and
- *               <= \c WORK_BUFFER_SIZE_MAX.
+ * \param buf_size   The buffer size -- must be >= \c 0 and
+ *                   <= \c WORK_BUFFER_SIZE_MAX.
  *
  * \return   The new Work buffers if successful, or \c NULL if memory
  *           allocation failed.
  */
-Work_buffers* new_Work_buffers(uint32_t buf_size);
+Work_buffers* new_Work_buffers(int32_t buf_size);
 
 
 /**
@@ -57,7 +57,7 @@ Work_buffers* new_Work_buffers(uint32_t buf_size);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Work_buffers_resize(Work_buffers* buffers, uint32_t new_size);
+bool Work_buffers_resize(Work_buffers* buffers, int32_t new_size);
 
 
 /**

@@ -32,7 +32,7 @@ typedef struct Jump_context
     Pat_inst_ref piref;
     Tstamp row;
     int ch_num;
-    int order;
+    int64_t order;
 
     int64_t counter;
 

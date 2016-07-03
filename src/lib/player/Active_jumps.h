@@ -73,7 +73,7 @@ Jump_context* Active_jumps_get_next_context(
         const Pat_inst_ref* piref,
         const Tstamp* row,
         int ch_num,
-        int order);
+        int64_t order);
 
 
 /**

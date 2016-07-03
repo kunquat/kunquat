@@ -29,8 +29,8 @@
  */
 typedef struct Position
 {
-    int16_t      track;
-    int16_t      system;
+    int          track;
+    int          system;
     Tstamp       pat_pos;
     Pat_inst_ref piref;
 } Position;

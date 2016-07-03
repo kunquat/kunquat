@@ -226,9 +226,9 @@ bool Channel_stream_state_is_carrying_enabled(
  * Update streams in the Channel stream state.
  *
  * \param state        The Channel stream state -- must not be \c NULL.
- * \param step_count   Number of steps to update.
+ * \param step_count   Number of steps to update -- must be >= \c 0.
  */
-void Channel_stream_state_update(Channel_stream_state* state, uint64_t step_count);
+void Channel_stream_state_update(Channel_stream_state* state, int64_t step_count);
 
 
 /**

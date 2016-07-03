@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -27,8 +27,8 @@
 
 struct Event_buffer
 {
-    size_t size;
-    size_t write_pos;
+    int32_t size;
+    int32_t write_pos;
     char* buf;
 
     int32_t events_added;
@@ -40,14 +40,17 @@ struct Event_buffer
 static const char EMPTY_BUFFER[] = "[]";
 
 
-Event_buffer* new_Event_buffer(size_t size)
+Event_buffer* new_Event_buffer(int32_t size)
 {
+    assert(size >= 0);
+    assert(size <= EVENT_BUF_SIZE_MAX);
+
     Event_buffer* ebuf = memory_alloc_item(Event_buffer);
     if (ebuf == NULL)
         return NULL;
 
     // Sanitise fields
-    ebuf->size = max(strlen(EMPTY_BUFFER) + 1, size);
+    ebuf->size = max((int32_t)strlen(EMPTY_BUFFER) + 1, size);
     ebuf->write_pos = 0;
     ebuf->buf = NULL;
 
@@ -180,7 +183,7 @@ void Event_buffer_add(Event_buffer* ebuf, int ch, const char* name, const Value*
     static const char closing_str[] = "]]";
 
     // Value
-    const int max_value_bytes = EVENT_LEN_MAX - advance - strlen(closing_str);
+    const int max_value_bytes = EVENT_LEN_MAX - advance - (int)strlen(closing_str);
     advance += Value_serialise(
             arg, max_value_bytes, ebuf->buf + ebuf->write_pos + advance);
 

@@ -26,15 +26,13 @@ struct Jump_cache
     AAtree* contexts;
 
     // Debug checking fields
-    size_t num_contexts;
-    size_t use_count;
+    int num_contexts;
+    int use_count;
+    int64_t store_counter;
 };
 
 
-static int64_t store_counter = 0;
-
-
-Jump_cache* new_Jump_cache(size_t num_contexts)
+Jump_cache* new_Jump_cache(int num_contexts)
 {
     assert(num_contexts > 0);
 
@@ -45,6 +43,7 @@ Jump_cache* new_Jump_cache(size_t num_contexts)
     jcache->contexts = NULL;
     jcache->num_contexts = 0;
     jcache->use_count = 0;
+    jcache->store_counter = (INT64_MAX >> 31) + 1;
 
     jcache->contexts = new_AAtree(
             (AAtree_item_cmp*)Jump_context_cmp, (AAtree_item_destroy*)del_Jump_context);
@@ -54,7 +53,7 @@ Jump_cache* new_Jump_cache(size_t num_contexts)
         return NULL;
     }
 
-    for (size_t i = 0; i < num_contexts; ++i)
+    for (int i = 0; i < num_contexts; ++i)
     {
         Jump_context* jc = new_Jump_context();
         if (jc == NULL)
@@ -64,8 +63,8 @@ Jump_cache* new_Jump_cache(size_t num_contexts)
         }
 
         // Hack: Make sure no contexts compare equal to one another
-        jc->order = store_counter;
-        ++store_counter;
+        jc->order = jcache->store_counter;
+        ++jcache->store_counter;
 
         if (!AAtree_ins(jcache->contexts, jc))
         {
@@ -115,8 +114,8 @@ void Jump_cache_release_context(Jump_cache* jcache, AAnode* handle)
     Tstamp_set(&jc->row, 0, 0);
 
     // Hack: Make sure no contexts compare equal to one another
-    jc->order = store_counter;
-    ++store_counter;
+    jc->order = jcache->store_counter;
+    ++jcache->store_counter;
 
     AAtree_attach(jcache->contexts, handle);
 

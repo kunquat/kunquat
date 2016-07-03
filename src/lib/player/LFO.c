@@ -298,9 +298,10 @@ double LFO_step(LFO* lfo)
 }
 
 
-double LFO_skip(LFO* lfo, uint64_t steps)
+double LFO_skip(LFO* lfo, int64_t steps)
 {
     assert(lfo != NULL);
+    assert(steps >= 0);
 
     if (steps == 0)
     {
@@ -321,7 +322,7 @@ double LFO_skip(LFO* lfo, uint64_t steps)
 
     const double depth_progress = Slider_skip(&lfo->depth_slider, steps);
     const double cur_depth = lerp(lfo->prev_depth, lfo->target_depth, depth_progress);
-    lfo->phase = fmod(lfo->phase + (lfo->update * steps), 2 * PI);
+    lfo->phase = fmod(lfo->phase + (lfo->update * (double)steps), 2 * PI);
 
     const double value = fast_sin(lfo->phase) * cur_depth;
     if (lfo->mode == LFO_MODE_EXP)

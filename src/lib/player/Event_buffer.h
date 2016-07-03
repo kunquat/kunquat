@@ -27,6 +27,12 @@ typedef struct Event_buffer Event_buffer;
 
 
 /**
+ * Maximum size of an Event buffer.
+ */
+#define EVENT_BUF_SIZE_MAX 262144
+
+
+/**
  * Maximum number of bytes reserved for a single event.
  */
 #define EVENT_LEN_MAX 256
@@ -35,13 +41,14 @@ typedef struct Event_buffer Event_buffer;
 /**
  * Create a new Event buffer.
  *
- * \param size   The size of the Event buffer in bytes. If
- *               <= \c EVENT_LEN_MAX + 1, the buffer cannot contain any events.
+ * \param size   The size of the Event buffer in bytes -- must be > \c 0 and
+ *               <= \c EVENT_BUF_SIZE_MAX. If <= \c EVENT_LEN_MAX + 1, the
+ *               buffer cannot contain any events.
  *
  * \return   The new Event buffer if successful, or \c NULL if memory
  *           allocation failed.
  */
-Event_buffer* new_Event_buffer(size_t size);
+Event_buffer* new_Event_buffer(int32_t size);
 
 
 /**

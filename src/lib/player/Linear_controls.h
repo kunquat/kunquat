@@ -167,9 +167,9 @@ void Linear_controls_fill_work_buffer(
  * Update internal state of the Linear controls without storing results.
  *
  * \param lc           The Linear controls -- must not be \c NULL.
- * \param step_count   The number of steps to skip.
+ * \param step_count   The number of steps to skip -- must be >= \c 0.
  */
-void Linear_controls_skip(Linear_controls* lc, uint64_t step_count);
+void Linear_controls_skip(Linear_controls* lc, int64_t step_count);
 
 
 /**

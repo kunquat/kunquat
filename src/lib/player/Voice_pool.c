@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -23,9 +23,9 @@
 #include <stdlib.h>
 
 
-Voice_pool* new_Voice_pool(uint16_t size)
+Voice_pool* new_Voice_pool(int size)
 {
-    //assert(size >= 0);
+    assert(size >= 0);
 
     Voice_pool* pool = memory_alloc_item(Voice_pool);
     if (pool == NULL)
@@ -67,9 +67,10 @@ Voice_pool* new_Voice_pool(uint16_t size)
 }
 
 
-bool Voice_pool_reserve_state_space(Voice_pool* pool, size_t state_size)
+bool Voice_pool_reserve_state_space(Voice_pool* pool, int32_t state_size)
 {
     assert(pool != NULL);
+    assert(state_size >= 0);
 
     if (state_size <= pool->state_size)
         return true;
@@ -85,17 +86,17 @@ bool Voice_pool_reserve_state_space(Voice_pool* pool, size_t state_size)
 }
 
 
-bool Voice_pool_resize(Voice_pool* pool, uint16_t size)
+bool Voice_pool_resize(Voice_pool* pool, int size)
 {
     assert(pool != NULL);
-    //assert(size >= 0);
+    assert(size > 0);
 
-    uint16_t new_size = size;
+    int new_size = size;
     if (new_size == pool->size)
         return true;
 
     // Remove excess voices if any
-    for (uint16_t i = new_size; i < pool->size; ++i)
+    for (int i = new_size; i < pool->size; ++i)
     {
         del_Voice(pool->voices[i]);
         pool->voices[i] = NULL;
@@ -120,11 +121,11 @@ bool Voice_pool_resize(Voice_pool* pool, uint16_t size)
     pool->voices = new_voices;
 
     // Sanitise new fields if any
-    for (uint16_t i = pool->size; i < new_size; ++i)
+    for (int i = pool->size; i < new_size; ++i)
         pool->voices[i] = NULL;
 
     // Allocate new voices
-    for (uint16_t i = pool->size; i < new_size; ++i)
+    for (int i = pool->size; i < new_size; ++i)
     {
         pool->voices[i] = new_Voice();
         if (pool->voices[i] == NULL ||
@@ -144,7 +145,7 @@ bool Voice_pool_resize(Voice_pool* pool, uint16_t size)
 }
 
 
-uint16_t Voice_pool_get_size(const Voice_pool* pool)
+int Voice_pool_get_size(const Voice_pool* pool)
 {
     assert(pool != NULL);
     return pool->size;

@@ -263,7 +263,8 @@ static void Player_process_expr_event(
     assert(ch_num < KQT_CHANNELS_MAX);
     assert(trigger_desc != NULL);
 
-    Streader* sr = Streader_init(STREADER_AUTO, trigger_desc, strlen(trigger_desc));
+    Streader* sr =
+        Streader_init(STREADER_AUTO, trigger_desc, (int64_t)strlen(trigger_desc));
 
     const Event_names* event_names = Event_handler_get_names(player->event_handler);
 
@@ -356,8 +357,8 @@ static void Player_start_pattern_playback_mode(Player* player)
     player->master_params.pattern_playback_flag = false;
 
     // Apply channel defaults of the containing song
-    int16_t track = -1;
-    int16_t system = -1;
+    int track = -1;
+    int system = -1;
     Module_find_pattern_location(
             player->module, &player->master_params.cur_pos.piref, &track, &system);
     Player_reset_channels(player);
@@ -479,7 +480,7 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
     // Find our next jump position
     Tstamp* next_jump_row = Tstamp_set(TSTAMP_AUTO, INT64_MAX, 0);
     int next_jump_ch = KQT_CHANNELS_MAX;
-    int next_jump_trigger = INT_MAX;
+    int64_t next_jump_trigger = INT64_MAX;
     Jump_context* next_jc = Active_jumps_get_next_context(
             player->master_params.active_jumps,
             &player->master_params.cur_pos.piref,
@@ -546,7 +547,7 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                         // Update next Jump context
                         Tstamp_set(next_jump_row, INT64_MAX, 0);
                         next_jump_ch = KQT_CHANNELS_MAX;
-                        next_jump_trigger = INT_MAX;
+                        next_jump_trigger = INT64_MAX;
                         next_jc = Active_jumps_get_next_context(
                                 player->master_params.active_jumps,
                                 &player->master_params.cur_pos.piref,

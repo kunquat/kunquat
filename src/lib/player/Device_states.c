@@ -132,6 +132,7 @@ bool Device_states_set_audio_buffer_size(Device_states* states, int32_t size)
 }
 
 
+/*
 bool Device_states_allocate_space(Device_states* states, char* key)
 {
     assert(states != NULL);
@@ -151,10 +152,11 @@ bool Device_states_allocate_space(Device_states* states, char* key)
 
     return true;
 }
+// */
 
 
 void Device_states_clear_audio_buffers(
-        Device_states* states, uint32_t start, uint32_t stop)
+        Device_states* states, int32_t start, int32_t stop)
 {
     assert(states != NULL);
 

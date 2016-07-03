@@ -92,7 +92,7 @@ struct Master_params
     Tuning_state* tuning_states[KQT_TUNING_TABLES_MAX];
 
     // Statistics
-    int16_t active_voices;
+    int active_voices;
 };
 
 

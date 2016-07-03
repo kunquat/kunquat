@@ -180,11 +180,11 @@ double LFO_step(LFO* lfo);
  * Skip a number of steps in the LFO.
  *
  * \param lfo     The LFO -- must not be \c NULL.
- * \param steps   The number of steps.
+ * \param steps   The number of steps -- must be >= \c 0.
  *
  * \return   The new value in the LFO.
  */
-double LFO_skip(LFO* lfo, uint64_t steps);
+double LFO_skip(LFO* lfo, int64_t steps);
 
 
 /**

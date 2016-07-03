@@ -111,11 +111,12 @@ double Slider_step(Slider* slider)
 }
 
 
-double Slider_skip(Slider* slider, uint64_t steps)
+double Slider_skip(Slider* slider, int64_t steps)
 {
     assert(slider != NULL);
+    assert(steps >= 0);
 
-    slider->progress += slider->progress_update * steps;
+    slider->progress += slider->progress_update * (double)steps;
 
     return Slider_get_value(slider);
 }

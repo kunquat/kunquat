@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -45,7 +45,7 @@ void Cgiter_init(Cgiter* cgiter, const Module* module, int col_index)
 
 
 static const Pat_inst_ref* find_pat_inst_ref(
-        const Module* module, int16_t track, int16_t system)
+        const Module* module, int track, int system)
 {
     assert(module != NULL);
     assert(track >= 0);
@@ -54,11 +54,11 @@ static const Pat_inst_ref* find_pat_inst_ref(
     assert(system < KQT_SYSTEMS_MAX);
 
     const Track_list* tl = Module_get_track_list(module);
-    if (tl != NULL && track < (int16_t)Track_list_get_len(tl))
+    if (tl != NULL && track < Track_list_get_len(tl))
     {
-        const int16_t cur_song = Track_list_get_song_index(tl, track);
+        const int cur_song = Track_list_get_song_index(tl, track);
         const Order_list* ol = Module_get_order_list(module, cur_song);
-        if (ol != NULL && system < (int16_t)Order_list_get_len(ol))
+        if (ol != NULL && system < Order_list_get_len(ol))
         {
             Pat_inst_ref* piref = Order_list_get_pat_inst_ref(ol, system);
             assert(piref != NULL);

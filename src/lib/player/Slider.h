@@ -111,11 +111,11 @@ double Slider_step(Slider* slider);
  * Skip a portion of the slide in the Slider.
  *
  * \param slider   The Slider -- must not be \c NULL.
- * \param steps    The number of steps to be skipped.
+ * \param steps    The number of steps to be skipped -- must be >= \c 0.
  *
  * \return   The new intermediate (or target) value in \a slider.
  */
-double Slider_skip(Slider* slider, uint64_t steps);
+double Slider_skip(Slider* slider, int64_t steps);
 
 
 /**

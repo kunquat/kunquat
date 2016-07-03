@@ -91,14 +91,15 @@ struct Channel
 /**
  * Create a new Channel.
  *
- * \param module     The Module -- must not be \c NULL.
- * \param num        The Channel number -- must be >= \c 0 and
- *                   < \c KQT_CHANNELS_MAX.
- * \param au_table   The audio unit table -- must not be \c NULL.
- * \param estate     The Environment state -- must not be \c NULL.
- * \param voices     The Voice pool -- must not be \c NULL.
- * \param tempo      A reference to the current tempo -- must not be \c NULL.
- * \param rate       A reference to the current audio rate -- must not be \c NULL.
+ * \param module       The Module -- must not be \c NULL.
+ * \param num          The Channel number -- must be >= \c 0 and
+ *                     < \c KQT_CHANNELS_MAX.
+ * \param au_table     The audio unit table -- must not be \c NULL.
+ * \param estate       The Environment state -- must not be \c NULL.
+ * \param voices       The Voice pool -- must not be \c NULL.
+ * \param tempo        A reference to the current tempo -- must not be \c NULL.
+ * \param audio_rate   A reference to the current audio rate
+ *                     -- must not be \c NULL.
  *
  * \return   The new Channel state if successful, or \c NULL if memory
  *           allocation failed.

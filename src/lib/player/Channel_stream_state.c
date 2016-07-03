@@ -326,9 +326,10 @@ bool Channel_stream_state_is_carrying_enabled(
 }
 
 
-void Channel_stream_state_update(Channel_stream_state* state, uint64_t step_count)
+void Channel_stream_state_update(Channel_stream_state* state, int64_t step_count)
 {
     assert(state != NULL);
+    assert(step_count >= 0);
 
     AAiter* iter = AAiter_init(AAITER_AUTO, state->tree);
 
