@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -43,7 +43,7 @@ void assert_print_backtrace(void)
         return;
 
     void* buffer[BACKTRACE_LEVELS_MAX + 1] = { NULL };
-    size_t size = backtrace(buffer, BACKTRACE_LEVELS_MAX + 1);
+    const int size = backtrace(buffer, BACKTRACE_LEVELS_MAX + 1);
     char** symbols = backtrace_symbols(buffer, size);
     if (symbols == NULL)
     {
@@ -53,7 +53,7 @@ void assert_print_backtrace(void)
     {
         fprintf(stderr, "Backtrace:\n");
 
-        for (size_t i = 1; i < size; ++i)
+        for (int i = 1; i < size; ++i)
             fprintf(stderr, "  %s\n", symbols[i]);
 
         if (size >= BACKTRACE_LEVELS_MAX + 1)
