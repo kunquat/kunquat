@@ -242,7 +242,7 @@ bool Device_state_add_audio_buffer(Device_state* ds, Device_port_type type, int 
  * \param stop    The first frame not to be cleared -- must be less than or
  *                equal to the buffer size.
  */
-void Device_state_clear_audio_buffers(Device_state* ds, uint32_t start, uint32_t stop);
+void Device_state_clear_audio_buffers(Device_state* ds, int32_t start, int32_t stop);
 
 
 /**

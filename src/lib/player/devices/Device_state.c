@@ -212,9 +212,11 @@ bool Device_state_add_audio_buffer(Device_state* ds, Device_port_type type, int 
 }
 
 
-void Device_state_clear_audio_buffers(Device_state* ds, uint32_t start, uint32_t stop)
+void Device_state_clear_audio_buffers(Device_state* ds, int32_t start, int32_t stop)
 {
     assert(ds != NULL);
+    assert(start >= 0);
+    assert(stop >= start);
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
