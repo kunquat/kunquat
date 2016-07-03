@@ -25,10 +25,12 @@
 #include <stdlib.h>
 
 
+#ifndef NDEBUG
 static void silent_assert(void)
 {
     kqt_suppress_assert_messages();
 }
+#endif
 
 
 START_TEST (init)
