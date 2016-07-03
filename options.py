@@ -37,6 +37,10 @@ enable_export = True
 enable_examples = True
 
 
+# Select C compiler explicitly
+# (supported values: None (autodetect, default), 'gcc', 'clang')
+cc = None
+
 # Optimisation level (0..4).
 optimise = 4
 
