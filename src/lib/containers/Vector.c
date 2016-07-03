@@ -22,9 +22,9 @@
 
 struct Vector
 {
-    size_t elem_size;
-    size_t size;
-    size_t cap;
+    int64_t elem_size;
+    int64_t size;
+    int64_t cap;
     char* elems;
 };
 
@@ -32,10 +32,10 @@ struct Vector
 #define VECTOR_INIT_CAP 4
 
 
-static bool Vector_set_capacity(Vector* v, size_t cap);
+static bool Vector_set_capacity(Vector* v, int64_t cap);
 
 
-Vector* new_Vector(size_t elem_size)
+Vector* new_Vector(int64_t elem_size)
 {
     assert(elem_size > 0);
 
@@ -57,26 +57,26 @@ Vector* new_Vector(size_t elem_size)
 }
 
 
-size_t Vector_size(const Vector* v)
+int64_t Vector_size(const Vector* v)
 {
     assert(v != NULL);
     return v->size;
 }
 
 
-void Vector_get(const Vector* v, size_t index, void* dest)
+void Vector_get(const Vector* v, int64_t index, void* dest)
 {
     assert(v != NULL);
     assert(index < v->size);
     assert(dest != NULL);
 
-    memcpy(dest, v->elems + (v->elem_size * index), v->elem_size);
+    memcpy(dest, v->elems + (v->elem_size * index), (size_t)v->elem_size);
 
     return;
 }
 
 
-void* Vector_get_ref(const Vector* v, size_t index)
+void* Vector_get_ref(const Vector* v, int64_t index)
 {
     assert(v != NULL);
     assert(index < v->size);
@@ -97,14 +97,14 @@ bool Vector_append(Vector* v, const void* elem)
             return false;
     }
 
-    memcpy(v->elems + (v->elem_size * v->size), elem, v->elem_size);
+    memcpy(v->elems + (v->elem_size * v->size), elem, (size_t)v->elem_size);
     ++v->size;
 
     return true;
 }
 
 
-static bool Vector_set_capacity(Vector* v, size_t cap)
+static bool Vector_set_capacity(Vector* v, int64_t cap)
 {
     assert(v != NULL);
     assert(cap > 0);

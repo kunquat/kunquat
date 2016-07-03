@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -24,24 +24,24 @@
 
 struct Bit_array
 {
-    size_t size;
+    int64_t size;
     uint8_t* bits;
 };
 
 
-static size_t byte_index(size_t bit_index)
+static int64_t byte_index(int64_t bit_index)
 {
     return bit_index >> 3;
 }
 
 
-static size_t bit_offset(size_t bit_index)
+static int64_t bit_offset(int64_t bit_index)
 {
     return bit_index & 0x7;
 }
 
 
-Bit_array* new_Bit_array(size_t size)
+Bit_array* new_Bit_array(int64_t size)
 {
     assert(size > 0);
 
@@ -66,35 +66,35 @@ void Bit_array_clear(Bit_array* ba)
 {
     assert(ba != NULL);
 
-    memset(ba->bits, 0, byte_index(ba->size));
+    memset(ba->bits, 0, (size_t)byte_index(ba->size));
 
     return;
 }
 
 
-void Bit_array_set(Bit_array* ba, size_t index, bool value)
+void Bit_array_set(Bit_array* ba, int64_t index, bool value)
 {
     assert(ba != NULL);
     assert(index < ba->size);
 
-    const uint8_t mask = 1 << bit_offset(index);
+    const uint8_t mask = (uint8_t)(1 << bit_offset(index));
     assert(mask != 0);
 
     if (value)
         ba->bits[byte_index(index)] |= mask;
     else
-        ba->bits[byte_index(index)] &= ~mask;
+        ba->bits[byte_index(index)] &= (uint8_t)~mask;
 
     return;
 }
 
 
-bool Bit_array_get(const Bit_array* ba, size_t index)
+bool Bit_array_get(const Bit_array* ba, int64_t index)
 {
     assert(ba != NULL);
     assert(index < ba->size);
 
-    const uint8_t mask = 1 << bit_offset(index);
+    const uint8_t mask = (uint8_t)(1 << bit_offset(index));
     assert(mask != 0);
 
     return (ba->bits[byte_index(index)] & mask) != 0;

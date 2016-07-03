@@ -147,8 +147,8 @@ bool AAtree_contains(const AAtree* tree, const void* key);
  * Insert a new element into the AAtree.
  *
  * \param tree   The AAtree -- must not be \c NULL.
- * \param elem   The new element -- must not be \c NULL and must not match an
- *               existing key.
+ * \param data   The new element data -- must not be \c NULL and must not match
+ *               an existing key.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
