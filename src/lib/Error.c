@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -125,7 +126,7 @@ void Error_set_desc_va_list(
     strcat(error->desc, "\"message\": \"");
     char message_str[ERROR_LENGTH_MAX] = "";
     vsnprintf(message_str, ERROR_LENGTH_MAX, message, args);
-    int json_pos = strlen(error->desc);
+    size_t json_pos = strlen(error->desc);
 
     for (int i = 0;
             json_pos < ERROR_LENGTH_MAX - 4 && message_str[i] != '\0';
@@ -141,7 +142,7 @@ void Error_set_desc_va_list(
             if (json_pos >= ERROR_LENGTH_MAX - 5)
                 break;
 
-            int pos = named_control - named_controls;
+            const ptrdiff_t pos = named_control - named_controls;
             assert(pos >= 0);
             assert(pos < (int)strlen(named_controls));
             strcpy(&error->desc[json_pos], named_replace[pos]);

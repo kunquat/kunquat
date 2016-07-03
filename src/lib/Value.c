@@ -75,7 +75,7 @@ bool Value_convert(Value* dest, const Value* src, Value_type new_type)
                 if ((float_val < INT64_MIN) || (float_val > INT64_MAX))
                     return false;
 
-                dest->value.int_type = float_val;
+                dest->value.int_type = (int64_t)float_val;
             }
             else if (src->type == VALUE_TYPE_TSTAMP)
             {
@@ -92,7 +92,7 @@ bool Value_convert(Value* dest, const Value* src, Value_type new_type)
             if (src->type == VALUE_TYPE_INT)
             {
                 dest->type = VALUE_TYPE_FLOAT;
-                dest->value.float_type = src->value.int_type;
+                dest->value.float_type = (double)src->value.int_type;
             }
             else if (src->type == VALUE_TYPE_TSTAMP)
             {
@@ -100,8 +100,8 @@ bool Value_convert(Value* dest, const Value* src, Value_type new_type)
 
                 const Tstamp* src_tstamp = &src->value.Tstamp_type;
                 dest->value.float_type =
-                    Tstamp_get_beats(src_tstamp) +
-                    ((double)Tstamp_get_rem(src_tstamp) / (double)KQT_TSTAMP_BEAT);
+                    (double)Tstamp_get_beats(src_tstamp) +
+                    (Tstamp_get_rem(src_tstamp) / (double)KQT_TSTAMP_BEAT);
             }
             else
                 return false;
@@ -128,8 +128,8 @@ bool Value_convert(Value* dest, const Value* src, Value_type new_type)
 
                 Tstamp_set(
                         &dest->value.Tstamp_type,
-                        beats,
-                        (beats_f - beats) * KQT_TSTAMP_BEAT);
+                        (int64_t)beats,
+                        (int32_t)((beats_f - beats) * KQT_TSTAMP_BEAT));
             }
             else
                 return false;
@@ -158,7 +158,7 @@ int Value_serialise(const Value* value, int len, char* str)
     {
         case VALUE_TYPE_NONE:
         {
-            int print_len = snprintf(str, len, "null");
+            int print_len = snprintf(str, (size_t)len, "null");
             return min(len - 1, print_len);
         }
         break;
@@ -190,7 +190,7 @@ int Value_serialise(const Value* value, int len, char* str)
         case VALUE_TYPE_STRING:
         {
             int print_len = snprintf(
-                    str, len, "\"%s\"", value->value.string_type);
+                    str, (size_t)len, "\"%s\"", value->value.string_type);
             return min(len - 1, print_len);
         }
         break;

@@ -306,7 +306,7 @@ int kqt_Handle_validate(kqt_Handle handle)
                 "Module contains song %d but no album", i);
 
         bool found = false;
-        for (size_t k = 0; k < Track_list_get_len(tl); ++k)
+        for (int k = 0; k < Track_list_get_len(tl); ++k)
         {
             if (Track_list_get_song_index(tl, k) == i)
             {
@@ -323,7 +323,7 @@ int kqt_Handle_validate(kqt_Handle handle)
                 "Song %d does not contain systems", i);
 
         // Check for missing pattern instances
-        for (size_t system = 0; system < Order_list_get_len(ol); ++system)
+        for (int system = 0; system < Order_list_get_len(ol); ++system)
         {
             const Pat_inst_ref* piref = Order_list_get_pat_inst_ref(ol, system);
             Pattern* pat = Pat_table_get(h->module->pats, piref->pat);
@@ -343,7 +343,7 @@ int kqt_Handle_validate(kqt_Handle handle)
         const Track_list* tl = h->module->track_list;
         assert(tl != NULL);
 
-        for (size_t i = 0; i < Track_list_get_len(tl); ++i)
+        for (uint16_t i = 0; i < Track_list_get_len(tl); ++i)
         {
             set_invalid_if(
                     !Song_table_get_existent(h->module->songs,
@@ -382,22 +382,20 @@ int kqt_Handle_validate(kqt_Handle handle)
                 const Track_list* tl = h->module->track_list;
                 assert(tl != NULL);
 
-                for (size_t track = 0; track < Track_list_get_len(tl); ++track)
+                for (int track = 0; track < Track_list_get_len(tl); ++track)
                 {
                     const int song_index = Track_list_get_song_index(tl, track);
 
-                    if (!Song_table_get_existent(
-                                h->module->songs,
-                                song_index))
+                    if (!Song_table_get_existent(h->module->songs, song_index))
                         continue;
 
                     const Order_list* ol = h->module->order_lists[song_index];
                     assert(ol != NULL);
 
-                    for (size_t system = 0; system < Order_list_get_len(ol); ++system)
+                    for (int system = 0; system < Order_list_get_len(ol); ++system)
                     {
-                        const Pat_inst_ref* piref = Order_list_get_pat_inst_ref(
-                                ol, system);
+                        const Pat_inst_ref* piref =
+                            Order_list_get_pat_inst_ref(ol, system);
                         if (piref->pat == i && piref->inst == k)
                         {
                             set_invalid_if(

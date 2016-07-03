@@ -28,45 +28,46 @@
 /**
  * Shorthands for common operations.
  */
-#define memory_alloc_item(type) memory_alloc(sizeof(type))
-#define memory_alloc_items(type, n) memory_alloc(sizeof(type) * (n))
-#define memory_calloc_items(type, n) memory_calloc((n), sizeof(type))
-#define memory_realloc_items(type, n, ptr) memory_realloc((ptr), sizeof(type) * (n))
+#define memory_alloc_item(type) memory_alloc((int64_t)sizeof(type))
+#define memory_alloc_items(type, n) memory_alloc((int64_t)sizeof(type) * (n))
+#define memory_calloc_items(type, n) memory_calloc((n), (int64_t)sizeof(type))
+#define memory_realloc_items(type, n, ptr) \
+    memory_realloc((ptr), (int64_t)sizeof(type) * (n))
 
 
 /**
  * Allocate a contiguous block of memory.
  *
- * \param size   The amount of bytes to be allocated.
+ * \param size   The amount of bytes to be allocated -- must be >= 0.
  *
  * \return   The starting address of the allocated memory block, or \c NULL if
  *           memory allocation failed or \a size was \c 0.
  */
-void* memory_alloc(size_t size);
+void* memory_alloc(int64_t size);
 
 
 /**
  * Allocate an initialised block of memory.
  *
- * \param item_count   Number of items to be allocated.
- * \param item_size    Size of a single item in bytes.
+ * \param item_count   Number of items to be allocated -- must be >= \c 0.
+ * \param item_size    Size of a single item in bytes -- must be >= \c 0.
  *
  * \return   The starting address of the allocated memory block, or \c NULL if
  *           memory allocation failed or one of the arguments was \c 0.
  */
-void* memory_calloc(size_t item_count, size_t item_size);
+void* memory_calloc(int64_t item_count, int64_t item_size);
 
 
 /**
  * Resize a memory block.
  *
  * \param ptr    The starting address of the memory block, or \c NULL.
- * \param size   The new size of the memory block.
+ * \param size   The new size of the memory block -- must be >= \c 0.
  *
  * \return   The starting address of the resized memory block, or \c NULL if
  *           memory allocation failed or \a size was \c 0.
  */
-void* memory_realloc(void* ptr, size_t size);
+void* memory_realloc(void* ptr, int64_t size);
 
 
 /**
