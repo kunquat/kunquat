@@ -35,8 +35,8 @@
  */
 struct Streader
 {
-    size_t pos;
-    size_t len;
+    int64_t pos;
+    int64_t len;
     int line;
     const char* str;
     Error error;
@@ -52,11 +52,11 @@ struct Streader
  * \param sr    The Streader -- must not be \c NULL.
  * \param str   The input data -- must not be \c NULL unless the data
  *              length is \c 0.
- * \param len   The length of the data.
+ * \param len   The length of the data -- must be >= \c 0.
  *
  * \return   The parameter \a sr.
  */
-Streader* Streader_init(Streader* sr, const char* str, size_t len);
+Streader* Streader_init(Streader* sr, const char* str, int64_t len);
 
 
 /**
@@ -228,13 +228,13 @@ bool Streader_read_float(Streader* sr, double* dest);
  *
  * \param sr          The Streader -- must not be \c NULL.
  * \param max_bytes   The maximum number of bytes to be written, including
- *                    the terminating '\0'.
+ *                    the terminating '\0' -- must be >= \c 0.
  * \param dest        The destination address of the string, or
  *                    \c NULL for parsing without storing the value.
  *
  * \return   \c true if a float was successfully read, otherwise \c false.
  */
-bool Streader_read_string(Streader* sr, size_t max_bytes, char* dest);
+bool Streader_read_string(Streader* sr, int64_t max_bytes, char* dest);
 
 
 /**

@@ -32,7 +32,7 @@ int serialise_bool(char* dest, int size, bool value)
     assert(dest != NULL);
     assert(size > 0);
 
-    int printed = snprintf(dest, size, "%s", value ? "true" : "false");
+    int printed = snprintf(dest, (size_t)size, "%s", value ? "true" : "false");
 
     return min(printed, size - 1);
 }
@@ -66,8 +66,8 @@ int serialise_int(char* dest, int size, int64_t value)
         {
             assert(length < INT_BUF_SIZE);
 
-            int64_t digit = left % 10;
-            result[length] = digit + '0';
+            const int64_t digit = left % 10;
+            result[length] = (char)(digit + '0');
 
             left /= 10;
             ++length;
@@ -84,7 +84,7 @@ int serialise_int(char* dest, int size, int64_t value)
         if (is_smallest)
         {
             assert(result[0] != '9'); // magnitude is a power of 2
-            result[0] += 1;
+            ++result[0];
         }
 
         // Reverse contents
@@ -97,7 +97,7 @@ int serialise_int(char* dest, int size, int64_t value)
         }
     }
 
-    int printed = snprintf(dest, size, "%s", result);
+    int printed = snprintf(dest, (size_t)size, "%s", result);
 
     return min(printed, size - 1);
 }
@@ -123,7 +123,7 @@ int serialise_float(char* dest, int size, double value)
 
     const bool is_negative = (value < 0);
     const double abs_value = fabs(value);
-    const int shift = floor(log10(abs_value));
+    const int shift = (int)floor(log10(abs_value));
 
     // Get our most significant digits
     char digits[SIGNIFICANT_MAX + 1] = "";
@@ -138,11 +138,11 @@ int serialise_float(char* dest, int size, double value)
         bool nonzero_found = false;
         for (int i = SIGNIFICANT_MAX - 1; i >= 0; --i)
         {
-            int64_t digit = scaled % 10;
+            const int64_t digit = scaled % 10;
             if (digit != 0 || nonzero_found)
             {
                 nonzero_found = true;
-                digits[i] = digit + '0';
+                digits[i] = (char)(digit + '0');
             }
 
             scaled /= 10;
@@ -162,14 +162,14 @@ int serialise_float(char* dest, int size, double value)
             assert(scaled < 10);
 
             double digit = floor(scaled);
-            digits[i] = (int)digit + '0';
+            digits[i] = (char)(digit + '0');
 
             scaled -= digit;
             assert(scaled >= 0);
         }
 
         // Remove trailing zeros
-        for (int i = strlen(digits) - 1; i >= 1; --i)
+        for (int i = (int)strlen(digits) - 1; i >= 1; --i)
         {
             if (digits[i] != '0')
                 break;
@@ -203,13 +203,13 @@ int serialise_float(char* dest, int size, double value)
         strcat(result, "e");
         const size_t cur_len = strlen(result);
         assert(cur_len < sizeof(result));
-        serialise_int(&result[cur_len], sizeof(result) - cur_len - 1, shift);
+        serialise_int(&result[cur_len], (int)(sizeof(result) - cur_len - 1), shift);
     }
     else if (shift >= 0)
     {
         const int before_point = shift + 1;
-        const int available = strlen(digits);
-        strncat(result, digits, min(before_point, available));
+        const int available = (int)strlen(digits);
+        strncat(result, digits, (size_t)min(before_point, available));
 
         if (before_point >= available)
         {
@@ -234,7 +234,7 @@ int serialise_float(char* dest, int size, double value)
     }
 
     const int copy_amount = min(size - 1, (int)strlen(result));
-    strncpy(dest, result, copy_amount);
+    strncpy(dest, result, (size_t)copy_amount);
     dest[copy_amount] = '\0';
     return copy_amount;
 }
@@ -254,7 +254,7 @@ int serialise_Pat_inst_ref(char* dest, int size, const Pat_inst_ref* value)
     serialise_int(pat_buf, INT_BUF_SIZE, value->pat);
     serialise_int(inst_buf, INT_BUF_SIZE, value->inst);
 
-    int printed = snprintf(dest, size, "[%s, %s]", pat_buf, inst_buf);
+    int printed = snprintf(dest, (size_t)size, "[%s, %s]", pat_buf, inst_buf);
 
     return min(printed, size - 1);
 }
@@ -272,7 +272,7 @@ int serialise_Tstamp(char* dest, int size, const Tstamp* value)
     serialise_int(beats_buf, INT_BUF_SIZE, Tstamp_get_beats(value));
     serialise_int(rem_buf, INT_BUF_SIZE, Tstamp_get_rem(value));
 
-    int printed = snprintf(dest, size, "[%s, %s]", beats_buf, rem_buf);
+    int printed = snprintf(dest, (size_t)size, "[%s, %s]", beats_buf, rem_buf);
 
     return min(printed, size - 1);
 }
