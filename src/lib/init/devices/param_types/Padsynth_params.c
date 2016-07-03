@@ -92,7 +92,7 @@ static bool read_param(Streader* sr, const char* key, void* userdata)
             return false;
         }
 
-        pp->sample_length = length;
+        pp->sample_length = (int32_t)length;
     }
     else if (string_eq(key, "audio_rate"))
     {
@@ -107,7 +107,7 @@ static bool read_param(Streader* sr, const char* key, void* userdata)
             return false;
         }
 
-        pp->audio_rate = rate;
+        pp->audio_rate = (int32_t)rate;
     }
     else if (string_eq(key, "sample_count"))
     {
@@ -122,7 +122,7 @@ static bool read_param(Streader* sr, const char* key, void* userdata)
             return false;
         }
 
-        pp->sample_count = sample_count;
+        pp->sample_count = (int)sample_count;
     }
     else if (string_eq(key, "pitch_range"))
     {

@@ -36,7 +36,7 @@ struct Sample
     int channels;         ///< The number of channels (1 or 2).
     int bits;             ///< The bit resolution (8, 16, 24 or 32).
     bool is_float;        ///< Whether this sample is in floating point format.
-    uint64_t len;         ///< The length of the sample (in amplitude values per channel).
+    int64_t len;          ///< The length of the sample (in amplitude values per channel).
     void* data[2];        ///< The sample data.
 };
 
@@ -65,7 +65,7 @@ Sample* new_Sample(void);
  * \return   The new Sample if successful, or \c NULL if memory allocation
  *           failed.
  */
-Sample* new_Sample_from_buffers(float* buffers[], int count, uint64_t length);
+Sample* new_Sample_from_buffers(float* buffers[], int count, int64_t length);
 
 
 /**
@@ -75,7 +75,7 @@ Sample* new_Sample_from_buffers(float* buffers[], int count, uint64_t length);
  *
  * \return   The length in frames/buffer.
  */
-uint64_t Sample_get_len(const Sample* sample);
+int64_t Sample_get_len(const Sample* sample);
 
 
 /**

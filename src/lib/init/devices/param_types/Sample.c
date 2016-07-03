@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -44,7 +44,7 @@ Sample* new_Sample(void)
 }
 
 
-Sample* new_Sample_from_buffers(float* buffers[], int count, uint64_t length)
+Sample* new_Sample_from_buffers(float* buffers[], int count, int64_t length)
 {
     assert(buffers != NULL);
     assert(count >= 1);
@@ -79,7 +79,7 @@ void* Sample_get_buffer(Sample* sample, int ch)
 }
 
 
-uint64_t Sample_get_len(const Sample* sample)
+int64_t Sample_get_len(const Sample* sample)
 {
     assert(sample != NULL);
     return sample->len;

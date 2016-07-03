@@ -38,18 +38,25 @@ bool Sample_entry_parse(Sample_entry* entry, Streader* sr)
         Streader_set_error(sr, "Sample number must be non-negative");
         return false;
     }
+    else if (sample >= 0x1000)
+    {
+        Streader_set_error(sr, "Sample number must be less than %d", 0x1000);
+        return false;
+    }
+
     if (!isfinite(sample_cents))
     {
         Streader_set_error(sr, "Sample cent offset is not finite");
         return false;
     }
+
     if (!isfinite(volume))
     {
         Streader_set_error(sr, "Volume adjustment is not finite");
         return false;
     }
 
-    entry->sample = sample;
+    entry->sample = (int)sample;
     entry->cents = sample_cents;
     entry->vol_scale = exp2(volume / 6);
 

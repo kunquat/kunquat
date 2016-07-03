@@ -208,7 +208,7 @@ bool Note_map_add_entry(Note_map* map, double cents, double force, Sample_entry*
     Random_list* list = AAtree_get_exact(map->map, key);
     if (list == NULL)
     {
-        Random_list* list = memory_alloc_item(Random_list);
+        list = memory_alloc_item(Random_list);
         if (list == NULL || !AAtree_ins(map->map, list))
         {
             memory_free(list);
