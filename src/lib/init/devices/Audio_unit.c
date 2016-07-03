@@ -46,7 +46,7 @@ typedef struct Hit_info
 } Hit_info;
 
 
-Hit_info* Hit_info_init(Hit_info* hit)
+static Hit_info* Hit_info_init(Hit_info* hit)
 {
     assert(hit != NULL);
 
@@ -57,7 +57,7 @@ Hit_info* Hit_info_init(Hit_info* hit)
 }
 
 
-void Hit_info_deinit(Hit_info* hit)
+static void Hit_info_deinit(Hit_info* hit)
 {
     assert(hit != NULL);
 

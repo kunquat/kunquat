@@ -38,7 +38,7 @@ struct Param_proc_filter
 };
 
 
-bool read_excluded(Streader* sr, int32_t index, void* userdata)
+static bool read_excluded(Streader* sr, int32_t index, void* userdata)
 {
     assert(sr != NULL);
     ignore(index);
@@ -51,7 +51,7 @@ bool read_excluded(Streader* sr, int32_t index, void* userdata)
     if (!Streader_read_string(sr, 16, proc_id))
         return false;
 
-    const Xindex proc_index = string_extract_index(proc_id, "proc_", 2, "");
+    const Xindex proc_index = (Xindex)string_extract_index(proc_id, "proc_", 2, "");
     if ((proc_index < 0) || (proc_index >= KQT_PROCESSORS_MAX))
     {
         Streader_set_error(sr, "Invalid processor ID: %s", proc_id);
@@ -110,8 +110,8 @@ bool Param_proc_filter_is_proc_allowed(const Param_proc_filter* pf, int proc_ind
     assert(proc_index >= 0);
     assert(proc_index < KQT_PROCESSORS_MAX);
 
-    const size_t length = Vector_size(pf->excluded);
-    for (size_t i = 0; i < length; ++i)
+    const int64_t length = Vector_size(pf->excluded);
+    for (int64_t i = 0; i < length; ++i)
     {
         Xindex* excluded = Vector_get_ref(pf->excluded, i);
         if (*excluded == proc_index)

@@ -141,7 +141,7 @@ void Device_impl_set_device(Device_impl* dimpl, const Device* device);
  *
  * \return   The size required for Voice states of this Device implementation.
  */
-size_t Device_impl_get_vstate_size(const Device_impl* dimpl);
+int32_t Device_impl_get_vstate_size(const Device_impl* dimpl);
 
 
 /**
@@ -447,8 +447,8 @@ bool Device_impl_create_cv_int(
  *
  * \param dimpl        The Device implementation -- must not be \c NULL.
  * \param keyp         The key pattern -- must not be \c NULL.
- * \param pstate_get   The Processor state Linear controls get function, or \c NULL.
- * \param vstate_get   The Voice state Linear controls get function, or \c NULL.
+ * \param pstate_set   The Processor state Linear controls set function, or \c NULL.
+ * \param vstate_set   The Voice state Linear controls set function, or \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */

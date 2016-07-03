@@ -26,6 +26,7 @@
 #include <Value.h>
 
 #include <math.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -248,7 +249,7 @@ static void Au_control_binding_iter_update(Au_control_binding_iter* iter)
             const char* expr = iter->iter->ext.expr_type.expression;
             assert(expr != NULL);
 
-            Streader* sr = Streader_init(STREADER_AUTO, expr, strlen(expr));
+            Streader* sr = Streader_init(STREADER_AUTO, expr, (int64_t)strlen(expr));
             Value* result = VALUE_AUTO;
 
             if (evaluate_expr(sr, NULL, &iter->src_value, result, iter->rand))
@@ -488,7 +489,7 @@ static bool read_binding_targets_generic(Streader* sr, int32_t index, void* user
     // Allocate space for the expression string
     assert(expr_end != NULL);
     assert(expr_end > expr);
-    const int expr_length = expr_end - expr;
+    const ptrdiff_t expr_length = expr_end - expr;
 
     bind_entry->ext.expr_type.expression = memory_calloc_items(char, expr_length + 1);
     if (bind_entry->ext.expr_type.expression == NULL)
@@ -498,7 +499,7 @@ static bool read_binding_targets_generic(Streader* sr, int32_t index, void* user
         return false;
     }
 
-    strncpy(bind_entry->ext.expr_type.expression, expr, expr_length);
+    strncpy(bind_entry->ext.expr_type.expression, expr, (size_t)expr_length);
     bind_entry->ext.expr_type.expression[expr_length] = '\0';
 
     return true;

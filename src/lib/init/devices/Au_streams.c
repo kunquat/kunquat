@@ -34,9 +34,6 @@ typedef struct Entry
 } Entry;
 
 
-#define ENTRY_AUTO (&(Entry){ .name = "" })
-
-
 struct Au_streams
 {
     AAtree* tree;
@@ -128,7 +125,7 @@ static bool read_stream_entry(Streader* sr, int32_t index, void* userdata)
     }
 
     strcpy(entry->name, stream_name);
-    entry->proc_index = target_proc_index;
+    entry->proc_index = (int)target_proc_index;
 
     if (!AAtree_ins(streams->tree, entry))
     {

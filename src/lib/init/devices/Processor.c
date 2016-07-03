@@ -120,6 +120,7 @@ bool Processor_get_voice_signals(const Processor* proc)
 }
 
 
+/*
 void Processor_set_signal_support(Processor* proc, bool enabled)
 {
     assert(proc != NULL);
@@ -133,6 +134,7 @@ bool Processor_get_signal_support(const Processor* proc)
     assert(proc != NULL);
     return proc->enable_signal_support;
 }
+// */
 
 
 const Au_params* Processor_get_au_params(const Processor* proc)
