@@ -16,35 +16,13 @@
 
 #include <debug/assert.h>
 #include <mathnum/hmac.h>
-#include <memory.h>
 
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
 
-struct Random
-{
-    char context[CONTEXT_LEN_MAX + 1];
-    uint64_t seed;
-    uint64_t state;
-};
-
-
-Random* new_Random(void)
-{
-    Random* random = memory_alloc_item(Random);
-    if (random == NULL)
-        return NULL;
-
-    random->context[0] = '\0';
-    Random_set_seed(random, 1);
-
-    return random;
-}
-
-
-void Random_set_context(Random* random, const char* context)
+Random* Random_init(Random* random, const char* context)
 {
     assert(random != NULL);
     assert(context != NULL);
@@ -52,7 +30,9 @@ void Random_set_context(Random* random, const char* context)
 
     strcpy(random->context, context);
 
-    return;
+    Random_set_seed(random, 1);
+
+    return random;
 }
 
 
@@ -130,13 +110,6 @@ double Random_get_float_signal(Random* random)
 
     return (double)((int64_t)bits - 0x3fffffffffffffffLL) /
                     (double)0x3fffffffffffffffLL;
-}
-
-
-void del_Random(Random* random)
-{
-    memory_free(random);
-    return;
 }
 
 

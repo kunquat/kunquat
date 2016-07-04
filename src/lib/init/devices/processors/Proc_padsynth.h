@@ -45,7 +45,7 @@ typedef struct Proc_padsynth
 {
     Device_impl parent;
 
-    Random* random;
+    Random random;
     Padsynth_sample_map* sample_map;
     bool is_ramp_attack_enabled;
     bool is_stereo_enabled;

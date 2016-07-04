@@ -685,7 +685,7 @@ static void Player_init_final(Player* player)
                         (const Device*)au,
                         player->device_states,
                         DEVICE_CONTROL_VAR_MODE_MIXED,
-                        player->master_params.random,
+                        &player->master_params.random,
                         NULL);
         }
     }

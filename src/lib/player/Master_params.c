@@ -37,8 +37,7 @@ static void Master_params_clear(Master_params* params)
     params->is_infinite = false;
     params->pattern_playback_flag = false;
 
-    Random_set_context(params->random, "m");
-    Random_set_seed(params->random, params->parent.module->random_seed);
+    Random_set_seed(&params->random, params->parent.module->random_seed);
 
     Position_init(&params->cur_pos);
     params->cur_ch = 0;
@@ -90,9 +89,10 @@ Master_params* Master_params_preinit(Master_params* params)
 
     General_state_preinit(&params->parent);
 
-    params->random = NULL;
     params->active_jumps = NULL;
     params->jump_cache = NULL;
+
+    Random_init(&params->random, "m");
 
     for (int i = 0; i < KQT_TUNING_TABLES_MAX; ++i)
         params->tuning_states[i] = NULL;
@@ -118,12 +118,9 @@ Master_params* Master_params_init(
         return NULL;
     }
 
-    params->random = new_Random();
     params->jump_cache = new_Jump_cache(KQT_JUMP_CONTEXTS_MAX);
     params->active_jumps = new_Active_jumps();
-    if ((params->random == NULL) ||
-            (params->jump_cache == NULL) ||
-            (params->active_jumps == NULL))
+    if ((params->jump_cache == NULL) || (params->active_jumps == NULL))
     {
         Master_params_deinit(params);
         return NULL;
@@ -216,10 +213,8 @@ void Master_params_deinit(Master_params* params)
 
     del_Active_jumps(params->active_jumps);
     del_Jump_cache(params->jump_cache);
-    del_Random(params->random);
     params->active_jumps = NULL;
     params->jump_cache = NULL;
-    params->random = NULL;
 
     General_state_deinit(&params->parent);
 

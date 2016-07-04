@@ -171,7 +171,7 @@ bool Event_channel_note_on_process(
 
         if (!is_voice_rand_seed_set)
         {
-            voice_rand_seed = Random_get_uint64(ch->rand);
+            voice_rand_seed = Random_get_uint64(&ch->rand);
             is_voice_rand_seed_set = true;
         }
 
@@ -319,7 +319,7 @@ bool Event_channel_hit_process(
 
         if (!is_voice_rand_seed_set)
         {
-            voice_rand_seed = Random_get_uint64(ch->rand);
+            voice_rand_seed = Random_get_uint64(&ch->rand);
             is_voice_rand_seed_set = true;
         }
 

@@ -21,9 +21,23 @@
 
 
 /**
+ * The maximum length of a random context description string.
+ */
+#define CONTEXT_LEN_MAX 15
+
+
+/**
  * This is a portable pseudo-random generator.
  */
-typedef struct Random Random;
+typedef struct Random
+{
+    char context[CONTEXT_LEN_MAX + 1];
+    uint64_t seed;
+    uint64_t state;
+} Random;
+
+
+#define RANDOM_AUTO (&(Random){ .context = "", .seed = 0, .state = 0 })
 
 
 /**
@@ -39,32 +53,16 @@ typedef struct Random Random;
 
 
 /**
- * The maximum length of a random context description string.
- */
-#define CONTEXT_LEN_MAX 15
-
-
-/**
- * Create a new Random generator.
- *
- * \return   The new Random if successful, or \c NULL if memory allocation
- *           failed.
- */
-Random* new_Random(void);
-
-
-/**
- * Set the context of the Random.
- *
- * The new context description becomes active at the next call of
- * Random_set_seed.
+ * Initialise the Random generator.
  *
  * \param random    The Random generator -- must not be \c NULL.
  * \param context   The context description -- must not be \c NULL or longer
  *                  than \c CONTEXT_LEN_MAX bytes (excluding the null
  *                  terminator).
+ *
+ * \return   The parameter \a random.
  */
-void Random_set_context(Random* random, const char* context);
+Random* Random_init(Random* random, const char* context);
 
 
 /**
@@ -152,14 +150,6 @@ double Random_get_float_scale(Random* random);
  * \return   A pseudorandom floating-point number in the range [-1.0, 1.0].
  */
 double Random_get_float_signal(Random* random);
-
-
-/**
- * Destroy an existing Random generator.
- *
- * \param random   The Random generator, or \c NULL.
- */
-void del_Random(Random* random);
 
 
 #endif // KQT_RANDOM_H
