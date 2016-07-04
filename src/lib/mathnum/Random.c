@@ -24,7 +24,7 @@
 
 
 #define EXCESS_DOUBLE_BITS (64 - DBL_MANT_DIG)
-#define DOUBLE_LIMIT ((double)(1LL << DBL_MANT_DIG))
+#define DOUBLE_LIMIT ((int64_t)1 << DBL_MANT_DIG)
 
 
 Random* Random_init(Random* random, const char* context)
@@ -85,7 +85,8 @@ uint32_t Random_get_uint32(Random* random)
 double Random_get_float_lb(Random* random)
 {
     assert(random != NULL);
-    return (double)(Random_get_uint64(random) >> EXCESS_DOUBLE_BITS) / DOUBLE_LIMIT;
+    return
+        (double)(Random_get_uint64(random) >> EXCESS_DOUBLE_BITS) / (double)DOUBLE_LIMIT;
 }
 
 
@@ -102,7 +103,8 @@ double Random_get_float_scale(Random* random)
 {
     assert(random != NULL);
     return
-        (double)(Random_get_uint64(random) >> EXCESS_DOUBLE_BITS) / (DOUBLE_LIMIT - 1);
+        (double)(Random_get_uint64(random) >> EXCESS_DOUBLE_BITS) /
+        (double)(DOUBLE_LIMIT - 1);
 }
 
 
@@ -110,11 +112,14 @@ double Random_get_float_signal(Random* random)
 {
     assert(random != NULL);
 
-    uint64_t bits = (Random_get_uint64(random) >> 1); // max: 0x7fffffffffffffff
-    bits &= ~(uint64_t)1;                             //      0x7ffffffffffffffe
+    static const int64_t max_val_abs = (DOUBLE_LIMIT >> 1) - 1;
 
-    return (double)((int64_t)bits - 0x3fffffffffffffffLL) /
-                    (double)0x3fffffffffffffffLL;
+    // Get random value in range [-max_val_abs, max_val_abs]
+    int64_t bits = (int64_t)(Random_get_uint64(random) >> EXCESS_DOUBLE_BITS);
+    bits &= ~(int64_t)1;
+    bits -= max_val_abs;
+
+    return (double)bits / (double)max_val_abs;
 }
 
 
