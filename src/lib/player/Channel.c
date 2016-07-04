@@ -30,11 +30,11 @@
 
 static bool Channel_init(Channel* ch, int num, Env_state* estate, const Module* module)
 {
-    assert(ch != NULL);
-    assert(num >= 0);
-    assert(num < KQT_COLUMNS_MAX);
-    assert(estate != NULL);
-    assert(module != NULL);
+    rassert(ch != NULL);
+    rassert(num >= 0);
+    rassert(num < KQT_COLUMNS_MAX);
+    rassert(estate != NULL);
+    rassert(module != NULL);
 
     General_state_preinit(&ch->parent);
 
@@ -70,13 +70,13 @@ Channel* new_Channel(
         double* tempo,
         int32_t* audio_rate)
 {
-    assert(num >= 0);
-    assert(num < KQT_CHANNELS_MAX);
-    assert(au_table != NULL);
-    assert(estate != NULL);
-    assert(voices != NULL);
-    assert(tempo != NULL);
-    assert(audio_rate != NULL);
+    rassert(num >= 0);
+    rassert(num < KQT_CHANNELS_MAX);
+    rassert(au_table != NULL);
+    rassert(estate != NULL);
+    rassert(voices != NULL);
+    rassert(tempo != NULL);
+    rassert(audio_rate != NULL);
 
     Channel* ch = memory_alloc_item(Channel);
     if (ch == NULL)
@@ -99,8 +99,8 @@ Channel* new_Channel(
 
 void Channel_set_audio_rate(Channel* ch, int32_t audio_rate)
 {
-    assert(ch != NULL);
-    assert(audio_rate > 0);
+    rassert(ch != NULL);
+    rassert(audio_rate > 0);
 
     Force_controls_set_audio_rate(&ch->force_controls, audio_rate);
     Pitch_controls_set_audio_rate(&ch->pitch_controls, audio_rate);
@@ -112,8 +112,8 @@ void Channel_set_audio_rate(Channel* ch, int32_t audio_rate)
 
 void Channel_set_tempo(Channel* ch, double tempo)
 {
-    assert(ch != NULL);
-    assert(tempo > 0);
+    rassert(ch != NULL);
+    rassert(tempo > 0);
 
     Force_controls_set_tempo(&ch->force_controls, tempo);
     Pitch_controls_set_tempo(&ch->pitch_controls, tempo);
@@ -125,7 +125,7 @@ void Channel_set_tempo(Channel* ch, double tempo)
 
 void Channel_set_random_seed(Channel* ch, uint64_t seed)
 {
-    assert(ch != NULL);
+    rassert(ch != NULL);
 
     Random_set_seed(&ch->rand, seed);
 
@@ -135,8 +135,8 @@ void Channel_set_random_seed(Channel* ch, uint64_t seed)
 
 void Channel_set_event_cache(Channel* ch, Event_cache* cache)
 {
-    assert(ch != NULL);
-    assert(cache != NULL);
+    rassert(ch != NULL);
+    rassert(cache != NULL);
 
     del_Event_cache(ch->event_cache);
     ch->event_cache = cache;
@@ -147,7 +147,7 @@ void Channel_set_event_cache(Channel* ch, Event_cache* cache)
 
 void Channel_reset(Channel* ch)
 {
-    assert(ch != NULL);
+    rassert(ch != NULL);
 
     General_state_reset(&ch->parent);
 
@@ -199,13 +199,13 @@ void Channel_reset(Channel* ch)
 
 void Channel_apply_defaults(Channel* ch, const Channel_defaults* ch_defaults)
 {
-    assert(ch != NULL);
-    assert(ch_defaults != NULL);
+    rassert(ch != NULL);
+    rassert(ch_defaults != NULL);
 
     ch->au_input = ch_defaults->control_num;
     bool success = Active_names_set(
             ch->parent.active_names, ACTIVE_CAT_INIT_EXPRESSION, ch_defaults->init_expr);
-    assert(success);
+    rassert(success);
 
     return;
 }
@@ -213,16 +213,16 @@ void Channel_apply_defaults(Channel* ch, const Channel_defaults* ch_defaults)
 
 Random* Channel_get_random_source(Channel* ch)
 {
-    assert(ch != NULL);
+    rassert(ch != NULL);
     return &ch->rand;
 }
 
 
 Voice* Channel_get_fg_voice(Channel* ch, int proc_index)
 {
-    assert(ch != NULL);
-    assert(proc_index >= 0);
-    assert(proc_index < KQT_PROCESSORS_MAX);
+    rassert(ch != NULL);
+    rassert(proc_index >= 0);
+    rassert(proc_index < KQT_PROCESSORS_MAX);
 
     return ch->fg[proc_index];
 }
@@ -230,7 +230,7 @@ Voice* Channel_get_fg_voice(Channel* ch, int proc_index)
 
 double Channel_get_fg_force(const Channel* ch)
 {
-    assert(ch != NULL);
+    rassert(ch != NULL);
 
     bool has_fg_voice = false;
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
@@ -250,28 +250,28 @@ double Channel_get_fg_force(const Channel* ch)
 
 const Channel_cv_state* Channel_get_cv_state(const Channel* ch)
 {
-    assert(ch != NULL);
+    rassert(ch != NULL);
     return ch->cvstate;
 }
 
 
 Channel_cv_state* Channel_get_cv_state_mut(Channel* ch)
 {
-    assert(ch != NULL);
+    rassert(ch != NULL);
     return ch->cvstate;
 }
 
 
 const Channel_stream_state* Channel_get_stream_state(const Channel* ch)
 {
-    assert(ch != NULL);
+    rassert(ch != NULL);
     return ch->csstate;
 }
 
 
 Channel_stream_state* Channel_get_stream_state_mut(Channel* ch)
 {
-    assert(ch != NULL);
+    rassert(ch != NULL);
     return ch->csstate;
 }
 

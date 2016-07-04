@@ -76,8 +76,8 @@ Device_impl* new_Proc_stream(void)
 static bool Proc_stream_set_init_value(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_stream* stream = (Proc_stream*)dimpl;
     stream->init_value = isfinite(value) ? value : 0.0;
@@ -89,8 +89,8 @@ static bool Proc_stream_set_init_value(
 static bool Proc_stream_set_init_osc_speed(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_stream* stream = (Proc_stream*)dimpl;
     stream->init_osc_speed = (isfinite(value) && (value >= 0)) ? value : 0.0;
@@ -102,8 +102,8 @@ static bool Proc_stream_set_init_osc_speed(
 static bool Proc_stream_set_init_osc_depth(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_stream* stream = (Proc_stream*)dimpl;
     stream->init_osc_depth = (isfinite(value) && (value >= 0)) ? value : 0.0;

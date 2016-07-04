@@ -72,10 +72,10 @@ Event_handler* new_Event_handler(
         Device_states* device_states,
         Au_table* au_table)
 {
-    assert(master_params != NULL);
-    assert(channels != NULL);
-    assert(device_states != NULL);
-    assert(au_table != NULL);
+    rassert(master_params != NULL);
+    rassert(channels != NULL);
+    rassert(device_states != NULL);
+    rassert(au_table != NULL);
 
     Event_handler* eh = memory_alloc_item(Event_handler);
     if (eh == NULL)
@@ -125,7 +125,7 @@ Event_handler* new_Event_handler(
 
 const Event_names* Event_handler_get_names(const Event_handler* eh)
 {
-    assert(eh != NULL);
+    rassert(eh != NULL);
     return eh->event_names;
 }
 
@@ -136,9 +136,9 @@ bool Event_handler_set_ch_process(
         bool (*ch_process)(
             Channel*, Device_states*, const Master_params*, const Value*))
 {
-    assert(eh != NULL);
-    assert(Event_is_channel(type));
-    assert(ch_process != NULL);
+    rassert(eh != NULL);
+    rassert(Event_is_channel(type));
+    rassert(ch_process != NULL);
 
     eh->ch_process[type] = ch_process;
 
@@ -151,9 +151,9 @@ bool Event_handler_set_general_process(
         Event_type type,
         bool (*general_process)(General_state*, const Value*))
 {
-    assert(eh != NULL);
-    assert(Event_is_general(type));
-    assert(general_process != NULL);
+    rassert(eh != NULL);
+    rassert(Event_is_general(type));
+    rassert(general_process != NULL);
 
     eh->general_process[type] = general_process;
 
@@ -166,9 +166,9 @@ bool Event_handler_set_control_process(
         Event_type type,
         bool (*control_process)(General_state*, Channel*, const Value*))
 {
-    assert(eh != NULL);
-    assert(Event_is_control(type));
-    assert(control_process != NULL);
+    rassert(eh != NULL);
+    rassert(Event_is_control(type));
+    rassert(control_process != NULL);
 
     eh->control_process[type] = control_process;
 
@@ -181,9 +181,9 @@ bool Event_handler_set_master_process(
         Event_type type,
         bool (*global_process)(Master_params*, const Value*))
 {
-    assert(eh != NULL);
-    assert(Event_is_master(type));
-    assert(global_process != NULL);
+    rassert(eh != NULL);
+    rassert(Event_is_master(type));
+    rassert(global_process != NULL);
 
     eh->master_process[type] = global_process;
 
@@ -203,9 +203,9 @@ bool Event_handler_set_au_process(
             Device_states*,
             const Value*))
 {
-    assert(eh != NULL);
-    assert(Event_is_au(type));
-    assert(au_process != NULL);
+    rassert(eh != NULL);
+    rassert(Event_is_au(type));
+    rassert(au_process != NULL);
 
     eh->au_process[type] = au_process;
 
@@ -219,14 +219,14 @@ static bool Event_handler_handle(
         Event_type type,
         const Value* value)
 {
-    assert(eh != NULL);
-    assert(index >= 0);
-    assert(index < KQT_COLUMNS_MAX);
-    assert(Event_is_valid(type));
-    assert(eh->channels[index]->freq != NULL);
-    assert(*eh->channels[index]->freq > 0);
-    assert(eh->channels[index]->tempo != NULL);
-    assert(*eh->channels[index]->tempo > 0);
+    rassert(eh != NULL);
+    rassert(index >= 0);
+    rassert(index < KQT_COLUMNS_MAX);
+    rassert(Event_is_valid(type));
+    rassert(eh->channels[index]->freq != NULL);
+    rassert(*eh->channels[index]->freq > 0);
+    rassert(eh->channels[index]->tempo != NULL);
+    rassert(*eh->channels[index]->tempo > 0);
 
     if (Event_is_channel(type))
     {
@@ -249,7 +249,7 @@ static bool Event_handler_handle(
             return false;
 
         const Au_params* au_params = Audio_unit_get_params(au);
-        assert(au_params != NULL);
+        rassert(au_params != NULL);
         Au_state* au_state = (Au_state*)Device_states_get_state(
                 eh->device_states,
                 Device_get_id((Device*)au));
@@ -288,21 +288,21 @@ static bool Event_handler_handle(
 bool Event_handler_trigger(
         Event_handler* eh, int ch_num, const char* name, const Value* arg)
 {
-    assert(eh != NULL);
-    assert(ch_num >= 0);
-    assert(ch_num < KQT_CHANNELS_MAX);
-    assert(name != NULL);
-    assert(arg != NULL);
+    rassert(eh != NULL);
+    rassert(ch_num >= 0);
+    rassert(ch_num < KQT_CHANNELS_MAX);
+    rassert(name != NULL);
+    rassert(arg != NULL);
 
     Event_type type = Event_names_get(eh->event_names, name);
-    assert(type != Event_NONE);
-    assert(!Event_is_query(type));
-    assert(!Event_is_auto(type));
+    rassert(type != Event_NONE);
+    rassert(!Event_is_query(type));
+    rassert(!Event_is_auto(type));
 
-    assert(eh->channels[ch_num]->freq != NULL);
-    assert(*eh->channels[ch_num]->freq > 0);
-    assert(eh->channels[ch_num]->tempo != NULL);
-    assert(*eh->channels[ch_num]->tempo > 0);
+    rassert(eh->channels[ch_num]->freq != NULL);
+    rassert(*eh->channels[ch_num]->freq > 0);
+    rassert(eh->channels[ch_num]->tempo != NULL);
+    rassert(*eh->channels[ch_num]->tempo > 0);
 
     return Event_handler_handle(eh, ch_num, type, arg);
 }
@@ -317,15 +317,15 @@ bool Event_handler_process_type(
         Event_type* event_type,
         Read_state* state)
 {
-    assert(eh != NULL);
-    assert(index >= 0);
-    assert(index < KQT_COLUMNS_MAX);
-    assert(desc != NULL);
-    assert(*desc != NULL);
-    assert(event_name != NULL);
-    assert(event_type != NULL);
-    assert(state != NULL);
-    assert(!state->error);
+    rassert(eh != NULL);
+    rassert(index >= 0);
+    rassert(index < KQT_COLUMNS_MAX);
+    rassert(desc != NULL);
+    rassert(*desc != NULL);
+    rassert(event_name != NULL);
+    rassert(event_type != NULL);
+    rassert(state != NULL);
+    rassert(!state->error);
 
     *desc = read_const_char(*desc, '[', state);
     *desc = read_string(*desc, event_name, EVENT_NAME_MAX + 2, state);
@@ -343,7 +343,7 @@ bool Event_handler_process_type(
         return false;
     }
 
-    assert(Event_is_valid(*event_type));
+    rassert(Event_is_valid(*event_type));
     if (!General_state_events_enabled((General_state*)eh->channels[index]) &&
             *event_type != Event_general_if &&
             *event_type != Event_general_else &&

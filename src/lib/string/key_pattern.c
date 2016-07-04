@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2016
  *
  * This file is part of Kunquat.
  *
@@ -25,8 +25,8 @@
 static int32_t extract_num(
         const char* section, size_t section_length, size_t* digit_count)
 {
-    assert(section != NULL);
-    assert(digit_count != NULL);
+    rassert(section != NULL);
+    rassert(digit_count != NULL);
 
     int32_t num = 0;
     int mul = 1;
@@ -55,10 +55,10 @@ static int32_t extract_num(
 
 bool extract_key_pattern(const char* key, char* key_pattern, Key_indices indices)
 {
-    assert(key != NULL);
-    assert(strlen(key) < KQT_KEY_LENGTH_MAX);
-    assert(key_pattern != NULL);
-    assert(indices != NULL);
+    rassert(key != NULL);
+    rassert(strlen(key) < KQT_KEY_LENGTH_MAX);
+    rassert(key_pattern != NULL);
+    rassert(indices != NULL);
 
     int next_index_pos = 0;
     char* keyp_write_pos = key_pattern;
@@ -86,8 +86,8 @@ bool extract_key_pattern(const char* key, char* key_pattern, Key_indices indices
             ++next_index_pos;
 
             // Create a key pattern section of format "blabla_XXX/"
-            assert(digit_count > 0);
-            assert(digit_count <= section_length);
+            rassert(digit_count > 0);
+            rassert(digit_count <= section_length);
             const size_t prefix_length = section_length - digit_count;
             strncpy(keyp_write_pos, section, prefix_length);
             memset(keyp_write_pos + prefix_length, 'X', digit_count);
@@ -108,7 +108,7 @@ bool extract_key_pattern(const char* key, char* key_pattern, Key_indices indices
     // Copy the last part of the key
     strncpy(keyp_write_pos, section, section_length);
     keyp_write_pos[section_length] = '\0';
-    assert((int)strlen(key) == (keyp_write_pos + strlen(keyp_write_pos) - key_pattern));
+    rassert((int)strlen(key) == (keyp_write_pos + strlen(keyp_write_pos) - key_pattern));
 
     return true;
 }

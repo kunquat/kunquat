@@ -29,9 +29,9 @@
 
 Voice_state* Voice_state_init(Voice_state* state, Random* rand_p, Random* rand_s)
 {
-    assert(state != NULL);
-    assert(rand_p != NULL);
-    assert(rand_s != NULL);
+    rassert(state != NULL);
+    rassert(rand_p != NULL);
+    rassert(rand_s != NULL);
 
     Voice_state_clear(state);
     state->active = true;
@@ -55,7 +55,7 @@ Voice_state* Voice_state_init(Voice_state* state, Random* rand_p, Random* rand_s
 
 Voice_state* Voice_state_clear(Voice_state* state)
 {
-    assert(state != NULL);
+    rassert(state != NULL);
 
     state->active = false;
     state->has_finished = false;
@@ -89,13 +89,13 @@ int32_t Voice_state_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
-    assert(au_state != NULL);
-    assert(wbs != NULL);
-    assert(buf_start >= 0);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
+    rassert(au_state != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     vstate->has_release_data = false;
     vstate->release_stop = buf_start;
@@ -113,7 +113,7 @@ int32_t Voice_state_render_voice(
     // Call the implementation
     const int32_t impl_render_stop = vstate->render_voice(
             vstate, proc_state, au_state, wbs, buf_start, buf_stop, tempo);
-    assert(impl_render_stop <= buf_stop);
+    rassert(impl_render_stop <= buf_stop);
 
     return impl_render_stop;
 }
@@ -125,10 +125,10 @@ void Voice_state_mix_signals(
         int32_t buf_start,
         int32_t buf_stop)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= buf_start);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= buf_start);
 
     for (int32_t port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -147,8 +147,8 @@ void Voice_state_mix_signals(
 
 void Voice_state_mark_release_data(Voice_state* vstate, int32_t release_stop)
 {
-    assert(vstate != NULL);
-    assert(release_stop >= 0);
+    rassert(vstate != NULL);
+    rassert(release_stop >= 0);
 
     vstate->has_release_data = true;
     vstate->release_stop = release_stop;
@@ -159,7 +159,7 @@ void Voice_state_mark_release_data(Voice_state* vstate, int32_t release_stop)
 
 void Voice_state_set_finished(Voice_state* vstate)
 {
-    assert(vstate != NULL);
+    rassert(vstate != NULL);
     vstate->has_finished = true;
     return;
 }
@@ -171,10 +171,10 @@ void Voice_state_cv_generic_set(
         const char* key,
         const Value* value)
 {
-    assert(vstate != NULL);
-    assert(dstate != NULL);
-    assert(key != NULL);
-    assert(value != NULL);
+    rassert(vstate != NULL);
+    rassert(dstate != NULL);
+    rassert(key != NULL);
+    rassert(value != NULL);
 
     const Device_impl* dimpl = dstate->device->dimpl;
 
@@ -211,7 +211,7 @@ void Voice_state_cv_generic_set(
         break;
 
         default:
-            assert(false);
+            rassert(false);
     }
 
     return;

@@ -28,7 +28,7 @@
 /*
 void simple_lowpass_fir_create(int n, double f, double* coeffs)
 {
-    assert(coeffs != NULL);
+    rassert(coeffs != NULL);
 
     for (int i = 0; i <= n; ++i)
         coeffs[i] = 2 * f * sinc(PI * f * (2 * i - n));
@@ -40,10 +40,10 @@ void simple_lowpass_fir_create(int n, double f, double* coeffs)
 
 void one_pole_filter_create(double f, int bandform, double coeffs[1], double* mul)
 {
-    assert(0 < f);
-    assert(f < 0.5);
-    assert(coeffs != NULL);
-    assert(mul != NULL);
+    rassert(0 < f);
+    rassert(f < 0.5);
+    rassert(coeffs != NULL);
+    rassert(mul != NULL);
 
     //    static int created = 0;
     //    fprintf(stderr, "  %d \n", ++created);
@@ -63,11 +63,11 @@ void one_pole_filter_create(double f, int bandform, double coeffs[1], double* mu
 void two_pole_bandpass_filter_create(
         double f1, double f2, double coeffs[2], double* mul)
 {
-    assert(0 < f1);
-    assert(f1 < f2);
-    assert(f2 < 0.5);
-    assert(coeffs != NULL);
-    assert(mul != NULL);
+    rassert(0 < f1);
+    rassert(f1 < f2);
+    rassert(f2 < 0.5);
+    rassert(coeffs != NULL);
+    rassert(mul != NULL);
 
     //    static int created = 0;
     //    fprintf(stderr, "  %d \n", ++created);
@@ -88,12 +88,12 @@ void two_pole_bandpass_filter_create(
 void two_pole_filter_create(
         double f, double q, int bandform, double coeffs[2], double* mul)
 {
-    assert(0 < f);
-    assert(f < 0.5);
-    assert(q >= 0.5);
-    assert(q <= 1000);
-    assert(coeffs != NULL);
-    assert(mul != NULL);
+    rassert(0 < f);
+    rassert(f < 0.5);
+    rassert(q >= 0.5);
+    rassert(q <= 1000);
+    rassert(coeffs != NULL);
+    rassert(mul != NULL);
 
     //    static int created = 0;
     //    fprintf(stderr, "  %d \n", ++created);
@@ -114,13 +114,13 @@ void two_pole_filter_create(
 void four_pole_bandpass_filter_create(
         double f1, double f2, double q, double coeffs[4], double* mul)
 {
-    assert(0  < f1);
-    assert(f1 < f2);
-    assert(f2 < 0.5);
-    assert(q >= 0.5);
-    assert(q <= 1000);
-    assert(coeffs != NULL);
-    assert(mul != NULL);
+    rassert(0  < f1);
+    rassert(f1 < f2);
+    rassert(f2 < 0.5);
+    rassert(q >= 0.5);
+    rassert(q <= 1000);
+    rassert(coeffs != NULL);
+    rassert(mul != NULL);
 
     //    static int created = 0;
     //    fprintf(stderr, "  %d \n", ++created);
@@ -154,11 +154,11 @@ void butterworth_filter_create(
         int n, double f, int bandform, double coeffs[n], double* mul)
 
 {
-    assert(0 < f);
-    assert(n > 0);
-    assert(f < 0.5);
-    assert(coeffs != NULL);
-    assert(mul != NULL);
+    rassert(0 < f);
+    rassert(n > 0);
+    rassert(f < 0.5);
+    rassert(coeffs != NULL);
+    rassert(mul != NULL);
 
     //    static int created = 0;
     //    fprintf(stderr, "  %d \n", ++created);
@@ -195,12 +195,12 @@ void butterworth_filter_create(
 void butterworth_bandpass_filter_create(
         int n, double f1, double f2, double coeffs[2*n], double* mul)
 {
-    assert(0  < f1);
-    assert(f1 < f2);
-    assert(f2 < 0.5);
-    assert(n > 0);
-    assert(coeffs != NULL);
-    assert(mul != NULL);
+    rassert(0  < f1);
+    rassert(f1 < f2);
+    rassert(f2 < 0.5);
+    rassert(n > 0);
+    rassert(coeffs != NULL);
+    rassert(mul != NULL);
 
     //    static int created = 0;
     //    fprintf(stderr, "  %d \n", ++created);
@@ -249,8 +249,8 @@ void butterworth_bandpass_filter_create(
 double iir_filter_strict_cascade(
         int n, const double coeffs[n], double buf[n], double var)
 {
-    assert(coeffs != NULL);
-    assert(buf != NULL);
+    rassert(coeffs != NULL);
+    rassert(buf != NULL);
 
     for (int i = 0; i < (n & ~((int)1)); i += 2)
     {
@@ -273,8 +273,8 @@ double iir_filter_strict_cascade(
 double iir_filter_strict_transposed_cascade(
         int n, const double coeffs[n], double buf[n], double var)
 {
-    assert(coeffs != NULL);
-    assert(buf != NULL);
+    rassert(coeffs != NULL);
+    rassert(buf != NULL);
 
     for (int i = 0; i < (n & ~((int)1)); i += 2)
     {
@@ -295,7 +295,7 @@ double iir_filter_strict_transposed_cascade(
 
 double dc_zero_filter(int n, double buf[n], double var)
 {
-    assert(buf != NULL);
+    rassert(buf != NULL);
 
     for (int i = 0; i < n; ++i)
     {
@@ -310,8 +310,8 @@ double dc_zero_filter(int n, double buf[n], double var)
 
 double dc_nq_zero_filter(int n, double buf[2*n], double var, int* s)
 {
-    assert(buf != NULL);
-    assert(s != NULL);
+    rassert(buf != NULL);
+    rassert(s != NULL);
 
     var = dc_zero_filter(n, buf + (*s & n), var);
     *s = ~*s;
@@ -322,7 +322,7 @@ double dc_nq_zero_filter(int n, double buf[2*n], double var, int* s)
 
 double dc_pole_filter(int n, double buf[n], double var)
 {
-    assert(buf != NULL);
+    rassert(buf != NULL);
 
     for (int i = 0; i < n; ++i)
     {
@@ -336,7 +336,7 @@ double dc_pole_filter(int n, double buf[n], double var)
 
 double nq_pole_filter(int n, double buf[n], double var)
 {
-    assert(buf != NULL);
+    rassert(buf != NULL);
 
     for (int i = 0; i < n; ++i)
     {
@@ -351,8 +351,8 @@ double nq_pole_filter(int n, double buf[n], double var)
 #if 0
 static void buffer(float* histbuf, const float* restrict sourcebuf, int n, int nframes)
 {
-    assert(histbuf != NULL);
-    assert(sourcebuf != NULL);
+    rassert(histbuf != NULL);
+    rassert(sourcebuf != NULL);
 
     if (nframes < n)
     {

@@ -23,12 +23,12 @@
 
 
 #ifndef NDEBUG
-    #define Tstamp_validate(ts)              \
-    if (true)                                \
-    {                                        \
-        assert((ts) != NULL);                \
-        assert((ts)->rem >= 0);              \
-        assert((ts)->rem < KQT_TSTAMP_BEAT); \
+    #define Tstamp_validate(ts)               \
+    if (true)                                 \
+    {                                         \
+        rassert((ts) != NULL);                \
+        rassert((ts)->rem >= 0);              \
+        rassert((ts)->rem < KQT_TSTAMP_BEAT); \
     } else (void)0
 #else
     #define Tstamp_validate(ts) (ignore(ts))
@@ -37,7 +37,7 @@
 
 Tstamp* Tstamp_init(Tstamp* ts)
 {
-    assert(ts != NULL);
+    rassert(ts != NULL);
 
     ts->beats = 0;
     ts->rem = 0;
@@ -65,9 +65,9 @@ int Tstamp_cmp(const Tstamp* ts1, const Tstamp* ts2)
 
 Tstamp* Tstamp_set(Tstamp* ts, int64_t beats, int32_t rem)
 {
-    assert(ts != NULL);
-    assert(rem >= 0);
-    assert(rem < KQT_TSTAMP_BEAT);
+    rassert(ts != NULL);
+    rassert(rem >= 0);
+    rassert(rem < KQT_TSTAMP_BEAT);
 
     ts->beats = beats;
     ts->rem = rem;
@@ -78,21 +78,21 @@ Tstamp* Tstamp_set(Tstamp* ts, int64_t beats, int32_t rem)
 
 int64_t Tstamp_get_beats(const Tstamp* ts)
 {
-    assert(ts != NULL);
+    rassert(ts != NULL);
     return ts->beats;
 }
 
 
 int32_t Tstamp_get_rem(const Tstamp* ts)
 {
-    assert(ts != NULL);
+    rassert(ts != NULL);
     return ts->rem;
 }
 
 
 Tstamp* Tstamp_add(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2)
 {
-    assert(result != NULL);
+    rassert(result != NULL);
     Tstamp_validate(ts1);
     Tstamp_validate(ts2);
 
@@ -108,8 +108,8 @@ Tstamp* Tstamp_add(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2)
         --result->beats;
         result->rem += (int32_t)KQT_TSTAMP_BEAT;
     }
-    assert(result->rem >= 0);
-    assert(result->rem < KQT_TSTAMP_BEAT);
+    rassert(result->rem >= 0);
+    rassert(result->rem < KQT_TSTAMP_BEAT);
 
     return result;
 }
@@ -117,7 +117,7 @@ Tstamp* Tstamp_add(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2)
 
 Tstamp* Tstamp_sub(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2)
 {
-    assert(result != NULL);
+    rassert(result != NULL);
     Tstamp_validate(ts1);
     Tstamp_validate(ts2);
 
@@ -133,8 +133,8 @@ Tstamp* Tstamp_sub(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2)
         ++result->beats;
         result->rem -= (int32_t)KQT_TSTAMP_BEAT;
     }
-    assert(result->rem >= 0);
-    assert(result->rem < KQT_TSTAMP_BEAT);
+    rassert(result->rem >= 0);
+    rassert(result->rem < KQT_TSTAMP_BEAT);
 
     return result;
 }
@@ -142,7 +142,7 @@ Tstamp* Tstamp_sub(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2)
 
 Tstamp* Tstamp_copy(Tstamp* dest, const Tstamp* src)
 {
-    assert(dest != NULL);
+    rassert(dest != NULL);
     Tstamp_validate(src);
 
     dest->beats = src->beats;
@@ -154,7 +154,7 @@ Tstamp* Tstamp_copy(Tstamp* dest, const Tstamp* src)
 
 Tstamp* Tstamp_min(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2)
 {
-    assert(result != NULL);
+    rassert(result != NULL);
     Tstamp_validate(ts1);
     Tstamp_validate(ts2);
 
@@ -170,9 +170,9 @@ Tstamp* Tstamp_min(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2)
 double Tstamp_toframes(const Tstamp* ts, double tempo, int32_t rate)
 {
     Tstamp_validate(ts);
-    assert(ts->beats >= 0);
-    assert(tempo > 0);
-    assert(rate > 0);
+    rassert(ts->beats >= 0);
+    rassert(tempo > 0);
+    rassert(rate > 0);
 
     return ((double)ts->beats + ((double)ts->rem / KQT_TSTAMP_BEAT)) *
             60 * rate / tempo;
@@ -181,10 +181,10 @@ double Tstamp_toframes(const Tstamp* ts, double tempo, int32_t rate)
 
 Tstamp* Tstamp_fromframes(Tstamp* ts, int32_t frames, double tempo, int32_t rate)
 {
-    assert(ts != NULL);
-    assert(frames >= 0);
-    assert(tempo > 0);
-    assert(rate > 0);
+    rassert(ts != NULL);
+    rassert(frames >= 0);
+    rassert(tempo > 0);
+    rassert(rate > 0);
 
     double val = (double)frames * tempo / rate / 60;
     ts->beats = (int64_t)val;

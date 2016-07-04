@@ -29,8 +29,8 @@
 
 int serialise_bool(char* dest, int size, bool value)
 {
-    assert(dest != NULL);
-    assert(size > 0);
+    rassert(dest != NULL);
+    rassert(size > 0);
 
     int printed = snprintf(dest, (size_t)size, "%s", value ? "true" : "false");
 
@@ -40,8 +40,8 @@ int serialise_bool(char* dest, int size, bool value)
 
 int serialise_int(char* dest, int size, int64_t value)
 {
-    assert(dest != NULL);
-    assert(size > 0);
+    rassert(dest != NULL);
+    rassert(size > 0);
 
     char result[INT_BUF_SIZE] = "";
     int length = 0;
@@ -64,7 +64,7 @@ int serialise_int(char* dest, int size, int64_t value)
         int64_t left = abs_value;
         while (left != 0)
         {
-            assert(length < INT_BUF_SIZE);
+            rassert(length < INT_BUF_SIZE);
 
             const int64_t digit = left % 10;
             result[length] = (char)(digit + '0');
@@ -75,7 +75,7 @@ int serialise_int(char* dest, int size, int64_t value)
 
         if (is_negative)
         {
-            assert(length < INT_BUF_SIZE);
+            rassert(length < INT_BUF_SIZE);
             result[length] = '-';
             ++length;
         }
@@ -83,7 +83,7 @@ int serialise_int(char* dest, int size, int64_t value)
         // Fix smallest value
         if (is_smallest)
         {
-            assert(result[0] != '9'); // magnitude is a power of 2
+            rassert(result[0] != '9'); // magnitude is a power of 2
             ++result[0];
         }
 
@@ -107,9 +107,9 @@ int serialise_int(char* dest, int size, int64_t value)
 
 int serialise_float(char* dest, int size, double value)
 {
-    assert(dest != NULL);
-    assert(size > 0);
-    assert(isfinite(value));
+    rassert(dest != NULL);
+    rassert(size > 0);
+    rassert(isfinite(value));
 
     // Note: Not the most accurate conversion, this is a temporary solution...
 
@@ -133,7 +133,7 @@ int serialise_float(char* dest, int size, double value)
         // Normalise so that SIGNIFICANT_MAX digits are above the decimal point
         const double scale_factor = pow(10, SIGNIFICANT_MAX - shift - 1);
         int64_t scaled = (int64_t)round(abs_value * scale_factor);
-        assert(scaled >= 0);
+        rassert(scaled >= 0);
 
         bool nonzero_found = false;
         for (int i = SIGNIFICANT_MAX - 1; i >= 0; --i)
@@ -159,13 +159,13 @@ int serialise_float(char* dest, int size, double value)
                 break;
 
             scaled *= 10;
-            assert(scaled < 10);
+            rassert(scaled < 10);
 
             double digit = floor(scaled);
             digits[i] = (char)(digit + '0');
 
             scaled -= digit;
-            assert(scaled >= 0);
+            rassert(scaled >= 0);
         }
 
         // Remove trailing zeros
@@ -178,7 +178,7 @@ int serialise_float(char* dest, int size, double value)
         }
     }
 
-    assert(strlen(digits) > 0);
+    rassert(strlen(digits) > 0);
 
     // buffer size: '-' + significand + '.' + 'e' + exp + '\0' + safety
     char result[1 + SIGNIFICANT_MAX + 1 + 1 + 3 + 1 + 8] = "";
@@ -202,7 +202,7 @@ int serialise_float(char* dest, int size, double value)
         // e<exponent>
         strcat(result, "e");
         const size_t cur_len = strlen(result);
-        assert(cur_len < sizeof(result));
+        rassert(cur_len < sizeof(result));
         serialise_int(&result[cur_len], (int)(sizeof(result) - cur_len - 1), shift);
     }
     else if (shift >= 0)
@@ -244,9 +244,9 @@ int serialise_float(char* dest, int size, double value)
 
 int serialise_Pat_inst_ref(char* dest, int size, const Pat_inst_ref* value)
 {
-    assert(dest != NULL);
-    assert(size > 0);
-    assert(value != NULL);
+    rassert(dest != NULL);
+    rassert(size > 0);
+    rassert(value != NULL);
 
     char pat_buf[INT_BUF_SIZE] = "";
     char inst_buf[INT_BUF_SIZE] = "";
@@ -262,9 +262,9 @@ int serialise_Pat_inst_ref(char* dest, int size, const Pat_inst_ref* value)
 
 int serialise_Tstamp(char* dest, int size, const Tstamp* value)
 {
-    assert(dest != NULL);
-    assert(size > 0);
-    assert(value != NULL);
+    rassert(dest != NULL);
+    rassert(size > 0);
+    rassert(value != NULL);
 
     char beats_buf[INT_BUF_SIZE] = "";
     char rem_buf[INT_BUF_SIZE] = "";

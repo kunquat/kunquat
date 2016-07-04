@@ -42,9 +42,9 @@ Active_names* new_Active_names(void)
 
 bool Active_names_set(Active_names* names, Active_cat cat, const char* name)
 {
-    assert(names != NULL);
-    assert(cat < ACTIVE_CAT_COUNT);
-    assert(name != NULL);
+    rassert(names != NULL);
+    rassert(cat < ACTIVE_CAT_COUNT);
+    rassert(name != NULL);
 
     const size_t length_limit =
         (cat == ACTIVE_CAT_CONTROL_VAR) ? KQT_KEY_LENGTH_MAX : KQT_VAR_NAME_MAX;
@@ -59,8 +59,8 @@ bool Active_names_set(Active_names* names, Active_cat cat, const char* name)
 
 const char* Active_names_get(const Active_names* names, Active_cat cat)
 {
-    assert(names != NULL);
-    assert(cat < ACTIVE_CAT_COUNT);
+    rassert(names != NULL);
+    rassert(cat < ACTIVE_CAT_COUNT);
 
     return names->names[cat];
 }
@@ -68,7 +68,7 @@ const char* Active_names_get(const Active_names* names, Active_cat cat)
 
 void Active_names_reset(Active_names* names)
 {
-    assert(names != NULL);
+    rassert(names != NULL);
     memset(names->names, '\0', sizeof(names->names));
     return;
 }

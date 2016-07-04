@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -34,7 +34,7 @@ struct Proc_table
 
 Proc_table* new_Proc_table(int size)
 {
-    assert(size > 0);
+    rassert(size > 0);
 
     Proc_table* table = memory_alloc_item(Proc_table);
     if (table == NULL)
@@ -59,9 +59,9 @@ Proc_table* new_Proc_table(int size)
 
 void Proc_table_set_existent(Proc_table* table, int index, bool existent)
 {
-    assert(table != NULL);
-    assert(index >= 0);
-    assert(index < table->size);
+    rassert(table != NULL);
+    rassert(index >= 0);
+    rassert(index < table->size);
 
     Bit_array_set(table->existents, index, existent);
 
@@ -75,10 +75,10 @@ void Proc_table_set_existent(Proc_table* table, int index, bool existent)
 
 bool Proc_table_set_proc(Proc_table* table, int index, Processor* proc)
 {
-    assert(table != NULL);
-    assert(index >= 0);
-    assert(index < table->size);
-    assert(proc != NULL);
+    rassert(table != NULL);
+    rassert(index >= 0);
+    rassert(index < table->size);
+    rassert(proc != NULL);
 
     if (!Etable_set(table->procs, index, proc))
         return false;
@@ -91,9 +91,9 @@ bool Proc_table_set_proc(Proc_table* table, int index, Processor* proc)
 
 const Processor* Proc_table_get_proc(const Proc_table* table, int index)
 {
-    assert(table != NULL);
-    assert(index >= 0);
-    assert(index < table->size);
+    rassert(table != NULL);
+    rassert(index >= 0);
+    rassert(index < table->size);
 
     return Etable_get(table->procs, index);
 }
@@ -101,9 +101,9 @@ const Processor* Proc_table_get_proc(const Proc_table* table, int index)
 
 Processor* Proc_table_get_proc_mut(Proc_table* table, int index)
 {
-    assert(table != NULL);
-    assert(index >= 0);
-    assert(index < table->size);
+    rassert(table != NULL);
+    rassert(index >= 0);
+    rassert(index < table->size);
 
     return Etable_get(table->procs, index);
 }
@@ -111,9 +111,9 @@ Processor* Proc_table_get_proc_mut(Proc_table* table, int index)
 
 void Proc_table_remove_proc(Proc_table* table, int index)
 {
-    assert(table != NULL);
-    assert(index >= 0);
-    assert(index < table->size);
+    rassert(table != NULL);
+    rassert(index >= 0);
+    rassert(index < table->size);
 
     Etable_remove(table->procs, index);
 
@@ -123,7 +123,7 @@ void Proc_table_remove_proc(Proc_table* table, int index)
 
 void Proc_table_clear(Proc_table* table)
 {
-    assert(table != NULL);
+    rassert(table != NULL);
 
     Etable_clear(table->procs);
 

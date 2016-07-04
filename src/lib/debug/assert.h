@@ -39,12 +39,7 @@ void assert_suppress_messages(void);
 #endif
 
 
-/**
- * This is an internal implementation of assert.
- */
-
-
-#if !defined(NDEBUG) && defined(HAS_EXECINFO) && !defined(SILENT_ASSERT)
+#if defined(HAS_EXECINFO) && !defined(SILENT_ASSERT)
 /**
  * Print a backtrace of the execution.
  */
@@ -57,7 +52,7 @@ void assert_print_backtrace(void);
 #endif // !HAS_EXECINFO || SILENT_ASSERT
 
 
-#if !defined(NDEBUG) && !defined(SILENT_ASSERT)
+#ifndef SILENT_ASSERT
 /**
  * Print a message of failed assertion.
  *
@@ -79,9 +74,8 @@ void assert_print_msg(
 #endif // SILENT_ASSERT
 
 
-#ifndef NDEBUG
-
-#define assert(expr)                                               \
+// Release assert that is always compiled and should be used in most cases.
+#define rassert(expr)                                              \
     (                                                              \
         (expr) ?                                                   \
             ignore(0)                                              \
@@ -93,11 +87,13 @@ void assert_print_msg(
         )                                                          \
     )
 
-#else // NDEBUG
 
-#define assert(expr) ignore(expr)
-
-#endif // NDEBUG
+// Debug assert that should only be used in performance-critical code.
+#ifndef NDEBUG
+#define dassert(expr) rassert(expr)
+#else
+#define dassert(expr) ignore(expr)
+#endif
 
 
 #endif // KQT_ASSERT_H

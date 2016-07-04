@@ -76,14 +76,14 @@ static int32_t Force_vstate_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
-    assert(au_state != NULL);
-    assert(wbs != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
+    rassert(au_state != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     // Get pitch input
     Work_buffer* pitches_wb = Proc_state_get_voice_buffer_mut(
@@ -253,7 +253,7 @@ static int32_t Force_vstate_render_voice(
         {
             // Apply force release envelope
             const Envelope* env = force->force_release_env;
-            assert(env != NULL);
+            rassert(env != NULL);
 
             const int32_t env_force_rel_stop = Time_env_state_process(
                     &fvstate->release_env_state,
@@ -341,8 +341,8 @@ static int32_t Force_vstate_render_voice(
 
 void Force_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
 
     vstate->render_voice = Force_vstate_render_voice;
 
@@ -375,8 +375,8 @@ void Force_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
 Force_controls* Force_vstate_get_force_controls_mut(Voice_state* vstate)
 {
-    assert(vstate != NULL);
-    assert(vstate->is_force_state);
+    rassert(vstate != NULL);
+    rassert(vstate->is_force_state);
 
     Force_vstate* fvstate = (Force_vstate*)vstate;
 

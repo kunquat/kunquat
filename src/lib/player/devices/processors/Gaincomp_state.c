@@ -33,11 +33,11 @@ static void distort(
         int32_t buf_start,
         int32_t buf_stop)
 {
-    assert(gc != NULL);
-    assert(in_buffer != NULL);
-    assert(out_buffer != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
+    rassert(gc != NULL);
+    rassert(in_buffer != NULL);
+    rassert(out_buffer != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
 
     if (gc->is_map_enabled && (gc->map != NULL))
     {
@@ -87,10 +87,10 @@ static void Gaincomp_pstate_render_mixed(
         int32_t buf_stop,
         double tempo)
 {
-    assert(dstate != NULL);
-    assert(wbs != NULL);
-    assert(buf_start >= 0);
-    assert(tempo > 0);
+    rassert(dstate != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(tempo > 0);
 
     // Get input
     Work_buffer* in_buffers[] =
@@ -121,9 +121,9 @@ static void Gaincomp_pstate_render_mixed(
 Device_state* new_Gaincomp_pstate(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
-    assert(device != NULL);
-    assert(audio_rate > 0);
-    assert(audio_buffer_size >= 0);
+    rassert(device != NULL);
+    rassert(audio_rate > 0);
+    rassert(audio_buffer_size >= 0);
 
     Proc_state* proc_state =
         new_Proc_state_default(device, audio_rate, audio_buffer_size);
@@ -145,14 +145,14 @@ static int32_t Gaincomp_vstate_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
-    assert(au_state != NULL);
-    assert(wbs != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
+    rassert(au_state != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     // Get input
     Work_buffer* in_buffers[] =
@@ -191,8 +191,8 @@ static int32_t Gaincomp_vstate_render_voice(
 
 void Gaincomp_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
 
     vstate->render_voice = Gaincomp_vstate_render_voice;
 

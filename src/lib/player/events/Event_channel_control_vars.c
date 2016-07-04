@@ -26,8 +26,8 @@
 
 static bool try_update_cv(Channel* ch, const Value* value)
 {
-    assert(ch != NULL);
-    assert(value != NULL);
+    rassert(ch != NULL);
+    rassert(value != NULL);
 
     const char* var_name =
         Active_names_get(ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR);
@@ -43,16 +43,16 @@ static bool try_update_cv(Channel* ch, const Value* value)
 
 static void set_cv_value_generic(Channel* ch, Device_states* dstates, const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(value != NULL);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(value != NULL);
 
     if (!try_update_cv(ch, value))
         return;
 
     const char* var_name =
         Active_names_get(ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR);
-    assert(var_name != NULL);
+    rassert(var_name != NULL);
 
     const Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
     if (au == NULL)
@@ -74,8 +74,8 @@ static void set_cv_value_generic(Channel* ch, Device_states* dstates, const Valu
 
 static void set_cv_carry(Channel* ch, Device_states* dstates, bool enabled)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
 
     const char* var_name =
         Active_names_get(ch->parent.active_names, ACTIVE_CAT_CONTROL_VAR);
@@ -94,11 +94,11 @@ bool Event_channel_set_cv_name_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_STRING);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_STRING);
 
     return set_active_name(&ch->parent, ACTIVE_CAT_CONTROL_VAR, value);
 }
@@ -110,11 +110,11 @@ bool Event_channel_set_cv_value_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(Value_type_is_realtime(value->type));
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(Value_type_is_realtime(value->type));
 
     set_cv_value_generic(ch, dstates, value);
 
@@ -128,9 +128,9 @@ bool Event_channel_carry_cv_on_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
     ignore(value);
 
     set_cv_carry(ch, dstates, true);
@@ -145,9 +145,9 @@ bool Event_channel_carry_cv_off_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
     ignore(value);
 
     set_cv_carry(ch, dstates, false);

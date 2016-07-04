@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -27,9 +27,9 @@
 bool Event_master_pattern_delay_process(
         Master_params* master_params, const Value* value)
 {
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_TSTAMP);
 
     Tstamp_copy(&master_params->delay_left, &value->value.Tstamp_type);
     return true;

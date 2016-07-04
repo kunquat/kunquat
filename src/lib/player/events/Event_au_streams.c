@@ -28,9 +28,9 @@
 static Device_state* get_target_dstate(
         const Audio_unit* au, Device_states* dstates, const char* stream_name)
 {
-    assert(au != NULL);
-    assert(dstates != NULL);
-    assert(stream_name != NULL);
+    rassert(au != NULL);
+    rassert(dstates != NULL);
+    rassert(stream_name != NULL);
 
     const Au_streams* streams = Audio_unit_get_streams(au);
     if (streams == NULL)
@@ -62,14 +62,14 @@ bool Event_au_set_stream_value_process(
         Device_states* dstates,
         const Value* value)
 {
-    assert(au != NULL);
-    assert(au_params != NULL);
-    assert(au_state != NULL);
-    assert(master_params != NULL);
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(au != NULL);
+    rassert(au_params != NULL);
+    rassert(au_state != NULL);
+    rassert(master_params != NULL);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -96,14 +96,14 @@ bool Event_au_slide_stream_target_process(
         Device_states* dstates,
         const Value* value)
 {
-    assert(au != NULL);
-    assert(au_params != NULL);
-    assert(au_state != NULL);
-    assert(master_params != NULL);
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(au != NULL);
+    rassert(au_params != NULL);
+    rassert(au_state != NULL);
+    rassert(master_params != NULL);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -130,14 +130,14 @@ bool Event_au_slide_stream_length_process(
         Device_states* dstates,
         const Value* value)
 {
-    assert(au != NULL);
-    assert(au_params != NULL);
-    assert(au_state != NULL);
-    assert(master_params != NULL);
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(au != NULL);
+    rassert(au_params != NULL);
+    rassert(au_state != NULL);
+    rassert(master_params != NULL);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_TSTAMP);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -164,14 +164,14 @@ bool Event_au_stream_osc_speed_process(
         Device_states* dstates,
         const Value* value)
 {
-    assert(au != NULL);
-    assert(au_params != NULL);
-    assert(au_state != NULL);
-    assert(master_params != NULL);
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(au != NULL);
+    rassert(au_params != NULL);
+    rassert(au_state != NULL);
+    rassert(master_params != NULL);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -198,14 +198,14 @@ bool Event_au_stream_osc_depth_process(
         Device_states* dstates,
         const Value* value)
 {
-    assert(au != NULL);
-    assert(au_params != NULL);
-    assert(au_state != NULL);
-    assert(master_params != NULL);
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(au != NULL);
+    rassert(au_params != NULL);
+    rassert(au_state != NULL);
+    rassert(master_params != NULL);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -232,14 +232,14 @@ bool Event_au_stream_osc_speed_slide_process(
         Device_states* dstates,
         const Value* value)
 {
-    assert(au != NULL);
-    assert(au_params != NULL);
-    assert(au_state != NULL);
-    assert(master_params != NULL);
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(au != NULL);
+    rassert(au_params != NULL);
+    rassert(au_state != NULL);
+    rassert(master_params != NULL);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_TSTAMP);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -266,14 +266,14 @@ bool Event_au_stream_osc_depth_slide_process(
         Device_states* dstates,
         const Value* value)
 {
-    assert(au != NULL);
-    assert(au_params != NULL);
-    assert(au_state != NULL);
-    assert(master_params != NULL);
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(au != NULL);
+    rassert(au_params != NULL);
+    rassert(au_state != NULL);
+    rassert(master_params != NULL);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_TSTAMP);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);

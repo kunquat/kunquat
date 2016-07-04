@@ -47,8 +47,8 @@ static double distance(const Random_list* list, const Random_list* key);
 
 static int Random_list_cmp(const Random_list* list1, const Random_list* list2)
 {
-    assert(list1 != NULL);
-    assert(list2 != NULL);
+    rassert(list1 != NULL);
+    rassert(list2 != NULL);
 
     if (list1->cents < list2->cents)
         return -1;
@@ -73,8 +73,8 @@ static void del_Random_list(Random_list* list)
 
 static bool read_random_list_entry(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(userdata != NULL);
 
     if (index >= NOTE_MAP_RANDOMS_MAX)
     {
@@ -94,9 +94,9 @@ static bool read_random_list_entry(Streader* sr, int32_t index, void* userdata)
 
 static bool read_mapping(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
     ignore(index);
-    assert(userdata != NULL);
+    rassert(userdata != NULL);
 
     Note_map* map = userdata;
 
@@ -161,7 +161,7 @@ static bool read_mapping(Streader* sr, int32_t index, void* userdata)
 
 Note_map* new_Note_map_from_string(Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -199,10 +199,10 @@ Note_map* new_Note_map_from_string(Streader* sr)
 
 bool Note_map_add_entry(Note_map* map, double cents, double force, Sample_entry* entry)
 {
-    assert(map != NULL);
-    assert(isfinite(cents));
-    assert(isfinite(force));
-    assert(entry != NULL);
+    rassert(map != NULL);
+    rassert(isfinite(cents));
+    rassert(isfinite(force));
+    rassert(entry != NULL);
 
     Random_list* key = &(Random_list){ .force = force, .cents = cents };
     Random_list* list = AAtree_get_exact(map->map, key);
@@ -222,7 +222,7 @@ bool Note_map_add_entry(Note_map* map, double cents, double force, Sample_entry*
 
     if (list->entry_count >= NOTE_MAP_RANDOMS_MAX)
     {
-        assert(list->entry_count == NOTE_MAP_RANDOMS_MAX);
+        rassert(list->entry_count == NOTE_MAP_RANDOMS_MAX);
         return false;
     }
 
@@ -238,8 +238,8 @@ bool Note_map_add_entry(Note_map* map, double cents, double force, Sample_entry*
 
 static double distance(const Random_list* list, const Random_list* key)
 {
-    assert(list != NULL);
-    assert(key != NULL);
+    rassert(list != NULL);
+    rassert(key != NULL);
     const double tone_d = (list->cents - key->cents) * 64;
     const double force_d = list->force - key->force;
     return hypot(tone_d, force_d);
@@ -249,10 +249,10 @@ static double distance(const Random_list* list, const Random_list* key)
 const Sample_entry* Note_map_get_entry(
         const Note_map* map, double cents, double force, Random* random)
 {
-    assert(map != NULL);
-    assert(isfinite(cents));
-    assert(isfinite(force) || (isinf(force) && force < 0));
-    assert(random != NULL);
+    rassert(map != NULL);
+    rassert(isfinite(cents));
+    rassert(isfinite(force) || (isinf(force) && force < 0));
+    rassert(random != NULL);
 
     const Random_list* key =
         &(Random_list){ .force = force, .freq = NAN, .cents = cents };
@@ -314,10 +314,10 @@ const Sample_entry* Note_map_get_entry(
     if (choice->entry_count == 0)
         return NULL;
 
-    assert(choice->entry_count <= NOTE_MAP_RANDOMS_MAX);
+    rassert(choice->entry_count <= NOTE_MAP_RANDOMS_MAX);
 //    state->middle_tone = choice->freq;
     const int index = Random_get_index(random, choice->entry_count);
-    assert(index >= 0);
+    rassert(index >= 0);
 //    fprintf(stderr, "%d\n", index);
 
     return &choice->entries[index];

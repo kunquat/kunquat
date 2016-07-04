@@ -36,8 +36,8 @@ struct Device_params
 Device_params_iter* Device_params_iter_init(
         Device_params_iter* iter, const Device_params* dparams)
 {
-    assert(iter != NULL);
-    assert(dparams != NULL);
+    rassert(iter != NULL);
+    rassert(dparams != NULL);
 
     // Init tree iterators
     AAiter_init(&iter->impl_iter, dparams->implement);
@@ -59,7 +59,7 @@ Device_params_iter* Device_params_iter_init(
 
 const char* Device_params_iter_get_next_key(Device_params_iter* iter)
 {
-    assert(iter != NULL);
+    rassert(iter != NULL);
 
     // Get the next key to be returned
     const char* ret_key = iter->next_impl_key;
@@ -68,12 +68,12 @@ const char* Device_params_iter_get_next_key(Device_params_iter* iter)
              strcmp(iter->next_config_key, ret_key) < 0))
         ret_key = iter->next_config_key;
 
-    assert(!(ret_key == NULL) ||
+    rassert(!(ret_key == NULL) ||
             (iter->next_impl_key == NULL && iter->next_config_key == NULL));
     if (ret_key == NULL)
         return NULL; // end reached
 
-    assert(iter->next_impl_key != NULL || iter->next_config_key != NULL);
+    rassert(iter->next_impl_key != NULL || iter->next_config_key != NULL);
 
     // Iterate the tree that is behind the other tree
     if (iter->next_config_key == NULL ||
@@ -96,8 +96,8 @@ const char* Device_params_iter_get_next_key(Device_params_iter* iter)
     }
 
     // Both tree iterators point to the same key, move both forwards
-    assert(iter->next_impl_key != NULL && iter->next_config_key != NULL);
-    assert(string_eq(iter->next_impl_key, iter->next_config_key));
+    rassert(iter->next_impl_key != NULL && iter->next_config_key != NULL);
+    rassert(string_eq(iter->next_impl_key, iter->next_config_key));
 
     const Device_field* impl_field = AAiter_get_next(&iter->impl_iter);
     iter->next_impl_key = (impl_field != NULL) ?
@@ -113,7 +113,7 @@ const char* Device_params_iter_get_next_key(Device_params_iter* iter)
 
 bool key_is_device_param(const char* key)
 {
-    assert(key != NULL);
+    rassert(key != NULL);
 
     if (key_is_text_device_param(key))
         return true;
@@ -127,7 +127,7 @@ bool key_is_device_param(const char* key)
 
 bool key_is_real_time_device_param(const char* key)
 {
-    assert(key != NULL);
+    rassert(key != NULL);
 
     const Device_field_type type = get_keyp_device_field_type(key);
     return type == DEVICE_FIELD_BOOL ||
@@ -139,7 +139,7 @@ bool key_is_real_time_device_param(const char* key)
 
 bool key_is_text_device_param(const char* key)
 {
-    assert(key != NULL);
+    rassert(key != NULL);
 
     if (key_is_real_time_device_param(key))
         return true;
@@ -179,11 +179,11 @@ Device_params* new_Device_params(void)
 
 bool Device_params_parse_value(Device_params* params, const char* key, Streader* sr)
 {
-    assert(params != NULL);
-    assert(key != NULL);
-    assert(string_has_prefix(key, "i/") || string_has_prefix(key, "c/"));
-    assert(key_is_device_param(key));
-    assert(sr != NULL);
+    rassert(params != NULL);
+    rassert(key != NULL);
+    rassert(string_has_prefix(key, "i/") || string_has_prefix(key, "c/"));
+    rassert(key_is_device_param(key));
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -201,10 +201,10 @@ bool Device_params_parse_value(Device_params* params, const char* key, Streader*
     }
     else
     {
-        assert(false);
+        rassert(false);
     }
 
-    assert(tree != NULL);
+    rassert(tree != NULL);
     Device_field* field = AAtree_get_exact(tree, key);
     bool success = true;
     if (field != NULL)
@@ -245,8 +245,8 @@ bool Device_params_parse_value(Device_params* params, const char* key, Streader*
 
 const bool* Device_params_get_bool(const Device_params* params, const char* key)
 {
-    assert(params != NULL);
-    assert(key != NULL);
+    rassert(params != NULL);
+    rassert(key != NULL);
 
     if (get_keyp_device_field_type(key) != DEVICE_FIELD_BOOL)
         return NULL;
@@ -259,8 +259,8 @@ const bool* Device_params_get_bool(const Device_params* params, const char* key)
 
 const int64_t* Device_params_get_int(const Device_params* params, const char* key)
 {
-    assert(params != NULL);
-    assert(key != NULL);
+    rassert(params != NULL);
+    rassert(key != NULL);
 
     if (get_keyp_device_field_type(key) != DEVICE_FIELD_INT)
         return NULL;
@@ -273,8 +273,8 @@ const int64_t* Device_params_get_int(const Device_params* params, const char* ke
 
 const double* Device_params_get_float(const Device_params* params, const char* key)
 {
-    assert(params != NULL);
-    assert(key != NULL);
+    rassert(params != NULL);
+    rassert(key != NULL);
 
     if (get_keyp_device_field_type(key) != DEVICE_FIELD_FLOAT)
         return NULL;
@@ -287,8 +287,8 @@ const double* Device_params_get_float(const Device_params* params, const char* k
 
 const Tstamp* Device_params_get_tstamp(const Device_params* params, const char* key)
 {
-    assert(params != NULL);
-    assert(key != NULL);
+    rassert(params != NULL);
+    rassert(key != NULL);
 
     if (get_keyp_device_field_type(key) != DEVICE_FIELD_TSTAMP)
         return NULL;
@@ -301,8 +301,8 @@ const Tstamp* Device_params_get_tstamp(const Device_params* params, const char* 
 
 const Envelope* Device_params_get_envelope(const Device_params* params, const char* key)
 {
-    assert(params != NULL);
-    assert(key != NULL);
+    rassert(params != NULL);
+    rassert(key != NULL);
 
     if (get_keyp_device_field_type(key) != DEVICE_FIELD_ENVELOPE)
         return NULL;
@@ -315,8 +315,8 @@ const Envelope* Device_params_get_envelope(const Device_params* params, const ch
 
 const Sample* Device_params_get_sample(const Device_params* params, const char* key)
 {
-    assert(params != NULL);
-    assert(key != NULL);
+    rassert(params != NULL);
+    rassert(key != NULL);
 
     const Device_field_type type = get_keyp_device_field_type(key);
     if ((type != DEVICE_FIELD_WAVPACK) && (type != DEVICE_FIELD_WAV))
@@ -331,8 +331,8 @@ const Sample* Device_params_get_sample(const Device_params* params, const char* 
 const Sample_params* Device_params_get_sample_params(
         const Device_params* params, const char* key)
 {
-    assert(params != NULL);
-    assert(key != NULL);
+    rassert(params != NULL);
+    rassert(key != NULL);
 
     if (get_keyp_device_field_type(key) != DEVICE_FIELD_SAMPLE_PARAMS)
         return NULL;
@@ -345,8 +345,8 @@ const Sample_params* Device_params_get_sample_params(
 
 const Note_map* Device_params_get_note_map(const Device_params* params, const char* key)
 {
-    assert(params != NULL);
-    assert(key != NULL);
+    rassert(params != NULL);
+    rassert(key != NULL);
 
     if (get_keyp_device_field_type(key) != DEVICE_FIELD_NOTE_MAP)
         return NULL;
@@ -359,8 +359,8 @@ const Note_map* Device_params_get_note_map(const Device_params* params, const ch
 
 const Hit_map* Device_params_get_hit_map(const Device_params* params, const char* key)
 {
-    assert(params != NULL);
-    assert(key != NULL);
+    rassert(params != NULL);
+    rassert(key != NULL);
 
     if (get_keyp_device_field_type(key) != DEVICE_FIELD_HIT_MAP)
         return NULL;
@@ -373,8 +373,8 @@ const Hit_map* Device_params_get_hit_map(const Device_params* params, const char
 
 const Num_list* Device_params_get_num_list(const Device_params* params, const char* key)
 {
-    assert(params != NULL);
-    assert(key != NULL);
+    rassert(params != NULL);
+    rassert(key != NULL);
 
     if (get_keyp_device_field_type(key) != DEVICE_FIELD_NUM_LIST)
         return NULL;
@@ -388,8 +388,8 @@ const Num_list* Device_params_get_num_list(const Device_params* params, const ch
 const Padsynth_params* Device_params_get_padsynth_params(
         const Device_params* params, const char* key)
 {
-    assert(params != NULL);
-    assert(key != NULL);
+    rassert(params != NULL);
+    rassert(key != NULL);
 
     if (get_keyp_device_field_type(key) != DEVICE_FIELD_PADSYNTH_PARAMS)
         return NULL;

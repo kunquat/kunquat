@@ -46,10 +46,10 @@ Sample* new_Sample(void)
 
 Sample* new_Sample_from_buffers(float* buffers[], int count, int64_t length)
 {
-    assert(buffers != NULL);
-    assert(count >= 1);
-    assert(count <= 2);
-    assert(length > 0);
+    rassert(buffers != NULL);
+    rassert(count >= 1);
+    rassert(count <= 2);
+    rassert(length > 0);
 
     Sample* sample = new_Sample();
     if (sample == NULL)
@@ -61,7 +61,7 @@ Sample* new_Sample_from_buffers(float* buffers[], int count, int64_t length)
     sample->len = length;
     for (int i = 0; i < count; ++i)
     {
-        assert(buffers[i] != NULL);
+        rassert(buffers[i] != NULL);
         sample->data[i] = buffers[i];
     }
 
@@ -71,9 +71,9 @@ Sample* new_Sample_from_buffers(float* buffers[], int count, int64_t length)
 
 void* Sample_get_buffer(Sample* sample, int ch)
 {
-    assert(sample != NULL);
-    assert(ch >= 0);
-    assert(ch < sample->channels);
+    rassert(sample != NULL);
+    rassert(ch >= 0);
+    rassert(ch < sample->channels);
 
     return sample->data[ch];
 }
@@ -81,7 +81,7 @@ void* Sample_get_buffer(Sample* sample, int ch)
 
 int64_t Sample_get_len(const Sample* sample)
 {
-    assert(sample != NULL);
+    rassert(sample != NULL);
     return sample->len;
 }
 

@@ -61,8 +61,8 @@ struct Padsynth_sample_map
 static int Padsynth_sample_entry_cmp(
         const Padsynth_sample_entry* entry1, const Padsynth_sample_entry* entry2)
 {
-    assert(entry1 != NULL);
-    assert(entry2 != NULL);
+    rassert(entry1 != NULL);
+    rassert(entry2 != NULL);
 
     if (entry1->center_pitch < entry2->center_pitch)
         return -1;
@@ -94,15 +94,15 @@ static Padsynth_sample_map* new_Padsynth_sample_map(
         double max_pitch,
         double center_pitch)
 {
-    assert(sample_count > 0);
-    assert(sample_count <= 128);
-    assert(sample_length >= PADSYNTH_MIN_SAMPLE_LENGTH);
-    assert(sample_length <= PADSYNTH_MAX_SAMPLE_LENGTH);
-    assert(is_p2(sample_length));
-    assert(isfinite(min_pitch));
-    assert(isfinite(max_pitch));
-    assert(min_pitch <= max_pitch);
-    assert(isfinite(center_pitch));
+    rassert(sample_count > 0);
+    rassert(sample_count <= 128);
+    rassert(sample_length >= PADSYNTH_MIN_SAMPLE_LENGTH);
+    rassert(sample_length <= PADSYNTH_MAX_SAMPLE_LENGTH);
+    rassert(is_p2(sample_length));
+    rassert(isfinite(min_pitch));
+    rassert(isfinite(max_pitch));
+    rassert(min_pitch <= max_pitch);
+    rassert(isfinite(center_pitch));
 
     Padsynth_sample_map* sm = memory_alloc_item(Padsynth_sample_map);
     if (sm == NULL)
@@ -172,8 +172,8 @@ static Padsynth_sample_map* new_Padsynth_sample_map(
 static void Padsynth_sample_map_set_center_pitch(
         Padsynth_sample_map* sm, double center_pitch)
 {
-    assert(sm != NULL);
-    assert(isfinite(center_pitch));
+    rassert(sm != NULL);
+    rassert(isfinite(center_pitch));
 
     sm->center_pitch = center_pitch;
 
@@ -184,10 +184,10 @@ static void Padsynth_sample_map_set_center_pitch(
 static void Padsynth_sample_map_set_pitch_range(
         Padsynth_sample_map* sm, double min_pitch, double max_pitch)
 {
-    assert(sm != NULL);
-    assert(isfinite(min_pitch));
-    assert(isfinite(max_pitch));
-    assert(min_pitch <= max_pitch);
+    rassert(sm != NULL);
+    rassert(isfinite(min_pitch));
+    rassert(isfinite(max_pitch));
+    rassert(min_pitch <= max_pitch);
 
     if (sm->min_pitch == min_pitch && sm->max_pitch == max_pitch)
         return;
@@ -201,14 +201,14 @@ static void Padsynth_sample_map_set_pitch_range(
     Padsynth_sample_entry* entry = AAiter_get_at_least(iter, key);
     for (int i = 0; i < sm->sample_count; ++i)
     {
-        assert(entry != NULL);
+        rassert(entry != NULL);
         entry->center_pitch =
             lerp(min_pitch, max_pitch, i / (double)(sm->sample_count - 1));
 
         entry = AAiter_get_next(iter);
     }
 
-    assert(entry == NULL);
+    rassert(entry == NULL);
 
     return;
 }
@@ -217,8 +217,8 @@ static void Padsynth_sample_map_set_pitch_range(
 const Padsynth_sample_entry* Padsynth_sample_map_get_entry(
         const Padsynth_sample_map* sm, double pitch)
 {
-    assert(sm != NULL);
-    assert(isfinite(pitch));
+    rassert(sm != NULL);
+    rassert(isfinite(pitch));
 
     const Padsynth_sample_entry* key = PADSYNTH_SAMPLE_ENTRY_KEY(pitch);
     const Padsynth_sample_entry* prev = AAtree_get_at_most(sm->map, key);
@@ -237,7 +237,7 @@ const Padsynth_sample_entry* Padsynth_sample_map_get_entry(
 
 int32_t Padsynth_sample_map_get_sample_length(const Padsynth_sample_map* sm)
 {
-    assert(sm != NULL);
+    rassert(sm != NULL);
     return sm->sample_length;
 }
 
@@ -299,7 +299,7 @@ Device_impl* new_Proc_padsynth(void)
 static bool Proc_padsynth_set_params(
         Device_impl* dimpl, const Key_indices indices, const Padsynth_params* params)
 {
-    assert(dimpl != NULL);
+    rassert(dimpl != NULL);
     ignore(indices);
 
     Proc_padsynth* padsynth = (Proc_padsynth*)dimpl;
@@ -311,8 +311,8 @@ static bool Proc_padsynth_set_params(
 static bool Proc_padsynth_set_ramp_attack(
         Device_impl* dimpl, const Key_indices indices, bool enabled)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_padsynth* padsynth = (Proc_padsynth*)dimpl;
     padsynth->is_ramp_attack_enabled = enabled;
@@ -324,8 +324,8 @@ static bool Proc_padsynth_set_ramp_attack(
 static bool Proc_padsynth_set_stereo(
         Device_impl* dimpl, const Key_indices indices, bool enabled)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_padsynth* padsynth = (Proc_padsynth*)dimpl;
     padsynth->is_stereo_enabled = enabled;
@@ -346,8 +346,8 @@ static double profile(double freq_i, double bandwidth_i)
 
 static double get_profile_bound(double bandwidth_i)
 {
-    assert(isfinite(bandwidth_i));
-    assert(bandwidth_i > 0);
+    rassert(isfinite(bandwidth_i));
+    rassert(bandwidth_i > 0);
 
     return 5.2247 * bandwidth_i; // 5.2247 ~ sqrt(27.2972), see profile() above
 }
@@ -361,10 +361,10 @@ static void make_padsynth_sample(
         const float* Ws,
         const Padsynth_params* params)
 {
-    assert(entry != NULL);
-    assert(freq_amp != NULL);
-    assert(freq_phase != NULL);
-    assert(Ws != NULL);
+    rassert(entry != NULL);
+    rassert(freq_amp != NULL);
+    rassert(freq_phase != NULL);
+    rassert(Ws != NULL);
 
     int32_t sample_length = PADSYNTH_DEFAULT_SAMPLE_LENGTH;
     if (params != NULL)
@@ -412,8 +412,8 @@ static void make_padsynth_sample(
             if (buf_start >= buf_length || buf_stop <= 0)
                 continue;
 
-            //assert(profile((buf_start - 1) / (double)sample_length - freq_i, bandwidth_i) == 0.0);
-            //assert(profile((buf_stop + 1) / (double)sample_length - freq_i, bandwidth_i) == 0.0);
+            //rassert(profile((buf_start - 1) / (double)sample_length - freq_i, bandwidth_i) == 0.0);
+            //rassert(profile((buf_stop + 1) / (double)sample_length - freq_i, bandwidth_i) == 0.0);
 
             buf_start = max(0, buf_start);
             buf_stop = min(buf_stop, buf_length);
@@ -483,7 +483,7 @@ static void make_padsynth_sample(
 
 static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* params)
 {
-    assert(padsynth != NULL);
+    rassert(padsynth != NULL);
 
     int32_t sample_length = PADSYNTH_DEFAULT_SAMPLE_LENGTH;
     int sample_count = 1;
@@ -567,7 +567,7 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
         const Padsynth_sample_entry* key = PADSYNTH_SAMPLE_ENTRY_KEY(-INFINITY);
         Padsynth_sample_entry* entry =
             AAtree_get_at_least(padsynth->sample_map->map, key);
-        assert(entry != NULL);
+        rassert(entry != NULL);
 
         make_padsynth_sample(entry, &padsynth->random, freq_amp, freq_phase, Ws, NULL);
     }

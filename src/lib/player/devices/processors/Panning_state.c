@@ -57,14 +57,14 @@ static void apply_panning(
         int32_t buf_stop,
         int32_t audio_rate)
 {
-    assert(isfinite(def_pan));
-    assert(def_pan >= -1);
-    assert(def_pan <= 1);
-    assert(in_buffers != NULL);
-    assert(out_buffers != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
-    assert(audio_rate > 0);
+    rassert(isfinite(def_pan));
+    rassert(def_pan >= -1);
+    rassert(def_pan <= 1);
+    rassert(in_buffers != NULL);
+    rassert(out_buffers != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+    rassert(audio_rate > 0);
 
     float* pannings = Work_buffers_get_buffer_contents_mut(wbs, CONTROL_WB_PANNING);
 
@@ -133,10 +133,10 @@ static void Panning_pstate_render_mixed(
         int32_t buf_stop,
         double tempo)
 {
-    assert(dstate != NULL);
-    assert(wbs != NULL);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(dstate != NULL);
+    rassert(wbs != NULL);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     Panning_pstate* ppstate = (Panning_pstate*)dstate;
 
@@ -171,9 +171,9 @@ static void Panning_pstate_render_mixed(
 bool Panning_pstate_set_panning(
         Device_state* dstate, const Key_indices indices, double value)
 {
-    assert(dstate != NULL);
-    assert(indices != NULL);
-    assert(isfinite(value));
+    rassert(dstate != NULL);
+    rassert(indices != NULL);
+    rassert(isfinite(value));
 
     Panning_pstate* ppstate = (Panning_pstate*)dstate;
     ppstate->def_panning = value;
@@ -185,9 +185,9 @@ bool Panning_pstate_set_panning(
 Device_state* new_Panning_pstate(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
-    assert(device != NULL);
-    assert(audio_rate > 0);
-    assert(audio_buffer_size >= 0);
+    rassert(device != NULL);
+    rassert(audio_rate > 0);
+    rassert(audio_buffer_size >= 0);
 
     Panning_pstate* ppstate = memory_alloc_item(Panning_pstate);
     if ((ppstate == NULL) ||
@@ -225,14 +225,14 @@ static int32_t Panning_vstate_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
-    assert(au_state != NULL);
-    assert(wbs != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
+    rassert(au_state != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     Panning_vstate* pvstate = (Panning_vstate*)vstate;
 
@@ -273,8 +273,8 @@ static int32_t Panning_vstate_render_voice(
 
 void Panning_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
 
     vstate->render_voice = Panning_vstate_render_voice;
 

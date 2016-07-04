@@ -36,7 +36,7 @@ typedef struct Index_mapping
 
 static Index_mapping* new_Index_mapping(Index_mapping* im)
 {
-    assert(im != NULL);
+    rassert(im != NULL);
 
     Index_mapping* new_im = memory_alloc_item(Index_mapping);
     if (new_im == NULL)
@@ -56,8 +56,8 @@ struct Order_list
 
 static bool read_piref(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(userdata != NULL);
 
     Order_list* ol = userdata;
 
@@ -102,7 +102,7 @@ static bool read_piref(Streader* sr, int32_t index, void* userdata)
 
 Order_list* new_Order_list(Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -157,7 +157,7 @@ Order_list* new_Order_list(Streader* sr)
 
 int Order_list_get_len(const Order_list* ol)
 {
-    assert(ol != NULL);
+    rassert(ol != NULL);
 
     return (int)Vector_size(ol->pat_insts);
 }
@@ -165,8 +165,8 @@ int Order_list_get_len(const Order_list* ol)
 
 Pat_inst_ref* Order_list_get_pat_inst_ref(const Order_list* ol, int index)
 {
-    assert(ol != NULL);
-    assert(index < Order_list_get_len(ol));
+    rassert(ol != NULL);
+    rassert(index < Order_list_get_len(ol));
 
     return Vector_get_ref(ol->pat_insts, index);
 }
@@ -174,8 +174,8 @@ Pat_inst_ref* Order_list_get_pat_inst_ref(const Order_list* ol, int index)
 
 bool Order_list_contains_pat_inst_ref(const Order_list* ol, const Pat_inst_ref* piref)
 {
-    assert(ol != NULL);
-    assert(piref != NULL);
+    rassert(ol != NULL);
+    rassert(piref != NULL);
 
     for (int64_t i = 0; i < Vector_size(ol->pat_insts); ++i)
     {

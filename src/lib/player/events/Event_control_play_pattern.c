@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -29,10 +29,10 @@
 bool Event_control_play_pattern_process(
         General_state* global_state, Channel* channel, const Value* value)
 {
-    assert(global_state != NULL);
-    assert(channel != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_PAT_INST_REF);
+    rassert(global_state != NULL);
+    rassert(channel != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_PAT_INST_REF);
 
     Master_params* master_params = (Master_params*)global_state;
     master_params->playback_state = PLAYBACK_PATTERN;

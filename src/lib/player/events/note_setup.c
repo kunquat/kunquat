@@ -32,19 +32,19 @@ void reserve_voice(
         int proc_num,
         uint64_t rand_seed)
 {
-    assert(ch != NULL);
-    assert(ch->freq != NULL);
-    assert(*ch->freq > 0);
-    assert(ch->tempo != NULL);
-    assert(*ch->tempo > 0);
-    assert(au != NULL);
-    assert(proc_state != NULL);
-    assert(proc_num >= 0);
-    assert(proc_num < KQT_PROCESSORS_MAX);
+    rassert(ch != NULL);
+    rassert(ch->freq != NULL);
+    rassert(*ch->freq > 0);
+    rassert(ch->tempo != NULL);
+    rassert(*ch->tempo > 0);
+    rassert(au != NULL);
+    rassert(proc_state != NULL);
+    rassert(proc_num >= 0);
+    rassert(proc_num < KQT_PROCESSORS_MAX);
 
     ++ch->fg_count;
     ch->fg[proc_num] = Voice_pool_get_voice(ch->pool, NULL, 0);
-    assert(ch->fg[proc_num] != NULL);
+    rassert(ch->fg[proc_num] != NULL);
 //    fprintf(stderr, "allocated Voice %p\n", (void*)ch->fg[proc_num]);
     ch->fg_id[proc_num] = Voice_id(ch->fg[proc_num]);
 

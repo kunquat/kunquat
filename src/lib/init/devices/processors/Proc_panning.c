@@ -66,9 +66,9 @@ Device_impl* new_Proc_panning(void)
 static bool Proc_panning_set_panning(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
-    assert(isfinite(value));
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+    rassert(isfinite(value));
 
     Proc_panning* panning = (Proc_panning*)dimpl;
     panning->panning = value;

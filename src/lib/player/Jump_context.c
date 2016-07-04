@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -44,8 +44,8 @@ Jump_context* new_Jump_context(void)
 
 int Jump_context_cmp(const Jump_context* jc1, const Jump_context* jc2)
 {
-    assert(jc1 != NULL);
-    assert(jc2 != NULL);
+    rassert(jc1 != NULL);
+    rassert(jc2 != NULL);
 
     int diff = Pat_inst_ref_cmp(&jc1->piref, &jc2->piref);
     if (diff != 0)

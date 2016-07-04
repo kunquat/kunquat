@@ -34,7 +34,7 @@ struct Freeverb_comb
 
 Freeverb_comb* new_Freeverb_comb(int32_t buffer_size)
 {
-    assert(buffer_size > 0);
+    rassert(buffer_size > 0);
 
     Freeverb_comb* comb = memory_alloc_item(Freeverb_comb);
     if (comb == NULL)
@@ -67,13 +67,13 @@ void Freeverb_comb_process(
         int32_t buf_start,
         int32_t buf_stop)
 {
-    assert(comb != NULL);
-    assert(out_buf != NULL);
-    assert(in_buf != NULL);
-    assert(refls != NULL);
-    assert(damps != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop > buf_start);
+    rassert(comb != NULL);
+    rassert(out_buf != NULL);
+    rassert(in_buf != NULL);
+    rassert(refls != NULL);
+    rassert(damps != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop > buf_start);
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
@@ -98,8 +98,8 @@ void Freeverb_comb_process(
 
 bool Freeverb_comb_resize_buffer(Freeverb_comb* comb, int32_t new_size)
 {
-    assert(comb != NULL);
-    assert(new_size > 0);
+    rassert(comb != NULL);
+    rassert(new_size > 0);
 
     if (new_size == comb->buffer_size)
         return true;
@@ -119,8 +119,8 @@ bool Freeverb_comb_resize_buffer(Freeverb_comb* comb, int32_t new_size)
 
 void Freeverb_comb_clear(Freeverb_comb* comb)
 {
-    assert(comb != NULL);
-    assert(comb->buffer != NULL);
+    rassert(comb != NULL);
+    rassert(comb->buffer != NULL);
 
     comb->filter_store = 0;
 

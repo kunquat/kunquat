@@ -25,7 +25,7 @@
 
 void Force_controls_init(Force_controls* fc, int32_t audio_rate, double tempo)
 {
-    assert(fc != NULL);
+    rassert(fc != NULL);
 
     fc->force = NAN;
     Slider_init(&fc->slider, SLIDE_MODE_LINEAR);
@@ -40,8 +40,8 @@ void Force_controls_init(Force_controls* fc, int32_t audio_rate, double tempo)
 
 void Force_controls_set_audio_rate(Force_controls* fc, int32_t audio_rate)
 {
-    assert(fc != NULL);
-    assert(audio_rate > 0);
+    rassert(fc != NULL);
+    rassert(audio_rate > 0);
 
     Slider_set_audio_rate(&fc->slider, audio_rate);
     LFO_set_audio_rate(&fc->tremolo, audio_rate);
@@ -52,8 +52,8 @@ void Force_controls_set_audio_rate(Force_controls* fc, int32_t audio_rate)
 
 void Force_controls_set_tempo(Force_controls* fc, double tempo)
 {
-    assert(fc != NULL);
-    assert(tempo > 0);
+    rassert(fc != NULL);
+    rassert(tempo > 0);
 
     Slider_set_tempo(&fc->slider, tempo);
     LFO_set_tempo(&fc->tremolo, tempo);
@@ -64,7 +64,7 @@ void Force_controls_set_tempo(Force_controls* fc, double tempo)
 
 void Force_controls_reset(Force_controls* fc)
 {
-    assert(fc != NULL);
+    rassert(fc != NULL);
 
     fc->force = NAN;
     Slider_init(&fc->slider, SLIDE_MODE_LINEAR);
@@ -77,9 +77,9 @@ void Force_controls_reset(Force_controls* fc)
 void Force_controls_copy(
         Force_controls* restrict dest, const Force_controls* restrict src)
 {
-    assert(dest != NULL);
-    assert(src != NULL);
-    assert(src != dest);
+    rassert(dest != NULL);
+    rassert(src != NULL);
+    rassert(src != dest);
 
     dest->force = src->force;
     Slider_copy(&dest->slider, &src->slider);

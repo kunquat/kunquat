@@ -52,7 +52,7 @@ struct Device_field
 
 Device_field_type get_keyp_device_field_type(const char* keyp)
 {
-    assert(keyp != NULL);
+    rassert(keyp != NULL);
 
     // Find the last element
     const char* last_elem = keyp;
@@ -94,7 +94,7 @@ Device_field_type get_keyp_device_field_type(const char* keyp)
 
 Device_field* new_Device_field(const char* key, void* data)
 {
-    assert(key != NULL);
+    rassert(key != NULL);
 
     static const size_t sizes[DEVICE_FIELD_COUNT_] =
     {
@@ -114,10 +114,10 @@ Device_field* new_Device_field(const char* key, void* data)
     };
 
     const Device_field_type type = get_keyp_device_field_type(key);
-    assert(type != DEVICE_FIELD_NONE);
+    rassert(type != DEVICE_FIELD_NONE);
 
     const size_t data_size = sizes[type];
-    assert(data_size > 0);
+    rassert(data_size > 0);
 
     Device_field* field = memory_alloc_item(Device_field);
     if (field == NULL)
@@ -144,8 +144,8 @@ Device_field* new_Device_field(const char* key, void* data)
 
 Device_field* new_Device_field_from_data(const char* key, Streader* sr)
 {
-    assert(key != NULL);
-    assert(sr != NULL);
+    rassert(key != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -170,16 +170,16 @@ Device_field* new_Device_field_from_data(const char* key, Streader* sr)
 
 const char* Device_field_get_key(const Device_field* field)
 {
-    assert(field != NULL);
+    rassert(field != NULL);
     return field->key;
 }
 
 
 bool Device_field_change(Device_field* field, Streader* sr)
 {
-    assert(field != NULL);
-    assert(field->type != DEVICE_FIELD_NONE);
-    assert(sr != NULL);
+    rassert(field != NULL);
+    rassert(field->type != DEVICE_FIELD_NONE);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -235,7 +235,7 @@ bool Device_field_change(Device_field* field, Streader* sr)
                 }
             }
 
-            assert(!Streader_is_error_set(sr));
+            rassert(!Streader_is_error_set(sr));
             if (field->data.Envelope_type != NULL)
                 del_Envelope(field->data.Envelope_type);
 
@@ -259,7 +259,7 @@ bool Device_field_change(Device_field* field, Streader* sr)
                 }
             }
 
-            assert(!Streader_is_error_set(sr));
+            rassert(!Streader_is_error_set(sr));
             if (field->data.Sample_type != NULL)
                 del_Sample(field->data.Sample_type);
 
@@ -283,7 +283,7 @@ bool Device_field_change(Device_field* field, Streader* sr)
                 }
             }
 
-            assert(!Streader_is_error_set(sr));
+            rassert(!Streader_is_error_set(sr));
             if (field->data.Sample_type != NULL)
                 del_Sample(field->data.Sample_type);
 
@@ -343,7 +343,7 @@ bool Device_field_change(Device_field* field, Streader* sr)
         break;
 
         default:
-            assert(false);
+            rassert(false);
     }
 
     if (Streader_is_error_set(sr))
@@ -357,10 +357,10 @@ bool Device_field_change(Device_field* field, Streader* sr)
 
 int Device_field_cmp(const Device_field* field1, const Device_field* field2)
 {
-    assert(field1 != NULL);
-    assert(field1->key != NULL);
-    assert(field2 != NULL);
-    assert(field2->key != NULL);
+    rassert(field1 != NULL);
+    rassert(field1->key != NULL);
+    rassert(field2 != NULL);
+    rassert(field2->key != NULL);
 
     return strcmp(field1->key, field2->key);
 }
@@ -368,12 +368,12 @@ int Device_field_cmp(const Device_field* field1, const Device_field* field2)
 
 void Device_field_set_empty(Device_field* field, bool empty)
 {
-    assert(field != NULL);
-    assert(field->type != DEVICE_FIELD_ENVELOPE);
-    assert(field->type != DEVICE_FIELD_WAVPACK);
-    assert(field->type != DEVICE_FIELD_WAV);
-    assert(field->type != DEVICE_FIELD_NOTE_MAP);
-    assert(field->type != DEVICE_FIELD_HIT_MAP);
+    rassert(field != NULL);
+    rassert(field->type != DEVICE_FIELD_ENVELOPE);
+    rassert(field->type != DEVICE_FIELD_WAVPACK);
+    rassert(field->type != DEVICE_FIELD_WAV);
+    rassert(field->type != DEVICE_FIELD_NOTE_MAP);
+    rassert(field->type != DEVICE_FIELD_HIT_MAP);
 
     field->empty = empty;
 
@@ -383,7 +383,7 @@ void Device_field_set_empty(Device_field* field, bool empty)
 
 bool Device_field_get_empty(const Device_field* field)
 {
-    assert(field != NULL);
+    rassert(field != NULL);
     return field->empty;
 }
 
@@ -391,13 +391,13 @@ bool Device_field_get_empty(const Device_field* field)
 #if 0
 bool Device_field_modify(Device_field* field, void* data)
 {
-    assert(field != NULL);
-    assert(field->type != DEVICE_FIELD_ENVELOPE);
-    assert(field->type != DEVICE_FIELD_WAVPACK);
-    assert(field->type != DEVICE_FIELD_WAV);
-    assert(field->type != DEVICE_FIELD_NOTE_MAP);
-    assert(field->type != DEVICE_FIELD_HIT_MAP);
-    assert(data != NULL);
+    rassert(field != NULL);
+    rassert(field->type != DEVICE_FIELD_ENVELOPE);
+    rassert(field->type != DEVICE_FIELD_WAVPACK);
+    rassert(field->type != DEVICE_FIELD_WAV);
+    rassert(field->type != DEVICE_FIELD_NOTE_MAP);
+    rassert(field->type != DEVICE_FIELD_HIT_MAP);
+    rassert(data != NULL);
 
     switch (field->type)
     {
@@ -418,7 +418,7 @@ bool Device_field_modify(Device_field* field, void* data)
             break;
 
         default:
-            assert(false);
+            rassert(false);
     }
 
     Device_field_set_empty(field, false);
@@ -430,8 +430,8 @@ bool Device_field_modify(Device_field* field, void* data)
 
 const bool* Device_field_get_bool(const Device_field* field)
 {
-    assert(field != NULL);
-    assert(field->type == DEVICE_FIELD_BOOL);
+    rassert(field != NULL);
+    rassert(field->type == DEVICE_FIELD_BOOL);
 
     if (field->empty)
         return NULL;
@@ -442,8 +442,8 @@ const bool* Device_field_get_bool(const Device_field* field)
 
 const int64_t* Device_field_get_int(const Device_field* field)
 {
-    assert(field != NULL);
-    assert(field->type == DEVICE_FIELD_INT);
+    rassert(field != NULL);
+    rassert(field->type == DEVICE_FIELD_INT);
 
     if (field->empty)
         return NULL;
@@ -454,8 +454,8 @@ const int64_t* Device_field_get_int(const Device_field* field)
 
 const double* Device_field_get_float(const Device_field* field)
 {
-    assert(field != NULL);
-    assert(field->type == DEVICE_FIELD_FLOAT);
+    rassert(field != NULL);
+    rassert(field->type == DEVICE_FIELD_FLOAT);
 
     if (field->empty)
         return NULL;
@@ -466,8 +466,8 @@ const double* Device_field_get_float(const Device_field* field)
 
 const Tstamp* Device_field_get_tstamp(const Device_field* field)
 {
-    assert(field != NULL);
-    assert(field->type == DEVICE_FIELD_TSTAMP);
+    rassert(field != NULL);
+    rassert(field->type == DEVICE_FIELD_TSTAMP);
 
     if (field->empty)
         return NULL;
@@ -478,8 +478,8 @@ const Tstamp* Device_field_get_tstamp(const Device_field* field)
 
 const Envelope* Device_field_get_envelope(const Device_field* field)
 {
-    assert(field != NULL);
-    assert(field->type == DEVICE_FIELD_ENVELOPE);
+    rassert(field != NULL);
+    rassert(field->type == DEVICE_FIELD_ENVELOPE);
 
     if (field->empty)
         return NULL;
@@ -490,8 +490,8 @@ const Envelope* Device_field_get_envelope(const Device_field* field)
 
 const Sample* Device_field_get_sample(const Device_field* field)
 {
-    assert(field != NULL);
-    assert((field->type == DEVICE_FIELD_WAVPACK) || (field->type == DEVICE_FIELD_WAV));
+    rassert(field != NULL);
+    rassert((field->type == DEVICE_FIELD_WAVPACK) || (field->type == DEVICE_FIELD_WAV));
 
     if (field->empty)
         return NULL;
@@ -502,8 +502,8 @@ const Sample* Device_field_get_sample(const Device_field* field)
 
 const Sample_params* Device_field_get_sample_params(const Device_field* field)
 {
-    assert(field != NULL);
-    assert(field->type == DEVICE_FIELD_SAMPLE_PARAMS);
+    rassert(field != NULL);
+    rassert(field->type == DEVICE_FIELD_SAMPLE_PARAMS);
 
     if (field->empty)
         return NULL;
@@ -514,8 +514,8 @@ const Sample_params* Device_field_get_sample_params(const Device_field* field)
 
 const Note_map* Device_field_get_note_map(const Device_field* field)
 {
-    assert(field != NULL);
-    assert(field->type == DEVICE_FIELD_NOTE_MAP);
+    rassert(field != NULL);
+    rassert(field->type == DEVICE_FIELD_NOTE_MAP);
 
     if (field->empty)
         return NULL;
@@ -526,8 +526,8 @@ const Note_map* Device_field_get_note_map(const Device_field* field)
 
 const Hit_map* Device_field_get_hit_map(const Device_field* field)
 {
-    assert(field != NULL);
-    assert(field->type == DEVICE_FIELD_HIT_MAP);
+    rassert(field != NULL);
+    rassert(field->type == DEVICE_FIELD_HIT_MAP);
 
     if (field->empty)
         return NULL;
@@ -538,8 +538,8 @@ const Hit_map* Device_field_get_hit_map(const Device_field* field)
 
 const Num_list* Device_field_get_num_list(const Device_field* field)
 {
-    assert(field != NULL);
-    assert(field->type == DEVICE_FIELD_NUM_LIST);
+    rassert(field != NULL);
+    rassert(field->type == DEVICE_FIELD_NUM_LIST);
 
     if (field->empty)
         return NULL;
@@ -550,8 +550,8 @@ const Num_list* Device_field_get_num_list(const Device_field* field)
 
 const Padsynth_params* Device_field_get_padsynth_params(const Device_field* field)
 {
-    assert(field != NULL);
-    assert(field->type == DEVICE_FIELD_PADSYNTH_PARAMS);
+    rassert(field != NULL);
+    rassert(field->type == DEVICE_FIELD_PADSYNTH_PARAMS);
 
     if (field->empty)
         return NULL;

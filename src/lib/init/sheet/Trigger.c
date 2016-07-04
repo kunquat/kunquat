@@ -24,8 +24,8 @@
 
 Trigger* new_Trigger(Event_type type, Tstamp* pos)
 {
-    assert(Event_is_valid(type));
-    assert(pos != NULL);
+    rassert(Event_is_valid(type));
+    rassert(pos != NULL);
 
     Trigger* trigger = memory_alloc_item(Trigger);
     if (trigger == NULL)
@@ -41,8 +41,8 @@ Trigger* new_Trigger(Event_type type, Tstamp* pos)
 
 Trigger* new_Trigger_from_string(Streader* sr, const Event_names* names)
 {
-    assert(sr != NULL);
-    assert(names != NULL);
+    rassert(sr != NULL);
+    rassert(names != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -119,21 +119,21 @@ Trigger* new_Trigger_from_string(Streader* sr, const Event_names* names)
 
 const Tstamp* Trigger_get_pos(const Trigger* trigger)
 {
-    assert(trigger != NULL);
+    rassert(trigger != NULL);
     return &trigger->pos;
 }
 
 
 Event_type Trigger_get_type(const Trigger* trigger)
 {
-    assert(trigger != NULL);
+    rassert(trigger != NULL);
     return trigger->type;
 }
 
 
 const char* Trigger_get_desc(const Trigger* trigger)
 {
-    assert(trigger != NULL);
+    rassert(trigger != NULL);
     return trigger->desc;
 }
 
@@ -143,7 +143,7 @@ void del_Trigger(Trigger* trigger)
     if (trigger == NULL)
         return;
 
-    assert(Event_is_valid(trigger->type));
+    rassert(Event_is_valid(trigger->type));
     memory_free(trigger->desc);
     memory_free(trigger);
 

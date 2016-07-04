@@ -30,8 +30,8 @@
  */
 static inline double fast_sin(double x)
 {
-    assert(x >= 0);
-    assert(x <= 2.0 * PI);
+    rassert(x >= 0);
+    rassert(x <= 2.0 * PI);
 
     // Use a parabolic approximation based on:
     // http://forum.devmaster.net/t/fast-and-accurate-sine-cosine/9648

@@ -42,8 +42,8 @@ static const char EMPTY_BUFFER[] = "[]";
 
 Event_buffer* new_Event_buffer(int32_t size)
 {
-    assert(size >= 0);
-    assert(size <= EVENT_BUF_SIZE_MAX);
+    rassert(size >= 0);
+    rassert(size <= EVENT_BUF_SIZE_MAX);
 
     Event_buffer* ebuf = memory_alloc_item(Event_buffer);
     if (ebuf == NULL)
@@ -73,14 +73,14 @@ Event_buffer* new_Event_buffer(int32_t size)
 
 bool Event_buffer_is_empty(const Event_buffer* ebuf)
 {
-    assert(ebuf != NULL);
+    rassert(ebuf != NULL);
     return string_eq(ebuf->buf, EMPTY_BUFFER);
 }
 
 
 bool Event_buffer_is_full(const Event_buffer* ebuf)
 {
-    assert(ebuf != NULL);
+    rassert(ebuf != NULL);
     return (ebuf->size < EVENT_LEN_MAX) ||
         (ebuf->write_pos >= ebuf->size - EVENT_LEN_MAX);
 }
@@ -88,8 +88,8 @@ bool Event_buffer_is_full(const Event_buffer* ebuf)
 
 void Event_buffer_reset_add_counter(Event_buffer* ebuf)
 {
-    assert(ebuf != NULL);
-    assert(!ebuf->is_skipping);
+    rassert(ebuf != NULL);
+    rassert(!ebuf->is_skipping);
 
     ebuf->events_added = 0;
 
@@ -99,10 +99,10 @@ void Event_buffer_reset_add_counter(Event_buffer* ebuf)
 
 void Event_buffer_start_skipping(Event_buffer* ebuf)
 {
-    assert(ebuf != NULL);
-    assert(!ebuf->is_skipping);
-    assert(Event_buffer_is_full(ebuf));
-    assert(ebuf->events_added > 0);
+    rassert(ebuf != NULL);
+    rassert(!ebuf->is_skipping);
+    rassert(Event_buffer_is_full(ebuf));
+    rassert(ebuf->events_added > 0);
 
     ebuf->is_skipping = true;
     ebuf->events_skipped = 0;
@@ -113,37 +113,37 @@ void Event_buffer_start_skipping(Event_buffer* ebuf)
 
 bool Event_buffer_is_skipping(const Event_buffer* ebuf)
 {
-    assert(ebuf != NULL);
+    rassert(ebuf != NULL);
     return ebuf->is_skipping;
 }
 
 
 const char* Event_buffer_get_events(const Event_buffer* ebuf)
 {
-    assert(ebuf != NULL);
+    rassert(ebuf != NULL);
     return ebuf->buf;
 }
 
 
 void Event_buffer_add(Event_buffer* ebuf, int ch, const char* name, const Value* arg)
 {
-    assert(ebuf != NULL);
-    assert(!Event_buffer_is_full(ebuf));
-    assert(ch >= 0);
-    assert(ch < KQT_CHANNELS_MAX);
-    assert(name != NULL);
-    assert(arg != NULL);
+    rassert(ebuf != NULL);
+    rassert(!Event_buffer_is_full(ebuf));
+    rassert(ch >= 0);
+    rassert(ch < KQT_CHANNELS_MAX);
+    rassert(name != NULL);
+    rassert(arg != NULL);
 
     // Skipping mode
     if (ebuf->is_skipping)
     {
         // This event has already been processed
-        assert(ebuf->events_skipped < ebuf->events_added);
+        rassert(ebuf->events_skipped < ebuf->events_added);
 
         ++ebuf->events_skipped;
         if (ebuf->events_skipped >= ebuf->events_added)
         {
-            assert(ebuf->events_skipped == ebuf->events_added);
+            rassert(ebuf->events_skipped == ebuf->events_added);
             ebuf->is_skipping = false;
         }
 
@@ -161,7 +161,7 @@ void Event_buffer_add(Event_buffer* ebuf, int ch, const char* name, const Value*
 
     // Name
     const size_t len = strlen(name);
-    assert(len > 0);
+    rassert(len > 0);
     if (name[len - 1] == '"')
     {
         // Print with properly escaped trailing double quote
@@ -192,7 +192,7 @@ void Event_buffer_add(Event_buffer* ebuf, int ch, const char* name, const Value*
 
     // Update the write position
     ebuf->write_pos += advance;
-    assert(ebuf->write_pos < ebuf->size);
+    rassert(ebuf->write_pos < ebuf->size);
 
     // Close the list
     strcpy(ebuf->buf + ebuf->write_pos, "]");
@@ -205,7 +205,7 @@ void Event_buffer_add(Event_buffer* ebuf, int ch, const char* name, const Value*
 
 void Event_buffer_clear(Event_buffer* ebuf)
 {
-    assert(ebuf != NULL);
+    rassert(ebuf != NULL);
 
     strcpy(ebuf->buf, EMPTY_BUFFER);
     ebuf->write_pos = 1;

@@ -28,9 +28,9 @@
 
 Streader* Streader_init(Streader* sr, const char* str, int64_t len)
 {
-    assert(sr != NULL);
-    assert(str != NULL || len == 0);
-    assert(len >= 0);
+    rassert(sr != NULL);
+    rassert(str != NULL || len == 0);
+    rassert(len >= 0);
 
     sr->pos = 0;
     sr->len = len;
@@ -44,22 +44,22 @@ Streader* Streader_init(Streader* sr, const char* str, int64_t len)
 
 bool Streader_is_error_set(const Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
     return Error_is_set(&sr->error);
 }
 
 
 const char* Streader_get_error_desc(const Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
     return Error_get_desc(&sr->error);
 }
 
 
 void Streader_set_error(Streader* sr, const char* format, ...)
 {
-    assert(sr != NULL);
-    assert(format != NULL);
+    rassert(sr != NULL);
+    rassert(format != NULL);
 
     va_list args;
     va_start(args, format);
@@ -73,8 +73,8 @@ void Streader_set_error(Streader* sr, const char* format, ...)
 
 void Streader_set_memory_error(Streader* sr, const char* format, ...)
 {
-    assert(sr != NULL);
-    assert(format != NULL);
+    rassert(sr != NULL);
+    rassert(format != NULL);
 
     va_list args;
     va_start(args, format);
@@ -88,7 +88,7 @@ void Streader_set_memory_error(Streader* sr, const char* format, ...)
 
 void Streader_clear_error(Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
     Error_clear(&sr->error);
     return;
 }
@@ -96,19 +96,19 @@ void Streader_clear_error(Streader* sr)
 
 static bool Streader_end_reached(const Streader* sr)
 {
-    assert(sr != NULL);
-    assert(sr->pos <= sr->len);
+    rassert(sr != NULL);
+    rassert(sr->pos <= sr->len);
 
     return sr->pos == sr->len;
 }
 
 
-#define CUR_CH (assert(!Streader_end_reached(sr)), sr->str[sr->pos])
+#define CUR_CH (rassert(!Streader_end_reached(sr)), sr->str[sr->pos])
 
 
 const char* Streader_get_remaining_data(const Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_end_reached(sr))
         return NULL;
@@ -119,7 +119,7 @@ const char* Streader_get_remaining_data(const Streader* sr)
 
 static void print_wrong_char(char dest[5], char ch)
 {
-    assert(dest != NULL);
+    rassert(dest != NULL);
 
     if (isprint(ch))
         snprintf(dest, 5, "'%c'", ch);
@@ -132,7 +132,7 @@ static void print_wrong_char(char dest[5], char ch)
 
 bool Streader_skip_whitespace(Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -145,7 +145,7 @@ bool Streader_skip_whitespace(Streader* sr)
         ++sr->pos;
     }
 
-    assert(sr->pos <= sr->len);
+    rassert(sr->pos <= sr->len);
 
     return true;
 }
@@ -153,8 +153,8 @@ bool Streader_skip_whitespace(Streader* sr)
 
 bool Streader_has_data(Streader* sr)
 {
-    assert(sr != NULL);
-    assert(!Streader_is_error_set(sr));
+    rassert(sr != NULL);
+    rassert(!Streader_is_error_set(sr));
 
     Streader_skip_whitespace(sr);
     return !Streader_end_reached(sr);
@@ -163,7 +163,7 @@ bool Streader_has_data(Streader* sr)
 
 bool Streader_match_char(Streader* sr, char ch)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -198,8 +198,8 @@ bool Streader_match_char(Streader* sr, char ch)
 
 bool Streader_try_match_char(Streader* sr, char ch)
 {
-    assert(sr != NULL);
-    assert(!Streader_is_error_set(sr));
+    rassert(sr != NULL);
+    rassert(!Streader_is_error_set(sr));
 
     const int64_t start_pos = sr->pos;
     const bool success = Streader_match_char(sr, ch);
@@ -215,11 +215,11 @@ bool Streader_try_match_char(Streader* sr, char ch)
 
 static bool Streader_match_char_seq(Streader* sr, const char* seq)
 {
-    assert(sr != NULL);
-    assert(seq != NULL);
+    rassert(sr != NULL);
+    rassert(seq != NULL);
 
-    assert(!Streader_is_error_set(sr));
-    assert(!Streader_end_reached(sr));
+    rassert(!Streader_is_error_set(sr));
+    rassert(!Streader_end_reached(sr));
 
     // Check that we have enough data
     const int64_t expected_len = (int64_t)strlen(seq);
@@ -260,9 +260,9 @@ static bool Streader_match_char_seq(Streader* sr, const char* seq)
 
 static bool Streader_try_match_char_seq(Streader* sr, const char* seq)
 {
-    assert(sr != NULL);
-    assert(!Streader_is_error_set(sr));
-    assert(seq != NULL);
+    rassert(sr != NULL);
+    rassert(!Streader_is_error_set(sr));
+    rassert(seq != NULL);
 
     const int64_t start_pos = sr->pos;
     const bool success = Streader_match_char_seq(sr, seq);
@@ -278,8 +278,8 @@ static bool Streader_try_match_char_seq(Streader* sr, const char* seq)
 
 bool Streader_match_string(Streader* sr, const char* str)
 {
-    assert(sr != NULL);
-    assert(str != NULL);
+    rassert(sr != NULL);
+    rassert(str != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -331,7 +331,7 @@ bool Streader_match_string(Streader* sr, const char* str)
 
 bool Streader_read_null(Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -350,7 +350,7 @@ bool Streader_read_null(Streader* sr)
 
 bool Streader_read_bool(Streader* sr, bool* dest)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -383,7 +383,7 @@ bool Streader_read_bool(Streader* sr, bool* dest)
 
 bool Streader_read_int(Streader* sr, int64_t* dest)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -482,7 +482,7 @@ bool Streader_read_int(Streader* sr, int64_t* dest)
 
 bool Streader_read_float(Streader* sr, double* dest)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -521,7 +521,7 @@ bool Streader_read_float(Streader* sr, double* dest)
             if (significant_digits_read < SIGNIFICANT_MAX)
             {
                 // Store the digit into our significand
-                assert(significand < INT64_MAX / 10);
+                rassert(significand < INT64_MAX / 10);
                 significand *= 10;
                 significand += (int64_t)(CUR_CH - '0');
                 ++significant_digits_read;
@@ -551,7 +551,7 @@ bool Streader_read_float(Streader* sr, double* dest)
             if (significant_digits_read < SIGNIFICANT_MAX)
             {
                 // Append digit to our significand and compensate in shift
-                assert(significand < INT64_MAX / 10);
+                rassert(significand < INT64_MAX / 10);
                 significand *= 10;
                 significand += (int64_t)(CUR_CH - '0');
                 --significand_shift;
@@ -596,7 +596,7 @@ bool Streader_read_float(Streader* sr, double* dest)
 
         while (!Streader_end_reached(sr) && isdigit(CUR_CH))
         {
-            assert(exponent < INT_MAX / 10);
+            rassert(exponent < INT_MAX / 10);
             exponent *= 10;
             exponent += (int)(CUR_CH - '0');
 
@@ -654,8 +654,8 @@ bool Streader_read_float(Streader* sr, double* dest)
 
 bool Streader_read_string(Streader* sr, int64_t max_bytes, char* dest)
 {
-    assert(sr != NULL);
-    assert(max_bytes >= 0);
+    rassert(sr != NULL);
+    rassert(max_bytes >= 0);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -748,8 +748,8 @@ bool Streader_read_string(Streader* sr, int64_t max_bytes, char* dest)
                         return false;
                     }
 
-                    assert(value >= 0);
-                    assert(value < 0x10);
+                    rassert(value >= 0);
+                    rassert(value < 0x10);
 
                     code *= 0x10;
                     code += value;
@@ -812,12 +812,12 @@ bool Streader_read_string(Streader* sr, int64_t max_bytes, char* dest)
         Streader_set_error(sr, "Unexpected end of data");
         return false;
     }
-    assert(CUR_CH == '\"');
+    rassert(CUR_CH == '\"');
     ++sr->pos;
 
     if (max_bytes > 0 && dest != NULL)
     {
-        assert(write_pos < max_bytes);
+        rassert(write_pos < max_bytes);
         dest[write_pos] = '\0';
     }
 
@@ -827,7 +827,7 @@ bool Streader_read_string(Streader* sr, int64_t max_bytes, char* dest)
 
 bool Streader_read_tstamp(Streader* sr, Tstamp* dest)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -864,8 +864,8 @@ bool Streader_read_tstamp(Streader* sr, Tstamp* dest)
 
 static void recover(Streader* sr, int64_t pos)
 {
-    assert(sr != NULL);
-    assert(pos <= sr->pos);
+    rassert(sr != NULL);
+    rassert(pos <= sr->pos);
 
     Streader_clear_error(sr);
     sr->pos = pos;
@@ -876,7 +876,7 @@ static void recover(Streader* sr, int64_t pos)
 
 bool Streader_read_finite_rt(Streader* sr, Value* dest)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -910,7 +910,7 @@ bool Streader_read_finite_rt(Streader* sr, Value* dest)
 
 bool Streader_read_piref(Streader* sr, Pat_inst_ref* dest)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -962,7 +962,7 @@ bool Streader_read_piref(Streader* sr, Pat_inst_ref* dest)
 
 bool Streader_read_list(Streader* sr, List_item_reader ir, void* userdata)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -1006,7 +1006,7 @@ bool Streader_read_list(Streader* sr, List_item_reader ir, void* userdata)
 
 bool Streader_read_dict(Streader* sr, Dict_item_reader ir, void* userdata)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -1051,8 +1051,8 @@ bool Streader_read_dict(Streader* sr, Dict_item_reader ir, void* userdata)
 
 bool Streader_readf(Streader* sr, const char* format, ...)
 {
-    assert(sr != NULL);
-    assert(format != NULL);
+    rassert(sr != NULL);
+    rassert(format != NULL);
 
     va_list args;
     va_start(args, format);
@@ -1097,7 +1097,7 @@ bool Streader_readf(Streader* sr, const char* format, ...)
                 {
                     Streader_readf_str_info info =
                         va_arg(args, Streader_readf_str_info);
-                    assert(info.guard == Streader_readf_str_guard);
+                    rassert(info.guard == Streader_readf_str_guard);
 
                     const int64_t max_bytes = info.max_bytes;
                     char* dest = info.dest;
@@ -1142,7 +1142,7 @@ bool Streader_readf(Streader* sr, const char* format, ...)
                 break;
 
                 default:
-                    assert(false);
+                    rassert(false);
             }
         }
         else

@@ -72,11 +72,11 @@ static int32_t Padsynth_vstate_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
-    assert(au_state != NULL);
-    assert(wbs != NULL);
-    assert(tempo > 0);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
+    rassert(au_state != NULL);
+    rassert(wbs != NULL);
+    rassert(tempo > 0);
 
     if (buf_start == buf_stop)
         return buf_start;
@@ -192,8 +192,8 @@ static int32_t Padsynth_vstate_render_voice(
 
 void Padsynth_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
 
     vstate->render_voice = Padsynth_vstate_render_voice;
 

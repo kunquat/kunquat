@@ -40,8 +40,8 @@ struct Work_buffer
 
 Work_buffer* new_Work_buffer(int32_t size)
 {
-    assert(size >= 0);
-    assert(size <= WORK_BUFFER_SIZE_MAX);
+    rassert(size >= 0);
+    rassert(size <= WORK_BUFFER_SIZE_MAX);
 
     Work_buffer* buffer = memory_alloc_item(Work_buffer);
     if (buffer == NULL)
@@ -71,9 +71,9 @@ Work_buffer* new_Work_buffer(int32_t size)
 
 bool Work_buffer_resize(Work_buffer* buffer, int32_t new_size)
 {
-    assert(buffer != NULL);
-    assert(new_size >= 0);
-    assert(new_size <= WORK_BUFFER_SIZE_MAX);
+    rassert(buffer != NULL);
+    rassert(new_size >= 0);
+    rassert(new_size <= WORK_BUFFER_SIZE_MAX);
 
     if (new_size == 0)
     {
@@ -100,11 +100,11 @@ bool Work_buffer_resize(Work_buffer* buffer, int32_t new_size)
 
 void Work_buffer_clear(Work_buffer* buffer, int32_t buf_start, int32_t buf_stop)
 {
-    assert(buffer != NULL);
-    assert(buf_start >= -1);
-    assert(buf_start <= Work_buffer_get_size(buffer));
-    assert(buf_stop >= -1);
-    assert(buf_stop <= Work_buffer_get_size(buffer) + 1);
+    rassert(buffer != NULL);
+    rassert(buf_start >= -1);
+    rassert(buf_start <= Work_buffer_get_size(buffer));
+    rassert(buf_stop >= -1);
+    rassert(buf_stop <= Work_buffer_get_size(buffer) + 1);
 
     float* fcontents = Work_buffer_get_contents_mut(buffer);
     for (int32_t i = buf_start; i < buf_stop; ++i)
@@ -118,21 +118,21 @@ void Work_buffer_clear(Work_buffer* buffer, int32_t buf_start, int32_t buf_stop)
 
 int32_t Work_buffer_get_size(const Work_buffer* buffer)
 {
-    assert(buffer != NULL);
+    rassert(buffer != NULL);
     return buffer->size;
 }
 
 
 const float* Work_buffer_get_contents(const Work_buffer* buffer)
 {
-    assert(buffer != NULL);
+    rassert(buffer != NULL);
     return (float*)buffer->contents + 1;
 }
 
 
 float* Work_buffer_get_contents_mut(Work_buffer* buffer)
 {
-    assert(buffer != NULL);
+    rassert(buffer != NULL);
 
     Work_buffer_clear_const_start(buffer);
 
@@ -142,14 +142,14 @@ float* Work_buffer_get_contents_mut(Work_buffer* buffer)
 
 float* Work_buffer_get_contents_mut_keep_const(Work_buffer* buffer)
 {
-    assert(buffer != NULL);
+    rassert(buffer != NULL);
     return (float*)buffer->contents + 1;
 }
 
 
 int32_t* Work_buffer_get_contents_int_mut(Work_buffer* buffer)
 {
-    assert(buffer != NULL);
+    rassert(buffer != NULL);
 
     Work_buffer_clear_const_start(buffer);
 
@@ -163,13 +163,13 @@ void Work_buffer_copy(
         int32_t buf_start,
         int32_t buf_stop)
 {
-    assert(dest != NULL);
-    assert(src != NULL);
-    assert(dest != src);
-    assert(buf_start >= -1);
-    assert(buf_start <= Work_buffer_get_size(dest));
-    assert(buf_stop >= -1);
-    assert(buf_stop <= Work_buffer_get_size(dest) + 1);
+    rassert(dest != NULL);
+    rassert(src != NULL);
+    rassert(dest != src);
+    rassert(buf_start >= -1);
+    rassert(buf_start <= Work_buffer_get_size(dest));
+    rassert(buf_stop >= -1);
+    rassert(buf_stop <= Work_buffer_get_size(dest) + 1);
 
     if (buf_start >= buf_stop)
         return;
@@ -181,7 +181,7 @@ void Work_buffer_copy(
     const char* src_start =
         (char*)src->contents + (actual_start * WORK_BUFFER_ELEM_SIZE);
     const int32_t elem_count = actual_stop - actual_start;
-    assert(elem_count >= 0);
+    rassert(elem_count >= 0);
     memcpy(dest_start, src_start, (size_t)(elem_count * WORK_BUFFER_ELEM_SIZE));
 
     Work_buffer_set_const_start(dest, Work_buffer_get_const_start(src));
@@ -192,8 +192,8 @@ void Work_buffer_copy(
 
 void Work_buffer_set_const_start(Work_buffer* buffer, int32_t start)
 {
-    assert(buffer != NULL);
-    assert(start >= 0);
+    rassert(buffer != NULL);
+    rassert(start >= 0);
 
     buffer->const_start = start;
 
@@ -203,7 +203,7 @@ void Work_buffer_set_const_start(Work_buffer* buffer, int32_t start)
 
 void Work_buffer_clear_const_start(Work_buffer* buffer)
 {
-    assert(buffer != NULL);
+    rassert(buffer != NULL);
     buffer->const_start = INT32_MAX;
     return;
 }
@@ -211,7 +211,7 @@ void Work_buffer_clear_const_start(Work_buffer* buffer)
 
 int32_t Work_buffer_get_const_start(const Work_buffer* buffer)
 {
-    assert(buffer != NULL);
+    rassert(buffer != NULL);
     return buffer->const_start;
 }
 
@@ -222,13 +222,13 @@ void Work_buffer_mix(
         int32_t buf_start,
         int32_t buf_stop)
 {
-    assert(buffer != NULL);
-    assert(in != NULL);
-    assert(Work_buffer_get_size(buffer) == Work_buffer_get_size(in));
-    assert(buf_start >= -1);
-    assert(buf_start <= Work_buffer_get_size(buffer));
-    assert(buf_stop >= -1);
-    assert(buf_stop <= Work_buffer_get_size(buffer) + 1);
+    rassert(buffer != NULL);
+    rassert(in != NULL);
+    rassert(Work_buffer_get_size(buffer) == Work_buffer_get_size(in));
+    rassert(buf_start >= -1);
+    rassert(buf_start <= Work_buffer_get_size(buffer));
+    rassert(buf_stop >= -1);
+    rassert(buf_stop <= Work_buffer_get_size(buffer) + 1);
 
     if (buffer == in)
         return;

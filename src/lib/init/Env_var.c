@@ -35,10 +35,10 @@ struct Env_var
 
 Env_var* new_Env_var(Value_type type, const char* name)
 {
-    assert((type == VALUE_TYPE_BOOL) || (type == VALUE_TYPE_INT) ||
+    rassert((type == VALUE_TYPE_BOOL) || (type == VALUE_TYPE_INT) ||
             (type == VALUE_TYPE_FLOAT) || (type == VALUE_TYPE_TSTAMP));
-    assert(name != NULL);
-    assert(is_valid_var_name(name));
+    rassert(name != NULL);
+    rassert(is_valid_var_name(name));
 
     Env_var* var = memory_alloc_item(Env_var);
     if (var == NULL)
@@ -53,7 +53,7 @@ Env_var* new_Env_var(Value_type type, const char* name)
 
 Env_var* new_Env_var_from_string(Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -131,23 +131,23 @@ Env_var* new_Env_var_from_string(Streader* sr)
 
 Value_type Env_var_get_type(const Env_var* var)
 {
-    assert(var != NULL);
+    rassert(var != NULL);
     return var->value.type;
 }
 
 
 const char* Env_var_get_name(const Env_var* var)
 {
-    assert(var != NULL);
+    rassert(var != NULL);
     return var->name;
 }
 
 
 void Env_var_set_value(Env_var* var, const Value* value)
 {
-    assert(var != NULL);
-    assert(value != NULL);
-    assert(var->value.type == value->type);
+    rassert(var != NULL);
+    rassert(value != NULL);
+    rassert(var->value.type == value->type);
 
     Value_copy(&var->value, value);
 
@@ -157,7 +157,7 @@ void Env_var_set_value(Env_var* var, const Value* value)
 
 const Value* Env_var_get_value(const Env_var* var)
 {
-    assert(var != NULL);
+    rassert(var != NULL);
     return &var->value;
 }
 

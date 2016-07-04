@@ -32,8 +32,8 @@ static void LFO_update_time(LFO* lfo, int32_t audio_rate, double tempo);
 
 LFO* LFO_init(LFO* lfo, LFO_mode mode)
 {
-    assert(lfo != NULL);
-    assert(mode == LFO_MODE_LINEAR || mode == LFO_MODE_EXP);
+    rassert(lfo != NULL);
+    rassert(mode == LFO_MODE_LINEAR || mode == LFO_MODE_EXP);
 
     lfo->mode = mode;
     lfo->audio_rate = DEFAULT_AUDIO_RATE;
@@ -58,9 +58,9 @@ LFO* LFO_init(LFO* lfo, LFO_mode mode)
 
 LFO* LFO_copy(LFO* restrict dest, const LFO* restrict src)
 {
-    assert(dest != NULL);
-    assert(src != NULL);
-    assert(src != dest);
+    rassert(dest != NULL);
+    rassert(src != NULL);
+    rassert(src != dest);
 
     memcpy(dest, src, sizeof(LFO));
 //    Slider_copy(&dest->speed_slider, &src->speed_slider);
@@ -72,8 +72,8 @@ LFO* LFO_copy(LFO* restrict dest, const LFO* restrict src)
 
 void LFO_set_audio_rate(LFO* lfo, int32_t audio_rate)
 {
-    assert(lfo != NULL);
-    assert(audio_rate > 0);
+    rassert(lfo != NULL);
+    rassert(audio_rate > 0);
 
     if (lfo->audio_rate == audio_rate)
         return;
@@ -94,9 +94,9 @@ void LFO_set_audio_rate(LFO* lfo, int32_t audio_rate)
 
 void LFO_set_tempo(LFO* lfo, double tempo)
 {
-    assert(lfo != NULL);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(lfo != NULL);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     if (lfo->tempo == tempo)
         return;
@@ -117,9 +117,9 @@ void LFO_set_tempo(LFO* lfo, double tempo)
 
 void LFO_set_speed(LFO* lfo, double speed)
 {
-    assert(lfo != NULL);
-    assert(isfinite(speed));
-    assert(speed >= 0);
+    rassert(lfo != NULL);
+    rassert(isfinite(speed));
+    rassert(speed >= 0);
 
     if (Slider_in_progress(&lfo->speed_slider))
     {
@@ -140,9 +140,9 @@ void LFO_set_speed(LFO* lfo, double speed)
 
 void LFO_set_speed_slide(LFO* lfo, const Tstamp* length)
 {
-    assert(lfo != NULL);
-    assert(length != NULL);
-    assert(Tstamp_cmp(length, Tstamp_init(TSTAMP_AUTO)) >= 0);
+    rassert(lfo != NULL);
+    rassert(length != NULL);
+    rassert(Tstamp_cmp(length, Tstamp_init(TSTAMP_AUTO)) >= 0);
 
     Slider_set_length(&lfo->speed_slider, length);
 
@@ -152,8 +152,8 @@ void LFO_set_speed_slide(LFO* lfo, const Tstamp* length)
 
 void LFO_set_depth(LFO* lfo, double depth)
 {
-    assert(lfo != NULL);
-    assert(isfinite(depth));
+    rassert(lfo != NULL);
+    rassert(isfinite(depth));
 
     if (Slider_in_progress(&lfo->depth_slider))
     {
@@ -174,9 +174,9 @@ void LFO_set_depth(LFO* lfo, double depth)
 
 void LFO_set_depth_slide(LFO* lfo, const Tstamp* length)
 {
-    assert(lfo != NULL);
-    assert(length != NULL);
-    assert(Tstamp_cmp(length, Tstamp_init(TSTAMP_AUTO)) >= 0);
+    rassert(lfo != NULL);
+    rassert(length != NULL);
+    rassert(Tstamp_cmp(length, Tstamp_init(TSTAMP_AUTO)) >= 0);
 
     Slider_set_length(&lfo->depth_slider, length);
 
@@ -186,10 +186,10 @@ void LFO_set_depth_slide(LFO* lfo, const Tstamp* length)
 
 void LFO_set_offset(LFO* lfo, double offset)
 {
-    assert(lfo != NULL);
-    assert(isfinite(offset));
-    assert(offset >= -1);
-    assert(offset <= 1);
+    rassert(lfo != NULL);
+    rassert(isfinite(offset));
+    rassert(offset >= -1);
+    rassert(offset <= 1);
 
     lfo->offset = offset;
 
@@ -199,9 +199,9 @@ void LFO_set_offset(LFO* lfo, double offset)
 
 void LFO_turn_on(LFO* lfo)
 {
-    assert(lfo != NULL);
-    assert(lfo->audio_rate > 0);
-    assert(lfo->tempo > 0);
+    rassert(lfo != NULL);
+    rassert(lfo->audio_rate > 0);
+    rassert(lfo->tempo > 0);
 
     if (!lfo->on)
     {
@@ -209,8 +209,8 @@ void LFO_turn_on(LFO* lfo)
         if (lfo->phase < 0)
             lfo->phase += 2 * PI;
 
-        assert(lfo->phase >= 0);
-        assert(lfo->phase < 2 * PI);
+        rassert(lfo->phase >= 0);
+        rassert(lfo->phase < 2 * PI);
     }
 
     lfo->on = true;
@@ -220,9 +220,9 @@ void LFO_turn_on(LFO* lfo)
 
 void LFO_turn_off(LFO* lfo)
 {
-    assert(lfo != NULL);
-    assert(lfo->audio_rate > 0);
-    assert(lfo->tempo > 0);
+    rassert(lfo != NULL);
+    rassert(lfo->audio_rate > 0);
+    rassert(lfo->tempo > 0);
 
     lfo->on = false;
 
@@ -232,17 +232,17 @@ void LFO_turn_off(LFO* lfo)
 
 double LFO_step(LFO* lfo)
 {
-    assert(lfo != NULL);
-    assert(lfo->audio_rate > 0);
-    assert(isfinite(lfo->tempo));
-    assert(lfo->tempo > 0);
+    rassert(lfo != NULL);
+    rassert(lfo->audio_rate > 0);
+    rassert(isfinite(lfo->tempo));
+    rassert(lfo->tempo > 0);
 
     if (!LFO_active(lfo))
     {
         if (lfo->mode == LFO_MODE_EXP)
             return 1;
 
-        assert(lfo->mode == LFO_MODE_LINEAR);
+        rassert(lfo->mode == LFO_MODE_LINEAR);
         return 0;
     }
 
@@ -293,22 +293,22 @@ double LFO_step(LFO* lfo)
     if (lfo->mode == LFO_MODE_EXP)
         return exp2(value);
 
-    assert(lfo->mode == LFO_MODE_LINEAR);
+    rassert(lfo->mode == LFO_MODE_LINEAR);
     return value;
 }
 
 
 double LFO_skip(LFO* lfo, int64_t steps)
 {
-    assert(lfo != NULL);
-    assert(steps >= 0);
+    rassert(lfo != NULL);
+    rassert(steps >= 0);
 
     if (steps == 0)
     {
         if (lfo->mode == LFO_MODE_EXP)
             return 1;
 
-        assert(lfo->mode == LFO_MODE_LINEAR);
+        rassert(lfo->mode == LFO_MODE_LINEAR);
         return 0;
     }
     else if (steps == 1)
@@ -328,16 +328,16 @@ double LFO_skip(LFO* lfo, int64_t steps)
     if (lfo->mode == LFO_MODE_EXP)
         return exp2(value);
 
-    assert(lfo->mode == LFO_MODE_LINEAR);
+    rassert(lfo->mode == LFO_MODE_LINEAR);
     return value;
 }
 
 
 static void LFO_update_time(LFO* lfo, int32_t audio_rate, double tempo)
 {
-    assert(lfo != NULL);
-    assert(audio_rate > 0);
-    assert(tempo > 0);
+    rassert(lfo != NULL);
+    rassert(audio_rate > 0);
+    rassert(tempo > 0);
 
 //    lfo->speed *= (double)audio_rate / lfo->audio_rate;
 //    lfo->speed *= lfo->tempo / tempo;
@@ -357,7 +357,7 @@ static void LFO_update_time(LFO* lfo, int32_t audio_rate, double tempo)
 
 bool LFO_active(const LFO* lfo)
 {
-    assert(lfo != NULL);
+    rassert(lfo != NULL);
 
     return lfo->update > 0 ||
            Slider_in_progress(&lfo->speed_slider) ||
@@ -367,7 +367,7 @@ bool LFO_active(const LFO* lfo)
 
 int32_t LFO_estimate_active_steps_left(const LFO* lfo)
 {
-    assert(lfo != NULL);
+    rassert(lfo != NULL);
 
     if (Slider_in_progress(&lfo->depth_slider) && lfo->target_depth == 0)
         return Slider_estimate_active_steps_left(&lfo->depth_slider);
@@ -378,23 +378,23 @@ int32_t LFO_estimate_active_steps_left(const LFO* lfo)
 
 double LFO_get_target_speed(const LFO* lfo)
 {
-    assert(lfo != NULL);
+    rassert(lfo != NULL);
     return lfo->target_speed;
 }
 
 
 double LFO_get_target_depth(const LFO* lfo)
 {
-    assert(lfo != NULL);
+    rassert(lfo != NULL);
     return lfo->target_depth;
 }
 
 
 void LFO_change_depth_range(LFO* lfo, double from_depth, double to_depth)
 {
-    assert(lfo != NULL);
-    assert(isfinite(from_depth));
-    assert(isfinite(to_depth));
+    rassert(lfo != NULL);
+    rassert(isfinite(from_depth));
+    rassert(isfinite(to_depth));
 
     if (from_depth == 0)
     {

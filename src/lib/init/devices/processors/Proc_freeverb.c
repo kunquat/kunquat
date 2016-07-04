@@ -93,8 +93,8 @@ Device_impl* new_Proc_freeverb(void)
 static bool Proc_freeverb_set_initial_refl(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_freeverb* freeverb = (Proc_freeverb*)dimpl;
 
@@ -112,8 +112,8 @@ static bool Proc_freeverb_set_initial_refl(
 static bool Proc_freeverb_set_initial_damp(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_freeverb* freeverb = (Proc_freeverb*)dimpl;
 
@@ -130,7 +130,7 @@ static bool Proc_freeverb_set_initial_damp(
 
 static void Proc_freeverb_update_reflectivity(Proc_freeverb* freeverb, double reflect)
 {
-    assert(freeverb != NULL);
+    rassert(freeverb != NULL);
 
     freeverb->reflect_setting = reflect;
 
@@ -140,7 +140,7 @@ static void Proc_freeverb_update_reflectivity(Proc_freeverb* freeverb, double re
 
 static void Proc_freeverb_update_damp(Proc_freeverb* freeverb, double damp)
 {
-    assert(freeverb != NULL);
+    rassert(freeverb != NULL);
 
     freeverb->damp_setting = damp;
 
@@ -150,7 +150,7 @@ static void Proc_freeverb_update_damp(Proc_freeverb* freeverb, double damp)
 
 static void Proc_freeverb_update_gain(Proc_freeverb* freeverb, double gain)
 {
-    assert(freeverb != NULL);
+    rassert(freeverb != NULL);
 
     freeverb->gain = gain;
 
@@ -160,7 +160,7 @@ static void Proc_freeverb_update_gain(Proc_freeverb* freeverb, double gain)
 
 static void Proc_freeverb_update_wet(Proc_freeverb* freeverb, double wet)
 {
-    assert(freeverb != NULL);
+    rassert(freeverb != NULL);
 
     static const double scale_wet = 3;
     freeverb->wet = wet * scale_wet;

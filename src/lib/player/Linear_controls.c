@@ -27,7 +27,7 @@
 
 void Linear_controls_init(Linear_controls* lc)
 {
-    assert(lc != NULL);
+    rassert(lc != NULL);
 
     lc->value = NAN;
     lc->min_value = -INFINITY;
@@ -41,8 +41,8 @@ void Linear_controls_init(Linear_controls* lc)
 
 void Linear_controls_set_audio_rate(Linear_controls* lc, int32_t audio_rate)
 {
-    assert(lc != NULL);
-    assert(audio_rate > 0);
+    rassert(lc != NULL);
+    rassert(audio_rate > 0);
 
     Slider_set_audio_rate(&lc->slider, audio_rate);
     LFO_set_audio_rate(&lc->lfo, audio_rate);
@@ -53,8 +53,8 @@ void Linear_controls_set_audio_rate(Linear_controls* lc, int32_t audio_rate)
 
 void Linear_controls_set_tempo(Linear_controls* lc, double tempo)
 {
-    assert(lc != NULL);
-    assert(tempo > 0);
+    rassert(lc != NULL);
+    rassert(tempo > 0);
 
     Slider_set_tempo(&lc->slider, tempo);
     LFO_set_tempo(&lc->lfo, tempo);
@@ -65,9 +65,9 @@ void Linear_controls_set_tempo(Linear_controls* lc, double tempo)
 
 void Linear_controls_set_range(Linear_controls* lc, double min_value, double max_value)
 {
-    assert(lc != NULL);
-    assert(!isnan(min_value));
-    assert(max_value >= min_value);
+    rassert(lc != NULL);
+    rassert(!isnan(min_value));
+    rassert(max_value >= min_value);
 
     lc->min_value = min_value;
     lc->max_value = max_value;
@@ -78,8 +78,8 @@ void Linear_controls_set_range(Linear_controls* lc, double min_value, double max
 
 void Linear_controls_set_value(Linear_controls* lc, double value)
 {
-    assert(lc != NULL);
-    assert(isfinite(value));
+    rassert(lc != NULL);
+    rassert(isfinite(value));
 
     lc->value = value;
     Slider_break(&lc->slider);
@@ -90,15 +90,15 @@ void Linear_controls_set_value(Linear_controls* lc, double value)
 
 double Linear_controls_get_value(const Linear_controls* lc)
 {
-    assert(lc != NULL);
+    rassert(lc != NULL);
     return clamp(lc->value, lc->min_value, lc->max_value);
 }
 
 
 void Linear_controls_slide_value_target(Linear_controls* lc, double value)
 {
-    assert(lc != NULL);
-    assert(isfinite(value));
+    rassert(lc != NULL);
+    rassert(isfinite(value));
 
     if (Slider_in_progress(&lc->slider))
         Slider_change_target(&lc->slider, value);
@@ -111,8 +111,8 @@ void Linear_controls_slide_value_target(Linear_controls* lc, double value)
 
 void Linear_controls_slide_value_length(Linear_controls* lc, const Tstamp* length)
 {
-    assert(lc != NULL);
-    assert(length != NULL);
+    rassert(lc != NULL);
+    rassert(length != NULL);
 
     Slider_set_length(&lc->slider, length);
 
@@ -122,8 +122,8 @@ void Linear_controls_slide_value_length(Linear_controls* lc, const Tstamp* lengt
 
 void Linear_controls_osc_speed_value(Linear_controls* lc, double speed)
 {
-    assert(lc != NULL);
-    assert(speed >= 0);
+    rassert(lc != NULL);
+    rassert(speed >= 0);
 
     LFO_set_speed(&lc->lfo, speed);
 
@@ -138,8 +138,8 @@ void Linear_controls_osc_speed_value(Linear_controls* lc, double speed)
 
 void Linear_controls_osc_depth_value(Linear_controls* lc, double depth)
 {
-    assert(lc != NULL);
-    assert(isfinite(depth));
+    rassert(lc != NULL);
+    rassert(isfinite(depth));
 
     //if (lc->osc_speed > 0)
     //    LFO_set_speed(&lc->lfo, lc->osc_speed);
@@ -153,8 +153,8 @@ void Linear_controls_osc_depth_value(Linear_controls* lc, double depth)
 
 void Linear_controls_osc_speed_slide_value(Linear_controls* lc, const Tstamp* length)
 {
-    assert(lc != NULL);
-    assert(length != NULL);
+    rassert(lc != NULL);
+    rassert(length != NULL);
 
     LFO_set_speed_slide(&lc->lfo, length);
 
@@ -164,8 +164,8 @@ void Linear_controls_osc_speed_slide_value(Linear_controls* lc, const Tstamp* le
 
 void Linear_controls_osc_depth_slide_value(Linear_controls* lc, const Tstamp* length)
 {
-    assert(lc != NULL);
-    assert(length != NULL);
+    rassert(lc != NULL);
+    rassert(length != NULL);
 
     LFO_set_depth_slide(&lc->lfo, length);
 
@@ -179,9 +179,9 @@ void Linear_controls_fill_work_buffer(
         int32_t buf_start,
         int32_t buf_stop)
 {
-    assert(lc != NULL);
-    assert(wb != NULL);
-    assert(buf_start < buf_stop);
+    rassert(lc != NULL);
+    rassert(wb != NULL);
+    rassert(buf_start < buf_stop);
 
     float* values = Work_buffer_get_contents_mut(wb);
 
@@ -275,8 +275,8 @@ void Linear_controls_fill_work_buffer(
 
 void Linear_controls_skip(Linear_controls* lc, int64_t step_count)
 {
-    assert(lc != NULL);
-    assert(step_count >= 0);
+    rassert(lc != NULL);
+    rassert(step_count >= 0);
 
     if (Slider_in_progress(&lc->slider))
         lc->value = Slider_skip(&lc->slider, step_count);
@@ -290,9 +290,9 @@ void Linear_controls_skip(Linear_controls* lc, int64_t step_count)
 void Linear_controls_copy(
         Linear_controls* restrict dest, const Linear_controls* restrict src)
 {
-    assert(dest != NULL);
-    assert(src != NULL);
-    assert(src != dest);
+    rassert(dest != NULL);
+    rassert(src != NULL);
+    rassert(src != dest);
 
     dest->value = src->value;
     Slider_copy(&dest->slider, &src->slider);
@@ -310,13 +310,13 @@ void Linear_controls_convert(
         double range_min,
         double range_max)
 {
-    assert(dest != NULL);
-    assert(isfinite(map_min_to));
-    assert(isfinite(map_max_to));
-    assert(src != NULL);
-    assert(src != dest);
-    assert(isfinite(range_min));
-    assert(isfinite(range_max));
+    rassert(dest != NULL);
+    rassert(isfinite(map_min_to));
+    rassert(isfinite(map_max_to));
+    rassert(src != NULL);
+    rassert(src != dest);
+    rassert(isfinite(range_min));
+    rassert(isfinite(range_max));
 
     Linear_controls_copy(dest, src);
 
@@ -374,7 +374,7 @@ void Linear_controls_convert(
             new_max = -new_max;
         }
 
-        assert(new_min <= new_max);
+        rassert(new_min <= new_max);
 
         dest->min_value = new_min;
         dest->max_value = new_max;

@@ -140,7 +140,7 @@ static Value_type get_value_type_from_var_entry_type(Var_entry_type var_entry_ty
         case VAR_ENTRY_TSTAMP: return VALUE_TYPE_TSTAMP;
 
         default:
-            assert(false);
+            rassert(false);
     }
 
     return VALUE_TYPE_NONE;
@@ -150,8 +150,8 @@ static Value_type get_value_type_from_var_entry_type(Var_entry_type var_entry_ty
 Au_control_var_iter* Au_control_var_iter_init(
         Au_control_var_iter* iter, const Au_control_vars* aucv)
 {
-    assert(iter != NULL);
-    assert(aucv != NULL);
+    rassert(iter != NULL);
+    rassert(aucv != NULL);
 
     // Get the first entry
     AAiter_init(&iter->iter, aucv->vars);
@@ -174,9 +174,9 @@ Au_control_var_iter* Au_control_var_iter_init(
 void Au_control_var_iter_get_next_var_info(
         Au_control_var_iter* iter, const char** out_var_name, Value_type* out_var_type)
 {
-    assert(iter != NULL);
-    assert(out_var_name != NULL);
-    assert(out_var_type != NULL);
+    rassert(iter != NULL);
+    rassert(out_var_name != NULL);
+    rassert(out_var_type != NULL);
 
     *out_var_name = iter->next_var_name;
     *out_var_type = iter->next_var_type;
@@ -207,9 +207,9 @@ static bool Au_control_binding_iter_init_common(
         const char* var_name,
         Iter_mode iter_mode)
 {
-    assert(iter != NULL);
-    assert(aucv != NULL);
-    assert(var_name != NULL);
+    rassert(iter != NULL);
+    rassert(aucv != NULL);
+    rassert(var_name != NULL);
 
     const Var_entry* var_entry = AAtree_get_exact(aucv->vars, var_name);
     if (var_entry == NULL)
@@ -228,8 +228,8 @@ static bool Au_control_binding_iter_init_common(
 
 static void Au_control_binding_iter_update(Au_control_binding_iter* iter)
 {
-    assert(iter != NULL);
-    assert(iter->iter != NULL);
+    rassert(iter != NULL);
+    rassert(iter->iter != NULL);
 
     iter->target_dev_type = iter->iter->target_dev_type;
     iter->target_dev_index = iter->iter->target_dev_index;
@@ -244,10 +244,10 @@ static void Au_control_binding_iter_update(Au_control_binding_iter* iter)
 
         case ITER_MODE_SET_GENERIC:
         {
-            assert(iter->rand != NULL);
+            rassert(iter->rand != NULL);
 
             const char* expr = iter->iter->ext.expr_type.expression;
-            assert(expr != NULL);
+            rassert(expr != NULL);
 
             Streader* sr = Streader_init(STREADER_AUTO, expr, (int64_t)strlen(expr));
             Value* result = VALUE_AUTO;
@@ -267,7 +267,7 @@ static void Au_control_binding_iter_update(Au_control_binding_iter* iter)
         break;
 
         default:
-            assert(false);
+            rassert(false);
     }
 
     return;
@@ -279,9 +279,9 @@ bool Au_control_binding_iter_init(
         const Au_control_vars* aucv,
         const char* var_name)
 {
-    assert(iter != NULL);
-    assert(aucv != NULL);
-    assert(var_name != NULL);
+    rassert(iter != NULL);
+    rassert(aucv != NULL);
+    rassert(var_name != NULL);
 
     iter->iter = NULL;
     iter->src_value.type = VALUE_TYPE_NONE;
@@ -304,12 +304,12 @@ bool Au_control_binding_iter_init_set_generic(
         const char* var_name,
         const Value* value)
 {
-    assert(iter != NULL);
-    assert(aucv != NULL);
-    assert(rand != NULL);
-    assert(var_name != NULL);
-    assert(value != NULL);
-    assert(Value_type_is_realtime(value->type));
+    rassert(iter != NULL);
+    rassert(aucv != NULL);
+    rassert(rand != NULL);
+    rassert(var_name != NULL);
+    rassert(value != NULL);
+    rassert(Value_type_is_realtime(value->type));
 
     iter->iter = NULL;
     Value_copy(&iter->src_value, value);
@@ -319,7 +319,7 @@ bool Au_control_binding_iter_init_set_generic(
         return false;
 
     const Var_entry* var_entry = AAtree_get_exact(aucv->vars, var_name);
-    assert(var_entry != NULL);
+    rassert(var_entry != NULL);
 
     // Try to convert input value to type expected by the variable entry
     if (!Value_convert(
@@ -338,8 +338,8 @@ bool Au_control_binding_iter_init_set_generic(
 
 bool Au_control_binding_iter_get_next_entry(Au_control_binding_iter* iter)
 {
-    assert(iter != NULL);
-    assert(iter->iter != NULL);
+    rassert(iter != NULL);
+    rassert(iter->iter != NULL);
 
     iter->iter = iter->iter->next;
 
@@ -358,7 +358,7 @@ static const char* mem_error_str =
 
 static Bind_entry* new_Bind_entry_common(Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     char target_dev_name[16] = "";
     char target_var_name[KQT_VAR_NAME_MAX + 1] = "";
@@ -424,11 +424,11 @@ static Bind_entry* new_Bind_entry_common(Streader* sr)
 
 static bool read_binding_targets_generic(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
     ignore(index);
 
     Var_entry* entry = userdata;
-    assert(entry != NULL);
+    rassert(entry != NULL);
 
     if (!Streader_readf(sr, "["))
         return false;
@@ -440,7 +440,7 @@ static bool read_binding_targets_generic(Streader* sr, int32_t index, void* user
 
     if (entry->last_bind_entry == NULL)
     {
-        assert(entry->first_bind_entry == NULL);
+        rassert(entry->first_bind_entry == NULL);
         entry->first_bind_entry = bind_entry;
         entry->last_bind_entry = bind_entry;
     }
@@ -485,8 +485,8 @@ static bool read_binding_targets_generic(Streader* sr, int32_t index, void* user
         return false;
 
     // Allocate space for the expression string
-    assert(expr_end != NULL);
-    assert(expr_end > expr);
+    rassert(expr_end != NULL);
+    rassert(expr_end > expr);
     const ptrdiff_t expr_length = expr_end - expr;
 
     bind_entry->ext.expr_type.expression = memory_calloc_items(char, expr_length + 1);
@@ -506,11 +506,11 @@ static bool read_binding_targets_generic(Streader* sr, int32_t index, void* user
 
 static bool read_var_entry(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
     ignore(index);
 
     Au_control_vars* acv = userdata;
-    assert(acv != NULL);
+    rassert(acv != NULL);
 
     // Read type and name
     char type_name[16] = "";
@@ -629,7 +629,7 @@ static bool read_var_entry(Streader* sr, int32_t index, void* userdata)
 
 Au_control_vars* new_Au_control_vars(Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -663,11 +663,11 @@ Au_control_vars* new_Au_control_vars(Streader* sr)
 const Value* Au_control_vars_get_init_value(
         const Au_control_vars* aucv, const char* var_name)
 {
-    assert(aucv != NULL);
-    assert(var_name != NULL);
+    rassert(aucv != NULL);
+    rassert(var_name != NULL);
 
     const Var_entry* entry = AAtree_get_exact(aucv->vars, var_name);
-    assert(entry != NULL);
+    rassert(entry != NULL);
 
     return &entry->init_value;
 }

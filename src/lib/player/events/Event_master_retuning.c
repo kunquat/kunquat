@@ -31,9 +31,9 @@ static void get_tuning_info(
         Tuning_state** out_tuning_state,
         const Tuning_table** out_tuning_table)
 {
-    assert(master_params != NULL);
-    assert(out_tuning_state != NULL);
-    assert(out_tuning_table != NULL);
+    rassert(master_params != NULL);
+    rassert(out_tuning_state != NULL);
+    rassert(out_tuning_table != NULL);
 
     const int index = master_params->cur_tuning_state;
     if (index < 0 || index >= KQT_TUNING_TABLES_MAX)
@@ -56,9 +56,9 @@ static void get_tuning_info(
 
 bool Event_master_set_retuner_process(Master_params* master_params, const Value* value)
 {
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_INT);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_INT);
 
     master_params->cur_tuning_state = (int)value->value.int_type;
 
@@ -78,9 +78,9 @@ bool Event_master_set_retuner_process(Master_params* master_params, const Value*
 bool Event_master_set_retuner_fixed_pitch_process(
         Master_params* master_params, const Value* value)
 {
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     Tuning_state* state = NULL;
     const Tuning_table* table = NULL;
@@ -97,9 +97,9 @@ bool Event_master_set_retuner_fixed_pitch_process(
 bool Event_master_set_retuner_tuning_center_process(
         Master_params* master_params, const Value* value)
 {
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     Tuning_state* state = NULL;
     const Tuning_table* table = NULL;
@@ -116,9 +116,9 @@ bool Event_master_set_retuner_tuning_center_process(
 bool Event_master_set_retuner_pitch_offset_process(
         Master_params* master_params, const Value* value)
 {
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     Tuning_state* state = NULL;
     const Tuning_table* table = NULL;
@@ -135,9 +135,9 @@ bool Event_master_set_retuner_pitch_offset_process(
 bool Event_master_mimic_retuner_process(
         Master_params* master_params, const Value* value)
 {
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_INT);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_INT);
 
     const int source_index = (int)value->value.int_type;
     if (source_index < 0 || source_index >= KQT_TUNING_TABLES_MAX)
@@ -159,7 +159,7 @@ bool Event_master_mimic_retuner_process(
 bool Event_master_reset_retuner_process(
         Master_params* master_params, const Value* value)
 {
-    assert(master_params != NULL);
+    rassert(master_params != NULL);
     ignore(value);
 
     Tuning_state* state = NULL;

@@ -25,11 +25,11 @@
 Voice_group* Voice_group_init(
         Voice_group* vg, Voice** voices, int offset, int vp_size)
 {
-    assert(vg != NULL);
-    assert(voices != NULL);
-    assert(offset >= 0);
-    assert(offset < vp_size);
-    assert(vp_size > 0);
+    rassert(vg != NULL);
+    rassert(voices != NULL);
+    rassert(offset >= 0);
+    rassert(offset < vp_size);
+    rassert(vp_size > 0);
 
     vg->voices = voices + offset;
 
@@ -44,7 +44,7 @@ Voice_group* Voice_group_init(
 
     for (int i = offset + 1; i < vp_size; ++i)
     {
-        assert(voices[i] != NULL);
+        rassert(voices[i] != NULL);
         if (Voice_get_group_id(voices[i]) != group_id)
             break;
         ++vg->size;
@@ -59,14 +59,14 @@ Voice_group* Voice_group_init(
 
 int Voice_group_get_size(const Voice_group* vg)
 {
-    assert(vg != NULL);
+    rassert(vg != NULL);
     return vg->size;
 }
 
 
 int Voice_group_get_active_count(const Voice_group* vg)
 {
-    assert(vg != NULL);
+    rassert(vg != NULL);
 
     int count = 0;
     for (int i = 0; i < vg->size; ++i)
@@ -81,9 +81,9 @@ int Voice_group_get_active_count(const Voice_group* vg)
 
 Voice* Voice_group_get_voice(Voice_group* vg, int index)
 {
-    assert(vg != NULL);
-    assert(index >= 0);
-    assert(index < Voice_group_get_size(vg));
+    rassert(vg != NULL);
+    rassert(index >= 0);
+    rassert(index < Voice_group_get_size(vg));
 
     return vg->voices[index];
 }
@@ -91,7 +91,7 @@ Voice* Voice_group_get_voice(Voice_group* vg, int index)
 
 Voice* Voice_group_get_voice_by_proc(Voice_group* vg, uint32_t proc_id)
 {
-    assert(vg != NULL);
+    rassert(vg != NULL);
 
     for (int i = 0; i < vg->size; ++i)
     {
@@ -106,7 +106,7 @@ Voice* Voice_group_get_voice_by_proc(Voice_group* vg, uint32_t proc_id)
 
 void Voice_group_deactivate_all(Voice_group* vg)
 {
-    assert(vg != NULL);
+    rassert(vg != NULL);
 
     for (int i = 0; i < vg->size; ++i)
         Voice_reset(vg->voices[i]);
@@ -117,7 +117,7 @@ void Voice_group_deactivate_all(Voice_group* vg)
 
 void Voice_group_deactivate_unreachable(Voice_group* vg)
 {
-    assert(vg != NULL);
+    rassert(vg != NULL);
 
     for (int i = 0; i < vg->size; ++i)
     {

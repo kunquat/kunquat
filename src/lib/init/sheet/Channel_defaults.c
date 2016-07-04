@@ -28,7 +28,7 @@
 
 Channel_defaults* Channel_defaults_init(Channel_defaults* chd)
 {
-    assert(chd != NULL);
+    rassert(chd != NULL);
 
     chd->control_num = 0;
     memset(chd->init_expr, '\0', KQT_VAR_NAME_MAX);
@@ -39,9 +39,9 @@ Channel_defaults* Channel_defaults_init(Channel_defaults* chd)
 
 static bool read_ch_defaults_item(Streader* sr, const char* key, void* userdata)
 {
-    assert(sr != NULL);
-    assert(key != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(key != NULL);
+    rassert(userdata != NULL);
 
     Channel_defaults* chd = userdata;
 
@@ -85,8 +85,8 @@ static bool read_ch_defaults_item(Streader* sr, const char* key, void* userdata)
 
 bool Channel_defaults_read(Channel_defaults* chd, Streader* sr)
 {
-    assert(chd != NULL);
-    assert(sr != NULL);
+    rassert(chd != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;

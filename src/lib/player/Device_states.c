@@ -53,9 +53,9 @@ Device_states* new_Device_states(void)
 
 bool Device_states_add_state(Device_states* states, Device_state* state)
 {
-    assert(states != NULL);
-    assert(state != NULL);
-    assert(!AAtree_contains(states->states, state));
+    rassert(states != NULL);
+    rassert(state != NULL);
+    rassert(!AAtree_contains(states->states, state));
 
     if (!AAtree_ins(states->states, state))
         return false;
@@ -68,11 +68,11 @@ bool Device_states_add_state(Device_states* states, Device_state* state)
 
 Device_state* Device_states_get_state(const Device_states* states, uint32_t id)
 {
-    assert(states != NULL);
-    assert(id > 0);
+    rassert(states != NULL);
+    rassert(id > 0);
 
     const Device_state* key = DEVICE_STATE_KEY(id);
-    assert(AAtree_contains(states->states, key));
+    rassert(AAtree_contains(states->states, key));
 
     return AAtree_get_exact(states->states, key);
 }
@@ -80,8 +80,8 @@ Device_state* Device_states_get_state(const Device_states* states, uint32_t id)
 
 void Device_states_remove_state(Device_states* states, uint32_t id)
 {
-    assert(states != NULL);
-    assert(id > 0);
+    rassert(states != NULL);
+    rassert(id > 0);
 
     const Device_state* key = DEVICE_STATE_KEY(id);
     del_Device_state(AAtree_remove(states->states, key));
@@ -92,8 +92,8 @@ void Device_states_remove_state(Device_states* states, uint32_t id)
 
 bool Device_states_set_audio_rate(Device_states* states, int32_t rate)
 {
-    assert(states != NULL);
-    assert(rate > 0);
+    rassert(states != NULL);
+    rassert(rate > 0);
 
     AAiter* iter = AAiter_init(AAITER_AUTO, states->states);
 
@@ -113,8 +113,8 @@ bool Device_states_set_audio_rate(Device_states* states, int32_t rate)
 
 bool Device_states_set_audio_buffer_size(Device_states* states, int32_t size)
 {
-    assert(states != NULL);
-    assert(size >= 0);
+    rassert(states != NULL);
+    rassert(size >= 0);
 
     AAiter* iter = AAiter_init(AAITER_AUTO, states->states);
 
@@ -135,8 +135,8 @@ bool Device_states_set_audio_buffer_size(Device_states* states, int32_t size)
 /*
 bool Device_states_allocate_space(Device_states* states, char* key)
 {
-    assert(states != NULL);
-    assert(key != NULL);
+    rassert(states != NULL);
+    rassert(key != NULL);
 
     AAiter* iter = AAiter_init(AAITER_AUTO, states->states);
 
@@ -158,7 +158,7 @@ bool Device_states_allocate_space(Device_states* states, char* key)
 void Device_states_clear_audio_buffers(
         Device_states* states, int32_t start, int32_t stop)
 {
-    assert(states != NULL);
+    rassert(states != NULL);
 
     AAiter* iter = AAiter_init(AAITER_AUTO, states->states);
 
@@ -177,9 +177,9 @@ void Device_states_clear_audio_buffers(
 
 void Device_states_set_tempo(Device_states* states, double tempo)
 {
-    assert(states != NULL);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(states != NULL);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     AAiter* iter = AAiter_init(AAITER_AUTO, states->states);
 
@@ -197,7 +197,7 @@ void Device_states_set_tempo(Device_states* states, double tempo)
 
 void Device_states_reset(Device_states* states)
 {
-    assert(states != NULL);
+    rassert(states != NULL);
 
     AAiter* iter = AAiter_init(AAITER_AUTO, states->states);
 
@@ -215,7 +215,7 @@ void Device_states_reset(Device_states* states)
 
 void Device_states_reset_node_states(Device_states* states)
 {
-    assert(states != NULL);
+    rassert(states != NULL);
 
     AAiter* iter = AAiter_init(AAITER_AUTO, states->states);
 

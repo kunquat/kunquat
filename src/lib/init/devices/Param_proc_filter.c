@@ -40,9 +40,9 @@ struct Param_proc_filter
 
 static bool read_excluded(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
     ignore(index);
-    assert(userdata != NULL);
+    rassert(userdata != NULL);
 
     Param_proc_filter* pf = userdata;
 
@@ -71,7 +71,7 @@ static bool read_excluded(Streader* sr, int32_t index, void* userdata)
 
 Param_proc_filter* new_Param_proc_filter(Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -95,7 +95,7 @@ Param_proc_filter* new_Param_proc_filter(Streader* sr)
 
     if (!Streader_read_list(sr, read_excluded, pf))
     {
-        assert(Streader_is_error_set(sr));
+        rassert(Streader_is_error_set(sr));
         del_Param_proc_filter(pf);
         return NULL;
     }
@@ -106,9 +106,9 @@ Param_proc_filter* new_Param_proc_filter(Streader* sr)
 
 bool Param_proc_filter_is_proc_allowed(const Param_proc_filter* pf, int proc_index)
 {
-    assert(pf != NULL);
-    assert(proc_index >= 0);
-    assert(proc_index < KQT_PROCESSORS_MAX);
+    rassert(pf != NULL);
+    rassert(proc_index >= 0);
+    rassert(proc_index < KQT_PROCESSORS_MAX);
 
     const int64_t length = Vector_size(pf->excluded);
     for (int64_t i = 0; i < length; ++i)

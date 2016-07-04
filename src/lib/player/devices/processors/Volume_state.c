@@ -56,11 +56,11 @@ static void apply_volume(
         int32_t buf_start,
         int32_t buf_stop)
 {
-    assert(buf_count > 0);
-    assert(in_buffers != NULL);
-    assert(out_buffers != NULL);
-    assert(isfinite(global_vol));
-    assert(buf_start >= 0);
+    rassert(buf_count > 0);
+    rassert(in_buffers != NULL);
+    rassert(out_buffers != NULL);
+    rassert(isfinite(global_vol));
+    rassert(buf_start >= 0);
 
     const float global_scale = (float)dB_to_scale(global_vol);
 
@@ -104,8 +104,8 @@ typedef struct Volume_pstate
 bool Volume_pstate_set_volume(
         Device_state* dstate, const Key_indices indices, double value)
 {
-    assert(dstate != NULL);
-    assert(indices != NULL);
+    rassert(dstate != NULL);
+    rassert(indices != NULL);
 
     Volume_pstate* vpstate = (Volume_pstate*)dstate;
     vpstate->volume = isfinite(value) ? value : 0.0;
@@ -121,10 +121,10 @@ static void Volume_pstate_render_mixed(
         int32_t buf_stop,
         double tempo)
 {
-    assert(dstate != NULL);
-    assert(wbs != NULL);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(dstate != NULL);
+    rassert(wbs != NULL);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     Volume_pstate* vpstate = (Volume_pstate*)dstate;
 
@@ -152,9 +152,9 @@ static void Volume_pstate_render_mixed(
 Device_state* new_Volume_pstate(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
-    assert(device != NULL);
-    assert(audio_rate > 0);
-    assert(audio_buffer_size >= 0);
+    rassert(device != NULL);
+    rassert(audio_rate > 0);
+    rassert(audio_buffer_size >= 0);
 
     Volume_pstate* vol_state = memory_alloc_item(Volume_pstate);
     if ((vol_state == NULL) ||
@@ -193,14 +193,14 @@ static int32_t Volume_vstate_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
-    assert(au_state != NULL);
-    assert(wbs != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
+    rassert(au_state != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     // Get control stream
     float* volume_buf = Proc_state_get_voice_buffer_contents_mut(
@@ -238,8 +238,8 @@ static int32_t Volume_vstate_render_voice(
 
 void Volume_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
 
     vstate->render_voice = Volume_vstate_render_voice;
 

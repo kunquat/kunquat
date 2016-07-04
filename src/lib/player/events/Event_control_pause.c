@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -27,8 +27,8 @@
 bool Event_control_pause_process(
         General_state* global_state, Channel* channel, const Value* value)
 {
-    assert(global_state != NULL);
-    assert(channel != NULL);
+    rassert(global_state != NULL);
+    rassert(channel != NULL);
     ignore(value);
 
     global_state->pause = true;
@@ -39,8 +39,8 @@ bool Event_control_pause_process(
 bool Event_control_resume_process(
         General_state* global_state, Channel* channel, const Value* value)
 {
-    assert(global_state != NULL);
-    assert(channel != NULL);
+    rassert(global_state != NULL);
+    rassert(channel != NULL);
     ignore(value);
 
     global_state->pause = false;

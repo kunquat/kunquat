@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -36,9 +36,9 @@ static bool Num_list_append(Num_list* nl, double num);
 
 static bool read_num(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
     ignore(index);
-    assert(userdata != NULL);
+    rassert(userdata != NULL);
 
     Num_list* nl = userdata;
 
@@ -59,7 +59,7 @@ static bool read_num(Streader* sr, int32_t index, void* userdata)
 
 Num_list* new_Num_list_from_string(Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -100,12 +100,12 @@ Num_list* new_Num_list_from_string(Streader* sr)
 
 static bool Num_list_append(Num_list* nl, double num)
 {
-    assert(nl != NULL);
-    assert(!isnan(num));
+    rassert(nl != NULL);
+    rassert(!isnan(num));
 
     if (nl->len >= nl->res)
     {
-        assert(nl->len == nl->res);
+        rassert(nl->len == nl->res);
 
         double* new_nums = memory_realloc_items(double, nl->res * 2, nl->nums);
         if (new_nums == NULL)
@@ -124,16 +124,16 @@ static bool Num_list_append(Num_list* nl, double num)
 
 int32_t Num_list_length(const Num_list* nl)
 {
-    assert(nl != NULL);
+    rassert(nl != NULL);
     return nl->len;
 }
 
 
 double Num_list_get_num(const Num_list* nl, int32_t index)
 {
-    assert(nl != NULL);
-    assert(index >= 0);
-    assert(index < nl->len);
+    rassert(nl != NULL);
+    rassert(index >= 0);
+    rassert(index < nl->len);
 
     return nl->nums[index];
 }

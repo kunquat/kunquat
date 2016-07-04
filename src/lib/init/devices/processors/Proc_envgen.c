@@ -110,8 +110,8 @@ Device_impl* new_Proc_envgen(void)
 static bool Proc_envgen_set_time_env_enabled(
         Device_impl* dimpl, const Key_indices indices, bool value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
     egen->is_time_env_enabled = value;
@@ -123,8 +123,8 @@ static bool Proc_envgen_set_time_env_enabled(
 static bool Proc_envgen_set_time_env(
         Device_impl* dimpl, const Key_indices indices, const Envelope* value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
 
@@ -166,8 +166,8 @@ static bool Proc_envgen_set_time_env(
 static bool Proc_envgen_set_loop_enabled(
         Device_impl* dimpl, const Key_indices indices, bool value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
     egen->is_loop_enabled = value;
@@ -179,8 +179,8 @@ static bool Proc_envgen_set_loop_enabled(
 static bool Proc_envgen_set_release_env(
         Device_impl* dimpl, const Key_indices indices, bool value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
     egen->is_release_env = value;
@@ -192,8 +192,8 @@ static bool Proc_envgen_set_release_env(
 static bool Proc_envgen_set_env_scale_amount(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
     egen->env_scale_amount = isfinite(value) ? value : 0;
@@ -205,8 +205,8 @@ static bool Proc_envgen_set_env_scale_amount(
 static bool Proc_envgen_set_env_scale_center(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
     egen->env_scale_center = isfinite(value) ? value : 0;
@@ -218,8 +218,8 @@ static bool Proc_envgen_set_env_scale_center(
 static bool Proc_envgen_set_linear_force(
         Device_impl* dimpl, const Key_indices indices, bool value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
 
@@ -232,8 +232,8 @@ static bool Proc_envgen_set_linear_force(
 static bool Proc_envgen_set_global_adjust(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
     egen->global_adjust = isfinite(value) ? value : 0;
@@ -245,8 +245,8 @@ static bool Proc_envgen_set_global_adjust(
 static bool Proc_envgen_set_force_env_enabled(
         Device_impl* dimpl, const Key_indices indices, bool value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
     egen->is_force_env_enabled = value;
@@ -258,8 +258,8 @@ static bool Proc_envgen_set_force_env_enabled(
 static bool Proc_envgen_set_force_env(
         Device_impl* dimpl, const Key_indices indices, const Envelope* value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
 
@@ -303,8 +303,8 @@ static bool Proc_envgen_set_force_env(
 static bool Proc_envgen_set_y_range(
         Device_impl* dimpl, const Key_indices indices, const Num_list* value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
 

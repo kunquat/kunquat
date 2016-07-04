@@ -33,7 +33,7 @@
  */
 static inline double fast_exp2(double x)
 {
-    assert(isfinite(x));
+    rassert(isfinite(x));
 
 #define K 3
 #define N (1 << K)
@@ -54,8 +54,8 @@ static inline double fast_exp2(double x)
 
     x *= N;
     const double i = floor(x + L);
-    assert(i >= INT_MIN);
-    assert(i <= INT_MAX);
+    rassert(i >= INT_MIN);
+    rassert(i <= INT_MAX);
     const int j = (int)i;
     const int k = j & (N - 1);
     return ldexp(b[k] * (x - i + A), j >> K);

@@ -285,7 +285,7 @@ int kqt_Handle_fire_event(kqt_Handle handle, int channel, const char* event)
     Streader* sr = Streader_init(STREADER_AUTO, event, (int64_t)length);
     if (!Player_fire(h->player, channel, sr))
     {
-        assert(Streader_is_error_set(sr));
+        rassert(Streader_is_error_set(sr));
         Handle_set_error(
                 h,
                 ERROR_ARGUMENT,

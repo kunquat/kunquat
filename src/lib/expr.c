@@ -159,9 +159,9 @@ static Func_desc funcs[] =
 bool evaluate_expr(
         Streader* sr, Env_state* estate, const Value* meta, Value* res, Random* rand)
 {
-    assert(sr != NULL);
-    assert(res != NULL);
-    assert(rand != NULL);
+    rassert(sr != NULL);
+    rassert(res != NULL);
+    rassert(rand != NULL);
 
     if (!Streader_match_char(sr, '"'))
         return false;
@@ -191,7 +191,7 @@ bool evaluate_expr(
     {                                                 \
         if ((si) >= STACK_SIZE)                       \
         {                                             \
-            assert((si) == STACK_SIZE);               \
+            rassert((si) == STACK_SIZE);              \
             Streader_set_error(sr, "Stack overflow"); \
             return false;                             \
         }                                             \
@@ -210,17 +210,17 @@ static bool evaluate_expr_(
         bool func_arg,
         Random* rand)
 {
-    assert(sr != NULL);
-    assert(val_stack != NULL);
-    assert(vsi >= 0);
-    assert(vsi <= STACK_SIZE);
-    assert(op_stack != NULL);
-    assert(osi >= 0);
-    assert(osi <= STACK_SIZE);
-    assert(meta != NULL);
-    assert(res != NULL);
-    assert(depth >= 0);
-    assert(rand != NULL);
+    rassert(sr != NULL);
+    rassert(val_stack != NULL);
+    rassert(vsi >= 0);
+    rassert(vsi <= STACK_SIZE);
+    rassert(op_stack != NULL);
+    rassert(osi >= 0);
+    rassert(osi <= STACK_SIZE);
+    rassert(meta != NULL);
+    rassert(res != NULL);
+    rassert(depth >= 0);
+    rassert(rand != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -263,7 +263,7 @@ static bool evaluate_expr_(
                         false, rand))
                 return false;
 
-            assert(operand->type != VALUE_TYPE_NONE);
+            rassert(operand->type != VALUE_TYPE_NONE);
             if (!handle_unary(operand, found_not, found_minus, sr))
                 return false;
 
@@ -281,7 +281,7 @@ static bool evaluate_expr_(
             }
 
             check_stack(vsi);
-            assert(func != NULL);
+            rassert(func != NULL);
             Value func_args[FUNC_ARGS_MAX] = { { .type = VALUE_TYPE_NONE } };
             if (!Streader_match_char(sr, '('))
                 return false;
@@ -297,7 +297,7 @@ static bool evaluate_expr_(
                                 true, rand))
                         return false;
 
-                    assert(func_args[i].type != VALUE_TYPE_NONE);
+                    rassert(func_args[i].type != VALUE_TYPE_NONE);
                     if (Streader_try_match_char(sr, ')'))
                     {
                         ++i;
@@ -314,11 +314,11 @@ static bool evaluate_expr_(
 
             if (!func(func_args, operand, rand, sr))
             {
-                assert(Streader_is_error_set(sr));
+                rassert(Streader_is_error_set(sr));
                 return false;
             }
 
-            assert(operand->type != VALUE_TYPE_NONE);
+            rassert(operand->type != VALUE_TYPE_NONE);
             found_not = found_minus = false;
             memcpy(&val_stack[vsi], operand, sizeof(Value));
             ++vsi;
@@ -332,7 +332,7 @@ static bool evaluate_expr_(
                 return false;
             }
 
-            assert(operand->type != VALUE_TYPE_NONE);
+            rassert(operand->type != VALUE_TYPE_NONE);
             if (!handle_unary(operand, found_not, found_minus, sr))
                 return false;
 
@@ -345,7 +345,7 @@ static bool evaluate_expr_(
         }
         else if (Operator_from_token(op, token))
         {
-            assert(op->name != NULL);
+            rassert(op->name != NULL);
             if (expect_operand)
             {
                 if (string_eq(op->name, "!"))
@@ -375,8 +375,8 @@ static bool evaluate_expr_(
             while (osi > orig_osi && op->preced <= op_stack[osi - 1].preced)
             {
                 Operator* top = &op_stack[osi - 1];
-                assert(top->name != NULL);
-                assert(top->func != NULL);
+                rassert(top->name != NULL);
+                rassert(top->func != NULL);
 
                 if (vsi < 2)
                 {
@@ -391,12 +391,12 @@ static bool evaluate_expr_(
                             result,
                             sr))
                 {
-                    assert(Streader_is_error_set(sr));
+                    rassert(Streader_is_error_set(sr));
                     return false;
                 }
 
                 //Operator_print(top);
-                assert(result->type != VALUE_TYPE_NONE);
+                rassert(result->type != VALUE_TYPE_NONE);
                 val_stack[vsi - 2].type = VALUE_TYPE_NONE;
                 val_stack[vsi - 1].type = VALUE_TYPE_NONE;
                 --vsi;
@@ -422,11 +422,11 @@ static bool evaluate_expr_(
     if (Streader_is_error_set(sr))
         return false;
 
-    assert(string_eq(token, "") || string_eq(token, ")") ||
+    rassert(string_eq(token, "") || string_eq(token, ")") ||
             (func_arg && string_eq(token, ",")));
     if (vsi <= orig_vsi)
     {
-        assert(vsi == orig_vsi);
+        rassert(vsi == orig_vsi);
         Streader_set_error(sr, "Empty expression");
         return false;
     }
@@ -443,8 +443,8 @@ static bool evaluate_expr_(
     while (osi > orig_osi)
     {
         Operator* top = &op_stack[osi - 1];
-        assert(top->name != NULL);
-        assert(top->func != NULL);
+        rassert(top->name != NULL);
+        rassert(top->func != NULL);
 
         if (vsi < 2)
         {
@@ -456,12 +456,12 @@ static bool evaluate_expr_(
         if (!top->func(&val_stack[vsi - 2], &val_stack[vsi - 1],
                        result, sr))
         {
-            assert(Streader_is_error_set(sr));
+            rassert(Streader_is_error_set(sr));
             return false;
         }
 
         //Operator_print(top);
-        assert(result->type != VALUE_TYPE_NONE);
+        rassert(result->type != VALUE_TYPE_NONE);
         val_stack[vsi - 2].type = val_stack[vsi - 1].type = VALUE_TYPE_NONE;
         --vsi;
         memcpy(&val_stack[vsi - 1], result, sizeof(Value));
@@ -469,9 +469,9 @@ static bool evaluate_expr_(
         --osi;
     }
 
-    assert(vsi > orig_vsi);
+    rassert(vsi > orig_vsi);
     memcpy(res, &val_stack[vsi - 1], sizeof(Value));
-    assert(res->type != VALUE_TYPE_NONE);
+    rassert(res->type != VALUE_TYPE_NONE);
 
     if (func_arg)
         sr->pos = prev_pos;
@@ -484,8 +484,8 @@ static bool evaluate_expr_(
 
 static bool token_is_func(const char* token, Func* res)
 {
-    assert(token != NULL);
-    assert(res != NULL);
+    rassert(token != NULL);
+    rassert(res != NULL);
 
     for (int i = 0; funcs[i].name != NULL; ++i)
     {
@@ -502,9 +502,9 @@ static bool token_is_func(const char* token, Func* res)
 
 static bool handle_unary(Value* val, bool found_not, bool found_minus, Streader* sr)
 {
-    assert(val != NULL);
-    assert(!(found_not && found_minus));
-    assert(sr != NULL);
+    rassert(val != NULL);
+    rassert(!(found_not && found_minus));
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -524,7 +524,7 @@ static bool handle_unary(Value* val, bool found_not, bool found_minus, Streader*
         return true;
     }
 
-    assert(found_minus);
+    rassert(found_minus);
     switch (val->type)
     {
         case VALUE_TYPE_INT:
@@ -560,9 +560,9 @@ static bool handle_unary(Value* val, bool found_not, bool found_minus, Streader*
 static bool Value_from_token(
         Value* val, char* token, Env_state* estate, const Value* meta)
 {
-    assert(val != NULL);
-    assert(token != NULL);
-    assert(meta != NULL);
+    rassert(val != NULL);
+    rassert(token != NULL);
+    rassert(meta != NULL);
 
     if (isdigit(token[0]) || token[0] == '.')
     {
@@ -631,7 +631,7 @@ static bool Value_from_token(
         if (ev == NULL)
             return false;
 
-        assert(Env_var_get_type(ev) == VALUE_TYPE_BOOL ||
+        rassert(Env_var_get_type(ev) == VALUE_TYPE_BOOL ||
                 Env_var_get_type(ev) == VALUE_TYPE_INT ||
                 Env_var_get_type(ev) == VALUE_TYPE_FLOAT ||
                 Env_var_get_type(ev) == VALUE_TYPE_TSTAMP);
@@ -648,7 +648,7 @@ static bool Value_from_token(
 #if 0
 static void Value_print(Value* val)
 {
-    assert(val != NULL);
+    rassert(val != NULL);
 
     switch (val->type)
     {
@@ -665,7 +665,7 @@ static void Value_print(Value* val)
             fprintf(stderr, "%f", val->value.float_type);
         } break;
         default:
-            assert(false);
+            rassert(false);
     }
 
     fprintf(stderr, " ");
@@ -677,8 +677,8 @@ static void Value_print(Value* val)
 
 static bool Operator_from_token(Operator* op, char* token)
 {
-    assert(op != NULL);
-    assert(token != NULL);
+    rassert(op != NULL);
+    rassert(token != NULL);
 
     for (int i = 0; operators[i].name != NULL; ++i)
     {
@@ -696,8 +696,8 @@ static bool Operator_from_token(Operator* op, char* token)
 #if 0
 static void Operator_print(Operator* op)
 {
-    assert(op != NULL);
-    assert(op->name != NULL);
+    rassert(op != NULL);
+    rassert(op->name != NULL);
     fprintf(stderr, "%s ", op->name);
     return;
 }
@@ -706,8 +706,8 @@ static void Operator_print(Operator* op)
 
 static bool get_token(Streader* sr, char* result)
 {
-    assert(sr != NULL);
-    assert(result != NULL);
+    rassert(sr != NULL);
+    rassert(result != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -753,8 +753,8 @@ static bool get_token(Streader* sr, char* result)
 
 static bool get_num_token(Streader* sr, char* result)
 {
-    assert(sr != NULL);
-    assert(result != NULL);
+    rassert(sr != NULL);
+    rassert(result != NULL);
 
     const int64_t start_pos = sr->pos;
 
@@ -762,7 +762,7 @@ static bool get_num_token(Streader* sr, char* result)
         return false;
 
     const int64_t end_pos = sr->pos;
-    assert(end_pos >= start_pos);
+    rassert(end_pos >= start_pos);
 
     const int64_t len = end_pos - start_pos;
     if (len >= KQT_VAR_NAME_MAX - 1)
@@ -780,8 +780,8 @@ static bool get_num_token(Streader* sr, char* result)
 
 static bool get_str_token(Streader* sr, char* result)
 {
-    assert(sr != NULL);
-    assert(result != NULL);
+    rassert(sr != NULL);
+    rassert(result != NULL);
 
     // FIXME: ugly haxoring with Streader internals
     const char* str = &sr->str[sr->pos];
@@ -815,8 +815,8 @@ static bool get_str_token(Streader* sr, char* result)
 
 static bool get_var_token(Streader* sr, char* result)
 {
-    assert(sr != NULL);
-    assert(result != NULL);
+    rassert(sr != NULL);
+    rassert(result != NULL);
 
     // FIXME: ugly haxoring with Streader internals
     const char* str = &sr->str[sr->pos];
@@ -839,8 +839,8 @@ static bool get_var_token(Streader* sr, char* result)
 
 static bool get_op_token(Streader* sr, char* result)
 {
-    assert(sr != NULL);
-    assert(result != NULL);
+    rassert(sr != NULL);
+    rassert(result != NULL);
 
     static const char op_chars[] = "!=<>+-*/%^|&";
 
@@ -866,11 +866,11 @@ static bool get_op_token(Streader* sr, char* result)
 static bool promote_arithmetic_types(
         Value* pr_op1, Value* pr_op2, const Value* op1, const Value* op2, Streader* sr)
 {
-    assert(pr_op1 != NULL);
-    assert(pr_op2 != NULL);
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(sr != NULL);
+    rassert(pr_op1 != NULL);
+    rassert(pr_op2 != NULL);
+    rassert(op1 != NULL);
+    rassert(op2 != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -918,7 +918,7 @@ static bool promote_arithmetic_types(
         return false;
     }
 
-    assert(pr_op1->type == pr_op2->type);
+    rassert(pr_op1->type == pr_op2->type);
 
     return true;
 }
@@ -926,12 +926,12 @@ static bool promote_arithmetic_types(
 
 static bool op_eq(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    assert(sr != NULL);
-    assert(op1->type > VALUE_TYPE_NONE);
-    assert(op2->type > VALUE_TYPE_NONE);
+    rassert(op1 != NULL);
+    rassert(op2 != NULL);
+    rassert(res != NULL);
+    rassert(sr != NULL);
+    rassert(op1->type > VALUE_TYPE_NONE);
+    rassert(op2->type > VALUE_TYPE_NONE);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -1000,7 +1000,7 @@ static bool op_eq(const Value* op1, const Value* op2, Value* res, Streader* sr)
         break;
 
         default:
-            assert(false);
+            rassert(false);
     }
 
     return true;
@@ -1009,14 +1009,14 @@ static bool op_eq(const Value* op1, const Value* op2, Value* res, Streader* sr)
 
 static bool op_neq(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    assert(sr != NULL);
+    rassert(op1 != NULL);
+    rassert(op2 != NULL);
+    rassert(res != NULL);
+    rassert(sr != NULL);
 
     if (op_eq(op1, op2, res, sr))
     {
-        assert(res->type == VALUE_TYPE_BOOL);
+        rassert(res->type == VALUE_TYPE_BOOL);
         res->value.bool_type = !res->value.bool_type;
         return true;
     }
@@ -1027,10 +1027,10 @@ static bool op_neq(const Value* op1, const Value* op2, Value* res, Streader* sr)
 
 static bool op_leq(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    assert(sr != NULL);
+    rassert(op1 != NULL);
+    rassert(op2 != NULL);
+    rassert(res != NULL);
+    rassert(sr != NULL);
 
     if (!op_lt(op1, op2, res, sr))
         return false;
@@ -1044,10 +1044,10 @@ static bool op_leq(const Value* op1, const Value* op2, Value* res, Streader* sr)
 
 static bool op_geq(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    assert(sr != NULL);
+    rassert(op1 != NULL);
+    rassert(op2 != NULL);
+    rassert(res != NULL);
+    rassert(sr != NULL);
 
     return op_leq(op2, op1, res, sr);
 }
@@ -1055,10 +1055,10 @@ static bool op_geq(const Value* op1, const Value* op2, Value* res, Streader* sr)
 
 static bool op_or(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    assert(sr != NULL);
+    rassert(op1 != NULL);
+    rassert(op2 != NULL);
+    rassert(res != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -1078,10 +1078,10 @@ static bool op_or(const Value* op1, const Value* op2, Value* res, Streader* sr)
 
 static bool op_and(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    assert(sr != NULL);
+    rassert(op1 != NULL);
+    rassert(op2 != NULL);
+    rassert(res != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -1101,10 +1101,10 @@ static bool op_and(const Value* op1, const Value* op2, Value* res, Streader* sr)
 
 static bool op_lt(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    assert(sr != NULL);
+    rassert(op1 != NULL);
+    rassert(op2 != NULL);
+    rassert(res != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -1146,7 +1146,7 @@ static bool op_lt(const Value* op1, const Value* op2, Value* res, Streader* sr)
         break;
 
         default:
-            assert(false);
+            rassert(false);
     }
 
     return true;
@@ -1155,10 +1155,10 @@ static bool op_lt(const Value* op1, const Value* op2, Value* res, Streader* sr)
 
 static bool op_gt(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    assert(sr != NULL);
+    rassert(op1 != NULL);
+    rassert(op2 != NULL);
+    rassert(res != NULL);
+    rassert(sr != NULL);
 
     return op_lt(op2, op1, res, sr);
 }
@@ -1166,10 +1166,10 @@ static bool op_gt(const Value* op1, const Value* op2, Value* res, Streader* sr)
 
 static bool op_add(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    assert(sr != NULL);
+    rassert(op1 != NULL);
+    rassert(op2 != NULL);
+    rassert(res != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -1206,7 +1206,7 @@ static bool op_add(const Value* op1, const Value* op2, Value* res, Streader* sr)
         break;
 
         default:
-            assert(false);
+            rassert(false);
     }
 
     return true;
@@ -1215,10 +1215,10 @@ static bool op_add(const Value* op1, const Value* op2, Value* res, Streader* sr)
 
 static bool op_sub(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    assert(sr != NULL);
+    rassert(op1 != NULL);
+    rassert(op2 != NULL);
+    rassert(res != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -1248,7 +1248,7 @@ static bool op_sub(const Value* op1, const Value* op2, Value* res, Streader* sr)
     }
     else
     {
-        assert(false);
+        rassert(false);
     }
 
     return op_add(op1, neg_op2, res, sr);
@@ -1257,10 +1257,10 @@ static bool op_sub(const Value* op1, const Value* op2, Value* res, Streader* sr)
 
 static bool op_mul(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    assert(sr != NULL);
+    rassert(op1 != NULL);
+    rassert(op2 != NULL);
+    rassert(res != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -1298,7 +1298,7 @@ static bool op_mul(const Value* op1, const Value* op2, Value* res, Streader* sr)
         break;
 
         default:
-            assert(false);
+            rassert(false);
     }
 
     return true;
@@ -1307,10 +1307,10 @@ static bool op_mul(const Value* op1, const Value* op2, Value* res, Streader* sr)
 
 static bool op_div(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    assert(sr != NULL);
+    rassert(op1 != NULL);
+    rassert(op2 != NULL);
+    rassert(res != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -1376,7 +1376,7 @@ static bool op_div(const Value* op1, const Value* op2, Value* res, Streader* sr)
         break;
 
         default:
-            assert(false);
+            rassert(false);
     }
 
     return true;
@@ -1385,10 +1385,10 @@ static bool op_div(const Value* op1, const Value* op2, Value* res, Streader* sr)
 
 static bool op_mod(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    assert(sr != NULL);
+    rassert(op1 != NULL);
+    rassert(op2 != NULL);
+    rassert(res != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -1453,7 +1453,7 @@ static bool op_mod(const Value* op1, const Value* op2, Value* res, Streader* sr)
         break;
 
         default:
-            assert(false);
+            rassert(false);
     }
 
     return true;
@@ -1462,13 +1462,13 @@ static bool op_mod(const Value* op1, const Value* op2, Value* res, Streader* sr)
 
 static bool float_pow(const Value* pr_op1, const Value* pr_op2, Value* res, Streader* sr)
 {
-    assert(pr_op1 != NULL);
-    assert(pr_op1->type == VALUE_TYPE_FLOAT);
-    assert(pr_op2 != NULL);
-    assert(pr_op2->type == VALUE_TYPE_FLOAT);
-    assert(res != NULL);
-    assert(sr != NULL);
-    assert(!Streader_is_error_set(sr));
+    rassert(pr_op1 != NULL);
+    rassert(pr_op1->type == VALUE_TYPE_FLOAT);
+    rassert(pr_op2 != NULL);
+    rassert(pr_op2->type == VALUE_TYPE_FLOAT);
+    rassert(res != NULL);
+    rassert(sr != NULL);
+    rassert(!Streader_is_error_set(sr));
 
     if ((pr_op1->value.float_type == 0) && (pr_op2->value.float_type == 0))
     {
@@ -1485,10 +1485,10 @@ static bool float_pow(const Value* pr_op1, const Value* pr_op2, Value* res, Stre
 
 static bool op_pow(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    assert(sr != NULL);
+    rassert(op1 != NULL);
+    rassert(op2 != NULL);
+    rassert(res != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -1541,7 +1541,7 @@ static bool op_pow(const Value* op1, const Value* op2, Value* res, Streader* sr)
         break;
 
         default:
-            assert(false);
+            rassert(false);
     }
 
     return true;
@@ -1550,9 +1550,9 @@ static bool op_pow(const Value* op1, const Value* op2, Value* res, Streader* sr)
 
 static bool func_ts(const Value* args, Value* res, Random* rand, Streader* sr)
 {
-    assert(args != NULL);
-    assert(res != NULL);
-    assert(sr != NULL);
+    rassert(args != NULL);
+    rassert(res != NULL);
+    rassert(sr != NULL);
     ignore(rand);
 
     if (Streader_is_error_set(sr))
@@ -1631,10 +1631,10 @@ static bool func_ts(const Value* args, Value* res, Random* rand, Streader* sr)
 
 static bool func_rand(const Value* args, Value* res, Random* rand, Streader* sr)
 {
-    assert(args != NULL);
-    assert(res != NULL);
-    assert(rand != NULL);
-    assert(sr != NULL);
+    rassert(args != NULL);
+    rassert(res != NULL);
+    rassert(rand != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -1665,9 +1665,9 @@ static bool func_rand(const Value* args, Value* res, Random* rand, Streader* sr)
 
 static bool func_pat(const Value* args, Value* res, Random* rand, Streader* sr)
 {
-    assert(args != NULL);
-    assert(res != NULL);
-    assert(sr != NULL);
+    rassert(args != NULL);
+    rassert(res != NULL);
+    rassert(sr != NULL);
     ignore(rand);
 
     if (Streader_is_error_set(sr))

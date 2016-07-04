@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -208,7 +208,7 @@ bool key_is_valid(Handle* handle, const char* key);
 #define check_key(handle, key, ret)         \
     if (true)                               \
     {                                       \
-        assert((handle) != NULL);           \
+        rassert((handle) != NULL);          \
         if (!key_is_valid((handle), (key))) \
             return (ret);                   \
     }                                       \

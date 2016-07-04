@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -32,10 +32,10 @@
 bool Event_control_env_set_var_name_process(
         General_state* global_state, Channel* channel, const Value* value)
 {
-    assert(global_state != NULL);
-    assert(channel != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_STRING);
+    rassert(global_state != NULL);
+    rassert(channel != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_STRING);
 
     return set_active_name(&channel->parent, ACTIVE_CAT_ENV, value);
 }
@@ -44,9 +44,9 @@ bool Event_control_env_set_var_name_process(
 bool Event_control_env_set_var_process(
         General_state* global_state, Channel* channel, const Value* value)
 {
-    assert(global_state != NULL);
-    assert(channel != NULL);
-    assert(value != NULL);
+    rassert(global_state != NULL);
+    rassert(channel != NULL);
+    rassert(value != NULL);
 
     Env_var* var = Env_state_get_var(
             global_state->estate,

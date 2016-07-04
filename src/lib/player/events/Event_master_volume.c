@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -26,9 +26,9 @@
 bool Event_master_set_volume_process(
         Master_params* master_params, const Value* value)
 {
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     master_params->volume = exp2(value->value.float_type / 6);
     Slider_break(&master_params->volume_slider);
@@ -40,9 +40,9 @@ bool Event_master_set_volume_process(
 bool Event_master_slide_volume_process(
         Master_params* master_params, const Value* value)
 {
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     const double target = exp2(value->value.float_type / 6);
 
@@ -58,9 +58,9 @@ bool Event_master_slide_volume_process(
 bool Event_master_slide_volume_length_process(
         Master_params* master_params, const Value* value)
 {
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_TSTAMP);
 
     Slider_set_length(&master_params->volume_slider, &value->value.Tstamp_type);
 

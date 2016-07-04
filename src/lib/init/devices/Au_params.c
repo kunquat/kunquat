@@ -24,8 +24,8 @@
 
 Au_params* Au_params_init(Au_params* aup, uint32_t device_id)
 {
-    assert(aup != NULL);
-    assert(device_id > 0);
+    rassert(aup != NULL);
+    rassert(device_id > 0);
 
     aup->device_id = device_id;
 

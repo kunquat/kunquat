@@ -29,9 +29,9 @@
 
 Voice_state* get_target_stream_vstate(Channel* channel, const char* stream_name)
 {
-    assert(channel != NULL);
-    assert(stream_name != NULL);
-    assert(is_valid_var_name(stream_name));
+    rassert(channel != NULL);
+    rassert(stream_name != NULL);
+    rassert(is_valid_var_name(stream_name));
 
     const Audio_unit* au =
         Module_get_au_from_input(channel->parent.module, channel->au_input);
@@ -46,7 +46,7 @@ Voice_state* get_target_stream_vstate(Channel* channel, const char* stream_name)
     if (proc_index < 0)
         return NULL;
 
-    assert(proc_index < KQT_PROCESSORS_MAX);
+    rassert(proc_index < KQT_PROCESSORS_MAX);
     if (channel->fg[proc_index] == NULL)
         return NULL;
 

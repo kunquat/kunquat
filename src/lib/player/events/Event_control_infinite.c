@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -29,8 +29,8 @@
 bool Event_control_infinite_on_process(
         General_state* global_state, Channel* channel, const Value* value)
 {
-    assert(global_state != NULL);
-    assert(channel != NULL);
+    rassert(global_state != NULL);
+    rassert(channel != NULL);
     ignore(value);
 
     Master_params* master_params = (Master_params*)global_state;
@@ -43,8 +43,8 @@ bool Event_control_infinite_on_process(
 bool Event_control_infinite_off_process(
         General_state* global_state, Channel* channel, const Value* value)
 {
-    assert(global_state != NULL);
-    assert(channel != NULL);
+    rassert(global_state != NULL);
+    rassert(channel != NULL);
     ignore(value);
 
     Master_params* master_params = (Master_params*)global_state;

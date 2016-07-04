@@ -46,8 +46,8 @@ Song* new_Song(void)
 
 bool Song_read_tempo(Song* song, Streader* sr)
 {
-    assert(song != NULL);
-    assert(sr != NULL);
+    rassert(song != NULL);
+    rassert(sr != NULL);
 
     double tempo = NAN;
 
@@ -69,15 +69,15 @@ bool Song_read_tempo(Song* song, Streader* sr)
 
 double Song_get_tempo(const Song* song)
 {
-    assert(song != NULL);
+    rassert(song != NULL);
     return song->tempo;
 }
 
 
 bool Song_read_global_vol(Song* song, Streader* sr)
 {
-    assert(song != NULL);
-    assert(sr != NULL);
+    rassert(song != NULL);
+    rassert(sr != NULL);
 
     double vol = NAN;
 
@@ -94,7 +94,7 @@ bool Song_read_global_vol(Song* song, Streader* sr)
 
 double Song_get_global_vol(const Song* song)
 {
-    assert(song != NULL);
+    rassert(song != NULL);
     return song->global_vol;
 }
 

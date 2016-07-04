@@ -57,9 +57,9 @@ Song_table* new_Song_table(void)
 
 bool Song_table_set(Song_table* table, int index, Song* song)
 {
-    assert(table != NULL);
-    assert(index < KQT_SONGS_MAX);
-    assert(song != NULL);
+    rassert(table != NULL);
+    rassert(index < KQT_SONGS_MAX);
+    rassert(song != NULL);
 
     if (!Etable_set(table->songs, index, song))
         return false;
@@ -80,8 +80,8 @@ bool Song_table_set(Song_table* table, int index, Song* song)
 
 Song* Song_table_get(Song_table* table, int index)
 {
-    assert(table != NULL);
-    assert(index < KQT_SONGS_MAX);
+    rassert(table != NULL);
+    rassert(index < KQT_SONGS_MAX);
 
     if (index >= table->effective_size)
         return NULL;
@@ -92,8 +92,8 @@ Song* Song_table_get(Song_table* table, int index)
 
 void Song_table_set_existent(Song_table* table, int index, bool existent)
 {
-    assert(table != NULL);
-    assert(index < KQT_SONGS_MAX);
+    rassert(table != NULL);
+    rassert(index < KQT_SONGS_MAX);
 
     Bit_array_set(table->existents, index, existent);
 
@@ -103,8 +103,8 @@ void Song_table_set_existent(Song_table* table, int index, bool existent)
 
 bool Song_table_get_existent(Song_table* table, int index)
 {
-    assert(table != NULL);
-    assert(index < KQT_SONGS_MAX);
+    rassert(table != NULL);
+    rassert(index < KQT_SONGS_MAX);
 
     return Bit_array_get(table->existents, index);
 }

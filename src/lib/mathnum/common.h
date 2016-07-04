@@ -109,7 +109,7 @@ double powi(double base, int exp);
  * \param t    The lerp parameter -- must be >= \c 0 and <= \c 1.
  */
 #define lerp(v1, v2, t) \
-    (assert((t) >= 0), assert((t) <= 1), (v1) + ((v2) - (v1)) * (t))
+    (rassert((t) >= 0), rassert((t) <= 1), (v1) + ((v2) - (v1)) * (t))
 
 
 /**

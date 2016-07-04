@@ -24,8 +24,8 @@
 
 static uint32_t reverse_bits(uint32_t n, int bit_count)
 {
-    assert(bit_count > 0);
-    assert(bit_count <= 31);
+    rassert(bit_count > 0);
+    rassert(bit_count <= 31);
 
     n = (uint32_t)(((n & 0xaaaaaaaaUL) >> 1) | ((n & 0x55555555UL) << 1));
     n = (uint32_t)(((n & 0xccccccccUL) >> 2) | ((n & 0x33333333UL) << 2));
@@ -39,8 +39,8 @@ static uint32_t reverse_bits(uint32_t n, int bit_count)
 
 static int get_bit_count(int32_t n)
 {
-    assert(n > 0);
-    assert(is_p2(n));
+    rassert(n > 0);
+    rassert(is_p2(n));
 
     int count = 0;
     n >>= 1;
@@ -56,7 +56,7 @@ static int get_bit_count(int32_t n)
 
 static void bit_reversal_permute(float* data, int32_t length)
 {
-    assert(is_p2(length));
+    rassert(is_p2(length));
 
     const int bit_count = get_bit_count(length);
 
@@ -77,9 +77,9 @@ static void bit_reversal_permute(float* data, int32_t length)
 
 void fill_Ws(float* Ws, int32_t tlength)
 {
-    assert(Ws != NULL);
-    assert(tlength >= 4);
-    assert(is_p2(tlength));
+    rassert(Ws != NULL);
+    rassert(tlength >= 4);
+    rassert(is_p2(tlength));
 
     const int32_t Wlength = tlength / 4;
 
@@ -96,14 +96,14 @@ void fill_Ws(float* Ws, int32_t tlength)
 
 void irfft(float* data, const float* Ws, int32_t length)
 {
-    assert(data != NULL);
-    assert(Ws != NULL);
-    assert(length > 0);
-    assert(is_p2(length));
+    rassert(data != NULL);
+    rassert(Ws != NULL);
+    rassert(length > 0);
+    rassert(is_p2(length));
 
     const int bit_count = get_bit_count(length);
-    assert(bit_count > 0);
-    assert(bit_count < 31);
+    rassert(bit_count > 0);
+    rassert(bit_count < 31);
 
     // Algorithmically mostly based on the description in the LaTeX documentation
     // of GNU Scientific Library, http://www.gnu.org/software/gsl/

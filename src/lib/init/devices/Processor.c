@@ -29,9 +29,9 @@
 static Device_state* Processor_create_state_plain(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
-    assert(device != NULL);
-    assert(audio_rate > 0);
-    assert(audio_buffer_size >= 0);
+    rassert(device != NULL);
+    rassert(audio_rate > 0);
+    rassert(audio_buffer_size >= 0);
 
     Proc_state* proc_state = memory_alloc_item(Proc_state);
     if (proc_state == NULL)
@@ -50,9 +50,9 @@ static Device_state* Processor_create_state_plain(
 static Device_state* Processor_create_dstate(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
-    assert(device != NULL);
-    assert(audio_rate > 0);
-    assert(audio_buffer_size >= 0);
+    rassert(device != NULL);
+    rassert(audio_rate > 0);
+    rassert(audio_buffer_size >= 0);
 
     const Device_impl* dimpl = Device_get_impl(device);
 
@@ -75,9 +75,9 @@ static void Processor_set_control_var_generic(
 
 Processor* new_Processor(int index, const Au_params* au_params)
 {
-    assert(index >= 0);
-    assert(index < KQT_PROCESSORS_MAX);
-    assert(au_params != NULL);
+    rassert(index >= 0);
+    rassert(index < KQT_PROCESSORS_MAX);
+    rassert(au_params != NULL);
 
     Processor* proc = memory_alloc_item(Processor);
     if (proc == NULL)
@@ -107,7 +107,7 @@ Processor* new_Processor(int index, const Au_params* au_params)
 
 void Processor_set_voice_signals(Processor* proc, bool enabled)
 {
-    assert(proc != NULL);
+    rassert(proc != NULL);
     proc->enable_voice_support = enabled;
     return;
 }
@@ -115,7 +115,7 @@ void Processor_set_voice_signals(Processor* proc, bool enabled)
 
 bool Processor_get_voice_signals(const Processor* proc)
 {
-    assert(proc != NULL);
+    rassert(proc != NULL);
     return proc->enable_voice_support;
 }
 
@@ -123,7 +123,7 @@ bool Processor_get_voice_signals(const Processor* proc)
 /*
 void Processor_set_signal_support(Processor* proc, bool enabled)
 {
-    assert(proc != NULL);
+    rassert(proc != NULL);
     proc->enable_signal_support = enabled;
     return;
 }
@@ -131,7 +131,7 @@ void Processor_set_signal_support(Processor* proc, bool enabled)
 
 bool Processor_get_signal_support(const Processor* proc)
 {
-    assert(proc != NULL);
+    rassert(proc != NULL);
     return proc->enable_signal_support;
 }
 // */
@@ -139,7 +139,7 @@ bool Processor_get_signal_support(const Processor* proc)
 
 const Au_params* Processor_get_au_params(const Processor* proc)
 {
-    assert(proc != NULL);
+    rassert(proc != NULL);
     return proc->au_params;
 }
 
@@ -153,11 +153,11 @@ static void Processor_set_control_var_generic(
         const char* key,
         const Value* value)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(random != NULL);
-    assert(key != NULL);
-    assert(value != NULL);
+    rassert(device != NULL);
+    rassert(dstates != NULL);
+    rassert(random != NULL);
+    rassert(key != NULL);
+    rassert(value != NULL);
 
     Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
 
@@ -167,7 +167,7 @@ static void Processor_set_control_var_generic(
     }
     else
     {
-        assert(channel != NULL);
+        rassert(channel != NULL);
         const Processor* proc = (const Processor*)device;
         Voice* voice = Channel_get_fg_voice(channel, proc->index);
         if (voice != NULL)

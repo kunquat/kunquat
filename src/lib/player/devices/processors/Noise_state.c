@@ -40,9 +40,9 @@ typedef struct Noise_pstate
 Device_state* new_Noise_pstate(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
-    assert(device != NULL);
-    assert(audio_rate > 0);
-    assert(audio_buffer_size >= 0);
+    rassert(device != NULL);
+    rassert(audio_rate > 0);
+    rassert(audio_buffer_size >= 0);
 
     Noise_pstate* noise_state = memory_alloc_item(Noise_pstate);
     if (noise_state == NULL)
@@ -82,11 +82,11 @@ static int32_t Noise_vstate_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
-    assert(au_state != NULL);
-    assert(wbs != NULL);
-    assert(tempo > 0);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
+    rassert(au_state != NULL);
+    rassert(wbs != NULL);
+    rassert(tempo > 0);
 
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
@@ -139,8 +139,8 @@ static int32_t Noise_vstate_render_voice(
 
 void Noise_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
 
     vstate->render_voice = Noise_vstate_render_voice;
 

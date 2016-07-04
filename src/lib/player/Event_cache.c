@@ -68,8 +68,8 @@ Event_cache* new_Event_cache(void)
 
 bool Event_cache_add_event(Event_cache* cache, char* event_name)
 {
-    assert(cache != NULL);
-    assert(event_name != NULL);
+    rassert(cache != NULL);
+    rassert(event_name != NULL);
 
     if (AAtree_get_exact(cache->cache, event_name) != NULL)
         return true;
@@ -87,9 +87,9 @@ bool Event_cache_add_event(Event_cache* cache, char* event_name)
 
 void Event_cache_update(Event_cache* cache, const char* event_name, const Value* value)
 {
-    assert(cache != NULL);
-    assert(event_name != NULL);
-    assert(value != NULL);
+    rassert(cache != NULL);
+    rassert(event_name != NULL);
+    rassert(value != NULL);
 
     Event_state* state = AAtree_get_exact(cache->cache, event_name);
     if (state == NULL)
@@ -102,11 +102,11 @@ void Event_cache_update(Event_cache* cache, const char* event_name, const Value*
 
 const Value* Event_cache_get_value(const Event_cache* cache, const char* event_name)
 {
-    assert(cache != NULL);
-    assert(event_name != NULL);
+    rassert(cache != NULL);
+    rassert(event_name != NULL);
 
     Event_state* state = AAtree_get_exact(cache->cache, event_name);
-    assert(state != NULL);
+    rassert(state != NULL);
 
     return &state->value;
 }
@@ -114,7 +114,7 @@ const Value* Event_cache_get_value(const Event_cache* cache, const char* event_n
 
 void Event_cache_reset(Event_cache* cache)
 {
-    assert(cache != NULL);
+    rassert(cache != NULL);
 
     AAiter* iter = AAiter_init(AAITER_AUTO, cache->cache);
     Event_state* es = AAiter_get_at_least(iter, "");
@@ -141,8 +141,8 @@ void del_Event_cache(Event_cache* cache)
 
 static Event_state* new_Event_state(const char* event_name)
 {
-    assert(event_name != NULL);
-    assert(strlen(event_name) <= EVENT_NAME_MAX);
+    rassert(event_name != NULL);
+    rassert(strlen(event_name) <= EVENT_NAME_MAX);
 
     Event_state* es = memory_alloc_item(Event_state);
     if (es == NULL)
@@ -156,7 +156,7 @@ static Event_state* new_Event_state(const char* event_name)
 
 static void Event_state_reset(Event_state* es)
 {
-    assert(es != NULL);
+    rassert(es != NULL);
     es->value.type = VALUE_TYPE_NONE;
     return;
 }

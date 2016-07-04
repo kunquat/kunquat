@@ -59,8 +59,8 @@ Device_impl* new_Proc_debug(void)
 static bool Proc_debug_set_single_pulse(
         Device_impl* dimpl, const Key_indices indices, bool value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_debug* debug = (Proc_debug*)dimpl;
     debug->single_pulse = value;

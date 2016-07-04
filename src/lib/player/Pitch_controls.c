@@ -25,9 +25,9 @@
 
 void Pitch_controls_init(Pitch_controls* pc, int32_t audio_rate, double tempo)
 {
-    assert(pc != NULL);
-    assert(audio_rate > 0);
-    assert(tempo > 0);
+    rassert(pc != NULL);
+    rassert(audio_rate > 0);
+    rassert(tempo > 0);
 
     pc->pitch = NAN;
     pc->orig_carried_pitch = NAN;
@@ -43,8 +43,8 @@ void Pitch_controls_init(Pitch_controls* pc, int32_t audio_rate, double tempo)
 
 void Pitch_controls_set_audio_rate(Pitch_controls* pc, int32_t audio_rate)
 {
-    assert(pc != NULL);
-    assert(audio_rate > 0);
+    rassert(pc != NULL);
+    rassert(audio_rate > 0);
 
     Slider_set_audio_rate(&pc->slider, audio_rate);
     LFO_set_audio_rate(&pc->vibrato, audio_rate);
@@ -55,8 +55,8 @@ void Pitch_controls_set_audio_rate(Pitch_controls* pc, int32_t audio_rate)
 
 void Pitch_controls_set_tempo(Pitch_controls* pc, double tempo)
 {
-    assert(pc != NULL);
-    assert(tempo > 0);
+    rassert(pc != NULL);
+    rassert(tempo > 0);
 
     Slider_set_tempo(&pc->slider, tempo);
     LFO_set_tempo(&pc->vibrato, tempo);
@@ -67,7 +67,7 @@ void Pitch_controls_set_tempo(Pitch_controls* pc, double tempo)
 
 void Pitch_controls_reset(Pitch_controls* pc)
 {
-    assert(pc != NULL);
+    rassert(pc != NULL);
 
     pc->pitch = NAN;
     pc->orig_carried_pitch = NAN;
@@ -82,9 +82,9 @@ void Pitch_controls_reset(Pitch_controls* pc)
 void Pitch_controls_copy(
         Pitch_controls* restrict dest, const Pitch_controls* restrict src)
 {
-    assert(dest != NULL);
-    assert(src != NULL);
-    assert(src != dest);
+    rassert(dest != NULL);
+    rassert(src != NULL);
+    rassert(src != dest);
 
     dest->pitch = src->pitch;
     dest->orig_carried_pitch = src->orig_carried_pitch;

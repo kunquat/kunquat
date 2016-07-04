@@ -32,10 +32,10 @@ bool get_event_type_info(
         char* ret_name,
         Event_type* ret_type)
 {
-    assert(desc_reader != NULL);
-    assert(names != NULL);
-    assert(ret_name != NULL);
-    assert(ret_type != NULL);
+    rassert(desc_reader != NULL);
+    rassert(names != NULL);
+    rassert(ret_name != NULL);
+    rassert(ret_type != NULL);
 
     if (Streader_is_error_set(desc_reader))
         return false;
@@ -55,7 +55,7 @@ bool get_event_type_info(
         return false;
     }
 
-    assert(Event_is_valid(*ret_type));
+    rassert(Event_is_valid(*ret_type));
     return true;
 }
 
@@ -68,10 +68,10 @@ static bool process_expr(
         const Value* meta,
         Value* ret_value)
 {
-    assert(expr_reader != NULL);
-    assert(estate != NULL);
-    assert(random != NULL);
-    assert(ret_value != NULL);
+    rassert(expr_reader != NULL);
+    rassert(estate != NULL);
+    rassert(random != NULL);
+    rassert(ret_value != NULL);
 
     if (Streader_is_error_set(expr_reader))
         return false;
@@ -120,16 +120,16 @@ static void Player_process_expr_event(
 void Player_process_event(
         Player* player, int ch_num, const char* event_name, const Value* arg, bool skip)
 {
-    assert(player != NULL);
-    assert(implies(!skip, !Event_buffer_is_full(player->event_buffer)));
-    assert(ch_num >= 0);
-    assert(ch_num < KQT_CHANNELS_MAX);
-    assert(event_name != NULL);
-    assert(arg != NULL);
+    rassert(player != NULL);
+    rassert(implies(!skip, !Event_buffer_is_full(player->event_buffer)));
+    rassert(ch_num >= 0);
+    rassert(ch_num < KQT_CHANNELS_MAX);
+    rassert(event_name != NULL);
+    rassert(arg != NULL);
 
     const Event_names* event_names = Event_handler_get_names(player->event_handler);
     const Event_type type = Event_names_get(event_names, event_name);
-    assert(type != Event_NONE);
+    rassert(type != Event_NONE);
 
     if (!Event_is_query(type) &&
             !Event_is_auto(type) &&
@@ -240,7 +240,7 @@ void Player_process_event(
             break;
 
             default:
-                assert(false);
+                rassert(false);
         }
 
 #undef try_process
@@ -257,11 +257,11 @@ static void Player_process_expr_event(
         const Value* meta,
         bool skip)
 {
-    assert(player != NULL);
-    assert(implies(!skip, !Event_buffer_is_full(player->event_buffer)));
-    assert(ch_num >= 0);
-    assert(ch_num < KQT_CHANNELS_MAX);
-    assert(trigger_desc != NULL);
+    rassert(player != NULL);
+    rassert(implies(!skip, !Event_buffer_is_full(player->event_buffer)));
+    rassert(ch_num >= 0);
+    rassert(ch_num < KQT_CHANNELS_MAX);
+    rassert(trigger_desc != NULL);
 
     Streader* sr =
         Streader_init(STREADER_AUTO, trigger_desc, (int64_t)strlen(trigger_desc));
@@ -350,9 +350,9 @@ void Player_reset_channels(Player* player)
 
 static void Player_start_pattern_playback_mode(Player* player)
 {
-    assert(player != NULL);
-    assert(player->master_params.pattern_playback_flag);
-    assert(player->master_params.playback_state == PLAYBACK_PATTERN);
+    rassert(player != NULL);
+    rassert(player->master_params.pattern_playback_flag);
+    rassert(player->master_params.playback_state == PLAYBACK_PATTERN);
 
     player->master_params.pattern_playback_flag = false;
 
@@ -374,9 +374,9 @@ static void Player_start_pattern_playback_mode(Player* player)
 static void Player_set_new_playback_position(
         Player* player, const Pat_inst_ref* target_piref, const Tstamp* target_row)
 {
-    assert(player != NULL);
-    assert(target_piref != NULL);
-    assert(target_row != NULL);
+    rassert(player != NULL);
+    rassert(target_piref != NULL);
+    rassert(target_row != NULL);
 
     Pat_inst_ref actual_target_piref = *target_piref;
     Tstamp* actual_target_row = Tstamp_copy(TSTAMP_AUTO, target_row);
@@ -456,10 +456,10 @@ bool Player_check_perform_goto(Player* player)
 
 void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
 {
-    assert(player != NULL);
-    assert(!Player_has_stopped(player));
-    assert(limit != NULL);
-    assert(Tstamp_cmp(limit, TSTAMP_AUTO) >= 0);
+    rassert(player != NULL);
+    rassert(!Player_has_stopped(player));
+    rassert(limit != NULL);
+    rassert(Tstamp_cmp(limit, TSTAMP_AUTO) >= 0);
 
     // Check pattern playback start
     if (player->master_params.pattern_playback_flag)
@@ -506,7 +506,7 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
         if (tr != NULL)
         {
             // Process trigger row
-            assert(tr->head->next != NULL);
+            rassert(tr->head->next != NULL);
             Trigger_list* trl = tr->head->next;
 
             // Skip triggers if resuming
@@ -531,7 +531,7 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                 if (at_active_jump)
                 {
                     // Process our next Jump context
-                    assert(next_jc != NULL);
+                    rassert(next_jc != NULL);
                     if (next_jc->counter > 0)
                     {
                         player->master_params.do_jump = true;
@@ -593,7 +593,7 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                             // Break if started event skipping
                             if (Event_buffer_is_skipping(player->event_buffer))
                             {
-                                assert(Event_buffer_is_full(player->event_buffer));
+                                rassert(Event_buffer_is_full(player->event_buffer));
                                 Tstamp_set(limit, 0, 0);
 
                                 // Make sure we get this row again next time
@@ -632,7 +632,7 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                             &player->master_params.cur_pos.pat_pos,
                             i,
                             player->master_params.cur_trigger);
-                        assert(next_jc != NULL);
+                        rassert(next_jc != NULL);
                     }
 
                     --next_jc->counter;
@@ -781,10 +781,10 @@ static void update_tempo_slide(Master_params* master_params)
 
 void Player_update_sliders_and_lfos_tempo(Player* player)
 {
-    assert(player != NULL);
+    rassert(player != NULL);
 
     const double tempo = player->master_params.tempo;
-    assert(isfinite(tempo));
+    rassert(isfinite(tempo));
 
     Master_params* mp = &player->master_params;
     Slider_set_tempo(&mp->volume_slider, tempo);
@@ -805,9 +805,9 @@ void Player_update_sliders_and_lfos_tempo(Player* player)
 
 int32_t Player_move_forwards(Player* player, int32_t nframes, bool skip)
 {
-    assert(player != NULL);
-    assert(!Player_has_stopped(player));
-    assert(nframes >= 0);
+    rassert(player != NULL);
+    rassert(!Player_has_stopped(player));
+    rassert(nframes >= 0);
 
     // Process tempo
     update_tempo_slide(&player->master_params);
@@ -863,7 +863,7 @@ int32_t Player_move_forwards(Player* player, int32_t nframes, bool skip)
     // Get actual number of frames to be rendered
     double dframes =
         Tstamp_toframes(limit, player->master_params.tempo, player->audio_rate);
-    assert(dframes >= 0.0);
+    rassert(dframes >= 0.0);
 
     int32_t to_be_rendered = (int32_t)dframes;
     player->frame_remainder += dframes - to_be_rendered;
@@ -873,7 +873,7 @@ int32_t Player_move_forwards(Player* player, int32_t nframes, bool skip)
         player->frame_remainder -= 1.0;
     }
 
-    assert(to_be_rendered <= nframes);
+    rassert(to_be_rendered <= nframes);
 
     return to_be_rendered;
 }

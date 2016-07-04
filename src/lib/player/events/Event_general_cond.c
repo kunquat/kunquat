@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -30,8 +30,8 @@
 
 bool Event_general_cond_process(General_state* gstate, const Value* value)
 {
-    assert(gstate != NULL);
-    assert(value != NULL);
+    rassert(gstate != NULL);
+    rassert(value != NULL);
 
     if (value->type != VALUE_TYPE_BOOL)
         return false;
@@ -47,11 +47,11 @@ bool Event_general_cond_process(General_state* gstate, const Value* value)
 
 bool Event_general_if_process(General_state* gstate, const Value* value)
 {
-    assert(gstate != NULL);
+    rassert(gstate != NULL);
     ignore(value);
 
     ++gstate->cond_level_index;
-    assert(gstate->cond_level_index >= 0);
+    rassert(gstate->cond_level_index >= 0);
     if (gstate->cond_level_index < COND_LEVELS_MAX)
     {
         gstate->cond_levels[gstate->cond_level_index].cond_for_exec = true;
@@ -69,11 +69,11 @@ bool Event_general_if_process(General_state* gstate, const Value* value)
 
 bool Event_general_else_process(General_state* gstate, const Value* value)
 {
-    assert(gstate != NULL);
+    rassert(gstate != NULL);
     ignore(value);
 
     ++gstate->cond_level_index;
-    assert(gstate->cond_level_index >= 0);
+    rassert(gstate->cond_level_index >= 0);
     if (gstate->cond_level_index < COND_LEVELS_MAX)
     {
         gstate->cond_levels[gstate->cond_level_index].cond_for_exec = false;
@@ -89,7 +89,7 @@ bool Event_general_else_process(General_state* gstate, const Value* value)
 
 bool Event_general_end_if_process(General_state* gstate, const Value* value)
 {
-    assert(gstate != NULL);
+    rassert(gstate != NULL);
     ignore(value);
 
     if (gstate->cond_level_index >= 0)
@@ -98,7 +98,7 @@ bool Event_general_end_if_process(General_state* gstate, const Value* value)
     if (gstate->cond_level_index < gstate->last_cond_match)
     {
         --gstate->last_cond_match;
-        assert(gstate->cond_level_index == gstate->last_cond_match);
+        rassert(gstate->cond_level_index == gstate->last_cond_match);
     }
 
 #if 0

@@ -29,7 +29,7 @@
 
 static void Master_params_clear(Master_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     Position_init(&params->start_pos);
 
@@ -85,7 +85,7 @@ static void Master_params_clear(Master_params* params)
 
 Master_params* Master_params_preinit(Master_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     General_state_preinit(&params->parent);
 
@@ -104,9 +104,9 @@ Master_params* Master_params_preinit(Master_params* params)
 Master_params* Master_params_init(
         Master_params* params, const Module* module, Env_state* estate)
 {
-    assert(params != NULL);
-    assert(module != NULL);
-    assert(estate != NULL);
+    rassert(params != NULL);
+    rassert(module != NULL);
+    rassert(estate != NULL);
 
     // Sanitise fields
     params->playback_id = 1;
@@ -134,7 +134,7 @@ Master_params* Master_params_init(
 
 void Master_params_set_starting_tempo(Master_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     const Track_list* tl = Module_get_track_list(params->parent.module);
     if (tl != NULL)
@@ -178,7 +178,7 @@ void Master_params_set_starting_tempo(Master_params* params)
 
 void Master_params_reset(Master_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     ++params->playback_id;
 
@@ -197,7 +197,7 @@ void Master_params_reset(Master_params* params)
 
 void Master_params_deinit(Master_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     if (params->active_jumps != NULL && params->jump_cache != NULL)
         Active_jumps_reset(params->active_jumps, params->jump_cache);

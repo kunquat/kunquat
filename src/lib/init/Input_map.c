@@ -34,10 +34,10 @@ typedef struct Entry
 
 static int Entry_cmp(const Entry* e1, const Entry* e2)
 {
-    assert(e1 != NULL);
-    assert(e1->input >= 0);
-    assert(e2 != NULL);
-    assert(e2->input >= 0);
+    rassert(e1 != NULL);
+    rassert(e1->input >= 0);
+    rassert(e2 != NULL);
+    rassert(e2->input >= 0);
 
     return e1->input - e2->input;
 }
@@ -53,8 +53,8 @@ struct Input_map
 
 static bool read_entry(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(userdata != NULL);
     ignore(index);
 
     Input_map* im = userdata;
@@ -118,9 +118,9 @@ static bool read_entry(Streader* sr, int32_t index, void* userdata)
 
 Input_map* new_Input_map(Streader* sr, int32_t num_inputs, int32_t num_outputs)
 {
-    assert(sr != NULL);
-    assert(num_inputs > 0);
-    assert(num_outputs > 0);
+    rassert(sr != NULL);
+    rassert(num_inputs > 0);
+    rassert(num_outputs > 0);
 
     Input_map* im = memory_alloc_item(Input_map);
     if (im == NULL)
@@ -150,8 +150,8 @@ Input_map* new_Input_map(Streader* sr, int32_t num_inputs, int32_t num_outputs)
 
 bool Input_map_is_valid(const Input_map* im, const Bit_array* existents)
 {
-    assert(im != NULL);
-    assert(existents != NULL);
+    rassert(im != NULL);
+    rassert(existents != NULL);
 
     const Entry* key = ENTRY_KEY(0);
     AAiter* iter = AAiter_init(AAITER_AUTO, im->map);
@@ -171,9 +171,9 @@ bool Input_map_is_valid(const Input_map* im, const Bit_array* existents)
 
 int32_t Input_map_get_device_index(const Input_map* im, int32_t input_id)
 {
-    assert(im != NULL);
-    assert(input_id >= 0);
-    assert(input_id < im->num_inputs);
+    rassert(im != NULL);
+    rassert(input_id >= 0);
+    rassert(input_id < im->num_inputs);
 
     const Entry* key = ENTRY_KEY(input_id);
     const Entry* result = AAtree_get_exact(im->map, key);

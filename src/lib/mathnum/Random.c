@@ -29,9 +29,9 @@
 
 Random* Random_init(Random* random, const char* context)
 {
-    assert(random != NULL);
-    assert(context != NULL);
-    assert(strlen(context) <= CONTEXT_LEN_MAX);
+    rassert(random != NULL);
+    rassert(context != NULL);
+    rassert(strlen(context) <= CONTEXT_LEN_MAX);
 
     strcpy(random->context, context);
 
@@ -43,7 +43,7 @@ Random* Random_init(Random* random, const char* context)
 
 void Random_set_seed(Random* random, uint64_t seed)
 {
-    assert(random != NULL);
+    rassert(random != NULL);
 
     uint64_t cseed = 0;
     uint64_t dummy = 0;
@@ -57,7 +57,7 @@ void Random_set_seed(Random* random, uint64_t seed)
 
 void Random_reset(Random* random)
 {
-    assert(random != NULL);
+    rassert(random != NULL);
     random->state = random->seed;
     return;
 }
@@ -65,7 +65,7 @@ void Random_reset(Random* random)
 
 uint64_t Random_get_uint64(Random* random)
 {
-    assert(random != NULL);
+    rassert(random != NULL);
 
     // multiplier and increment from Knuth
     random->state = 6364136223846793005ULL * random->state +
@@ -77,14 +77,14 @@ uint64_t Random_get_uint64(Random* random)
 
 uint32_t Random_get_uint32(Random* random)
 {
-    assert(random != NULL);
+    rassert(random != NULL);
     return (uint32_t)(Random_get_uint64(random) >> 32);
 }
 
 
 double Random_get_float_lb(Random* random)
 {
-    assert(random != NULL);
+    rassert(random != NULL);
     return
         (double)(Random_get_uint64(random) >> EXCESS_DOUBLE_BITS) / (double)DOUBLE_LIMIT;
 }
@@ -92,8 +92,8 @@ double Random_get_float_lb(Random* random)
 
 int32_t Random_get_index(Random* random, int32_t size)
 {
-    assert(random != NULL);
-    assert(size > 0);
+    rassert(random != NULL);
+    rassert(size > 0);
 
     return (int32_t)(Random_get_uint64(random) >> 33) % size;
 }
@@ -101,7 +101,7 @@ int32_t Random_get_index(Random* random, int32_t size)
 
 double Random_get_float_scale(Random* random)
 {
-    assert(random != NULL);
+    rassert(random != NULL);
     return
         (double)(Random_get_uint64(random) >> EXCESS_DOUBLE_BITS) /
         (double)(DOUBLE_LIMIT - 1);
@@ -110,7 +110,7 @@ double Random_get_float_scale(Random* random)
 
 double Random_get_float_signal(Random* random)
 {
-    assert(random != NULL);
+    rassert(random != NULL);
 
     static const int64_t max_val_abs = (DOUBLE_LIMIT >> 1) - 1;
 

@@ -31,8 +31,8 @@ struct Environment
 
 Environment_iter* Environment_iter_init(Environment_iter* iter, const Environment* env)
 {
-    assert(iter != NULL);
-    assert(env != NULL);
+    rassert(iter != NULL);
+    rassert(env != NULL);
 
     AAiter_init(&iter->iter, env->vars);
     iter->next = AAiter_get_at_least(&iter->iter, "");
@@ -43,7 +43,7 @@ Environment_iter* Environment_iter_init(Environment_iter* iter, const Environmen
 
 const char* Environment_iter_get_next_name(Environment_iter* iter)
 {
-    assert(iter != NULL);
+    rassert(iter != NULL);
 
     const char* next = iter->next;
     iter->next = AAiter_get_next(&iter->iter);
@@ -73,8 +73,8 @@ Environment* new_Environment(void)
 
 static bool read_env_var(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(userdata != NULL);
     ignore(index);
 
     AAtree* new_vars = userdata;
@@ -104,8 +104,8 @@ static bool read_env_var(Streader* sr, int32_t index, void* userdata)
 
 bool Environment_parse(Environment* env, Streader* sr)
 {
-    assert(env != NULL);
-    assert(sr != NULL);
+    rassert(env != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -141,8 +141,8 @@ bool Environment_parse(Environment* env, Streader* sr)
 
 const Env_var* Environment_get(const Environment* env, const char* name)
 {
-    assert(env != NULL);
-    assert(name != NULL);
+    rassert(env != NULL);
+    rassert(name != NULL);
 
     return AAtree_get_exact(env->vars, name);
 }
