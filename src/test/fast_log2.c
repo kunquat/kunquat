@@ -41,7 +41,7 @@ START_TEST(Maximum_absolute_error_is_small)
 END_TEST
 
 
-Suite* Fast_log2_suite(void)
+static Suite* Fast_log2_suite(void)
 {
     Suite* s = suite_create("Fast_log2");
 

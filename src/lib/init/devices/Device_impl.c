@@ -137,7 +137,7 @@ void Device_impl_set_device(Device_impl* dimpl, const Device* device)
 }
 
 
-size_t Device_impl_get_vstate_size(const Device_impl* dimpl)
+int32_t Device_impl_get_vstate_size(const Device_impl* dimpl)
 {
     assert(dimpl != NULL);
 

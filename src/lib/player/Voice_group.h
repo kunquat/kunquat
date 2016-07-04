@@ -27,7 +27,7 @@
  */
 typedef struct Voice_group
 {
-    uint16_t size;
+    int size;
     Voice** voices;
 } Voice_group;
 
@@ -41,13 +41,14 @@ typedef struct Voice_group
  * \param vg        The Voice group -- must not be \c NULL.
  * \param voices    The array of Voices in the Voice pool
  *                  -- must not be \c NULL.
- * \param offset    The starting index of the group -- must be < \a vp_size.
- * \param vp_size   The Voice pool size.
+ * \param offset    The starting index of the group -- must be >= \c 0 and
+ *                  < \a vp_size.
+ * \param vp_size   The Voice pool size -- must be > \c 0.
  *
  * \return   The parameter \a vg.
  */
 Voice_group* Voice_group_init(
-        Voice_group* vg, Voice** voices, uint16_t offset, uint16_t vp_size);
+        Voice_group* vg, Voice** voices, int offset, int vp_size);
 
 
 /**
@@ -57,7 +58,7 @@ Voice_group* Voice_group_init(
  *
  * \return   The number of Voices in the group.
  */
-uint16_t Voice_group_get_size(const Voice_group* vg);
+int Voice_group_get_size(const Voice_group* vg);
 
 
 /**
@@ -67,19 +68,19 @@ uint16_t Voice_group_get_size(const Voice_group* vg);
  *
  * \return   The number of active Voices.
  */
-uint16_t Voice_group_get_active_count(const Voice_group* vg);
+int Voice_group_get_active_count(const Voice_group* vg);
 
 
 /**
  * Get a Voice in the Voice group.
  *
  * \param vg      The Voice group -- must not be \c NULL.
- * \param index   The index inside the group -- must be
+ * \param index   The index inside the group -- must be >= \c 0 and
  *                < Voice_group_get_size(\a vg).
  *
  * \return   The Voice.
  */
-Voice* Voice_group_get_voice(Voice_group* vg, uint16_t index);
+Voice* Voice_group_get_voice(Voice_group* vg, int index);
 
 
 /**

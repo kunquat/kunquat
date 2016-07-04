@@ -30,12 +30,12 @@
  */
 typedef struct Voice_pool
 {
-    uint16_t size;
-    size_t state_size;
+    int size;
+    int32_t state_size;
     uint64_t new_group_id;
     Voice** voices;
 
-    uint16_t group_iter_offset;
+    int group_iter_offset;
     Voice_group group_iter;
 } Voice_pool;
 
@@ -48,18 +48,19 @@ typedef struct Voice_pool
  * \return   The new Voice pool if successful, or \c NULL if memory allocation
  *           failed.
  */
-Voice_pool* new_Voice_pool(uint16_t size);
+Voice_pool* new_Voice_pool(int size);
 
 
 /**
  * Reserve space for the Voice states.
  *
  * \param pool         The Voice pool -- must not be \c NULL.
- * \param state_size   The amount of bytes to reserve for the Voice states.
+ * \param state_size   The amount of bytes to reserve for the Voice states
+ *                     -- must be >= \c 0.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Voice_pool_reserve_state_space(Voice_pool* pool, size_t state_size);
+bool Voice_pool_reserve_state_space(Voice_pool* pool, int32_t state_size);
 
 
 /**
@@ -72,7 +73,7 @@ bool Voice_pool_reserve_state_space(Voice_pool* pool, size_t state_size);
  *           failed. Note that decreasing the number of Voices may still have
  *           occurred even if the operation fails.
  */
-bool Voice_pool_resize(Voice_pool* pool, uint16_t size);
+bool Voice_pool_resize(Voice_pool* pool, int size);
 
 
 /**
@@ -82,7 +83,7 @@ bool Voice_pool_resize(Voice_pool* pool, uint16_t size);
  *
  * \return   The number of Voices.
  */
-uint16_t Voice_pool_get_size(const Voice_pool* pool);
+int Voice_pool_get_size(const Voice_pool* pool);
 
 
 /**

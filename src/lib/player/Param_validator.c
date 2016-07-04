@@ -29,7 +29,7 @@
 
 
 #define init_c_streader(param) \
-    Streader_init(STREADER_AUTO, (param), strlen((param)))
+    Streader_init(STREADER_AUTO, (param), (int64_t)strlen((param)))
 
 
 bool v_any_bool(const char* param)
@@ -126,7 +126,7 @@ bool v_counter(const char* param)
 
     return Streader_read_int(sr, &counter) &&
         counter >= 0 &&
-        counter < 65535;
+        counter < 32767;
 }
 
 
@@ -194,11 +194,11 @@ bool v_key(const char* param)
     if (!Streader_read_string(sr, KQT_KEY_LENGTH_MAX + 1, key))
         return false;
 
-    int len = strlen(key);
+    const size_t len = strlen(key);
     if (len == 0 || len > KQT_KEY_LENGTH_MAX)
         return false;
 
-    for (int i = 0; i < len; ++i)
+    for (size_t i = 0; i < len; ++i)
     {
         if (!isalpha(key[i]) && strchr("_./", key[i]) == NULL)
             return false;

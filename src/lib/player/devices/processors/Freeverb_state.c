@@ -116,13 +116,13 @@ static bool Freeverb_pstate_set_audio_rate(Device_state* dstate, int32_t audio_r
 
     for (int i = 0; i < FREEVERB_COMBS; ++i)
     {
-        const uint32_t left_size = max(1, comb_tuning[i] * audio_rate);
+        const int32_t left_size = (int32_t)max(1, comb_tuning[i] * audio_rate);
 
         if (!Freeverb_comb_resize_buffer(fstate->combs[0][i], left_size))
             return false;
 
-        const uint32_t right_size =
-            max(1, (comb_tuning[i] + stereo_spread) * audio_rate);
+        const int32_t right_size =
+            (int32_t)max(1, (comb_tuning[i] + stereo_spread) * audio_rate);
 
         if (!Freeverb_comb_resize_buffer(fstate->combs[1][i], right_size))
             return false;
@@ -130,13 +130,13 @@ static bool Freeverb_pstate_set_audio_rate(Device_state* dstate, int32_t audio_r
 
     for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
     {
-        const uint32_t left_size = max(1, allpass_tuning[i] * audio_rate);
+        const int32_t left_size = (int32_t)max(1, allpass_tuning[i] * audio_rate);
 
         if (!Freeverb_allpass_resize_buffer(fstate->allpasses[0][i], left_size))
             return false;
 
-        const uint32_t right_size = max(
-                1, (allpass_tuning[i] + stereo_spread) * audio_rate);
+        const int32_t right_size =
+            (int32_t)max(1, (allpass_tuning[i] + stereo_spread) * audio_rate);
 
         if (!Freeverb_allpass_resize_buffer(fstate->allpasses[1][i], right_size))
             return false;
@@ -204,20 +204,21 @@ static void Freeverb_pstate_render_mixed(
     if (refls == NULL)
     {
         refls = Work_buffers_get_buffer_contents_mut(wbs, FREEVERB_WB_FIXED_REFL);
-        const float fixed_refl = exp2(-5 / freeverb->reflect_setting);
+        const float fixed_refl = (float)exp2(-5 / freeverb->reflect_setting);
         for (int32_t i = buf_start; i < buf_stop; ++i)
             refls[i] = fixed_refl;
     }
     else
     {
         // Convert reflectivity to the domain of our algorithm
-        static const float max_param_inv = -5.0 / 200.0;
-        static const float min_param_inv = -5.0 / 0.001;
+        static const double max_param_inv = -5.0 / 200.0;
+        static const double min_param_inv = -5.0 / 0.001;
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             const double orig_refl = refls[i];
             const double param_inv = -5.0 / max(0, orig_refl);
-            const float refl = fast_exp2(clamp(param_inv, min_param_inv, max_param_inv));
+            const float refl =
+                (float)fast_exp2(clamp(param_inv, min_param_inv, max_param_inv));
             refls[i] = refl;
         }
     }
@@ -228,7 +229,7 @@ static void Freeverb_pstate_render_mixed(
     if (damps == NULL)
     {
         damps = Work_buffers_get_buffer_contents_mut(wbs, FREEVERB_WB_FIXED_DAMP);
-        const float fixed_damp = freeverb->damp_setting * 0.01;
+        const float fixed_damp = (float)(freeverb->damp_setting * 0.01);
         for (int32_t i = buf_start; i < buf_stop; ++i)
             damps[i] = fixed_damp;
     }
@@ -289,7 +290,7 @@ static void Freeverb_pstate_render_mixed(
         float* comb_input =
             Work_buffers_get_buffer_contents_mut(wbs, FREEVERB_WB_COMB_INPUT);
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            comb_input[i] = (ws[0][i] + ws[1][i]) * freeverb->gain;
+            comb_input[i] = (float)((ws[0][i] + ws[1][i]) * freeverb->gain);
 
         for (int ch = 0; ch < 2; ++ch)
         {
@@ -314,8 +315,8 @@ static void Freeverb_pstate_render_mixed(
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
-            ws[0][i] = ws[0][i] * freeverb->wet1 + ws[1][i] * freeverb->wet2;
-            ws[1][i] = ws[1][i] * freeverb->wet1 + ws[0][i] * freeverb->wet2;
+            ws[0][i] = (float)(ws[0][i] * freeverb->wet1 + ws[1][i] * freeverb->wet2);
+            ws[1][i] = (float)(ws[1][i] * freeverb->wet1 + ws[0][i] * freeverb->wet2);
         }
     }
 
@@ -364,7 +365,7 @@ Device_state* new_Freeverb_pstate(
 
     for (int i = 0; i < FREEVERB_COMBS; ++i)
     {
-        const uint32_t left_size = max(1, comb_tuning[i] * audio_rate);
+        const int32_t left_size = (int32_t)max(1, comb_tuning[i] * audio_rate);
 
         fpstate->combs[0][i] = new_Freeverb_comb(left_size);
         if (fpstate->combs[0][i] == NULL)
@@ -373,8 +374,8 @@ Device_state* new_Freeverb_pstate(
             return NULL;
         }
 
-        const uint32_t right_size = max(
-                1, (comb_tuning[i] + stereo_spread) * audio_rate);
+        const int32_t right_size =
+            (int32_t)max(1, (comb_tuning[i] + stereo_spread) * audio_rate);
 
         fpstate->combs[1][i] = new_Freeverb_comb(right_size);
         if (fpstate->combs[1][i] == NULL)
@@ -386,7 +387,7 @@ Device_state* new_Freeverb_pstate(
 
     for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
     {
-        const uint32_t left_size = max(1, allpass_tuning[i] * audio_rate);
+        const int32_t left_size = (int32_t)max(1, allpass_tuning[i] * audio_rate);
 
         if (fpstate->allpasses[0][i] == NULL)
         {
@@ -398,8 +399,8 @@ Device_state* new_Freeverb_pstate(
             }
         }
 
-        const uint32_t right_size = max(
-                1, (allpass_tuning[i] + stereo_spread) * audio_rate);
+        const int32_t right_size =
+            (int32_t)max(1, (allpass_tuning[i] + stereo_spread) * audio_rate);
 
         if (fpstate->allpasses[1][i] == NULL)
         {

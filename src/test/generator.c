@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -141,7 +141,7 @@ START_TEST(Setting_type_syncs_keys)
 END_TEST
 
 
-Suite* Generator_suite(void)
+static Suite* Generator_suite(void)
 {
     Suite* s = suite_create("Generator");
 

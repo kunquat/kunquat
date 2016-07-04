@@ -36,7 +36,7 @@ typedef struct Entry
 #define ENTRY_AUTO (&(Entry){ .name = "", .filter = NULL })
 
 
-void del_Entry(Entry* entry)
+static void del_Entry(Entry* entry)
 {
     assert(entry != NULL);
 
@@ -53,7 +53,7 @@ struct Au_expressions
 };
 
 
-bool read_expressions(Streader* sr, const char* key, void* userdata)
+static bool read_expressions(Streader* sr, const char* key, void* userdata)
 {
     assert(sr != NULL);
     assert(key != NULL);

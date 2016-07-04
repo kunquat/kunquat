@@ -40,7 +40,7 @@ typedef enum
 } Subsong_selection;
 
 
-int songs[] =
+static const int songs[] =
 {
     [SONG_SELECTION_FIRST] = 0,
     [SONG_SELECTION_LAST]  = KQT_SONGS_MAX - 1,
@@ -58,7 +58,7 @@ typedef enum
 } Mixing_rate;
 
 
-long mixing_rates[] =
+static const long mixing_rates[] =
 {
     [MIXING_RATE_LOW]     = 8,
     [MIXING_RATE_CD]      = 44100,
@@ -106,7 +106,7 @@ void set_data(const char* key, const char* data)
     assert(key != NULL);
     assert(data != NULL);
 
-    kqt_Handle_set_data(handle, key, data, strlen(data));
+    kqt_Handle_set_data(handle, key, data, (long)strlen(data));
     check_unexpected_error();
 }
 
@@ -127,17 +127,17 @@ void validate(void)
 void fail_buffers(
         const float* expected,
         const float* actual,
-        int offset,
-        int len)
+        long offset,
+        long len)
 {
-    const int margin = 4;
-    const int start_idx = max(0, offset - margin);
-    const int end_idx = min(len, offset + margin + 1);
+    static const long margin = 4;
+    const long start_idx = max(0, offset - margin);
+    const long end_idx = min(len, offset + margin + 1);
 
     char indices[128] =       "\n             ";
     char expected_vals[128] = "\n    Expected:";
     char actual_vals[128] =   "\n      Actual:";
-    int chars_used = strlen(indices);
+    int chars_used = (int)strlen(indices);
 
     char* indices_ptr = indices + chars_used;
     char* expected_vals_ptr = expected_vals + chars_used;
@@ -145,15 +145,15 @@ void fail_buffers(
 
     ++chars_used;
 
-    for (int i = start_idx; i < end_idx; ++i)
+    for (long i = start_idx; i < end_idx; ++i)
     {
         const int chars_left = 128 - chars_used;
         assert(chars_left > 0);
 
-        int ilen = snprintf(indices_ptr, chars_left, " %5d", i);
-        int elen = snprintf(expected_vals_ptr, chars_left,
+        int ilen = snprintf(indices_ptr, (size_t)chars_left, " %5ld", i);
+        int elen = snprintf(expected_vals_ptr, (size_t)chars_left,
                 " %5.1f", expected[i]);
-        int alen = snprintf(actual_vals_ptr, chars_left,
+        int alen = snprintf(actual_vals_ptr, (size_t)chars_left,
                 " %5.1f", actual[i]);
         //assert(ilen == elen);
         //assert(ilen == alen);
@@ -172,7 +172,7 @@ void fail_buffers(
 void check_buffers_equal(
         const float* expected,
         const float* actual,
-        int len,
+        long len,
         float eps)
 {
     assert(expected != NULL);
@@ -180,7 +180,7 @@ void check_buffers_equal(
     assert(len >= 0);
     assert(eps >= 0);
 
-    for (int i = 0; i < len; ++i)
+    for (long i = 0; i < len; ++i)
     {
         if (fabs(expected[i] - actual[i]) > eps)
         {
@@ -244,7 +244,7 @@ int repeat_seq(float* dest, int times, int seq_len, const float* seq)
 
     for (int i = 0; i < times; ++i)
     {
-        memcpy(dest, seq, seq_len * sizeof(float));
+        memcpy(dest, seq, (size_t)seq_len * sizeof(float));
         dest += seq_len;
     }
 
@@ -263,7 +263,7 @@ long mix_and_fill(float* buf, long nframes)
     const long frames_available = kqt_Handle_get_frames_available(handle);
     const float* ret_buf = kqt_Handle_get_audio(handle, 0);
     check_unexpected_error();
-    memcpy(buf, ret_buf, frames_available * sizeof(float));
+    memcpy(buf, ret_buf, (size_t)frames_available * sizeof(float));
 
     return frames_available;
 }

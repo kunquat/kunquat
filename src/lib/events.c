@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2016
  *
  * This file is part of Kunquat.
  *
@@ -36,7 +36,7 @@ const char** kqt_get_event_names(void)
 }
 
 
-const struct
+static const struct
 {
     const char* name;
     const Value_type arg_type;

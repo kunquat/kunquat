@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -39,7 +39,7 @@ void hmac_md5(uint64_t key, const char* msg, uint64_t* lower, uint64_t* upper)
     uint64_t hupper = 0;
     md5((char*)key_str, 64, &hlower, &hupper, false);
     md5_with_state(
-            msg, strlen(msg),
+            msg, (int)strlen(msg),
             &hlower, &hupper,
             hlower, hupper,
             true,

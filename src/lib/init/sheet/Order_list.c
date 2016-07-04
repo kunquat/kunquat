@@ -29,12 +29,12 @@
 typedef struct Index_mapping
 {
     Pat_inst_ref p;
-    size_t ol_index;
+    int ol_index;
 } Index_mapping;
 
 #define INDEX_MAPPING_AUTO (&(Index_mapping){ .ol_index = 0 })
 
-Index_mapping* new_Index_mapping(Index_mapping* im)
+static Index_mapping* new_Index_mapping(Index_mapping* im)
 {
     assert(im != NULL);
 
@@ -155,15 +155,15 @@ Order_list* new_Order_list(Streader* sr)
 }
 
 
-size_t Order_list_get_len(const Order_list* ol)
+int Order_list_get_len(const Order_list* ol)
 {
     assert(ol != NULL);
 
-    return Vector_size(ol->pat_insts);
+    return (int)Vector_size(ol->pat_insts);
 }
 
 
-Pat_inst_ref* Order_list_get_pat_inst_ref(const Order_list* ol, size_t index)
+Pat_inst_ref* Order_list_get_pat_inst_ref(const Order_list* ol, int index)
 {
     assert(ol != NULL);
     assert(index < Order_list_get_len(ol));
@@ -177,7 +177,7 @@ bool Order_list_contains_pat_inst_ref(const Order_list* ol, const Pat_inst_ref* 
     assert(ol != NULL);
     assert(piref != NULL);
 
-    for (size_t i = 0; i < Vector_size(ol->pat_insts); ++i)
+    for (int64_t i = 0; i < Vector_size(ol->pat_insts); ++i)
     {
         const Pat_inst_ref* cur_piref = Vector_get_ref(ol->pat_insts, i);
         if (Pat_inst_ref_cmp(cur_piref, piref) == 0)

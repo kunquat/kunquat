@@ -61,7 +61,11 @@ Env_var* new_Env_var_from_string(Streader* sr)
     char type_name[16] = "";
     char name[KQT_VAR_NAME_MAX] = "";
 
-    if (!Streader_readf(sr, "[%s,%s,", 16, type_name, KQT_VAR_NAME_MAX, name))
+    if (!Streader_readf(
+                sr,
+                "[%s,%s,",
+                READF_STR(16, type_name),
+                READF_STR(KQT_VAR_NAME_MAX, name)))
         return NULL;
 
     if (!is_valid_var_name(name))

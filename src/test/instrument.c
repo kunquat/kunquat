@@ -22,7 +22,7 @@
 #define buf_len 128
 
 
-void setup_single_pulse_without_instrument_manifest(void)
+static void setup_single_pulse_without_instrument_manifest(void)
 {
     assert(handle != 0);
 
@@ -273,7 +273,7 @@ START_TEST(Read_audio_unit_control_vars)
 END_TEST
 
 
-Suite* Instrument_suite(void)
+static Suite* Instrument_suite(void)
 {
     Suite* s = suite_create("Instrument");
 

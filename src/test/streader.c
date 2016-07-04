@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -26,7 +26,7 @@
 #include <string.h>
 
 
-#define init_with_cstr(s) Streader_init(STREADER_AUTO, (s), strlen((s)))
+#define init_with_cstr(s) Streader_init(STREADER_AUTO, (s), (int64_t)strlen((s)))
 
 #define arr_size(arr) (sizeof(arr) / sizeof(*(arr)))
 
@@ -326,12 +326,12 @@ START_TEST(Reading_too_large_int_in_magnitude_fails)
     }
 
     // Overflow data[0] and data[1] by 1
-    data[0][strlen(data[0]) - 1] += 1;
-    data[1][strlen(data[1]) - 1] += 1;
+    ++data[0][strlen(data[0]) - 1];
+    ++data[1][strlen(data[1]) - 1];
 
     // Overflow data[2] and data[3] by 10
-    data[2][strlen(data[2]) - 2] += 1;
-    data[3][strlen(data[3]) - 2] += 1;
+    ++data[2][strlen(data[2]) - 2];
+    ++data[3][strlen(data[3]) - 2];
 
     // Test reading
     for (int i = 0; i < 4; ++i)
@@ -718,7 +718,7 @@ END_TEST
 
 #define item_count 4
 
-bool inc_doubled_int(Streader* sr, int32_t index, void* userdata)
+static bool inc_doubled_int(Streader* sr, int32_t index, void* userdata)
 {
     fail_if(sr == NULL, "Callback did not get a Streader");
     fail_if(Streader_is_error_set(sr),
@@ -741,7 +741,7 @@ bool inc_doubled_int(Streader* sr, int32_t index, void* userdata)
             num, index * 2);
 
     int* nums = userdata;
-    nums[index] = num + 1;
+    nums[index] = (int)num + 1;
 
     return true;
 }
@@ -781,7 +781,7 @@ START_TEST(Read_list_of_numbers)
 END_TEST
 
 
-bool check_adjusted_tstamp(Streader* sr, int32_t index, void* userdata)
+static bool check_adjusted_tstamp(Streader* sr, int32_t index, void* userdata)
 {
     fail_if(sr == NULL, "Callback did not get a Streader");
     fail_if(Streader_is_error_set(sr),
@@ -841,7 +841,7 @@ START_TEST(Callback_must_be_specified_for_nonempty_lists)
 END_TEST
 
 
-bool fail_at_index_2(Streader* sr, int32_t index, void* userdata)
+static bool fail_at_index_2(Streader* sr, int32_t index, void* userdata)
 {
     (void)sr;
     (void)userdata;
@@ -914,7 +914,7 @@ START_TEST(Read_empty_dict)
 END_TEST
 
 
-bool fill_array_index(Streader* sr, const char* key, void* userdata)
+static bool fill_array_index(Streader* sr, const char* key, void* userdata)
 {
     fail_if(sr == NULL, "Callback did not get a Streader");
     fail_if(Streader_is_error_set(sr),
@@ -940,7 +940,7 @@ bool fill_array_index(Streader* sr, const char* key, void* userdata)
             "Unexpected value %" PRId64 " (expected %d)",
             num, arr_index + 10);
 
-    array[arr_index] = num;
+    array[arr_index] = (int)num;
 
     return true;
 }
@@ -986,7 +986,7 @@ START_TEST(Callback_must_be_specified_for_nonempty_dicts)
 END_TEST
 
 
-bool fail_at_key_2(Streader* sr, const char* key, void* userdata)
+static bool fail_at_key_2(Streader* sr, const char* key, void* userdata)
 {
     (void)sr;
     (void)userdata;
@@ -1049,7 +1049,7 @@ static bool readf_list(Streader* sr, int32_t index, void* userdata)
     if (!Streader_read_int(sr, &result))
         return false;
 
-    *dest = result;
+    *dest = (int)result;
 
     return true;
 }
@@ -1068,7 +1068,7 @@ static bool readf_dict(Streader* sr, const char* key, void* userdata)
     if (!Streader_read_int(sr, &result))
         return false;
 
-    *dest = result;
+    *dest = (int)result;
 
     return true;
 }
@@ -1091,7 +1091,7 @@ START_TEST(Read_formatted_input)
     Streader_readf(
             sr,
             "[%n,%b] -%s :%t%p--%l%i %d %f",
-            &b, 4, s, ts, piref,
+            &b, READF_STR(4, s), ts, piref,
             readf_list, &list_userdata,
             &i,
             readf_dict, &dict_userdata,
@@ -1127,7 +1127,7 @@ START_TEST(Read_formatted_input)
 END_TEST
 
 
-Suite* Streader_suite(void)
+static Suite* Streader_suite(void)
 {
     Suite* s = suite_create("Streader");
 

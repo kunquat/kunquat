@@ -59,9 +59,10 @@ Voice* new_Voice(void)
 }
 
 
-bool Voice_reserve_state_space(Voice* voice, size_t state_size)
+bool Voice_reserve_state_space(Voice* voice, int32_t state_size)
 {
     assert(voice != NULL);
+    assert(state_size >= 0);
 
     if (state_size <= voice->state_size)
         return true;
@@ -82,7 +83,7 @@ int Voice_cmp(const Voice* v1, const Voice* v2)
     assert(v1 != NULL);
     assert(v2 != NULL);
 
-    return v1->prio - v2->prio;
+    return (int)v1->prio - (int)v2->prio;
 }
 
 

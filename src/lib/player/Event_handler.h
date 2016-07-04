@@ -69,11 +69,9 @@ bool Event_handler_set_control_process(
 /**
  * Register a general Event processor.
  *
- * \param eh        The Event handler -- must not be \c NULL.
- * \param name      The name of the Event -- must not be \c NULL, empty string
- *                  or longer than EVENT_NAME_MAX characters.
- * \param type      The type of the Event -- must be a general Event.
- * \param process   The process function -- must not be \c NULL.
+ * \param eh                The Event handler -- must not be \c NULL.
+ * \param type              The type of the Event -- must be a general Event.
+ * \param general_process   The process function -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -86,11 +84,9 @@ bool Event_handler_set_general_process(
 /**
  * Register a Channel Event processor.
  *
- * \param eh        The Event handler -- must not be \c NULL.
- * \param name      The name of the Event -- must not be \c NULL, empty string
- *                  or longer than EVENT_NAME_MAX characters.
- * \param type      The type of the Event -- must be a Channel Event.
- * \param process   The process function -- must not be \c NULL.
+ * \param eh           The Event handler -- must not be \c NULL.
+ * \param type         The type of the Event -- must be a Channel Event.
+ * \param ch_process   The process function -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -104,11 +100,9 @@ bool Event_handler_set_ch_process(
 /**
  * Register a master event processor.
  *
- * \param eh        The Event handler -- must not be \c NULL.
- * \param name      The name of the event -- must not be \c NULL, empty string
- *                  or longer than EVENT_NAME_MAX characters.
- * \param type      The type of the event -- must be a master event.
- * \param process   The process function -- must not be \c NULL.
+ * \param eh               The Event handler -- must not be \c NULL.
+ * \param type             The type of the event -- must be a master event.
+ * \param master_process   The process function -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -121,11 +115,9 @@ bool Event_handler_set_master_process(
 /**
  * Register an Audio unit Event processor.
  *
- * \param eh        The Event handler -- must not be \c NULL.
- * \param name      The name of the Event -- must not be \c NULL, empty string
- *                  or longer than EVENT_NAME_MAX characters.
- * \param type      The type of the Event -- must be an Audio unit Event.
- * \param process   The process function -- must not be \c NULL.
+ * \param eh           The Event handler -- must not be \c NULL.
+ * \param type         The type of the Event -- must be an Audio unit Event.
+ * \param au_process   The process function -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */

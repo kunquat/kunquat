@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -49,8 +49,8 @@ bool Sample_parse_wavpack(Sample* sample, Streader* sr)
 typedef struct String_context
 {
     const char* data;
-    uint32_t length;
-    uint32_t pos;
+    int64_t length;
+    int64_t pos;
     int push_back;
 } String_context;
 
@@ -64,17 +64,18 @@ static int32_t read_bytes_str(void* id, void* data, int32_t bcount)
     if (sc->pos >= sc->length)
         return 0;
 
-    int32_t left = sc->length - sc->pos;
-    int32_t bytes_read = min(left, bcount);
+    int64_t left = sc->length - sc->pos;
+    int64_t bytes_read = min(left, bcount);
     if (sc->push_back != EOF)
     {
-        *((char*)data) = sc->push_back;
-        memcpy((char*)data + 1, sc->data + sc->pos + 1, bytes_read - 1);
+        *((char*)data) = (char)sc->push_back;
+        if (bytes_read > 0)
+            memcpy((char*)data + 1, sc->data + sc->pos + 1, (uint32_t)bytes_read - 1);
         sc->push_back = EOF;
     }
     else
     {
-        memcpy(data, sc->data + sc->pos, bytes_read);
+        memcpy(data, sc->data + sc->pos, (size_t)bytes_read);
     }
 #if 0
     if (true || sc->pos < 20)
@@ -89,7 +90,7 @@ static int32_t read_bytes_str(void* id, void* data, int32_t bcount)
 
     sc->pos += bytes_read;
 
-    return bytes_read;
+    return (int32_t)bytes_read;
 }
 
 
@@ -97,7 +98,7 @@ static uint32_t get_pos_str(void* id)
 {
     assert(id != NULL);
     const String_context* sc = id;
-    return sc->pos;
+    return (uint32_t)sc->pos;
 }
 
 
@@ -122,7 +123,7 @@ static int set_pos_rel_str(void* id, int32_t delta, int mode)
     assert(id != NULL);
 
     String_context* sc = id;
-    int32_t ref = 0;
+    int64_t ref = 0;
 
     if (mode == SEEK_SET)
         ref = 0;
@@ -137,7 +138,7 @@ static int set_pos_rel_str(void* id, int32_t delta, int mode)
     ref += delta;
     if (ref < 0)
         ref = 0;
-    else if (ref > (int32_t)sc->length)
+    else if (ref > sc->length)
         ref = sc->length;
 
     sc->pos = ref;
@@ -169,7 +170,7 @@ static uint32_t get_length_str(void* id)
 {
     assert(id != NULL);
     const String_context* sc = id;
-    return sc->length;
+    return (uint32_t)sc->length;
 }
 
 
@@ -203,20 +204,18 @@ static WavpackStreamReader reader_str =
 };
 
 
-#define read_wp_samples(count, offset, buf_l, buf_r, src, channels, lshift) \
-    if (true)                                                               \
-    {                                                                       \
-        assert(buf_l != NULL);                                              \
-        for (uint32_t i = 0; i < count; ++i)                                \
-            buf_l[offset + i] = src[i * channels] << lshift;                \
-                                                                            \
-        if (channels == 2)                                                  \
-        {                                                                   \
-            assert(buf_r != NULL);                                          \
-            for (uint32_t i = 0; i < count; ++i)                            \
-                buf_r[offset + i] = src[i * channels + 1] << lshift;        \
-        }                                                                   \
-    } else (void)0
+#define read_wp_samples(type, sample, src, count, offset, lshift)       \
+    if (true)                                                           \
+    {                                                                   \
+        type* sample_bufs[] = { sample->data[0], sample->data[1] };     \
+                                                                        \
+        for (int ch = 0; ch < sample->channels; ++ch)                   \
+        {                                                               \
+            for (int64_t i = 0; i < count; ++i)                         \
+                sample_bufs[ch][offset + i] =                           \
+                    (type)(src[i * sample->channels + ch] << lshift);   \
+        }                                                               \
+    } else ignore(0)
 
 bool Sample_parse_wavpack(Sample* sample, Streader* sr)
 {
@@ -227,7 +226,7 @@ bool Sample_parse_wavpack(Sample* sample, Streader* sr)
         return false;
 
     const void* data = sr->str;
-    const size_t length = sr->len;
+    const int64_t length = sr->len;
 
     String_context* sc =
         &(String_context){ .data = data, .length = length, .pos = 0, .push_back = EOF };
@@ -305,75 +304,42 @@ bool Sample_parse_wavpack(Sample* sample, Streader* sr)
 
     sample->data[0] = nbuf_l;
     int32_t buf[256] = { 0 };
-    uint32_t read = WavpackUnpackSamples(
-            context, buf, 256 / sample->channels);
-    uint32_t written = 0;
+    int64_t read = WavpackUnpackSamples(
+            context, buf, (uint32_t)(256 / sample->channels));
+    int64_t written = 0;
     while (read > 0 && written < sample->len)
     {
         if (req_bytes == 1)
         {
-            int8_t* buf_l = sample->data[0];
-            int8_t* buf_r = NULL;
-
-            if (sample->channels == 2)
-                buf_r = sample->data[1];
-
-            read_wp_samples(read, written, buf_l, buf_r, buf,
-                    sample->channels, 0);
+            read_wp_samples(int8_t, sample, buf, read, written, 0);
         }
         else if (req_bytes == 2)
         {
-            int16_t* buf_l = sample->data[0];
-            int16_t* buf_r = NULL;
-
-            if (sample->channels == 2)
-                buf_r = sample->data[1];
-
-            read_wp_samples(read, written, buf_l, buf_r, buf,
-                    sample->channels, 0);
+            read_wp_samples(int16_t, sample, buf, read, written, 0);
         }
         else
         {
             if (sample->is_float)
             {
-                float* buf_l = sample->data[0];
-                float* buf_r = NULL;
+                float* sample_bufs[] = { sample->data[0], sample->data[1] };
                 float* buf_float = (float*)buf;
 
-                for (uint32_t i = 0; i < read; ++i)
-                    buf_l[written + i] = buf_float[i * sample->channels];
-
-                if (sample->channels == 2)
+                for (int ch = 0; ch < sample->channels; ++ch)
                 {
-                    buf_r = sample->data[1];
-                    for (uint32_t i = 0; i < read; ++i)
-                    {
-                        buf_r[written + i] =
-                                buf_float[i * sample->channels + 1];
-                    }
+                    for (int64_t i = 0; i < read; ++i)
+                        sample_bufs[ch][written + i] =
+                            buf_float[i * sample->channels + ch];
                 }
-                //read_wp_samples(read, written, buf_l, buf_r, buf_float,
-                //        sample->channels, 0);
             }
             else
             {
-                int32_t* buf_l = sample->data[0];
-                int32_t* buf_r = NULL;
-                int shift = 0;
-
-                if (bytes == 3)
-                    shift = 8;
-
-                if (sample->channels == 2)
-                    buf_r = sample->data[1];
-
-                read_wp_samples(read, written, buf_l, buf_r, buf,
-                        sample->channels, shift);
+                const int shift = (bytes == 3) ? 8 : 0;
+                read_wp_samples(int32_t, sample, buf, read, written, shift);
             }
         }
 
         written += read;
-        read = WavpackUnpackSamples(context, buf, 256 / sample->channels);
+        read = WavpackUnpackSamples(context, buf, (uint32_t)(256 / sample->channels));
     }
 
     WavpackCloseFile(context);

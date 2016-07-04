@@ -39,7 +39,7 @@ Device_states* new_Device_states(void);
  * Add a Device state to the Device state collection.
  *
  * \param states   The Device states -- must not be \c NULL.
- * \param ds       The Device state -- must not be \c NULL and must not match
+ * \param state    The Device state -- must not be \c NULL and must not match
  *                 an existing state in \a states.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
@@ -94,12 +94,12 @@ bool Device_states_set_audio_buffer_size(Device_states* states, int32_t size);
  * Clear audio buffers in the Device states.
  *
  * \param states   The Device states -- must not be \c NULL.
- * \param start    The first frame to be cleared.
+ * \param start    The first frame to be cleared -- must be >= \c 0.
  * \param stop     The first frame not to be cleared -- must be less than or
  *                 equal to the buffer size.
  */
 void Device_states_clear_audio_buffers(
-        Device_states* states, uint32_t start, uint32_t stop);
+        Device_states* states, int32_t start, int32_t stop);
 
 
 /**
@@ -130,7 +130,7 @@ void Device_states_reset_node_states(Device_states* states);
 /**
  * Destroy a Device state collection.
  *
- * \param dsc   The Device states, or \c NULL.
+ * \param states   The Device states, or \c NULL.
  */
 void del_Device_states(Device_states* states);
 

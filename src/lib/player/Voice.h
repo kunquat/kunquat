@@ -47,7 +47,7 @@ typedef struct Voice
     bool updated;            ///< Used to cut Voices that are not updated.
     Voice_prio prio;         ///< Current priority of the Voice.
     const Processor* proc;   ///< The Processor.
-    size_t state_size;       ///< The amount bytes allocated for the Voice state.
+    int32_t state_size;      ///< The amount bytes allocated for the Voice state.
     Voice_state* state;      ///< The current playback state.
     Random* rand_p;          ///< Parameter random source.
     Random* rand_s;          ///< Signal random source.
@@ -56,8 +56,6 @@ typedef struct Voice
 
 /**
  * Create a new Voice.
- *
- * \param state_size   The amount of bytes to reserve for Voice states.
  *
  * \return   The new Voice if successful, or \c NULL if memory allocation
  *           failed.
@@ -69,11 +67,12 @@ Voice* new_Voice(void);
  * Reserve space for the Voice state.
  *
  * \param voice        The Voice -- must not be \c NULL.
- * \param state_size   The amount of bytes to reserve for the Voice state.
+ * \param state_size   The amount of bytes to reserve for the Voice state
+ *                     -- must be >= \c 0.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Voice_reserve_state_space(Voice* voice, size_t state_size);
+bool Voice_reserve_state_space(Voice* voice, int32_t state_size);
 
 
 /**
@@ -156,7 +155,6 @@ void Voice_reset(Voice* voice);
  * \param wbs          The Work buffers -- must not be \c NULL.
  * \param buf_start    The start index of the buffer area to be rendered.
  * \param buf_stop     The stop index of the buffer area to be rendered.
- * \param audio_rate   The audio rate -- must be > \c 0.
  * \param tempo        The current tempo -- must be > \c 0.
  *
  * \return   The stop index of release note frames rendered to voice buffers,

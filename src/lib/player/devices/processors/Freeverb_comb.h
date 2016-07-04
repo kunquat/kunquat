@@ -35,7 +35,7 @@ typedef struct Freeverb_comb Freeverb_comb;
  * \return   The new Freeverb comb filter if successful, or \c NULL if memory
  *           allocation failed.
  */
-Freeverb_comb* new_Freeverb_comb(uint32_t buffer_size);
+Freeverb_comb* new_Freeverb_comb(int32_t buffer_size);
 
 
 /**
@@ -67,7 +67,7 @@ void Freeverb_comb_process(
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Freeverb_comb_resize_buffer(Freeverb_comb* comb, uint32_t new_size);
+bool Freeverb_comb_resize_buffer(Freeverb_comb* comb, int32_t new_size);
 
 
 /**

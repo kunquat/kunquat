@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -72,7 +72,7 @@ static bool read_song(Streader* sr, int32_t index, void* userdata)
     rd->used[num] = true;
 
     // Add song index
-    int16_t song_index = num;
+    int16_t song_index = (int16_t)num;
     Vector_append(rd->tl->songs, &song_index);
 
     return true;
@@ -122,14 +122,14 @@ Track_list* new_Track_list(Streader* sr)
 }
 
 
-size_t Track_list_get_len(const Track_list* tl)
+int Track_list_get_len(const Track_list* tl)
 {
     assert(tl != NULL);
-    return Vector_size(tl->songs);
+    return (int)Vector_size(tl->songs);
 }
 
 
-int16_t Track_list_get_song_index(const Track_list* tl, size_t index)
+int Track_list_get_song_index(const Track_list* tl, int index)
 {
     assert(tl != NULL);
     assert(index < Track_list_get_len(tl));
@@ -142,16 +142,16 @@ int16_t Track_list_get_song_index(const Track_list* tl, size_t index)
 }
 
 
-int16_t Track_list_get_track_by_song(const Track_list* tl, int16_t song_index)
+int Track_list_get_track_by_song(const Track_list* tl, int song_index)
 {
     assert(tl != NULL);
     assert(song_index >= 0);
 
-    for (size_t i = 0; i < Vector_size(tl->songs); ++i)
+    for (int64_t i = 0; i < Vector_size(tl->songs); ++i)
     {
         const int16_t* cur_index = Vector_get_ref(tl->songs, i);
         if (*cur_index == song_index)
-            return (int16_t)i;
+            return (int)i;
     }
 
     return -1;

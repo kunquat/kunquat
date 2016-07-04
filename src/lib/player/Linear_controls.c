@@ -200,11 +200,11 @@ void Linear_controls_fill_work_buffer(
                 if (estimated_steps < buf_stop - cur_pos)
                     slide_stop = cur_pos + estimated_steps;
 
-                float new_value = lc->value;
+                double new_value = lc->value;
                 for (int32_t i = cur_pos; i < slide_stop; ++i)
                 {
                     new_value = Slider_step(&lc->slider);
-                    values[i] = new_value;
+                    values[i] = (float)new_value;
                 }
                 lc->value = new_value;
 
@@ -213,8 +213,9 @@ void Linear_controls_fill_work_buffer(
             }
             else
             {
+                const float value = (float)lc->value;
                 for (int32_t i = cur_pos; i < buf_stop; ++i)
-                    values[i] = lc->value;
+                    values[i] = value;
 
                 cur_pos = buf_stop;
             }
@@ -235,7 +236,7 @@ void Linear_controls_fill_work_buffer(
                     lfo_stop = cur_pos + estimated_steps;
 
                 for (int32_t i = cur_pos; i < lfo_stop; ++i)
-                    values[i] += LFO_step(&lc->lfo);
+                    values[i] += (float)LFO_step(&lc->lfo);
 
                 final_lfo_stop = lfo_stop;
                 cur_pos = lfo_stop;
@@ -253,14 +254,16 @@ void Linear_controls_fill_work_buffer(
     // Clamp values
     if (lc->min_value > -INFINITY)
     {
+        const float min_value = (float)lc->min_value;
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            values[i] = max(lc->min_value, values[i]);
+            values[i] = max(min_value, values[i]);
     }
 
     if (lc->max_value < INFINITY)
     {
+        const float max_value = (float)lc->max_value;
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            values[i] = min(lc->max_value, values[i]);
+            values[i] = min(max_value, values[i]);
     }
 
     // Mark constant region of the buffer
@@ -270,9 +273,10 @@ void Linear_controls_fill_work_buffer(
 }
 
 
-void Linear_controls_skip(Linear_controls* lc, uint64_t step_count)
+void Linear_controls_skip(Linear_controls* lc, int64_t step_count)
 {
     assert(lc != NULL);
+    assert(step_count >= 0);
 
     if (Slider_in_progress(&lc->slider))
         lc->value = Slider_skip(&lc->slider, step_count);

@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/Device_impl.h>
+#include <init/devices/Proc_cons.h>
 #include <init/devices/processors/Proc_init_utils.h>
 #include <memory.h>
 #include <player/devices/processors/Filter_state.h>

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -26,10 +26,11 @@
 #include <string.h>
 
 
-Streader* Streader_init(Streader* sr, const char* str, size_t len)
+Streader* Streader_init(Streader* sr, const char* str, int64_t len)
 {
     assert(sr != NULL);
     assert(str != NULL || len == 0);
+    assert(len >= 0);
 
     sr->pos = 0;
     sr->len = len;
@@ -123,7 +124,7 @@ static void print_wrong_char(char dest[5], char ch)
     if (isprint(ch))
         snprintf(dest, 5, "'%c'", ch);
     else
-        snprintf(dest, 5, "%#04hhx", (unsigned)ch);
+        snprintf(dest, 5, "%#04hhx", (unsigned char)ch);
 
     return;
 }
@@ -200,7 +201,7 @@ bool Streader_try_match_char(Streader* sr, char ch)
     assert(sr != NULL);
     assert(!Streader_is_error_set(sr));
 
-    const size_t start_pos = sr->pos;
+    const int64_t start_pos = sr->pos;
     const bool success = Streader_match_char(sr, ch);
     if (!success)
     {
@@ -221,7 +222,7 @@ static bool Streader_match_char_seq(Streader* sr, const char* seq)
     assert(!Streader_end_reached(sr));
 
     // Check that we have enough data
-    const size_t expected_len = strlen(seq);
+    const int64_t expected_len = (int64_t)strlen(seq);
     if (sr->len - sr->pos < expected_len)
     {
         Streader_set_error(
@@ -232,14 +233,14 @@ static bool Streader_match_char_seq(Streader* sr, const char* seq)
     }
 
     // Match the string
-    if (strncmp(&sr->str[sr->pos], seq, expected_len) != 0)
+    if (strncmp(&sr->str[sr->pos], seq, (size_t)expected_len) != 0)
     {
         Streader_set_error(sr, "Unexpected string (expected `%s`)", seq);
         return false;
     }
 
     // Update position
-    for (size_t i = 0; i < expected_len; ++i)
+    for (int64_t i = 0; i < expected_len; ++i)
     {
         if (CUR_CH == '\n')
             ++sr->line;
@@ -263,7 +264,7 @@ static bool Streader_try_match_char_seq(Streader* sr, const char* seq)
     assert(!Streader_is_error_set(sr));
     assert(seq != NULL);
 
-    const size_t start_pos = sr->pos;
+    const int64_t start_pos = sr->pos;
     const bool success = Streader_match_char_seq(sr, seq);
     if (!success)
     {
@@ -631,7 +632,7 @@ bool Streader_read_float(Streader* sr, double* dest)
         exponent = -exponent;
     int final_shift = significand_shift + exponent;
 
-    double result = significand;
+    double result = (double)significand;
 
     double abs_magnitude = pow(10, abs(final_shift));
     if (final_shift >= 0)
@@ -651,9 +652,10 @@ bool Streader_read_float(Streader* sr, double* dest)
 #undef SIGNIFICANT_MAX
 
 
-bool Streader_read_string(Streader* sr, size_t max_bytes, char* dest)
+bool Streader_read_string(Streader* sr, int64_t max_bytes, char* dest)
 {
     assert(sr != NULL);
+    assert(max_bytes >= 0);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -684,7 +686,7 @@ bool Streader_read_string(Streader* sr, size_t max_bytes, char* dest)
     ++sr->pos;
 
     // Parse and copy the string
-    size_t write_pos = 0;
+    int64_t write_pos = 0;
     while (!Streader_end_reached(sr) && CUR_CH != '\"')
     {
         if (CUR_CH == '\\')
@@ -715,7 +717,7 @@ bool Streader_read_string(Streader* sr, size_t max_bytes, char* dest)
                 static const char* upper_hex_digits = "ABCDEF";
                 static const char* lower_hex_digits = "abcdef";
 
-                uint32_t code = 0;
+                int32_t code = 0;
 
                 ++sr->pos;
                 for (int i = 0; i < 4; ++i)
@@ -730,19 +732,19 @@ bool Streader_read_string(Streader* sr, size_t max_bytes, char* dest)
                     if (isdigit(CUR_CH))
                         value = CUR_CH - '0';
                     else if (strchr(upper_hex_digits, CUR_CH) != NULL)
-                        value = strchr(upper_hex_digits, CUR_CH) -
-                            upper_hex_digits + 0xa;
+                        value = (int32_t)(strchr(upper_hex_digits, CUR_CH) -
+                            upper_hex_digits + 0xa);
                     else if (strchr(lower_hex_digits, CUR_CH) != NULL)
-                        value = strchr(lower_hex_digits, CUR_CH) -
-                            lower_hex_digits + 0xa;
+                        value = (int32_t)(strchr(lower_hex_digits, CUR_CH) -
+                            lower_hex_digits + 0xa);
                     else
                     {
-                        char dest[5] = "";
-                        print_wrong_char(dest, CUR_CH);
+                        char wrong_char[5] = "";
+                        print_wrong_char(wrong_char, CUR_CH);
                         Streader_set_error(
                                 sr,
                                 "Expected a hexadecimal digit instead of %s",
-                                dest);
+                                wrong_char);
                         return false;
                     }
 
@@ -765,7 +767,7 @@ bool Streader_read_string(Streader* sr, size_t max_bytes, char* dest)
                     return false;
                 }
 
-                special_ch = code;
+                special_ch = (char)code;
             }
             else
             {
@@ -780,13 +782,13 @@ bool Streader_read_string(Streader* sr, size_t max_bytes, char* dest)
 
             if (special_ch < 0x20 || special_ch > 0x7e)
             {
-                char dest[5] = "";
-                print_wrong_char(dest, special_ch);
-                Streader_set_error(sr, "Invalid special character %s", dest);
+                char wrong_char[5] = "";
+                print_wrong_char(wrong_char, special_ch);
+                Streader_set_error(sr, "Invalid special character %s", wrong_char);
                 return false;
             }
 
-            if (dest != NULL && write_pos + 1 < max_bytes)
+            if (dest != NULL && write_pos < max_bytes - 1)
                 dest[write_pos++] = special_ch;
         }
         else if (iscntrl(CUR_CH))
@@ -854,13 +856,13 @@ bool Streader_read_tstamp(Streader* sr, Tstamp* dest)
     }
 
     if (dest != NULL)
-        Tstamp_set(dest, beats, rem);
+        Tstamp_set(dest, beats, (int32_t)rem);
 
     return true;
 }
 
 
-static void recover(Streader* sr, size_t pos)
+static void recover(Streader* sr, int64_t pos)
 {
     assert(sr != NULL);
     assert(pos <= sr->pos);
@@ -880,7 +882,7 @@ bool Streader_read_finite_rt(Streader* sr, Value* dest)
         return false;
 
     Streader_skip_whitespace(sr);
-    const size_t start_pos = sr->pos;
+    const int64_t start_pos = sr->pos;
 
     Value* value = VALUE_AUTO;
 
@@ -950,8 +952,8 @@ bool Streader_read_piref(Streader* sr, Pat_inst_ref* dest)
 
     if (dest != NULL)
     {
-        dest->pat = pat;
-        dest->inst = inst;
+        dest->pat = (int16_t)pat;
+        dest->inst = (int16_t)inst;
     }
 
     return true;
@@ -1093,8 +1095,12 @@ bool Streader_readf(Streader* sr, const char* format, ...)
 
                 case 's':
                 {
-                    size_t max_bytes = va_arg(args, size_t);
-                    char* dest = va_arg(args, char*);
+                    Streader_readf_str_info info =
+                        va_arg(args, Streader_readf_str_info);
+                    assert(info.guard == Streader_readf_str_guard);
+
+                    const int64_t max_bytes = info.max_bytes;
+                    char* dest = info.dest;
                     Streader_read_string(sr, max_bytes, dest);
                 }
                 break;

@@ -47,7 +47,7 @@ Au_table* new_Au_table(int size);
  * \param table   The Audio unit table -- must not be \c NULL.
  * \param index   The target index -- must be >= \c 0 and less than
  *                the table size.
- * \param ins     The Audio unit to be inserted -- must not be \c NULL or
+ * \param au      The Audio unit to be inserted -- must not be \c NULL or
  *                an Audio unit already stored in the table.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.

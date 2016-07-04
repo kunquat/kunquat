@@ -18,6 +18,7 @@
 #include <containers/Vector.h>
 #include <debug/assert.h>
 #include <init/devices/param_types/Padsynth_params.h>
+#include <init/devices/Proc_cons.h>
 #include <init/devices/processors/Proc_init_utils.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
@@ -150,7 +151,7 @@ static Padsynth_sample_map* new_Padsynth_sample_map(
 
         if (sample_count > 1)
             entry->center_pitch =
-                lerp(min_pitch, max_pitch, i / (float)(sample_count - 1));
+                lerp(min_pitch, max_pitch, i / (double)(sample_count - 1));
         else
             entry->center_pitch = (min_pitch + max_pitch) * 0.5;
 
@@ -202,7 +203,7 @@ static void Padsynth_sample_map_set_pitch_range(
     {
         assert(entry != NULL);
         entry->center_pitch =
-            lerp(min_pitch, max_pitch, i / (float)(sm->sample_count - 1));
+            lerp(min_pitch, max_pitch, i / (double)(sm->sample_count - 1));
 
         entry = AAiter_get_next(iter);
     }
@@ -395,7 +396,7 @@ static void make_padsynth_sample(
 
         const int32_t nyquist = params->audio_rate / 2;
 
-        for (size_t h = 0; h < Vector_size(params->harmonics); ++h)
+        for (int64_t h = 0; h < Vector_size(params->harmonics); ++h)
         {
             const Padsynth_harmonic* harmonic = Vector_get_ref(params->harmonics, h);
 
@@ -463,8 +464,8 @@ static void make_padsynth_sample(
     buf[buf_length] = 0;
     for (int32_t i = 1; i < buf_length; ++i)
     {
-        buf[i] = freq_amp[i] * cos(freq_phase[i]);
-        buf[sample_length - i] = freq_amp[i] * sin(freq_phase[i]);
+        buf[i] = (float)(freq_amp[i] * cos(freq_phase[i]));
+        buf[sample_length - i] = (float)(freq_amp[i] * sin(freq_phase[i]));
     }
 
     // Apply IFFT
@@ -474,7 +475,7 @@ static void make_padsynth_sample(
     {
         float max_abs = 0.0f;
         for (int32_t i = 0; i < sample_length; ++i)
-            max_abs = max(max_abs, fabs(buf[i]));
+            max_abs = max(max_abs, fabsf(buf[i]));
 
         const float scale = 1.0f / max_abs;
         for (int32_t i = 0; i < sample_length; ++i)

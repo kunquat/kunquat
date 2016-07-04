@@ -27,7 +27,7 @@ typedef struct Sample_entry
     double ref_freq;  ///< The reference frequency in the mapping.
     /// The pitch offset of the middle frequency of this sample
     /// in the reference frequency.
-    uint16_t sample;
+    int sample;
     double cents;
     double vol_scale;
 } Sample_entry;

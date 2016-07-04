@@ -121,7 +121,7 @@ const Track_list* Module_get_track_list(const Module* module);
  *
  * \return   The order list if \a song exists, otherwise \c NULL.
  */
-const Order_list* Module_get_order_list(const Module* module, int16_t song);
+const Order_list* Module_get_order_list(const Module* module, int song);
 
 
 /**
@@ -167,10 +167,7 @@ const Pattern* Module_get_pattern(const Module* module, const Pat_inst_ref* pire
  * \return   \c true if \a piref was found, otherwise \c false.
  */
 bool Module_find_pattern_location(
-        const Module* module,
-        const Pat_inst_ref* piref,
-        int16_t* track,
-        int16_t* system);
+        const Module* module, const Pat_inst_ref* piref, int* track, int* system);
 
 
 /**

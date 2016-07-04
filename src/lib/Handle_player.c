@@ -22,6 +22,7 @@
 #include <mathnum/common.h>
 #include <string/common.h>
 
+#include <inttypes.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -42,7 +43,7 @@ int kqt_Handle_play(kqt_Handle handle, long nframes)
         return 0;
     }
 
-    Player_play(h->player, nframes);
+    Player_play(h->player, (int32_t)min(nframes, KQT_AUDIO_BUFFER_SIZE_MAX));
 
     return 1;
 }
@@ -85,8 +86,13 @@ int kqt_Handle_set_audio_rate(kqt_Handle handle, long rate)
         Handle_set_error(h, ERROR_ARGUMENT, "Audio rate must be positive");
         return 0;
     }
+    else if ((int64_t)rate > INT32_MAX)
+    {
+        Handle_set_error(h, ERROR_ARGUMENT, "Audio rate must be <= %" PRId32, INT32_MAX);
+        return 0;
+    }
 
-    if (!Player_set_audio_rate(h->player, rate))
+    if (!Player_set_audio_rate(h->player, (int32_t)rate))
     {
         Handle_set_error(
                 h, ERROR_MEMORY, "Couldn't allocate memory after change of audio rate.");
@@ -132,7 +138,7 @@ int kqt_Handle_set_audio_buffer_size(kqt_Handle handle, long size)
         return 0;
     }
 
-    if (!Player_set_audio_buffer_size(h->player, size))
+    if (!Player_set_audio_buffer_size(h->player, (int32_t)size))
     {
         Handle_set_error(h, ERROR_MEMORY, "Couldn't allocate memory for new buffers");
         return 0;
@@ -226,8 +232,8 @@ int kqt_Handle_set_position(kqt_Handle handle, int track, long long nanoseconds)
         return 0;
     }
 
-    int64_t skip_frames = ((double)nanoseconds / 1000000000L) *
-        Player_get_audio_rate(h->player);
+    int64_t skip_frames = (int64_t)(((double)nanoseconds / 1000000000L) *
+        Player_get_audio_rate(h->player));
 
     Device_states_reset(Player_get_device_states(h->player));
 
@@ -265,11 +271,18 @@ int kqt_Handle_fire_event(kqt_Handle handle, int channel, const char* event)
     }
     if (event == NULL)
     {
-        Handle_set_error(h, ERROR_ARGUMENT, "No event description given.");
+        Handle_set_error(h, ERROR_ARGUMENT, "No event description given");
         return 0;
     }
 
-    Streader* sr = Streader_init(STREADER_AUTO, event, strlen(event));
+    const size_t length = strlen(event);
+    if (length > 4096)
+    {
+        Handle_set_error(h, ERROR_ARGUMENT, "Event description is too long");
+        return 0;
+    }
+
+    Streader* sr = Streader_init(STREADER_AUTO, event, (int64_t)length);
     if (!Player_fire(h->player, channel, sr))
     {
         assert(Streader_is_error_set(sr));

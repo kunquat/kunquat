@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -15,6 +15,7 @@
 #include <init/devices/processors/Proc_sample.h>
 
 #include <debug/assert.h>
+#include <init/devices/Proc_cons.h>
 #include <init/devices/Processor.h>
 #include <memory.h>
 #include <player/devices/processors/Sample_state.h>

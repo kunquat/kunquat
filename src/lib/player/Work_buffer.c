@@ -24,7 +24,7 @@
 #include <string.h>
 
 
-#define WORK_BUFFER_ELEM_SIZE (sizeof(float))
+#define WORK_BUFFER_ELEM_SIZE ((int)sizeof(float))
 
 static_assert(sizeof(int32_t) <= WORK_BUFFER_ELEM_SIZE,
         "Work buffers must have space for enough 32-bit integers.");
@@ -34,7 +34,7 @@ struct Work_buffer
 {
     int32_t size;
     int32_t const_start;
-    char* contents;
+    void* contents;
 };
 
 
@@ -55,7 +55,7 @@ Work_buffer* new_Work_buffer(int32_t size)
     if (buffer->size > 0)
     {
         // Allocate buffers
-        const uint32_t actual_size = size + 2;
+        const int32_t actual_size = size + 2;
         buffer->contents = memory_calloc_items(
                 char, actual_size * WORK_BUFFER_ELEM_SIZE);
         if (buffer->contents == NULL)
@@ -177,10 +177,12 @@ void Work_buffer_copy(
     const int32_t actual_start = buf_start + 1;
     const int32_t actual_stop = buf_stop + 1;
 
-    char* dest_start = dest->contents + (actual_start * WORK_BUFFER_ELEM_SIZE);
-    const char* src_start = src->contents + (actual_start * WORK_BUFFER_ELEM_SIZE);
-    const uint32_t elem_count = actual_stop - actual_start;
-    memcpy(dest_start, src_start, elem_count * WORK_BUFFER_ELEM_SIZE);
+    char* dest_start = (char*)dest->contents + (actual_start * WORK_BUFFER_ELEM_SIZE);
+    const char* src_start =
+        (char*)src->contents + (actual_start * WORK_BUFFER_ELEM_SIZE);
+    const int32_t elem_count = actual_stop - actual_start;
+    assert(elem_count >= 0);
+    memcpy(dest_start, src_start, (size_t)(elem_count * WORK_BUFFER_ELEM_SIZE));
 
     Work_buffer_set_const_start(dest, Work_buffer_get_const_start(src));
 

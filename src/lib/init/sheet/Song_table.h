@@ -49,7 +49,7 @@ Song_table* new_Song_table(void);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Song_table_set(Song_table* table, uint16_t index, Song* song);
+bool Song_table_set(Song_table* table, int index, Song* song);
 
 
 /**
@@ -64,7 +64,7 @@ bool Song_table_set(Song_table* table, uint16_t index, Song* song);
  *
  * \return   The Song if one exists, otherwise \c NULL.
  */
-Song* Song_table_get(Song_table* table, uint16_t index);
+Song* Song_table_get(Song_table* table, int index);
 
 
 /**
@@ -75,7 +75,7 @@ Song* Song_table_get(Song_table* table, uint16_t index);
  *                   < \c KQT_SONGS_MAX.
  * \param existent   The new existent status.
  */
-void Song_table_set_existent(Song_table* table, uint16_t index, bool existent);
+void Song_table_set_existent(Song_table* table, int index, bool existent);
 
 
 /**
@@ -87,7 +87,7 @@ void Song_table_set_existent(Song_table* table, uint16_t index, bool existent);
  *
  * \return   The existent status.
  */
-bool Song_table_get_existent(Song_table* table, uint16_t index);
+bool Song_table_get_existent(Song_table* table, int index);
 
 
 /**

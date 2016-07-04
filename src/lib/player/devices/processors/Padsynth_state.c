@@ -37,7 +37,7 @@ typedef struct Padsynth_vstate
 } Padsynth_vstate;
 
 
-size_t Padsynth_vstate_get_size(void)
+int32_t Padsynth_vstate_get_size(void)
 {
     return sizeof(Padsynth_vstate);
 }
@@ -165,7 +165,7 @@ static int32_t Padsynth_vstate_render_voice(
 
             const float item1 = sample_buf[pos1];
             const float item2 = sample_buf[pos2];
-            const double value = lerp(item1, item2, lerp_val);
+            const float value = (float)lerp(item1, item2, lerp_val);
 
             out_buf[i] = value * scale;
 

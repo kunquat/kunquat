@@ -37,7 +37,7 @@ typedef struct Freeverb_allpass Freeverb_allpass;
  * \return   The new Freeverb allpass filter if successful, or \c NULL if
  *           memory allocation failed.
  */
-Freeverb_allpass* new_Freeverb_allpass(uint32_t buffer_size);
+Freeverb_allpass* new_Freeverb_allpass(int32_t buffer_size);
 
 
 /**
@@ -69,7 +69,7 @@ void Freeverb_allpass_process(
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Freeverb_allpass_resize_buffer(Freeverb_allpass* allpass, uint32_t new_size);
+bool Freeverb_allpass_resize_buffer(Freeverb_allpass* allpass, int32_t new_size);
 
 
 /**

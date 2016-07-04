@@ -43,6 +43,13 @@ def test_libkunquat(builder, options, cc):
     if options.enable_tests_mem_debug:
         cc.add_define('K_MEM_DEBUG')
 
+    # Allow simpler structure in tests
+    cc.add_compile_flag('-Wno-missing-prototypes')
+
+    if cc.get_name() == 'Clang':
+        # Check marks the test index variable _i as unused
+        cc.add_compile_flag('-Wno-used-but-marked-unused')
+
     # Define which tests depend on others
     deps = defaultdict(lambda: [], {
             'handle': ['streader', 'tstamp'],

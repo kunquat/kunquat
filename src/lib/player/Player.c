@@ -61,7 +61,7 @@ Player* new_Player(
         const Module* module,
         int32_t audio_rate,
         int32_t audio_buffer_size,
-        size_t event_buffer_size,
+        int32_t event_buffer_size,
         int voice_count)
 {
     assert(module != NULL);
@@ -214,9 +214,11 @@ Device_states* Player_get_device_states(const Player* player)
 }
 
 
-bool Player_reserve_voice_state_space(Player* player, size_t size)
+bool Player_reserve_voice_state_space(Player* player, int32_t size)
 {
     assert(player != NULL);
+    assert(size >= 0);
+
     return Voice_pool_reserve_state_space(player->voices, size);
 }
 
@@ -321,7 +323,7 @@ bool Player_create_tuning_state(Player* player, int index)
 }
 
 
-void Player_reset(Player* player, int16_t track_num)
+void Player_reset(Player* player, int track_num)
 {
     assert(player != NULL);
     assert(track_num >= -1);
@@ -453,11 +455,11 @@ int64_t Player_get_nanoseconds(const Player* player)
 
     int64_t ns_this_audio_rate = 0;
     if (INT64_MAX / ns_second < player->audio_frames_processed)
-        ns_this_audio_rate =
-            player->audio_frames_processed * (ns_second / (double)player->audio_rate);
+        ns_this_audio_rate = (int64_t)((double)player->audio_frames_processed *
+                ((double)ns_second / (double)player->audio_rate));
     else
         ns_this_audio_rate =
-            player->audio_frames_processed * ns_second / player->audio_rate;
+            (int64_t)(player->audio_frames_processed * ns_second / player->audio_rate);
 
     return player->nanoseconds_history + ns_this_audio_rate;
 }
@@ -491,7 +493,7 @@ static void Player_process_voices(
 
     // Process active Voice groups
     const int32_t render_stop = render_start + frame_count;
-    int16_t active_voice_count = 0;
+    int active_voice_count = 0;
 
     Voice_group* vg = Voice_pool_start_group_iteration(player->voices);
 
@@ -632,13 +634,13 @@ static void Player_apply_master_volume(
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             final_volume = Slider_step(&player->master_params.volume_slider);
-            volumes[i] = final_volume;
+            volumes[i] = (float)final_volume;
         }
         player->master_params.volume = final_volume;
     }
     else
     {
-        const float cur_volume = player->master_params.volume;
+        const float cur_volume = (float)player->master_params.volume;
         for (int32_t i = buf_start; i < buf_stop; ++i)
             volumes[i] = cur_volume;
     }
@@ -754,7 +756,7 @@ void Player_play(Player* player, int32_t nframes)
                 Force_controls* fc = &ch->force_controls;
 
                 if (Slider_in_progress(&fc->slider))
-                    fc->force = Slider_skip(&fc->slider, to_be_rendered);
+                    fc->force = (float)Slider_skip(&fc->slider, to_be_rendered);
 
                 if (LFO_active(&fc->tremolo))
                     LFO_skip(&fc->tremolo, to_be_rendered);
@@ -810,8 +812,9 @@ void Player_play(Player* player, int32_t nframes)
                 // Apply render volume
                 const float* buf = Work_buffer_get_contents(buffer);
 
+                const float mix_vol = (float)player->module->mix_vol;
                 for (int32_t i = 0; i < rendered; ++i)
-                    out_buf[i] = buf[i] * player->module->mix_vol;
+                    out_buf[i] = buf[i] * mix_vol;
             }
             else
             {
@@ -858,7 +861,7 @@ void Player_skip(Player* player, int64_t nframes)
         }
 
         // Move forwards in composition
-        int32_t to_be_skipped = min(nframes - skipped, INT32_MAX);
+        int32_t to_be_skipped = (int32_t)min(nframes - skipped, INT32_MAX);
         to_be_skipped = Player_move_forwards(player, to_be_skipped, true);
 
         if (Player_has_stopped(player))

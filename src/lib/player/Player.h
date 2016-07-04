@@ -53,7 +53,7 @@ Player* new_Player(
         const Module* module,
         int32_t audio_rate,
         int32_t audio_buffer_size,
-        size_t event_buffer_size,
+        int32_t event_buffer_size,
         int voice_count);
 
 
@@ -77,11 +77,11 @@ Device_states* Player_get_device_states(const Player* player);
  * Reserve state space for internal voice pool.
  *
  * \param player   The Player -- must not be \c NULL.
- * \param size     The new size.
+ * \param size     The new size -- must be >= \c 0.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Player_reserve_voice_state_space(Player* player, size_t size);
+bool Player_reserve_voice_state_space(Player* player, int32_t size);
 
 
 /**
@@ -196,7 +196,7 @@ int64_t Player_get_nanoseconds(const Player* player);
  * \param player      The Player -- must not be \c NULL.
  * \param track_num   The track number, or \c -1 to indicate all tracks.
  */
-void Player_reset(Player* player, int16_t track_num);
+void Player_reset(Player* player, int track_num);
 
 
 /**

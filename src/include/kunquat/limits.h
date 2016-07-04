@@ -138,7 +138,7 @@ extern "C" {
 
 
 /**
- * Maximum number of processors in a Kunquat Instruemnt.
+ * Maximum number of processors in a Kunquat Instrument.
  */
 #define KQT_PROCESSORS_MAX 256
 

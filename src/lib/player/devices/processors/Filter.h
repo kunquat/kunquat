@@ -70,7 +70,7 @@ double iir_filter_strict_cascade(
         int n, const double coeffs[n], double buf[n], double var);
 
 
-inline double iir_filter_strict_cascade_even_order(
+static inline double iir_filter_strict_cascade_even_order(
         int n, const double coeffs[n], double buf[n], double var)
 {
     assert((n & 1) == 0);
@@ -96,7 +96,7 @@ double iir_filter_strict_transposed_cascade(
 double dc_zero_filter(int n, double buf[n], double var);
 
 
-inline double nq_zero_filter(int n, double buf[n], double var)
+static inline double nq_zero_filter(int n, double buf[n], double var)
 {
     assert(buf != NULL);
 

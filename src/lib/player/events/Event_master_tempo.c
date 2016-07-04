@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -45,7 +45,7 @@ static void set_tempo_slide_update(Master_params* master_params)
 
     const double rems_total =
             (double)Tstamp_get_beats(&master_params->tempo_slide_length) *
-            KQT_TSTAMP_BEAT +
+            (double)KQT_TSTAMP_BEAT +
             Tstamp_get_rem(&master_params->tempo_slide_length);
     const double slices = rems_total / KQT_TEMPO_SLIDE_SLICE_LEN;
     master_params->tempo_slide_update =

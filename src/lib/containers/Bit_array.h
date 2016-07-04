@@ -19,6 +19,7 @@
 #include <decl.h>
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 
@@ -29,7 +30,7 @@
  *
  * \return   The new Bit array if successful, or \c NULL if memory allocation failed.
  */
-Bit_array* new_Bit_array(size_t size);
+Bit_array* new_Bit_array(int64_t size);
 
 
 /**
@@ -47,7 +48,7 @@ void Bit_array_clear(Bit_array* ba);
  * \param index   The index of the value -- must be less than the array size.
  * \param value   The new value.
  */
-void Bit_array_set(Bit_array* ba, size_t index, bool value);
+void Bit_array_set(Bit_array* ba, int64_t index, bool value);
 
 
 /**
@@ -58,7 +59,7 @@ void Bit_array_set(Bit_array* ba, size_t index, bool value);
  *
  * \return   The bit.
  */
-bool Bit_array_get(const Bit_array* ba, size_t index);
+bool Bit_array_get(const Bit_array* ba, int64_t index);
 
 
 /**

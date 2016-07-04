@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -77,11 +77,11 @@ int string_extract_index(
     int prefix_len = 0;
     if (prefix != NULL)
     {
-        prefix_len = strlen(prefix);
+        prefix_len = (int)strlen(prefix);
     }
     else
     {
-        prefix_len = strcspn(path, hex_digits);
+        prefix_len = (int)strcspn(path, hex_digits);
         if (path[prefix_len] == '\0')
             return -1;
     }
@@ -99,7 +99,7 @@ int string_extract_index(
         if (pos == NULL)
             return -1;
 
-        index += pos - hex_digits;
+        index += (int)(pos - hex_digits);
     }
 
     if (string_has_prefix(after, ".") && !string_eq(num_s, after))

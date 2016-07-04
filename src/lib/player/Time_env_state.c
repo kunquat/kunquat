@@ -55,7 +55,7 @@ int32_t Time_env_state_process(
         float* env_buf,
         int32_t buf_start,
         int32_t buf_stop,
-        uint32_t audio_rate)
+        int32_t audio_rate)
 {
     assert(testate != NULL);
     assert(env != NULL);
@@ -166,7 +166,7 @@ int32_t Time_env_state_process(
 
         // Apply envelope value
         assert(isfinite(value));
-        env_buf[i] = value;
+        env_buf[i] = (float)value;
 
         // Update envelope position
         double new_pos = cur_pos + scale_factor * slowdown_fac_inv_audio_rate;

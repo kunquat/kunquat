@@ -36,7 +36,7 @@ typedef struct Jump_cache Jump_cache;
  * \return   The new Jump cache if successful, or \c NULL if memory
  *           allocation failed.
  */
-Jump_cache* new_Jump_cache(size_t num_contexts);
+Jump_cache* new_Jump_cache(int num_contexts);
 
 
 /**

@@ -25,19 +25,19 @@
 static uint32_t reverse_bits(uint32_t n, int bit_count)
 {
     assert(bit_count > 0);
-    assert(bit_count <= 32);
+    assert(bit_count <= 31);
 
-    n = ((n & 0xaaaaaaaaUL) >> 1) | ((n & 0x55555555UL) << 1);
-    n = ((n & 0xccccccccUL) >> 2) | ((n & 0x33333333UL) << 2);
-    n = ((n & 0xf0f0f0f0UL) >> 4) | ((n & 0x0f0f0f0fUL) << 4);
-    n = ((n & 0xff00ff00UL) >> 8) | ((n & 0x00ff00ffUL) << 8);
-    n = (n >> 16) | (n << 16);
+    n = (uint32_t)(((n & 0xaaaaaaaaUL) >> 1) | ((n & 0x55555555UL) << 1));
+    n = (uint32_t)(((n & 0xccccccccUL) >> 2) | ((n & 0x33333333UL) << 2));
+    n = (uint32_t)(((n & 0xf0f0f0f0UL) >> 4) | ((n & 0x0f0f0f0fUL) << 4));
+    n = (uint32_t)(((n & 0xff00ff00UL) >> 8) | ((n & 0x00ff00ffUL) << 8));
+    n = (uint32_t)((n >> 16) | (n << 16));
 
     return n >> (32 - bit_count);
 }
 
 
-static int get_bit_count(size_t n)
+static int get_bit_count(int32_t n)
 {
     assert(n > 0);
     assert(is_p2(n));
@@ -54,15 +54,15 @@ static int get_bit_count(size_t n)
 }
 
 
-static void bit_reversal_permute(float* data, size_t length)
+static void bit_reversal_permute(float* data, int32_t length)
 {
     assert(is_p2(length));
 
     const int bit_count = get_bit_count(length);
 
-    for (size_t i = 0; i < length; ++i)
+    for (int32_t i = 0; i < length; ++i)
     {
-        const size_t rev_i = reverse_bits(i, bit_count);
+        const int32_t rev_i = (int32_t)reverse_bits((uint32_t)i, bit_count);
         if (rev_i > i)
         {
             const float temp = data[i];
@@ -75,26 +75,26 @@ static void bit_reversal_permute(float* data, size_t length)
 }
 
 
-void fill_Ws(float* Ws, size_t tlength)
+void fill_Ws(float* Ws, int32_t tlength)
 {
     assert(Ws != NULL);
     assert(tlength >= 4);
     assert(is_p2(tlength));
 
-    const size_t Wlength = tlength / 4;
+    const int32_t Wlength = tlength / 4;
 
-    for (size_t i = 0; i < Wlength; ++i)
+    for (int32_t i = 0; i < Wlength; ++i)
     {
         const double u = -2.0 * PI * i / (double)tlength;
-        Ws[2 * i] = cos(u);
-        Ws[2 * i + 1] = sin(u);
+        Ws[2 * i] = (float)cos(u);
+        Ws[2 * i + 1] = (float)sin(u);
     }
 
     return;
 }
 
 
-void irfft(float* data, const float* Ws, size_t length)
+void irfft(float* data, const float* Ws, int32_t length)
 {
     assert(data != NULL);
     assert(Ws != NULL);
@@ -103,32 +103,32 @@ void irfft(float* data, const float* Ws, size_t length)
 
     const int bit_count = get_bit_count(length);
     assert(bit_count > 0);
-    assert(bit_count < 32);
+    assert(bit_count < 31);
 
     // Algorithmically mostly based on the description in the LaTeX documentation
     // of GNU Scientific Library, http://www.gnu.org/software/gsl/
     for (int i = bit_count; i > 0; --i)
     {
-        const size_t p_i = 1 << i;
-        const size_t p_im1 = p_i >> 1;
-        const size_t q_i = length / p_i;
+        const int32_t p_i = 1 << i;
+        const int32_t p_im1 = p_i >> 1;
+        const int32_t q_i = length / p_i;
 
-        for (size_t b = 0; b < q_i; ++b)
+        for (int32_t b = 0; b < q_i; ++b)
         {
-            const size_t ix0 = b * p_i;
-            const size_t ix1 = b * p_i + p_im1;
+            const int32_t ix0 = b * p_i;
+            const int32_t ix1 = b * p_i + p_im1;
             const float x0 = data[ix0] + data[ix1];
             const float x1 = data[ix0] - data[ix1];
             data[ix0] = x0;
             data[ix1] = x1;
         }
 
-        const size_t p_im2 = p_im1 >> 1;
-        for (size_t a = 1; a < p_im2; ++a)
+        const int32_t p_im2 = p_im1 >> 1;
+        for (int32_t a = 1; a < p_im2; ++a)
         {
-            for (size_t b = 0; b < q_i; ++b)
+            for (int32_t b = 0; b < q_i; ++b)
             {
-                const size_t bp_i = b * p_i;
+                const int32_t bp_i = b * p_i;
 
                 const float z0_re = data[bp_i + a];
                 const float z0_im = data[bp_i + p_i - a];

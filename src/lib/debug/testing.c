@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -15,12 +15,15 @@
 #include <kunquat/testing.h>
 
 #include <debug/assert.h>
+#include <mathnum/common.h>
 #include <memory.h>
+
+#include <stdint.h>
 
 
 void kqt_fake_out_of_memory(long steps)
 {
-    memory_fake_out_of_memory(steps);
+    memory_fake_out_of_memory((int32_t)clamp(steps, INT32_MIN, INT32_MAX));
     return;
 }
 

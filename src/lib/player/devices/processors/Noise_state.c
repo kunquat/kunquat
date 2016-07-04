@@ -67,7 +67,7 @@ typedef struct Noise_vstate
 } Noise_vstate;
 
 
-size_t Noise_vstate_get_size(void)
+int32_t Noise_vstate_get_size(void)
 {
     return sizeof(Noise_vstate);
 }
@@ -125,7 +125,7 @@ static int32_t Noise_vstate_render_voice(
                         Random_get_float_signal(vstate->rand_s));
             }
 
-            out_buffers[ch][i] = val;
+            out_buffers[ch][i] = (float)val;
         }
     }
 

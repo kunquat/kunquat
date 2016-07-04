@@ -130,7 +130,7 @@ int Device_field_cmp(const Device_field* field1, const Device_field* field2);
  *
  * \param field   The Device field -- must not be \c NULL and must have
  *                real-time type.
- * \param flag    The empty flag.
+ * \param empty   The empty flag.
  */
 void Device_field_set_empty(Device_field* field, bool empty);
 

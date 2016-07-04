@@ -29,9 +29,9 @@ struct Work_buffers
 };
 
 
-Work_buffers* new_Work_buffers(uint32_t buf_size)
+Work_buffers* new_Work_buffers(int32_t buf_size)
 {
-    //assert(buf_size >= 0);
+    assert(buf_size >= 0);
     assert(buf_size <= WORK_BUFFER_SIZE_MAX);
 
     Work_buffers* buffers = memory_alloc_item(Work_buffers);
@@ -57,10 +57,10 @@ Work_buffers* new_Work_buffers(uint32_t buf_size)
 }
 
 
-bool Work_buffers_resize(Work_buffers* buffers, uint32_t new_size)
+bool Work_buffers_resize(Work_buffers* buffers, int32_t new_size)
 {
     assert(buffers != NULL);
-    //assert(new_size >= 0);
+    assert(new_size >= 0);
     assert(new_size <= WORK_BUFFER_SIZE_MAX);
 
     for (int i = 0; i < WORK_BUFFER_COUNT_; ++i)

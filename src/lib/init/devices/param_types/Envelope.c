@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -111,7 +111,22 @@ static bool read_env_mark(Streader* sr, int32_t index, void* userdata)
     if (!Streader_read_int(sr, &value))
         return false;
 
-    Envelope_set_mark(env, index, value);
+    if (value < 0)
+    {
+        Streader_set_error(sr, "Envelope mark value must not be negative");
+        return false;
+    }
+    if (value >= env->nodes_max)
+    {
+        Streader_set_error(
+                sr,
+                "Envelope mark value (%" PRId64
+                    ") must not exceed maximum node count (%d)",
+                value, env->nodes_max);
+        return false;
+    }
+
+    Envelope_set_mark(env, index, (int)value);
 
     return true;
 }
@@ -192,7 +207,7 @@ static bool read_env_node(Streader* sr, int32_t index, void* userdata)
     if (!Streader_readf(sr, "[%f,%f]", &node[0], &node[1]))
         return false;
 
-    const size_t read_pos = sr->pos;
+    const int64_t read_pos = sr->pos;
     const bool is_last = Streader_try_match_char(sr, ']');
     sr->pos = read_pos;
 

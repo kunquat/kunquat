@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -93,14 +93,15 @@ uint64_t Random_get_uint64(Random* random)
 uint32_t Random_get_uint32(Random* random)
 {
     assert(random != NULL);
-    return Random_get_uint64(random) >> 32;
+    return (uint32_t)(Random_get_uint64(random) >> 32);
 }
 
 
 double Random_get_float_lb(Random* random)
 {
     assert(random != NULL);
-    return Random_get_uint64(random) / ((double)KQT_RANDOM64_MAX + 1);
+    // FIXME: (double)KQT_RANDOM64_MAX + 1 is probably not what one would expect
+    return (double)Random_get_uint64(random) / ((double)KQT_RANDOM64_MAX + 1);
 }
 
 
@@ -116,7 +117,7 @@ int32_t Random_get_index(Random* random, int32_t size)
 double Random_get_float_scale(Random* random)
 {
     assert(random != NULL);
-    return Random_get_uint64(random) / (double)KQT_RANDOM64_MAX;
+    return (double)Random_get_uint64(random) / (double)KQT_RANDOM64_MAX;
 }
 
 
@@ -127,7 +128,7 @@ double Random_get_float_signal(Random* random)
     uint64_t bits = (Random_get_uint64(random) >> 1); // max: 0x7fffffffffffffff
     bits &= ~(uint64_t)1;                             //      0x7ffffffffffffffe
 
-    return ((int64_t)bits - 0x3fffffffffffffffLL) /
+    return (double)((int64_t)bits - 0x3fffffffffffffffLL) /
                     (double)0x3fffffffffffffffLL;
 }
 

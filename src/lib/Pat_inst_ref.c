@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -19,7 +19,7 @@
 #include <stdbool.h>
 
 
-bool Pat_inst_ref_is_valid(const Pat_inst_ref* p)
+static bool Pat_inst_ref_is_valid(const Pat_inst_ref* p)
 {
     const bool is_normal =
         (p != NULL) &&

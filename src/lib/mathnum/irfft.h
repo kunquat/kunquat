@@ -16,6 +16,7 @@
 #define KQT_IRFFT_H
 
 
+#include <stdint.h>
 #include <stdlib.h>
 
 
@@ -27,7 +28,7 @@
  * \param tlength   The length of the data for which the roots are used for
  *                  -- must be >= \c 4 and a power of 2.
  */
-void fill_Ws(float* Ws, size_t tlength);
+void fill_Ws(float* Ws, int32_t tlength);
 
 
 /**
@@ -40,7 +41,7 @@ void fill_Ws(float* Ws, size_t tlength);
  *                 -- must not be \c NULL.
  * \param length   The number of elements in \a input -- must be a positive power of 2.
  */
-void irfft(float* array, const float* Ws, size_t length);
+void irfft(float* data, const float* Ws, int32_t length);
 
 
 #endif // KQT_IRFFT_H

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -106,6 +106,13 @@ static bool read_field(Streader* sr, const char* key, void* userdata)
         int64_t loop_start = 0;
         if (!Streader_read_int(sr, &loop_start))
             return false;
+
+        if (loop_start < 0)
+        {
+            Streader_set_error(sr, "Sample loop start must be non-negative");
+            return false;
+        }
+
         params->loop_start = loop_start;
     }
     else if (string_eq(key, "loop_end"))
@@ -113,6 +120,13 @@ static bool read_field(Streader* sr, const char* key, void* userdata)
         int64_t loop_end = 0;
         if (!Streader_read_int(sr, &loop_end))
             return false;
+
+        if (loop_end < 0)
+        {
+            Streader_set_error(sr, "Sample loop end must be non-negative");
+            return false;
+        }
+
         params->loop_end = loop_end;
     }
     else

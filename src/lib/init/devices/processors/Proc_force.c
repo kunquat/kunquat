@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <Error.h>
 #include <init/devices/Device_impl.h>
+#include <init/devices/Proc_cons.h>
 #include <init/devices/processors/Proc_init_utils.h>
 #include <memory.h>
 #include <player/devices/processors/Force_state.h>
@@ -90,7 +91,7 @@ Device_impl* new_Proc_force(void)
 
         static const char* env_data =
             "{ \"nodes\": [ [0, 1], [1, 0] ], \"smooth\": false }";
-        Streader* sr = Streader_init(STREADER_AUTO, env_data, strlen(env_data));
+        Streader* sr = Streader_init(STREADER_AUTO, env_data, (int64_t)strlen(env_data));
 
         if (!Envelope_read(force->def_force_release_env, sr))
         {

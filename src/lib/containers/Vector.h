@@ -39,7 +39,7 @@
  * \return   The new Vector if successful, or \c NULL if memory allocation
  *           failed.
  */
-Vector* new_Vector(size_t elem_size);
+Vector* new_Vector(int64_t elem_size);
 
 
 /**
@@ -49,7 +49,7 @@ Vector* new_Vector(size_t elem_size);
  *
  * \return   The number of elements.
  */
-size_t Vector_size(const Vector* v);
+int64_t Vector_size(const Vector* v);
 
 
 /**
@@ -60,7 +60,7 @@ size_t Vector_size(const Vector* v);
  *                < Vector_size(\a v).
  * \param dest    Destination address for the element -- must not be \c NULL.
  */
-void Vector_get(const Vector* v, size_t index, void* dest);
+void Vector_get(const Vector* v, int64_t index, void* dest);
 
 
 /**
@@ -72,7 +72,7 @@ void Vector_get(const Vector* v, size_t index, void* dest);
  *
  * \return   The address of the element.
  */
-void* Vector_get_ref(const Vector* v, size_t index);
+void* Vector_get_ref(const Vector* v, int64_t index);
 
 
 /**

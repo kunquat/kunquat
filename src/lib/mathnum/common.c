@@ -1,7 +1,7 @@
 
 
 /*
- * Authors: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Authors: Tomi Jylhä-Ollila, Finland 2011-2016
  *          Ossi Saresoja, Finland 2009-2010
  *
  * This file is part of Kunquat.
@@ -66,18 +66,18 @@ int64_t ipowi(int64_t base, int64_t exp)
 }
 
 
-double powi(double x, int n)
+double powi(double base, int exp)
 {
-    assert(n >= 0);
+    assert(exp >= 0);
 
     double ret = 1.0;
-    while (n > 0)
+    while (exp > 0)
     {
-        if ((n & 1) != 0)
-            ret *= x;
+        if ((exp & 1) != 0)
+            ret *= base;
 
-        n >>= 1;
-        x *= x;
+        exp >>= 1;
+        base *= base;
     }
 
     return ret;

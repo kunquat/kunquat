@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2016
  *
  * This file is part of Kunquat.
  *
@@ -238,7 +238,7 @@ static bool evaluate_expr_(
     bool found_not = false;
     bool found_minus = false;
 
-    size_t prev_pos = sr->pos;
+    int64_t prev_pos = sr->pos;
     while (get_token(sr, token) &&
             !string_eq(token, "") &&
             !string_eq(token, ")") &&
@@ -566,9 +566,10 @@ static bool Value_from_token(
 
     if (isdigit(token[0]) || token[0] == '.')
     {
+        const int64_t token_length = (int64_t)strlen(token);
         if (strchr(token, '.') != NULL)
         {
-            Streader* sr = Streader_init(STREADER_AUTO, token, strlen(token));
+            Streader* sr = Streader_init(STREADER_AUTO, token, token_length);
             double num = NAN;
             if (!Streader_read_float(sr, &num))
                 return false;
@@ -578,7 +579,7 @@ static bool Value_from_token(
             return true;
         }
 
-        Streader* sr = Streader_init(STREADER_AUTO, token, strlen(token));
+        Streader* sr = Streader_init(STREADER_AUTO, token, token_length);
         int64_t num = 0;
         if (!Streader_read_int(sr, &num))
             return false;
@@ -755,22 +756,22 @@ static bool get_num_token(Streader* sr, char* result)
     assert(sr != NULL);
     assert(result != NULL);
 
-    const size_t start_pos = sr->pos;
+    const int64_t start_pos = sr->pos;
 
     if (!Streader_read_float(sr, NULL))
         return false;
 
-    const size_t end_pos = sr->pos;
+    const int64_t end_pos = sr->pos;
     assert(end_pos >= start_pos);
 
-    const size_t len = end_pos - start_pos;
+    const int64_t len = end_pos - start_pos;
     if (len >= KQT_VAR_NAME_MAX - 1)
     {
         Streader_set_error(sr, "Exceeded maximum token length");
         return false;
     }
 
-    strncpy(result, &sr->str[start_pos], len);
+    strncpy(result, &sr->str[start_pos], (size_t)len);
     result[len] = '\0';
 
     return true;
@@ -806,7 +807,7 @@ static bool get_str_token(Streader* sr, char* result)
     strcpy(&result[i], end_str);
     str += strlen(end_str);
 
-    sr->pos += (str - &sr->str[sr->pos]);
+    sr->pos += (int)(str - &sr->str[sr->pos]);
 
     return true;
 }
@@ -820,7 +821,7 @@ static bool get_var_token(Streader* sr, char* result)
     // FIXME: ugly haxoring with Streader internals
     const char* str = &sr->str[sr->pos];
 
-    int len = strspn(str, KQT_VAR_CHARS);
+    const size_t len = strspn(str, KQT_VAR_CHARS);
     if (len >= KQT_VAR_NAME_MAX)
     {
         Streader_set_error(sr, "Exceeded maximum token length");
@@ -830,7 +831,7 @@ static bool get_var_token(Streader* sr, char* result)
     strncpy(result, str, len);
     result[len] = '\0';
 
-    sr->pos += len;
+    sr->pos += (int)len;
 
     return true;
 }
@@ -846,7 +847,7 @@ static bool get_op_token(Streader* sr, char* result)
     // FIXME: ugly haxoring with Streader internals
     const char* str = &sr->str[sr->pos];
 
-    int len = strspn(str, op_chars);
+    const size_t len = strspn(str, op_chars);
     if (len >= KQT_VAR_NAME_MAX)
     {
         Streader_set_error(sr, "Exceeded maximum token length");
@@ -856,7 +857,7 @@ static bool get_op_token(Streader* sr, char* result)
     strncpy(result, str, len);
     result[len] = '\0';
 
-    sr->pos += len;
+    sr->pos += (int)len;
 
     return true;
 }
@@ -1577,8 +1578,8 @@ static bool func_ts(const Value* args, Value* res, Random* rand, Streader* sr)
         double beats = floor(args[0].value.float_type);
         Tstamp_set(
                 &res->value.Tstamp_type,
-                beats,
-                (args[0].value.float_type - beats) * KQT_TSTAMP_BEAT);
+                (int64_t)beats,
+                (int32_t)((args[0].value.float_type - beats) * KQT_TSTAMP_BEAT));
     }
     else
     {
@@ -1602,7 +1603,7 @@ static bool func_ts(const Value* args, Value* res, Random* rand, Streader* sr)
         }
         Tstamp_add(
                 &res->value.Tstamp_type, &res->value.Tstamp_type,
-                Tstamp_set(TSTAMP_AUTO, 0, args[1].value.int_type));
+                Tstamp_set(TSTAMP_AUTO, 0, (int32_t)args[1].value.int_type));
     }
     else if (args[1].type == VALUE_TYPE_FLOAT)
     {
@@ -1615,7 +1616,7 @@ static bool func_ts(const Value* args, Value* res, Random* rand, Streader* sr)
         }
         Tstamp_add(
                 &res->value.Tstamp_type, &res->value.Tstamp_type,
-                Tstamp_set(TSTAMP_AUTO, 0, args[1].value.float_type));
+                Tstamp_set(TSTAMP_AUTO, 0, (int32_t)args[1].value.float_type));
     }
     else
     {
@@ -1645,13 +1646,11 @@ static bool func_rand(const Value* args, Value* res, Random* rand, Streader* sr)
     }
     else if (args[0].type == VALUE_TYPE_FLOAT)
     {
-        res->value.float_type = res->value.float_type *
-                                args[0].value.float_type;
+        res->value.float_type = res->value.float_type * args[0].value.float_type;
     }
     else if (args[0].type == VALUE_TYPE_INT)
     {
-        res->value.float_type = res->value.float_type *
-                                args[0].value.int_type;
+        res->value.float_type = res->value.float_type * (double)args[0].value.int_type;
     }
     else
     {
@@ -1696,7 +1695,7 @@ static bool func_pat(const Value* args, Value* res, Random* rand, Streader* sr)
             Streader_set_error(sr, "Invalid pattern number");
             return false;
         }
-        res->value.Pat_inst_ref_type.pat = args[0].value.int_type;
+        res->value.Pat_inst_ref_type.pat = (int16_t)args[0].value.int_type;
     }
     else
     {
@@ -1719,7 +1718,7 @@ static bool func_pat(const Value* args, Value* res, Random* rand, Streader* sr)
             Streader_set_error(sr, "Invalid pattern instance value");
             return false;
         }
-        res->value.Pat_inst_ref_type.inst = args[1].value.int_type;
+        res->value.Pat_inst_ref_type.inst = (int16_t)args[1].value.int_type;
     }
     else
     {

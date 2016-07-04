@@ -73,7 +73,7 @@ class PrettyBuilder(fabricate.Builder):
 def build():
     process_cmd_line()
 
-    cc = get_cc()
+    cc = get_cc(options.cc)
 
     cc.set_debug(options.enable_debug)
 

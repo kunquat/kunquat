@@ -87,7 +87,7 @@ START_TEST(Trivial_delay_is_identity)
 END_TEST
 
 
-Suite* DSP_suite(void)
+static Suite* DSP_suite(void)
 {
     Suite* s = suite_create("DSP");
 

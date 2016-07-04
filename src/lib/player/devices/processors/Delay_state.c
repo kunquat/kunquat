@@ -69,7 +69,7 @@ static bool Delay_pstate_set_audio_rate(Device_state* dstate, int32_t audio_rate
 
     const Proc_delay* delay = (const Proc_delay*)dstate->device->dimpl;
 
-    const int32_t delay_buf_size = delay->max_delay * audio_rate + 1;
+    const int32_t delay_buf_size = (int32_t)(delay->max_delay * audio_rate + 1);
 
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
@@ -170,7 +170,7 @@ static void Delay_pstate_render_mixed(
     {
         delays =
             Work_buffers_get_buffer_contents_mut(wbs, DELAY_WORK_BUFFER_FIXED_DELAY);
-        const float init_delay = delay->init_delay;
+        const float init_delay = (float)delay->init_delay;
         for (int32_t i = buf_start; i < buf_stop; ++i)
             delays[i] = init_delay;
     }
@@ -182,10 +182,10 @@ static void Delay_pstate_render_mixed(
     // Get total offsets
     for (int32_t i = buf_start, chunk_offset = 0; i < buf_stop; ++i, ++chunk_offset)
     {
-        const float delay = delays[i];
-        float delay_frames = delay * audio_rate;
+        const float cur_delay = delays[i];
+        double delay_frames = cur_delay * (double)audio_rate;
         delay_frames = clamp(delay_frames, 0, delay_max);
-        total_offsets[i] = chunk_offset - delay_frames;
+        total_offsets[i] = (float)(chunk_offset - delay_frames);
     }
 
     for (int ch = 0; ch < 2; ++ch)
@@ -204,7 +204,7 @@ static void Delay_pstate_render_mixed(
 
             // Get buffer positions
             const int32_t cur_pos = (int32_t)floor(total_offset);
-            const double remainder = total_offset - cur_pos;
+            const double remainder = total_offset - (double)cur_pos;
             assert(cur_pos <= (int32_t)i);
             assert(implies(cur_pos == (int32_t)i, remainder == 0));
             const int32_t next_pos = cur_pos + 1;
@@ -249,10 +249,10 @@ static void Delay_pstate_render_mixed(
 
             // Create output frame
             const double prev_scale = 1 - remainder;
-            const float val =
+            const double val =
                 (prev_scale * cur_val) + (remainder * next_val);
 
-            out[i] = val;
+            out[i] = (float)val;
         }
     }
 
@@ -334,7 +334,7 @@ Device_state* new_Delay_pstate(
 
     const Proc_delay* delay = (const Proc_delay*)device->dimpl;
 
-    const int32_t delay_buf_size = delay->max_delay * audio_rate + 1;
+    const int32_t delay_buf_size = (int32_t)(delay->max_delay * audio_rate + 1);
 
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
@@ -361,7 +361,7 @@ bool Delay_pstate_set_max_delay(
 
     const Proc_delay* delay = (const Proc_delay*)dstate->device->dimpl;
 
-    const int32_t delay_buf_size = delay->max_delay * dstate->audio_rate + 1;
+    const int32_t delay_buf_size = (int32_t)(delay->max_delay * dstate->audio_rate + 1);
 
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {

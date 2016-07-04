@@ -51,7 +51,7 @@ int32_t Num_list_length(const Num_list* nl);
 /**
  * Return a number from the Number list.
  *
- * \param ml      The Number list -- must not be \c NULL.
+ * \param nl      The Number list -- must not be \c NULL.
  * \param index   The index of the number -- must be >= \c 0 and less than the
  *                length of the list.
  *

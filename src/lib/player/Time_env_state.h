@@ -81,7 +81,7 @@ int32_t Time_env_state_process(
         float* env_buf,
         int32_t buf_start,
         int32_t buf_stop,
-        uint32_t audio_rate);
+        int32_t audio_rate);
 
 
 #endif // KQT_TIME_ENV_STATE_H

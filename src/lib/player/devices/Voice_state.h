@@ -32,7 +32,7 @@
 #include <stdlib.h>
 
 
-typedef size_t Voice_state_get_size_func(void);
+typedef int32_t Voice_state_get_size_func(void);
 
 
 typedef void Voice_state_init_func(Voice_state*, const Proc_state*);
@@ -74,13 +74,13 @@ struct Voice_state
 
     int hit_index;                 ///< The hit index (negative for normal notes).
 
-    uint64_t pos;                  ///< The current playback position.
+    int64_t pos;                   ///< The current playback position.
     double pos_rem;                ///< The current playback position remainder.
-    uint64_t rel_pos;              ///< The current relative playback position.
+    int64_t rel_pos;               ///< The current relative playback position.
     double rel_pos_rem;            ///< The current relative playback position remainder.
     double dir;                    ///< The current playback direction.
     bool note_on;                  ///< Whether the note is still on.
-    uint64_t noff_pos;             ///< Note Off position.
+    int64_t noff_pos;              ///< Note Off position.
     double noff_pos_rem;           ///< Note Off position remainder.
 
     // TODO: temp hack -- replace with proper type identifier

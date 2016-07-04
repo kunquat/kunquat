@@ -52,8 +52,8 @@ struct Sample_params
     Sample_format format; ///< The file format.
     double mid_freq;      ///< The playback frequency used to represent 440 Hz tone.
     Sample_loop loop;     ///< Loop setting.
-    uint64_t loop_start;  ///< Loop start.
-    uint64_t loop_end;    ///< Loop end (the frame at this index will not be played).
+    int64_t loop_start;   ///< Loop start.
+    int64_t loop_end;     ///< Loop end (the frame at this index will not be played).
 };
 
 

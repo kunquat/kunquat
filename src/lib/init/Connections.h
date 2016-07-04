@@ -49,7 +49,7 @@ typedef enum
  * Create new Connections from a string.
  *
  * \param sr         The Streader of the JSON input -- must not be \c NULL.
- * \param au_level   Whether this is an audio unit level graph or not.
+ * \param level      The connection level.
  * \param au_table   The Audio unit table -- must not be \c NULL.
  * \param master     The global or Audio unit master node
  *                   -- must not be \c NULL.
@@ -116,7 +116,7 @@ bool Connections_init_buffers(const Connections* graph, Device_states* dstates);
  */
 void Connections_clear_buffers(
         const Connections* graph,
-        Device_states* states,
+        Device_states* dstates,
         int32_t buf_start,
         int32_t buf_stop);
 

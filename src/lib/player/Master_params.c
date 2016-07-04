@@ -145,9 +145,7 @@ void Master_params_set_starting_tempo(Master_params* params)
         if (0 <= params->cur_pos.track &&
                 params->cur_pos.track < (int16_t)Track_list_get_len(tl))
         {
-            const int16_t cur_song = Track_list_get_song_index(
-                    tl,
-                    params->cur_pos.track);
+            const int cur_song = Track_list_get_song_index(tl, params->cur_pos.track);
             Song_table* song_table = Module_get_songs(params->parent.module);
             Song* song = Song_table_get(song_table, cur_song);
 
@@ -158,11 +156,11 @@ void Master_params_set_starting_tempo(Master_params* params)
         {
             // Find the song that contains selected pattern
             Song_table* song_table = Module_get_songs(params->parent.module);
-            for (size_t i = 0; i < Track_list_get_len(tl); ++i)
+            for (int i = 0; i < Track_list_get_len(tl); ++i)
             {
-                const int16_t song_index = Track_list_get_song_index(tl, i);
-                const Order_list* ol = Module_get_order_list(
-                        params->parent.module, song_index);
+                const int song_index = Track_list_get_song_index(tl, i);
+                const Order_list* ol =
+                    Module_get_order_list(params->parent.module, song_index);
 
                 if (Order_list_contains_pat_inst_ref(ol, &params->cur_pos.piref))
                 {

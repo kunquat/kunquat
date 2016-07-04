@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -87,7 +87,7 @@ static sf_count_t read_str(void* ptr, sf_count_t count, void* user_data)
     assert(user_data != NULL);
     String_context* context = user_data;
     const sf_count_t actual_count = min(count, context->length - context->pos);
-    memcpy(ptr, &context->data[context->pos], actual_count);
+    memcpy(ptr, &context->data[context->pos], (size_t)actual_count);
     context->pos += actual_count;
     return actual_count;
 }
@@ -101,7 +101,7 @@ static sf_count_t tell_str(void* user_data)
 }
 
 
-void close_sndfile(SNDFILE* sf)
+static void close_sndfile(SNDFILE* sf)
 {
     const int error = sf_close(sf);
     if (error != SF_ERR_NO_ERROR)
@@ -143,7 +143,7 @@ bool Sample_parse_wav(Sample* sample, Streader* sr)
     String_context* context = &(String_context)
     {
         .data   = sr->str,
-        .length = sr->len,
+        .length = (sf_count_t)sr->len,
         .pos    = 0,
     };
 
@@ -177,7 +177,7 @@ bool Sample_parse_wav(Sample* sample, Streader* sr)
     sample->len = sfinfo->frames;
     sample->data[0] = sample->data[1] = NULL;
 
-    float* nbuf_l = memory_alloc_items(float, sample->len * sizeof(float));
+    float* nbuf_l = memory_alloc_items(float, sample->len * (int)sizeof(float));
     if (nbuf_l == NULL)
     {
         Streader_set_memory_error(sr, "Could not allocate memory for sample");
@@ -188,7 +188,7 @@ bool Sample_parse_wav(Sample* sample, Streader* sr)
     float* nbuf_r = NULL;
     if (sample->channels == 2)
     {
-        nbuf_r = memory_alloc_items(float, sample->len * sizeof(float));
+        nbuf_r = memory_alloc_items(float, sample->len * (int)sizeof(float));
         if (nbuf_r == NULL)
         {
             memory_free(nbuf_l);
@@ -205,18 +205,18 @@ bool Sample_parse_wav(Sample* sample, Streader* sr)
     float read_buf[256] = { 0.0f };
     const int read_frames_max = 256 / sample->channels;
 
-    uint64_t read_total = 0;
-    int read_count = sf_readf_float(sf, read_buf, read_frames_max);
+    int64_t read_total = 0;
+    sf_count_t read_count = sf_readf_float(sf, read_buf, read_frames_max);
     while (read_count > 0)
     {
         const float* left_start = &read_buf[0];
-        for (int i = 0; i < read_count; ++i)
+        for (sf_count_t i = 0; i < read_count; ++i)
             nbuf_l[read_total + i] = left_start[i * sample->channels];
 
         if (sample->channels == 2)
         {
             const float* right_start = &read_buf[1];
-            for (int i = 0; i < read_count; ++i)
+            for (sf_count_t i = 0; i < read_count; ++i)
                 nbuf_r[read_total + i] = right_start[i * sample->channels];
         }
 

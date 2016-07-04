@@ -35,15 +35,30 @@
  */
 struct Streader
 {
-    size_t pos;
-    size_t len;
+    int64_t pos;
+    int64_t len;
     int line;
     const char* str;
     Error error;
 };
 
-
 #define STREADER_AUTO (&(Streader){ .pos = 0, .len = 0, .str = "" })
+
+
+/**
+ * A helper structure used to catch inadvertent misuse of formatted string reading.
+ */
+typedef struct Streader_readf_str_info
+{
+    int32_t guard;
+    int64_t max_bytes;
+    char* dest;
+} Streader_readf_str_info;
+
+static const int32_t Streader_readf_str_guard = (int32_t)0x7fffff7f;
+
+#define READF_STR(mb, d) ((Streader_readf_str_info){ \
+        .guard = Streader_readf_str_guard, .max_bytes = (mb), .dest = (d) })
 
 
 /**
@@ -52,11 +67,11 @@ struct Streader
  * \param sr    The Streader -- must not be \c NULL.
  * \param str   The input data -- must not be \c NULL unless the data
  *              length is \c 0.
- * \param len   The length of the data.
+ * \param len   The length of the data -- must be >= \c 0.
  *
  * \return   The parameter \a sr.
  */
-Streader* Streader_init(Streader* sr, const char* str, size_t len);
+Streader* Streader_init(Streader* sr, const char* str, int64_t len);
 
 
 /**
@@ -228,13 +243,13 @@ bool Streader_read_float(Streader* sr, double* dest);
  *
  * \param sr          The Streader -- must not be \c NULL.
  * \param max_bytes   The maximum number of bytes to be written, including
- *                    the terminating '\0'.
+ *                    the terminating '\0' -- must be >= \c 0.
  * \param dest        The destination address of the string, or
  *                    \c NULL for parsing without storing the value.
  *
  * \return   \c true if a float was successfully read, otherwise \c false.
  */
-bool Streader_read_string(Streader* sr, size_t max_bytes, char* dest);
+bool Streader_read_string(Streader* sr, int64_t max_bytes, char* dest);
 
 
 /**
@@ -342,8 +357,8 @@ bool Streader_read_dict(Streader* sr, Dict_item_reader ir, void* userdata);
  *  - b -- Read a boolean value and store it into a bool.
  *  - i -- Read an integer value and store it into an int64_t.
  *  - f -- Read a decimal number and store it into a double.
- *  - s -- Read a string of given maximum length (including null byte) given
- *         as a size_t and store it into a location given as a char*.
+ *  - s -- Read a string of given maximum length (including null byte) and
+ *         storage location passed with READF_STR().
  *  - t -- Read a timestamp and store it into a Tstamp.
  *  - p -- Read a Pattern instance reference and store it into a Pat_inst_ref.
  *  - l -- Read a list of values and call a given List_item_reader for each

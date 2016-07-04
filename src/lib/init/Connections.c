@@ -53,10 +53,10 @@ static bool Connections_is_cyclic(const Connections* graph);
  *
  * This function also strips the port directory off the path.
  *
+ * \param sr      The Streader of the input -- must not be \c NULL.
  * \param str     The path -- must not be \c NULL.
  * \param level   The connection level -- must be valid.
  * \param type    The type of the path -- must be valid.
- * \param state   The Read state -- must not be \c NULL.
  *
  * \return   The port number if the path is valid, otherwise \c -1.
  */
@@ -98,8 +98,8 @@ static bool read_connection(Streader* sr, int32_t index, void* userdata)
     if (!Streader_readf(
                 sr,
                 "[%s,%s]",
-                KQT_DEVICE_NODE_NAME_MAX, src_name,
-                KQT_DEVICE_NODE_NAME_MAX, dest_name))
+                READF_STR(KQT_DEVICE_NODE_NAME_MAX, src_name),
+                READF_STR(KQT_DEVICE_NODE_NAME_MAX, dest_name)))
         return false;
 
     int src_port = validate_connection_path(
@@ -469,9 +469,9 @@ static int read_index(char* str)
     if (strspn(str, hex_digits) != 2)
         return INT_MAX;
 
-    int res = (strchr(hex_digits, str[0]) - hex_digits) * 0x10;
+    int res = (int)(strchr(hex_digits, str[0]) - hex_digits) * 0x10;
 
-    return res + (strchr(hex_digits, str[1]) - hex_digits);
+    return res + (int)(strchr(hex_digits, str[1]) - hex_digits);
 }
 
 

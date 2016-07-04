@@ -15,6 +15,7 @@
 #include <init/devices/Proc_type.h>
 
 #include <debug/assert.h>
+#include <init/devices/Proc_cons.h>
 #include <string/common.h>
 
 #include <stdbool.h>
@@ -26,10 +27,6 @@ typedef struct Proc_type
     const char* type;
     Proc_cons* cons;
 } Proc_type;
-
-
-#define PROC_TYPE(name) Device_impl* new_Proc_ ## name(void);
-#include <init/devices/Proc_types.h>
 
 
 static const Proc_type proc_types[] =

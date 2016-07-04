@@ -25,6 +25,7 @@
 #include <string.h>
 
 
+/*
 void simple_lowpass_fir_create(int n, double f, double* coeffs)
 {
     assert(coeffs != NULL);
@@ -34,6 +35,7 @@ void simple_lowpass_fir_create(int n, double f, double* coeffs)
 
     return;
 }
+// */
 
 
 void one_pole_filter_create(double f, int bandform, double coeffs[1], double* mul)
@@ -244,25 +246,6 @@ void butterworth_bandpass_filter_create(
 }
 
 
-void buffer(float* histbuf, const float* restrict sourcebuf, int n, int nframes)
-{
-    assert(histbuf != NULL);
-    assert(sourcebuf != NULL);
-
-    if (nframes < n)
-    {
-        memmove(histbuf, histbuf + nframes, (n - nframes) * sizeof(float));
-        memcpy(histbuf + n - nframes, sourcebuf, nframes * sizeof(float));
-    }
-    else
-    {
-        memcpy(histbuf, sourcebuf + nframes - n, n * sizeof(float));
-    }
-
-    return;
-}
-
-
 double iir_filter_strict_cascade(
         int n, const double coeffs[n], double buf[n], double var)
 {
@@ -363,6 +346,27 @@ double nq_pole_filter(int n, double buf[n], double var)
 
     return var;
 }
+
+
+#if 0
+static void buffer(float* histbuf, const float* restrict sourcebuf, int n, int nframes)
+{
+    assert(histbuf != NULL);
+    assert(sourcebuf != NULL);
+
+    if (nframes < n)
+    {
+        memmove(histbuf, histbuf + nframes, (n - nframes) * sizeof(float));
+        memcpy(histbuf + n - nframes, sourcebuf, nframes * sizeof(float));
+    }
+    else
+    {
+        memcpy(histbuf, sourcebuf + nframes - n, n * sizeof(float));
+    }
+
+    return;
+}
+#endif
 
 
 #if 0
