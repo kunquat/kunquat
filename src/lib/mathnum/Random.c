@@ -24,7 +24,7 @@
 
 
 #define EXCESS_DOUBLE_BITS (64 - DBL_MANT_DIG)
-#define DOUBLE_LIMIT ((double)9007199254740992)
+#define DOUBLE_LIMIT ((double)(1LL << DBL_MANT_DIG))
 
 
 Random* Random_init(Random* random, const char* context)
@@ -101,7 +101,8 @@ int32_t Random_get_index(Random* random, int32_t size)
 double Random_get_float_scale(Random* random)
 {
     assert(random != NULL);
-    return (double)Random_get_uint64(random) / (double)KQT_RANDOM64_MAX;
+    return
+        (double)(Random_get_uint64(random) >> EXCESS_DOUBLE_BITS) / (DOUBLE_LIMIT - 1);
 }
 
 
