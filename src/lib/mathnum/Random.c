@@ -17,9 +17,14 @@
 #include <debug/assert.h>
 #include <mathnum/hmac.h>
 
+#include <float.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+
+#define EXCESS_DOUBLE_BITS (64 - DBL_MANT_DIG)
+#define DOUBLE_LIMIT ((double)9007199254740992)
 
 
 Random* Random_init(Random* random, const char* context)
@@ -80,8 +85,7 @@ uint32_t Random_get_uint32(Random* random)
 double Random_get_float_lb(Random* random)
 {
     assert(random != NULL);
-    // FIXME: (double)KQT_RANDOM64_MAX + 1 is probably not what one would expect
-    return (double)Random_get_uint64(random) / ((double)KQT_RANDOM64_MAX + 1);
+    return (double)(Random_get_uint64(random) >> EXCESS_DOUBLE_BITS) / DOUBLE_LIMIT;
 }
 
 
