@@ -288,7 +288,7 @@ static int32_t Sample_render(
         const float diff = next_value - cur_value;      \
         (out_value) = cur_value + (lerp_value * diff);  \
     }                                                   \
-    else (void)0
+    else ignore(0)
 
     if (!sample->is_float)
     {

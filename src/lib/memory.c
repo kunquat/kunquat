@@ -33,7 +33,7 @@ static int32_t out_of_memory_error_steps = -1;
         {                                       \
             --out_of_memory_error_steps;        \
         }                                       \
-    } else (void)0
+    } else ignore(0)
 
 
 static int32_t total_alloc_count = 0;

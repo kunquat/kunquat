@@ -145,7 +145,7 @@ int Handle_get_buffer_count(Handle* handle);
                     "Invalid Kunquat Handle: %d", (id)); \
             return (ret);                                \
         }                                                \
-    } else (void)0
+    } else ignore(0)
 
 #define check_handle_void(id)                            \
     if (true)                                            \
@@ -156,7 +156,7 @@ int Handle_get_buffer_count(Handle* handle);
                     "Invalid Kunquat Handle: %d", (id)); \
             return;                                      \
         }                                                \
-    } else (void)0
+    } else ignore(0)
 
 
 Handle* get_handle(kqt_Handle id);
@@ -167,14 +167,14 @@ Handle* get_handle(kqt_Handle id);
     {                                    \
         if (!handle->data_is_valid)      \
             return (ret);                \
-    } else (void)0
+    } else ignore(0)
 
 #define check_data_is_valid_void(handle) \
     if (true)                            \
     {                                    \
         if (!handle->data_is_valid)      \
             return;                      \
-    } else (void)0
+    } else ignore(0)
 
 
 #define check_data_is_validated(handle, ret)                          \
@@ -187,7 +187,7 @@ Handle* get_handle(kqt_Handle id);
                     " before calling this function)");                \
             return (ret);                                             \
         }                                                             \
-    } else (void)0
+    } else ignore(0)
 
 #define check_data_is_validated_void(handle)                          \
     if (true)                                                         \
@@ -199,7 +199,7 @@ Handle* get_handle(kqt_Handle id);
                     " before calling this function)");                \
             return;                                                   \
         }                                                             \
-    } else (void)0
+    } else ignore(0)
 
 
 bool key_is_valid(Handle* handle, const char* key);
@@ -212,7 +212,7 @@ bool key_is_valid(Handle* handle, const char* key);
         if (!key_is_valid((handle), (key))) \
             return (ret);                   \
     }                                       \
-    else (void)0
+    else ignore(0)
 
 
 /**

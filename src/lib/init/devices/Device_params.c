@@ -241,7 +241,7 @@ bool Device_params_parse_value(Device_params* params, const char* key, Streader*
         if (field != NULL)                                                   \
             return Device_field_get_ ## ftype(field);                        \
     }                                                                        \
-    else (void)0
+    else ignore(0)
 
 const bool* Device_params_get_bool(const Device_params* params, const char* key)
 {

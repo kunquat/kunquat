@@ -195,7 +195,7 @@ bool evaluate_expr(
             Streader_set_error(sr, "Stack overflow"); \
             return false;                             \
         }                                             \
-    } else (void)0
+    } else ignore(0)
 
 static bool evaluate_expr_(
         Streader* sr,

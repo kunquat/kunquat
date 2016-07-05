@@ -75,7 +75,7 @@ static int validate_connection_path(
             del_Connections(graph);                                   \
             return NULL;                                              \
         }                                                             \
-    } else (void)0
+    } else ignore(0)
 
 typedef struct read_conn_data
 {

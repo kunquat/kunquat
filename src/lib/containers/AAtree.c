@@ -54,7 +54,7 @@ static void aafree(AAnode* node, void (*destroy)(void*));
 #define aavalidate(node, msg) (rassert(aavalidate_(node, msg)))
 static bool aavalidate_(const AAnode* node, const char* msg);
 #else
-#define aavalidate(node, msg) (void)0
+#define aavalidate(node, msg) ignore(0)
 #endif
 
 

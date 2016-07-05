@@ -73,7 +73,7 @@ static const struct
                     (params)->handle, &(params)->sr->error);                     \
         else                                                                     \
             Handle_set_error_from_Error((params)->handle, &(params)->sr->error); \
-    } else (void)0
+    } else ignore(0)
 
 
 static const Audio_unit* find_au(Handle* handle, int32_t au_index, int32_t sub_au_index)
@@ -291,7 +291,7 @@ static bool read_mixing_volume(Reader_params* params)
         if ((index) < 0 || (index) >= KQT_DEVICE_PORTS_MAX) \
             return true;                                    \
     }                                                       \
-    else (void)0
+    else ignore(0)
 
 
 static bool read_out_port_manifest(Reader_params* params)
@@ -564,7 +564,7 @@ static Audio_unit* add_audio_unit(Handle* handle, Au_table* au_table, int index)
         if ((index) < 0 || (index) >= KQT_AUDIO_UNITS_MAX) \
             return true;                                   \
     }                                                      \
-    else (void)0
+    else ignore(0)
 
 
 #define acquire_au(au, handle, au_table, index)               \
@@ -574,7 +574,7 @@ static Audio_unit* add_audio_unit(Handle* handle, Au_table* au_table, int index)
         if ((au) == NULL)                                     \
             return false;                                     \
     }                                                         \
-    else (void)0
+    else ignore(0)
 
 
 typedef struct amdata
@@ -957,7 +957,7 @@ static Processor* add_processor(
         if ((index) < 0 || (index) >= KQT_PROCESSORS_MAX) \
             return true;                                  \
     }                                                     \
-    else (void)0
+    else ignore(0)
 
 
 static bool read_any_proc_in_port_manifest(
@@ -1350,7 +1350,7 @@ static bool read_any_proc_conf_key(
                 return false;                                           \
             }                                                           \
         }                                                               \
-    } else (void)0
+    } else ignore(0)
 
 
 #define acquire_pattern_index(index, params)            \
@@ -1360,7 +1360,7 @@ static bool read_any_proc_conf_key(
         if ((index) < 0 || (index) >= KQT_PATTERNS_MAX) \
             return true;                                \
     }                                                   \
-    else (void)0
+    else ignore(0)
 
 
 static bool read_pattern_manifest(Reader_params* params)
@@ -1507,7 +1507,7 @@ static bool read_tuning_table(Reader_params* params)
         if ((index) < 0 || (index) >= KQT_SONGS_MAX) \
             return true;                             \
     }                                                \
-    else (void)0
+    else ignore(0)
 
 
 static bool read_song_manifest(Reader_params* params)

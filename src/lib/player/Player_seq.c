@@ -188,7 +188,7 @@ void Player_process_event(
             else                                                         \
                 Player_process_event(player, ch_num, name, value, skip); \
         }                                                                \
-        else (void)0
+        else ignore(0)
 
         switch (type)
         {

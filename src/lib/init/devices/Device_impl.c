@@ -474,7 +474,7 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key)
                 *dval : set_cb->cb.type_name ## _type.default_val;         \
             return set_cb->cb.type_name ## _type.set(dimpl, indices, val); \
         }                                                                  \
-        else (void)0
+        else ignore(0)
 
 #define SET_FIELDP(type_name, type)                                        \
         if (true)                                                          \
@@ -483,7 +483,7 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key)
                     dimpl->device->dparams, key);                          \
             return set_cb->cb.type_name ## _type.set(dimpl, indices, val); \
         }                                                                  \
-        else (void)0
+        else ignore(0)
 
         const Device_field_type dftype = get_keyp_device_field_type(
                 set_cb->key_pattern);
@@ -581,7 +581,7 @@ bool Device_impl_set_state_key(
             if (set_cb->cb.type_name ## _type.set_state != NULL)                      \
                 return set_cb->cb.type_name ## _type.set_state(dstate, indices, val); \
         }                                                                             \
-        else (void)0
+        else ignore(0)
 
 #define SET_FIELDP(type_name, type)                                                   \
         if (true)                                                                     \
@@ -591,7 +591,7 @@ bool Device_impl_set_state_key(
             if (set_cb->cb.type_name ## _type.set_state != NULL)                      \
                 return set_cb->cb.type_name ## _type.set_state(dstate, indices, val); \
         }                                                                             \
-        else (void)0
+        else ignore(0)
 
         const Device_field_type dftype = get_keyp_device_field_type(set_cb->key_pattern);
         rassert(dftype != DEVICE_FIELD_NONE);

@@ -263,7 +263,7 @@ static bool Handle_update_connections(Handle* handle)
             h->data_is_valid = false;                       \
             return 0;                                       \
         }                                                   \
-    } else (void)0
+    } else ignore(0)
 
 int kqt_Handle_validate(kqt_Handle handle)
 {

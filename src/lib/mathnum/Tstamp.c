@@ -29,7 +29,7 @@
         rassert((ts) != NULL);                \
         rassert((ts)->rem >= 0);              \
         rassert((ts)->rem < KQT_TSTAMP_BEAT); \
-    } else (void)0
+    } else ignore(0)
 #else
     #define Tstamp_validate(ts) (ignore(ts))
 #endif

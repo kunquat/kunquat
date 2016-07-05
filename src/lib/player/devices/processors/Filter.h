@@ -29,7 +29,7 @@
 /*         {                                                               \ */
 /*             (var) oper (buf0)[i0] * (buf1)[i1];                         \ */
 /*         }                                                               \ */
-/*     } else (void)0 */
+/*     } else ignore(0) */
 
 
 /* #define cyclic_dprod(n, coeffs, bsize, buf, k, var, oper)                      \ */
@@ -40,7 +40,7 @@
 /*         dprod((coeffs), (buf), filter_i, filter_j, (n), (bsize), (var), oper); \ */
 /*         filter_j -= (bsize);                                                   \ */
 /*         dprod((coeffs), (buf), filter_i, filter_j, (n), (bsize), (var), oper); \ */
-/*     } else (void)0 */
+/*     } else ignore(0) */
 
 
 void one_pole_filter_create(double f, int bandform, double coeffs[1], double *mul);
