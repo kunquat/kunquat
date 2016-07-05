@@ -152,7 +152,7 @@ void Player_process_event(
                 player->estate,
                 event_name,
                 arg,
-                player->channels[ch_num]->rand);
+                &player->channels[ch_num]->rand);
         while (bound != NULL)
         {
             if (Event_buffer_is_full(player->event_buffer))
@@ -295,7 +295,7 @@ static void Player_process_expr_event(
                 sr,
                 Event_names_get_param_type(event_names, event_name),
                 player->estate,
-                player->channels[ch_num]->rand,
+                &player->channels[ch_num]->rand,
                 meta,
                 arg);
     }

@@ -49,8 +49,8 @@ typedef struct Voice
     const Processor* proc;   ///< The Processor.
     int32_t state_size;      ///< The amount bytes allocated for the Voice state.
     Voice_state* state;      ///< The current playback state.
-    Random* rand_p;          ///< Parameter random source.
-    Random* rand_s;          ///< Signal random source.
+    Random rand_p;           ///< Parameter random source.
+    Random rand_s;           ///< Signal random source.
 } Voice;
 
 

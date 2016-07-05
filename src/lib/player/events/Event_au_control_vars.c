@@ -50,7 +50,7 @@ bool Event_au_set_cv_value_process(
             dev,
             dstates,
             DEVICE_CONTROL_VAR_MODE_MIXED,
-            master_params->random,
+            &master_params->random,
             NULL,
             var_name,
             value);

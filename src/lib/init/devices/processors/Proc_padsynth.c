@@ -260,7 +260,6 @@ Device_impl* new_Proc_padsynth(void)
     if (padsynth == NULL)
         return NULL;
 
-    padsynth->random = NULL;
     padsynth->sample_map = NULL;
     padsynth->is_ramp_attack_enabled = true;
     padsynth->is_stereo_enabled = false;
@@ -285,14 +284,7 @@ Device_impl* new_Proc_padsynth(void)
         return NULL;
     }
 
-    padsynth->random = new_Random();
-    if (padsynth->random == NULL)
-    {
-        del_Device_impl(&padsynth->parent);
-        return NULL;
-    }
-
-    Random_set_context(padsynth->random, "PADsynth");
+    Random_init(&padsynth->random, "PADsynth");
 
     if (!apply_padsynth(padsynth, NULL))
     {
@@ -552,7 +544,7 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
         Padsynth_sample_map_set_pitch_range(padsynth->sample_map, min_pitch, max_pitch);
     }
 
-    Random_reset(padsynth->random);
+    Random_reset(&padsynth->random);
 
     fill_Ws(Ws, sample_length);
 
@@ -566,7 +558,7 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
         while (entry != NULL)
         {
             make_padsynth_sample(
-                    entry, padsynth->random, freq_amp, freq_phase, Ws, params);
+                    entry, &padsynth->random, freq_amp, freq_phase, Ws, params);
             entry = AAiter_get_next(iter);
         }
     }
@@ -577,7 +569,7 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
             AAtree_get_at_least(padsynth->sample_map->map, key);
         assert(entry != NULL);
 
-        make_padsynth_sample(entry, padsynth->random, freq_amp, freq_phase, Ws, NULL);
+        make_padsynth_sample(entry, &padsynth->random, freq_amp, freq_phase, Ws, NULL);
     }
 
     memory_free(freq_amp);
@@ -595,7 +587,6 @@ static void del_Proc_padsynth(Device_impl* dimpl)
 
     Proc_padsynth* padsynth = (Proc_padsynth*)dimpl;
     del_Padsynth_sample_map(padsynth->sample_map);
-    del_Random(padsynth->random);
     memory_free(padsynth);
 
     return;

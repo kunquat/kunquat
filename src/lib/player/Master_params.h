@@ -56,7 +56,7 @@ struct Master_params
     bool is_infinite;
     bool pattern_playback_flag;
 
-    Random* random;
+    Random random;
 
     Position cur_pos;
     int cur_ch;

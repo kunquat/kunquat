@@ -16,35 +16,18 @@
 
 #include <debug/assert.h>
 #include <mathnum/hmac.h>
-#include <memory.h>
 
+#include <float.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
 
-struct Random
-{
-    char context[CONTEXT_LEN_MAX + 1];
-    uint64_t seed;
-    uint64_t state;
-};
+#define EXCESS_DOUBLE_BITS (64 - DBL_MANT_DIG)
+#define DOUBLE_LIMIT ((int64_t)1 << DBL_MANT_DIG)
 
 
-Random* new_Random(void)
-{
-    Random* random = memory_alloc_item(Random);
-    if (random == NULL)
-        return NULL;
-
-    random->context[0] = '\0';
-    Random_set_seed(random, 1);
-
-    return random;
-}
-
-
-void Random_set_context(Random* random, const char* context)
+Random* Random_init(Random* random, const char* context)
 {
     assert(random != NULL);
     assert(context != NULL);
@@ -52,7 +35,9 @@ void Random_set_context(Random* random, const char* context)
 
     strcpy(random->context, context);
 
-    return;
+    Random_set_seed(random, 1);
+
+    return random;
 }
 
 
@@ -100,8 +85,8 @@ uint32_t Random_get_uint32(Random* random)
 double Random_get_float_lb(Random* random)
 {
     assert(random != NULL);
-    // FIXME: (double)KQT_RANDOM64_MAX + 1 is probably not what one would expect
-    return (double)Random_get_uint64(random) / ((double)KQT_RANDOM64_MAX + 1);
+    return
+        (double)(Random_get_uint64(random) >> EXCESS_DOUBLE_BITS) / (double)DOUBLE_LIMIT;
 }
 
 
@@ -117,7 +102,9 @@ int32_t Random_get_index(Random* random, int32_t size)
 double Random_get_float_scale(Random* random)
 {
     assert(random != NULL);
-    return (double)Random_get_uint64(random) / (double)KQT_RANDOM64_MAX;
+    return
+        (double)(Random_get_uint64(random) >> EXCESS_DOUBLE_BITS) /
+        (double)(DOUBLE_LIMIT - 1);
 }
 
 
@@ -125,18 +112,14 @@ double Random_get_float_signal(Random* random)
 {
     assert(random != NULL);
 
-    uint64_t bits = (Random_get_uint64(random) >> 1); // max: 0x7fffffffffffffff
-    bits &= ~(uint64_t)1;                             //      0x7ffffffffffffffe
+    static const int64_t max_val_abs = (DOUBLE_LIMIT >> 1) - 1;
 
-    return (double)((int64_t)bits - 0x3fffffffffffffffLL) /
-                    (double)0x3fffffffffffffffLL;
-}
+    // Get random value in range [-max_val_abs, max_val_abs]
+    int64_t bits = (int64_t)(Random_get_uint64(random) >> EXCESS_DOUBLE_BITS);
+    bits &= ~(int64_t)1;
+    bits -= max_val_abs;
 
-
-void del_Random(Random* random)
-{
-    memory_free(random);
-    return;
+    return (double)bits / (double)max_val_abs;
 }
 
 

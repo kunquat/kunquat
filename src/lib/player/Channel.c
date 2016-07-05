@@ -38,21 +38,20 @@ static bool Channel_init(Channel* ch, int num, Env_state* estate, const Module* 
 
     General_state_preinit(&ch->parent);
 
-    ch->rand = new_Random();
     ch->cvstate = new_Channel_cv_state();
     ch->csstate = new_Channel_stream_state();
-    if ((ch->rand == NULL) || (ch->cvstate == NULL) || (ch->csstate == NULL) ||
+    if ((ch->cvstate == NULL) || (ch->csstate == NULL) ||
             !General_state_init(&ch->parent, false, estate, module))
     {
         del_Channel_stream_state(ch->csstate);
         del_Channel_cv_state(ch->cvstate);
-        del_Random(ch->rand);
         return false;
     }
 
     char context[] = "chXX";
     snprintf(context, strlen(context) + 1, "ch%02x", num);
-    Random_set_context(ch->rand, context);
+    Random_init(&ch->rand, context);
+
     ch->event_cache = NULL;
     ch->num = num;
 
@@ -128,7 +127,7 @@ void Channel_set_random_seed(Channel* ch, uint64_t seed)
 {
     assert(ch != NULL);
 
-    Random_set_seed(ch->rand, seed);
+    Random_set_seed(&ch->rand, seed);
 
     return;
 }
@@ -190,7 +189,7 @@ void Channel_reset(Channel* ch)
     Channel_cv_state_reset(ch->cvstate);
     Channel_stream_state_reset(ch->csstate);
 
-    Random_reset(ch->rand);
+    Random_reset(&ch->rand);
     if (ch->event_cache != NULL)
         Event_cache_reset(ch->event_cache);
 
@@ -215,7 +214,7 @@ void Channel_apply_defaults(Channel* ch, const Channel_defaults* ch_defaults)
 Random* Channel_get_random_source(Channel* ch)
 {
     assert(ch != NULL);
-    return ch->rand;
+    return &ch->rand;
 }
 
 
@@ -284,8 +283,6 @@ void Channel_deinit(Channel* ch)
 
     del_Event_cache(ch->event_cache);
     ch->event_cache = NULL;
-    del_Random(ch->rand);
-    ch->rand = NULL;
     del_Channel_stream_state(ch->csstate);
     ch->csstate = NULL;
     del_Channel_cv_state(ch->cvstate);

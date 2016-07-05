@@ -45,7 +45,7 @@ struct Channel
 {
     General_state parent;
     int num;                       ///< Channel number.
-    Random* rand;                  ///< Random source for this channel.
+    Random rand;                   ///< Random source for this channel.
     Event_cache* event_cache;
     Channel_cv_state* cvstate;
     Channel_stream_state* csstate;

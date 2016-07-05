@@ -42,17 +42,14 @@ Voice* new_Voice(void)
 
     voice->state_size = sizeof(Voice_state);
     voice->state = memory_alloc_item(Voice_state);
-    voice->rand_p = new_Random();
-    voice->rand_s = new_Random();
-    if (voice->state == NULL || voice->rand_p == NULL ||
-            voice->rand_s == NULL)
+    if (voice->state == NULL)
     {
         del_Voice(voice);
         return NULL;
     }
 
-    Random_set_context(voice->rand_p, "vp");
-    Random_set_context(voice->rand_s, "vs");
+    Random_init(&voice->rand_p, "vp");
+    Random_init(&voice->rand_s, "vs");
     Voice_state_clear(voice->state);
 
     return voice;
@@ -122,10 +119,10 @@ void Voice_init(
     voice->prio = VOICE_PRIO_NEW;
     voice->proc = proc;
     voice->group_id = group_id;
-    Random_set_seed(voice->rand_p, seed);
-    Random_set_seed(voice->rand_s, seed);
+    Random_set_seed(&voice->rand_p, seed);
+    Random_set_seed(&voice->rand_s, seed);
 
-    Voice_state_init(voice->state, voice->rand_p, voice->rand_s);
+    Voice_state_init(voice->state, &voice->rand_p, &voice->rand_s);
 
     const Device_impl* dimpl = Device_get_impl((const Device*)proc);
     if ((dimpl != NULL) && (dimpl->init_vstate != NULL))
@@ -144,8 +141,8 @@ void Voice_reset(Voice* voice)
     voice->prio = VOICE_PRIO_INACTIVE;
     Voice_state_clear(voice->state);
     voice->proc = NULL;
-    Random_reset(voice->rand_p);
-    Random_reset(voice->rand_s);
+    Random_reset(&voice->rand_p);
+    Random_reset(&voice->rand_s);
 
     return;
 }
@@ -203,8 +200,6 @@ void del_Voice(Voice* voice)
     if (voice == NULL)
         return;
 
-    del_Random(voice->rand_p);
-    del_Random(voice->rand_s);
     memory_free(voice->state);
     memory_free(voice);
 
