@@ -126,7 +126,7 @@ int32_t Time_env_state_process(
             {
                 // Get next value through calculated update value
                 // (faster than accessing the envelope directly)
-                rassert(isfinite(update_value));
+                dassert(isfinite(update_value));
                 cur_value += update_value * scale_factor * slowdown_fac;
                 value = clamp(cur_value, min_value, max_value);
             }
@@ -165,7 +165,7 @@ int32_t Time_env_state_process(
         }
 
         // Apply envelope value
-        rassert(isfinite(value));
+        dassert(isfinite(value));
         env_buf[i] = (float)value;
 
         // Update envelope position
@@ -187,7 +187,7 @@ int32_t Time_env_state_process(
             if (new_pos > loop_end[0])
             {
                 const double loop_len = loop_end[0] - loop_start[0];
-                rassert(loop_len >= 0);
+                dassert(loop_len >= 0);
                 new_pos = loop_end[0];
 
                 if (loop_len > 0)
@@ -195,8 +195,8 @@ int32_t Time_env_state_process(
                     const double exceed = new_pos - loop_end[0];
                     const double offset = fmod(exceed, loop_len);
                     new_pos = loop_start[0] + offset;
-                    rassert(new_pos >= loop_start[0]);
-                    rassert(new_pos <= loop_end[0]);
+                    dassert(new_pos >= loop_start[0]);
+                    dassert(new_pos <= loop_end[0]);
 
                     // Following iteration will check if this index is too low,
                     // so no need to find the exact result in a loop
