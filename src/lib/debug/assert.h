@@ -90,7 +90,7 @@ void assert_print_msg(
 
 // Debug assert that should only be used in performance-critical code.
 #ifndef NDEBUG
-#define dassert(expr) rassert(expr)
+#define dassert rassert
 #else
 #define dassert(expr) ignore(expr)
 #endif
