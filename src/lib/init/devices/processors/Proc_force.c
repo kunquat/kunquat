@@ -96,7 +96,7 @@ Device_impl* new_Proc_force(void)
         if (!Envelope_read(force->def_force_release_env, sr))
         {
             // The default envelope should be valid
-            assert((sr->error.type == ERROR_MEMORY) ||
+            rassert((sr->error.type == ERROR_MEMORY) ||
                     (sr->error.type == ERROR_RESOURCE));
 
             del_Device_impl(&force->parent);
@@ -140,8 +140,8 @@ Device_impl* new_Proc_force(void)
 static bool Proc_force_set_global_force(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_force* force = (Proc_force*)dimpl;
     force->global_force = isfinite(value) ? value : 0.0;
@@ -153,8 +153,8 @@ static bool Proc_force_set_global_force(
 static bool Proc_force_set_force_variation(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_force* force = (Proc_force*)dimpl;
     force->force_var = (isfinite(value) && (value >= 0)) ? value : 0.0;
@@ -194,8 +194,8 @@ static bool is_valid_force_envelope(const Envelope* env)
 static bool Proc_force_set_env(
         Device_impl* dimpl, const Key_indices indices, const Envelope* value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_force* force = (Proc_force*)dimpl;
     force->force_env = is_valid_force_envelope(value) ? value : NULL;
@@ -207,8 +207,8 @@ static bool Proc_force_set_env(
 static bool Proc_force_set_env_enabled(
         Device_impl* dimpl, const Key_indices indices, bool value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_force* force = (Proc_force*)dimpl;
     force->is_force_env_enabled = value;
@@ -220,8 +220,8 @@ static bool Proc_force_set_env_enabled(
 static bool Proc_force_set_env_loop_enabled(
         Device_impl* dimpl, const Key_indices indices, bool value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_force* force = (Proc_force*)dimpl;
     force->is_force_env_loop_enabled = value;
@@ -233,8 +233,8 @@ static bool Proc_force_set_env_loop_enabled(
 static bool Proc_force_set_env_scale_amount(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_force* force = (Proc_force*)dimpl;
     force->force_env_scale_amount = isfinite(value) ? value : 0;
@@ -246,8 +246,8 @@ static bool Proc_force_set_env_scale_amount(
 static bool Proc_force_set_env_scale_center(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_force* force = (Proc_force*)dimpl;
     force->force_env_scale_center = isfinite(value) ? value : 0;
@@ -259,8 +259,8 @@ static bool Proc_force_set_env_scale_center(
 static bool Proc_force_set_env_rel(
         Device_impl* dimpl, const Key_indices indices, const Envelope* value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_force* force = (Proc_force*)dimpl;
 
@@ -286,8 +286,8 @@ static bool Proc_force_set_env_rel(
 static bool Proc_force_set_env_rel_enabled(
         Device_impl* dimpl, const Key_indices indices, bool value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_force* force = (Proc_force*)dimpl;
     force->is_force_release_env_enabled = value;
@@ -299,8 +299,8 @@ static bool Proc_force_set_env_rel_enabled(
 static bool Proc_force_set_env_rel_scale_amount(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_force* force = (Proc_force*)dimpl;
     force->force_release_env_scale_amount = isfinite(value) ? value : 0;
@@ -312,8 +312,8 @@ static bool Proc_force_set_env_rel_scale_amount(
 static bool Proc_force_set_env_rel_scale_center(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_force* force = (Proc_force*)dimpl;
     force->force_release_env_scale_center = isfinite(value) ? value : 0;
@@ -325,8 +325,8 @@ static bool Proc_force_set_env_rel_scale_center(
 static bool Proc_force_set_release_ramp(
         Device_impl* dimpl, const Key_indices indices, bool value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_force* force = (Proc_force*)dimpl;
     force->is_release_ramping_enabled = value;

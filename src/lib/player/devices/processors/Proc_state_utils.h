@@ -216,7 +216,7 @@ Cond_work_buffer* Cond_work_buffer_init(
 static inline float Cond_work_buffer_get_value(
         const Cond_work_buffer* cwb, int32_t index)
 {
-    assert(cwb != NULL);
+    rassert(cwb != NULL);
     return cwb->wb_contents[index & cwb->index_mask];
 }
 

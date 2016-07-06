@@ -83,18 +83,18 @@ static int32_t Sample_render(
         double middle_freq,
         double vol_scale)
 {
-    assert(sample != NULL);
-    assert(params != NULL);
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
-    assert(wbs != NULL);
-    assert(audio_rate > 0);
-    assert(tempo > 0);
-    assert(vol_scale >= 0);
+    rassert(sample != NULL);
+    rassert(params != NULL);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
+    rassert(wbs != NULL);
+    rassert(audio_rate > 0);
+    rassert(tempo > 0);
+    rassert(vol_scale >= 0);
     ignore(tempo);
 
     // This implementation does not support larger sample lengths :-P
-    assert(sample->len < INT32_MAX - 1);
+    rassert(sample->len < INT32_MAX - 1);
 
     if (sample->len == 0)
     {
@@ -265,14 +265,14 @@ static int32_t Sample_render(
                         loop_pos = step_count - loop_pos;
                     cur_pos = loop_start + loop_pos;
                     positions[i] = cur_pos;
-                    assert(cur_pos >= 0);
+                    rassert(cur_pos >= 0);
                 }
             }
         }
         break;
 
         default:
-            assert(false);
+            rassert(false);
     }
 
     // Get sample frames
@@ -288,7 +288,7 @@ static int32_t Sample_render(
         const float diff = next_value - cur_value;      \
         (out_value) = cur_value + (lerp_value * diff);  \
     }                                                   \
-    else (void)0
+    else ignore(0)
 
     if (!sample->is_float)
     {
@@ -364,7 +364,7 @@ static int32_t Sample_render(
             break;
 
             default:
-                assert(false);
+                rassert(false);
         }
     }
     else
@@ -393,7 +393,7 @@ static int32_t Sample_render(
     if ((sample->channels == 1) && (abufs[0] != NULL) && (abufs[1] != NULL))
     {
         const int32_t frame_count = new_buf_stop - buf_start;
-        assert(frame_count >= 0);
+        rassert(frame_count >= 0);
         memcpy(abufs[1] + buf_start,
                 abufs[0] + buf_start,
                 sizeof(float) * (size_t)frame_count);
@@ -416,11 +416,11 @@ static int32_t Sample_vstate_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
-    assert(au_state != NULL);
-    assert(wbs != NULL);
-    assert(tempo > 0);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
+    rassert(au_state != NULL);
+    rassert(wbs != NULL);
+    rassert(tempo > 0);
 
     const Processor* proc = (const Processor*)proc_state->parent.device;
 
@@ -443,7 +443,7 @@ static int32_t Sample_vstate_render_voice(
         const Sample_entry* entry = NULL;
         if (vstate->hit_index >= 0)
         {
-            assert(vstate->hit_index < KQT_HITS_MAX);
+            rassert(vstate->hit_index < KQT_HITS_MAX);
 
             const Hit_map* map =
                 Device_params_get_hit_map(proc->parent.dparams, "p_hm_hit_map.json");
@@ -503,7 +503,7 @@ static int32_t Sample_vstate_render_voice(
         sample_state->cents = entry->cents;
     }
 
-    assert(sample_state->sample < SAMPLES_MAX);
+    rassert(sample_state->sample < SAMPLES_MAX);
 
     // Find sample params
     char header_key[] = "smp_XXX/p_sh_sample.json";
@@ -521,8 +521,8 @@ static int32_t Sample_vstate_render_voice(
         return buf_start;
     }
 
-    assert(header->mid_freq > 0);
-    assert(header->format > SAMPLE_FORMAT_NONE);
+    rassert(header->mid_freq > 0);
+    rassert(header->format > SAMPLE_FORMAT_NONE);
 
     // Find sample data
     static const char* extensions[] =
@@ -576,8 +576,8 @@ static int32_t Sample_vstate_render_voice(
 
 void Sample_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
 
     vstate->render_voice = Sample_vstate_render_voice;
 

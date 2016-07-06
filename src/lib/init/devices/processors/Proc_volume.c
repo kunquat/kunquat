@@ -69,8 +69,8 @@ Device_impl* new_Proc_volume(void)
 static bool Proc_volume_set_volume(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_volume* volume = (Proc_volume*)dimpl;
     volume->volume = isfinite(value) ? value : 0.0;

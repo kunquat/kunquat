@@ -48,11 +48,11 @@ void Handle_deinit(Handle* handle);
 
 static kqt_Handle add_handle(Handle* handle)
 {
-    assert(handle != NULL);
+    rassert(handle != NULL);
 
 #ifndef NDEBUG
     for (int i = 0; i < KQT_HANDLES_MAX; ++i)
-        assert(handles[i] != handle);
+        rassert(handles[i] != handle);
 #endif
 
     static int next_try = 0;
@@ -76,10 +76,10 @@ static kqt_Handle add_handle(Handle* handle)
 
 Handle* get_handle(kqt_Handle id)
 {
-    assert(kqt_Handle_is_valid(id));
+    rassert(kqt_Handle_is_valid(id));
 
     Handle* handle = handles[id - 1];
-    assert(handle != NULL);
+    rassert(handle != NULL);
 
     return handle;
 }
@@ -87,7 +87,7 @@ Handle* get_handle(kqt_Handle id)
 
 static bool remove_handle(kqt_Handle id)
 {
-    assert(kqt_Handle_is_valid(id));
+    rassert(kqt_Handle_is_valid(id));
 
     const bool was_null = (handles[id - 1] == NULL);
     handles[id - 1] = NULL;
@@ -165,7 +165,7 @@ int kqt_Handle_set_data(
 
 bool Handle_init(Handle* handle)
 {
-    assert(handle != NULL);
+    rassert(handle != NULL);
 
     handle->data_is_valid = true;
     handle->data_is_validated = true;
@@ -233,7 +233,7 @@ void kqt_Handle_clear_error(kqt_Handle handle)
 
 static bool Handle_update_connections(Handle* handle)
 {
-    assert(handle != NULL);
+    rassert(handle != NULL);
 
     Module* module = Handle_get_module(handle);
     const Connections* graph = Module_get_connections(module);
@@ -263,7 +263,7 @@ static bool Handle_update_connections(Handle* handle)
             h->data_is_valid = false;                       \
             return 0;                                       \
         }                                                   \
-    } else (void)0
+    } else ignore(0)
 
 int kqt_Handle_validate(kqt_Handle handle)
 {
@@ -341,7 +341,7 @@ int kqt_Handle_validate(kqt_Handle handle)
     if (h->module->album_is_existent)
     {
         const Track_list* tl = h->module->track_list;
-        assert(tl != NULL);
+        rassert(tl != NULL);
 
         for (uint16_t i = 0; i < Track_list_get_len(tl); ++i)
         {
@@ -380,7 +380,7 @@ int kqt_Handle_validate(kqt_Handle handle)
                 bool instance_found = false;
 
                 const Track_list* tl = h->module->track_list;
-                assert(tl != NULL);
+                rassert(tl != NULL);
 
                 for (int track = 0; track < Track_list_get_len(tl); ++track)
                 {
@@ -390,7 +390,7 @@ int kqt_Handle_validate(kqt_Handle handle)
                         continue;
 
                     const Order_list* ol = h->module->order_lists[song_index];
-                    assert(ol != NULL);
+                    rassert(ol != NULL);
 
                     for (int system = 0; system < Order_list_get_len(ol); ++system)
                     {
@@ -544,12 +544,12 @@ void Handle_set_error_(
         const char* message,
         ...)
 {
-    assert(type < ERROR_COUNT_);
-    assert(delay_type == ERROR_IMMEDIATE || delay_type == ERROR_VALIDATION);
-    assert(file != NULL);
-    assert(line >= 0);
-    assert(func != NULL);
-    assert(message != NULL);
+    rassert(type < ERROR_COUNT_);
+    rassert(delay_type == ERROR_IMMEDIATE || delay_type == ERROR_VALIDATION);
+    rassert(file != NULL);
+    rassert(line >= 0);
+    rassert(func != NULL);
+    rassert(message != NULL);
 
     Error* error = ERROR_AUTO;
 
@@ -568,7 +568,7 @@ void Handle_set_error_(
         else if (delay_type == ERROR_VALIDATION)
             Error_copy(&handle->validation_error, error);
         else
-            assert(false);
+            rassert(false);
     }
 
     return;
@@ -577,8 +577,8 @@ void Handle_set_error_(
 
 void Handle_set_error_from_Error(Handle* handle, const Error* error)
 {
-    assert(error != NULL);
-    assert(Error_is_set(error));
+    rassert(error != NULL);
+    rassert(Error_is_set(error));
 
     Error_copy(&null_error, error);
 
@@ -591,9 +591,9 @@ void Handle_set_error_from_Error(Handle* handle, const Error* error)
 
 void Handle_set_validation_error_from_Error(Handle* handle, const Error* error)
 {
-    assert(handle != NULL);
-    assert(error != NULL);
-    assert(Error_get_type(error) == ERROR_FORMAT);
+    rassert(handle != NULL);
+    rassert(error != NULL);
+    rassert(Error_get_type(error) == ERROR_FORMAT);
 
     Error_copy(&handle->validation_error, error);
 
@@ -603,7 +603,7 @@ void Handle_set_validation_error_from_Error(Handle* handle, const Error* error)
 
 bool key_is_valid(Handle* handle, const char* key)
 {
-    assert(handle != NULL);
+    rassert(handle != NULL);
 
     if (key == NULL)
     {
@@ -677,14 +677,14 @@ bool key_is_valid(Handle* handle, const char* key)
 
 Module* Handle_get_module(Handle* handle)
 {
-    assert(handle != NULL);
+    rassert(handle != NULL);
     return handle->module;
 }
 
 
 void Handle_deinit(Handle* handle)
 {
-    assert(handle != NULL);
+    rassert(handle != NULL);
 
     del_Player(handle->length_counter);
     handle->length_counter = NULL;

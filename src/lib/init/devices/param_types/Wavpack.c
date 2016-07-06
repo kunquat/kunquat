@@ -29,8 +29,8 @@
 
 bool Sample_parse_wavpack(Sample* sample, Streader* sr)
 {
-    assert(sample != NULL);
-    assert(sr != NULL);
+    rassert(sample != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -57,8 +57,8 @@ typedef struct String_context
 
 static int32_t read_bytes_str(void* id, void* data, int32_t bcount)
 {
-    assert(id != NULL);
-    assert(data != NULL);
+    rassert(id != NULL);
+    rassert(data != NULL);
 
     String_context* sc = id;
     if (sc->pos >= sc->length)
@@ -96,7 +96,7 @@ static int32_t read_bytes_str(void* id, void* data, int32_t bcount)
 
 static uint32_t get_pos_str(void* id)
 {
-    assert(id != NULL);
+    rassert(id != NULL);
     const String_context* sc = id;
     return (uint32_t)sc->pos;
 }
@@ -104,7 +104,7 @@ static uint32_t get_pos_str(void* id)
 
 static int set_pos_abs_str(void* id, uint32_t pos)
 {
-    assert(id != NULL);
+    rassert(id != NULL);
 
     String_context* sc = id;
     if (pos > sc->length)
@@ -120,7 +120,7 @@ static int set_pos_abs_str(void* id, uint32_t pos)
 
 static int set_pos_rel_str(void* id, int32_t delta, int mode)
 {
-    assert(id != NULL);
+    rassert(id != NULL);
 
     String_context* sc = id;
     int64_t ref = 0;
@@ -150,7 +150,7 @@ static int set_pos_rel_str(void* id, int32_t delta, int mode)
 static int push_back_byte_str(void* id, int c)
 {
 //    fprintf(stderr, "push back %c\n", (char)c);
-    assert(id != NULL);
+    rassert(id != NULL);
 
     String_context* sc = id;
     if (sc->push_back != EOF)
@@ -168,7 +168,7 @@ static int push_back_byte_str(void* id, int c)
 
 static uint32_t get_length_str(void* id)
 {
-    assert(id != NULL);
+    rassert(id != NULL);
     const String_context* sc = id;
     return (uint32_t)sc->length;
 }
@@ -176,7 +176,7 @@ static uint32_t get_length_str(void* id)
 
 static int can_seek_str(void* id)
 {
-    assert(id != NULL);
+    rassert(id != NULL);
     return 1;
 }
 
@@ -186,7 +186,7 @@ static int32_t write_bytes_str(void* id, void* data, int32_t bcount)
     ignore(id);
     ignore(data);
     ignore(bcount);
-    assert(false);
+    rassert(false);
     return 0;
 }
 
@@ -219,8 +219,8 @@ static WavpackStreamReader reader_str =
 
 bool Sample_parse_wavpack(Sample* sample, Streader* sr)
 {
-    assert(sample != NULL);
-    assert(sr != NULL);
+    rassert(sample != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;

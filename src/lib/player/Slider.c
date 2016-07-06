@@ -30,8 +30,8 @@ static void Slider_update_time(Slider* slider, int32_t audio_rate, double tempo)
 
 Slider* Slider_init(Slider* slider, Slide_mode mode)
 {
-    assert(slider != NULL);
-    assert(mode == SLIDE_MODE_LINEAR || mode == SLIDE_MODE_EXP);
+    rassert(slider != NULL);
+    rassert(mode == SLIDE_MODE_LINEAR || mode == SLIDE_MODE_EXP);
 
     slider->mode = mode;
     slider->audio_rate = DEFAULT_AUDIO_RATE;
@@ -52,9 +52,9 @@ Slider* Slider_init(Slider* slider, Slide_mode mode)
 
 Slider* Slider_copy(Slider* restrict dest, const Slider* restrict src)
 {
-    assert(dest != NULL);
-    assert(src != NULL);
-    assert(dest != src);
+    rassert(dest != NULL);
+    rassert(src != NULL);
+    rassert(dest != src);
 
     memcpy(dest, src, sizeof(Slider));
 
@@ -64,9 +64,9 @@ Slider* Slider_copy(Slider* restrict dest, const Slider* restrict src)
 
 void Slider_start(Slider* slider, double target, double start)
 {
-    assert(slider != NULL);
-    assert(isfinite(target));
-    assert(isfinite(start));
+    rassert(slider != NULL);
+    rassert(isfinite(target));
+    rassert(isfinite(start));
 
     slider->from = start;
     slider->to = target;
@@ -89,7 +89,7 @@ void Slider_start(Slider* slider, double target, double start)
 
 double Slider_get_value(const Slider* slider)
 {
-    assert(slider != NULL);
+    rassert(slider != NULL);
 
     if (slider->progress >= 1)
         return slider->to;
@@ -103,7 +103,7 @@ double Slider_get_value(const Slider* slider)
 
 double Slider_step(Slider* slider)
 {
-    assert(slider != NULL);
+    rassert(slider != NULL);
 
     slider->progress += slider->progress_update;
 
@@ -113,8 +113,8 @@ double Slider_step(Slider* slider)
 
 double Slider_skip(Slider* slider, int64_t steps)
 {
-    assert(slider != NULL);
-    assert(steps >= 0);
+    rassert(slider != NULL);
+    rassert(steps >= 0);
 
     slider->progress += slider->progress_update * (double)steps;
 
@@ -124,7 +124,7 @@ double Slider_skip(Slider* slider, int64_t steps)
 
 int32_t Slider_estimate_active_steps_left(const Slider* slider)
 {
-    assert(slider != NULL);
+    rassert(slider != NULL);
 
     if (!Slider_in_progress(slider))
         return 0;
@@ -138,7 +138,7 @@ int32_t Slider_estimate_active_steps_left(const Slider* slider)
 
 void Slider_break(Slider* slider)
 {
-    assert(slider != NULL);
+    rassert(slider != NULL);
 
     slider->progress = 1;
 
@@ -148,8 +148,8 @@ void Slider_break(Slider* slider)
 
 void Slider_change_target(Slider* slider, double target)
 {
-    assert(slider != NULL);
-    assert(isfinite(target));
+    rassert(slider != NULL);
+    rassert(isfinite(target));
 
     if (slider->progress < 1)
         Slider_start(slider, target, Slider_get_value(slider));
@@ -160,8 +160,8 @@ void Slider_change_target(Slider* slider, double target)
 
 void Slider_set_length(Slider* slider, const Tstamp* length)
 {
-    assert(slider != NULL);
-    assert(length != NULL);
+    rassert(slider != NULL);
+    rassert(length != NULL);
 
     Tstamp_copy(&slider->length, length);
     if (slider->progress < 1)
@@ -173,8 +173,8 @@ void Slider_set_length(Slider* slider, const Tstamp* length)
 
 void Slider_set_audio_rate(Slider* slider, int32_t audio_rate)
 {
-    assert(slider != NULL);
-    assert(audio_rate > 0);
+    rassert(slider != NULL);
+    rassert(audio_rate > 0);
 
     if (slider->audio_rate == audio_rate)
         return;
@@ -187,9 +187,9 @@ void Slider_set_audio_rate(Slider* slider, int32_t audio_rate)
 
 void Slider_set_tempo(Slider* slider, double tempo)
 {
-    assert(slider != NULL);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(slider != NULL);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     if (slider->tempo == tempo)
         return;
@@ -202,7 +202,7 @@ void Slider_set_tempo(Slider* slider, double tempo)
 
 static void Slider_update_time(Slider* slider, int32_t audio_rate, double tempo)
 {
-    assert(slider != NULL);
+    rassert(slider != NULL);
 
     slider->audio_rate = audio_rate;
     slider->tempo = tempo;
@@ -217,7 +217,7 @@ static void Slider_update_time(Slider* slider, int32_t audio_rate, double tempo)
 
 bool Slider_in_progress(const Slider* slider)
 {
-    assert(slider != NULL);
+    rassert(slider != NULL);
     return (slider->progress < 1);
 }
 
@@ -229,11 +229,11 @@ void Slider_change_range(
         double to_start,
         double to_end)
 {
-    assert(slider != NULL);
-    assert(isfinite(from_start));
-    assert(isfinite(from_end));
-    assert(isfinite(to_start));
-    assert(isfinite(to_end));
+    rassert(slider != NULL);
+    rassert(isfinite(from_start));
+    rassert(isfinite(from_end));
+    rassert(isfinite(to_start));
+    rassert(isfinite(to_end));
 
     const double start_norm = get_range_norm(slider->from, from_start, from_end);
     const double target_norm = get_range_norm(slider->to, from_start, from_end);

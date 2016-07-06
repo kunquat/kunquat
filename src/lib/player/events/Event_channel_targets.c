@@ -29,11 +29,11 @@ bool Event_channel_set_au_input_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_INT);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_INT);
 
     ch->au_input = (int)value->value.int_type;
 

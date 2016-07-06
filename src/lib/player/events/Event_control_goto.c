@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -31,8 +31,8 @@
 bool Event_control_goto_process(
         General_state* global_state, Channel* channel, const Value* value)
 {
-    assert(global_state != NULL);
-    assert(channel != NULL);
+    rassert(global_state != NULL);
+    rassert(channel != NULL);
     ignore(value);
 
     Master_params* master_params = (Master_params*)global_state;
@@ -55,10 +55,10 @@ bool Event_control_goto_process(
 bool Event_control_set_goto_row_process(
         General_state* global_state, Channel* channel, const Value* value)
 {
-    assert(global_state != NULL);
-    assert(channel != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(global_state != NULL);
+    rassert(channel != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_TSTAMP);
 
     Master_params* master_params = (Master_params*)global_state;
     Tstamp_copy(&master_params->goto_target_row, &value->value.Tstamp_type);
@@ -70,10 +70,10 @@ bool Event_control_set_goto_row_process(
 bool Event_control_set_goto_pat_inst_process(
         General_state* global_state, Channel* channel, const Value* value)
 {
-    assert(global_state != NULL);
-    assert(channel != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_PAT_INST_REF);
+    rassert(global_state != NULL);
+    rassert(channel != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_PAT_INST_REF);
 
     Master_params* master_params = (Master_params*)global_state;
     master_params->goto_target_piref = value->value.Pat_inst_ref_type;

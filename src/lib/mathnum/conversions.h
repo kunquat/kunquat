@@ -42,7 +42,7 @@ double dB_to_scale(double dB);
  */
 static inline double fast_dB_to_scale(double dB)
 {
-    assert(isfinite(dB) || (dB == -INFINITY));
+    dassert(isfinite(dB) || (dB == -INFINITY));
 
     if (dB == -INFINITY)
         return 0.0;
@@ -70,7 +70,7 @@ double scale_to_dB(double scale);
  */
 static inline double fast_scale_to_dB(double scale)
 {
-    assert(scale >= 0);
+    dassert(scale >= 0);
     if (scale == 0)
         return -INFINITY;
 

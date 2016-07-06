@@ -37,7 +37,7 @@ static bool Vector_set_capacity(Vector* v, int64_t cap);
 
 Vector* new_Vector(int64_t elem_size)
 {
-    assert(elem_size > 0);
+    rassert(elem_size > 0);
 
     Vector* v = memory_alloc_item(Vector);
     if (v == NULL)
@@ -59,16 +59,16 @@ Vector* new_Vector(int64_t elem_size)
 
 int64_t Vector_size(const Vector* v)
 {
-    assert(v != NULL);
+    rassert(v != NULL);
     return v->size;
 }
 
 
 void Vector_get(const Vector* v, int64_t index, void* dest)
 {
-    assert(v != NULL);
-    assert(index < v->size);
-    assert(dest != NULL);
+    rassert(v != NULL);
+    rassert(index < v->size);
+    rassert(dest != NULL);
 
     memcpy(dest, v->elems + (v->elem_size * index), (size_t)v->elem_size);
 
@@ -78,8 +78,8 @@ void Vector_get(const Vector* v, int64_t index, void* dest)
 
 void* Vector_get_ref(const Vector* v, int64_t index)
 {
-    assert(v != NULL);
-    assert(index < v->size);
+    rassert(v != NULL);
+    rassert(index < v->size);
 
     return v->elems + (v->elem_size * index);
 }
@@ -87,12 +87,12 @@ void* Vector_get_ref(const Vector* v, int64_t index)
 
 bool Vector_append(Vector* v, const void* elem)
 {
-    assert(v != NULL);
-    assert(elem != NULL);
+    rassert(v != NULL);
+    rassert(elem != NULL);
 
     if (v->size >= v->cap)
     {
-        assert(v->size == v->cap);
+        rassert(v->size == v->cap);
         if (!Vector_set_capacity(v, v->cap * 2))
             return false;
     }
@@ -106,8 +106,8 @@ bool Vector_append(Vector* v, const void* elem)
 
 static bool Vector_set_capacity(Vector* v, int64_t cap)
 {
-    assert(v != NULL);
-    assert(cap > 0);
+    rassert(v != NULL);
+    rassert(cap > 0);
 
     if (cap == v->cap)
         return true;

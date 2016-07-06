@@ -73,12 +73,12 @@ static const struct
                     (params)->handle, &(params)->sr->error);                     \
         else                                                                     \
             Handle_set_error_from_Error((params)->handle, &(params)->sr->error); \
-    } else (void)0
+    } else ignore(0)
 
 
 static const Audio_unit* find_au(Handle* handle, int32_t au_index, int32_t sub_au_index)
 {
-    assert(handle != NULL);
+    rassert(handle != NULL);
 
     const Module* module = Handle_get_module(handle);
 
@@ -102,7 +102,7 @@ static const Audio_unit* find_au(Handle* handle, int32_t au_index, int32_t sub_a
 static bool is_au_in_conn_possible(
         Handle* handle, int32_t au_index, int32_t sub_au_index, int32_t port)
 {
-    assert(handle != NULL);
+    rassert(handle != NULL);
 
     const Audio_unit* au = find_au(handle, au_index, sub_au_index);
     if (au == NULL)
@@ -115,7 +115,7 @@ static bool is_au_in_conn_possible(
 static bool is_au_out_conn_possible(
         Handle* handle, int32_t au_index, int32_t sub_au_index, int32_t port)
 {
-    assert(handle != NULL);
+    rassert(handle != NULL);
 
     const Audio_unit* au = find_au(handle, au_index, sub_au_index);
     if (au == NULL)
@@ -128,7 +128,7 @@ static bool is_au_out_conn_possible(
 static const Processor* find_complete_proc(
         Handle* handle, int32_t au_index, int32_t sub_au_index, int32_t proc_index)
 {
-    assert(handle != NULL);
+    rassert(handle != NULL);
 
     const Audio_unit* au = find_au(handle, au_index, sub_au_index);
     if (au == NULL)
@@ -149,7 +149,7 @@ static bool is_proc_in_conn_possible(
         int32_t proc_index,
         int32_t port)
 {
-    assert(handle != NULL);
+    rassert(handle != NULL);
 
     const Processor* proc = find_complete_proc(
             handle, au_index, sub_au_index, proc_index);
@@ -168,7 +168,7 @@ static bool is_proc_out_conn_possible(
         int32_t proc_index,
         int32_t port)
 {
-    assert(handle != NULL);
+    rassert(handle != NULL);
 
     const Processor* proc = find_complete_proc(
             handle, au_index, sub_au_index, proc_index);
@@ -182,9 +182,9 @@ static bool is_proc_out_conn_possible(
 static bool is_connection_possible(
         Handle* handle, const char* keyp, const Key_indices indices)
 {
-    assert(handle != NULL);
-    assert(keyp != NULL);
-    assert(indices != NULL);
+    rassert(handle != NULL);
+    rassert(keyp != NULL);
+    rassert(indices != NULL);
 
     if (string_has_prefix(keyp, "au_XX/au_XX/proc_XX/in_XX/"))
         return is_proc_in_conn_possible(
@@ -212,10 +212,10 @@ static bool is_connection_possible(
 bool parse_data(Handle* handle, const char* key, const void* data, long length)
 {
 //    fprintf(stderr, "parsing %s\n", key);
-    assert(handle != NULL);
+    rassert(handle != NULL);
     check_key(handle, key, false);
-    assert(data != NULL || length == 0);
-    assert(length >= 0);
+    rassert(data != NULL || length == 0);
+    rassert(length >= 0);
 
     if (length == 0)
     {
@@ -231,11 +231,11 @@ bool parse_data(Handle* handle, const char* key, const void* data, long length)
     if (!extract_key_pattern(key, key_pattern, key_indices))
     {
         fprintf(stderr, "invalid key: %s\n", key);
-        assert(false);
+        rassert(false);
         return false;
     }
 
-    assert(strlen(key) == strlen(key_pattern));
+    rassert(strlen(key) == strlen(key_pattern));
 
     const bool was_connection_possible = is_connection_possible(
             handle, key_pattern, key_indices);
@@ -272,7 +272,7 @@ bool parse_data(Handle* handle, const char* key, const void* data, long length)
 
 static bool read_mixing_volume(Reader_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     if (!Module_read_mixing_volume(Handle_get_module(params->handle), params->sr))
     {
@@ -291,12 +291,12 @@ static bool read_mixing_volume(Reader_params* params)
         if ((index) < 0 || (index) >= KQT_DEVICE_PORTS_MAX) \
             return true;                                    \
     }                                                       \
-    else (void)0
+    else ignore(0)
 
 
 static bool read_out_port_manifest(Reader_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     int32_t out_port_index = -1;
     acquire_port_index(out_port_index, params, 0);
@@ -318,7 +318,7 @@ static bool read_out_port_manifest(Reader_params* params)
 
 static bool read_connections(Reader_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     Module* module = Handle_get_module(params->handle);
 
@@ -346,7 +346,7 @@ static bool read_connections(Reader_params* params)
 
 static bool read_control_map(Reader_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     if (!Module_set_au_map(Handle_get_module(params->handle), params->sr))
     {
@@ -360,7 +360,7 @@ static bool read_control_map(Reader_params* params)
 
 static bool read_control_manifest(Reader_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     const int32_t index = params->indices[0];
     if (index < 0 || index >= KQT_CONTROLS_MAX)
@@ -381,7 +381,7 @@ static bool read_control_manifest(Reader_params* params)
 
 static bool read_random_seed(Reader_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     if (!Module_parse_random_seed(Handle_get_module(params->handle), params->sr))
     {
@@ -395,7 +395,7 @@ static bool read_random_seed(Reader_params* params)
 
 static bool read_environment(Reader_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     if (!Environment_parse(Handle_get_module(params->handle)->env, params->sr))
     {
@@ -416,7 +416,7 @@ static bool read_environment(Reader_params* params)
 
 static bool read_bind(Reader_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     Bind* map = new_Bind(
             params->sr,
@@ -442,7 +442,7 @@ static bool read_bind(Reader_params* params)
 
 static bool read_ch_defaults(Reader_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     Channel_defaults_list* ch_defs = new_Channel_defaults_list(params->sr);
     if (ch_defs == NULL)
@@ -460,7 +460,7 @@ static bool read_ch_defaults(Reader_params* params)
 
 static bool read_album_manifest(Reader_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     const bool existent = read_default_manifest(params->sr);
     if (Streader_is_error_set(params->sr))
@@ -477,7 +477,7 @@ static bool read_album_manifest(Reader_params* params)
 
 static bool read_album_tracks(Reader_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     Track_list* tl = new_Track_list(params->sr);
     if (tl == NULL)
@@ -497,10 +497,10 @@ static bool read_album_tracks(Reader_params* params)
 
 static Audio_unit* add_audio_unit(Handle* handle, Au_table* au_table, int index)
 {
-    assert(handle != NULL);
-    assert(au_table != NULL);
-    assert(index >= 0);
-    assert(index < KQT_AUDIO_UNITS_MAX);
+    rassert(handle != NULL);
+    rassert(au_table != NULL);
+    rassert(index >= 0);
+    rassert(index < KQT_AUDIO_UNITS_MAX);
 
     static const char* memory_error_str =
         "Couldn't allocate memory for a new audio unit";
@@ -529,7 +529,7 @@ static Audio_unit* add_audio_unit(Handle* handle, Au_table* au_table, int index)
     };
     for (int i = 0; i < 3; ++i)
     {
-        assert(au_devices[i] != NULL);
+        rassert(au_devices[i] != NULL);
         Device_state* ds = Device_create_state(
                 au_devices[i],
                 Player_get_audio_rate(handle->player),
@@ -564,7 +564,7 @@ static Audio_unit* add_audio_unit(Handle* handle, Au_table* au_table, int index)
         if ((index) < 0 || (index) >= KQT_AUDIO_UNITS_MAX) \
             return true;                                   \
     }                                                      \
-    else (void)0
+    else ignore(0)
 
 
 #define acquire_au(au, handle, au_table, index)               \
@@ -574,7 +574,7 @@ static Audio_unit* add_audio_unit(Handle* handle, Au_table* au_table, int index)
         if ((au) == NULL)                                     \
             return false;                                     \
     }                                                         \
-    else (void)0
+    else ignore(0)
 
 
 typedef struct amdata
@@ -586,9 +586,9 @@ typedef struct amdata
 
 static bool read_au_manifest_entry(Streader* sr, const char* key, void* userdata)
 {
-    assert(sr != NULL);
-    assert(key != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(key != NULL);
+    rassert(userdata != NULL);
 
     amdata* d = userdata;
 
@@ -620,7 +620,7 @@ static bool read_au_manifest_entry(Streader* sr, const char* key, void* userdata
 
 static bool read_any_au_manifest(Reader_params* params, Au_table* au_table, int level)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     int32_t index = -1;
     acquire_au_index(index, params, level);
@@ -651,7 +651,7 @@ static bool read_any_au_manifest(Reader_params* params, Au_table* au_table, int 
 static bool read_any_au_in_port_manifest(
         Reader_params* params, Au_table* au_table, int level)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     int32_t au_index = -1;
     acquire_au_index(au_index, params, level);
@@ -678,7 +678,7 @@ static bool read_any_au_in_port_manifest(
 static bool read_any_au_out_port_manifest(
         Reader_params* params, Au_table* au_table, int level)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     int32_t au_index = -1;
     acquire_au_index(au_index, params, level);
@@ -704,7 +704,7 @@ static bool read_any_au_out_port_manifest(
 
 static bool read_any_au_connections(Reader_params* params, Au_table* au_table, int level)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     int32_t index = -1;
     acquire_au_index(index, params, level);
@@ -738,7 +738,7 @@ static bool read_any_au_connections(Reader_params* params, Au_table* au_table, i
 static bool read_any_au_control_vars(
         Reader_params* params, Au_table* au_table, int level)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     int32_t index = -1;
     acquire_au_index(index, params, level);
@@ -779,7 +779,7 @@ static bool read_any_au_control_vars(
 static bool read_any_au_streams(
         Reader_params* params, Au_table* au_table, int level)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     int32_t index = -1;
     acquire_au_index(index, params, level);
@@ -820,7 +820,7 @@ static bool read_any_au_streams(
 static bool read_any_au_hit_manifest(
         Reader_params* params, Au_table* au_table, int level)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     if (level > 0)
         return true;
@@ -851,7 +851,7 @@ static bool read_any_au_hit_manifest(
 static bool read_any_au_hit_proc_filter(
         Reader_params* params, Au_table* au_table, int level)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     if (level > 0)
         return true;
@@ -889,7 +889,7 @@ static bool read_any_au_hit_proc_filter(
 static bool read_any_au_expressions(
         Reader_params* params, Au_table* au_table, int level)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     if (level > 0)
         return true;
@@ -923,11 +923,11 @@ static bool read_any_au_expressions(
 static Processor* add_processor(
         Handle* handle, Audio_unit* au, Proc_table* proc_table, int proc_index)
 {
-    assert(handle != NULL);
-    assert(au != NULL);
-    assert(proc_table != NULL);
-    assert(proc_index >= 0);
-    assert(proc_index < KQT_PROCESSORS_MAX);
+    rassert(handle != NULL);
+    rassert(au != NULL);
+    rassert(proc_table != NULL);
+    rassert(proc_index >= 0);
+    rassert(proc_index < KQT_PROCESSORS_MAX);
 
     static const char* memory_error_str =
         "Couldn't allocate memory for a new processor";
@@ -957,13 +957,13 @@ static Processor* add_processor(
         if ((index) < 0 || (index) >= KQT_PROCESSORS_MAX) \
             return true;                                  \
     }                                                     \
-    else (void)0
+    else ignore(0)
 
 
 static bool read_any_proc_in_port_manifest(
         Reader_params* params, Au_table* au_table, int level)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     int32_t au_index = -1;
     acquire_au_index(au_index, params, level);
@@ -997,7 +997,7 @@ static bool read_any_proc_in_port_manifest(
 static bool read_any_proc_out_port_manifest(
         Reader_params* params, Au_table* au_table, int level)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     int32_t au_index = -1;
     acquire_au_index(au_index, params, level);
@@ -1037,9 +1037,9 @@ typedef struct pmdata
 
 static bool read_proc_manifest_entry(Streader* sr, const char* key, void* userdata)
 {
-    assert(sr != NULL);
-    assert(key != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(key != NULL);
+    rassert(userdata != NULL);
 
     pmdata* d = userdata;
 
@@ -1064,7 +1064,7 @@ static bool read_proc_manifest_entry(Streader* sr, const char* key, void* userda
 
 static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, int level)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     int32_t au_index = -1;
     acquire_au_index(au_index, params, level);
@@ -1110,7 +1110,7 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
     if (d->cons == NULL)
         return false;
 
-    assert(d->cons != NULL);
+    rassert(d->cons != NULL);
     Device_impl* proc_impl = d->cons();
     if (proc_impl == NULL)
     {
@@ -1180,8 +1180,8 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
 static bool read_any_proc_signal_type(
         Reader_params* params, Au_table* au_table, int level)
 {
-    assert(params != NULL);
-    assert(au_table != NULL);
+    rassert(params != NULL);
+    rassert(au_table != NULL);
 
     int32_t au_index = -1;
     acquire_au_index(au_index, params, level);
@@ -1229,7 +1229,7 @@ static bool read_any_proc_signal_type(
 static bool read_any_proc_impl_conf_key(
         Reader_params* params, Au_table* au_table, int level)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     if (!key_is_device_param(params->subkey))
         return true;
@@ -1267,8 +1267,8 @@ static bool read_any_proc_impl_conf_key(
 static bool read_any_proc_impl_key(
         Reader_params* params, Au_table* au_table, int level)
 {
-    assert(params != NULL);
-    assert(strlen(params->subkey) < KQT_KEY_LENGTH_MAX - 2);
+    rassert(params != NULL);
+    rassert(strlen(params->subkey) < KQT_KEY_LENGTH_MAX - 2);
 
     char hack_subkey[KQT_KEY_LENGTH_MAX] = "i/";
     strcat(hack_subkey, params->subkey);
@@ -1282,8 +1282,8 @@ static bool read_any_proc_impl_key(
 static bool read_any_proc_conf_key(
         Reader_params* params, Au_table* au_table, int level)
 {
-    assert(params != NULL);
-    assert(strlen(params->subkey) < KQT_KEY_LENGTH_MAX - 2);
+    rassert(params != NULL);
+    rassert(strlen(params->subkey) < KQT_KEY_LENGTH_MAX - 2);
 
     char hack_subkey[KQT_KEY_LENGTH_MAX] = "c/";
     strcat(hack_subkey, params->subkey);
@@ -1297,7 +1297,7 @@ static bool read_any_proc_conf_key(
 #define MAKE_AU_EFFECT_READER(base_name)                                \
     static bool read_au_ ## base_name(Reader_params* params)            \
     {                                                                   \
-        assert(params != NULL);                                         \
+        rassert(params != NULL);                                        \
                                                                         \
         int32_t top_au_index = -1;                                      \
         acquire_au_index(top_au_index, params, 0);                      \
@@ -1316,7 +1316,7 @@ static bool read_any_proc_conf_key(
 #define MAKE_GLOBAL_AU_READER(base_name)                    \
     static bool read_ ## base_name(Reader_params* params)   \
     {                                                       \
-        assert(params != NULL);                             \
+        rassert(params != NULL);                            \
                                                             \
         Module* module = Handle_get_module(params->handle); \
         Au_table* au_table = Module_get_au_table(module);   \
@@ -1350,7 +1350,7 @@ static bool read_any_proc_conf_key(
                 return false;                                           \
             }                                                           \
         }                                                               \
-    } else (void)0
+    } else ignore(0)
 
 
 #define acquire_pattern_index(index, params)            \
@@ -1360,12 +1360,12 @@ static bool read_any_proc_conf_key(
         if ((index) < 0 || (index) >= KQT_PATTERNS_MAX) \
             return true;                                \
     }                                                   \
-    else (void)0
+    else ignore(0)
 
 
 static bool read_pattern_manifest(Reader_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     int32_t index = -1;
     acquire_pattern_index(index, params);
@@ -1386,7 +1386,7 @@ static bool read_pattern_manifest(Reader_params* params)
 
 static bool read_pattern_length(Reader_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     int32_t index = -1;
     acquire_pattern_index(index, params);
@@ -1406,7 +1406,7 @@ static bool read_pattern_length(Reader_params* params)
 
 static bool read_column(Reader_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     int32_t pat_index = -1;
     acquire_pattern_index(pat_index, params);
@@ -1441,7 +1441,7 @@ static bool read_column(Reader_params* params)
 
 static bool read_pat_instance_manifest(Reader_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     int32_t pat_index = -1;
     acquire_pattern_index(pat_index, params);
@@ -1468,7 +1468,7 @@ static bool read_pat_instance_manifest(Reader_params* params)
 
 static bool read_tuning_table(Reader_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     const int32_t index = params->indices[0];
 
@@ -1507,12 +1507,12 @@ static bool read_tuning_table(Reader_params* params)
         if ((index) < 0 || (index) >= KQT_SONGS_MAX) \
             return true;                             \
     }                                                \
-    else (void)0
+    else ignore(0)
 
 
 static bool read_song_manifest(Reader_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     int32_t index = -1;
     acquire_song_index(index, params);
@@ -1533,9 +1533,9 @@ static bool read_song_manifest(Reader_params* params)
 
 static Song* add_song(Handle* handle, int index)
 {
-    assert(handle != NULL);
-    assert(index >= 0);
-    assert(index < KQT_SONGS_MAX);
+    rassert(handle != NULL);
+    rassert(index >= 0);
+    rassert(index < KQT_SONGS_MAX);
 
     Song_table* st = Module_get_songs(Handle_get_module(handle));
     Song* song = Song_table_get(st, index);
@@ -1567,7 +1567,7 @@ static Song* add_song(Handle* handle, int index)
 
 static bool read_song_tempo(Reader_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     int32_t index = -1;
     acquire_song_index(index, params);
@@ -1581,7 +1581,7 @@ static bool read_song_tempo(Reader_params* params)
 
 static bool read_song_order_list(Reader_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     int32_t index = -1;
     acquire_song_index(index, params);

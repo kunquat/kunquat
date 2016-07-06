@@ -42,8 +42,8 @@ typedef struct pitch_index
 
 static int pitch_index_cmp(const pitch_index* pi1, const pitch_index* pi2)
 {
-    assert(pi1 != NULL);
-    assert(pi2 != NULL);
+    rassert(pi1 != NULL);
+    rassert(pi2 != NULL);
 
     if (pi1->cents < pi2->cents)
         return -1;
@@ -55,7 +55,7 @@ static int pitch_index_cmp(const pitch_index* pi1, const pitch_index* pi2)
 
 static bool Tuning_table_build_pitch_map(Tuning_table* tt)
 {
-    assert(tt != NULL);
+    rassert(tt != NULL);
 
     AAtree* pitch_map = new_AAtree(
             (AAtree_item_cmp*)pitch_index_cmp, (AAtree_item_destroy*)memory_free);
@@ -120,9 +120,9 @@ void Tuning_table_set_octave_width(Tuning_table* tt, double octave_width);
 
 static Tuning_table* new_Tuning_table(double ref_pitch, double octave_width)
 {
-    assert(ref_pitch > 0);
-    assert(isfinite(octave_width));
-    assert(octave_width > 0);
+    rassert(ref_pitch > 0);
+    rassert(isfinite(octave_width));
+    rassert(octave_width > 0);
 
     Tuning_table* tt = memory_alloc_item(Tuning_table);
     if (tt == NULL)
@@ -151,8 +151,8 @@ static Tuning_table* new_Tuning_table(double ref_pitch, double octave_width)
 
 static bool Streader_read_tuning(Streader* sr, double* cents)
 {
-    assert(sr != NULL);
-    assert(cents != NULL);
+    rassert(sr != NULL);
+    rassert(cents != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -195,8 +195,8 @@ static bool Streader_read_tuning(Streader* sr, double* cents)
 
 static bool read_note(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(userdata != NULL);
 
     if (index >= KQT_TUNING_TABLE_NOTES_MAX)
     {
@@ -217,9 +217,9 @@ static bool read_note(Streader* sr, int32_t index, void* userdata)
 
 static bool read_tuning_table_item(Streader* sr, const char* key, void* userdata)
 {
-    assert(sr != NULL);
-    assert(key != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(key != NULL);
+    rassert(userdata != NULL);
 
     Tuning_table* tt = userdata;
 
@@ -315,7 +315,7 @@ static bool read_tuning_table_item(Streader* sr, const char* key, void* userdata
 
 Tuning_table* new_Tuning_table_from_string(Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -359,37 +359,37 @@ Tuning_table* new_Tuning_table_from_string(Streader* sr)
 
 int Tuning_table_get_note_count(const Tuning_table* tt)
 {
-    assert(tt != NULL);
+    rassert(tt != NULL);
     return tt->note_count;
 }
 
 
 int Tuning_table_get_ref_note(const Tuning_table* tt)
 {
-    assert(tt != NULL);
+    rassert(tt != NULL);
     return tt->ref_note;
 }
 
 
 double Tuning_table_get_ref_pitch(const Tuning_table* tt)
 {
-    assert(tt != NULL);
+    rassert(tt != NULL);
     return tt->ref_pitch;
 }
 
 
 double Tuning_table_get_global_offset(const Tuning_table* tt)
 {
-    assert(tt != NULL);
+    rassert(tt != NULL);
     return tt->global_offset;
 }
 
 
 void Tuning_table_set_octave_width(Tuning_table* tt, double octave_width)
 {
-    assert(tt != NULL);
-    assert(isfinite(octave_width));
-    assert(octave_width > 0);
+    rassert(tt != NULL);
+    rassert(isfinite(octave_width));
+    rassert(octave_width > 0);
 
     tt->octave_width = octave_width;
     for (int i = 0; i < KQT_TUNING_TABLE_OCTAVES; ++i)
@@ -404,18 +404,18 @@ void Tuning_table_set_octave_width(Tuning_table* tt, double octave_width)
 
 double Tuning_table_get_octave_width(const Tuning_table* tt)
 {
-    assert(tt != NULL);
+    rassert(tt != NULL);
     return tt->octave_width;
 }
 
 
 static void Tuning_table_set_note_cents(Tuning_table* tt, int index, double cents)
 {
-    assert(tt != NULL);
-    assert(index >= 0);
-    assert(index < KQT_TUNING_TABLE_NOTES_MAX);
-    assert(index <= tt->note_count);
-    assert(isfinite(cents));
+    rassert(tt != NULL);
+    rassert(index >= 0);
+    rassert(index < KQT_TUNING_TABLE_NOTES_MAX);
+    rassert(index <= tt->note_count);
+    rassert(isfinite(cents));
 
     tt->note_offsets[index] = cents;
 
@@ -428,9 +428,9 @@ static void Tuning_table_set_note_cents(Tuning_table* tt, int index, double cent
 
 double Tuning_table_get_pitch_offset(const Tuning_table* tt, int index)
 {
-    assert(tt != NULL);
-    assert(index >= 0);
-    assert(index < Tuning_table_get_note_count(tt));
+    rassert(tt != NULL);
+    rassert(index >= 0);
+    rassert(index < Tuning_table_get_note_count(tt));
 
     return tt->note_offsets[index];
 }
@@ -438,17 +438,17 @@ double Tuning_table_get_pitch_offset(const Tuning_table* tt, int index)
 
 int Tuning_table_get_nearest_note_index(const Tuning_table* tt, double cents)
 {
-    assert(tt != NULL);
-    assert(tt->note_count > 0);
-    assert(tt->pitch_map != NULL);
-    assert(isfinite(cents));
+    rassert(tt != NULL);
+    rassert(tt->note_count > 0);
+    rassert(tt->pitch_map != NULL);
+    rassert(isfinite(cents));
 
     pitch_index* key = &(pitch_index){ .cents = cents };
     pitch_index* pi_upper = AAtree_get_at_least(tt->pitch_map, key);
     pitch_index* pi_lower = AAtree_get_at_most(tt->pitch_map, key);
     pitch_index* pi = NULL;
 
-    assert(pi_upper != NULL || pi_lower != NULL);
+    rassert(pi_upper != NULL || pi_lower != NULL);
 
     if (pi_lower == NULL)
         pi = pi_upper;

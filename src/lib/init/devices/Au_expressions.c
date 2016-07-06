@@ -38,7 +38,7 @@ typedef struct Entry
 
 static void del_Entry(Entry* entry)
 {
-    assert(entry != NULL);
+    rassert(entry != NULL);
 
     memory_free(entry->filter);
     memory_free(entry);
@@ -55,9 +55,9 @@ struct Au_expressions
 
 static bool read_expressions(Streader* sr, const char* key, void* userdata)
 {
-    assert(sr != NULL);
-    assert(key != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(key != NULL);
+    rassert(userdata != NULL);
 
     Au_expressions* ae = userdata;
 
@@ -95,7 +95,7 @@ static bool read_expressions(Streader* sr, const char* key, void* userdata)
 
 Au_expressions* new_Au_expressions(Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -120,7 +120,7 @@ Au_expressions* new_Au_expressions(Streader* sr)
 
     if (!Streader_read_dict(sr, read_expressions, ae))
     {
-        assert(Streader_is_error_set(sr));
+        rassert(Streader_is_error_set(sr));
         del_Au_expressions(ae);
         return NULL;
     }
@@ -132,8 +132,8 @@ Au_expressions* new_Au_expressions(Streader* sr)
 const Param_proc_filter* Au_expressions_get_proc_filter(
         const Au_expressions* ae, const char* name)
 {
-    assert(ae != NULL);
-    assert(name != NULL);
+    rassert(ae != NULL);
+    rassert(name != NULL);
 
     if (strlen(name) >= KQT_VAR_NAME_MAX)
         return NULL;

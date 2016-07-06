@@ -34,7 +34,7 @@ struct Jump_cache
 
 Jump_cache* new_Jump_cache(int num_contexts)
 {
-    assert(num_contexts > 0);
+    rassert(num_contexts > 0);
 
     Jump_cache* jcache = memory_alloc_item(Jump_cache);
     if (jcache == NULL)
@@ -82,7 +82,7 @@ Jump_cache* new_Jump_cache(int num_contexts)
 
 AAnode* Jump_cache_acquire_context(Jump_cache* jcache)
 {
-    assert(jcache != NULL);
+    rassert(jcache != NULL);
 
     Jump_context* key = JUMP_CONTEXT_AUTO;
     key->piref.pat = -1;
@@ -92,11 +92,11 @@ AAnode* Jump_cache_acquire_context(Jump_cache* jcache)
     const Jump_context* elem = AAtree_get_at_least(jcache->contexts, key);
     if (elem == NULL)
     {
-        assert(jcache->use_count == jcache->num_contexts);
+        rassert(jcache->use_count == jcache->num_contexts);
         return NULL;
     }
 
-    assert(jcache->use_count < jcache->num_contexts);
+    rassert(jcache->use_count < jcache->num_contexts);
     ++jcache->use_count;
 
     return AAtree_detach(jcache->contexts, elem);
@@ -105,8 +105,8 @@ AAnode* Jump_cache_acquire_context(Jump_cache* jcache)
 
 void Jump_cache_release_context(Jump_cache* jcache, AAnode* handle)
 {
-    assert(jcache != NULL);
-    assert(handle != NULL);
+    rassert(jcache != NULL);
+    rassert(handle != NULL);
 
     Jump_context* jc = AAnode_get_data(handle);
     jc->piref.pat = -1;
@@ -119,7 +119,7 @@ void Jump_cache_release_context(Jump_cache* jcache, AAnode* handle)
 
     AAtree_attach(jcache->contexts, handle);
 
-    assert(jcache->use_count > 0);
+    rassert(jcache->use_count > 0);
     --jcache->use_count;
 
     return;
@@ -131,7 +131,7 @@ void del_Jump_cache(Jump_cache* jcache)
     if (jcache == NULL)
         return;
 
-    assert(jcache->use_count == 0);
+    rassert(jcache->use_count == 0);
 
     del_AAtree(jcache->contexts);
     memory_free(jcache);

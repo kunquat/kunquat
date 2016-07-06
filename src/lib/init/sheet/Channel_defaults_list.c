@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -25,8 +25,8 @@
 
 static bool read_ch_defaults_item(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(userdata != NULL);
 
     Channel_defaults_list* cdl = userdata;
 
@@ -42,7 +42,7 @@ static bool read_ch_defaults_item(Streader* sr, int32_t index, void* userdata)
 
 Channel_defaults_list* new_Channel_defaults_list(Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -73,9 +73,9 @@ Channel_defaults_list* new_Channel_defaults_list(Streader* sr)
 const Channel_defaults* Channel_defaults_list_get(
         const Channel_defaults_list* cdl, int32_t ch_index)
 {
-    assert(cdl != NULL);
-    assert(ch_index >= 0);
-    assert(ch_index < KQT_CHANNELS_MAX);
+    rassert(cdl != NULL);
+    rassert(ch_index >= 0);
+    rassert(ch_index < KQT_CHANNELS_MAX);
 
     return &cdl->ch_defaults[ch_index];
 }

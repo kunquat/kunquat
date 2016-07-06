@@ -67,9 +67,9 @@ static const uint32_t T[] =
 
 void md5_str(const char* str, uint64_t* lower, uint64_t* upper)
 {
-    assert(str != NULL);
-    assert(lower != NULL);
-    assert(upper != NULL);
+    rassert(str != NULL);
+    rassert(lower != NULL);
+    rassert(upper != NULL);
 
     md5(str, (int)strlen(str), lower, upper, true);
 
@@ -79,10 +79,10 @@ void md5_str(const char* str, uint64_t* lower, uint64_t* upper)
 
 void md5(const char* seq, int len, uint64_t* lower, uint64_t* upper, bool complete)
 {
-    assert(seq != NULL);
-    assert(len >= 0);
-    assert(lower != NULL);
-    assert(upper != NULL);
+    rassert(seq != NULL);
+    rassert(len >= 0);
+    rassert(lower != NULL);
+    rassert(upper != NULL);
 
     const uint64_t a = 0x67452301ULL;
     const uint64_t b = 0xefcdab89ULL;
@@ -105,12 +105,12 @@ void md5_with_state(
         bool last,
         int prev_len)
 {
-    assert(seq != NULL);
-    assert(len >= 0);
-    assert(lower != NULL);
-    assert(upper != NULL);
-    assert(last || len % 64 == 0);
-    assert(prev_len >= 0);
+    rassert(seq != NULL);
+    rassert(len >= 0);
+    rassert(lower != NULL);
+    rassert(upper != NULL);
+    rassert(last || len % 64 == 0);
+    rassert(prev_len >= 0);
 
     int cur_len = len;
     len += prev_len;
@@ -158,8 +158,8 @@ void md5_with_state(
 
 static void prepare_X(uint32_t* X, const unsigned char* p)
 {
-    assert(X != NULL);
-    assert(p != NULL);
+    rassert(X != NULL);
+    rassert(p != NULL);
 
     for (int i = 0; i < 16; ++i)
     {
@@ -176,11 +176,11 @@ static void prepare_X(uint32_t* X, const unsigned char* p)
 static void md5_rounds(
         uint32_t* X, uint32_t* aa, uint32_t* bb, uint32_t* cc, uint32_t* dd)
 {
-    assert(X != NULL);
-    assert(aa != NULL);
-    assert(bb != NULL);
-    assert(cc != NULL);
-    assert(dd != NULL);
+    rassert(X != NULL);
+    rassert(aa != NULL);
+    rassert(bb != NULL);
+    rassert(cc != NULL);
+    rassert(dd != NULL);
 
     uint32_t a = *aa;
     uint32_t b = *bb;
@@ -236,7 +236,7 @@ static void md5_rounds(
 
 static void add_length(unsigned char* p, uint64_t len)
 {
-    assert(p != NULL);
+    rassert(p != NULL);
 
     len *= 8;
     for (int i = 0; i < 8; ++i)
@@ -275,8 +275,8 @@ static uint32_t I(uint32_t x, uint32_t y, uint32_t z)
 
 static uint32_t left_rotate(uint32_t value, int steps)
 {
-    assert(steps > 0);
-    assert(steps < 32);
+    rassert(steps > 0);
+    rassert(steps < 32);
 
     return (value << steps) | (value >> (32 - steps));
 }

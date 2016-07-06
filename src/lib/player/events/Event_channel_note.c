@@ -50,15 +50,15 @@ bool Event_channel_note_on_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(ch->freq != NULL);
-    assert(*ch->freq > 0);
-    assert(ch->tempo != NULL);
-    assert(*ch->tempo > 0);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(ch != NULL);
+    rassert(ch->freq != NULL);
+    rassert(*ch->freq > 0);
+    rassert(ch->tempo != NULL);
+    rassert(*ch->tempo > 0);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     // Move the old Voices to the background
     Event_channel_note_off_process(ch, dstates, master_params, NULL);
@@ -234,13 +234,13 @@ bool Event_channel_hit_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(ch->freq != NULL);
-    assert(ch->tempo != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_INT);
+    rassert(ch != NULL);
+    rassert(ch->freq != NULL);
+    rassert(ch->tempo != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_INT);
 
     // Move the old Voices to the background
     Event_channel_note_off_process(ch, dstates, master_params, NULL);
@@ -380,9 +380,9 @@ bool Event_channel_note_off_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
     ignore(value);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)

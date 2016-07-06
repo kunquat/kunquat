@@ -70,8 +70,8 @@ Pattern* new_Pattern(void)
 
 bool Pattern_read_length(Pattern* pat, Streader* sr)
 {
-    assert(pat != NULL);
-    assert(sr != NULL);
+    rassert(pat != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -95,9 +95,9 @@ bool Pattern_read_length(Pattern* pat, Streader* sr)
 
 void Pattern_set_inst_existent(Pattern* pat, int index, bool existent)
 {
-    assert(pat != NULL);
-    assert(index >= 0);
-    assert(index < KQT_PAT_INSTANCES_MAX);
+    rassert(pat != NULL);
+    rassert(index >= 0);
+    rassert(index < KQT_PAT_INSTANCES_MAX);
 
     Bit_array_set(pat->existents, index, existent);
 
@@ -107,9 +107,9 @@ void Pattern_set_inst_existent(Pattern* pat, int index, bool existent)
 
 bool Pattern_get_inst_existent(const Pattern* pat, int index)
 {
-    assert(pat != NULL);
-    assert(index >= 0);
-    assert(index < KQT_PAT_INSTANCES_MAX);
+    rassert(pat != NULL);
+    rassert(index >= 0);
+    rassert(index < KQT_PAT_INSTANCES_MAX);
 
     return Bit_array_get(pat->existents, index);
 }
@@ -117,10 +117,10 @@ bool Pattern_get_inst_existent(const Pattern* pat, int index)
 
 bool Pattern_set_column(Pattern* pat, int index, Column* col)
 {
-    assert(pat != NULL);
-    assert(index >= 0);
-    assert(index < KQT_COLUMNS_MAX);
-    assert(col != NULL);
+    rassert(pat != NULL);
+    rassert(index >= 0);
+    rassert(index < KQT_COLUMNS_MAX);
+    rassert(col != NULL);
 
     Column* old_col = pat->cols[index];
     pat->cols[index] = col;
@@ -132,9 +132,9 @@ bool Pattern_set_column(Pattern* pat, int index, Column* col)
 
 Column* Pattern_get_column(const Pattern* pat, int index)
 {
-    assert(pat != NULL);
-    assert(index >= 0);
-    assert(index < KQT_COLUMNS_MAX);
+    rassert(pat != NULL);
+    rassert(index >= 0);
+    rassert(index < KQT_COLUMNS_MAX);
 
     return pat->cols[index];
 }
@@ -142,7 +142,7 @@ Column* Pattern_get_column(const Pattern* pat, int index)
 
 const Tstamp* Pattern_get_length(const Pattern* pat)
 {
-    assert(pat != NULL);
+    rassert(pat != NULL);
     return &pat->length;
 }
 

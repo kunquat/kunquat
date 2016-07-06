@@ -22,14 +22,14 @@
 
 bool is_p2(int64_t x)
 {
-    assert(x > 0);
+    rassert(x > 0);
     return (x & (x - 1)) == 0;
 }
 
 
 int64_t next_p2(int64_t x)
 {
-    assert(x > 0);
+    rassert(x > 0);
 
     x |= x >> 1;
     x |= x >> 2;
@@ -44,7 +44,7 @@ int64_t next_p2(int64_t x)
 
 int64_t ceil_p2(int64_t x)
 {
-    assert(x > 0);
+    rassert(x > 0);
 
     if (is_p2(x))
         return x;
@@ -55,7 +55,7 @@ int64_t ceil_p2(int64_t x)
 
 int64_t ipowi(int64_t base, int64_t exp)
 {
-    assert(exp >= 0);
+    rassert(exp >= 0);
 
     if (exp == 0)
         return 1;
@@ -68,7 +68,7 @@ int64_t ipowi(int64_t base, int64_t exp)
 
 double powi(double base, int exp)
 {
-    assert(exp >= 0);
+    rassert(exp >= 0);
 
     double ret = 1.0;
     while (exp > 0)
@@ -86,9 +86,9 @@ double powi(double base, int exp)
 
 double get_range_norm(double value, double start_value, double end_value)
 {
-    assert(isfinite(value));
-    assert(isfinite(start_value));
-    assert(isfinite(end_value));
+    rassert(isfinite(value));
+    rassert(isfinite(start_value));
+    rassert(isfinite(end_value));
 
     if (start_value == end_value)
         return 0;

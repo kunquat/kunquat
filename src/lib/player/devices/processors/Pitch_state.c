@@ -65,14 +65,14 @@ static int32_t Pitch_vstate_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
-    assert(au_state != NULL);
-    assert(wbs != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
+    rassert(au_state != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     // Get output
     Work_buffer* out_wb = Proc_state_get_voice_buffer_mut(
@@ -183,7 +183,7 @@ static int32_t Pitch_vstate_render_voice(
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             // Adjust actual pitch according to the current arpeggio state
-            assert(!isnan(pvstate->arpeggio_tones[0]));
+            rassert(!isnan(pvstate->arpeggio_tones[0]));
             const double diff = (pvstate->arpeggio_tones[pvstate->arpeggio_tone_index] -
                     pvstate->arpeggio_ref_pitch);
             out_buf[i] += (float)diff;
@@ -213,8 +213,8 @@ static int32_t Pitch_vstate_render_voice(
 
 void Pitch_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
 
     vstate->render_voice = Pitch_vstate_render_voice;
 
@@ -242,8 +242,8 @@ void Pitch_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
 void Pitch_vstate_set_controls(Voice_state* vstate, const Pitch_controls* controls)
 {
-    assert(vstate != NULL);
-    assert(controls != NULL);
+    rassert(vstate != NULL);
+    rassert(controls != NULL);
 
     Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
 
@@ -264,11 +264,11 @@ void Pitch_vstate_arpeggio_on(
         double ref_pitch,
         double tones[KQT_ARPEGGIO_TONES_MAX])
 {
-    assert(vstate != NULL);
-    assert(isfinite(speed));
-    assert(speed > 0);
-    assert(isfinite(ref_pitch));
-    assert(tones != NULL);
+    rassert(vstate != NULL);
+    rassert(isfinite(speed));
+    rassert(speed > 0);
+    rassert(isfinite(ref_pitch));
+    rassert(tones != NULL);
 
     Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
 
@@ -287,7 +287,7 @@ void Pitch_vstate_arpeggio_on(
 
 void Pitch_vstate_arpeggio_off(Voice_state* vstate)
 {
-    assert(vstate != NULL);
+    rassert(vstate != NULL);
 
     Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
     pvstate->is_arpeggio_enabled = false;
@@ -299,7 +299,7 @@ void Pitch_vstate_arpeggio_off(Voice_state* vstate)
 void Pitch_vstate_update_arpeggio_tones(
         Voice_state* vstate, double tones[KQT_ARPEGGIO_TONES_MAX])
 {
-    assert(vstate != NULL);
+    rassert(vstate != NULL);
 
     Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
     memcpy(pvstate->arpeggio_tones, tones, KQT_ARPEGGIO_TONES_MAX * sizeof(double));
@@ -310,9 +310,9 @@ void Pitch_vstate_update_arpeggio_tones(
 
 void Pitch_vstate_update_arpeggio_speed(Voice_state* vstate, double speed)
 {
-    assert(vstate != NULL);
-    assert(isfinite(speed));
-    assert(speed > 0);
+    rassert(vstate != NULL);
+    rassert(isfinite(speed));
+    rassert(speed > 0);
 
     Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
     pvstate->arpeggio_speed = speed;
@@ -323,7 +323,7 @@ void Pitch_vstate_update_arpeggio_speed(Voice_state* vstate, double speed)
 
 void Pitch_vstate_reset_arpeggio(Voice_state* vstate)
 {
-    assert(vstate != NULL);
+    rassert(vstate != NULL);
 
     Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
     pvstate->arpeggio_tones[0] = pvstate->arpeggio_tones[1] = NAN;

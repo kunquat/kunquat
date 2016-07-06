@@ -101,8 +101,8 @@ typedef struct Update_control_var_cb
 
 bool Device_impl_init(Device_impl* dimpl, Device_impl_destroy_func* destroy)
 {
-    assert(dimpl != NULL);
-    assert(destroy != NULL);
+    rassert(dimpl != NULL);
+    rassert(destroy != NULL);
 
     dimpl->create_pstate = NULL;
     dimpl->get_vstate_size = NULL;
@@ -128,8 +128,8 @@ bool Device_impl_init(Device_impl* dimpl, Device_impl_destroy_func* destroy)
 
 void Device_impl_set_device(Device_impl* dimpl, const Device* device)
 {
-    assert(dimpl != NULL);
-    assert(device != NULL);
+    rassert(dimpl != NULL);
+    rassert(device != NULL);
 
     dimpl->device = device;
 
@@ -139,7 +139,7 @@ void Device_impl_set_device(Device_impl* dimpl, const Device* device)
 
 int32_t Device_impl_get_vstate_size(const Device_impl* dimpl)
 {
-    assert(dimpl != NULL);
+    rassert(dimpl != NULL);
 
     if (dimpl->get_vstate_size != NULL)
         return dimpl->get_vstate_size();
@@ -156,10 +156,10 @@ int32_t Device_impl_get_vstate_size(const Device_impl* dimpl)
             Set_ ## type_name ## _func set_func,                  \
             Set_state_ ## type_name ## _func set_state_func)      \
     {                                                             \
-        assert(dimpl != NULL);                                    \
-        assert(keyp != NULL);                                     \
-        assert(strlen(keyp) < KQT_KEY_LENGTH_MAX);                \
-        assert(set_func != NULL);                                 \
+        rassert(dimpl != NULL);                                   \
+        rassert(keyp != NULL);                                    \
+        rassert(strlen(keyp) < KQT_KEY_LENGTH_MAX);               \
+        rassert(set_func != NULL);                                \
                                                                   \
         Set_cb* set_cb = memory_alloc_item(Set_cb);               \
         if (set_cb == NULL)                                       \
@@ -192,11 +192,11 @@ bool Device_impl_register_set_tstamp(
         Set_tstamp_func set_func,
         Set_state_tstamp_func set_state_func)
 {
-    assert(dimpl != NULL);
-    assert(keyp != NULL);
-    assert(default_val != NULL);
-    assert(strlen(keyp) < KQT_KEY_LENGTH_MAX);
-    assert(set_func != NULL);
+    rassert(dimpl != NULL);
+    rassert(keyp != NULL);
+    rassert(default_val != NULL);
+    rassert(strlen(keyp) < KQT_KEY_LENGTH_MAX);
+    rassert(set_func != NULL);
 
     Set_cb* set_cb = memory_alloc_item(Set_cb);
     if (set_cb == NULL)
@@ -224,10 +224,10 @@ bool Device_impl_register_set_envelope(
         Set_envelope_func set_func,
         Set_state_envelope_func set_state_func)
 {
-    assert(dimpl != NULL);
-    assert(keyp != NULL);
-    assert(strlen(keyp) < KQT_KEY_LENGTH_MAX);
-    assert(set_func != NULL);
+    rassert(dimpl != NULL);
+    rassert(keyp != NULL);
+    rassert(strlen(keyp) < KQT_KEY_LENGTH_MAX);
+    rassert(set_func != NULL);
 
     Set_cb* set_cb = memory_alloc_item(Set_cb);
     if (set_cb == NULL)
@@ -255,10 +255,10 @@ bool Device_impl_register_set_sample(
         Set_sample_func set_func,
         Set_state_sample_func set_state_func)
 {
-    assert(dimpl != NULL);
-    assert(keyp != NULL);
-    assert(strlen(keyp) < KQT_KEY_LENGTH_MAX);
-    assert(set_func != NULL);
+    rassert(dimpl != NULL);
+    rassert(keyp != NULL);
+    rassert(strlen(keyp) < KQT_KEY_LENGTH_MAX);
+    rassert(set_func != NULL);
 
     Set_cb* set_cb = memory_alloc_item(Set_cb);
     if (set_cb == NULL)
@@ -286,10 +286,10 @@ bool Device_impl_register_set_num_list(
         Set_num_list_func set_func,
         Set_state_num_list_func set_state_func)
 {
-    assert(dimpl != NULL);
-    assert(keyp != NULL);
-    assert(strlen(keyp) < KQT_KEY_LENGTH_MAX);
-    assert(set_func != NULL);
+    rassert(dimpl != NULL);
+    rassert(keyp != NULL);
+    rassert(strlen(keyp) < KQT_KEY_LENGTH_MAX);
+    rassert(set_func != NULL);
 
     Set_cb* set_cb = memory_alloc_item(Set_cb);
     if (set_cb == NULL)
@@ -317,10 +317,10 @@ bool Device_impl_register_set_padsynth_params(
         Set_padsynth_params_func set_func,
         Set_state_padsynth_params_func set_state_func)
 {
-    assert(dimpl != NULL);
-    assert(keyp != NULL);
-    assert(strlen(keyp) < KQT_KEY_LENGTH_MAX);
-    assert(set_func != NULL);
+    rassert(dimpl != NULL);
+    rassert(keyp != NULL);
+    rassert(strlen(keyp) < KQT_KEY_LENGTH_MAX);
+    rassert(set_func != NULL);
 
     Set_cb* set_cb = memory_alloc_item(Set_cb);
     if (set_cb == NULL)
@@ -344,8 +344,8 @@ bool Device_impl_register_set_padsynth_params(
 static Update_control_var_cb* Device_impl_create_update_cv_cb(
         Device_impl* dimpl, const char* keyp, Value_type type)
 {
-    assert(dimpl != NULL);
-    assert(keyp != NULL);
+    rassert(dimpl != NULL);
+    rassert(keyp != NULL);
 
     Update_control_var_cb* update_cv_cb = memory_alloc_item(
             Update_control_var_cb);
@@ -371,8 +371,8 @@ bool Device_impl_create_cv_bool(
         Proc_state_set_cv_bool_func* pstate_set,
         Voice_state_set_cv_bool_func* vstate_set)
 {
-    assert(dimpl != NULL);
-    assert(keyp != NULL);
+    rassert(dimpl != NULL);
+    rassert(keyp != NULL);
 
     Update_control_var_cb* update_cv_cb =
         Device_impl_create_update_cv_cb(dimpl, keyp, VALUE_TYPE_BOOL);
@@ -392,8 +392,8 @@ bool Device_impl_create_cv_int(
         Proc_state_set_cv_int_func* pstate_set,
         Voice_state_set_cv_int_func* vstate_set)
 {
-    assert(dimpl != NULL);
-    assert(keyp != NULL);
+    rassert(dimpl != NULL);
+    rassert(keyp != NULL);
 
     Update_control_var_cb* update_cv_cb =
         Device_impl_create_update_cv_cb(dimpl, keyp, VALUE_TYPE_INT);
@@ -413,8 +413,8 @@ bool Device_impl_create_cv_float(
         Proc_state_set_cv_float_func* pstate_set,
         Voice_state_set_cv_float_func* vstate_set)
 {
-    assert(dimpl != NULL);
-    assert(keyp != NULL);
+    rassert(dimpl != NULL);
+    rassert(keyp != NULL);
 
     Update_control_var_cb* update_cv_cb =
         Device_impl_create_update_cv_cb(dimpl, keyp, VALUE_TYPE_FLOAT);
@@ -434,8 +434,8 @@ bool Device_impl_create_cv_tstamp(
         Proc_state_set_cv_tstamp_func* pstate_set,
         Voice_state_set_cv_tstamp_func* vstate_set)
 {
-    assert(dimpl != NULL);
-    assert(keyp != NULL);
+    rassert(dimpl != NULL);
+    rassert(keyp != NULL);
 
     Update_control_var_cb* update_cv_cb =
         Device_impl_create_update_cv_cb(dimpl, keyp, VALUE_TYPE_TSTAMP);
@@ -451,11 +451,11 @@ bool Device_impl_create_cv_tstamp(
 
 bool Device_impl_set_key(Device_impl* dimpl, const char* key)
 {
-    assert(dimpl != NULL);
-    assert(dimpl->device != NULL);
-    assert(key != NULL);
+    rassert(dimpl != NULL);
+    rassert(dimpl->device != NULL);
+    rassert(key != NULL);
 
-    assert(strlen(key) < KQT_KEY_LENGTH_MAX);
+    rassert(strlen(key) < KQT_KEY_LENGTH_MAX);
     char keyp[KQT_KEY_LENGTH_MAX] = "";
     Key_indices indices = { 0 };
     memset(indices, '\xff', KEY_INDICES_MAX * sizeof(int32_t));
@@ -474,7 +474,7 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key)
                 *dval : set_cb->cb.type_name ## _type.default_val;         \
             return set_cb->cb.type_name ## _type.set(dimpl, indices, val); \
         }                                                                  \
-        else (void)0
+        else ignore(0)
 
 #define SET_FIELDP(type_name, type)                                        \
         if (true)                                                          \
@@ -483,11 +483,11 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key)
                     dimpl->device->dparams, key);                          \
             return set_cb->cb.type_name ## _type.set(dimpl, indices, val); \
         }                                                                  \
-        else (void)0
+        else ignore(0)
 
         const Device_field_type dftype = get_keyp_device_field_type(
                 set_cb->key_pattern);
-        assert(dftype != DEVICE_FIELD_NONE);
+        rassert(dftype != DEVICE_FIELD_NONE);
 
         switch (dftype)
         {
@@ -543,7 +543,7 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key)
                 break;
 
             default:
-                assert(false);
+                rassert(false);
         }
 
 #undef SET_FIELDP
@@ -557,11 +557,11 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key)
 bool Device_impl_set_state_key(
         const Device_impl* dimpl, Device_state* dstate, const char* key)
 {
-    assert(dimpl != NULL);
-    assert(key != NULL);
-    assert(dstate != NULL);
+    rassert(dimpl != NULL);
+    rassert(key != NULL);
+    rassert(dstate != NULL);
 
-    assert(strlen(key) < KQT_KEY_LENGTH_MAX);
+    rassert(strlen(key) < KQT_KEY_LENGTH_MAX);
     char keyp[KQT_KEY_LENGTH_MAX] = "";
     Key_indices indices = { 0 };
     memset(indices, '\xff', KEY_INDICES_MAX * sizeof(int32_t));
@@ -581,7 +581,7 @@ bool Device_impl_set_state_key(
             if (set_cb->cb.type_name ## _type.set_state != NULL)                      \
                 return set_cb->cb.type_name ## _type.set_state(dstate, indices, val); \
         }                                                                             \
-        else (void)0
+        else ignore(0)
 
 #define SET_FIELDP(type_name, type)                                                   \
         if (true)                                                                     \
@@ -591,10 +591,10 @@ bool Device_impl_set_state_key(
             if (set_cb->cb.type_name ## _type.set_state != NULL)                      \
                 return set_cb->cb.type_name ## _type.set_state(dstate, indices, val); \
         }                                                                             \
-        else (void)0
+        else ignore(0)
 
         const Device_field_type dftype = get_keyp_device_field_type(set_cb->key_pattern);
-        assert(dftype != DEVICE_FIELD_NONE);
+        rassert(dftype != DEVICE_FIELD_NONE);
 
         switch (dftype)
         {
@@ -650,7 +650,7 @@ bool Device_impl_set_state_key(
                 break;
 
             default:
-                assert(false);
+                rassert(false);
         }
 
 #undef SET_FIELDP
@@ -664,9 +664,9 @@ bool Device_impl_set_state_key(
 static const Update_control_var_cb* get_update_control_var_cb(
         const Device_impl* dimpl, const char* key, Key_indices indices)
 {
-    assert(dimpl != NULL);
-    assert(key != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(key != NULL);
+    rassert(indices != NULL);
 
     memset(indices, '\xff', KEY_INDICES_MAX * sizeof(int32_t));
 
@@ -683,9 +683,9 @@ void Device_impl_get_proc_cv_callback(
         Value_type type,
         Device_impl_proc_cv_callback* cb)
 {
-    assert(dimpl != NULL);
-    assert(key != NULL);
-    assert(cb != NULL);
+    rassert(dimpl != NULL);
+    rassert(key != NULL);
+    rassert(cb != NULL);
 
     const Update_control_var_cb* update_cv_cb =
         get_update_control_var_cb(dimpl, key, cb->indices);
@@ -717,7 +717,7 @@ void Device_impl_get_proc_cv_callback(
             break;
 
         default:
-            assert(false);
+            rassert(false);
     }
 
     return;
@@ -730,9 +730,9 @@ void Device_impl_get_voice_cv_callback(
         Value_type type,
         Device_impl_voice_cv_callback* cb)
 {
-    assert(dimpl != NULL);
-    assert(key != NULL);
-    assert(cb != NULL);
+    rassert(dimpl != NULL);
+    rassert(key != NULL);
+    rassert(cb != NULL);
 
     const Update_control_var_cb* update_cv_cb =
         get_update_control_var_cb(dimpl, key, cb->indices);
@@ -764,7 +764,7 @@ void Device_impl_get_voice_cv_callback(
             break;
 
         default:
-            assert(false);
+            rassert(false);
     }
 
     return;
@@ -773,7 +773,7 @@ void Device_impl_get_voice_cv_callback(
 
 void Device_impl_deinit(Device_impl* dimpl)
 {
-    assert(dimpl != NULL);
+    rassert(dimpl != NULL);
 
     del_AAtree(dimpl->update_cv_cbs);
     dimpl->update_cv_cbs = NULL;
@@ -791,7 +791,7 @@ void del_Device_impl(Device_impl* dimpl)
 
     Device_impl_deinit(dimpl);
 
-    assert(dimpl->destroy != NULL);
+    rassert(dimpl->destroy != NULL);
     dimpl->destroy(dimpl);
 
     return;

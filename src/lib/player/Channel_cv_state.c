@@ -42,9 +42,9 @@ typedef struct Entry
 
 static Entry* Entry_init(Entry* entry, const char* var_name)
 {
-    assert(entry != NULL);
-    assert(var_name != NULL);
-    assert(strlen(var_name) < KQT_VAR_NAME_MAX);
+    rassert(entry != NULL);
+    rassert(var_name != NULL);
+    rassert(strlen(var_name) < KQT_VAR_NAME_MAX);
 
     strcpy(entry->var_name, var_name);
 
@@ -85,9 +85,9 @@ Channel_cv_state* new_Channel_cv_state(void)
 
 bool Channel_cv_state_add_entry(Channel_cv_state* state, const char* var_name)
 {
-    assert(state != NULL);
-    assert(var_name != NULL);
-    assert(strlen(var_name) < KQT_VAR_NAME_MAX);
+    rassert(state != NULL);
+    rassert(var_name != NULL);
+    rassert(strlen(var_name) < KQT_VAR_NAME_MAX);
 
     const Entry* entry = Entry_init(ENTRY_AUTO, var_name);
 
@@ -113,11 +113,11 @@ bool Channel_cv_state_add_entry(Channel_cv_state* state, const char* var_name)
 bool Channel_cv_state_set_value(
         Channel_cv_state* state, const char* var_name, const Value* value)
 {
-    assert(state != NULL);
-    assert(var_name != NULL);
-    assert(strlen(var_name) < KQT_VAR_NAME_MAX);
-    assert(value != NULL);
-    assert(Value_type_is_realtime(value->type));
+    rassert(state != NULL);
+    rassert(var_name != NULL);
+    rassert(strlen(var_name) < KQT_VAR_NAME_MAX);
+    rassert(value != NULL);
+    rassert(Value_type_is_realtime(value->type));
 
     const Entry* key = Entry_init(ENTRY_AUTO, var_name);
 
@@ -135,9 +135,9 @@ bool Channel_cv_state_set_value(
 const Value* Channel_cv_state_get_value(
         const Channel_cv_state* state, const char* var_name)
 {
-    assert(state != NULL);
-    assert(var_name != NULL);
-    assert(strlen(var_name) < KQT_VAR_NAME_MAX);
+    rassert(state != NULL);
+    rassert(var_name != NULL);
+    rassert(strlen(var_name) < KQT_VAR_NAME_MAX);
 
     const Entry* key = Entry_init(ENTRY_AUTO, var_name);
 
@@ -152,9 +152,9 @@ const Value* Channel_cv_state_get_value(
 bool Channel_cv_state_set_carrying_enabled(
         Channel_cv_state* state, const char* var_name, bool enabled)
 {
-    assert(state != NULL);
-    assert(var_name != NULL);
-    assert(strlen(var_name) < KQT_VAR_NAME_MAX);
+    rassert(state != NULL);
+    rassert(var_name != NULL);
+    rassert(strlen(var_name) < KQT_VAR_NAME_MAX);
 
     const Entry* key = Entry_init(ENTRY_AUTO, var_name);
 
@@ -171,9 +171,9 @@ bool Channel_cv_state_set_carrying_enabled(
 bool Channel_cv_state_is_carrying_enabled(
         const Channel_cv_state* state, const char* var_name)
 {
-    assert(state != NULL);
-    assert(var_name != NULL);
-    assert(strlen(var_name) < KQT_VAR_NAME_MAX);
+    rassert(state != NULL);
+    rassert(var_name != NULL);
+    rassert(strlen(var_name) < KQT_VAR_NAME_MAX);
 
     const Entry* key = Entry_init(ENTRY_AUTO, var_name);
 
@@ -187,7 +187,7 @@ bool Channel_cv_state_is_carrying_enabled(
 
 void Channel_cv_state_reset(Channel_cv_state* state)
 {
-    assert(state != NULL);
+    rassert(state != NULL);
 
     const Entry* key = Entry_init(ENTRY_AUTO, "");
 

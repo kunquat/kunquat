@@ -21,21 +21,21 @@
 
 double dB_to_scale(double dB)
 {
-    assert(isfinite(dB) || (dB == -INFINITY));
+    rassert(isfinite(dB) || (dB == -INFINITY));
     return exp2(dB / 6.0);
 }
 
 
 double scale_to_dB(double scale)
 {
-    assert(scale >= 0);
+    rassert(scale >= 0);
     return log2(scale) * 6;
 }
 
 
 double cents_to_Hz(double cents)
 {
-    assert(isfinite(cents));
+    rassert(isfinite(cents));
     return exp2(cents / 1200.0) * 440;
 }
 

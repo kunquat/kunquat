@@ -40,8 +40,8 @@ typedef struct Random_list
 
 static int Random_list_cmp(const Random_list* list1, const Random_list* list2)
 {
-    assert(list1 != NULL);
-    assert(list2 != NULL);
+    rassert(list1 != NULL);
+    rassert(list2 != NULL);
 
     if (list1->force < list2->force)
         return -1;
@@ -54,8 +54,8 @@ static int Random_list_cmp(const Random_list* list1, const Random_list* list2)
 
 static bool read_random_list_entry(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(userdata != NULL);
 
     Random_list* list = userdata;
 
@@ -75,9 +75,9 @@ static bool read_random_list_entry(Streader* sr, int32_t index, void* userdata)
 
 static bool read_mapping(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
     ignore(index);
-    assert(userdata != NULL);
+    rassert(userdata != NULL);
 
     Hit_map* map = userdata;
 
@@ -160,7 +160,7 @@ static bool read_mapping(Streader* sr, int32_t index, void* userdata)
 
 Hit_map* new_Hit_map_from_string(Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -191,11 +191,11 @@ Hit_map* new_Hit_map_from_string(Streader* sr)
 const Sample_entry* Hit_map_get_entry(
         const Hit_map* map, int hit_index, double force, Random* random)
 {
-    assert(map != NULL);
-    assert(hit_index >= 0);
-    assert(hit_index < KQT_HITS_MAX);
-    assert(isfinite(force) || force == -INFINITY);
-    assert(random != NULL);
+    rassert(map != NULL);
+    rassert(hit_index >= 0);
+    rassert(hit_index < KQT_HITS_MAX);
+    rassert(isfinite(force) || force == -INFINITY);
+    rassert(random != NULL);
 
     AAtree* forces = map->hits[hit_index];
     if (forces == NULL)

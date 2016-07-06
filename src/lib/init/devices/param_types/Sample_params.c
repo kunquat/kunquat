@@ -24,7 +24,7 @@
 
 Sample_params* Sample_params_init(Sample_params* params)
 {
-    assert(params != NULL);
+    rassert(params != NULL);
 
     params->format = SAMPLE_FORMAT_WAVPACK;
     params->mid_freq = 48000;
@@ -38,9 +38,9 @@ Sample_params* Sample_params_init(Sample_params* params)
 
 static bool read_field(Streader* sr, const char* key, void* userdata)
 {
-    assert(sr != NULL);
-    assert(key != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(key != NULL);
+    rassert(userdata != NULL);
 
     Sample_params* params = userdata;
 
@@ -140,8 +140,8 @@ static bool read_field(Streader* sr, const char* key, void* userdata)
 
 bool Sample_params_parse(Sample_params* params, Streader* sr)
 {
-    assert(params != NULL);
-    assert(sr != NULL);
+    rassert(params != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -162,8 +162,8 @@ bool Sample_params_parse(Sample_params* params, Streader* sr)
 
 Sample_params* Sample_params_copy(Sample_params* dest, const Sample_params* src)
 {
-    assert(dest != NULL);
-    assert(src != NULL);
+    rassert(dest != NULL);
+    rassert(src != NULL);
     memcpy(dest, src, sizeof(Sample_params));
     return dest;
 }

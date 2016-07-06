@@ -25,9 +25,9 @@
 
 static bool read_harmonic(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
     ignore(index);
-    assert(userdata != NULL);
+    rassert(userdata != NULL);
 
     Vector* harmonics = userdata;
 
@@ -62,9 +62,9 @@ static bool read_harmonic(Streader* sr, int32_t index, void* userdata)
 
 static bool read_param(Streader* sr, const char* key, void* userdata)
 {
-    assert(sr != NULL);
-    assert(key != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(key != NULL);
+    rassert(userdata != NULL);
 
     Padsynth_params* pp = userdata;
 
@@ -203,7 +203,7 @@ static bool read_param(Streader* sr, const char* key, void* userdata)
 
 Padsynth_params* new_Padsynth_params(Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;

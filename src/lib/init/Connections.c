@@ -75,7 +75,7 @@ static int validate_connection_path(
             del_Connections(graph);                                   \
             return NULL;                                              \
         }                                                             \
-    } else (void)0
+    } else ignore(0)
 
 typedef struct read_conn_data
 {
@@ -87,8 +87,8 @@ typedef struct read_conn_data
 
 static bool read_connection(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(userdata != NULL);
     ignore(index);
 
     read_conn_data* rcdata = userdata;
@@ -154,8 +154,8 @@ static bool read_connection(Streader* sr, int32_t index, void* userdata)
     }
     Device_node* dest_node = AAtree_get_exact(rcdata->graph->nodes, dest_name);
 
-    assert(src_node != NULL);
-    assert(dest_node != NULL);
+    rassert(src_node != NULL);
+    rassert(dest_node != NULL);
     mem_error_if(
             !Device_node_connect(dest_node, dest_port, src_node, src_port),
             rcdata->graph,
@@ -168,9 +168,9 @@ static bool read_connection(Streader* sr, int32_t index, void* userdata)
 Connections* new_Connections_from_string(
         Streader* sr, Connection_level level, Au_table* au_table, Device* master)
 {
-    assert(sr != NULL);
-    assert(au_table != NULL);
-    assert(master != NULL);
+    rassert(sr != NULL);
+    rassert(au_table != NULL);
+    rassert(master != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -228,8 +228,8 @@ Connections* new_Connections_from_string(
 bool Connections_check_connections(
         const Connections* graph, char err[DEVICE_CONNECTION_ERROR_LENGTH_MAX])
 {
-    assert(graph != NULL);
-    assert(err != NULL);
+    rassert(graph != NULL);
+    rassert(err != NULL);
 
     AAiter* iter = AAiter_init(AAITER_AUTO, graph->nodes);
 
@@ -248,15 +248,15 @@ bool Connections_check_connections(
 
 Device_node* Connections_get_master(Connections* graph)
 {
-    assert(graph != NULL);
+    rassert(graph != NULL);
     return AAtree_get_exact(graph->nodes, "");
 }
 
 
 bool Connections_prepare(const Connections* graph, Device_states* dstates)
 {
-    assert(graph != NULL);
-    assert(dstates != NULL);
+    rassert(graph != NULL);
+    rassert(dstates != NULL);
 
     return Connections_init_buffers(graph, dstates);
 }
@@ -264,11 +264,11 @@ bool Connections_prepare(const Connections* graph, Device_states* dstates)
 
 bool Connections_init_buffers(const Connections* graph, Device_states* dstates)
 {
-    assert(graph != NULL);
-    assert(dstates != NULL);
+    rassert(graph != NULL);
+    rassert(dstates != NULL);
 
     const Device_node* master = AAtree_get_exact(graph->nodes, "");
-    assert(master != NULL);
+    rassert(master != NULL);
     Device_states_reset_node_states(dstates);
     if (!Device_node_init_buffers_simple(master, dstates))
         return false;
@@ -284,12 +284,12 @@ void Connections_clear_buffers(
         int32_t buf_start,
         int32_t buf_stop)
 {
-    assert(graph != NULL);
-    assert(dstates != NULL);
-    assert(buf_start >= 0);
+    rassert(graph != NULL);
+    rassert(dstates != NULL);
+    rassert(buf_start >= 0);
 
     const Device_node* master = AAtree_get_exact(graph->nodes, "");
-    assert(master != NULL);
+    rassert(master != NULL);
     if (buf_start >= buf_stop)
         return;
 
@@ -310,17 +310,17 @@ int32_t Connections_process_voice_group(
         int32_t audio_rate,
         double tempo)
 {
-    assert(graph != NULL);
-    assert(vgroup != NULL);
-    assert(dstates != NULL);
-    assert(wbs != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
-    assert(audio_rate > 0);
-    assert(tempo > 0);
+    rassert(graph != NULL);
+    rassert(vgroup != NULL);
+    rassert(dstates != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+    rassert(audio_rate > 0);
+    rassert(tempo > 0);
 
     const Device_node* master = AAtree_get_exact(graph->nodes, "");
-    assert(master != NULL);
+    rassert(master != NULL);
     if (buf_start >= buf_stop)
         return buf_start;
 
@@ -338,14 +338,14 @@ void Connections_mix_voice_signals(
         int32_t buf_start,
         int32_t buf_stop)
 {
-    assert(graph != NULL);
-    assert(vgroup != NULL);
-    assert(dstates != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
+    rassert(graph != NULL);
+    rassert(vgroup != NULL);
+    rassert(dstates != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
 
     const Device_node* master = AAtree_get_exact(graph->nodes, "");
-    assert(master != NULL);
+    rassert(master != NULL);
     if (buf_start >= buf_stop)
         return;
 
@@ -367,16 +367,16 @@ void Connections_process_mixed_signals(
         int32_t audio_rate,
         double tempo)
 {
-    assert(graph != NULL);
-    assert(dstates != NULL);
-    assert(wbs != NULL);
-    assert(buf_start >= 0);
-    assert(audio_rate > 0);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(graph != NULL);
+    rassert(dstates != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(audio_rate > 0);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     const Device_node* master = AAtree_get_exact(graph->nodes, "");
-    assert(master != NULL);
+    rassert(master != NULL);
     if (buf_start >= buf_stop)
         return;
 
@@ -402,7 +402,7 @@ void Connections_process_mixed_signals(
 
 static bool Connections_is_cyclic(const Connections* graph)
 {
-    assert(graph != NULL);
+    rassert(graph != NULL);
 
     // Reset testing states
     {
@@ -436,12 +436,12 @@ static bool Connections_is_cyclic(const Connections* graph)
 
 void Connections_print(const Connections* graph, FILE* out)
 {
-    assert(graph != NULL);
-    assert(out != NULL);
+    rassert(graph != NULL);
+    rassert(out != NULL);
 
 //    Connections_reset(graph);
     const Device_node* master = AAtree_get_exact(graph->nodes, "");
-    assert(master != NULL);
+    rassert(master != NULL);
     Device_node_print(master, out);
     fprintf(out, "\n");
 
@@ -463,7 +463,7 @@ void del_Connections(Connections* graph)
 
 static int read_index(char* str)
 {
-    assert(str != NULL);
+    rassert(str != NULL);
 
     static const char* hex_digits = "0123456789abcdef";
     if (strspn(str, hex_digits) != 2)
@@ -478,9 +478,9 @@ static int read_index(char* str)
 static int validate_connection_path(
         Streader* sr, char* str, Connection_level level, Device_port_type type)
 {
-    assert(sr != NULL);
-    assert(str != NULL);
-    assert(type < DEVICE_PORT_TYPES);
+    rassert(sr != NULL);
+    rassert(str != NULL);
+    rassert(type < DEVICE_PORT_TYPES);
 
     if (Streader_is_error_set(sr))
         return -1;
@@ -602,7 +602,7 @@ static int validate_connection_path(
         }
         else
         {
-            assert(type == DEVICE_PORT_TYPE_SEND);
+            rassert(type == DEVICE_PORT_TYPE_SEND);
             bool can_send = (string_has_prefix(str, "out_") && !root) ||
                             (string_has_prefix(str, "in_") && root);
             if (!can_send)

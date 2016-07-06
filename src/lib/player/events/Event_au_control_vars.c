@@ -31,13 +31,13 @@ bool Event_au_set_cv_value_process(
         Device_states* dstates,
         const Value* value)
 {
-    assert(au != NULL);
-    assert(au_params != NULL);
-    assert(au_state != NULL);
-    assert(master_params != NULL);
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(value != NULL);
+    rassert(au != NULL);
+    rassert(au_params != NULL);
+    rassert(au_state != NULL);
+    rassert(master_params != NULL);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(value != NULL);
 
     const char* var_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR);

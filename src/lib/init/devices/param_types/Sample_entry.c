@@ -23,8 +23,8 @@
 
 bool Sample_entry_parse(Sample_entry* entry, Streader* sr)
 {
-    assert(entry != NULL);
-    assert(sr != NULL);
+    rassert(entry != NULL);
+    rassert(sr != NULL);
 
     int64_t sample = -1;
     double sample_cents = NAN;

@@ -90,7 +90,7 @@ const char* kqt_get_event_arg_type(const char* event_name)
                     return "realtime";
 
                 default:
-                    assert(false);
+                    rassert(false);
             }
         }
     }

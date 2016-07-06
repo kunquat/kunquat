@@ -38,8 +38,8 @@ typedef struct read_data
 
 static bool read_song(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(userdata != NULL);
 
     if (index >= KQT_TRACKS_MAX)
     {
@@ -80,7 +80,7 @@ static bool read_song(Streader* sr, int32_t index, void* userdata)
 
 Track_list* new_Track_list(Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -124,28 +124,28 @@ Track_list* new_Track_list(Streader* sr)
 
 int Track_list_get_len(const Track_list* tl)
 {
-    assert(tl != NULL);
+    rassert(tl != NULL);
     return (int)Vector_size(tl->songs);
 }
 
 
 int Track_list_get_song_index(const Track_list* tl, int index)
 {
-    assert(tl != NULL);
-    assert(index < Track_list_get_len(tl));
+    rassert(tl != NULL);
+    rassert(index < Track_list_get_len(tl));
 
     int16_t song_index = -1;
     Vector_get(tl->songs, index, &song_index);
 
-    assert(song_index >= 0);
+    rassert(song_index >= 0);
     return song_index;
 }
 
 
 int Track_list_get_track_by_song(const Track_list* tl, int song_index)
 {
-    assert(tl != NULL);
-    assert(song_index >= 0);
+    rassert(tl != NULL);
+    rassert(song_index >= 0);
 
     for (int64_t i = 0; i < Vector_size(tl->songs); ++i)
     {

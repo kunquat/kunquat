@@ -38,14 +38,14 @@ Tuning_state* new_Tuning_state(void)
 
 bool Tuning_state_can_retune(const Tuning_state* ts)
 {
-    assert(ts != NULL);
+    rassert(ts != NULL);
     return (ts->note_count > 0);
 }
 
 
 void Tuning_state_reset(Tuning_state* ts, const Tuning_table* table)
 {
-    assert(ts != NULL);
+    rassert(ts != NULL);
 
     if (table == NULL)
     {
@@ -76,8 +76,8 @@ void Tuning_state_reset(Tuning_state* ts, const Tuning_table* table)
 
 void Tuning_state_set_global_offset(Tuning_state* ts, double offset)
 {
-    assert(ts != NULL);
-    assert(isfinite(offset));
+    rassert(ts != NULL);
+    rassert(isfinite(offset));
 
     ts->global_offset = offset;
 
@@ -88,9 +88,9 @@ void Tuning_state_set_global_offset(Tuning_state* ts, double offset)
 void Tuning_state_set_fixed_pitch(
         Tuning_state* ts, const Tuning_table* table, double pitch)
 {
-    assert(ts != NULL);
-    assert(table != NULL);
-    assert(isfinite(pitch));
+    rassert(ts != NULL);
+    rassert(table != NULL);
+    rassert(isfinite(pitch));
 
     const int note_index = Tuning_table_get_nearest_note_index(table, pitch);
     ts->fixed_point = note_index;
@@ -101,9 +101,9 @@ void Tuning_state_set_fixed_pitch(
 
 void Tuning_state_retune(Tuning_state* ts, const Tuning_table* table, double new_ref)
 {
-    assert(ts != NULL);
-    assert(table != NULL);
-    assert(isfinite(new_ref));
+    rassert(ts != NULL);
+    rassert(table != NULL);
+    rassert(isfinite(new_ref));
 
     const int note_count = ts->note_count;
     if (note_count == 0)
@@ -147,9 +147,9 @@ void Tuning_state_retune(Tuning_state* ts, const Tuning_table* table, double new
 double Tuning_state_get_retuned_pitch(
         const Tuning_state* ts, const Tuning_table* table, double cents)
 {
-    assert(ts != NULL);
-    assert(table != NULL);
-    assert(isfinite(cents));
+    rassert(ts != NULL);
+    rassert(table != NULL);
+    rassert(isfinite(cents));
 
     if (ts->note_count == 0)
         return cents;
@@ -166,9 +166,9 @@ double Tuning_state_get_retuned_pitch(
 bool Tuning_state_retune_with_source(
         Tuning_state* ts, const Tuning_table* table, const Tuning_table* source)
 {
-    assert(ts != NULL);
-    assert(table != NULL);
-    assert(source != NULL);
+    rassert(ts != NULL);
+    rassert(table != NULL);
+    rassert(source != NULL);
 
     if (Tuning_table_get_note_count(table) != Tuning_table_get_note_count(source))
         return false;
@@ -182,7 +182,7 @@ bool Tuning_state_retune_with_source(
 
 double Tuning_state_get_estimated_drift(const Tuning_state* ts)
 {
-    assert(ts != NULL);
+    rassert(ts != NULL);
     return ts->drift;
 }
 

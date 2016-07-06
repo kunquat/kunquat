@@ -77,16 +77,16 @@ static int32_t Add_vstate_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
-    assert(au_state != NULL);
-    assert(wbs != NULL);
-    assert(tempo > 0);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
+    rassert(au_state != NULL);
+    rassert(wbs != NULL);
+    rassert(tempo > 0);
 
     const Device_state* dstate = &proc_state->parent;
     const Proc_add* add = (Proc_add*)proc_state->parent.device->dimpl;
     Add_vstate* add_state = (Add_vstate*)vstate;
-    assert(is_p2(ADD_BASE_FUNC_SIZE));
+    rassert(is_p2(ADD_BASE_FUNC_SIZE));
 
     // Get frequencies
     Work_buffer* freqs_wb = Proc_state_get_voice_buffer_mut(
@@ -223,8 +223,8 @@ static int32_t Add_vstate_render_voice(
 
 void Add_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
 
     vstate->render_voice = Add_vstate_render_voice;
 

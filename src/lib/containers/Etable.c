@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -31,7 +31,7 @@ struct Etable
 
 Etable* new_Etable(int size, void (*destroy)(void*))
 {
-    assert(size > 0);
+    rassert(size > 0);
 
     Etable* table = memory_alloc_item(Etable);
     if (table == NULL)
@@ -60,14 +60,14 @@ Etable* new_Etable(int size, void (*destroy)(void*))
 
 bool Etable_set(Etable* table, int index, void* el)
 {
-    assert(table != NULL);
-    assert(index >= 0);
-    assert(index < table->size);
-    assert(el != NULL);
+    rassert(table != NULL);
+    rassert(index >= 0);
+    rassert(index < table->size);
+    rassert(el != NULL);
 
 #ifndef NDEBUG
     for (int i = 0; i < table->res; ++i)
-        assert(table->els[i] != el);
+        rassert(table->els[i] != el);
 #endif
 
     if (index >= table->res)
@@ -98,9 +98,9 @@ bool Etable_set(Etable* table, int index, void* el)
 
 void* Etable_get(Etable* table, int index)
 {
-    assert(table != NULL);
-    assert(index >= 0);
-    assert(index < table->size);
+    rassert(table != NULL);
+    rassert(index >= 0);
+    rassert(index < table->size);
 
     if (index >= table->res)
         return NULL;
@@ -111,9 +111,9 @@ void* Etable_get(Etable* table, int index)
 
 void Etable_remove(Etable* table, int index)
 {
-    assert(table != NULL);
-    assert(index >= 0);
-    assert(index < table->size);
+    rassert(table != NULL);
+    rassert(index >= 0);
+    rassert(index < table->size);
 
     if (index >= table->res || table->els[index] == NULL)
         return;
@@ -127,7 +127,7 @@ void Etable_remove(Etable* table, int index)
 
 void Etable_clear(Etable* table)
 {
-    assert(table != NULL);
+    rassert(table != NULL);
 
     for (int i = 0; i < table->res; ++i)
     {

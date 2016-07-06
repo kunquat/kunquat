@@ -58,8 +58,8 @@ Voice* new_Voice(void)
 
 bool Voice_reserve_state_space(Voice* voice, int32_t state_size)
 {
-    assert(voice != NULL);
-    assert(state_size >= 0);
+    rassert(voice != NULL);
+    rassert(state_size >= 0);
 
     if (state_size <= voice->state_size)
         return true;
@@ -77,8 +77,8 @@ bool Voice_reserve_state_space(Voice* voice, int32_t state_size)
 
 int Voice_cmp(const Voice* v1, const Voice* v2)
 {
-    assert(v1 != NULL);
-    assert(v2 != NULL);
+    rassert(v1 != NULL);
+    rassert(v2 != NULL);
 
     return (int)v1->prio - (int)v2->prio;
 }
@@ -86,21 +86,21 @@ int Voice_cmp(const Voice* v1, const Voice* v2)
 
 uint64_t Voice_id(const Voice* voice)
 {
-    assert(voice != NULL);
+    rassert(voice != NULL);
     return voice->id;
 }
 
 
 uint64_t Voice_get_group_id(const Voice* voice)
 {
-    assert(voice != NULL);
+    rassert(voice != NULL);
     return voice->group_id;
 }
 
 
 const Processor* Voice_get_proc(const Voice* voice)
 {
-    assert(voice != NULL);
+    rassert(voice != NULL);
     return voice->proc;
 }
 
@@ -112,9 +112,9 @@ void Voice_init(
         const Proc_state* proc_state,
         uint64_t seed)
 {
-    assert(voice != NULL);
-    assert(proc != NULL);
-    assert(proc_state != NULL);
+    rassert(voice != NULL);
+    rassert(proc != NULL);
+    rassert(proc_state != NULL);
 
     voice->prio = VOICE_PRIO_NEW;
     voice->proc = proc;
@@ -134,7 +134,7 @@ void Voice_init(
 
 void Voice_reset(Voice* voice)
 {
-    assert(voice != NULL);
+    rassert(voice != NULL);
 
     voice->id = 0;
     voice->group_id = 0;
@@ -156,12 +156,12 @@ int32_t Voice_render(
         int32_t buf_stop,
         double tempo)
 {
-    assert(voice != NULL);
-    assert(voice->proc != NULL);
-    assert(dstates != NULL);
-    assert(wbs != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= buf_start);
+    rassert(voice != NULL);
+    rassert(voice->proc != NULL);
+    rassert(dstates != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= buf_start);
 
     if (voice->prio == VOICE_PRIO_INACTIVE)
         return buf_stop;

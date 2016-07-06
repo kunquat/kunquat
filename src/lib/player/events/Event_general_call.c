@@ -25,16 +25,16 @@
 
 bool Event_general_call_name_process(General_state* gstate, const Value* value)
 {
-    assert(gstate != NULL);
-    assert(value != NULL);
+    rassert(gstate != NULL);
+    rassert(value != NULL);
     return value->type == VALUE_TYPE_STRING;
 }
 
 
 bool Event_general_call_process(General_state* gstate, const Value* value)
 {
-    assert(gstate != NULL);
-    assert(value != NULL);
+    rassert(gstate != NULL);
+    rassert(value != NULL);
     return true;
 }
 

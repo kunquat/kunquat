@@ -52,13 +52,13 @@ Envelope* new_Envelope(int nodes_max,
         double min_x, double max_x, double step_x,
         double min_y, double max_y, double step_y)
 {
-    assert(nodes_max > 1);
-    assert(!isnan(min_x));
-    assert(!isnan(max_x));
-    assert(step_x >= 0);
-    assert(!isnan(min_y));
-    assert(!isnan(max_y));
-    assert(step_y >= 0);
+    rassert(nodes_max > 1);
+    rassert(!isnan(min_x));
+    rassert(!isnan(max_x));
+    rassert(step_x >= 0);
+    rassert(!isnan(min_y));
+    rassert(!isnan(max_y));
+    rassert(step_y >= 0);
 
     Envelope* env = memory_alloc_item(Envelope);
     if (env == NULL)
@@ -96,8 +96,8 @@ Envelope* new_Envelope(int nodes_max,
 
 static bool read_env_mark(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(userdata != NULL);
 
     if (index >= ENVELOPE_MARKS_MAX)
     {
@@ -133,9 +133,9 @@ static bool read_env_mark(Streader* sr, int32_t index, void* userdata)
 
 static bool read_env_item(Streader* sr, const char* key, void* userdata)
 {
-    assert(sr != NULL);
-    assert(key != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(key != NULL);
+    rassert(userdata != NULL);
 
     Envelope* env = userdata;
 
@@ -169,8 +169,8 @@ static bool read_env_item(Streader* sr, const char* key, void* userdata)
 
 bool Envelope_read(Envelope* env, Streader* sr)
 {
-    assert(env != NULL);
-    assert(sr != NULL);
+    rassert(env != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -189,8 +189,8 @@ typedef struct ndata
 
 static bool read_env_node(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(userdata != NULL);
 
     ndata* n = userdata;
     n->empty = false;
@@ -247,8 +247,8 @@ static bool read_env_node(Streader* sr, int32_t index, void* userdata)
 
 static bool Envelope_read_nodes(Envelope* env, Streader* sr)
 {
-    assert(env != NULL);
-    assert(sr != NULL);
+    rassert(env != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -277,16 +277,16 @@ static bool Envelope_read_nodes(Envelope* env, Streader* sr)
 
 int Envelope_node_count(const Envelope* env)
 {
-    assert(env != NULL);
+    rassert(env != NULL);
     return env->node_count;
 }
 
 
 void Envelope_set_interp(Envelope* env, Envelope_int interp)
 {
-    assert(env != NULL);
-//  assert(interp >= ENVELOPE_INT_NEAREST);
-    assert(interp < ENVELOPE_INT_LAST);
+    rassert(env != NULL);
+//  rassert(interp >= ENVELOPE_INT_NEAREST);
+    rassert(interp < ENVELOPE_INT_LAST);
     env->interp = interp;
     return;
 }
@@ -294,9 +294,9 @@ void Envelope_set_interp(Envelope* env, Envelope_int interp)
 
 void Envelope_set_mark(Envelope* env, int index, int value)
 {
-    assert(env != NULL);
-    assert(index >= 0);
-    assert(index < ENVELOPE_MARKS_MAX);
+    rassert(env != NULL);
+    rassert(index >= 0);
+    rassert(index < ENVELOPE_MARKS_MAX);
     env->marks[index] = value;
     return;
 }
@@ -304,9 +304,9 @@ void Envelope_set_mark(Envelope* env, int index, int value)
 
 int Envelope_get_mark(const Envelope* env, int index)
 {
-    assert(env != NULL);
-    assert(index >= 0);
-    assert(index < ENVELOPE_MARKS_MAX);
+    rassert(env != NULL);
+    rassert(index >= 0);
+    rassert(index < ENVELOPE_MARKS_MAX);
 
     return env->marks[index];
 }
@@ -314,20 +314,20 @@ int Envelope_get_mark(const Envelope* env, int index)
 
 Envelope_int Envelope_get_interp(const Envelope* env)
 {
-    assert(env != NULL);
+    rassert(env != NULL);
     return env->interp;
 }
 
 
 int Envelope_set_node(Envelope* env, double x, double y)
 {
-    assert(env != NULL);
-    assert(isfinite(x));
-    assert(isfinite(y));
+    rassert(env != NULL);
+    rassert(isfinite(x));
+    rassert(isfinite(y));
 
     if (env->node_count >= env->nodes_max)
     {
-        assert(env->node_count == env->nodes_max);
+        rassert(env->node_count == env->nodes_max);
         return -1;
     }
 
@@ -381,8 +381,8 @@ int Envelope_set_node(Envelope* env, double x, double y)
 
 bool Envelope_del_node(Envelope* env, int index)
 {
-    assert(env != NULL);
-    assert(index >= 0);
+    rassert(env != NULL);
+    rassert(index >= 0);
 
     if (index >= env->node_count)
         return false;
@@ -414,8 +414,8 @@ bool Envelope_del_node(Envelope* env, int index)
 
 double* Envelope_get_node(const Envelope* env, int index)
 {
-    assert(env != NULL);
-    assert(index >= 0);
+    rassert(env != NULL);
+    rassert(index >= 0);
 
     if (index >= env->node_count)
         return NULL;
@@ -426,10 +426,10 @@ double* Envelope_get_node(const Envelope* env, int index)
 
 double* Envelope_move_node(Envelope* env, int index, double x, double y)
 {
-    assert(env != NULL);
-    assert(index >= 0);
-    assert(isfinite(x));
-    assert(isfinite(y));
+    rassert(env != NULL);
+    rassert(index >= 0);
+    rassert(isfinite(x));
+    rassert(isfinite(y));
 
     if (index >= env->node_count)
         return NULL;
@@ -494,8 +494,8 @@ double* Envelope_move_node(Envelope* env, int index, double x, double y)
 
 double Envelope_get_value(const Envelope* env, double x)
 {
-    assert(env != NULL);
-    assert(isfinite(x));
+    rassert(env != NULL);
+    rassert(isfinite(x));
 
     if (env->node_count == 0
             || x < env->nodes[0]
@@ -517,9 +517,9 @@ double Envelope_get_value(const Envelope* env, double x)
     }
 
     // Interpolate
-    assert(start < env->node_count);
-    assert(end >= 0);
-    assert(start == end + 1);
+    rassert(start < env->node_count);
+    rassert(end >= 0);
+    rassert(start == end + 1);
 
     double prev_x = env->nodes[end * 2];
     double prev_y = env->nodes[end * 2 + 1];
@@ -545,18 +545,18 @@ double Envelope_get_value(const Envelope* env, double x)
         break;
 
         default:
-            assert(false);
+            rassert(false);
     }
 
-    assert(false);
+    rassert(false);
     return NAN;
 }
 
 
 void Envelope_set_first_lock(Envelope* env, bool lock_x, bool lock_y)
 {
-    assert(env != NULL);
-    assert(env->node_count > 0);
+    rassert(env != NULL);
+    rassert(env->node_count > 0);
 
     env->first_x_locked = lock_x;
     env->first_y_locked = lock_y;
@@ -567,8 +567,8 @@ void Envelope_set_first_lock(Envelope* env, bool lock_x, bool lock_y)
 
 void Envelope_set_last_lock(Envelope* env, bool lock_x, bool lock_y)
 {
-    assert(env != NULL);
-    assert(env->node_count > 0);
+    rassert(env != NULL);
+    rassert(env->node_count > 0);
 
     env->last_x_locked = lock_x;
     env->last_y_locked = lock_y;

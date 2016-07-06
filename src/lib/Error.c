@@ -32,16 +32,16 @@ static const char* error_codes[ERROR_COUNT_] =
 
 bool Error_is_set(const Error* error)
 {
-    assert(error != NULL);
+    rassert(error != NULL);
     return error->desc[0] != '\0';
 }
 
 
 Error_type Error_get_type(const Error* error)
 {
-    assert(error != NULL);
-    assert(Error_is_set(error));
-    assert(error->type < ERROR_COUNT_);
+    rassert(error != NULL);
+    rassert(Error_is_set(error));
+    rassert(error->type < ERROR_COUNT_);
 
     return error->type;
 }
@@ -49,16 +49,16 @@ Error_type Error_get_type(const Error* error)
 
 const char* Error_get_desc(const Error* error)
 {
-    assert(error != NULL);
+    rassert(error != NULL);
     return error->desc;
 }
 
 
 void Error_copy(Error* restrict dest, const Error* restrict src)
 {
-    assert(dest != NULL);
-    assert(src != NULL);
-    assert(src != dest);
+    rassert(dest != NULL);
+    rassert(src != NULL);
+    rassert(src != dest);
 
     memcpy(dest, src, sizeof(Error));
 
@@ -75,12 +75,12 @@ void Error_set_desc(
         const char* message,
         ...)
 {
-    assert(error != NULL);
-    assert(type < ERROR_COUNT_);
-    assert(file != NULL);
-    assert(line >= 0);
-    assert(func != NULL);
-    assert(message != NULL);
+    rassert(error != NULL);
+    rassert(type < ERROR_COUNT_);
+    rassert(file != NULL);
+    rassert(line >= 0);
+    rassert(func != NULL);
+    rassert(message != NULL);
 
     va_list args;
     va_start(args, message);
@@ -100,12 +100,12 @@ void Error_set_desc_va_list(
         const char* message,
         va_list args)
 {
-    assert(error != NULL);
-    assert(type < ERROR_COUNT_);
-    assert(file != NULL);
-    assert(line >= 0);
-    assert(func != NULL);
-    assert(message != NULL);
+    rassert(error != NULL);
+    rassert(type < ERROR_COUNT_);
+    rassert(file != NULL);
+    rassert(line >= 0);
+    rassert(func != NULL);
+    rassert(message != NULL);
 
     memset(error->desc, 0, ERROR_LENGTH_MAX);
 
@@ -143,8 +143,8 @@ void Error_set_desc_va_list(
                 break;
 
             const ptrdiff_t pos = named_control - named_controls;
-            assert(pos >= 0);
-            assert(pos < (int)strlen(named_controls));
+            rassert(pos >= 0);
+            rassert(pos < (int)strlen(named_controls));
             strcpy(&error->desc[json_pos], named_replace[pos]);
             json_pos += strlen(named_replace[pos]) - 1;
         }
@@ -176,7 +176,7 @@ void Error_set_desc_va_list(
 
 void Error_clear(Error* error)
 {
-    assert(error != NULL);
+    rassert(error != NULL);
     memset(error->desc, 0, ERROR_LENGTH_MAX);
     return;
 }

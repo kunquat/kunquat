@@ -82,9 +82,9 @@ Event_names* new_Event_names(void)
 
     for (int i = 0; event_specs[i].name[0] != '\0'; ++i)
     {
-        assert(strlen(event_specs[i].name) > 0);
-        assert(strlen(event_specs[i].name) < EVENT_NAME_MAX);
-        assert(!AAtree_contains(names->names, event_specs[i].name));
+        rassert(strlen(event_specs[i].name) > 0);
+        rassert(strlen(event_specs[i].name) < EVENT_NAME_MAX);
+        rassert(!AAtree_contains(names->names, event_specs[i].name));
 
         if (!AAtree_ins(names->names, &event_specs[i]))
         {
@@ -99,8 +99,8 @@ Event_names* new_Event_names(void)
 
 static int event_name_cmp(const char* e1, const char* e2)
 {
-    assert(e1 != NULL);
-    assert(e2 != NULL);
+    rassert(e1 != NULL);
+    rassert(e2 != NULL);
 
     int i = 0;
     for (i = 0; e1[i] != '\0' && e1[i] != '"' &&
@@ -123,15 +123,15 @@ static int event_name_cmp(const char* e1, const char* e2)
 
 bool Event_names_error(Event_names* names)
 {
-    assert(names != NULL);
+    rassert(names != NULL);
     return names->error;
 }
 
 
 Event_type Event_names_get(const Event_names* names, const char* name)
 {
-    assert(names != NULL);
-    assert(name != NULL);
+    rassert(names != NULL);
+    rassert(name != NULL);
 
     Name_info* info = AAtree_get_exact(names->names, name);
     if (info == NULL)
@@ -143,11 +143,11 @@ Event_type Event_names_get(const Event_names* names, const char* name)
 
 Value_type Event_names_get_param_type(const Event_names* names, const char* name)
 {
-    assert(names != NULL);
-    assert(name != NULL);
+    rassert(names != NULL);
+    rassert(name != NULL);
 
     Name_info* info = AAtree_get_exact(names->names, name);
-    assert(info != NULL);
+    rassert(info != NULL);
 
     return info->param_type;
 }

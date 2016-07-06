@@ -41,7 +41,7 @@ typedef struct Delay_pstate
 
 static void del_Delay_pstate(Device_state* dstate)
 {
-    assert(dstate != NULL);
+    rassert(dstate != NULL);
 
     Delay_pstate* dpstate = (Delay_pstate*)dstate;
 
@@ -62,8 +62,8 @@ static void del_Delay_pstate(Device_state* dstate)
 
 static bool Delay_pstate_set_audio_rate(Device_state* dstate, int32_t audio_rate)
 {
-    assert(dstate != NULL);
-    assert(audio_rate > 0);
+    rassert(dstate != NULL);
+    rassert(audio_rate > 0);
 
     Delay_pstate* dpstate = (Delay_pstate*)dstate;
 
@@ -89,7 +89,7 @@ static bool Delay_pstate_set_audio_rate(Device_state* dstate, int32_t audio_rate
 
 static void Delay_pstate_reset(Device_state* dstate)
 {
-    assert(dstate != NULL);
+    rassert(dstate != NULL);
 
     Delay_pstate* dpstate = (Delay_pstate*)dstate;
 
@@ -130,10 +130,10 @@ static void Delay_pstate_render_mixed(
         int32_t buf_stop,
         double tempo)
 {
-    assert(dstate != NULL);
-    assert(wbs != NULL);
-    assert(buf_start <= buf_stop);
-    assert(tempo > 0);
+    rassert(dstate != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start <= buf_stop);
+    rassert(tempo > 0);
 
     Delay_pstate* dpstate = (Delay_pstate*)dstate;
 
@@ -154,7 +154,7 @@ static void Delay_pstate_render_mixed(
     };
 
     const int32_t delay_buf_size = Work_buffer_get_size(dpstate->bufs[0]);
-    assert(delay_buf_size == Work_buffer_get_size(dpstate->bufs[1]));
+    rassert(delay_buf_size == Work_buffer_get_size(dpstate->bufs[1]));
     const int32_t delay_max = delay_buf_size - 1;
 
     static const int DELAY_WORK_BUFFER_TOTAL_OFFSETS = WORK_BUFFER_IMPL_1;
@@ -196,7 +196,7 @@ static void Delay_pstate_render_mixed(
             continue;
 
         const float* history = history_data[ch];
-        assert(history != NULL);
+        rassert(history != NULL);
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
@@ -205,8 +205,8 @@ static void Delay_pstate_render_mixed(
             // Get buffer positions
             const int32_t cur_pos = (int32_t)floor(total_offset);
             const double remainder = total_offset - (double)cur_pos;
-            assert(cur_pos <= (int32_t)i);
-            assert(implies(cur_pos == (int32_t)i, remainder == 0));
+            rassert(cur_pos <= (int32_t)i);
+            rassert(implies(cur_pos == (int32_t)i, remainder == 0));
             const int32_t next_pos = cur_pos + 1;
 
             // Get audio frames
@@ -216,18 +216,18 @@ static void Delay_pstate_render_mixed(
             if (cur_pos >= 0)
             {
                 const int32_t in_cur_pos = buf_start + cur_pos;
-                assert(in_cur_pos < (int32_t)buf_stop);
+                rassert(in_cur_pos < (int32_t)buf_stop);
                 cur_val = in[in_cur_pos];
 
                 const int32_t in_next_pos = min(buf_start + next_pos, i);
-                assert(in_next_pos < (int32_t)buf_stop);
+                rassert(in_next_pos < (int32_t)buf_stop);
                 next_val = in[in_next_pos];
             }
             else
             {
                 const int32_t cur_delay_buf_pos =
                     (cur_dpstate_buf_pos + cur_pos + delay_buf_size) % delay_buf_size;
-                assert(cur_delay_buf_pos >= 0);
+                rassert(cur_delay_buf_pos >= 0);
 
                 cur_val = history[cur_delay_buf_pos];
 
@@ -236,13 +236,13 @@ static void Delay_pstate_render_mixed(
                     const int32_t next_delay_buf_pos =
                         (cur_dpstate_buf_pos + next_pos + delay_buf_size) %
                         delay_buf_size;
-                    assert(next_delay_buf_pos >= 0);
+                    rassert(next_delay_buf_pos >= 0);
 
                     next_val = history[next_delay_buf_pos];
                 }
                 else
                 {
-                    assert(next_pos == 0);
+                    rassert(next_pos == 0);
                     next_val = in[buf_start];
                 }
             }
@@ -264,7 +264,7 @@ static void Delay_pstate_render_mixed(
             continue;
 
         float* history = history_data[ch];
-        assert(history != NULL);
+        rassert(history != NULL);
 
         cur_dpstate_buf_pos = dpstate->buf_pos;
 
@@ -275,7 +275,7 @@ static void Delay_pstate_render_mixed(
             ++cur_dpstate_buf_pos;
             if (cur_dpstate_buf_pos >= delay_buf_size)
             {
-                assert(cur_dpstate_buf_pos == delay_buf_size);
+                rassert(cur_dpstate_buf_pos == delay_buf_size);
                 cur_dpstate_buf_pos = 0;
             }
         }
@@ -289,7 +289,7 @@ static void Delay_pstate_render_mixed(
 
 static void Delay_pstate_clear_history(Proc_state* proc_state)
 {
-    assert(proc_state != NULL);
+    rassert(proc_state != NULL);
 
     Delay_pstate* dpstate = (Delay_pstate*)proc_state;
 
@@ -308,9 +308,9 @@ static void Delay_pstate_clear_history(Proc_state* proc_state)
 Device_state* new_Delay_pstate(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
-    assert(device != NULL);
-    assert(audio_rate > 0);
-    assert(audio_buffer_size >= 0);
+    rassert(device != NULL);
+    rassert(audio_rate > 0);
+    rassert(audio_buffer_size >= 0);
 
     Delay_pstate* dpstate = memory_alloc_item(Delay_pstate);
     if (dpstate == NULL)
@@ -353,7 +353,7 @@ Device_state* new_Delay_pstate(
 bool Delay_pstate_set_max_delay(
         Device_state* dstate, const Key_indices indices, double value)
 {
-    assert(dstate != NULL);
+    rassert(dstate != NULL);
     ignore(indices);
     ignore(value);
 

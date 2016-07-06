@@ -30,8 +30,8 @@
 
 bool Sample_parse_wav(Sample* sample, Streader* sr)
 {
-    assert(sample != NULL);
-    assert(sr != NULL);
+    rassert(sample != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -57,7 +57,7 @@ typedef struct String_context
 
 static sf_count_t get_filelen_str(void* user_data)
 {
-    assert(user_data != NULL);
+    rassert(user_data != NULL);
     const String_context* context = user_data;
     return context->length;
 }
@@ -65,7 +65,7 @@ static sf_count_t get_filelen_str(void* user_data)
 
 static sf_count_t seek_str(sf_count_t offset, int whence, void* user_data)
 {
-    assert(user_data != NULL);
+    rassert(user_data != NULL);
     String_context* context = user_data;
 
     switch (whence)
@@ -75,8 +75,8 @@ static sf_count_t seek_str(sf_count_t offset, int whence, void* user_data)
         case SEEK_END: context->pos = context->length + offset; break;
     }
 
-    assert(context->pos >= 0);
-    assert(context->pos <= context->length);
+    rassert(context->pos >= 0);
+    rassert(context->pos <= context->length);
 
     return context->pos;
 }
@@ -84,7 +84,7 @@ static sf_count_t seek_str(sf_count_t offset, int whence, void* user_data)
 
 static sf_count_t read_str(void* ptr, sf_count_t count, void* user_data)
 {
-    assert(user_data != NULL);
+    rassert(user_data != NULL);
     String_context* context = user_data;
     const sf_count_t actual_count = min(count, context->length - context->pos);
     memcpy(ptr, &context->data[context->pos], (size_t)actual_count);
@@ -95,7 +95,7 @@ static sf_count_t read_str(void* ptr, sf_count_t count, void* user_data)
 
 static sf_count_t tell_str(void* user_data)
 {
-    assert(user_data != NULL);
+    rassert(user_data != NULL);
     const String_context* context = user_data;
     return context->pos;
 }
@@ -114,8 +114,8 @@ static void close_sndfile(SNDFILE* sf)
 
 bool Sample_parse_wav(Sample* sample, Streader* sr)
 {
-    assert(sample != NULL);
-    assert(sr != NULL);
+    rassert(sample != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;

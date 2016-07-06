@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -32,7 +32,7 @@ struct Au_table
 
 Au_table* new_Au_table(int size)
 {
-    assert(size > 0);
+    rassert(size > 0);
 
     Au_table* table = memory_alloc_item(Au_table);
     if (table == NULL)
@@ -53,10 +53,10 @@ Au_table* new_Au_table(int size)
 
 bool Au_table_set(Au_table* table, int index, Audio_unit* au)
 {
-    assert(table != NULL);
-    assert(index >= 0);
-    assert(index < table->size);
-    assert(au != NULL);
+    rassert(table != NULL);
+    rassert(index >= 0);
+    rassert(index < table->size);
+    rassert(au != NULL);
 
     return Etable_set(table->aus, index, au);
 }
@@ -64,9 +64,9 @@ bool Au_table_set(Au_table* table, int index, Audio_unit* au)
 
 Audio_unit* Au_table_get(Au_table* table, int index)
 {
-    assert(table != NULL);
-    assert(index >= 0);
-    assert(index < table->size);
+    rassert(table != NULL);
+    rassert(index >= 0);
+    rassert(index < table->size);
 
     return Etable_get(table->aus, index);
 }
@@ -74,9 +74,9 @@ Audio_unit* Au_table_get(Au_table* table, int index)
 
 void Au_table_remove(Au_table* table, int index)
 {
-    assert(table != NULL);
-    assert(index >= 0);
-    assert(index < table->size);
+    rassert(table != NULL);
+    rassert(index >= 0);
+    rassert(index < table->size);
 
     Etable_remove(table->aus, index);
 
@@ -86,7 +86,7 @@ void Au_table_remove(Au_table* table, int index)
 
 void Au_table_clear(Au_table* table)
 {
-    assert(table != NULL);
+    rassert(table != NULL);
     Etable_clear(table->aus);
     return;
 }

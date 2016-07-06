@@ -39,7 +39,7 @@ static const Proc_type proc_types[] =
 
 Proc_cons* Proc_type_find_cons(const char* type)
 {
-    assert(type != NULL);
+    rassert(type != NULL);
 
     for (int i = 0; proc_types[i].type != NULL; ++i)
     {

@@ -35,7 +35,7 @@ static bool Au_state_init(
         int32_t audio_rate,
         int32_t audio_buffer_size)
 {
-    assert(au_state != NULL);
+    rassert(au_state != NULL);
 
     if (!Device_state_init(&au_state->parent, device, audio_rate, audio_buffer_size))
         return false;
@@ -56,8 +56,8 @@ static void mix_interface_connection(
         int32_t buf_start,
         int32_t buf_stop)
 {
-    assert(out_ds != NULL);
-    assert(in_ds != NULL);
+    rassert(out_ds != NULL);
+    rassert(in_ds != NULL);
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -81,11 +81,11 @@ static void Au_state_render_mixed(
         int32_t buf_stop,
         double tempo)
 {
-    assert(dstate != NULL);
-    assert(wbs != NULL);
-    assert(buf_start >= 0);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(dstate != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     Au_state* au_state = (Au_state*)dstate;
 
@@ -101,7 +101,7 @@ static void Au_state_render_mixed(
         //Connections_clear_buffers(au->connections, dstates, buf_start, buf_stop);
 
         Device_states* dstates = au_state->dstates;
-        assert(dstates != NULL);
+        rassert(dstates != NULL);
 
         // Fill input interface buffers
         Device_state* in_iface_ds = Device_states_get_state(
@@ -132,9 +132,9 @@ static void Au_state_render_mixed(
 Device_state* new_Au_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
-    assert(device != NULL);
-    assert(audio_rate > 0);
-    assert(audio_buffer_size >= 0);
+    rassert(device != NULL);
+    rassert(audio_rate > 0);
+    rassert(audio_buffer_size >= 0);
 
     Au_state* au_state = memory_alloc_item(Au_state);
     if (au_state == NULL)
@@ -154,8 +154,8 @@ Device_state* new_Au_state(
 
 void Au_state_set_device_states(Au_state* au_state, Device_states* dstates)
 {
-    assert(au_state != NULL);
-    assert(dstates != NULL);
+    rassert(au_state != NULL);
+    rassert(dstates != NULL);
 
     au_state->dstates = dstates;
 
@@ -165,7 +165,7 @@ void Au_state_set_device_states(Au_state* au_state, Device_states* dstates)
 
 void Au_state_reset(Device_state* dstate)
 {
-    assert(dstate != NULL);
+    rassert(dstate != NULL);
 
     Au_state* au_state = (Au_state*)dstate;
     au_state->bypass = false;

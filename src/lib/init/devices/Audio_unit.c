@@ -48,7 +48,7 @@ typedef struct Hit_info
 
 static Hit_info* Hit_info_init(Hit_info* hit)
 {
-    assert(hit != NULL);
+    rassert(hit != NULL);
 
     hit->existence = false;
     hit->hit_proc_filter = NULL;
@@ -59,7 +59,7 @@ static Hit_info* Hit_info_init(Hit_info* hit)
 
 static void Hit_info_deinit(Hit_info* hit)
 {
-    assert(hit != NULL);
+    rassert(hit != NULL);
 
     del_Param_proc_filter(hit->hit_proc_filter);
     hit->hit_proc_filter = NULL;
@@ -181,8 +181,8 @@ Audio_unit* new_Audio_unit(void)
 
 void Audio_unit_set_type(Audio_unit* au, Au_type type)
 {
-    assert(au != NULL);
-    assert(type != AU_TYPE_INVALID);
+    rassert(au != NULL);
+    rassert(type != AU_TYPE_INVALID);
 
     au->type = type;
 
@@ -192,23 +192,23 @@ void Audio_unit_set_type(Audio_unit* au, Au_type type)
 
 Au_type Audio_unit_get_type(const Audio_unit* au)
 {
-    assert(au != NULL);
+    rassert(au != NULL);
     return au->type;
 }
 
 
 Au_params* Audio_unit_get_params(Audio_unit* au)
 {
-    assert(au != NULL);
+    rassert(au != NULL);
     return &au->params;
 }
 
 
 const Processor* Audio_unit_get_proc(const Audio_unit* au, int index)
 {
-    assert(au != NULL);
-    assert(index >= 0);
-    assert(index < KQT_PROCESSORS_MAX);
+    rassert(au != NULL);
+    rassert(index >= 0);
+    rassert(index < KQT_PROCESSORS_MAX);
 
     return Proc_table_get_proc(au->procs, index);
 }
@@ -216,17 +216,17 @@ const Processor* Audio_unit_get_proc(const Audio_unit* au, int index)
 
 Proc_table* Audio_unit_get_procs(const Audio_unit* au)
 {
-    assert(au != NULL);
+    rassert(au != NULL);
     return au->procs;
 }
 
 
 const Audio_unit* Audio_unit_get_au(const Audio_unit* au, int index)
 {
-    assert(au != NULL);
-    assert(au->au_table != NULL);
-    assert(index >= 0);
-    assert(index < KQT_AUDIO_UNITS_MAX);
+    rassert(au != NULL);
+    rassert(au->au_table != NULL);
+    rassert(index >= 0);
+    rassert(index < KQT_AUDIO_UNITS_MAX);
 
     return Au_table_get(au->au_table, index);
 }
@@ -234,8 +234,8 @@ const Audio_unit* Audio_unit_get_au(const Audio_unit* au, int index)
 
 Au_table* Audio_unit_get_au_table(Audio_unit* au)
 {
-    assert(au != NULL);
-    assert(au->au_table != NULL);
+    rassert(au != NULL);
+    rassert(au->au_table != NULL);
 
     return au->au_table;
 }
@@ -243,7 +243,7 @@ Au_table* Audio_unit_get_au_table(Audio_unit* au)
 
 void Audio_unit_set_connections(Audio_unit* au, Connections* graph)
 {
-    assert(au != NULL);
+    rassert(au != NULL);
 
     if (au->connections != NULL)
         del_Connections(au->connections);
@@ -255,22 +255,22 @@ void Audio_unit_set_connections(Audio_unit* au, Connections* graph)
 
 const Connections* Audio_unit_get_connections(const Audio_unit* au)
 {
-    assert(au != NULL);
+    rassert(au != NULL);
     return au->connections;
 }
 
 
 Connections* Audio_unit_get_connections_mut(const Audio_unit* au)
 {
-    assert(au != NULL);
+    rassert(au != NULL);
     return au->connections;
 }
 
 
 bool Audio_unit_prepare_connections(const Audio_unit* au, Device_states* states)
 {
-    assert(au != NULL);
-    assert(states != NULL);
+    rassert(au != NULL);
+    rassert(states != NULL);
 
     if (au->connections == NULL)
         return true;
@@ -281,21 +281,21 @@ bool Audio_unit_prepare_connections(const Audio_unit* au, Device_states* states)
 
 const Device* Audio_unit_get_input_interface(const Audio_unit* au)
 {
-    assert(au != NULL);
+    rassert(au != NULL);
     return &au->in_iface->parent;
 }
 
 
 const Device* Audio_unit_get_output_interface(const Audio_unit* au)
 {
-    assert(au != NULL);
+    rassert(au != NULL);
     return &au->out_iface->parent;
 }
 
 
 void Audio_unit_set_control_vars(Audio_unit* au, Au_control_vars* au_control_vars)
 {
-    assert(au != NULL);
+    rassert(au != NULL);
 
     del_Au_control_vars(au->control_vars);
     au->control_vars = au_control_vars;
@@ -306,7 +306,7 @@ void Audio_unit_set_control_vars(Audio_unit* au, Au_control_vars* au_control_var
 
 void Audio_unit_set_streams(Audio_unit* au, Au_streams* au_streams)
 {
-    assert(au != NULL);
+    rassert(au != NULL);
 
     del_Au_streams(au->streams);
     au->streams = au_streams;
@@ -317,16 +317,16 @@ void Audio_unit_set_streams(Audio_unit* au, Au_streams* au_streams)
 
 const Au_streams* Audio_unit_get_streams(const Audio_unit* au)
 {
-    assert(au != NULL);
+    rassert(au != NULL);
     return au->streams;
 }
 
 
 void Audio_unit_set_hit_existence(Audio_unit* au, int index, bool existence)
 {
-    assert(au != NULL);
-    assert(index >= 0);
-    assert(index < KQT_HITS_MAX);
+    rassert(au != NULL);
+    rassert(index >= 0);
+    rassert(index < KQT_HITS_MAX);
 
     au->hits[index].existence = existence;
 
@@ -336,9 +336,9 @@ void Audio_unit_set_hit_existence(Audio_unit* au, int index, bool existence)
 
 bool Audio_unit_get_hit_existence(const Audio_unit* au, int index)
 {
-    assert(au != NULL);
-    assert(index >= 0);
-    assert(index < KQT_HITS_MAX);
+    rassert(au != NULL);
+    rassert(index >= 0);
+    rassert(index < KQT_HITS_MAX);
 
     return au->hits[index].existence;
 }
@@ -346,9 +346,9 @@ bool Audio_unit_get_hit_existence(const Audio_unit* au, int index)
 
 void Audio_unit_set_hit_proc_filter(Audio_unit* au, int index, Param_proc_filter* hpf)
 {
-    assert(au != NULL);
-    assert(index >= 0);
-    assert(index < KQT_HITS_MAX);
+    rassert(au != NULL);
+    rassert(index >= 0);
+    rassert(index < KQT_HITS_MAX);
 
     del_Param_proc_filter(au->hits[index].hit_proc_filter);
     au->hits[index].hit_proc_filter = hpf;
@@ -359,9 +359,9 @@ void Audio_unit_set_hit_proc_filter(Audio_unit* au, int index, Param_proc_filter
 
 const Param_proc_filter* Audio_unit_get_hit_proc_filter(const Audio_unit* au, int index)
 {
-    assert(au != NULL);
-    assert(index >= 0);
-    assert(index < KQT_HITS_MAX);
+    rassert(au != NULL);
+    rassert(index >= 0);
+    rassert(index < KQT_HITS_MAX);
 
     return au->hits[index].hit_proc_filter;
 }
@@ -369,7 +369,7 @@ const Param_proc_filter* Audio_unit_get_hit_proc_filter(const Audio_unit* au, in
 
 void Audio_unit_set_expressions(Audio_unit* au, Au_expressions* expressions)
 {
-    assert(au != NULL);
+    rassert(au != NULL);
 
     del_Au_expressions(au->expressions);
     au->expressions = expressions;
@@ -380,7 +380,7 @@ void Audio_unit_set_expressions(Audio_unit* au, Au_expressions* expressions)
 
 const Au_expressions* Audio_unit_get_expressions(const Audio_unit* au)
 {
-    assert(au != NULL);
+    rassert(au != NULL);
     return au->expressions;
 }
 
@@ -390,8 +390,8 @@ static const Device* get_cv_target_device(
         const Au_control_binding_iter* iter,
         Device_control_var_mode mode)
 {
-    assert(au != NULL);
-    assert(iter != NULL);
+    rassert(au != NULL);
+    rassert(iter != NULL);
 
     const Device* target_dev = NULL;
     if ((mode == DEVICE_CONTROL_VAR_MODE_MIXED) &&
@@ -415,11 +415,11 @@ static void Audio_unit_init_control_var_generic(
         const char* var_name,
         Value_type var_type)
 {
-    assert(au != NULL);
-    assert(dstates != NULL);
-    assert(random != NULL);
-    assert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
-    assert(var_name != NULL);
+    rassert(au != NULL);
+    rassert(dstates != NULL);
+    rassert(random != NULL);
+    rassert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
+    rassert(var_name != NULL);
 
     bool carried = false;
 
@@ -460,7 +460,7 @@ static void Audio_unit_init_control_var_generic(
             Channel_cv_state* cvstate = Channel_get_cv_state_mut(channel);
             const bool success =
                 Channel_cv_state_set_value(cvstate, var_name, init_value);
-            assert(success);
+            rassert(success);
         }
 
         Audio_unit_set_control_var_generic(
@@ -478,10 +478,10 @@ static void Audio_unit_init_control_vars(
         Random* random,
         Channel* channel)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(random != NULL);
-    assert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
+    rassert(device != NULL);
+    rassert(dstates != NULL);
+    rassert(random != NULL);
+    rassert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
 
     const Audio_unit* au = (const Audio_unit*)device;
     if (au->control_vars == NULL)
@@ -513,12 +513,12 @@ static void Audio_unit_set_control_var_generic(
         const char* var_name,
         const Value* value)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(random != NULL);
-    assert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
-    assert(var_name != NULL);
-    assert(value != NULL);
+    rassert(device != NULL);
+    rassert(dstates != NULL);
+    rassert(random != NULL);
+    rassert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
+    rassert(var_name != NULL);
+    rassert(value != NULL);
 
     const Audio_unit* au = (const Audio_unit*)device;
     if (au->control_vars == NULL)

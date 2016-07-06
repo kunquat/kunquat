@@ -70,8 +70,8 @@ Device_impl* new_Proc_gaincomp(void)
 static bool Proc_gc_set_map_enabled(
         Device_impl* dimpl, const Key_indices indices, bool value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_gaincomp* gc = (Proc_gaincomp*)dimpl;
     gc->is_map_enabled = value;
@@ -83,8 +83,8 @@ static bool Proc_gc_set_map_enabled(
 static bool Proc_gc_set_map(
         Device_impl* dimpl, const Key_indices indices, const Envelope* value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_gaincomp* gc = (Proc_gaincomp*)dimpl;
 

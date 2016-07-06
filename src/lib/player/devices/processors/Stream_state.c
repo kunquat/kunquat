@@ -41,9 +41,9 @@ static void apply_controls(
         int32_t buf_stop,
         double tempo)
 {
-    assert(controls != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= buf_start);
+    rassert(controls != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= buf_start);
 
     Linear_controls_set_tempo(controls, tempo);
 
@@ -69,8 +69,8 @@ typedef struct Stream_pstate
 
 static bool Stream_pstate_set_audio_rate(Device_state* dstate, int32_t audio_rate)
 {
-    assert(dstate != NULL);
-    assert(audio_rate > 0);
+    rassert(dstate != NULL);
+    rassert(audio_rate > 0);
 
     Stream_pstate* spstate = (Stream_pstate*)dstate;
 
@@ -82,7 +82,7 @@ static bool Stream_pstate_set_audio_rate(Device_state* dstate, int32_t audio_rat
 
 static void Stream_pstate_reset(Device_state* dstate)
 {
-    assert(dstate != NULL);
+    rassert(dstate != NULL);
 
     Stream_pstate* spstate = (Stream_pstate*)dstate;
 
@@ -104,10 +104,10 @@ static void Stream_pstate_render_mixed(
         int32_t buf_stop,
         double tempo)
 {
-    assert(dstate != NULL);
-    assert(wbs != NULL);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(dstate != NULL);
+    rassert(wbs != NULL);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     Stream_pstate* spstate = (Stream_pstate*)dstate;
 
@@ -124,9 +124,9 @@ static void Stream_pstate_render_mixed(
 Device_state* new_Stream_pstate(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
-    assert(device != NULL);
-    assert(audio_rate > 0);
-    assert(audio_buffer_size >= 0);
+    rassert(device != NULL);
+    rassert(audio_rate > 0);
+    rassert(audio_buffer_size >= 0);
 
     Stream_pstate* spstate = memory_alloc_item(Stream_pstate);
     if ((spstate == NULL) ||
@@ -156,8 +156,8 @@ Device_state* new_Stream_pstate(
 bool Stream_pstate_set_init_value(
         Device_state* dstate, const Key_indices indices, double value)
 {
-    assert(dstate != NULL);
-    assert(indices != NULL);
+    rassert(dstate != NULL);
+    rassert(indices != NULL);
     ignore(value);
 
     Stream_pstate* spstate = (Stream_pstate*)dstate;
@@ -174,8 +174,8 @@ bool Stream_pstate_set_init_value(
 bool Stream_pstate_set_init_osc_speed(
         Device_state* dstate, const Key_indices indices, double value)
 {
-    assert(dstate != NULL);
-    assert(indices != NULL);
+    rassert(dstate != NULL);
+    rassert(indices != NULL);
     ignore(value);
 
     Stream_pstate* spstate = (Stream_pstate*)dstate;
@@ -192,8 +192,8 @@ bool Stream_pstate_set_init_osc_speed(
 bool Stream_pstate_set_init_osc_depth(
         Device_state* dstate, const Key_indices indices, double value)
 {
-    assert(dstate != NULL);
-    assert(indices != NULL);
+    rassert(dstate != NULL);
+    rassert(indices != NULL);
     ignore(value);
 
     Stream_pstate* spstate = (Stream_pstate*)dstate;
@@ -209,8 +209,8 @@ bool Stream_pstate_set_init_osc_depth(
 
 void Stream_pstate_set_value(Device_state* dstate, double value)
 {
-    assert(dstate != NULL);
-    assert(isfinite(value));
+    rassert(dstate != NULL);
+    rassert(isfinite(value));
 
     Stream_pstate* spstate = (Stream_pstate*)dstate;
 
@@ -222,8 +222,8 @@ void Stream_pstate_set_value(Device_state* dstate, double value)
 
 void Stream_pstate_slide_target(Device_state* dstate, double value)
 {
-    assert(dstate != NULL);
-    assert(isfinite(value));
+    rassert(dstate != NULL);
+    rassert(isfinite(value));
 
     Stream_pstate* spstate = (Stream_pstate*)dstate;
 
@@ -235,8 +235,8 @@ void Stream_pstate_slide_target(Device_state* dstate, double value)
 
 void Stream_pstate_slide_length(Device_state* dstate, const Tstamp* length)
 {
-    assert(dstate != NULL);
-    assert(length != NULL);
+    rassert(dstate != NULL);
+    rassert(length != NULL);
 
     Stream_pstate* spstate = (Stream_pstate*)dstate;
 
@@ -248,8 +248,8 @@ void Stream_pstate_slide_length(Device_state* dstate, const Tstamp* length)
 
 void Stream_pstate_set_osc_speed(Device_state* dstate, double speed)
 {
-    assert(dstate != NULL);
-    assert(isfinite(speed));
+    rassert(dstate != NULL);
+    rassert(isfinite(speed));
 
     Stream_pstate* spstate = (Stream_pstate*)dstate;
 
@@ -261,8 +261,8 @@ void Stream_pstate_set_osc_speed(Device_state* dstate, double speed)
 
 void Stream_pstate_set_osc_depth(Device_state* dstate, double depth)
 {
-    assert(dstate != NULL);
-    assert(isfinite(depth));
+    rassert(dstate != NULL);
+    rassert(isfinite(depth));
 
     Stream_pstate* spstate = (Stream_pstate*)dstate;
 
@@ -274,8 +274,8 @@ void Stream_pstate_set_osc_depth(Device_state* dstate, double depth)
 
 void Stream_pstate_set_osc_speed_slide(Device_state* dstate, const Tstamp* length)
 {
-    assert(dstate != NULL);
-    assert(length != NULL);
+    rassert(dstate != NULL);
+    rassert(length != NULL);
 
     Stream_pstate* spstate = (Stream_pstate*)dstate;
 
@@ -287,8 +287,8 @@ void Stream_pstate_set_osc_speed_slide(Device_state* dstate, const Tstamp* lengt
 
 void Stream_pstate_set_osc_depth_slide(Device_state* dstate, const Tstamp* length)
 {
-    assert(dstate != NULL);
-    assert(length != NULL);
+    rassert(dstate != NULL);
+    rassert(length != NULL);
 
     Stream_pstate* spstate = (Stream_pstate*)dstate;
 
@@ -320,14 +320,14 @@ static int32_t Stream_vstate_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
-    assert(au_state != NULL);
-    assert(wbs != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
+    rassert(au_state != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     Stream_vstate* svstate = (Stream_vstate*)vstate;
 
@@ -348,8 +348,8 @@ static int32_t Stream_vstate_render_voice(
 
 void Stream_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
 
     vstate->render_voice = Stream_vstate_render_voice;
 
@@ -374,8 +374,8 @@ void Stream_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
 const Linear_controls* Stream_vstate_get_controls(const Voice_state* vstate)
 {
-    assert(vstate != NULL);
-    assert(vstate->is_stream_state);
+    rassert(vstate != NULL);
+    rassert(vstate->is_stream_state);
 
     const Stream_vstate* svstate = (const Stream_vstate*)vstate;
 
@@ -385,9 +385,9 @@ const Linear_controls* Stream_vstate_get_controls(const Voice_state* vstate)
 
 void Stream_vstate_set_controls(Voice_state* vstate, const Linear_controls* controls)
 {
-    assert(vstate != NULL);
-    assert(vstate->is_stream_state);
-    assert(controls != NULL);
+    rassert(vstate != NULL);
+    rassert(vstate->is_stream_state);
+    rassert(controls != NULL);
 
     Stream_vstate* svstate = (Stream_vstate*)vstate;
 

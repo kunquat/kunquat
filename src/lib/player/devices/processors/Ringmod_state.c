@@ -51,11 +51,11 @@ static void multiply_signals(
         int32_t buf_start,
         int32_t buf_stop)
 {
-    assert(in1_buffers != NULL);
-    assert(in2_buffers != NULL);
-    assert(out_buffers != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
+    rassert(in1_buffers != NULL);
+    rassert(in2_buffers != NULL);
+    rassert(out_buffers != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
 
     for (int ch = 0; ch < 2; ++ch)
     {
@@ -81,10 +81,10 @@ static void Ringmod_pstate_render_mixed(
         int32_t buf_stop,
         double tempo)
 {
-    assert(dstate != NULL);
-    assert(wbs != NULL);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(dstate != NULL);
+    rassert(wbs != NULL);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     Proc_state* proc_state = (Proc_state*)dstate;
 
@@ -112,9 +112,9 @@ static void Ringmod_pstate_render_mixed(
 Device_state* new_Ringmod_pstate(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
-    assert(device != NULL);
-    assert(audio_rate > 0);
-    assert(audio_buffer_size >= 0);
+    rassert(device != NULL);
+    rassert(audio_rate > 0);
+    rassert(audio_buffer_size >= 0);
 
     Proc_state* proc_state =
         new_Proc_state_default(device, audio_rate, audio_buffer_size);
@@ -136,14 +136,14 @@ static int32_t Ringmod_vstate_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
-    assert(au_state != NULL);
-    assert(wbs != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
+    rassert(au_state != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     // Get inputs
     float* in1_buffers[2] = { NULL };
@@ -175,8 +175,8 @@ static int32_t Ringmod_vstate_render_voice(
 
 void Ringmod_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
 
     vstate->render_voice = Ringmod_vstate_render_voice;
 

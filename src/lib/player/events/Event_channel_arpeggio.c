@@ -33,9 +33,9 @@ bool Event_channel_arpeggio_on_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
     ignore(value);
 
     if (isnan(ch->arpeggio_ref))
@@ -65,9 +65,9 @@ bool Event_channel_arpeggio_off_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
     ignore(value);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
@@ -89,11 +89,11 @@ bool Event_channel_set_arpeggio_index_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_INT);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_INT);
 
     ch->arpeggio_edit_pos = (int)value->value.int_type;
 
@@ -107,11 +107,11 @@ bool Event_channel_set_arpeggio_note_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     if (isnan(ch->arpeggio_tones[ch->arpeggio_edit_pos]) &&
             ch->arpeggio_edit_pos < KQT_ARPEGGIO_TONES_MAX - 1)
@@ -141,11 +141,11 @@ bool Event_channel_set_arpeggio_speed_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     ch->arpeggio_speed = value->value.float_type;
 
@@ -168,9 +168,9 @@ bool Event_channel_reset_arpeggio_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
     ignore(value);
 
     ch->arpeggio_ref = NAN;

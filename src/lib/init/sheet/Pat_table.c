@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -34,7 +34,7 @@ struct Pat_table
 
 Pat_table* new_Pat_table(int size)
 {
-    assert(size > 0);
+    rassert(size > 0);
 
     Pat_table* table = memory_alloc_item(Pat_table);
     if (table == NULL)
@@ -59,10 +59,10 @@ Pat_table* new_Pat_table(int size)
 
 bool Pat_table_set(Pat_table* table, int index, Pattern* pat)
 {
-    assert(table != NULL);
-    assert(index >= 0);
-    assert(index < table->size);
-    assert(pat != NULL);
+    rassert(table != NULL);
+    rassert(index >= 0);
+    rassert(index < table->size);
+    rassert(pat != NULL);
 
     return Etable_set(table->pats, index, pat);
 }
@@ -70,9 +70,9 @@ bool Pat_table_set(Pat_table* table, int index, Pattern* pat)
 
 void Pat_table_set_existent(Pat_table* table, int index, bool existent)
 {
-    assert(table != NULL);
-    assert(index >= 0);
-    assert(index < table->size);
+    rassert(table != NULL);
+    rassert(index >= 0);
+    rassert(index < table->size);
 
     Bit_array_set(table->existents, index, existent);
 
@@ -82,9 +82,9 @@ void Pat_table_set_existent(Pat_table* table, int index, bool existent)
 
 bool Pat_table_get_existent(const Pat_table* table, int index)
 {
-    assert(table != NULL);
-    assert(index >= 0);
-    assert(index < table->size);
+    rassert(table != NULL);
+    rassert(index >= 0);
+    rassert(index < table->size);
 
     return Bit_array_get(table->existents, index);
 }
@@ -92,9 +92,9 @@ bool Pat_table_get_existent(const Pat_table* table, int index)
 
 Pattern* Pat_table_get(Pat_table* table, int index)
 {
-    assert(table != NULL);
-    assert(index >= 0);
-    assert(index < table->size);
+    rassert(table != NULL);
+    rassert(index >= 0);
+    rassert(index < table->size);
 
     return Etable_get(table->pats, index);
 }
@@ -102,9 +102,9 @@ Pattern* Pat_table_get(Pat_table* table, int index)
 
 void Pat_table_remove(Pat_table* table, int index)
 {
-    assert(table != NULL);
-    assert(index >= 0);
-    assert(index < table->size);
+    rassert(table != NULL);
+    rassert(index >= 0);
+    rassert(index < table->size);
 
     Etable_remove(table->pats, index);
 
@@ -114,7 +114,7 @@ void Pat_table_remove(Pat_table* table, int index)
 
 void Pat_table_clear(Pat_table* table)
 {
-    assert(table != NULL);
+    rassert(table != NULL);
     Etable_clear(table->pats);
     return;
 }

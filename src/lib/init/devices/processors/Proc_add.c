@@ -123,7 +123,7 @@ static float sine(double phase, double modifier)
 
 static void fill_buf(float* buf, const Sample* sample)
 {
-    assert(buf != NULL);
+    rassert(buf != NULL);
 
     if ((sample != NULL) && (sample->data[0] != NULL) && sample->is_float)
     {
@@ -151,8 +151,8 @@ static void fill_buf(float* buf, const Sample* sample)
 static bool Proc_add_set_base(
         Device_impl* dimpl, const Key_indices indices, const Sample* value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_add* add = (Proc_add*)dimpl;
 
@@ -165,8 +165,8 @@ static bool Proc_add_set_base(
 static bool Proc_add_set_ramp_attack(
         Device_impl* dimpl, const Key_indices indices, bool enabled)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     Proc_add* add = (Proc_add*)dimpl;
     add->is_ramp_attack_enabled = enabled;
@@ -178,8 +178,8 @@ static bool Proc_add_set_ramp_attack(
 static bool Proc_add_set_tone_pitch(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     const int32_t ti = indices[0];
     if (ti < 0 || ti >= ADD_TONES_MAX)
@@ -199,8 +199,8 @@ static bool Proc_add_set_tone_pitch(
 static bool Proc_add_set_tone_volume(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     const int32_t ti = indices[0];
     if (ti < 0 || ti >= ADD_TONES_MAX)
@@ -220,8 +220,8 @@ static bool Proc_add_set_tone_volume(
 static bool Proc_add_set_tone_panning(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
 
     const int32_t ti = indices[0];
     if (ti < 0 || ti >= ADD_TONES_MAX)

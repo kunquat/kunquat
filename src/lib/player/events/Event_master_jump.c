@@ -28,9 +28,9 @@
 bool Event_master_set_jump_counter_process(
         Master_params* master_params, const Value* value)
 {
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_INT);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_INT);
 
     master_params->jump_counter = (int16_t)value->value.int_type;
 
@@ -41,9 +41,9 @@ bool Event_master_set_jump_counter_process(
 bool Event_master_set_jump_row_process(
         Master_params* master_params, const Value* value)
 {
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_TSTAMP);
 
     Tstamp_copy(&master_params->jump_target_row, &value->value.Tstamp_type);
 
@@ -54,9 +54,9 @@ bool Event_master_set_jump_row_process(
 bool Event_master_set_jump_pat_inst_process(
         Master_params* master_params, const Value* value)
 {
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_PAT_INST_REF);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_PAT_INST_REF);
 
     master_params->jump_target_piref = value->value.Pat_inst_ref_type;
 
@@ -66,7 +66,7 @@ bool Event_master_set_jump_pat_inst_process(
 
 bool Event_master_jump_process(Master_params* master_params, const Value* value)
 {
-    assert(master_params != NULL);
+    rassert(master_params != NULL);
     ignore(value);
 
     if (master_params->jump_counter <= 0)

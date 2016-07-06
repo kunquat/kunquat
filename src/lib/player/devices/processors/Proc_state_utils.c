@@ -33,9 +33,9 @@
 Proc_state* new_Proc_state_default(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
-    assert(device != NULL);
-    assert(audio_rate > 0);
-    assert(audio_buffer_size >= 0);
+    rassert(device != NULL);
+    rassert(audio_rate > 0);
+    rassert(audio_buffer_size >= 0);
 
     Proc_state* pstate = memory_alloc_item(Proc_state);
     if ((pstate == NULL) ||
@@ -56,13 +56,13 @@ static void get_mixed_audio_buffers(
         int32_t port_stop,
         float* bufs[])
 {
-    assert(proc_state != NULL);
-    assert(port_type < DEVICE_PORT_TYPES);
-    assert(port_start >= 0);
-    assert(port_start < KQT_DEVICE_PORTS_MAX);
-    assert(port_stop >= port_start);
-    assert(port_stop <= KQT_DEVICE_PORTS_MAX);
-    assert(bufs != NULL);
+    rassert(proc_state != NULL);
+    rassert(port_type < DEVICE_PORT_TYPES);
+    rassert(port_start >= 0);
+    rassert(port_start < KQT_DEVICE_PORTS_MAX);
+    rassert(port_stop >= port_start);
+    rassert(port_stop <= KQT_DEVICE_PORTS_MAX);
+    rassert(bufs != NULL);
 
     Device_state* dstate = (Device_state*)proc_state;
 
@@ -76,12 +76,12 @@ static void get_mixed_audio_buffers(
 void Proc_state_get_mixed_audio_in_buffers(
         Proc_state* proc_state, int32_t port_start, int32_t port_stop, float* in_bufs[])
 {
-    assert(proc_state != NULL);
-    assert(port_start >= 0);
-    assert(port_start < KQT_DEVICE_PORTS_MAX);
-    assert(port_stop >= port_start);
-    assert(port_stop <= KQT_DEVICE_PORTS_MAX);
-    assert(in_bufs != NULL);
+    rassert(proc_state != NULL);
+    rassert(port_start >= 0);
+    rassert(port_start < KQT_DEVICE_PORTS_MAX);
+    rassert(port_stop >= port_start);
+    rassert(port_stop <= KQT_DEVICE_PORTS_MAX);
+    rassert(in_bufs != NULL);
 
     get_mixed_audio_buffers(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, port_start, port_stop, in_bufs);
@@ -96,12 +96,12 @@ void Proc_state_get_mixed_audio_out_buffers(
         int32_t port_stop,
         float* out_bufs[])
 {
-    assert(proc_state != NULL);
-    assert(port_start >= 0);
-    assert(port_start < KQT_DEVICE_PORTS_MAX);
-    assert(port_stop >= port_start);
-    assert(port_stop <= KQT_DEVICE_PORTS_MAX);
-    assert(out_bufs != NULL);
+    rassert(proc_state != NULL);
+    rassert(port_start >= 0);
+    rassert(port_start < KQT_DEVICE_PORTS_MAX);
+    rassert(port_stop >= port_start);
+    rassert(port_stop <= KQT_DEVICE_PORTS_MAX);
+    rassert(out_bufs != NULL);
 
     get_mixed_audio_buffers(
             proc_state, DEVICE_PORT_TYPE_SEND, port_start, port_stop, out_bufs);
@@ -117,13 +117,13 @@ static void get_voice_audio_buffers(
         int32_t port_stop,
         float* bufs[])
 {
-    assert(proc_state != NULL);
-    assert(port_type < DEVICE_PORT_TYPES);
-    assert(port_start >= 0);
-    assert(port_start < KQT_DEVICE_PORTS_MAX);
-    assert(port_stop >= port_start);
-    assert(port_stop <= KQT_DEVICE_PORTS_MAX);
-    assert(bufs != NULL);
+    rassert(proc_state != NULL);
+    rassert(port_type < DEVICE_PORT_TYPES);
+    rassert(port_start >= 0);
+    rassert(port_start < KQT_DEVICE_PORTS_MAX);
+    rassert(port_stop >= port_start);
+    rassert(port_stop <= KQT_DEVICE_PORTS_MAX);
+    rassert(bufs != NULL);
 
     for (int32_t i = 0, port = port_start; port < port_stop; ++i, ++port)
         bufs[i] = Proc_state_get_voice_buffer_contents_mut(proc_state, port_type, port);
@@ -135,12 +135,12 @@ static void get_voice_audio_buffers(
 void Proc_state_get_voice_audio_in_buffers(
         Proc_state* proc_state, int32_t port_start, int32_t port_stop, float* in_bufs[])
 {
-    assert(proc_state != NULL);
-    assert(port_start >= 0);
-    assert(port_start < KQT_DEVICE_PORTS_MAX);
-    assert(port_stop >= port_start);
-    assert(port_stop <= KQT_DEVICE_PORTS_MAX);
-    assert(in_bufs != NULL);
+    rassert(proc_state != NULL);
+    rassert(port_start >= 0);
+    rassert(port_start < KQT_DEVICE_PORTS_MAX);
+    rassert(port_stop >= port_start);
+    rassert(port_stop <= KQT_DEVICE_PORTS_MAX);
+    rassert(in_bufs != NULL);
 
     get_voice_audio_buffers(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, port_start, port_stop, in_bufs);
@@ -155,12 +155,12 @@ void Proc_state_get_voice_audio_out_buffers(
         int32_t port_stop,
         float* out_bufs[])
 {
-    assert(proc_state != NULL);
-    assert(port_start >= 0);
-    assert(port_start < KQT_DEVICE_PORTS_MAX);
-    assert(port_stop >= port_start);
-    assert(port_stop <= KQT_DEVICE_PORTS_MAX);
-    assert(out_bufs != NULL);
+    rassert(proc_state != NULL);
+    rassert(port_start >= 0);
+    rassert(port_start < KQT_DEVICE_PORTS_MAX);
+    rassert(port_stop >= port_start);
+    rassert(port_stop <= KQT_DEVICE_PORTS_MAX);
+    rassert(out_bufs != NULL);
 
     get_voice_audio_buffers(
             proc_state, DEVICE_PORT_TYPE_SEND, port_start, port_stop, out_bufs);
@@ -177,12 +177,12 @@ void Proc_ramp_attack(
         int32_t buf_stop,
         int32_t audio_rate)
 {
-    assert(vstate != NULL);
-    assert(buf_count > 0);
-    assert(out_bufs != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
-    assert(audio_rate > 0);
+    rassert(vstate != NULL);
+    rassert(buf_count > 0);
+    rassert(out_bufs != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+    rassert(audio_rate > 0);
 
     const float start_ramp_attack = (float)vstate->ramp_attack;
     const float inc = (float)(RAMP_ATTACK_TIME / audio_rate);
@@ -213,9 +213,9 @@ void Proc_fill_freq_buffer(
         int32_t buf_start,
         int32_t buf_stop)
 {
-    assert(freqs != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
+    rassert(freqs != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
 
     float* freqs_data = Work_buffer_get_contents_mut_keep_const(freqs);
 
@@ -258,9 +258,9 @@ void Proc_fill_scale_buffer(
         int32_t buf_start,
         int32_t buf_stop)
 {
-    assert(scales != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
+    rassert(scales != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
 
     float* scales_data = Work_buffer_get_contents_mut_keep_const(scales);
 
@@ -300,7 +300,7 @@ void Proc_fill_scale_buffer(
 Cond_work_buffer* Cond_work_buffer_init(
         Cond_work_buffer* cwb, const Work_buffer* wb, float def_value)
 {
-    assert(cwb != NULL);
+    rassert(cwb != NULL);
 
     cwb->index_mask = 0;
     cwb->def_value = def_value;

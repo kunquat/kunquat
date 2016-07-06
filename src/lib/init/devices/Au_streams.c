@@ -43,8 +43,8 @@ struct Au_streams
 Stream_target_dev_iter* Stream_target_dev_iter_init(
         Stream_target_dev_iter* iter, const Au_streams* streams)
 {
-    assert(iter != NULL);
-    assert(streams != NULL);
+    rassert(iter != NULL);
+    rassert(streams != NULL);
 
     AAiter_init(&iter->iter, streams->tree);
 
@@ -57,7 +57,7 @@ Stream_target_dev_iter* Stream_target_dev_iter_init(
 
 const char* Stream_target_dev_iter_get_next(Stream_target_dev_iter* iter)
 {
-    assert(iter != NULL);
+    rassert(iter != NULL);
 
     if (iter->next_name == NULL)
         return NULL;
@@ -73,11 +73,11 @@ const char* Stream_target_dev_iter_get_next(Stream_target_dev_iter* iter)
 
 static bool read_stream_entry(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
     ignore(index);
 
     Au_streams* streams = userdata;
-    assert(streams != NULL);
+    rassert(streams != NULL);
 
     char stream_name[KQT_VAR_NAME_MAX + 1] = "";
     int64_t target_proc_index = -1;
@@ -170,9 +170,9 @@ Au_streams* new_Au_streams(Streader* sr)
 
 int Au_streams_get_target_proc_index(const Au_streams* streams, const char* stream_name)
 {
-    assert(streams != NULL);
-    assert(stream_name != NULL);
-    assert(is_valid_var_name(stream_name));
+    rassert(streams != NULL);
+    rassert(stream_name != NULL);
+    rassert(is_valid_var_name(stream_name));
 
     const Entry* entry = AAtree_get_exact(streams->tree, stream_name);
     if (entry == NULL)

@@ -54,10 +54,10 @@ bool Proc_state_init(
         int32_t audio_rate,
         int32_t audio_buffer_size)
 {
-    assert(proc_state != NULL);
-    assert(device != NULL);
-    assert(audio_rate > 0);
-    assert(audio_buffer_size >= 0);
+    rassert(proc_state != NULL);
+    rassert(device != NULL);
+    rassert(audio_rate > 0);
+    rassert(audio_buffer_size >= 0);
 
     proc_state->destroy = NULL;
     proc_state->set_audio_rate = NULL;
@@ -92,8 +92,8 @@ bool Proc_state_init(
 
 bool Proc_state_set_audio_rate(Device_state* dstate, int32_t audio_rate)
 {
-    assert(dstate != NULL);
-    assert(audio_rate > 0);
+    rassert(dstate != NULL);
+    rassert(audio_rate > 0);
 
     Proc_state* proc_state = (Proc_state*)dstate;
     if (proc_state->set_audio_rate != NULL)
@@ -105,9 +105,9 @@ bool Proc_state_set_audio_rate(Device_state* dstate, int32_t audio_rate)
 
 void Proc_state_set_tempo(Device_state* dstate, double tempo)
 {
-    assert(dstate != NULL);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(dstate != NULL);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     Proc_state* proc_state = (Proc_state*)dstate;
     if (proc_state->set_tempo != NULL)
@@ -119,7 +119,7 @@ void Proc_state_set_tempo(Device_state* dstate, double tempo)
 
 void Proc_state_reset(Device_state* dstate)
 {
-    assert(dstate != NULL);
+    rassert(dstate != NULL);
 
     Proc_state* proc_state = (Proc_state*)dstate;
     if (proc_state->reset != NULL)
@@ -136,11 +136,11 @@ void Proc_state_render_mixed(
         int32_t buf_stop,
         double tempo)
 {
-    assert(dstate != NULL);
-    assert(wbs != NULL);
-    assert(buf_start >= 0);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(dstate != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     Proc_state* proc_state = (Proc_state*)dstate;
     if (proc_state->render_mixed != NULL)
@@ -152,7 +152,7 @@ void Proc_state_render_mixed(
 
 void Proc_state_clear_history(Proc_state* proc_state)
 {
-    assert(proc_state != NULL);
+    rassert(proc_state != NULL);
 
     if (proc_state->clear_history != NULL)
         proc_state->clear_history(proc_state);
@@ -163,7 +163,7 @@ void Proc_state_clear_history(Proc_state* proc_state)
 
 void Proc_state_clear_voice_buffers(Proc_state* proc_state)
 {
-    assert(proc_state != NULL);
+    rassert(proc_state != NULL);
 
     for (Device_port_type port_type = DEVICE_PORT_TYPE_RECEIVE;
             port_type < DEVICE_PORT_TYPES; ++port_type)
@@ -183,10 +183,10 @@ void Proc_state_clear_voice_buffers(Proc_state* proc_state)
 const Work_buffer* Proc_state_get_voice_buffer(
         const Proc_state* proc_state, Device_port_type port_type, int port_num)
 {
-    assert(proc_state != NULL);
-    assert(port_type < DEVICE_PORT_TYPES);
-    assert(port_num >= 0);
-    assert(port_num < KQT_DEVICE_PORTS_MAX);
+    rassert(proc_state != NULL);
+    rassert(port_type < DEVICE_PORT_TYPES);
+    rassert(port_num >= 0);
+    rassert(port_num < KQT_DEVICE_PORTS_MAX);
 
     if ((port_type == DEVICE_PORT_TYPE_RECEIVE) &&
             !Device_state_is_input_port_connected(&proc_state->parent, port_num))
@@ -199,10 +199,10 @@ const Work_buffer* Proc_state_get_voice_buffer(
 Work_buffer* Proc_state_get_voice_buffer_mut(
         Proc_state* proc_state, Device_port_type port_type, int port_num)
 {
-    assert(proc_state != NULL);
-    assert(port_type < DEVICE_PORT_TYPES);
-    assert(port_num >= 0);
-    assert(port_num < KQT_DEVICE_PORTS_MAX);
+    rassert(proc_state != NULL);
+    rassert(port_type < DEVICE_PORT_TYPES);
+    rassert(port_num >= 0);
+    rassert(port_num < KQT_DEVICE_PORTS_MAX);
 
     if ((port_type == DEVICE_PORT_TYPE_RECEIVE) &&
             !Device_state_is_input_port_connected(&proc_state->parent, port_num))
@@ -215,10 +215,10 @@ Work_buffer* Proc_state_get_voice_buffer_mut(
 const float* Proc_state_get_voice_buffer_contents(
         const Proc_state* proc_state, Device_port_type port_type, int port_num)
 {
-    assert(proc_state != NULL);
-    assert(port_type < DEVICE_PORT_TYPES);
-    assert(port_num >= 0);
-    assert(port_num < KQT_DEVICE_PORTS_MAX);
+    rassert(proc_state != NULL);
+    rassert(port_type < DEVICE_PORT_TYPES);
+    rassert(port_num >= 0);
+    rassert(port_num < KQT_DEVICE_PORTS_MAX);
 
     const Work_buffer* wb = Proc_state_get_voice_buffer(proc_state, port_type, port_num);
     if (wb == NULL)
@@ -231,10 +231,10 @@ const float* Proc_state_get_voice_buffer_contents(
 float* Proc_state_get_voice_buffer_contents_mut(
         Proc_state* proc_state, Device_port_type port_type, int port_num)
 {
-    assert(proc_state != NULL);
-    assert(port_type < DEVICE_PORT_TYPES);
-    assert(port_num >= 0);
-    assert(port_num < KQT_DEVICE_PORTS_MAX);
+    rassert(proc_state != NULL);
+    rassert(port_type < DEVICE_PORT_TYPES);
+    rassert(port_num >= 0);
+    rassert(port_num < KQT_DEVICE_PORTS_MAX);
 
     Work_buffer* wb =
         Proc_state_get_voice_buffer_mut(proc_state, port_type, port_num);
@@ -248,9 +248,9 @@ float* Proc_state_get_voice_buffer_contents_mut(
 void Proc_state_cv_generic_set(
         Device_state* dstate, const char* key, const Value* value)
 {
-    assert(dstate != NULL);
-    assert(key != NULL);
-    assert(value != NULL);
+    rassert(dstate != NULL);
+    rassert(key != NULL);
+    rassert(value != NULL);
 
     const Device_impl* dimpl = dstate->device->dimpl;
 
@@ -287,7 +287,7 @@ void Proc_state_cv_generic_set(
         break;
 
         default:
-            assert(false);
+            rassert(false);
     }
 
     return;
@@ -297,10 +297,10 @@ void Proc_state_cv_generic_set(
 static bool Proc_state_add_buffer(
         Device_state* dstate, Device_port_type port_type, int port_num)
 {
-    assert(dstate != NULL);
-    assert(port_type == DEVICE_PORT_TYPE_RECEIVE || port_type == DEVICE_PORT_TYPE_SEND);
-    assert(port_num >= 0);
-    assert(port_num < KQT_DEVICE_PORTS_MAX);
+    rassert(dstate != NULL);
+    rassert(port_type == DEVICE_PORT_TYPE_RECEIVE || port_type == DEVICE_PORT_TYPE_SEND);
+    rassert(port_num >= 0);
+    rassert(port_num < KQT_DEVICE_PORTS_MAX);
 
     Proc_state* proc_state = (Proc_state*)dstate;
 
@@ -319,8 +319,8 @@ static bool Proc_state_add_buffer(
 
 static bool Proc_state_set_audio_buffer_size(Device_state* dstate, int32_t new_size)
 {
-    assert(dstate != NULL);
-    assert(new_size >= 0);
+    rassert(dstate != NULL);
+    rassert(new_size >= 0);
 
     Proc_state* proc_state = (Proc_state*)dstate;
 
@@ -344,7 +344,7 @@ static bool Proc_state_set_audio_buffer_size(Device_state* dstate, int32_t new_s
 
 static void Proc_state_deinit(Proc_state* proc_state)
 {
-    assert(proc_state != NULL);
+    rassert(proc_state != NULL);
 
     for (Device_port_type port_type = DEVICE_PORT_TYPE_RECEIVE;
             port_type < DEVICE_PORT_TYPES; ++port_type)

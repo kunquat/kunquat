@@ -33,11 +33,11 @@ bool Event_channel_set_stream_name_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_STRING);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_STRING);
 
     return set_active_name(&channel->parent, ACTIVE_CAT_STREAM, value);
 }
@@ -49,11 +49,11 @@ bool Event_channel_set_stream_value_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -79,8 +79,8 @@ bool Event_channel_set_stream_value_process(
 static void ensure_valid_stream(
         Channel_stream_state* ss, const char* stream_name, const Voice_state* vstate)
 {
-    assert(ss != NULL);
-    assert(stream_name != NULL);
+    rassert(ss != NULL);
+    rassert(stream_name != NULL);
 
     const Linear_controls* controls = Channel_stream_state_get_controls(ss, stream_name);
     if (controls == NULL)
@@ -105,11 +105,11 @@ bool Event_channel_slide_stream_target_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -141,11 +141,11 @@ bool Event_channel_slide_stream_length_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_TSTAMP);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -177,11 +177,11 @@ bool Event_channel_stream_osc_speed_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -213,11 +213,11 @@ bool Event_channel_stream_osc_depth_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -249,11 +249,11 @@ bool Event_channel_stream_osc_speed_slide_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_TSTAMP);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -286,11 +286,11 @@ bool Event_channel_stream_osc_depth_slide_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_TSTAMP);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -323,9 +323,9 @@ bool Event_channel_carry_stream_on_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
     ignore(value);
 
     const char* stream_name =
@@ -345,9 +345,9 @@ bool Event_channel_carry_stream_off_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
     ignore(value);
 
     const char* stream_name =

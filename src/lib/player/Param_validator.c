@@ -34,7 +34,7 @@
 
 bool v_any_bool(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
     Streader* sr = init_c_streader(param);
     return Streader_read_bool(sr, NULL);
 }
@@ -42,7 +42,7 @@ bool v_any_bool(const char* param)
 
 bool v_any_int(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
     Streader* sr = init_c_streader(param);
     return Streader_read_int(sr, NULL);
 }
@@ -50,7 +50,7 @@ bool v_any_int(const char* param)
 
 bool v_any_float(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
     Streader* sr = init_c_streader(param);
     return Streader_read_float(sr, NULL);
 }
@@ -58,7 +58,7 @@ bool v_any_float(const char* param)
 
 bool v_any_str(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
     Streader* sr = init_c_streader(param);
     return Streader_read_string(sr, 0, NULL);
 }
@@ -66,7 +66,7 @@ bool v_any_str(const char* param)
 
 bool v_any_ts(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
     Streader* sr = init_c_streader(param);
     return Streader_read_tstamp(sr, NULL);
 }
@@ -74,7 +74,7 @@ bool v_any_ts(const char* param)
 
 bool v_arp_index(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     int64_t index = -1;
     Streader* sr = init_c_streader(param);
@@ -87,7 +87,7 @@ bool v_arp_index(const char* param)
 
 bool v_arp_speed(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     double speed = NAN;
     Streader* sr = init_c_streader(param);
@@ -98,7 +98,7 @@ bool v_arp_speed(const char* param)
 
 bool v_au(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     int64_t au = -1;
     Streader* sr = init_c_streader(param);
@@ -111,7 +111,7 @@ bool v_au(const char* param)
 
 bool v_cond(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
     Streader* sr = init_c_streader(param);
     return Streader_read_string(sr, 0, NULL);
 }
@@ -119,7 +119,7 @@ bool v_cond(const char* param)
 
 bool v_counter(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     int64_t counter = -1;
     Streader* sr = init_c_streader(param);
@@ -132,7 +132,7 @@ bool v_counter(const char* param)
 
 bool v_finite_float(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     double value = NAN;
     Streader* sr = init_c_streader(param);
@@ -143,7 +143,7 @@ bool v_finite_float(const char* param)
 
 bool v_finite_rt(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
     Streader* sr = init_c_streader(param);
     return Streader_read_finite_rt(sr, NULL);
 }
@@ -151,7 +151,7 @@ bool v_finite_rt(const char* param)
 
 bool v_force(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     double force = NAN;
     Streader* sr = init_c_streader(param);
@@ -162,7 +162,7 @@ bool v_force(const char* param)
 
 bool v_proc(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     int64_t proc = -1;
     Streader* sr = init_c_streader(param);
@@ -175,7 +175,7 @@ bool v_proc(const char* param)
 
 bool v_hit(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     int64_t hit = -1;
     Streader* sr = init_c_streader(param);
@@ -186,7 +186,7 @@ bool v_hit(const char* param)
 
 bool v_key(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     char key[KQT_KEY_LENGTH_MAX + 1] = "";
     Streader* sr = init_c_streader(param);
@@ -210,7 +210,7 @@ bool v_key(const char* param)
 
 bool v_nonneg_float(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     double value = NAN;
     Streader* sr = init_c_streader(param);
@@ -221,7 +221,7 @@ bool v_nonneg_float(const char* param)
 
 bool v_nonneg_ts(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     Tstamp* ts = TSTAMP_AUTO;
     Streader* sr = init_c_streader(param);
@@ -233,7 +233,7 @@ bool v_nonneg_ts(const char* param)
 
 bool v_note_entry(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     int64_t ne = -1;
     Streader* sr = init_c_streader(param);
@@ -244,7 +244,7 @@ bool v_note_entry(const char* param)
 
 bool v_pattern(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     int64_t pat = -1;
     Streader* sr = init_c_streader(param);
@@ -255,7 +255,7 @@ bool v_pattern(const char* param)
 
 bool v_piref(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
     Streader* sr = init_c_streader(param);
     return Streader_read_piref(sr, NULL);
 }
@@ -263,14 +263,14 @@ bool v_piref(const char* param)
 
 bool v_pitch(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
     return v_finite_float(param);
 }
 
 
 bool v_song(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     int64_t song = -2;
     Streader* sr = init_c_streader(param);
@@ -283,7 +283,7 @@ bool v_song(const char* param)
 
 bool v_system(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     int64_t system = -1;
     Streader* sr = init_c_streader(param);
@@ -294,7 +294,7 @@ bool v_system(const char* param)
 
 bool v_sustain(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     double sustain = NAN;
     Streader* sr = init_c_streader(param);
@@ -307,7 +307,7 @@ bool v_sustain(const char* param)
 
 bool v_tempo(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     double tempo = NAN;
     Streader* sr = init_c_streader(param);
@@ -318,7 +318,7 @@ bool v_tempo(const char* param)
 
 bool v_track(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     int64_t track = -2;
     Streader* sr = init_c_streader(param);
@@ -331,7 +331,7 @@ bool v_track(const char* param)
 
 bool v_tremolo_depth(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     double depth = NAN;
     Streader* sr = init_c_streader(param);
@@ -342,7 +342,7 @@ bool v_tremolo_depth(const char* param)
 
 bool v_tuning_table(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     int64_t tt_index = -1;
     Streader* sr = init_c_streader(param);
@@ -355,7 +355,7 @@ bool v_tuning_table(const char* param)
 
 bool v_var_name(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     Streader* sr = init_c_streader(param);
 
@@ -367,7 +367,7 @@ bool v_var_name(const char* param)
 
 bool v_volume(const char* param)
 {
-    assert(param != NULL);
+    rassert(param != NULL);
 
     double vol = NAN;
     Streader* sr = init_c_streader(param);

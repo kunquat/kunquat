@@ -33,7 +33,7 @@ struct Env_state
 
 Env_state* new_Env_state(const Environment* env)
 {
-    assert(env != NULL);
+    rassert(env != NULL);
 
     Env_state* estate = memory_alloc_item(Env_state);
     if (estate == NULL)
@@ -48,7 +48,7 @@ Env_state* new_Env_state(const Environment* env)
 
 bool Env_state_refresh_space(Env_state* estate)
 {
-    assert(estate != NULL);
+    rassert(estate != NULL);
 
     AAtree* vars = new_AAtree(
             (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Env_var);
@@ -85,8 +85,8 @@ bool Env_state_refresh_space(Env_state* estate)
 
 Env_var* Env_state_get_var(const Env_state* estate, const char* name)
 {
-    assert(estate != NULL);
-    assert(name != NULL);
+    rassert(estate != NULL);
+    rassert(name != NULL);
 
     if (estate->vars == NULL)
         return NULL;
@@ -97,7 +97,7 @@ Env_var* Env_state_get_var(const Env_state* estate, const char* name)
 
 void Env_state_reset(Env_state* estate)
 {
-    assert(estate != NULL);
+    rassert(estate != NULL);
 
     Environment_iter* iter = Environment_iter_init(ENVIRONMENT_ITER_AUTO, estate->env);
 
@@ -106,8 +106,8 @@ void Env_state_reset(Env_state* estate)
     {
         const Env_var* init_var = Environment_get(estate->env, name);
         Env_var* state_var = Env_state_get_var(estate, name);
-        assert(init_var != NULL);
-        assert(state_var != NULL);
+        rassert(init_var != NULL);
+        rassert(state_var != NULL);
 
         Env_var_set_value(state_var, Env_var_get_value(init_var));
 

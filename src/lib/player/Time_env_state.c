@@ -29,7 +29,7 @@
 
 void Time_env_state_init(Time_env_state* testate)
 {
-    assert(testate != NULL);
+    rassert(testate != NULL);
 
     testate->is_finished = false;
     testate->cur_pos = 0;
@@ -57,19 +57,19 @@ int32_t Time_env_state_process(
         int32_t buf_stop,
         int32_t audio_rate)
 {
-    assert(testate != NULL);
-    assert(env != NULL);
-    assert(isfinite(scale_amount));
-    assert(isfinite(scale_center));
-    assert(sustain >= 0);
-    assert(sustain <= 1);
-    assert(isfinite(min_value));
-    assert(isfinite(max_value));
-    assert(pitch_wb != NULL);
-    assert(env_buf != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
-    assert(audio_rate > 0);
+    rassert(testate != NULL);
+    rassert(env != NULL);
+    rassert(isfinite(scale_amount));
+    rassert(isfinite(scale_center));
+    rassert(sustain >= 0);
+    rassert(sustain <= 1);
+    rassert(isfinite(min_value));
+    rassert(isfinite(max_value));
+    rassert(pitch_wb != NULL);
+    rassert(env_buf != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+    rassert(audio_rate > 0);
 
     if (testate->is_finished)
         return buf_start;
@@ -126,7 +126,7 @@ int32_t Time_env_state_process(
             {
                 // Get next value through calculated update value
                 // (faster than accessing the envelope directly)
-                assert(isfinite(update_value));
+                dassert(isfinite(update_value));
                 cur_value += update_value * scale_factor * slowdown_fac;
                 value = clamp(cur_value, min_value, max_value);
             }
@@ -136,7 +136,7 @@ int32_t Time_env_state_process(
                 ++next_node_index;
                 if ((loop_end_index >= 0) && (loop_end_index < next_node_index))
                 {
-                    assert(loop_start_index >= 0);
+                    rassert(loop_start_index >= 0);
                     next_node_index = loop_start_index;
                 }
 
@@ -165,7 +165,7 @@ int32_t Time_env_state_process(
         }
 
         // Apply envelope value
-        assert(isfinite(value));
+        dassert(isfinite(value));
         env_buf[i] = (float)value;
 
         // Update envelope position
@@ -187,7 +187,7 @@ int32_t Time_env_state_process(
             if (new_pos > loop_end[0])
             {
                 const double loop_len = loop_end[0] - loop_start[0];
-                assert(loop_len >= 0);
+                dassert(loop_len >= 0);
                 new_pos = loop_end[0];
 
                 if (loop_len > 0)
@@ -195,8 +195,8 @@ int32_t Time_env_state_process(
                     const double exceed = new_pos - loop_end[0];
                     const double offset = fmod(exceed, loop_len);
                     new_pos = loop_start[0] + offset;
-                    assert(new_pos >= loop_start[0]);
-                    assert(new_pos <= loop_end[0]);
+                    dassert(new_pos >= loop_start[0]);
+                    dassert(new_pos <= loop_end[0]);
 
                     // Following iteration will check if this index is too low,
                     // so no need to find the exact result in a loop

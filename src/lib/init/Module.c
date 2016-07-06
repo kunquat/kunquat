@@ -101,8 +101,8 @@ Module* new_Module(void)
 
 bool Module_read_mixing_volume(Module* module, Streader* sr)
 {
-    assert(module != NULL);
-    assert(sr != NULL);
+    rassert(module != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -130,8 +130,8 @@ bool Module_read_mixing_volume(Module* module, Streader* sr)
 
 bool Module_parse_random_seed(Module* module, Streader* sr)
 {
-    assert(module != NULL);
-    assert(sr != NULL);
+    rassert(module != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -158,33 +158,33 @@ bool Module_parse_random_seed(Module* module, Streader* sr)
 
 const Track_list* Module_get_track_list(const Module* module)
 {
-    assert(module != NULL);
+    rassert(module != NULL);
 
     if (!module->album_is_existent)
         return NULL;
 
-    assert(module->track_list != NULL);
+    rassert(module->track_list != NULL);
     return module->track_list;
 }
 
 
 const Order_list* Module_get_order_list(const Module* module, int song)
 {
-    assert(module != NULL);
-    assert(song >= 0);
-    assert(song < KQT_SONGS_MAX);
+    rassert(module != NULL);
+    rassert(song >= 0);
+    rassert(song < KQT_SONGS_MAX);
 
     if (!Song_table_get_existent(module->songs, song))
         return NULL;
 
-    assert(module->order_lists[song] != NULL);
+    rassert(module->order_lists[song] != NULL);
     return module->order_lists[song];
 }
 
 
 void Module_set_ch_defaults_list(Module* module, Channel_defaults_list* ch_defs)
 {
-    assert(module != NULL);
+    rassert(module != NULL);
 
     del_Channel_defaults_list(module->ch_defs);
     module->ch_defs = ch_defs;
@@ -195,7 +195,7 @@ void Module_set_ch_defaults_list(Module* module, Channel_defaults_list* ch_defs)
 
 const Channel_defaults_list* Module_get_ch_defaults_list(const Module* module)
 {
-    assert(module != NULL);
+    rassert(module != NULL);
     return module->ch_defs;
 }
 
@@ -204,10 +204,10 @@ const Pattern* Module_get_pattern(
         const Module* module,
         const Pat_inst_ref* piref)
 {
-    assert(module != NULL);
-    assert(piref != NULL);
-    assert(piref->pat >= 0);
-    assert(piref->pat < KQT_PATTERNS_MAX);
+    rassert(module != NULL);
+    rassert(piref != NULL);
+    rassert(piref->pat >= 0);
+    rassert(piref->pat < KQT_PATTERNS_MAX);
 
     if (!Pat_table_get_existent(module->pats, piref->pat))
         return NULL;
@@ -223,14 +223,14 @@ const Pattern* Module_get_pattern(
 bool Module_find_pattern_location(
         const Module* module, const Pat_inst_ref* piref, int* track, int* system)
 {
-    assert(module != NULL);
-    assert(piref != NULL);
-    assert(piref->pat >= 0);
-    assert(piref->pat < KQT_PATTERNS_MAX);
-    assert(piref->inst >= 0);
-    assert(piref->inst < KQT_PAT_INSTANCES_MAX);
-    assert(track != NULL);
-    assert(system != NULL);
+    rassert(module != NULL);
+    rassert(piref != NULL);
+    rassert(piref->pat >= 0);
+    rassert(piref->pat < KQT_PATTERNS_MAX);
+    rassert(piref->inst >= 0);
+    rassert(piref->inst < KQT_PAT_INSTANCES_MAX);
+    rassert(track != NULL);
+    rassert(system != NULL);
 
     if (module->track_list == NULL)
         return false;
@@ -246,12 +246,12 @@ bool Module_find_pattern_location(
             continue;
 
         const Order_list* ol = module->order_lists[si];
-        assert(ol != NULL);
+        rassert(ol != NULL);
 
         for (int i = 0; i < Order_list_get_len(ol); ++i)
         {
             const Pat_inst_ref* cur_piref = Order_list_get_pat_inst_ref(ol, i);
-            assert(cur_piref != NULL);
+            rassert(cur_piref != NULL);
 
             if (cur_piref->pat == piref->pat && cur_piref->inst == piref->inst)
             {
@@ -268,15 +268,15 @@ bool Module_find_pattern_location(
 
 const Connections* Module_get_connections(const Module* module)
 {
-    assert(module != NULL);
+    rassert(module != NULL);
     return module->connections;
 }
 
 
 void Module_set_mix_vol(Module* module, double mix_vol)
 {
-    assert(module != NULL);
-    assert(isfinite(mix_vol) || mix_vol == -INFINITY);
+    rassert(module != NULL);
+    rassert(isfinite(mix_vol) || mix_vol == -INFINITY);
 
     module->mix_vol_dB = mix_vol;
     module->mix_vol = exp2(mix_vol / 6);
@@ -287,29 +287,29 @@ void Module_set_mix_vol(Module* module, double mix_vol)
 
 double Module_get_mix_vol(Module* module)
 {
-    assert(module != NULL);
+    rassert(module != NULL);
     return module->mix_vol_dB;
 }
 
 
 Song_table* Module_get_songs(const Module* module)
 {
-    assert(module != NULL);
+    rassert(module != NULL);
     return module->songs;
 }
 
 
 Pat_table* Module_get_pats(Module* module)
 {
-    assert(module != NULL);
+    rassert(module != NULL);
     return module->pats;
 }
 
 
 static int32_t Module_get_au_index_from_input(const Module* module, int32_t input)
 {
-    assert(module != NULL);
-    assert(input >= 0);
+    rassert(module != NULL);
+    rassert(input >= 0);
 
     if (module->au_map == NULL)
         return -1;
@@ -320,24 +320,24 @@ static int32_t Module_get_au_index_from_input(const Module* module, int32_t inpu
 
 Audio_unit* Module_get_au_from_input(const Module* module, int32_t input)
 {
-    assert(module != NULL);
-    assert(input >= 0);
+    rassert(module != NULL);
+    rassert(input >= 0);
 
     const int32_t au_index = Module_get_au_index_from_input(module, input);
     if (au_index < 0)
         return NULL;
 
-    assert(Bit_array_get(module->au_controls, input));
-    assert(au_index < KQT_AUDIO_UNITS_MAX);
+    rassert(Bit_array_get(module->au_controls, input));
+    rassert(au_index < KQT_AUDIO_UNITS_MAX);
     return Au_table_get(module->au_table, au_index);
 }
 
 
 void Module_set_control(Module* module, int control, bool existent)
 {
-    assert(module != NULL);
-    assert(control >= 0);
-    assert(control < KQT_CONTROLS_MAX);
+    rassert(module != NULL);
+    rassert(control >= 0);
+    rassert(control < KQT_CONTROLS_MAX);
 
     Bit_array_set(module->au_controls, control, existent);
 
@@ -347,9 +347,9 @@ void Module_set_control(Module* module, int control, bool existent)
 
 bool Module_get_control(const Module* module, int control)
 {
-    assert(module != NULL);
-    assert(control >= 0);
-    assert(control < KQT_CONTROLS_MAX);
+    rassert(module != NULL);
+    rassert(control >= 0);
+    rassert(control < KQT_CONTROLS_MAX);
 
     return Bit_array_get(module->au_controls, control);
 }
@@ -357,8 +357,8 @@ bool Module_get_control(const Module* module, int control)
 
 bool Module_set_au_map(Module* module, Streader* sr)
 {
-    assert(module != NULL);
-    assert(sr != NULL);
+    rassert(module != NULL);
+    rassert(sr != NULL);
 
     Input_map* im = new_Input_map(sr, INT32_MAX, KQT_AUDIO_UNITS_MAX);
     if (im == NULL)
@@ -373,22 +373,22 @@ bool Module_set_au_map(Module* module, Streader* sr)
 
 Input_map* Module_get_au_map(const Module* module)
 {
-    assert(module != NULL);
+    rassert(module != NULL);
     return module->au_map;
 }
 
 
 Au_table* Module_get_au_table(const Module* module)
 {
-    assert(module != NULL);
+    rassert(module != NULL);
     return module->au_table;
 }
 
 
 void Module_set_bind(Module* module, Bind* bind)
 {
-    assert(module != NULL);
-    assert(bind != NULL);
+    rassert(module != NULL);
+    rassert(bind != NULL);
 
     del_Bind(module->bind);
     module->bind = bind;
@@ -399,9 +399,9 @@ void Module_set_bind(Module* module, Bind* bind)
 
 const Tuning_table* Module_get_tuning_table(const Module* module, int index)
 {
-    assert(module != NULL);
-    assert(index >= 0);
-    assert(index < KQT_TUNING_TABLES_MAX);
+    rassert(module != NULL);
+    rassert(index >= 0);
+    rassert(index < KQT_TUNING_TABLES_MAX);
 
     return module->tuning_tables[index];
 }
@@ -409,9 +409,9 @@ const Tuning_table* Module_get_tuning_table(const Module* module, int index)
 
 void Module_set_tuning_table(Module* module, int index, Tuning_table* tt)
 {
-    assert(module != NULL);
-    assert(index >= 0);
-    assert(index < KQT_TUNING_TABLES_MAX);
+    rassert(module != NULL);
+    rassert(index >= 0);
+    rassert(index < KQT_TUNING_TABLES_MAX);
 
     del_Tuning_table(module->tuning_tables[index]);
     module->tuning_tables[index] = tt;

@@ -27,9 +27,9 @@
 bool Event_master_set_tempo_process(
         Master_params* master_params, const Value* value)
 {
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     master_params->tempo_settings_changed = true;
     master_params->tempo = value->value.float_type;
@@ -41,7 +41,7 @@ bool Event_master_set_tempo_process(
 
 static void set_tempo_slide_update(Master_params* master_params)
 {
-    assert(master_params != NULL);
+    rassert(master_params != NULL);
 
     const double rems_total =
             (double)Tstamp_get_beats(&master_params->tempo_slide_length) *
@@ -58,9 +58,9 @@ static void set_tempo_slide_update(Master_params* master_params)
 bool Event_master_slide_tempo_process(
         Master_params* master_params, const Value* value)
 {
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     master_params->tempo_settings_changed = true;
 
@@ -87,9 +87,9 @@ bool Event_master_slide_tempo_process(
 bool Event_master_slide_tempo_length_process(
         Master_params* master_params, const Value* value)
 {
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_TSTAMP);
 
     master_params->tempo_settings_changed = true;
 

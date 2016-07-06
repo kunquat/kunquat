@@ -29,8 +29,6 @@ void assert_suppress_messages(void)
 }
 
 
-#ifndef NDEBUG
-
 #if defined(HAS_EXECINFO) && !defined(SILENT_ASSERT)
 
 #include <execinfo.h>
@@ -95,7 +93,5 @@ void assert_print_msg(
 }
 
 #endif // SILENT_ASSERT
-
-#endif // NDEBUG
 
 

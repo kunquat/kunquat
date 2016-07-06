@@ -23,10 +23,10 @@
 
 void Cgiter_init(Cgiter* cgiter, const Module* module, int col_index)
 {
-    assert(cgiter != NULL);
-    assert(module != NULL);
-    assert(col_index >= 0);
-    assert(col_index < KQT_COLUMNS_MAX);
+    rassert(cgiter != NULL);
+    rassert(module != NULL);
+    rassert(col_index >= 0);
+    rassert(col_index < KQT_COLUMNS_MAX);
 
     cgiter->module = module;
     cgiter->col_index = col_index;
@@ -47,11 +47,11 @@ void Cgiter_init(Cgiter* cgiter, const Module* module, int col_index)
 static const Pat_inst_ref* find_pat_inst_ref(
         const Module* module, int track, int system)
 {
-    assert(module != NULL);
-    assert(track >= 0);
-    assert(track < KQT_TRACKS_MAX);
-    assert(system >= 0);
-    assert(system < KQT_SYSTEMS_MAX);
+    rassert(module != NULL);
+    rassert(track >= 0);
+    rassert(track < KQT_TRACKS_MAX);
+    rassert(system >= 0);
+    rassert(system < KQT_SYSTEMS_MAX);
 
     const Track_list* tl = Module_get_track_list(module);
     if (tl != NULL && track < Track_list_get_len(tl))
@@ -61,7 +61,7 @@ static const Pat_inst_ref* find_pat_inst_ref(
         if (ol != NULL && system < Order_list_get_len(ol))
         {
             Pat_inst_ref* piref = Order_list_get_pat_inst_ref(ol, system);
-            assert(piref != NULL);
+            rassert(piref != NULL);
             return piref;
         }
     }
@@ -71,7 +71,7 @@ static const Pat_inst_ref* find_pat_inst_ref(
 
 void Cgiter_reset(Cgiter* cgiter, const Position* start_pos)
 {
-    assert(cgiter != NULL);
+    rassert(cgiter != NULL);
 
     if (Position_is_valid(start_pos))
     {
@@ -91,7 +91,7 @@ void Cgiter_reset(Cgiter* cgiter, const Position* start_pos)
     else
     {
         // Pattern playback mode
-        assert(Position_has_valid_pattern_pos(start_pos));
+        rassert(Position_has_valid_pattern_pos(start_pos));
         cgiter->pos = *start_pos;
 
         cgiter->is_pattern_playback_state = true;
@@ -119,7 +119,7 @@ void Cgiter_reset(Cgiter* cgiter, const Position* start_pos)
 
 const Trigger_row* Cgiter_get_trigger_row(Cgiter* cgiter)
 {
-    assert(cgiter != NULL);
+    rassert(cgiter != NULL);
 
     if (Cgiter_has_finished(cgiter))
         return NULL;
@@ -154,8 +154,8 @@ const Trigger_row* Cgiter_get_trigger_row(Cgiter* cgiter)
     cgiter->cur_tr.head = Column_iter_get_row(&cgiter->citer, &cgiter->pos.pat_pos);
     if (cgiter->cur_tr.head == NULL)
         return NULL;
-    assert(cgiter->cur_tr.head->next != NULL);
-    assert(cgiter->cur_tr.head->next->trigger != NULL);
+    rassert(cgiter->cur_tr.head->next != NULL);
+    rassert(cgiter->cur_tr.head->next->trigger != NULL);
     if (Tstamp_cmp(&cgiter->cur_tr.head->next->trigger->pos, &cgiter->pos.pat_pos) > 0)
         return NULL;
 
@@ -165,8 +165,8 @@ const Trigger_row* Cgiter_get_trigger_row(Cgiter* cgiter)
 
 void Cgiter_clear_returned_status(Cgiter* cgiter)
 {
-    assert(cgiter != NULL);
-    assert(cgiter->row_returned);
+    rassert(cgiter != NULL);
+    rassert(cgiter->row_returned);
 
     cgiter->row_returned = false;
 
@@ -176,9 +176,9 @@ void Cgiter_clear_returned_status(Cgiter* cgiter)
 
 bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist)
 {
-    assert(cgiter != NULL);
-    assert(dist != NULL);
-    assert(Tstamp_cmp(dist, TSTAMP_AUTO) >= 0);
+    rassert(cgiter != NULL);
+    rassert(dist != NULL);
+    rassert(Tstamp_cmp(dist, TSTAMP_AUTO) >= 0);
 
     if (Cgiter_has_finished(cgiter))
         return false;
@@ -211,7 +211,7 @@ bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist)
 
     // Check next trigger row
     Column* column = Pattern_get_column(pattern, cgiter->col_index);
-    assert(column != NULL);
+    rassert(column != NULL);
     Column_iter_change_col(&cgiter->citer, column);
 
     const Tstamp* epsilon = Tstamp_set(TSTAMP_AUTO, 0, 1);
@@ -220,8 +220,8 @@ bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist)
 
     if (row != NULL)
     {
-        assert(row->next != NULL);
-        assert(row->next->trigger != NULL);
+        rassert(row->next != NULL);
+        rassert(row->next->trigger != NULL);
         if (Tstamp_cmp(&row->next->trigger->pos, pat_length) <= 0)
         {
             // Trigger row found inside this pattern
@@ -242,8 +242,8 @@ bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist)
 
 static void Cgiter_go_to_next_system(Cgiter* cgiter)
 {
-    assert(cgiter != NULL);
-    assert(!cgiter->is_pattern_playback_state);
+    rassert(cgiter != NULL);
+    rassert(!cgiter->is_pattern_playback_state);
 
     Tstamp_set(&cgiter->pos.pat_pos, 0, 0);
 
@@ -262,9 +262,9 @@ static void Cgiter_go_to_next_system(Cgiter* cgiter)
 
 void Cgiter_move(Cgiter* cgiter, const Tstamp* dist)
 {
-    assert(cgiter != NULL);
-    assert(dist != NULL);
-    assert(Tstamp_cmp(dist, TSTAMP_AUTO) >= 0);
+    rassert(cgiter != NULL);
+    rassert(dist != NULL);
+    rassert(Tstamp_cmp(dist, TSTAMP_AUTO) >= 0);
 
     if (cgiter->pos.piref.pat < 0)
         return;
@@ -310,7 +310,7 @@ void Cgiter_move(Cgiter* cgiter, const Tstamp* dist)
 
 bool Cgiter_has_finished(const Cgiter* cgiter)
 {
-    assert(cgiter != NULL);
+    rassert(cgiter != NULL);
     return cgiter->has_finished;
 }
 

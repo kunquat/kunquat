@@ -76,9 +76,9 @@ Device_impl* new_Proc_filter(void)
 static bool Proc_filter_set_cutoff(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
-    assert(isfinite(value));
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+    rassert(isfinite(value));
 
     Proc_filter* filter = (Proc_filter*)dimpl;
     filter->cutoff = value;
@@ -90,9 +90,9 @@ static bool Proc_filter_set_cutoff(
 static bool Proc_filter_set_resonance(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
-    assert(indices != NULL);
-    assert(isfinite(value));
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+    rassert(isfinite(value));
 
     Proc_filter* filter = (Proc_filter*)dimpl;
     filter->resonance = value;

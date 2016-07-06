@@ -43,7 +43,7 @@ static int64_t bit_offset(int64_t bit_index)
 
 Bit_array* new_Bit_array(int64_t size)
 {
-    assert(size > 0);
+    rassert(size > 0);
 
     Bit_array* ba = memory_alloc_item(Bit_array);
     if (ba == NULL)
@@ -64,7 +64,7 @@ Bit_array* new_Bit_array(int64_t size)
 
 void Bit_array_clear(Bit_array* ba)
 {
-    assert(ba != NULL);
+    rassert(ba != NULL);
 
     memset(ba->bits, 0, (size_t)byte_index(ba->size));
 
@@ -74,11 +74,11 @@ void Bit_array_clear(Bit_array* ba)
 
 void Bit_array_set(Bit_array* ba, int64_t index, bool value)
 {
-    assert(ba != NULL);
-    assert(index < ba->size);
+    rassert(ba != NULL);
+    rassert(index < ba->size);
 
     const uint8_t mask = (uint8_t)(1 << bit_offset(index));
-    assert(mask != 0);
+    rassert(mask != 0);
 
     if (value)
         ba->bits[byte_index(index)] |= mask;
@@ -91,11 +91,11 @@ void Bit_array_set(Bit_array* ba, int64_t index, bool value)
 
 bool Bit_array_get(const Bit_array* ba, int64_t index)
 {
-    assert(ba != NULL);
-    assert(index < ba->size);
+    rassert(ba != NULL);
+    rassert(index < ba->size);
 
     const uint8_t mask = (uint8_t)(1 << bit_offset(index));
-    assert(mask != 0);
+    rassert(mask != 0);
 
     return (ba->bits[byte_index(index)] & mask) != 0;
 }

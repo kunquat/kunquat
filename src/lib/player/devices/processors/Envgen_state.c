@@ -68,14 +68,14 @@ static int32_t Envgen_vstate_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
-    assert(au_state != NULL);
-    assert(wbs != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
+    rassert(au_state != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     const Proc_envgen* egen = (Proc_envgen*)proc_state->parent.device->dimpl;
     Envgen_vstate* egen_state = (Envgen_vstate*)vstate;
@@ -196,7 +196,7 @@ static int32_t Envgen_vstate_render_voice(
                     const double vol_clamped = min(1, force_scale);
                     const float factor =
                         (float)Envelope_get_value(egen->force_env, vol_clamped);
-                    assert(isfinite(factor));
+                    rassert(isfinite(factor));
                     out_buffer[i] *= factor;
                 }
             }
@@ -272,8 +272,8 @@ static int32_t Envgen_vstate_render_voice(
 
 void Envgen_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
 
     vstate->render_voice = Envgen_vstate_render_voice;
 

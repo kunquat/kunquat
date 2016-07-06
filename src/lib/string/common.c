@@ -58,7 +58,7 @@ bool string_has_suffix(const char* str, const char* suffix)
         return false;
 
     const char* search = str + (strlen(str) - strlen(suffix));
-    assert(strlen(search) == strlen(suffix));
+    rassert(strlen(search) == strlen(suffix));
 
     return string_eq(search, suffix);
 }
@@ -67,8 +67,8 @@ bool string_has_suffix(const char* str, const char* suffix)
 int string_extract_index(
         const char* path, const char* prefix, int digits, const char* after)
 {
-    assert(path != NULL);
-    assert(digits > 0);
+    rassert(path != NULL);
+    rassert(digits > 0);
 
     if (!string_has_prefix(path, prefix))
         return -1;

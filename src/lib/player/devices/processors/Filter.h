@@ -29,7 +29,7 @@
 /*         {                                                               \ */
 /*             (var) oper (buf0)[i0] * (buf1)[i1];                         \ */
 /*         }                                                               \ */
-/*     } else (void)0 */
+/*     } else ignore(0) */
 
 
 /* #define cyclic_dprod(n, coeffs, bsize, buf, k, var, oper)                      \ */
@@ -40,7 +40,7 @@
 /*         dprod((coeffs), (buf), filter_i, filter_j, (n), (bsize), (var), oper); \ */
 /*         filter_j -= (bsize);                                                   \ */
 /*         dprod((coeffs), (buf), filter_i, filter_j, (n), (bsize), (var), oper); \ */
-/*     } else (void)0 */
+/*     } else ignore(0) */
 
 
 void one_pole_filter_create(double f, int bandform, double coeffs[1], double *mul);
@@ -73,9 +73,9 @@ double iir_filter_strict_cascade(
 static inline double iir_filter_strict_cascade_even_order(
         int n, const double coeffs[n], double buf[n], double var)
 {
-    assert((n & 1) == 0);
-    assert(coeffs != NULL);
-    assert(buf != NULL);
+    rassert((n & 1) == 0);
+    rassert(coeffs != NULL);
+    rassert(buf != NULL);
 
     for (int i = 0; i < (n & ~((int)1)); i += 2)
     {
@@ -98,7 +98,7 @@ double dc_zero_filter(int n, double buf[n], double var);
 
 static inline double nq_zero_filter(int n, double buf[n], double var)
 {
-    assert(buf != NULL);
+    rassert(buf != NULL);
 
     for (int i = 0; i < n; ++i)
     {

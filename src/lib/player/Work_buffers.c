@@ -31,8 +31,8 @@ struct Work_buffers
 
 Work_buffers* new_Work_buffers(int32_t buf_size)
 {
-    assert(buf_size >= 0);
-    assert(buf_size <= WORK_BUFFER_SIZE_MAX);
+    rassert(buf_size >= 0);
+    rassert(buf_size <= WORK_BUFFER_SIZE_MAX);
 
     Work_buffers* buffers = memory_alloc_item(Work_buffers);
     if (buffers == NULL)
@@ -59,9 +59,9 @@ Work_buffers* new_Work_buffers(int32_t buf_size)
 
 bool Work_buffers_resize(Work_buffers* buffers, int32_t new_size)
 {
-    assert(buffers != NULL);
-    assert(new_size >= 0);
-    assert(new_size <= WORK_BUFFER_SIZE_MAX);
+    rassert(buffers != NULL);
+    rassert(new_size >= 0);
+    rassert(new_size <= WORK_BUFFER_SIZE_MAX);
 
     for (int i = 0; i < WORK_BUFFER_COUNT_; ++i)
     {
@@ -76,8 +76,8 @@ bool Work_buffers_resize(Work_buffers* buffers, int32_t new_size)
 const Work_buffer* Work_buffers_get_buffer(
         const Work_buffers* buffers, Work_buffer_type type)
 {
-    assert(buffers != NULL);
-    assert(type < WORK_BUFFER_COUNT_);
+    rassert(buffers != NULL);
+    rassert(type < WORK_BUFFER_COUNT_);
 
     return buffers->buffers[type];
 }
@@ -86,8 +86,8 @@ const Work_buffer* Work_buffers_get_buffer(
 Work_buffer* Work_buffers_get_buffer_mut(
         const Work_buffers* buffers, Work_buffer_type type)
 {
-    assert(buffers != NULL);
-    assert(type < WORK_BUFFER_COUNT_);
+    rassert(buffers != NULL);
+    rassert(type < WORK_BUFFER_COUNT_);
 
     return buffers->buffers[type];
 }
@@ -96,8 +96,8 @@ Work_buffer* Work_buffers_get_buffer_mut(
 const float* Work_buffers_get_buffer_contents(
         const Work_buffers* buffers, Work_buffer_type type)
 {
-    assert(buffers != NULL);
-    assert(type < WORK_BUFFER_COUNT_);
+    rassert(buffers != NULL);
+    rassert(type < WORK_BUFFER_COUNT_);
 
     return Work_buffer_get_contents(buffers->buffers[type]);
 }
@@ -106,8 +106,8 @@ const float* Work_buffers_get_buffer_contents(
 float* Work_buffers_get_buffer_contents_mut(
         const Work_buffers* buffers, Work_buffer_type type)
 {
-    assert(buffers != NULL);
-    assert(type < WORK_BUFFER_COUNT_);
+    rassert(buffers != NULL);
+    rassert(type < WORK_BUFFER_COUNT_);
 
     return Work_buffer_get_contents_mut(buffers->buffers[type]);
 }
@@ -116,8 +116,8 @@ float* Work_buffers_get_buffer_contents_mut(
 int32_t* Work_buffers_get_buffer_contents_int_mut(
         const Work_buffers* buffers, Work_buffer_type type)
 {
-    assert(buffers != NULL);
-    assert(type < WORK_BUFFER_COUNT_);
+    rassert(buffers != NULL);
+    rassert(type < WORK_BUFFER_COUNT_);
 
     return Work_buffer_get_contents_int_mut(buffers->buffers[type]);
 }

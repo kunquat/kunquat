@@ -26,8 +26,8 @@
 
 bool Value_type_is_realtime(Value_type type)
 {
-    assert(type >= VALUE_TYPE_NONE);
-    assert(type < VALUE_TYPE_COUNT);
+    rassert(type >= VALUE_TYPE_NONE);
+    rassert(type < VALUE_TYPE_COUNT);
 
     return (type == VALUE_TYPE_BOOL) ||
         (type == VALUE_TYPE_INT) ||
@@ -38,9 +38,9 @@ bool Value_type_is_realtime(Value_type type)
 
 Value* Value_copy(Value* restrict dest, const Value* restrict src)
 {
-    assert(dest != NULL);
-    assert(src != NULL);
-    assert(dest != src);
+    rassert(dest != NULL);
+    rassert(src != NULL);
+    rassert(dest != src);
 
     memcpy(dest, src, sizeof(Value));
 
@@ -50,10 +50,10 @@ Value* Value_copy(Value* restrict dest, const Value* restrict src)
 
 bool Value_convert(Value* dest, const Value* src, Value_type new_type)
 {
-    assert(dest != NULL);
-    assert(src != NULL);
-    assert(new_type > VALUE_TYPE_NONE);
-    assert(new_type < VALUE_TYPE_COUNT);
+    rassert(dest != NULL);
+    rassert(src != NULL);
+    rassert(new_type > VALUE_TYPE_NONE);
+    rassert(new_type < VALUE_TYPE_COUNT);
 
     if (src->type == new_type)
     {
@@ -150,9 +150,9 @@ bool Value_convert(Value* dest, const Value* src, Value_type new_type)
 
 int Value_serialise(const Value* value, int len, char* str)
 {
-    assert(value != NULL);
-    assert(len > 0);
-    assert(str != NULL);
+    rassert(value != NULL);
+    rassert(len > 0);
+    rassert(str != NULL);
 
     switch (value->type)
     {
@@ -203,10 +203,10 @@ int Value_serialise(const Value* value, int len, char* str)
         break;
 
         default:
-            assert(false);
+            rassert(false);
     }
 
-    assert(false);
+    rassert(false);
     return 0;
 }
 

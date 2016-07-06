@@ -24,9 +24,9 @@
 
 void hmac_md5(uint64_t key, const char* msg, uint64_t* lower, uint64_t* upper)
 {
-    assert(msg != NULL);
-    assert(lower != NULL);
-    assert(upper != NULL);
+    rassert(msg != NULL);
+    rassert(lower != NULL);
+    rassert(upper != NULL);
 
     unsigned char key_str[64] = { 0 };
     for (int i = 0; i < 8; ++i)

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2016
  *
  * This file is part of Kunquat.
  *
@@ -24,7 +24,7 @@
 
 static bool is_valid_var_name_with_length(const char* str, size_t length)
 {
-    assert(str != NULL);
+    rassert(str != NULL);
 
     return (0 < length) && (length < KQT_VAR_NAME_MAX) &&
         (strspn(str, KQT_VAR_CHARS) == length) &&
@@ -34,7 +34,7 @@ static bool is_valid_var_name_with_length(const char* str, size_t length)
 
 bool is_valid_var_name(const char* str)
 {
-    assert(str != NULL);
+    rassert(str != NULL);
 
     const size_t length = strlen(str);
     return is_valid_var_name_with_length(str, length);
@@ -43,7 +43,7 @@ bool is_valid_var_name(const char* str)
 
 bool is_valid_var_path(const char* str)
 {
-    assert(str != NULL);
+    rassert(str != NULL);
 
     const char* part = str;
     do
@@ -56,7 +56,7 @@ bool is_valid_var_path(const char* str)
         if (*part == '/')
             ++part;
         else
-            assert(*part == '\0');
+            rassert(*part == '\0');
     } while (*part != '\0');
 
     return true;

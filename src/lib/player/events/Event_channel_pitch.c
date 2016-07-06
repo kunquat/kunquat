@@ -38,11 +38,11 @@ bool Event_channel_slide_pitch_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     double pitch = value->value.float_type;
 
@@ -85,11 +85,11 @@ bool Event_channel_slide_pitch_length_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_TSTAMP);
 
     Tstamp_copy(&ch->pitch_slide_length, &value->value.Tstamp_type);
 
@@ -114,11 +114,11 @@ bool Event_channel_vibrato_speed_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     ch->vibrato_speed = value->value.float_type;
 
@@ -148,11 +148,11 @@ bool Event_channel_vibrato_depth_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_FLOAT);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_FLOAT);
 
     const double actual_depth = value->value.float_type * 5; // unit is 5 cents
     ch->vibrato_depth = actual_depth;
@@ -183,11 +183,11 @@ bool Event_channel_vibrato_speed_slide_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_TSTAMP);
 
     Tstamp_copy(&ch->vibrato_speed_slide, &value->value.Tstamp_type);
 
@@ -212,11 +212,11 @@ bool Event_channel_vibrato_depth_slide_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_TSTAMP);
 
     Tstamp_copy(&ch->vibrato_depth_slide, &value->value.Tstamp_type);
 
@@ -241,9 +241,9 @@ bool Event_channel_carry_pitch_on_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
     ignore(value);
 
     ch->carry_pitch = true;
@@ -258,9 +258,9 @@ bool Event_channel_carry_pitch_off_process(
         const Master_params* master_params,
         const Value* value)
 {
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(master_params != NULL);
+    rassert(ch != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
     ignore(value);
 
     ch->carry_pitch = false;

@@ -47,8 +47,8 @@ static void del_Trigger_list(Trigger_list* trlist);
 
 static Trigger_list* new_Trigger_list(Trigger_list* nil, Trigger* trigger)
 {
-    assert(!(nil == NULL) || (trigger == NULL));
-    assert(!(trigger == NULL) || (nil == NULL));
+    rassert(!(nil == NULL) || (trigger == NULL));
+    rassert(!(trigger == NULL) || (nil == NULL));
 
     Trigger_list* trlist = memory_alloc_item(Trigger_list);
     if (trlist == NULL)
@@ -56,13 +56,13 @@ static Trigger_list* new_Trigger_list(Trigger_list* nil, Trigger* trigger)
 
     if (nil == NULL)
     {
-        assert(trigger == NULL);
+        rassert(trigger == NULL);
         trlist->trigger = NULL;
         trlist->prev = trlist->next = trlist;
     }
     else
     {
-        assert(trigger != NULL);
+        rassert(trigger != NULL);
         trlist->trigger = trigger;
         trlist->prev = trlist->next = nil;
     }
@@ -73,7 +73,7 @@ static Trigger_list* new_Trigger_list(Trigger_list* nil, Trigger* trigger)
 
 static Trigger_list* Trigger_list_init(Trigger_list* trlist)
 {
-    assert(trlist != NULL);
+    rassert(trlist != NULL);
     trlist->prev = trlist->next = trlist;
     return trlist;
 }
@@ -81,13 +81,13 @@ static Trigger_list* Trigger_list_init(Trigger_list* trlist)
 
 static int Trigger_list_cmp(const Trigger_list* list1, const Trigger_list* list2)
 {
-    assert(list1 != NULL);
-    assert(list2 != NULL);
+    rassert(list1 != NULL);
+    rassert(list2 != NULL);
 
     Trigger* ev1 = list1->next->trigger;
     Trigger* ev2 = list2->next->trigger;
-    assert(ev1 != NULL);
-    assert(ev2 != NULL);
+    rassert(ev1 != NULL);
+    rassert(ev2 != NULL);
 
     return Tstamp_cmp(Trigger_get_pos(ev1), Trigger_get_pos(ev2));
 }
@@ -114,7 +114,7 @@ Column_iter* new_Column_iter(Column* col)
 
 void Column_iter_init(Column_iter* iter)
 {
-    assert(iter != NULL);
+    rassert(iter != NULL);
 
     iter->version = 0;
     iter->col = NULL;
@@ -127,8 +127,8 @@ void Column_iter_init(Column_iter* iter)
 
 void Column_iter_change_col(Column_iter* iter, Column* col)
 {
-    assert(iter != NULL);
-    assert(col != NULL);
+    rassert(iter != NULL);
+    rassert(col != NULL);
 
     iter->col = col;
     iter->version = col->version;
@@ -141,17 +141,17 @@ void Column_iter_change_col(Column_iter* iter, Column* col)
 
 Trigger* Column_iter_get(Column_iter* iter, const Tstamp* pos)
 {
-    assert(iter != NULL);
-    assert(pos != NULL);
+    rassert(iter != NULL);
+    rassert(pos != NULL);
 
     iter->trlist = Column_iter_get_row(iter, pos);
     if (iter->trlist == NULL)
         return NULL;
 
-    assert(iter->trlist->trigger == NULL);
-    assert(iter->trlist->next != iter->trlist);
+    rassert(iter->trlist->trigger == NULL);
+    rassert(iter->trlist->next != iter->trlist);
     iter->trlist = iter->trlist->next;
-    assert(iter->trlist->trigger != NULL);
+    rassert(iter->trlist->trigger != NULL);
 
     return iter->trlist->trigger;
 }
@@ -159,8 +159,8 @@ Trigger* Column_iter_get(Column_iter* iter, const Tstamp* pos)
 
 Trigger_list* Column_iter_get_row(Column_iter* iter, const Tstamp* pos)
 {
-    assert(iter != NULL);
-    assert(pos != NULL);
+    rassert(iter != NULL);
+    rassert(pos != NULL);
 
     if (iter->col == NULL)
         return NULL;
@@ -177,7 +177,7 @@ Trigger_list* Column_iter_get_row(Column_iter* iter, const Tstamp* pos)
 
 Trigger* Column_iter_get_next(Column_iter* iter)
 {
-    assert(iter != NULL);
+    rassert(iter != NULL);
 
     if (iter->trlist == NULL || iter->col == NULL)
         return NULL;
@@ -189,8 +189,8 @@ Trigger* Column_iter_get_next(Column_iter* iter)
         return NULL;
     }
 
-    assert(iter->trlist->trigger != NULL);
-    assert(iter->trlist != iter->trlist->next);
+    rassert(iter->trlist->trigger != NULL);
+    rassert(iter->trlist != iter->trlist->next);
 
     iter->trlist = iter->trlist->next;
     if (iter->trlist->trigger != NULL)
@@ -200,10 +200,10 @@ Trigger* Column_iter_get_next(Column_iter* iter)
     if (iter->trlist == NULL)
         return NULL;
 
-    assert(iter->trlist->trigger == NULL);
-    assert(iter->trlist->next != iter->trlist);
+    rassert(iter->trlist->trigger == NULL);
+    rassert(iter->trlist->next != iter->trlist);
     iter->trlist = iter->trlist->next;
-    assert(iter->trlist->trigger != NULL);
+    rassert(iter->trlist->trigger != NULL);
 
     return iter->trlist->trigger;
 }
@@ -211,7 +211,7 @@ Trigger* Column_iter_get_next(Column_iter* iter)
 
 Trigger_list* Column_iter_get_next_row(Column_iter* iter)
 {
-    assert(iter != NULL);
+    rassert(iter != NULL);
 
     if (iter->trlist == NULL || iter->col == NULL)
         return NULL;
@@ -277,8 +277,8 @@ Column* new_Column(const Tstamp* len)
 Column* new_Column_from_string(
         Streader* sr, const Tstamp* len, const Event_names* event_names)
 {
-    assert(sr != NULL);
-    assert(event_names != NULL);
+    rassert(sr != NULL);
+    rassert(event_names != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -305,9 +305,9 @@ typedef struct Read_trigger_data
 
 static bool read_trigger(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
     ignore(index);
-    assert(userdata != NULL);
+    rassert(userdata != NULL);
 
     Read_trigger_data* rtdata = userdata;
 
@@ -323,9 +323,9 @@ static bool read_trigger(Streader* sr, int32_t index, void* userdata)
 
 static bool Column_parse(Column* col, Streader* sr, const Event_names* event_names)
 {
-    assert(col != NULL);
-    assert(sr != NULL);
-    assert(event_names != NULL);
+    rassert(col != NULL);
+    rassert(sr != NULL);
+    rassert(event_names != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -343,8 +343,8 @@ static bool Column_parse(Column* col, Streader* sr, const Event_names* event_nam
 
 bool Column_ins(Column* col, Trigger* trigger)
 {
-    assert(col != NULL);
-    assert(trigger != NULL);
+    rassert(col != NULL);
+    rassert(trigger != NULL);
 
     ++col->version;
     Trigger_list* key = Trigger_list_init(&(Trigger_list){ .trigger = trigger });
@@ -376,9 +376,9 @@ bool Column_ins(Column* col, Trigger* trigger)
         return true;
     }
 
-    assert(ret->next != ret);
-    assert(ret->prev != ret);
-    assert(ret->trigger == NULL);
+    rassert(ret->next != ret);
+    rassert(ret->prev != ret);
+    rassert(ret->trigger == NULL);
 
     Trigger_list* node = new_Trigger_list(ret, trigger);
     if (node == NULL)
@@ -411,20 +411,20 @@ static void del_Trigger_list(Trigger_list* trlist)
     if (trlist == NULL)
         return;
 
-    assert(trlist->trigger == NULL);
+    rassert(trlist->trigger == NULL);
     Trigger_list* cur = trlist->next;
-    assert(cur->trigger != NULL);
+    rassert(cur->trigger != NULL);
 
     while (cur->trigger != NULL)
     {
         Trigger_list* next = cur->next;
-        assert(cur->trigger != NULL);
+        rassert(cur->trigger != NULL);
         del_Trigger(cur->trigger);
         memory_free(cur);
         cur = next;
     }
 
-    assert(cur == trlist);
+    rassert(cur == trlist);
     memory_free(cur);
 
     return;

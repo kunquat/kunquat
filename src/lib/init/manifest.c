@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -22,7 +22,7 @@
 
 static bool read_manifest_entry(Streader* sr, const char* key, void* userdata)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
     ignore(key);
     ignore(userdata);
 
@@ -31,7 +31,7 @@ static bool read_manifest_entry(Streader* sr, const char* key, void* userdata)
 
 bool read_default_manifest(Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;

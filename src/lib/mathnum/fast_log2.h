@@ -30,8 +30,8 @@
  */
 static inline double fast_log2(double x)
 {
-    assert(isfinite(x));
-    assert(x > 0);
+    dassert(isfinite(x));
+    dassert(x > 0);
 
     // Shift x to range [1, 2)
     int exp = 0;

@@ -79,7 +79,7 @@ Device_impl* new_Proc_delay(void)
 static bool Proc_delay_set_max_delay(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
+    rassert(dimpl != NULL);
     ignore(indices);
 
     Proc_delay* delay = (Proc_delay*)dimpl;
@@ -96,7 +96,7 @@ static bool Proc_delay_set_max_delay(
 static bool Proc_delay_set_init_delay(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
-    assert(dimpl != NULL);
+    rassert(dimpl != NULL);
     ignore(indices);
 
     Proc_delay* delay = (Proc_delay*)dimpl;

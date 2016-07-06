@@ -67,8 +67,8 @@ Channel_stream_state* new_Channel_stream_state(void)
 void Channel_stream_state_set_audio_rate(
         Channel_stream_state* state, int32_t audio_rate)
 {
-    assert(state != NULL);
-    assert(audio_rate > 0);
+    rassert(state != NULL);
+    rassert(audio_rate > 0);
 
     AAiter* iter = AAiter_init(AAITER_AUTO, state->tree);
 
@@ -85,9 +85,9 @@ void Channel_stream_state_set_audio_rate(
 
 void Channel_stream_state_set_tempo(Channel_stream_state* state, double tempo)
 {
-    assert(state != NULL);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(state != NULL);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     AAiter* iter = AAiter_init(AAITER_AUTO, state->tree);
 
@@ -105,9 +105,9 @@ void Channel_stream_state_set_tempo(Channel_stream_state* state, double tempo)
 bool Channel_stream_state_add_entry(
         Channel_stream_state* state, const char* stream_name)
 {
-    assert(state != NULL);
-    assert(stream_name != NULL);
-    assert(is_valid_var_name(stream_name));
+    rassert(state != NULL);
+    rassert(stream_name != NULL);
+    rassert(is_valid_var_name(stream_name));
 
     if (!AAtree_contains(state->tree, stream_name))
     {
@@ -134,10 +134,10 @@ bool Channel_stream_state_add_entry(
 bool Channel_stream_state_set_value(
         Channel_stream_state* state, const char* stream_name, double value)
 {
-    assert(state != NULL);
-    assert(stream_name != NULL);
-    assert(is_valid_var_name(stream_name));
-    assert(isfinite(value));
+    rassert(state != NULL);
+    rassert(stream_name != NULL);
+    rassert(is_valid_var_name(stream_name));
+    rassert(isfinite(value));
 
     Entry* entry = AAtree_get_exact(state->tree, stream_name);
     if (entry == NULL)
@@ -153,10 +153,10 @@ bool Channel_stream_state_set_value(
 bool Channel_stream_state_slide_target(
         Channel_stream_state* state, const char* stream_name, double value)
 {
-    assert(state != NULL);
-    assert(stream_name != NULL);
-    assert(is_valid_var_name(stream_name));
-    assert(isfinite(value));
+    rassert(state != NULL);
+    rassert(stream_name != NULL);
+    rassert(is_valid_var_name(stream_name));
+    rassert(isfinite(value));
 
     Entry* entry = AAtree_get_exact(state->tree, stream_name);
     if (entry == NULL)
@@ -171,10 +171,10 @@ bool Channel_stream_state_slide_target(
 bool Channel_stream_state_slide_length(
         Channel_stream_state* state, const char* stream_name, const Tstamp* length)
 {
-    assert(state != NULL);
-    assert(stream_name != NULL);
-    assert(is_valid_var_name(stream_name));
-    assert(length != NULL);
+    rassert(state != NULL);
+    rassert(stream_name != NULL);
+    rassert(is_valid_var_name(stream_name));
+    rassert(length != NULL);
 
     Entry* entry = AAtree_get_exact(state->tree, stream_name);
     if (entry == NULL)
@@ -189,10 +189,10 @@ bool Channel_stream_state_slide_length(
 bool Channel_stream_state_set_osc_speed(
         Channel_stream_state* state, const char* stream_name, double speed)
 {
-    assert(state != NULL);
-    assert(stream_name != NULL);
-    assert(is_valid_var_name(stream_name));
-    assert(isfinite(speed));
+    rassert(state != NULL);
+    rassert(stream_name != NULL);
+    rassert(is_valid_var_name(stream_name));
+    rassert(isfinite(speed));
 
     Entry* entry = AAtree_get_exact(state->tree, stream_name);
     if (entry == NULL)
@@ -207,10 +207,10 @@ bool Channel_stream_state_set_osc_speed(
 bool Channel_stream_state_set_osc_depth(
         Channel_stream_state* state, const char* stream_name, double depth)
 {
-    assert(state != NULL);
-    assert(stream_name != NULL);
-    assert(is_valid_var_name(stream_name));
-    assert(isfinite(depth));
+    rassert(state != NULL);
+    rassert(stream_name != NULL);
+    rassert(is_valid_var_name(stream_name));
+    rassert(isfinite(depth));
 
     Entry* entry = AAtree_get_exact(state->tree, stream_name);
     if (entry == NULL)
@@ -225,10 +225,10 @@ bool Channel_stream_state_set_osc_depth(
 bool Channel_stream_state_set_osc_speed_slide(
         Channel_stream_state* state, const char* stream_name, const Tstamp* length)
 {
-    assert(state != NULL);
-    assert(stream_name != NULL);
-    assert(is_valid_var_name(stream_name));
-    assert(length != NULL);
+    rassert(state != NULL);
+    rassert(stream_name != NULL);
+    rassert(is_valid_var_name(stream_name));
+    rassert(length != NULL);
 
     Entry* entry = AAtree_get_exact(state->tree, stream_name);
     if (entry == NULL)
@@ -243,10 +243,10 @@ bool Channel_stream_state_set_osc_speed_slide(
 bool Channel_stream_state_set_osc_depth_slide(
         Channel_stream_state* state, const char* stream_name, const Tstamp* length)
 {
-    assert(state != NULL);
-    assert(stream_name != NULL);
-    assert(is_valid_var_name(stream_name));
-    assert(length != NULL);
+    rassert(state != NULL);
+    rassert(stream_name != NULL);
+    rassert(is_valid_var_name(stream_name));
+    rassert(length != NULL);
 
     Entry* entry = AAtree_get_exact(state->tree, stream_name);
     if (entry == NULL)
@@ -263,10 +263,10 @@ bool Channel_stream_state_set_controls(
         const char* stream_name,
         const Linear_controls* controls)
 {
-    assert(state != NULL);
-    assert(stream_name != NULL);
-    assert(is_valid_var_name(stream_name));
-    assert(controls != NULL);
+    rassert(state != NULL);
+    rassert(stream_name != NULL);
+    rassert(is_valid_var_name(stream_name));
+    rassert(controls != NULL);
 
     Entry* entry = AAtree_get_exact(state->tree, stream_name);
     if (entry == NULL)
@@ -282,9 +282,9 @@ bool Channel_stream_state_set_controls(
 const Linear_controls* Channel_stream_state_get_controls(
         const Channel_stream_state* state, const char* stream_name)
 {
-    assert(state != NULL);
-    assert(stream_name != NULL);
-    assert(is_valid_var_name(stream_name));
+    rassert(state != NULL);
+    rassert(stream_name != NULL);
+    rassert(is_valid_var_name(stream_name));
 
     const Entry* entry = AAtree_get_exact(state->tree, stream_name);
     if (entry == NULL)
@@ -297,9 +297,9 @@ const Linear_controls* Channel_stream_state_get_controls(
 bool Channel_stream_state_set_carrying_enabled(
         Channel_stream_state* state, const char* stream_name, bool enabled)
 {
-    assert(state != NULL);
-    assert(stream_name != NULL);
-    assert(is_valid_var_name(stream_name));
+    rassert(state != NULL);
+    rassert(stream_name != NULL);
+    rassert(is_valid_var_name(stream_name));
 
     Entry* entry = AAtree_get_exact(state->tree, stream_name);
     if (entry == NULL)
@@ -314,9 +314,9 @@ bool Channel_stream_state_set_carrying_enabled(
 bool Channel_stream_state_is_carrying_enabled(
         const Channel_stream_state* state, const char* stream_name)
 {
-    assert(state != NULL);
-    assert(stream_name != NULL);
-    assert(is_valid_var_name(stream_name));
+    rassert(state != NULL);
+    rassert(stream_name != NULL);
+    rassert(is_valid_var_name(stream_name));
 
     Entry* entry = AAtree_get_exact(state->tree, stream_name);
     if (entry == NULL)
@@ -328,8 +328,8 @@ bool Channel_stream_state_is_carrying_enabled(
 
 void Channel_stream_state_update(Channel_stream_state* state, int64_t step_count)
 {
-    assert(state != NULL);
-    assert(step_count >= 0);
+    rassert(state != NULL);
+    rassert(step_count >= 0);
 
     AAiter* iter = AAiter_init(AAITER_AUTO, state->tree);
 
@@ -348,7 +348,7 @@ void Channel_stream_state_update(Channel_stream_state* state, int64_t step_count
 
 void Channel_stream_state_reset(Channel_stream_state* state)
 {
-    assert(state != NULL);
+    rassert(state != NULL);
 
     AAiter* iter = AAiter_init(AAITER_AUTO, state->tree);
 

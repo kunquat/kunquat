@@ -25,7 +25,7 @@
 
 Voice_pool* new_Voice_pool(int size)
 {
-    assert(size >= 0);
+    rassert(size >= 0);
 
     Voice_pool* pool = memory_alloc_item(Voice_pool);
     if (pool == NULL)
@@ -69,8 +69,8 @@ Voice_pool* new_Voice_pool(int size)
 
 bool Voice_pool_reserve_state_space(Voice_pool* pool, int32_t state_size)
 {
-    assert(pool != NULL);
-    assert(state_size >= 0);
+    rassert(pool != NULL);
+    rassert(state_size >= 0);
 
     if (state_size <= pool->state_size)
         return true;
@@ -88,8 +88,8 @@ bool Voice_pool_reserve_state_space(Voice_pool* pool, int32_t state_size)
 
 bool Voice_pool_resize(Voice_pool* pool, int size)
 {
-    assert(pool != NULL);
-    assert(size > 0);
+    rassert(pool != NULL);
+    rassert(size > 0);
 
     int new_size = size;
     if (new_size == pool->size)
@@ -147,14 +147,14 @@ bool Voice_pool_resize(Voice_pool* pool, int size)
 
 int Voice_pool_get_size(const Voice_pool* pool)
 {
-    assert(pool != NULL);
+    rassert(pool != NULL);
     return pool->size;
 }
 
 
 uint64_t Voice_pool_new_group_id(Voice_pool* pool)
 {
-    assert(pool != NULL);
+    rassert(pool != NULL);
     ++pool->new_group_id;
     return pool->new_group_id;
 }
@@ -162,7 +162,7 @@ uint64_t Voice_pool_new_group_id(Voice_pool* pool)
 
 Voice* Voice_pool_get_voice(Voice_pool* pool, Voice* voice, uint64_t id)
 {
-    assert(pool != NULL);
+    rassert(pool != NULL);
 
     if (pool->size == 0)
         return NULL;
@@ -202,7 +202,7 @@ static uint64_t get_voice_group_prio(const Voice* voice)
 
 static void Voice_pool_sort_groups(Voice_pool* pool)
 {
-    assert(pool != NULL);
+    rassert(pool != NULL);
 
     // Simple insertion sort based on group IDs
     for (uint16_t i = 1; i < pool->size; ++i)
@@ -228,7 +228,7 @@ static void Voice_pool_sort_groups(Voice_pool* pool)
 
 Voice_group* Voice_pool_start_group_iteration(Voice_pool* pool)
 {
-    assert(pool != NULL);
+    rassert(pool != NULL);
 
     Voice_pool_sort_groups(pool);
 
@@ -244,7 +244,7 @@ Voice_group* Voice_pool_start_group_iteration(Voice_pool* pool)
 
 Voice_group* Voice_pool_get_next_group(Voice_pool* pool)
 {
-    assert(pool != NULL);
+    rassert(pool != NULL);
 
     if (pool->group_iter_offset >= pool->size)
         return NULL;
@@ -262,7 +262,7 @@ Voice_group* Voice_pool_get_next_group(Voice_pool* pool)
 
 void Voice_pool_reset(Voice_pool* pool)
 {
-    assert(pool != NULL);
+    rassert(pool != NULL);
 
     for (uint16_t i = 0; i < pool->size; ++i)
         Voice_reset(pool->voices[i]);

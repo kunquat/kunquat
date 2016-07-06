@@ -64,7 +64,7 @@ typedef struct Freeverb_pstate
 
 static void del_Freeverb_pstate(Device_state* dstate)
 {
-    assert(dstate != NULL);
+    rassert(dstate != NULL);
 
     Freeverb_pstate* fpstate = (Freeverb_pstate*)dstate;
 
@@ -85,7 +85,7 @@ static void del_Freeverb_pstate(Device_state* dstate)
 
 static void Freeverb_pstate_reset(Device_state* dstate)
 {
-    assert(dstate != NULL);
+    rassert(dstate != NULL);
 
     Freeverb_pstate* fstate = (Freeverb_pstate*)dstate;
 
@@ -109,8 +109,8 @@ static void Freeverb_pstate_reset(Device_state* dstate)
 
 static bool Freeverb_pstate_set_audio_rate(Device_state* dstate, int32_t audio_rate)
 {
-    assert(dstate != NULL);
-    assert(audio_rate > 0);
+    rassert(dstate != NULL);
+    rassert(audio_rate > 0);
 
     Freeverb_pstate* fstate = (Freeverb_pstate*)dstate;
 
@@ -150,7 +150,7 @@ static bool Freeverb_pstate_set_audio_rate(Device_state* dstate, int32_t audio_r
 
 static void Freeverb_pstate_clear_history(Proc_state* proc_state)
 {
-    assert(proc_state != NULL);
+    rassert(proc_state != NULL);
 
     Freeverb_pstate_reset((Device_state*)proc_state);
 
@@ -189,10 +189,10 @@ static void Freeverb_pstate_render_mixed(
         int32_t buf_stop,
         double tempo)
 {
-    assert(dstate != NULL);
-    assert(wbs != NULL);
-    assert(buf_start >= 0);
-    assert(tempo > 0);
+    rassert(dstate != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(tempo > 0);
 
     Freeverb_pstate* fstate = (Freeverb_pstate*)dstate;
 
@@ -334,9 +334,9 @@ static void Freeverb_pstate_render_mixed(
 Device_state* new_Freeverb_pstate(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
-    assert(device != NULL);
-    assert(audio_rate > 0);
-    assert(audio_buffer_size >= 0);
+    rassert(device != NULL);
+    rassert(audio_rate > 0);
+    rassert(audio_buffer_size >= 0);
 
     Freeverb_pstate* fpstate = memory_alloc_item(Freeverb_pstate);
     if (fpstate == NULL)

@@ -117,8 +117,8 @@ typedef struct bedata
 
 static bool read_bind_entry(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(userdata != NULL);
     ignore(index);
 
     bedata* bd = userdata;
@@ -159,8 +159,8 @@ static bool read_bind_entry(Streader* sr, int32_t index, void* userdata)
 
 Bind* new_Bind(Streader* sr, const Event_names* names)
 {
-    assert(sr != NULL);
-    assert(names != NULL);
+    rassert(sr != NULL);
+    rassert(names != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -205,7 +205,7 @@ Bind* new_Bind(Streader* sr, const Event_names* names)
 
 Event_cache* Bind_create_cache(const Bind* map)
 {
-    assert(map != NULL);
+    rassert(map != NULL);
 
     Event_cache* cache = new_Event_cache();
     if (cache == NULL)
@@ -245,10 +245,10 @@ Target_event* Bind_get_first(
         const Value* value,
         Random* rand)
 {
-    assert(map != NULL);
-    assert(cache != NULL);
-    assert(event_name != NULL);
-    assert(value != NULL);
+    rassert(map != NULL);
+    rassert(cache != NULL);
+    rassert(event_name != NULL);
+    rassert(value != NULL);
 
     Event_cache_update(cache, event_name, value);
 
@@ -299,20 +299,20 @@ static bool Bind_dfs(const Bind* map, char* name);
 
 static bool Bind_is_cyclic(const Bind* map)
 {
-    assert(map != NULL);
+    rassert(map != NULL);
 
     AAiter* iter = AAiter_init(AAITER_AUTO, map->cblists);
     Cblist* cblist = AAiter_get_at_least(iter, "");
     while (cblist != NULL)
     {
-        assert(cblist->source_state != SOURCE_STATE_REACHED);
+        rassert(cblist->source_state != SOURCE_STATE_REACHED);
         if (cblist->source_state == SOURCE_STATE_VISITED)
         {
             cblist = AAiter_get_next(iter);
             continue;
         }
 
-        assert(cblist->source_state == SOURCE_STATE_NEW);
+        rassert(cblist->source_state == SOURCE_STATE_NEW);
         if (Bind_dfs(map, cblist->event_name))
             return true;
 
@@ -325,8 +325,8 @@ static bool Bind_is_cyclic(const Bind* map)
 
 static bool Bind_dfs(const Bind* map, char* name)
 {
-    assert(map != NULL);
-    assert(name != NULL);
+    rassert(map != NULL);
+    rassert(name != NULL);
 
     Cblist* cblist = AAtree_get_exact(map->cblists, name);
     if (cblist == NULL || cblist->source_state == SOURCE_STATE_VISITED)
@@ -335,7 +335,7 @@ static bool Bind_dfs(const Bind* map, char* name)
     if (cblist->source_state == SOURCE_STATE_REACHED)
         return true;
 
-    assert(cblist->source_state == SOURCE_STATE_NEW);
+    rassert(cblist->source_state == SOURCE_STATE_NEW);
     cblist->source_state = SOURCE_STATE_REACHED;
 
     Cblist_item* item = cblist->first;
@@ -348,7 +348,7 @@ static bool Bind_dfs(const Bind* map, char* name)
                     STREADER_AUTO, event->desc, (int64_t)strlen(event->desc));
             char next_name[EVENT_NAME_MAX + 1] = "";
             Streader_readf(sr, "[%s", READF_STR(EVENT_NAME_MAX, next_name));
-            assert(!Streader_is_error_set(sr));
+            rassert(!Streader_is_error_set(sr));
 
             if (Bind_dfs(map, next_name))
                 return true;
@@ -367,8 +367,8 @@ static bool Bind_dfs(const Bind* map, char* name)
 
 static bool read_constraint(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(userdata != NULL);
     ignore(index);
 
     Cblist_item* item = userdata;
@@ -385,9 +385,9 @@ static bool read_constraint(Streader* sr, int32_t index, void* userdata)
 
 static bool read_constraints(Streader* sr, Bind* map, Cblist_item* item)
 {
-    assert(sr != NULL);
-    assert(map != NULL);
-    assert(item != NULL);
+    rassert(sr != NULL);
+    rassert(map != NULL);
+    rassert(item != NULL);
 
     return Streader_read_list(sr, read_constraint, item);
 }
@@ -401,8 +401,8 @@ typedef struct edata
 
 static bool read_event(Streader* sr, int32_t index, void* userdata)
 {
-    assert(sr != NULL);
-    assert(userdata != NULL);
+    rassert(sr != NULL);
+    rassert(userdata != NULL);
     ignore(index);
 
     edata* ed = userdata;
@@ -413,12 +413,12 @@ static bool read_event(Streader* sr, int32_t index, void* userdata)
 
     if (ed->item->last_event == NULL)
     {
-        assert(ed->item->first_event == NULL);
+        rassert(ed->item->first_event == NULL);
         ed->item->first_event = ed->item->last_event = event;
     }
     else
     {
-        assert(ed->item->first_event != NULL);
+        rassert(ed->item->first_event != NULL);
         ed->item->last_event->next = event;
         ed->item->last_event = event;
     }
@@ -429,9 +429,9 @@ static bool read_event(Streader* sr, int32_t index, void* userdata)
 static bool read_events(
         Streader* sr, Cblist_item* item, const Event_names* names)
 {
-    assert(sr != NULL);
-    assert(item != NULL);
-    assert(names != NULL);
+    rassert(sr != NULL);
+    rassert(item != NULL);
+    rassert(names != NULL);
 
     edata* ed = &(edata){ .item = item, .names = names, };
 
@@ -441,7 +441,7 @@ static bool read_events(
 
 static Cblist* new_Cblist(char* event_name)
 {
-    assert(event_name != NULL);
+    rassert(event_name != NULL);
 
     Cblist* list = memory_alloc_item(Cblist);
     if (list == NULL)
@@ -458,12 +458,12 @@ static Cblist* new_Cblist(char* event_name)
 
 static void Cblist_append(Cblist* list, Cblist_item* item)
 {
-    assert(list != NULL);
-    assert(item != NULL);
+    rassert(list != NULL);
+    rassert(item != NULL);
 
     if (list->last == NULL)
     {
-        assert(list->first == NULL);
+        rassert(list->first == NULL);
         list->first = list->last = item;
         return;
     }
@@ -538,7 +538,7 @@ static void del_Cblist_item(Cblist_item* item)
 
 static Constraint* new_Constraint(Streader* sr)
 {
-    assert(sr != NULL);
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -575,8 +575,8 @@ static Constraint* new_Constraint(Streader* sr)
         return NULL;
     }
 
-    assert(expr_end != NULL);
-    assert(expr_end > expr);
+    rassert(expr_end != NULL);
+    rassert(expr_end > expr);
     const ptrdiff_t len = expr_end - expr;
 
     c->expr = memory_calloc_items(char, len + 1);
@@ -597,13 +597,13 @@ static Constraint* new_Constraint(Streader* sr)
 static bool Constraint_match(
         Constraint* constraint, Event_cache* cache, Env_state* estate, Random* rand)
 {
-    assert(constraint != NULL);
-    assert(cache != NULL);
-    assert(estate != NULL);
-    assert(rand != NULL);
+    rassert(constraint != NULL);
+    rassert(cache != NULL);
+    rassert(estate != NULL);
+    rassert(rand != NULL);
 
     const Value* value = Event_cache_get_value(cache, constraint->event_name);
-    assert(value != NULL);
+    rassert(value != NULL);
 
     Value* result = VALUE_AUTO;
     Streader* sr = Streader_init(
@@ -632,8 +632,8 @@ static void del_Constraint(Constraint* constraint)
 
 static Target_event* new_Target_event(Streader* sr, const Event_names* names)
 {
-    assert(sr != NULL);
-    assert(names != NULL);
+    rassert(sr != NULL);
+    rassert(names != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -701,7 +701,7 @@ static Target_event* new_Target_event(Streader* sr, const Event_names* names)
     }
 
     const ptrdiff_t len = desc_end - desc;
-    assert(len > 0);
+    rassert(len > 0);
     event->desc = memory_alloc_items(char, len + 1);
     if (event->desc == NULL)
     {

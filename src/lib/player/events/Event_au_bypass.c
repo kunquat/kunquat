@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -33,13 +33,13 @@ bool Event_au_bypass_on_process(
         Device_states* dstates,
         const Value* value)
 {
-    assert(au != NULL);
-    assert(au_params != NULL);
-    assert(au_state != NULL);
-    assert(master_params != NULL);
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(value != NULL);
+    rassert(au != NULL);
+    rassert(au_params != NULL);
+    rassert(au_state != NULL);
+    rassert(master_params != NULL);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(value != NULL);
 
     au_state->bypass = true;
 
@@ -67,13 +67,13 @@ bool Event_au_bypass_off_process(
         Device_states* dstates,
         const Value* value)
 {
-    assert(au != NULL);
-    assert(au_params != NULL);
-    assert(au_state != NULL);
-    assert(master_params != NULL);
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(value != NULL);
+    rassert(au != NULL);
+    rassert(au_params != NULL);
+    rassert(au_state != NULL);
+    rassert(master_params != NULL);
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(value != NULL);
 
     au_state->bypass = false;
 

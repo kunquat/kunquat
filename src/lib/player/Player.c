@@ -40,7 +40,7 @@
 
 static void Player_update_sliders_and_lfos_audio_rate(Player* player)
 {
-    assert(player != NULL);
+    rassert(player != NULL);
 
     const int32_t rate = player->audio_rate;
 
@@ -64,12 +64,12 @@ Player* new_Player(
         int32_t event_buffer_size,
         int voice_count)
 {
-    assert(module != NULL);
-    assert(audio_rate > 0);
-    assert(audio_buffer_size >= 0);
-    assert(audio_buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-    assert(voice_count >= 0);
-    assert(voice_count <= KQT_VOICES_MAX);
+    rassert(module != NULL);
+    rassert(audio_rate > 0);
+    rassert(audio_buffer_size >= 0);
+    rassert(audio_buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
+    rassert(voice_count >= 0);
+    rassert(voice_count <= KQT_VOICES_MAX);
 
     Player* player = memory_alloc_item(Player);
     if (player == NULL)
@@ -202,22 +202,22 @@ Player* new_Player(
 
 const Event_handler* Player_get_event_handler(const Player* player)
 {
-    assert(player != NULL);
+    rassert(player != NULL);
     return player->event_handler;
 }
 
 
 Device_states* Player_get_device_states(const Player* player)
 {
-    assert(player != NULL);
+    rassert(player != NULL);
     return player->device_states;
 }
 
 
 bool Player_reserve_voice_state_space(Player* player, int32_t size)
 {
-    assert(player != NULL);
-    assert(size >= 0);
+    rassert(player != NULL);
+    rassert(size >= 0);
 
     return Voice_pool_reserve_state_space(player->voices, size);
 }
@@ -225,8 +225,8 @@ bool Player_reserve_voice_state_space(Player* player, int32_t size)
 
 bool Player_alloc_channel_cv_state(Player* player, const Au_control_vars* aucv)
 {
-    assert(player != NULL);
-    assert(aucv != NULL);
+    rassert(player != NULL);
+    rassert(aucv != NULL);
 
     Au_control_var_iter* iter = Au_control_var_iter_init(AU_CONTROL_VAR_ITER_AUTO, aucv);
     const char* var_name = NULL;
@@ -249,8 +249,8 @@ bool Player_alloc_channel_cv_state(Player* player, const Au_control_vars* aucv)
 
 bool Player_alloc_channel_streams(Player* player, const Au_streams* streams)
 {
-    assert(player != NULL);
-    assert(streams != NULL);
+    rassert(player != NULL);
+    rassert(streams != NULL);
 
     Stream_target_dev_iter* iter =
         Stream_target_dev_iter_init(STREAM_TARGET_DEV_ITER_AUTO, streams);
@@ -273,14 +273,14 @@ bool Player_alloc_channel_streams(Player* player, const Au_streams* streams)
 
 bool Player_refresh_env_state(Player* player)
 {
-    assert(player != NULL);
+    rassert(player != NULL);
     return Env_state_refresh_space(player->estate);
 }
 
 
 bool Player_refresh_bind_state(Player* player)
 {
-    assert(player != NULL);
+    rassert(player != NULL);
 
     Event_cache* caches[KQT_CHANNELS_MAX] = { NULL };
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
@@ -304,9 +304,9 @@ bool Player_refresh_bind_state(Player* player)
 
 bool Player_create_tuning_state(Player* player, int index)
 {
-    assert(player != NULL);
-    assert(index >= 0);
-    assert(index < KQT_TUNING_TABLES_MAX);
+    rassert(player != NULL);
+    rassert(index >= 0);
+    rassert(index < KQT_TUNING_TABLES_MAX);
 
     if (player->master_params.tuning_states[index] == NULL)
     {
@@ -325,9 +325,9 @@ bool Player_create_tuning_state(Player* player, int index)
 
 void Player_reset(Player* player, int track_num)
 {
-    assert(player != NULL);
-    assert(track_num >= -1);
-    assert(track_num < KQT_TRACKS_MAX);
+    rassert(player != NULL);
+    rassert(track_num >= -1);
+    rassert(track_num < KQT_TRACKS_MAX);
 
     Master_params_reset(&player->master_params);
 
@@ -363,8 +363,8 @@ void Player_reset(Player* player, int track_num)
 
 bool Player_set_audio_rate(Player* player, int32_t rate)
 {
-    assert(player != NULL);
-    assert(rate > 0);
+    rassert(player != NULL);
+    rassert(rate > 0);
 
     if (player->audio_rate == rate)
         return true;
@@ -387,15 +387,15 @@ bool Player_set_audio_rate(Player* player, int32_t rate)
 
 int32_t Player_get_audio_rate(const Player* player)
 {
-    assert(player != NULL);
+    rassert(player != NULL);
     return player->audio_rate;
 }
 
 
 bool Player_set_audio_buffer_size(Player* player, int32_t size)
 {
-    assert(player != NULL);
-    assert(size >= 0);
+    rassert(player != NULL);
+    rassert(size >= 0);
 
     if (player->audio_buffer_size == size)
         return true;
@@ -442,14 +442,14 @@ bool Player_set_audio_buffer_size(Player* player, int32_t size)
 
 int32_t Player_get_audio_buffer_size(const Player* player)
 {
-    assert(player != NULL);
+    rassert(player != NULL);
     return player->audio_buffer_size;
 }
 
 
 int64_t Player_get_nanoseconds(const Player* player)
 {
-    assert(player != NULL);
+    rassert(player != NULL);
 
     static const int64_t ns_second = 1000000000LL;
 
@@ -468,9 +468,9 @@ int64_t Player_get_nanoseconds(const Player* player)
 static void Player_process_voices(
         Player* player, int32_t render_start, int32_t frame_count)
 {
-    assert(player != NULL);
-    assert(render_start >= 0);
-    assert(frame_count >= 0);
+    rassert(player != NULL);
+    rassert(render_start >= 0);
+    rassert(frame_count >= 0);
 
     if (frame_count == 0)
         return;
@@ -607,7 +607,7 @@ static bool Player_update_receive(Player* player)
 
 static void Player_flush_receive(Player* player)
 {
-    assert(player != NULL);
+    rassert(player != NULL);
 
     while (Player_update_receive(player))
         ;
@@ -619,9 +619,9 @@ static void Player_flush_receive(Player* player)
 static void Player_apply_master_volume(
         Player* player, int32_t buf_start, int32_t buf_stop)
 {
-    assert(player != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
+    rassert(player != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
 
     static const int CONTROL_WB_MASTER_VOLUME = WORK_BUFFER_IMPL_1;
 
@@ -648,7 +648,7 @@ static void Player_apply_master_volume(
     // Get access to mixed output
     Device_state* master_state = Device_states_get_state(
             player->device_states, Device_get_id((const Device*)player->module));
-    assert(master_state != NULL);
+    rassert(master_state != NULL);
 
     for (int32_t port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -668,7 +668,7 @@ static void Player_apply_master_volume(
 
 static void Player_init_final(Player* player)
 {
-    assert(player != NULL);
+    rassert(player != NULL);
 
     Master_params_set_starting_tempo(&player->master_params);
 
@@ -701,9 +701,9 @@ static void Player_init_final(Player* player)
 
 void Player_play(Player* player, int32_t nframes)
 {
-    assert(player != NULL);
-    assert(player->audio_buffer_size > 0);
-    assert(nframes >= 0);
+    rassert(player != NULL);
+    rassert(player->audio_buffer_size > 0);
+    rassert(nframes >= 0);
 
     Player_flush_receive(player);
 
@@ -712,7 +712,7 @@ void Player_play(Player* player, int32_t nframes)
     nframes = min(nframes, player->audio_buffer_size);
 
     const Connections* connections = Module_get_connections(player->module);
-    assert(connections != NULL);
+    rassert(connections != NULL);
 
     Device_states_clear_audio_buffers(player->device_states, 0, nframes);
     Connections_clear_buffers(connections, player->device_states, 0, nframes);
@@ -740,7 +740,7 @@ void Player_play(Player* player, int32_t nframes)
         // Don't add padding audio if stopped during this call
         if (was_playing && Player_has_stopped(player))
         {
-            assert(to_be_rendered == 0);
+            rassert(to_be_rendered == 0);
             break;
         }
 
@@ -797,7 +797,7 @@ void Player_play(Player* player, int32_t nframes)
     {
         Device_state* master_state = Device_states_get_state(
                 player->device_states, Device_get_id((const Device*)player->module));
-        assert(master_state != NULL);
+        rassert(master_state != NULL);
 
         // Note: we only access as many ports as we can output
         for (int32_t port = 0; port < KQT_BUFFERS_MAX; ++port)
@@ -837,8 +837,8 @@ void Player_play(Player* player, int32_t nframes)
 
 void Player_skip(Player* player, int64_t nframes)
 {
-    assert(player != NULL);
-    assert(nframes >= 0);
+    rassert(player != NULL);
+    rassert(nframes >= 0);
 
     // Clear buffers as we're not providing meaningful output
     Event_buffer_clear(player->event_buffer);
@@ -866,7 +866,7 @@ void Player_skip(Player* player, int64_t nframes)
 
         if (Player_has_stopped(player))
         {
-            assert(to_be_skipped == 0);
+            rassert(to_be_skipped == 0);
             break;
         }
 
@@ -889,22 +889,22 @@ void Player_skip(Player* player, int64_t nframes)
 
 int32_t Player_get_frames_available(const Player* player)
 {
-    assert(player != NULL);
+    rassert(player != NULL);
     return player->audio_frames_available;
 }
 
 
 const float* Player_get_audio(const Player* player, int channel)
 {
-    assert(player != NULL);
-    assert(channel == 0 || channel == 1);
+    rassert(player != NULL);
+    rassert(channel == 0 || channel == 1);
     return player->audio_buffers[channel];
 }
 
 
 const char* Player_get_events(Player* player)
 {
-    assert(player != NULL);
+    rassert(player != NULL);
 
     if (player->events_returned)
     {
@@ -920,17 +920,17 @@ const char* Player_get_events(Player* player)
 
 bool Player_has_stopped(const Player* player)
 {
-    assert(player != NULL);
+    rassert(player != NULL);
     return (player->master_params.playback_state == PLAYBACK_STOPPED);
 }
 
 
 bool Player_fire(Player* player, int ch, Streader* event_reader)
 {
-    assert(player != NULL);
-    assert(ch >= 0);
-    assert(ch < KQT_CHANNELS_MAX);
-    assert(event_reader != NULL);
+    rassert(player != NULL);
+    rassert(ch >= 0);
+    rassert(ch < KQT_CHANNELS_MAX);
+    rassert(event_reader != NULL);
 
     if (Streader_is_error_set(event_reader))
         return false;
@@ -988,7 +988,7 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
             break;
 
         default:
-            assert(false);
+            rassert(false);
     }
 
     if (!Streader_match_char(event_reader, ']'))

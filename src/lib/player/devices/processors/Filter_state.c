@@ -64,7 +64,7 @@ typedef struct Filter_state_impl
 
 static void Filter_state_impl_init(Filter_state_impl* fimpl, const Proc_filter* filter)
 {
-    assert(fimpl != NULL);
+    rassert(fimpl != NULL);
 
     fimpl->anything_rendered = false;
 
@@ -111,9 +111,9 @@ static void Filter_state_impl_apply_filter_settings(
         int32_t buf_start,
         int32_t buf_stop)
 {
-    assert(fimpl != NULL);
-    assert(in_buffers != NULL);
-    assert(out_buffers != NULL);
+    rassert(fimpl != NULL);
+    rassert(in_buffers != NULL);
+    rassert(out_buffers != NULL);
 
     if ((fimpl->lowpass_state_used == -1) && (fimpl->lowpass_xfade_state_used == -1))
     {
@@ -125,7 +125,7 @@ static void Filter_state_impl_apply_filter_settings(
         return;
     }
 
-    assert(fimpl->lowpass_state_used != fimpl->lowpass_xfade_state_used);
+    rassert(fimpl->lowpass_state_used != fimpl->lowpass_xfade_state_used);
 
     // Get filter states used
     Single_filter_state* in_fst = (fimpl->lowpass_state_used > -1) ?
@@ -198,7 +198,7 @@ static void Filter_state_impl_apply_filter_settings(
 
 static double get_cutoff_freq(double param)
 {
-    assert(isfinite(param));
+    rassert(isfinite(param));
 
     if (param >= CUTOFF_INF_LIMIT)
         return INFINITY;
@@ -222,7 +222,7 @@ static double get_resonance(double param)
 
 static double get_xfade_step(double audio_rate, double true_lowpass, double resonance)
 {
-    assert(audio_rate > 0);
+    rassert(audio_rate > 0);
 
     if (true_lowpass >= audio_rate * 0.5)
         return FILTER_XFADE_SPEED_MAX / audio_rate;
@@ -248,11 +248,11 @@ static void Filter_state_impl_apply_input_buffers(
         int32_t buf_stop,
         int32_t audio_rate)
 {
-    assert(fimpl != NULL);
-    assert(wbs != NULL);
-    assert(in_buffers != NULL);
-    assert(out_buffers != NULL);
-    assert(audio_rate > 0);
+    rassert(fimpl != NULL);
+    rassert(wbs != NULL);
+    rassert(in_buffers != NULL);
+    rassert(out_buffers != NULL);
+    rassert(audio_rate > 0);
 
     float* cutoffs = Work_buffers_get_buffer_contents_mut(wbs, CONTROL_WB_CUTOFF);
 
@@ -313,7 +313,7 @@ static void Filter_state_impl_apply_input_buffers(
                 force = 1;
 
             double factor = Envelope_get_value(proc->au_params->env_force_filter, force);
-            assert(isfinite(factor));
+            rassert(isfinite(factor));
             cutoff += (factor * 100) - 100;
         }
         // */
@@ -417,7 +417,7 @@ typedef struct Filter_pstate
 
 static void Filter_pstate_reset(Device_state* dstate)
 {
-    assert(dstate != NULL);
+    rassert(dstate != NULL);
 
     const Proc_filter* filter = (const Proc_filter*)dstate->device->dimpl;
 
@@ -452,10 +452,10 @@ static void Filter_pstate_render_mixed(
         int32_t buf_stop,
         double tempo)
 {
-    assert(dstate != NULL);
-    assert(wbs != NULL);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(dstate != NULL);
+    rassert(wbs != NULL);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     Filter_pstate* fpstate = (Filter_pstate*)dstate;
 
@@ -497,9 +497,9 @@ static void Filter_pstate_render_mixed(
 bool Filter_pstate_set_cutoff(
         Device_state* dstate, const Key_indices indices, double value)
 {
-    assert(dstate != NULL);
-    assert(indices != NULL);
-    assert(isfinite(value));
+    rassert(dstate != NULL);
+    rassert(indices != NULL);
+    rassert(isfinite(value));
 
     Filter_pstate* fpstate = (Filter_pstate*)dstate;
     fpstate->state_impl.def_cutoff = value;
@@ -511,9 +511,9 @@ bool Filter_pstate_set_cutoff(
 bool Filter_pstate_set_resonance(
         Device_state* dstate, const Key_indices indices, double value)
 {
-    assert(dstate != NULL);
-    assert(indices != NULL);
-    assert(isfinite(value));
+    rassert(dstate != NULL);
+    rassert(indices != NULL);
+    rassert(isfinite(value));
 
     Filter_pstate* fpstate = (Filter_pstate*)dstate;
     fpstate->state_impl.def_resonance = value;
@@ -525,9 +525,9 @@ bool Filter_pstate_set_resonance(
 Device_state* new_Filter_pstate(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
-    assert(device != NULL);
-    assert(audio_rate > 0);
-    assert(audio_buffer_size >= 0);
+    rassert(device != NULL);
+    rassert(audio_rate > 0);
+    rassert(audio_buffer_size >= 0);
 
     Filter_pstate* fpstate = memory_alloc_item(Filter_pstate);
     if ((fpstate == NULL) ||
@@ -570,14 +570,14 @@ static int32_t Filter_vstate_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
-    assert(au_state != NULL);
-    assert(wbs != NULL);
-    assert(buf_start >= 0);
-    assert(buf_stop >= 0);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
+    rassert(au_state != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
 
     Filter_vstate* fvstate = (Filter_vstate*)vstate;
 
@@ -628,8 +628,8 @@ static int32_t Filter_vstate_render_voice(
 
 void Filter_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
-    assert(vstate != NULL);
-    assert(proc_state != NULL);
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
 
     vstate->render_voice = Filter_vstate_render_voice;
 

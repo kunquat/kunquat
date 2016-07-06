@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -21,7 +21,7 @@
 
 void Position_init(Position* pos)
 {
-    assert(pos != NULL);
+    rassert(pos != NULL);
 
     pos->track = -1;
     pos->system = 0;

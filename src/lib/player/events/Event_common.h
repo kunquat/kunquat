@@ -35,7 +35,7 @@
         if ((ch_state)->fg[(proc)] == NULL)            \
             continue;                                  \
     }                                                  \
-    else (void)0
+    else ignore(0)
 
 
 #endif // KQT_EVENT_COMMON_H

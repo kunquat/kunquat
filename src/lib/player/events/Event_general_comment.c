@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2016
  *
  * This file is part of Kunquat.
  *
@@ -25,8 +25,8 @@
 
 bool Event_general_comment_process(General_state* gstate, const Value* value)
 {
-    assert(gstate != NULL);
-    assert(value != NULL);
+    rassert(gstate != NULL);
+    rassert(value != NULL);
     return value->type == VALUE_TYPE_STRING;
 }
 

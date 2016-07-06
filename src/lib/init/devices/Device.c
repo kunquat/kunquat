@@ -27,7 +27,7 @@
 
 bool Device_init(Device* device, bool req_impl)
 {
-    assert(device != NULL);
+    rassert(device != NULL);
 
     static uint32_t id = 1;
     device->id = id;
@@ -66,21 +66,21 @@ bool Device_init(Device* device, bool req_impl)
 
 uint32_t Device_get_id(const Device* device)
 {
-    assert(device != NULL);
+    rassert(device != NULL);
     return device->id;
 }
 
 
 bool Device_has_complete_type(const Device* device)
 {
-    assert(device != NULL);
+    rassert(device != NULL);
     return !device->req_impl || (device->dimpl != NULL);
 }
 
 
 void Device_set_existent(Device* device, bool existent)
 {
-    assert(device != NULL);
+    rassert(device != NULL);
     device->existent = existent;
     return;
 }
@@ -88,15 +88,15 @@ void Device_set_existent(Device* device, bool existent)
 
 bool Device_is_existent(const Device* device)
 {
-    assert(device != NULL);
+    rassert(device != NULL);
     return device->existent;
 }
 
 
 void Device_set_impl(Device* device, Device_impl* dimpl)
 {
-    assert(device != NULL);
-    assert(dimpl != NULL);
+    rassert(device != NULL);
+    rassert(dimpl != NULL);
 
     del_Device_impl(device->dimpl);
 
@@ -109,7 +109,7 @@ void Device_set_impl(Device* device, Device_impl* dimpl)
 
 const Device_impl* Device_get_impl(const Device* device)
 {
-    assert(device != NULL);
+    rassert(device != NULL);
     return device->dimpl;
 }
 
@@ -117,10 +117,10 @@ const Device_impl* Device_get_impl(const Device* device)
 Device_state* Device_create_state(
         const Device* device, int32_t audio_rate, int32_t buffer_size)
 {
-    assert(device != NULL);
-    assert(device->create_state != NULL);
-    assert(audio_rate > 0);
-    assert(buffer_size >= 0);
+    rassert(device != NULL);
+    rassert(device->create_state != NULL);
+    rassert(audio_rate > 0);
+    rassert(buffer_size >= 0);
 
     return device->create_state(device, audio_rate, buffer_size);
 }
@@ -129,7 +129,7 @@ Device_state* Device_create_state(
 void Device_set_state_creator(
         Device* device, Device_state* (*creator)(const Device*, int32_t, int32_t))
 {
-    assert(device != NULL);
+    rassert(device != NULL);
 
     if (creator != NULL)
         device->create_state = creator;
@@ -142,7 +142,7 @@ void Device_set_state_creator(
 
 void Device_set_mixed_signals(Device* device, bool enabled)
 {
-    assert(device != NULL);
+    rassert(device != NULL);
     device->enable_signal_support = enabled;
     return;
 }
@@ -150,7 +150,7 @@ void Device_set_mixed_signals(Device* device, bool enabled)
 
 bool Device_get_mixed_signals(const Device* device)
 {
-    assert(device != NULL);
+    rassert(device != NULL);
     return device->enable_signal_support;
 }
 
@@ -158,8 +158,8 @@ bool Device_get_mixed_signals(const Device* device)
 void Device_register_set_control_var_generic(
         Device* device, Device_set_control_var_generic_func* set_func)
 {
-    assert(device != NULL);
-    assert(set_func != NULL);
+    rassert(device != NULL);
+    rassert(set_func != NULL);
 
     device->set_control_var_generic = set_func;
 
@@ -170,8 +170,8 @@ void Device_register_set_control_var_generic(
 void Device_register_init_control_vars(
         Device* device, Device_init_control_vars_func* init_func)
 {
-    assert(device != NULL);
-    assert(init_func != NULL);
+    rassert(device != NULL);
+    rassert(init_func != NULL);
 
     device->init_control_vars = init_func;
 
@@ -182,10 +182,10 @@ void Device_register_init_control_vars(
 void Device_set_port_existence(
         Device* device, Device_port_type type, int port, bool exists)
 {
-    assert(device != NULL);
-    assert(type < DEVICE_PORT_TYPES);
-    assert(port >= 0);
-    assert(port < KQT_DEVICE_PORTS_MAX);
+    rassert(device != NULL);
+    rassert(type < DEVICE_PORT_TYPES);
+    rassert(port >= 0);
+    rassert(port < KQT_DEVICE_PORTS_MAX);
 
     device->existence[type][port] = exists;
 
@@ -195,10 +195,10 @@ void Device_set_port_existence(
 
 bool Device_get_port_existence(const Device* device, Device_port_type type, int port)
 {
-    assert(device != NULL);
-    assert(type < DEVICE_PORT_TYPES);
-    assert(port >= 0);
-    assert(port < KQT_DEVICE_PORTS_MAX);
+    rassert(device != NULL);
+    rassert(type < DEVICE_PORT_TYPES);
+    rassert(port >= 0);
+    rassert(port < KQT_DEVICE_PORTS_MAX);
 
     return device->existence[type][port];
 }
@@ -206,7 +206,7 @@ bool Device_get_port_existence(const Device* device, Device_port_type type, int 
 
 bool Device_sync(Device* device)
 {
-    assert(device != NULL);
+    rassert(device != NULL);
 
     // Set existing keys on dimpl
     if (device->dimpl != NULL)
@@ -230,8 +230,8 @@ bool Device_sync(Device* device)
 
 bool Device_sync_states(const Device* device, Device_states* dstates)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
+    rassert(device != NULL);
+    rassert(dstates != NULL);
 
     if (device->dimpl != NULL)
     {
@@ -257,10 +257,10 @@ bool Device_sync_states(const Device* device, Device_states* dstates)
 
 bool Device_set_key(Device* device, const char* key, Streader* sr)
 {
-    assert(device != NULL);
-    assert(key != NULL);
-    assert(string_has_prefix(key, "i/") || string_has_prefix(key, "c/"));
-    assert(sr != NULL);
+    rassert(device != NULL);
+    rassert(key != NULL);
+    rassert(string_has_prefix(key, "i/") || string_has_prefix(key, "c/"));
+    rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -284,10 +284,10 @@ bool Device_set_state_key(
         Device_states* dstates,
         const char* key)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(key != NULL);
-    assert(string_has_prefix(key, "i/") || string_has_prefix(key, "c/"));
+    rassert(device != NULL);
+    rassert(dstates != NULL);
+    rassert(key != NULL);
+    rassert(string_has_prefix(key, "i/") || string_has_prefix(key, "c/"));
 
     if (device->dimpl != NULL)
     {
@@ -309,13 +309,13 @@ void Device_set_control_var_generic(
         const char* var_name,
         const Value* value)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(random != NULL);
-    assert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
-    assert(var_name != NULL);
-    assert(value != NULL);
-    assert(Value_type_is_realtime(value->type));
+    rassert(device != NULL);
+    rassert(dstates != NULL);
+    rassert(random != NULL);
+    rassert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
+    rassert(var_name != NULL);
+    rassert(value != NULL);
+    rassert(Value_type_is_realtime(value->type));
 
     if (device->set_control_var_generic != NULL)
         device->set_control_var_generic(
@@ -332,10 +332,10 @@ void Device_init_control_vars(
         Random* random,
         Channel* channel)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(implies(mode == DEVICE_CONTROL_VAR_MODE_MIXED, random != NULL));
-    assert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
+    rassert(device != NULL);
+    rassert(dstates != NULL);
+    rassert(implies(mode == DEVICE_CONTROL_VAR_MODE_MIXED, random != NULL));
+    rassert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
 
     if (device->init_control_vars != NULL)
         device->init_control_vars(device, dstates, mode, random, channel);
@@ -346,8 +346,8 @@ void Device_init_control_vars(
 
 void Device_print(const Device* device, FILE* out)
 {
-    assert(device != NULL);
-    assert(out != NULL);
+    rassert(device != NULL);
+    rassert(out != NULL);
 
     bool printed = false;
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
