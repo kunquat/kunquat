@@ -122,10 +122,10 @@ static int32_t Ks_vstate_render_voice(
     // Get delay buffer length
     const int32_t audio_rate = dstate->audio_rate;
     const double init_freq = cents_to_Hz(ks_vstate->init_pitch);
-    const double used_buf_length = audio_rate / init_freq;
-    const double used_buf_length_clamped = min(used_buf_length, DELAY_BUF_LEN_MAX);
-    const int32_t used_buf_frames_whole = (int32_t)floor(used_buf_length_clamped);
-    const int32_t used_buf_frames = (int32_t)ceil(used_buf_length_clamped);
+    const double period_length = audio_rate / init_freq;
+    const double used_buf_length = clamp(period_length, 2, DELAY_BUF_LEN_MAX);
+    const int32_t used_buf_frames_whole = (int32_t)floor(used_buf_length);
+    const int32_t used_buf_frames = (int32_t)ceil(used_buf_length);
     rassert(used_buf_frames <= DELAY_BUF_LEN_MAX);
 
     if (need_init)
@@ -137,27 +137,88 @@ static int32_t Ks_vstate_render_voice(
     double pos = ks_vstate->buf_pos;
     float* delay_buf = ks_vstate->delay_buf;
 
-    for (int32_t i = buf_start; i < buf_stop; ++i)
+    for (int32_t i = buf_start; i < buf_stop;)
     {
-        const float scale = scales[i];
-
-        // TODO: calculate more accurately
-        const int32_t pos1 = (int32_t)pos;
-        const int32_t pos2 = (pos1 + 1) % used_buf_frames_whole;
         const double lerp_val = pos - floor(pos);
 
-        const float item1 = delay_buf[pos1];
-        const float item2 = delay_buf[pos2];
-        const float value = (float)lerp(item1, item2, lerp_val);
+        // The easy part
+        for (; i < buf_stop && pos < used_buf_frames - 1; ++i, pos += 1)
+        {
+            const float scale = scales[i];
 
-        out_buf[i] = value * scale;
+            const int32_t pos1 = (int32_t)pos;
+            const int32_t pos2 = pos1 + 1;
 
-        delay_buf[pos1] = (item1 + item2) * 0.5f;
+            const float item1 = delay_buf[pos1];
+            const float item2 = delay_buf[pos2];
+            const float value = (float)lerp(item1, item2, lerp_val);
 
-        pos += 1;
+            out_buf[i] = value * scale;
 
-        while (pos >= used_buf_frames_whole)
-            pos -= used_buf_frames_whole;
+            delay_buf[pos1] = (item1 + item2) * 0.5f;
+        }
+
+        // Handle wrap-around
+        if (i < buf_stop)
+        {
+            const float scale = scales[i];
+
+            float value = 0.0f;
+
+            if (used_buf_frames_whole < used_buf_frames)
+            {
+                const double last_rem = used_buf_length - used_buf_frames_whole;
+                if (lerp_val < last_rem)
+                {
+                    const double last_lerp_val = lerp_val / last_rem;
+
+                    const int32_t pos1 = (int32_t)pos;
+                    const int32_t pos2 = 0;
+
+                    const float item1 = delay_buf[pos1];
+                    const float item2 = delay_buf[pos2];
+                    value = (float)lerp(item1, item2, last_lerp_val);
+
+                    delay_buf[pos1] = (item1 + item2) * 0.5f;
+                }
+                else
+                {
+                    const double new_lerp_val = lerp_val - last_rem;
+
+                    const int32_t pos0 = (int32_t)pos;
+                    const int32_t pos1 = 0;
+                    const int32_t pos2 = 1;
+
+                    const float item0 = delay_buf[pos0];
+                    const float item1 = delay_buf[pos1];
+                    const float item2 = delay_buf[pos2];
+                    value = (float)lerp(item1, item2, new_lerp_val);
+
+                    delay_buf[pos0] = (item0 + item1) * 0.5f;
+                    delay_buf[pos1] = (item1 + item2) * 0.5f;
+                }
+            }
+            else
+            {
+                // Period length is an integer
+                const int32_t pos1 = (int32_t)pos;
+                const int32_t pos2 = 0;
+
+                const float item1 = delay_buf[pos1];
+                const float item2 = delay_buf[pos2];
+                value = (float)lerp(item1, item2, lerp_val);
+
+                delay_buf[pos1] = (item1 + item2) * 0.5f;
+            }
+
+            out_buf[i] = value * scale;
+
+            pos = pos + 1 - used_buf_length;
+            rassert(pos >= 0);
+            rassert(pos < used_buf_length);
+
+            ++i;
+        }
     }
 
     ks_vstate->buf_pos = pos;
