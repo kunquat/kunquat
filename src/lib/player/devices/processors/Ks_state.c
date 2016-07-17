@@ -27,7 +27,15 @@
 #include <stdlib.h>
 
 
-#define DELAY_BUF_LEN_MAX 4096
+#define DELAY_BUF_LEN 4096
+
+
+typedef struct Frac_delay
+{
+    float eta;
+    float prev_item;
+    float feedback;
+} Frac_delay;
 
 
 typedef struct Ks_vstate
@@ -35,8 +43,11 @@ typedef struct Ks_vstate
     Voice_state parent;
 
     double init_pitch;
-    double buf_pos;
-    float delay_buf[DELAY_BUF_LEN_MAX];
+    int32_t read_pos;
+    int32_t write_pos;
+    float damp_prev_item;
+    Frac_delay frac_delay;
+    float delay_buf[DELAY_BUF_LEN];
 } Ks_vstate;
 
 
@@ -123,105 +134,66 @@ static int32_t Ks_vstate_render_voice(
     const int32_t audio_rate = dstate->audio_rate;
     const double init_freq = cents_to_Hz(ks_vstate->init_pitch);
     const double period_length = audio_rate / init_freq;
-    const double used_buf_length = clamp(period_length, 2, DELAY_BUF_LEN_MAX);
+    const double used_buf_length = clamp(period_length, 2, DELAY_BUF_LEN);
     const int32_t used_buf_frames_whole = (int32_t)floor(used_buf_length);
     const int32_t used_buf_frames = (int32_t)ceil(used_buf_length);
-    rassert(used_buf_frames <= DELAY_BUF_LEN_MAX);
+    rassert(used_buf_frames <= DELAY_BUF_LEN);
 
     if (need_init)
     {
-        for (int32_t i = 0; i < used_buf_frames; ++i)
+        for (int32_t i = 0; i < used_buf_frames_whole; ++i)
+        {
+            //ks_vstate->delay_buf[i] = (float)sin(i * PI * 2.0 / used_buf_frames_whole);
             ks_vstate->delay_buf[i] = (float)Random_get_float_signal(vstate->rand_s);
+        }
+
+        ks_vstate->read_pos = 0;
+        ks_vstate->write_pos = used_buf_frames_whole % DELAY_BUF_LEN;
+
+        // Set up fractional delay filter
+        float delay = (float)(used_buf_length - used_buf_frames_whole);
+        if (delay < 0.1f)
+        {
+            delay += 1.0f;
+            ks_vstate->read_pos = (ks_vstate->read_pos + 1) % DELAY_BUF_LEN;
+        }
+
+        ks_vstate->frac_delay.eta = (1 - delay) / (1 + delay);
+        ks_vstate->frac_delay.prev_item = 0;
+        ks_vstate->frac_delay.feedback = 0;
     }
 
-    double pos = ks_vstate->buf_pos;
+    int32_t read_pos = ks_vstate->read_pos;
+    int32_t write_pos = ks_vstate->write_pos;
     float* delay_buf = ks_vstate->delay_buf;
 
-    for (int32_t i = buf_start; i < buf_stop;)
+    Frac_delay* fd = &ks_vstate->frac_delay;
+
+    for (int32_t i = buf_start; i < buf_stop; ++i)
     {
-        const double lerp_val = pos - floor(pos);
+        const float scale = scales[i];
 
-        // The easy part
-        for (; i < buf_stop && pos < used_buf_frames - 1; ++i, pos += 1)
-        {
-            const float scale = scales[i];
+        // Get tuned value
+        const float value =
+            fd->eta * delay_buf[read_pos] + fd->prev_item - fd->eta * fd->feedback;
+        fd->prev_item = delay_buf[read_pos];
+        fd->feedback = value;
 
-            const int32_t pos1 = (int32_t)pos;
-            const int32_t pos2 = pos1 + 1;
+        out_buf[i] = value * scale;
 
-            const float item1 = delay_buf[pos1];
-            const float item2 = delay_buf[pos2];
-            const float value = (float)lerp(item1, item2, lerp_val);
+        delay_buf[write_pos] = value;
 
-            out_buf[i] = value * scale;
+        ++read_pos;
+        if (read_pos >= DELAY_BUF_LEN)
+            read_pos = 0;
 
-            delay_buf[pos1] = (item1 + item2) * 0.5f;
-        }
-
-        // Handle wrap-around
-        if (i < buf_stop)
-        {
-            const float scale = scales[i];
-
-            float value = 0.0f;
-
-            if (used_buf_frames_whole < used_buf_frames)
-            {
-                const double last_rem = used_buf_length - used_buf_frames_whole;
-                if (lerp_val < last_rem)
-                {
-                    const double last_lerp_val = lerp_val / last_rem;
-
-                    const int32_t pos1 = (int32_t)pos;
-                    const int32_t pos2 = 0;
-
-                    const float item1 = delay_buf[pos1];
-                    const float item2 = delay_buf[pos2];
-                    value = (float)lerp(item1, item2, last_lerp_val);
-
-                    delay_buf[pos1] = (item1 + item2) * 0.5f;
-                }
-                else
-                {
-                    const double new_lerp_val = lerp_val - last_rem;
-
-                    const int32_t pos0 = (int32_t)pos;
-                    const int32_t pos1 = 0;
-                    const int32_t pos2 = 1;
-
-                    const float item0 = delay_buf[pos0];
-                    const float item1 = delay_buf[pos1];
-                    const float item2 = delay_buf[pos2];
-                    value = (float)lerp(item1, item2, new_lerp_val);
-
-                    delay_buf[pos0] = (item0 + item1) * 0.5f;
-                    delay_buf[pos1] = (item1 + item2) * 0.5f;
-                }
-            }
-            else
-            {
-                // Period length is an integer
-                const int32_t pos1 = (int32_t)pos;
-                const int32_t pos2 = 0;
-
-                const float item1 = delay_buf[pos1];
-                const float item2 = delay_buf[pos2];
-                value = (float)lerp(item1, item2, lerp_val);
-
-                delay_buf[pos1] = (item1 + item2) * 0.5f;
-            }
-
-            out_buf[i] = value * scale;
-
-            pos = pos + 1 - used_buf_length;
-            rassert(pos >= 0);
-            rassert(pos < used_buf_length);
-
-            ++i;
-        }
+        ++write_pos;
+        if (write_pos >= DELAY_BUF_LEN)
+            write_pos = 0;
     }
 
-    ks_vstate->buf_pos = pos;
+    ks_vstate->read_pos = read_pos;
+    ks_vstate->write_pos = write_pos;
 
     return buf_stop;
 }
@@ -237,9 +209,16 @@ void Ks_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     Ks_vstate* ks_vstate = (Ks_vstate*)vstate;
 
     ks_vstate->init_pitch = NAN;
-    ks_vstate->buf_pos = 0;
+    ks_vstate->read_pos = 0;
+    ks_vstate->write_pos = 0;
 
-    for (int i = 0; i < DELAY_BUF_LEN_MAX; ++i)
+    ks_vstate->damp_prev_item = 0;
+
+    ks_vstate->frac_delay.eta = 0;
+    ks_vstate->frac_delay.prev_item = 0;
+    ks_vstate->frac_delay.feedback = 0;
+
+    for (int i = 0; i < DELAY_BUF_LEN; ++i)
         ks_vstate->delay_buf[i] = 0;
 
     return;
