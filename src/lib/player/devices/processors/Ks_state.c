@@ -18,6 +18,7 @@
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <mathnum/Random.h>
+#include <player/devices/processors/Filter.h>
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/devices/Voice_state.h>
 #include <player/Work_buffers.h>
@@ -28,6 +29,17 @@
 
 
 #define DELAY_BUF_LEN 4096
+
+#define DAMP_FILTER_ORDER 2
+
+
+typedef struct Damp
+{
+    double coeffs[DAMP_FILTER_ORDER];
+    double mul;
+    double history1[DAMP_FILTER_ORDER];
+    double history2[DAMP_FILTER_ORDER];
+} Damp;
 
 
 typedef struct Frac_delay
@@ -45,7 +57,7 @@ typedef struct Ks_vstate
     double init_pitch;
     int32_t read_pos;
     int32_t write_pos;
-    float damp_prev_item;
+    Damp damp;
     Frac_delay frac_delay;
     float delay_buf[DELAY_BUF_LEN];
 } Ks_vstate;
@@ -150,9 +162,19 @@ static int32_t Ks_vstate_render_voice(
         ks_vstate->read_pos = 0;
         ks_vstate->write_pos = used_buf_frames_whole % DELAY_BUF_LEN;
 
+        // Set up damping
+        const double cutoff = 0.25; // TODO: make this configurable
+        two_pole_filter_create(
+                cutoff,
+                0.5,
+                0,
+                ks_vstate->damp.coeffs,
+                &ks_vstate->damp.mul);
+        const float delay_add = -1.0f; // TODO: calculate from cutoff
+
         // Set up fractional delay filter
-        float delay = (float)(used_buf_length - used_buf_frames_whole);
-        if (delay < 0.1f)
+        float delay = (float)(used_buf_length - used_buf_frames_whole) + delay_add;
+        while (delay < 0.1f)
         {
             delay += 1.0f;
             ks_vstate->read_pos = (ks_vstate->read_pos + 1) % DELAY_BUF_LEN;
@@ -167,16 +189,24 @@ static int32_t Ks_vstate_render_voice(
     int32_t write_pos = ks_vstate->write_pos;
     float* delay_buf = ks_vstate->delay_buf;
 
+    Damp* damp = &ks_vstate->damp;
     Frac_delay* fd = &ks_vstate->frac_delay;
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
         const float scale = scales[i];
 
+        // Damp
+        double damped = nq_zero_filter(
+                DAMP_FILTER_ORDER, damp->history1, delay_buf[read_pos]);
+        damped = iir_filter_strict_cascade_even_order(
+                DAMP_FILTER_ORDER, damp->coeffs, damp->history2, damped);
+        damped *= damp->mul;
+
         // Get tuned value
         const float value =
-            fd->eta * delay_buf[read_pos] + fd->prev_item - fd->eta * fd->feedback;
-        fd->prev_item = delay_buf[read_pos];
+            fd->eta * (float)damped + fd->prev_item - fd->eta * fd->feedback;
+        fd->prev_item = (float)damped;
         fd->feedback = value;
 
         out_buf[i] = value * scale;
@@ -212,7 +242,14 @@ void Ks_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     ks_vstate->read_pos = 0;
     ks_vstate->write_pos = 0;
 
-    ks_vstate->damp_prev_item = 0;
+    ks_vstate->damp.mul = 0;
+
+    for (int i = 0; i < DAMP_FILTER_ORDER; ++i)
+    {
+        ks_vstate->damp.coeffs[i] = 0;
+        ks_vstate->damp.history1[i] = 0;
+        ks_vstate->damp.history2[i] = 0;
+    }
 
     ks_vstate->frac_delay.eta = 0;
     ks_vstate->frac_delay.prev_item = 0;
