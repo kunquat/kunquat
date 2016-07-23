@@ -148,15 +148,20 @@ static void Read_state_init(
 
 
 static float Read_state_update(
-        Read_state* rs, int32_t delay_buf_len, const float delay_buf[delay_buf_len])
+        Read_state* rs,
+        float excitation,
+        int32_t delay_buf_len,
+        const float delay_buf[delay_buf_len])
 {
     rassert(rs != NULL);
     rassert(delay_buf_len > 2);
     rassert(delay_buf != NULL);
 
+    const float src_value = excitation + delay_buf[rs->read_pos];
+
     // Apply damping filter
     double damped = nq_zero_filter(
-            DAMP_FILTER_ORDER, rs->damp.history1, delay_buf[rs->read_pos]);
+            DAMP_FILTER_ORDER, rs->damp.history1, src_value);
     damped = iir_filter_strict_cascade_even_order(
             DAMP_FILTER_ORDER, rs->damp.coeffs, rs->damp.history2, damped);
     damped *= rs->damp.mul;
@@ -211,6 +216,7 @@ enum
 {
     PORT_IN_PITCH = 0,
     PORT_IN_FORCE,
+    PORT_IN_EXCITATION,
     PORT_IN_COUNT
 };
 
@@ -224,6 +230,7 @@ enum
 
 static const int KS_WB_FIXED_PITCH = WORK_BUFFER_IMPL_1;
 static const int KS_WB_FIXED_FORCE = WORK_BUFFER_IMPL_2;
+static const int KS_WB_FIXED_EXCITATION = WORK_BUFFER_IMPL_3;
 
 
 static int32_t Ks_vstate_render_voice(
@@ -257,11 +264,7 @@ static int32_t Ks_vstate_render_voice(
     {
         Work_buffer* fixed_pitches_wb =
             Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_PITCH);
-        float* pitches = Work_buffer_get_contents_mut(fixed_pitches_wb);
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            pitches[i] = 0;
-        Work_buffer_set_const_start(fixed_pitches_wb, buf_start);
-
+        Work_buffer_clear(fixed_pitches_wb, buf_start, buf_stop);
         pitches_wb = fixed_pitches_wb;
     }
     const float* pitches = Work_buffer_get_contents(pitches_wb);
@@ -274,6 +277,18 @@ static int32_t Ks_vstate_render_voice(
         scales_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_FORCE);
     Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);
     const float* scales = Work_buffer_get_contents(scales_wb);
+
+    // Get excitation signal
+    const Work_buffer* excit_wb = Proc_state_get_voice_buffer(
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_EXCITATION);
+    if (excit_wb == NULL)
+    {
+        Work_buffer* fixed_excit_wb =
+            Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_EXCITATION);
+        Work_buffer_clear(fixed_excit_wb, buf_start, buf_stop);
+        excit_wb = fixed_excit_wb;
+    }
+    const float* excits = Work_buffer_get_contents(excit_wb);
 
     // Get output buffer for writing
     float* out_buf = Proc_state_get_voice_buffer_contents_mut(
@@ -289,6 +304,7 @@ static int32_t Ks_vstate_render_voice(
 
     if (need_init)
     {
+        /*
         const float init_pitch = pitches[buf_start];
         const double init_freq = cents_to_Hz(init_pitch);
         const double period_length = audio_rate / init_freq;
@@ -302,10 +318,12 @@ static int32_t Ks_vstate_render_voice(
         }
 
         ks_vstate->write_pos = used_buf_frames_whole % DELAY_BUF_LEN;
+        // */
+        ks_vstate->write_pos = 0;
 
         Read_state_init(
                 &ks_vstate->read_states[ks_vstate->primary_read_state],
-                init_pitch,
+                pitches[buf_start],
                 ks_vstate->write_pos,
                 DELAY_BUF_LEN,
                 audio_rate);
@@ -321,6 +339,7 @@ static int32_t Ks_vstate_render_voice(
     {
         const float pitch = pitches[i];
         const float scale = scales[i];
+        const float excitation = excits[i];
 
         if (!ks_vstate->is_xfading)
         {
@@ -358,6 +377,7 @@ static int32_t Ks_vstate_render_voice(
         {
             value = Read_state_update(
                     &ks_vstate->read_states[ks_vstate->primary_read_state],
+                    excitation,
                     DELAY_BUF_LEN,
                     delay_buf);
         }
@@ -365,10 +385,12 @@ static int32_t Ks_vstate_render_voice(
         {
             const float out_value = Read_state_update(
                     &ks_vstate->read_states[1 - ks_vstate->primary_read_state],
+                    excitation,
                     DELAY_BUF_LEN,
                     delay_buf);
             const float in_value = Read_state_update(
                     &ks_vstate->read_states[ks_vstate->primary_read_state],
+                    excitation,
                     DELAY_BUF_LEN,
                     delay_buf);
 
