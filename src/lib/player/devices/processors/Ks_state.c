@@ -50,15 +50,153 @@ typedef struct Frac_delay
 } Frac_delay;
 
 
+typedef struct Read_state
+{
+    int32_t read_pos;
+    double pitch;
+    Damp damp;
+    Frac_delay frac_delay;
+} Read_state;
+
+
+static void Read_state_clear(Read_state* rs)
+{
+    rassert(rs != NULL);
+
+    rs->read_pos = 0;
+    rs->pitch = NAN;
+
+    rs->damp.mul = 0;
+
+    for (int i = 0; i < DAMP_FILTER_ORDER; ++i)
+    {
+        rs->damp.coeffs[i] = 0;
+        rs->damp.history1[i] = 0;
+        rs->damp.history2[i] = 0;
+    }
+
+    rs->frac_delay.eta = 0;
+    rs->frac_delay.prev_item = 0;
+    rs->frac_delay.feedback = 0;
+
+    return;
+}
+
+
+static void Read_state_modify(
+        Read_state* rs,
+        double pitch,
+        int32_t write_pos,
+        int32_t buf_len,
+        int32_t audio_rate)
+{
+    rassert(rs != NULL);
+    rassert(isfinite(pitch));
+    rassert(write_pos >= 0);
+    rassert(buf_len > 2);
+    rassert(write_pos < buf_len);
+    rassert(audio_rate > 0);
+
+    const double freq = cents_to_Hz(pitch);
+    const double period_length = audio_rate / freq;
+    const double used_buf_length = clamp(period_length, 2, buf_len);
+    const int32_t used_buf_frames_whole = (int32_t)floor(used_buf_length);
+
+    rs->read_pos = (buf_len + write_pos - used_buf_frames_whole) % buf_len;
+    rs->pitch = pitch;
+
+    const float delay_add = -1.0f; // TODO: calculate from damp filter cutoff
+
+    // Set up fractional delay filter
+    float delay = (float)(used_buf_length - used_buf_frames_whole) + delay_add;
+    while (delay < 0.618f)
+    {
+        delay += 1.0f;
+        rs->read_pos = (rs->read_pos + 1) % buf_len;
+    }
+
+    rs->frac_delay.eta = (1 - delay) / (1 + delay);
+
+    return;
+}
+
+
+static void Read_state_init(
+        Read_state* rs,
+        double pitch,
+        int32_t write_pos,
+        int32_t buf_len,
+        int32_t audio_rate)
+{
+    rassert(rs != NULL);
+    rassert(isfinite(pitch));
+    rassert(write_pos >= 0);
+    rassert(buf_len > 2);
+    rassert(write_pos < buf_len);
+    rassert(audio_rate > 0);
+
+    Read_state_clear(rs);
+
+    // Set up damping filter
+    const double cutoff = 0.25; // TODO: make this configurable
+    two_pole_filter_create(cutoff, 0.5, 0, rs->damp.coeffs, &rs->damp.mul);
+
+    Read_state_modify(rs, pitch, write_pos, buf_len, audio_rate);
+
+    return;
+}
+
+
+static float Read_state_update(
+        Read_state* rs, int32_t delay_buf_len, const float delay_buf[delay_buf_len])
+{
+    rassert(rs != NULL);
+    rassert(delay_buf_len > 2);
+    rassert(delay_buf != NULL);
+
+    // Apply damping filter
+    double damped = nq_zero_filter(
+            DAMP_FILTER_ORDER, rs->damp.history1, delay_buf[rs->read_pos]);
+    damped = iir_filter_strict_cascade_even_order(
+            DAMP_FILTER_ORDER, rs->damp.coeffs, rs->damp.history2, damped);
+    damped *= rs->damp.mul;
+
+    // Apply fractional delay filter
+    Frac_delay* fd = &rs->frac_delay;
+    const float value =
+        fd->eta * (float)damped + fd->prev_item - fd->eta * fd->feedback;
+    fd->prev_item = (float)damped;
+    fd->feedback = value;
+
+    ++rs->read_pos;
+    if (rs->read_pos >= delay_buf_len)
+        rs->read_pos = 0;
+
+    return value;
+}
+
+
+static void Read_state_copy(Read_state* restrict dest, const Read_state* restrict src)
+{
+    rassert(dest != NULL);
+    rassert(src != NULL);
+
+    *dest = *src;
+
+    return;
+}
+
+
 typedef struct Ks_vstate
 {
     Voice_state parent;
 
-    double init_pitch;
-    int32_t read_pos;
     int32_t write_pos;
-    Damp damp;
-    Frac_delay frac_delay;
+    int primary_read_state;
+    bool is_xfading;
+    double xfade_progress;
+    Read_state read_states[2];
+
     float delay_buf[DELAY_BUF_LEN];
 } Ks_vstate;
 
@@ -113,19 +251,20 @@ static int32_t Ks_vstate_render_voice(
     Ks_vstate* ks_vstate = (Ks_vstate*)vstate;
 
     // Get frequencies
-    Work_buffer* freqs_wb = Proc_state_get_voice_buffer_mut(
+    const Work_buffer* pitches_wb = Proc_state_get_voice_buffer(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
-    const Work_buffer* pitches_wb = freqs_wb;
+    if (pitches_wb == NULL)
+    {
+        Work_buffer* fixed_pitches_wb =
+            Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_PITCH);
+        float* pitches = Work_buffer_get_contents_mut(fixed_pitches_wb);
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            pitches[i] = 0;
+        Work_buffer_set_const_start(fixed_pitches_wb, buf_start);
 
-    const bool need_init = isnan(ks_vstate->init_pitch);
-    if (need_init)
-        ks_vstate->init_pitch =
-            (pitches_wb != NULL) ? Work_buffer_get_contents(pitches_wb)[buf_start] : 0;
-
-    if (freqs_wb == NULL)
-        freqs_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_PITCH);
-    Proc_fill_freq_buffer(freqs_wb, pitches_wb, buf_start, buf_stop);
-    //const float* freqs = Work_buffer_get_contents(freqs_wb);
+        pitches_wb = fixed_pitches_wb;
+    }
+    const float* pitches = Work_buffer_get_contents(pitches_wb);
 
     // Get volume scales
     Work_buffer* scales_wb = Proc_state_get_voice_buffer_mut(
@@ -142,87 +281,113 @@ static int32_t Ks_vstate_render_voice(
     if (out_buf == NULL)
         return buf_start;
 
+    const bool need_init =
+        isnan(ks_vstate->read_states[ks_vstate->primary_read_state].pitch);
+
     // Get delay buffer length
     const int32_t audio_rate = dstate->audio_rate;
-    const double init_freq = cents_to_Hz(ks_vstate->init_pitch);
-    const double period_length = audio_rate / init_freq;
-    const double used_buf_length = clamp(period_length, 2, DELAY_BUF_LEN);
-    const int32_t used_buf_frames_whole = (int32_t)floor(used_buf_length);
-    const int32_t used_buf_frames = (int32_t)ceil(used_buf_length);
-    rassert(used_buf_frames <= DELAY_BUF_LEN);
 
     if (need_init)
     {
+        const float init_pitch = pitches[buf_start];
+        const double init_freq = cents_to_Hz(init_pitch);
+        const double period_length = audio_rate / init_freq;
+        const double used_buf_length = clamp(period_length, 2, DELAY_BUF_LEN);
+        const int32_t used_buf_frames_whole = (int32_t)floor(used_buf_length);
+
         for (int32_t i = 0; i < used_buf_frames_whole; ++i)
         {
             //ks_vstate->delay_buf[i] = (float)sin(i * PI * 2.0 / used_buf_frames_whole);
             ks_vstate->delay_buf[i] = (float)Random_get_float_signal(vstate->rand_s);
         }
 
-        ks_vstate->read_pos = 0;
         ks_vstate->write_pos = used_buf_frames_whole % DELAY_BUF_LEN;
 
-        // Set up damping
-        const double cutoff = 0.25; // TODO: make this configurable
-        two_pole_filter_create(
-                cutoff,
-                0.5,
-                0,
-                ks_vstate->damp.coeffs,
-                &ks_vstate->damp.mul);
-        const float delay_add = -1.0f; // TODO: calculate from cutoff
-
-        // Set up fractional delay filter
-        float delay = (float)(used_buf_length - used_buf_frames_whole) + delay_add;
-        while (delay < 0.1f)
-        {
-            delay += 1.0f;
-            ks_vstate->read_pos = (ks_vstate->read_pos + 1) % DELAY_BUF_LEN;
-        }
-
-        ks_vstate->frac_delay.eta = (1 - delay) / (1 + delay);
-        ks_vstate->frac_delay.prev_item = 0;
-        ks_vstate->frac_delay.feedback = 0;
+        Read_state_init(
+                &ks_vstate->read_states[ks_vstate->primary_read_state],
+                init_pitch,
+                ks_vstate->write_pos,
+                DELAY_BUF_LEN,
+                audio_rate);
     }
 
-    int32_t read_pos = ks_vstate->read_pos;
     int32_t write_pos = ks_vstate->write_pos;
     float* delay_buf = ks_vstate->delay_buf;
 
-    Damp* damp = &ks_vstate->damp;
-    Frac_delay* fd = &ks_vstate->frac_delay;
+    static const double xfade_speed = 1000.0;
+    const double xfade_step = xfade_speed / audio_rate;
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
+        const float pitch = pitches[i];
         const float scale = scales[i];
 
-        // Damp
-        double damped = nq_zero_filter(
-                DAMP_FILTER_ORDER, damp->history1, delay_buf[read_pos]);
-        damped = iir_filter_strict_cascade_even_order(
-                DAMP_FILTER_ORDER, damp->coeffs, damp->history2, damped);
-        damped *= damp->mul;
+        if (!ks_vstate->is_xfading)
+        {
+            const int32_t const_start = Work_buffer_get_const_start(pitches_wb);
+            const float max_diff = (i < const_start) ? 4.0f : 0.001f;
 
-        // Get tuned value
-        const float value =
-            fd->eta * (float)damped + fd->prev_item - fd->eta * fd->feedback;
-        fd->prev_item = (float)damped;
-        fd->feedback = value;
+            Read_state* primary_rs =
+                &ks_vstate->read_states[ks_vstate->primary_read_state];
+            if (fabs(pitch - primary_rs->pitch) > max_diff)
+            {
+                Read_state* other_rs =
+                    &ks_vstate->read_states[1 - ks_vstate->primary_read_state];
+
+                // Instantaneous slides to lower pitches don't work very well,
+                // so limit the step length when sliding downwards
+                const double min_pitch = primary_rs->pitch - 200.0;
+                const double cur_target_pitch = max(min_pitch, pitch);
+
+                Read_state_copy(other_rs, primary_rs);
+                Read_state_modify(
+                        other_rs,
+                        cur_target_pitch,
+                        write_pos,
+                        DELAY_BUF_LEN,
+                        audio_rate);
+
+                ks_vstate->primary_read_state = 1 - ks_vstate->primary_read_state;
+                ks_vstate->is_xfading = true;
+                ks_vstate->xfade_progress = 0.0;
+            }
+        }
+
+        float value = 0.0f;
+        if (!ks_vstate->is_xfading)
+        {
+            value = Read_state_update(
+                    &ks_vstate->read_states[ks_vstate->primary_read_state],
+                    DELAY_BUF_LEN,
+                    delay_buf);
+        }
+        else
+        {
+            const float out_value = Read_state_update(
+                    &ks_vstate->read_states[1 - ks_vstate->primary_read_state],
+                    DELAY_BUF_LEN,
+                    delay_buf);
+            const float in_value = Read_state_update(
+                    &ks_vstate->read_states[ks_vstate->primary_read_state],
+                    DELAY_BUF_LEN,
+                    delay_buf);
+
+            value = lerp(out_value, in_value, (float)ks_vstate->xfade_progress);
+
+            ks_vstate->xfade_progress += xfade_step;
+            if (ks_vstate->xfade_progress >= 1.0)
+                ks_vstate->is_xfading = false;
+        }
 
         out_buf[i] = value * scale;
 
         delay_buf[write_pos] = value;
-
-        ++read_pos;
-        if (read_pos >= DELAY_BUF_LEN)
-            read_pos = 0;
 
         ++write_pos;
         if (write_pos >= DELAY_BUF_LEN)
             write_pos = 0;
     }
 
-    ks_vstate->read_pos = read_pos;
     ks_vstate->write_pos = write_pos;
 
     return buf_stop;
@@ -238,22 +403,13 @@ void Ks_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
     Ks_vstate* ks_vstate = (Ks_vstate*)vstate;
 
-    ks_vstate->init_pitch = NAN;
-    ks_vstate->read_pos = 0;
     ks_vstate->write_pos = 0;
+    ks_vstate->primary_read_state = 0;
+    ks_vstate->is_xfading = false;
+    ks_vstate->xfade_progress = 0.0;
 
-    ks_vstate->damp.mul = 0;
-
-    for (int i = 0; i < DAMP_FILTER_ORDER; ++i)
-    {
-        ks_vstate->damp.coeffs[i] = 0;
-        ks_vstate->damp.history1[i] = 0;
-        ks_vstate->damp.history2[i] = 0;
-    }
-
-    ks_vstate->frac_delay.eta = 0;
-    ks_vstate->frac_delay.prev_item = 0;
-    ks_vstate->frac_delay.feedback = 0;
+    Read_state_clear(&ks_vstate->read_states[0]);
+    Read_state_clear(&ks_vstate->read_states[1]);
 
     for (int i = 0; i < DELAY_BUF_LEN; ++i)
         ks_vstate->delay_buf[i] = 0;
