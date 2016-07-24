@@ -22,6 +22,8 @@
 typedef struct Proc_ks
 {
     Device_impl parent;
+
+    double damp;
 } Proc_ks;
 
 

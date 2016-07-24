@@ -15,6 +15,7 @@
 #include <player/devices/processors/Ks_state.h>
 
 #include <debug/assert.h>
+#include <init/devices/processors/Proc_ks.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <mathnum/Random.h>
@@ -30,11 +31,12 @@
 
 #define DELAY_BUF_LEN 4096
 
-#define DAMP_FILTER_ORDER 2
+#define DAMP_FILTER_ORDER 1
 
 
 typedef struct Damp
 {
+    double cutoff_norm; // used for calculating phase delay
     double coeffs[DAMP_FILTER_ORDER];
     double mul;
     double history1[DAMP_FILTER_ORDER];
@@ -105,10 +107,13 @@ static void Read_state_modify(
     rs->read_pos = (buf_len + write_pos - used_buf_frames_whole) % buf_len;
     rs->pitch = pitch;
 
-    const float delay_add = -1.0f; // TODO: calculate from damp filter cutoff
+    // Phase delay for one-pole lowpass is: atan(tan(pi*f)/tan(pi*f0))/(2*pi*f)
+    const double freq_norm = freq / audio_rate;
+    const double delay_add =
+        -atan(tan(PI * freq_norm)/tan(PI * rs->damp.cutoff_norm)) / (2 * PI * freq_norm);
 
     // Set up fractional delay filter
-    float delay = (float)(used_buf_length - used_buf_frames_whole) + delay_add;
+    float delay = (float)(used_buf_length - used_buf_frames_whole) + (float)delay_add;
     while (delay < 0.618f)
     {
         delay += 1.0f;
@@ -121,14 +126,20 @@ static void Read_state_modify(
 }
 
 
+#define CUTOFF_BIAS 74.37631656229591
+
+
 static void Read_state_init(
         Read_state* rs,
+        double damp,
         double pitch,
         int32_t write_pos,
         int32_t buf_len,
         int32_t audio_rate)
 {
     rassert(rs != NULL);
+    rassert(damp >= 0);
+    rassert(damp <= 100);
     rassert(isfinite(pitch));
     rassert(write_pos >= 0);
     rassert(buf_len > 2);
@@ -138,8 +149,11 @@ static void Read_state_init(
     Read_state_clear(rs);
 
     // Set up damping filter
-    const double cutoff = 0.25; // TODO: make this configurable
-    two_pole_filter_create(cutoff, 0.5, 0, rs->damp.coeffs, &rs->damp.mul);
+    const double cutoff = exp2((100 - damp + CUTOFF_BIAS) / 12.0);
+    const double cutoff_clamped = clamp(cutoff, 1, (audio_rate / 2) - 1);
+    rs->damp.cutoff_norm = cutoff_clamped / audio_rate;
+    one_pole_filter_create(
+            rs->damp.cutoff_norm, 0, rs->damp.coeffs, &rs->damp.mul);
 
     Read_state_modify(rs, pitch, write_pos, buf_len, audio_rate);
 
@@ -162,7 +176,7 @@ static float Read_state_update(
     // Apply damping filter
     double damped = nq_zero_filter(
             DAMP_FILTER_ORDER, rs->damp.history1, src_value);
-    damped = iir_filter_strict_cascade_even_order(
+    damped = iir_filter_strict_cascade(
             DAMP_FILTER_ORDER, rs->damp.coeffs, rs->damp.history2, damped);
     damped *= rs->damp.mul;
 
@@ -321,8 +335,11 @@ static int32_t Ks_vstate_render_voice(
         // */
         ks_vstate->write_pos = 0;
 
+        const Proc_ks* ks = (const Proc_ks*)proc_state->parent.device->dimpl;
+
         Read_state_init(
                 &ks_vstate->read_states[ks_vstate->primary_read_state],
+                ks->damp,
                 pitches[buf_start],
                 ks_vstate->write_pos,
                 DELAY_BUF_LEN,
