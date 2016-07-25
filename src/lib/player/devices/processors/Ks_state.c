@@ -22,14 +22,13 @@
 #include <player/devices/processors/Filter.h>
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/devices/Voice_state.h>
+#include <player/Work_buffer.h>
 #include <player/Work_buffers.h>
 
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
 
-
-#define DELAY_BUF_LEN 4096
 
 #define DAMP_FILTER_ORDER 1
 
@@ -215,8 +214,6 @@ typedef struct Ks_vstate
     bool is_xfading;
     double xfade_progress;
     Read_state read_states[2];
-
-    float delay_buf[DELAY_BUF_LEN];
 } Ks_vstate;
 
 
@@ -313,26 +310,15 @@ static int32_t Ks_vstate_render_voice(
     const bool need_init =
         isnan(ks_vstate->read_states[ks_vstate->primary_read_state].pitch);
 
-    // Get delay buffer length
+    // Get delay buffer
+    Work_buffer* delay_wb = ks_vstate->parent.wb;
+    rassert(delay_wb != NULL);
+    const int32_t delay_wb_size = Work_buffer_get_size(delay_wb);
+
     const int32_t audio_rate = dstate->audio_rate;
 
     if (need_init)
     {
-        /*
-        const float init_pitch = pitches[buf_start];
-        const double init_freq = cents_to_Hz(init_pitch);
-        const double period_length = audio_rate / init_freq;
-        const double used_buf_length = clamp(period_length, 2, DELAY_BUF_LEN);
-        const int32_t used_buf_frames_whole = (int32_t)floor(used_buf_length);
-
-        for (int32_t i = 0; i < used_buf_frames_whole; ++i)
-        {
-            //ks_vstate->delay_buf[i] = (float)sin(i * PI * 2.0 / used_buf_frames_whole);
-            ks_vstate->delay_buf[i] = (float)Random_get_float_signal(vstate->rand_s);
-        }
-
-        ks_vstate->write_pos = used_buf_frames_whole % DELAY_BUF_LEN;
-        // */
         ks_vstate->write_pos = 0;
 
         const Proc_ks* ks = (const Proc_ks*)proc_state->parent.device->dimpl;
@@ -342,12 +328,12 @@ static int32_t Ks_vstate_render_voice(
                 ks->damp,
                 pitches[buf_start],
                 ks_vstate->write_pos,
-                DELAY_BUF_LEN,
+                delay_wb_size,
                 audio_rate);
     }
 
     int32_t write_pos = ks_vstate->write_pos;
-    float* delay_buf = ks_vstate->delay_buf;
+    float* delay_buf = Work_buffer_get_contents_mut(delay_wb);
 
     static const double xfade_speed = 1000.0;
     const double xfade_step = xfade_speed / audio_rate;
@@ -380,7 +366,7 @@ static int32_t Ks_vstate_render_voice(
                         other_rs,
                         cur_target_pitch,
                         write_pos,
-                        DELAY_BUF_LEN,
+                        delay_wb_size,
                         audio_rate);
 
                 ks_vstate->primary_read_state = 1 - ks_vstate->primary_read_state;
@@ -395,7 +381,7 @@ static int32_t Ks_vstate_render_voice(
             value = Read_state_update(
                     &ks_vstate->read_states[ks_vstate->primary_read_state],
                     excitation,
-                    DELAY_BUF_LEN,
+                    delay_wb_size,
                     delay_buf);
         }
         else
@@ -403,12 +389,12 @@ static int32_t Ks_vstate_render_voice(
             const float out_value = Read_state_update(
                     &ks_vstate->read_states[1 - ks_vstate->primary_read_state],
                     excitation,
-                    DELAY_BUF_LEN,
+                    delay_wb_size,
                     delay_buf);
             const float in_value = Read_state_update(
                     &ks_vstate->read_states[ks_vstate->primary_read_state],
                     excitation,
-                    DELAY_BUF_LEN,
+                    delay_wb_size,
                     delay_buf);
 
             value = lerp(out_value, in_value, (float)ks_vstate->xfade_progress);
@@ -423,7 +409,7 @@ static int32_t Ks_vstate_render_voice(
         delay_buf[write_pos] = value;
 
         ++write_pos;
-        if (write_pos >= DELAY_BUF_LEN)
+        if (write_pos >= delay_wb_size)
             write_pos = 0;
     }
 
@@ -450,8 +436,9 @@ void Ks_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     Read_state_clear(&ks_vstate->read_states[0]);
     Read_state_clear(&ks_vstate->read_states[1]);
 
-    for (int i = 0; i < DELAY_BUF_LEN; ++i)
-        ks_vstate->delay_buf[i] = 0;
+    Work_buffer* delay_wb = ks_vstate->parent.wb;
+    rassert(delay_wb != NULL);
+    Work_buffer_clear(delay_wb, 0, Work_buffer_get_size(delay_wb));
 
     return;
 }

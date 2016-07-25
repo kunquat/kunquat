@@ -25,7 +25,9 @@
 
 static Set_float_func Proc_ks_set_damp;
 
-static void del_Proc_ks(Device_impl* dimpl);
+static Device_impl_get_voice_wb_size_func Proc_ks_get_voice_wb_size;
+
+static Device_impl_destroy_func del_Proc_ks;
 
 
 Device_impl* new_Proc_ks(void)
@@ -48,6 +50,7 @@ Device_impl* new_Proc_ks(void)
         return NULL;
     }
 
+    ks->parent.get_voice_wb_size = Proc_ks_get_voice_wb_size;
     ks->parent.get_vstate_size = Ks_vstate_get_size;
     ks->parent.init_vstate = Ks_vstate_init;
 
@@ -69,6 +72,17 @@ static bool Proc_ks_set_damp(
         ks->damp = 0;
 
     return true;
+}
+
+
+static int32_t Proc_ks_get_voice_wb_size(const Device_impl* dimpl, int32_t audio_rate)
+{
+    rassert(dimpl != NULL);
+    rassert(audio_rate > 0);
+
+    static const double min_freq = 10;
+
+    return (int32_t)(audio_rate / min_freq) + 1;
 }
 
 
