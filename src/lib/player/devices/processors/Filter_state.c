@@ -77,17 +77,19 @@ static void Filter_state_impl_init(Filter_state_impl* fimpl, const Proc_filter* 
     fimpl->lowpass_xfade_pos = 1;
     fimpl->lowpass_xfade_update = 0;
 
-    for (int i = 0; i < FILTER_ORDER; ++i)
+    for (int si = 0; si < 2; ++si)
     {
-        fimpl->lowpass_state[0].coeffs[i] = 0;
-        fimpl->lowpass_state[1].coeffs[i] = 0;
+        fimpl->lowpass_state[si].mul = 0;
 
-        for (int k = 0; k < KQT_BUFFERS_MAX; ++k)
+        for (int i = 0; i < FILTER_ORDER; ++i)
         {
-            fimpl->lowpass_state[0].history1[k][i] = 0;
-            fimpl->lowpass_state[0].history2[k][i] = 0;
-            fimpl->lowpass_state[1].history1[k][i] = 0;
-            fimpl->lowpass_state[1].history2[k][i] = 0;
+            fimpl->lowpass_state[si].coeffs[i] = 0;
+
+            for (int ch = 0; ch < KQT_BUFFERS_MAX; ++ch)
+            {
+                fimpl->lowpass_state[si].history1[ch][i] = 0;
+                fimpl->lowpass_state[si].history2[ch][i] = 0;
+            }
         }
     }
 
