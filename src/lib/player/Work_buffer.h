@@ -40,6 +40,24 @@ Work_buffer* new_Work_buffer(int32_t size);
 
 
 /**
+ * Initialise a Work buffer with externally allocated space.
+ *
+ * NOTE: Work buffers created with \a new_Work_buffer must not be passed as a
+ *       parameter to this function, and Work buffers initialised with this
+ *       function must not be passed to \a del_Work_buffer.
+ *
+ * \param buffer           The Work buffer -- must not be \c NULL.
+ * \param space            The starting address of the memory area
+ *                         -- must not be \c NULL.
+ * \param raw_elem_count   The total number of elements in \a space -- must be
+ *                         >= \c 2. The reported size of the initialised Work
+ *                         buffer will be \a raw_elem_count - \c 2.
+ */
+void Work_buffer_init_with_memory(
+        Work_buffer* buffer, void* space, int32_t raw_elem_count);
+
+
+/**
  * Resize the Work buffer.
  *
  * \param buffer     The Work buffer -- must not be \c NULL.

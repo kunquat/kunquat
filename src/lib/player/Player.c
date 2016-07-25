@@ -223,6 +223,23 @@ bool Player_reserve_voice_state_space(Player* player, int32_t size)
 }
 
 
+int32_t Player_get_voice_work_buffer_size(const Player* player)
+{
+    rassert(player != NULL);
+    return Voice_pool_get_work_buffer_size(player->voices);
+}
+
+
+bool Player_reserve_voice_work_buffer_space(Player* player, int32_t size)
+{
+    rassert(player != NULL);
+    rassert(size >= 0);
+    rassert(size <= VOICE_WORK_BUFFER_SIZE_MAX);
+
+    return Voice_pool_reserve_work_buffers(player->voices, size);
+}
+
+
 bool Player_alloc_channel_cv_state(Player* player, const Au_control_vars* aucv)
 {
     rassert(player != NULL);

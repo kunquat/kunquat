@@ -105,6 +105,14 @@ const Processor* Voice_get_proc(const Voice* voice)
 }
 
 
+void Voice_set_work_buffer(Voice* voice, Work_buffer* wb)
+{
+    rassert(voice != NULL);
+    voice->wb = wb;
+    return;
+}
+
+
 void Voice_init(
         Voice* voice,
         const Processor* proc,
@@ -123,6 +131,7 @@ void Voice_init(
     Random_set_seed(&voice->rand_s, seed);
 
     Voice_state_init(voice->state, &voice->rand_p, &voice->rand_s);
+    Voice_state_set_work_buffer(voice->state, voice->wb);
 
     const Device_impl* dimpl = Device_get_impl((const Device*)proc);
     if ((dimpl != NULL) && (dimpl->init_vstate != NULL))

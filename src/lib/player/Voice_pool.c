@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <memory.h>
+#include <player/Voice_work_buffers.h>
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -35,31 +36,37 @@ Voice_pool* new_Voice_pool(int size)
     pool->state_size = 0;
     pool->new_group_id = 0;
     pool->voices = NULL;
+    pool->voice_wbs = NULL;
     pool->group_iter_offset = 0;
     pool->group_iter = *VOICE_GROUP_AUTO;
+
+    pool->voice_wbs = new_Voice_work_buffers();
+    if (pool->voice_wbs == NULL)
+    {
+        del_Voice_pool(pool);
+        return NULL;
+    }
 
     if (size > 0)
     {
         pool->voices = memory_alloc_items(Voice, size);
         if (pool->voices == NULL)
         {
-            memory_free(pool);
+            del_Voice_pool(pool);
             return NULL;
         }
-    }
 
-    for (int i = 0; i < size; ++i)
-    {
-        pool->voices[i] = new_Voice();
-        if (pool->voices[i] == NULL)
+        for (int i = 0; i < size; ++i)
+            pool->voices[i] = NULL;
+
+        for (int i = 0; i < size; ++i)
         {
-            for (--i; i >= 0; --i)
+            pool->voices[i] = new_Voice();
+            if (pool->voices[i] == NULL)
             {
-                del_Voice(pool->voices[i]);
+                del_Voice_pool(pool);
+                return NULL;
             }
-            memory_free(pool->voices);
-            memory_free(pool);
-            return NULL;
         }
     }
 
@@ -82,6 +89,33 @@ bool Voice_pool_reserve_state_space(Voice_pool* pool, int32_t state_size)
     }
 
     pool->state_size = state_size;
+    return true;
+}
+
+
+int32_t Voice_pool_get_work_buffer_size(const Voice_pool* pool)
+{
+    rassert(pool != NULL);
+    return Voice_work_buffers_get_buffer_size(pool->voice_wbs);
+}
+
+
+bool Voice_pool_reserve_work_buffers(Voice_pool* pool, int32_t buf_size)
+{
+    rassert(pool != NULL);
+    rassert(buf_size >= 0);
+    rassert(buf_size <= VOICE_WORK_BUFFER_SIZE_MAX);
+
+    if (!Voice_work_buffers_allocate_space(pool->voice_wbs, pool->size, buf_size))
+        return false;
+
+    for (int i = 0; i < pool->size; ++i)
+    {
+        Voice_set_work_buffer(
+                pool->voices[i],
+                Voice_work_buffers_get_buffer_mut(pool->voice_wbs, i));
+    }
+
     return true;
 }
 
@@ -138,6 +172,19 @@ bool Voice_pool_resize(Voice_pool* pool, int size)
             }
             return false;
         }
+    }
+
+    // Allocate space for Voice work buffers if needed
+    const int32_t voice_wb_size = Voice_work_buffers_get_buffer_size(pool->voice_wbs);
+    if (voice_wb_size > 0)
+    {
+        if (!Voice_work_buffers_allocate_space(pool->voice_wbs, new_size, voice_wb_size))
+            return false;
+
+        for (int i = 0; i < new_size; ++i)
+            Voice_set_work_buffer(
+                    pool->voices[i],
+                    Voice_work_buffers_get_buffer_mut(pool->voice_wbs, i));
     }
 
     pool->size = new_size;
@@ -276,11 +323,15 @@ void del_Voice_pool(Voice_pool* pool)
     if (pool == NULL)
         return;
 
-    for (uint16_t i = 0; i < pool->size; ++i)
+    if (pool->voices != NULL)
     {
-        del_Voice(pool->voices[i]);
-        pool->voices[i] = NULL;
+        for (uint16_t i = 0; i < pool->size; ++i)
+        {
+            del_Voice(pool->voices[i]);
+            pool->voices[i] = NULL;
+        }
     }
+    del_Voice_work_buffers(pool->voice_wbs);
     memory_free(pool->voices);
     memory_free(pool);
 

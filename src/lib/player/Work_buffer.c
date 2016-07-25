@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/Work_buffer_private.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -28,14 +29,6 @@
 
 static_assert(sizeof(int32_t) <= WORK_BUFFER_ELEM_SIZE,
         "Work buffers must have space for enough 32-bit integers.");
-
-
-struct Work_buffer
-{
-    int32_t size;
-    int32_t const_start;
-    void* contents;
-};
 
 
 Work_buffer* new_Work_buffer(int32_t size)
@@ -66,6 +59,23 @@ Work_buffer* new_Work_buffer(int32_t size)
     }
 
     return buffer;
+}
+
+
+void Work_buffer_init_with_memory(
+        Work_buffer* buffer, void* space, int32_t raw_elem_count)
+{
+    rassert(buffer != NULL);
+    rassert(space != NULL);
+    rassert(raw_elem_count >= 2);
+
+    buffer->size = raw_elem_count - 2;
+    buffer->const_start = INT32_MAX;
+    buffer->contents = space;
+
+    Work_buffer_clear(buffer, -1, Work_buffer_get_size(buffer) + 1);
+
+    return;
 }
 
 
@@ -110,7 +120,7 @@ void Work_buffer_clear(Work_buffer* buffer, int32_t buf_start, int32_t buf_stop)
     for (int32_t i = buf_start; i < buf_stop; ++i)
         fcontents[i] = 0;
 
-    Work_buffer_set_const_start(buffer, buf_start);
+    Work_buffer_set_const_start(buffer, max(0, buf_start));
 
     return;
 }

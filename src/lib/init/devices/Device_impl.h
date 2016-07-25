@@ -57,6 +57,8 @@ SET_FUNC_TYPE(padsynth_params,  const Padsynth_params*);
 #undef SET_FUNC_TYPE
 
 
+typedef int32_t Device_impl_get_voice_wb_size_func(
+        const Device_impl*, int32_t audio_rate);
 typedef void Device_impl_destroy_func(Device_impl*);
 
 
@@ -71,6 +73,7 @@ struct Device_impl
 
     Device_state_create_func* create_pstate;
     Voice_state_get_size_func* get_vstate_size;
+    Device_impl_get_voice_wb_size_func* get_voice_wb_size;
     Voice_state_init_func* init_vstate;
     Device_impl_destroy_func* destroy;
 };
@@ -142,6 +145,17 @@ void Device_impl_set_device(Device_impl* dimpl, const Device* device);
  * \return   The size required for Voice states of this Device implementation.
  */
 int32_t Device_impl_get_vstate_size(const Device_impl* dimpl);
+
+
+/**
+ * Get Voice work buffer size required by the Device implementation.
+ *
+ * \param dimpl        The Device implementation -- must not be \c NULL.
+ * \param audio_rate   The audio rate -- must be > \c 0.
+ *
+ * \return   The buffer size required.
+ */
+int32_t Device_impl_get_voice_wb_size(const Device_impl* dimpl, int32_t audio_rate);
 
 
 /**
