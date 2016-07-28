@@ -113,6 +113,9 @@ static void Read_state_modify(
 
     // Set up fractional delay filter
     float delay = (float)(used_buf_length - used_buf_frames_whole) + (float)delay_add;
+    // Set delay to range [0.618, 1.618) to minimise clicking as suggested by
+    // Van Duyne et al.: A Lossless, Click-free, Pitchbend-able Delay Line Loop
+    // Interpolation Scheme
     while (delay < 0.618f)
     {
         delay += 1.0f;
@@ -180,6 +183,8 @@ static float Read_state_update(
     damped *= rs->damp.mul;
 
     // Apply fractional delay filter
+    // Based on the description in
+    // https://ccrma.stanford.edu/~jos/Interpolation/Allpass_Interpolated_Delay_Line.html
     Frac_delay* fd = &rs->frac_delay;
     const float value =
         fd->eta * (float)damped + fd->prev_item - fd->eta * fd->feedback;
