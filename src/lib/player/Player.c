@@ -389,6 +389,25 @@ bool Player_set_audio_rate(Player* player, int32_t rate)
     if (!Device_states_set_audio_rate(player->device_states, rate))
         return false;
 
+    // Resize Voice work buffers
+    {
+        int32_t voice_wb_size = 0;
+        Au_table* au_table = Module_get_au_table(player->module);
+        for (int au_i = 0; au_i < KQT_AUDIO_UNITS_MAX; ++au_i)
+        {
+            const Audio_unit* au = Au_table_get(au_table, au_i);
+            if (au != NULL)
+            {
+                const int32_t au_req_voice_wb_size =
+                    Audio_unit_get_voice_wb_size(au, rate);
+                voice_wb_size = max(voice_wb_size, au_req_voice_wb_size);
+            }
+        }
+
+        if (!Player_reserve_voice_work_buffer_space(player, voice_wb_size))
+            return false;
+    }
+
     // Add current playback frame count to nanoseconds history
     player->nanoseconds_history +=
         player->audio_frames_processed * 1000000000LL / player->audio_rate;

@@ -26,6 +26,7 @@
 #include <string/Streader.h>
 
 #include <stdbool.h>
+#include <stdint.h>
 
 
 typedef enum
@@ -181,6 +182,17 @@ const Device* Audio_unit_get_input_interface(const Audio_unit* au);
  * \return   The output interface.
  */
 const Device* Audio_unit_get_output_interface(const Audio_unit* au);
+
+
+/**
+ * Get largest Voice work buffer size required by a Processor in the Audio unit.
+ *
+ * \param au           The Audio unit -- must not be \c NULL.
+ * \param audio_rate   The audio rate -- must be > \c 0.
+ *
+ * \return   The buffer size required.
+ */
+int32_t Audio_unit_get_voice_wb_size(const Audio_unit* au, int32_t audio_rate);
 
 
 /**

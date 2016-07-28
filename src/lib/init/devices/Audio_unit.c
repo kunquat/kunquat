@@ -22,6 +22,7 @@
 #include <init/devices/Au_interface.h>
 #include <init/devices/Au_streams.h>
 #include <init/devices/Device.h>
+#include <init/devices/Device_impl.h>
 #include <init/devices/Param_proc_filter.h>
 #include <init/devices/Proc_table.h>
 #include <init/devices/Processor.h>
@@ -290,6 +291,43 @@ const Device* Audio_unit_get_output_interface(const Audio_unit* au)
 {
     rassert(au != NULL);
     return &au->out_iface->parent;
+}
+
+
+int32_t Audio_unit_get_voice_wb_size(const Audio_unit* au, int32_t audio_rate)
+{
+    rassert(au != NULL);
+    rassert(audio_rate > 0);
+
+    int32_t voice_wb_size = 0;
+
+    for (int au2_i = 0; au2_i < KQT_AUDIO_UNITS_MAX; ++au2_i)
+    {
+        const Audio_unit* au2 = Audio_unit_get_au(au, au2_i);
+        if (au2 != NULL)
+        {
+            const int32_t au2_voice_wb_size =
+                Audio_unit_get_voice_wb_size(au2, audio_rate);
+            voice_wb_size = max(voice_wb_size, au2_voice_wb_size);
+        }
+    }
+
+    for (int pi = 0; pi < KQT_PROCESSORS_MAX; ++pi)
+    {
+        const Processor* proc = Audio_unit_get_proc(au, pi);
+        if (proc != NULL)
+        {
+            const Device_impl* dimpl = Device_get_impl((const Device*)proc);
+            if (dimpl != NULL)
+            {
+                const int32_t dimpl_voice_wb_size =
+                    Device_impl_get_voice_wb_size(dimpl, audio_rate);
+                voice_wb_size = max(voice_wb_size, dimpl_voice_wb_size);
+            }
+        }
+    }
+
+    return voice_wb_size;
 }
 
 
