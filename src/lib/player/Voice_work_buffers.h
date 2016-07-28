@@ -52,11 +52,11 @@ int32_t Voice_work_buffers_get_buffer_size(const Voice_work_buffers* wbs);
 /**
  * Allocate space for Voice work buffers.
  *
- * \param wbs     The Voice work buffers -- must not be \c NULL.
- * \param count   The number of buffers -- must be >= \c 0 and
- *                <= \c KQT_VOICES_MAX.
- * \param size    The new buffer size -- must be >= \c 0 and
- *                <= \c VOICE_WORK_BUFFER_SIZE_MAX.
+ * \param wbs        The Voice work buffers -- must not be \c NULL.
+ * \param count      The number of buffers -- must be >= \c 0 and
+ *                   <= \c KQT_VOICES_MAX.
+ * \param buf_size   The new buffer size -- must be >= \c 0 and
+ *                   <= \c VOICE_WORK_BUFFER_SIZE_MAX.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
