@@ -64,6 +64,7 @@ struct Voice_state
     bool has_finished;
     Random* rand_p;                ///< Parameter random source.
     Random* rand_s;                ///< Signal random source.
+    Work_buffer* wb;
 
     Voice_state_render_voice_func* render_voice;
 
@@ -93,13 +94,22 @@ struct Voice_state
 /**
  * Initialise a Voice state.
  *
- * \param state        The Voice state -- must not be \c NULL.
- * \param rand_p       The parameter Random source -- must not be \c NULL.
- * \param rand_s       The signal Random source -- must not be \c NULL.
+ * \param state    The Voice state -- must not be \c NULL.
+ * \param rand_p   The parameter Random source -- must not be \c NULL.
+ * \param rand_s   The signal Random source -- must not be \c NULL.
  *
  * \return   The parameter \a state.
  */
 Voice_state* Voice_state_init(Voice_state* state, Random* rand_p, Random* rand_s);
+
+
+/**
+ * Set the Work buffer associated with the Voice state.
+ *
+ * \param state    The Voice state -- must not be \c NULL.
+ * \param wb       The Work buffer, or \c NULL.
+ */
+void Voice_state_set_work_buffer(Voice_state* state, Work_buffer* wb);
 
 
 /**

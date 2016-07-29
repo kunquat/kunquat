@@ -20,6 +20,7 @@
 #include <init/devices/Processor.h>
 #include <mathnum/Random.h>
 #include <player/Device_states.h>
+#include <player/Work_buffer.h>
 #include <player/Work_buffers.h>
 
 #include <stdbool.h>
@@ -49,6 +50,7 @@ typedef struct Voice
     const Processor* proc;   ///< The Processor.
     int32_t state_size;      ///< The amount bytes allocated for the Voice state.
     Voice_state* state;      ///< The current playback state.
+    Work_buffer* wb;         ///< The Work buffer associated with this Voice.
     Random rand_p;           ///< Parameter random source.
     Random rand_s;           ///< Signal random source.
 } Voice;
@@ -119,6 +121,15 @@ uint64_t Voice_get_group_id(const Voice* voice);
  * \return   The Processor.
  */
 const Processor* Voice_get_proc(const Voice* voice);
+
+
+/**
+ * Set the Work buffer associated with the Voice.
+ *
+ * \param voice   The Voice -- must not be \c NULL.
+ * \param wb      The Work buffer, or \c NULL.
+ */
+void Voice_set_work_buffer(Voice* voice, Work_buffer* wb);
 
 
 /**

@@ -1137,6 +1137,24 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
         }
     }
 
+    // Allocate Voice work buffers
+    {
+        const int32_t audio_rate = Player_get_audio_rate(params->handle->player);
+        const int32_t cur_size =
+            Player_get_voice_work_buffer_size(params->handle->player);
+        const int32_t req_size = Device_impl_get_voice_wb_size(proc_impl, audio_rate);
+        if (req_size > cur_size)
+        {
+            if (!Player_reserve_voice_work_buffer_space(
+                        params->handle->player, req_size))
+            {
+                Handle_set_error(params->handle, ERROR_MEMORY,
+                        "Could not allocate memory for voice work buffers");
+                return false;
+            }
+        }
+    }
+
     // Allocate Device state(s) for this Processor
     Device_state* ds = Device_create_state(
             (Device*)proc,
@@ -1147,7 +1165,6 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
         Handle_set_error(params->handle, ERROR_MEMORY,
                 "Couldn't allocate memory for device state");
         del_Device_state(ds);
-        del_Processor(proc);
         return false;
     }
 

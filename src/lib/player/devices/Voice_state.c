@@ -39,6 +39,7 @@ Voice_state* Voice_state_init(Voice_state* state, Random* rand_p, Random* rand_s
     state->note_on = true;
     state->rand_p = rand_p;
     state->rand_s = rand_s;
+    state->wb = NULL;
 
     state->render_voice = NULL;
 
@@ -50,6 +51,14 @@ Voice_state* Voice_state_init(Voice_state* state, Random* rand_p, Random* rand_s
     state->is_stream_state = false;
 
     return state;
+}
+
+
+void Voice_state_set_work_buffer(Voice_state* state, Work_buffer* wb)
+{
+    rassert(state != NULL);
+    state->wb = wb;
+    return;
 }
 
 

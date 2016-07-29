@@ -223,6 +223,23 @@ bool Player_reserve_voice_state_space(Player* player, int32_t size)
 }
 
 
+int32_t Player_get_voice_work_buffer_size(const Player* player)
+{
+    rassert(player != NULL);
+    return Voice_pool_get_work_buffer_size(player->voices);
+}
+
+
+bool Player_reserve_voice_work_buffer_space(Player* player, int32_t size)
+{
+    rassert(player != NULL);
+    rassert(size >= 0);
+    rassert(size <= VOICE_WORK_BUFFER_SIZE_MAX);
+
+    return Voice_pool_reserve_work_buffers(player->voices, size);
+}
+
+
 bool Player_alloc_channel_cv_state(Player* player, const Au_control_vars* aucv)
 {
     rassert(player != NULL);
@@ -371,6 +388,25 @@ bool Player_set_audio_rate(Player* player, int32_t rate)
 
     if (!Device_states_set_audio_rate(player->device_states, rate))
         return false;
+
+    // Resize Voice work buffers
+    {
+        int32_t voice_wb_size = 0;
+        Au_table* au_table = Module_get_au_table(player->module);
+        for (int au_i = 0; au_i < KQT_AUDIO_UNITS_MAX; ++au_i)
+        {
+            const Audio_unit* au = Au_table_get(au_table, au_i);
+            if (au != NULL)
+            {
+                const int32_t au_req_voice_wb_size =
+                    Audio_unit_get_voice_wb_size(au, rate);
+                voice_wb_size = max(voice_wb_size, au_req_voice_wb_size);
+            }
+        }
+
+        if (!Player_reserve_voice_work_buffer_space(player, voice_wb_size))
+            return false;
+    }
 
     // Add current playback frame count to nanoseconds history
     player->nanoseconds_history +=

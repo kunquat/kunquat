@@ -18,6 +18,7 @@
 
 #include <player/Voice.h>
 #include <player/Voice_group.h>
+#include <player/Voice_work_buffers.h>
 #include <player/Work_buffers.h>
 
 #include <stdint.h>
@@ -34,6 +35,7 @@ typedef struct Voice_pool
     int32_t state_size;
     uint64_t new_group_id;
     Voice** voices;
+    Voice_work_buffers* voice_wbs;
 
     int group_iter_offset;
     Voice_group group_iter;
@@ -61,6 +63,28 @@ Voice_pool* new_Voice_pool(int size);
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Voice_pool_reserve_state_space(Voice_pool* pool, int32_t state_size);
+
+
+/**
+ * Get the current Voice work buffer size.
+ *
+ * \param pool   The Voice pool -- must not be \c NULL.
+ *
+ * \return   The Voice work buffer size.
+ */
+int32_t Voice_pool_get_work_buffer_size(const Voice_pool* pool);
+
+
+/**
+ * Reserve Work buffers for Voices.
+ *
+ * \param pool       The Voice pool -- must not be \c NULL.
+ * \param buf_size   The buffer size -- must be >= \c 0 and
+ *                   < \c VOICE_WORK_BUFFER_SIZE_MAX.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Voice_pool_reserve_work_buffers(Voice_pool* pool, int32_t buf_size);
 
 
 /**

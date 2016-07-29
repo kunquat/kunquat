@@ -106,6 +106,7 @@ bool Device_impl_init(Device_impl* dimpl, Device_impl_destroy_func* destroy)
 
     dimpl->create_pstate = NULL;
     dimpl->get_vstate_size = NULL;
+    dimpl->get_voice_wb_size = NULL;
     dimpl->init_vstate = NULL;
     dimpl->destroy = destroy;
 
@@ -145,6 +146,18 @@ int32_t Device_impl_get_vstate_size(const Device_impl* dimpl)
         return dimpl->get_vstate_size();
 
     return sizeof(Voice_state);
+}
+
+
+int32_t Device_impl_get_voice_wb_size(const Device_impl* dimpl, int32_t audio_rate)
+{
+    rassert(dimpl != NULL);
+    rassert(audio_rate > 0);
+
+    if (dimpl->get_voice_wb_size != NULL)
+        return dimpl->get_voice_wb_size(dimpl, audio_rate);
+
+    return 0;
 }
 
 

@@ -85,6 +85,28 @@ bool Player_reserve_voice_state_space(Player* player, int32_t size);
 
 
 /**
+ * Get the current Voice work buffer size in the Player.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ *
+ * \return   The current buffer size.
+ */
+int32_t Player_get_voice_work_buffer_size(const Player* player);
+
+
+/**
+ * Reserve Work buffers for voices.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ * \param size     The new size -- must be >= \c 0 and
+ *                 <= \c VOICE_WORK_BUFFER_SIZE_MAX.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Player_reserve_voice_work_buffer_space(Player* player, int32_t size);
+
+
+/**
  * Allocate memory for Channel-specific control variables.
  *
  * \param player   The Player -- must not be \c NULL.
