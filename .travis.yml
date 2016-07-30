@@ -8,4 +8,4 @@ before_install:
   - sudo apt-get install -y build-essential scons libwavpack-dev libpulse-dev python-qt4 check libsndfile1-dev wget
   - ./get_build_support.sh
 script:
-  - ./make.py
+  - ./make.py --enable-long-tests
