@@ -58,7 +58,9 @@ import options
 cmdline_opts = []
 opt_vars = []
 
-with open('options.py') as f:
+options_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'options.py')
+
+with open(options_path) as f:
     data = f.read()
     raw_entries = [e.strip() for e in data.split('\n\n') if e.strip()]
     type_names = { str: 'string', int: 'int' }
