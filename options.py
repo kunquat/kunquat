@@ -1,53 +1,53 @@
 
 
-# Installation directory prefix.
+# installation directory prefix
 prefix = '/usr/local'
 
-# Build in debug mode.
+# build in debug mode
 enable_debug = True
 
-# Enable libkunquat.
+# enable libkunquat
 enable_libkunquat = True
 
-# Install development files.
+# install libkunquat development files
 enable_libkunquat_dev = True
 
-# Install Python bindings (requires Python 2.7).
+# install Python bindings (requires Python 3.1 or later)
 enable_python_bindings = True
 
-# Build and run libkunquat tests.
+# build and run libkunquat tests
 enable_tests = True
 
-# Build and run long libkunquat tests.
+# build and run long libkunquat tests
 enable_long_tests = False
 
-# Run tests with memory debugging (requires valgrind, disables assert tests).
+# run tests with memory debugging (requires valgrind, disables assert tests)
 enable_tests_mem_debug = False
 
-# Enable kunquat-player (requires enable_python_bindings).
+# enable kunquat-player (requires Python bindings)
 enable_player = True
 
-# Enable kunquat-tracker (requires enable_python_bindings and PyQt4).
+# enable kunquat-tracker (requires Python bindings, PyQt4, libsndfile and WavPack)
 enable_tracker = True
 
-# Enable kunquat-export (requires libsndfile).
+# enable kunquat-export (requires libsndfile)
 enable_export = True
 
-# Build example Kunquat files.
+# build example Kunquat files
 enable_examples = True
 
+# build with libsndfile support
+with_sndfile = True
 
-# Select C compiler explicitly
+# build with WavPack support
+with_wavpack = True
+
+
+# select C compiler explicitly
 # (supported values: None (autodetect, default), 'gcc', 'clang')
 cc = None
 
-# Optimisation level (0..4).
+# optimisation level (0..4)
 optimise = 4
-
-# Build with libsndfile support (recommended).
-with_sndfile = True
-
-# Build WavPack support (recommended).
-with_wavpack = True
 
 
