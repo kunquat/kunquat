@@ -5,7 +5,9 @@ before_install:
   - sudo apt-get install gcc-4.8 -y
   - sudo update-alternatives --install `which gcc` gcc `which gcc-4.8` 90
   - gcc --version
+  - clang --version
   - sudo apt-get install -y build-essential scons libwavpack-dev libpulse-dev python-qt4 check libsndfile1-dev wget
   - ./get_build_support.sh
 script:
   - ./make.py --enable-long-tests
+  - ./make.py --enable-long-tests --cc=clang
