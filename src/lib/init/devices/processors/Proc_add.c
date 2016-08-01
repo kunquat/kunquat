@@ -37,6 +37,7 @@ static float sine(double phase, double modifier);
 
 static Set_sample_func  Proc_add_set_base;
 static Set_bool_func    Proc_add_set_ramp_attack;
+static Set_bool_func    Proc_add_set_rand_phase;
 static Set_float_func   Proc_add_set_tone_pitch;
 static Set_float_func   Proc_add_set_tone_volume;
 static Set_float_func   Proc_add_set_tone_panning;
@@ -52,6 +53,7 @@ Device_impl* new_Proc_add(void)
 
     add->base = NULL;
     add->is_ramp_attack_enabled = true;
+    add->is_rand_phase_enabled = false;
 
     if (!Device_impl_init(&add->parent, del_Proc_add))
     {
@@ -69,6 +71,7 @@ Device_impl* new_Proc_add(void)
 
     if (!(REG_KEY(sample, base, "p_base.wav", NULL) &&
             REG_KEY_BOOL(ramp_attack, "p_b_ramp_attack.json", true) &&
+            REG_KEY_BOOL(rand_phase, "p_b_rand_phase.json", false) &&
             REG_KEY(float, tone_pitch, "tone_XX/p_f_pitch.json", NAN) &&
             REG_KEY(float, tone_volume, "tone_XX/p_f_volume.json", NAN) &&
             REG_KEY(float, tone_panning, "tone_XX/p_f_pan.json", 0.0)
@@ -170,6 +173,19 @@ static bool Proc_add_set_ramp_attack(
 
     Proc_add* add = (Proc_add*)dimpl;
     add->is_ramp_attack_enabled = enabled;
+
+    return true;
+}
+
+
+static bool Proc_add_set_rand_phase(
+        Device_impl* dimpl, const Key_indices indices, bool enabled)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+
+    Proc_add* add = (Proc_add*)dimpl;
+    add->is_rand_phase_enabled = enabled;
 
     return true;
 }
