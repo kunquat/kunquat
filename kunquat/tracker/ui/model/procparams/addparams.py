@@ -47,6 +47,12 @@ class AddParams(ProcParams):
     def set_ramp_attack_enabled(self, enabled):
         self._set_value('p_b_ramp_attack.json', enabled)
 
+    def get_rand_phase_enabled(self):
+        return self._get_value('p_b_rand_phase.json', False)
+
+    def set_rand_phase_enabled(self, enabled):
+        self._set_value('p_b_rand_phase.json', enabled)
+
     def _get_waveform_def_data(self):
         key = 'i_base.json'
         return self._get_value(key, None)
