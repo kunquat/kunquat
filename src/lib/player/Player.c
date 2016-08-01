@@ -378,6 +378,20 @@ void Player_reset(Player* player, int track_num)
 }
 
 
+void Player_reset_dc_blocker(Player* player)
+{
+    rassert(player != NULL);
+
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        player->master_params.dc_block_state[port].feedforward = 0;
+        player->master_params.dc_block_state[port].feedback = 0;
+    }
+
+    return;
+}
+
+
 bool Player_set_audio_rate(Player* player, int32_t rate)
 {
     rassert(player != NULL);
@@ -652,6 +666,52 @@ static void Player_flush_receive(Player* player)
 }
 
 
+static void Player_apply_dc_blocker(
+        Player* player, int32_t buf_start, int32_t buf_stop)
+{
+    rassert(player != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+
+    // Get access to mixed output
+    Device_state* master_state = Device_states_get_state(
+            player->device_states, Device_get_id((const Device*)player->module));
+    rassert(master_state != NULL);
+
+    // Implementation based on https://ccrma.stanford.edu/~jos/filters/DC_Blocker.html
+    static const double adapt_time = 0.0045351473922902496;
+    const double adapt_time_frames = max(2, adapt_time * player->audio_rate);
+    const float R = (float)((adapt_time_frames - 1) / adapt_time_frames);
+    const float gain = (1 + R) / 2;
+
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Work_buffer* buffer = Device_state_get_audio_buffer(
+                master_state, DEVICE_PORT_TYPE_RECEIVE, port);
+        if (buffer != NULL)
+        {
+            float feedforward = player->master_params.dc_block_state[port].feedforward;
+            float feedback = player->master_params.dc_block_state[port].feedback;
+
+            float* buf = Work_buffer_get_contents_mut(buffer);
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+            {
+                const float in = buf[i];
+                const float out = gain * (in - feedforward) + R * feedback;
+                feedforward = in;
+                feedback = out;
+                buf[i] = out;
+            }
+
+            player->master_params.dc_block_state[port].feedforward = feedforward;
+            player->master_params.dc_block_state[port].feedback = feedback;
+        }
+    }
+
+    return;
+}
+
+
 static void Player_apply_master_volume(
         Player* player, int32_t buf_start, int32_t buf_stop)
 {
@@ -813,17 +873,23 @@ void Player_play(Player* player, int32_t nframes)
 
         // Process signals in the connection graph
         {
+            const int32_t buf_start = rendered;
+            const int32_t buf_stop = rendered + to_be_rendered;
+
             Connections_process_mixed_signals(
                     connections,
                     true, // hack_reset
                     player->device_states,
                     player->work_buffers,
-                    rendered,
-                    rendered + to_be_rendered,
+                    buf_start,
+                    buf_stop,
                     player->audio_rate,
                     player->master_params.tempo);
 
-            Player_apply_master_volume(player, rendered, rendered + to_be_rendered);
+            if (player->module->is_dc_blocker_enabled)
+                Player_apply_dc_blocker(player, buf_start, buf_stop);
+
+            Player_apply_master_volume(player, buf_start, buf_stop);
         }
 
         rendered += to_be_rendered;

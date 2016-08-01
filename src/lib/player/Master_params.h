@@ -73,6 +73,12 @@ struct Master_params
     Tstamp tempo_slide_slice_left;
     double tempo_slide_update;
 
+    struct
+    {
+        float feedforward;
+        float feedback;
+    } dc_block_state[KQT_DEVICE_PORTS_MAX];
+
     double volume;
     Slider volume_slider;
 

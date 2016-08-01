@@ -31,6 +31,7 @@
 #define MAKE_STRING(x) MAKE_STRING2(x)
 
 
+MODULE_KEYP(dc_blocker_enabled,     "p_dc_blocker_enabled.json",            "true")
 MODULE_KEYP(mixing_volume, "p_mixing_volume.json", MAKE_STRING(COMP_DEFAULT_MIX_VOL))
 MODULE_KEYP(out_port_manifest,      "out_XX/p_manifest.json",               "")
 MODULE_KEYP(connections,            "p_connections.json",                   "[]")

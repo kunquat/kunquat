@@ -90,12 +90,35 @@ Module* new_Module(void)
         return NULL;
     }
 
+    module->is_dc_blocker_enabled = true;
     module->mix_vol_dB = COMP_DEFAULT_MIX_VOL;
     module->mix_vol = exp2(module->mix_vol_dB / 6);
     //module->init_subsong = SONG_DEFAULT_INIT_SUBSONG;
     module->random_seed = 0;
 
     return module;
+}
+
+
+bool Module_read_dc_blocker_enabled(Module* module, Streader* sr)
+{
+    rassert(module != NULL);
+    rassert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
+        return false;
+
+    bool enabled = true;
+
+    if (Streader_has_data(sr))
+    {
+        if (!Streader_read_bool(sr, &enabled))
+            return false;
+    }
+
+    module->is_dc_blocker_enabled = enabled;
+
+    return true;
 }
 
 

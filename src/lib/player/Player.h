@@ -222,6 +222,16 @@ void Player_reset(Player* player, int track_num);
 
 
 /**
+ * Reset the dc blocker state of the Player.
+ *
+ * This prevents clicking when toggling the usage of dc blocker.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ */
+void Player_reset_dc_blocker(Player* player);
+
+
+/**
  * Play music.
  *
  * \param player    The Player -- must not be \c NULL and must have audio
