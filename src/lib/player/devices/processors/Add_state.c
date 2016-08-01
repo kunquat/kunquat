@@ -242,9 +242,8 @@ void Add_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
         add_state->tone_limit = h + 1;
 
-        double phase = 0;
-        if (add->is_rand_phase_enabled)
-            phase = Random_get_float_lb(vstate->rand_p);
+        const double phase =
+            add->is_rand_phase_enabled ? Random_get_float_lb(vstate->rand_p) : 0;
 
         for (int ch = 0; ch < 2; ++ch)
             add_state->tones[h].phase[ch] = phase;
