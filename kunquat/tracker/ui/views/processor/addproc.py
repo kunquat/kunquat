@@ -101,6 +101,7 @@ class AddProc(QWidget):
                 Qt.Checked if ramp_attack_enabled else Qt.Unchecked)
         self._ramp_attack.blockSignals(old_block)
 
+        # Random initial phase
         rand_phase_enabled = add_params.get_rand_phase_enabled()
         old_block = self._rand_phase.blockSignals(True)
         self._rand_phase.setCheckState(
