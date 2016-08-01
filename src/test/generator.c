@@ -27,6 +27,8 @@ static void setup_single_pulse_without_generator_manifest(void)
 {
     assert(handle != 0);
 
+    set_data("p_dc_blocker_enabled.json", "false");
+
     set_data("out_00/p_manifest.json", "{}");
     set_data("p_connections.json",
             "[ [\"au_00/out_00\", \"out_00\"] ]");

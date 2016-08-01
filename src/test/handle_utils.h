@@ -273,6 +273,8 @@ void setup_debug_instrument(void)
 {
     assert(handle != 0);
 
+    set_data("p_dc_blocker_enabled.json", "false");
+
     set_data("out_00/p_manifest.json", "{}");
     set_data("out_01/p_manifest.json", "{}");
     set_data("p_connections.json",
@@ -313,6 +315,8 @@ void setup_debug_instrument(void)
 void setup_debug_single_pulse(void)
 {
     assert(handle != 0);
+
+    set_data("p_dc_blocker_enabled.json", "false");
 
     set_data("au_00/proc_00/c/p_b_single_pulse.json", "true");
 
