@@ -679,7 +679,7 @@ static void Player_apply_dc_blocker(
     rassert(master_state != NULL);
 
     // Implementation based on https://ccrma.stanford.edu/~jos/filters/DC_Blocker.html
-    static const double adapt_time = 0.0045351473922902496;
+    static const double adapt_time = 0.01;
     const double adapt_time_frames = max(2, adapt_time * player->audio_rate);
     const float R = (float)((adapt_time_frames - 1) / adapt_time_frames);
     const float gain = (1 + R) / 2;
