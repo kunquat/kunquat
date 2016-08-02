@@ -18,6 +18,7 @@
 #include <init/devices/processors/Proc_add.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
+#include <mathnum/Random.h>
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/Work_buffers.h>
 
@@ -240,8 +241,12 @@ void Add_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
             continue;
 
         add_state->tone_limit = h + 1;
+
+        const double phase =
+            add->is_rand_phase_enabled ? Random_get_float_lb(vstate->rand_p) : 0;
+
         for (int ch = 0; ch < 2; ++ch)
-            add_state->tones[h].phase[ch] = 0;
+            add_state->tones[h].phase[ch] = phase;
     }
 
     return;

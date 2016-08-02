@@ -42,6 +42,7 @@ typedef struct Proc_add
 
     Sample* base;
     bool is_ramp_attack_enabled;
+    bool is_rand_phase_enabled;
     Add_tone tones[ADD_TONES_MAX];
 } Proc_add;
 

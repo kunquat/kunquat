@@ -35,12 +35,20 @@ class AddProc(QWidget):
         self._updater = None
 
         self._ramp_attack = QCheckBox('Ramp attack')
+        self._rand_phase = QCheckBox('Random initial phase')
         self._base_waveform = AddWaveformEditor()
         self._base_tone_editor = ToneList()
 
+        h = QHBoxLayout()
+        h.setContentsMargins(0, 0, 0, 0)
+        h.setSpacing(10)
+        h.addWidget(self._ramp_attack)
+        h.addWidget(self._rand_phase)
+        h.addStretch(1)
+
         v = QVBoxLayout()
         v.setSpacing(10)
-        v.addWidget(self._ramp_attack)
+        v.addLayout(h)
         v.addWidget(self._base_waveform)
         v.addWidget(self._base_tone_editor)
         self.setLayout(v)
@@ -64,10 +72,12 @@ class AddProc(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
-        self._update_ramp_attack()
-
         QObject.connect(
                 self._ramp_attack, SIGNAL('stateChanged(int)'), self._change_ramp_attack)
+        QObject.connect(
+                self._rand_phase, SIGNAL('stateChanged(int)'), self._change_rand_phase)
+
+        self._update_simple_params()
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
@@ -75,24 +85,39 @@ class AddProc(QWidget):
         self._base_waveform.unregister_updaters()
 
     def _get_update_signal_type(self):
-        return '_'.join(('signal_proc_add_ramp_attack', self._proc_id))
+        return '_'.join(('signal_proc_add_simple_params', self._proc_id))
 
     def _perform_updates(self, signals):
         if self._get_update_signal_type() in signals:
-            self._update_ramp_attack()
+            self._update_simple_params()
 
-    def _update_ramp_attack(self):
+    def _update_simple_params(self):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
-        enabled = add_params.get_ramp_attack_enabled()
 
+        # Ramp attack
+        ramp_attack_enabled = add_params.get_ramp_attack_enabled()
         old_block = self._ramp_attack.blockSignals(True)
-        self._ramp_attack.setCheckState(Qt.Checked if enabled else Qt.Unchecked)
+        self._ramp_attack.setCheckState(
+                Qt.Checked if ramp_attack_enabled else Qt.Unchecked)
         self._ramp_attack.blockSignals(old_block)
+
+        # Random initial phase
+        rand_phase_enabled = add_params.get_rand_phase_enabled()
+        old_block = self._rand_phase.blockSignals(True)
+        self._rand_phase.setCheckState(
+                Qt.Checked if rand_phase_enabled else Qt.Unchecked)
+        self._rand_phase.blockSignals(old_block)
 
     def _change_ramp_attack(self, state):
         enabled = (state == Qt.Checked)
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.set_ramp_attack_enabled(enabled)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _change_rand_phase(self, state):
+        enabled = (state == Qt.Checked)
+        add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        add_params.set_rand_phase_enabled(enabled)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
