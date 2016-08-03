@@ -12,6 +12,7 @@
 #
 
 from collections import defaultdict, deque
+from itertools import takewhile
 import glob
 import os.path
 import shlex
@@ -129,13 +130,16 @@ def test_libkunquat(builder, options, cc):
                     assert proc.returncode != None
                     if proc.returncode != 0:
                         if timeout_expired_count > 0:
+                            # Make a suggested command line
                             suggested_args = list(sys.argv)
-                            ins_index = len(suggested_args)
-                            if suggested_args[ins_index - 1] == 'install':
-                                ins_index -= 1
+                            cmd_count = len(list(takewhile(
+                                lambda x: x in ('build', 'clean', 'install'),
+                                reversed(suggested_args))))
+                            ins_index = len(suggested_args) - cmd_count
                             suggested_args[ins_index:ins_index] = ['--disable-tests']
                             suggested_cmd_line = ' '.join(suggested_args)
 
+                            # Let the user know what happened and what to do
                             msg = ('\nA timeout expired during a test.\n'
                                     'If you would like to help us fix this, please let'
                                     ' us know at:\n'
