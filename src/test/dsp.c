@@ -24,6 +24,8 @@
 
 static void make_debug_instrument(void)
 {
+    set_data("p_dc_blocker_enabled.json", "false");
+
     set_data("au_02/proc_00/in_00/p_manifest.json", "{}");
     set_data("au_02/proc_00/out_00/p_manifest.json", "{}");
     set_data("au_02/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");

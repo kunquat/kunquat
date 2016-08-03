@@ -270,6 +270,27 @@ bool parse_data(Handle* handle, const char* key, const void* data, long length)
 }
 
 
+static bool read_dc_blocker_enabled(Reader_params* params)
+{
+    rassert(params != NULL);
+
+    Module* module = Handle_get_module(params->handle);
+    const bool was_enabled = module->is_dc_blocker_enabled;
+
+    if (!Module_read_dc_blocker_enabled(module, params->sr))
+    {
+        set_error(params);
+        return false;
+    }
+
+    // Prevent audible clicks
+    if (!was_enabled && module->is_dc_blocker_enabled)
+        Player_reset_dc_blocker(params->handle->player);
+
+    return true;
+}
+
+
 static bool read_mixing_volume(Reader_params* params)
 {
     rassert(params != NULL);

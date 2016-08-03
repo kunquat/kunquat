@@ -52,6 +52,7 @@ struct Module
     Au_table* au_table;                 ///< The Audio units.
     Connections* connections;           ///< Device connections.
     Tuning_table* tuning_tables[KQT_TUNING_TABLES_MAX];
+    bool is_dc_blocker_enabled;         ///< Block dc in the final mix.
     double mix_vol_dB;                  ///< Mixing volume in dB.
     double mix_vol;                     ///< Mixing volume.
     Environment* env;                   ///< Environment variables.
@@ -79,6 +80,17 @@ Module* new_Module(void);
  * \return   \c true if successful, otherwise \c false.
  */
 bool Module_parse_composition(Module* module, Streader* sr);
+
+
+/**
+ * Read the dc blocker status of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ * \param sr       The Streader of the JSON input -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Module_read_dc_blocker_enabled(Module* module, Streader* sr);
 
 
 /**

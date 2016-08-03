@@ -80,6 +80,13 @@ class Module():
                 del authors[index]
         self._store['m_authors.json'] = authors
 
+    def get_dc_blocker_enabled(self):
+        key = 'p_dc_blocker_enabled.json'
+        return self._store.get(key, get_default_value(key))
+
+    def set_dc_blocker_enabled(self, enabled):
+        self._store['p_dc_blocker_enabled.json'] = enabled
+
     def get_mixing_volume(self):
         key = 'p_mixing_volume.json'
         return self._store.get(key, get_default_value(key))

@@ -26,6 +26,8 @@ static void setup_single_pulse_without_instrument_manifest(void)
 {
     assert(handle != 0);
 
+    set_data("p_dc_blocker_enabled.json", "false");
+
     set_data("out_00/p_manifest.json", "{}");
     set_data("p_connections.json",
             "[ [\"au_00/out_00\", \"out_00\"] ]");
@@ -126,6 +128,8 @@ START_TEST(Input_map_maintains_indices)
     pause();
 
     // Set up two debug instruments
+    set_data("p_dc_blocker_enabled.json", "false");
+
     set_data("out_00/p_manifest.json", "{}");
     set_data("p_connections.json",
             "[ [\"au_00/out_00\", \"out_00\"],"

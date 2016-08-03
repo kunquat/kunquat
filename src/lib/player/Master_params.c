@@ -54,6 +54,12 @@ static void Master_params_clear(Master_params* params)
     Tstamp_init(&params->tempo_slide_slice_left);
     params->tempo_slide_update = 0;
 
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        params->dc_block_state[port].feedforward = 0;
+        params->dc_block_state[port].feedback = 0;
+    }
+
     params->volume = 1.0;
     Slider_init(&params->volume_slider, SLIDE_MODE_EXP);
 
