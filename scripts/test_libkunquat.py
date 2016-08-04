@@ -12,8 +12,10 @@
 #
 
 from collections import defaultdict, deque
+from itertools import takewhile
 import glob
 import os.path
+import shlex
 import subprocess
 import sys
 
@@ -96,14 +98,61 @@ def test_libkunquat(builder, options, cc):
         out_path = os.path.join(test_dir, name)
         if cc.build_exe(builder, src_path, out_path, echo=echo):
             echo = ''
+
+            enable_mem_debug = False
             run_prefix = 'env LD_LIBRARY_PATH={} '.format(libkunquat_dir)
             if options.enable_tests_mem_debug and name not in force_disable_mem_tests:
+                enable_mem_debug = True
                 mem_debug_path = os.path.join(src_dir, 'mem_debug_run.py')
                 run_prefix += mem_debug_path + ' '
 
             call = run_prefix + out_path
             try:
-                subprocess.check_call(call.split())
+                if enable_mem_debug:
+                    subprocess.check_call(shlex.split(call))
+                else:
+                    proc = subprocess.Popen(
+                            shlex.split(call),
+                            bufsize=1,
+                            stdout=subprocess.PIPE,
+                            close_fds=True,
+                            universal_newlines=True)
+
+                    # Detect test timeout expiry
+                    timeout_expired_count = 0
+                    for line in iter(proc.stdout.readline, ''):
+                        if 'Test timeout expired' in line:
+                            timeout_expired_count += 1
+                        print(line, end='', file=sys.stdout)
+
+                    proc.wait()
+
+                    assert proc.returncode != None
+                    if proc.returncode != 0:
+                        if timeout_expired_count > 0:
+                            # Make a suggested command line
+                            suggested_args = list(sys.argv)
+                            cmd_count = len(list(takewhile(
+                                lambda x: x in ('build', 'clean', 'install'),
+                                reversed(suggested_args))))
+                            ins_index = len(suggested_args) - cmd_count
+                            suggested_args[ins_index:ins_index] = ['--disable-tests']
+                            suggested_cmd_line = ' '.join(suggested_args)
+
+                            # Let the user know what happened and what to do
+                            msg = ('\nA timeout expired during a test.\n'
+                                    'If you would like to help us fix this, please let'
+                                    ' us know at:\n'
+                                    '   https://github.com/kunquat/kunquat/issues\n\n'
+                                    'In the meantime, you can build libkunquat without'
+                                    ' tests by running:\n   {}\n'
+                                    ''.format(suggested_cmd_line))
+                            print(msg)
+
+                        e = subprocess.CalledProcessError(
+                                returncode=proc.returncode, cmd=call)
+                        raise e
+
             except KeyboardInterrupt:
                 os.remove(out_path)
                 raise
