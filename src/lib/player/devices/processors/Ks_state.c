@@ -22,6 +22,7 @@
 #include <player/devices/processors/Filter.h>
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/devices/Voice_state.h>
+#include <player/Time_env_state.h>
 #include <player/Work_buffer.h>
 #include <player/Work_buffers.h>
 
@@ -219,6 +220,8 @@ typedef struct Ks_vstate
     bool is_xfading;
     double xfade_progress;
     Read_state read_states[2];
+
+    Time_env_state init_env_state;
 } Ks_vstate;
 
 
@@ -247,6 +250,7 @@ enum
 static const int KS_WB_FIXED_PITCH = WORK_BUFFER_IMPL_1;
 static const int KS_WB_FIXED_FORCE = WORK_BUFFER_IMPL_2;
 static const int KS_WB_FIXED_EXCITATION = WORK_BUFFER_IMPL_3;
+static const int KS_WB_ENVELOPE = WORK_BUFFER_IMPL_4;
 
 
 static int32_t Ks_vstate_render_voice(
@@ -270,6 +274,9 @@ static int32_t Ks_vstate_render_voice(
         return buf_start;
 
     const Device_state* dstate = &proc_state->parent;
+    const Proc_ks* ks = (const Proc_ks*)proc_state->parent.device->dimpl;
+
+    const int32_t audio_rate = dstate->audio_rate;
 
     Ks_vstate* ks_vstate = (Ks_vstate*)vstate;
 
@@ -295,7 +302,7 @@ static int32_t Ks_vstate_render_voice(
     const float* scales = Work_buffer_get_contents(scales_wb);
 
     // Get excitation signal
-    const Work_buffer* excit_wb = Proc_state_get_voice_buffer(
+    Work_buffer* excit_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_EXCITATION);
     if (excit_wb == NULL)
     {
@@ -304,7 +311,43 @@ static int32_t Ks_vstate_render_voice(
         Work_buffer_clear(fixed_excit_wb, buf_start, buf_stop);
         excit_wb = fixed_excit_wb;
     }
-    const float* excits = Work_buffer_get_contents(excit_wb);
+    float* excits = Work_buffer_get_contents_mut(excit_wb);
+
+    // Process excitation envelope
+    {
+        // Get envelope stream
+        const int32_t env_buf_stop = Time_env_state_process(
+                &ks_vstate->init_env_state,
+                ks->init_env,
+                ks->is_init_env_loop_enabled,
+                ks->init_env_scale_amount,
+                ks->init_env_scale_center,
+                0, // sustain
+                0, 1, // range
+                pitches_wb,
+                Work_buffers_get_buffer_contents_mut(wbs, KS_WB_ENVELOPE),
+                buf_start,
+                buf_stop,
+                audio_rate);
+
+        Work_buffer* env_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_ENVELOPE);
+        float* env_buf = Work_buffer_get_contents_mut(env_wb);
+
+        // Check the end of envelope processing
+        if (ks_vstate->init_env_state.is_finished)
+        {
+            const double* last_node = Envelope_get_node(
+                    ks->init_env, Envelope_node_count(ks->init_env) - 1);
+            const float last_value = (float)last_node[1];
+
+            for (int32_t i = env_buf_stop; i < buf_stop; ++i)
+                env_buf[i] = last_value;
+        }
+
+        // Apply envelope to the excitation signal
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            excits[i] *= env_buf[i];
+    }
 
     // Get output buffer for writing
     float* out_buf = Proc_state_get_voice_buffer_contents_mut(
@@ -320,13 +363,9 @@ static int32_t Ks_vstate_render_voice(
     rassert(delay_wb != NULL);
     const int32_t delay_wb_size = Work_buffer_get_size(delay_wb);
 
-    const int32_t audio_rate = dstate->audio_rate;
-
     if (need_init)
     {
         ks_vstate->write_pos = 0;
-
-        const Proc_ks* ks = (const Proc_ks*)proc_state->parent.device->dimpl;
 
         Read_state_init(
                 &ks_vstate->read_states[ks_vstate->primary_read_state],
@@ -444,6 +483,8 @@ void Ks_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     Work_buffer* delay_wb = ks_vstate->parent.wb;
     rassert(delay_wb != NULL);
     Work_buffer_clear(delay_wb, 0, Work_buffer_get_size(delay_wb));
+
+    Time_env_state_init(&ks_vstate->init_env_state);
 
     return;
 }

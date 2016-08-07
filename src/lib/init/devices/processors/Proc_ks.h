@@ -17,6 +17,7 @@
 
 
 #include <init/devices/Device_impl.h>
+#include <init/devices/param_types/Envelope.h>
 
 
 typedef struct Proc_ks
@@ -24,6 +25,12 @@ typedef struct Proc_ks
     Device_impl parent;
 
     double damp;
+
+    const Envelope* init_env;
+    bool is_init_env_loop_enabled;
+    double init_env_scale_amount;
+    double init_env_scale_center;
+    Envelope* def_init_env;
 } Proc_ks;
 
 
