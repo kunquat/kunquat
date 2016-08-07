@@ -38,4 +38,31 @@ class KsParams(ProcParams):
     def set_damp(self, value):
         self._set_value('p_f_damp.json', value)
 
+    def get_init_env_loop_enabled(self):
+        return self._get_value('p_b_init_env_loop_enabled.json', False)
+
+    def set_init_env_loop_enabled(self, enabled):
+        self._set_value('p_b_init_env_loop_enabled.json', enabled)
+
+    def get_init_env_scale_amount(self):
+        return self._get_value('p_f_init_env_scale_amount.json', 0.0)
+
+    def set_init_env_scale_amount(self, value):
+        self._set_value('p_f_init_env_scale_amount.json', value)
+
+    def get_init_env_scale_center(self):
+        return self._get_value('p_f_init_env_scale_center.json', 0.0)
+
+    def set_init_env_scale_center(self, value):
+        self._set_value('p_f_init_env_scale_center.json', value)
+
+    def get_init_env(self):
+        ret_env = { 'nodes': [ [0, 1], [0.01, 0] ], 'marks': [0, 1], 'smooth': False }
+        stored_env = self._get_value('p_e_init_env.json', None) or {}
+        ret_env.update(stored_env)
+        return ret_env
+
+    def set_init_env(self, envelope):
+        self._set_value('p_e_init_env.json', envelope)
+
 
