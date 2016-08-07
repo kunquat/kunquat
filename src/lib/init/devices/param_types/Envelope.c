@@ -369,12 +369,6 @@ int Envelope_set_node(Envelope* env, double x, double y)
     env->nodes[start * 2] = x;
     env->nodes[start * 2 + 1] = y;
 
-    for (int i = 0; i < ENVELOPE_MARKS_MAX; ++i)
-    {
-        if (env->marks[i] >= start)
-            ++env->marks[i];
-    }
-
     return start;
 }
 
