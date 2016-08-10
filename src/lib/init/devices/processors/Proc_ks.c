@@ -24,15 +24,47 @@
 #include <string.h>
 
 
+#define DEFAULT_SHIFT_ENV_TRIG_THRESHOLD 40
+
+
 static Set_float_func       Proc_ks_set_damp;
+
 static Set_envelope_func    Proc_ks_set_init_env;
 static Set_bool_func        Proc_ks_set_init_env_loop_enabled;
 static Set_float_func       Proc_ks_set_init_env_scale_amount;
 static Set_float_func       Proc_ks_set_init_env_scale_center;
 
+static Set_envelope_func    Proc_ks_set_shift_env;
+static Set_bool_func        Proc_ks_set_shift_env_enabled;
+static Set_float_func       Proc_ks_set_shift_env_scale_amount;
+static Set_float_func       Proc_ks_set_shift_env_scale_center;
+static Set_float_func       Proc_ks_set_shift_env_trig_threshold;
+static Set_float_func       Proc_ks_set_shift_env_trig_strength_var;
+
 static Device_impl_get_voice_wb_size_func Proc_ks_get_voice_wb_size;
 
 static Device_impl_destroy_func del_Proc_ks;
+
+
+static Envelope* make_default_envelope(const char* env_data)
+{
+    Envelope* env = new_Envelope(2, 0, 1, 0, 0, 1, 0);
+    if (env == NULL)
+        return NULL;
+
+    Streader* sr = Streader_init(STREADER_AUTO, env_data, (int64_t)strlen(env_data));
+
+    if (!Envelope_read(env, sr))
+    {
+        // The default envelope should be valid
+        rassert((sr->error.type == ERROR_MEMORY) || (sr->error.type == ERROR_RESOURCE));
+
+        del_Envelope(env);
+        return NULL;
+    }
+
+    return env;
+}
 
 
 Device_impl* new_Proc_ks(void)
@@ -49,36 +81,43 @@ Device_impl* new_Proc_ks(void)
     ks->init_env_scale_center = 0;
     ks->def_init_env = NULL;
 
+    ks->shift_env = NULL;
+    ks->is_shift_env_enabled = false;
+    ks->shift_env_scale_amount = 0;
+    ks->shift_env_scale_center = 0;
+    ks->def_shift_env = NULL;
+    ks->shift_env_trig_threshold = DEFAULT_SHIFT_ENV_TRIG_THRESHOLD;
+    ks->shift_env_trig_strength_var = 0;
+
     if (!Device_impl_init(&ks->parent, del_Proc_ks))
     {
         del_Device_impl(&ks->parent);
         return NULL;
     }
 
-    // Add default initial excitation envelope
+    // Add default envelopes
     {
-        ks->def_init_env = new_Envelope(2, 0, 1, 0, 0, 1, 0);
+        static const char* init_env_data =
+            "{ \"nodes\": [ [0, 1], [0.01, 0] ], \"marks\": [0, 1] }";
+        ks->def_init_env = make_default_envelope(init_env_data);
         if (ks->def_init_env == NULL)
         {
             del_Device_impl(&ks->parent);
             return NULL;
         }
 
-        static const char* env_data =
-            "{ \"nodes\": [ [0, 1], [0.01, 0] ], \"marks\": [0, 1] }";
-        Streader* sr = Streader_init(STREADER_AUTO, env_data, (int64_t)strlen(env_data));
+        ks->init_env = ks->def_init_env;
 
-        if (!Envelope_read(ks->def_init_env, sr))
+        static const char* shift_env_data =
+            "{ \"nodes\": [ [0, 1], [0.001, 0] ] }";
+        ks->def_shift_env = make_default_envelope(shift_env_data);
+        if (ks->def_shift_env == NULL)
         {
-            // The default envelope should be valid
-            rassert((sr->error.type == ERROR_MEMORY) ||
-                    (sr->error.type == ERROR_RESOURCE));
-
             del_Device_impl(&ks->parent);
             return NULL;
         }
 
-        ks->init_env = ks->def_init_env;
+        ks->shift_env = ks->def_shift_env;
     }
 
 #define REG_KEY(type, name, keyp, def_value) \
@@ -93,7 +132,18 @@ Device_impl* new_Proc_ks(void)
                 REG_KEY(float, init_env_scale_amount,
                     "p_f_init_env_scale_amount.json", 0.0) &&
                 REG_KEY(float, init_env_scale_center,
-                    "p_f_init_env_scale_center.json", 0.0)
+                    "p_f_init_env_scale_center.json", 0.0) &&
+                REG_KEY(envelope, shift_env, "p_e_shift_env.json", NULL) &&
+                REG_KEY_BOOL(shift_env_enabled, "p_b_shift_env_enabled.json", false) &&
+                REG_KEY(float, shift_env_scale_amount,
+                    "p_f_shift_env_scale_amount.json", 0.0) &&
+                REG_KEY(float, shift_env_scale_center,
+                    "p_f_shift_env_scale_center.json", 0.0) &&
+                REG_KEY(float, shift_env_trig_threshold,
+                    "p_f_shift_env_trig_threshold.json",
+                    DEFAULT_SHIFT_ENV_TRIG_THRESHOLD) &&
+                REG_KEY(float, shift_env_trig_strength_var,
+                    "p_f_shift_env_trig_strength_var.json", 0.0)
          ))
     {
         del_Device_impl(&ks->parent);
@@ -203,6 +253,94 @@ static bool Proc_ks_set_init_env_scale_center(
 
     Proc_ks* ks = (Proc_ks*)dimpl;
     ks->init_env_scale_center = isfinite(value) ? value : 0;
+
+    return true;
+}
+
+
+static bool Proc_ks_set_shift_env(
+        Device_impl* dimpl, const Key_indices indices, const Envelope* value)
+{
+    rassert(dimpl != NULL);
+    ignore(indices);
+
+    bool is_valid = false;
+    if (is_valid_excit_envelope(value))
+    {
+        const int node_count = Envelope_node_count(value);
+        const double* last_node = Envelope_get_node(value, node_count - 1);
+        if (last_node[1] == 0)
+            is_valid = true;
+    }
+
+    Proc_ks* ks = (Proc_ks*)dimpl;
+    ks->shift_env = is_valid ? value : ks->def_shift_env;
+
+    return true;
+}
+
+
+static bool Proc_ks_set_shift_env_enabled(
+        Device_impl* dimpl, const Key_indices indices, bool value)
+{
+    rassert(dimpl != NULL);
+    ignore(indices);
+
+    Proc_ks* ks = (Proc_ks*)dimpl;
+    ks->is_shift_env_enabled = value;
+
+    return true;
+}
+
+
+static bool Proc_ks_set_shift_env_scale_amount(
+        Device_impl* dimpl, const Key_indices indices, double value)
+{
+    rassert(dimpl != NULL);
+    ignore(indices);
+
+    Proc_ks* ks = (Proc_ks*)dimpl;
+    ks->shift_env_scale_amount = isfinite(value) ? value : 0;
+
+    return true;
+}
+
+
+static bool Proc_ks_set_shift_env_scale_center(
+        Device_impl* dimpl, const Key_indices indices, double value)
+{
+    rassert(dimpl != NULL);
+    ignore(indices);
+
+    Proc_ks* ks = (Proc_ks*)dimpl;
+    ks->shift_env_scale_center = isfinite(value) ? value : 0;
+
+    return true;
+}
+
+
+static bool Proc_ks_set_shift_env_trig_threshold(
+        Device_impl* dimpl, const Key_indices indices, double value)
+{
+    rassert(dimpl != NULL);
+    ignore(indices);
+
+    Proc_ks* ks = (Proc_ks*)dimpl;
+    ks->shift_env_trig_threshold =
+        (isfinite(value) && value > 0) ? value : DEFAULT_SHIFT_ENV_TRIG_THRESHOLD;
+
+    return true;
+}
+
+
+static bool Proc_ks_set_shift_env_trig_strength_var(
+        Device_impl* dimpl, const Key_indices indices, double value)
+{
+    rassert(dimpl != NULL);
+    ignore(indices);
+
+    Proc_ks* ks = (Proc_ks*)dimpl;
+    ks->shift_env_trig_strength_var = (isfinite(value) && value >= 0) ? value : 0;
 
     return true;
 }
