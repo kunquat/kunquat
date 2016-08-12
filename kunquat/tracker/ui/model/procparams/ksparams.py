@@ -26,6 +26,7 @@ class KsParams(ProcParams):
             'in_00':  'pitch',
             'in_01':  'force',
             'in_02':  'excit',
+            'in_03':  'damp',
             'out_00': 'audio',
         }
 
