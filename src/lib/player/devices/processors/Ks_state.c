@@ -34,14 +34,14 @@
 #define DAMP_FILTER_ORDER 1
 
 
-typedef struct Damp
+typedef struct Damp_state
 {
     double cutoff_norm; // used for calculating phase delay
     double coeffs[DAMP_FILTER_ORDER];
     double mul;
     double history1[DAMP_FILTER_ORDER];
     double history2[DAMP_FILTER_ORDER];
-} Damp;
+} Damp_state;
 
 
 typedef struct Frac_delay
@@ -55,8 +55,9 @@ typedef struct Frac_delay
 typedef struct Read_state
 {
     int32_t read_pos;
-    double pitch;
-    Damp damp;
+    float pitch;
+    float damp;
+    Damp_state damp_state;
     Frac_delay frac_delay;
 } Read_state;
 
@@ -67,14 +68,15 @@ static void Read_state_clear(Read_state* rs)
 
     rs->read_pos = 0;
     rs->pitch = NAN;
+    rs->damp = NAN;
 
-    rs->damp.mul = 0;
+    rs->damp_state.mul = 0;
 
     for (int i = 0; i < DAMP_FILTER_ORDER; ++i)
     {
-        rs->damp.coeffs[i] = 0;
-        rs->damp.history1[i] = 0;
-        rs->damp.history2[i] = 0;
+        rs->damp_state.coeffs[i] = 0;
+        rs->damp_state.history1[i] = 0;
+        rs->damp_state.history2[i] = 0;
     }
 
     rs->frac_delay.eta = 0;
@@ -85,9 +87,13 @@ static void Read_state_clear(Read_state* rs)
 }
 
 
+#define CUTOFF_BIAS 74.37631656229591
+
+
 static void Read_state_modify(
         Read_state* rs,
-        double pitch,
+        float pitch,
+        float damp,
         int32_t write_pos,
         int32_t buf_len,
         int32_t audio_rate)
@@ -104,13 +110,28 @@ static void Read_state_modify(
     const double used_buf_length = clamp(period_length, 2, buf_len);
     const int32_t used_buf_frames_whole = (int32_t)floor(used_buf_length);
 
+    if (isnan(rs->damp) || fabs(rs->damp - damp) > 0.001)
+    {
+        // Set up damping filter
+        const double cutoff = exp2((100 - damp + CUTOFF_BIAS) / 12.0);
+        const double cutoff_clamped = clamp(cutoff, 1, (audio_rate / 2) - 1);
+        rs->damp_state.cutoff_norm = cutoff_clamped / audio_rate;
+        one_pole_filter_create(
+                rs->damp_state.cutoff_norm,
+                0,
+                rs->damp_state.coeffs,
+                &rs->damp_state.mul);
+    }
+
     rs->read_pos = (buf_len + write_pos - used_buf_frames_whole) % buf_len;
     rs->pitch = pitch;
+    rs->damp = damp;
 
     // Phase delay for one-pole lowpass is: atan(tan(pi*f)/tan(pi*f0))/(2*pi*f)
     const double freq_norm = freq / audio_rate;
     const double delay_add =
-        -atan(tan(PI * freq_norm)/tan(PI * rs->damp.cutoff_norm)) / (2 * PI * freq_norm);
+        -atan(tan(PI * freq_norm)/tan(PI * rs->damp_state.cutoff_norm)) /
+        (2 * PI * freq_norm);
 
     // Set up fractional delay filter
     float delay = (float)(used_buf_length - used_buf_frames_whole) + (float)delay_add;
@@ -129,13 +150,10 @@ static void Read_state_modify(
 }
 
 
-#define CUTOFF_BIAS 74.37631656229591
-
-
 static void Read_state_init(
         Read_state* rs,
-        double damp,
-        double pitch,
+        float damp,
+        float pitch,
         int32_t write_pos,
         int32_t buf_len,
         int32_t audio_rate)
@@ -151,14 +169,7 @@ static void Read_state_init(
 
     Read_state_clear(rs);
 
-    // Set up damping filter
-    const double cutoff = exp2((100 - damp + CUTOFF_BIAS) / 12.0);
-    const double cutoff_clamped = clamp(cutoff, 1, (audio_rate / 2) - 1);
-    rs->damp.cutoff_norm = cutoff_clamped / audio_rate;
-    one_pole_filter_create(
-            rs->damp.cutoff_norm, 0, rs->damp.coeffs, &rs->damp.mul);
-
-    Read_state_modify(rs, pitch, write_pos, buf_len, audio_rate);
+    Read_state_modify(rs, pitch, damp, write_pos, buf_len, audio_rate);
 
     return;
 }
@@ -178,10 +189,10 @@ static float Read_state_update(
 
     // Apply damping filter
     double damped = nq_zero_filter(
-            DAMP_FILTER_ORDER, rs->damp.history1, src_value);
+            DAMP_FILTER_ORDER, rs->damp_state.history1, src_value);
     damped = iir_filter_strict_cascade(
-            DAMP_FILTER_ORDER, rs->damp.coeffs, rs->damp.history2, damped);
-    damped *= rs->damp.mul;
+            DAMP_FILTER_ORDER, rs->damp_state.coeffs, rs->damp_state.history2, damped);
+    damped *= rs->damp_state.mul;
 
     // Apply fractional delay filter
     // Based on the description in
@@ -242,6 +253,7 @@ enum
     PORT_IN_PITCH = 0,
     PORT_IN_FORCE,
     PORT_IN_EXCITATION,
+    PORT_IN_DAMP,
     PORT_IN_COUNT
 };
 
@@ -253,11 +265,12 @@ enum
 };
 
 
-static const int KS_WB_FIXED_PITCH = WORK_BUFFER_IMPL_1;
-static const int KS_WB_FIXED_FORCE = WORK_BUFFER_IMPL_2;
+static const int KS_WB_FIXED_PITCH      = WORK_BUFFER_IMPL_1;
+static const int KS_WB_FIXED_FORCE      = WORK_BUFFER_IMPL_2;
 static const int KS_WB_FIXED_EXCITATION = WORK_BUFFER_IMPL_3;
-static const int KS_WB_ENVELOPE = WORK_BUFFER_IMPL_4;
-static const int KS_WB_ENVELOPE_ADD = WORK_BUFFER_IMPL_5;
+static const int KS_WB_FIXED_DAMP       = WORK_BUFFER_IMPL_4;
+static const int KS_WB_ENVELOPE         = WORK_BUFFER_IMPL_5;
+static const int KS_WB_ENVELOPE_ADD     = WORK_BUFFER_IMPL_6;
 
 
 static int32_t Ks_vstate_render_voice(
@@ -326,6 +339,23 @@ static int32_t Ks_vstate_render_voice(
     }
     float* excits = Work_buffer_get_contents_mut(excit_wb);
 
+    // Get damp signal
+    const Work_buffer* damps_wb = Proc_state_get_voice_buffer_mut(
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_DAMP);
+    if (damps_wb == NULL)
+    {
+        Work_buffer* fixed_damps_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_DAMP);
+        float* damps = Work_buffer_get_contents_mut(fixed_damps_wb);
+
+        const float fixed_damp = (float)ks->damp;
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            damps[i] = fixed_damp;
+
+        Work_buffer_set_const_start(fixed_damps_wb, buf_start);
+        damps_wb = fixed_damps_wb;
+    }
+    const float* damps = Work_buffer_get_contents(damps_wb);
+
     // Get delay buffer
     Work_buffer* delay_wb = ks_vstate->parent.wb;
     rassert(delay_wb != NULL);
@@ -342,7 +372,7 @@ static int32_t Ks_vstate_render_voice(
 
         Read_state_init(
                 &ks_vstate->read_states[ks_vstate->primary_read_state],
-                ks->damp,
+                damps[buf_start],
                 pitches[buf_start],
                 ks_vstate->write_pos,
                 delay_wb_size,
@@ -488,28 +518,34 @@ static int32_t Ks_vstate_render_voice(
         const float pitch = pitches[i];
         const float scale = scales[i];
         const float excitation = excits[i];
+        const float damp = damps[i];
 
         if (!ks_vstate->is_xfading)
         {
-            const int32_t const_start = Work_buffer_get_const_start(pitches_wb);
-            const float max_diff = (i < const_start) ? 4.0f : 0.001f;
+            const int32_t const_pitch_start = Work_buffer_get_const_start(pitches_wb);
+            const float max_pitch_diff = (i < const_pitch_start) ? 4.0f : 0.001f;
+
+            const int32_t const_damp_start = Work_buffer_get_const_start(damps_wb);
+            const float max_damp_diff = (i < const_damp_start) ? 1.0f : 0.001f;
 
             Read_state* primary_rs =
                 &ks_vstate->read_states[ks_vstate->primary_read_state];
-            if (fabs(pitch - primary_rs->pitch) > max_diff)
+            if (fabs(pitch - primary_rs->pitch) > max_pitch_diff ||
+                    fabs(damp - primary_rs->damp) > max_damp_diff)
             {
                 Read_state* other_rs =
                     &ks_vstate->read_states[1 - ks_vstate->primary_read_state];
 
                 // Instantaneous slides to lower pitches don't work very well,
                 // so limit the step length when sliding downwards
-                const double min_pitch = primary_rs->pitch - 200.0;
-                const double cur_target_pitch = max(min_pitch, pitch);
+                const float min_pitch = primary_rs->pitch - 200.0f;
+                const float cur_target_pitch = max(min_pitch, pitch);
 
                 Read_state_copy(other_rs, primary_rs);
                 Read_state_modify(
                         other_rs,
                         cur_target_pitch,
+                        damp,
                         write_pos,
                         delay_wb_size,
                         audio_rate);
