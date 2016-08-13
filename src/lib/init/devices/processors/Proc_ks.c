@@ -39,7 +39,7 @@ static Set_bool_func        Proc_ks_set_shift_env_enabled;
 static Set_float_func       Proc_ks_set_shift_env_scale_amount;
 static Set_float_func       Proc_ks_set_shift_env_scale_center;
 static Set_float_func       Proc_ks_set_shift_env_trig_threshold;
-static Set_float_func       Proc_ks_set_shift_env_trig_strength_var;
+static Set_float_func       Proc_ks_set_shift_env_strength_var;
 
 static Set_envelope_func    Proc_ks_set_rel_env;
 static Set_bool_func        Proc_ks_set_rel_env_enabled;
@@ -93,7 +93,7 @@ Device_impl* new_Proc_ks(void)
     ks->shift_env_scale_center = 0;
     ks->def_shift_env = NULL;
     ks->shift_env_trig_threshold = DEFAULT_SHIFT_ENV_TRIG_THRESHOLD;
-    ks->shift_env_trig_strength_var = 0;
+    ks->shift_env_strength_var = 0;
 
     ks->rel_env = NULL;
     ks->is_rel_env_enabled = false;
@@ -166,8 +166,8 @@ Device_impl* new_Proc_ks(void)
                 REG_KEY(float, shift_env_trig_threshold,
                     "p_f_shift_env_trig_threshold.json",
                     DEFAULT_SHIFT_ENV_TRIG_THRESHOLD) &&
-                REG_KEY(float, shift_env_trig_strength_var,
-                    "p_f_shift_env_trig_strength_var.json", 0.0) &&
+                REG_KEY(float, shift_env_strength_var,
+                    "p_f_shift_env_strength_var.json", 0.0) &&
                 REG_KEY(envelope, rel_env, "p_e_rel_env.json", NULL) &&
                 REG_KEY_BOOL(rel_env_enabled, "p_b_rel_env_enabled.json", false) &&
                 REG_KEY(float, rel_env_scale_amount,
@@ -369,14 +369,14 @@ static bool Proc_ks_set_shift_env_trig_threshold(
 }
 
 
-static bool Proc_ks_set_shift_env_trig_strength_var(
+static bool Proc_ks_set_shift_env_strength_var(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
     rassert(dimpl != NULL);
     ignore(indices);
 
     Proc_ks* ks = (Proc_ks*)dimpl;
-    ks->shift_env_trig_strength_var = (isfinite(value) && value >= 0) ? value : 0;
+    ks->shift_env_strength_var = (isfinite(value) && value >= 0) ? value : 0;
 
     return true;
 }

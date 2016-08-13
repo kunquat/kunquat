@@ -99,11 +99,11 @@ class KsParams(ProcParams):
     def set_shift_env_trigger_threshold(self, value):
         self._set_value('p_f_shift_env_trig_threshold.json', value)
 
-    def get_shift_env_trigger_strength_var(self):
-        return self._get_value('p_f_shift_env_trig_strength_var.json', 0)
+    def get_shift_env_strength_var(self):
+        return self._get_value('p_f_shift_env_strength_var.json', 0)
 
-    def set_shift_env_trigger_strength_var(self, value):
-        self._set_value('p_f_shift_env_trig_strength_var.json', value)
+    def set_shift_env_strength_var(self, value):
+        self._set_value('p_f_shift_env_strength_var.json', value)
 
     def get_release_env_enabled(self):
         return self._get_value('p_b_rel_env_enabled.json', False)

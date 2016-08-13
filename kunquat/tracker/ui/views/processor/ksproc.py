@@ -271,11 +271,11 @@ class ShiftVar(ProcNumSlider):
 
     def _update_value(self):
         ks_params = self._get_ks_params()
-        self.set_number(ks_params.get_shift_env_trigger_strength_var())
+        self.set_number(ks_params.get_shift_env_strength_var())
 
     def _value_changed(self, value):
         ks_params = self._get_ks_params()
-        ks_params.set_shift_env_trigger_strength_var(value)
+        ks_params.set_shift_env_strength_var(value)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 

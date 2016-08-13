@@ -496,9 +496,9 @@ static int32_t Ks_vstate_render_voice(
 
                     double strength_dB =
                         Random_get_float_scale(vstate->rand_p) *
-                        ks->shift_env_trig_strength_var *
+                        ks->shift_env_strength_var *
                         2.0;
-                    strength_dB -= ks->shift_env_trig_strength_var;
+                    strength_dB -= ks->shift_env_strength_var;
                     ks_vstate->shift_env_scale = (float)dB_to_scale(strength_dB);
                 }
             }
