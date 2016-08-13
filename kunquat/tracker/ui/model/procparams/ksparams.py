@@ -105,4 +105,37 @@ class KsParams(ProcParams):
     def set_shift_env_trigger_strength_var(self, value):
         self._set_value('p_f_shift_env_trig_strength_var.json', value)
 
+    def get_release_env_enabled(self):
+        return self._get_value('p_b_rel_env_enabled.json', False)
+
+    def set_release_env_enabled(self, enabled):
+        self._set_value('p_b_rel_env_enabled.json', enabled)
+
+    def get_release_env_scale_amount(self):
+        return self._get_value('p_f_rel_env_scale_amount.json', 0.0)
+
+    def set_release_env_scale_amount(self, value):
+        self._set_value('p_f_rel_env_scale_amount.json', value)
+
+    def get_release_env_scale_center(self):
+        return self._get_value('p_f_rel_env_scale_center.json', 0.0)
+
+    def set_release_env_scale_center(self, value):
+        self._set_value('p_f_rel_env_scale_center.json', value)
+
+    def get_release_env(self):
+        ret_env = { 'nodes': [ [0, 1], [0.01, 0] ], 'smooth': False }
+        stored_env = self._get_value('p_e_rel_env.json', None) or {}
+        ret_env.update(stored_env)
+        return ret_env
+
+    def set_release_env(self, envelope):
+        self._set_value('p_e_rel_env.json', envelope)
+
+    def get_release_env_strength_var(self):
+        return self._get_value('p_f_rel_env_strength_var.json', 0)
+
+    def set_release_env_strength_var(self, value):
+        self._set_value('p_f_rel_env_strength_var.json', value)
+
 
