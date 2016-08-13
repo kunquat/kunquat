@@ -303,7 +303,7 @@ class ReleaseEnvelope(TimeEnvelope):
         envelope = Envelope()
         envelope.set_node_count_max(32)
         envelope.set_y_range(0, 1)
-        envelope.set_x_range(0, 0.5)
+        envelope.set_x_range(0, 0.2)
         envelope.set_first_lock(True, False)
         envelope.set_last_lock(False, True)
         envelope.set_x_range_adjust(False, True)
