@@ -41,6 +41,12 @@ static Set_float_func       Proc_ks_set_shift_env_scale_center;
 static Set_float_func       Proc_ks_set_shift_env_trig_threshold;
 static Set_float_func       Proc_ks_set_shift_env_trig_strength_var;
 
+static Set_envelope_func    Proc_ks_set_rel_env;
+static Set_bool_func        Proc_ks_set_rel_env_enabled;
+static Set_float_func       Proc_ks_set_rel_env_scale_amount;
+static Set_float_func       Proc_ks_set_rel_env_scale_center;
+static Set_float_func       Proc_ks_set_rel_env_strength_var;
+
 static Device_impl_get_voice_wb_size_func Proc_ks_get_voice_wb_size;
 
 static Device_impl_destroy_func del_Proc_ks;
@@ -89,6 +95,13 @@ Device_impl* new_Proc_ks(void)
     ks->shift_env_trig_threshold = DEFAULT_SHIFT_ENV_TRIG_THRESHOLD;
     ks->shift_env_trig_strength_var = 0;
 
+    ks->rel_env = NULL;
+    ks->is_rel_env_enabled = false;
+    ks->rel_env_scale_amount = 0;
+    ks->rel_env_scale_center = 0;
+    ks->def_rel_env = NULL;
+    ks->rel_env_strength_var = 0;
+
     if (!Device_impl_init(&ks->parent, del_Proc_ks))
     {
         del_Device_impl(&ks->parent);
@@ -118,6 +131,17 @@ Device_impl* new_Proc_ks(void)
         }
 
         ks->shift_env = ks->def_shift_env;
+
+        static const char* rel_env_data =
+            "{ \"nodes\": [ [0, 1], [0.01, 0] ] }";
+        ks->def_rel_env = make_default_envelope(rel_env_data);
+        if (ks->def_rel_env == NULL)
+        {
+            del_Device_impl(&ks->parent);
+            return NULL;
+        }
+
+        ks->rel_env = ks->def_rel_env;
     }
 
 #define REG_KEY(type, name, keyp, def_value) \
@@ -143,7 +167,15 @@ Device_impl* new_Proc_ks(void)
                     "p_f_shift_env_trig_threshold.json",
                     DEFAULT_SHIFT_ENV_TRIG_THRESHOLD) &&
                 REG_KEY(float, shift_env_trig_strength_var,
-                    "p_f_shift_env_trig_strength_var.json", 0.0)
+                    "p_f_shift_env_trig_strength_var.json", 0.0) &&
+                REG_KEY(envelope, rel_env, "p_e_rel_env.json", NULL) &&
+                REG_KEY_BOOL(rel_env_enabled, "p_b_rel_env_enabled.json", false) &&
+                REG_KEY(float, rel_env_scale_amount,
+                        "p_f_rel_env_scale_amount.json", 0.0) &&
+                REG_KEY(float, rel_env_scale_center,
+                        "p_f_rel_env_scale_center.json", 0.0) &&
+                REG_KEY(float, rel_env_strength_var,
+                        "p_f_rel_env_strength_var.json", 0.0)
          ))
     {
         del_Device_impl(&ks->parent);
@@ -206,6 +238,18 @@ static bool is_valid_excit_envelope(const Envelope* env)
 }
 
 
+static bool is_valid_excit_envelope_with_ending_zero(const Envelope* env)
+{
+    if (!is_valid_excit_envelope(env))
+        return false;
+
+    const int node_count = Envelope_node_count(env);
+    const double* last_node = Envelope_get_node(env, node_count - 1);
+
+    return (last_node[1] == 0);
+}
+
+
 static bool Proc_ks_set_init_env(
         Device_impl* dimpl, const Key_indices indices, const Envelope* value)
 {
@@ -264,17 +308,9 @@ static bool Proc_ks_set_shift_env(
     rassert(dimpl != NULL);
     ignore(indices);
 
-    bool is_valid = false;
-    if (is_valid_excit_envelope(value))
-    {
-        const int node_count = Envelope_node_count(value);
-        const double* last_node = Envelope_get_node(value, node_count - 1);
-        if (last_node[1] == 0)
-            is_valid = true;
-    }
-
     Proc_ks* ks = (Proc_ks*)dimpl;
-    ks->shift_env = is_valid ? value : ks->def_shift_env;
+    ks->shift_env =
+        is_valid_excit_envelope_with_ending_zero(value) ? value : ks->def_shift_env;
 
     return true;
 }
@@ -346,6 +382,72 @@ static bool Proc_ks_set_shift_env_trig_strength_var(
 }
 
 
+static bool Proc_ks_set_rel_env(
+        Device_impl* dimpl, const Key_indices indices, const Envelope* value)
+{
+    rassert(dimpl != NULL);
+    ignore(indices);
+
+    Proc_ks* ks = (Proc_ks*)dimpl;
+    ks->rel_env =
+        is_valid_excit_envelope_with_ending_zero(value) ? value : ks->def_rel_env;
+
+    return true;
+}
+
+
+static bool Proc_ks_set_rel_env_enabled(
+        Device_impl* dimpl, const Key_indices indices, bool value)
+{
+    rassert(dimpl != NULL);
+    ignore(indices);
+
+    Proc_ks* ks = (Proc_ks*)dimpl;
+    ks->is_rel_env_enabled = value;
+
+    return true;
+}
+
+
+static bool Proc_ks_set_rel_env_scale_amount(
+        Device_impl* dimpl, const Key_indices indices, double value)
+{
+    rassert(dimpl != NULL);
+    ignore(indices);
+
+    Proc_ks* ks = (Proc_ks*)dimpl;
+    ks->rel_env_scale_amount = isfinite(value) ? value : 0;
+
+    return true;
+}
+
+
+static bool Proc_ks_set_rel_env_scale_center(
+        Device_impl* dimpl, const Key_indices indices, double value)
+{
+    rassert(dimpl != NULL);
+    ignore(indices);
+
+    Proc_ks* ks = (Proc_ks*)dimpl;
+    ks->rel_env_scale_center = isfinite(value) ? value : 0;
+
+    return true;
+}
+
+
+static bool Proc_ks_set_rel_env_strength_var(
+        Device_impl* dimpl, const Key_indices indices, double value)
+{
+    rassert(dimpl != NULL);
+    ignore(indices);
+
+    Proc_ks* ks = (Proc_ks*)dimpl;
+    ks->rel_env_strength_var = (isfinite(value) && value >= 0) ? value : 0;
+
+    return true;
+}
+
+
 static int32_t Proc_ks_get_voice_wb_size(const Device_impl* dimpl, int32_t audio_rate)
 {
     rassert(dimpl != NULL);
@@ -363,6 +465,8 @@ static void del_Proc_ks(Device_impl* dimpl)
         return;
 
     Proc_ks* ks = (Proc_ks*)dimpl;
+    del_Envelope(ks->def_rel_env);
+    del_Envelope(ks->def_shift_env);
     del_Envelope(ks->def_init_env);
     memory_free(ks);
 

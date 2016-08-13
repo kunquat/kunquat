@@ -239,6 +239,10 @@ typedef struct Ks_vstate
     float shift_env_scale;
     float prev_pitch;
     Time_env_state shift_env_state;
+
+    float rel_env_scale;
+    bool has_rel_started;
+    Time_env_state rel_env_state;
 } Ks_vstate;
 
 
@@ -465,7 +469,7 @@ static int32_t Ks_vstate_render_voice(
                     const int32_t shift_env_buf_stop = Time_env_state_process(
                             &ks_vstate->shift_env_state,
                             ks->shift_env,
-                            false, // has_loop
+                            false, // has loop
                             ks->shift_env_scale_amount,
                             ks->shift_env_scale_center,
                             0, // sustain
@@ -500,6 +504,44 @@ static int32_t Ks_vstate_render_voice(
             }
 
             ks_vstate->prev_pitch = prev_pitch;
+        }
+
+        // Apply release envelope
+        if (!vstate->note_on && ks->is_rel_env_enabled)
+        {
+            if (!ks_vstate->has_rel_started)
+            {
+                double strength_dB =
+                    Random_get_float_scale(vstate->rand_p) *
+                    ks->rel_env_strength_var *
+                    2.0;
+                strength_dB -= ks->rel_env_strength_var;
+                ks_vstate->rel_env_scale = (float)dB_to_scale(strength_dB);
+
+                ks_vstate->has_rel_started = true;
+            }
+
+            float* env_add_buf = Work_buffers_get_buffer_contents_mut(
+                    wbs, KS_WB_ENVELOPE_ADD);
+
+            const int32_t rel_env_buf_stop = Time_env_state_process(
+                    &ks_vstate->rel_env_state,
+                    ks->rel_env,
+                    false, // has loop
+                    ks->rel_env_scale_amount,
+                    ks->rel_env_scale_center,
+                    0, // sustain
+                    0, 1, // range
+                    pitches_wb,
+                    env_add_buf,
+                    buf_start,
+                    buf_stop,
+                    audio_rate);
+
+            // Add envelope to the main envelope buffer
+            const float scale = ks_vstate->rel_env_scale;
+            for (int32_t i = buf_start; i < rel_env_buf_stop; ++i)
+                env_buf[i] += env_add_buf[i] * scale;
         }
 
         // Apply envelope(s) to the excitation signal
@@ -628,6 +670,10 @@ void Ks_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     ks_vstate->shift_env_scale = 1.0f;
     ks_vstate->prev_pitch = NAN;
     Time_env_state_init(&ks_vstate->shift_env_state);
+
+    ks_vstate->rel_env_scale = 1.0f;
+    ks_vstate->has_rel_started = false;
+    Time_env_state_init(&ks_vstate->rel_env_state);
 
     return;
 }

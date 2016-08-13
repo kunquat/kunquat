@@ -39,6 +39,13 @@ typedef struct Proc_ks
     Envelope* def_shift_env;
     double shift_env_trig_threshold;
     double shift_env_trig_strength_var;
+
+    const Envelope* rel_env;
+    bool is_rel_env_enabled;
+    double rel_env_scale_amount;
+    double rel_env_scale_center;
+    Envelope* def_rel_env;
+    double rel_env_strength_var;
 } Proc_ks;
 
 
