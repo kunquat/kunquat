@@ -633,7 +633,7 @@ class Envelope(QWidget):
                     return
 
             # Get node bounds
-            epsilon = 0.001
+            epsilon = 0.00001
 
             min_x, min_y = [float('-inf')] * 2
             max_x, max_y = [float('inf')] * 2
@@ -774,7 +774,7 @@ class Envelope(QWidget):
         elif len(self._nodes) < self._node_count_max:
             new_val_x, new_val_y = self._get_node_val_from_env_vis(pointer_vis)
 
-            epsilon = 0.001
+            epsilon = 0.00001
 
             # Get x limits
             min_x = float('-inf')
