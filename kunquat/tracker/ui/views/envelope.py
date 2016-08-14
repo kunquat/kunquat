@@ -214,6 +214,14 @@ class Envelope(QWidget):
         self._axis_y_renderer.set_config(self._axis_config, self)
         self._ls_cache = {}
 
+    def _get_range_bound(self, max_val):
+        max_val_abs = abs(max_val)
+        if 0 < max_val_abs < 1:
+            range_bound_abs = 2**(math.ceil(math.log(max_val, 2)))
+        else:
+            range_bound_abs = math.ceil(max_val_abs)
+        return signum(max_val) * range_bound_abs
+
     def _check_update_range(self):
         if not (any(self._range_adjust_x) or any(self._range_adjust_y)):
             return
@@ -231,14 +239,14 @@ class Envelope(QWidget):
         range_y_min, range_y_max = self._range_y
 
         if self._range_adjust_x[0] and (min_x < self._range_x[0]):
-            range_x_min = int(math.floor(min_x))
+            range_x_min = self._get_range_bound(min_x)
         if self._range_adjust_x[1] and (max_x > self._range_x[1]):
-            range_x_max = int(math.ceil(max_x))
+            range_x_max = self._get_range_bound(max_x)
 
         if self._range_adjust_y[0] and (min_y < self._range_y[0]):
-            range_y_min = int(math.floor(min_y))
+            range_y_min = self._get_range_bound(min_y)
         if self._range_adjust_y[1] and (max_y > self._range_y[1]):
-            range_y_max = int(math.ceil(max_y))
+            range_y_max = self._get_range_bound(max_y)
 
         new_range_x = range_x_min, range_x_max
         new_range_y = range_y_min, range_y_max
@@ -256,10 +264,10 @@ class Envelope(QWidget):
                 (self._envelope_height > 0))
 
     def _get_display_val_max(self, val_range):
-        return int(math.ceil(val_range[1]))
+        return self._get_range_bound(val_range[1])
 
     def _get_display_val_min(self, val_range):
-        return int(math.floor(val_range[0]))
+        return self._get_range_bound(val_range[0])
 
     def _get_ls_coords(self, nodes):
         return zip(nodes, islice(nodes, 1, None))
@@ -625,7 +633,7 @@ class Envelope(QWidget):
                     return
 
             # Get node bounds
-            epsilon = 0.001
+            epsilon = 0.00001
 
             min_x, min_y = [float('-inf')] * 2
             max_x, max_y = [float('inf')] * 2
@@ -766,7 +774,7 @@ class Envelope(QWidget):
         elif len(self._nodes) < self._node_count_max:
             new_val_x, new_val_y = self._get_node_val_from_env_vis(pointer_vis)
 
-            epsilon = 0.001
+            epsilon = 0.00001
 
             # Get x limits
             min_x = float('-inf')

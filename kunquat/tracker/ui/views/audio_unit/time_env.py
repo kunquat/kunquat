@@ -29,7 +29,8 @@ class TimeEnvelope(QWidget):
 
         header = HeaderLine(self._get_title())
 
-        self._enabled_toggle = QCheckBox('Enabled')
+        if self._allow_toggle_enabled():
+            self._enabled_toggle = QCheckBox('Enabled')
         if self._allow_loop():
             self._loop_toggle = QCheckBox('Loop')
         if self._allow_release_toggle():
@@ -38,7 +39,8 @@ class TimeEnvelope(QWidget):
         self._scale_center = NumberSlider(0, -3600, 3600, title='Scale center:')
 
         h = QHBoxLayout()
-        h.addWidget(self._enabled_toggle)
+        if self._allow_toggle_enabled():
+            h.addWidget(self._enabled_toggle)
         if self._allow_loop():
             h.addWidget(self._loop_toggle)
         if self._allow_release_toggle():
@@ -65,10 +67,11 @@ class TimeEnvelope(QWidget):
         self._updater.register_updater(self._perform_updates)
         self._update_envelope()
 
-        QObject.connect(
-                self._enabled_toggle,
-                SIGNAL('stateChanged(int)'),
-                self._enabled_changed)
+        if self._allow_toggle_enabled():
+            QObject.connect(
+                    self._enabled_toggle,
+                    SIGNAL('stateChanged(int)'),
+                    self._enabled_changed)
         if self._allow_loop():
             QObject.connect(
                     self._loop_toggle,
@@ -101,25 +104,29 @@ class TimeEnvelope(QWidget):
             self._update_envelope()
 
     def _update_envelope(self):
-        old_block = self._enabled_toggle.blockSignals(True)
-        self._enabled_toggle.setCheckState(
-                Qt.Checked if self._get_enabled() else Qt.Unchecked)
-        self._enabled_toggle.blockSignals(old_block)
+        is_enabled = True;
+        if self._allow_toggle_enabled():
+            old_block = self._enabled_toggle.blockSignals(True)
+            self._enabled_toggle.setCheckState(
+                    Qt.Checked if self._get_enabled() else Qt.Unchecked)
+            self._enabled_toggle.blockSignals(old_block)
 
-        self._envelope.setEnabled(self._get_enabled())
-        self._scale_amount.setEnabled(self._get_enabled())
-        self._scale_center.setEnabled(self._get_enabled())
+            is_enabled = self._get_enabled()
+
+        self._envelope.setEnabled(is_enabled)
+        self._scale_amount.setEnabled(is_enabled)
+        self._scale_center.setEnabled(is_enabled)
 
         if self._allow_loop():
             old_block = self._loop_toggle.blockSignals(True)
-            self._loop_toggle.setEnabled(self._get_enabled())
+            self._loop_toggle.setEnabled(is_enabled)
             self._loop_toggle.setCheckState(
                     Qt.Checked if self._get_loop_enabled() else Qt.Unchecked)
             self._loop_toggle.blockSignals(old_block)
 
         if self._allow_release_toggle():
             old_block = self._release_toggle.blockSignals(True)
-            self._release_toggle.setEnabled(self._get_enabled())
+            self._release_toggle.setEnabled(is_enabled)
             self._release_toggle.setCheckState(
                     Qt.Checked if self._get_release_enabled() else Qt.Unchecked)
             self._release_toggle.blockSignals(old_block)
@@ -166,7 +173,8 @@ class TimeEnvelope(QWidget):
             envelope['marks'] = new_loop
 
         if new_nodes or new_loop:
-            self._set_enabled(True)
+            if self._allow_toggle_enabled():
+                self._set_enabled(True)
 
         self._set_envelope_data(envelope)
         self._updater.signal_update(set([self._get_update_signal_type()]))
@@ -175,6 +183,9 @@ class TimeEnvelope(QWidget):
 
     def _get_title(self):
         raise NotImplementedError
+
+    def _allow_toggle_enabled(self):
+        return True
 
     def _allow_loop(self):
         raise NotImplementedError

@@ -117,52 +117,66 @@ static int32_t Envgen_vstate_render_voice(
 
     int32_t const_start = buf_start;
 
-    if (is_time_env_enabled && (!egen->is_release_env || !vstate->note_on))
+    if (is_time_env_enabled)
     {
-        // Apply the time envelope
-        const int32_t env_stop = Time_env_state_process(
-                &egen_state->env_state,
-                egen->time_env,
-                egen->is_loop_enabled,
-                egen->env_scale_amount,
-                egen->env_scale_center,
-                0, // sustain
-                0, 1, // range, NOTE: this needs to be mapped to our [y_min, y_max]!
-                pitches_wb,
-                Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
-                buf_start,
-                new_buf_stop,
-                proc_state->parent.audio_rate);
-
-        float* time_env = Work_buffers_get_buffer_contents_mut(
-                wbs, WORK_BUFFER_TIME_ENV);
-
-        // Check the end of envelope processing
-        if (egen_state->env_state.is_finished)
+        if (egen->is_release_env && vstate->note_on)
         {
-            const double* last_node = Envelope_get_node(
-                    egen->time_env, Envelope_node_count(egen->time_env) - 1);
-            const float last_value = (float)last_node[1];
-            /*
-            if (fabs(egen->y_min + last_value * range_width) < 0.0001)
-            {
-                Voice_state_set_finished(vstate);
-                new_buf_stop = env_stop;
-            }
-            else
-            // */
-            {
-                // Fill the rest of the envelope buffer with the last value
-                for (int32_t i = env_stop; i < new_buf_stop; ++i)
-                    time_env[i] = last_value;
-            }
+            // Apply the start of release envelope during note on
+            const double* first_node = Envelope_get_node(egen->time_env, 0);
+            const float first_val = (float)first_node[1];
+
+            for (int32_t i = buf_start; i < new_buf_stop; ++i)
+                out_buffer[i] = first_val;
+
+            const_start = buf_start;
         }
+        else
+        {
+            // Apply the time envelope
+            const int32_t env_stop = Time_env_state_process(
+                    &egen_state->env_state,
+                    egen->time_env,
+                    egen->is_loop_enabled,
+                    egen->env_scale_amount,
+                    egen->env_scale_center,
+                    0, // sustain
+                    0, 1, // range, NOTE: this needs to be mapped to our [y_min, y_max]!
+                    pitches_wb,
+                    Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
+                    buf_start,
+                    new_buf_stop,
+                    proc_state->parent.audio_rate);
 
-        const_start = env_stop;
+            float* time_env =
+                Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV);
 
-        // Write to signal output
-        for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            out_buffer[i] = time_env[i];
+            // Check the end of envelope processing
+            if (egen_state->env_state.is_finished)
+            {
+                const double* last_node = Envelope_get_node(
+                        egen->time_env, Envelope_node_count(egen->time_env) - 1);
+                const float last_value = (float)last_node[1];
+                /*
+                if (fabs(egen->y_min + last_value * range_width) < 0.0001)
+                {
+                    Voice_state_set_finished(vstate);
+                    new_buf_stop = env_stop;
+                }
+                else
+                // */
+                {
+                    // Fill the rest of the envelope buffer with the last value
+                    for (int32_t i = env_stop; i < new_buf_stop; ++i)
+                        time_env[i] = last_value;
+                }
+            }
+
+            const_start = env_stop;
+
+            // Write to signal output
+            for (int32_t i = buf_start; i < new_buf_stop; ++i)
+                out_buffer[i] = time_env[i];
+        }
     }
     else
     {

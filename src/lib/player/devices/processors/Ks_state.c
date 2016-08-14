@@ -22,6 +22,7 @@
 #include <player/devices/processors/Filter.h>
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/devices/Voice_state.h>
+#include <player/Time_env_state.h>
 #include <player/Work_buffer.h>
 #include <player/Work_buffers.h>
 
@@ -33,14 +34,14 @@
 #define DAMP_FILTER_ORDER 1
 
 
-typedef struct Damp
+typedef struct Damp_state
 {
     double cutoff_norm; // used for calculating phase delay
     double coeffs[DAMP_FILTER_ORDER];
     double mul;
     double history1[DAMP_FILTER_ORDER];
     double history2[DAMP_FILTER_ORDER];
-} Damp;
+} Damp_state;
 
 
 typedef struct Frac_delay
@@ -54,8 +55,9 @@ typedef struct Frac_delay
 typedef struct Read_state
 {
     int32_t read_pos;
-    double pitch;
-    Damp damp;
+    float pitch;
+    float damp;
+    Damp_state damp_state;
     Frac_delay frac_delay;
 } Read_state;
 
@@ -66,14 +68,15 @@ static void Read_state_clear(Read_state* rs)
 
     rs->read_pos = 0;
     rs->pitch = NAN;
+    rs->damp = NAN;
 
-    rs->damp.mul = 0;
+    rs->damp_state.mul = 0;
 
     for (int i = 0; i < DAMP_FILTER_ORDER; ++i)
     {
-        rs->damp.coeffs[i] = 0;
-        rs->damp.history1[i] = 0;
-        rs->damp.history2[i] = 0;
+        rs->damp_state.coeffs[i] = 0;
+        rs->damp_state.history1[i] = 0;
+        rs->damp_state.history2[i] = 0;
     }
 
     rs->frac_delay.eta = 0;
@@ -84,9 +87,13 @@ static void Read_state_clear(Read_state* rs)
 }
 
 
+#define CUTOFF_BIAS 74.37631656229591
+
+
 static void Read_state_modify(
         Read_state* rs,
-        double pitch,
+        float pitch,
+        float damp,
         int32_t write_pos,
         int32_t buf_len,
         int32_t audio_rate)
@@ -103,13 +110,28 @@ static void Read_state_modify(
     const double used_buf_length = clamp(period_length, 2, buf_len);
     const int32_t used_buf_frames_whole = (int32_t)floor(used_buf_length);
 
+    if (isnan(rs->damp) || fabs(rs->damp - damp) > 0.001)
+    {
+        // Set up damping filter
+        const double cutoff = exp2((100 - damp + CUTOFF_BIAS) / 12.0);
+        const double cutoff_clamped = clamp(cutoff, 1, (audio_rate / 2) - 1);
+        rs->damp_state.cutoff_norm = cutoff_clamped / audio_rate;
+        one_pole_filter_create(
+                rs->damp_state.cutoff_norm,
+                0,
+                rs->damp_state.coeffs,
+                &rs->damp_state.mul);
+    }
+
     rs->read_pos = (buf_len + write_pos - used_buf_frames_whole) % buf_len;
     rs->pitch = pitch;
+    rs->damp = damp;
 
     // Phase delay for one-pole lowpass is: atan(tan(pi*f)/tan(pi*f0))/(2*pi*f)
     const double freq_norm = freq / audio_rate;
     const double delay_add =
-        -atan(tan(PI * freq_norm)/tan(PI * rs->damp.cutoff_norm)) / (2 * PI * freq_norm);
+        -atan(tan(PI * freq_norm)/tan(PI * rs->damp_state.cutoff_norm)) /
+        (2 * PI * freq_norm);
 
     // Set up fractional delay filter
     float delay = (float)(used_buf_length - used_buf_frames_whole) + (float)delay_add;
@@ -128,13 +150,10 @@ static void Read_state_modify(
 }
 
 
-#define CUTOFF_BIAS 74.37631656229591
-
-
 static void Read_state_init(
         Read_state* rs,
-        double damp,
-        double pitch,
+        float damp,
+        float pitch,
         int32_t write_pos,
         int32_t buf_len,
         int32_t audio_rate)
@@ -150,14 +169,7 @@ static void Read_state_init(
 
     Read_state_clear(rs);
 
-    // Set up damping filter
-    const double cutoff = exp2((100 - damp + CUTOFF_BIAS) / 12.0);
-    const double cutoff_clamped = clamp(cutoff, 1, (audio_rate / 2) - 1);
-    rs->damp.cutoff_norm = cutoff_clamped / audio_rate;
-    one_pole_filter_create(
-            rs->damp.cutoff_norm, 0, rs->damp.coeffs, &rs->damp.mul);
-
-    Read_state_modify(rs, pitch, write_pos, buf_len, audio_rate);
+    Read_state_modify(rs, pitch, damp, write_pos, buf_len, audio_rate);
 
     return;
 }
@@ -177,10 +189,10 @@ static float Read_state_update(
 
     // Apply damping filter
     double damped = nq_zero_filter(
-            DAMP_FILTER_ORDER, rs->damp.history1, src_value);
+            DAMP_FILTER_ORDER, rs->damp_state.history1, src_value);
     damped = iir_filter_strict_cascade(
-            DAMP_FILTER_ORDER, rs->damp.coeffs, rs->damp.history2, damped);
-    damped *= rs->damp.mul;
+            DAMP_FILTER_ORDER, rs->damp_state.coeffs, rs->damp_state.history2, damped);
+    damped *= rs->damp_state.mul;
 
     // Apply fractional delay filter
     // Based on the description in
@@ -219,6 +231,18 @@ typedef struct Ks_vstate
     bool is_xfading;
     double xfade_progress;
     Read_state read_states[2];
+
+    Time_env_state init_env_state;
+
+    bool is_shifting;
+    bool is_shift_env_active;
+    float shift_env_scale;
+    float prev_pitch;
+    Time_env_state shift_env_state;
+
+    float rel_env_scale;
+    bool has_rel_started;
+    Time_env_state rel_env_state;
 } Ks_vstate;
 
 
@@ -233,6 +257,7 @@ enum
     PORT_IN_PITCH = 0,
     PORT_IN_FORCE,
     PORT_IN_EXCITATION,
+    PORT_IN_DAMP,
     PORT_IN_COUNT
 };
 
@@ -244,9 +269,12 @@ enum
 };
 
 
-static const int KS_WB_FIXED_PITCH = WORK_BUFFER_IMPL_1;
-static const int KS_WB_FIXED_FORCE = WORK_BUFFER_IMPL_2;
+static const int KS_WB_FIXED_PITCH      = WORK_BUFFER_IMPL_1;
+static const int KS_WB_FIXED_FORCE      = WORK_BUFFER_IMPL_2;
 static const int KS_WB_FIXED_EXCITATION = WORK_BUFFER_IMPL_3;
+static const int KS_WB_FIXED_DAMP       = WORK_BUFFER_IMPL_4;
+static const int KS_WB_ENVELOPE         = WORK_BUFFER_IMPL_5;
+static const int KS_WB_ENVELOPE_ADD     = WORK_BUFFER_IMPL_6;
 
 
 static int32_t Ks_vstate_render_voice(
@@ -270,8 +298,17 @@ static int32_t Ks_vstate_render_voice(
         return buf_start;
 
     const Device_state* dstate = &proc_state->parent;
+    const Proc_ks* ks = (const Proc_ks*)proc_state->parent.device->dimpl;
+
+    const int32_t audio_rate = dstate->audio_rate;
 
     Ks_vstate* ks_vstate = (Ks_vstate*)vstate;
+
+    // Get output buffer for writing
+    float* out_buf = Proc_state_get_voice_buffer_contents_mut(
+            proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO);
+    if (out_buf == NULL)
+        return buf_start;
 
     // Get frequencies
     const Work_buffer* pitches_wb = Proc_state_get_voice_buffer(
@@ -295,7 +332,7 @@ static int32_t Ks_vstate_render_voice(
     const float* scales = Work_buffer_get_contents(scales_wb);
 
     // Get excitation signal
-    const Work_buffer* excit_wb = Proc_state_get_voice_buffer(
+    Work_buffer* excit_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_EXCITATION);
     if (excit_wb == NULL)
     {
@@ -304,37 +341,212 @@ static int32_t Ks_vstate_render_voice(
         Work_buffer_clear(fixed_excit_wb, buf_start, buf_stop);
         excit_wb = fixed_excit_wb;
     }
-    const float* excits = Work_buffer_get_contents(excit_wb);
+    float* excits = Work_buffer_get_contents_mut(excit_wb);
 
-    // Get output buffer for writing
-    float* out_buf = Proc_state_get_voice_buffer_contents_mut(
-            proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO);
-    if (out_buf == NULL)
-        return buf_start;
+    // Get damp signal
+    const Work_buffer* damps_wb = Proc_state_get_voice_buffer_mut(
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_DAMP);
+    if (damps_wb == NULL)
+    {
+        Work_buffer* fixed_damps_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_DAMP);
+        float* damps = Work_buffer_get_contents_mut(fixed_damps_wb);
 
-    const bool need_init =
-        isnan(ks_vstate->read_states[ks_vstate->primary_read_state].pitch);
+        const float fixed_damp = (float)ks->damp;
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            damps[i] = fixed_damp;
+
+        Work_buffer_set_const_start(fixed_damps_wb, buf_start);
+        damps_wb = fixed_damps_wb;
+    }
+    const float* damps = Work_buffer_get_contents(damps_wb);
 
     // Get delay buffer
     Work_buffer* delay_wb = ks_vstate->parent.wb;
     rassert(delay_wb != NULL);
     const int32_t delay_wb_size = Work_buffer_get_size(delay_wb);
 
-    const int32_t audio_rate = dstate->audio_rate;
+    const bool need_init =
+        isnan(ks_vstate->read_states[ks_vstate->primary_read_state].pitch);
 
     if (need_init)
     {
         ks_vstate->write_pos = 0;
 
-        const Proc_ks* ks = (const Proc_ks*)proc_state->parent.device->dimpl;
+        ks_vstate->prev_pitch = pitches[buf_start];
 
         Read_state_init(
                 &ks_vstate->read_states[ks_vstate->primary_read_state],
-                ks->damp,
+                damps[buf_start],
                 pitches[buf_start],
                 ks_vstate->write_pos,
                 delay_wb_size,
                 audio_rate);
+    }
+
+    // Process excitation envelopes
+    {
+        Work_buffer* env_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_ENVELOPE);
+        float* env_buf = Work_buffer_get_contents_mut(env_wb);
+
+        // Get initial envelope stream
+        const int32_t init_env_buf_stop = Time_env_state_process(
+                &ks_vstate->init_env_state,
+                ks->init_env,
+                ks->is_init_env_loop_enabled,
+                ks->init_env_scale_amount,
+                ks->init_env_scale_center,
+                0, // sustain
+                0, 1, // range
+                pitches_wb,
+                env_buf,
+                buf_start,
+                buf_stop,
+                audio_rate);
+
+        // Check the end of initial envelope processing
+        if (ks_vstate->init_env_state.is_finished)
+        {
+            const double* last_node = Envelope_get_node(
+                    ks->init_env, Envelope_node_count(ks->init_env) - 1);
+            const float last_value = (float)last_node[1];
+
+            for (int32_t i = init_env_buf_stop; i < buf_stop; ++i)
+                env_buf[i] = last_value;
+        }
+
+        // Apply shift envelope
+        if (ks->is_shift_env_enabled)
+        {
+            const double threshold = ks->shift_env_trig_threshold;
+
+            float prev_pitch = ks_vstate->prev_pitch;
+
+            int32_t shift_i = buf_start;
+            while (shift_i < buf_stop)
+            {
+                const int32_t process_start = shift_i;
+
+                bool restart_after = false;
+
+                if (ks_vstate->is_shifting)
+                {
+                    // See how long we should continue in shifting state
+                    for (; shift_i < buf_stop; ++shift_i)
+                    {
+                        const double pitch_diff = fabs(pitches[shift_i] - prev_pitch);
+                        prev_pitch = pitches[shift_i];
+                        if (pitch_diff < threshold)
+                        {
+                            ks_vstate->is_shifting = false;
+                            ++shift_i;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    // See how long we should continue outside shifting state
+                    for (; shift_i < buf_stop; ++shift_i)
+                    {
+                        const double pitch_diff = fabs(pitches[shift_i] - prev_pitch);
+                        prev_pitch = pitches[shift_i];
+                        if (pitch_diff >= threshold)
+                        {
+                            ks_vstate->is_shifting = true;
+                            restart_after = true;
+                            ++shift_i;
+                            break;
+                        }
+                    }
+                }
+
+                // Process envelope
+                if (ks_vstate->is_shift_env_active)
+                {
+                    float* env_add_buf = Work_buffers_get_buffer_contents_mut(
+                            wbs, KS_WB_ENVELOPE_ADD);
+
+                    const int32_t shift_env_buf_stop = Time_env_state_process(
+                            &ks_vstate->shift_env_state,
+                            ks->shift_env,
+                            false, // has loop
+                            ks->shift_env_scale_amount,
+                            ks->shift_env_scale_center,
+                            0, // sustain
+                            0, 1, // range
+                            pitches_wb,
+                            env_add_buf,
+                            process_start,
+                            shift_i,
+                            audio_rate);
+
+                    if (ks_vstate->shift_env_state.is_finished)
+                        ks_vstate->is_shift_env_active = false;
+
+                    // Add envelope to the main envelope buffer
+                    const float scale = ks_vstate->shift_env_scale;
+                    for (int32_t i = process_start; i < shift_env_buf_stop; ++i)
+                        env_buf[i] += env_add_buf[i] * scale;
+                }
+
+                if (restart_after)
+                {
+                    Time_env_state_init(&ks_vstate->shift_env_state);
+                    ks_vstate->is_shift_env_active = true;
+
+                    double strength_dB =
+                        Random_get_float_scale(vstate->rand_p) *
+                        ks->shift_env_strength_var *
+                        2.0;
+                    strength_dB -= ks->shift_env_strength_var;
+                    ks_vstate->shift_env_scale = (float)dB_to_scale(strength_dB);
+                }
+            }
+
+            ks_vstate->prev_pitch = prev_pitch;
+        }
+
+        // Apply release envelope
+        if (!vstate->note_on && ks->is_rel_env_enabled)
+        {
+            if (!ks_vstate->has_rel_started)
+            {
+                double strength_dB =
+                    Random_get_float_scale(vstate->rand_p) *
+                    ks->rel_env_strength_var *
+                    2.0;
+                strength_dB -= ks->rel_env_strength_var;
+                ks_vstate->rel_env_scale = (float)dB_to_scale(strength_dB);
+
+                ks_vstate->has_rel_started = true;
+            }
+
+            float* env_add_buf = Work_buffers_get_buffer_contents_mut(
+                    wbs, KS_WB_ENVELOPE_ADD);
+
+            const int32_t rel_env_buf_stop = Time_env_state_process(
+                    &ks_vstate->rel_env_state,
+                    ks->rel_env,
+                    false, // has loop
+                    ks->rel_env_scale_amount,
+                    ks->rel_env_scale_center,
+                    0, // sustain
+                    0, 1, // range
+                    pitches_wb,
+                    env_add_buf,
+                    buf_start,
+                    buf_stop,
+                    audio_rate);
+
+            // Add envelope to the main envelope buffer
+            const float scale = ks_vstate->rel_env_scale;
+            for (int32_t i = buf_start; i < rel_env_buf_stop; ++i)
+                env_buf[i] += env_add_buf[i] * scale;
+        }
+
+        // Apply envelope(s) to the excitation signal
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            excits[i] *= env_buf[i];
     }
 
     int32_t write_pos = ks_vstate->write_pos;
@@ -348,28 +560,34 @@ static int32_t Ks_vstate_render_voice(
         const float pitch = pitches[i];
         const float scale = scales[i];
         const float excitation = excits[i];
+        const float damp = damps[i];
 
         if (!ks_vstate->is_xfading)
         {
-            const int32_t const_start = Work_buffer_get_const_start(pitches_wb);
-            const float max_diff = (i < const_start) ? 4.0f : 0.001f;
+            const int32_t const_pitch_start = Work_buffer_get_const_start(pitches_wb);
+            const float max_pitch_diff = (i < const_pitch_start) ? 4.0f : 0.001f;
+
+            const int32_t const_damp_start = Work_buffer_get_const_start(damps_wb);
+            const float max_damp_diff = (i < const_damp_start) ? 1.0f : 0.001f;
 
             Read_state* primary_rs =
                 &ks_vstate->read_states[ks_vstate->primary_read_state];
-            if (fabs(pitch - primary_rs->pitch) > max_diff)
+            if (fabs(pitch - primary_rs->pitch) > max_pitch_diff ||
+                    fabs(damp - primary_rs->damp) > max_damp_diff)
             {
                 Read_state* other_rs =
                     &ks_vstate->read_states[1 - ks_vstate->primary_read_state];
 
                 // Instantaneous slides to lower pitches don't work very well,
                 // so limit the step length when sliding downwards
-                const double min_pitch = primary_rs->pitch - 200.0;
-                const double cur_target_pitch = max(min_pitch, pitch);
+                const float min_pitch = primary_rs->pitch - 200.0f;
+                const float cur_target_pitch = max(min_pitch, pitch);
 
                 Read_state_copy(other_rs, primary_rs);
                 Read_state_modify(
                         other_rs,
                         cur_target_pitch,
+                        damp,
                         write_pos,
                         delay_wb_size,
                         audio_rate);
@@ -444,6 +662,18 @@ void Ks_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     Work_buffer* delay_wb = ks_vstate->parent.wb;
     rassert(delay_wb != NULL);
     Work_buffer_clear(delay_wb, 0, Work_buffer_get_size(delay_wb));
+
+    Time_env_state_init(&ks_vstate->init_env_state);
+
+    ks_vstate->is_shifting = false;
+    ks_vstate->is_shift_env_active = false;
+    ks_vstate->shift_env_scale = 1.0f;
+    ks_vstate->prev_pitch = NAN;
+    Time_env_state_init(&ks_vstate->shift_env_state);
+
+    ks_vstate->rel_env_scale = 1.0f;
+    ks_vstate->has_rel_started = false;
+    Time_env_state_init(&ks_vstate->rel_env_state);
 
     return;
 }
