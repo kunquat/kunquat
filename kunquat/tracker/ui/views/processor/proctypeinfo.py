@@ -22,6 +22,7 @@ from .ksproc import KsProc
 from .padsynthproc import PadsynthProc
 from .panningproc import PanningProc
 from .pitchproc import PitchProc
+from .rangemapproc import RangeMapProc
 from .ringmodproc import RingmodProc
 from .sampleproc import SampleProc
 from .streamproc import StreamProc
@@ -41,6 +42,7 @@ _proc_classes = {
     'padsynth': PadsynthProc,
     'panning':  PanningProc,
     'pitch':    PitchProc,
+    'rangemap': RangeMapProc,
     'ringmod':  RingmodProc,
     'sample':   SampleProc,
     'stream':   StreamProc,

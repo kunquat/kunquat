@@ -23,6 +23,7 @@ from .procparams.ksparams import KsParams
 from .procparams.padsynthparams import PadsynthParams
 from .procparams.panningparams import PanningParams
 from .procparams.pitchparams import PitchParams
+from .procparams.rangemapparams import RangeMapParams
 from .procparams.ringmodparams import RingmodParams
 from .procparams.sampleparams import SampleParams
 from .procparams.streamparams import StreamParams
@@ -41,6 +42,7 @@ _proc_classes = {
     'padsynth': PadsynthParams,
     'panning':  PanningParams,
     'pitch':    PitchParams,
+    'rangemap': RangeMapParams,
     'ringmod':  RingmodParams,
     'sample':   SampleParams,
     'stream':   StreamParams,
