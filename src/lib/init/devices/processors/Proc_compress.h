@@ -22,6 +22,17 @@
 typedef struct Proc_compress
 {
     Device_impl parent;
+
+    double attack;
+    double release;
+
+    bool upward_enabled;
+    double upward_threshold;
+    double upward_ratio;
+
+    bool downward_enabled;
+    double downward_threshold;
+    double downward_ratio;
 } Proc_compress;
 
 
