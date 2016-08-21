@@ -29,7 +29,9 @@
 #define DEFAULT_RELEASE 100.0
 
 #define DEFAULT_UPWARD_THRESHOLD -60.0
+#define DEFAULT_UPWARD_RANGE 12.0
 #define DEFAULT_DOWNWARD_THRESHOLD 0.0
+#define DEFAULT_DOWNWARD_RANGE 24.0
 #define DEFAULT_RATIO 6.0
 
 
@@ -38,10 +40,12 @@ static Set_float_func   Proc_compress_set_release;
 
 static Set_bool_func    Proc_compress_set_upward_enabled;
 static Set_float_func   Proc_compress_set_upward_threshold;
+static Set_float_func   Proc_compress_set_upward_range;
 static Set_float_func   Proc_compress_set_upward_ratio;
 
 static Set_bool_func    Proc_compress_set_downward_enabled;
 static Set_float_func   Proc_compress_set_downward_threshold;
+static Set_float_func   Proc_compress_set_downward_range;
 static Set_float_func   Proc_compress_set_downward_ratio;
 
 static Device_impl_destroy_func del_Proc_compress;
@@ -58,10 +62,12 @@ Device_impl* new_Proc_compress(void)
 
     compress->upward_enabled = false;
     compress->upward_threshold = DEFAULT_UPWARD_THRESHOLD;
+    compress->upward_range = DEFAULT_UPWARD_RANGE;
     compress->upward_ratio = DEFAULT_RATIO;
 
     compress->downward_enabled = false;
     compress->downward_threshold = DEFAULT_DOWNWARD_THRESHOLD;
+    compress->downward_range = DEFAULT_DOWNWARD_RANGE;
     compress->downward_ratio = DEFAULT_RATIO;
 
     if (!Device_impl_init(&compress->parent, del_Proc_compress))
@@ -80,10 +86,14 @@ Device_impl* new_Proc_compress(void)
             REG_KEY_BOOL(upward_enabled, "p_b_upward_enabled.json", false) &&
             REG_KEY(float, upward_threshold,
                 "p_f_upward_threshold.json", DEFAULT_UPWARD_THRESHOLD) &&
+            REG_KEY(float, upward_range,
+                "p_f_upward_range.json", DEFAULT_UPWARD_RANGE) &&
             REG_KEY(float, upward_ratio, "p_f_upward_ratio.json", DEFAULT_RATIO) &&
             REG_KEY_BOOL(downward_enabled, "p_b_downward_enabled.json", false) &&
             REG_KEY(float, downward_threshold,
                 "p_f_downward_threshold.json", DEFAULT_DOWNWARD_THRESHOLD) &&
+            REG_KEY(float, downward_range,
+                "p_f_downward_range.json", DEFAULT_DOWNWARD_RANGE) &&
             REG_KEY(float, downward_ratio, "p_f_downward_ratio.json", DEFAULT_RATIO)
          ))
     {
@@ -156,6 +166,15 @@ static bool is_valid_threshold(double value)
 }
 
 
+static bool is_valid_range(double value)
+{
+    if (!isfinite(value))
+        return false;
+
+    return (value >= 0.0) && (value <= 60.0);
+}
+
+
 static bool is_valid_ratio(double value)
 {
     if (!isfinite(value))
@@ -174,6 +193,19 @@ static bool Proc_compress_set_upward_threshold(
     Proc_compress* compress = (Proc_compress*)dimpl;
     compress->upward_threshold =
         is_valid_threshold(value) ? value : DEFAULT_UPWARD_THRESHOLD;
+
+    return true;
+}
+
+
+static bool Proc_compress_set_upward_range(
+        Device_impl* dimpl, const Key_indices indices, double value)
+{
+    rassert(dimpl != NULL);
+    ignore(indices);
+
+    Proc_compress* compress = (Proc_compress*)dimpl;
+    compress->upward_range = is_valid_range(value) ? value : DEFAULT_UPWARD_RANGE;
 
     return true;
 }
@@ -214,6 +246,19 @@ static bool Proc_compress_set_downward_threshold(
     Proc_compress* compress = (Proc_compress*)dimpl;
     compress->downward_threshold =
         is_valid_threshold(value) ? value : DEFAULT_DOWNWARD_THRESHOLD;
+
+    return true;
+}
+
+
+static bool Proc_compress_set_downward_range(
+        Device_impl* dimpl, const Key_indices indices, double value)
+{
+    rassert(dimpl != NULL);
+    ignore(indices);
+
+    Proc_compress* compress = (Proc_compress*)dimpl;
+    compress->downward_range = is_valid_range(value) ? value : DEFAULT_DOWNWARD_RANGE;
 
     return true;
 }

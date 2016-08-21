@@ -99,11 +99,6 @@ static void Compress_states_update(
             levels[i] = level;
         }
 
-        if (ch == 0)
-        {
-            //fprintf(stdout, "%.7f\n", level);
-        }
-
         cstate->level = level;
     }
 
@@ -133,6 +128,7 @@ static void Compress_states_update(
             : compress->upward_threshold;
         const float threshold = (float)dB_to_scale(upward_threshold_dB);
         const float inv_ratio = (float)(1.0 / compress->upward_ratio);
+        const float max_gain = (float)dB_to_scale(compress->upward_range);
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
@@ -140,7 +136,8 @@ static void Compress_states_update(
             if (level < threshold)
             {
                 const float diff = threshold / level;
-                gains[i] = threshold / (powf(diff, inv_ratio) * level);
+                const float gain = threshold / (powf(diff, inv_ratio) * level);
+                gains[i] = min(gain, max_gain);
             }
         }
     }
@@ -150,6 +147,7 @@ static void Compress_states_update(
         // Apply downward compression
         const float threshold = (float)dB_to_scale(compress->downward_threshold);
         const float inv_ratio = (float)(1.0 / compress->downward_ratio);
+        const float min_gain = (float)dB_to_scale(-compress->downward_range);
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
@@ -157,7 +155,8 @@ static void Compress_states_update(
             if (level > threshold)
             {
                 const float diff = level / threshold;
-                gains[i] = (threshold * powf(diff, inv_ratio)) / level;
+                const float gain = (threshold * powf(diff, inv_ratio)) / level;
+                gains[i] = max(gain, min_gain);
             }
         }
     }

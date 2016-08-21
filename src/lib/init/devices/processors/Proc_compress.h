@@ -29,10 +29,12 @@ typedef struct Proc_compress
     bool upward_enabled;
     double upward_threshold;
     double upward_ratio;
+    double upward_range;
 
     bool downward_enabled;
     double downward_threshold;
     double downward_ratio;
+    double downward_range;
 } Proc_compress;
 
 
