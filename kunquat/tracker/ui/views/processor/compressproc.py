@@ -213,7 +213,7 @@ class Threshold(CompressSlider):
         self._mode = mode
 
     def _get_update_signal_type(self):
-        return 'signal_compress_{}_threshold_{}'.format(self._mode, self._proc_id)
+        return 'signal_compress_threshold_{}'.format(self._proc_id)
 
     def _update_value(self):
         params = self._get_compress_params()
@@ -221,7 +221,12 @@ class Threshold(CompressSlider):
 
     def _value_changed(self, value):
         params = self._get_compress_params()
-        getattr(params, 'set_{}_threshold'.format(self._mode))(value)
+        if self._mode == 'upward':
+            params.set_upward_threshold(value)
+            params.set_downward_threshold(max(params.get_downward_threshold(), value))
+        else:
+            params.set_downward_threshold(value)
+            params.set_upward_threshold(min(params.get_upward_threshold(), value))
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
