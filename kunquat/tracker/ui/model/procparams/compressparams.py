@@ -34,7 +34,9 @@ class CompressParams(ProcParams):
     _DEFAULT_RELEASE = 100.0
 
     _DEFAULT_UPWARD_THRESHOLD = -60.0
+    _DEFAULT_UPWARD_RANGE = 12.0
     _DEFAULT_DOWNWARD_THRESHOLD = 0.0
+    _DEFAULT_DOWNWARD_RANGE = 24.0
     _DEFAULT_RATIO = 6.0
 
     def __init__(self, proc_id, controller):
@@ -62,6 +64,10 @@ class CompressParams(ProcParams):
                 CompressParams._DEFAULT_DOWNWARD_THRESHOLD)
 
     @staticmethod
+    def get_max_range():
+        return 60.0
+
+    @staticmethod
     def get_ratio_range():
         return (1.0, 60.0)
 
@@ -77,6 +83,12 @@ class CompressParams(ProcParams):
 
     def set_upward_threshold(self, value):
         self._set_value('p_f_upward_threshold.json', value)
+
+    def get_upward_range(self):
+        return self._get_value('p_f_upward_range.json', self._DEFAULT_UPWARD_RANGE)
+
+    def set_upward_range(self, value):
+        self._set_value('p_f_upward_range.json', value)
 
     def get_upward_ratio(self):
         return self._get_value('p_f_upward_ratio.json', self._DEFAULT_RATIO)
@@ -96,6 +108,12 @@ class CompressParams(ProcParams):
 
     def set_downward_threshold(self, value):
         self._set_value('p_f_downward_threshold.json', value)
+
+    def get_downward_range(self):
+        return self._get_value('p_f_downward_range.json', self._DEFAULT_DOWNWARD_RANGE)
+
+    def set_downward_range(self, value):
+        self._set_value('p_f_downward_range.json', value)
 
     def get_downward_ratio(self):
         return self._get_value('p_f_downward_ratio.json', self._DEFAULT_RATIO)

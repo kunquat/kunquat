@@ -136,6 +136,7 @@ class CompressConfig(QWidget):
         self._enabled = QCheckBox('Enabled')
         self._threshold = Threshold(self._mode)
         self._ratio = Ratio(self._mode)
+        self._range = Range(self._mode)
 
         pl = QHBoxLayout()
         pl.setContentsMargins(0, 0, 0, 0)
@@ -143,6 +144,7 @@ class CompressConfig(QWidget):
         pl.addWidget(self._enabled)
         pl.addWidget(self._threshold)
         pl.addWidget(self._ratio)
+        pl.addWidget(self._range)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -155,16 +157,19 @@ class CompressConfig(QWidget):
         self._au_id = au_id
         self._threshold.set_au_id(au_id)
         self._ratio.set_au_id(au_id)
+        self._range.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._proc_id = proc_id
         self._threshold.set_proc_id(proc_id)
         self._ratio.set_proc_id(proc_id)
+        self._range.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._threshold.set_ui_model(ui_model)
         self._ratio.set_ui_model(ui_model)
+        self._range.set_ui_model(ui_model)
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
@@ -174,6 +179,7 @@ class CompressConfig(QWidget):
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
+        self._range.unregister_updaters()
         self._ratio.unregister_updaters()
         self._threshold.unregister_updaters()
 
@@ -197,6 +203,7 @@ class CompressConfig(QWidget):
 
         self._threshold.setEnabled(enabled)
         self._ratio.setEnabled(enabled)
+        self._range.setEnabled(enabled)
 
     def _change_enabled(self, state):
         enabled = (state == Qt.Checked)
@@ -247,6 +254,25 @@ class Ratio(CompressSlider):
     def _value_changed(self, value):
         params = self._get_compress_params()
         getattr(params, 'set_{}_ratio'.format(self._mode))(value)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+
+class Range(CompressSlider):
+
+    def __init__(self, mode):
+        super().__init__(1, 0.0, CompressParams.get_max_range(), 'Range:')
+        self._mode = mode
+
+    def _get_update_signal_type(self):
+        return 'signal_compress_{}_range_{}'.format(self._mode, self._proc_id)
+
+    def _update_value(self):
+        params = self._get_compress_params()
+        self.set_number(getattr(params, 'get_{}_range'.format(self._mode))())
+
+    def _value_changed(self, value):
+        params = self._get_compress_params()
+        getattr(params, 'set_{}_range'.format(self._mode))(value)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
