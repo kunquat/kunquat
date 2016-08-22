@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 void reserve_voice(
@@ -48,12 +49,24 @@ void reserve_voice(
 //    fprintf(stderr, "allocated Voice %p\n", (void*)ch->fg[proc_num]);
     ch->fg_id[proc_num] = Voice_id(ch->fg[proc_num]);
 
+    // Get expression settings
+    const char* init_expr =
+        Active_names_get(ch->parent.active_names, ACTIVE_CAT_INIT_EXPRESSION);
+    const char* expr = Active_names_get(ch->parent.active_names, ACTIVE_CAT_EXPRESSION);
+    rassert(strlen(init_expr) < KQT_VAR_NAME_MAX);
+    rassert(strlen(expr) < KQT_VAR_NAME_MAX);
+
     Voice_init(
             ch->fg[proc_num],
             Audio_unit_get_proc(au, proc_num),
             group_id,
             proc_state,
             rand_seed);
+
+    Voice_state* vstate = ch->fg[proc_num]->state;
+    strcpy(vstate->init_expr_name, init_expr);
+    if (ch->carry_expression)
+        strcpy(vstate->expr_name, expr);
 
     return;
 }

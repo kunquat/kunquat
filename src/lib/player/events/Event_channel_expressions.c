@@ -15,16 +15,13 @@
 #include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
-#include <init/devices/Au_expressions.h>
-#include <init/devices/Audio_unit.h>
-#include <init/devices/Param_proc_filter.h>
-#include <init/Module.h>
 #include <player/events/Event_common.h>
 #include <player/events/set_active_name.h>
 #include <Value.h>
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 bool Event_channel_set_init_expression_process(
@@ -56,33 +53,14 @@ bool Event_channel_apply_expression_process(
     rassert(value->type == VALUE_TYPE_STRING);
 
     set_active_name(&channel->parent, ACTIVE_CAT_EXPRESSION, value);
+    const char* expr = value->value.string_type;
 
-    // Find our expression processor filter
-    const Audio_unit* au =
-        Module_get_au_from_input(channel->parent.module, channel->au_input);
-    if (au == NULL)
-        return true;
-
-    const Au_expressions* ae = Audio_unit_get_expressions(au);
-    if (ae == NULL)
-        return true;
-
-    const char* expr_name =
-        Active_names_get(channel->parent.active_names, ACTIVE_CAT_EXPRESSION);
-    const Param_proc_filter* filter = Au_expressions_get_proc_filter(ae, expr_name);
-    if (filter == NULL)
-        return true;
-
-    // Filter out Voices of excluded processors
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(channel, i);
 
-        if (!Param_proc_filter_is_proc_allowed(filter, i))
-        {
-            Voice* voice = channel->fg[i];
-            voice->state->active = false;
-        }
+        Voice* voice = channel->fg[i];
+        strcpy(voice->state->expr_name, expr);
     }
 
     return true;

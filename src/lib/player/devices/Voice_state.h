@@ -71,6 +71,9 @@ struct Voice_state
     bool has_release_data;
     int32_t release_stop;
 
+    char init_expr_name[KQT_VAR_NAME_MAX];
+    char expr_name[KQT_VAR_NAME_MAX];
+
     double ramp_attack;            ///< The current state of volume ramp during attack.
 
     int hit_index;                 ///< The hit index (negative for normal notes).
