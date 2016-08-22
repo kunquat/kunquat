@@ -13,6 +13,7 @@
 
 from kunquat.kunquat.kunquat import get_default_value
 from .procparams.addparams import AddParams
+from .procparams.compressparams import CompressParams
 from .procparams.delayparams import DelayParams
 from .procparams.envgenparams import EnvgenParams
 from .procparams.filterparams import FilterParams
@@ -32,6 +33,7 @@ from .procparams.volumeparams import VolumeParams
 
 _proc_classes = {
     'add':      AddParams,
+    'compress': CompressParams,
     'delay':    DelayParams,
     'envgen':   EnvgenParams,
     'filter':   FilterParams,

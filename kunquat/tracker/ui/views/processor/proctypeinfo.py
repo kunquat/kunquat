@@ -12,6 +12,7 @@
 #
 
 from .addproc import AddProc
+from .compressproc import CompressProc
 from .delayproc import DelayProc
 from .envgenproc import EnvgenProc
 from .filterproc import FilterProc
@@ -32,6 +33,7 @@ from .unsupportedproc import UnsupportedProc
 
 _proc_classes = {
     'add':      AddProc,
+    'compress': CompressProc,
     'delay':    DelayProc,
     'envgen':   EnvgenProc,
     'filter':   FilterProc,

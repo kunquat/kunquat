@@ -20,6 +20,7 @@
 PROC_TYPE(debug)
 
 PROC_TYPE(add)
+PROC_TYPE(compress)
 PROC_TYPE(delay)
 PROC_TYPE(envgen)
 PROC_TYPE(filter)
