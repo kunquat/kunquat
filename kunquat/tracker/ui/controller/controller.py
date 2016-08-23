@@ -39,8 +39,8 @@ EVENT_SELECT_CONTROL = '.a'
 EVENT_NOTE_ON = 'n+'
 EVENT_HIT = 'h'
 EVENT_NOTE_OFF = 'n-'
-EVENT_SET_INIT_EXPRESSION = '.xi'
-EVENT_SET_EXPRESSION = '.x'
+EVENT_SET_CH_EXPRESSION = '.xc'
+EVENT_SET_NOTE_EXPRESSION = '.x'
 
 
 class Controller():
@@ -435,8 +435,8 @@ class Controller():
 
         # Get expression override and restore events
         orig_init_expr = self._session.get_active_init_expression(channel_number)
-        clear_expr_event = (EVENT_SET_INIT_EXPRESSION, '')
-        restore_expr_event = (EVENT_SET_INIT_EXPRESSION, orig_init_expr)
+        clear_expr_event = (EVENT_SET_CH_EXPRESSION, '')
+        restore_expr_event = (EVENT_SET_CH_EXPRESSION, orig_init_expr)
 
         # Fire events
         self._audio_engine.fire_event(channel_number, control_event)
@@ -444,7 +444,7 @@ class Controller():
         self._audio_engine.fire_event(channel_number, clear_expr_event)
         self._audio_engine.fire_event(channel_number, note_on_or_hit_event)
         for expression in expressions:
-            apply_expr_event = (EVENT_SET_EXPRESSION, expression)
+            apply_expr_event = (EVENT_SET_NOTE_EXPRESSION, expression)
             self._audio_engine.fire_event(channel_number, apply_expr_event)
         self._audio_engine.fire_event(channel_number, restore_expr_event)
 

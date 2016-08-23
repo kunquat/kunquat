@@ -50,11 +50,12 @@ void reserve_voice(
     ch->fg_id[proc_num] = Voice_id(ch->fg[proc_num]);
 
     // Get expression settings
-    const char* init_expr =
-        Active_names_get(ch->parent.active_names, ACTIVE_CAT_INIT_EXPRESSION);
-    const char* expr = Active_names_get(ch->parent.active_names, ACTIVE_CAT_EXPRESSION);
-    rassert(strlen(init_expr) < KQT_VAR_NAME_MAX);
-    rassert(strlen(expr) < KQT_VAR_NAME_MAX);
+    const char* ch_expr =
+        Active_names_get(ch->parent.active_names, ACTIVE_CAT_CH_EXPRESSION);
+    const char* note_expr =
+        Active_names_get(ch->parent.active_names, ACTIVE_CAT_NOTE_EXPRESSION);
+    rassert(strlen(ch_expr) < KQT_VAR_NAME_MAX);
+    rassert(strlen(note_expr) < KQT_VAR_NAME_MAX);
 
     Voice_init(
             ch->fg[proc_num],
@@ -64,9 +65,9 @@ void reserve_voice(
             rand_seed);
 
     Voice_state* vstate = ch->fg[proc_num]->state;
-    strcpy(vstate->init_expr_name, init_expr);
+    strcpy(vstate->ch_expr_name, ch_expr);
     if (ch->carry_expression)
-        strcpy(vstate->expr_name, expr);
+        strcpy(vstate->note_expr_name, note_expr);
 
     return;
 }

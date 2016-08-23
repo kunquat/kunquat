@@ -74,8 +74,9 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->has_finished = false;
     state->ramp_attack = 0;
 
-    memset(state->init_expr_name, '\0', KQT_VAR_NAME_MAX);
-    memset(state->expr_name, '\0', KQT_VAR_NAME_MAX);
+    state->expr_filters_applied = false;
+    memset(state->ch_expr_name, '\0', KQT_VAR_NAME_MAX);
+    memset(state->note_expr_name, '\0', KQT_VAR_NAME_MAX);
 
     state->hit_index = -1;
 
@@ -141,17 +142,22 @@ int32_t Voice_state_render_voice(
         return buf_start;
     }
 
-    // Stop processing if we are filtered out by current Audio unit expressions
-    const Audio_unit* au = (const Audio_unit*)au_state->parent.device;
-    const Au_expressions* ae = Audio_unit_get_expressions(au);
-    if (ae != NULL)
+    if (!vstate->expr_filters_applied)
     {
-        if (is_proc_filtered(proc, ae, vstate->init_expr_name) ||
-                is_proc_filtered(proc, ae, vstate->expr_name))
+        // Stop processing if we are filtered out by current Audio unit expressions
+        const Audio_unit* au = (const Audio_unit*)au_state->parent.device;
+        const Au_expressions* ae = Audio_unit_get_expressions(au);
+        if (ae != NULL)
         {
-            vstate->active = false;
-            return buf_start;
+            if (is_proc_filtered(proc, ae, vstate->ch_expr_name) ||
+                    is_proc_filtered(proc, ae, vstate->note_expr_name))
+            {
+                vstate->active = false;
+                return buf_start;
+            }
         }
+
+        vstate->expr_filters_applied = true;
     }
 
     if (buf_start >= buf_stop)
