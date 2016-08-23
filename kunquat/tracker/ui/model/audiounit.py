@@ -239,18 +239,20 @@ class AudioUnit():
 
     def _get_expressions(self):
         key = self._get_key('p_expressions.json')
-        expressions = self._store.get(key, {})
+        stored_expressions = self._store.get(key, {})
+        expressions = { 'expressions': {}, 'default_note_expr': '' }
+        expressions.update(stored_expressions)
         return expressions
 
     def has_expressions(self):
-        return bool(self._get_expressions())
+        return bool(self._get_expressions()['expressions'])
 
     def has_expression(self, name):
-        return name in self._get_expressions()
+        return name in self._get_expressions()['expressions']
 
     def get_expression_names(self):
         expressions = self._get_expressions()
-        return list(expressions.keys())
+        return list(expressions['expressions'].keys())
 
     def set_selected_expression(self, name):
         self._session.set_selected_expression(self._au_id, name)
@@ -259,34 +261,58 @@ class AudioUnit():
         return self._session.get_selected_expression(self._au_id)
 
     def add_expression(self):
-        expressions = self._get_expressions()
+        expressions_def = self._get_expressions()
+        expressions = expressions_def['expressions']
+
         init_names = ('expr{:02d}'.format(i) for i in range(len(expressions) + 1))
         for name in init_names:
             if name not in expressions:
                 unique_name = name
                 break
         expressions[unique_name] = []
-        self._set_expressions(expressions)
+
+        expressions_def['expressions'] = expressions
+        self._set_expressions(expressions_def)
 
     def remove_expression(self, name):
-        expressions = self._get_expressions()
+        expressions_def = self._get_expressions()
+        expressions = expressions_def['expressions']
         del expressions[name]
-        self._set_expressions(expressions)
+        expressions_def['expressions'] = expressions
+        if (expressions_def['default_note_expr'] and
+                expressions_def['default_note_expr'] not in expressions):
+            expressions_def['default_note_expr'] = ''
+        self._set_expressions(expressions_def)
 
     def change_expression_name(self, old_name, new_name):
-        expressions = self._get_expressions()
+        expressions_def = self._get_expressions()
+        expressions = expressions_def['expressions']
         expr_info = expressions.pop(old_name)
         expressions[new_name] = expr_info
+        expressions_def['expressions'] = expressions
+        if expressions_def['default_note_expr'] == old_name:
+            expressions_def['default_note_expr'] = new_name
+        self._set_expressions(expressions_def)
+
+    def set_default_note_expression(self, name):
+        expressions = self._get_expressions()
+        expressions['default_note_expr'] = name
         self._set_expressions(expressions)
 
-    def set_expression_proc_filter(self, name, proc_filter):
+    def get_default_note_expression(self):
         expressions = self._get_expressions()
+        return expressions['default_note_expr']
+
+    def set_expression_proc_filter(self, name, proc_filter):
+        expressions_def = self._get_expressions()
+        expressions = expressions_def['expressions']
         expressions[name] = proc_filter
-        self._set_expressions(expressions)
+        expressions_def['expressions'] = expressions
+        self._set_expressions(expressions_def)
 
     def get_expression_proc_filter(self, name):
         expressions = self._get_expressions()
-        return expressions[name]
+        return expressions['expressions'][name]
 
     def set_connections_expr_name(self, expr_name):
         self._session.set_au_connections_expr_name(self._au_id, expr_name)

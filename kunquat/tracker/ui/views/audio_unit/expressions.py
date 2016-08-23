@@ -23,28 +23,109 @@ class Expressions(QWidget):
     def __init__(self):
         super().__init__()
 
+        self._default_note_expr = DefaultNoteExpr()
         self._expr_list = ExpressionList()
         self._expr_editor = ExpressionEditor()
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(4)
+        v.addWidget(self._default_note_expr)
         v.addWidget(self._expr_list)
         v.addWidget(self._expr_editor)
         v.addStretch(1)
         self.setLayout(v)
 
     def set_au_id(self, au_id):
+        self._default_note_expr.set_au_id(au_id)
         self._expr_list.set_au_id(au_id)
         self._expr_editor.set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
+        self._default_note_expr.set_ui_model(ui_model)
         self._expr_list.set_ui_model(ui_model)
         self._expr_editor.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._expr_editor.unregister_updaters()
         self._expr_list.unregister_updaters()
+        self._default_note_expr.unregister_updaters()
+
+
+class DefaultNoteExpr(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        self._au_id = None
+        self._ui_model = None
+        self._updater = None
+
+        self._expr_names = QComboBox()
+
+        h = QHBoxLayout()
+        h.setContentsMargins(0, 0, 0, 0)
+        h.setSpacing(4)
+        h.addWidget(QLabel('Default note expression:'))
+        h.addWidget(self._expr_names, 1)
+        self.setLayout(h)
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(
+                self._expr_names,
+                SIGNAL('currentIndexChanged(int)'),
+                self._change_expression)
+
+        self._update_contents()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _get_list_update_signal_type(self):
+        return 'signal_expr_list_{}'.format(self._au_id)
+
+    def _get_default_update_signal_type(self):
+        return 'signal_expr_default_{}'.format(self._au_id)
+
+    def _perform_updates(self, signals):
+        update_signals = set([
+            self._get_list_update_signal_type(), self._get_default_update_signal_type()])
+        if not signals.isdisjoint(update_signals):
+            self._update_contents()
+
+    def _get_audio_unit(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        return au
+
+    def _update_contents(self):
+        au = self._get_audio_unit()
+        names = au.get_expression_names()
+        selection = au.get_default_note_expression()
+
+        old_block = self._expr_names.blockSignals(True)
+        self._expr_names.clear()
+        self._expr_names.addItem('(none)')
+        self._expr_names.setCurrentIndex(0)
+        for i, expr_name in enumerate(sorted(names)):
+            self._expr_names.addItem(expr_name)
+            if selection == expr_name:
+                self._expr_names.setCurrentIndex(i + 1) # compensate for the (none) entry
+        self._expr_names.blockSignals(old_block)
+
+    def _change_expression(self, item_index):
+        au = self._get_audio_unit()
+        if item_index == 0:
+            au.set_default_note_expression('')
+        else:
+            expr_name = self._expr_names.itemText(item_index)
+            au.set_default_note_expression(expr_name)
 
 
 class ExpressionListToolBar(QToolBar):
