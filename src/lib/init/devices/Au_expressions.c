@@ -19,6 +19,7 @@
 #include <init/devices/Param_proc_filter.h>
 #include <kunquat/limits.h>
 #include <memory.h>
+#include <string/common.h>
 #include <string/Streader.h>
 #include <string/var_name.h>
 
@@ -50,6 +51,7 @@ static void del_Entry(Entry* entry)
 struct Au_expressions
 {
     AAtree* entries;
+    char default_note_expr[KQT_VAR_NAME_MAX];
 };
 
 
@@ -89,7 +91,47 @@ static bool read_expressions(Streader* sr, const char* key, void* userdata)
         return false;
     }
 
-    return ae;
+    return true;
+}
+
+
+static bool read_expressions_def(Streader* sr, const char* key, void* userdata)
+{
+    rassert(sr != NULL);
+    rassert(key != NULL);
+    rassert(userdata != NULL);
+
+    Au_expressions* ae = userdata;
+
+    if (string_eq(key, "default_note_expr"))
+    {
+        char expr[KQT_VAR_NAME_MAX + 1] = "";
+        if (!Streader_read_string(sr, KQT_VAR_NAME_MAX + 1, expr))
+            return false;
+
+        if ((expr[0] != '\0') && !is_valid_var_name(expr))
+        {
+            Streader_set_error(sr, "Invalid default note expression: %s", expr);
+            return false;
+        }
+
+        strcpy(ae->default_note_expr, expr);
+    }
+    else if (string_eq(key, "expressions"))
+    {
+        if (!Streader_read_dict(sr, read_expressions, ae))
+        {
+            rassert(Streader_is_error_set(sr));
+            return false;
+        }
+    }
+    else
+    {
+        Streader_set_error(sr, "Unexpected key in expression specification: %s", key);
+        return false;
+    }
+
+    return true;
 }
 
 
@@ -108,6 +150,7 @@ Au_expressions* new_Au_expressions(Streader* sr)
         return NULL;
     }
 
+    memset(ae->default_note_expr, '\0', KQT_VAR_NAME_MAX);
     ae->entries = new_AAtree(
             (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Entry);
     if (ae->entries == NULL)
@@ -118,14 +161,32 @@ Au_expressions* new_Au_expressions(Streader* sr)
         return NULL;
     }
 
-    if (!Streader_read_dict(sr, read_expressions, ae))
+    if (!Streader_read_dict(sr, read_expressions_def, ae))
     {
         rassert(Streader_is_error_set(sr));
         del_Au_expressions(ae);
         return NULL;
     }
 
+    if (ae->default_note_expr[0] != '\0' &&
+            !Au_expressions_get_proc_filter(ae, ae->default_note_expr))
+    {
+        Streader_set_error(
+                sr,
+                "Audio unit expressions do not contain the default expression %s",
+                ae->default_note_expr);
+        del_Au_expressions(ae);
+        return NULL;
+    }
+
     return ae;
+}
+
+
+const char* Au_expressions_get_default_note_expr(const Au_expressions* ae)
+{
+    rassert(ae != NULL);
+    return ae->default_note_expr;
 }
 
 

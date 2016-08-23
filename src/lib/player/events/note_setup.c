@@ -15,6 +15,7 @@
 #include <player/events/note_setup.h>
 
 #include <debug/assert.h>
+#include <init/devices/Au_expressions.h>
 #include <init/devices/Audio_unit.h>
 #include <kunquat/limits.h>
 #include <player/Channel.h>
@@ -27,7 +28,7 @@
 
 void reserve_voice(
         Channel* ch,
-        Audio_unit* au,
+        const Audio_unit* au,
         uint64_t group_id,
         const Proc_state* proc_state,
         int proc_num,
@@ -67,7 +68,15 @@ void reserve_voice(
     Voice_state* vstate = ch->fg[proc_num]->state;
     strcpy(vstate->ch_expr_name, ch_expr);
     if (ch->carry_expression)
+    {
         strcpy(vstate->note_expr_name, note_expr);
+    }
+    else
+    {
+        const Au_expressions* ae = Audio_unit_get_expressions(au);
+        if (ae != NULL)
+            strcpy(vstate->note_expr_name, Au_expressions_get_default_note_expr(ae));
+    }
 
     return;
 }

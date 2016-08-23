@@ -37,7 +37,7 @@
  */
 void reserve_voice(
         Channel* ch,
-        Audio_unit* au,
+        const Audio_unit* au,
         uint64_t group_id,
         const Proc_state* proc_state,
         int proc_num,
