@@ -119,16 +119,14 @@ class TestPanel(QWidget):
         self._test_button = TestButton()
         self._expressions = [TestExpression(i) for i in range(2)]
 
-        expr_label = QLabel('Expressions:')
-        expr_label.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
-
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
-        h.addWidget(self._test_button)
-        h.addWidget(expr_label)
-        for expr in self._expressions:
-            h.addWidget(expr)
+        h.addWidget(self._test_button, 1)
+        h.addWidget(QLabel('Channel expression:'))
+        h.addWidget(self._expressions[0])
+        h.addWidget(QLabel('Note expression:'))
+        h.addWidget(self._expressions[1])
         self.setLayout(h)
 
     def set_au_id(self, au_id):
@@ -172,6 +170,13 @@ class TestExpression(QComboBox):
 
         QObject.connect(
                 self, SIGNAL('currentIndexChanged(int)'), self._change_expression)
+
+        if self._index == 1:
+            # Apply instrument default as the initial note expression
+            module = self._ui_model.get_module()
+            au = module.get_audio_unit(self._au_id)
+            note_expr = au.get_default_note_expression()
+            au.set_test_expression(self._index, note_expr)
 
         self._update_expression_list()
 
