@@ -36,7 +36,9 @@ typedef enum
     VALUE_TYPE_PAT_INST_REF,
     VALUE_TYPE_COUNT,
 
-    VALUE_TYPE_REALTIME = -2 // not a valid type; used with type-generic events
+    // Identifiers used with type-generic events
+    VALUE_TYPE_REALTIME = -2,
+    VALUE_TYPE_MAYBE_STRING = -3,
 } Value_type;
 
 

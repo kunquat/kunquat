@@ -20,6 +20,7 @@
 #include <Value.h>
 
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -34,10 +35,12 @@ bool Event_channel_set_ch_expression_process(
     rassert(dstates != NULL);
     rassert(master_params != NULL);
     rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_STRING);
+    rassert(value->type == VALUE_TYPE_NONE || value->type == VALUE_TYPE_STRING);
 
     set_active_name(&channel->parent, ACTIVE_CAT_CH_EXPRESSION, value);
-    const char* expr = value->value.string_type;
+    const char* expr = channel->init_ch_expression;
+    if (value->type == VALUE_TYPE_STRING)
+        expr = value->value.string_type;
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -62,10 +65,20 @@ bool Event_channel_set_note_expression_process(
     rassert(dstates != NULL);
     rassert(master_params != NULL);
     rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_STRING);
+    rassert(value->type == VALUE_TYPE_NONE || value->type == VALUE_TYPE_STRING);
 
-    set_active_name(&channel->parent, ACTIVE_CAT_NOTE_EXPRESSION, value);
-    const char* expr = value->value.string_type;
+    static const char apply_default[] = "";
+    static const char disabled[] = "!none";
+    const char* expr = apply_default;
+    if (value->type == VALUE_TYPE_STRING)
+    {
+        if (value->value.string_type[0] == '\0')
+            expr = disabled;
+        else
+            expr = value->value.string_type;
+    }
+
+    Active_names_set(channel->parent.active_names, ACTIVE_CAT_NOTE_EXPRESSION, expr);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -91,7 +104,7 @@ bool Event_channel_carry_note_expression_on_process(
     rassert(master_params != NULL);
     ignore(value);
 
-    channel->carry_expression = true;
+    channel->carry_note_expression = true;
 
     return true;
 }
@@ -108,7 +121,7 @@ bool Event_channel_carry_note_expression_off_process(
     rassert(master_params != NULL);
     ignore(value);
 
-    channel->carry_expression = false;
+    channel->carry_note_expression = false;
 
     return true;
 }

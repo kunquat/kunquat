@@ -208,6 +208,22 @@ bool v_key(const char* param)
 }
 
 
+bool v_maybe_var_name(const char* param)
+{
+    rassert(param != NULL);
+
+    Streader* sr = init_c_streader(param);
+
+    if (Streader_read_null(sr))
+        return true;
+    Streader_clear_error(sr);
+
+    char str[KQT_VAR_NAME_MAX + 1] = "";
+
+    return Streader_read_string(sr, KQT_VAR_NAME_MAX + 1, str) && is_valid_var_name(str);
+}
+
+
 bool v_nonneg_float(const char* param)
 {
     rassert(param != NULL);

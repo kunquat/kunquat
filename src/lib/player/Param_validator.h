@@ -48,6 +48,8 @@ bool v_hit(const char* param);
 
 bool v_key(const char* param);
 
+bool v_maybe_var_name(const char* param);
+
 bool v_nonneg_float(const char* param);
 bool v_nonneg_ts(const char* param);
 

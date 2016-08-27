@@ -84,7 +84,8 @@ struct Channel
     int arpeggio_edit_pos;
     double arpeggio_tones[KQT_ARPEGGIO_TONES_MAX];
 
-    bool carry_expression;
+    char init_ch_expression[KQT_VAR_NAME_MAX];
+    bool carry_note_expression;
 };
 
 

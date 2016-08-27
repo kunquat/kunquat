@@ -67,7 +67,7 @@ void reserve_voice(
 
     Voice_state* vstate = ch->fg[proc_num]->state;
     strcpy(vstate->ch_expr_name, ch_expr);
-    if (ch->carry_expression)
+    if (ch->carry_note_expression && (note_expr[0] != '\0'))
     {
         strcpy(vstate->note_expr_name, note_expr);
     }

@@ -1089,6 +1089,22 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
             Streader_read_finite_rt(event_reader, value);
             break;
 
+        case VALUE_TYPE_MAYBE_STRING:
+        {
+            if (Streader_read_null(event_reader))
+            {
+                value->type = VALUE_TYPE_NONE;
+            }
+            else
+            {
+                value->type = VALUE_TYPE_STRING;
+                Streader_clear_error(event_reader);
+                Streader_read_string(
+                        event_reader, KQT_VAR_NAME_MAX, value->value.string_type);
+            }
+        }
+        break;
+
         default:
             rassert(false);
     }
