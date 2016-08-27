@@ -206,9 +206,14 @@ static int32_t Add_vstate_render_voice(
                 phase += freq * pitch_factor_inv_audio_rate;
 
                 // Normalise to range [0, 1)
-                // phase is usually < 2, so this is faster than subtracting floor(phase)
-                while (phase >= 1)
+                if (phase >= 1)
+                {
                     phase -= 1;
+
+                    // Don't bother updating the phase if our frequency is too high
+                    if (phase >= 1)
+                        phase = tone_state->phase[ch];
+                }
             }
 
             tone_state->phase[ch] = phase;
