@@ -22,6 +22,9 @@
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/Work_buffers.h>
 
+#include <stdint.h>
+#include <stdlib.h>
+
 
 #define ADD_BASE_FUNC_SIZE_MASK (ADD_BASE_FUNC_SIZE - 1)
 
@@ -92,7 +95,7 @@ static int32_t Add_vstate_render_voice(
     // Get frequencies
     Work_buffer* freqs_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
-    const Work_buffer* pitches_wb = freqs_wb;
+    Work_buffer* pitches_wb = freqs_wb;
     if (freqs_wb == NULL)
         freqs_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_PITCH);
     Proc_fill_freq_buffer(freqs_wb, pitches_wb, buf_start, buf_stop);
@@ -101,7 +104,7 @@ static int32_t Add_vstate_render_voice(
     // Get volume scales
     Work_buffer* scales_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
-    const Work_buffer* dBs_wb = scales_wb;
+    Work_buffer* dBs_wb = scales_wb;
     if (scales_wb == NULL)
         scales_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_FORCE);
     Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);

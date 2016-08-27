@@ -148,7 +148,7 @@ void Proc_ramp_attack(
  */
 void Proc_fill_freq_buffer(
         Work_buffer* freqs,
-        const Work_buffer* pitches,
+        Work_buffer* pitches,
         int32_t buf_start,
         int32_t buf_stop);
 
@@ -169,7 +169,7 @@ void Proc_fill_freq_buffer(
  */
 void Proc_fill_scale_buffer(
         Work_buffer* scales,
-        const Work_buffer* dBs,
+        Work_buffer* dBs,
         int32_t buf_start,
         int32_t buf_stop);
 

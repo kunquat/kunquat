@@ -325,7 +325,7 @@ static int32_t Ks_vstate_render_voice(
     // Get volume scales
     Work_buffer* scales_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
-    const Work_buffer* dBs_wb = scales_wb;
+    Work_buffer* dBs_wb = scales_wb;
     if (scales_wb == NULL)
         scales_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_FORCE);
     Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);

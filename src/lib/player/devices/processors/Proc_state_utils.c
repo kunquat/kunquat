@@ -209,7 +209,7 @@ void Proc_ramp_attack(
 
 void Proc_fill_freq_buffer(
         Work_buffer* freqs,
-        const Work_buffer* pitches,
+        Work_buffer* pitches,
         int32_t buf_start,
         int32_t buf_stop)
 {
@@ -222,9 +222,24 @@ void Proc_fill_freq_buffer(
         const int32_t const_start = Work_buffer_get_const_start(pitches);
         float* freqs_data = Work_buffer_get_contents_mut(freqs);
 
-        const float* pitches_data = Work_buffer_get_contents(pitches);
+        float* pitches_data = Work_buffer_get_contents_mut(pitches);
 
         const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
+
+        // Sanitise input values
+        {
+            static const float bound = 2000000.0f;
+
+            for (int32_t i = buf_start; i < fast_stop; ++i)
+                pitches_data[i] = clamp(pitches_data[i], -bound, bound);
+
+            if (fast_stop < buf_stop)
+            {
+                const float pitch = clamp(pitches_data[fast_stop], -bound, bound);
+                for (int32_t i = fast_stop; i < buf_stop; ++i)
+                    pitches_data[i] = pitch;
+            }
+        }
 
         for (int32_t i = buf_start; i < fast_stop; ++i)
             freqs_data[i] = (float)fast_cents_to_Hz(pitches_data[i]);
@@ -257,7 +272,7 @@ void Proc_fill_freq_buffer(
 
 void Proc_fill_scale_buffer(
         Work_buffer* scales,
-        const Work_buffer* dBs,
+        Work_buffer* dBs,
         int32_t buf_start,
         int32_t buf_stop)
 {
@@ -270,9 +285,24 @@ void Proc_fill_scale_buffer(
         const int32_t const_start = Work_buffer_get_const_start(dBs);
         float* scales_data = Work_buffer_get_contents_mut(scales);
 
-        const float* dBs_data = Work_buffer_get_contents(dBs);
+        float* dBs_data = Work_buffer_get_contents_mut(dBs);
 
         const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
+
+        // Sanitise input values
+        {
+            static const float bound = 10000.0f;
+
+            for (int32_t i = buf_start; i < fast_stop; ++i)
+                dBs_data[i] = clamp(dBs_data[i], -bound, bound);
+
+            if (fast_stop < buf_stop)
+            {
+                const float dB = clamp(dBs_data[fast_stop], -bound, bound);
+                for (int32_t i = fast_stop; i < buf_stop; ++i)
+                    dBs_data[i] = dB;
+            }
+        }
 
         for (int32_t i = buf_start; i < fast_stop; ++i)
             scales_data[i] = (float)fast_dB_to_scale(dBs_data[i]);
