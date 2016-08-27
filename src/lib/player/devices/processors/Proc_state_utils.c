@@ -217,13 +217,13 @@ void Proc_fill_freq_buffer(
     rassert(buf_start >= 0);
     rassert(buf_stop >= 0);
 
-    float* freqs_data = Work_buffer_get_contents_mut_keep_const(freqs);
-
     if (pitches != NULL)
     {
+        const int32_t const_start = Work_buffer_get_const_start(pitches);
+        float* freqs_data = Work_buffer_get_contents_mut(freqs);
+
         const float* pitches_data = Work_buffer_get_contents(pitches);
 
-        const int32_t const_start = Work_buffer_get_const_start(pitches);
         const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
 
         for (int32_t i = buf_start; i < fast_stop; ++i)
@@ -233,15 +233,18 @@ void Proc_fill_freq_buffer(
 
         if (fast_stop < buf_stop)
         {
-            const float freq = (float)cents_to_Hz(pitches_data[fast_stop]);
+            const float pitch = pitches_data[fast_stop];
+            const float freq = isfinite(pitch) ? (float)cents_to_Hz(pitch) : 0.0f;
             for (int32_t i = fast_stop; i < buf_stop; ++i)
                 freqs_data[i] = freq;
         }
 
-        Work_buffer_set_const_start(freqs, Work_buffer_get_const_start(pitches));
+        Work_buffer_set_const_start(freqs, const_start);
     }
     else
     {
+        float* freqs_data = Work_buffer_get_contents_mut(freqs);
+
         for (int32_t i = buf_start; i < buf_stop; ++i)
             freqs_data[i] = 440;
 
@@ -262,13 +265,13 @@ void Proc_fill_scale_buffer(
     rassert(buf_start >= 0);
     rassert(buf_stop >= 0);
 
-    float* scales_data = Work_buffer_get_contents_mut_keep_const(scales);
-
     if (dBs != NULL)
     {
+        const int32_t const_start = Work_buffer_get_const_start(dBs);
+        float* scales_data = Work_buffer_get_contents_mut(scales);
+
         const float* dBs_data = Work_buffer_get_contents(dBs);
 
-        const int32_t const_start = Work_buffer_get_const_start(dBs);
         const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
 
         for (int32_t i = buf_start; i < fast_stop; ++i)
@@ -283,10 +286,12 @@ void Proc_fill_scale_buffer(
                 scales_data[i] = scale;
         }
 
-        Work_buffer_set_const_start(scales, Work_buffer_get_const_start(dBs));
+        Work_buffer_set_const_start(scales, const_start);
     }
     else
     {
+        float* scales_data = Work_buffer_get_contents_mut(scales);
+
         for (int32_t i = buf_start; i < buf_stop; ++i)
             scales_data[i] = 1;
 
