@@ -1337,15 +1337,16 @@ class View(QWidget):
             return '120'
 
         ex = {
-            None                        : None,
-            events.EVENT_ARG_BOOL       : 'false',
-            events.EVENT_ARG_INT        : '0',
-            events.EVENT_ARG_FLOAT      : '0',
-            events.EVENT_ARG_TSTAMP     : '0',
-            events.EVENT_ARG_STRING     : "''",
-            events.EVENT_ARG_PAT        : 'pat(0, 0)',
-            events.EVENT_ARG_PITCH      : '0',
-            events.EVENT_ARG_REALTIME   : '0',
+            None                            : None,
+            events.EVENT_ARG_BOOL           : 'false',
+            events.EVENT_ARG_INT            : '0',
+            events.EVENT_ARG_FLOAT          : '0',
+            events.EVENT_ARG_TSTAMP         : '0',
+            events.EVENT_ARG_STRING         : "''",
+            events.EVENT_ARG_PAT            : 'pat(0, 0)',
+            events.EVENT_ARG_PITCH          : '0',
+            events.EVENT_ARG_REALTIME       : '0',
+            events.EVENT_ARG_MAYBE_STRING   : None,
         }
 
         return ex[info['arg_type']]
@@ -1380,7 +1381,7 @@ class View(QWidget):
         x_offset, y_offset = coords
 
         trigger = self._sheet_manager.get_selected_trigger()
-        if trigger.get_argument() == None:
+        if trigger.get_argument_type() == None:
             return
 
         # Offset field edit so that trigger type remains visible
@@ -1391,9 +1392,13 @@ class View(QWidget):
             x_offset += type_width
 
         validator = TriggerArgumentValidator()
-        start_text = trigger.get_argument()
         if new:
             start_text = self._get_example_trigger_argument(trigger.get_type())
+        else:
+            start_text = trigger.get_argument()
+
+        if start_text == None:
+            start_text = ''
 
         self._field_edit.start_editing(
                 x_offset,

@@ -109,9 +109,9 @@ class AudioEngine():
             var_type = tstamp.Tstamp if type(event_value) == list else type(event_value)
             var_value = var_type(event_value)
             self._ui_engine.update_active_var_value(channel_number, var_value)
-        elif event_type == '.xi':
+        elif event_type == '.xc':
             expr_name = event_value
-            self._ui_engine.update_init_expression(channel_number, expr_name)
+            self._ui_engine.update_ch_expression(channel_number, expr_name)
 
     def _process_events(self, event_data, context):
         for channel_number, event in event_data:

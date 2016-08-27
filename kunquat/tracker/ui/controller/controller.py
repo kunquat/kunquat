@@ -55,6 +55,7 @@ class Controller():
         self._note_channel_mapper = None
         self._audio_engine = None
         self._ui_model = None
+        self._ch_expr_counter = [-1] * CHANNELS_MAX
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -287,12 +288,12 @@ class Controller():
         self._updater.signal_update(set(['signal_runtime_env']))
 
     def _reset_expressions(self):
-        self._session.reset_active_init_expressions()
+        self._session.reset_active_ch_expressions()
 
         channel_defaults = self._ui_model.get_module().get_channel_defaults()
         for i in range(CHANNELS_MAX):
-            init_expr_name = channel_defaults.get_initial_expression(i)
-            self._session.set_default_init_expression(i, init_expr_name)
+            ch_expr_name = channel_defaults.get_initial_expression(i)
+            self._session.set_default_ch_expression(i, ch_expr_name)
 
     def _check_update_random_seed(self):
         rand_seed_update_key = 'i_random_seed_auto_update.json'
@@ -414,8 +415,7 @@ class Controller():
             expressions = []
             for i in range(2):
                 expr_name = au.get_test_expression(i)
-                if expr_name:
-                    expressions.append(expr_name)
+                expressions.append(expr_name)
         else:
             channel_defaults = self._ui_model.get_module().get_channel_defaults()
             expressions = [channel_defaults.get_initial_expression(channel_number)]
@@ -434,19 +434,32 @@ class Controller():
         control_event = (EVENT_SELECT_CONTROL, control_number)
 
         # Get expression override and restore events
-        orig_init_expr = self._session.get_active_init_expression(channel_number)
+        orig_ch_expr = self._session.get_active_ch_expression(channel_number)
         clear_expr_event = (EVENT_SET_CH_EXPRESSION, '')
-        restore_expr_event = (EVENT_SET_CH_EXPRESSION, orig_init_expr)
+        restore_expr_event = (EVENT_SET_CH_EXPRESSION, orig_ch_expr)
 
         # Fire events
         self._audio_engine.fire_event(channel_number, control_event)
         note_on_or_hit_event = (event_type, param)
-        self._audio_engine.fire_event(channel_number, clear_expr_event)
         self._audio_engine.fire_event(channel_number, note_on_or_hit_event)
-        for expression in expressions:
-            apply_expr_event = (EVENT_SET_NOTE_EXPRESSION, expression)
-            self._audio_engine.fire_event(channel_number, apply_expr_event)
-        self._audio_engine.fire_event(channel_number, restore_expr_event)
+        expr_events = [EVENT_SET_CH_EXPRESSION, EVENT_SET_NOTE_EXPRESSION]
+        ch_expr_count = 0
+        for i, expression in enumerate(expressions):
+            if expression != None:
+                apply_expr_event = (expr_events[i], expression)
+                self._audio_engine.fire_event(channel_number, apply_expr_event)
+                if expression == EVENT_SET_CH_EXPRESSION:
+                    ch_expr_count += 1
+        self._ch_expr_counter[channel_number] = ch_expr_count
+        if ch_expr_count > 0:
+            self._audio_engine.sync_call_post_action(
+                    self._reset_ch_expr.__name__, (channel_number, restore_expr_event))
+
+    def _reset_ch_expr(self, ch_num, restore_event):
+        if self._ch_expr_counter[ch_num] == 0:
+            self._audio_engine.fire_event(ch_num, restore_event)
+        else:
+            print('expr reset skipped')
 
     def set_rest(self, channel_number):
         note_off_event = (EVENT_NOTE_OFF, None)
@@ -493,8 +506,9 @@ class Controller():
         self._session.set_active_var_value(ch, var_value)
         self._updater.signal_update(set(['signal_runtime_env']))
 
-    def update_init_expression(self, ch, expr_name):
-        self._session.set_active_init_expression(ch, expr_name)
+    def update_ch_expression(self, ch, expr_name):
+        self._ch_expr_counter[ch] -= 1
+        self._session.set_active_ch_expression(ch, expr_name)
 
     def set_runtime_var_value(self, var_name, var_value):
         # Get current active variable name

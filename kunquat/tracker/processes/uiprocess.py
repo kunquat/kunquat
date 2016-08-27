@@ -117,8 +117,8 @@ class UiProcess(Process):
     def update_active_var_value(self, channel_number, var_value):
         self._q.put('update_active_var_value', channel_number, var_value)
 
-    def update_init_expression(self, channel_number, expr_name):
-        self._q.put('update_init_expression', channel_number, expr_name)
+    def update_ch_expression(self, channel_number, expr_name):
+        self._q.put('update_ch_expression', channel_number, expr_name)
 
     def update_pending_playback_cursor_track(self, track):
         self._q.put('update_pending_playback_cursor_track', track)
