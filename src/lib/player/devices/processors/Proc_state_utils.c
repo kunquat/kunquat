@@ -219,27 +219,14 @@ void Proc_fill_freq_buffer(
 
     if (pitches != NULL)
     {
+        Proc_clamp_pitch_values(pitches, buf_start, buf_stop);
+
         const int32_t const_start = Work_buffer_get_const_start(pitches);
         float* freqs_data = Work_buffer_get_contents_mut(freqs);
 
         float* pitches_data = Work_buffer_get_contents_mut(pitches);
 
         const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
-
-        // Sanitise input values
-        {
-            static const float bound = 2000000.0f;
-
-            for (int32_t i = buf_start; i < fast_stop; ++i)
-                pitches_data[i] = clamp(pitches_data[i], -bound, bound);
-
-            if (fast_stop < buf_stop)
-            {
-                const float pitch = clamp(pitches_data[fast_stop], -bound, bound);
-                for (int32_t i = fast_stop; i < buf_stop; ++i)
-                    pitches_data[i] = pitch;
-            }
-        }
 
         for (int32_t i = buf_start; i < fast_stop; ++i)
             freqs_data[i] = (float)fast_cents_to_Hz(pitches_data[i]);
@@ -327,6 +314,35 @@ void Proc_fill_scale_buffer(
 
         Work_buffer_set_const_start(scales, buf_start);
     }
+
+    return;
+}
+
+
+void Proc_clamp_pitch_values(Work_buffer* pitches, int32_t buf_start, int32_t buf_stop)
+{
+    rassert(pitches != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+
+    const int32_t const_start = Work_buffer_get_const_start(pitches);
+    const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
+
+    static const float bound = 2000000.0f;
+
+    float* pitches_data = Work_buffer_get_contents_mut(pitches);
+
+    for (int32_t i = buf_start; i < fast_stop; ++i)
+        pitches_data[i] = clamp(pitches_data[i], -bound, bound);
+
+    if (fast_stop < buf_stop)
+    {
+        const float pitch = clamp(pitches_data[fast_stop], -bound, bound);
+        for (int32_t i = fast_stop; i < buf_stop; ++i)
+            pitches_data[i] = pitch;
+    }
+
+    Work_buffer_set_const_start(pitches, const_start);
 
     return;
 }

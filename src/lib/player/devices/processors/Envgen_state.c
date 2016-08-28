@@ -91,6 +91,10 @@ static int32_t Envgen_vstate_render_voice(
             pitches[i] = 0;
         Work_buffer_set_const_start(pitches_wb, buf_start);
     }
+    else
+    {
+        Proc_clamp_pitch_values(pitches_wb, buf_start, buf_stop);
+    }
 
     // Get force scales
     Work_buffer* forces_wb = Proc_state_get_voice_buffer_mut(
