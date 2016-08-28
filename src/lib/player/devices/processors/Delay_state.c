@@ -24,6 +24,7 @@
 #include <player/Player.h>
 #include <player/Work_buffer.h>
 
+#include <float.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -190,10 +191,15 @@ static void Delay_pstate_render_mixed(
 
     for (int ch = 0; ch < 2; ++ch)
     {
-        const float* in = in_data[ch];
+        float* in = in_data[ch];
         float* out = out_data[ch];
         if ((in == NULL) || (out == NULL))
             continue;
+
+        // Clamp input values to finite range
+        // (this is required due to possible multiplication by zero below)
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            in[i] = clamp(in[i], -FLT_MAX, FLT_MAX);
 
         const float* history = history_data[ch];
         rassert(history != NULL);
