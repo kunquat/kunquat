@@ -98,6 +98,15 @@ static bool process_expr(
                 return false;
             }
         }
+        else if (field_type == VALUE_TYPE_MAYBE_STRING)
+        {
+            if (ret_value->type != VALUE_TYPE_NONE &&
+                    ret_value->type != VALUE_TYPE_STRING)
+            {
+                Streader_set_error(expr_reader, "Type mismatch");
+                return false;
+            }
+        }
         else if (!Value_convert(ret_value, ret_value, field_type))
         {
             Streader_set_error(expr_reader, "Type mismatch");

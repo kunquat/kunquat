@@ -89,6 +89,9 @@ const char* kqt_get_event_arg_type(const char* event_name)
                 case VALUE_TYPE_REALTIME:
                     return "realtime";
 
+                case VALUE_TYPE_MAYBE_STRING:
+                    return "maybe_string";
+
                 default:
                     rassert(false);
             }

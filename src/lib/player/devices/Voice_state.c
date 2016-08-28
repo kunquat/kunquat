@@ -15,7 +15,10 @@
 #include <player/devices/Voice_state.h>
 
 #include <debug/assert.h>
+#include <init/devices/Au_expressions.h>
+#include <init/devices/Audio_unit.h>
 #include <init/devices/Device_impl.h>
+#include <init/devices/Param_proc_filter.h>
 #include <init/devices/Processor.h>
 #include <kunquat/limits.h>
 #include <mathnum/Tstamp.h>
@@ -25,6 +28,7 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 Voice_state* Voice_state_init(Voice_state* state, Random* rand_p, Random* rand_s)
@@ -70,6 +74,10 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->has_finished = false;
     state->ramp_attack = 0;
 
+    state->expr_filters_applied = false;
+    memset(state->ch_expr_name, '\0', KQT_VAR_NAME_MAX);
+    memset(state->note_expr_name, '\0', KQT_VAR_NAME_MAX);
+
     state->hit_index = -1;
 
     state->pos = 0;
@@ -86,6 +94,24 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->is_stream_state = false;
 
     return state;
+}
+
+
+static bool is_proc_filtered(
+        const Processor* proc, const Au_expressions* ae, const char* expr_name)
+{
+    rassert(proc != NULL);
+    rassert(ae != NULL);
+    rassert(expr_name != NULL);
+
+    if (expr_name[0] == '\0')
+        return false;
+
+    const Param_proc_filter* proc_filter = Au_expressions_get_proc_filter(ae, expr_name);
+    if (proc_filter == NULL)
+        return false;
+
+    return !Param_proc_filter_is_proc_allowed(proc_filter, proc->index);
 }
 
 
@@ -114,6 +140,24 @@ int32_t Voice_state_render_voice(
     {
         vstate->active = false;
         return buf_start;
+    }
+
+    if (!vstate->expr_filters_applied)
+    {
+        // Stop processing if we are filtered out by current Audio unit expressions
+        const Audio_unit* au = (const Audio_unit*)au_state->parent.device;
+        const Au_expressions* ae = Audio_unit_get_expressions(au);
+        if (ae != NULL)
+        {
+            if (is_proc_filtered(proc, ae, vstate->ch_expr_name) ||
+                    is_proc_filtered(proc, ae, vstate->note_expr_name))
+            {
+                vstate->active = false;
+                return buf_start;
+            }
+        }
+
+        vstate->expr_filters_applied = true;
     }
 
     if (buf_start >= buf_stop)

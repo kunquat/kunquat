@@ -33,6 +33,16 @@ Au_expressions* new_Au_expressions(Streader* sr);
 
 
 /**
+ * Get the default note expression.
+ *
+ * \param ae    The Audio unit expressions -- must not be \c NULL.
+ *
+ * \return   The default expression name. This is never \c NULL.
+ */
+const char* Au_expressions_get_default_note_expr(const Au_expressions* ae);
+
+
+/**
  * Get a processor filter in the Audio unit expression collection.
  *
  * \param ae     The Audio unit expressions -- must not be \c NULL.

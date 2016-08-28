@@ -15,19 +15,17 @@
 #include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
-#include <init/devices/Au_expressions.h>
-#include <init/devices/Audio_unit.h>
-#include <init/devices/Param_proc_filter.h>
-#include <init/Module.h>
 #include <player/events/Event_common.h>
 #include <player/events/set_active_name.h>
 #include <Value.h>
 
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 
-bool Event_channel_set_init_expression_process(
+bool Event_channel_set_ch_expression_process(
         Channel* channel,
         Device_states* dstates,
         const Master_params* master_params,
@@ -37,59 +35,27 @@ bool Event_channel_set_init_expression_process(
     rassert(dstates != NULL);
     rassert(master_params != NULL);
     rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_STRING);
+    rassert(value->type == VALUE_TYPE_NONE || value->type == VALUE_TYPE_STRING);
 
-    return set_active_name(&channel->parent, ACTIVE_CAT_INIT_EXPRESSION, value);
-}
+    set_active_name(&channel->parent, ACTIVE_CAT_CH_EXPRESSION, value);
+    const char* expr = channel->init_ch_expression;
+    if (value->type == VALUE_TYPE_STRING)
+        expr = value->value.string_type;
 
-
-bool Event_channel_apply_expression_process(
-        Channel* channel,
-        Device_states* dstates,
-        const Master_params* master_params,
-        const Value* value)
-{
-    rassert(channel != NULL);
-    rassert(dstates != NULL);
-    rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_STRING);
-
-    set_active_name(&channel->parent, ACTIVE_CAT_EXPRESSION, value);
-
-    // Find our expression processor filter
-    const Audio_unit* au =
-        Module_get_au_from_input(channel->parent.module, channel->au_input);
-    if (au == NULL)
-        return true;
-
-    const Au_expressions* ae = Audio_unit_get_expressions(au);
-    if (ae == NULL)
-        return true;
-
-    const char* expr_name =
-        Active_names_get(channel->parent.active_names, ACTIVE_CAT_EXPRESSION);
-    const Param_proc_filter* filter = Au_expressions_get_proc_filter(ae, expr_name);
-    if (filter == NULL)
-        return true;
-
-    // Filter out Voices of excluded processors
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(channel, i);
 
-        if (!Param_proc_filter_is_proc_allowed(filter, i))
-        {
-            Voice* voice = channel->fg[i];
-            voice->state->active = false;
-        }
+        Voice_state* vstate = channel->fg[i]->state;
+        if (!vstate->expr_filters_applied)
+            strcpy(vstate->ch_expr_name, expr);
     }
 
     return true;
 }
 
 
-bool Event_channel_carry_expression_on_process(
+bool Event_channel_set_note_expression_process(
         Channel* channel,
         Device_states* dstates,
         const Master_params* master_params,
@@ -98,15 +64,36 @@ bool Event_channel_carry_expression_on_process(
     rassert(channel != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    ignore(value);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_NONE || value->type == VALUE_TYPE_STRING);
 
-    channel->carry_expression = true;
+    static const char apply_default[] = "";
+    static const char disabled[] = "!none";
+    const char* expr = apply_default;
+    if (value->type == VALUE_TYPE_STRING)
+    {
+        if (value->value.string_type[0] == '\0')
+            expr = disabled;
+        else
+            expr = value->value.string_type;
+    }
+
+    Active_names_set(channel->parent.active_names, ACTIVE_CAT_NOTE_EXPRESSION, expr);
+
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    {
+        Event_check_voice(channel, i);
+
+        Voice_state* vstate = channel->fg[i]->state;
+        if (!vstate->expr_filters_applied)
+            strcpy(vstate->note_expr_name, expr);
+    }
 
     return true;
 }
 
 
-bool Event_channel_carry_expression_off_process(
+bool Event_channel_carry_note_expression_on_process(
         Channel* channel,
         Device_states* dstates,
         const Master_params* master_params,
@@ -117,7 +104,24 @@ bool Event_channel_carry_expression_off_process(
     rassert(master_params != NULL);
     ignore(value);
 
-    channel->carry_expression = false;
+    channel->carry_note_expression = true;
+
+    return true;
+}
+
+
+bool Event_channel_carry_note_expression_off_process(
+        Channel* channel,
+        Device_states* dstates,
+        const Master_params* master_params,
+        const Value* value)
+{
+    rassert(channel != NULL);
+    rassert(dstates != NULL);
+    rassert(master_params != NULL);
+    ignore(value);
+
+    channel->carry_note_expression = false;
 
     return true;
 }

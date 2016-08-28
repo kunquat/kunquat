@@ -15,7 +15,6 @@
 #include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
-#include <init/devices/Au_expressions.h>
 #include <init/devices/Au_streams.h>
 #include <init/devices/Param_proc_filter.h>
 #include <init/Input_map.h>
@@ -135,35 +134,12 @@ bool Event_channel_note_on_process(
     if (Audio_unit_get_type(au) != AU_TYPE_INSTRUMENT)
         return true;
 
-    // Get expression filters
-    const Au_expressions* ae = Audio_unit_get_expressions(au);
-    const Param_proc_filter* xpf_init = NULL;
-    const Param_proc_filter* xpf = NULL;
-    if (ae != NULL)
-    {
-        xpf_init = Au_expressions_get_proc_filter(
-                ae,
-                Active_names_get(ch->parent.active_names, ACTIVE_CAT_INIT_EXPRESSION));
-        if (ch->carry_expression)
-        {
-            xpf = Au_expressions_get_proc_filter(
-                    ae,
-                    Active_names_get(ch->parent.active_names, ACTIVE_CAT_EXPRESSION));
-        }
-    }
-
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         const Processor* proc = Audio_unit_get_proc(au, i);
         if (proc == NULL ||
                 !Device_is_existent((const Device*)proc) ||
                 !Processor_get_voice_signals(proc))
-            continue;
-
-        // Skip processors that are filtered out for active expressions
-        if ((xpf_init != NULL) && !Param_proc_filter_is_proc_allowed(xpf_init, i))
-            continue;
-        if ((xpf != NULL) && !Param_proc_filter_is_proc_allowed(xpf, i))
             continue;
 
         const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
@@ -281,23 +257,6 @@ bool Event_channel_hit_process(
 
     const Param_proc_filter* hpf = Audio_unit_get_hit_proc_filter(au, hit_index);
 
-    // Get expression filters
-    const Au_expressions* ae = Audio_unit_get_expressions(au);
-    const Param_proc_filter* xpf_init = NULL;
-    const Param_proc_filter* xpf = NULL;
-    if (ae != NULL)
-    {
-        xpf_init = Au_expressions_get_proc_filter(
-                ae,
-                Active_names_get(ch->parent.active_names, ACTIVE_CAT_INIT_EXPRESSION));
-        if (ch->carry_expression)
-        {
-            xpf = Au_expressions_get_proc_filter(
-                    ae,
-                    Active_names_get(ch->parent.active_names, ACTIVE_CAT_EXPRESSION));
-        }
-    }
-
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         const Processor* proc = Audio_unit_get_proc(au, i);
@@ -306,12 +265,8 @@ bool Event_channel_hit_process(
                 !Processor_get_voice_signals(proc))
             continue;
 
-        // Skip processors that are filtered out for this hit index or expressions
+        // Skip processors that are filtered out for this hit index
         if ((hpf != NULL) && !Param_proc_filter_is_proc_allowed(hpf, i))
-            continue;
-        if ((xpf_init != NULL) && !Param_proc_filter_is_proc_allowed(xpf_init, i))
-            continue;
-        if ((xpf != NULL) && !Param_proc_filter_is_proc_allowed(xpf, i))
             continue;
 
         const Proc_state* proc_state = (Proc_state*)Device_states_get_state(

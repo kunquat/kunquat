@@ -15,6 +15,7 @@
 #include <player/events/note_setup.h>
 
 #include <debug/assert.h>
+#include <init/devices/Au_expressions.h>
 #include <init/devices/Audio_unit.h>
 #include <kunquat/limits.h>
 #include <player/Channel.h>
@@ -22,11 +23,12 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 void reserve_voice(
         Channel* ch,
-        Audio_unit* au,
+        const Audio_unit* au,
         uint64_t group_id,
         const Proc_state* proc_state,
         int proc_num,
@@ -48,12 +50,33 @@ void reserve_voice(
 //    fprintf(stderr, "allocated Voice %p\n", (void*)ch->fg[proc_num]);
     ch->fg_id[proc_num] = Voice_id(ch->fg[proc_num]);
 
+    // Get expression settings
+    const char* ch_expr =
+        Active_names_get(ch->parent.active_names, ACTIVE_CAT_CH_EXPRESSION);
+    const char* note_expr =
+        Active_names_get(ch->parent.active_names, ACTIVE_CAT_NOTE_EXPRESSION);
+    rassert(strlen(ch_expr) < KQT_VAR_NAME_MAX);
+    rassert(strlen(note_expr) < KQT_VAR_NAME_MAX);
+
     Voice_init(
             ch->fg[proc_num],
             Audio_unit_get_proc(au, proc_num),
             group_id,
             proc_state,
             rand_seed);
+
+    Voice_state* vstate = ch->fg[proc_num]->state;
+    strcpy(vstate->ch_expr_name, ch_expr);
+    if (ch->carry_note_expression && (note_expr[0] != '\0'))
+    {
+        strcpy(vstate->note_expr_name, note_expr);
+    }
+    else
+    {
+        const Au_expressions* ae = Audio_unit_get_expressions(au);
+        if (ae != NULL)
+            strcpy(vstate->note_expr_name, Au_expressions_get_default_note_expr(ae));
+    }
 
     return;
 }

@@ -74,9 +74,21 @@ Trigger* new_Trigger_from_string(Streader* sr, const Event_names* names)
     field_type = Event_names_get_param_type(names, type_str);
 
     if (field_type == VALUE_TYPE_NONE)
+    {
         Streader_read_null(sr);
+    }
+    else if (field_type == VALUE_TYPE_MAYBE_STRING)
+    {
+        if (!Streader_read_null(sr))
+        {
+            Streader_clear_error(sr);
+            Streader_read_string(sr, 0, NULL);
+        }
+    }
     else
+    {
         Streader_read_string(sr, 0, NULL);
+    }
     if (Streader_is_error_set(sr))
         return NULL;
 

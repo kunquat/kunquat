@@ -27,6 +27,7 @@ EVENT_ARG_STRING = 'string'
 EVENT_ARG_PAT = 'pat'
 EVENT_ARG_PITCH = 'pitch'
 EVENT_ARG_REALTIME = 'realtime'
+EVENT_ARG_MAYBE_STRING = 'maybe_string'
 
 
 """Event information indexed by event name."""
