@@ -16,9 +16,11 @@
 
 #include <debug/assert.h>
 #include <init/devices/processors/Proc_ringmod.h>
+#include <mathnum/common.h>
 #include <memory.h>
 #include <player/devices/processors/Proc_state_utils.h>
 
+#include <float.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -45,8 +47,8 @@ enum
 
 
 static void multiply_signals(
-        float* in1_buffers[2],
-        float* in2_buffers[2],
+        Work_buffer* in1_buffers[2],
+        Work_buffer* in2_buffers[2],
         float* out_buffers[2],
         int32_t buf_start,
         int32_t buf_stop)
@@ -59,12 +61,21 @@ static void multiply_signals(
 
     for (int ch = 0; ch < 2; ++ch)
     {
-        const float* in1_values = in1_buffers[ch];
-        const float* in2_values = in2_buffers[ch];
+        Work_buffer* in1_wb = in1_buffers[ch];
+        Work_buffer* in2_wb = in2_buffers[ch];
         float* out_values = out_buffers[ch];
 
-        if ((in1_values != NULL) && (in2_values != NULL) && (out_values != NULL))
+        if ((in1_wb != NULL) && (in2_wb != NULL) && (out_values != NULL))
         {
+            float* in1_values = Work_buffer_get_contents_mut(in1_wb);
+            float* in2_values = Work_buffer_get_contents_mut(in2_wb);
+
+            // Clamp inputs to finite range (so that we don't accidentally produce NaNs)
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+                in1_values[i] = clamp(in1_values[i], -FLT_MAX, FLT_MAX);
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+                in2_values[i] = clamp(in2_values[i], -FLT_MAX, FLT_MAX);
+
             for (int32_t i = buf_start; i < buf_stop; ++i)
                 out_values[i] = in1_values[i] * in2_values[i];
         }
@@ -89,13 +100,21 @@ static void Ringmod_pstate_render_mixed(
     Proc_state* proc_state = (Proc_state*)dstate;
 
     // Get inputs
-    float* in1_buffers[2] = { NULL };
-    Proc_state_get_mixed_audio_in_buffers(
-            proc_state, PORT_IN_AUDIO_1_L, PORT_IN_AUDIO_1_STOP, in1_buffers);
+    Work_buffer* in1_buffers[2] =
+    {
+        Device_state_get_audio_buffer(
+                dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_1_L),
+        Device_state_get_audio_buffer(
+                dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_1_R),
+    };
 
-    float* in2_buffers[2] = { NULL };
-    Proc_state_get_mixed_audio_in_buffers(
-            proc_state, PORT_IN_AUDIO_2_L, PORT_IN_AUDIO_2_STOP, in2_buffers);
+    Work_buffer* in2_buffers[2] =
+    {
+        Device_state_get_audio_buffer(
+                dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_2_L),
+        Device_state_get_audio_buffer(
+                dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_2_R),
+    };
 
     // Get outputs
     float* out_buffers[2] = { NULL };
@@ -146,13 +165,21 @@ static int32_t Ringmod_vstate_render_voice(
     rassert(tempo > 0);
 
     // Get inputs
-    float* in1_buffers[2] = { NULL };
-    Proc_state_get_voice_audio_in_buffers(
-            proc_state, PORT_IN_AUDIO_1_L, PORT_IN_AUDIO_1_STOP, in1_buffers);
+    Work_buffer* in1_buffers[2] =
+    {
+        Proc_state_get_voice_buffer_mut(
+                proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_1_L),
+        Proc_state_get_voice_buffer_mut(
+                proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_1_R),
+    };
 
-    float* in2_buffers[2] = { NULL };
-    Proc_state_get_voice_audio_in_buffers(
-            proc_state, PORT_IN_AUDIO_2_L, PORT_IN_AUDIO_2_STOP, in2_buffers);
+    Work_buffer* in2_buffers[2] =
+    {
+        Proc_state_get_voice_buffer_mut(
+                proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_2_L),
+        Proc_state_get_voice_buffer_mut(
+                proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_2_R),
+    };
 
     if (((in1_buffers[0] == NULL) || (in2_buffers[0] == NULL)) &&
             ((in1_buffers[1] == NULL) || (in2_buffers[1] == NULL)))
