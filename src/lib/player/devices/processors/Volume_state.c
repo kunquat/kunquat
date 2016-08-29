@@ -51,7 +51,7 @@ static void apply_volume(
         int buf_count,
         float* in_buffers[buf_count],
         float* out_buffers[buf_count],
-        float* vol_buffer,
+        Work_buffer* vol_wb,
         float global_vol,
         int32_t buf_start,
         int32_t buf_stop)
@@ -77,8 +77,11 @@ static void apply_volume(
     }
 
     // Adjust output based on volume buffer
-    if (vol_buffer != NULL)
+    if (vol_wb != NULL)
     {
+        Proc_fill_scale_buffer(vol_wb, vol_wb, buf_start, buf_stop);
+        const float* scales = Work_buffer_get_contents(vol_wb);
+
         for (int ch = 0; ch < buf_count; ++ch)
         {
             float* out = out_buffers[ch];
@@ -86,7 +89,7 @@ static void apply_volume(
                 continue;
 
             for (int32_t i = buf_start; i < buf_stop; ++i)
-                out[i] *= (float)fast_dB_to_scale(vol_buffer[i]);
+                out[i] *= scales[i];
         }
     }
 
@@ -129,7 +132,7 @@ static void Volume_pstate_render_mixed(
     Volume_pstate* vpstate = (Volume_pstate*)dstate;
 
     // Get control stream
-    float* vol_buf = Device_state_get_audio_buffer_contents_mut(
+    Work_buffer* vol_wb = Device_state_get_audio_buffer(
             dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
 
     // Get input
@@ -143,7 +146,7 @@ static void Volume_pstate_render_mixed(
             &vpstate->parent, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_bufs);
 
     apply_volume(
-            2, in_bufs, out_bufs, vol_buf, (float)vpstate->volume, buf_start, buf_stop);
+            2, in_bufs, out_bufs, vol_wb, (float)vpstate->volume, buf_start, buf_stop);
 
     return;
 }
@@ -203,7 +206,7 @@ static int32_t Volume_vstate_render_voice(
     rassert(tempo > 0);
 
     // Get control stream
-    float* volume_buf = Proc_state_get_voice_buffer_contents_mut(
+    Work_buffer* vol_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
 
     // Get input
@@ -227,7 +230,7 @@ static int32_t Volume_vstate_render_voice(
             2,
             in_bufs,
             out_bufs,
-            volume_buf,
+            vol_wb,
             (float)vpstate->volume,
             buf_start,
             buf_stop);

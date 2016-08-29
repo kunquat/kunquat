@@ -21,6 +21,7 @@
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <mathnum/Random.h>
+#include <player/devices/processors/Proc_state_utils.h>
 #include <player/Force_controls.h>
 #include <player/Time_env_state.h>
 #include <player/Work_buffers.h>
@@ -95,6 +96,10 @@ static int32_t Force_vstate_render_voice(
         for (int32_t i = buf_start; i < buf_stop; ++i)
             pitches[i] = 0;
         Work_buffer_set_const_start(pitches_wb, buf_start);
+    }
+    else
+    {
+        Proc_clamp_pitch_values(pitches_wb, buf_start, buf_stop);
     }
 
     // Get output

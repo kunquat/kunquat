@@ -108,8 +108,8 @@ const float* Work_buffer_get_contents(const Work_buffer* buffer);
  *
  * Note: This function clears the const start index of the buffer as it no
  *       longer makes any assumptions of the buffer contents. If you wish to
- *       utilise this optimisation feature, call the function
- *       \a Work_buffer_get_contents_mut_keep_const instead.
+ *       utilise this optimisation feature, retrieve the const start value
+ *       first by calling \a Work_buffer_get_const_start.
  *
  * \param buffer   The Work buffer -- must not be \c NULL.
  *
@@ -118,18 +118,6 @@ const float* Work_buffer_get_contents(const Work_buffer* buffer);
  *           the buffer from a caller, this function never returns \c NULL.
  */
 float* Work_buffer_get_contents_mut(Work_buffer* buffer);
-
-
-/**
- * Get the mutable contents of the Work buffer with the current const start.
- *
- * \param buffer   The Work buffer -- must not be \c NULL.
- *
- * \return   The address of the internal buffer, with a valid index range of
- *           [-1, Work_buffer_get_size(\a buffer)]. For devices that receive
- *           the buffer from a caller, this function never returns \c NULL.
- */
-float* Work_buffer_get_contents_mut_keep_const(Work_buffer* buffer);
 
 
 /**

@@ -150,13 +150,6 @@ float* Work_buffer_get_contents_mut(Work_buffer* buffer)
 }
 
 
-float* Work_buffer_get_contents_mut_keep_const(Work_buffer* buffer)
-{
-    rassert(buffer != NULL);
-    return (float*)buffer->contents + 1;
-}
-
-
 int32_t* Work_buffer_get_contents_int_mut(Work_buffer* buffer)
 {
     rassert(buffer != NULL);
@@ -243,13 +236,15 @@ void Work_buffer_mix(
     if (buffer == in)
         return;
 
-    float* buf_contents = Work_buffer_get_contents_mut_keep_const(buffer);
+    const int32_t orig_const_start = Work_buffer_get_const_start(buffer);
+    float* buf_contents = Work_buffer_get_contents_mut(buffer);
+
     const float* in_contents = Work_buffer_get_contents(in);
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
         buf_contents[i] += in_contents[i];
 
-    Work_buffer_set_const_start(buffer, max(buffer->const_start, in->const_start));
+    Work_buffer_set_const_start(buffer, max(orig_const_start, in->const_start));
 
     return;
 }

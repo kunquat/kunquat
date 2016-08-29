@@ -209,7 +209,7 @@ void Proc_ramp_attack(
 
 void Proc_fill_freq_buffer(
         Work_buffer* freqs,
-        const Work_buffer* pitches,
+        Work_buffer* pitches,
         int32_t buf_start,
         int32_t buf_stop)
 {
@@ -217,13 +217,15 @@ void Proc_fill_freq_buffer(
     rassert(buf_start >= 0);
     rassert(buf_stop >= 0);
 
-    float* freqs_data = Work_buffer_get_contents_mut_keep_const(freqs);
-
     if (pitches != NULL)
     {
-        const float* pitches_data = Work_buffer_get_contents(pitches);
+        Proc_clamp_pitch_values(pitches, buf_start, buf_stop);
 
         const int32_t const_start = Work_buffer_get_const_start(pitches);
+        float* freqs_data = Work_buffer_get_contents_mut(freqs);
+
+        float* pitches_data = Work_buffer_get_contents_mut(pitches);
+
         const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
 
         for (int32_t i = buf_start; i < fast_stop; ++i)
@@ -233,15 +235,18 @@ void Proc_fill_freq_buffer(
 
         if (fast_stop < buf_stop)
         {
-            const float freq = (float)cents_to_Hz(pitches_data[fast_stop]);
+            const float pitch = pitches_data[fast_stop];
+            const float freq = isfinite(pitch) ? (float)cents_to_Hz(pitch) : 0.0f;
             for (int32_t i = fast_stop; i < buf_stop; ++i)
                 freqs_data[i] = freq;
         }
 
-        Work_buffer_set_const_start(freqs, Work_buffer_get_const_start(pitches));
+        Work_buffer_set_const_start(freqs, const_start);
     }
     else
     {
+        float* freqs_data = Work_buffer_get_contents_mut(freqs);
+
         for (int32_t i = buf_start; i < buf_stop; ++i)
             freqs_data[i] = 440;
 
@@ -254,7 +259,7 @@ void Proc_fill_freq_buffer(
 
 void Proc_fill_scale_buffer(
         Work_buffer* scales,
-        const Work_buffer* dBs,
+        Work_buffer* dBs,
         int32_t buf_start,
         int32_t buf_stop)
 {
@@ -262,14 +267,29 @@ void Proc_fill_scale_buffer(
     rassert(buf_start >= 0);
     rassert(buf_stop >= 0);
 
-    float* scales_data = Work_buffer_get_contents_mut_keep_const(scales);
-
     if (dBs != NULL)
     {
-        const float* dBs_data = Work_buffer_get_contents(dBs);
-
         const int32_t const_start = Work_buffer_get_const_start(dBs);
+        float* scales_data = Work_buffer_get_contents_mut(scales);
+
+        float* dBs_data = Work_buffer_get_contents_mut(dBs);
+
         const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
+
+        // Sanitise input values
+        {
+            static const float bound = 10000.0f;
+
+            for (int32_t i = buf_start; i < fast_stop; ++i)
+                dBs_data[i] = clamp(dBs_data[i], -bound, bound);
+
+            if (fast_stop < buf_stop)
+            {
+                const float dB = clamp(dBs_data[fast_stop], -bound, bound);
+                for (int32_t i = fast_stop; i < buf_stop; ++i)
+                    dBs_data[i] = dB;
+            }
+        }
 
         for (int32_t i = buf_start; i < fast_stop; ++i)
             scales_data[i] = (float)fast_dB_to_scale(dBs_data[i]);
@@ -283,15 +303,46 @@ void Proc_fill_scale_buffer(
                 scales_data[i] = scale;
         }
 
-        Work_buffer_set_const_start(scales, Work_buffer_get_const_start(dBs));
+        Work_buffer_set_const_start(scales, const_start);
     }
     else
     {
+        float* scales_data = Work_buffer_get_contents_mut(scales);
+
         for (int32_t i = buf_start; i < buf_stop; ++i)
             scales_data[i] = 1;
 
         Work_buffer_set_const_start(scales, buf_start);
     }
+
+    return;
+}
+
+
+void Proc_clamp_pitch_values(Work_buffer* pitches, int32_t buf_start, int32_t buf_stop)
+{
+    rassert(pitches != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+
+    const int32_t const_start = Work_buffer_get_const_start(pitches);
+    const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
+
+    static const float bound = 2000000.0f;
+
+    float* pitches_data = Work_buffer_get_contents_mut(pitches);
+
+    for (int32_t i = buf_start; i < fast_stop; ++i)
+        pitches_data[i] = clamp(pitches_data[i], -bound, bound);
+
+    if (fast_stop < buf_stop)
+    {
+        const float pitch = clamp(pitches_data[fast_stop], -bound, bound);
+        for (int32_t i = fast_stop; i < buf_stop; ++i)
+            pitches_data[i] = pitch;
+    }
+
+    Work_buffer_set_const_start(pitches, const_start);
 
     return;
 }

@@ -200,7 +200,7 @@ static void Filter_state_impl_apply_filter_settings(
 
 static double get_cutoff_freq(double param)
 {
-    rassert(isfinite(param));
+    rassert(!isnan(param));
 
     if (param >= CUTOFF_INF_LIMIT)
         return INFINITY;
