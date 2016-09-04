@@ -59,10 +59,13 @@ bool Event_channel_slide_pitch_process(
         }
     }
 
+    const double start_pitch =
+        isfinite(ch->pitch_controls.pitch) ? ch->pitch_controls.pitch : pitch;
+
     if (Slider_in_progress(&ch->pitch_controls.slider))
         Slider_change_target(&ch->pitch_controls.slider, pitch);
     else
-        Slider_start(&ch->pitch_controls.slider, pitch, ch->pitch_controls.pitch);
+        Slider_start(&ch->pitch_controls.slider, pitch, start_pitch);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
