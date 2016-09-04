@@ -50,10 +50,8 @@ bool Event_channel_note_on_process(
         const Value* value)
 {
     rassert(ch != NULL);
-    rassert(ch->freq != NULL);
-    rassert(*ch->freq > 0);
-    rassert(ch->tempo != NULL);
-    rassert(*ch->tempo > 0);
+    rassert(ch->audio_rate > 0);
+    rassert(ch->tempo > 0);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
     rassert(value != NULL);
@@ -211,8 +209,8 @@ bool Event_channel_hit_process(
         const Value* value)
 {
     rassert(ch != NULL);
-    rassert(ch->freq != NULL);
-    rassert(ch->tempo != NULL);
+    rassert(ch->audio_rate > 0);
+    rassert(ch->tempo > 0);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
     rassert(value != NULL);

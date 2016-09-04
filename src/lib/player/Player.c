@@ -145,6 +145,13 @@ Player* new_Player(
         return NULL;
     }
 
+    if (Master_params_init(
+                &player->master_params, player->module, player->estate) == NULL)
+    {
+        del_Player(player);
+        return NULL;
+    }
+
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
         player->channels[i] = new_Channel(
@@ -153,20 +160,13 @@ Player* new_Player(
                 Module_get_au_table(player->module),
                 player->estate,
                 player->voices,
-                &player->master_params.tempo,
-                &player->audio_rate);
+                player->master_params.tempo,
+                player->audio_rate);
         if (player->channels[i] == NULL)
         {
             del_Player(player);
             return NULL;
         }
-    }
-
-    if (Master_params_init(
-                &player->master_params, player->module, player->estate) == NULL)
-    {
-        del_Player(player);
-        return NULL;
     }
 
     Player_update_sliders_and_lfos_audio_rate(player);

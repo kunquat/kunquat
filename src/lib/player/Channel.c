@@ -67,16 +67,17 @@ Channel* new_Channel(
         Au_table* au_table,
         Env_state* estate,
         Voice_pool* voices,
-        double* tempo,
-        int32_t* audio_rate)
+        double tempo,
+        int32_t audio_rate)
 {
     rassert(num >= 0);
     rassert(num < KQT_CHANNELS_MAX);
     rassert(au_table != NULL);
     rassert(estate != NULL);
     rassert(voices != NULL);
-    rassert(tempo != NULL);
-    rassert(audio_rate != NULL);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
+    rassert(audio_rate > 0);
 
     Channel* ch = memory_alloc_item(Channel);
     if (ch == NULL)
@@ -91,7 +92,7 @@ Channel* new_Channel(
     ch->au_table = au_table;
     ch->pool = voices;
     ch->tempo = tempo;
-    ch->freq = audio_rate;
+    ch->audio_rate = audio_rate;
 
     return ch;
 }
@@ -101,6 +102,8 @@ void Channel_set_audio_rate(Channel* ch, int32_t audio_rate)
 {
     rassert(ch != NULL);
     rassert(audio_rate > 0);
+
+    ch->audio_rate = audio_rate;
 
     Force_controls_set_audio_rate(&ch->force_controls, audio_rate);
     Pitch_controls_set_audio_rate(&ch->pitch_controls, audio_rate);
@@ -114,6 +117,8 @@ void Channel_set_tempo(Channel* ch, double tempo)
 {
     rassert(ch != NULL);
     rassert(tempo > 0);
+
+    ch->tempo = tempo;
 
     Force_controls_set_tempo(&ch->force_controls, tempo);
     Pitch_controls_set_tempo(&ch->pitch_controls, tempo);

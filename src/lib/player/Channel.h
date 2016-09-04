@@ -57,8 +57,8 @@ struct Channel
 
     int32_t au_input;              ///< Currently active Audio unit input.
     Au_table* au_table;
-    int32_t* freq;
-    double* tempo;
+    int32_t audio_rate;
+    double tempo;
 
     double volume;                 ///< Channel volume (linear factor).
 
@@ -98,9 +98,8 @@ struct Channel
  * \param au_table     The audio unit table -- must not be \c NULL.
  * \param estate       The Environment state -- must not be \c NULL.
  * \param voices       The Voice pool -- must not be \c NULL.
- * \param tempo        A reference to the current tempo -- must not be \c NULL.
- * \param audio_rate   A reference to the current audio rate
- *                     -- must not be \c NULL.
+ * \param tempo        The current tempo -- must be finite and positive.
+ * \param audio_rate   The current audio rate -- must be positive.
  *
  * \return   The new Channel state if successful, or \c NULL if memory
  *           allocation failed.
@@ -111,8 +110,8 @@ Channel* new_Channel(
         Au_table* au_table,
         Env_state* estate,
         Voice_pool* voices,
-        double* tempo,
-        int32_t* audio_rate);
+        double tempo,
+        int32_t audio_rate);
 
 
 /**

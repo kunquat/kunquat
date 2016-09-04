@@ -35,10 +35,8 @@ void reserve_voice(
         uint64_t rand_seed)
 {
     rassert(ch != NULL);
-    rassert(ch->freq != NULL);
-    rassert(*ch->freq > 0);
-    rassert(ch->tempo != NULL);
-    rassert(*ch->tempo > 0);
+    rassert(ch->audio_rate > 0);
+    rassert(ch->tempo > 0);
     rassert(au != NULL);
     rassert(proc_state != NULL);
     rassert(proc_num >= 0);
