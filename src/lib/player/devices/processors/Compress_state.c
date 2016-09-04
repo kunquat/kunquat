@@ -77,6 +77,9 @@ static void Compress_states_update(
         Compress_state* cstate = &cstates[ch];
         rassert(cstate != NULL);
 
+        if (in_wbs[ch] == NULL)
+            continue;
+
         float level = cstate->level;
 
         float* levels = Work_buffer_get_contents_mut(level_wbs[ch]);
