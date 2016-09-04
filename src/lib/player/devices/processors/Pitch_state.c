@@ -74,6 +74,8 @@ static int32_t Pitch_vstate_render_voice(
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
+    const Device_state* dstate = &proc_state->parent;
+
     // Get output
     Work_buffer* out_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_PITCH);
@@ -93,6 +95,7 @@ static int32_t Pitch_vstate_render_voice(
         return buf_start;
     }
 
+    Pitch_controls_set_audio_rate(pc, dstate->audio_rate);
     Pitch_controls_set_tempo(pc, tempo);
 
     out_buf[buf_start - 1] = (float)pc->pitch;
@@ -176,7 +179,6 @@ static int32_t Pitch_vstate_render_voice(
     {
         const_start = buf_stop;
 
-        const Device_state* dstate = &proc_state->parent;
         const double progress_update =
             (pvstate->arpeggio_speed / dstate->audio_rate) * (tempo / 60.0);
 
