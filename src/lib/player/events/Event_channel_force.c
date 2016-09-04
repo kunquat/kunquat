@@ -82,12 +82,14 @@ bool Event_channel_slide_force_process(
     rassert(value != NULL);
     rassert(value->type == VALUE_TYPE_FLOAT);
 
-    double slide_target = value->value.float_type;
+    const double slide_target = value->value.float_type;
+    const double start_force =
+        isfinite(ch->force_controls.force) ? ch->force_controls.force : slide_target;
 
     if (Slider_in_progress(&ch->force_controls.slider))
         Slider_change_target(&ch->force_controls.slider, slide_target);
     else
-        Slider_start(&ch->force_controls.slider, slide_target, ch->force_controls.force);
+        Slider_start(&ch->force_controls.slider, slide_target, start_force);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
