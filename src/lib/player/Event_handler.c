@@ -214,19 +214,14 @@ bool Event_handler_set_au_process(
 
 
 static bool Event_handler_handle(
-        Event_handler* eh,
-        int index,
-        Event_type type,
-        const Value* value)
+        Event_handler* eh, int index, Event_type type, const Value* value)
 {
     rassert(eh != NULL);
     rassert(index >= 0);
     rassert(index < KQT_COLUMNS_MAX);
     rassert(Event_is_valid(type));
-    rassert(eh->channels[index]->freq != NULL);
-    rassert(*eh->channels[index]->freq > 0);
-    rassert(eh->channels[index]->tempo != NULL);
-    rassert(*eh->channels[index]->tempo > 0);
+    rassert(eh->channels[index]->audio_rate > 0);
+    rassert(eh->channels[index]->tempo > 0);
 
     if (Event_is_channel(type))
     {
@@ -299,10 +294,8 @@ bool Event_handler_trigger(
     rassert(!Event_is_query(type));
     rassert(!Event_is_auto(type));
 
-    rassert(eh->channels[ch_num]->freq != NULL);
-    rassert(*eh->channels[ch_num]->freq > 0);
-    rassert(eh->channels[ch_num]->tempo != NULL);
-    rassert(*eh->channels[ch_num]->tempo > 0);
+    rassert(eh->channels[ch_num]->audio_rate > 0);
+    rassert(eh->channels[ch_num]->tempo > 0);
 
     return Event_handler_handle(eh, ch_num, type, arg);
 }

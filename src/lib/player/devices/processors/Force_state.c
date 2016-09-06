@@ -86,6 +86,8 @@ static int32_t Force_vstate_render_voice(
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
+    const Device_state* dstate = &proc_state->parent;
+
     // Get pitch input
     Work_buffer* pitches_wb = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
@@ -116,6 +118,7 @@ static int32_t Force_vstate_render_voice(
     const Proc_force* force = (const Proc_force*)proc_state->parent.device->dimpl;
 
     Force_controls* fc = &fvstate->controls;
+    Force_controls_set_audio_rate(fc, dstate->audio_rate);
     Force_controls_set_tempo(fc, tempo);
 
     int32_t const_start = buf_start;
