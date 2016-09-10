@@ -53,7 +53,7 @@ class GeneralModEditor(QWidget):
         gl.addWidget(QLabel('Mixing volume:'), 0, 0)
         gl.addWidget(self._mixing_volume, 0, 1)
         gl.addWidget(QWidget(), 0, 2)
-        gl.addWidget(QLabel('Force shift:'), 1, 0)
+        gl.addWidget(QLabel('Note force shift:'), 1, 0)
         gl.addWidget(self._force_shift, 1, 1)
         gl.addWidget(QLabel('Block dc:'), 2, 0)
         gl.addWidget(self._dc_blocker, 2, 1)
