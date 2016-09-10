@@ -94,6 +94,13 @@ class Module():
     def set_mixing_volume(self, volume):
         self._store['p_mixing_volume.json'] = volume
 
+    def get_force_shift(self):
+        key = 'p_force_shift.json'
+        return self._store.get(key, get_default_value(key))
+
+    def set_force_shift(self, value):
+        self._store['p_force_shift.json'] = value
+
     def get_random_seed(self):
         key = 'p_random_seed.json'
         return self._store.get(key, get_default_value(key))
