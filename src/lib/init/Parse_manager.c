@@ -305,6 +305,20 @@ static bool read_mixing_volume(Reader_params* params)
 }
 
 
+static bool read_force_shift(Reader_params* params)
+{
+    rassert(params != NULL);
+
+    if (!Module_read_force_shift(Handle_get_module(params->handle), params->sr))
+    {
+        set_error(params);
+        return false;
+    }
+
+    return true;
+}
+
+
 #define acquire_port_index(index, params, depth)            \
     if (true)                                               \
     {                                                       \

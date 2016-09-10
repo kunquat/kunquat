@@ -55,6 +55,7 @@ struct Module
     bool is_dc_blocker_enabled;         ///< Block dc in the final mix.
     double mix_vol_dB;                  ///< Mixing volume in dB.
     double mix_vol;                     ///< Mixing volume.
+    double force_shift;                 ///< Force shift.
     Environment* env;                   ///< Environment variables.
     Bind* bind;
 };
@@ -102,6 +103,17 @@ bool Module_read_dc_blocker_enabled(Module* module, Streader* sr);
  * \return   \c true if successful, otherwise \c false.
  */
 bool Module_read_mixing_volume(Module* module, Streader* sr);
+
+
+/**
+ * Read the force shift of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ * \param sr       The Streader of the JSON input -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Module_read_force_shift(Module* module, Streader* sr);
 
 
 /**

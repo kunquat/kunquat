@@ -44,17 +44,22 @@ Module* new_Module(void)
     Device_set_existent(&module->parent, true);
 
     // Clear fields
+    module->random_seed = 0;
     module->songs = NULL;
+    module->album_is_existent = false;
+    module->track_list = NULL;
+    module->ch_defs = NULL;
     module->pats = NULL;
     module->au_map = NULL;
     module->au_controls = NULL;
     module->au_table = NULL;
     module->connections = NULL;
+    module->is_dc_blocker_enabled = true;
+    module->mix_vol_dB = COMP_DEFAULT_MIX_VOL;
+    module->mix_vol = exp2(module->mix_vol_dB / 6);
+    module->force_shift = 0;
     module->env = NULL;
     module->bind = NULL;
-    module->album_is_existent = false;
-    module->track_list = NULL;
-    module->ch_defs = NULL;
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
         module->order_lists[i] = NULL;
     for (int i = 0; i < KQT_TUNING_TABLES_MAX; ++i)
@@ -89,12 +94,6 @@ Module* new_Module(void)
         del_Module(module);
         return NULL;
     }
-
-    module->is_dc_blocker_enabled = true;
-    module->mix_vol_dB = COMP_DEFAULT_MIX_VOL;
-    module->mix_vol = exp2(module->mix_vol_dB / 6);
-    //module->init_subsong = SONG_DEFAULT_INIT_SUBSONG;
-    module->random_seed = 0;
 
     return module;
 }
@@ -139,13 +138,41 @@ bool Module_read_mixing_volume(Module* module, Streader* sr)
 
         if (!isfinite(mix_vol) && mix_vol != -INFINITY)
         {
-            Streader_set_error(sr, "Invalid mixing volume: %s", mix_vol);
+            Streader_set_error(sr, "Invalid mixing volume: %.4f", mix_vol);
             return false;
         }
     }
 
     module->mix_vol_dB = mix_vol;
     module->mix_vol = exp2(module->mix_vol_dB / 6);
+
+    return true;
+}
+
+
+bool Module_read_force_shift(Module* module, Streader* sr)
+{
+    rassert(module != NULL);
+    rassert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
+        return false;
+
+    double shift = 0;
+
+    if (Streader_has_data(sr))
+    {
+        if (!Streader_read_float(sr, &shift))
+            return false;
+
+        if (!isfinite(shift) || (shift < -60) || (shift > 0))
+        {
+            Streader_set_error(sr, "Invalid force shift: %.4f", shift);
+            return false;
+        }
+    }
+
+    module->force_shift = shift;
 
     return true;
 }
