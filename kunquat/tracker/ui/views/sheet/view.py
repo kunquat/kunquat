@@ -188,6 +188,9 @@ class View(QWidget):
         if ('signal_grid' in signals) or ('signal_grid_pattern_modified' in signals):
             self._update_grid()
             self.update()
+        if 'signal_force_shift' in signals:
+            self._update_all_patterns()
+            self.update()
         if not signals.isdisjoint(set(['signal_undo', 'signal_redo'])):
             self._update_all_patterns()
             self.update()
@@ -392,13 +395,15 @@ class View(QWidget):
             row_ts = location.get_row_ts()
             if row_ts in cur_column.get_trigger_row_positions():
                 notation = self._notation_manager.get_selected_notation()
+                force_shift = module.get_force_shift()
 
                 # Get trigger row width information
                 trigger_index = location.get_trigger_index()
                 trigger_count = cur_column.get_trigger_count_at_row(row_ts)
                 triggers = [cur_column.get_trigger(row_ts, i)
                         for i in range(trigger_count)]
-                rends = [TriggerRenderer(self._config, t, notation) for t in triggers]
+                rends = [TriggerRenderer(self._config, t, notation, force_shift)
+                        for t in triggers]
                 row_width = sum(r.get_total_width() for r in rends)
 
                 init_trigger_row_width = self._get_init_trigger_row_width(
@@ -416,7 +421,7 @@ class View(QWidget):
                 # Lower bound for row offset
                 if trigger_index < len(triggers):
                     renderer = TriggerRenderer(
-                            self._config, triggers[trigger_index], notation)
+                            self._config, triggers[trigger_index], notation, force_shift)
                     # TODO: revisit field bounds handling, this is messy
                     trigger_width = renderer.get_total_width()
                 else:
@@ -582,7 +587,8 @@ class View(QWidget):
                 self._config['bg_colour'])
 
         notation = self._notation_manager.get_selected_notation()
-        rends = [TriggerRenderer(self._config, trigger, notation)
+        force_shift = self._ui_model.get_module().get_force_shift()
+        rends = [TriggerRenderer(self._config, trigger, notation, force_shift)
                 for trigger in triggers]
         widths = [r.get_total_width() for r in rends]
         total_width = sum(widths)
@@ -1017,7 +1023,8 @@ class View(QWidget):
         triggers = (column.get_trigger(row_ts, i)
                 for i in range(trigger_count))
         notation = self._notation_manager.get_selected_notation()
-        rends = (TriggerRenderer(self._config, trigger, notation)
+        force_shift = self._ui_model.get_module().get_force_shift()
+        rends = (TriggerRenderer(self._config, trigger, notation, force_shift)
                 for trigger in triggers)
         widths = [r.get_total_width() for r in rends]
         init_width = 0
@@ -1295,12 +1302,13 @@ class View(QWidget):
             return None
         row_ts = location.get_row_ts()
         notation = self._notation_manager.get_selected_notation()
+        force_shift = self._ui_model.get_module().get_force_shift()
 
         try:
             trigger_count = column.get_trigger_count_at_row(row_ts)
             triggers = [column.get_trigger(row_ts, i)
                     for i in range(min(trigger_count, location.get_trigger_index()))]
-            rends = [TriggerRenderer(self._config, trigger, notation)
+            rends = [TriggerRenderer(self._config, trigger, notation, force_shift)
                     for trigger in triggers]
             widths = [r.get_total_width() for r in rends]
             init_width = sum(widths)
@@ -1387,7 +1395,8 @@ class View(QWidget):
         # Offset field edit so that trigger type remains visible
         if trigger.get_type() not in ('n+', 'h'):
             notation = self._notation_manager.get_selected_notation()
-            renderer = TriggerRenderer(self._config, trigger, notation)
+            force_shift = self._ui_model.get_module().get_force_shift()
+            renderer = TriggerRenderer(self._config, trigger, notation, force_shift)
             _, type_width = renderer.get_field_bounds(0)
             x_offset += type_width
 
