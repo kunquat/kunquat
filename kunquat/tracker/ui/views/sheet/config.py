@@ -43,11 +43,13 @@ DEFAULT_CONFIG = {
         'font'            : QFont(QFont().defaultFamily(), 12),
         'disabled_colour' : QColor(0x88, 0x88, 0x88, 0x7f),
         'trigger': {
-            'default_colour' : QColor(0xcc, 0xdd, 0xee),
-            'note_on_colour' : QColor(0xff, 0xdd, 0xbb),
-            'hit_colour'     : QColor(0xbb, 0xee, 0x88),
-            'note_off_colour': QColor(0xcc, 0x99, 0x66),
-            'padding'        : 3,
+            'default_colour'   : QColor(0xcc, 0xdd, 0xee),
+            'note_on_colour'   : QColor(0xff, 0xdd, 0xbb),
+            'hit_colour'       : QColor(0xbb, 0xee, 0x88),
+            'note_off_colour'  : QColor(0xcc, 0x99, 0x66),
+            'warning_bg_colour': QColor(0xee, 0x33, 0x11),
+            'warning_fg_colour': QColor(0xff, 0xff, 0xcc),
+            'padding'          : 3,
             },
         'edit_cursor': {
             'view_line_colour': QColor(0xdd, 0xee, 0xff),

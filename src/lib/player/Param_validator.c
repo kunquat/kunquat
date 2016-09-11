@@ -156,7 +156,7 @@ bool v_force(const char* param)
     double force = NAN;
     Streader* sr = init_c_streader(param);
 
-    return Streader_read_float(sr, &force) && (force <= 18);
+    return Streader_read_float(sr, &force);
 }
 
 

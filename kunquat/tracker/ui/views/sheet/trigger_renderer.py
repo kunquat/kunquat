@@ -17,15 +17,18 @@ from PySide.QtGui import *
 import kunquat.kunquat.events as events
 from .config import *
 
+import math
+
 
 class TriggerRenderer():
 
-    def __init__(self, config, trigger, notation):
+    def __init__(self, config, trigger, notation, force_shift):
         assert trigger
         self._config = config
         self._trigger = trigger
         self._notation = notation
         self._inactive = False
+        self._force_shift = force_shift
 
         self._setup_fields()
 
@@ -56,26 +59,41 @@ class TriggerRenderer():
     def draw_trigger(self, painter, include_line=True, select=False):
         # Select colour based on event type
         evtype = self._trigger.get_type()
+        evtype_bg_colour = None
+        evtype_fg_colour = self._config['trigger']['default_colour']
         if evtype == 'n+':
             evtype_fg_colour = self._config['trigger']['note_on_colour']
         elif evtype == 'h':
             evtype_fg_colour = self._config['trigger']['hit_colour']
         elif evtype == 'n-':
             evtype_fg_colour = self._config['trigger']['note_off_colour']
-        else:
-            evtype_fg_colour = self._config['trigger']['default_colour']
+        elif evtype in ('.f', '/f'):
+            arg = self._trigger.get_argument()
+            # Show warning colour at high force levels
+            try:
+                value = float(arg)
+                if (not math.isinf(value) and
+                        not math.isnan(value) and
+                        value > -self._force_shift):
+                    evtype_bg_colour = self._config['trigger']['warning_bg_colour']
+                    evtype_fg_colour = self._config['trigger']['warning_fg_colour']
+            except ValueError:
+                pass
 
+        if evtype_bg_colour:
+            evtype_bg_colour = self._get_final_colour(evtype_bg_colour)
         evtype_fg_colour = self._get_final_colour(evtype_fg_colour)
 
         # Set colours
         painter.save()
         if select:
+            evtype_fg_colour, evtype_bg_colour = evtype_bg_colour, evtype_fg_colour
+        if evtype_bg_colour:
             height = self._config['tr_height']
             painter.fillRect(
                     QRect(0, 0, self._total_width - 1, height - 1),
-                    evtype_fg_colour)
-        painter.setPen(self._get_final_colour(self._config['bg_colour'])
-                if select else evtype_fg_colour)
+                    evtype_bg_colour)
+        painter.setPen(evtype_fg_colour)
 
         # Draw fields
         for i, field in enumerate(self._fields):

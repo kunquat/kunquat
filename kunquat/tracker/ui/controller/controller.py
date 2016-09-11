@@ -103,6 +103,7 @@ class Controller():
 
     def create_sandbox(self):
         transaction = {
+            'p_force_shift.json'                  : -30,
             'album/p_manifest.json'               : {},
             'album/p_tracks.json'                 : [0],
             'song_00/p_manifest.json'             : {},

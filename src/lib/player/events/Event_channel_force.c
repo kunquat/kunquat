@@ -15,10 +15,12 @@
 #include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
+#include <init/Module.h>
 #include <player/devices/Voice_state.h>
 #include <player/devices/processors/Force_state.h>
 #include <player/events/Event_common.h>
 #include <player/Force_controls.h>
+#include <player/Master_params.h>
 #include <player/Voice.h>
 #include <Value.h>
 
@@ -48,7 +50,9 @@ bool Event_channel_set_force_process(
     rassert(value != NULL);
     rassert(value->type == VALUE_TYPE_FLOAT);
 
-    const double force = value->value.float_type;
+    const double force_shift = master_params->parent.module->force_shift;
+
+    const double force = value->value.float_type + force_shift;
 
     ch->force_controls.force = force;
     Slider_break(&ch->force_controls.slider);
@@ -82,7 +86,9 @@ bool Event_channel_slide_force_process(
     rassert(value != NULL);
     rassert(value->type == VALUE_TYPE_FLOAT);
 
-    const double slide_target = value->value.float_type;
+    const double force_shift = master_params->parent.module->force_shift;
+
+    const double slide_target = value->value.float_type + force_shift;
     const double start_force =
         isfinite(ch->force_controls.force) ? ch->force_controls.force : slide_target;
 

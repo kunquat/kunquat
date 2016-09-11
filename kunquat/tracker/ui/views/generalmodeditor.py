@@ -14,6 +14,8 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from .numberslider import NumberSlider
+
 
 class GeneralModEditor(QWidget):
 
@@ -24,6 +26,7 @@ class GeneralModEditor(QWidget):
         self._authors = Authors()
 
         self._mixing_volume = MixingVolume()
+        self._force_shift = ForceShift()
         self._dc_blocker = DCBlocker()
         self._random_seed = RandomSeed()
 
@@ -50,10 +53,12 @@ class GeneralModEditor(QWidget):
         gl.addWidget(QLabel('Mixing volume:'), 0, 0)
         gl.addWidget(self._mixing_volume, 0, 1)
         gl.addWidget(QWidget(), 0, 2)
-        gl.addWidget(QLabel('Block dc:'), 1, 0)
-        gl.addWidget(self._dc_blocker, 1, 1)
-        gl.addWidget(QLabel('Initial random seed:'), 2, 0)
-        gl.addWidget(self._random_seed, 2, 1)
+        gl.addWidget(QLabel('Note force shift:'), 1, 0)
+        gl.addWidget(self._force_shift, 1, 1)
+        gl.addWidget(QLabel('Block dc:'), 2, 0)
+        gl.addWidget(self._dc_blocker, 2, 1)
+        gl.addWidget(QLabel('Initial random seed:'), 3, 0)
+        gl.addWidget(self._random_seed, 3, 1)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -68,12 +73,14 @@ class GeneralModEditor(QWidget):
         self._title.set_ui_model(ui_model)
         self._authors.set_ui_model(ui_model)
         self._mixing_volume.set_ui_model(ui_model)
+        self._force_shift.set_ui_model(ui_model)
         self._dc_blocker.set_ui_model(ui_model)
         self._random_seed.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._random_seed.unregister_updaters()
         self._dc_blocker.unregister_updaters()
+        self._force_shift.unregister_updaters()
         self._mixing_volume.unregister_updaters()
         self._authors.unregister_updaters()
         self._title.unregister_updaters()
@@ -304,6 +311,39 @@ class MixingVolume(QDoubleSpinBox):
         module = self._ui_model.get_module()
         module.set_mixing_volume(value)
         self._updater.signal_update(set(['signal_mixing_volume']))
+
+
+class ForceShift(NumberSlider):
+
+    def __init__(self):
+        super().__init__(0, -60, 0)
+        self._ui_model = None
+        self._updater = None
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(self, SIGNAL('numberChanged(float)'), self._change_shift)
+
+        self._update_shift()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        if 'signal_force_shift' in signals:
+            self._update_shift()
+
+    def _update_shift(self):
+        module = self._ui_model.get_module()
+        self.set_number(module.get_force_shift())
+
+    def _change_shift(self, value):
+        module = self._ui_model.get_module()
+        module.set_force_shift(value)
+        self._updater.signal_update(set(['signal_force_shift']))
 
 
 class DCBlocker(QCheckBox):
