@@ -22,6 +22,18 @@ from .triggerposition import TriggerPosition
 from . import tstamp
 
 
+CONVERTIBLE_TRIGGERS = {
+    'n+': '/p',
+    '.f': '/f',
+    '.s': '/s',
+    'a.s': 'a/s',
+    'm.t': 'm/t',
+    'm.v': 'm/v',
+}
+
+CONVERTIBLE_TRIGGERS.update(dict((v, k) for (k, v) in CONVERTIBLE_TRIGGERS.items()))
+
+
 class SheetManager():
 
     @staticmethod
@@ -348,6 +360,41 @@ class SheetManager():
             assert False
 
         selection.clear_area()
+
+    def _get_convertible_set_or_slide_trigger(self):
+        if not self.is_at_trigger():
+            return None
+
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        cur_column = self.get_column_at_location(location)
+        row_ts = location.get_row_ts()
+        index = location.get_trigger_index()
+
+        trigger = cur_column.get_trigger(row_ts, index)
+
+        return trigger if trigger.get_type() in CONVERTIBLE_TRIGGERS else None
+
+    def is_at_convertible_set_or_slide_trigger(self):
+        return self._get_convertible_set_or_slide_trigger() != None
+
+    def convert_set_or_slide_trigger(self):
+        trigger = self._get_convertible_set_or_slide_trigger()
+        assert trigger
+
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        cur_column = self.get_column_at_location(location)
+        row_ts = location.get_row_ts()
+        index = location.get_trigger_index()
+
+        new_type = CONVERTIBLE_TRIGGERS[trigger.get_type()]
+        new_trigger = Trigger(new_type, trigger.get_argument(), location)
+
+        transaction = cur_column.get_edit_replace_or_insert_trigger(
+                row_ts, index, new_trigger)
+        self._add_transaction(transaction, commit=True)
+        self._on_column_update(location)
 
     @staticmethod
     def get_serialised_area_type():
