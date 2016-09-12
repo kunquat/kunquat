@@ -1639,6 +1639,11 @@ class View(QWidget):
             else:
                 self._start_trigger_type_entry()
 
+        def handle_convert_trigger():
+            if (self._sheet_manager.is_editing_enabled() and
+                    self._sheet_manager.is_at_convertible_set_or_slide_trigger()):
+                self._sheet_manager.convert_set_or_slide_trigger()
+
         def handle_undo():
             history = self._ui_model.get_sheet_history()
             history.undo()
@@ -1722,6 +1727,11 @@ class View(QWidget):
             func = mod_map.get(event.key())
             if func:
                 func()
+                is_handled = True
+
+        if not is_handled:
+            if event.key() == Qt.Key_Slash:
+                handle_convert_trigger()
                 is_handled = True
 
         if not is_handled:

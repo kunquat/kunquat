@@ -219,6 +219,7 @@ class Share():
                 'col_expand',
                 'col_reset_width',
                 'col_shrink',
+                'convert_trigger',
                 'copy',
                 'cut',
                 'delete',

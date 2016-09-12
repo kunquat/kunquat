@@ -41,6 +41,7 @@ class Toolbar(QWidget):
         self._cut_button = CutButton()
         self._copy_button = CopyButton()
         self._paste_button = PasteButton()
+        self._convert_tr_button = ConvertTriggerButton()
         self._zoom_buttons = [
                 ZoomButton('out'),
                 ZoomButton('original'),
@@ -72,6 +73,8 @@ class Toolbar(QWidget):
         h.addWidget(self._copy_button)
         h.addWidget(self._paste_button)
         h.addWidget(HackSeparator())
+        h.addWidget(self._convert_tr_button)
+        h.addWidget(HackSeparator())
         for button in self._zoom_buttons:
             h.addWidget(button)
         h.addWidget(HackSeparator())
@@ -98,6 +101,7 @@ class Toolbar(QWidget):
         self._cut_button.set_ui_model(ui_model)
         self._copy_button.set_ui_model(ui_model)
         self._paste_button.set_ui_model(ui_model)
+        self._convert_tr_button.set_ui_model(ui_model)
         for button in self._zoom_buttons:
             button.set_ui_model(ui_model)
         self._grid_toggle.set_ui_model(ui_model)
@@ -115,6 +119,7 @@ class Toolbar(QWidget):
         self._cut_button.unregister_updaters()
         self._copy_button.unregister_updaters()
         self._paste_button.unregister_updaters()
+        self._convert_tr_button.unregister_updaters()
         for button in self._zoom_buttons:
             button.unregister_updaters()
         self._grid_toggle.unregister_updaters()
@@ -349,6 +354,48 @@ class PasteButton(QToolButton):
             utils.try_paste_area(self._sheet_manager)
             selection.clear_area()
             self._updater.signal_update(set(['signal_selection']))
+
+
+class ConvertTriggerButton(QToolButton):
+
+    def __init__(self):
+        super().__init__()
+        self._ui_model = None
+        self._updater = None
+
+        self.setAutoRaise(True)
+        self.setText('Convert')
+        self.setToolTip('Convert between set and slide trigger (/)')
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        icon_bank = self._ui_model.get_icon_bank()
+        icon_path = icon_bank.get_icon_path('convert_trigger')
+        self.setIcon(QIcon(icon_path))
+
+        QObject.connect(self, SIGNAL('clicked()'), self._convert_trigger)
+
+        self._update_enabled()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        update_signals = set(['signal_selection', 'signal_edit_mode'])
+        if not signals.isdisjoint(update_signals):
+            self._update_enabled()
+
+    def _update_enabled(self):
+        sheet_manager = self._ui_model.get_sheet_manager()
+        self.setEnabled(sheet_manager.is_editing_enabled() and
+                sheet_manager.is_at_convertible_set_or_slide_trigger())
+
+    def _convert_trigger(self):
+        sheet_manager = self._ui_model.get_sheet_manager()
+        sheet_manager.convert_set_or_slide_trigger()
 
 
 class GridToggle(QCheckBox):
