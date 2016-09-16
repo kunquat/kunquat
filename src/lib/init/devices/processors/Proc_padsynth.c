@@ -199,13 +199,23 @@ static void Padsynth_sample_map_set_pitch_range(
 
     const Padsynth_sample_entry* key = PADSYNTH_SAMPLE_ENTRY_KEY(-INFINITY);
     Padsynth_sample_entry* entry = AAiter_get_at_least(iter, key);
-    for (int i = 0; i < sm->sample_count; ++i)
+    if (sm->sample_count == 1)
     {
         rassert(entry != NULL);
-        entry->center_pitch =
-            lerp(min_pitch, max_pitch, i / (double)(sm->sample_count - 1));
+        entry->center_pitch = (min_pitch + max_pitch) * 0.5;
 
         entry = AAiter_get_next(iter);
+    }
+    else
+    {
+        for (int i = 0; i < sm->sample_count; ++i)
+        {
+            rassert(entry != NULL);
+            entry->center_pitch =
+                lerp(min_pitch, max_pitch, i / (double)(sm->sample_count - 1));
+
+            entry = AAiter_get_next(iter);
+        }
     }
 
     rassert(entry == NULL);
