@@ -100,8 +100,9 @@ class Session():
         self._au_conns_hit_index = {}
         self._au_conns_expr_name = {}
         self._au_expressions = {}
+        self._au_test_forces = {}
         self._au_test_expressions = {}
-        self._au_test_expressions_enabled = {}
+        self._au_test_params_enabled = {}
         self._edit_selected_hits = {}
         self._selected_sample_ids = {}
         self._selected_sample_note_map_points = {}
@@ -647,17 +648,23 @@ class Session():
     def reset_active_ch_expressions(self):
         self._channel_active_ch_expression = {}
 
+    def set_au_test_force(self, au_id, force):
+        self._au_test_forces[au_id] = force
+
+    def get_au_test_force(self, au_id):
+        return self._au_test_forces.get(au_id, 0)
+
     def set_au_test_expression(self, au_id, index, expr_name):
         self._au_test_expressions[(au_id, index)] = expr_name
 
     def get_au_test_expression(self, au_id, index):
         return self._au_test_expressions.get((au_id, index), '')
 
-    def set_au_test_expressions_enabled(self, au_id, enabled):
-        self._au_test_expressions_enabled[au_id] = enabled
+    def set_au_test_params_enabled(self, au_id, enabled):
+        self._au_test_params_enabled[au_id] = enabled
 
-    def are_au_test_expressions_enabled(self, au_id):
-        return self._au_test_expressions_enabled.get(au_id)
+    def are_au_test_params_enabled(self, au_id):
+        return self._au_test_params_enabled.get(au_id)
 
     def set_selected_sample_id(self, proc_id, sample_id):
         self._selected_sample_ids[proc_id] = sample_id

@@ -39,6 +39,7 @@ EVENT_SELECT_CONTROL = '.a'
 EVENT_NOTE_ON = 'n+'
 EVENT_HIT = 'h'
 EVENT_NOTE_OFF = 'n-'
+EVENT_SET_FORCE = '.f'
 EVENT_SET_CH_EXPRESSION = '.xc'
 EVENT_SET_NOTE_EXPRESSION = '.x'
 
@@ -411,8 +412,10 @@ class Controller():
         module = self._ui_model.get_module()
         control = module.get_control(control_id)
         au = control.get_audio_unit()
+        force = None
 
-        if self._session.are_au_test_expressions_enabled(au.get_id()):
+        if self._session.are_au_test_params_enabled(au.get_id()):
+            force = au.get_test_force() - module.get_force_shift()
             expressions = []
             for i in range(2):
                 expr_name = au.get_test_expression(i)
@@ -423,11 +426,11 @@ class Controller():
 
         note = self._note_channel_mapper.get_tracked_note(channel_number, False)
         self.set_active_note(
-                note.get_channel(), control_id, event_type, param, expressions)
+                note.get_channel(), control_id, event_type, param, force, expressions)
         return note
 
     def set_active_note(
-            self, channel_number, control_id, event_type, param, expressions):
+            self, channel_number, control_id, event_type, param, force, expressions):
         # Get control override event
         parts = control_id.split('_')
         second = parts[1]
@@ -443,6 +446,8 @@ class Controller():
         self._audio_engine.fire_event(channel_number, control_event)
         note_on_or_hit_event = (event_type, param)
         self._audio_engine.fire_event(channel_number, note_on_or_hit_event)
+        if force != None:
+            self._audio_engine.fire_event(channel_number, (EVENT_SET_FORCE, force))
         expr_events = [EVENT_SET_CH_EXPRESSION, EVENT_SET_NOTE_EXPRESSION]
         ch_expr_count = 0
         for i, expression in enumerate(expressions):

@@ -50,11 +50,11 @@ class TestButton(QPushButton):
         au = module.get_audio_unit(self._au_id)
 
         self._control_manager.set_control_id_override(control_id)
-        au.set_test_expressions_enabled(True)
+        au.set_test_params_enabled(True)
         self._button_model = self._typewriter_manager.get_random_button_model()
         self._button_model.start_tracked_note()
         self._control_manager.set_control_id_override(None)
-        au.set_test_expressions_enabled(False)
+        au.set_test_params_enabled(False)
 
     def _released(self):
         if self._button_model:
