@@ -91,6 +91,8 @@ class SampleParams(ProcParams):
         return None
 
     def import_sample(self, sample_id, path):
+        freq = 48000
+
         if path.endswith('.wv'):
             with open(path, 'rb') as f:
                 sample_data = f.read()
@@ -101,12 +103,17 @@ class SampleParams(ProcParams):
                     path, validator.get_validation_error()))
             del validator
 
+            wp = WavPackRMem(sample_data)
+            freq = wp.get_audio_rate()
+
         else:
             try:
                 sf = SndFileR(path, convert_to_float=False)
                 sdata = list(sf.read())
             except SndFileError as e:
                 raise SampleImportError('Could not import {}:\n{}'.format(path, str(e)))
+
+            freq = sf.get_audio_rate()
 
             if sf.get_bits() < 32:
                 rshift = 32 - sf.get_bits()
@@ -121,7 +128,7 @@ class SampleParams(ProcParams):
         sample_data_key = self._get_full_sample_key(sample_id, 'p_sample.wv')
         sample_header_key = self._get_full_sample_key(sample_id, 'p_sh_sample.json')
 
-        header = { 'format': 'WavPack', 'freq': 48000, }
+        header = { 'format': 'WavPack', 'freq': freq, }
 
         transaction = {}
         transaction[sample_data_key] = sample_data
