@@ -320,14 +320,20 @@ class AudioUnit():
     def get_connections_expr_name(self):
         return self._session.get_au_connections_expr_name(self._au_id)
 
+    def set_test_force(self, force):
+        self._session.set_au_test_force(self._au_id, force)
+
+    def get_test_force(self):
+        return self._session.get_au_test_force(self._au_id)
+
     def set_test_expression(self, index, expr_name):
         self._session.set_au_test_expression(self._au_id, index, expr_name)
 
     def get_test_expression(self, index):
         return self._session.get_au_test_expression(self._au_id, index)
 
-    def set_test_expressions_enabled(self, enabled):
-        self._session.set_au_test_expressions_enabled(self._au_id, enabled)
+    def set_test_params_enabled(self, enabled):
+        self._session.set_au_test_params_enabled(self._au_id, enabled)
 
     def get_audio_unit(self, au_id):
         assert au_id.startswith(self._au_id + '/')

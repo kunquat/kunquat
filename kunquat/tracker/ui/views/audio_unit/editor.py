@@ -15,6 +15,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
+from .aunumslider import AuNumSlider
 from .components import Components
 from .expressions import Expressions
 from .hits import Hits
@@ -98,11 +99,11 @@ class Editor(QWidget):
         au = module.get_audio_unit(self._au_id)
 
         self._control_manager.set_control_id_override(control_id)
-        au.set_test_expressions_enabled(True)
+        au.set_test_params_enabled(True)
         if not self._keyboard_mapper.process_typewriter_button_event(event):
             event.ignore()
         self._control_manager.set_control_id_override(None)
-        au.set_test_expressions_enabled(False)
+        au.set_test_params_enabled(False)
 
     def keyReleaseEvent(self, event):
         if not self._keyboard_mapper.process_typewriter_button_event(event):
@@ -117,12 +118,14 @@ class TestPanel(QWidget):
         self._ui_model = None
 
         self._test_button = TestButton()
+        self._test_force = TestForce()
         self._expressions = [TestExpression(i) for i in range(2)]
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
         h.addWidget(self._test_button, 1)
+        h.addWidget(self._test_force, 1)
         h.addWidget(QLabel('Channel expression:'))
         h.addWidget(self._expressions[0])
         h.addWidget(QLabel('Note expression:'))
@@ -132,19 +135,44 @@ class TestPanel(QWidget):
     def set_au_id(self, au_id):
         self._au_id = au_id
         self._test_button.set_au_id(au_id)
+        self._test_force.set_au_id(au_id)
         for expr in self._expressions:
             expr.set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._test_button.set_ui_model(ui_model)
+        self._test_force.set_ui_model(ui_model)
         for expr in self._expressions:
             expr.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         for expr in self._expressions:
             expr.unregister_updaters()
+        self._test_force.unregister_updaters()
         self._test_button.unregister_updaters()
+
+
+class TestForce(AuNumSlider):
+
+    def __init__(self):
+        super().__init__(1, -30, 12, 'Force:')
+
+    def _get_update_signal_type(self):
+        return 'signal_au_test_force_{}'.format(self._au_id)
+
+    def _get_audio_unit(self):
+        module = self._ui_model.get_module()
+        return module.get_audio_unit(self._au_id)
+
+    def _update_value(self):
+        au = self._get_audio_unit()
+        self.set_number(au.get_test_force())
+
+    def _value_changed(self, new_value):
+        au = self._get_audio_unit()
+        au.set_test_force(new_value)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
 class TestExpression(QComboBox):
