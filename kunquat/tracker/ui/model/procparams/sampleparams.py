@@ -16,6 +16,8 @@ from kunquat.extras.wavpack import WavPackRMem, WavPackWMem
 from kunquat.kunquat.kunquat import Kunquat, KunquatFormatError
 from .procparams import ProcParams
 
+import os.path
+
 
 class SampleImportError(ValueError):
     '''Error raised when sample importing fails.'''
@@ -125,14 +127,21 @@ class SampleParams(ProcParams):
             wv.write(*sdata)
             sample_data = wv.get_contents()
 
+        format_exts = ('.wv', '.wav', '.au', '.flac')
+        name = os.path.basename(path)
+        if name.endswith(format_exts):
+            name = name[:name.rfind('.')]
+
         sample_data_key = self._get_full_sample_key(sample_id, 'p_sample.wv')
         sample_header_key = self._get_full_sample_key(sample_id, 'p_sh_sample.json')
+        sample_name_key = self._get_full_sample_key(sample_id, 'm_name.json')
 
         header = { 'format': 'WavPack', 'freq': freq, }
 
         transaction = {}
         transaction[sample_data_key] = sample_data
         transaction[sample_header_key] = header
+        transaction[sample_name_key] = name
 
         self._store.put(transaction)
 
