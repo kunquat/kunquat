@@ -937,7 +937,9 @@ class NoteRandomList(RandomList):
 
     def _get_update_signals(self):
         return set([
-            self._get_selection_signal_type(), self._get_random_list_signal_type()])
+            self._get_selection_signal_type(),
+            self._get_random_list_signal_type(),
+            'signal_sample_format_{}'.format(self._proc_id)])
 
 
 class HitMapEditor(QWidget):
@@ -1218,7 +1220,8 @@ class HitRandomList(RandomList):
         return set([
             self._get_selection_signal_type(),
             self._get_random_list_signal_type(),
-            'signal_sample_hit_map_hit_selection_{}'.format(self._proc_id)])
+            'signal_sample_hit_map_hit_selection_{}'.format(self._proc_id),
+            'signal_sample_format_{}'.format(self._proc_id)])
 
 
 class Samples(QSplitter):
@@ -1960,7 +1963,7 @@ class SampleFormatEditor(QDialog):
         self.setEnabled(False)
 
         bits, is_float = self._format.itemData(self._format.currentIndex())
-        normalise = (self._normalise.checkState == Qt.Checked)
+        normalise = (self._normalise.checkState() == Qt.Checked)
         self._sample_params.convert_sample_format(sample_id, bits, is_float, normalise)
 
         self._on_convert()

@@ -16,6 +16,7 @@ from kunquat.extras.wavpack import WavPackRMem, WavPackWMem
 from kunquat.kunquat.kunquat import Kunquat, KunquatFormatError
 from .procparams import ProcParams
 
+import math
 import os.path
 
 
@@ -219,7 +220,33 @@ class SampleParams(ProcParams):
         transaction = {}
 
         if normalise:
-            pass # TODO: Normalise
+            # Normalise
+            max_abs = 0
+            for ch in data:
+                for item in ch:
+                    max_abs = max(max_abs, abs(item))
+
+            norm_mult = from_max / max_abs
+            if norm_mult >= 1.01:
+                mult *= norm_mult
+
+                # Adjust sample volume levels in note and hit maps
+                shift_dB = -math.log(norm_mult, 2) * 6
+                sample_num = self._get_sample_num(sample_id)
+
+                note_map = self._get_note_map()
+                for _, random_list in note_map:
+                    for i, item in enumerate(random_list):
+                        if item[0] == sample_num:
+                            item[2] += shift_dB
+                transaction[self._get_conf_key('p_nm_note_map.json')] = note_map
+
+                hit_map = self._get_hit_map()
+                for _, random_list in hit_map:
+                    for i, item in enumerate(random_list):
+                        if item[0] == sample_num:
+                            item[2] += shift_dB
+                transaction[self._get_conf_key('p_hm_hit_map.json')] = hit_map
 
         # Write converted output
         new_handle = WavPackWMem(freq, channels, use_float, bits)
