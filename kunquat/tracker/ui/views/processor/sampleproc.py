@@ -1612,6 +1612,15 @@ class SampleEditor(QWidget):
         self._loop_end.setRange(0, 2**30)
         self._length = QLabel('?')
 
+        self._format = QLabel('?')
+        self._format_change = QPushButton('Change...')
+
+        fl = QHBoxLayout()
+        fl.setContentsMargins(0, 0, 0, 0)
+        fl.setSpacing(2)
+        fl.addWidget(self._format, 1)
+        fl.addWidget(self._format_change)
+
         gl = QGridLayout()
         gl.setContentsMargins(0, 0, 0, 0)
         gl.setSpacing(2)
@@ -1627,6 +1636,8 @@ class SampleEditor(QWidget):
         gl.addWidget(self._loop_end, 4, 1)
         gl.addWidget(QLabel('Length:'), 5, 0)
         gl.addWidget(self._length, 5, 1)
+        gl.addWidget(QLabel('Format:'), 6, 0)
+        gl.addLayout(fl, 6, 1)
 
         self._sample_view = SampleView()
 
@@ -1671,6 +1682,9 @@ class SampleEditor(QWidget):
                 SIGNAL('loopStopChanged(int)'),
                 self._change_loop_end)
 
+        QObject.connect(
+                self._format_change, SIGNAL('clicked()'), self._change_format)
+
         self._update_all()
 
     def unregister_updaters(self):
@@ -1694,6 +1708,9 @@ class SampleEditor(QWidget):
     def _get_freq_signal_type(self):
         return 'signal_sample_freq_{}'.format(self._proc_id)
 
+    def _get_format_signal_type(self):
+        return 'signal_sample_format_{}'.format(self._proc_id)
+
     def _get_loop_signal_type(self):
         return 'signal_sample_loop_{}'.format(self._proc_id)
 
@@ -1707,6 +1724,9 @@ class SampleEditor(QWidget):
             self._update_name()
         elif self._get_freq_signal_type() in signals:
             self._update_freq()
+        elif self._get_format_signal_type() in signals:
+            self._update_format()
+            self._update_sample_view()
         elif self._get_loop_signal_type() in signals:
             self._update_loop()
 
@@ -1720,15 +1740,10 @@ class SampleEditor(QWidget):
         self.setEnabled(has_sample)
 
         self._update_name()
-
         self._update_freq()
-
-        sample_length = sample_params.get_sample_length(sample_id)
-        self._length.setText(str(sample_length))
-        get_sample_data = sample_params.get_sample_data_retriever(sample_id)
-        self._sample_view.set_sample(sample_length, get_sample_data)
-
+        self._update_sample_view()
         self._update_loop()
+        self._update_format()
 
     def _update_name(self):
         sample_params = self._get_sample_params()
@@ -1753,6 +1768,15 @@ class SampleEditor(QWidget):
         if self._freq.value() != new_freq:
             self._freq.setValue(new_freq)
         self._freq.blockSignals(old_block)
+
+    def _update_sample_view(self):
+        sample_params = self._get_sample_params()
+        sample_id = sample_params.get_selected_sample_id()
+
+        sample_length = sample_params.get_sample_length(sample_id)
+        self._length.setText(str(sample_length))
+        get_sample_data = sample_params.get_sample_data_retriever(sample_id)
+        self._sample_view.set_sample(sample_length, get_sample_data)
 
     def _update_loop(self):
         sample_params = self._get_sample_params()
@@ -1800,6 +1824,17 @@ class SampleEditor(QWidget):
         else:
             self._sample_view.set_loop_range(None)
 
+    def _update_format(self):
+        sample_params = self._get_sample_params()
+        sample_id = sample_params.get_selected_sample_id()
+
+        format_info = sample_params.get_sample_format(sample_id)
+        desc = ''
+        if format_info:
+            bits, is_float = format_info
+            desc = '{}-bit{}'.format(bits, ' float' if is_float else '')
+        self._format.setText(desc)
+
     def _change_name(self):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
@@ -1814,6 +1849,13 @@ class SampleEditor(QWidget):
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_freq(sample_id, value)
         self._updater.signal_update(set([self._get_freq_signal_type()]))
+
+    def _change_format(self):
+        sample_params = self._get_sample_params()
+        on_convert = lambda: self._updater.signal_update(
+                set([self._get_format_signal_type()]))
+        format_editor = SampleFormatEditor(sample_params, on_convert)
+        format_editor.exec_()
 
     def _change_loop_mode(self, item_index):
         loop_mode = self._loop_mode.itemData(item_index)
@@ -1833,5 +1875,96 @@ class SampleEditor(QWidget):
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_loop_end(sample_id, end)
         self._updater.signal_update(set([self._get_loop_signal_type()]))
+
+
+class SampleFormatEditor(QDialog):
+
+    def __init__(self, sample_params, on_convert):
+        super().__init__()
+        self._sample_params = sample_params
+        self._on_convert = on_convert
+
+        sample_id = self._sample_params.get_selected_sample_id()
+        sample_format = self._sample_params.get_sample_format(sample_id)
+
+        self._format = QComboBox()
+        self._normalise = QCheckBox()
+
+        formats = [(8, False), (16, False), (24, False), (32, False), (32, True)]
+        for i, fmt in enumerate(formats):
+            bits, is_float = fmt
+            desc = '{}-bit{}'.format(bits, ' float' if is_float else '')
+            self._format.addItem(desc, fmt)
+            if fmt == sample_format:
+                self._format.setCurrentIndex(i)
+
+        sl = QGridLayout()
+        sl.setContentsMargins(0, 0, 0, 0)
+        sl.setSpacing(4)
+        sl.addWidget(QLabel('Format:'), 0, 0)
+        sl.addWidget(self._format, 0, 1)
+        sl.addWidget(QLabel('Normalise:'), 1, 0)
+        sl.addWidget(self._normalise, 1, 1)
+
+        self._cancel_button = QPushButton('Cancel')
+        self._convert_button = QPushButton('Convert')
+
+        bl = QHBoxLayout()
+        bl.setContentsMargins(0, 0, 0, 0)
+        bl.setSpacing(4)
+        bl.addWidget(self._cancel_button)
+        bl.addWidget(self._convert_button)
+
+        v = QVBoxLayout()
+        v.setContentsMargins(4, 4, 4, 4)
+        v.setSpacing(4)
+        v.addLayout(sl)
+        v.addLayout(bl)
+        self.setLayout(v)
+
+        QObject.connect(
+                self._format, SIGNAL('currentIndexChanged(int)'), self._change_format)
+
+        QObject.connect(self._cancel_button, SIGNAL('clicked()'), self.close)
+        QObject.connect(self._convert_button, SIGNAL('clicked()'), self._convert)
+
+        self._update_enabled()
+
+    def _change_format(self, dummy):
+        self._update_enabled()
+
+    def _update_enabled(self):
+        sample_id = self._sample_params.get_selected_sample_id()
+        sample_format = self._sample_params.get_sample_format(sample_id)
+        selected_format = tuple(self._format.itemData(self._format.currentIndex()))
+        if not selected_format:
+            self._normalise.setEnabled(True)
+            self._convert_button.setEnabled(False)
+            return
+
+        sample_bits, _ = sample_format
+        selected_bits, _ = selected_format
+        if selected_bits < sample_bits:
+            self._normalise.setEnabled(True)
+        else:
+            self._normalise.setEnabled(False)
+            old_block = self._normalise.blockSignals(True)
+            self._normalise.setCheckState(Qt.Unchecked)
+            self._normalise.blockSignals(old_block)
+
+        self._convert_button.setEnabled(sample_format != selected_format)
+
+    def _convert(self):
+        sample_id = self._sample_params.get_selected_sample_id()
+
+        self.setEnabled(False)
+
+        bits, is_float = self._format.itemData(self._format.currentIndex())
+        normalise = (self._normalise.checkState == Qt.Checked)
+        self._sample_params.convert_sample_format(sample_id, bits, is_float, normalise)
+
+        self._on_convert()
+
+        self.close()
 
 
