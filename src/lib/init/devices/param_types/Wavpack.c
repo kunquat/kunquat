@@ -240,12 +240,12 @@ bool Sample_parse_wavpack(Sample* sample, Streader* sr)
         return false;
     }
 
-    int mode = WavpackGetMode(context);
-    int channels = WavpackGetReducedChannels(context);
+    const int mode = WavpackGetMode(context);
+    const int channels = WavpackGetReducedChannels(context);
 //    uint32_t freq = WavpackGetSampleRate(context);
-    int bits = WavpackGetBitsPerSample(context);
-    int bytes = WavpackGetBytesPerSample(context);
-    uint32_t len = WavpackGetNumSamples(context);
+    const int bits = WavpackGetBitsPerSample(context);
+    const int bytes = WavpackGetBytesPerSample(context);
+    const uint32_t len = WavpackGetNumSamples(context);
 //    uint32_t file_size = WavpackGetFileSize(context);
 
     if (len == (uint32_t)-1)
@@ -268,7 +268,7 @@ bool Sample_parse_wavpack(Sample* sample, Streader* sr)
     else if (bits <= 16)
         sample->bits = 16;
     else if (bits <= 24)
-        sample->bits = 24;
+        sample->bits = 32; // output values will be shifted
     else
         sample->bits = 32;
 
@@ -319,6 +319,8 @@ bool Sample_parse_wavpack(Sample* sample, Streader* sr)
         }
         else
         {
+            rassert(bytes == 4);
+
             if (sample->is_float)
             {
                 float* sample_bufs[] = { sample->data[0], sample->data[1] };
@@ -333,7 +335,7 @@ bool Sample_parse_wavpack(Sample* sample, Streader* sr)
             }
             else
             {
-                const int shift = (bytes == 3) ? 8 : 0;
+                const int shift = (bits == 24) ? 8 : 0;
                 read_wp_samples(int32_t, sample, buf, read, written, shift);
             }
         }
