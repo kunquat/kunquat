@@ -212,7 +212,7 @@ class SampleParams(ProcParams):
             chunk = cur_handle.read()
 
         # Get conversion ratio and bounds
-        from_max = 1 if cur_is_float else (2**(cur_bits - 1) - 1)
+        from_max = 1 if cur_is_float else (2**31 - 1)
         to_max = 1 if use_float else (2**(bits - 1) - 1)
         to_min = -1 if use_float else (-to_max - 1)
         mult = to_max / from_max
