@@ -16,6 +16,7 @@ from kunquat.extras.wavpack import WavPackRMem, WavPackWMem
 from kunquat.kunquat.kunquat import Kunquat, KunquatFormatError
 from .procparams import ProcParams
 
+import math
 import os.path
 
 
@@ -64,12 +65,12 @@ class SampleParams(ProcParams):
     def _set_sample_header(self, sample_id, header):
         self._set_value(self._get_sample_key(sample_id, 'p_sh_sample.json'), header)
 
-    def _get_sample_data_handle(self, sample_id):
+    def _get_sample_data_handle(self, sample_id, convert_to_float=True):
         data_key = self._get_sample_key(sample_id, 'p_sample.wv')
         data = self._get_value(data_key, None)
         if not data:
             return None
-        return WavPackRMem(data)
+        return WavPackRMem(data, convert_to_float)
 
     def get_max_sample_count(self):
         return self._SAMPLES_MAX
@@ -187,6 +188,84 @@ class SampleParams(ProcParams):
         header = self._get_sample_header(sample_id)
         header['freq'] = freq
         self._set_sample_header(sample_id, header)
+
+    def get_sample_format(self, sample_id):
+        handle = self._get_sample_data_handle(sample_id, convert_to_float=False)
+        if not handle:
+            return None
+        return (handle.get_bits(), handle.is_float())
+
+    def convert_sample_format(self, sample_id, bits, use_float, normalise):
+        # Get current format parameters
+        cur_handle = self._get_sample_data_handle(sample_id, convert_to_float=False)
+        channels = cur_handle.get_channels()
+        freq = cur_handle.get_audio_rate()
+        cur_bits = cur_handle.get_bits()
+        cur_is_float = cur_handle.is_float()
+
+        # Read sample data
+        data = [[]] * channels
+        chunk = cur_handle.read()
+        while chunk[0]:
+            for d, buf in zip(data, chunk):
+                d.extend(buf)
+            chunk = cur_handle.read()
+
+        # Get conversion ratio and bounds
+        from_max = 1 if cur_is_float else (2**31 - 1)
+        to_max = 1 if use_float else (2**(bits - 1) - 1)
+        to_min = -1 if use_float else (-to_max - 1)
+        mult = to_max / from_max
+
+        transaction = {}
+
+        if normalise:
+            # Normalise
+            max_abs = 0
+            for ch in data:
+                for item in ch:
+                    max_abs = max(max_abs, abs(item))
+
+            norm_mult = from_max / max_abs
+            if norm_mult >= 1.01:
+                mult *= norm_mult
+
+                # Adjust sample volume levels in note and hit maps
+                shift_dB = -math.log(norm_mult, 2) * 6
+                sample_num = self._get_sample_num(sample_id)
+
+                note_map = self._get_note_map()
+                for _, random_list in note_map:
+                    for i, item in enumerate(random_list):
+                        if item[0] == sample_num:
+                            item[2] += shift_dB
+                transaction[self._get_conf_key('p_nm_note_map.json')] = note_map
+
+                hit_map = self._get_hit_map()
+                for _, random_list in hit_map:
+                    for i, item in enumerate(random_list):
+                        if item[0] == sample_num:
+                            item[2] += shift_dB
+                transaction[self._get_conf_key('p_hm_hit_map.json')] = hit_map
+
+        # Write converted output
+        new_handle = WavPackWMem(freq, channels, use_float, bits)
+        if use_float:
+            for ch in data:
+                for i in range(len(ch)):
+                    ch[i] *= mult
+        else:
+            for ch in data:
+                for i in range(len(ch)):
+                    ch[i] = min(max(to_min, int(ch[i] * mult)), to_max)
+        new_handle.write(*data)
+        raw_data = new_handle.get_contents()
+
+        sample_data_key = self._get_full_sample_key(sample_id, 'p_sample.wv')
+
+        transaction[sample_data_key] = raw_data
+
+        self._store.put(transaction)
 
     def get_sample_loop_mode(self, sample_id):
         header = self._get_sample_header(sample_id) or {}
