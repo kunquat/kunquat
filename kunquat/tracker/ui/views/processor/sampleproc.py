@@ -1009,11 +1009,16 @@ class SampleHitSelector(HitSelector):
     def _get_update_signal_type(self):
         return 'signal_sample_hit_map_hit_selection_{}'.format(self._proc_id)
 
+    def _get_hit_update_signal_type(self):
+        return 'signal_hit_{}'.format(self._au_id)
+
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
     def _perform_updates(self, signals):
-        if self._get_update_signal_type() in signals:
+        update_signals = set([
+            self._get_update_signal_type(), self._get_hit_update_signal_type()])
+        if not signals.isdisjoint(update_signals):
             self.update_contents()
 
     def _get_selected_hit_info(self):
@@ -1024,6 +1029,12 @@ class SampleHitSelector(HitSelector):
         sample_params = self._get_sample_params()
         sample_params.set_selected_hit_info(hit_info)
         self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _get_hit_name(self, index):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        hit = au.get_hit(index)
+        return hit.get_name()
 
 
 class HitMap(RandomListMap):

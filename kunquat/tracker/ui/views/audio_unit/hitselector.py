@@ -26,11 +26,11 @@ class HitSelector(QWidget):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
 
         cb_info = {
             'get_hit_info': self._get_selected_hit_info,
             'set_hit_info': self._set_selected_hit_info,
+            'get_hit_name': self._get_hit_name,
         }
 
         self._hit_bank_selector = HitBankSelector(cb_info)
@@ -57,6 +57,9 @@ class HitSelector(QWidget):
         raise NotImplementedError
 
     def _set_selected_hit_info(self, hit_info):
+        raise NotImplementedError
+
+    def _get_hit_name(self, index):
         raise NotImplementedError
 
 
@@ -186,16 +189,33 @@ class HitButton(QPushButton):
 
         self._get_selected_hit_info = cb_info['get_hit_info']
         self._set_selected_hit_info = cb_info['set_hit_info']
+        self._get_hit_name = cb_info['get_hit_name']
 
         self._index_base = 0
         self._index_offset = index_offset
+
+        self._index = QLabel()
+        self._name = QLabel()
+
+        self._index.setAlignment(Qt.AlignCenter)
+        self._name.setAlignment(Qt.AlignCenter)
+
+        v = QVBoxLayout()
+        v.setContentsMargins(0, 0, 0, 0)
+        v.setSpacing(2)
+        v.setAlignment(Qt.AlignCenter)
+        v.addWidget(self._index)
+        v.addWidget(self._name)
+        self.setLayout(v)
 
         self._update_text()
 
         QObject.connect(self, SIGNAL('clicked()'), self._select_hit)
 
     def _update_text(self):
-        self.setText(str(self._index_base + self._index_offset))
+        index = self._index_base + self._index_offset
+        self._index.setText(str(index))
+        self._name.setText(self._get_hit_name(index))
 
     def set_index_base(self, index_base):
         self._index_base = index_base

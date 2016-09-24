@@ -107,6 +107,12 @@ class AuHitSelector(HitSelector):
         au.set_edit_selected_hit_info(hit_base, hit_offset)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
+    def _get_hit_name(self, index):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        hit = au.get_hit(index)
+        return hit.get_name()
+
 
 class HitEditor(QWidget):
 
