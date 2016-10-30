@@ -20,6 +20,7 @@
 //             Name         Type suffix             Arg type        Validator
 EVENT_AUTO_DEF("Atrack",    location_track,         INT,            v_track)
 EVENT_AUTO_DEF("Asystem",   location_system,        INT,            v_system)
+EVENT_AUTO_DEF("Apattern",  location_pattern,       PAT_INST_REF,   v_piref)
 EVENT_AUTO_DEF("Arow",      location_row,           TSTAMP,         v_any_ts)
 EVENT_AUTO_DEF("Avoices",   voice_count,            INT,            v_any_int)
 EVENT_AUTO_DEF("Af",        actual_force,           REALTIME,       NULL)

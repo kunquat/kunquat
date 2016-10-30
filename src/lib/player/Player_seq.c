@@ -215,6 +215,14 @@ void Player_process_event(
                 system->value.int_type = cur_pos->system;
                 try_process("Asystem", system);
 
+                if (Position_has_valid_pattern_pos(cur_pos))
+                {
+                    Value* piref = VALUE_AUTO;
+                    piref->type = VALUE_TYPE_PAT_INST_REF;
+                    piref->value.Pat_inst_ref_type = cur_pos->piref;
+                    try_process("Apattern", piref);
+                }
+
                 Value* row = VALUE_AUTO;
                 row->type = VALUE_TYPE_TSTAMP;
                 row->value.Tstamp_type = cur_pos->pat_pos;

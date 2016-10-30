@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/Module.h>
+#include <init/sheet/Order_list.h>
 #include <init/sheet/Track_list.h>
 #include <mathnum/Random.h>
 #include <player/Tuning_state.h>
@@ -107,6 +108,34 @@ Master_params* Master_params_preinit(Master_params* params)
 }
 
 
+static void Master_params_fill_current_pattern(Master_params* params)
+{
+    rassert(params != NULL);
+    rassert(params->parent.module != NULL);
+
+    params->cur_pos.piref.pat = -1;
+    params->cur_pos.piref.inst = -1;
+
+    const int track = params->cur_pos.track;
+    const int system = params->cur_pos.system;
+
+    const Track_list* tl = Module_get_track_list(params->parent.module);
+    if (tl != NULL && track < Track_list_get_len(tl))
+    {
+        const int cur_song = Track_list_get_song_index(tl, track);
+        const Order_list* ol = Module_get_order_list(params->parent.module, cur_song);
+        if (ol != NULL && system < Order_list_get_len(ol))
+        {
+            const Pat_inst_ref* piref = Order_list_get_pat_inst_ref(ol, system);
+            rassert(piref != NULL);
+            params->cur_pos.piref = *piref;
+        }
+    }
+
+    return;
+}
+
+
 Master_params* Master_params_init(
         Master_params* params, const Module* module, Env_state* estate)
 {
@@ -133,6 +162,8 @@ Master_params* Master_params_init(
     }
 
     Master_params_clear(params);
+
+    Master_params_fill_current_pattern(params);
 
     return params;
 }
@@ -194,6 +225,8 @@ void Master_params_reset(Master_params* params)
 
     params->start_pos.track = 0; // TODO: init start_pos from argument
     params->cur_pos = params->start_pos;
+
+    Master_params_fill_current_pattern(params);
 
     Master_params_set_starting_tempo(params);
 
