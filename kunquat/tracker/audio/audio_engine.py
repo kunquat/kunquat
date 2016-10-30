@@ -99,6 +99,9 @@ class AudioEngine():
         elif event_type == 'Asystem':
             system = event_value
             self._ui_engine.update_pending_playback_cursor_system(system)
+        elif event_type == 'Apattern':
+            piref = event_value
+            self._ui_engine.update_playback_pattern(piref)
         elif event_type == 'Arow':
             row = event_value
             self._ui_engine.update_playback_cursor(row)

@@ -540,6 +540,9 @@ class Controller():
     def update_pending_playback_cursor_system(self, system):
         self._session.set_pending_playback_cursor_system(system)
 
+    def update_playback_pattern(self, piref):
+        self._session.set_playback_pattern(piref)
+
     def update_playback_cursor(self, row):
         self._session.set_playback_cursor(row)
         if self._session.get_record_mode():

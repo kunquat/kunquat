@@ -418,12 +418,32 @@ class PlaybackPosition(QWidget):
 
         title_y = self.height() * 0.3
 
+        # Get position information
+        track_num = -1
+        system_num = -1
+        row_ts = tstamp.Tstamp()
+        pat_num = -1
+        inst_num = -1
+
+        playback_manager = self._ui_model.get_playback_manager()
+        if playback_manager.is_playback_active():
+            track_num, system_num, row_ts = playback_manager.get_playback_position()
+
+            pinst = playback_manager.get_playback_pattern()
+            album = self._ui_model.get_module().get_album()
+            if pinst:
+                pat_num, inst_num = pinst
+            elif album.get_existence():
+                song = album.get_song_by_track(track_num)
+                if song.get_existence():
+                    pinst = song.get_pattern_instance(system_num)
+                    pat_num = pinst.get_pattern_num()
+                    inst_num = pinst.get_instance_num()
+            assert (pat_num == -1) == (inst_num == -1)
+
         # State icon
         shift_x()
         self._draw_state_icon(painter)
-
-        playback_manager = self._ui_model.get_playback_manager()
-        track_num, system_num, row_ts = playback_manager.get_playback_position()
 
         # Track number
         shift_x()
@@ -450,32 +470,23 @@ class PlaybackPosition(QWidget):
         painter.drawPixmap(2, title_y, self._titles['system'])
 
         # Pattern instance
-        pat_num = 0
-        inst_num = 0
-        album = self._ui_model.get_module().get_album()
-        if album.get_existence():
-            song = album.get_song_by_track(track_num)
-            if song.get_existence():
-                pinst = song.get_pattern_instance(system_num)
-                pat_num = pinst.get_pattern_num()
-                inst_num = pinst.get_instance_num()
-
         shift_x()
         shift_x()
         self._draw_str(
                 painter,
-                str(pat_num),
+                str(pat_num) if pat_num >= 0 else '-',
                 self._config['pat_digits'],
                 'num_font',
                 Qt.AlignRight)
 
         shift_x()
-        self._draw_str(
-                painter,
-                str(inst_num),
-                self._config['pat_inst_digits'],
-                'sub_font',
-                Qt.AlignLeft)
+        if inst_num >= 0:
+            self._draw_str(
+                    painter,
+                    str(inst_num),
+                    self._config['pat_inst_digits'],
+                    'sub_font',
+                    Qt.AlignLeft)
 
         painter.setClipping(False)
         painter.drawPixmap(-20, title_y, self._titles['pattern'])

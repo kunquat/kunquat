@@ -126,6 +126,9 @@ class UiProcess(Process):
     def update_pending_playback_cursor_system(self, system):
         self._q.put('update_pending_playback_cursor_system', system)
 
+    def update_playback_pattern(self, piref):
+        self._q.put('update_playback_pattern', piref)
+
     def update_playback_cursor(self, row):
         self._q.put('update_playback_cursor', row)
 

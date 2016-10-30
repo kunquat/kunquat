@@ -33,6 +33,9 @@ class PlaybackManager():
     def is_playback_active(self):
         return self._session.is_playback_active()
 
+    def get_playback_pattern(self):
+        return self._session.get_playback_pattern()
+
     def get_playback_position(self):
         track_num, system_num, row_ts = self._session.get_playback_cursor_position()
         return track_num, system_num, row_ts
