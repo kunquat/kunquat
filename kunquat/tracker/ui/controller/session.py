@@ -85,6 +85,7 @@ class Session():
         self._pending_playback_cursor_track = 0
         self._pending_playback_cursor_system = 0
         self._playback_cursor_position = (0, 0, [0, 0])
+        self._playback_pattern = None
         self._orderlist_selection = None
         self._track_selection = 0
         self._expanded_au_vars = {}
@@ -458,6 +459,12 @@ class Session():
 
     def set_pending_playback_cursor_system(self, system):
         self._pending_playback_cursor_system = system
+
+    def set_playback_pattern(self, piref):
+        self._playback_pattern = piref
+
+    def get_playback_pattern(self):
+        return self._playback_pattern
 
     def set_playback_cursor(self, row):
         track = self._pending_playback_cursor_track

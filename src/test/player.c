@@ -1235,12 +1235,17 @@ START_TEST(Query_initial_location)
     set_audio_rate(220);
     setup_query_patterns();
 
+    // We need to seek or play before the current pattern is resolved
+    kqt_Handle_set_position(handle, 0, 0);
+
     kqt_Handle_fire_event(handle, 0, "[\"qlocation\", null]");
 
     const char* events = kqt_Handle_receive_events(handle);
     const char* expected =
-        "[[0, [\"qlocation\", null]], "
-        "[0, [\"Atrack\", 0]], [0, [\"Asystem\", 0]], [0, [\"Arow\", [0, 0]]]]";
+        "[[0, [\"qlocation\", null]]"
+        ", [0, [\"Atrack\", 0]], [0, [\"Asystem\", 0]]"
+        ", [0, [\"Apattern\", [0, 0]]], [0, [\"Arow\", [0, 0]]]"
+        "]";
 
     fail_if(strcmp(events, expected) != 0,
             "Received event list %s instead of %s", events, expected);
@@ -1258,8 +1263,10 @@ START_TEST(Query_final_location)
 
     const char* events = kqt_Handle_receive_events(handle);
     const char* expected =
-        "[[0, [\"qlocation\", null]], "
-        "[0, [\"Atrack\", 0]], [0, [\"Asystem\", 1]], [0, [\"Arow\", [4, 0]]]]";
+        "[[0, [\"qlocation\", null]]"
+        ", [0, [\"Atrack\", 0]], [0, [\"Asystem\", 1]]"
+        ", [0, [\"Apattern\", [0, 1]]], [0, [\"Arow\", [4, 0]]]"
+        "]";
 
     fail_if(strcmp(events, expected) != 0,
             "Received event list %s instead of %s", events, expected);
