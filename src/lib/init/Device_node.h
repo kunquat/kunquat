@@ -151,29 +151,6 @@ void Device_node_mix_voice_signals(
 
 
 /**
- * Process mixed signals in the Device node and its subgraph.
- *
- * \param node         The Device node -- must not be \c NULL.
- * \param dstates      The Device states -- must not be \c NULL.
- * \param wbs          The Work buffers -- must not be \c NULL.
- * \param buf_start    The start index of the buffer area to be mixed -- must
- *                     be less than the buffer size.
- * \param buf_stop     The stop index of the buffer area to be mixed -- must
- *                     be less than or equal to the buffer size.
- * \param audio_rate   The mixing frequency -- must be > \c 0.
- * \param tempo        The tempo -- must be finite and > \c 0.
- */
-void Device_node_process_mixed_signals(
-        const Device_node* node,
-        Device_states* dstates,
-        const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
-        int32_t audio_rate,
-        double tempo);
-
-
-/**
  * Get the name of the corresponding Device.
  *
  * \param node   The Device node -- must not be \c NULL.
