@@ -17,20 +17,12 @@
 
 
 #include <decl.h>
+#include <init/devices/port_type.h>
 #include <kunquat/limits.h>
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-
-
-// FIXME: Figure out where we should define this
-typedef enum
-{
-    DEVICE_PORT_TYPE_RECEIVE = 0,
-    DEVICE_PORT_TYPE_SEND,
-    DEVICE_PORT_TYPES             ///< Sentinel -- not a valid type.
-} Device_port_type;
 
 
 /**
