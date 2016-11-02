@@ -352,6 +352,108 @@ bool Device_states_prepare(Device_states* dstates, const Connections* conns)
 }
 
 
+static void process_mixed_signals(
+        Device_states* dstates,
+        const Device_node* node,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        int32_t audio_rate,
+        double tempo)
+{
+    rassert(dstates != NULL);
+    rassert(node != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+    rassert(audio_rate > 0);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
+
+    const Device* node_device = Device_node_get_device(node);
+    if ((node_device == NULL) || !Device_is_existent(node_device))
+        return;
+
+    Device_state* node_dstate =
+        Device_states_get_state(dstates, Device_get_id(node_device));
+
+    //fprintf(stderr, "Entering node %p %s\n", (void*)node, node->name);
+    if (Device_state_get_node_state(node_dstate) > DEVICE_NODE_STATE_NEW)
+    {
+        rassert(Device_state_get_node_state(node_dstate) == DEVICE_NODE_STATE_VISITED);
+        return;
+    }
+
+    Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_REACHED);
+
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        const Connection* edge = Device_node_get_received(node, port);
+
+        if (edge != NULL)
+            Device_state_mark_input_port_connected(node_dstate, port);
+
+        while (edge != NULL)
+        {
+            const Device* send_device = Device_node_get_device(edge->node);
+            if (send_device == NULL)
+            {
+                edge = edge->next;
+                continue;
+            }
+
+            Device_state* send_state =
+                Device_states_get_state(dstates, Device_get_id(send_device));
+            if (send_state == NULL)
+            {
+                edge = edge->next;
+                continue;
+            }
+
+            process_mixed_signals(
+                    dstates, edge->node, wbs, buf_start, buf_stop, audio_rate, tempo);
+
+            Work_buffer* send = Device_state_get_audio_buffer(
+                    send_state, DEVICE_PORT_TYPE_SEND, edge->port);
+            Work_buffer* receive = Device_state_get_audio_buffer(
+                    node_dstate, DEVICE_PORT_TYPE_RECEIVE, port);
+            if (receive == NULL || send == NULL)
+            {
+                /*
+                if (receive != NULL)
+                {
+                    fprintf(stderr, "receive %p of %p %s, but no send from %p!\n",
+                            (void*)receive, (void*)node, node->name, (void*)edge->node);
+                }
+                else if (send != NULL)
+                {
+                    fprintf(stderr, "send %p, but no receive!\n", (void*)send);
+                }
+                // */
+                edge = edge->next;
+                continue;
+            }
+
+            /*
+            fprintf(stderr, "%s %d %.1f\n",
+                    edge->node->name,
+                    (int)Device_get_id((const Device*)send_device),
+                    Work_buffer_get_contents(send)[0]);
+            // */
+            Work_buffer_mix(receive, send, buf_start, buf_stop);
+
+            edge = edge->next;
+        }
+    }
+
+    //fprintf(stderr, "Rendering mixed on %p %s\n", (void*)node, node->name);
+    Device_state_render_mixed(node_dstate, wbs, buf_start, buf_stop, tempo);
+
+    Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_VISITED);
+    return;
+}
+
+
 void Device_states_process_mixed_signals(
         Device_states* dstates,
         bool hack_reset,
@@ -388,8 +490,8 @@ void Device_states_process_mixed_signals(
     if (hack_reset)
         Device_states_reset_node_states(dstates);
 
-    Device_node_process_mixed_signals(
-            master, dstates, wbs, buf_start, buf_stop, audio_rate, tempo);
+    process_mixed_signals(
+            dstates, master, wbs, buf_start, buf_stop, audio_rate, tempo);
 
     return;
 }
