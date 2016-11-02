@@ -124,17 +124,6 @@ bool Device_states_prepare(Device_states* dstates, const Connections* conns);
 
 
 /**
- * Initialise all Audio buffers in the Device states.
- *
- * \param dstates   The Device states -- must not be \c NULL.
- * \param conns     The Connections -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_states_init_buffers(Device_states* dstates, const Connections* conns);
-
-
-/**
  * Process mixed signals in the Device states.
  *
  * \param dstates      The Device states -- must not be \c NULL.

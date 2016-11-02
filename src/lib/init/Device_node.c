@@ -33,22 +33,6 @@
 #include <string.h>
 
 
-typedef enum
-{
-    DEVICE_TYPE_MASTER    = 1,
-    DEVICE_TYPE_PROCESSOR = 2,
-    DEVICE_TYPE_AU        = 8,
-} Device_type;
-
-
-typedef struct Connection
-{
-    Device_node* node;       ///< The neighbour node.
-    int port;                ///< The port of the neighbour node.
-    struct Connection* next;
-} Connection;
-
-
 struct Device_node
 {
     char name[KQT_DEVICE_NODE_NAME_MAX];
@@ -59,7 +43,7 @@ struct Device_node
     Au_table* au_table;
     const Device* master; ///< The global or Audio unit master
 
-    Device_type type;
+    Device_node_type type;
     int index;
     //Device* device;
     Connection* iter;
@@ -85,26 +69,26 @@ Device_node* new_Device_node(const char* name, Au_table* au_table, const Device*
 
     if (string_eq(node->name, ""))
     {
-        node->type = DEVICE_TYPE_MASTER;
+        node->type = DEVICE_NODE_TYPE_MASTER;
         node->index = -1;
     }
     else if (string_has_prefix(node->name, "au_"))
     {
-        node->type = DEVICE_TYPE_AU;
+        node->type = DEVICE_NODE_TYPE_AU;
         node->index = string_extract_index(node->name, "au_", 2, NULL);
         rassert(node->index >= 0);
         rassert(node->index < KQT_AUDIO_UNITS_MAX);
     }
     else if (string_has_prefix(node->name, "proc_"))
     {
-        node->type = DEVICE_TYPE_PROCESSOR;
+        node->type = DEVICE_NODE_TYPE_PROCESSOR;
         node->index = string_extract_index(node->name, "proc_", 2, NULL);
         rassert(node->index >= 0);
         rassert(node->index < KQT_PROCESSORS_MAX);
     }
     else if (string_eq(node->name, "Iin"))
     {
-        node->type = DEVICE_TYPE_MASTER;
+        node->type = DEVICE_NODE_TYPE_MASTER;
         node->index = -1;
     }
     else
@@ -218,136 +202,6 @@ bool Device_node_check_connections(
 }
 
 
-bool Device_node_init_buffers_simple(const Device_node* node, Device_states* dstates)
-{
-    rassert(node != NULL);
-    rassert(dstates != NULL);
-
-    const Device* node_device = Device_node_get_device(node);
-    if (node_device == NULL)
-        return true;
-
-    Device_state* node_dstate =
-        Device_states_get_state(dstates, Device_get_id(node_device));
-    rassert(Device_state_get_node_state(node_dstate) != DEVICE_NODE_STATE_REACHED);
-
-    if (Device_state_get_node_state(node_dstate) == DEVICE_NODE_STATE_VISITED)
-        return true;
-
-    Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_REACHED);
-
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-    {
-        Connection* edge = node->receive[port];
-        while (edge != NULL)
-        {
-            rassert(edge->node != NULL);
-            const Device* send_device = Device_node_get_device(edge->node);
-            if (send_device == NULL ||
-                    !Device_has_complete_type(send_device) ||
-                    !Device_get_port_existence(
-                        node_device, DEVICE_PORT_TYPE_RECEIVE, port) ||
-                    !Device_get_port_existence(
-                        send_device, DEVICE_PORT_TYPE_SEND, edge->port))
-            {
-                edge = edge->next;
-                continue;
-            }
-            /*
-            if (!Device_get_port_existence(
-                    node_device, DEVICE_PORT_TYPE_RECEIVE, port))
-                fprintf(stderr, "Warning: connecting to non-existent port %d of device %s\n",
-                        port, node->name);
-            if (!Device_get_port_existence(
-                    send_device, DEVICE_PORT_TYPE_SEND, edge->port))
-                fprintf(stderr, "Warning: connecting from non-existent port %d of device %s\n",
-                        edge->port, edge->node->name);
-            // */
-
-            // Add receive buffer
-            Device_state* receive_state =
-                Device_states_get_state(dstates, Device_get_id(node_device));
-            if (!Device_state_add_audio_buffer(
-                        receive_state, DEVICE_PORT_TYPE_RECEIVE, port))
-                return false;
-
-            // Add send buffer
-            Device_state* send_state =
-                Device_states_get_state(dstates, Device_get_id(send_device));
-            if (send_state != NULL &&
-                    !Device_state_add_audio_buffer(
-                        send_state, DEVICE_PORT_TYPE_SEND, edge->port))
-                return false;
-
-            // Recurse to the sender
-            if (!Device_node_init_buffers_simple(edge->node, dstates))
-                return false;
-
-            edge = edge->next;
-        }
-    }
-
-    Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_VISITED);
-    return true;
-}
-
-
-bool Device_node_init_effect_buffers(const Device_node* node, Device_states* dstates)
-{
-    rassert(node != NULL);
-    rassert(dstates != NULL);
-
-    const Device* node_device = Device_node_get_device(node);
-    if (node_device == NULL)
-        return true;
-
-    Device_state* node_dstate =
-        Device_states_get_state(dstates, Device_get_id(node_device));
-
-    if (Device_state_get_node_state(node_dstate) > DEVICE_NODE_STATE_NEW)
-    {
-        rassert(Device_state_get_node_state(node_dstate) != DEVICE_NODE_STATE_REACHED);
-        return true;
-    }
-
-    Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_REACHED);
-
-    if (node->type == DEVICE_TYPE_AU)
-    {
-        Audio_unit* au = Au_table_get(node->au_table, node->index);
-        if (au == NULL)
-        {
-            Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_VISITED);
-            return true;
-        }
-
-        if (!Audio_unit_prepare_connections(au, dstates))
-            return false;
-    }
-
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-    {
-        const Connection* edge = node->receive[port];
-        while (edge != NULL)
-        {
-            if (Device_node_get_device(edge->node) == NULL)
-            {
-                edge = edge->next;
-                continue;
-            }
-
-            if (!Device_node_init_effect_buffers(edge->node, dstates))
-                return false;
-
-            edge = edge->next;
-        }
-    }
-
-    Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_VISITED);
-    return true;
-}
-
-
 void Device_node_reset_subgraph(const Device_node* node, Device_states* dstates)
 {
     rassert(node != NULL);
@@ -428,7 +282,7 @@ int32_t Device_node_process_voice_group(
     Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_REACHED);
 
     Proc_state* recv_state = NULL;
-    if (node->type == DEVICE_TYPE_PROCESSOR)
+    if (node->type == DEVICE_NODE_TYPE_PROCESSOR)
     {
         recv_state = (Proc_state*)node_dstate;
 
@@ -478,8 +332,8 @@ int32_t Device_node_process_voice_group(
 
             release_stop = max(release_stop, sub_release_stop);
 
-            if ((node->type == DEVICE_TYPE_PROCESSOR) &&
-                    (edge->node->type == DEVICE_TYPE_PROCESSOR))
+            if ((node->type == DEVICE_NODE_TYPE_PROCESSOR) &&
+                    (edge->node->type == DEVICE_NODE_TYPE_PROCESSOR))
             {
                 // Mix voice audio buffers
                 Proc_state* send_state = (Proc_state*)Device_states_get_state(
@@ -498,7 +352,7 @@ int32_t Device_node_process_voice_group(
         }
     }
 
-    if (node->type == DEVICE_TYPE_PROCESSOR)
+    if (node->type == DEVICE_NODE_TYPE_PROCESSOR)
     {
         if (Processor_get_voice_signals((const Processor*)node_device))
         {
@@ -549,7 +403,7 @@ void Device_node_mix_voice_signals(
 
     Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_REACHED);
 
-    if (node->type == DEVICE_TYPE_PROCESSOR)
+    if (node->type == DEVICE_NODE_TYPE_PROCESSOR)
     {
         if (Processor_get_voice_signals((const Processor*)node_device))
         {
@@ -704,7 +558,7 @@ const char* Device_node_get_name(const Device_node* node)
 Processor* Device_node_get_processor_mut(const Device_node* node)
 {
     rassert(node != NULL);
-    rassert(node->type == DEVICE_TYPE_PROCESSOR);
+    rassert(node->type == DEVICE_NODE_TYPE_PROCESSOR);
 
     Proc_table* procs = Audio_unit_get_procs((const Audio_unit*)node->master);
     return Proc_table_get_proc_mut(procs, node->index);
@@ -715,17 +569,43 @@ const Device* Device_node_get_device(const Device_node* node)
 {
     rassert(node != NULL);
 
-    if (node->type == DEVICE_TYPE_MASTER)
+    if (node->type == DEVICE_NODE_TYPE_MASTER)
         return node->master;
-    else if (node->type == DEVICE_TYPE_AU)
+    else if (node->type == DEVICE_NODE_TYPE_AU)
         return (const Device*)Au_table_get(node->au_table, node->index);
-    else if (node->type == DEVICE_TYPE_PROCESSOR)
+    else if (node->type == DEVICE_NODE_TYPE_PROCESSOR)
         return (const Device*)Audio_unit_get_proc(
                 (const Audio_unit*)node->master,
                 node->index);
 
     rassert(false);
     return NULL;
+}
+
+
+const Connection* Device_node_get_received(const Device_node* node, int port)
+{
+    rassert(node != NULL);
+    rassert(port >= 0);
+    rassert(port < KQT_DEVICE_PORTS_MAX);
+
+    return node->receive[port];
+}
+
+
+Device_node_type Device_node_get_type(const Device_node* node)
+{
+    rassert(node != NULL);
+    return node->type;
+}
+
+
+Audio_unit* Device_node_get_au_mut(const Device_node* node)
+{
+    rassert(node != NULL);
+    rassert(Device_node_get_type(node) == DEVICE_NODE_TYPE_AU);
+
+    return Au_table_get(node->au_table, node->index);
 }
 
 

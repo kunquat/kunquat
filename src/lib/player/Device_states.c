@@ -17,6 +17,7 @@
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <init/Connections.h>
+#include <init/devices/Audio_unit.h>
 #include <player/devices/Device_state.h>
 #include <memory.h>
 
@@ -196,16 +197,137 @@ void Device_states_set_tempo(Device_states* states, double tempo)
 }
 
 
-bool Device_states_prepare(Device_states* dstates, const Connections* conns)
+static bool init_buffers(Device_states* dstates, const Device_node* node)
 {
     rassert(dstates != NULL);
-    rassert(conns != NULL);
+    rassert(node != NULL);
 
-    return Device_states_init_buffers(dstates, conns);
+    const Device* node_device = Device_node_get_device(node);
+    if (node_device == NULL)
+        return true;
+
+    Device_state* node_dstate =
+        Device_states_get_state(dstates, Device_get_id(node_device));
+    rassert(Device_state_get_node_state(node_dstate) != DEVICE_NODE_STATE_REACHED);
+
+    if (Device_state_get_node_state(node_dstate) == DEVICE_NODE_STATE_VISITED)
+        return true;
+
+    Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_REACHED);
+
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        const Connection* edge = Device_node_get_received(node, port);
+        while (edge != NULL)
+        {
+            rassert(edge->node != NULL);
+            const Device* send_device = Device_node_get_device(edge->node);
+            if (send_device == NULL ||
+                    !Device_has_complete_type(send_device) ||
+                    !Device_get_port_existence(
+                        node_device, DEVICE_PORT_TYPE_RECEIVE, port) ||
+                    !Device_get_port_existence(
+                        send_device, DEVICE_PORT_TYPE_SEND, edge->port))
+            {
+                edge = edge->next;
+                continue;
+            }
+            /*
+            if (!Device_get_port_existence(
+                    node_device, DEVICE_PORT_TYPE_RECEIVE, port))
+                fprintf(stderr, "Warning: connecting to non-existent port %d of device %s\n",
+                        port, node->name);
+            if (!Device_get_port_existence(
+                    send_device, DEVICE_PORT_TYPE_SEND, edge->port))
+                fprintf(stderr, "Warning: connecting from non-existent port %d of device %s\n",
+                        edge->port, edge->node->name);
+            // */
+
+            // Add receive buffer
+            Device_state* receive_state =
+                Device_states_get_state(dstates, Device_get_id(node_device));
+            if (!Device_state_add_audio_buffer(
+                        receive_state, DEVICE_PORT_TYPE_RECEIVE, port))
+                return false;
+
+            // Add send buffer
+            Device_state* send_state =
+                Device_states_get_state(dstates, Device_get_id(send_device));
+            if (send_state != NULL &&
+                    !Device_state_add_audio_buffer(
+                        send_state, DEVICE_PORT_TYPE_SEND, edge->port))
+                return false;
+
+            // Recurse to the sender
+            if (!init_buffers(dstates, edge->node))
+                return false;
+
+            edge = edge->next;
+        }
+    }
+
+    Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_VISITED);
+    return true;
 }
 
 
-bool Device_states_init_buffers(Device_states* dstates, const Connections* conns)
+static bool init_effect_buffers(Device_states* dstates, const Device_node* node)
+{
+    rassert(dstates != NULL);
+    rassert(node != NULL);
+
+    const Device* node_device = Device_node_get_device(node);
+    if (node_device == NULL)
+        return true;
+
+    Device_state* node_dstate =
+        Device_states_get_state(dstates, Device_get_id(node_device));
+
+    if (Device_state_get_node_state(node_dstate) > DEVICE_NODE_STATE_NEW)
+    {
+        rassert(Device_state_get_node_state(node_dstate) != DEVICE_NODE_STATE_REACHED);
+        return true;
+    }
+
+    Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_REACHED);
+
+    if (Device_node_get_type(node) == DEVICE_NODE_TYPE_AU)
+    {
+        Audio_unit* au = Device_node_get_au_mut(node);
+        if (au == NULL)
+        {
+            Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_VISITED);
+            return true;
+        }
+
+        if (!Audio_unit_prepare_connections(au, dstates))
+            return false;
+    }
+
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        const Connection* edge = Device_node_get_received(node, port);
+        while (edge != NULL)
+        {
+            if (Device_node_get_device(edge->node) == NULL)
+            {
+                edge = edge->next;
+                continue;
+            }
+
+            if (!init_effect_buffers(dstates, edge->node))
+                return false;
+
+            edge = edge->next;
+        }
+    }
+
+    Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_VISITED);
+    return true;
+}
+
+
+static bool Device_states_init_buffers(Device_states* dstates, const Connections* conns)
 {
     rassert(dstates != NULL);
     rassert(conns != NULL);
@@ -213,11 +335,20 @@ bool Device_states_init_buffers(Device_states* dstates, const Connections* conns
     const Device_node* master = Connections_get_master(conns);
     rassert(master != NULL);
     Device_states_reset_node_states(dstates);
-    if (!Device_node_init_buffers_simple(master, dstates))
+    if (!init_buffers(dstates, master))
         return false;
 
     Device_states_reset_node_states(dstates);
-    return Device_node_init_effect_buffers(master, dstates);
+    return init_effect_buffers(dstates, master);
+}
+
+
+bool Device_states_prepare(Device_states* dstates, const Connections* conns)
+{
+    rassert(dstates != NULL);
+    rassert(conns != NULL);
+
+    return Device_states_init_buffers(dstates, conns);
 }
 
 

@@ -16,8 +16,9 @@
 #define KQT_DEVICE_NODE_H
 
 
-#include <init/Au_table.h>
+#include <decl.h>
 #include <init/devices/Device.h>
+#include <init/devices/port_type.h>
 #include <player/Device_states.h>
 #include <player/Voice_group.h>
 
@@ -37,6 +38,22 @@
  * The structure in memory allows Device nodes to be compared against strings.
  */
 typedef struct Device_node Device_node;
+
+
+typedef enum
+{
+    DEVICE_NODE_TYPE_MASTER    = 1,
+    DEVICE_NODE_TYPE_PROCESSOR = 2,
+    DEVICE_NODE_TYPE_AU        = 8,
+} Device_node_type;
+
+
+typedef struct Connection
+{
+    Device_node* node;       ///< The neighbour node.
+    int port;                ///< The port of the neighbour node.
+    struct Connection* next;
+} Connection;
 
 
 /**
@@ -76,28 +93,6 @@ int Device_node_cmp(const Device_node* n1, const Device_node* n2);
  */
 bool Device_node_check_connections(
         const Device_node* node, char err[DEVICE_CONNECTION_ERROR_LENGTH_MAX]);
-
-
-/**
- * Initialise all Audio buffers in the Device node and its subgraph.
- *
- * \param node      The Device node -- must not be \c NULL.
- * \param dstates   The Device states -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_node_init_buffers_simple(const Device_node* node, Device_states* dstates);
-
-
-/**
- * Initialise the graphs of the Effects in the subgraph.
- *
- * \param node      The Device node -- must not be \c NULL.
- * \param dstates   The Device states -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_node_init_effect_buffers(const Device_node* node, Device_states* dstates);
 
 
 /**
@@ -196,6 +191,38 @@ const char* Device_node_get_name(const Device_node* node);
  * \return   The Device.
  */
 const Device* Device_node_get_device(const Device_node* node);
+
+
+/**
+ * Get received connections to a port of a Device node.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ * \param port   The port number -- must be >= \c 0 and < \c KQT_DEVICE_PORTS_MAX.
+ *
+ * return   The first connection if one exists, otherwise \c NULL.
+ */
+const Connection* Device_node_get_received(const Device_node* node, int port);
+
+
+/**
+ * Get the type of the Device node.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ *
+ * \return   The type of the Device node.
+ */
+Device_node_type Device_node_get_type(const Device_node* node);
+
+
+/**
+ * Get the Audio unit contained within the Device node.
+ *
+ * \param node   The Device node -- must not be \c NULL and must have type
+ *               \c DEVICE_NODE_TYPE_AU.
+ *
+ * \return   The Audio unit if one exists, otherwise \c NULL.
+ */
+Audio_unit* Device_node_get_au_mut(const Device_node* node);
 
 
 /**
