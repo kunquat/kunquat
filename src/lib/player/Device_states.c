@@ -16,6 +16,7 @@
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
+#include <init/Connections.h>
 #include <player/devices/Device_state.h>
 #include <memory.h>
 
@@ -190,6 +191,74 @@ void Device_states_set_tempo(Device_states* states, double tempo)
         Device_state_set_tempo(ds, tempo);
         ds = AAiter_get_next(iter);
     }
+
+    return;
+}
+
+
+bool Device_states_prepare(Device_states* dstates, const Connections* conns)
+{
+    rassert(dstates != NULL);
+    rassert(conns != NULL);
+
+    return Device_states_init_buffers(dstates, conns);
+}
+
+
+bool Device_states_init_buffers(Device_states* dstates, const Connections* conns)
+{
+    rassert(dstates != NULL);
+    rassert(conns != NULL);
+
+    const Device_node* master = Connections_get_master(conns);
+    rassert(master != NULL);
+    Device_states_reset_node_states(dstates);
+    if (!Device_node_init_buffers_simple(master, dstates))
+        return false;
+
+    Device_states_reset_node_states(dstates);
+    return Device_node_init_effect_buffers(master, dstates);
+}
+
+
+void Device_states_process_mixed_signals(
+        Device_states* dstates,
+        bool hack_reset,
+        const Connections* conns,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        int32_t audio_rate,
+        double tempo)
+{
+    rassert(dstates != NULL);
+    rassert(conns != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(audio_rate > 0);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
+
+    const Device_node* master = Connections_get_master(conns);
+    rassert(master != NULL);
+    if (buf_start >= buf_stop)
+        return;
+
+#if 0
+    static bool called = false;
+    if (!called)
+    {
+        Connections_print(graph, stderr);
+    }
+    called = true;
+//    fprintf(stderr, "Mix process:\n");
+#endif
+
+    if (hack_reset)
+        Device_states_reset_node_states(dstates);
+
+    Device_node_process_mixed_signals(
+            master, dstates, wbs, buf_start, buf_stop, audio_rate, tempo);
 
     return;
 }

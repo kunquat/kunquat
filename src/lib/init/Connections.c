@@ -246,35 +246,10 @@ bool Connections_check_connections(
 }
 
 
-Device_node* Connections_get_master(Connections* graph)
+const Device_node* Connections_get_master(const Connections* graph)
 {
     rassert(graph != NULL);
     return AAtree_get_exact(graph->nodes, "");
-}
-
-
-bool Connections_prepare(const Connections* graph, Device_states* dstates)
-{
-    rassert(graph != NULL);
-    rassert(dstates != NULL);
-
-    return Connections_init_buffers(graph, dstates);
-}
-
-
-bool Connections_init_buffers(const Connections* graph, Device_states* dstates)
-{
-    rassert(graph != NULL);
-    rassert(dstates != NULL);
-
-    const Device_node* master = AAtree_get_exact(graph->nodes, "");
-    rassert(master != NULL);
-    Device_states_reset_node_states(dstates);
-    if (!Device_node_init_buffers_simple(master, dstates))
-        return false;
-
-    Device_states_reset_node_states(dstates);
-    return Device_node_init_effect_buffers(master, dstates);
 }
 
 
@@ -330,49 +305,6 @@ void Connections_mix_voice_signals(
     Device_node_reset_subgraph(master, dstates);
     //Device_states_reset_node_states(dstates);
     Device_node_mix_voice_signals(master, vgroup, dstates, buf_start, buf_stop);
-
-    return;
-}
-
-
-void Connections_process_mixed_signals(
-        const Connections* graph,
-        bool hack_reset,
-        Device_states* dstates,
-        const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
-        int32_t audio_rate,
-        double tempo)
-{
-    rassert(graph != NULL);
-    rassert(dstates != NULL);
-    rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(audio_rate > 0);
-    rassert(isfinite(tempo));
-    rassert(tempo > 0);
-
-    const Device_node* master = AAtree_get_exact(graph->nodes, "");
-    rassert(master != NULL);
-    if (buf_start >= buf_stop)
-        return;
-
-#if 0
-    static bool called = false;
-    if (!called)
-    {
-        Connections_print(graph, stderr);
-    }
-    called = true;
-//    fprintf(stderr, "Mix process:\n");
-#endif
-
-    if (hack_reset)
-        Device_states_reset_node_states(dstates);
-
-    Device_node_process_mixed_signals(
-            master, dstates, wbs, buf_start, buf_stop, audio_rate, tempo);
 
     return;
 }

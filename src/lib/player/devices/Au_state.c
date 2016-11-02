@@ -109,10 +109,10 @@ static void Au_state_render_mixed(
         mix_interface_connection(in_iface_ds, dstate, buf_start, buf_stop);
 
         // Process audio unit graph
-        Connections_process_mixed_signals(
-                connections,
-                false, // hack_reset
+        Device_states_process_mixed_signals(
                 au_state->dstates,
+                false, // hack_reset
+                connections,
                 wbs,
                 buf_start,
                 buf_stop,

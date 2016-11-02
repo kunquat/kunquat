@@ -875,10 +875,10 @@ void Player_play(Player* player, int32_t nframes)
             const int32_t buf_start = rendered;
             const int32_t buf_stop = rendered + to_be_rendered;
 
-            Connections_process_mixed_signals(
-                    connections,
-                    true, // hack_reset
+            Device_states_process_mixed_signals(
                     player->device_states,
+                    true, // hack_reset
+                    connections,
                     player->work_buffers,
                     buf_start,
                     buf_stop,

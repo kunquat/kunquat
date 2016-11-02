@@ -276,7 +276,7 @@ bool Audio_unit_prepare_connections(const Audio_unit* au, Device_states* states)
     if (au->connections == NULL)
         return true;
 
-    return Connections_prepare(au->connections, states);
+    return Device_states_prepare(states, au->connections);
 }
 
 

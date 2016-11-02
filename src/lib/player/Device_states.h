@@ -16,6 +16,7 @@
 #define KQT_DEVICE_STATES_H
 
 
+#include <decl.h>
 #include <player/devices/Device_state.h>
 
 #include <stdbool.h>
@@ -109,6 +110,53 @@ void Device_states_clear_audio_buffers(
  * \param tempo    The new tempo -- must be finite and > \c 0.
  */
 void Device_states_set_tempo(Device_states* states, double tempo);
+
+
+/**
+ * Prepare the Device states for mixing.
+ *
+ * \param dstates   The Device states -- must not be \c NULL.
+ * \param conns     The Connections -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_states_prepare(Device_states* dstates, const Connections* conns);
+
+
+/**
+ * Initialise all Audio buffers in the Device states.
+ *
+ * \param dstates   The Device states -- must not be \c NULL.
+ * \param conns     The Connections -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_states_init_buffers(Device_states* dstates, const Connections* conns);
+
+
+/**
+ * Process mixed signals in the Device states.
+ *
+ * \param dstates      The Device states -- must not be \c NULL.
+ * \param hack_reset   Whether the Device states should be reset or not. TODO: fix this
+ * \param conns        The Connections -- must not be \c NULL.
+ * \param wbs          The Work buffers -- must not be \c NULL.
+ * \param buf_start    The start index of the buffer area to be processed
+ *                     -- must be less than the buffer size.
+ * \param buf_stop     The stop index of the buffer area to be processed
+ *                     -- must be less than or equal to the buffer size.
+ * \param audio_rate   The audio rate -- must be > \c 0.
+ * \param tempo        The tempo -- must be finite and > \c 0.
+ */
+void Device_states_process_mixed_signals(
+        Device_states* dstates,
+        bool hack_reset,
+        const Connections* conns,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        int32_t audio_rate,
+        double tempo);
 
 
 /**
