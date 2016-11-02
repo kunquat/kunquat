@@ -811,7 +811,6 @@ void Player_play(Player* player, int32_t nframes)
     rassert(connections != NULL);
 
     Device_states_clear_audio_buffers(player->device_states, 0, nframes);
-    Connections_clear_buffers(connections, player->device_states, 0, nframes);
 
     // TODO: check if song or pattern instance location has changed
 

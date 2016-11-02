@@ -348,59 +348,6 @@ bool Device_node_init_effect_buffers(const Device_node* node, Device_states* dst
 }
 
 
-void Device_node_clear_buffers(
-        const Device_node* node,
-        Device_states* dstates,
-        int32_t buf_start,
-        int32_t buf_stop)
-{
-    rassert(node != NULL);
-    rassert(dstates != NULL);
-    rassert(buf_start >= 0);
-
-    const Device* node_device = Device_node_get_device(node);
-    if (node_device == NULL)
-        return;
-
-    Device_state* node_dstate =
-        Device_states_get_state(dstates, Device_get_id(node_device));
-
-    if (Device_state_get_node_state(node_dstate) > DEVICE_NODE_STATE_NEW)
-    {
-        rassert(Device_state_get_node_state(node_dstate) == DEVICE_NODE_STATE_VISITED);
-        return;
-    }
-
-    Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_REACHED);
-
-    //fprintf(stderr, "Clearing buffers of %p\n", (void*)Device_node_get_device(node));
-
-    if (node->type == DEVICE_TYPE_AU)
-    {
-        // Clear the audio unit buffers
-        const Audio_unit* au = (const Audio_unit*)node_device;
-        const Connections* au_conns = Audio_unit_get_connections(au);
-        if (au_conns != NULL)
-            Connections_clear_buffers(au_conns, dstates, buf_start, buf_stop);
-    }
-
-    Device_state_clear_audio_buffers(node_dstate, buf_start, buf_stop);
-
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-    {
-        Connection* edge = node->receive[port];
-        while (edge != NULL)
-        {
-            Device_node_clear_buffers(edge->node, dstates, buf_start, buf_stop);
-            edge = edge->next;
-        }
-    }
-
-    Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_VISITED);
-    return;
-}
-
-
 void Device_node_reset_subgraph(const Device_node* node, Device_states* dstates)
 {
     rassert(node != NULL);

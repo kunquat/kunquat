@@ -278,28 +278,6 @@ bool Connections_init_buffers(const Connections* graph, Device_states* dstates)
 }
 
 
-void Connections_clear_buffers(
-        const Connections* graph,
-        Device_states* dstates,
-        int32_t buf_start,
-        int32_t buf_stop)
-{
-    rassert(graph != NULL);
-    rassert(dstates != NULL);
-    rassert(buf_start >= 0);
-
-    const Device_node* master = AAtree_get_exact(graph->nodes, "");
-    rassert(master != NULL);
-    if (buf_start >= buf_stop)
-        return;
-
-    Device_states_reset_node_states(dstates);
-    Device_node_clear_buffers(master, dstates, buf_start, buf_stop);
-
-    return;
-}
-
-
 int32_t Connections_process_voice_group(
         const Connections* graph,
         Voice_group* vgroup,

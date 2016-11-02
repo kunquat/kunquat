@@ -101,23 +101,6 @@ bool Device_node_init_effect_buffers(const Device_node* node, Device_states* dst
 
 
 /**
- * Clear the audio buffers in the Device node and its subgraph.
- *
- * \param node        The Device node -- must not be \c NULL.
- * \param dstates     The Device states -- must not be \c NULL.
- * \param buf_start   The start index of the buffer area to be cleared -- must
- *                    be less than the buffer size.
- * \param buf_stop    The stop index of the buffer area to be cleared -- must
- *                    be less than or equal to the buffer size.
- */
-void Device_node_clear_buffers(
-        const Device_node* node,
-        Device_states* dstates,
-        int32_t buf_start,
-        int32_t buf_stop);
-
-
-/**
  * Reset subgraph starting from the Device node.
  *
  * TODO: Remove this work-around after Audio units have their own Device states!

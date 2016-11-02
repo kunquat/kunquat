@@ -105,23 +105,6 @@ bool Connections_init_buffers(const Connections* graph, Device_states* dstates);
 
 
 /**
- * Clear the Audio buffers in the Connections.
- *
- * \param graph       The Connections -- must not be \c NULL.
- * \param dstates     The Device states -- must not be \c NULL.
- * \param buf_start   The start index of the buffer area to be cleared -- must
- *                    be less than the buffer size.
- * \param buf_stop    The stop index of the buffer area to be cleared -- must
- *                    be less than or equal to the buffer size.
- */
-void Connections_clear_buffers(
-        const Connections* graph,
-        Device_states* dstates,
-        int32_t buf_start,
-        int32_t buf_stop);
-
-
-/**
  * Process a Voice group inside the Connections.
  *
  * \param graph        The Connections -- must not be \c NULL.
