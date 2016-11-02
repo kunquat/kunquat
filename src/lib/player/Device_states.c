@@ -293,15 +293,19 @@ static bool init_effect_buffers(Device_states* dstates, const Device_node* node)
 
     if (Device_node_get_type(node) == DEVICE_NODE_TYPE_AU)
     {
-        Audio_unit* au = Device_node_get_au_mut(node);
+        const Audio_unit* au = Device_node_get_au_mut(node);
         if (au == NULL)
         {
             Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_VISITED);
             return true;
         }
 
-        if (!Audio_unit_prepare_connections(au, dstates))
-            return false;
+        const Connections* au_conns = Audio_unit_get_connections(au);
+        if (au_conns != NULL)
+        {
+            if (!Device_states_prepare(dstates, au_conns))
+                return false;
+        }
     }
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)

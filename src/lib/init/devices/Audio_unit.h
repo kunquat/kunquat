@@ -151,20 +151,6 @@ Connections* Audio_unit_get_connections_mut(const Audio_unit* au);
 
 
 /**
- * Prepare the Connections of the Audio unit.
- *
- * This function assumes that the outer input and output buffers of the Audio unit
- * have been allocated.
- *
- * \param au       The Audio unit -- must not be \c NULL.
- * \param states   The Device states -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Audio_unit_prepare_connections(const Audio_unit* au, Device_states* states);
-
-
-/**
  * Get the input interface of the Audio unit.
  *
  * \param au   The Audio unit -- must not be \c NULL.

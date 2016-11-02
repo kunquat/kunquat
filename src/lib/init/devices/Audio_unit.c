@@ -268,18 +268,6 @@ Connections* Audio_unit_get_connections_mut(const Audio_unit* au)
 }
 
 
-bool Audio_unit_prepare_connections(const Audio_unit* au, Device_states* states)
-{
-    rassert(au != NULL);
-    rassert(states != NULL);
-
-    if (au->connections == NULL)
-        return true;
-
-    return Device_states_prepare(states, au->connections);
-}
-
-
 const Device* Audio_unit_get_input_interface(const Audio_unit* au)
 {
     rassert(au != NULL);
