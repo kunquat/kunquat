@@ -15,7 +15,10 @@
 #include <player/Voice_group.h>
 
 #include <debug/assert.h>
+#include <init/Connections.h>
+#include <init/Device_node.h>
 #include <init/devices/Device.h>
+#include <mathnum/common.h>
 #include <player/Voice.h>
 
 #include <stdint.h>
@@ -101,6 +104,261 @@ Voice* Voice_group_get_voice_by_proc(Voice_group* vg, uint32_t proc_id)
     }
 
     return NULL;
+}
+
+
+static int32_t process_voice_group(
+        const Device_node* node,
+        Voice_group* vgroup,
+        Device_states* dstates,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        int32_t audio_rate,
+        double tempo)
+{
+    rassert(node != NULL);
+    rassert(vgroup != NULL);
+    rassert(dstates != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+    rassert(audio_rate > 0);
+    rassert(tempo > 0);
+
+    const Device* node_device = Device_node_get_device(node);
+    if (node_device == NULL)
+        return buf_start;
+
+    Device_state* node_dstate =
+        Device_states_get_state(dstates, Device_get_id(node_device));
+
+    if (Device_state_get_node_state(node_dstate) > DEVICE_NODE_STATE_NEW)
+    {
+        rassert(Device_state_get_node_state(node_dstate) == DEVICE_NODE_STATE_VISITED);
+        return buf_start;
+    }
+
+    Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_REACHED);
+
+    Proc_state* recv_state = NULL;
+    if (Device_node_get_type(node) == DEVICE_NODE_TYPE_PROCESSOR)
+    {
+        recv_state = (Proc_state*)node_dstate;
+
+        // Clear the voice buffers for new contents
+        Proc_state_clear_voice_buffers(recv_state);
+
+        if (Processor_get_voice_signals((const Processor*)node_device))
+        {
+            // Stop recursing if we don't have an active Voice
+            const uint32_t proc_id = Device_get_id(node_device);
+            Voice* voice = Voice_group_get_voice_by_proc(vgroup, proc_id);
+            if ((voice == NULL) || (!voice->state->active))
+            {
+                Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_VISITED);
+                return buf_start;
+            }
+        }
+    }
+
+    int32_t release_stop = buf_start;
+
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        const Connection* edge = Device_node_get_received(node, port);
+
+        if (edge != NULL)
+            Device_state_mark_input_port_connected(node_dstate, port);
+
+        while (edge != NULL)
+        {
+            const Device* send_device = Device_node_get_device(edge->node);
+            if (send_device == NULL)
+            {
+                edge = edge->next;
+                continue;
+            }
+
+            const int32_t sub_release_stop = process_voice_group(
+                    edge->node,
+                    vgroup,
+                    dstates,
+                    wbs,
+                    buf_start,
+                    buf_stop,
+                    audio_rate,
+                    tempo);
+
+            release_stop = max(release_stop, sub_release_stop);
+
+            if ((Device_node_get_type(node) == DEVICE_NODE_TYPE_PROCESSOR) &&
+                    (Device_node_get_type(edge->node) == DEVICE_NODE_TYPE_PROCESSOR))
+            {
+                // Mix voice audio buffers
+                Proc_state* send_state = (Proc_state*)Device_states_get_state(
+                        dstates, Device_get_id(send_device));
+                const Work_buffer* send_buf = Proc_state_get_voice_buffer(
+                        send_state, DEVICE_PORT_TYPE_SEND, edge->port);
+
+                Work_buffer* recv_buf = Proc_state_get_voice_buffer_mut(
+                        recv_state, DEVICE_PORT_TYPE_RECEIVE, port);
+
+                if ((send_buf != NULL) && (recv_buf != NULL))
+                    Work_buffer_mix(recv_buf, send_buf, buf_start, buf_stop);
+            }
+
+            edge = edge->next;
+        }
+    }
+
+    if (Device_node_get_type(node) == DEVICE_NODE_TYPE_PROCESSOR)
+    {
+        if (Processor_get_voice_signals((const Processor*)node_device))
+        {
+            // Find the Voice that belongs to the current Processor
+            const uint32_t proc_id = Device_get_id(node_device);
+            Voice* voice = Voice_group_get_voice_by_proc(vgroup, proc_id);
+
+            if (voice != NULL)
+            {
+                const int32_t voice_release_stop = Voice_render(
+                        voice, dstates, wbs, buf_start, buf_stop, tempo);
+                release_stop = max(release_stop, voice_release_stop);
+            }
+        }
+    }
+
+    Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_VISITED);
+
+    return release_stop;
+}
+
+
+int32_t Voice_group_render(
+        Voice_group* vgroup,
+        Device_states* dstates,
+        const Connections* conns,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        int32_t audio_rate,
+        double tempo)
+{
+    rassert(vgroup != NULL);
+    rassert(dstates != NULL);
+    rassert(conns != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+    rassert(audio_rate > 0);
+    rassert(tempo > 0);
+
+    const Device_node* master = Connections_get_master(conns);
+    rassert(master != NULL);
+    if (buf_start >= buf_stop)
+        return buf_start;
+
+    Device_node_reset_subgraph(master, dstates);
+    //Device_states_reset_node_states(dstates);
+    return process_voice_group(
+            master, vgroup, dstates, wbs, buf_start, buf_stop, audio_rate, tempo);
+}
+
+
+static void mix_voice_signals(
+        const Device_node* node,
+        Voice_group* vgroup,
+        Device_states* dstates,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    rassert(node != NULL);
+    rassert(vgroup != NULL);
+    rassert(dstates != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= buf_start);
+
+    const Device* node_device = Device_node_get_device(node);
+    if (node_device == NULL)
+        return;
+
+    Device_state* node_dstate =
+        Device_states_get_state(dstates, Device_get_id(node_device));
+
+    if (Device_state_get_node_state(node_dstate) > DEVICE_NODE_STATE_NEW)
+    {
+        rassert(Device_state_get_node_state(node_dstate) == DEVICE_NODE_STATE_VISITED);
+        return;
+    }
+
+    Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_REACHED);
+
+    if (Device_node_get_type(node) == DEVICE_NODE_TYPE_PROCESSOR)
+    {
+        if (Processor_get_voice_signals((const Processor*)node_device))
+        {
+            // Mix Voice signals if we have any
+            const uint32_t proc_id = Device_get_id(node_device);
+            Proc_state* pstate = (Proc_state*)Device_states_get_state(dstates, proc_id);
+            Voice* voice = Voice_group_get_voice_by_proc(vgroup, proc_id);
+            if (voice != NULL)
+                Voice_state_mix_signals(voice->state, pstate, buf_start, buf_stop);
+
+            // Stop recursing as we don't depend on any mixed signals
+            Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_VISITED);
+            return;
+        }
+    }
+
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        const Connection* edge = Device_node_get_received(node, port);
+
+        while (edge != NULL)
+        {
+            const Device* send_device = Device_node_get_device(edge->node);
+            if (send_device == NULL)
+            {
+                edge = edge->next;
+                continue;
+            }
+
+            mix_voice_signals(edge->node, vgroup, dstates, buf_start, buf_stop);
+
+            edge = edge->next;
+        }
+    }
+
+    Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_VISITED);
+
+    return;
+}
+
+
+void Voice_group_mix(
+        Voice_group* vgroup,
+        Device_states* dstates,
+        const Connections* conns,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    rassert(vgroup != NULL);
+    rassert(dstates != NULL);
+    rassert(conns != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+
+    const Device_node* master = Connections_get_master(conns);
+    rassert(master != NULL);
+    if (buf_start >= buf_stop)
+        return;
+
+    Device_node_reset_subgraph(master, dstates);
+    //Device_states_reset_node_states(dstates);
+    mix_voice_signals(master, vgroup, dstates, buf_start, buf_stop);
+
+    return;
 }
 
 

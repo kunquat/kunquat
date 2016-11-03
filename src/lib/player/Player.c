@@ -561,18 +561,18 @@ static void Player_process_voices(
 
         if (conns != NULL)
         {
-            const int32_t process_stop = Connections_process_voice_group(
-                    conns,
+            const int32_t process_stop = Voice_group_render(
                     vg,
                     player->device_states,
+                    conns,
                     player->work_buffers,
                     render_start,
                     render_stop,
                     player->audio_rate,
                     player->master_params.tempo);
 
-            Connections_mix_voice_signals(
-                    conns, vg, player->device_states, render_start, process_stop);
+            Voice_group_mix(
+                    vg, player->device_states, conns, render_start, process_stop);
 
             if (process_stop < render_stop)
                 Voice_group_deactivate_all(vg);

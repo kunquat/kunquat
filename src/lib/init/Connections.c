@@ -253,63 +253,6 @@ const Device_node* Connections_get_master(const Connections* graph)
 }
 
 
-int32_t Connections_process_voice_group(
-        const Connections* graph,
-        Voice_group* vgroup,
-        Device_states* dstates,
-        const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
-        int32_t audio_rate,
-        double tempo)
-{
-    rassert(graph != NULL);
-    rassert(vgroup != NULL);
-    rassert(dstates != NULL);
-    rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
-    rassert(audio_rate > 0);
-    rassert(tempo > 0);
-
-    const Device_node* master = AAtree_get_exact(graph->nodes, "");
-    rassert(master != NULL);
-    if (buf_start >= buf_stop)
-        return buf_start;
-
-    Device_node_reset_subgraph(master, dstates);
-    //Device_states_reset_node_states(dstates);
-    return Device_node_process_voice_group(
-            master, vgroup, dstates, wbs, buf_start, buf_stop, audio_rate, tempo);
-}
-
-
-void Connections_mix_voice_signals(
-        const Connections* graph,
-        Voice_group* vgroup,
-        Device_states* dstates,
-        int32_t buf_start,
-        int32_t buf_stop)
-{
-    rassert(graph != NULL);
-    rassert(vgroup != NULL);
-    rassert(dstates != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
-
-    const Device_node* master = AAtree_get_exact(graph->nodes, "");
-    rassert(master != NULL);
-    if (buf_start >= buf_stop)
-        return;
-
-    Device_node_reset_subgraph(master, dstates);
-    //Device_states_reset_node_states(dstates);
-    Device_node_mix_voice_signals(master, vgroup, dstates, buf_start, buf_stop);
-
-    return;
-}
-
-
 static bool Connections_is_cyclic(const Connections* graph)
 {
     rassert(graph != NULL);

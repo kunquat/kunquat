@@ -20,7 +20,6 @@
 #include <init/devices/Device.h>
 #include <init/devices/port_type.h>
 #include <player/Device_states.h>
-#include <player/Voice_group.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -104,50 +103,6 @@ bool Device_node_check_connections(
  * \param dstates   The Device states -- must not be \c NULL.
  */
 void Device_node_reset_subgraph(const Device_node* node, Device_states* dstates);
-
-
-/**
- * Process a Voice group in the Device node and its subgraph.
- *
- * \param node         The Device node -- must not be \c NULL.
- * \param vgroup       The Voice group -- must not be \c NULL.
- * \param dstates      The Device states -- must not be \c NULL.
- * \param wbs          The Work buffers -- must not be \c NULL.
- * \param buf_start    The start index of the buffer area to be processed.
- * \param buf_stop     The stop index of the buffer area to be processed.
- * \param audio_rate   The audio rate -- must be > \c 0.
- * \param tempo        The current tempo -- must be > \c 0.
- *
- * \return   The stop index of complete frames rendered to voice buffers. This
- *           is always within range [\a buf_start, \a buf_stop]. If the stop
- *           index is < \a buf_stop, the note has ended.
- */
-int32_t Device_node_process_voice_group(
-        const Device_node* node,
-        Voice_group* vgroup,
-        Device_states* dstates,
-        const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
-        int32_t audio_rate,
-        double tempo);
-
-
-/**
- * Add Voice signals to mixed signal input buffers.
- *
- * \param node        The Device node -- must not be \c NULL.
- * \param vgroup      The Voice group -- must not be \c NULL.
- * \param dstates     The Device states -- must not be \c NULL.
- * \param buf_start   The start index of the buffer area to be processed.
- * \param buf_stop    The stop index of the buffer area to be processed.
- */
-void Device_node_mix_voice_signals(
-        const Device_node* node,
-        Voice_group* vgroup,
-        Device_states* dstates,
-        int32_t buf_start,
-        int32_t buf_stop);
 
 
 /**

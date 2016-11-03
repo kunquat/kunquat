@@ -21,7 +21,6 @@
 #include <init/Device_node.h>
 #include <init/devices/Device.h>
 #include <player/Device_states.h>
-#include <player/Voice_group.h>
 #include <string/Streader.h>
 
 #include <stdbool.h>
@@ -80,52 +79,6 @@ bool Connections_check_connections(
  * \return   The master node if one exists, otherwise \c NULL.
  */
 const Device_node* Connections_get_master(const Connections* graph);
-
-
-/**
- * Process a Voice group inside the Connections.
- *
- * \param graph        The Connections -- must not be \c NULL.
- * \param vgroup       The Voice group -- must not be \c NULL.
- * \param dstates      The Device states -- must not be \c NULL.
- * \param wbs          The Work buffers -- must not be \c NULL.
- * \param buf_start    The start index of the buffer area to be processed
- *                     -- must not be negative.
- * \param buf_stop     The stop index of the buffer area to be processed
- *                     -- must not be negative.
- * \param audio_rate   The audio rate -- must be > \c 0.
- * \param tempo        The current tempo -- must be finite and > \c 0.
- *
- * \return   The stop index of complete frames rendered to voice buffers. This
- *           is always within range [\a buf_start, \a buf_stop]. If the stop
- *           index is < \a buf_stop, the note has ended.
- */
-int32_t Connections_process_voice_group(
-        const Connections* graph,
-        Voice_group* vgroup,
-        Device_states* dstates,
-        const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
-        int32_t audio_rate,
-        double tempo);
-
-
-/**
- * Add Voice signals to mixed signal input buffers.
- *
- * \param graph       The Connections -- must not be \c NULL.
- * \param vgroup      The Voice group -- must not be \c NULL.
- * \param dstates     The Device states -- must not be \c NULL.
- * \param buf_start   The start index of the buffer area to be processed.
- * \param buf_stop    The stop index of the buffer area to be processed.
- */
-void Connections_mix_voice_signals(
-        const Connections* graph,
-        Voice_group* vgroup,
-        Device_states* dstates,
-        int32_t buf_start,
-        int32_t buf_stop);
 
 
 /**
