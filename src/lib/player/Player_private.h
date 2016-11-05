@@ -42,11 +42,13 @@ struct Player
     float*  audio_buffers[KQT_BUFFERS_MAX];
     int32_t audio_frames_available;
 
+    int thread_count;
+
     Device_states* device_states;
     Env_state*     estate;
     Event_buffer*  event_buffer;
     Voice_pool*    voices;
-    Work_buffers*  work_buffers;
+    Work_buffers*  work_buffers[KQT_THREADS_MAX];
     Master_params  master_params;
     Channel*       channels[KQT_CHANNELS_MAX];
     Event_handler* event_handler;

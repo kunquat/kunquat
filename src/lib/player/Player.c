@@ -15,6 +15,7 @@
 #include <player/Player.h>
 
 #include <debug/assert.h>
+#include <Error.h>
 #include <init/devices/Au_params.h>
 #include <init/devices/Audio_unit.h>
 #include <init/sheet/Channel_defaults.h>
@@ -84,11 +85,14 @@ Player* new_Player(
         player->audio_buffers[i] = NULL;
     player->audio_frames_available = 0;
 
+    player->thread_count = 1;
+
     player->device_states = NULL;
     player->estate = NULL;
     player->event_buffer = NULL;
     player->voices = NULL;
-    player->work_buffers = NULL;
+    for (int i = 0; i < KQT_THREADS_MAX; ++i)
+        player->work_buffers[i] = NULL;
     Master_params_preinit(&player->master_params);
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         player->channels[i] = NULL;
@@ -138,8 +142,8 @@ Player* new_Player(
         return NULL;
     }
 
-    player->work_buffers = new_Work_buffers(player->audio_buffer_size);
-    if (player->work_buffers == NULL)
+    player->work_buffers[0] = new_Work_buffers(player->audio_buffer_size);
+    if (player->work_buffers[0] == NULL)
     {
         del_Player(player);
         return NULL;
@@ -211,6 +215,59 @@ Device_states* Player_get_device_states(const Player* player)
 {
     rassert(player != NULL);
     return player->device_states;
+}
+
+
+bool Player_set_thread_count(Player* player, int new_count, Error* error)
+{
+    rassert(player != NULL);
+    rassert(new_count >= 1);
+    rassert(new_count <= KQT_THREADS_MAX);
+    rassert(error != NULL);
+
+    if (Error_is_set(error))
+        return false;
+
+    if (new_count == player->thread_count)
+        return true;
+
+    const int old_count = player->thread_count;
+    player->thread_count = min(old_count, new_count);
+
+    // (De)allocate player Work buffers as needed
+    for (int i = new_count; i < old_count; ++i)
+    {
+        del_Work_buffers(player->work_buffers[i]);
+        player->work_buffers[i] = NULL;
+    }
+    for (int i = old_count; i < new_count; ++i)
+    {
+        rassert(player->work_buffers[i] == NULL);
+        player->work_buffers[i] = new_Work_buffers(player->audio_buffer_size);
+        if (player->work_buffers[i] == NULL)
+        {
+            Error_set(
+                    error,
+                    ERROR_MEMORY,
+                    "Could not allocate memory for new work buffers");
+            return false;
+        }
+    }
+
+    // TODO: (De)allocate Work buffers of Device states as needed
+
+    // TODO: Create an initialise threads
+
+    player->thread_count = new_count;
+
+    return true;
+}
+
+
+int Player_get_thread_count(const Player* player)
+{
+    rassert(player != NULL);
+    return player->thread_count;
 }
 
 
@@ -480,8 +537,12 @@ bool Player_set_audio_buffer_size(Player* player, int32_t size)
         return false;
 
     // Update work buffers
-    if (!Work_buffers_resize(player->work_buffers, size))
-        return false;
+    for (int i = 0; i < KQT_THREADS_MAX; ++i)
+    {
+        Work_buffers* wbs = player->work_buffers[i];
+        if ((wbs != NULL) && !Work_buffers_resize(wbs, size))
+            return false;
+    }
 
     // Set final supported buffer size
     player->audio_buffer_size = size;
@@ -565,7 +626,7 @@ static void Player_process_voices(
                     vg,
                     player->device_states,
                     conns,
-                    player->work_buffers,
+                    player->work_buffers[0],
                     render_start,
                     render_stop,
                     player->audio_rate,
@@ -722,7 +783,7 @@ static void Player_apply_master_volume(
     static const int CONTROL_WB_MASTER_VOLUME = WORK_BUFFER_IMPL_1;
 
     float* volumes = Work_buffers_get_buffer_contents_mut(
-            player->work_buffers, CONTROL_WB_MASTER_VOLUME);
+            player->work_buffers[0], CONTROL_WB_MASTER_VOLUME);
 
     if (Slider_in_progress(&player->master_params.volume_slider))
     {
@@ -879,7 +940,7 @@ void Player_play(Player* player, int32_t nframes)
                     player->device_states,
                     true, // hack_reset
                     connections,
-                    player->work_buffers,
+                    player->work_buffers[0],
                     buf_start,
                     buf_stop,
                     player->audio_rate,
@@ -1145,7 +1206,8 @@ void del_Player(Player* player)
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         del_Channel(player->channels[i]);
     Master_params_deinit(&player->master_params);
-    del_Work_buffers(player->work_buffers);
+    for (int i = 0; i < KQT_THREADS_MAX; ++i)
+        del_Work_buffers(player->work_buffers[i]);
     del_Event_buffer(player->event_buffer);
     del_Env_state(player->estate);
     del_Device_states(player->device_states);
