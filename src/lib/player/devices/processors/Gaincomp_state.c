@@ -19,6 +19,7 @@
 #include <mathnum/common.h>
 #include <memory.h>
 #include <player/devices/Device_state.h>
+#include <player/devices/Device_thread_state.h>
 #include <player/devices/Proc_state.h>
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/devices/Voice_state.h>
@@ -82,12 +83,14 @@ enum
 
 static void Gaincomp_pstate_render_mixed(
         Device_state* dstate,
+        Device_thread_state* proc_ts,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
 {
     rassert(dstate != NULL);
+    rassert(proc_ts != NULL);
     rassert(wbs != NULL);
     rassert(buf_start >= 0);
     rassert(tempo > 0);
@@ -95,15 +98,19 @@ static void Gaincomp_pstate_render_mixed(
     // Get input
     Work_buffer* in_buffers[] =
     {
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_L),
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_R),
+        Device_thread_state_get_audio_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_L),
+        Device_thread_state_get_audio_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_R),
     };
 
     // Get output
     Work_buffer* out_buffers[] =
     {
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
+        Device_thread_state_get_audio_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
+        Device_thread_state_get_audio_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
     };
 
     // Distort the signal
@@ -139,6 +146,7 @@ Device_state* new_Gaincomp_pstate(
 static int32_t Gaincomp_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
@@ -147,6 +155,7 @@ static int32_t Gaincomp_vstate_render_voice(
 {
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
     rassert(buf_start >= 0);
@@ -158,9 +167,9 @@ static int32_t Gaincomp_vstate_render_voice(
     Work_buffer* in_buffers[] =
     {
         Proc_state_get_voice_buffer_mut(
-                proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_L),
+                proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_L),
         Proc_state_get_voice_buffer_mut(
-                proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_R),
+                proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_R),
     };
     if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
     {
@@ -172,9 +181,9 @@ static int32_t Gaincomp_vstate_render_voice(
     Work_buffer* out_buffers[] =
     {
         Proc_state_get_voice_buffer_mut(
-                proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
+                proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
         Proc_state_get_voice_buffer_mut(
-                proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
+                proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
     };
 
     // Distort the signal

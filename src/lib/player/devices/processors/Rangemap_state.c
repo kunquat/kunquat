@@ -18,6 +18,7 @@
 #include <init/devices/processors/Proc_rangemap.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/devices/Device_thread_state.h>
 #include <player/devices/processors/Proc_state_utils.h>
 
 #include <stdint.h>
@@ -97,12 +98,14 @@ static void apply_range(
 
 static void Rangemap_pstate_render_mixed(
         Device_state* dstate,
+        Device_thread_state* proc_ts,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
 {
     rassert(dstate != NULL);
+    rassert(proc_ts != NULL);
     rassert(wbs != NULL);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
@@ -129,12 +132,12 @@ static void Rangemap_pstate_render_mixed(
     for (int port = 0; port < 2; ++port)
     {
         Work_buffer* out_wb =
-            Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, port);
+            Device_thread_state_get_audio_buffer(proc_ts, DEVICE_PORT_TYPE_SEND, port);
         if (out_wb == NULL)
             continue;
 
-        const Work_buffer* in_wb =
-            Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, port);
+        const Work_buffer* in_wb = Device_thread_state_get_audio_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECEIVE, port);
         if (in_wb == NULL)
             continue;
 
@@ -166,6 +169,7 @@ Device_state* new_Rangemap_pstate(
 static int32_t Rangemap_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
@@ -174,6 +178,7 @@ static int32_t Rangemap_vstate_render_voice(
 {
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
     rassert(buf_start >= 0);
@@ -203,13 +208,13 @@ static int32_t Rangemap_vstate_render_voice(
     //       we don't need parameter input streams
     for (int port = 0; port < 2; ++port)
     {
-        Work_buffer* out_wb =
-            Proc_state_get_voice_buffer_mut(proc_state, DEVICE_PORT_TYPE_SEND, port);
+        Work_buffer* out_wb = Proc_state_get_voice_buffer_mut(
+                proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, port);
         if (out_wb == NULL)
             continue;
 
-        const Work_buffer* in_wb =
-            Proc_state_get_voice_buffer(proc_state, DEVICE_PORT_TYPE_RECEIVE, port);
+        const Work_buffer* in_wb = Proc_state_get_voice_buffer(
+                proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, port);
         if (in_wb == NULL)
             continue;
 

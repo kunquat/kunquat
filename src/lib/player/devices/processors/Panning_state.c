@@ -19,6 +19,7 @@
 #include <init/devices/processors/Proc_panning.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/devices/Device_thread_state.h>
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/Work_buffers.h>
 
@@ -128,12 +129,14 @@ typedef struct Panning_pstate
 
 static void Panning_pstate_render_mixed(
         Device_state* dstate,
+        Device_thread_state* proc_ts,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
 {
     rassert(dstate != NULL);
+    rassert(proc_ts != NULL);
     rassert(wbs != NULL);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
@@ -141,18 +144,18 @@ static void Panning_pstate_render_mixed(
     Panning_pstate* ppstate = (Panning_pstate*)dstate;
 
     // Get panning values
-    const float* pan_values = Device_state_get_audio_buffer_contents_mut(
-            dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PANNING);
+    const float* pan_values = Device_thread_state_get_audio_buffer_contents_mut(
+            proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PANNING);
 
     // Get input
     float* in_buffers[2] = { NULL };
     Proc_state_get_mixed_audio_in_buffers(
-            &ppstate->parent, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_buffers);
+            proc_ts, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_buffers);
 
     // Get output
     float* out_buffers[2] = { NULL };
     Proc_state_get_mixed_audio_out_buffers(
-            &ppstate->parent, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
+            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
 
     apply_panning(
             wbs,
@@ -219,6 +222,7 @@ int32_t Panning_vstate_get_size(void)
 static int32_t Panning_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
@@ -227,6 +231,7 @@ static int32_t Panning_vstate_render_voice(
 {
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
     rassert(buf_start >= 0);
@@ -238,12 +243,12 @@ static int32_t Panning_vstate_render_voice(
 
     // Get panning values
     const float* pan_values = Proc_state_get_voice_buffer_contents_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PANNING);
+            proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PANNING);
 
     // Get input
     float* in_buffers[2] = { NULL };
     Proc_state_get_voice_audio_in_buffers(
-            proc_state, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_buffers);
+            proc_state, proc_ts, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_buffers);
     if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
     {
         vstate->active = false;
@@ -253,7 +258,7 @@ static int32_t Panning_vstate_render_voice(
     // Get output
     float* out_buffers[2] = { NULL };
     Proc_state_get_voice_audio_out_buffers(
-            proc_state, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
+            proc_state, proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
 
     const Device_state* dstate = (const Device_state*)proc_state;
 

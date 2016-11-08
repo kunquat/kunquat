@@ -75,6 +75,7 @@ static const int ADD_WORK_BUFFER_MOD_R = WORK_BUFFER_IMPL_4;
 static int32_t Add_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
@@ -83,6 +84,7 @@ static int32_t Add_vstate_render_voice(
 {
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
     rassert(tempo > 0);
@@ -94,7 +96,7 @@ static int32_t Add_vstate_render_voice(
 
     // Get frequencies
     Work_buffer* freqs_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
+            proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
     Work_buffer* pitches_wb = freqs_wb;
     if (freqs_wb == NULL)
         freqs_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_PITCH);
@@ -103,7 +105,7 @@ static int32_t Add_vstate_render_voice(
 
     // Get volume scales
     Work_buffer* scales_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
+            proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
     Work_buffer* dBs_wb = scales_wb;
     if (scales_wb == NULL)
         scales_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_FORCE);
@@ -113,7 +115,7 @@ static int32_t Add_vstate_render_voice(
     // Get output buffer for writing
     float* out_bufs[2] = { NULL };
     Proc_state_get_voice_audio_out_buffers(
-            proc_state, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_bufs);
+            proc_state, proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_bufs);
 
     // Get phase modulation signal
     float* mod_values[] =
@@ -128,7 +130,7 @@ static int32_t Add_vstate_render_voice(
 
         float* in_mod_bufs[2] = { NULL };
         Proc_state_get_voice_audio_in_buffers(
-                proc_state, PORT_IN_PHASE_MOD_L, PORT_IN_COUNT, in_mod_bufs);
+                proc_state, proc_ts, PORT_IN_PHASE_MOD_L, PORT_IN_COUNT, in_mod_bufs);
 
         for (int ch = 0; ch < 2; ++ch)
         {

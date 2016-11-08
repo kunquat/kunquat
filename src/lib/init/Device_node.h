@@ -95,17 +95,6 @@ bool Device_node_check_connections(
 
 
 /**
- * Reset subgraph starting from the Device node.
- *
- * TODO: Remove this work-around after Audio units have their own Device states!
- *
- * \param node      The Device node -- must not be \c NULL.
- * \param dstates   The Device states -- must not be \c NULL.
- */
-void Device_node_reset_subgraph(const Device_node* node, Device_states* dstates);
-
-
-/**
  * Get the name of the corresponding Device.
  *
  * \param node   The Device node -- must not be \c NULL.

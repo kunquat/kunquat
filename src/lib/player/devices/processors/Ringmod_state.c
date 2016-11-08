@@ -18,6 +18,7 @@
 #include <init/devices/processors/Proc_ringmod.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/devices/Device_thread_state.h>
 #include <player/devices/processors/Proc_state_utils.h>
 
 #include <float.h>
@@ -87,39 +88,39 @@ static void multiply_signals(
 
 static void Ringmod_pstate_render_mixed(
         Device_state* dstate,
+        Device_thread_state* proc_ts,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
 {
     rassert(dstate != NULL);
+    rassert(proc_ts != NULL);
     rassert(wbs != NULL);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
-    Proc_state* proc_state = (Proc_state*)dstate;
-
     // Get inputs
     Work_buffer* in1_buffers[2] =
     {
-        Device_state_get_audio_buffer(
-                dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_1_L),
-        Device_state_get_audio_buffer(
-                dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_1_R),
+        Device_thread_state_get_audio_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_1_L),
+        Device_thread_state_get_audio_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_1_R),
     };
 
     Work_buffer* in2_buffers[2] =
     {
-        Device_state_get_audio_buffer(
-                dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_2_L),
-        Device_state_get_audio_buffer(
-                dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_2_R),
+        Device_thread_state_get_audio_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_2_L),
+        Device_thread_state_get_audio_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_2_R),
     };
 
     // Get outputs
     float* out_buffers[2] = { NULL };
     Proc_state_get_mixed_audio_out_buffers(
-            proc_state, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
+            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
 
     // Multiply the signals
     multiply_signals(in1_buffers, in2_buffers, out_buffers, buf_start, buf_stop);
@@ -149,6 +150,7 @@ Device_state* new_Ringmod_pstate(
 static int32_t Ringmod_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
@@ -157,6 +159,7 @@ static int32_t Ringmod_vstate_render_voice(
 {
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
     rassert(buf_start >= 0);
@@ -168,17 +171,17 @@ static int32_t Ringmod_vstate_render_voice(
     Work_buffer* in1_buffers[2] =
     {
         Proc_state_get_voice_buffer_mut(
-                proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_1_L),
+                proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_1_L),
         Proc_state_get_voice_buffer_mut(
-                proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_1_R),
+                proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_1_R),
     };
 
     Work_buffer* in2_buffers[2] =
     {
         Proc_state_get_voice_buffer_mut(
-                proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_2_L),
+                proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_2_L),
         Proc_state_get_voice_buffer_mut(
-                proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_2_R),
+                proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_2_R),
     };
 
     if (((in1_buffers[0] == NULL) || (in2_buffers[0] == NULL)) &&
@@ -191,7 +194,7 @@ static int32_t Ringmod_vstate_render_voice(
     // Get output
     float* out_buffers[2] = { NULL };
     Proc_state_get_voice_audio_out_buffers(
-            proc_state, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
+            proc_state, proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
 
     // Multiply the signals
     multiply_signals(in1_buffers, in2_buffers, out_buffers, buf_start, buf_stop);

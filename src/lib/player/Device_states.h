@@ -17,14 +17,11 @@
 
 
 #include <decl.h>
-#include <player/devices/Device_state.h>
+#include <kunquat/limits.h>
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-
-
-typedef struct Device_states Device_states;
 
 
 /**
@@ -34,6 +31,18 @@ typedef struct Device_states Device_states;
  *           memory allocation failed.
  */
 Device_states* new_Device_states(void);
+
+
+/**
+ * Set the number of threads for space allocation in the Device states.
+ *
+ * \param states      The Device states -- must not be \c NULL.
+ * \param new_count   The number of threads -- must be >= \c 1 and
+ *                    <= \c KQT_THREADS_MAX.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_states_set_thread_count(Device_states* states, int new_count);
 
 
 /**
@@ -67,6 +76,19 @@ Device_state* Device_states_get_state(const Device_states* states, uint32_t id);
  * \param id       The Device ID -- must be > \c 0.
  */
 void Device_states_remove_state(Device_states* states, uint32_t id);
+
+
+/**
+ * Get a Device thread state.
+ *
+ * \param states      The Device states -- must not be \c NULL.
+ * \param thread_id   The ID of the thread accessing the Device states
+ *                    -- must be a valid ID currently in use.
+ * \param id          The Device ID -- must be > \c 0 and must match an
+ *                    existing Device state.
+ */
+Device_thread_state* Device_states_get_thread_state(
+        const Device_states* states, int thread_id, uint32_t device_id);
 
 
 /**

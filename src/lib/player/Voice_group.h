@@ -99,6 +99,7 @@ Voice* Voice_group_get_voice_by_proc(Voice_group* vg, uint32_t proc_id);
  *
  * \param vgroup       The Voice group -- must not be \c NULL.
  * \param dstates      The Device states -- must not be \c NULL.
+ * \param thread_id    The ID of the rendering thread -- must be valid.
  * \param conns        The Connections -- must not be \c NULL.
  * \param wbs          The Work buffers -- must not be \c NULL.
  * \param buf_start    The start index of the buffer area to be processed
@@ -115,6 +116,7 @@ Voice* Voice_group_get_voice_by_proc(Voice_group* vg, uint32_t proc_id);
 int32_t Voice_group_render(
         Voice_group* vgroup,
         Device_states* dstates,
+        int thread_id,
         const Connections* conns,
         const Work_buffers* wbs,
         int32_t buf_start,

@@ -19,6 +19,7 @@
 #include <mathnum/common.h>
 #include <mathnum/fast_exp2.h>
 #include <memory.h>
+#include <player/devices/Device_thread_state.h>
 #include <player/devices/processors/Freeverb_allpass.h>
 #include <player/devices/processors/Freeverb_comb.h>
 #include <player/devices/processors/Proc_state_utils.h>
@@ -184,12 +185,14 @@ static const int FREEVERB_WB_COMB_INPUT = WORK_BUFFER_IMPL_5;
 
 static void Freeverb_pstate_render_mixed(
         Device_state* dstate,
+        Device_thread_state* proc_ts,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
 {
     rassert(dstate != NULL);
+    rassert(proc_ts != NULL);
     rassert(wbs != NULL);
     rassert(buf_start >= 0);
     rassert(tempo > 0);
@@ -199,8 +202,8 @@ static void Freeverb_pstate_render_mixed(
     Proc_freeverb* freeverb = (Proc_freeverb*)dstate->device->dimpl;
 
     // Get reflectivity parameter stream
-    float* refls = Device_state_get_audio_buffer_contents_mut(
-            dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_REFL);
+    float* refls = Device_thread_state_get_audio_buffer_contents_mut(
+            proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_REFL);
     if (refls == NULL)
     {
         refls = Work_buffers_get_buffer_contents_mut(wbs, FREEVERB_WB_FIXED_REFL);
@@ -224,8 +227,8 @@ static void Freeverb_pstate_render_mixed(
     }
 
     // Get damp parameter stream
-    float* damps = Device_state_get_audio_buffer_contents_mut(
-            dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_DAMP);
+    float* damps = Device_thread_state_get_audio_buffer_contents_mut(
+            proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_DAMP);
     if (damps == NULL)
     {
         damps = Work_buffers_get_buffer_contents_mut(wbs, FREEVERB_WB_FIXED_DAMP);
@@ -244,14 +247,18 @@ static void Freeverb_pstate_render_mixed(
 
     Work_buffer* in_wbs[] =
     {
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_L),
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_R),
+        Device_thread_state_get_audio_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_L),
+        Device_thread_state_get_audio_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_R),
     };
 
     Work_buffer* out_wbs[] =
     {
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
+        Device_thread_state_get_audio_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
+        Device_thread_state_get_audio_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
     };
 
     // TODO: figure out a cleaner way of dealing with the buffers

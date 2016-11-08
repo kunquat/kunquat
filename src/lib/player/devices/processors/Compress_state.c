@@ -19,6 +19,7 @@
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <memory.h>
+#include <player/devices/Device_thread_state.h>
 #include <player/devices/Proc_state.h>
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/Work_buffer.h>
@@ -254,12 +255,14 @@ static const int COMPRESS_WB_LEVEL_R = WORK_BUFFER_IMPL_3;
 
 static void Compress_pstate_render_mixed(
         Device_state* dstate,
+        Device_thread_state* proc_ts,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
 {
     rassert(dstate != NULL);
+    rassert(proc_ts != NULL);
     rassert(wbs != NULL);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
@@ -271,15 +274,19 @@ static void Compress_pstate_render_mixed(
     // Get audio input buffers
     const Work_buffer* in_wbs[2] =
     {
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_L),
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_R),
+        Device_thread_state_get_audio_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_L),
+        Device_thread_state_get_audio_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_R),
     };
 
     // Get audio output buffers
     Work_buffer* out_wbs[2] =
     {
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
+        Device_thread_state_get_audio_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
+        Device_thread_state_get_audio_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
     };
 
     // Get level buffers
@@ -290,8 +297,8 @@ static void Compress_pstate_render_mixed(
     };
 
     // Get gain buffer
-    Work_buffer* gain_wb =
-        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, PORT_OUT_GAIN);
+    Work_buffer* gain_wb = Device_thread_state_get_audio_buffer(
+            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_GAIN);
     if (gain_wb == NULL)
         gain_wb = Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_GAIN);
 
@@ -356,6 +363,7 @@ int32_t Compress_vstate_get_size(void)
 static int32_t Compress_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
@@ -364,6 +372,7 @@ static int32_t Compress_vstate_render_voice(
 {
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
     rassert(buf_start >= 0);
@@ -381,18 +390,18 @@ static int32_t Compress_vstate_render_voice(
     const Work_buffer* in_wbs[2] =
     {
         Proc_state_get_voice_buffer(
-                proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_L),
+                proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_L),
         Proc_state_get_voice_buffer(
-                proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_R),
+                proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_R),
     };
 
     // Get audio output buffers
     Work_buffer* out_wbs[2] =
     {
         Proc_state_get_voice_buffer_mut(
-                proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
+                proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
         Proc_state_get_voice_buffer_mut(
-                proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
+                proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
     };
 
     // Get level buffers
@@ -404,7 +413,7 @@ static int32_t Compress_vstate_render_voice(
 
     // Get gain buffer
     Work_buffer* gain_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_GAIN);
+            proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_GAIN);
     if (gain_wb == NULL)
         gain_wb = Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_GAIN);
 

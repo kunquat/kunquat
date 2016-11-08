@@ -22,6 +22,7 @@
 #include <mathnum/common.h>
 #include <memory.h>
 #include <Pat_inst_ref.h>
+#include <player/devices/Device_thread_state.h>
 #include <player/devices/Voice_state.h>
 #include <player/Player_private.h>
 #include <player/Player_seq.h>
@@ -254,9 +255,19 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
         }
     }
 
-    // TODO: (De)allocate Work buffers of Device states as needed
+    // (De)allocate Work buffers of Device states as needed
+    if (!Device_states_set_thread_count(player->device_states, new_count) ||
+            !Device_states_prepare(
+                player->device_states, Module_get_connections(player->module)))
+    {
+        Error_set(
+                error,
+                ERROR_MEMORY,
+                "Could not allocate memory for new device states");
+        return false;
+    }
 
-    // TODO: Create an initialise threads
+    // TODO: Create and initialise threads
 
     player->thread_count = new_count;
 
@@ -625,6 +636,7 @@ static void Player_process_voices(
             const int32_t process_stop = Voice_group_render(
                     vg,
                     player->device_states,
+                    0, // thread ID
                     conns,
                     player->work_buffers[0],
                     render_start,
@@ -735,9 +747,9 @@ static void Player_apply_dc_blocker(
     rassert(buf_stop >= 0);
 
     // Get access to mixed output
-    Device_state* master_state = Device_states_get_state(
-            player->device_states, Device_get_id((const Device*)player->module));
-    rassert(master_state != NULL);
+    Device_thread_state* master_ts = Device_states_get_thread_state(
+            player->device_states, 0, Device_get_id((const Device*)player->module));
+    rassert(master_ts != NULL);
 
     // Implementation based on https://ccrma.stanford.edu/~jos/filters/DC_Blocker.html
     static const double adapt_time = 0.01;
@@ -747,8 +759,8 @@ static void Player_apply_dc_blocker(
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        Work_buffer* buffer = Device_state_get_audio_buffer(
-                master_state, DEVICE_PORT_TYPE_RECEIVE, port);
+        Work_buffer* buffer = Device_thread_state_get_audio_buffer(
+                master_ts, DEVICE_PORT_TYPE_RECEIVE, port);
         if (buffer != NULL)
         {
             float feedforward = player->master_params.dc_block_state[port].feedforward;
@@ -803,14 +815,14 @@ static void Player_apply_master_volume(
     }
 
     // Get access to mixed output
-    Device_state* master_state = Device_states_get_state(
-            player->device_states, Device_get_id((const Device*)player->module));
-    rassert(master_state != NULL);
+    Device_thread_state* master_ts = Device_states_get_thread_state(
+            player->device_states, 0, Device_get_id((const Device*)player->module));
+    rassert(master_ts != NULL);
 
     for (int32_t port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        Work_buffer* buffer = Device_state_get_audio_buffer(
-                master_state, DEVICE_PORT_TYPE_RECEIVE, port);
+        Work_buffer* buffer = Device_thread_state_get_audio_buffer(
+                master_ts, DEVICE_PORT_TYPE_RECEIVE, port);
         if (buffer != NULL)
         {
             float* buf = Work_buffer_get_contents_mut(buffer);
@@ -957,17 +969,17 @@ void Player_play(Player* player, int32_t nframes)
 
     // Apply global parameters to the mixed signal
     {
-        Device_state* master_state = Device_states_get_state(
-                player->device_states, Device_get_id((const Device*)player->module));
-        rassert(master_state != NULL);
+        Device_thread_state* master_ts = Device_states_get_thread_state(
+                player->device_states, 0, Device_get_id((const Device*)player->module));
+        rassert(master_ts != NULL);
 
         // Note: we only access as many ports as we can output
         for (int32_t port = 0; port < KQT_BUFFERS_MAX; ++port)
         {
             float* out_buf = player->audio_buffers[port];
 
-            Work_buffer* buffer = Device_state_get_audio_buffer(
-                    master_state, DEVICE_PORT_TYPE_RECEIVE, port);
+            Work_buffer* buffer = Device_thread_state_get_audio_buffer(
+                    master_ts, DEVICE_PORT_TYPE_RECEIVE, port);
 
             if (buffer != NULL)
             {

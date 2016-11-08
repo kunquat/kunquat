@@ -201,51 +201,6 @@ bool Device_node_check_connections(
 }
 
 
-void Device_node_reset_subgraph(const Device_node* node, Device_states* dstates)
-{
-    rassert(node != NULL);
-    rassert(dstates != NULL);
-
-    const Device* node_device = Device_node_get_device(node);
-    if (node_device == NULL)
-        return;
-
-    Device_state* node_dstate =
-        Device_states_get_state(dstates, Device_get_id(node_device));
-
-    if (Device_state_get_node_state(node_dstate) < DEVICE_NODE_STATE_VISITED)
-    {
-        rassert(Device_state_get_node_state(node_dstate) == DEVICE_NODE_STATE_NEW);
-        return;
-    }
-
-    Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_REACHED);
-
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-    {
-        const Connection* edge = node->receive[port];
-
-        while (edge != NULL)
-        {
-            const Device* send_device = Device_node_get_device(edge->node);
-            if (send_device == NULL)
-            {
-                edge = edge->next;
-                continue;
-            }
-
-            Device_node_reset_subgraph(edge->node, dstates);
-
-            edge = edge->next;
-        }
-    }
-
-    Device_state_set_node_state(node_dstate, DEVICE_NODE_STATE_NEW);
-
-    return;
-}
-
-
 const char* Device_node_get_name(const Device_node* node)
 {
     rassert(node != NULL);

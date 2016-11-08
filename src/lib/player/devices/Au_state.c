@@ -20,6 +20,7 @@
 #include <memory.h>
 #include <player/Device_states.h>
 #include <player/devices/Device_state.h>
+#include <player/devices/Device_thread_state.h>
 
 #include <math.h>
 #include <stdbool.h>
@@ -51,20 +52,20 @@ static bool Au_state_init(
 
 
 static void mix_interface_connection(
-        Device_state* out_ds,
-        const Device_state* in_ds,
+        Device_thread_state* out_ts,
+        Device_thread_state* in_ts,
         int32_t buf_start,
         int32_t buf_stop)
 {
-    rassert(out_ds != NULL);
-    rassert(in_ds != NULL);
+    rassert(out_ts != NULL);
+    rassert(in_ts != NULL);
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        Work_buffer* out = Device_state_get_audio_buffer(
-                out_ds, DEVICE_PORT_TYPE_SEND, port);
-        const Work_buffer* in = Device_state_get_audio_buffer(
-                in_ds, DEVICE_PORT_TYPE_RECEIVE, port);
+        Work_buffer* out = Device_thread_state_get_audio_buffer(
+                out_ts, DEVICE_PORT_TYPE_SEND, port);
+        const Work_buffer* in = Device_thread_state_get_audio_buffer(
+                in_ts, DEVICE_PORT_TYPE_RECEIVE, port);
 
         if ((out != NULL) && (in != NULL))
             Work_buffer_mix(out, in, buf_start, buf_stop);
@@ -76,12 +77,14 @@ static void mix_interface_connection(
 
 static void Au_state_render_mixed(
         Device_state* dstate,
+        Device_thread_state* au_ts,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
 {
     rassert(dstate != NULL);
+    rassert(au_ts != NULL);
     rassert(wbs != NULL);
     rassert(buf_start >= 0);
     rassert(isfinite(tempo));
@@ -94,7 +97,7 @@ static void Au_state_render_mixed(
 
     if (au_state->bypass)
     {
-        mix_interface_connection(dstate, dstate, buf_start, buf_stop);
+        mix_interface_connection(au_ts, au_ts, buf_start, buf_stop);
     }
     else if (connections != NULL)
     {
@@ -104,9 +107,9 @@ static void Au_state_render_mixed(
         rassert(dstates != NULL);
 
         // Fill input interface buffers
-        Device_state* in_iface_ds = Device_states_get_state(
-                dstates, Device_get_id(Audio_unit_get_input_interface(au)));
-        mix_interface_connection(in_iface_ds, dstate, buf_start, buf_stop);
+        Device_thread_state* in_iface_ts = Device_states_get_thread_state(
+                dstates, 0, Device_get_id(Audio_unit_get_input_interface(au)));
+        mix_interface_connection(in_iface_ts, au_ts, buf_start, buf_stop);
 
         // Process audio unit graph
         Device_states_process_mixed_signals(
@@ -120,9 +123,9 @@ static void Au_state_render_mixed(
                 tempo);
 
         // Fill output interface buffers
-        Device_state* out_iface_ds = Device_states_get_state(
-                dstates, Device_get_id(Audio_unit_get_output_interface(au)));
-        mix_interface_connection(dstate, out_iface_ds, buf_start, buf_stop);
+        Device_thread_state* out_iface_ts = Device_states_get_thread_state(
+                dstates, 0, Device_get_id(Audio_unit_get_output_interface(au)));
+        mix_interface_connection(au_ts, out_iface_ts, buf_start, buf_stop);
     }
 
     return;

@@ -20,6 +20,7 @@
 #include <mathnum/Tstamp.h>
 #include <memory.h>
 #include <player/devices/Device_state.h>
+#include <player/devices/Device_thread_state.h>
 #include <player/devices/Voice_state.h>
 #include <player/Work_buffer.h>
 
@@ -131,12 +132,14 @@ void Proc_state_reset(Device_state* dstate)
 
 void Proc_state_render_mixed(
         Device_state* dstate,
+        Device_thread_state* ts,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
 {
     rassert(dstate != NULL);
+    rassert(ts != NULL);
     rassert(wbs != NULL);
     rassert(buf_start >= 0);
     rassert(isfinite(tempo));
@@ -144,7 +147,7 @@ void Proc_state_render_mixed(
 
     Proc_state* proc_state = (Proc_state*)dstate;
     if (proc_state->render_mixed != NULL)
-        proc_state->render_mixed(dstate, wbs, buf_start, buf_stop, tempo);
+        proc_state->render_mixed(dstate, ts, wbs, buf_start, buf_stop, tempo);
 
     return;
 }
@@ -181,15 +184,19 @@ void Proc_state_clear_voice_buffers(Proc_state* proc_state)
 
 
 const Work_buffer* Proc_state_get_voice_buffer(
-        const Proc_state* proc_state, Device_port_type port_type, int port_num)
+        const Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
+        Device_port_type port_type,
+        int port_num)
 {
     rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(port_type < DEVICE_PORT_TYPES);
     rassert(port_num >= 0);
     rassert(port_num < KQT_DEVICE_PORTS_MAX);
 
     if ((port_type == DEVICE_PORT_TYPE_RECEIVE) &&
-            !Device_state_is_input_port_connected(&proc_state->parent, port_num))
+            !Device_thread_state_is_input_port_connected(proc_ts, port_num))
         return NULL;
 
     return proc_state->voice_buffers[port_type][port_num];
@@ -197,15 +204,19 @@ const Work_buffer* Proc_state_get_voice_buffer(
 
 
 Work_buffer* Proc_state_get_voice_buffer_mut(
-        Proc_state* proc_state, Device_port_type port_type, int port_num)
+        Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
+        Device_port_type port_type,
+        int port_num)
 {
     rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(port_type < DEVICE_PORT_TYPES);
     rassert(port_num >= 0);
     rassert(port_num < KQT_DEVICE_PORTS_MAX);
 
     if ((port_type == DEVICE_PORT_TYPE_RECEIVE) &&
-            !Device_state_is_input_port_connected(&proc_state->parent, port_num))
+            !Device_thread_state_is_input_port_connected(proc_ts, port_num))
         return NULL;
 
     return proc_state->voice_buffers[port_type][port_num];
@@ -213,14 +224,19 @@ Work_buffer* Proc_state_get_voice_buffer_mut(
 
 
 const float* Proc_state_get_voice_buffer_contents(
-        const Proc_state* proc_state, Device_port_type port_type, int port_num)
+        const Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
+        Device_port_type port_type,
+        int port_num)
 {
     rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(port_type < DEVICE_PORT_TYPES);
     rassert(port_num >= 0);
     rassert(port_num < KQT_DEVICE_PORTS_MAX);
 
-    const Work_buffer* wb = Proc_state_get_voice_buffer(proc_state, port_type, port_num);
+    const Work_buffer* wb =
+        Proc_state_get_voice_buffer(proc_state, proc_ts, port_type, port_num);
     if (wb == NULL)
         return NULL;
 
@@ -229,15 +245,19 @@ const float* Proc_state_get_voice_buffer_contents(
 
 
 float* Proc_state_get_voice_buffer_contents_mut(
-        Proc_state* proc_state, Device_port_type port_type, int port_num)
+        Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
+        Device_port_type port_type,
+        int port_num)
 {
     rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(port_type < DEVICE_PORT_TYPES);
     rassert(port_num >= 0);
     rassert(port_num < KQT_DEVICE_PORTS_MAX);
 
     Work_buffer* wb =
-        Proc_state_get_voice_buffer_mut(proc_state, port_type, port_num);
+        Proc_state_get_voice_buffer_mut(proc_state, proc_ts, port_type, port_num);
     if (wb == NULL)
         return NULL;
 

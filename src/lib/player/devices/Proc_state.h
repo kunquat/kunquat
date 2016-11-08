@@ -88,14 +88,18 @@ void Proc_state_clear_voice_buffers(Proc_state* proc_state);
  * Get a voice buffer of the Processor state.
  *
  * \param proc_state   The Processor state -- must not be \c NULL.
- * \param type         The port type -- must be valid.
- * \param port         The port number -- must be >= \c 0 and
+ * \param proc_ts      The Device thread state -- must not be \c NULL.
+ * \param port_type    The port type -- must be valid.
+ * \param port_num     The port number -- must be >= \c 0 and
  *                     < \c KQT_DEVICE_PORTS_MAX.
  *
  * \return   The voice buffer if one exists, otherwise \c NULL.
  */
 const Work_buffer* Proc_state_get_voice_buffer(
-        const Proc_state* proc_state, Device_port_type type, int port);
+        const Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
+        Device_port_type port_type,
+        int port_num);
 
 
 /**
@@ -105,14 +109,18 @@ const Work_buffer* Proc_state_get_voice_buffer(
  * that any default post-processing code will be applied to the buffer later.
  *
  * \param proc_state   The Processor state -- must not be \c NULL.
- * \param type         The port type -- must be valid.
- * \param port         The port number -- must be >= \c 0 and
+ * \param proc_ts      The Device thread state -- must not be \c NULL.
+ * \param port_type    The port type -- must be valid.
+ * \param port_num     The port number -- must be >= \c 0 and
  *                     < \c KQT_DEVICE_PORTS_MAX.
  *
  * \return   The voice buffer if one exists, otherwise \c NULL.
  */
 Work_buffer* Proc_state_get_voice_buffer_mut(
-        Proc_state* proc_state, Device_port_type type, int port);
+        Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
+        Device_port_type port_type,
+        int port_num);
 
 
 /**
@@ -121,14 +129,18 @@ Work_buffer* Proc_state_get_voice_buffer_mut(
  * This is a convenience function that skips the Work buffer abstraction layer.
  *
  * \param proc_state   The Processor state -- must not be \c NULL.
- * \param type         The port type -- must be valid.
- * \param port         The port number -- must be >= \c 0 and
+ * \param proc_ts      The Device thread state -- must not be \c NULL.
+ * \param port_type    The port type -- must be valid.
+ * \param port_num     The port number -- must be >= \c 0 and
  *                     < \c KQT_DEVICE_PORTS_MAX.
  *
  * \return   The Work buffer contents, or \c NULL if the buffer does not exist.
  */
 const float* Proc_state_get_voice_buffer_contents(
-        const Proc_state* proc_state, Device_port_type type, int port);
+        const Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
+        Device_port_type port_type,
+        int port_num);
 
 
 /**
@@ -137,14 +149,18 @@ const float* Proc_state_get_voice_buffer_contents(
  * This is a convenience function that skips the Work buffer abstraction layer.
  *
  * \param proc_state   The Processor state -- must not be \c NULL.
- * \param type         The port type -- must be valid.
- * \param port         The port number -- must be >= \c 0 and
+ * \param proc_ts      The Device thread state -- must not be \c NULL.
+ * \param port_type    The port type -- must be valid.
+ * \param port_num     The port number -- must be >= \c 0 and
  *                     < \c KQT_DEVICE_PORTS_MAX.
  *
  * \return   The Work buffer contents, or \c NULL if the buffer does not exist.
  */
 float* Proc_state_get_voice_buffer_contents_mut(
-        Proc_state* proc_state, Device_port_type type, int port);
+        Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
+        Device_port_type port_type,
+        int port_num);
 
 
 /**
