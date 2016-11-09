@@ -131,30 +131,6 @@ const Device* Device_state_get_device(const Device_state* ds);
 
 
 /**
- * Set the node state of the Device state.
- *
- * \param ds           The Device state -- must not be \c NULL.
- * \param thread_id    The ID of the thread accessing the Device state
- *                     -- must be a valid ID currently in use.
- * \param node_state   The node state -- must be < \c DEVICE_NODE_STATE_COUNT.
- */
-//void Device_state_set_node_state(
-//        Device_state* ds, int thread_id, Device_node_state node_state);
-
-
-/**
- * Get the node state of the Device state.
- *
- * \param ds          The Device state -- must not be \c NULL.
- * \param thread_id   The ID of the thread accessing the Device state
- *                    -- must be a valid ID currently in use.
- *
- * \return   The node state.
- */
-//Device_node_state Device_state_get_node_state(const Device_state* ds, int thread_id);
-
-
-/**
  * Set the audio rate.
  *
  * \param ds           The Device state -- must not be \c NULL.
@@ -187,18 +163,6 @@ bool Device_state_set_audio_buffer_size(Device_state* ds, int32_t size);
 
 
 /**
- * Allocate internal space for the Device state.
- *
- * \param ds    The Device state -- must not be \c NULL.
- * \param key   The key that caused this allocation call --
- *              must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-//bool Device_state_allocate_space(Device_state* ds, char* key);
-
-
-/**
  * Add an audio buffer into the Device state.
  *
  * \param ds     The Device state -- must not be \c NULL.
@@ -209,76 +173,6 @@ bool Device_state_set_audio_buffer_size(Device_state* ds, int32_t size);
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_state_add_audio_buffer(Device_state* ds, Device_port_type type, int port);
-
-
-/**
- * Clear audio buffers in the Device state.
- *
- * \param ds      The Device state -- must not be \c NULL.
- * \param start   The first frame to be cleared.
- * \param stop    The first frame not to be cleared -- must be less than or
- *                equal to the buffer size.
- */
-//void Device_state_clear_audio_buffers(Device_state* ds, int32_t start, int32_t stop);
-
-
-/**
- * Return an audio buffer of the Device state.
- *
- * \param ds          The Device state -- must not be \c NULL.
- * \param thread_id   The ID of the thread accessing the Device state
- *                    -- must be a valid ID currently in use.
- * \param type        The port type -- must be valid.
- * \param port        The port number -- must be >= \c 0 and
- *                    < \c KQT_DEVICE_PORTS_MAX.
- *
- * \return   The Work buffer if one exists, otherwise \c NULL.
- */
-//Work_buffer* Device_state_get_audio_buffer(
-//        const Device_state* ds, int thread_id, Device_port_type type, int port);
-
-
-/**
- * Return contents of an audio buffer in the Device state.
- *
- * \param ds          The Device state -- must not be \c NULL.
- * \param thread_id   The ID of the thread accessing the Device state
- *                    -- must be a valid ID currently in use.
- * \param type        The port type -- must be valid.
- * \param port        The port number -- must be >= \c 0 and
- *                    < \c KQT_DEVICE_PORTS_MAX.
- *
- * \return   The buffer contents, or \c NULL if the Work buffer does not exist.
- */
-//float* Device_state_get_audio_buffer_contents_mut(
-//        const Device_state* ds, int thread_id, Device_port_type type, int port);
-
-
-/**
- * Mark input port as connected.
- *
- * \param ds          The Device state -- must not be \c NULL.
- * \param thread_id   The ID of the thread accessing the Device state
- *                    -- must be a valid ID currently in use.
- * \param port        The port number -- must be >= \c 0 and
- *                    < \c KQT_DEVICE_PORTS_MAX.
- */
-//void Device_state_mark_input_port_connected(Device_state* ds, int thread_id, int port);
-
-
-/**
- * Check if an input port is connected.
- *
- * \param ds          The Device state -- must not be \c NULL.
- * \param thread_id   The ID of the thread accessing the Device state
- *                    -- must be a valid ID currently in use.
- * \param port        The port number -- must be >= \c 0 and
- *                    < \c KQT_DEVICE_PORTS_MAX.
- *
- * \return   \c true if the \a port is connected, otherwise \c false.
- */
-//bool Device_state_is_input_port_connected(
-//        const Device_state* ds, int thread_id, int port);
 
 
 /**
