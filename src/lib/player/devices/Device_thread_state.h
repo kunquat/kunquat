@@ -26,6 +26,14 @@
 #include <stdlib.h>
 
 
+typedef enum
+{
+    DEVICE_BUFFER_MIXED = 0,
+    DEVICE_BUFFER_VOICE,
+    DEVICE_BUFFER_TYPES
+} Device_buffer_type;
+
+
 struct Device_thread_state
 {
     uint32_t device_id;
@@ -38,7 +46,7 @@ struct Device_thread_state
     //       Device node by using Device as a reference -- fix this!
     Bit_array* in_connected;
 
-    Etable* buffers[DEVICE_PORT_TYPES];
+    Etable* buffers[DEVICE_BUFFER_TYPES][DEVICE_PORT_TYPES];
 };
 
 

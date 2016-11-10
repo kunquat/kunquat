@@ -39,8 +39,13 @@ Device_thread_state* new_Device_thread_state(
     ts->node_state = DEVICE_NODE_STATE_NEW;
     ts->in_connected = NULL;
 
-    for (Device_port_type type = DEVICE_PORT_TYPE_RECV; type < DEVICE_PORT_TYPES; ++type)
-        ts->buffers[type] = NULL;
+    for (Device_buffer_type buf_type = DEVICE_BUFFER_MIXED;
+            buf_type < DEVICE_BUFFER_TYPES; ++buf_type)
+    {
+        for (Device_port_type port_type = DEVICE_PORT_TYPE_RECV;
+                port_type < DEVICE_PORT_TYPES; ++port_type)
+            ts->buffers[buf_type][port_type] = NULL;
+    }
 
     ts->in_connected = new_Bit_array(KQT_DEVICE_PORTS_MAX);
     if (ts->in_connected == NULL)
@@ -49,14 +54,19 @@ Device_thread_state* new_Device_thread_state(
         return NULL;
     }
 
-    for (Device_port_type type = DEVICE_PORT_TYPE_RECV; type < DEVICE_PORT_TYPES; ++type)
+    for (Device_buffer_type buf_type = DEVICE_BUFFER_MIXED;
+            buf_type < DEVICE_BUFFER_TYPES; ++buf_type)
     {
-        ts->buffers[type] =
-            new_Etable(KQT_DEVICE_PORTS_MAX, (void (*)(void*))del_Work_buffer);
-        if (ts->buffers[type] == NULL)
+        for (Device_port_type port_type = DEVICE_PORT_TYPE_RECV;
+                port_type < DEVICE_PORT_TYPES; ++port_type)
         {
-            del_Device_thread_state(ts);
-            return NULL;
+            ts->buffers[buf_type][port_type] =
+                new_Etable(KQT_DEVICE_PORTS_MAX, (void (*)(void*))del_Work_buffer);
+            if (ts->buffers[buf_type][port_type] == NULL)
+            {
+                del_Device_thread_state(ts);
+                return NULL;
+            }
         }
     }
 
@@ -102,13 +112,18 @@ bool Device_thread_state_set_audio_buffer_size(Device_thread_state* ts, int size
     rassert(ts != NULL);
     rassert(size >= 0);
 
-    for (Device_port_type type = DEVICE_PORT_TYPE_RECV; type < DEVICE_PORT_TYPES; ++type)
+    for (Device_buffer_type buf_type = DEVICE_BUFFER_MIXED;
+            buf_type < DEVICE_BUFFER_TYPES; ++buf_type)
     {
-        for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+        for (Device_port_type port_type = DEVICE_PORT_TYPE_RECV;
+                port_type < DEVICE_PORT_TYPES; ++port_type)
         {
-            Work_buffer* buffer = Etable_get(ts->buffers[type], port);
-            if ((buffer != NULL) && !Work_buffer_resize(buffer, size))
-                return false;
+            for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+            {
+                Work_buffer* buffer = Etable_get(ts->buffers[buf_type][port_type], port);
+                if ((buffer != NULL) && !Work_buffer_resize(buffer, size))
+                    return false;
+            }
         }
     }
 
@@ -116,25 +131,89 @@ bool Device_thread_state_set_audio_buffer_size(Device_thread_state* ts, int size
 }
 
 
-bool Device_thread_state_add_mixed_buffer(
-        Device_thread_state* ts, Device_port_type type, int port)
+static bool Device_thread_state_add_buffer(
+        Device_thread_state* ts,
+        Device_buffer_type buf_type,
+        Device_port_type port_type,
+        int port)
 {
     rassert(ts != NULL);
-    rassert(type == DEVICE_PORT_TYPE_RECV || type == DEVICE_PORT_TYPE_SEND);
+    rassert(buf_type < DEVICE_BUFFER_TYPES);
+    rassert(port_type < DEVICE_PORT_TYPES);
     rassert(port >= 0);
     rassert(port < KQT_DEVICE_PORTS_MAX);
 
-    if (Etable_get(ts->buffers[type], port) != NULL)
+    if (Etable_get(ts->buffers[buf_type][port_type], port) != NULL)
         return true;
 
     Work_buffer* wb = new_Work_buffer(ts->audio_buffer_size);
-    if ((wb == NULL) || !Etable_set(ts->buffers[type], port, wb))
+    if ((wb == NULL) || !Etable_set(ts->buffers[buf_type][port_type], port, wb))
     {
         del_Work_buffer(wb);
         return false;
     }
 
     return true;
+}
+
+
+static void Device_thread_state_clear_buffers(
+        Device_thread_state* ts,
+        Device_buffer_type buf_type,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    rassert(ts != NULL);
+    rassert(buf_type < DEVICE_BUFFER_TYPES);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= buf_start);
+
+    for (Device_port_type port_type = DEVICE_PORT_TYPE_RECV;
+            port_type < DEVICE_PORT_TYPES; ++port_type)
+    {
+        for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+        {
+            Work_buffer* buffer = Etable_get(ts->buffers[buf_type][port_type], port);
+            if (buffer != NULL)
+                Work_buffer_clear(buffer, buf_start, buf_stop);
+        }
+    }
+
+    Bit_array_clear(ts->in_connected);
+
+    return;
+}
+
+
+static Work_buffer* Device_thread_state_get_buffer(
+        const Device_thread_state* ts,
+        Device_buffer_type buf_type,
+        Device_port_type port_type,
+        int port)
+{
+    rassert(ts != NULL);
+    rassert(buf_type < DEVICE_BUFFER_TYPES);
+    rassert(port_type < DEVICE_PORT_TYPES);
+    rassert(port >= 0);
+    rassert(port < KQT_DEVICE_PORTS_MAX);
+
+    if ((port_type == DEVICE_PORT_TYPE_RECV) &&
+            !Device_thread_state_is_input_port_connected(ts, port))
+        return NULL;
+
+    return Etable_get(ts->buffers[buf_type][port_type], port);
+}
+
+
+bool Device_thread_state_add_mixed_buffer(
+        Device_thread_state* ts, Device_port_type type, int port)
+{
+    rassert(ts != NULL);
+    rassert(type < DEVICE_PORT_TYPES);
+    rassert(port >= 0);
+    rassert(port < KQT_DEVICE_PORTS_MAX);
+
+    return Device_thread_state_add_buffer(ts, DEVICE_BUFFER_MIXED, type, port);
 }
 
 
@@ -145,18 +224,7 @@ void Device_thread_state_clear_mixed_buffers(
     rassert(buf_start >= 0);
     rassert(buf_stop >= buf_start);
 
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-    {
-        for (Device_port_type type = DEVICE_PORT_TYPE_RECV;
-                type < DEVICE_PORT_TYPES; ++type)
-        {
-            Work_buffer* buffer = Etable_get(ts->buffers[type], port);
-            if (buffer != NULL)
-                Work_buffer_clear(buffer, buf_start, buf_stop);
-        }
-    }
-
-    Bit_array_clear(ts->in_connected);
+    Device_thread_state_clear_buffers(ts, DEVICE_BUFFER_MIXED, buf_start, buf_stop);
 
     return;
 }
@@ -170,11 +238,7 @@ Work_buffer* Device_thread_state_get_mixed_buffer(
     rassert(port >= 0);
     rassert(port < KQT_DEVICE_PORTS_MAX);
 
-    if ((type == DEVICE_PORT_TYPE_RECV) &&
-            !Device_thread_state_is_input_port_connected(ts, port))
-        return NULL;
-
-    return Etable_get(ts->buffers[type], port);
+    return Device_thread_state_get_buffer(ts, DEVICE_BUFFER_MIXED, type, port);
 }
 
 
@@ -224,8 +288,13 @@ void del_Device_thread_state(Device_thread_state* ts)
 
     del_Bit_array(ts->in_connected);
 
-    for (Device_port_type type = DEVICE_PORT_TYPE_RECV; type < DEVICE_PORT_TYPES; ++type)
-        del_Etable(ts->buffers[type]);
+    for (Device_buffer_type buf_type = DEVICE_BUFFER_MIXED;
+            buf_type < DEVICE_BUFFER_TYPES; ++buf_type)
+    {
+        for (Device_port_type port_type = DEVICE_PORT_TYPE_RECV;
+                port_type < DEVICE_PORT_TYPES; ++port_type)
+            del_Etable(ts->buffers[buf_type][port_type]);
+    }
 
     memory_free(ts);
 
