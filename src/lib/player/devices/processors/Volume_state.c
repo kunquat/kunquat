@@ -135,7 +135,7 @@ static void Volume_pstate_render_mixed(
     Volume_pstate* vpstate = (Volume_pstate*)dstate;
 
     // Get control stream
-    Work_buffer* vol_wb = Device_thread_state_get_audio_buffer(
+    Work_buffer* vol_wb = Device_thread_state_get_mixed_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
 
     // Get input

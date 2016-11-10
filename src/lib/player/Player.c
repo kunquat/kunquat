@@ -760,7 +760,7 @@ static void Player_apply_dc_blocker(
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Work_buffer* buffer =
-            Device_thread_state_get_audio_buffer(master_ts, DEVICE_PORT_TYPE_RECV, port);
+            Device_thread_state_get_mixed_buffer(master_ts, DEVICE_PORT_TYPE_RECV, port);
         if (buffer != NULL)
         {
             float feedforward = player->master_params.dc_block_state[port].feedforward;
@@ -821,7 +821,7 @@ static void Player_apply_master_volume(
 
     for (int32_t port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        Work_buffer* buffer = Device_thread_state_get_audio_buffer(
+        Work_buffer* buffer = Device_thread_state_get_mixed_buffer(
                 master_ts, DEVICE_PORT_TYPE_RECV, port);
         if (buffer != NULL)
         {
@@ -978,7 +978,7 @@ void Player_play(Player* player, int32_t nframes)
         {
             float* out_buf = player->audio_buffers[port];
 
-            Work_buffer* buffer = Device_thread_state_get_audio_buffer(
+            Work_buffer* buffer = Device_thread_state_get_mixed_buffer(
                     master_ts, DEVICE_PORT_TYPE_RECV, port);
 
             if (buffer != NULL)

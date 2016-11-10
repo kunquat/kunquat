@@ -132,11 +132,11 @@ static void Rangemap_pstate_render_mixed(
     for (int port = 0; port < 2; ++port)
     {
         Work_buffer* out_wb =
-            Device_thread_state_get_audio_buffer(proc_ts, DEVICE_PORT_TYPE_SEND, port);
+            Device_thread_state_get_mixed_buffer(proc_ts, DEVICE_PORT_TYPE_SEND, port);
         if (out_wb == NULL)
             continue;
 
-        const Work_buffer* in_wb = Device_thread_state_get_audio_buffer(
+        const Work_buffer* in_wb = Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, port);
         if (in_wb == NULL)
             continue;

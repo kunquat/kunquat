@@ -144,7 +144,7 @@ static void Panning_pstate_render_mixed(
     Panning_pstate* ppstate = (Panning_pstate*)dstate;
 
     // Get panning values
-    const float* pan_values = Device_thread_state_get_audio_buffer_contents_mut(
+    const float* pan_values = Device_thread_state_get_mixed_buffer_contents_mut(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PANNING);
 
     // Get input

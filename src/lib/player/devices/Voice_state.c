@@ -198,7 +198,7 @@ void Voice_state_mix_signals(
     for (int32_t port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Work_buffer* mixed_buffer =
-            Device_thread_state_get_audio_buffer(to_ts, DEVICE_PORT_TYPE_SEND, port);
+            Device_thread_state_get_mixed_buffer(to_ts, DEVICE_PORT_TYPE_SEND, port);
 
         if (mixed_buffer == NULL)
             continue;

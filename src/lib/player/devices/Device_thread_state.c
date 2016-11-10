@@ -116,7 +116,7 @@ bool Device_thread_state_set_audio_buffer_size(Device_thread_state* ts, int size
 }
 
 
-bool Device_thread_state_add_audio_buffer(
+bool Device_thread_state_add_mixed_buffer(
         Device_thread_state* ts, Device_port_type type, int port)
 {
     rassert(ts != NULL);
@@ -138,7 +138,7 @@ bool Device_thread_state_add_audio_buffer(
 }
 
 
-void Device_thread_state_clear_audio_buffers(
+void Device_thread_state_clear_mixed_buffers(
         Device_thread_state* ts, int32_t buf_start, int32_t buf_stop)
 {
     rassert(ts != NULL);
@@ -162,7 +162,7 @@ void Device_thread_state_clear_audio_buffers(
 }
 
 
-Work_buffer* Device_thread_state_get_audio_buffer(
+Work_buffer* Device_thread_state_get_mixed_buffer(
         const Device_thread_state* ts, Device_port_type type, int port)
 {
     rassert(ts != NULL);
@@ -178,7 +178,7 @@ Work_buffer* Device_thread_state_get_audio_buffer(
 }
 
 
-float* Device_thread_state_get_audio_buffer_contents_mut(
+float* Device_thread_state_get_mixed_buffer_contents_mut(
         const Device_thread_state* ts, Device_port_type type, int port)
 {
     rassert(ts != NULL);
@@ -186,7 +186,7 @@ float* Device_thread_state_get_audio_buffer_contents_mut(
     rassert(port >= 0);
     rassert(port < KQT_DEVICE_PORTS_MAX);
 
-    Work_buffer* wb = Device_thread_state_get_audio_buffer(ts, type, port);
+    Work_buffer* wb = Device_thread_state_get_mixed_buffer(ts, type, port);
     if (wb == NULL)
         return NULL;
 

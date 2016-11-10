@@ -66,7 +66,7 @@ static void get_mixed_audio_buffers(
     rassert(bufs != NULL);
 
     for (int32_t i = 0, port = port_start; port < port_stop; ++i, ++port)
-        bufs[i] = Device_thread_state_get_audio_buffer_contents_mut(
+        bufs[i] = Device_thread_state_get_mixed_buffer_contents_mut(
                 proc_ts, port_type, port);
 
     return;

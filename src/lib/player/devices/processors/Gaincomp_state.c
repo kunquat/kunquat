@@ -98,18 +98,18 @@ static void Gaincomp_pstate_render_mixed(
     // Get input
     Work_buffer* in_buffers[] =
     {
-        Device_thread_state_get_audio_buffer(
+        Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L),
-        Device_thread_state_get_audio_buffer(
+        Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
     };
 
     // Get output
     Work_buffer* out_buffers[] =
     {
-        Device_thread_state_get_audio_buffer(
+        Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
-        Device_thread_state_get_audio_buffer(
+        Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
     };
 

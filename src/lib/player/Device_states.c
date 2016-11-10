@@ -230,7 +230,7 @@ static bool Device_states_add_audio_buffer(
             continue;
 
         Device_thread_state* ts = Device_states_get_thread_state(states, i, device_id);
-        if (!Device_thread_state_add_audio_buffer(ts, type, port))
+        if (!Device_thread_state_add_mixed_buffer(ts, type, port))
             return false;
     }
 
@@ -339,7 +339,7 @@ void Device_states_clear_audio_buffers(
         Device_thread_state* ts = AAiter_get_at_least(iter, DEVICE_THREAD_STATE_KEY(0));
         while (ts != NULL)
         {
-            Device_thread_state_clear_audio_buffers(ts, start, stop);
+            Device_thread_state_clear_mixed_buffers(ts, start, stop);
 
             ts = AAiter_get_next(iter);
         }
@@ -581,9 +581,9 @@ static void process_mixed_signals(
             process_mixed_signals(
                     dstates, edge->node, wbs, buf_start, buf_stop, audio_rate, tempo);
 
-            Work_buffer* send = Device_thread_state_get_audio_buffer(
+            Work_buffer* send = Device_thread_state_get_mixed_buffer(
                     send_ts, DEVICE_PORT_TYPE_SEND, edge->port);
-            Work_buffer* receive = Device_thread_state_get_audio_buffer(
+            Work_buffer* receive = Device_thread_state_get_mixed_buffer(
                     node_ts, DEVICE_PORT_TYPE_RECV, port);
             if (receive == NULL || send == NULL)
             {

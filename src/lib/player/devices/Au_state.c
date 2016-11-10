@@ -63,9 +63,9 @@ static void mix_interface_connection(
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Work_buffer* out =
-            Device_thread_state_get_audio_buffer(out_ts, DEVICE_PORT_TYPE_SEND, port);
+            Device_thread_state_get_mixed_buffer(out_ts, DEVICE_PORT_TYPE_SEND, port);
         const Work_buffer* in =
-            Device_thread_state_get_audio_buffer(in_ts, DEVICE_PORT_TYPE_RECV, port);
+            Device_thread_state_get_mixed_buffer(in_ts, DEVICE_PORT_TYPE_RECV, port);
 
         if ((out != NULL) && (in != NULL))
             Work_buffer_mix(out, in, buf_start, buf_stop);

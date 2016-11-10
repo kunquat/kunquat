@@ -168,7 +168,7 @@ static void Delay_pstate_render_mixed(
             wbs, DELAY_WORK_BUFFER_TOTAL_OFFSETS);
 
     // Get delay stream
-    float* delays = Device_thread_state_get_audio_buffer_contents_mut(
+    float* delays = Device_thread_state_get_mixed_buffer_contents_mut(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_DELAY);
     if (delays == NULL)
     {

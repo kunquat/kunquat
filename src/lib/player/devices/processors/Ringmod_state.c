@@ -103,17 +103,17 @@ static void Ringmod_pstate_render_mixed(
     // Get inputs
     Work_buffer* in1_buffers[2] =
     {
-        Device_thread_state_get_audio_buffer(
+        Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_1_L),
-        Device_thread_state_get_audio_buffer(
+        Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_1_R),
     };
 
     Work_buffer* in2_buffers[2] =
     {
-        Device_thread_state_get_audio_buffer(
+        Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_2_L),
-        Device_thread_state_get_audio_buffer(
+        Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_2_R),
     };
 

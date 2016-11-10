@@ -115,7 +115,7 @@ static void Stream_pstate_render_mixed(
     Stream_pstate* spstate = (Stream_pstate*)dstate;
 
     // Get output
-    Work_buffer* out_wb = Device_thread_state_get_audio_buffer(
+    Work_buffer* out_wb = Device_thread_state_get_mixed_buffer(
             proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_STREAM);
 
     apply_controls(&spstate->controls, out_wb, buf_start, buf_stop, tempo);

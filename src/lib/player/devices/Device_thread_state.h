@@ -104,7 +104,7 @@ bool Device_thread_state_set_audio_buffer_size(Device_thread_state* ts, int size
 
 
 /**
- * Add an audio buffer into the Device thread state.
+ * Add a mixed audio buffer into the Device thread state.
  *
  * \param ts     The Device thread state -- must not be \c NULL.
  * \param type   The port type -- must be valid.
@@ -112,24 +112,24 @@ bool Device_thread_state_set_audio_buffer_size(Device_thread_state* ts, int size
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_thread_state_add_audio_buffer(
+bool Device_thread_state_add_mixed_buffer(
         Device_thread_state* ts, Device_port_type type, int port);
 
 
 /**
- * Clear audio buffers in the Device thread state.
+ * Clear mixed audio buffers in the Device thread state.
  *
  * \param ts          The Device state -- must not be \c NULL.
  * \param buf_start   The first frame to be cleared.
  * \param buf_stop    The first frame not to be cleared -- must be less than or
  *                    equal to the buffer size.
  */
-void Device_thread_state_clear_audio_buffers(
+void Device_thread_state_clear_mixed_buffers(
         Device_thread_state* ts, int32_t buf_start, int32_t buf_stop);
 
 
 /**
- * Return an audio buffer of the Device thread state.
+ * Return a mixed audio buffer of the Device thread state.
  *
  * \param ts     The Device thread state -- must not be \c NULL.
  * \param type   The port type -- must be valid.
@@ -137,12 +137,12 @@ void Device_thread_state_clear_audio_buffers(
  *
  * \return   The Work buffer if one exists, otherwise \c NULL.
  */
-Work_buffer* Device_thread_state_get_audio_buffer(
+Work_buffer* Device_thread_state_get_mixed_buffer(
         const Device_thread_state* ts, Device_port_type type, int port);
 
 
 /**
- * Return contents of an audio buffer in the Device state.
+ * Return contents of a mixed audio buffer in the Device state.
  *
  * \param ts     The Device thread state -- must not be \c NULL.
  * \param type   The port type -- must be valid.
@@ -150,7 +150,7 @@ Work_buffer* Device_thread_state_get_audio_buffer(
  *
  * \return   The buffer contents, or \c NULL if the Work buffer does not exist.
  */
-float* Device_thread_state_get_audio_buffer_contents_mut(
+float* Device_thread_state_get_mixed_buffer_contents_mut(
         const Device_thread_state* ts, Device_port_type type, int port);
 
 
