@@ -242,13 +242,13 @@ static int32_t Panning_vstate_render_voice(
     Panning_vstate* pvstate = (Panning_vstate*)vstate;
 
     // Get panning values
-    const float* pan_values = Proc_state_get_voice_buffer_contents_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PANNING);
+    const float* pan_values = Device_thread_state_get_voice_buffer_contents(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PANNING);
 
     // Get input
     float* in_buffers[2] = { NULL };
     Proc_state_get_voice_audio_in_buffers(
-            proc_state, proc_ts, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_buffers);
+            proc_ts, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_buffers);
     if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
     {
         vstate->active = false;
@@ -258,7 +258,7 @@ static int32_t Panning_vstate_render_voice(
     // Get output
     float* out_buffers[2] = { NULL };
     Proc_state_get_voice_audio_out_buffers(
-            proc_state, proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
+            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
 
     const Device_state* dstate = (const Device_state*)proc_state;
 

@@ -194,14 +194,10 @@ static int32_t process_voice_group(
 
     Device_thread_state_set_node_state(node_ts, DEVICE_NODE_STATE_REACHED);
 
-    Proc_state* recv_state = NULL;
     if (Device_node_get_type(node) == DEVICE_NODE_TYPE_PROCESSOR)
     {
-        recv_state =
-            (Proc_state*)Device_states_get_state(dstates, Device_get_id(node_device));
-
         // Clear the voice buffers for new contents
-        Proc_state_clear_voice_buffers(recv_state);
+        Device_thread_state_clear_voice_buffers(node_ts, buf_start, buf_stop);
 
         if (Processor_get_voice_signals((const Processor*)node_device))
         {
@@ -251,16 +247,13 @@ static int32_t process_voice_group(
                     (Device_node_get_type(edge->node) == DEVICE_NODE_TYPE_PROCESSOR))
             {
                 // Mix voice audio buffers
-                const uint32_t send_id = Device_get_id(send_device);
-                Proc_state* send_state =
-                    (Proc_state*)Device_states_get_state(dstates, send_id);
-                const Device_thread_state* send_ts =
-                    Device_states_get_thread_state(dstates, thread_id, send_id);
-                const Work_buffer* send_buf = Proc_state_get_voice_buffer(
-                        send_state, send_ts, DEVICE_PORT_TYPE_SEND, edge->port);
+                const Device_thread_state* send_ts = Device_states_get_thread_state(
+                        dstates, thread_id, Device_get_id(send_device));
+                const Work_buffer* send_buf = Device_thread_state_get_voice_buffer(
+                        send_ts, DEVICE_PORT_TYPE_SEND, edge->port);
 
-                Work_buffer* recv_buf = Proc_state_get_voice_buffer_mut(
-                        recv_state, node_ts, DEVICE_PORT_TYPE_RECV, port);
+                Work_buffer* recv_buf = Device_thread_state_get_voice_buffer(
+                        node_ts, DEVICE_PORT_TYPE_RECV, port);
 
                 if ((send_buf != NULL) && (recv_buf != NULL))
                     Work_buffer_mix(recv_buf, send_buf, buf_start, buf_stop);

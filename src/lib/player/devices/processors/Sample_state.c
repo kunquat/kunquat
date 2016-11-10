@@ -106,8 +106,8 @@ static int32_t Sample_render(
     }
 
     // Get frequencies
-    Work_buffer* freqs_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
+    Work_buffer* freqs_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
     Work_buffer* pitches_wb = freqs_wb;
     if (freqs_wb == NULL)
         freqs_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_PITCH);
@@ -115,8 +115,8 @@ static int32_t Sample_render(
     const float* freqs = Work_buffer_get_contents(freqs_wb);
 
     // Get force input
-    Work_buffer* force_scales_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
+    Work_buffer* force_scales_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     Work_buffer* dBs_wb = force_scales_wb;
     if (force_scales_wb == NULL)
         force_scales_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_FORCE);
@@ -437,8 +437,8 @@ static int32_t Sample_vstate_render_voice(
     // Get volume scales
     const Cond_work_buffer* vols = Cond_work_buffer_init(
             COND_WORK_BUFFER_AUTO,
-            Proc_state_get_voice_buffer(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE),
+            Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE),
             0.0);
 
     if (sample_state->sample < 0)
@@ -478,8 +478,8 @@ static int32_t Sample_vstate_render_voice(
 
             // Get starting pitch
             float start_pitch = 0;
-            const float* pitches = Proc_state_get_voice_buffer_contents(
-                    proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
+            const float* pitches = Device_thread_state_get_voice_buffer_contents(
+                    proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
             if (pitches != NULL)
                 start_pitch = pitches[buf_start];
 
@@ -561,7 +561,7 @@ static int32_t Sample_vstate_render_voice(
 
     float* out_buffers[2] = { NULL };
     Proc_state_get_voice_audio_out_buffers(
-            proc_state, proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
+            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
 
     if ((out_buffers[0] == NULL) && (out_buffers[1] == NULL))
     {

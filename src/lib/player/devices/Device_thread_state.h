@@ -150,7 +150,7 @@ Work_buffer* Device_thread_state_get_mixed_buffer(
 
 
 /**
- * Return contents of a mixed audio buffer in the Device state.
+ * Return contents of a mixed audio buffer in the Device thread state.
  *
  * \param ts     The Device thread state -- must not be \c NULL.
  * \param type   The port type -- must be valid.
@@ -159,6 +159,57 @@ Work_buffer* Device_thread_state_get_mixed_buffer(
  * \return   The buffer contents, or \c NULL if the Work buffer does not exist.
  */
 float* Device_thread_state_get_mixed_buffer_contents_mut(
+        const Device_thread_state* ts, Device_port_type type, int port);
+
+
+/**
+ * Add a voice audio buffer into the Device thread state.
+ *
+ * \param ts     The Device thread state -- must not be \c NULL.
+ * \param type   The port type -- must be valid.
+ * \param port   The port number -- must be >= \c 0 and < \c KQT_DEVICE_PORTS_MAX.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_thread_state_add_voice_buffer(
+        Device_thread_state* ts, Device_port_type type, int port);
+
+
+/**
+ * Clear voice audio buffers in the Device thread state.
+ *
+ * \param ts          The Device state -- must not be \c NULL.
+ * \param buf_start   The first frame to be cleared.
+ * \param buf_stop    The first frame not to be cleared -- must be less than or
+ *                    equal to the buffer size.
+ */
+void Device_thread_state_clear_voice_buffers(
+        Device_thread_state* ts, int32_t buf_start, int32_t buf_stop);
+
+
+/**
+ * Return a voice audio buffer of the Device thread state.
+ *
+ * \param ts     The Device thread state -- must not be \c NULL.
+ * \param type   The port type -- must be valid.
+ * \param port   The port number -- must be >= \c 0 and < \c KQT_DEVICE_PORTS_MAX.
+ *
+ * \return   The Work buffer if one exists, otherwise \c NULL.
+ */
+Work_buffer* Device_thread_state_get_voice_buffer(
+        const Device_thread_state* ts, Device_port_type type, int port);
+
+
+/**
+ * Return contents of a voice audio buffer in the Device thread state.
+ *
+ * \param ts     The Device thread state -- must not be \c NULL.
+ * \param type   The port type -- must be valid.
+ * \param port   The port number -- must be >= \c 0 and < \c KQT_DEVICE_PORTS_MAX.
+ *
+ * \return   The buffer contents, or \c NULL if the Work buffer does not exist.
+ */
+float* Device_thread_state_get_voice_buffer_contents(
         const Device_thread_state* ts, Device_port_type type, int port);
 
 

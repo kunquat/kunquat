@@ -19,6 +19,7 @@
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <mathnum/Random.h>
+#include <player/devices/Device_thread_state.h>
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/Work_buffers.h>
 
@@ -95,8 +96,8 @@ static int32_t Add_vstate_render_voice(
     rassert(is_p2(ADD_BASE_FUNC_SIZE));
 
     // Get frequencies
-    Work_buffer* freqs_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
+    Work_buffer* freqs_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
     Work_buffer* pitches_wb = freqs_wb;
     if (freqs_wb == NULL)
         freqs_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_PITCH);
@@ -104,8 +105,8 @@ static int32_t Add_vstate_render_voice(
     const float* freqs = Work_buffer_get_contents(freqs_wb);
 
     // Get volume scales
-    Work_buffer* scales_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
+    Work_buffer* scales_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     Work_buffer* dBs_wb = scales_wb;
     if (scales_wb == NULL)
         scales_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_FORCE);
@@ -115,7 +116,7 @@ static int32_t Add_vstate_render_voice(
     // Get output buffer for writing
     float* out_bufs[2] = { NULL };
     Proc_state_get_voice_audio_out_buffers(
-            proc_state, proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_bufs);
+            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_bufs);
 
     // Get phase modulation signal
     float* mod_values[] =
@@ -130,7 +131,7 @@ static int32_t Add_vstate_render_voice(
 
         float* in_mod_bufs[2] = { NULL };
         Proc_state_get_voice_audio_in_buffers(
-                proc_state, proc_ts, PORT_IN_PHASE_MOD_L, PORT_IN_COUNT, in_mod_bufs);
+                proc_ts, PORT_IN_PHASE_MOD_L, PORT_IN_COUNT, in_mod_bufs);
 
         for (int ch = 0; ch < 2; ++ch)
         {

@@ -223,6 +223,8 @@ static bool Device_states_add_audio_buffer(
     if (!Device_state_add_audio_buffer(dstate, type, port))
         return false;
 
+    const bool add_voice_buffers = !Device_get_mixed_signals(dstate->device);
+
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
     {
         AAtree* thread_states = states->thread_states[i];
@@ -231,6 +233,9 @@ static bool Device_states_add_audio_buffer(
 
         Device_thread_state* ts = Device_states_get_thread_state(states, i, device_id);
         if (!Device_thread_state_add_mixed_buffer(ts, type, port))
+            return false;
+
+        if (add_voice_buffers && !Device_thread_state_add_voice_buffer(ts, type, port))
             return false;
     }
 

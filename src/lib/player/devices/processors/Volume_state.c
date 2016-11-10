@@ -211,13 +211,13 @@ static int32_t Volume_vstate_render_voice(
     rassert(tempo > 0);
 
     // Get control stream
-    Work_buffer* vol_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
+    Work_buffer* vol_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
 
     // Get input
     float* in_bufs[2] = { NULL };
     Proc_state_get_voice_audio_in_buffers(
-            proc_state, proc_ts, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_bufs);
+            proc_ts, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_bufs);
 
     if ((in_bufs[0] == NULL) && (in_bufs[1] == NULL))
     {
@@ -228,7 +228,7 @@ static int32_t Volume_vstate_render_voice(
     // Get output
     float* out_bufs[2] = { NULL };
     Proc_state_get_voice_audio_out_buffers(
-            proc_state, proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_bufs);
+            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_bufs);
 
     const Volume_pstate* vpstate = (const Volume_pstate*)proc_state;
     apply_volume(

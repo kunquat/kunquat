@@ -15,6 +15,7 @@
 #include <player/devices/processors/Compress_state.h>
 
 #include <debug/assert.h>
+#include <init/devices/Device.h>
 #include <init/devices/processors/Proc_compress.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
@@ -389,19 +390,19 @@ static int32_t Compress_vstate_render_voice(
     // Get audio input buffers
     const Work_buffer* in_wbs[2] =
     {
-        Proc_state_get_voice_buffer(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L),
-        Proc_state_get_voice_buffer(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L),
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
     };
 
     // Get audio output buffers
     Work_buffer* out_wbs[2] =
     {
-        Proc_state_get_voice_buffer_mut(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
-        Proc_state_get_voice_buffer_mut(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
     };
 
     // Get level buffers
@@ -412,8 +413,8 @@ static int32_t Compress_vstate_render_voice(
     };
 
     // Get gain buffer
-    Work_buffer* gain_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_GAIN);
+    Work_buffer* gain_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_GAIN);
     if (gain_wb == NULL)
         gain_wb = Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_GAIN);
 

@@ -100,10 +100,10 @@ static int32_t Noise_vstate_render_voice(
     // Get output buffer for writing
     float* out_buffers[] =
     {
-        Proc_state_get_voice_buffer_contents_mut(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, 0),
-        Proc_state_get_voice_buffer_contents_mut(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, 1),
+        Device_thread_state_get_voice_buffer_contents(
+                proc_ts, DEVICE_PORT_TYPE_SEND, 0),
+        Device_thread_state_get_voice_buffer_contents(
+                proc_ts, DEVICE_PORT_TYPE_SEND, 1),
     };
 
     for (int ch = 0; ch < 2; ++ch)

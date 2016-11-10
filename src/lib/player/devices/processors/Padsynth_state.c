@@ -96,8 +96,8 @@ static int32_t Padsynth_vstate_render_voice(
     }
 
     // Get frequencies
-    Work_buffer* freqs_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
+    Work_buffer* freqs_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
     Work_buffer* pitches_wb = freqs_wb;
 
     if (isnan(ps_vstate->init_pitch))
@@ -110,8 +110,8 @@ static int32_t Padsynth_vstate_render_voice(
     const float* freqs = Work_buffer_get_contents(freqs_wb);
 
     // Get volume scales
-    Work_buffer* scales_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
+    Work_buffer* scales_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     Work_buffer* dBs_wb = scales_wb;
     if (scales_wb == NULL)
         scales_wb = Work_buffers_get_buffer_mut(wbs, PADSYNTH_WB_FIXED_FORCE);
@@ -121,7 +121,7 @@ static int32_t Padsynth_vstate_render_voice(
     // Get output buffer for writing
     float* out_bufs[2] = { NULL };
     Proc_state_get_voice_audio_out_buffers(
-            proc_state, proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_bufs);
+            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_bufs);
 
     // Choose our sample
     const Padsynth_sample_entry* entry =

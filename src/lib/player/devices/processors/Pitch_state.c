@@ -80,8 +80,8 @@ static int32_t Pitch_vstate_render_voice(
     const Device_state* dstate = &proc_state->parent;
 
     // Get output
-    Work_buffer* out_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_PITCH);
+    Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_PITCH);
     if (out_wb == NULL)
     {
         vstate->active = false;

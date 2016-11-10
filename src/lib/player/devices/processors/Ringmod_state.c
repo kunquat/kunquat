@@ -170,18 +170,18 @@ static int32_t Ringmod_vstate_render_voice(
     // Get inputs
     Work_buffer* in1_buffers[2] =
     {
-        Proc_state_get_voice_buffer_mut(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_1_L),
-        Proc_state_get_voice_buffer_mut(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_1_R),
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_1_L),
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_1_R),
     };
 
     Work_buffer* in2_buffers[2] =
     {
-        Proc_state_get_voice_buffer_mut(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_2_L),
-        Proc_state_get_voice_buffer_mut(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_2_R),
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_2_L),
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_2_R),
     };
 
     if (((in1_buffers[0] == NULL) || (in2_buffers[0] == NULL)) &&
@@ -194,7 +194,7 @@ static int32_t Ringmod_vstate_render_voice(
     // Get output
     float* out_buffers[2] = { NULL };
     Proc_state_get_voice_audio_out_buffers(
-            proc_state, proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
+            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
 
     // Multiply the signals
     multiply_signals(in1_buffers, in2_buffers, out_buffers, buf_start, buf_stop);

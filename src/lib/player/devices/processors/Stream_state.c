@@ -337,8 +337,8 @@ static int32_t Stream_vstate_render_voice(
     Stream_vstate* svstate = (Stream_vstate*)vstate;
 
     // Get output
-    Work_buffer* out_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_STREAM);
+    Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_STREAM);
     if (out_wb == NULL)
     {
         vstate->active = false;

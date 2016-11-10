@@ -15,6 +15,7 @@
 #include <player/devices/processors/Ks_state.h>
 
 #include <debug/assert.h>
+#include <init/devices/Device.h>
 #include <init/devices/processors/Proc_ks.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
@@ -308,14 +309,14 @@ static int32_t Ks_vstate_render_voice(
     Ks_vstate* ks_vstate = (Ks_vstate*)vstate;
 
     // Get output buffer for writing
-    float* out_buf = Proc_state_get_voice_buffer_contents_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO);
+    float* out_buf = Device_thread_state_get_voice_buffer_contents(
+            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO);
     if (out_buf == NULL)
         return buf_start;
 
     // Get frequencies
-    const Work_buffer* pitches_wb = Proc_state_get_voice_buffer(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
+    const Work_buffer* pitches_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
     if (pitches_wb == NULL)
     {
         Work_buffer* fixed_pitches_wb =
@@ -326,8 +327,8 @@ static int32_t Ks_vstate_render_voice(
     const float* pitches = Work_buffer_get_contents(pitches_wb);
 
     // Get volume scales
-    Work_buffer* scales_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
+    Work_buffer* scales_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     Work_buffer* dBs_wb = scales_wb;
     if (scales_wb == NULL)
         scales_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_FORCE);
@@ -335,8 +336,8 @@ static int32_t Ks_vstate_render_voice(
     const float* scales = Work_buffer_get_contents(scales_wb);
 
     // Get excitation signal
-    Work_buffer* excit_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_EXCITATION);
+    Work_buffer* excit_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_EXCITATION);
     if (excit_wb == NULL)
     {
         Work_buffer* fixed_excit_wb =
@@ -347,8 +348,8 @@ static int32_t Ks_vstate_render_voice(
     float* excits = Work_buffer_get_contents_mut(excit_wb);
 
     // Get damp signal
-    const Work_buffer* damps_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_DAMP);
+    const Work_buffer* damps_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_DAMP);
     if (damps_wb == NULL)
     {
         Work_buffer* fixed_damps_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_DAMP);

@@ -114,14 +114,12 @@ void Proc_state_get_mixed_audio_out_buffers(
 
 
 static void get_voice_audio_buffers(
-        Proc_state* proc_state,
         const Device_thread_state* proc_ts,
         Device_port_type port_type,
         int32_t port_start,
         int32_t port_stop,
         float* bufs[])
 {
-    rassert(proc_state != NULL);
     rassert(proc_ts != NULL);
     rassert(port_type < DEVICE_PORT_TYPES);
     rassert(port_start >= 0);
@@ -131,21 +129,19 @@ static void get_voice_audio_buffers(
     rassert(bufs != NULL);
 
     for (int32_t i = 0, port = port_start; port < port_stop; ++i, ++port)
-        bufs[i] = Proc_state_get_voice_buffer_contents_mut(
-                proc_state, proc_ts, port_type, port);
+        bufs[i] =
+            Device_thread_state_get_voice_buffer_contents(proc_ts, port_type, port);
 
     return;
 }
 
 
 void Proc_state_get_voice_audio_in_buffers(
-        Proc_state* proc_state,
         const Device_thread_state* proc_ts,
         int32_t port_start,
         int32_t port_stop,
         float* in_bufs[])
 {
-    rassert(proc_state != NULL);
     rassert(proc_ts != NULL);
     rassert(port_start >= 0);
     rassert(port_start < KQT_DEVICE_PORTS_MAX);
@@ -154,25 +150,18 @@ void Proc_state_get_voice_audio_in_buffers(
     rassert(in_bufs != NULL);
 
     get_voice_audio_buffers(
-            proc_state,
-            proc_ts,
-            DEVICE_PORT_TYPE_RECV,
-            port_start,
-            port_stop,
-            in_bufs);
+            proc_ts, DEVICE_PORT_TYPE_RECV, port_start, port_stop, in_bufs);
 
     return;
 }
 
 
 void Proc_state_get_voice_audio_out_buffers(
-        Proc_state* proc_state,
         const Device_thread_state* proc_ts,
         int32_t port_start,
         int32_t port_stop,
         float* out_bufs[])
 {
-    rassert(proc_state != NULL);
     rassert(proc_ts != NULL);
     rassert(port_start >= 0);
     rassert(port_start < KQT_DEVICE_PORTS_MAX);
@@ -181,7 +170,7 @@ void Proc_state_get_voice_audio_out_buffers(
     rassert(out_bufs != NULL);
 
     get_voice_audio_buffers(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, port_start, port_stop, out_bufs);
+            proc_ts, DEVICE_PORT_TYPE_SEND, port_start, port_stop, out_bufs);
 
     return;
 }

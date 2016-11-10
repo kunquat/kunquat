@@ -258,6 +258,59 @@ float* Device_thread_state_get_mixed_buffer_contents_mut(
 }
 
 
+bool Device_thread_state_add_voice_buffer(
+        Device_thread_state* ts, Device_port_type type, int port)
+{
+    rassert(ts != NULL);
+    rassert(type < DEVICE_PORT_TYPES);
+    rassert(port >= 0);
+    rassert(port < KQT_DEVICE_PORTS_MAX);
+
+    return Device_thread_state_add_buffer(ts, DEVICE_BUFFER_VOICE, type, port);
+}
+
+
+void Device_thread_state_clear_voice_buffers(
+        Device_thread_state* ts, int32_t buf_start, int32_t buf_stop)
+{
+    rassert(ts != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= buf_start);
+
+    Device_thread_state_clear_buffers(ts, DEVICE_BUFFER_VOICE, buf_start, buf_stop);
+
+    return;
+}
+
+
+Work_buffer* Device_thread_state_get_voice_buffer(
+        const Device_thread_state* ts, Device_port_type type, int port)
+{
+    rassert(ts != NULL);
+    rassert(type < DEVICE_PORT_TYPES);
+    rassert(port >= 0);
+    rassert(port < KQT_DEVICE_PORTS_MAX);
+
+    return Device_thread_state_get_buffer(ts, DEVICE_BUFFER_VOICE, type, port);
+}
+
+
+float* Device_thread_state_get_voice_buffer_contents(
+        const Device_thread_state* ts, Device_port_type type, int port)
+{
+    rassert(ts != NULL);
+    rassert(type < DEVICE_PORT_TYPES);
+    rassert(port >= 0);
+    rassert(port < KQT_DEVICE_PORTS_MAX);
+
+    Work_buffer* wb = Device_thread_state_get_voice_buffer(ts, type, port);
+    if (wb == NULL)
+        return NULL;
+
+    return Work_buffer_get_contents_mut(wb);
+}
+
+
 void Device_thread_state_mark_input_port_connected(Device_thread_state* ts, int port)
 {
     rassert(ts != NULL);

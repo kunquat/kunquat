@@ -15,6 +15,7 @@
 #include <player/devices/processors/Gaincomp_state.h>
 
 #include <debug/assert.h>
+#include <init/devices/Device.h>
 #include <init/devices/processors/Proc_gaincomp.h>
 #include <mathnum/common.h>
 #include <memory.h>
@@ -166,10 +167,10 @@ static int32_t Gaincomp_vstate_render_voice(
     // Get input
     Work_buffer* in_buffers[] =
     {
-        Proc_state_get_voice_buffer_mut(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L),
-        Proc_state_get_voice_buffer_mut(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L),
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
     };
     if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
     {
@@ -180,10 +181,10 @@ static int32_t Gaincomp_vstate_render_voice(
     // Get output
     Work_buffer* out_buffers[] =
     {
-        Proc_state_get_voice_buffer_mut(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
-        Proc_state_get_voice_buffer_mut(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
     };
 
     // Distort the signal

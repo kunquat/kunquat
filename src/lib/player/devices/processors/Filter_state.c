@@ -592,18 +592,18 @@ static int32_t Filter_vstate_render_voice(
     Filter_vstate* fvstate = (Filter_vstate*)vstate;
 
     // Get parameter inputs
-    const float* cutoff_buf = Proc_state_get_voice_buffer_contents(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_CUTOFF);
-    const float* resonance_buf = Proc_state_get_voice_buffer_contents(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_RESONANCE);
+    const float* cutoff_buf = Device_thread_state_get_voice_buffer_contents(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_CUTOFF);
+    const float* resonance_buf = Device_thread_state_get_voice_buffer_contents(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_RESONANCE);
 
     // Get input
     Work_buffer* in_buffers[2] =
     {
-        Proc_state_get_voice_buffer_mut(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L),
-        Proc_state_get_voice_buffer_mut(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L),
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
     };
     if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
     {
@@ -614,10 +614,10 @@ static int32_t Filter_vstate_render_voice(
     // Get output
     Work_buffer* out_buffers[2] =
     {
-        Proc_state_get_voice_buffer_mut(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
-        Proc_state_get_voice_buffer_mut(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
     };
 
     const Device_state* dstate = (const Device_state*)proc_state;

@@ -207,8 +207,8 @@ void Voice_state_mix_signals(
         {
             const Device_thread_state* from_ts = Device_states_get_thread_state(
                     dstates, thread_id, proc_state->parent.device_id);
-            const Work_buffer* voice_buffer = Proc_state_get_voice_buffer(
-                    proc_state, from_ts, DEVICE_PORT_TYPE_SEND, port);
+            const Work_buffer* voice_buffer = Device_thread_state_get_voice_buffer(
+                    from_ts, DEVICE_PORT_TYPE_SEND, port);
 
             if (voice_buffer != NULL)
                 Work_buffer_mix(mixed_buffer, voice_buffer, buf_start, buf_stop);

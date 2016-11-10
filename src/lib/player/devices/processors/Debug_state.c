@@ -15,8 +15,10 @@
 #include <player/devices/processors/Debug_state.h>
 
 #include <debug/assert.h>
+#include <init/devices/Processor.h>
 #include <init/devices/processors/Proc_debug.h>
 #include <mathnum/conversions.h>
+#include <player/devices/Device_thread_state.h>
 #include <player/devices/processors/Proc_state_utils.h>
 
 
@@ -42,12 +44,12 @@ static int32_t Debug_vstate_render_voice(
     // Get pitches
     const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
             COND_WORK_BUFFER_AUTO,
-            Proc_state_get_voice_buffer(proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, 0),
+            Device_thread_state_get_voice_buffer(proc_ts, DEVICE_PORT_TYPE_RECV, 0),
             0);
 
     // Get output buffers for writing
     float* out_buffers[2] = { NULL };
-    Proc_state_get_voice_audio_out_buffers(proc_state, proc_ts, 0, 2, out_buffers);
+    Proc_state_get_voice_audio_out_buffers(proc_ts, 0, 2, out_buffers);
 
     Proc_debug* debug = (Proc_debug*)proc->parent.dimpl;
     if (debug->single_pulse)

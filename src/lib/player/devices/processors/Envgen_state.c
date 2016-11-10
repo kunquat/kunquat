@@ -84,8 +84,8 @@ static int32_t Envgen_vstate_render_voice(
     Envgen_vstate* egen_state = (Envgen_vstate*)vstate;
 
     // Get pitch input
-    Work_buffer* pitches_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
+    Work_buffer* pitches_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
     if (pitches_wb == NULL)
     {
         pitches_wb = Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_PITCH);
@@ -100,12 +100,12 @@ static int32_t Envgen_vstate_render_voice(
     }
 
     // Get force scales
-    Work_buffer* forces_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
+    Work_buffer* forces_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
 
     // Get output buffer for writing
-    Work_buffer* out_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_ENV);
+    Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_ENV);
     if (out_wb == NULL)
     {
         vstate->active = false;
