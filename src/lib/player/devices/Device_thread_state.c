@@ -15,6 +15,7 @@
 #include <player/devices/Device_thread_state.h>
 
 #include <containers/Bit_array.h>
+#include <containers/Etable.h>
 #include <debug/assert.h>
 #include <memory.h>
 #include <player/Work_buffer.h>
@@ -38,17 +39,25 @@ Device_thread_state* new_Device_thread_state(
     ts->node_state = DEVICE_NODE_STATE_NEW;
     ts->in_connected = NULL;
 
-    for (int type = DEVICE_PORT_TYPE_RECEIVE; type < DEVICE_PORT_TYPES; ++type)
-    {
-        for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-            ts->buffers[type][port] = NULL;
-    }
+    for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE; type < DEVICE_PORT_TYPES; ++type)
+        ts->buffers[type] = NULL;
 
     ts->in_connected = new_Bit_array(KQT_DEVICE_PORTS_MAX);
     if (ts->in_connected == NULL)
     {
         del_Device_thread_state(ts);
         return NULL;
+    }
+
+    for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE; type < DEVICE_PORT_TYPES; ++type)
+    {
+        ts->buffers[type] =
+            new_Etable(KQT_DEVICE_PORTS_MAX, (void (*)(void*))del_Work_buffer);
+        if (ts->buffers[type] == NULL)
+        {
+            del_Device_thread_state(ts);
+            return NULL;
+        }
     }
 
     return ts;
@@ -97,7 +106,7 @@ bool Device_thread_state_set_audio_buffer_size(Device_thread_state* ts, int size
     {
         for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
         {
-            Work_buffer* buffer = ts->buffers[type][port];
+            Work_buffer* buffer = Etable_get(ts->buffers[type], port);
             if ((buffer != NULL) && !Work_buffer_resize(buffer, size))
                 return false;
         }
@@ -115,12 +124,15 @@ bool Device_thread_state_add_audio_buffer(
     rassert(port >= 0);
     rassert(port < KQT_DEVICE_PORTS_MAX);
 
-    if (ts->buffers[type][port] != NULL)
+    if (Etable_get(ts->buffers[type], port) != NULL)
         return true;
 
-    ts->buffers[type][port] = new_Work_buffer(ts->audio_buffer_size);
-    if (ts->buffers[type][port] == NULL)
+    Work_buffer* wb = new_Work_buffer(ts->audio_buffer_size);
+    if ((wb == NULL) || !Etable_set(ts->buffers[type], port, wb))
+    {
+        del_Work_buffer(wb);
         return false;
+    }
 
     return true;
 }
@@ -138,7 +150,7 @@ void Device_thread_state_clear_audio_buffers(
         for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
                 type < DEVICE_PORT_TYPES; ++type)
         {
-            Work_buffer* buffer = ts->buffers[type][port];
+            Work_buffer* buffer = Etable_get(ts->buffers[type], port);
             if (buffer != NULL)
                 Work_buffer_clear(buffer, buf_start, buf_stop);
         }
@@ -162,7 +174,7 @@ Work_buffer* Device_thread_state_get_audio_buffer(
             !Device_thread_state_is_input_port_connected(ts, port))
         return NULL;
 
-    return ts->buffers[type][port];
+    return Etable_get(ts->buffers[type], port);
 }
 
 
@@ -212,11 +224,8 @@ void del_Device_thread_state(Device_thread_state* ts)
 
     del_Bit_array(ts->in_connected);
 
-    for (int type = DEVICE_PORT_TYPE_RECEIVE; type < DEVICE_PORT_TYPES; ++type)
-    {
-        for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-            del_Work_buffer(ts->buffers[type][port]);
-    }
+    for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE; type < DEVICE_PORT_TYPES; ++type)
+        del_Etable(ts->buffers[type]);
 
     memory_free(ts);
 

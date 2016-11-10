@@ -38,7 +38,7 @@ struct Device_thread_state
     //       Device node by using Device as a reference -- fix this!
     Bit_array* in_connected;
 
-    Work_buffer* buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
+    Etable* buffers[DEVICE_PORT_TYPES];
 };
 
 
