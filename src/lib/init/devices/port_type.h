@@ -18,7 +18,7 @@
 
 typedef enum
 {
-    DEVICE_PORT_TYPE_RECEIVE = 0,
+    DEVICE_PORT_TYPE_RECV = 0,
     DEVICE_PORT_TYPE_SEND,
     DEVICE_PORT_TYPES             ///< Sentinel -- not a valid type.
 } Device_port_type;

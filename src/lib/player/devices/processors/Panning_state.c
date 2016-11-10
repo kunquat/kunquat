@@ -145,7 +145,7 @@ static void Panning_pstate_render_mixed(
 
     // Get panning values
     const float* pan_values = Device_thread_state_get_audio_buffer_contents_mut(
-            proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PANNING);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PANNING);
 
     // Get input
     float* in_buffers[2] = { NULL };
@@ -243,7 +243,7 @@ static int32_t Panning_vstate_render_voice(
 
     // Get panning values
     const float* pan_values = Proc_state_get_voice_buffer_contents_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PANNING);
+            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PANNING);
 
     // Get input
     float* in_buffers[2] = { NULL };

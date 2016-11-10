@@ -42,7 +42,7 @@ static int32_t Debug_vstate_render_voice(
     // Get pitches
     const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
             COND_WORK_BUFFER_AUTO,
-            Proc_state_get_voice_buffer(proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, 0),
+            Proc_state_get_voice_buffer(proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, 0),
             0);
 
     // Get output buffers for writing

@@ -260,7 +260,7 @@ static int32_t process_voice_group(
                         send_state, send_ts, DEVICE_PORT_TYPE_SEND, edge->port);
 
                 Work_buffer* recv_buf = Proc_state_get_voice_buffer_mut(
-                        recv_state, node_ts, DEVICE_PORT_TYPE_RECEIVE, port);
+                        recv_state, node_ts, DEVICE_PORT_TYPE_RECV, port);
 
                 if ((send_buf != NULL) && (recv_buf != NULL))
                     Work_buffer_mix(recv_buf, send_buf, buf_start, buf_stop);

@@ -87,7 +87,7 @@ void Proc_state_get_mixed_audio_in_buffers(
     rassert(in_bufs != NULL);
 
     get_mixed_audio_buffers(
-            proc_ts, DEVICE_PORT_TYPE_RECEIVE, port_start, port_stop, in_bufs);
+            proc_ts, DEVICE_PORT_TYPE_RECV, port_start, port_stop, in_bufs);
 
     return;
 }
@@ -156,7 +156,7 @@ void Proc_state_get_voice_audio_in_buffers(
     get_voice_audio_buffers(
             proc_state,
             proc_ts,
-            DEVICE_PORT_TYPE_RECEIVE,
+            DEVICE_PORT_TYPE_RECV,
             port_start,
             port_stop,
             in_bufs);

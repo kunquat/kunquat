@@ -103,15 +103,9 @@ static bool read_connection(Streader* sr, int32_t index, void* userdata)
         return false;
 
     int src_port = validate_connection_path(
-            sr,
-            src_name,
-            rcdata->level,
-            DEVICE_PORT_TYPE_SEND);
+            sr, src_name, rcdata->level, DEVICE_PORT_TYPE_SEND);
     int dest_port = validate_connection_path(
-            sr,
-            dest_name,
-            rcdata->level,
-            DEVICE_PORT_TYPE_RECEIVE);
+            sr, dest_name, rcdata->level, DEVICE_PORT_TYPE_RECV);
     if (Streader_is_error_set(sr))
         return false;
 
@@ -440,7 +434,7 @@ static int validate_connection_path(
             return -1;
         }
 
-        if (type == DEVICE_PORT_TYPE_RECEIVE)
+        if (type == DEVICE_PORT_TYPE_RECV)
         {
             bool can_receive = (!root && string_has_prefix(str, "in_")) ||
                                (root && string_has_prefix(str, "out_"));

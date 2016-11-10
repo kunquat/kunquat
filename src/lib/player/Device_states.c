@@ -397,7 +397,7 @@ static bool init_buffers(Device_states* dstates, const Device_node* node)
             if (send_device == NULL ||
                     !Device_has_complete_type(send_device) ||
                     !Device_get_port_existence(
-                        node_device, DEVICE_PORT_TYPE_RECEIVE, port) ||
+                        node_device, DEVICE_PORT_TYPE_RECV, port) ||
                     !Device_get_port_existence(
                         send_device, DEVICE_PORT_TYPE_SEND, edge->port))
             {
@@ -406,7 +406,7 @@ static bool init_buffers(Device_states* dstates, const Device_node* node)
             }
             /*
             if (!Device_get_port_existence(
-                    node_device, DEVICE_PORT_TYPE_RECEIVE, port))
+                    node_device, DEVICE_PORT_TYPE_RECV, port))
                 fprintf(stderr, "Warning: connecting to non-existent port %d of device %s\n",
                         port, node->name);
             if (!Device_get_port_existence(
@@ -418,7 +418,7 @@ static bool init_buffers(Device_states* dstates, const Device_node* node)
             // Add receive buffers
             const uint32_t recv_id = Device_get_id(node_device);
             if (!Device_states_add_audio_buffer(
-                        dstates, recv_id, DEVICE_PORT_TYPE_RECEIVE, port))
+                        dstates, recv_id, DEVICE_PORT_TYPE_RECV, port))
                 return false;
 
             // Add send buffers
@@ -584,7 +584,7 @@ static void process_mixed_signals(
             Work_buffer* send = Device_thread_state_get_audio_buffer(
                     send_ts, DEVICE_PORT_TYPE_SEND, edge->port);
             Work_buffer* receive = Device_thread_state_get_audio_buffer(
-                    node_ts, DEVICE_PORT_TYPE_RECEIVE, port);
+                    node_ts, DEVICE_PORT_TYPE_RECV, port);
             if (receive == NULL || send == NULL)
             {
                 /*

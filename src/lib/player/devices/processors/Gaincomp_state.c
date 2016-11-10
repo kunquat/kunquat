@@ -99,9 +99,9 @@ static void Gaincomp_pstate_render_mixed(
     Work_buffer* in_buffers[] =
     {
         Device_thread_state_get_audio_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_L),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L),
         Device_thread_state_get_audio_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_R),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
     };
 
     // Get output
@@ -167,9 +167,9 @@ static int32_t Gaincomp_vstate_render_voice(
     Work_buffer* in_buffers[] =
     {
         Proc_state_get_voice_buffer_mut(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_L),
+                proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L),
         Proc_state_get_voice_buffer_mut(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_R),
+                proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
     };
     if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
     {

@@ -315,7 +315,7 @@ static int32_t Ks_vstate_render_voice(
 
     // Get frequencies
     const Work_buffer* pitches_wb = Proc_state_get_voice_buffer(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
+            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
     if (pitches_wb == NULL)
     {
         Work_buffer* fixed_pitches_wb =
@@ -327,7 +327,7 @@ static int32_t Ks_vstate_render_voice(
 
     // Get volume scales
     Work_buffer* scales_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
+            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     Work_buffer* dBs_wb = scales_wb;
     if (scales_wb == NULL)
         scales_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_FORCE);
@@ -336,7 +336,7 @@ static int32_t Ks_vstate_render_voice(
 
     // Get excitation signal
     Work_buffer* excit_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_EXCITATION);
+            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_EXCITATION);
     if (excit_wb == NULL)
     {
         Work_buffer* fixed_excit_wb =
@@ -348,7 +348,7 @@ static int32_t Ks_vstate_render_voice(
 
     // Get damp signal
     const Work_buffer* damps_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_DAMP);
+            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_DAMP);
     if (damps_wb == NULL)
     {
         Work_buffer* fixed_damps_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_DAMP);

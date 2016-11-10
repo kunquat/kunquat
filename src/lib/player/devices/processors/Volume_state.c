@@ -136,7 +136,7 @@ static void Volume_pstate_render_mixed(
 
     // Get control stream
     Work_buffer* vol_wb = Device_thread_state_get_audio_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
 
     // Get input
     float* in_bufs[2] = { NULL };
@@ -212,7 +212,7 @@ static int32_t Volume_vstate_render_voice(
 
     // Get control stream
     Work_buffer* vol_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
+            proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
 
     // Get input
     float* in_bufs[2] = { NULL };

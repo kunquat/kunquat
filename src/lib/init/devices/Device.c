@@ -48,7 +48,7 @@ bool Device_init(Device* device, bool req_impl)
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
+        for (Device_port_type type = DEVICE_PORT_TYPE_RECV;
                 type < DEVICE_PORT_TYPES; ++type)
             device->existence[type][port] = false;
     }
@@ -367,7 +367,7 @@ void Device_print(const Device* device, FILE* out)
     printed = false;
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        if (!device->existence[DEVICE_PORT_TYPE_RECEIVE][port])
+        if (!device->existence[DEVICE_PORT_TYPE_RECV][port])
             continue;
 
         if (!printed)
@@ -396,7 +396,7 @@ void Device_deinit(Device* device)
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        device->existence[DEVICE_PORT_TYPE_RECEIVE][port] = false;
+        device->existence[DEVICE_PORT_TYPE_RECV][port] = false;
         device->existence[DEVICE_PORT_TYPE_SEND][port] = false;
     }
 

@@ -275,9 +275,9 @@ static void Compress_pstate_render_mixed(
     const Work_buffer* in_wbs[2] =
     {
         Device_thread_state_get_audio_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_L),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L),
         Device_thread_state_get_audio_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_R),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
     };
 
     // Get audio output buffers
@@ -390,9 +390,9 @@ static int32_t Compress_vstate_render_voice(
     const Work_buffer* in_wbs[2] =
     {
         Proc_state_get_voice_buffer(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_L),
+                proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L),
         Proc_state_get_voice_buffer(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_AUDIO_R),
+                proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
     };
 
     // Get audio output buffers

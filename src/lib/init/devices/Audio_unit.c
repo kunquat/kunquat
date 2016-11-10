@@ -173,7 +173,7 @@ Audio_unit* new_Audio_unit(void)
     for (int port = 0; port < KQT_BUFFERS_MAX; ++port)
     {
         Device_set_port_existence(
-                &au->out_iface->parent, DEVICE_PORT_TYPE_RECEIVE, port, true);
+                &au->out_iface->parent, DEVICE_PORT_TYPE_RECV, port, true);
     }
 
     return au;

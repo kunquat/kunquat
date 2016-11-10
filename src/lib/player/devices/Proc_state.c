@@ -72,7 +72,7 @@ bool Proc_state_init(
     if (!Device_state_init(&proc_state->parent, device, audio_rate, audio_buffer_size))
         return false;
 
-    for (Device_port_type port_type = DEVICE_PORT_TYPE_RECEIVE;
+    for (Device_port_type port_type = DEVICE_PORT_TYPE_RECV;
             port_type < DEVICE_PORT_TYPES; ++port_type)
     {
         for (int port_num = 0; port_num < KQT_DEVICE_PORTS_MAX; ++port_num)
@@ -168,7 +168,7 @@ void Proc_state_clear_voice_buffers(Proc_state* proc_state)
 {
     rassert(proc_state != NULL);
 
-    for (Device_port_type port_type = DEVICE_PORT_TYPE_RECEIVE;
+    for (Device_port_type port_type = DEVICE_PORT_TYPE_RECV;
             port_type < DEVICE_PORT_TYPES; ++port_type)
     {
         for (int port_num = 0; port_num < KQT_DEVICE_PORTS_MAX; ++port_num)
@@ -195,7 +195,7 @@ const Work_buffer* Proc_state_get_voice_buffer(
     rassert(port_num >= 0);
     rassert(port_num < KQT_DEVICE_PORTS_MAX);
 
-    if ((port_type == DEVICE_PORT_TYPE_RECEIVE) &&
+    if ((port_type == DEVICE_PORT_TYPE_RECV) &&
             !Device_thread_state_is_input_port_connected(proc_ts, port_num))
         return NULL;
 
@@ -215,7 +215,7 @@ Work_buffer* Proc_state_get_voice_buffer_mut(
     rassert(port_num >= 0);
     rassert(port_num < KQT_DEVICE_PORTS_MAX);
 
-    if ((port_type == DEVICE_PORT_TYPE_RECEIVE) &&
+    if ((port_type == DEVICE_PORT_TYPE_RECV) &&
             !Device_thread_state_is_input_port_connected(proc_ts, port_num))
         return NULL;
 
@@ -318,7 +318,7 @@ static bool Proc_state_add_buffer(
         Device_state* dstate, Device_port_type port_type, int port_num)
 {
     rassert(dstate != NULL);
-    rassert(port_type == DEVICE_PORT_TYPE_RECEIVE || port_type == DEVICE_PORT_TYPE_SEND);
+    rassert(port_type == DEVICE_PORT_TYPE_RECV || port_type == DEVICE_PORT_TYPE_SEND);
     rassert(port_num >= 0);
     rassert(port_num < KQT_DEVICE_PORTS_MAX);
 
@@ -344,7 +344,7 @@ static bool Proc_state_set_audio_buffer_size(Device_state* dstate, int32_t new_s
 
     Proc_state* proc_state = (Proc_state*)dstate;
 
-    for (Device_port_type port_type = DEVICE_PORT_TYPE_RECEIVE;
+    for (Device_port_type port_type = DEVICE_PORT_TYPE_RECV;
             port_type < DEVICE_PORT_TYPES; ++port_type)
     {
         for (int port_num = 0; port_num < KQT_DEVICE_PORTS_MAX; ++port_num)
@@ -366,7 +366,7 @@ static void Proc_state_deinit(Proc_state* proc_state)
 {
     rassert(proc_state != NULL);
 
-    for (Device_port_type port_type = DEVICE_PORT_TYPE_RECEIVE;
+    for (Device_port_type port_type = DEVICE_PORT_TYPE_RECV;
             port_type < DEVICE_PORT_TYPES; ++port_type)
     {
         for (int port_num = 0; port_num < KQT_DEVICE_PORTS_MAX; ++port_num)

@@ -137,7 +137,7 @@ static void Rangemap_pstate_render_mixed(
             continue;
 
         const Work_buffer* in_wb = Device_thread_state_get_audio_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECEIVE, port);
+                proc_ts, DEVICE_PORT_TYPE_RECV, port);
         if (in_wb == NULL)
             continue;
 
@@ -214,7 +214,7 @@ static int32_t Rangemap_vstate_render_voice(
             continue;
 
         const Work_buffer* in_wb = Proc_state_get_voice_buffer(
-                proc_state, proc_ts, DEVICE_PORT_TYPE_RECEIVE, port);
+                proc_state, proc_ts, DEVICE_PORT_TYPE_RECV, port);
         if (in_wb == NULL)
             continue;
 

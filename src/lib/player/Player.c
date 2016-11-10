@@ -626,8 +626,8 @@ static void Player_process_voices(
         const Processor* first_proc = Voice_get_proc(first_voice);
         const Au_params* first_au_params = Processor_get_au_params(first_proc);
         const uint32_t au_id = first_au_params->device_id;
-        const Device_state* au_state = Device_states_get_state(
-                player->device_states, au_id);
+        const Device_state* au_state =
+            Device_states_get_state(player->device_states, au_id);
         const Audio_unit* au = (const Audio_unit*)Device_state_get_device(au_state);
         const Connections* conns = Audio_unit_get_connections(au);
 
@@ -759,8 +759,8 @@ static void Player_apply_dc_blocker(
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        Work_buffer* buffer = Device_thread_state_get_audio_buffer(
-                master_ts, DEVICE_PORT_TYPE_RECEIVE, port);
+        Work_buffer* buffer =
+            Device_thread_state_get_audio_buffer(master_ts, DEVICE_PORT_TYPE_RECV, port);
         if (buffer != NULL)
         {
             float feedforward = player->master_params.dc_block_state[port].feedforward;
@@ -822,7 +822,7 @@ static void Player_apply_master_volume(
     for (int32_t port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Work_buffer* buffer = Device_thread_state_get_audio_buffer(
-                master_ts, DEVICE_PORT_TYPE_RECEIVE, port);
+                master_ts, DEVICE_PORT_TYPE_RECV, port);
         if (buffer != NULL)
         {
             float* buf = Work_buffer_get_contents_mut(buffer);
@@ -979,7 +979,7 @@ void Player_play(Player* player, int32_t nframes)
             float* out_buf = player->audio_buffers[port];
 
             Work_buffer* buffer = Device_thread_state_get_audio_buffer(
-                    master_ts, DEVICE_PORT_TYPE_RECEIVE, port);
+                    master_ts, DEVICE_PORT_TYPE_RECV, port);
 
             if (buffer != NULL)
             {

@@ -184,8 +184,7 @@ bool Device_node_check_connections(
                 return false;
             }
 
-            if (!Device_get_port_existence(
-                        recv_device, DEVICE_PORT_TYPE_RECEIVE, port))
+            if (!Device_get_port_existence(recv_device, DEVICE_PORT_TYPE_RECV, port))
             {
                 snprintf(
                         err, DEVICE_CONNECTION_ERROR_LENGTH_MAX,

@@ -169,7 +169,7 @@ static void Delay_pstate_render_mixed(
 
     // Get delay stream
     float* delays = Device_thread_state_get_audio_buffer_contents_mut(
-            proc_ts, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_DELAY);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_DELAY);
     if (delays == NULL)
     {
         delays =

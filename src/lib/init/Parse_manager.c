@@ -108,7 +108,7 @@ static bool is_au_in_conn_possible(
     if (au == NULL)
         return false;
 
-    return Device_get_port_existence((const Device*)au, DEVICE_PORT_TYPE_RECEIVE, port);
+    return Device_get_port_existence((const Device*)au, DEVICE_PORT_TYPE_RECV, port);
 }
 
 
@@ -156,8 +156,7 @@ static bool is_proc_in_conn_possible(
     if (proc == NULL)
         return false;
 
-    return Device_get_port_existence(
-            (const Device*)proc, DEVICE_PORT_TYPE_RECEIVE, port);
+    return Device_get_port_existence((const Device*)proc, DEVICE_PORT_TYPE_RECV, port);
 }
 
 
@@ -345,7 +344,7 @@ static bool read_out_port_manifest(Reader_params* params)
 
     Module* module = Handle_get_module(params->handle);
     Device_set_port_existence(
-            (Device*)module, DEVICE_PORT_TYPE_RECEIVE, out_port_index, existent);
+            (Device*)module, DEVICE_PORT_TYPE_RECV, out_port_index, existent);
 
     return true;
 }
@@ -704,7 +703,7 @@ static bool read_any_au_in_port_manifest(
     acquire_au(au, params->handle, au_table, au_index);
 
     Device_set_port_existence(
-            (Device*)au, DEVICE_PORT_TYPE_RECEIVE, in_port_index, existent);
+            (Device*)au, DEVICE_PORT_TYPE_RECV, in_port_index, existent);
 
     return true;
 }
@@ -1023,7 +1022,7 @@ static bool read_any_proc_in_port_manifest(
         return false;
 
     Device_set_port_existence(
-            (Device*)proc, DEVICE_PORT_TYPE_RECEIVE, in_port_index, existent);
+            (Device*)proc, DEVICE_PORT_TYPE_RECV, in_port_index, existent);
 
     return true;
 }
