@@ -84,7 +84,7 @@ void Device_states_remove_state(Device_states* states, uint32_t id);
  * \param states      The Device states -- must not be \c NULL.
  * \param thread_id   The ID of the thread accessing the Device states
  *                    -- must be a valid ID currently in use.
- * \param id          The Device ID -- must be > \c 0 and must match an
+ * \param device_id   The Device ID -- must be > \c 0 and must match an
  *                    existing Device state.
  */
 Device_thread_state* Device_states_get_thread_state(
