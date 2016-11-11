@@ -41,6 +41,8 @@ struct Device_thread_state
 
     Device_node_state node_state;
 
+    bool has_mixed_audio;
+
     // Information on which input ports are connected to something
     // TODO: This exists only because it is currently inconvenient to find a
     //       Device node by using Device as a reference -- fix this!
@@ -211,6 +213,24 @@ Work_buffer* Device_thread_state_get_voice_buffer(
  */
 float* Device_thread_state_get_voice_buffer_contents(
         const Device_thread_state* ts, Device_port_type type, int port);
+
+
+/**
+ * Mark Device thread state as containing mixed audio.
+ *
+ * \param ts   The Device thread state -- must not be \c NULL.
+ */
+void Device_thread_state_mark_mixed_audio(Device_thread_state* ts);
+
+
+/**
+ * Check if the Device thread state contains mixed audio.
+ *
+ * \param ts   The Device thread state -- must not be \c NULL.
+ *
+ * \return   \c true if \a ts contains mixed audio, otherwise \c false.
+ */
+bool Device_thread_state_has_mixed_audio(const Device_thread_state* ts);
 
 
 /**

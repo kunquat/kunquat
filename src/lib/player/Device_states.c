@@ -530,6 +530,55 @@ bool Device_states_prepare(Device_states* dstates, const Connections* conns)
 }
 
 
+void Device_states_mix_thread_states(
+        Device_states* dstates, int32_t buf_start, int32_t buf_stop)
+{
+    rassert(dstates != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= 0);
+
+    AAiter* iter = AAiter_init(AAITER_AUTO, dstates->thread_states[0]);
+    Device_thread_state* dest_state =
+        AAiter_get_at_least(iter, DEVICE_THREAD_STATE_KEY(0));
+
+    while (dest_state != NULL)
+    {
+        const uint32_t device_id = dest_state->device_id;
+        const Device_thread_state* tkey = DEVICE_THREAD_STATE_KEY(device_id);
+
+        for (int thread_id = 1; thread_id < KQT_THREADS_MAX; ++thread_id)
+        {
+            AAtree* thread_states = dstates->thread_states[thread_id];
+            if (thread_states == NULL)
+                continue;
+
+            const Device_thread_state* src_state =
+                AAtree_get_exact(thread_states, tkey);
+            if (Device_thread_state_has_mixed_audio(src_state))
+            {
+                for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+                {
+                    Work_buffer* dest_buffer = Device_thread_state_get_mixed_buffer(
+                            dest_state, DEVICE_PORT_TYPE_SEND, port);
+                    if (dest_buffer == NULL)
+                        continue;
+
+                    const Work_buffer* src_buffer = Device_thread_state_get_mixed_buffer(
+                            src_state, DEVICE_PORT_TYPE_SEND, port);
+                    rassert(src_buffer != NULL);
+
+                    Work_buffer_mix(dest_buffer, src_buffer, buf_start, buf_stop);
+                }
+            }
+        }
+
+        dest_state = AAiter_get_next(iter);
+    }
+
+    return;
+}
+
+
 static void process_mixed_signals(
         Device_states* dstates,
         const Device_node* node,

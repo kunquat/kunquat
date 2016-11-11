@@ -37,6 +37,7 @@ Device_thread_state* new_Device_thread_state(
     ts->device_id = device_id;
     ts->audio_buffer_size = audio_buffer_size;
     ts->node_state = DEVICE_NODE_STATE_NEW;
+    ts->has_mixed_audio = false;
     ts->in_connected = NULL;
 
     for (Device_buffer_type buf_type = DEVICE_BUFFER_MIXED;
@@ -226,6 +227,8 @@ void Device_thread_state_clear_mixed_buffers(
 
     Device_thread_state_clear_buffers(ts, DEVICE_BUFFER_MIXED, buf_start, buf_stop);
 
+    ts->has_mixed_audio = false;
+
     return;
 }
 
@@ -308,6 +311,23 @@ float* Device_thread_state_get_voice_buffer_contents(
         return NULL;
 
     return Work_buffer_get_contents_mut(wb);
+}
+
+
+void Device_thread_state_mark_mixed_audio(Device_thread_state* ts)
+{
+    rassert(ts != NULL);
+
+    ts->has_mixed_audio = true;
+
+    return;
+}
+
+
+bool Device_thread_state_has_mixed_audio(const Device_thread_state* ts)
+{
+    rassert(ts != NULL);
+    return ts->has_mixed_audio;
 }
 
 

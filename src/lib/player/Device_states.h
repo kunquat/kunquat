@@ -146,6 +146,19 @@ bool Device_states_prepare(Device_states* dstates, const Connections* conns);
 
 
 /**
+ * Mix buffers rendered by separate threads.
+ *
+ * \param dstates     The Device states -- must not be \c NULL.
+ * \param buf_start   The start index of the buffer area to be processed
+ *                    -- must be less than the buffer size.
+ * \param buf_stop    The stop index of the buffer area to be processed
+ *                    -- must be less than or equal to the buffer size.
+ */
+void Device_states_mix_thread_states(
+        Device_states* dstates, int32_t buf_start, int32_t buf_stop);
+
+
+/**
  * Process mixed signals in the Device states.
  *
  * \param dstates      The Device states -- must not be \c NULL.

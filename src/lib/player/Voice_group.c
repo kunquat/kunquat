@@ -332,12 +332,15 @@ static void mix_voice_signals(
         const Device_node* node,
         Voice_group* vgroup,
         Device_states* dstates,
+        int thread_id,
         int32_t buf_start,
         int32_t buf_stop)
 {
     rassert(node != NULL);
     rassert(vgroup != NULL);
     rassert(dstates != NULL);
+    rassert(thread_id >= 0);
+    rassert(thread_id < KQT_THREADS_MAX);
     rassert(buf_start >= 0);
     rassert(buf_stop >= buf_start);
 
@@ -345,10 +348,8 @@ static void mix_voice_signals(
     if (node_device == NULL)
         return;
 
-    const int thread_count = 1; // TODO: get from dstates
-
     Device_thread_state* node_ts =
-        Device_states_get_thread_state(dstates, 0, Device_get_id(node_device));
+        Device_states_get_thread_state(dstates, thread_id, Device_get_id(node_device));
 
     if (Device_thread_state_get_node_state(node_ts) > DEVICE_NODE_STATE_NEW)
     {
@@ -368,7 +369,7 @@ static void mix_voice_signals(
             Voice* voice = Voice_group_get_voice_by_proc(vgroup, proc_id);
             if (voice != NULL)
                 Voice_state_mix_signals(
-                        voice->state, pstate, dstates, thread_count, buf_start, buf_stop);
+                        voice->state, pstate, node_ts, buf_start, buf_stop);
 
             // Stop recursing as we don't depend on any mixed signals
             Device_thread_state_set_node_state(node_ts, DEVICE_NODE_STATE_VISITED);
@@ -389,7 +390,8 @@ static void mix_voice_signals(
                 continue;
             }
 
-            mix_voice_signals(edge->node, vgroup, dstates, buf_start, buf_stop);
+            mix_voice_signals(
+                    edge->node, vgroup, dstates, thread_id, buf_start, buf_stop);
 
             edge = edge->next;
         }
@@ -404,12 +406,15 @@ static void mix_voice_signals(
 void Voice_group_mix(
         Voice_group* vgroup,
         Device_states* dstates,
+        int thread_id,
         const Connections* conns,
         int32_t buf_start,
         int32_t buf_stop)
 {
     rassert(vgroup != NULL);
     rassert(dstates != NULL);
+    rassert(thread_id >= 0);
+    rassert(thread_id < KQT_THREADS_MAX);
     rassert(conns != NULL);
     rassert(buf_start >= 0);
     rassert(buf_stop >= 0);
@@ -419,9 +424,9 @@ void Voice_group_mix(
     if (buf_start >= buf_stop)
         return;
 
-    reset_subgraph(dstates, 0, master);
+    reset_subgraph(dstates, thread_id, master);
     //Device_states_reset_node_states(dstates);
-    mix_voice_signals(master, vgroup, dstates, buf_start, buf_stop);
+    mix_voice_signals(master, vgroup, dstates, thread_id, buf_start, buf_stop);
 
     return;
 }

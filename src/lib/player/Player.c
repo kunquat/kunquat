@@ -645,7 +645,7 @@ static void Player_process_voices(
                     player->master_params.tempo);
 
             Voice_group_mix(
-                    vg, player->device_states, conns, render_start, process_stop);
+                    vg, player->device_states, 0, conns, render_start, process_stop);
 
             if (process_stop < render_stop)
                 Voice_group_deactivate_all(vg);
@@ -661,6 +661,10 @@ static void Player_process_voices(
 
         vg = Voice_pool_get_next_group(player->voices);
     }
+
+    if (player->thread_count > 1)
+        Device_states_mix_thread_states(
+                player->device_states, render_start, render_stop);
 
     player->master_params.active_voices =
         max(player->master_params.active_voices, active_voice_count);

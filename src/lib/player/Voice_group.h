@@ -130,6 +130,7 @@ int32_t Voice_group_render(
  *
  * \param vgroup      The Voice group -- must not be \c NULL.
  * \param dstates     The Device states -- must not be \c NULL.
+ * \param thread_id    The ID of the rendering thread -- must be valid.
  * \param conns       The Connections -- must not be \c NULL.
  * \param buf_start   The start index of the buffer area to be processed.
  * \param buf_stop    The stop index of the buffer area to be processed.
@@ -137,6 +138,7 @@ int32_t Voice_group_render(
 void Voice_group_mix(
         Voice_group* vgroup,
         Device_states* dstates,
+        int thread_id,
         const Connections* conns,
         int32_t buf_start,
         int32_t buf_stop);

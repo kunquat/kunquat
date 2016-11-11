@@ -159,9 +159,7 @@ int32_t Voice_state_render_voice(
  *
  * \param vstate         The Voice state -- must not be \c NULL.
  * \param proc_state     The Processor state -- must not be \c NULL.
- * \param dstates        The Device states -- must not be \c NULL.
- * \param thread_count   The number of threads used for voice rendering
- *                       -- must be >= \c 1 and < \c KQT_THREADS_MAX.
+ * \param proc_ts        The Device thread state -- must not be \c NULL.
  * \param buf_start      The start index of mixing -- must be >= \c 0.
  * \param buf_stop       The stop index of mixing -- must be less than or equal
  *                       to the audio buffer size.
@@ -169,8 +167,7 @@ int32_t Voice_state_render_voice(
 void Voice_state_mix_signals(
         Voice_state* vstate,
         Proc_state* proc_state,
-        Device_states* dstates,
-        int thread_count,
+        Device_thread_state* proc_ts,
         int32_t buf_start,
         int32_t buf_stop);
 
