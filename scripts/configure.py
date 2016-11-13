@@ -35,6 +35,15 @@ def test_add_external_deps(builder, options, cc):
             cc.add_define('HAS_EXECINFO')
             cc.set_dynamic_export(True)
 
+    if options.with_pthread:
+        if _test_header(builder, cc, 'pthread.h'):
+            cc.add_compile_flag('-pthread')
+            cc.add_define('_XOPEN_SOURCE', 700)
+            cc.add_define('WITH_PTHREAD')
+        else:
+            conf_errors.append(
+                    'POSIX threads support was requested but Pthreads was not found.')
+
     if options.with_sndfile:
         if _test_add_lib_with_header(builder, cc, 'sndfile', 'sndfile.h'):
             cc.add_define('WITH_SNDFILE')

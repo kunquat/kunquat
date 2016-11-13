@@ -36,6 +36,9 @@ enable_export = True
 # build example Kunquat files
 enable_examples = True
 
+# build with POSIX threads
+with_pthread = True
+
 # build with libsndfile support
 with_sndfile = True
 
