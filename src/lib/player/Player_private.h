@@ -29,8 +29,21 @@
 #include <player/Voice_pool.h>
 #include <player/Work_buffers.h>
 
+#ifdef WITH_PTHREAD
+#include <pthread.h>
+#endif
+
 #include <stdbool.h>
 #include <stdint.h>
+
+
+typedef struct Player_thread_params
+{
+    Player* player;
+    Work_buffers* work_buffers;
+    int thread_id; // NOTE: This is the ID used by the rendering code, not pthread ID
+    int active_voices;
+} Player_thread_params;
 
 
 struct Player
@@ -43,12 +56,25 @@ struct Player
     int32_t audio_frames_available;
 
     int thread_count;
+    Player_thread_params thread_params[KQT_THREADS_MAX];
+#ifdef WITH_PTHREAD
+    bool start_cond_initialised;
+    pthread_cond_t start_cond;
+    pthread_mutex_t start_cond_mutex;
+    bool ok_to_start;
+    bool stop_threads;
+    int32_t render_start;
+    int32_t render_stop;
+    bool thread_initialised[KQT_THREADS_MAX];
+    pthread_t threads[KQT_THREADS_MAX];
+    pthread_barrier_t vgroups_start_barrier;
+    pthread_barrier_t vgroups_finished_barrier;
+#endif
 
     Device_states* device_states;
     Env_state*     estate;
     Event_buffer*  event_buffer;
     Voice_pool*    voices;
-    Work_buffers*  work_buffers[KQT_THREADS_MAX];
     Master_params  master_params;
     Channel*       channels[KQT_CHANNELS_MAX];
     Event_handler* event_handler;

@@ -33,11 +33,21 @@
 #include <player/Work_buffers.h>
 #include <string/common.h>
 
+#ifdef WITH_PTHREAD
+#include <errno.h>
+#include <pthread.h>
+#endif
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+
+#ifdef WITH_PTHREAD
+static void* voice_group_thread_func(void* arg);
+#endif
 
 
 static void Player_update_sliders_and_lfos_audio_rate(Player* player)
@@ -86,14 +96,29 @@ Player* new_Player(
         player->audio_buffers[i] = NULL;
     player->audio_frames_available = 0;
 
-    player->thread_count = 1;
+    player->thread_count = 0;
+    for (int i = 0; i < KQT_THREADS_MAX; ++i)
+    {
+        Player_thread_params* tparams = &player->thread_params[i];
+        tparams->player = player;
+        tparams->work_buffers = NULL;
+        tparams->thread_id = i;
+        tparams->active_voices = 0;
+    }
+#ifdef WITH_PTHREAD
+    for (int i = 0; i < KQT_THREADS_MAX; ++i)
+        player->thread_initialised[i] = false;
+    player->start_cond_initialised = false;
+    player->ok_to_start = false;
+    player->stop_threads = false;
+    player->render_start = 0;
+    player->render_stop = 0;
+#endif
 
     player->device_states = NULL;
     player->estate = NULL;
     player->event_buffer = NULL;
     player->voices = NULL;
-    for (int i = 0; i < KQT_THREADS_MAX; ++i)
-        player->work_buffers[i] = NULL;
     Master_params_preinit(&player->master_params);
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         player->channels[i] = NULL;
@@ -139,13 +164,6 @@ Player* new_Player(
                 player->device_states, master_state))
     {
         del_Device_state(master_state);
-        del_Player(player);
-        return NULL;
-    }
-
-    player->work_buffers[0] = new_Work_buffers(player->audio_buffer_size);
-    if (player->work_buffers[0] == NULL)
-    {
         del_Player(player);
         return NULL;
     }
@@ -201,6 +219,12 @@ Player* new_Player(
         }
     }
 
+    if (!Player_set_thread_count(player, 1, ERROR_AUTO))
+    {
+        del_Player(player);
+        return NULL;
+    }
+
     return player;
 }
 
@@ -226,6 +250,11 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
     rassert(new_count <= KQT_THREADS_MAX);
     rassert(error != NULL);
 
+#ifndef WITH_PTHREAD
+    // Override requested thread count if threads are not supported
+    new_count = 1;
+#endif
+
     if (Error_is_set(error))
         return false;
 
@@ -238,14 +267,15 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
     // (De)allocate player Work buffers as needed
     for (int i = new_count; i < old_count; ++i)
     {
-        del_Work_buffers(player->work_buffers[i]);
-        player->work_buffers[i] = NULL;
+        del_Work_buffers(player->thread_params[i].work_buffers);
+        player->thread_params[i].work_buffers = NULL;
     }
     for (int i = old_count; i < new_count; ++i)
     {
-        rassert(player->work_buffers[i] == NULL);
-        player->work_buffers[i] = new_Work_buffers(player->audio_buffer_size);
-        if (player->work_buffers[i] == NULL)
+        rassert(player->thread_params[i].work_buffers == NULL);
+        player->thread_params[i].work_buffers =
+            new_Work_buffers(player->audio_buffer_size);
+        if (player->thread_params[i].work_buffers == NULL)
         {
             Error_set(
                     error,
@@ -267,7 +297,166 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
         return false;
     }
 
-    // TODO: Create and initialise threads
+#ifdef WITH_PTHREAD
+
+    const int pthreads_needed = (new_count > 1) ? new_count : 0;
+
+    // Remove old threads (all of them so that we can replace our barriers)
+    for (int i = 0; i < KQT_THREADS_MAX; ++i)
+    {
+        if (!player->thread_initialised[i])
+            continue;
+
+        pthread_cancel(player->threads[i]);
+        pthread_join(player->threads[i], NULL);
+        player->thread_initialised[i] = false;
+    }
+
+    // Remove old barriers
+    if (old_count > 1)
+    {
+        int status = pthread_barrier_destroy(&player->vgroups_start_barrier);
+        rassert(status != EBUSY);
+        rassert(status != EINVAL);
+        pthread_barrier_destroy(&player->vgroups_finished_barrier);
+        rassert(status != EBUSY);
+        rassert(status != EINVAL);
+    }
+
+    // Create new barriers
+    if (pthreads_needed > 0)
+    {
+        const unsigned int count = (unsigned int)pthreads_needed + 1;
+
+        int status = pthread_barrier_init(&player->vgroups_start_barrier, NULL, count);
+        if (status == 0)
+            status = pthread_barrier_init(
+                    &player->vgroups_finished_barrier, NULL, count);
+
+        switch (status)
+        {
+            case 0:
+                break;
+
+            case EAGAIN:
+            {
+                Error_set(
+                        error,
+                        ERROR_RESOURCE,
+                        "Could not allocate resources for synchronisation state");
+                return false;
+            }
+            break;
+
+            case EINVAL:
+            {
+                rassert(false);
+            }
+            break;
+
+            case ENOMEM:
+            {
+                Error_set(
+                        error,
+                        ERROR_MEMORY,
+                        "Could not allocate memory for synchronisation state");
+                return false;
+            }
+            break;
+
+            default:
+            {
+                Error_set(
+                        error,
+                        ERROR_RESOURCE,
+                        "Unexpected error when creating synchronisation state: %d",
+                        status);
+                return false;
+            }
+            break;
+        }
+    }
+
+    if ((pthreads_needed > 0) && !player->start_cond_initialised)
+    {
+        pthread_cond_init(&player->start_cond, NULL);
+        pthread_mutex_init(&player->start_cond_mutex, NULL);
+        player->start_cond_initialised = true;
+    }
+
+    player->ok_to_start = false;
+
+    // Create new threads
+    for (int i = 0; i < pthreads_needed; ++i)
+    {
+        if (player->thread_initialised[i])
+            continue;
+
+        int status = pthread_create(
+                &player->threads[i],
+                NULL,
+                voice_group_thread_func,
+                &player->thread_params[i]);
+
+        switch (status)
+        {
+            case 0:
+                break;
+
+            case EAGAIN:
+            {
+                Error_set(
+                        error,
+                        ERROR_RESOURCE,
+                        "Could not allocate resources for new threads");
+                return false;
+            }
+            break;
+
+            case EINVAL:
+            {
+                rassert(false);
+            }
+            break;
+
+            case EPERM:
+            {
+                Error_set(
+                        error,
+                        ERROR_RESOURCE,
+                        "No required permissions to set up threads");
+                return false;
+            }
+            break;
+
+            default:
+            {
+                Error_set(
+                        error,
+                        ERROR_RESOURCE,
+                        "Unexpected error when creating threads: %d",
+                        status);
+                return false;
+            }
+            break;
+        }
+
+        player->thread_initialised[i] = true;
+    }
+
+    if (pthreads_needed > 0)
+    {
+        pthread_mutex_lock(&player->start_cond_mutex);
+        player->ok_to_start = true;
+        pthread_cond_broadcast(&player->start_cond);
+        pthread_mutex_unlock(&player->start_cond_mutex);
+    }
+    else
+    {
+        player->ok_to_start = true;
+    }
+
+#endif
 
     player->thread_count = new_count;
 
@@ -550,7 +739,7 @@ bool Player_set_audio_buffer_size(Player* player, int32_t size)
     // Update work buffers
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
     {
-        Work_buffers* wbs = player->work_buffers[i];
+        Work_buffers* wbs = player->thread_params[i].work_buffers;
         if ((wbs != NULL) && !Work_buffers_resize(wbs, size))
             return false;
     }
@@ -587,6 +776,133 @@ int64_t Player_get_nanoseconds(const Player* player)
 }
 
 
+static int Player_process_voice_group(
+        Player* player,
+        Player_thread_params* tparams,
+        Voice_group* vgroup,
+        int32_t render_start,
+        int32_t render_stop)
+{
+    rassert(player != NULL);
+    rassert(tparams != NULL);
+    rassert(vgroup != NULL);
+    rassert(render_start >= 0);
+    rassert(render_stop >= render_start);
+
+    // Find the connections that contain the processors
+    const Voice* first_voice = Voice_group_get_voice(vgroup, 0);
+    const Processor* first_proc = Voice_get_proc(first_voice);
+    const Au_params* first_au_params = Processor_get_au_params(first_proc);
+    const uint32_t au_id = first_au_params->device_id;
+    const Device_state* au_state =
+        Device_states_get_state(player->device_states, au_id);
+    const Audio_unit* au = (const Audio_unit*)Device_state_get_device(au_state);
+    const Connections* conns = Audio_unit_get_connections(au);
+
+    int active_voice_count = 0;
+
+    if (conns != NULL)
+    {
+        const int32_t process_stop = Voice_group_render(
+                vgroup,
+                player->device_states,
+                tparams->thread_id,
+                conns,
+                tparams->work_buffers,
+                render_start,
+                render_stop,
+                player->audio_rate,
+                player->master_params.tempo);
+
+        Voice_group_mix(
+                vgroup,
+                player->device_states,
+                tparams->thread_id,
+                conns,
+                render_start,
+                process_stop);
+
+        if (process_stop < render_stop)
+            Voice_group_deactivate_all(vgroup);
+        else
+            Voice_group_deactivate_unreachable(vgroup);
+
+        active_voice_count += Voice_group_get_active_count(vgroup);
+    }
+    else
+    {
+        Voice_group_deactivate_all(vgroup);
+    }
+
+    return active_voice_count;
+}
+
+
+#ifdef WITH_PTHREAD
+static int Player_process_voice_groups_synced(
+        Player* player,
+        Player_thread_params* tparams,
+        int32_t render_start,
+        int32_t render_stop)
+{
+    rassert(player != NULL);
+    rassert(tparams != NULL);
+    rassert(render_start >= 0);
+    rassert(render_stop >= render_start);
+
+    Voice_group* vgroup = VOICE_GROUP_AUTO;
+
+    int active_voices = 0;
+
+    Voice_group* vg = Voice_pool_get_next_group_synced(player->voices, vgroup);
+    while (vg != NULL)
+    {
+        active_voices +=
+            Player_process_voice_group(player, tparams, vg, render_start, render_stop);
+
+        vg = Voice_pool_get_next_group_synced(player->voices, vgroup);
+    }
+
+    return active_voices;
+}
+
+
+static void* voice_group_thread_func(void* arg)
+{
+    rassert(arg != NULL);
+
+    Player_thread_params* params = arg;
+    Player* player = params->player;
+
+    pthread_mutex_lock(&player->start_cond_mutex);
+    while (!player->ok_to_start)
+        pthread_cond_wait(&player->start_cond, &player->start_cond_mutex);
+    pthread_mutex_unlock(&player->start_cond_mutex);
+
+    while (true)
+    {
+        // Wait for our signal to start voice group processing
+        int status = pthread_barrier_wait(&player->vgroups_start_barrier);
+        rassert(status != EINVAL);
+
+        rassert(params->thread_id < player->thread_count);
+
+        if (player->stop_threads)
+            break;
+
+        params->active_voices = Player_process_voice_groups_synced(
+                player, params, player->render_start, player->render_stop);
+
+        // Wait to indicate that we have finished
+        status = pthread_barrier_wait(&player->vgroups_finished_barrier);
+        rassert(status != EINVAL);
+    }
+
+    pthread_exit(NULL);
+}
+#endif
+
+
 static void Player_process_voices(
         Player* player, int32_t render_start, int32_t frame_count)
 {
@@ -617,49 +933,39 @@ static void Player_process_voices(
     const int32_t render_stop = render_start + frame_count;
     int active_voice_count = 0;
 
-    Voice_group* vg = Voice_pool_start_group_iteration(player->voices);
+    Voice_pool_start_group_iteration(player->voices);
 
-    while (vg != NULL)
+#ifdef WITH_PTHREAD
+    if (player->thread_count > 1)
     {
-        // Find the connections that contain the processors
-        const Voice* first_voice = Voice_group_get_voice(vg, 0);
-        const Processor* first_proc = Voice_get_proc(first_voice);
-        const Au_params* first_au_params = Processor_get_au_params(first_proc);
-        const uint32_t au_id = first_au_params->device_id;
-        const Device_state* au_state =
-            Device_states_get_state(player->device_states, au_id);
-        const Audio_unit* au = (const Audio_unit*)Device_state_get_device(au_state);
-        const Connections* conns = Audio_unit_get_connections(au);
+        // Pass render start and stop parameters to threads
+        player->render_start = render_start;
+        player->render_stop = render_stop;
 
-        if (conns != NULL)
+        // Synchronise with all threads to start voice group processing
+        int status = pthread_barrier_wait(&player->vgroups_start_barrier);
+        rassert(status != EINVAL);
+
+        // Wait until all threads have finished
+        status = pthread_barrier_wait(&player->vgroups_finished_barrier);
+        rassert(status != EINVAL);
+
+        // Calculate active voices
+        for (int i = 0; i < player->thread_count; ++i)
+            active_voice_count += player->thread_params[i].active_voices;
+    }
+    else
+#endif
+    {
+        // Process all voice groups in a single thread
+        Voice_group* vg = Voice_pool_get_next_group(player->voices);
+        while (vg != NULL)
         {
-            const int32_t process_stop = Voice_group_render(
-                    vg,
-                    player->device_states,
-                    0, // thread ID
-                    conns,
-                    player->work_buffers[0],
-                    render_start,
-                    render_stop,
-                    player->audio_rate,
-                    player->master_params.tempo);
+            active_voice_count += Player_process_voice_group(
+                    player, &player->thread_params[0], vg, render_start, render_stop);
 
-            Voice_group_mix(
-                    vg, player->device_states, 0, conns, render_start, process_stop);
-
-            if (process_stop < render_stop)
-                Voice_group_deactivate_all(vg);
-            else
-                Voice_group_deactivate_unreachable(vg);
-
-            active_voice_count += Voice_group_get_active_count(vg);
+            vg = Voice_pool_get_next_group(player->voices);
         }
-        else
-        {
-            Voice_group_deactivate_all(vg);
-        }
-
-        vg = Voice_pool_get_next_group(player->voices);
     }
 
     if (player->thread_count > 1)
@@ -799,7 +1105,7 @@ static void Player_apply_master_volume(
     static const int CONTROL_WB_MASTER_VOLUME = WORK_BUFFER_IMPL_1;
 
     float* volumes = Work_buffers_get_buffer_contents_mut(
-            player->work_buffers[0], CONTROL_WB_MASTER_VOLUME);
+            player->thread_params[0].work_buffers, CONTROL_WB_MASTER_VOLUME);
 
     if (Slider_in_progress(&player->master_params.volume_slider))
     {
@@ -956,7 +1262,7 @@ void Player_play(Player* player, int32_t nframes)
                     player->device_states,
                     true, // hack_reset
                     connections,
-                    player->work_buffers[0],
+                    player->thread_params[0].work_buffers,
                     buf_start,
                     buf_stop,
                     player->audio_rate,
@@ -1217,13 +1523,61 @@ void del_Player(Player* player)
     if (player == NULL)
         return;
 
+#ifdef WITH_PTHREAD
+    if (player->thread_count > 1)
+    {
+        if (!player->ok_to_start)
+        {
+            // Any initialised threads are waiting on the start condition
+            for (int i = 0; i < KQT_THREADS_MAX; ++i)
+            {
+                if (!player->thread_initialised[i])
+                    continue;
+
+                pthread_cancel(player->threads[i]);
+                pthread_join(player->threads[i], NULL);
+                player->thread_initialised[i] = false;
+            }
+        }
+        else
+        {
+            // Initialised threads are waiting on vgroups_start_barrier
+            player->stop_threads = true;
+            pthread_barrier_wait(&player->vgroups_start_barrier);
+            for (int i = 0; i < KQT_THREADS_MAX; ++i)
+            {
+                if (!player->thread_initialised[i])
+                    continue;
+
+                pthread_join(player->threads[i], NULL);
+                player->thread_initialised[i] = false;
+            }
+        }
+    }
+
+    if (player->start_cond_initialised)
+    {
+        int status = pthread_cond_destroy(&player->start_cond);
+        rassert(status != EBUSY);
+        status = pthread_mutex_destroy(&player->start_cond_mutex);
+        rassert(status != EBUSY);
+        player->start_cond_initialised = false;
+    }
+
+    if (player->thread_count > 1)
+    {
+        pthread_barrier_destroy(&player->vgroups_start_barrier);
+        pthread_barrier_destroy(&player->vgroups_finished_barrier);
+    }
+#endif
+
     del_Event_handler(player->event_handler);
     del_Voice_pool(player->voices);
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         del_Channel(player->channels[i]);
     Master_params_deinit(&player->master_params);
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
-        del_Work_buffers(player->work_buffers[i]);
+        del_Work_buffers(player->thread_params[i].work_buffers);
     del_Event_buffer(player->event_buffer);
     del_Env_state(player->estate);
     del_Device_states(player->device_states);
