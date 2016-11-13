@@ -148,6 +148,31 @@ long kqt_Handle_get_audio_rate(kqt_Handle handle);
 
 
 /**
+ * Set the number of threads used in audio rendering by the Kunquat Handle.
+ *
+ * NOTE: If libkunquat is built without thread support, this function will have
+ *       no effect.
+ *
+ * \param handle   The Handle -- should be valid.
+ * \param count    The number of threads -- should be >= \c 1 and
+ *                 <= \c KQT_THREADS_MAX.
+ *
+ * \return   \c 1 if successful, otherwise \c 0.
+ */
+int kqt_Handle_set_thread_count(kqt_Handle handle, int count);
+
+
+/**
+ * Get the number of threads used in audio rendering by the Kunquat Handle.
+ *
+ * \param handle   The Handle -- should be valid.
+ *
+ * \return   The number of threads used.
+ */
+int kqt_Handle_get_thread_count(kqt_Handle handle);
+
+
+/**
  * Set the audio buffer size of the Kunquat Handle.
  *
  * The buffer size determines the maximum amount of audio data that can
