@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2016
 #
 # This file is part of Kunquat.
 #
@@ -11,7 +11,11 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from kunquat.kunquat.limits import *
+
 import argparse
+import math
+import multiprocessing
 import os.path
 
 
@@ -25,6 +29,9 @@ def parse_arguments():
             help=argparse.SUPPRESS)
     ap.add_argument('--audio-latency', type=float, default=60, metavar='t',
             help='Set audio latency to %(metavar)s milliseconds (default: %(default)s)')
+    ap.add_argument(
+            '--threads', type=int, default=_get_default_thread_count(), metavar='n',
+            help='Use %(metavar)s threads for audio rendering (default: %(default)s)')
     ap.add_argument('kqtfile', type=str, nargs='?', default='',
             help='Use kqtfile as input')
 
@@ -43,6 +50,9 @@ def get_install_prefix():
 
 def get_audio_latency():
     return min(max(1, _args.audio_latency), 2000)
+
+def get_thread_count():
+    return min(max(1, _args.threads), THREADS_MAX)
 
 
 def _find_install_prefix():
@@ -82,5 +92,14 @@ def _split_all(path):
 
 def _rindex(ls, elem):
     return -1 - list(reversed(ls)).index(elem)
+
+def _get_default_thread_count():
+    try:
+        cpus = multiprocessing.cpu_count()
+    except NotImplementedError:
+        cpus = 1
+    if cpus <= 2:
+        return max(1, cpus)
+    return min(max(2, math.ceil(cpus / 2)), THREADS_MAX)
 
 
