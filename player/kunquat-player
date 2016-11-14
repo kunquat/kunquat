@@ -316,7 +316,8 @@ def print_help():
           '                    Valid values are'
           ' numbers in the range [0,255] and `all`')
     print('  --threads         Use n threads for audio rendering\n'
-          '                    Valid range is [1,32] (default autodetected)')
+          '                    Valid range is [1,32] (default: {})'.format(
+                get_default_thread_count()))
     print('  -h, --help        Show this help and exit')
     print('  -q, --quiet       Quiet and non-interactive operation\n'
           '                    (only error messages will be displayed)')
