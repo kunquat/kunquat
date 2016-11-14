@@ -186,6 +186,21 @@ class Kunquat():
         self._nanoseconds = value
 
     @property
+    def thread_count(self):
+        """Number of threads used for audio rendering."""
+        return _kunquat.kqt_Handle_get_thread_count(self._handle)
+
+    @thread_count.setter
+    def thread_count(self, value):
+        """Set the number of threads used for audio rendering.
+
+        Note that this function has no effect if libkunquat is built
+        without multithreading support.
+
+        """
+        _kunquat.kqt_Handle_set_thread_count(self._handle, value)
+
+    @property
     def audio_rate(self):
         """Audio rate in frames per second."""
         return self._audio_rate
@@ -511,6 +526,13 @@ _kunquat.kqt_Handle_get_frames_available.errcheck = _error_check
 _kunquat.kqt_Handle_get_audio.argtypes = [kqt_Handle, ctypes.c_int]
 _kunquat.kqt_Handle_get_audio.restype = ctypes.POINTER(ctypes.c_float)
 _kunquat.kqt_Handle_get_audio.errcheck = _error_check
+
+_kunquat.kqt_Handle_set_thread_count.argtypes = [kqt_Handle, ctypes.c_int]
+_kunquat.kqt_Handle_set_thread_count.restype = ctypes.c_int
+_kunquat.kqt_Handle_set_thread_count.errcheck = _error_check
+_kunquat.kqt_Handle_get_thread_count.argtypes = [kqt_Handle]
+_kunquat.kqt_Handle_get_thread_count.restype = ctypes.c_int
+_kunquat.kqt_Handle_get_thread_count.errcheck = _error_check
 
 _kunquat.kqt_Handle_set_audio_rate.argtypes = [kqt_Handle, ctypes.c_long]
 _kunquat.kqt_Handle_set_audio_rate.restype = ctypes.c_int

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2016
  *
  * This file is part of Kunquat.
  *
@@ -123,31 +123,6 @@ const float* kqt_Handle_get_audio(kqt_Handle handle, int index);
 
 
 /**
- * Set the audio rate of the Kunquat Handle.
- *
- * \param handle   The Handle -- should be valid.
- * \param rate     The audio rate in frames per second -- should be > \c 0.
- *                 Typical values include 48000 (the default) and 44100 ("CD
- *                 quality").
- *
- * \return   \c 1 if successful, or \c 0 if memory allocation failed. Memory
- *           allocation failure is possible if the composition uses features
- *           that allocate buffers based on the audio rate.
- */
-int kqt_Handle_set_audio_rate(kqt_Handle handle, long rate);
-
-
-/**
- * Get the current audio rate used by the Kunquat Handle.
- *
- * \param handle   The Handle -- should be valid.
- *
- * \return   The current audio rate, or \c 0 if \a handle is invalid.
- */
-long kqt_Handle_get_audio_rate(kqt_Handle handle);
-
-
-/**
  * Set the number of threads used in audio rendering by the Kunquat Handle.
  *
  * NOTE: If libkunquat is built without thread support, this function will have
@@ -170,6 +145,31 @@ int kqt_Handle_set_thread_count(kqt_Handle handle, int count);
  * \return   The number of threads used.
  */
 int kqt_Handle_get_thread_count(kqt_Handle handle);
+
+
+/**
+ * Set the audio rate of the Kunquat Handle.
+ *
+ * \param handle   The Handle -- should be valid.
+ * \param rate     The audio rate in frames per second -- should be > \c 0.
+ *                 Typical values include 48000 (the default) and 44100 ("CD
+ *                 quality").
+ *
+ * \return   \c 1 if successful, or \c 0 if memory allocation failed. Memory
+ *           allocation failure is possible if the composition uses features
+ *           that allocate buffers based on the audio rate.
+ */
+int kqt_Handle_set_audio_rate(kqt_Handle handle, long rate);
+
+
+/**
+ * Get the current audio rate used by the Kunquat Handle.
+ *
+ * \param handle   The Handle -- should be valid.
+ *
+ * \return   The current audio rate, or \c 0 if \a handle is invalid.
+ */
+long kqt_Handle_get_audio_rate(kqt_Handle handle);
 
 
 /**
