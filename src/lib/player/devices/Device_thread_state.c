@@ -119,9 +119,11 @@ bool Device_thread_state_set_audio_buffer_size(Device_thread_state* ts, int size
         for (Device_port_type port_type = DEVICE_PORT_TYPE_RECV;
                 port_type < DEVICE_PORT_TYPES; ++port_type)
         {
-            for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+            Etable* bufs = ts->buffers[buf_type][port_type];
+            const int cap = Etable_get_capacity(bufs);
+            for (int port = 0; port < cap; ++port)
             {
-                Work_buffer* buffer = Etable_get(ts->buffers[buf_type][port_type], port);
+                Work_buffer* buffer = Etable_get(bufs, port);
                 if ((buffer != NULL) && !Work_buffer_resize(buffer, size))
                     return false;
             }
@@ -172,9 +174,11 @@ static void Device_thread_state_clear_buffers(
     for (Device_port_type port_type = DEVICE_PORT_TYPE_RECV;
             port_type < DEVICE_PORT_TYPES; ++port_type)
     {
-        for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+        Etable* bufs = ts->buffers[buf_type][port_type];
+        const int cap = Etable_get_capacity(bufs);
+        for (int port = 0; port < cap; ++port)
         {
-            Work_buffer* buffer = Etable_get(ts->buffers[buf_type][port_type], port);
+            Work_buffer* buffer = Etable_get(bufs, port);
             if (buffer != NULL)
                 Work_buffer_clear(buffer, buf_start, buf_stop);
         }

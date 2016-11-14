@@ -15,6 +15,7 @@
 #include <containers/Etable.h>
 
 #include <debug/assert.h>
+#include <mathnum/common.h>
 #include <memory.h>
 
 #include <stdlib.h>
@@ -58,6 +59,13 @@ Etable* new_Etable(int size, void (*destroy)(void*))
 }
 
 
+int Etable_get_capacity(const Etable* table)
+{
+    rassert(table != NULL);
+    return table->res;
+}
+
+
 bool Etable_set(Etable* table, int index, void* el)
 {
     rassert(table != NULL);
@@ -75,6 +83,7 @@ bool Etable_set(Etable* table, int index, void* el)
         int new_res = table->res << 1;
         if (index >= new_res)
             new_res = index + 1;
+        new_res = min(new_res, table->size);
 
         void** new_els = memory_realloc_items(void*, new_res, table->els);
         if (new_els == NULL)
