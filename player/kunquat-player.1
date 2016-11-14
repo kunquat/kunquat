@@ -1,7 +1,7 @@
-.TH kunquat\-player 1 "2013\-01\-13" "" "Kunquat"
+.TH kunquat\-player 1 "2016\-11\-14" "" "Kunquat"
 
 .SH NAME
-kunquat\-player \- plays Kunquat compositions
+kunquat\-player \- play Kunquat compositions
 
 .SH SYNOPSIS
 .B kunquat\-player
@@ -27,6 +27,10 @@ kunquat\-player \- plays Kunquat compositions
 .B \-t
 .I n
 ]
+[
+.B \-\-threads
+.I n
+]
 .I file
 [
 .I file
@@ -42,28 +46,32 @@ is compressed with \fBgzip\fR(1) or \fBbzip2\fR(1)).
 .SH OPTIONS
 
 .IP "\fB\-\-buffer\-size\fR \fIn\fR"
-Uses audio buffer size of \fIn\fR frames. \fIn\fR is a value between 64 and
+Use audio buffer size of \fIn\fR frames. \fIn\fR is a value between 64 and
 262144.
 
 .IP "\fB\-r\fR \fIn\fR, \fB\-\-rate\fR \fIn\fR"
-Mixes \fIn\fR frames per second. As a result, the highest frequency in the
-sound is limited to \fIn\fR/2 Hz. \fIn\fR is a value between 2000 and 192000.
-Default value is 48000.
+Mix \fIn\fR frames per second. This will limit the highest frequency in the
+sound to \fIn\fR/2 Hz. \fIn\fR is a value between 2000 and 192000. Default
+value is 48000.
 
 .IP "\fB\-t\fR \fIn\fR, \fB\-\-track\fR \fIn\fR"
-Plays the track \fIn\fR. \fIn\fR is a value between 0 and 255 or
-\fIall\fR which plays all the existing tracks in order.
+Play the track \fIn\fR. \fIn\fR is a value between 0 and 255 or \fIall\fR
+which plays all the existing tracks in order.
 
 .IP "\fB\-h\fR, \fB\-\-help\fR"
-Shows help and exits.
+Show help and exit.
 
 .IP "\fB\-q\fR, \fB\-\-quiet\fR"
-Disables status information and interactive keys. Only error messages will be
+Disable status information and interactive keys. Only error messages will be
 displayed. The only way for the user to stop the playback is via a signal
 (e.g. by pressing Ctl+C).
 
+.IP "\fB\-\-threads\fR \fIn\fR"
+Use \fIn\fR threads for audio rendering. \fIn\fR is a value between 1 and 32.
+Default value is based on the detected number of CPUs in the system.
+
 .IP "\fB\-\-version\fR"
-Shows version and copyright information and exits.
+Show version and copyright information and exit.
 
 .SH INTERACTIVE KEYS
 
@@ -74,34 +82,34 @@ option,
 supports interactive playback control. The following keys are supported:
 
 .IP "\fBh\fR"
-Shows the list of interactive keys.
+Show the list of interactive keys.
 
 .IP "\fBSpace\fR"
-Pauses or resumes playback.
+Pause or resume playback.
 
 .IP "\fBLeft\fR"
-Seeks backwards 10 seconds.
+Seek backwards 10 seconds.
 
 .IP "\fBRight\fR"
-Seeks forwards 10 seconds.
+Seek forwards 10 seconds.
 
 .IP "\fB[0-9]\fR, \fBa\fR"
-Selects a track to be played (\fBa\fR plays all tracks).
+Select a track to be played (\fBa\fR plays all tracks).
 
 .IP "\fBp\fR"
-Selects previous track.
+Select previous track.
 
 .IP "\fBn\fR"
-Selects next track.
+Select next track.
 
 .IP "\fBBackspace\fR"
-Selects previous file.
+Select previous file.
 
 .IP "\fBReturn\fR"
-Selects next file.
+Select next file.
 
 .IP "\fBq\fR"
-Quits the player.
+Quit the player.
 
 .SH AUTHOR
 Written by Tomi Jylhä\-Ollila.
