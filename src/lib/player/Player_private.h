@@ -28,6 +28,7 @@
 #include <player/Player.h>
 #include <player/Voice_pool.h>
 #include <player/Work_buffers.h>
+#include <threads/Condition.h>
 
 #ifdef WITH_PTHREAD
 #include <pthread.h>
@@ -57,10 +58,8 @@ struct Player
 
     int thread_count;
     Player_thread_params thread_params[KQT_THREADS_MAX];
+    Condition start_cond;
 #ifdef WITH_PTHREAD
-    bool start_cond_initialised;
-    pthread_cond_t start_cond;
-    pthread_mutex_t start_cond_mutex;
     bool ok_to_start;
     bool stop_threads;
     int32_t render_start;

@@ -32,6 +32,8 @@
 #include <player/Work_buffer.h>
 #include <player/Work_buffers.h>
 #include <string/common.h>
+#include <threads/Condition.h>
+#include <threads/Mutex.h>
 
 #ifdef WITH_PTHREAD
 #include <errno.h>
@@ -105,10 +107,10 @@ Player* new_Player(
         tparams->thread_id = i;
         tparams->active_voices = 0;
     }
+    player->start_cond = *CONDITION_AUTO;
 #ifdef WITH_PTHREAD
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
         player->thread_initialised[i] = false;
-    player->start_cond_initialised = false;
     player->ok_to_start = false;
     player->stop_threads = false;
     player->render_start = 0;
@@ -377,12 +379,8 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
         }
     }
 
-    if ((pthreads_needed > 0) && !player->start_cond_initialised)
-    {
-        pthread_cond_init(&player->start_cond, NULL);
-        pthread_mutex_init(&player->start_cond_mutex, NULL);
-        player->start_cond_initialised = true;
-    }
+    if ((pthreads_needed > 0) && !Condition_is_initialised(&player->start_cond))
+        Condition_init(&player->start_cond);
 
     player->ok_to_start = false;
 
@@ -446,10 +444,11 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
 
     if (pthreads_needed > 0)
     {
-        pthread_mutex_lock(&player->start_cond_mutex);
+        Mutex* mutex = Condition_get_mutex(&player->start_cond);
+        Mutex_lock(mutex);
         player->ok_to_start = true;
-        pthread_cond_broadcast(&player->start_cond);
-        pthread_mutex_unlock(&player->start_cond_mutex);
+        Condition_broadcast(&player->start_cond);
+        Mutex_unlock(mutex);
     }
     else
     {
@@ -874,10 +873,13 @@ static void* voice_group_thread_func(void* arg)
     Player_thread_params* params = arg;
     Player* player = params->player;
 
-    pthread_mutex_lock(&player->start_cond_mutex);
-    while (!player->ok_to_start)
-        pthread_cond_wait(&player->start_cond, &player->start_cond_mutex);
-    pthread_mutex_unlock(&player->start_cond_mutex);
+    {
+        Mutex* cond_mutex = Condition_get_mutex(&player->start_cond);
+        Mutex_lock(cond_mutex);
+        while (!player->ok_to_start)
+            Condition_wait(&player->start_cond);
+        Mutex_unlock(cond_mutex);
+    }
 
     while (true)
     {
@@ -1555,14 +1557,7 @@ void del_Player(Player* player)
         }
     }
 
-    if (player->start_cond_initialised)
-    {
-        int status = pthread_cond_destroy(&player->start_cond);
-        rassert(status != EBUSY);
-        status = pthread_mutex_destroy(&player->start_cond_mutex);
-        rassert(status != EBUSY);
-        player->start_cond_initialised = false;
-    }
+    Condition_deinit(&player->start_cond);
 
     if (player->thread_count > 1)
     {
