@@ -17,11 +17,7 @@
 #include <debug/assert.h>
 #include <memory.h>
 #include <player/Voice_work_buffers.h>
-
-#ifdef WITH_PTHREAD
-#include <errno.h>
-#include <pthread.h>
-#endif
+#include <threads/Mutex.h>
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -40,10 +36,7 @@ struct Voice_pool
     int group_iter_offset;
     Voice_group group_iter;
 
-#ifdef WITH_PTHREAD
-    bool group_iter_lock_initialised;
-    pthread_mutex_t group_iter_lock;
-#endif
+    Mutex group_iter_lock;
 };
 
 
@@ -63,9 +56,7 @@ Voice_pool* new_Voice_pool(int size)
     pool->group_iter_offset = 0;
     pool->group_iter = *VOICE_GROUP_AUTO;
 
-#ifdef WITH_PTHREAD
-    pool->group_iter_lock_initialised = false;
-#endif
+    pool->group_iter_lock = *MUTEX_AUTO;
 
     pool->voice_wbs = new_Voice_work_buffers();
     if (pool->voice_wbs == NULL)
@@ -97,17 +88,8 @@ Voice_pool* new_Voice_pool(int size)
         }
     }
 
-#ifdef WITH_PTHREAD
-    const int status = pthread_mutex_init(&pool->group_iter_lock, NULL);
-    if (status != 0)
-    {
-        rassert(status != EBUSY);
-        rassert(status != EINVAL);
-
-        del_Voice_pool(pool);
-        return NULL;
-    }
-    pool->group_iter_lock_initialised = true;
+#ifdef ENABLE_THREADS
+    Mutex_init(&pool->group_iter_lock);
 #endif
 
     return pool;
@@ -343,24 +325,24 @@ Voice_group* Voice_pool_get_next_group(Voice_pool* pool)
 }
 
 
-#ifdef WITH_PTHREAD
+#ifdef ENABLE_THREADS
 Voice_group* Voice_pool_get_next_group_synced(Voice_pool* pool, Voice_group* vgroup)
 {
     rassert(pool != NULL);
     rassert(vgroup != NULL);
 
-    pthread_mutex_lock(&pool->group_iter_lock);
+    Mutex_lock(&pool->group_iter_lock);
 
     if (pool->group_iter_offset >= pool->size)
     {
-        pthread_mutex_unlock(&pool->group_iter_lock);
+        Mutex_unlock(&pool->group_iter_lock);
         return NULL;
     }
 
     Voice_group_init(vgroup, pool->voices, pool->group_iter_offset, pool->size);
     pool->group_iter_offset += Voice_group_get_size(vgroup);
 
-    pthread_mutex_unlock(&pool->group_iter_lock);
+    Mutex_unlock(&pool->group_iter_lock);
 
     if (Voice_group_get_size(vgroup) == 0)
         return NULL;
@@ -386,16 +368,7 @@ void del_Voice_pool(Voice_pool* pool)
     if (pool == NULL)
         return;
 
-#ifdef WITH_PTHREAD
-    if (pool->group_iter_lock_initialised)
-    {
-        int status = pthread_mutex_destroy(&pool->group_iter_lock);
-        rassert(status != EBUSY);
-        rassert(status != EINVAL);
-
-        pool->group_iter_lock_initialised = false;
-    }
-#endif
+    Mutex_deinit(&pool->group_iter_lock);
 
     if (pool->voices != NULL)
     {

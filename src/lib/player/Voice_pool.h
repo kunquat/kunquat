@@ -153,7 +153,7 @@ void Voice_pool_start_group_iteration(Voice_pool* pool);
 Voice_group* Voice_pool_get_next_group(Voice_pool* pool);
 
 
-#ifdef WITH_PTHREAD
+#ifdef ENABLE_THREADS
 /**
  * Get the next Voice group in a thread-safe way.
  *
