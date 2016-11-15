@@ -35,11 +35,7 @@
 #include <threads/Barrier.h>
 #include <threads/Condition.h>
 #include <threads/Mutex.h>
-
-#ifdef WITH_PTHREAD
-#include <errno.h>
-#include <pthread.h>
-#endif
+#include <threads/Thread.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -111,9 +107,9 @@ Player* new_Player(
     player->start_cond = *CONDITION_AUTO;
     player->vgroups_start_barrier = *BARRIER_AUTO;
     player->vgroups_finished_barrier = *BARRIER_AUTO;
-#ifdef WITH_PTHREAD
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
-        player->thread_initialised[i] = false;
+        player->threads[i] = *THREAD_AUTO;
+#ifdef WITH_PTHREAD
     player->ok_to_start = false;
     player->stop_threads = false;
     player->render_start = 0;
@@ -304,17 +300,21 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
 
 #ifdef WITH_PTHREAD
 
-    const int pthreads_needed = (new_count > 1) ? new_count : 0;
+    const int threads_needed = (new_count > 1) ? new_count : 0;
 
     // Remove old threads (all of them so that we can replace our barriers)
-    for (int i = 0; i < KQT_THREADS_MAX; ++i)
+    if (old_count > 1)
     {
-        if (!player->thread_initialised[i])
-            continue;
+        player->stop_threads = true;
+        Barrier_wait(&player->vgroups_start_barrier);
+        for (int i = 0; i < KQT_THREADS_MAX; ++i)
+        {
+            if (!Thread_is_initialised(&player->threads[i]))
+                continue;
 
-        pthread_cancel(player->threads[i]);
-        pthread_join(player->threads[i], NULL);
-        player->thread_initialised[i] = false;
+            Thread_join(&player->threads[i]);
+        }
+        player->stop_threads = false;
     }
 
     // Deinitialise old barriers
@@ -322,79 +322,44 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
     Barrier_deinit(&player->vgroups_finished_barrier);
 
     // Create new barriers
-    if (pthreads_needed > 0)
+    if (threads_needed > 0)
     {
-        const int count = pthreads_needed + 1;
+        const int count = threads_needed + 1;
 
         if (!Barrier_init(&player->vgroups_start_barrier, count, error) ||
                 !Barrier_init(&player->vgroups_finished_barrier, count, error))
             return false;
     }
 
-    if ((pthreads_needed > 0) && !Condition_is_initialised(&player->start_cond))
+    if ((threads_needed > 0) && !Condition_is_initialised(&player->start_cond))
         Condition_init(&player->start_cond);
 
     player->ok_to_start = false;
 
     // Create new threads
-    for (int i = 0; i < pthreads_needed; ++i)
+    for (int i = 0; i < threads_needed; ++i)
     {
-        if (player->thread_initialised[i])
-            continue;
-
-        int status = pthread_create(
-                &player->threads[i],
-                NULL,
-                voice_group_thread_func,
-                &player->thread_params[i]);
-
-        switch (status)
+        if (!Thread_init(
+                    &player->threads[i],
+                    voice_group_thread_func,
+                    &player->thread_params[i],
+                    error))
         {
-            case 0:
-                break;
-
-            case EAGAIN:
+            // We roll back here because dealing with this special case
+            // in the destructor would get messy
+            for (int k = i - 1; k >= 0; --k)
             {
-                Error_set(
-                        error,
-                        ERROR_RESOURCE,
-                        "Could not allocate resources for new threads");
-                return false;
+                Thread_cancel(&player->threads[k]);
+                Thread_join(&player->threads[k]);
             }
-            break;
 
-            case EINVAL:
-            {
-                rassert(false);
-            }
-            break;
+            player->thread_count = 1;
 
-            case EPERM:
-            {
-                Error_set(
-                        error,
-                        ERROR_RESOURCE,
-                        "No required permissions to set up threads");
-                return false;
-            }
-            break;
-
-            default:
-            {
-                Error_set(
-                        error,
-                        ERROR_RESOURCE,
-                        "Unexpected error when creating threads: %d",
-                        status);
-                return false;
-            }
-            break;
+            return false;
         }
-
-        player->thread_initialised[i] = true;
     }
 
-    if (pthreads_needed > 0)
+    if (threads_needed > 0)
     {
         Mutex* mutex = Condition_get_mutex(&player->start_cond);
         Mutex_lock(mutex);
@@ -850,7 +815,7 @@ static void* voice_group_thread_func(void* arg)
         Barrier_wait(&player->vgroups_finished_barrier);
     }
 
-    pthread_exit(NULL);
+    return NULL;
 }
 #endif
 
@@ -1476,32 +1441,15 @@ void del_Player(Player* player)
 #ifdef WITH_PTHREAD
     if (player->thread_count > 1)
     {
-        if (!player->ok_to_start)
+        // Initialised threads are waiting on vgroups_start_barrier
+        player->stop_threads = true;
+        Barrier_wait(&player->vgroups_start_barrier);
+        for (int i = 0; i < KQT_THREADS_MAX; ++i)
         {
-            // Any initialised threads are waiting on the start condition
-            for (int i = 0; i < KQT_THREADS_MAX; ++i)
-            {
-                if (!player->thread_initialised[i])
-                    continue;
+            if (!Thread_is_initialised(&player->threads[i]))
+                continue;
 
-                pthread_cancel(player->threads[i]);
-                pthread_join(player->threads[i], NULL);
-                player->thread_initialised[i] = false;
-            }
-        }
-        else
-        {
-            // Initialised threads are waiting on vgroups_start_barrier
-            player->stop_threads = true;
-            Barrier_wait(&player->vgroups_start_barrier);
-            for (int i = 0; i < KQT_THREADS_MAX; ++i)
-            {
-                if (!player->thread_initialised[i])
-                    continue;
-
-                pthread_join(player->threads[i], NULL);
-                player->thread_initialised[i] = false;
-            }
+            Thread_join(&player->threads[i]);
         }
     }
 
