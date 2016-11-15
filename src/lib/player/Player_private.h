@@ -32,10 +32,6 @@
 #include <threads/Condition.h>
 #include <threads/Thread.h>
 
-#ifdef WITH_PTHREAD
-#include <pthread.h>
-#endif
-
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -44,7 +40,7 @@ typedef struct Player_thread_params
 {
     Player* player;
     Work_buffers* work_buffers;
-    int thread_id; // NOTE: This is the ID used by the rendering code, not pthread ID
+    int thread_id; // NOTE: This is the ID used by the rendering code
     int active_voices;
 } Player_thread_params;
 
@@ -64,12 +60,10 @@ struct Player
     Barrier vgroups_start_barrier;
     Barrier vgroups_finished_barrier;
     Thread threads[KQT_THREADS_MAX];
-#ifdef WITH_PTHREAD
     bool ok_to_start;
     bool stop_threads;
     int32_t render_start;
     int32_t render_stop;
-#endif
 
     Device_states* device_states;
     Env_state*     estate;

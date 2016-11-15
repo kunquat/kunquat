@@ -44,7 +44,7 @@
 #include <string.h>
 
 
-#ifdef WITH_PTHREAD
+#ifdef ENABLE_THREADS
 static void* voice_group_thread_func(void* arg);
 #endif
 
@@ -109,12 +109,10 @@ Player* new_Player(
     player->vgroups_finished_barrier = *BARRIER_AUTO;
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
         player->threads[i] = *THREAD_AUTO;
-#ifdef WITH_PTHREAD
     player->ok_to_start = false;
     player->stop_threads = false;
     player->render_start = 0;
     player->render_stop = 0;
-#endif
 
     player->device_states = NULL;
     player->estate = NULL;
@@ -251,7 +249,7 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
     rassert(new_count <= KQT_THREADS_MAX);
     rassert(error != NULL);
 
-#ifndef WITH_PTHREAD
+#ifndef ENABLE_THREADS
     // Override requested thread count if threads are not supported
     new_count = 1;
 #endif
@@ -298,7 +296,7 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
         return false;
     }
 
-#ifdef WITH_PTHREAD
+#ifdef ENABLE_THREADS
 
     const int threads_needed = (new_count > 1) ? new_count : 0;
 
@@ -754,7 +752,7 @@ static int Player_process_voice_group(
 }
 
 
-#ifdef WITH_PTHREAD
+#ifdef ENABLE_THREADS
 static int Player_process_voice_groups_synced(
         Player* player,
         Player_thread_params* tparams,
@@ -852,7 +850,7 @@ static void Player_process_voices(
 
     Voice_pool_start_group_iteration(player->voices);
 
-#ifdef WITH_PTHREAD
+#ifdef ENABLE_THREADS
     if (player->thread_count > 1)
     {
         // Pass render start and stop parameters to threads
@@ -1438,7 +1436,6 @@ void del_Player(Player* player)
     if (player == NULL)
         return;
 
-#ifdef WITH_PTHREAD
     if (player->thread_count > 1)
     {
         // Initialised threads are waiting on vgroups_start_barrier
@@ -1457,7 +1454,6 @@ void del_Player(Player* player)
 
     Barrier_deinit(&player->vgroups_start_barrier);
     Barrier_deinit(&player->vgroups_finished_barrier);
-#endif
 
     del_Event_handler(player->event_handler);
     del_Voice_pool(player->voices);
