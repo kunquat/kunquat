@@ -28,6 +28,7 @@
 #include <player/Player.h>
 #include <player/Voice_pool.h>
 #include <player/Work_buffers.h>
+#include <threads/Barrier.h>
 #include <threads/Condition.h>
 
 #ifdef WITH_PTHREAD
@@ -59,6 +60,8 @@ struct Player
     int thread_count;
     Player_thread_params thread_params[KQT_THREADS_MAX];
     Condition start_cond;
+    Barrier vgroups_start_barrier;
+    Barrier vgroups_finished_barrier;
 #ifdef WITH_PTHREAD
     bool ok_to_start;
     bool stop_threads;
@@ -66,8 +69,6 @@ struct Player
     int32_t render_stop;
     bool thread_initialised[KQT_THREADS_MAX];
     pthread_t threads[KQT_THREADS_MAX];
-    pthread_barrier_t vgroups_start_barrier;
-    pthread_barrier_t vgroups_finished_barrier;
 #endif
 
     Device_states* device_states;

@@ -32,6 +32,7 @@
 #include <player/Work_buffer.h>
 #include <player/Work_buffers.h>
 #include <string/common.h>
+#include <threads/Barrier.h>
 #include <threads/Condition.h>
 #include <threads/Mutex.h>
 
@@ -108,6 +109,8 @@ Player* new_Player(
         tparams->active_voices = 0;
     }
     player->start_cond = *CONDITION_AUTO;
+    player->vgroups_start_barrier = *BARRIER_AUTO;
+    player->vgroups_finished_barrier = *BARRIER_AUTO;
 #ifdef WITH_PTHREAD
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
         player->thread_initialised[i] = false;
@@ -314,69 +317,18 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
         player->thread_initialised[i] = false;
     }
 
-    // Remove old barriers
-    if (old_count > 1)
-    {
-        int status = pthread_barrier_destroy(&player->vgroups_start_barrier);
-        rassert(status != EBUSY);
-        rassert(status != EINVAL);
-        pthread_barrier_destroy(&player->vgroups_finished_barrier);
-        rassert(status != EBUSY);
-        rassert(status != EINVAL);
-    }
+    // Deinitialise old barriers
+    Barrier_deinit(&player->vgroups_start_barrier);
+    Barrier_deinit(&player->vgroups_finished_barrier);
 
     // Create new barriers
     if (pthreads_needed > 0)
     {
-        const unsigned int count = (unsigned int)pthreads_needed + 1;
+        const int count = pthreads_needed + 1;
 
-        int status = pthread_barrier_init(&player->vgroups_start_barrier, NULL, count);
-        if (status == 0)
-            status = pthread_barrier_init(
-                    &player->vgroups_finished_barrier, NULL, count);
-
-        switch (status)
-        {
-            case 0:
-                break;
-
-            case EAGAIN:
-            {
-                Error_set(
-                        error,
-                        ERROR_RESOURCE,
-                        "Could not allocate resources for synchronisation state");
-                return false;
-            }
-            break;
-
-            case EINVAL:
-            {
-                rassert(false);
-            }
-            break;
-
-            case ENOMEM:
-            {
-                Error_set(
-                        error,
-                        ERROR_MEMORY,
-                        "Could not allocate memory for synchronisation state");
-                return false;
-            }
-            break;
-
-            default:
-            {
-                Error_set(
-                        error,
-                        ERROR_RESOURCE,
-                        "Unexpected error when creating synchronisation state: %d",
-                        status);
-                return false;
-            }
-            break;
-        }
+        if (!Barrier_init(&player->vgroups_start_barrier, count, error) ||
+                !Barrier_init(&player->vgroups_finished_barrier, count, error))
+            return false;
     }
 
     if ((pthreads_needed > 0) && !Condition_is_initialised(&player->start_cond))
@@ -884,8 +836,7 @@ static void* voice_group_thread_func(void* arg)
     while (true)
     {
         // Wait for our signal to start voice group processing
-        int status = pthread_barrier_wait(&player->vgroups_start_barrier);
-        rassert(status != EINVAL);
+        Barrier_wait(&player->vgroups_start_barrier);
 
         rassert(params->thread_id < player->thread_count);
 
@@ -896,8 +847,7 @@ static void* voice_group_thread_func(void* arg)
                 player, params, player->render_start, player->render_stop);
 
         // Wait to indicate that we have finished
-        status = pthread_barrier_wait(&player->vgroups_finished_barrier);
-        rassert(status != EINVAL);
+        Barrier_wait(&player->vgroups_finished_barrier);
     }
 
     pthread_exit(NULL);
@@ -945,12 +895,10 @@ static void Player_process_voices(
         player->render_stop = render_stop;
 
         // Synchronise with all threads to start voice group processing
-        int status = pthread_barrier_wait(&player->vgroups_start_barrier);
-        rassert(status != EINVAL);
+        Barrier_wait(&player->vgroups_start_barrier);
 
         // Wait until all threads have finished
-        status = pthread_barrier_wait(&player->vgroups_finished_barrier);
-        rassert(status != EINVAL);
+        Barrier_wait(&player->vgroups_finished_barrier);
 
         // Calculate active voices
         for (int i = 0; i < player->thread_count; ++i)
@@ -1545,7 +1493,7 @@ void del_Player(Player* player)
         {
             // Initialised threads are waiting on vgroups_start_barrier
             player->stop_threads = true;
-            pthread_barrier_wait(&player->vgroups_start_barrier);
+            Barrier_wait(&player->vgroups_start_barrier);
             for (int i = 0; i < KQT_THREADS_MAX; ++i)
             {
                 if (!player->thread_initialised[i])
@@ -1559,11 +1507,8 @@ void del_Player(Player* player)
 
     Condition_deinit(&player->start_cond);
 
-    if (player->thread_count > 1)
-    {
-        pthread_barrier_destroy(&player->vgroups_start_barrier);
-        pthread_barrier_destroy(&player->vgroups_finished_barrier);
-    }
+    Barrier_deinit(&player->vgroups_start_barrier);
+    Barrier_deinit(&player->vgroups_finished_barrier);
 #endif
 
     del_Event_handler(player->event_handler);
