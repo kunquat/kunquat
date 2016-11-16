@@ -63,14 +63,6 @@ bool Thread_is_initialised(const Thread* thread);
 
 
 /**
- * Cancel the execution of the Thread.
- *
- * \param thread   The Thread -- must not be \c NULL.
- */
-void Thread_cancel(Thread* thread);
-
-
-/**
  * Join the Thread.
  *
  * \param thread   The Thread -- must not be \c NULL and must be initialised.

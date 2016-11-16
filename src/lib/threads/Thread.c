@@ -117,6 +117,8 @@ bool Thread_init(Thread* thread, void* (*func)(void*), void* arg, Error* error)
 
     thread->arg = arg;
 
+    thread->initialised = true;
+
     return true;
 }
 
@@ -125,21 +127,6 @@ bool Thread_is_initialised(const Thread* thread)
 {
     rassert(thread != NULL);
     return thread->initialised;
-}
-
-
-void Thread_cancel(Thread* thread)
-{
-    rassert(thread != NULL);
-    rassert(thread->initialised);
-
-#ifdef WITH_PTHREAD
-    const int status = pthread_cancel(thread->thread);
-    rassert(status != ESRCH);
-    rassert(status == 0);
-#endif
-
-    return;
 }
 
 

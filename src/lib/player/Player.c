@@ -345,11 +345,17 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
         {
             // We roll back here because dealing with this special case
             // in the destructor would get messy
+            Mutex* mutex = Condition_get_mutex(&player->start_cond);
+            Mutex_lock(mutex);
+            player->stop_threads = true;
+            player->ok_to_start = true;
+            Condition_broadcast(&player->start_cond);
+            Mutex_unlock(mutex);
+
             for (int k = i - 1; k >= 0; --k)
-            {
-                Thread_cancel(&player->threads[k]);
                 Thread_join(&player->threads[k]);
-            }
+
+            player->stop_threads = false;
 
             player->thread_count = 1;
 
@@ -788,6 +794,7 @@ static void* voice_group_thread_func(void* arg)
     Player_thread_params* params = arg;
     Player* player = params->player;
 
+    // Wait for the initial starting call
     {
         Mutex* cond_mutex = Condition_get_mutex(&player->start_cond);
         Mutex_lock(cond_mutex);
@@ -795,6 +802,9 @@ static void* voice_group_thread_func(void* arg)
             Condition_wait(&player->start_cond);
         Mutex_unlock(cond_mutex);
     }
+
+    if (player->stop_threads)
+        return NULL;
 
     while (true)
     {
