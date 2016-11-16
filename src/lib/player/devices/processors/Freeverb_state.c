@@ -214,8 +214,8 @@ static void Freeverb_pstate_render_mixed(
     else
     {
         // Convert reflectivity to the domain of our algorithm
-        static const double max_param_inv = -5.0 / 200.0;
-        static const double min_param_inv = -5.0 / 0.001;
+        const double max_param_inv = -5.0 / 200.0;
+        const double min_param_inv = -5.0 / 0.001;
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             const double orig_refl = refls[i];

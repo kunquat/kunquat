@@ -230,7 +230,7 @@ static double get_xfade_step(double audio_rate, double true_lowpass, double reso
     if (true_lowpass >= audio_rate * 0.5)
         return FILTER_XFADE_SPEED_MAX / audio_rate;
 
-    static const double xfade_range = FILTER_XFADE_SPEED_MAX - FILTER_XFADE_SPEED_MIN;
+    const double xfade_range = FILTER_XFADE_SPEED_MAX - FILTER_XFADE_SPEED_MIN;
 
     const double clamped_res = clamp(resonance, 0, 100);
     const double xfade_norm = clamped_res / 100;
@@ -289,8 +289,8 @@ static void Filter_state_impl_apply_input_buffers(
             resonances[i] = def_resonance;
     }
 
-    static const double max_true_lowpass_change = 0.01;
-    static const double max_resonance_change = 0.01;
+    const double max_true_lowpass_change = 0.01;
+    const double max_resonance_change = 0.01;
 
     fimpl->lowpass_xfade_update = get_xfade_step(
             audio_rate, fimpl->true_lowpass, fimpl->applied_resonance);

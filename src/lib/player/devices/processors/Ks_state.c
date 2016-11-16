@@ -556,7 +556,7 @@ static int32_t Ks_vstate_render_voice(
     int32_t write_pos = ks_vstate->write_pos;
     float* delay_buf = Work_buffer_get_contents_mut(delay_wb);
 
-    static const double xfade_speed = 1000.0;
+    const double xfade_speed = 1000.0;
     const double xfade_step = xfade_speed / audio_rate;
 
     for (int32_t i = buf_start; i < buf_stop; ++i)

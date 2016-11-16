@@ -125,6 +125,10 @@ enum
 };
 
 
+static const int DELAY_WORK_BUFFER_TOTAL_OFFSETS = WORK_BUFFER_IMPL_1;
+static const int DELAY_WORK_BUFFER_FIXED_DELAY = WORK_BUFFER_IMPL_2;
+
+
 static void Delay_pstate_render_mixed(
         Device_state* dstate,
         Device_thread_state* proc_ts,
@@ -160,9 +164,6 @@ static void Delay_pstate_render_mixed(
     const int32_t delay_buf_size = Work_buffer_get_size(dpstate->bufs[0]);
     rassert(delay_buf_size == Work_buffer_get_size(dpstate->bufs[1]));
     const int32_t delay_max = delay_buf_size - 1;
-
-    static const int DELAY_WORK_BUFFER_TOTAL_OFFSETS = WORK_BUFFER_IMPL_1;
-    static const int DELAY_WORK_BUFFER_FIXED_DELAY = WORK_BUFFER_IMPL_2;
 
     float* total_offsets = Work_buffers_get_buffer_contents_mut(
             wbs, DELAY_WORK_BUFFER_TOTAL_OFFSETS);

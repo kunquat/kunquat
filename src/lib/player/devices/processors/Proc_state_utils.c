@@ -285,7 +285,7 @@ void Proc_fill_scale_buffer(
 
         // Sanitise input values
         {
-            static const float bound = 10000.0f;
+            const float bound = 10000.0f;
 
             for (int32_t i = buf_start; i < fast_stop; ++i)
                 dBs_data[i] = clamp(dBs_data[i], -bound, bound);
@@ -335,7 +335,7 @@ void Proc_clamp_pitch_values(Work_buffer* pitches, int32_t buf_start, int32_t bu
     const int32_t const_start = Work_buffer_get_const_start(pitches);
     const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
 
-    static const float bound = 2000000.0f;
+    const float bound = 2000000.0f;
 
     float* pitches_data = Work_buffer_get_contents_mut(pitches);
 

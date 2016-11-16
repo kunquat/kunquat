@@ -299,7 +299,7 @@ static int32_t Sample_render(
         {
             case 8:
             {
-                static const double scale = 1.0 / 0x80;
+                const double scale = 1.0 / 0x80;
                 const float fixed_scale = (float)(vol_scale * scale);
                 for (int ch = 0; ch < sample->channels; ++ch)
                 {
@@ -322,7 +322,7 @@ static int32_t Sample_render(
 
             case 16:
             {
-                static const double scale = 1.0 / 0x8000UL;
+                const double scale = 1.0 / 0x8000UL;
                 const float fixed_scale = (float)(vol_scale * scale);
                 for (int ch = 0; ch < sample->channels; ++ch)
                 {
@@ -345,7 +345,7 @@ static int32_t Sample_render(
 
             case 32:
             {
-                static const double scale = 1.0 / 0x80000000UL;
+                const double scale = 1.0 / 0x80000000UL;
                 const float fixed_scale = (float)(vol_scale * scale);
                 for (int ch = 0; ch < sample->channels; ++ch)
                 {
@@ -530,7 +530,7 @@ static int32_t Sample_vstate_render_voice(
     rassert(header->format > SAMPLE_FORMAT_NONE);
 
     // Find sample data
-    static const char* extensions[] =
+    const char* extensions[] =
     {
         [SAMPLE_FORMAT_WAVPACK] = "wv",
     };
