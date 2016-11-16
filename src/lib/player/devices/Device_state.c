@@ -40,11 +40,6 @@ bool Device_state_init(
     ds->device = device;
     ds->device_id = Device_get_id(ds->device);
 
-    /*
-    for (int i = 0; i < KQT_THREADS_MAX; ++i)
-        ds->thread_states[i] = NULL;
-    // */
-
     ds->audio_rate = audio_rate;
     ds->audio_buffer_size = audio_buffer_size;
 
@@ -57,12 +52,6 @@ bool Device_state_init(
     ds->reset = NULL;
     ds->render_mixed = NULL;
     ds->destroy = NULL;
-
-    /*
-    ds->thread_states[0] = new_Device_thread_state();
-    if (ds->thread_states[0] == NULL)
-        return false;
-    // */
 
     return true;
 }
@@ -201,8 +190,6 @@ void Device_state_render_mixed(
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
-    //rassert(ds->thread_states[0]->node_state == DEVICE_NODE_STATE_REACHED);
-
     if (Device_get_mixed_signals(ds->device) && (ds->render_mixed != NULL))
         ds->render_mixed(ds, ts, wbs, buf_start, buf_stop, tempo);
 
@@ -214,14 +201,6 @@ void del_Device_state(Device_state* ds)
 {
     if (ds == NULL)
         return;
-
-    /*
-    for (int i = 0; i < KQT_THREADS_MAX; ++i)
-    {
-        del_Device_thread_state(ds->thread_states[i]);
-        ds->thread_states[i] = NULL;
-    }
-    // */
 
     if (ds->destroy != NULL)
         ds->destroy(ds);
