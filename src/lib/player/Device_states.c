@@ -132,9 +132,6 @@ bool Device_states_add_state(Device_states* states, Device_state* state)
     rassert(state != NULL);
     rassert(!AAtree_contains(states->states, state));
 
-    if (!AAtree_ins(states->states, state))
-        return false;
-
     const int32_t audio_buffer_size = state->audio_buffer_size;
 
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
@@ -151,6 +148,9 @@ bool Device_states_add_state(Device_states* states, Device_state* state)
             return false;
         }
     }
+
+    if (!AAtree_ins(states->states, state))
+        return false;
 
     Device_state_reset(state);
 
