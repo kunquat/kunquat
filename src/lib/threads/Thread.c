@@ -38,7 +38,34 @@ bool Thread_init(Thread* thread, void* (*func)(void*), void* arg, Error* error)
 #endif
 
 #ifdef WITH_PTHREAD
-    const int status = pthread_create(&thread->thread, NULL, func, arg);
+    // Set thread attributes
+    pthread_attr_t attr;
+    {
+        int status = pthread_attr_init(&attr);
+        if (status == ENOMEM)
+        {
+            Error_set(
+                    error,
+                    ERROR_MEMORY,
+                    "Could not allocate memory for thread attributes");
+            return false;
+        }
+
+        status = pthread_attr_setstacksize(&attr, 8388608);
+        if (status == EINVAL)
+        {
+            Error_set(
+                    error,
+                    ERROR_MEMORY,
+                    "Could not configure thread stack size");
+            return false;
+        }
+        rassert(status == 0);
+    }
+
+    const int status = pthread_create(&thread->thread, &attr, func, arg);
+
+    pthread_attr_destroy(&attr);
 
     switch (status)
     {
