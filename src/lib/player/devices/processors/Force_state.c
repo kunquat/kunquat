@@ -21,6 +21,7 @@
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <mathnum/Random.h>
+#include <player/devices/Device_thread_state.h>
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/Force_controls.h>
 #include <player/Time_env_state.h>
@@ -71,6 +72,7 @@ static const int FORCE_WB_FIXED_PITCH = WORK_BUFFER_IMPL_1;
 static int32_t Force_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
@@ -79,6 +81,7 @@ static int32_t Force_vstate_render_voice(
 {
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
     rassert(buf_start >= 0);
@@ -89,8 +92,8 @@ static int32_t Force_vstate_render_voice(
     const Device_state* dstate = &proc_state->parent;
 
     // Get pitch input
-    Work_buffer* pitches_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
+    Work_buffer* pitches_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
     if (pitches_wb == NULL)
     {
         pitches_wb = Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_PITCH);
@@ -105,8 +108,8 @@ static int32_t Force_vstate_render_voice(
     }
 
     // Get output
-    Work_buffer* out_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_SEND, PORT_OUT_FORCE);
+    Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_FORCE);
     if (out_wb == NULL)
     {
         vstate->active = false;

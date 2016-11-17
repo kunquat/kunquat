@@ -14,7 +14,6 @@
 
 #include <player/devices/Device_state.h>
 
-#include <containers/Bit_array.h>
 #include <debug/assert.h>
 #include <init/devices/Device.h>
 #include <mathnum/common.h>
@@ -41,21 +40,10 @@ bool Device_state_init(
     ds->device = device;
     ds->device_id = Device_get_id(ds->device);
 
-    ds->node_state = DEVICE_NODE_STATE_NEW;
-
     ds->audio_rate = audio_rate;
     ds->audio_buffer_size = audio_buffer_size;
 
     ds->is_stream_state = false;
-
-    ds->in_connected = NULL;
-
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-    {
-        for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
-                type < DEVICE_PORT_TYPES; ++type)
-            ds->buffers[type][port] = NULL;
-    }
 
     ds->add_buffer = NULL;
     ds->set_audio_rate = NULL;
@@ -64,10 +52,6 @@ bool Device_state_init(
     ds->reset = NULL;
     ds->render_mixed = NULL;
     ds->destroy = NULL;
-
-    ds->in_connected = new_Bit_array(KQT_DEVICE_PORTS_MAX);
-    if (ds->in_connected == NULL)
-        return false;
 
     return true;
 }
@@ -114,24 +98,6 @@ const Device* Device_state_get_device(const Device_state* ds)
 }
 
 
-void Device_state_set_node_state(Device_state* ds, Device_node_state node_state)
-{
-    rassert(ds != NULL);
-    rassert(node_state < DEVICE_NODE_STATE_COUNT);
-
-    ds->node_state = node_state;
-
-    return;
-}
-
-
-Device_node_state Device_state_get_node_state(const Device_state* ds)
-{
-    rassert(ds != NULL);
-    return ds->node_state;
-}
-
-
 bool Device_state_set_audio_rate(Device_state* ds, int32_t audio_rate)
 {
     rassert(ds != NULL);
@@ -163,17 +129,6 @@ bool Device_state_set_audio_buffer_size(Device_state* ds, int32_t size)
 
     ds->audio_buffer_size = min(ds->audio_buffer_size, size);
 
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-    {
-        for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
-                type < DEVICE_PORT_TYPES; ++type)
-        {
-            Work_buffer* buffer = ds->buffers[type][port];
-            if ((buffer != NULL) && !Work_buffer_resize(buffer, size))
-                return false;
-        }
-    }
-
     if ((ds->set_audio_buffer_size != NULL) && !ds->set_audio_buffer_size(ds, size))
         return false;
 
@@ -182,110 +137,17 @@ bool Device_state_set_audio_buffer_size(Device_state* ds, int32_t size)
 }
 
 
-bool Device_state_allocate_space(Device_state* ds, char* key)
-{
-    rassert(ds != NULL);
-    rassert(key != NULL);
-
-    return true;
-}
-
-
 bool Device_state_add_audio_buffer(Device_state* ds, Device_port_type type, int port)
 {
     rassert(ds != NULL);
-    rassert(type == DEVICE_PORT_TYPE_RECEIVE || type == DEVICE_PORT_TYPE_SEND);
+    rassert(type == DEVICE_PORT_TYPE_RECV || type == DEVICE_PORT_TYPE_SEND);
     rassert(port >= 0);
     rassert(port < KQT_DEVICE_PORTS_MAX);
-
-    if (ds->buffers[type][port] != NULL)
-        return true;
-
-    ds->buffers[type][port] = new_Work_buffer(ds->audio_buffer_size);
-    if (ds->buffers[type][port] == NULL)
-        return false;
 
     if ((ds->add_buffer != NULL) && !ds->add_buffer(ds, type, port))
         return false;
 
     return true;
-}
-
-
-void Device_state_clear_audio_buffers(Device_state* ds, int32_t start, int32_t stop)
-{
-    rassert(ds != NULL);
-    rassert(start >= 0);
-    rassert(stop >= start);
-
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-    {
-        for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
-                type < DEVICE_PORT_TYPES; ++type)
-        {
-            Work_buffer* buffer = ds->buffers[type][port];
-            if (buffer != NULL)
-                Work_buffer_clear(buffer, start, stop);
-        }
-    }
-
-    Bit_array_clear(ds->in_connected);
-
-    return;
-}
-
-
-Work_buffer* Device_state_get_audio_buffer(
-        const Device_state* ds, Device_port_type type, int port)
-{
-    rassert(ds != NULL);
-    rassert(type < DEVICE_PORT_TYPES);
-    rassert(port >= 0);
-    rassert(port < KQT_DEVICE_PORTS_MAX);
-
-    if ((type == DEVICE_PORT_TYPE_RECEIVE) &&
-            !Device_state_is_input_port_connected(ds, port))
-        return NULL;
-
-    return ds->buffers[type][port];
-}
-
-
-float* Device_state_get_audio_buffer_contents_mut(
-        const Device_state* ds, Device_port_type type, int port)
-{
-    rassert(ds != NULL);
-    rassert(type < DEVICE_PORT_TYPES);
-    rassert(port >= 0);
-    rassert(port < KQT_DEVICE_PORTS_MAX);
-
-    Work_buffer* wb = Device_state_get_audio_buffer(ds, type, port);
-    if (wb == NULL)
-        return NULL;
-
-    return Work_buffer_get_contents_mut(wb);
-}
-
-
-void Device_state_mark_input_port_connected(Device_state* ds, int port)
-{
-    rassert(ds != NULL);
-    rassert(port >= 0);
-    rassert(port < KQT_DEVICE_PORTS_MAX);
-
-    Bit_array_set(ds->in_connected, port, true);
-
-    return;
-}
-
-
-bool Device_state_is_input_port_connected(const Device_state* ds, int port)
-{
-    rassert(ds != NULL);
-    rassert(port >= 0);
-    rassert(port < KQT_DEVICE_PORTS_MAX);
-
-    return Bit_array_get(ds->in_connected, port);
 }
 
 
@@ -315,21 +177,21 @@ void Device_state_reset(Device_state* ds)
 
 void Device_state_render_mixed(
         Device_state* ds,
+        Device_thread_state* ts,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
 {
     rassert(ds != NULL);
+    rassert(ts != NULL);
     rassert(wbs != NULL);
     rassert(buf_start >= 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
-    rassert(ds->node_state == DEVICE_NODE_STATE_REACHED);
-
     if (Device_get_mixed_signals(ds->device) && (ds->render_mixed != NULL))
-        ds->render_mixed(ds, wbs, buf_start, buf_stop, tempo);
+        ds->render_mixed(ds, ts, wbs, buf_start, buf_stop, tempo);
 
     return;
 }
@@ -339,19 +201,6 @@ void del_Device_state(Device_state* ds)
 {
     if (ds == NULL)
         return;
-
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-    {
-        for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
-                type < DEVICE_PORT_TYPES; ++type)
-        {
-            del_Work_buffer(ds->buffers[type][port]);
-            ds->buffers[type][port] = NULL;
-        }
-    }
-
-    del_Bit_array(ds->in_connected);
-    ds->in_connected = NULL;
 
     if (ds->destroy != NULL)
         ds->destroy(ds);

@@ -95,6 +95,56 @@ Voice* Voice_group_get_voice_by_proc(Voice_group* vg, uint32_t proc_id);
 
 
 /**
+ * Process a Voice group inside the Connections.
+ *
+ * \param vgroup       The Voice group -- must not be \c NULL.
+ * \param dstates      The Device states -- must not be \c NULL.
+ * \param thread_id    The ID of the rendering thread -- must be valid.
+ * \param conns        The Connections -- must not be \c NULL.
+ * \param wbs          The Work buffers -- must not be \c NULL.
+ * \param buf_start    The start index of the buffer area to be processed
+ *                     -- must not be negative.
+ * \param buf_stop     The stop index of the buffer area to be processed
+ *                     -- must not be negative.
+ * \param audio_rate   The audio rate -- must be > \c 0.
+ * \param tempo        The current tempo -- must be finite and > \c 0.
+ *
+ * \return   The stop index of complete frames rendered to voice buffers. This
+ *           is always within range [\a buf_start, \a buf_stop]. If the stop
+ *           index is < \a buf_stop, the note has ended.
+ */
+int32_t Voice_group_render(
+        Voice_group* vgroup,
+        Device_states* dstates,
+        int thread_id,
+        const Connections* conns,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        int32_t audio_rate,
+        double tempo);
+
+
+/**
+ * Add Voice signals to mixed signal input buffers.
+ *
+ * \param vgroup      The Voice group -- must not be \c NULL.
+ * \param dstates     The Device states -- must not be \c NULL.
+ * \param thread_id    The ID of the rendering thread -- must be valid.
+ * \param conns       The Connections -- must not be \c NULL.
+ * \param buf_start   The start index of the buffer area to be processed.
+ * \param buf_stop    The stop index of the buffer area to be processed.
+ */
+void Voice_group_mix(
+        Voice_group* vgroup,
+        Device_states* dstates,
+        int thread_id,
+        const Connections* conns,
+        int32_t buf_start,
+        int32_t buf_stop);
+
+
+/**
  * Deactivate all Voices in the Voice group.
  *
  * \param vg   The Voice group -- must not be \c NULL.

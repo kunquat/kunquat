@@ -16,10 +16,10 @@
 #define KQT_DEVICE_NODE_H
 
 
-#include <init/Au_table.h>
+#include <decl.h>
 #include <init/devices/Device.h>
+#include <init/devices/port_type.h>
 #include <player/Device_states.h>
-#include <player/Voice_group.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -37,6 +37,22 @@
  * The structure in memory allows Device nodes to be compared against strings.
  */
 typedef struct Device_node Device_node;
+
+
+typedef enum
+{
+    DEVICE_NODE_TYPE_MASTER    = 1,
+    DEVICE_NODE_TYPE_PROCESSOR = 2,
+    DEVICE_NODE_TYPE_AU        = 8,
+} Device_node_type;
+
+
+typedef struct Connection
+{
+    Device_node* node;       ///< The neighbour node.
+    int port;                ///< The port of the neighbour node.
+    struct Connection* next;
+} Connection;
 
 
 /**
@@ -79,123 +95,6 @@ bool Device_node_check_connections(
 
 
 /**
- * Initialise all Audio buffers in the Device node and its subgraph.
- *
- * \param node      The Device node -- must not be \c NULL.
- * \param dstates   The Device states -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_node_init_buffers_simple(const Device_node* node, Device_states* dstates);
-
-
-/**
- * Initialise the graphs of the Effects in the subgraph.
- *
- * \param node      The Device node -- must not be \c NULL.
- * \param dstates   The Device states -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_node_init_effect_buffers(const Device_node* node, Device_states* dstates);
-
-
-/**
- * Clear the audio buffers in the Device node and its subgraph.
- *
- * \param node        The Device node -- must not be \c NULL.
- * \param dstates     The Device states -- must not be \c NULL.
- * \param buf_start   The start index of the buffer area to be cleared -- must
- *                    be less than the buffer size.
- * \param buf_stop    The stop index of the buffer area to be cleared -- must
- *                    be less than or equal to the buffer size.
- */
-void Device_node_clear_buffers(
-        const Device_node* node,
-        Device_states* dstates,
-        int32_t buf_start,
-        int32_t buf_stop);
-
-
-/**
- * Reset subgraph starting from the Device node.
- *
- * TODO: Remove this work-around after Audio units have their own Device states!
- *
- * \param node      The Device node -- must not be \c NULL.
- * \param dstates   The Device states -- must not be \c NULL.
- */
-void Device_node_reset_subgraph(const Device_node* node, Device_states* dstates);
-
-
-/**
- * Process a Voice group in the Device node and its subgraph.
- *
- * \param node         The Device node -- must not be \c NULL.
- * \param vgroup       The Voice group -- must not be \c NULL.
- * \param dstates      The Device states -- must not be \c NULL.
- * \param wbs          The Work buffers -- must not be \c NULL.
- * \param buf_start    The start index of the buffer area to be processed.
- * \param buf_stop     The stop index of the buffer area to be processed.
- * \param audio_rate   The audio rate -- must be > \c 0.
- * \param tempo        The current tempo -- must be > \c 0.
- *
- * \return   The stop index of complete frames rendered to voice buffers. This
- *           is always within range [\a buf_start, \a buf_stop]. If the stop
- *           index is < \a buf_stop, the note has ended.
- */
-int32_t Device_node_process_voice_group(
-        const Device_node* node,
-        Voice_group* vgroup,
-        Device_states* dstates,
-        const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
-        int32_t audio_rate,
-        double tempo);
-
-
-/**
- * Add Voice signals to mixed signal input buffers.
- *
- * \param node        The Device node -- must not be \c NULL.
- * \param vgroup      The Voice group -- must not be \c NULL.
- * \param dstates     The Device states -- must not be \c NULL.
- * \param buf_start   The start index of the buffer area to be processed.
- * \param buf_stop    The stop index of the buffer area to be processed.
- */
-void Device_node_mix_voice_signals(
-        const Device_node* node,
-        Voice_group* vgroup,
-        Device_states* dstates,
-        int32_t buf_start,
-        int32_t buf_stop);
-
-
-/**
- * Process mixed signals in the Device node and its subgraph.
- *
- * \param node         The Device node -- must not be \c NULL.
- * \param dstates      The Device states -- must not be \c NULL.
- * \param wbs          The Work buffers -- must not be \c NULL.
- * \param buf_start    The start index of the buffer area to be mixed -- must
- *                     be less than the buffer size.
- * \param buf_stop     The stop index of the buffer area to be mixed -- must
- *                     be less than or equal to the buffer size.
- * \param audio_rate   The mixing frequency -- must be > \c 0.
- * \param tempo        The tempo -- must be finite and > \c 0.
- */
-void Device_node_process_mixed_signals(
-        const Device_node* node,
-        Device_states* dstates,
-        const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
-        int32_t audio_rate,
-        double tempo);
-
-
-/**
  * Get the name of the corresponding Device.
  *
  * \param node   The Device node -- must not be \c NULL.
@@ -213,6 +112,38 @@ const char* Device_node_get_name(const Device_node* node);
  * \return   The Device.
  */
 const Device* Device_node_get_device(const Device_node* node);
+
+
+/**
+ * Get received connections to a port of a Device node.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ * \param port   The port number -- must be >= \c 0 and < \c KQT_DEVICE_PORTS_MAX.
+ *
+ * return   The first connection if one exists, otherwise \c NULL.
+ */
+const Connection* Device_node_get_received(const Device_node* node, int port);
+
+
+/**
+ * Get the type of the Device node.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ *
+ * \return   The type of the Device node.
+ */
+Device_node_type Device_node_get_type(const Device_node* node);
+
+
+/**
+ * Get the Audio unit contained within the Device node.
+ *
+ * \param node   The Device node -- must not be \c NULL and must have type
+ *               \c DEVICE_NODE_TYPE_AU.
+ *
+ * \return   The Audio unit if one exists, otherwise \c NULL.
+ */
+Audio_unit* Device_node_get_au_mut(const Device_node* node);
 
 
 /**

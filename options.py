@@ -24,6 +24,9 @@ enable_long_tests = False
 # run tests with memory debugging (requires valgrind, disables assert tests)
 enable_tests_mem_debug = False
 
+# enable multithreading (requires with_pthread)
+enable_threads = True
+
 # enable kunquat-player (requires Python bindings)
 enable_player = True
 
@@ -35,6 +38,9 @@ enable_export = True
 
 # build example Kunquat files
 enable_examples = True
+
+# build with POSIX threads
+with_pthread = True
 
 # build with libsndfile support
 with_sndfile = True

@@ -68,6 +68,7 @@ def export(in_path, out_path, options):
     except KunquatError as e:
         print('Couldn\'t load \'{}\': {}'.format(in_path, e))
         return
+    handle.thread_count = options['threads']
     handle.track = options['track']
     duration = handle.get_duration(options['track'])
 
@@ -215,6 +216,8 @@ def print_help():
           '                      Valid range is [1000,384000]')
     print('  -t, --track n       Export track n\n'
           '                      Valid range is [0,255] (or `all`)')
+    print('  --threads n         Use n threads for audio rendering\n'
+          '                      Valid range is [1,32] (default 1)')
     print('  -h, --help          Show this help and exit')
     print('  -q, --quiet         '
             'Quiet operation (only error messages will be displayed)')
@@ -236,6 +239,7 @@ def main():
             'bits=',
             'float',
             'rate=',
+            'threads=',
             'version',
             ]
     try:
@@ -250,6 +254,7 @@ def main():
             'rate': 48000,
             'track': None,
             'quiet': False,
+            'threads': 1,
             }
 
     setters = {
@@ -259,6 +264,7 @@ def main():
             '--float': set_float,
             '-r': set_rate, '--rate': set_rate,
             '-t': set_track, '--track': set_track,
+            '--threads': set_threads,
             '-q': set_quiet, '--quiet': set_quiet,
             }
 
@@ -358,6 +364,16 @@ def set_track(options, value):
         except ValueError:
             option_error('Track must be a number between 0 and'
                     ' 255 (or all)')
+
+
+def set_threads(options, value):
+    try:
+        num = int(value)
+        if not 1 <= num <= 32:
+            raise ValueError
+        options['threads'] = num
+    except ValueError:
+        option_error('Number of threads must be between 1 and 32')
 
 
 def set_quiet(options, value):

@@ -16,14 +16,12 @@
 #define KQT_DEVICE_STATES_H
 
 
-#include <player/devices/Device_state.h>
+#include <decl.h>
+#include <kunquat/limits.h>
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-
-
-typedef struct Device_states Device_states;
 
 
 /**
@@ -33,6 +31,18 @@ typedef struct Device_states Device_states;
  *           memory allocation failed.
  */
 Device_states* new_Device_states(void);
+
+
+/**
+ * Set the number of threads for space allocation in the Device states.
+ *
+ * \param states      The Device states -- must not be \c NULL.
+ * \param new_count   The number of threads -- must be >= \c 1 and
+ *                    <= \c KQT_THREADS_MAX.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_states_set_thread_count(Device_states* states, int new_count);
 
 
 /**
@@ -66,6 +76,19 @@ Device_state* Device_states_get_state(const Device_states* states, uint32_t id);
  * \param id       The Device ID -- must be > \c 0.
  */
 void Device_states_remove_state(Device_states* states, uint32_t id);
+
+
+/**
+ * Get a Device thread state.
+ *
+ * \param states      The Device states -- must not be \c NULL.
+ * \param thread_id   The ID of the thread accessing the Device states
+ *                    -- must be a valid ID currently in use.
+ * \param device_id   The Device ID -- must be > \c 0 and must match an
+ *                    existing Device state.
+ */
+Device_thread_state* Device_states_get_thread_state(
+        const Device_states* states, int thread_id, uint32_t device_id);
 
 
 /**
@@ -109,6 +132,55 @@ void Device_states_clear_audio_buffers(
  * \param tempo    The new tempo -- must be finite and > \c 0.
  */
 void Device_states_set_tempo(Device_states* states, double tempo);
+
+
+/**
+ * Prepare the Device states for mixing.
+ *
+ * \param dstates   The Device states -- must not be \c NULL.
+ * \param conns     The Connections -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_states_prepare(Device_states* dstates, const Connections* conns);
+
+
+/**
+ * Mix buffers rendered by separate threads.
+ *
+ * \param dstates     The Device states -- must not be \c NULL.
+ * \param buf_start   The start index of the buffer area to be processed
+ *                    -- must be less than the buffer size.
+ * \param buf_stop    The stop index of the buffer area to be processed
+ *                    -- must be less than or equal to the buffer size.
+ */
+void Device_states_mix_thread_states(
+        Device_states* dstates, int32_t buf_start, int32_t buf_stop);
+
+
+/**
+ * Process mixed signals in the Device states.
+ *
+ * \param dstates      The Device states -- must not be \c NULL.
+ * \param hack_reset   Whether the Device states should be reset or not. TODO: fix this
+ * \param conns        The Connections -- must not be \c NULL.
+ * \param wbs          The Work buffers -- must not be \c NULL.
+ * \param buf_start    The start index of the buffer area to be processed
+ *                     -- must be less than the buffer size.
+ * \param buf_stop     The stop index of the buffer area to be processed
+ *                     -- must be less than or equal to the buffer size.
+ * \param audio_rate   The audio rate -- must be > \c 0.
+ * \param tempo        The tempo -- must be finite and > \c 0.
+ */
+void Device_states_process_mixed_signals(
+        Device_states* dstates,
+        bool hack_reset,
+        const Connections* conns,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        int32_t audio_rate,
+        double tempo);
 
 
 /**

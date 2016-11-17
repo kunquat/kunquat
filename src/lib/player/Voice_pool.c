@@ -17,11 +17,27 @@
 #include <debug/assert.h>
 #include <memory.h>
 #include <player/Voice_work_buffers.h>
+#include <threads/Mutex.h>
 
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+
+
+struct Voice_pool
+{
+    int size;
+    int32_t state_size;
+    uint64_t new_group_id;
+    Voice** voices;
+    Voice_work_buffers* voice_wbs;
+
+    int group_iter_offset;
+    Voice_group group_iter;
+
+    Mutex group_iter_lock;
+};
 
 
 Voice_pool* new_Voice_pool(int size)
@@ -39,6 +55,8 @@ Voice_pool* new_Voice_pool(int size)
     pool->voice_wbs = NULL;
     pool->group_iter_offset = 0;
     pool->group_iter = *VOICE_GROUP_AUTO;
+
+    pool->group_iter_lock = *MUTEX_AUTO;
 
     pool->voice_wbs = new_Voice_work_buffers();
     if (pool->voice_wbs == NULL)
@@ -69,6 +87,10 @@ Voice_pool* new_Voice_pool(int size)
             }
         }
     }
+
+#ifdef ENABLE_THREADS
+    Mutex_init(&pool->group_iter_lock);
+#endif
 
     return pool;
 }
@@ -273,19 +295,15 @@ static void Voice_pool_sort_groups(Voice_pool* pool)
 }
 
 
-Voice_group* Voice_pool_start_group_iteration(Voice_pool* pool)
+void Voice_pool_start_group_iteration(Voice_pool* pool)
 {
     rassert(pool != NULL);
 
     Voice_pool_sort_groups(pool);
 
-    Voice_group_init(&pool->group_iter, pool->voices, 0, pool->size);
-    pool->group_iter_offset = Voice_group_get_size(&pool->group_iter);
+    pool->group_iter_offset = 0;
 
-    if (Voice_group_get_size(&pool->group_iter) == 0)
-        return NULL;
-
-    return &pool->group_iter;
+    return;
 }
 
 
@@ -307,6 +325,33 @@ Voice_group* Voice_pool_get_next_group(Voice_pool* pool)
 }
 
 
+#ifdef ENABLE_THREADS
+Voice_group* Voice_pool_get_next_group_synced(Voice_pool* pool, Voice_group* vgroup)
+{
+    rassert(pool != NULL);
+    rassert(vgroup != NULL);
+
+    Mutex_lock(&pool->group_iter_lock);
+
+    if (pool->group_iter_offset >= pool->size)
+    {
+        Mutex_unlock(&pool->group_iter_lock);
+        return NULL;
+    }
+
+    Voice_group_init(vgroup, pool->voices, pool->group_iter_offset, pool->size);
+    pool->group_iter_offset += Voice_group_get_size(vgroup);
+
+    Mutex_unlock(&pool->group_iter_lock);
+
+    if (Voice_group_get_size(vgroup) == 0)
+        return NULL;
+
+    return vgroup;
+}
+#endif
+
+
 void Voice_pool_reset(Voice_pool* pool)
 {
     rassert(pool != NULL);
@@ -322,6 +367,8 @@ void del_Voice_pool(Voice_pool* pool)
 {
     if (pool == NULL)
         return;
+
+    Mutex_deinit(&pool->group_iter_lock);
 
     if (pool->voices != NULL)
     {

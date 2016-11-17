@@ -16,6 +16,8 @@
 #define KQT_ETABLE_H
 
 
+#include <decl.h>
+
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -24,7 +26,6 @@
  * This is a simple table object. It can store any type of an object as long
  * as the user provides a destructor function for the type.
  */
-typedef struct Etable Etable;
 
 
 /**
@@ -37,6 +38,16 @@ typedef struct Etable Etable;
  *           failed.
  */
 Etable* new_Etable(int size, void (*destroy)(void*));
+
+
+/**
+ * Get the current capacity of the Etable.
+ *
+ * \param table   The Etable -- must not be \c NULL.
+ *
+ * \return   The current capacity.
+ */
+int Etable_get_capacity(const Etable* table);
 
 
 /**

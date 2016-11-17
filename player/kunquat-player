@@ -18,6 +18,7 @@ import getopt
 from itertools import cycle, chain
 import json
 import math
+import multiprocessing
 import os.path
 import random
 import string
@@ -159,6 +160,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
 
     # Prepare
     handle.audio_buffer_size = options['buffer-size']
+    handle.thread_count = options['threads']
     handle.track = options['track']
     status = Status(options['rate'])
     duration = handle.get_duration(options['track'])
@@ -313,6 +315,9 @@ def print_help():
     print('  -t, --track n     Play track n\n'
           '                    Valid values are'
           ' numbers in the range [0,255] and `all`')
+    print('  --threads         Use n threads for audio rendering\n'
+          '                    Valid range is [1,32] (default: {})'.format(
+                get_default_thread_count()))
     print('  -h, --help        Show this help and exit')
     print('  -q, --quiet       Quiet and non-interactive operation\n'
           '                    (only error messages will be displayed)')
@@ -328,6 +333,16 @@ def option_error(msg):
     sys.exit(msg + '\nUse -h for help.')
 
 
+def get_default_thread_count():
+    try:
+        cpus = multiprocessing.cpu_count()
+    except NotImplementedError:
+        cpus = 1
+    if cpus <= 2:
+        return max(1, cpus)
+    return min(max(2, math.ceil(cpus / 2)), 32)
+
+
 def main():
     long_opts = [
             'help',
@@ -335,6 +350,7 @@ def main():
             'buffer-size=',
             'rate=',
             'track=',
+            'threads=',
             'version',
             ]
     try:
@@ -347,6 +363,7 @@ def main():
             'buffer-size': 2048,
             'rate': 48000,
             'track': None,
+            'threads': get_default_thread_count(),
             'quiet': False
             }
 
@@ -354,6 +371,7 @@ def main():
             '--buffer-size': set_buffer_size,
             '-r': set_rate, '--rate': set_rate,
             '-t': set_track, '--track': set_track,
+            '--threads': set_threads,
             '-q': set_quiet, '--quiet': set_quiet,
             }
 
@@ -411,6 +429,16 @@ def set_track(options, value):
         except ValueError:
             option_error('Track must be a number between 0 and'
                     ' 255 (or all)')
+
+
+def set_threads(options, value):
+    try:
+        num = int(value)
+        if not 1 <= num <= 32:
+            raise ValueError
+        options['threads'] = num
+    except ValueError:
+        option_error('Number of threads must be between 1 and 32')
 
 
 def set_quiet(options, value):

@@ -19,6 +19,7 @@
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <memory.h>
+#include <player/devices/Device_thread_state.h>
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/Linear_controls.h>
 #include <player/Player.h>
@@ -124,14 +125,20 @@ enum
 };
 
 
+static const int DELAY_WORK_BUFFER_TOTAL_OFFSETS = WORK_BUFFER_IMPL_1;
+static const int DELAY_WORK_BUFFER_FIXED_DELAY = WORK_BUFFER_IMPL_2;
+
+
 static void Delay_pstate_render_mixed(
         Device_state* dstate,
+        Device_thread_state* proc_ts,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
 {
     rassert(dstate != NULL);
+    rassert(proc_ts != NULL);
     rassert(wbs != NULL);
     rassert(buf_start <= buf_stop);
     rassert(tempo > 0);
@@ -142,11 +149,11 @@ static void Delay_pstate_render_mixed(
 
     float* in_data[2] = { NULL };
     Proc_state_get_mixed_audio_in_buffers(
-            &dpstate->parent, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_data);
+            proc_ts, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_data);
 
     float* out_data[2] = { NULL };
     Proc_state_get_mixed_audio_out_buffers(
-            &dpstate->parent, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_data);
+            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_data);
 
     float* history_data[] =
     {
@@ -158,15 +165,12 @@ static void Delay_pstate_render_mixed(
     rassert(delay_buf_size == Work_buffer_get_size(dpstate->bufs[1]));
     const int32_t delay_max = delay_buf_size - 1;
 
-    static const int DELAY_WORK_BUFFER_TOTAL_OFFSETS = WORK_BUFFER_IMPL_1;
-    static const int DELAY_WORK_BUFFER_FIXED_DELAY = WORK_BUFFER_IMPL_2;
-
     float* total_offsets = Work_buffers_get_buffer_contents_mut(
             wbs, DELAY_WORK_BUFFER_TOTAL_OFFSETS);
 
     // Get delay stream
-    float* delays = Device_state_get_audio_buffer_contents_mut(
-            dstate, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_DELAY);
+    float* delays = Device_thread_state_get_mixed_buffer_contents_mut(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_DELAY);
     if (delays == NULL)
     {
         delays =

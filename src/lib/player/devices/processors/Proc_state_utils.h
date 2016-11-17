@@ -16,9 +16,8 @@
 #define KQT_PROC_STATE_UTILS_H
 
 
+#include <debug/assert.h>
 #include <decl.h>
-#include <init/devices/Processor.h>
-#include <player/devices/Device_state.h>
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -42,7 +41,7 @@ Proc_state* new_Proc_state_default(
 /**
  * Retrieve mixed audio input buffers.
  *
- * \param proc_state   The Processor state -- must not be \c NULL.
+ * \param proc_ts      The Device thread state -- must not be \c NULL.
  * \param port_start   The first port index -- must be >= \c 0 and
  *                     < \c KQT_DEVICE_PORTS_MAX.
  * \param port_stop    The index after the last port index -- must be
@@ -52,13 +51,16 @@ Proc_state* new_Proc_state_default(
  *                     Any of the stored pointers may be \c NULL.
  */
 void Proc_state_get_mixed_audio_in_buffers(
-        Proc_state* proc_state, int32_t port_start, int32_t port_stop, float* in_bufs[]);
+        Device_thread_state* proc_ts,
+        int32_t port_start,
+        int32_t port_stop,
+        float* in_bufs[]);
 
 
 /**
  * Retrieve mixed audio output buffers.
  *
- * \param proc_state   The Processor state -- must not be \c NULL.
+ * \param proc_ts      The Device thread state -- must not be \c NULL.
  * \param port_start   The first port index -- must be >= \c 0 and
  *                     < \c KQT_DEVICE_PORTS_MAX.
  * \param port_stop    The index after the last port index -- must be
@@ -68,7 +70,7 @@ void Proc_state_get_mixed_audio_in_buffers(
  *                     Any of the stored pointers may be \c NULL.
  */
 void Proc_state_get_mixed_audio_out_buffers(
-        Proc_state* proc_state,
+        Device_thread_state* proc_ts,
         int32_t port_start,
         int32_t port_stop,
         float* out_bufs[]);
@@ -77,7 +79,7 @@ void Proc_state_get_mixed_audio_out_buffers(
 /**
  * Retrieve voice audio input buffers.
  *
- * \param proc_state   The Processor state -- must not be \c NULL.
+ * \param proc_ts      The Device thread state -- must not be \c NULL.
  * \param port_start   The first port index -- must be >= \c 0 and
  *                     < \c KQT_DEVICE_PORTS_MAX.
  * \param port_stop    The index after the last port index -- must be
@@ -87,13 +89,16 @@ void Proc_state_get_mixed_audio_out_buffers(
  *                     Any of the stored pointers may be \c NULL.
  */
 void Proc_state_get_voice_audio_in_buffers(
-        Proc_state* proc_state, int32_t port_start, int32_t port_stop, float* in_bufs[]);
+        const Device_thread_state* proc_ts,
+        int32_t port_start,
+        int32_t port_stop,
+        float* in_bufs[]);
 
 
 /**
  * Retrieve voice audio output buffers.
  *
- * \param proc_state   The Processor state -- must not be \c NULL.
+ * \param proc_ts      The Device thread state -- must not be \c NULL.
  * \param port_start   The first port index -- must be >= \c 0 and
  *                     < \c KQT_DEVICE_PORTS_MAX.
  * \param port_stop    The index after the last port index -- must be
@@ -103,7 +108,7 @@ void Proc_state_get_voice_audio_in_buffers(
  *                     Any of the stored pointers may be \c NULL.
  */
 void Proc_state_get_voice_audio_out_buffers(
-        Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
         int32_t port_start,
         int32_t port_stop,
         float* out_bufs[]);

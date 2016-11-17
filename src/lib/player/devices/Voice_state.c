@@ -22,6 +22,8 @@
 #include <init/devices/Processor.h>
 #include <kunquat/limits.h>
 #include <mathnum/Tstamp.h>
+#include <player/Device_states.h>
+#include <player/devices/Device_thread_state.h>
 #include <player/Slider.h>
 
 #include <float.h>
@@ -118,6 +120,7 @@ static bool is_proc_filtered(
 int32_t Voice_state_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
@@ -126,6 +129,7 @@ int32_t Voice_state_render_voice(
 {
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
     rassert(buf_start >= 0);
@@ -165,7 +169,7 @@ int32_t Voice_state_render_voice(
 
     // Call the implementation
     const int32_t impl_render_stop = vstate->render_voice(
-            vstate, proc_state, au_state, wbs, buf_start, buf_stop, tempo);
+            vstate, proc_state, proc_ts, au_state, wbs, buf_start, buf_stop, tempo);
     rassert(impl_render_stop <= buf_stop);
 
     return impl_render_stop;
@@ -175,23 +179,29 @@ int32_t Voice_state_render_voice(
 void Voice_state_mix_signals(
         Voice_state* vstate,
         Proc_state* proc_state,
+        Device_thread_state* proc_ts,
         int32_t buf_start,
         int32_t buf_stop)
 {
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(buf_start >= 0);
     rassert(buf_stop >= buf_start);
 
     for (int32_t port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        Work_buffer* mixed_buffer = Device_state_get_audio_buffer(
-                &proc_state->parent, DEVICE_PORT_TYPE_SEND, port);
-        const Work_buffer* voice_buffer = Proc_state_get_voice_buffer(
-                proc_state, DEVICE_PORT_TYPE_SEND, port);
+        Work_buffer* mixed_buffer =
+            Device_thread_state_get_mixed_buffer(proc_ts, DEVICE_PORT_TYPE_SEND, port);
+        if (mixed_buffer == NULL)
+            continue;
 
-        if ((mixed_buffer != NULL) && (voice_buffer != NULL))
-            Work_buffer_mix(mixed_buffer, voice_buffer, buf_start, buf_stop);
+        const Work_buffer* voice_buffer =
+            Device_thread_state_get_voice_buffer(proc_ts, DEVICE_PORT_TYPE_SEND, port);
+        rassert(voice_buffer != NULL);
+
+        Work_buffer_mix(mixed_buffer, voice_buffer, buf_start, buf_stop);
+        Device_thread_state_mark_mixed_audio(proc_ts);
     }
 
     return;

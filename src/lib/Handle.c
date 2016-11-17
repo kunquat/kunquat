@@ -236,14 +236,14 @@ static bool Handle_update_connections(Handle* handle)
     rassert(handle != NULL);
 
     Module* module = Handle_get_module(handle);
-    const Connections* graph = Module_get_connections(module);
+    const Connections* conns = Module_get_connections(module);
 
-    if (graph == NULL)
+    if (conns == NULL)
         return true;
 
     Device_states* dstates = Player_get_device_states(handle->player);
 
-    if (!Connections_prepare(graph, dstates))
+    if (!Device_states_prepare(dstates, conns))
     {
         Handle_set_error(handle, ERROR_MEMORY,
                 "Couldn't allocate memory for connections");

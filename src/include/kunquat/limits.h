@@ -55,6 +55,12 @@ extern "C" {
 
 
 /**
+ * Maximum number of threads supported for audio rendering.
+ */
+#define KQT_THREADS_MAX 32
+
+
+/**
  * Maximum calculated length of a Kunquat composition.
  *
  * The constant corresponds to 30 days.

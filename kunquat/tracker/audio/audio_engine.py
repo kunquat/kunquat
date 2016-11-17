@@ -226,6 +226,7 @@ class AudioEngine():
 def create_audio_engine():
     latency = cmdline.get_audio_latency() * 0.001
     rendering_engine = Kunquat()
+    rendering_engine.thread_count = cmdline.get_thread_count()
     audio_rate = rendering_engine.audio_rate
     chunk_size = max(1, int(latency * audio_rate * 0.5))
     audio_engine = AudioEngine(chunk_size)

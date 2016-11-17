@@ -20,6 +20,7 @@
 #include <init/devices/processors/Proc_sample.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
+#include <player/devices/Device_thread_state.h>
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/Work_buffers.h>
 
@@ -73,6 +74,7 @@ static int32_t Sample_render(
         const Sample_params* params,
         Voice_state* vstate,
         Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
         const Work_buffers* wbs,
         float* out_buffers[2],
         int32_t buf_start,
@@ -87,6 +89,7 @@ static int32_t Sample_render(
     rassert(params != NULL);
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(wbs != NULL);
     rassert(audio_rate > 0);
     rassert(tempo > 0);
@@ -103,8 +106,8 @@ static int32_t Sample_render(
     }
 
     // Get frequencies
-    Work_buffer* freqs_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
+    Work_buffer* freqs_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
     Work_buffer* pitches_wb = freqs_wb;
     if (freqs_wb == NULL)
         freqs_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_PITCH);
@@ -112,8 +115,8 @@ static int32_t Sample_render(
     const float* freqs = Work_buffer_get_contents(freqs_wb);
 
     // Get force input
-    Work_buffer* force_scales_wb = Proc_state_get_voice_buffer_mut(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE);
+    Work_buffer* force_scales_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     Work_buffer* dBs_wb = force_scales_wb;
     if (force_scales_wb == NULL)
         force_scales_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_FORCE);
@@ -296,7 +299,7 @@ static int32_t Sample_render(
         {
             case 8:
             {
-                static const double scale = 1.0 / 0x80;
+                const double scale = 1.0 / 0x80;
                 const float fixed_scale = (float)(vol_scale * scale);
                 for (int ch = 0; ch < sample->channels; ++ch)
                 {
@@ -319,7 +322,7 @@ static int32_t Sample_render(
 
             case 16:
             {
-                static const double scale = 1.0 / 0x8000UL;
+                const double scale = 1.0 / 0x8000UL;
                 const float fixed_scale = (float)(vol_scale * scale);
                 for (int ch = 0; ch < sample->channels; ++ch)
                 {
@@ -342,7 +345,7 @@ static int32_t Sample_render(
 
             case 32:
             {
-                static const double scale = 1.0 / 0x80000000UL;
+                const double scale = 1.0 / 0x80000000UL;
                 const float fixed_scale = (float)(vol_scale * scale);
                 for (int ch = 0; ch < sample->channels; ++ch)
                 {
@@ -410,6 +413,7 @@ static int32_t Sample_render(
 static int32_t Sample_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
         int32_t buf_start,
@@ -418,6 +422,7 @@ static int32_t Sample_vstate_render_voice(
 {
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
     rassert(tempo > 0);
@@ -432,8 +437,8 @@ static int32_t Sample_vstate_render_voice(
     // Get volume scales
     const Cond_work_buffer* vols = Cond_work_buffer_init(
             COND_WORK_BUFFER_AUTO,
-            Proc_state_get_voice_buffer(
-                proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_FORCE),
+            Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE),
             0.0);
 
     if (sample_state->sample < 0)
@@ -473,8 +478,8 @@ static int32_t Sample_vstate_render_voice(
 
             // Get starting pitch
             float start_pitch = 0;
-            const float* pitches = Proc_state_get_voice_buffer_contents(
-                    proc_state, DEVICE_PORT_TYPE_RECEIVE, PORT_IN_PITCH);
+            const float* pitches = Device_thread_state_get_voice_buffer_contents(
+                    proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
             if (pitches != NULL)
                 start_pitch = pitches[buf_start];
 
@@ -525,7 +530,7 @@ static int32_t Sample_vstate_render_voice(
     rassert(header->format > SAMPLE_FORMAT_NONE);
 
     // Find sample data
-    static const char* extensions[] =
+    const char* extensions[] =
     {
         [SAMPLE_FORMAT_WAVPACK] = "wv",
     };
@@ -556,7 +561,7 @@ static int32_t Sample_vstate_render_voice(
 
     float* out_buffers[2] = { NULL };
     Proc_state_get_voice_audio_out_buffers(
-            proc_state, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
+            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
 
     if ((out_buffers[0] == NULL) && (out_buffers[1] == NULL))
     {
@@ -567,7 +572,7 @@ static int32_t Sample_vstate_render_voice(
     const int32_t audio_rate = proc_state->parent.audio_rate;
 
     return Sample_render(
-            sample, header, vstate, proc_state, wbs,
+            sample, header, vstate, proc_state, proc_ts, wbs,
             out_buffers, buf_start, buf_stop, audio_rate, tempo,
             sample_state->middle_tone, sample_state->freq,
             sample_state->volume);

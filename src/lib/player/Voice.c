@@ -160,6 +160,7 @@ void Voice_reset(Voice* voice)
 int32_t Voice_render(
         Voice* voice,
         Device_states* dstates,
+        int thread_id,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
@@ -168,6 +169,8 @@ int32_t Voice_render(
     rassert(voice != NULL);
     rassert(voice->proc != NULL);
     rassert(dstates != NULL);
+    rassert(thread_id >= 0);
+    rassert(thread_id < KQT_THREADS_MAX);
     rassert(wbs != NULL);
     rassert(buf_start >= 0);
     rassert(buf_stop >= buf_start);
@@ -175,13 +178,16 @@ int32_t Voice_render(
     if (voice->prio == VOICE_PRIO_INACTIVE)
         return buf_stop;
 
-    Proc_state* pstate = (Proc_state*)Device_states_get_state(
-            dstates, Device_get_id((const Device*)voice->proc));
+    const uint32_t proc_id = Device_get_id((const Device*)voice->proc);
+
+    Proc_state* pstate = (Proc_state*)Device_states_get_state(dstates, proc_id);
+    Device_thread_state* proc_ts =
+        Device_states_get_thread_state(dstates, thread_id, proc_id);
     const Au_state* au_state = (const Au_state*)Device_states_get_state(
             dstates, voice->proc->au_params->device_id);
 
     const int32_t process_stop = Voice_state_render_voice(
-            voice->state, pstate, au_state, wbs, buf_start, buf_stop, tempo);
+            voice->state, pstate, proc_ts, au_state, wbs, buf_start, buf_stop, tempo);
     ignore(process_stop); // TODO: this should probably be release_stop
 
     voice->updated = true;

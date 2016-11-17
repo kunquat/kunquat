@@ -29,17 +29,7 @@
 /**
  * Voice pool manages the allocation of Voices.
  */
-typedef struct Voice_pool
-{
-    int size;
-    int32_t state_size;
-    uint64_t new_group_id;
-    Voice** voices;
-    Voice_work_buffers* voice_wbs;
-
-    int group_iter_offset;
-    Voice_group group_iter;
-} Voice_pool;
+typedef struct Voice_pool Voice_pool;
 
 
 /**
@@ -148,11 +138,8 @@ Voice* Voice_pool_get_voice(Voice_pool* pool, Voice* voice, uint64_t id);
  * Start Voice group iteration.
  *
  * \param pool   The Voice pool -- must not be \c NULL.
- *
- * \return   The first Voice group to be processed, or \c NULL if there are
- *           no active Voices.
  */
-Voice_group* Voice_pool_start_group_iteration(Voice_pool* pool);
+void Voice_pool_start_group_iteration(Voice_pool* pool);
 
 
 /**
@@ -164,6 +151,20 @@ Voice_group* Voice_pool_start_group_iteration(Voice_pool* pool);
  *           be processed.
  */
 Voice_group* Voice_pool_get_next_group(Voice_pool* pool);
+
+
+#ifdef ENABLE_THREADS
+/**
+ * Get the next Voice group in a thread-safe way.
+ *
+ * \param pool     The Voice pool -- must not be \c NULL.
+ * \param vgroup   Destination for the Voice group data -- must not be \c NULL.
+ *
+ * \return   The parameter \a vgroup, or \c NULL if there are no groups left to
+ *           be processed.
+ */
+Voice_group* Voice_pool_get_next_group_synced(Voice_pool* pool, Voice_group* vgroup);
+#endif
 
 
 /**

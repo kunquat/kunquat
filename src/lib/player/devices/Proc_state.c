@@ -20,6 +20,7 @@
 #include <mathnum/Tstamp.h>
 #include <memory.h>
 #include <player/devices/Device_state.h>
+#include <player/devices/Device_thread_state.h>
 #include <player/devices/Voice_state.h>
 #include <player/Work_buffer.h>
 
@@ -28,9 +29,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-
-static bool Proc_state_add_buffer(
-        Device_state* dstate, Device_port_type port_type, int port_num);
 
 static bool Proc_state_set_audio_buffer_size(Device_state* dstate, int32_t new_size);
 
@@ -71,14 +69,6 @@ bool Proc_state_init(
     if (!Device_state_init(&proc_state->parent, device, audio_rate, audio_buffer_size))
         return false;
 
-    for (Device_port_type port_type = DEVICE_PORT_TYPE_RECEIVE;
-            port_type < DEVICE_PORT_TYPES; ++port_type)
-    {
-        for (int port_num = 0; port_num < KQT_DEVICE_PORTS_MAX; ++port_num)
-            proc_state->voice_buffers[port_type][port_num] = NULL;
-    }
-
-    proc_state->parent.add_buffer = Proc_state_add_buffer;
     proc_state->parent.set_audio_rate = Proc_state_set_audio_rate;
     proc_state->parent.set_audio_buffer_size = Proc_state_set_audio_buffer_size;
     proc_state->parent.set_tempo = Proc_state_set_tempo;
@@ -131,12 +121,14 @@ void Proc_state_reset(Device_state* dstate)
 
 void Proc_state_render_mixed(
         Device_state* dstate,
+        Device_thread_state* ts,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
         double tempo)
 {
     rassert(dstate != NULL);
+    rassert(ts != NULL);
     rassert(wbs != NULL);
     rassert(buf_start >= 0);
     rassert(isfinite(tempo));
@@ -144,7 +136,7 @@ void Proc_state_render_mixed(
 
     Proc_state* proc_state = (Proc_state*)dstate;
     if (proc_state->render_mixed != NULL)
-        proc_state->render_mixed(dstate, wbs, buf_start, buf_stop, tempo);
+        proc_state->render_mixed(dstate, ts, wbs, buf_start, buf_stop, tempo);
 
     return;
 }
@@ -158,90 +150,6 @@ void Proc_state_clear_history(Proc_state* proc_state)
         proc_state->clear_history(proc_state);
 
     return;
-}
-
-
-void Proc_state_clear_voice_buffers(Proc_state* proc_state)
-{
-    rassert(proc_state != NULL);
-
-    for (Device_port_type port_type = DEVICE_PORT_TYPE_RECEIVE;
-            port_type < DEVICE_PORT_TYPES; ++port_type)
-    {
-        for (int port_num = 0; port_num < KQT_DEVICE_PORTS_MAX; ++port_num)
-        {
-            Work_buffer* buffer = proc_state->voice_buffers[port_type][port_num];
-            if (buffer != NULL)
-                Work_buffer_clear(buffer, 0, Work_buffer_get_size(buffer));
-        }
-    }
-
-    return;
-}
-
-
-const Work_buffer* Proc_state_get_voice_buffer(
-        const Proc_state* proc_state, Device_port_type port_type, int port_num)
-{
-    rassert(proc_state != NULL);
-    rassert(port_type < DEVICE_PORT_TYPES);
-    rassert(port_num >= 0);
-    rassert(port_num < KQT_DEVICE_PORTS_MAX);
-
-    if ((port_type == DEVICE_PORT_TYPE_RECEIVE) &&
-            !Device_state_is_input_port_connected(&proc_state->parent, port_num))
-        return NULL;
-
-    return proc_state->voice_buffers[port_type][port_num];
-}
-
-
-Work_buffer* Proc_state_get_voice_buffer_mut(
-        Proc_state* proc_state, Device_port_type port_type, int port_num)
-{
-    rassert(proc_state != NULL);
-    rassert(port_type < DEVICE_PORT_TYPES);
-    rassert(port_num >= 0);
-    rassert(port_num < KQT_DEVICE_PORTS_MAX);
-
-    if ((port_type == DEVICE_PORT_TYPE_RECEIVE) &&
-            !Device_state_is_input_port_connected(&proc_state->parent, port_num))
-        return NULL;
-
-    return proc_state->voice_buffers[port_type][port_num];
-}
-
-
-const float* Proc_state_get_voice_buffer_contents(
-        const Proc_state* proc_state, Device_port_type port_type, int port_num)
-{
-    rassert(proc_state != NULL);
-    rassert(port_type < DEVICE_PORT_TYPES);
-    rassert(port_num >= 0);
-    rassert(port_num < KQT_DEVICE_PORTS_MAX);
-
-    const Work_buffer* wb = Proc_state_get_voice_buffer(proc_state, port_type, port_num);
-    if (wb == NULL)
-        return NULL;
-
-    return Work_buffer_get_contents(wb);
-}
-
-
-float* Proc_state_get_voice_buffer_contents_mut(
-        Proc_state* proc_state, Device_port_type port_type, int port_num)
-{
-    rassert(proc_state != NULL);
-    rassert(port_type < DEVICE_PORT_TYPES);
-    rassert(port_num >= 0);
-    rassert(port_num < KQT_DEVICE_PORTS_MAX);
-
-    Work_buffer* wb =
-        Proc_state_get_voice_buffer_mut(proc_state, port_type, port_num);
-    if (wb == NULL)
-        return NULL;
-
-    return Work_buffer_get_contents_mut(wb);
 }
 
 
@@ -294,46 +202,12 @@ void Proc_state_cv_generic_set(
 }
 
 
-static bool Proc_state_add_buffer(
-        Device_state* dstate, Device_port_type port_type, int port_num)
-{
-    rassert(dstate != NULL);
-    rassert(port_type == DEVICE_PORT_TYPE_RECEIVE || port_type == DEVICE_PORT_TYPE_SEND);
-    rassert(port_num >= 0);
-    rassert(port_num < KQT_DEVICE_PORTS_MAX);
-
-    Proc_state* proc_state = (Proc_state*)dstate;
-
-    if (proc_state->voice_buffers[port_type][port_num] != NULL)
-        return true;
-
-    Work_buffer* new_buffer = new_Work_buffer(dstate->audio_buffer_size);
-    if (new_buffer == NULL)
-        return false;
-
-    proc_state->voice_buffers[port_type][port_num] = new_buffer;
-
-    return true;
-}
-
-
 static bool Proc_state_set_audio_buffer_size(Device_state* dstate, int32_t new_size)
 {
     rassert(dstate != NULL);
     rassert(new_size >= 0);
 
     Proc_state* proc_state = (Proc_state*)dstate;
-
-    for (Device_port_type port_type = DEVICE_PORT_TYPE_RECEIVE;
-            port_type < DEVICE_PORT_TYPES; ++port_type)
-    {
-        for (int port_num = 0; port_num < KQT_DEVICE_PORTS_MAX; ++port_num)
-        {
-            Work_buffer* buffer = proc_state->voice_buffers[port_type][port_num];
-            if ((buffer != NULL) && !Work_buffer_resize(buffer, new_size))
-                return false;
-        }
-    }
 
     if (proc_state->set_audio_buffer_size != NULL)
         return proc_state->set_audio_buffer_size(dstate, new_size);
@@ -345,13 +219,6 @@ static bool Proc_state_set_audio_buffer_size(Device_state* dstate, int32_t new_s
 static void Proc_state_deinit(Proc_state* proc_state)
 {
     rassert(proc_state != NULL);
-
-    for (Device_port_type port_type = DEVICE_PORT_TYPE_RECEIVE;
-            port_type < DEVICE_PORT_TYPES; ++port_type)
-    {
-        for (int port_num = 0; port_num < KQT_DEVICE_PORTS_MAX; ++port_num)
-            del_Work_buffer(proc_state->voice_buffers[port_type][port_num]);
-    }
 
     return;
 }

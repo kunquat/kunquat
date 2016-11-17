@@ -20,6 +20,7 @@
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <memory.h>
+#include <player/devices/Device_thread_state.h>
 #include <player/devices/Proc_state.h>
 #include <player/devices/Voice_state.h>
 #include <player/Work_buffers.h>
@@ -50,13 +51,13 @@ Proc_state* new_Proc_state_default(
 
 
 static void get_mixed_audio_buffers(
-        Proc_state* proc_state,
+        Device_thread_state* proc_ts,
         Device_port_type port_type,
         int32_t port_start,
         int32_t port_stop,
         float* bufs[])
 {
-    rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(port_type < DEVICE_PORT_TYPES);
     rassert(port_start >= 0);
     rassert(port_start < KQT_DEVICE_PORTS_MAX);
@@ -64,19 +65,21 @@ static void get_mixed_audio_buffers(
     rassert(port_stop <= KQT_DEVICE_PORTS_MAX);
     rassert(bufs != NULL);
 
-    Device_state* dstate = (Device_state*)proc_state;
-
     for (int32_t i = 0, port = port_start; port < port_stop; ++i, ++port)
-        bufs[i] = Device_state_get_audio_buffer_contents_mut(dstate, port_type, port);
+        bufs[i] = Device_thread_state_get_mixed_buffer_contents_mut(
+                proc_ts, port_type, port);
 
     return;
 }
 
 
 void Proc_state_get_mixed_audio_in_buffers(
-        Proc_state* proc_state, int32_t port_start, int32_t port_stop, float* in_bufs[])
+        Device_thread_state* proc_ts,
+        int32_t port_start,
+        int32_t port_stop,
+        float* in_bufs[])
 {
-    rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(port_start >= 0);
     rassert(port_start < KQT_DEVICE_PORTS_MAX);
     rassert(port_stop >= port_start);
@@ -84,19 +87,19 @@ void Proc_state_get_mixed_audio_in_buffers(
     rassert(in_bufs != NULL);
 
     get_mixed_audio_buffers(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, port_start, port_stop, in_bufs);
+            proc_ts, DEVICE_PORT_TYPE_RECV, port_start, port_stop, in_bufs);
 
     return;
 }
 
 
 void Proc_state_get_mixed_audio_out_buffers(
-        Proc_state* proc_state,
+        Device_thread_state* proc_ts,
         int32_t port_start,
         int32_t port_stop,
         float* out_bufs[])
 {
-    rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(port_start >= 0);
     rassert(port_start < KQT_DEVICE_PORTS_MAX);
     rassert(port_stop >= port_start);
@@ -104,20 +107,20 @@ void Proc_state_get_mixed_audio_out_buffers(
     rassert(out_bufs != NULL);
 
     get_mixed_audio_buffers(
-            proc_state, DEVICE_PORT_TYPE_SEND, port_start, port_stop, out_bufs);
+            proc_ts, DEVICE_PORT_TYPE_SEND, port_start, port_stop, out_bufs);
 
     return;
 }
 
 
 static void get_voice_audio_buffers(
-        Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
         Device_port_type port_type,
         int32_t port_start,
         int32_t port_stop,
         float* bufs[])
 {
-    rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(port_type < DEVICE_PORT_TYPES);
     rassert(port_start >= 0);
     rassert(port_start < KQT_DEVICE_PORTS_MAX);
@@ -126,16 +129,20 @@ static void get_voice_audio_buffers(
     rassert(bufs != NULL);
 
     for (int32_t i = 0, port = port_start; port < port_stop; ++i, ++port)
-        bufs[i] = Proc_state_get_voice_buffer_contents_mut(proc_state, port_type, port);
+        bufs[i] =
+            Device_thread_state_get_voice_buffer_contents(proc_ts, port_type, port);
 
     return;
 }
 
 
 void Proc_state_get_voice_audio_in_buffers(
-        Proc_state* proc_state, int32_t port_start, int32_t port_stop, float* in_bufs[])
+        const Device_thread_state* proc_ts,
+        int32_t port_start,
+        int32_t port_stop,
+        float* in_bufs[])
 {
-    rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(port_start >= 0);
     rassert(port_start < KQT_DEVICE_PORTS_MAX);
     rassert(port_stop >= port_start);
@@ -143,19 +150,19 @@ void Proc_state_get_voice_audio_in_buffers(
     rassert(in_bufs != NULL);
 
     get_voice_audio_buffers(
-            proc_state, DEVICE_PORT_TYPE_RECEIVE, port_start, port_stop, in_bufs);
+            proc_ts, DEVICE_PORT_TYPE_RECV, port_start, port_stop, in_bufs);
 
     return;
 }
 
 
 void Proc_state_get_voice_audio_out_buffers(
-        Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
         int32_t port_start,
         int32_t port_stop,
         float* out_bufs[])
 {
-    rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
     rassert(port_start >= 0);
     rassert(port_start < KQT_DEVICE_PORTS_MAX);
     rassert(port_stop >= port_start);
@@ -163,7 +170,7 @@ void Proc_state_get_voice_audio_out_buffers(
     rassert(out_bufs != NULL);
 
     get_voice_audio_buffers(
-            proc_state, DEVICE_PORT_TYPE_SEND, port_start, port_stop, out_bufs);
+            proc_ts, DEVICE_PORT_TYPE_SEND, port_start, port_stop, out_bufs);
 
     return;
 }
@@ -278,7 +285,7 @@ void Proc_fill_scale_buffer(
 
         // Sanitise input values
         {
-            static const float bound = 10000.0f;
+            const float bound = 10000.0f;
 
             for (int32_t i = buf_start; i < fast_stop; ++i)
                 dBs_data[i] = clamp(dBs_data[i], -bound, bound);
@@ -328,7 +335,7 @@ void Proc_clamp_pitch_values(Work_buffer* pitches, int32_t buf_start, int32_t bu
     const int32_t const_start = Work_buffer_get_const_start(pitches);
     const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
 
-    static const float bound = 2000000.0f;
+    const float bound = 2000000.0f;
 
     float* pitches_data = Work_buffer_get_contents_mut(pitches);
 

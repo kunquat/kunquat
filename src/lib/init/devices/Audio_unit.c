@@ -173,7 +173,7 @@ Audio_unit* new_Audio_unit(void)
     for (int port = 0; port < KQT_BUFFERS_MAX; ++port)
     {
         Device_set_port_existence(
-                &au->out_iface->parent, DEVICE_PORT_TYPE_RECEIVE, port, true);
+                &au->out_iface->parent, DEVICE_PORT_TYPE_RECV, port, true);
     }
 
     return au;
@@ -265,18 +265,6 @@ Connections* Audio_unit_get_connections_mut(const Audio_unit* au)
 {
     rassert(au != NULL);
     return au->connections;
-}
-
-
-bool Audio_unit_prepare_connections(const Audio_unit* au, Device_states* states)
-{
-    rassert(au != NULL);
-    rassert(states != NULL);
-
-    if (au->connections == NULL)
-        return true;
-
-    return Connections_prepare(au->connections, states);
 }
 
 

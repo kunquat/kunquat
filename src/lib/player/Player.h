@@ -16,6 +16,7 @@
 #define KQT_PLAYER_PLAYER_H
 
 
+#include <Error.h>
 #include <init/devices/Au_control_vars.h>
 #include <init/devices/Au_streams.h>
 #include <init/Module.h>
@@ -71,6 +72,29 @@ const Event_handler* Player_get_event_handler(const Player* player);
  * \return   The Device states.
  */
 Device_states* Player_get_device_states(const Player* player);
+
+
+/**
+ * Set the number of threads used by the Player for audio rendering.
+ *
+ * \param player      The Player -- must not be \c NULL.
+ * \param new_count   The number of threads -- must be >= \c 1 and
+ *                    < \c KQT_THREADS_MAX.
+ * \param error       Destination for error information -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Player_set_thread_count(Player* player, int new_count, Error* error);
+
+
+/**
+ * Get the number of threads used by the Player for audio rendering.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ *
+ * \return   The number of threads.
+ */
+int Player_get_thread_count(const Player* player);
 
 
 /**

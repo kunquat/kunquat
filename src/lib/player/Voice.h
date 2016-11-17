@@ -163,6 +163,8 @@ void Voice_reset(Voice* voice);
  *
  * \param voice        The Voice -- must not be \c NULL.
  * \param dstates      The Device states -- must not be \c NULL.
+ * \param thread_id    The ID of the thread accessing the Device state
+ *                     -- must be a valid ID currently in use.
  * \param wbs          The Work buffers -- must not be \c NULL.
  * \param buf_start    The start index of the buffer area to be rendered.
  * \param buf_stop     The stop index of the buffer area to be rendered.
@@ -175,6 +177,7 @@ void Voice_reset(Voice* voice);
 int32_t Voice_render(
         Voice* voice,
         Device_states* dstates,
+        int thread_id,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
