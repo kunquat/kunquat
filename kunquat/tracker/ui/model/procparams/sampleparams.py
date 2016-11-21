@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from kunquat.extras.samplerate import SampleRate, SRC_SINC_BEST_QUALITY
 from kunquat.extras.sndfile import SndFileR, SndFileError
 from kunquat.extras.wavpack import WavPackRMem, WavPackWMem
 from kunquat.kunquat.kunquat import Kunquat, KunquatFormatError
@@ -195,6 +196,43 @@ class SampleParams(ProcParams):
             return None
         return (handle.get_bits(), handle.is_float())
 
+    def convert_sample_freq(self, sample_id, target_freq):
+        # Get current data and format info
+        cur_handle = self._get_sample_data_handle(sample_id, convert_to_float=True)
+        channels = cur_handle.get_channels()
+        cur_freq = cur_handle.get_audio_rate()
+        cur_bits, cur_is_float = self.get_sample_format(sample_id) # original format
+
+        # Get converted audio data
+        src = SampleRate(SRC_SINC_BEST_QUALITY, channels)
+        src.set_ratio(target_freq / cur_freq)
+        src.add_input_data(*cur_handle.read())
+        new_data = src.get_output_data()
+
+        # Write new sample
+        new_handle = WavPackWMem(target_freq, channels, cur_is_float, cur_bits)
+        if not cur_is_float:
+            to_max = 2**(cur_bits - 1) - 1
+            to_min = -to_max - 1
+            mult = to_max
+            for ch in new_data:
+                for i in range(len(ch)):
+                    ch[i] = min(max(to_min, int(ch[i] * mult)), to_max)
+        new_handle.write(*new_data)
+        raw_data = new_handle.get_contents()
+
+        sample_data_key = self._get_full_sample_key(sample_id, 'p_sample.wv')
+
+        new_header = self._get_sample_header(sample_id)
+        new_header['freq'] = target_freq
+        sample_header_key = self._get_full_sample_key(sample_id, 'p_sh_sample.json')
+
+        transaction = {}
+        transaction[sample_header_key] = new_header
+        transaction[sample_data_key] = raw_data
+
+        self._store.put(transaction)
+
     def convert_sample_format(self, sample_id, bits, use_float, normalise):
         # Get current format parameters
         cur_handle = self._get_sample_data_handle(sample_id, convert_to_float=False)
@@ -204,7 +242,7 @@ class SampleParams(ProcParams):
         cur_is_float = cur_handle.is_float()
 
         # Read sample data
-        data = [[]] * channels
+        data = [[] for _ in range(channels)]
         chunk = cur_handle.read()
         while chunk[0]:
             for d, buf in zip(data, chunk):
