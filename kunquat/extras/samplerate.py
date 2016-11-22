@@ -123,6 +123,19 @@ class SampleRate():
         cur_offset = 0
         output_data = [[] for _ in range(self._channels)]
 
+        def process():
+            error = _samplerate.src_process(self._state, self._data)
+            if error != 0:
+                err_cstr = _samplerate.src_strerror(error)
+                raise SampleRateError('Error while converting data: {}'.format(
+                    str(err_cstr, encoding='utf-8')))
+
+        def extend_output():
+            generated = self._data.output_frames_gen
+            for ch in range(self._channels):
+                output_data[ch].extend(self._data.data_out[
+                    ch : ch + self._channels * generated : self._channels])
+
         while frames_left > 0:
             orig_frame_count = min(self._BUF_FRAME_COUNT, frames_left)
             last_chunk = (not self._allow_input) and (orig_frame_count == frames_left)
@@ -138,24 +151,17 @@ class SampleRate():
             self._data.data_in = ctypes.cast(
                     self._in_buf, ctypes.POINTER(ctypes.c_float))
             self._data.input_frames = frame_count
-            self._data.output_frames = orig_frame_count
+            self._data.output_frames = self._BUF_FRAME_COUNT
             self._data.input_frames_used = 0
             self._data.output_frames_gen = 0
             self._data.end_of_input = 1 if last_chunk else 0
 
             # Convert
             while frame_count > 0:
-                error = _samplerate.src_process(self._state, self._data)
-                if error != 0:
-                    err_cstr = _samplerate.src_strerror(error)
-                    raise SampleRateError('Error while converting data: {}'.format(
-                        str(err_cstr, encoding='utf-8')))
+                process()
 
                 # Get converted data
-                generated = self._data.output_frames_gen
-                for ch in range(self._channels):
-                    output_data[ch].extend(self._data.data_out[
-                        ch : ch + self._channels * generated : self._channels])
+                extend_output()
 
                 frame_count -= self._data.input_frames_used
 
@@ -173,6 +179,28 @@ class SampleRate():
             cur_offset += orig_frame_count
             frames_left -= orig_frame_count
 
+        # Make sure we get all the remaining output data
+        self._in_buf[:] = [0.0] * (self._BUF_FRAME_COUNT * self._channels)
+        self._data.input_frames = 0
+        self._data.output_frames = self._BUF_FRAME_COUNT
+        self._data.input_frames_used = 0
+        self._data.output_frames_gen = 0
+        self._data.end_of_input = 1
+
+        process()
+
+        while self._data.output_frames_gen > 0:
+            extend_output()
+
+            self._data.input_frames = 0
+            self._data.output_frames = self._BUF_FRAME_COUNT
+            self._data.input_frames_used = 0
+            self._data.output_frames_gen = 0
+            self._data.end_of_input = 1
+
+            process()
+
+        # Clear input
         self._input_data = [[] for _ in range(self._channels)]
 
         return tuple(output_data)
