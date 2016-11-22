@@ -187,6 +187,9 @@ class SampleRate():
             raise SampleRateError('Could not reset resampling state: {}'.format(
                 str(err_cstr, encoding='utf-8')))
 
+        self._input_data = [[] for _ in range(self._channels)]
+        self._allow_input = True
+
     def __del__(self):
         if self._state == None:
             return
