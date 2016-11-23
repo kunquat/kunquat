@@ -194,10 +194,13 @@ static int32_t Sample_render(
             // Next positions
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
                 next_positions[i] = positions[i] + 1;
-            if (buf_start < new_buf_stop)
+            for (int32_t i = new_buf_stop - 1; i >= buf_start; --i)
             {
-                const int32_t last_index = new_buf_stop - 1;
-                next_positions[last_index] = min(length - 1, next_positions[last_index]);
+                const int32_t next_pos = next_positions[i];
+                if (next_pos >= length)
+                    next_positions[i] = length - 1;
+                else
+                    break;
             }
         }
         break;

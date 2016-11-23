@@ -1612,6 +1612,14 @@ class SampleEditor(QWidget):
         self._freq.setDecimals(0)
         self._freq.setRange(1, 2**32)
 
+        self._resample = QPushButton('Resample...')
+
+        freq_l = QHBoxLayout()
+        freq_l.setContentsMargins(0, 0, 0, 0)
+        freq_l.setSpacing(2)
+        freq_l.addWidget(self._freq, 1)
+        freq_l.addWidget(self._resample)
+
         self._loop_mode = QComboBox()
         loop_modes = (
                 ('Off', 'off'),
@@ -1629,11 +1637,11 @@ class SampleEditor(QWidget):
         self._format = QLabel('?')
         self._format_change = QPushButton('Change...')
 
-        fl = QHBoxLayout()
-        fl.setContentsMargins(0, 0, 0, 0)
-        fl.setSpacing(2)
-        fl.addWidget(self._format, 1)
-        fl.addWidget(self._format_change)
+        format_l = QHBoxLayout()
+        format_l.setContentsMargins(0, 0, 0, 0)
+        format_l.setSpacing(2)
+        format_l.addWidget(self._format, 1)
+        format_l.addWidget(self._format_change)
 
         gl = QGridLayout()
         gl.setContentsMargins(0, 0, 0, 0)
@@ -1641,7 +1649,7 @@ class SampleEditor(QWidget):
         gl.addWidget(QLabel('Name:'), 0, 0)
         gl.addWidget(self._name, 0, 1)
         gl.addWidget(QLabel('Middle frequency:'), 1, 0)
-        gl.addWidget(self._freq, 1, 1)
+        gl.addLayout(freq_l, 1, 1)
         gl.addWidget(QLabel('Loop mode:'), 2, 0)
         gl.addWidget(self._loop_mode, 2, 1)
         gl.addWidget(QLabel('Loop start:'), 3, 0)
@@ -1651,7 +1659,7 @@ class SampleEditor(QWidget):
         gl.addWidget(QLabel('Length:'), 5, 0)
         gl.addWidget(self._length, 5, 1)
         gl.addWidget(QLabel('Format:'), 6, 0)
-        gl.addLayout(fl, 6, 1)
+        gl.addLayout(format_l, 6, 1)
 
         self._sample_view = SampleView()
 
@@ -1675,6 +1683,8 @@ class SampleEditor(QWidget):
 
         QObject.connect(self._name, SIGNAL('editingFinished()'), self._change_name)
         QObject.connect(self._freq, SIGNAL('valueChanged(double)'), self._change_freq)
+
+        QObject.connect(self._resample, SIGNAL('clicked()'), self._convert_freq)
 
         QObject.connect(
                 self._loop_mode,
@@ -1722,6 +1732,9 @@ class SampleEditor(QWidget):
     def _get_freq_signal_type(self):
         return 'signal_sample_freq_{}'.format(self._proc_id)
 
+    def _get_resample_signal_type(self):
+        return 'signal_sample_resample_{}'.format(self._proc_id)
+
     def _get_format_signal_type(self):
         return 'signal_sample_format_{}'.format(self._proc_id)
 
@@ -1738,6 +1751,9 @@ class SampleEditor(QWidget):
             self._update_name()
         elif self._get_freq_signal_type() in signals:
             self._update_freq()
+        elif self._get_resample_signal_type() in signals:
+            self._update_freq()
+            self._update_sample_view()
         elif self._get_format_signal_type() in signals:
             self._update_format()
             self._update_sample_view()
@@ -1864,6 +1880,13 @@ class SampleEditor(QWidget):
         sample_params.set_sample_freq(sample_id, value)
         self._updater.signal_update(set([self._get_freq_signal_type()]))
 
+    def _convert_freq(self):
+        sample_params = self._get_sample_params()
+        on_resample = lambda: self._updater.signal_update(
+                set([self._get_resample_signal_type()]))
+        resample_editor = ResampleEditor(sample_params, on_resample)
+        resample_editor.exec_()
+
     def _change_format(self):
         sample_params = self._get_sample_params()
         on_convert = lambda: self._updater.signal_update(
@@ -1889,6 +1912,68 @@ class SampleEditor(QWidget):
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_loop_end(sample_id, end)
         self._updater.signal_update(set([self._get_loop_signal_type()]))
+
+
+class ResampleEditor(QDialog):
+
+    def __init__(self, sample_params, on_resample):
+        super().__init__()
+        self._sample_params = sample_params
+        self._on_resample = on_resample
+
+        sample_id = self._sample_params.get_selected_sample_id()
+        sample_freq = self._sample_params.get_sample_freq(sample_id)
+
+        self._freq = QSpinBox()
+        self._freq.setMinimum(int(math.ceil(sample_freq / 256)))
+        self._freq.setMaximum(int(math.floor(sample_freq * 256)))
+        self._freq.setValue(sample_freq)
+
+        sl = QHBoxLayout()
+        sl.setContentsMargins(0, 0, 0, 0)
+        sl.setSpacing(4)
+        sl.addWidget(QLabel('New frequency:'))
+        sl.addWidget(self._freq, 1)
+
+        self._cancel_button = QPushButton('Cancel')
+        self._resample_button = QPushButton('Resample')
+
+        bl = QHBoxLayout()
+        bl.setContentsMargins(0, 0, 0, 0)
+        bl.setSpacing(4)
+        bl.addWidget(self._cancel_button)
+        bl.addWidget(self._resample_button)
+
+        v = QVBoxLayout()
+        v.setContentsMargins(4, 4, 4, 4)
+        v.setSpacing(4)
+        v.addLayout(sl)
+        v.addLayout(bl)
+        self.setLayout(v)
+
+        QObject.connect(self._freq, SIGNAL('valueChanged(int)'), self._update_enabled)
+
+        QObject.connect(self._cancel_button, SIGNAL('clicked()'), self.close)
+        QObject.connect(self._resample_button, SIGNAL('clicked()'), self._resample)
+
+        self._update_enabled()
+
+    def _update_enabled(self):
+        sample_id = self._sample_params.get_selected_sample_id()
+        sample_freq = self._sample_params.get_sample_freq(sample_id)
+        self._resample_button.setEnabled(sample_freq != self._freq.value())
+
+    def _resample(self):
+        sample_id = self._sample_params.get_selected_sample_id()
+
+        self.setEnabled(False)
+
+        target_freq = self._freq.value()
+        self._sample_params.convert_sample_freq(sample_id, target_freq)
+
+        self._on_resample()
+
+        self.close()
 
 
 class SampleFormatEditor(QDialog):
