@@ -13,6 +13,7 @@
 
 from multiprocessing import Process, Queue
 from queue import Empty
+from threading import Lock
 
 from PySide.QtCore import *
 
@@ -34,11 +35,13 @@ class CommandQueue():
         self._in = Queue()
         self._out = Queue()
         self._state = self._STATE_NORMAL
+        self._state_lock = Lock()
         self._terminating_commands = (
                 'notify_kunquat_exception', 'notify_libkunquat_error')
 
     def block(self):
-        timeout = 0.001 if self._state == self._STATE_FLUSHING else None
+        with self._state_lock:
+            timeout = 0.001 if self._state == self._STATE_FLUSHING else None
         try:
             command_data = self._in.get(block=True, timeout=timeout)
         except Empty:
@@ -47,19 +50,23 @@ class CommandQueue():
         command, _ = command_data
         if command in self._terminating_commands:
             # Make sure we won't block the UI before the terminating command is sent
-            self._state = self._STATE_FLUSHING
+            with self._state_lock:
+                self._state = self._STATE_FLUSHING
 
         self._out.put(command_data)
 
     def put(self, command, *args):
-        if self._state == self._STATE_NORMAL:
+        with self._state_lock:
+            is_state_normal = (self._state == self._STATE_NORMAL)
+        if is_state_normal:
             self._in.put((command, args))
 
     def get(self):
         command_data = self._out.get_nowait()
         command, _ = command_data
         if command in self._terminating_commands:
-            self._state = self._STATE_FINISHED
+            with self._state_lock:
+                self._state = self._STATE_FINISHED
         return command_data
 
 

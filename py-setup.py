@@ -7,8 +7,13 @@ import os.path
 import sys
 
 
-if (sys.version_info[0], sys.version_info[1]) < (3, 1):
-    print('Error: Kunquat Python modules require Python 3.1 or later.', file=sys.stderr)
+req_version_major = 3
+req_version_minor = 3
+
+if (sys.version_info[0], sys.version_info[1]) < (req_version_major, req_version_minor):
+    print('Error: Kunquat Python modules require Python {}.{} or later.'.format(
+            req_version_major, req_version_minor),
+            file=sys.stderr)
     sys.exit(1)
 
 
