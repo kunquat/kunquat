@@ -69,6 +69,9 @@ class CommandQueue():
                 self._state = self._STATE_FINISHED
         return command_data
 
+    def get_command_count(self):
+        return self._out.qsize()
+
 
 class UiProcess(Process):
 
@@ -163,15 +166,18 @@ class UiProcess(Process):
         self._pump.start()
 
     def _process_queue(self):
-        try:
-            command, args = self._q.get()
-        except Empty:
-            return
+        cmd_count = self._q.get_command_count()
+        for _ in range(cmd_count):
+            try:
+                command, args = self._q.get()
+            except Empty:
+                return
 
-        if command == HALT:
-            self._ui_launcher.halt_ui()
-        else:
-            getattr(self._controller, command)(*args)
+            if command == HALT:
+                self._ui_launcher.halt_ui()
+                return
+            else:
+                getattr(self._controller, command)(*args)
 
     def run(self):
         # Create the UI inside the correct process
