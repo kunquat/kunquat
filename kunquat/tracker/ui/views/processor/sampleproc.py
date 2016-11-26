@@ -1754,6 +1754,7 @@ class SampleEditor(QWidget):
         elif self._get_resample_signal_type() in signals:
             self._update_freq()
             self._update_sample_view()
+            self._update_loop()
         elif self._get_format_signal_type() in signals:
             self._update_format()
             self._update_sample_view()
