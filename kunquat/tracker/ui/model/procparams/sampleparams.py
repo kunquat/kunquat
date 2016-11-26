@@ -203,11 +203,14 @@ class SampleParams(ProcParams):
         cur_freq = cur_handle.get_audio_rate()
         cur_bits, cur_is_float = self.get_sample_format(sample_id) # original format
 
+        ratio = target_freq / cur_freq
+
         # Get converted audio data
         src = SampleRate(SRC_SINC_BEST_QUALITY, channels)
-        src.set_ratio(target_freq / cur_freq)
+        src.set_ratio(ratio)
         src.add_input_data(*cur_handle.read())
         new_data = src.get_output_data()
+        new_length = len(new_data[0])
 
         # Write new sample
         new_handle = WavPackWMem(target_freq, channels, cur_is_float, cur_bits)
@@ -225,6 +228,21 @@ class SampleParams(ProcParams):
 
         new_header = self._get_sample_header(sample_id)
         new_header['freq'] = target_freq
+
+        # Adjust loop bounds
+        if new_length == 0:
+            if 'loop_mode' in new_header:
+                new_header['loop_mode'] = 'off'
+        else:
+            if 'loop_start' in new_header:
+                target_start = int(round(new_header['loop_start'] * ratio))
+                new_header['loop_start'] = min(max(0, target_start), new_length - 1)
+            if 'loop_end' in new_header:
+                cur_loop_start = new_header.get('loop_start', 0)
+                target_end = int(round(new_header['loop_end'] * ratio))
+                new_header['loop_end'] = min(max(
+                    cur_loop_start + 1, target_end), new_length)
+
         sample_header_key = self._get_full_sample_key(sample_id, 'p_sh_sample.json')
 
         transaction = {}
@@ -312,7 +330,21 @@ class SampleParams(ProcParams):
     def set_sample_loop_mode(self, sample_id, mode):
         assert mode in ('off', 'uni', 'bi')
         header = self._get_sample_header(sample_id)
+
+        if mode != 'off':
+            # Set valid loop bounds
+            cur_start = self.get_sample_loop_start(sample_id)
+            cur_end = self.get_sample_loop_end(sample_id)
+            length = self.get_sample_length(sample_id)
+            if 0 <= cur_start < cur_end <= length:
+                header['loop_start'] = cur_start
+                header['loop_end'] = cur_end
+            else:
+                header['loop_start'] = 0
+                header['loop_end'] = length
+
         header['loop_mode'] = mode
+
         self._set_sample_header(sample_id, header)
 
     def get_sample_loop_start(self, sample_id):
