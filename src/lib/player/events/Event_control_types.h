@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2016
  *
  * This file is part of Kunquat.
  *
@@ -32,6 +32,8 @@ EVENT_CONTROL_DEF("cg",         goto,                   NONE,           NULL)
 
 EVENT_CONTROL_DEF("cinfinite+", infinite_on,            NONE,           NULL)
 EVENT_CONTROL_DEF("cinfinite-", infinite_off,           NONE,           NULL)
+
+EVENT_CONTROL_DEF("c.testproc", set_test_processor,     INT,            v_proc)
 
 
 #undef EVENT_CONTROL_DEF

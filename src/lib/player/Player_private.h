@@ -27,6 +27,7 @@
 #include <player/Master_params.h>
 #include <player/Player.h>
 #include <player/Voice_pool.h>
+#include <player/Work_buffer.h>
 #include <player/Work_buffers.h>
 #include <threads/Barrier.h>
 #include <threads/Condition.h>
@@ -36,12 +37,16 @@
 #include <stdint.h>
 
 
+#define TEST_VOICE_OUTPUTS_MAX 2
+
+
 typedef struct Player_thread_params
 {
     Player* player;
-    Work_buffers* work_buffers;
     int thread_id; // NOTE: This is the ID used by the rendering code
     int active_voices;
+    Work_buffers* work_buffers;
+    Work_buffer* test_voice_outputs[TEST_VOICE_OUTPUTS_MAX];
 } Player_thread_params;
 
 

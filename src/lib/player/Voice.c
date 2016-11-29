@@ -36,9 +36,12 @@ Voice* new_Voice(void)
     voice->group_id = 0;
     voice->updated = false;
     voice->prio = VOICE_PRIO_INACTIVE;
+    voice->use_test_output = false;
+    voice->test_proc_index = -1;
     voice->proc = NULL;
     voice->state_size = 0;
     voice->state = NULL;
+    voice->wb = NULL;
 
     voice->state_size = sizeof(Voice_state);
     voice->state = memory_alloc_item(Voice_state);
@@ -127,6 +130,8 @@ void Voice_init(
     voice->prio = VOICE_PRIO_NEW;
     voice->proc = proc;
     voice->group_id = group_id;
+    voice->use_test_output = false;
+    voice->test_proc_index = -1;
     Random_set_seed(&voice->rand_p, seed);
     Random_set_seed(&voice->rand_s, seed);
 
@@ -138,6 +143,35 @@ void Voice_init(
         dimpl->init_vstate(voice->state, proc_state);
 
     return;
+}
+
+
+void Voice_set_test_processor(Voice* voice, int proc_index)
+{
+    rassert(voice != NULL);
+    rassert(proc_index >= 0);
+    rassert(proc_index < KQT_PROCESSORS_MAX);
+
+    voice->use_test_output = true;
+    voice->test_proc_index = proc_index;
+
+    return;
+}
+
+
+bool Voice_is_using_test_output(const Voice* voice)
+{
+    rassert(voice != NULL);
+    return voice->use_test_output;
+}
+
+
+int Voice_get_test_proc_index(const Voice* voice)
+{
+    rassert(voice != NULL);
+    rassert(Voice_is_using_test_output(voice));
+
+    return voice->test_proc_index;
 }
 
 

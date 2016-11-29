@@ -55,6 +55,9 @@ struct Channel
     uint64_t fg_id[KQT_PROCESSORS_MAX]; ///< Voice reservation IDs.
     int fg_count;
 
+    bool use_test_output;
+    int test_proc_index;
+
     int32_t au_input;              ///< Currently active Audio unit input.
     Au_table* au_table;
     int32_t audio_rate;
@@ -197,6 +200,14 @@ Voice* Channel_get_fg_voice(Channel* ch, int proc_index);
  * \return   The actual force if the active foreground Voice exists, otherwise NAN.
  */
 double Channel_get_fg_force(const Channel* ch);
+
+
+/**
+ * Reset Channel test output information.
+ *
+ * \param ch   The Channel -- must not be \c NULL.
+ */
+void Channel_reset_test_output(Channel* ch);
 
 
 /**

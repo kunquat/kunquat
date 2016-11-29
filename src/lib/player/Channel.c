@@ -163,6 +163,9 @@ void Channel_reset(Channel* ch)
     }
     ch->fg_count = 0;
 
+    ch->use_test_output = false;
+    ch->test_proc_index = -1;
+
     ch->au_input = 0;
 
     ch->volume = 1;
@@ -252,6 +255,17 @@ double Channel_get_fg_force(const Channel* ch)
         return NAN;
 
     return ch->force_controls.force;
+}
+
+
+void Channel_reset_test_output(Channel* ch)
+{
+    rassert(ch != NULL);
+
+    ch->use_test_output = false;
+    ch->test_proc_index = -1;
+
+    return;
 }
 
 

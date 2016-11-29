@@ -63,6 +63,9 @@ void reserve_voice(
             proc_state,
             rand_seed);
 
+    if (ch->use_test_output)
+        Voice_set_test_processor(ch->fg[proc_num], ch->test_proc_index);
+
     Voice_state* vstate = ch->fg[proc_num]->state;
     strcpy(vstate->ch_expr_name, ch_expr);
     if (ch->carry_note_expression && (note_expr[0] != '\0'))

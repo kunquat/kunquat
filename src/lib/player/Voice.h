@@ -47,6 +47,8 @@ typedef struct Voice
     uint64_t group_id;       ///< The ID of the group this Voice currently belogns to.
     bool updated;            ///< Used to cut Voices that are not updated.
     Voice_prio prio;         ///< Current priority of the Voice.
+    bool use_test_output;
+    int test_proc_index;
     const Processor* proc;   ///< The Processor.
     int32_t state_size;      ///< The amount bytes allocated for the Voice state.
     Voice_state* state;      ///< The current playback state.
@@ -148,6 +150,37 @@ void Voice_init(
         uint64_t group_id,
         const Proc_state* proc_state,
         uint64_t seed);
+
+
+/**
+ * Set a Processor for test output.
+ *
+ * \param voice        The Voice -- must not be \c NULL.
+ * \param proc_index   The Processor index -- must be >= \c 0 and
+ *                     < \c KQT_PROCESSORS_MAX.
+ */
+void Voice_set_test_processor(Voice* voice, int proc_index);
+
+
+/**
+ * Check Voice test output status.
+ *
+ * \param voice   The Voice -- must not be \c NULL.
+ *
+ * \return   \c true if test output Processor is set, otherwise \c false.
+ */
+bool Voice_is_using_test_output(const Voice* voice);
+
+
+/**
+ * Get test output Processor index.
+ *
+ * \param voice   The Voice -- must not be \c NULL and must have a test output
+ *                Processor index set.
+ *
+ * \return   The test Processor index.
+ */
+int Voice_get_test_proc_index(const Voice* voice);
 
 
 /**
