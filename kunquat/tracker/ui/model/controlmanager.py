@@ -56,4 +56,14 @@ class ControlManager():
     def set_control_id_override(self, control_id):
         self._session.set_control_id_override(control_id)
 
+    def set_processor_testing_enabled(self, proc_id, enabled):
+        self._session.set_processor_testing_enabled(proc_id, enabled)
+
+    def is_processor_testing_enabled(self, proc_id):
+        return self._session.is_processor_testing_enabled(proc_id)
+
+    def set_test_processor(self, control_id, proc_id):
+        assert (not proc_id) or self.is_processor_testing_enabled(proc_id)
+        self._session.set_test_processor(control_id, proc_id)
+
 
