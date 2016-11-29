@@ -59,8 +59,7 @@ def show_beat(q, test_name, bar_width, area_width):
 
 
 def strip_valgrind(output):
-    lines = (str(line, encoding='utf-8') for line in output.splitlines()
-             if not line.startswith(b'=='))
+    lines = (line for line in output.splitlines() if not line.startswith('=='))
     return '\n'.join(lines)
 
 
@@ -72,19 +71,19 @@ def run_test(program):
     command = 'valgrind --leak-check=full --show-reachable=yes ' + program
     try:
         beater.start()
-        output = subprocess.check_output(
-                shlex.split(command),
-                stderr=subprocess.STDOUT)
+        output = str(
+                subprocess.check_output(shlex.split(command), stderr=subprocess.STDOUT),
+                encoding='utf-8')
     except subprocess.CalledProcessError as e:
         q.put('done')
         beater.join()
-        print(strip_valgrind(e.output))
+        print(strip_valgrind(str(e.output, encoding='utf-8')))
         sys.exit(e.returncode)
     finally:
         q.put('done')
         beater.join()
 
-    leaks = not b'no leaks are possible' in output
+    leaks = not 'no leaks are possible' in output
 
     if leaks:
         print(output)
