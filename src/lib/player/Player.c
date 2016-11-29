@@ -796,6 +796,7 @@ static int Player_process_voice_group(
     const Connections* conns = Audio_unit_get_connections(au);
 
     const bool use_test_output = Voice_is_using_test_output(first_voice);
+    int32_t test_output_stop = render_stop;
 
     int active_voice_count = 0;
 
@@ -811,6 +812,8 @@ static int Player_process_voice_group(
                 render_stop,
                 player->audio_rate,
                 player->master_params.tempo);
+
+        test_output_stop = process_stop;
 
         if (!use_test_output)
             Voice_group_mix(
@@ -862,7 +865,7 @@ static int Player_process_voice_group(
                 Work_buffer_mix(
                         tparams->test_voice_outputs[port],
                         in_wbs[port],
-                        render_start, render_stop);
+                        render_start, test_output_stop);
         }
     }
 
