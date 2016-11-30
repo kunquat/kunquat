@@ -195,7 +195,7 @@ class PeakMeter(QWidget):
             # Render holds
             hold = self._holds[ch]
             hold_end_norm = (hold[0] - cfg['lowest']) / dB_range
-            hold_end_norm = max(-1, hold_end_norm)
+            hold_end_norm = min(max(-1, hold_end_norm), 1)
             hold_end = int(bar_width * hold_end_norm)
             hold_start = max(0, hold_end - cfg['hold_width'])
             hold_end = min(hold_end, bar_width)

@@ -164,6 +164,8 @@ bool Event_channel_note_on_process(
         }
     }
 
+    Channel_reset_test_output(ch);
+
     Device_init_control_vars(
             (const Device*)au,
             dstates,
@@ -288,6 +290,8 @@ bool Event_channel_hit_process(
             Force_controls_copy(fc, &ch->force_controls);
         }
     }
+
+    Channel_reset_test_output(ch);
 
     Device_init_control_vars(
             (const Device*)au,

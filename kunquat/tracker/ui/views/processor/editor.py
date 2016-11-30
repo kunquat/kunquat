@@ -36,9 +36,12 @@ class Editor(QWidget):
 
         self._keyboard_mapper = KeyboardMapper()
 
+        self._test_output = QCheckBox('Test output')
+
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(5)
+        v.addWidget(self._test_output)
         self.setLayout(v)
 
     def set_au_id(self, au_id):
@@ -82,6 +85,13 @@ class Editor(QWidget):
         tabs.addTab(self._info_editor, 'Info')
         self.layout().addWidget(tabs)
 
+        # Test output toggle
+        QObject.connect(
+                self._test_output,
+                SIGNAL('stateChanged(int)'),
+                self._change_test_output_state)
+        self._update_test_toggle()
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
         self._keyboard_mapper.unregister_updaters()
@@ -90,19 +100,59 @@ class Editor(QWidget):
         self._signals.unregister_updaters()
 
     def _perform_updates(self, signals):
-        pass
+        update_signals = set([
+            'signal_proc_test_output_{}'.format(self._proc_id),
+            'signal_proc_signals_{}'.format(self._proc_id),
+            ])
+        if not signals.isdisjoint(update_signals):
+            self._update_test_toggle()
+
+    def _is_processor_testable(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        proc = au.get_processor(self._proc_id)
+
+        return proc.get_existence() and (proc.get_signal_type() == 'voice')
+
+    def _update_test_toggle(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        proc = au.get_processor(self._proc_id)
+
+        if not proc.get_existence():
+            return
+
+        old_block = self._test_output.blockSignals(True)
+        if self._is_processor_testable():
+            self._test_output.setEnabled(True)
+            enabled = self._control_manager.is_processor_testing_enabled(self._proc_id)
+            self._test_output.setCheckState(Qt.Checked if enabled else Qt.Unchecked)
+        else:
+            self._test_output.setCheckState(Qt.Unchecked)
+            self._test_output.setEnabled(False)
+        self._test_output.blockSignals(old_block)
+
+    def _change_test_output_state(self, state):
+        enabled = (state == Qt.Checked)
+        self._control_manager.set_processor_testing_enabled(self._proc_id, enabled)
+        self._updater.signal_update(
+                set(['signal_proc_test_output{}'.format(self._proc_id)]))
 
     def keyPressEvent(self, event):
-        # TODO: This plays the complete audio unit,
-        #       change after adding processor jamming support
         module = self._ui_model.get_module()
         control_id = module.get_control_id_by_au_id(self._au_id)
         if not control_id:
             return
 
+        use_test_output = (self._is_processor_testable() and
+            self._control_manager.is_processor_testing_enabled(self._proc_id))
+
         self._control_manager.set_control_id_override(control_id)
+        if use_test_output:
+            self._control_manager.set_test_processor(control_id, self._proc_id)
         if not self._keyboard_mapper.process_typewriter_button_event(event):
             event.ignore()
+        self._control_manager.set_test_processor(control_id, None)
         self._control_manager.set_control_id_override(None)
 
     def keyReleaseEvent(self, event):
