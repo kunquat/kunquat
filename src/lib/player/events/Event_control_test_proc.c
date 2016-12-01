@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 bool Event_control_set_test_processor_process(
@@ -35,6 +36,21 @@ bool Event_control_set_test_processor_process(
 
     channel->use_test_output = true;
     channel->test_proc_index = (int)value->value.int_type;
+
+    return true;
+}
+
+
+bool Event_control_set_test_processor_param_process(
+        General_state* global_state, Channel* channel, const Value* value)
+{
+    rassert(global_state != NULL);
+    rassert(channel != NULL);
+    rassert(value != NULL);
+    rassert(value->type == VALUE_TYPE_STRING);
+
+    strncpy(channel->test_proc_param, value->value.string_type, KQT_VAR_NAME_MAX - 1);
+    channel->test_proc_param[KQT_VAR_NAME_MAX - 1] = '\0';
 
     return true;
 }

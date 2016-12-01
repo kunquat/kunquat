@@ -44,9 +44,11 @@ void reserve_voice(
 
     ++ch->fg_count;
     ch->fg[proc_num] = Voice_pool_get_voice(ch->pool, NULL, 0);
-    rassert(ch->fg[proc_num] != NULL);
 //    fprintf(stderr, "allocated Voice %p\n", (void*)ch->fg[proc_num]);
-    ch->fg_id[proc_num] = Voice_id(ch->fg[proc_num]);
+
+    Voice* voice = ch->fg[proc_num];
+    rassert(voice != NULL);
+    ch->fg_id[proc_num] = Voice_id(voice);
 
     // Get expression settings
     const char* ch_expr =
@@ -57,16 +59,22 @@ void reserve_voice(
     rassert(strlen(note_expr) < KQT_VAR_NAME_MAX);
 
     Voice_init(
-            ch->fg[proc_num],
+            voice,
             Audio_unit_get_proc(au, proc_num),
             group_id,
             proc_state,
             rand_seed);
 
+    // Test voice
     if (ch->use_test_output)
-        Voice_set_test_processor(ch->fg[proc_num], ch->test_proc_index);
+    {
+        Voice_set_test_processor(voice, ch->test_proc_index);
+        if (proc_num == ch->test_proc_index)
+            Voice_set_test_processor_param(voice, ch->test_proc_param);
+    }
 
-    Voice_state* vstate = ch->fg[proc_num]->state;
+    // Apply expression settings
+    Voice_state* vstate = voice->state;
     strcpy(vstate->ch_expr_name, ch_expr);
     if (ch->carry_note_expression && (note_expr[0] != '\0'))
     {
