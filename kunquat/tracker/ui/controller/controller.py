@@ -42,7 +42,8 @@ EVENT_NOTE_OFF = 'n-'
 EVENT_SET_FORCE = '.f'
 EVENT_SET_CH_EXPRESSION = '.xc'
 EVENT_SET_NOTE_EXPRESSION = '.x'
-EVENT_SET_TEST_PROCESSOR = 'c.testproc'
+EVENT_SET_TEST_PROCESSOR = 'c.tp'
+EVENT_SET_TEST_PROCESSOR_PARAM = 'c.tpp'
 
 
 class Controller():
@@ -445,11 +446,18 @@ class Controller():
 
         # Fire events
         self._audio_engine.fire_event(channel_number, control_event)
+
         test_proc_id = self._session.get_test_processor(control_id)
         if test_proc_id:
             proc_num = int(test_proc_id.split('_')[-1], 16)
             test_proc_event = (EVENT_SET_TEST_PROCESSOR, proc_num)
             self._audio_engine.fire_event(channel_number, test_proc_event)
+            proc_param = self._session.get_test_processor_param(test_proc_id)
+            if proc_param != None:
+                test_proc_param_event = (EVENT_SET_TEST_PROCESSOR_PARAM, proc_param)
+                self._audio_engine.fire_event(channel_number, test_proc_param_event)
+                self._session.set_test_processor_param(test_proc_id, None)
+
         note_on_or_hit_event = (event_type, param)
         self._audio_engine.fire_event(channel_number, note_on_or_hit_event)
         if force != None:

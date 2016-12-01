@@ -62,8 +62,12 @@ class ControlManager():
     def is_processor_testing_enabled(self, proc_id):
         return self._session.is_processor_testing_enabled(proc_id)
 
-    def set_test_processor(self, control_id, proc_id):
+    def set_test_processor(self, control_id, proc_id, proc_param=None):
         assert (not proc_id) or self.is_processor_testing_enabled(proc_id)
+        assert (proc_param == None) or (proc_id != None)
+        assert type(proc_param) in (str, type(None))
         self._session.set_test_processor(control_id, proc_id)
+        if proc_id != None:
+            self._session.set_test_processor_param(proc_id, proc_param)
 
 

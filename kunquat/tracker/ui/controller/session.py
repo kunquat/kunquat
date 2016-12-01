@@ -41,6 +41,7 @@ class Session():
         self._control_id_override = None
         self._enabled_test_processors = set()
         self._test_processors = {}
+        self._test_processor_params = {}
         # TODO: get default control ids from libkunquat?
         self._channel_selected_control_id = defaultdict(lambda: 0)
         self._channel_active_control_id = defaultdict(lambda: 0)
@@ -248,6 +249,12 @@ class Session():
 
     def set_test_processor(self, control_id, proc_id):
         self._test_processors[control_id] = proc_id
+
+    def get_test_processor_param(self, proc_id):
+        return self._test_processor_params.get(proc_id, None)
+
+    def set_test_processor_param(self, proc_id, param):
+        self._test_processor_params[proc_id] = param
 
     def get_selected_control_id_by_channel(self, channel):
         return self._channel_selected_control_id[channel]
