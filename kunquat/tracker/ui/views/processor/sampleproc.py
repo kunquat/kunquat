@@ -1239,10 +1239,16 @@ class Samples(QSplitter):
 
     def __init__(self):
         super().__init__()
+        self._au_id = None
+        self._proc_id = None
+        self._ui_model = None
+
         self.setOrientation(Qt.Horizontal)
 
         self._sample_list = SampleList()
         self._sample_editor = SampleEditor()
+
+        self._keyboard_mapper = KeyboardMapper()
 
         h = QHBoxLayout()
         h.setContentsMargins(2, 2, 2, 2)
@@ -1252,20 +1258,53 @@ class Samples(QSplitter):
         self.setLayout(h)
 
     def set_au_id(self, au_id):
+        self._au_id = au_id
         self._sample_list.set_au_id(au_id)
         self._sample_editor.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
         self._sample_list.set_proc_id(proc_id)
         self._sample_editor.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
         self._sample_list.set_ui_model(ui_model)
         self._sample_editor.set_ui_model(ui_model)
+        self._keyboard_mapper.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._keyboard_mapper.unregister_updaters()
         self._sample_editor.unregister_updaters()
         self._sample_list.unregister_updaters()
+
+    def keyPressEvent(self, event):
+        module = self._ui_model.get_module()
+        control_id = module.get_control_id_by_au_id(self._au_id)
+        if not control_id:
+            return
+
+        control_manager = self._ui_model.get_control_manager()
+
+        au = module.get_audio_unit(self._au_id)
+        proc = au.get_processor(self._proc_id)
+
+        use_test_output = (proc.get_existence() and
+            control_manager.is_processor_testing_enabled(self._proc_id))
+
+        control_manager.set_control_id_override(control_id)
+        if use_test_output:
+            sample_params = utils.get_proc_params(
+                    self._ui_model, self._au_id, self._proc_id)
+            sample_id = sample_params.get_selected_sample_id()
+            sample_num = int(sample_id.split('_')[1], 16)
+            sample_num_param = str(sample_num)
+            control_manager.set_test_processor(
+                    control_id, self._proc_id, sample_num_param)
+        if not self._keyboard_mapper.process_typewriter_button_event(event):
+            event.ignore()
+        control_manager.set_test_processor(control_id, None)
+        control_manager.set_control_id_override(None)
 
 
 class SampleListToolBar(QToolBar):

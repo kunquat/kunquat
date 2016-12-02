@@ -23,6 +23,8 @@
 #include <player/devices/Device_thread_state.h>
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/Work_buffers.h>
+#include <string/common.h>
+#include <string/Streader.h>
 
 #include <stdio.h>
 #include <stdint.h>
@@ -500,15 +502,40 @@ static int32_t Sample_vstate_render_voice(
             sample_state->middle_tone = entry->ref_freq;
         }
 
-        if (entry == NULL || entry->sample >= SAMPLES_MAX)
+        if (!string_eq(vstate->test_proc_param, ""))
         {
-            vstate->active = false;
-            return buf_start;
-        }
+            // Use sample number specified in the test parameter
+            Streader* sr = Streader_init(
+                    STREADER_AUTO,
+                    vstate->test_proc_param,
+                    (int)strlen(vstate->test_proc_param));
+            int64_t sample_num = -1;
+            if (!Streader_read_int(sr, &sample_num) ||
+                    (sample_num < 0) ||
+                    (sample_num >= SAMPLES_MAX))
+            {
+                vstate->active = false;
+                return buf_start;
+            }
 
-        sample_state->sample = entry->sample;
-        sample_state->volume = entry->vol_scale;
-        sample_state->cents = entry->cents;
+            sample_state->sample = (int)sample_num;
+            sample_state->volume = 1;
+            sample_state->cents = 0;
+            sample_state->middle_tone = 440;
+        }
+        else
+        {
+            // Use note/hit map entry
+            if (entry == NULL || entry->sample >= SAMPLES_MAX)
+            {
+                vstate->active = false;
+                return buf_start;
+            }
+
+            sample_state->sample = entry->sample;
+            sample_state->volume = entry->vol_scale;
+            sample_state->cents = entry->cents;
+        }
     }
 
     rassert(sample_state->sample < SAMPLES_MAX);

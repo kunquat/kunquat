@@ -57,6 +57,7 @@ struct Channel
 
     bool use_test_output;
     int test_proc_index;
+    char test_proc_param[KQT_VAR_NAME_MAX];
 
     int32_t au_input;              ///< Currently active Audio unit input.
     Au_table* au_table;

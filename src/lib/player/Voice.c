@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 Voice* new_Voice(void)
@@ -154,6 +155,18 @@ void Voice_set_test_processor(Voice* voice, int proc_index)
 
     voice->use_test_output = true;
     voice->test_proc_index = proc_index;
+
+    return;
+}
+
+
+void Voice_set_test_processor_param(Voice* voice, const char* param)
+{
+    rassert(voice != NULL);
+    rassert(param != NULL);
+    rassert(strlen(param) < KQT_VAR_NAME_MAX);
+
+    strncpy(voice->state->test_proc_param, param, KQT_VAR_NAME_MAX - 1);
 
     return;
 }

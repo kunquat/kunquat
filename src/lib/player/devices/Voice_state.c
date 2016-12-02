@@ -80,6 +80,8 @@ Voice_state* Voice_state_clear(Voice_state* state)
     memset(state->ch_expr_name, '\0', KQT_VAR_NAME_MAX);
     memset(state->note_expr_name, '\0', KQT_VAR_NAME_MAX);
 
+    memset(state->test_proc_param, '\0', KQT_VAR_NAME_MAX);
+
     state->hit_index = -1;
 
     state->pos = 0;

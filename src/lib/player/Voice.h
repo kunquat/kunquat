@@ -18,6 +18,7 @@
 
 #include <decl.h>
 #include <init/devices/Processor.h>
+#include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <player/Device_states.h>
 #include <player/Work_buffer.h>
@@ -160,6 +161,16 @@ void Voice_init(
  *                     < \c KQT_PROCESSORS_MAX.
  */
 void Voice_set_test_processor(Voice* voice, int proc_index);
+
+
+/**
+ * Set a Processor test parameter.
+ *
+ * \param voice   The Voice -- must not be \c NULL.
+ * \param param   The test parameter -- must not be \c NULL and must contain
+ *                less than \c KQT_VAR_NAME_MAX characters.
+ */
+void Voice_set_test_processor_param(Voice* voice, const char* param);
 
 
 /**

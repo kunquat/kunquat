@@ -76,6 +76,8 @@ struct Voice_state
     char ch_expr_name[KQT_VAR_NAME_MAX];
     char note_expr_name[KQT_VAR_NAME_MAX];
 
+    char test_proc_param[KQT_VAR_NAME_MAX];
+
     double ramp_attack;            ///< The current state of volume ramp during attack.
 
     int hit_index;                 ///< The hit index (negative for normal notes).
