@@ -165,7 +165,7 @@ void Channel_reset(Channel* ch)
 
     ch->use_test_output = false;
     ch->test_proc_index = -1;
-    memset(ch->test_proc_param, 0, KQT_VAR_NAME_MAX);
+    memset(ch->test_proc_param, '\0', KQT_VAR_NAME_MAX);
 
     ch->au_input = 0;
 
@@ -265,7 +265,7 @@ void Channel_reset_test_output(Channel* ch)
 
     ch->use_test_output = false;
     ch->test_proc_index = -1;
-    memset(ch->test_proc_param, 0, KQT_VAR_NAME_MAX);
+    memset(ch->test_proc_param, '\0', KQT_VAR_NAME_MAX);
 
     return;
 }
