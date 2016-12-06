@@ -1317,7 +1317,7 @@ class SampleListToolBar(QToolBar):
         self._updater = None
 
         self._import_button = QToolButton()
-        self._import_button.setText('Import sample')
+        self._import_button.setText('Import samples')
         self._import_button.setEnabled(True)
 
         self._remove_button = QToolButton()
@@ -1338,7 +1338,7 @@ class SampleListToolBar(QToolBar):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
-        QObject.connect(self._import_button, SIGNAL('clicked()'), self._import_sample)
+        QObject.connect(self._import_button, SIGNAL('clicked()'), self._import_samples)
         QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_sample)
 
         self._update_enabled()
@@ -1374,10 +1374,10 @@ class SampleListToolBar(QToolBar):
         self._import_button.setEnabled(id_count < sample_params.get_max_sample_count())
         self._remove_button.setEnabled(any_selected and (id_count > 0))
 
-    def _import_sample(self):
+    def _import_samples(self):
         sample_params = self._get_sample_params()
-        sample_id = sample_params.get_free_sample_id()
-        if not sample_id:
+        sample_ids = sample_params.get_free_sample_ids()
+        if not sample_ids:
             return
 
         filters = [
@@ -1389,11 +1389,28 @@ class SampleListToolBar(QToolBar):
             'Free Lossless Audio Codec (*.flac)',
         ]
 
-        sample_path, _ = QFileDialog.getOpenFileName(
-                caption='Import sample', filter=';;'.join(filters))
-        if sample_path:
+        free_count = len(sample_ids)
+
+        sample_paths, _ = QFileDialog.getOpenFileNames(
+                caption='Import samples ({} free slot{})'.format(
+                    free_count, '' if free_count == 1 else 's'),
+                filter=';;'.join(filters))
+        if sample_paths:
+            # Make sure we've got enough space
+            if len(sample_paths) > free_count:
+                icon_bank = self._ui_model.get_icon_bank()
+                error_msg_lines = [
+                        'Too many samples requested ({})'.format(len(sample_paths)),
+                        'This processor has space for {} more sample{}'.format(
+                            free_count, '' if free_count == 1 else 's')]
+                error_msg = '<p>{}</p>'.format('<br>'.join(error_msg_lines))
+                dialog = ImportErrorDialog(icon_bank, error_msg)
+                dialog.exec_()
+                return
+
+            imports = zip(sample_ids, sample_paths)
             try:
-                sample_params.import_sample(sample_id, sample_path)
+                sample_params.import_samples(imports)
                 self._updater.signal_update(set([
                     self._get_list_signal_type(),
                     self._get_note_map_random_list_signal_type(),

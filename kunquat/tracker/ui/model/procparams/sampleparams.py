@@ -86,6 +86,7 @@ class SampleParams(ProcParams):
 
         return ret_ids
 
+    '''
     def get_free_sample_id(self):
         for i in range(self._SAMPLES_MAX):
             cur_id = self._get_sample_id(i)
@@ -93,8 +94,18 @@ class SampleParams(ProcParams):
             if not type(cur_header) == dict:
                 return cur_id
         return None
+    '''
 
-    def import_sample(self, sample_id, path):
+    def get_free_sample_ids(self):
+        ids = []
+        for i in range(self._SAMPLES_MAX):
+            cur_id = self._get_sample_id(i)
+            cur_header = self._get_sample_header(cur_id)
+            if not type(cur_header) == dict:
+                ids.append(cur_id)
+        return ids
+
+    def _get_transaction_import_sample(self, sample_id, path):
         freq = 48000
 
         if path.endswith('.wv'):
@@ -144,6 +155,31 @@ class SampleParams(ProcParams):
         transaction[sample_data_key] = sample_data
         transaction[sample_header_key] = header
         transaction[sample_name_key] = name
+
+        return transaction
+
+    def import_samples(self, imports):
+        transaction = {}
+
+        failures = []
+
+        for sample_id, path in imports:
+            try:
+                transaction_add = self._get_transaction_import_sample(sample_id, path)
+                assert set(transaction.keys()).isdisjoint(set(transaction_add.keys()))
+                transaction.update(transaction_add)
+            except SampleImportError as e:
+                failures.append(e)
+
+        if failures:
+            max_reported_count = 10
+            reported_failures = failures[:max_reported_count]
+            msg = '\n'.join(str(f) for f in reported_failures)
+            add_count = len(failures) - len(reported_failures)
+            if add_count > 0:
+                msg += '\nAdditionally, {} more import{} failed'.format(
+                        add_count, '' if add_count == 1 else 's')
+            raise SampleImportError(msg)
 
         self._store.put(transaction)
 
