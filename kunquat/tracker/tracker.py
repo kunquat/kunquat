@@ -16,6 +16,7 @@ import os
 import signal
 
 from . import cmdline
+from . import config
 from .errorbase import *
 from .processes.audioprocess import create_audio_process
 from .processes.uiprocess import create_ui_process
@@ -27,6 +28,8 @@ class Tracker():
         pass
 
     def main(self):
+        config.try_load()
+
         cmdline.parse_arguments()
 
         setup_basic_error_handler()

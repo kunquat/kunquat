@@ -25,6 +25,7 @@ from collections import deque
 from signal import SIGHUP, SIGKILL
 
 import kunquat.tracker.cmdline as cmdline
+import kunquat.tracker.config as config
 from kunquat.tracker.ui.model.uimodel import create_ui_model
 from kunquat.tracker.ui.errordialog import ErrorDialog
 from kunquat.tracker.ui.views.rootview import RootView
@@ -131,6 +132,8 @@ class UiLauncher():
 
         root_view.unregister_updaters()
         self._controller.get_updater().verify_ready_to_exit()
+
+        config.try_save()
 
     def halt_ui(self):
         visibility_manager = self._ui_model.get_visibility_manager()
