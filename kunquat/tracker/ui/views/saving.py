@@ -16,10 +16,14 @@ import os.path
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+import kunquat.tracker.config as config
+
 
 def get_module_save_path():
+    default_dir = config.get_config().get_value('dir_modules') or ''
     module_path, _ = QFileDialog.getSaveFileName(
             caption='Save Kunquat composition',
+            dir=default_dir,
             filter='Kunquat compositions (*.kqt *.kqt.gz *.kqt.bz2)')
     if not module_path:
         return None

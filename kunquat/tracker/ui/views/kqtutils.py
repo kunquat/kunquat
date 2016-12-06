@@ -15,6 +15,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
+import kunquat.tracker.config as config
 
 
 def get_kqt_file_path(types):
@@ -41,8 +42,10 @@ def get_kqt_file_path(types):
     if 'kqte' in types:
         filters.append('Kunquat effects (*.kqte *.kqte.gz *.kqte.bz2)')
 
+    default_dir = config.get_config().get_value('dir_modules') or ''
+
     file_path, _ = QFileDialog.getOpenFileName(
-            caption=caption, filter=';;'.join(filters))
+            caption=caption, dir=default_dir, filter=';;'.join(filters))
     if file_path:
         return file_path
     return None

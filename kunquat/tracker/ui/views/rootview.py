@@ -26,6 +26,7 @@ from .notationwindow import NotationWindow
 from .tuningtablewindow import TuningTableWindow
 from .envbindwindow import EnvBindWindow
 from .generalmodwindow import GeneralModWindow
+from .settingswindow import SettingsWindow
 from .auwindow import AuWindow
 from .procwindow import ProcWindow
 from .sheet.grideditorwindow import GridEditorWindow
@@ -50,6 +51,7 @@ class RootView():
         self._tuning_tables = {}
         self._env_bind = None
         self._general_mod = None
+        self._settings = None
         self._au_windows = {}
         self._proc_windows = {}
         self._grid_editor = None
@@ -139,6 +141,11 @@ class RootView():
                 self._general_mod.set_ui_model(self._ui_model)
                 if is_show_allowed:
                     self._general_mod.show()
+            elif ui == UI_SETTINGS:
+                self._settings = SettingsWindow()
+                self._settings.set_ui_model(self._ui_model)
+                if is_show_allowed:
+                    self._settings.show()
             elif type(ui) == tuple and ui[0] == UI_AUDIO_UNIT:
                 au_id = ui[1]
                 au_window = AuWindow()
@@ -213,6 +220,10 @@ class RootView():
                 self._general_mod.unregister_updaters()
                 self._general_mod.deleteLater()
                 self._general_mod = None
+            elif ui == UI_SETTINGS:
+                self._settings.unregister_updaters()
+                self._settings.deleteLater()
+                self._settings = None
             elif type(ui) == tuple and ui[0] == UI_AUDIO_UNIT:
                 au_id = ui[1]
                 au_window = self._au_windows.pop(au_id)
@@ -275,6 +286,7 @@ class RootView():
             window.setEnabled(enabled)
         try_set_enabled(self._env_bind)
         try_set_enabled(self._general_mod)
+        try_set_enabled(self._settings)
         for window in self._au_windows.values():
             window.setEnabled(enabled)
         for window in self._proc_windows.values():

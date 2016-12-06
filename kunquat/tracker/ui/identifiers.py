@@ -12,19 +12,20 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-UI_MAIN         = 'main'
 UI_ABOUT        = 'about'
-UI_EVENT_LOG    = 'event_log'
-UI_CONNECTIONS  = 'connections'
 UI_AUDIO_UNIT   = 'audio_unit'
-UI_SONGS_CHS    = 'songs_channels'
+UI_CONNECTIONS  = 'connections'
 UI_ENV_BIND     = 'env_bind'
-UI_PROCESSOR    = 'processor'
-UI_GRID_EDITOR  = 'grid_editor'
-UI_NOTATION     = 'notation'
-UI_TUNING_TABLE = 'tuning_table'
+UI_EVENT_LOG    = 'event_log'
 UI_GENERAL_MOD  = 'general_module_settings'
+UI_GRID_EDITOR  = 'grid_editor'
 UI_IA_CONTROLS  = 'ia_controls'
+UI_MAIN         = 'main'
+UI_NOTATION     = 'notation'
+UI_PROCESSOR    = 'processor'
 UI_RENDER_STATS = 'render_stats'
+UI_SETTINGS     = 'settings'
+UI_SONGS_CHS    = 'songs_channels'
+UI_TUNING_TABLE = 'tuning_table'
 
 
