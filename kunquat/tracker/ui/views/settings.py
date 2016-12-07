@@ -26,6 +26,9 @@ class Settings(QWidget):
         super().__init__()
 
         self._modules = Modules()
+        self._instruments = Instruments()
+        self._samples = Samples()
+        self._effects = Effects()
 
         dl = QGridLayout()
         dl.setContentsMargins(0, 0, 0, 0)
@@ -33,6 +36,12 @@ class Settings(QWidget):
         dl.setVerticalSpacing(2)
         dl.addWidget(QLabel('Modules:'), 0, 0)
         dl.addWidget(self._modules, 0, 1)
+        dl.addWidget(QLabel('Instruments:'), 1, 0)
+        dl.addWidget(self._instruments, 1, 1)
+        dl.addWidget(QLabel('Samples:'), 2, 0)
+        dl.addWidget(self._samples, 2, 1)
+        dl.addWidget(QLabel('Effects:'), 3, 0)
+        dl.addWidget(self._effects, 3, 1)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -44,8 +53,14 @@ class Settings(QWidget):
 
     def set_ui_model(self, ui_model):
         self._modules.set_ui_model(ui_model)
+        self._instruments.set_ui_model(ui_model)
+        self._samples.set_ui_model(ui_model)
+        self._effects.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._effects.unregister_updaters()
+        self._samples.unregister_updaters()
+        self._instruments.unregister_updaters()
         self._modules.unregister_updaters()
 
 
@@ -112,5 +127,23 @@ class Modules(Directory):
 
     def __init__(self):
         super().__init__('dir_modules')
+
+
+class Instruments(Directory):
+
+    def __init__(self):
+        super().__init__('dir_instruments')
+
+
+class Samples(Directory):
+
+    def __init__(self):
+        super().__init__('dir_samples')
+
+
+class Effects(Directory):
+
+    def __init__(self):
+        super().__init__('dir_effects')
 
 

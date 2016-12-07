@@ -17,6 +17,7 @@ import time
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+import kunquat.tracker.config as config
 from kunquat.tracker.ui.model.procparams.sampleparams import SampleImportError
 from kunquat.tracker.ui.views.audio_unit.hitselector import HitSelector
 from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
@@ -1394,6 +1395,7 @@ class SampleListToolBar(QToolBar):
         sample_paths, _ = QFileDialog.getOpenFileNames(
                 caption='Import samples ({} free slot{})'.format(
                     free_count, '' if free_count == 1 else 's'),
+                dir=config.get_config().get_value('dir_samples') or '',
                 filter=';;'.join(filters))
         if sample_paths:
             # Make sure we've got enough space

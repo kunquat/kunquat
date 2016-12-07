@@ -11,8 +11,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-import os
-
 from PySide.QtCore import *
 from PySide.QtGui import *
 
@@ -250,11 +248,9 @@ class ConnectionsToolBar(QToolBar):
         au = module.get_audio_unit(self._au_id)
 
         if au.is_instrument():
-            instruments_dir = os.getcwd() # TODO: get a better directory
-            au_path = get_instrument_save_path(au.get_name(), instruments_dir)
+            au_path = get_instrument_save_path(au.get_name())
         else:
-            effects_dir = os.getcwd() # TODO: get a better directory
-            au_path = get_effect_save_path(au.get_name(), effects_dir)
+            au_path = get_effect_save_path(au.get_name())
         if not au_path:
             return
 

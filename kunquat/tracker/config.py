@@ -67,8 +67,11 @@ class Config():
             return (x == None) or (isinstance(x, str) and len(x) < 1024)
 
         self._config = {
-            'version'    : _Entry(v_version, self._VERSION),
-            'dir_modules': _Entry(v_dir, None),
+            'version'        : _Entry(v_version, self._VERSION),
+            'dir_effects'    : _Entry(v_dir, None),
+            'dir_instruments': _Entry(v_dir, None),
+            'dir_modules'    : _Entry(v_dir, None),
+            'dir_samples'    : _Entry(v_dir, None),
         }
 
     def get_value(self, key):

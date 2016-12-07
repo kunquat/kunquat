@@ -26,12 +26,15 @@ def get_kqt_file_path(types):
             ' (*.kqt *.kqt.gz *.kqt.bz2'
             ' *.kqti *.kqti.gz *.kqti.bz2'
             ' *.kqte *.kqte.gz *.kqte.bz2)')
+        def_dir_conf_key = 'dir_modules'
     elif types == set(['kqti', 'kqte']):
         caption = 'Open Kunquat instrument/effect'
         filters.append('Kunquat instruments and effects'
             ' (*.kqti *.kqti.gz *.kqti.bz2 *.kqte *.kqte.gz *.kqte.bz2)')
+        def_dir_conf_key = 'dir_instruments'
     elif types == set(['kqte']):
         caption = 'Open Kunquat effect'
+        def_dir_conf_key = 'dir_effects'
     else:
         assert False
 
@@ -42,7 +45,7 @@ def get_kqt_file_path(types):
     if 'kqte' in types:
         filters.append('Kunquat effects (*.kqte *.kqte.gz *.kqte.bz2)')
 
-    default_dir = config.get_config().get_value('dir_modules') or ''
+    default_dir = config.get_config().get_value(def_dir_conf_key) or ''
 
     file_path, _ = QFileDialog.getOpenFileName(
             caption=caption, dir=default_dir, filter=';;'.join(filters))
