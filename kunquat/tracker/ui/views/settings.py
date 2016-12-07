@@ -49,7 +49,7 @@ class Settings(QWidget):
         self._modules.unregister_updaters()
 
 
-class Directory(QLineEdit):
+class Directory(QWidget):
 
     def __init__(self, conf_key):
         super().__init__()
