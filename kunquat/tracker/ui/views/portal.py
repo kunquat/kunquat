@@ -38,6 +38,7 @@ class Portal(QToolBar):
         self._notation_button = NotationButton()
         self._env_bind_button = EnvBindButton()
         self._general_mod_button = GeneralModButton()
+        self._settings_button = SettingsButton()
         self._event_list_button = EventListButton()
         self._render_stats_button = RenderStatsButton()
 
@@ -54,6 +55,7 @@ class Portal(QToolBar):
         self.addWidget(self._event_list_button)
         self.addWidget(self._render_stats_button)
         self.addSeparator()
+        self.addWidget(self._settings_button)
         self.addWidget(self._about_button)
 
     def set_ui_model(self, ui_model):
@@ -67,10 +69,12 @@ class Portal(QToolBar):
         self._general_mod_button.set_ui_model(ui_model)
         self._event_list_button.set_ui_model(ui_model)
         self._render_stats_button.set_ui_model(ui_model)
+        self._settings_button.set_ui_model(ui_model)
         self._about_button.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._about_button.unregister_updaters()
+        self._settings_button.unregister_updaters()
         self._event_list_button.unregister_updaters()
         self._render_stats_button.unregister_updaters()
         self._general_mod_button.unregister_updaters()
@@ -133,6 +137,15 @@ class GeneralModButton(WindowOpenerButton):
 
     def _show_action(self, visibility_manager):
         visibility_manager.show_general_module_settings()
+
+
+class SettingsButton(WindowOpenerButton):
+
+    def __init__(self):
+        super().__init__('Settings')
+
+    def _show_action(self, visibility_manager):
+        visibility_manager.show_settings()
 
 
 _RENDER_LOAD_METER_CONFIG = {

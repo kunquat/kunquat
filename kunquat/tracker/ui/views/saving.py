@@ -16,10 +16,14 @@ import os.path
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+import kunquat.tracker.config as config
+
 
 def get_module_save_path():
+    default_dir = config.get_config().get_value('dir_modules') or ''
     module_path, _ = QFileDialog.getSaveFileName(
             caption='Save Kunquat composition',
+            dir=default_dir,
             filter='Kunquat compositions (*.kqt *.kqt.gz *.kqt.bz2)')
     if not module_path:
         return None
@@ -30,13 +34,14 @@ def _get_suggested_au_base_file_name(au_name):
     return ''.join(c for c in au_name if c.isalnum() or c in ' ').strip()
 
 
-def get_instrument_save_path(au_name, instruments_dir):
-    suggested_path = instruments_dir
+def get_instrument_save_path(au_name):
+    default_dir = config.get_config().get_value('dir_instruments') or ''
+    suggested_path = default_dir
     if au_name:
         suggested_base_name = _get_suggested_au_base_file_name(au_name)
         if suggested_base_name:
             suggested_name = suggested_base_name + '.kqti.bz2'
-            suggested_path = os.path.join(instruments_dir, suggested_name)
+            suggested_path = os.path.join(default_dir, suggested_name)
     au_path, _ = QFileDialog.getSaveFileName(
             caption='Save Kunquat instrument',
             dir=suggested_path,
@@ -46,13 +51,14 @@ def get_instrument_save_path(au_name, instruments_dir):
     return au_path
 
 
-def get_effect_save_path(au_name, effects_dir):
-    suggested_path = effects_dir
+def get_effect_save_path(au_name):
+    default_dir = config.get_config().get_value('dir_effects') or ''
+    suggested_path = default_dir
     if au_name:
         suggested_base_name = _get_suggested_au_base_file_name(au_name)
         if suggested_base_name:
             suggested_name = suggested_base_name + '.kqte.bz2'
-            suggested_path = os.path.join(effects_dir, suggested_name)
+            suggested_path = os.path.join(default_dir, suggested_name)
     au_path, _ = QFileDialog.getSaveFileName(
             caption='Save Kunquat effect',
             dir=suggested_path,
