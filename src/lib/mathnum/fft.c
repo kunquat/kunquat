@@ -15,10 +15,105 @@
 
 #include <debug/assert.h>
 #include <mathnum/fft.h>
+#include <memory.h>
 
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
+
+
+static void drfti1(int32_t n, float* wa, int* ifac);
+static void drftf1(int32_t n, float* c, float* ch, float* wa, const int* ifac);
+static void drftb1(int32_t n, float* c, float* ch, const float* wa, const int* ifac);
+
+
+FFT_worker* FFT_worker_init(FFT_worker* worker, int32_t max_tlength)
+{
+    rassert(worker != NULL);
+    rassert(max_tlength > 0);
+
+    worker->wsave = memory_calloc_items(float, max_tlength * 2);
+    if (worker->wsave == NULL)
+        return NULL;
+
+    worker->max_length = max_tlength;
+    worker->cur_length = 0;
+
+    for (int i = 0; i < 32; ++i)
+        worker->ifac[0] = 0;
+
+    return worker;
+}
+
+
+static void rfft_init(int32_t n, float* wsave, int* ifac)
+{
+    rassert(n >= 1);
+    rassert(wsave != NULL);
+    rassert(ifac != NULL);
+
+    if (n == 1)
+        return;
+
+    drfti1(n, wsave + n, ifac);
+
+    return;
+}
+
+
+void FFT_worker_rfft(FFT_worker* worker, float* data, int32_t length)
+{
+    rassert(worker != NULL);
+    rassert(data != NULL);
+    rassert(length > 0);
+    rassert(length <= worker->max_length);
+
+    if (length != worker->cur_length)
+    {
+        rfft_init(length, worker->wsave, worker->ifac);
+        worker->cur_length = length;
+    }
+
+    if (length == 1)
+        return;
+
+    drftf1(length, data, worker->wsave, worker->wsave + length, worker->ifac);
+
+    return;
+}
+
+
+void FFT_worker_irfft(FFT_worker* worker, float* data, int32_t length)
+{
+    rassert(worker != NULL);
+    rassert(data != NULL);
+    rassert(length > 0);
+    rassert(length <= worker->max_length);
+
+    if (length != worker->cur_length)
+    {
+        rfft_init(length, worker->wsave, worker->ifac);
+        worker->cur_length = length;
+    }
+
+    if (length == 1)
+        return;
+
+    drftb1(length, data, worker->wsave, worker->wsave + length, worker->ifac);
+
+    return;
+}
+
+
+void FFT_worker_deinit(FFT_worker* worker)
+{
+    rassert(worker != NULL);
+
+    memory_free(worker->wsave);
+    worker->wsave = NULL;
+
+    return;
+}
 
 
 static void drfti1(int32_t n, float* wa, int* ifac)
@@ -99,21 +194,6 @@ static void drfti1(int32_t n, float* wa, int* ifac)
         }
         l1 = l2;
     }
-
-    return;
-}
-
-
-void rfft_init(int32_t n, float* wsave, int* ifac)
-{
-    rassert(n >= 1);
-    rassert(wsave != NULL);
-    rassert(ifac != NULL);
-
-    if (n == 1)
-        return;
-
-    drfti1(n, wsave + n, ifac);
 
     return;
 }
@@ -714,22 +794,6 @@ static void drftf1(int32_t n, float* c, float* ch, float* wa, const int* ifac)
 
     for (i = 0; i < n; i++)
         c[i] = ch[i];
-
-    return;
-}
-
-
-void rfft_forward(int32_t n, float* r, float* wsave, const int* ifac)
-{
-    rassert(n >= 1);
-    rassert(r != NULL);
-    rassert(wsave != NULL);
-    rassert(ifac != NULL);
-
-    if (n == 1)
-        return;
-
-    drftf1(n, r, wsave, wsave + n, ifac);
 
     return;
 }
@@ -1411,22 +1475,6 @@ static void drftb1(int32_t n, float* c, float* ch, const float* wa, const int* i
 
     for (i = 0; i < n; i++)
         c[i] = ch[i];
-
-    return;
-}
-
-
-void rfft_backward(int32_t n, float* r, float* wsave, const int* ifac)
-{
-    rassert(n >= 1);
-    rassert(r != NULL);
-    rassert(wsave != NULL);
-    rassert(ifac != NULL);
-
-    if (n == 1)
-        return;
-
-    drftb1(n, r, wsave, wsave + n, ifac);
 
     return;
 }

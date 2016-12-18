@@ -20,43 +20,58 @@
 #include <stdlib.h>
 
 
+typedef struct FFT_worker
+{
+    int32_t max_length;
+    int32_t cur_length;
+    float* wsave;
+    int ifac[32];
+} FFT_worker;
+
+
+#define FFT_WORKER_AUTO (&(FFT_worker){ .max_length = 0, .cur_length = 0 })
+
+
 /**
- * Initialise work space for real-valued FFT.
+ * Initialise the FFT worker.
  *
- * \param tlength   The length of the transformed array -- must be positive.
- * \param wsave     The array for complex roots of unity -- must not be
- *                  \c NULL and must have space for \a length * 2
- *                  floating-point numbers.
- * \param ifac      The array for factorisation information
- *                  -- must not be \c NULL.
+ * \param worker        The FFT worker -- must not be \c NULL.
+ * \param max_tlength   Maximum length of Fourier Transform performed
+ *                      -- must be positive.
+ *
+ * \return   \a worker if successful, or \c NULL if memory allocation failed.
  */
-void rfft_init(int32_t tlength, float* wsave, int* ifac);
+FFT_worker* FFT_worker_init(FFT_worker* worker, int32_t max_tlength);
 
 
 /**
  * Calculate the Fast Fourier Transform of a periodic signal.
  *
- * \param length   The number of elements to be processed -- must be positive.
+ * \param worker   The FFT worker -- must not be \c NULL.
  * \param data     The input/output array -- must not be \c NULL.
- * \param wsave    The array of complex roots of unity filled by \a rfft_init
- *                 -- must not be \c NULL.
- * \param ifac     The array of factorisation information filled by
- *                 \a rfft_init -- must not be \c NULL.
+ * \param length   The length of the array -- must be positive and not larger
+ *                 than the maximum length supported by \a worker.
  */
-void rfft_forward(int32_t length, float* data, float* wsave, const int* ifac);
+void FFT_worker_rfft(FFT_worker* worker, float* data, int32_t length);
 
 
 /**
  * Calculate the inverse Fast Fourier Transform of a periodic signal.
  *
- * \param length   The number of elements to be processed -- must be positive.
+ * \param worker   The FFT worker -- must not be \c NULL.
  * \param data     The input/output array -- must not be \c NULL.
- * \param wsave    The array of complex roots of unity filled by \a rfft_init
- *                 -- must not be \c NULL.
- * \param ifac     The array of factorisation information filled by
- *                 \a rfft_init -- must not be \c NULL.
+ * \param length   The length of the array -- must be positive and not larger
+ *                 than the maximum length supported by \a worker.
  */
-void rfft_backward(int32_t length, float* data, float* wsave, const int* ifac);
+void FFT_worker_irfft(FFT_worker* worker, float* data, int32_t length);
+
+
+/**
+ * Deinitialise the FFT worker.
+ *
+ * \param worker   The FFT worker -- must not be \c NULL.
+ */
+void FFT_worker_deinit(FFT_worker* worker);
 
 
 #endif // KQT_FFT_H
