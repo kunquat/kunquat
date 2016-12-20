@@ -122,46 +122,45 @@ static void drfti1(int32_t n, float* wa, int* ifac)
 {
     const int ntryh[4] = { 4, 2, 3, 5 };
     float arg = 0, argh = 0, argld = 0, fi = 0;
-    int ntry = 0, i = 0, j = -1;
     int l1 = 0, l2 = 0;
     int ld = 0, ip = 0, nq = 0, nr = 0;
     int ido = 0, ipm = 0, nfm1 = 0;
-    int nl = n;
     int nf = 0;
 
-  L101:
-    j++;
-    if (j < 4)
-        ntry = ntryh[j];
-    else
-        ntry += 2;
-
-  L104:
-    nq = nl / ntry;
-    nr = nl - ntry * nq;
-    if (nr != 0)
-        goto L101;
-
-    nf++;
-    ifac[nf + 1] = ntry;
-    nl = nq;
-    if (ntry != 2)
-        goto L107;
-    if (nf == 1)
-        goto L107;
-
-    for (i = 1; i < nf; i++)
+    // Divide n into preferred set of factors
+    int test_index = 0;
+    int left = n;
+    while (left > 1)
     {
-        const int ib = nf - i + 1;
-        ifac[ib + 1] = ifac[ib];
-    }
-    ifac[2] = 2;
+        // Try dividing by numbers in ntryh followed by 7, 9, 11,...
+        const int ntry = (test_index < 4) ? ntryh[test_index] : test_index * 2 - 1;
 
-  L107:
-    if (nl != 1)
-        goto L104;
+        nq = left / ntry;
+        nr = left - ntry * nq;
+        if (nr != 0)
+        {
+            ++test_index;
+            continue;
+        }
+
+        nf++;
+        ifac[nf + 1] = ntry;
+        left = nq;
+
+        if ((ntry == 2) && (nf != 1))
+        {
+            for (int i = 1; i < nf; ++i)
+            {
+                const int ib = nf - i + 1;
+                ifac[ib + 1] = ifac[ib];
+            }
+            ifac[2] = 2;
+        }
+    }
+
     ifac[0] = n;
     ifac[1] = nf;
+
     argh = (float)(PI2 / n);
     int is = 0;
     nfm1 = nf - 1;
@@ -178,10 +177,10 @@ static void drfti1(int32_t n, float* wa, int* ifac)
         ido = n / l2;
         ipm = ip - 1;
 
-        for (j = 0; j < ipm; j++)
+        for (int j = 0; j < ipm; j++)
         {
             ld += l1;
-            i = is;
+            int i = is;
             argld = (float)ld * argh;
             fi = 0.0f;
             for (int ii = 2; ii < ido; ii += 2)
