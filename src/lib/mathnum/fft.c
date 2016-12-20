@@ -13,8 +13,10 @@
  */
 
 
-#include <debug/assert.h>
 #include <mathnum/fft.h>
+
+#include <debug/assert.h>
+#include <mathnum/common.h>
 #include <memory.h>
 
 #include <math.h>
@@ -119,7 +121,6 @@ void FFT_worker_deinit(FFT_worker* worker)
 static void drfti1(int32_t n, float* wa, int* ifac)
 {
     const int ntryh[4] = { 4, 2, 3, 5 };
-    const float tpi = 6.28318530717958647692528676655900577f;
     float arg = 0, argh = 0, argld = 0, fi = 0;
     int ntry = 0, i = 0, j = -1;
     int l1 = 0, l2 = 0;
@@ -161,7 +162,7 @@ static void drfti1(int32_t n, float* wa, int* ifac)
         goto L104;
     ifac[0] = n;
     ifac[1] = nf;
-    argh = tpi / (float)n;
+    argh = (float)(PI2 / n);
     int is = 0;
     nfm1 = nf - 1;
     l1 = 1;
@@ -379,7 +380,6 @@ static void dradfg(
         int ido, int ip, int l1, int idl1, float* cc, float* c1,
         float* c2, float* ch, float* ch2, float* wa)
 {
-    const float tpi = 6.28318530717958647692528676655900577f;
     int idij = 0, ipph = 0, i = 0, j = 0, k = 0, l = 0, ic = 0, ik = 0, is = 0;
     int t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0;
     int t6 = 0, t7 = 0, t8 = 0, t9 = 0, t10 = 0;
@@ -388,7 +388,7 @@ static void dradfg(
     float dcp = 0, arg = 0, dsp = 0, ar1h = 0, ar2h = 0;
     int idp2 = 0, ipp2 = 0;
 
-    arg = tpi / (float)ip;
+    arg = (float)(PI2 / ip);
     dcp = cosf(arg);
     dsp = sinf(arg);
     ipph = (ip + 1) >> 1;
@@ -1047,7 +1047,6 @@ static void dradbg(
         int ido, int ip, int l1, int idl1, float* cc, float* c1,
         float* c2, float* ch, float* ch2, const float* wa)
 {
-    const float tpi = 6.28318530717958647692528676655900577f;
     int idij = 0, ipph = 0, i = 0, j = 0, k = 0, l = 0, ik = 0, is = 0;
     int t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0;
     int t7 = 0, t8 = 0, t9 = 0, t10 = 0, t11 = 0, t12 = 0;
@@ -1058,7 +1057,7 @@ static void dradbg(
 
     t10 = ip * ido;
     t0 = l1 * ido;
-    arg = tpi / (float)ip;
+    arg = (float)(PI2 / ip);
     dcp = cosf(arg);
     dsp = sinf(arg);
     nbd = (ido - 1) >> 1;
