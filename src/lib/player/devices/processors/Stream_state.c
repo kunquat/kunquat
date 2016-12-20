@@ -147,6 +147,9 @@ Device_state* new_Stream_pstate(
     const Proc_stream* stream = (const Proc_stream*)device->dimpl;
     spstate->init_value = stream->init_value;
 
+    spstate->init_osc_speed = 0;
+    spstate->init_osc_depth = 0;
+
     Linear_controls_init(&spstate->controls);
     Linear_controls_set_audio_rate(&spstate->controls, audio_rate);
     Linear_controls_set_tempo(&spstate->controls, 120);
