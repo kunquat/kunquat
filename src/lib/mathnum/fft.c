@@ -396,126 +396,126 @@ static void dradfg(
     t0 = l1 * ido;
     t10 = ip * ido;
 
-    if (ido == 1)
-        goto L119;
-    for (ik = 0; ik < idl1; ik++)
-        ch2[ik] = c2[ik];
-
-    t1 = 0;
-    for (j = 1; j < ip; j++)
+    if (ido != 1)
     {
-        t1 += t0;
-        t2 = t1;
-        for (k = 0; k < l1; k++)
-        {
-            ch[t2] = c1[t2];
-            t2 += ido;
-        }
-    }
+        for (ik = 0; ik < idl1; ik++)
+            ch2[ik] = c2[ik];
 
-    is = -ido;
-    t1 = 0;
-    if (nbd > l1)
-    {
+        t1 = 0;
         for (j = 1; j < ip; j++)
         {
             t1 += t0;
-            is += ido;
-            t2 = -ido + t1;
+            t2 = t1;
             for (k = 0; k < l1; k++)
             {
-                idij = is - 1;
+                ch[t2] = c1[t2];
                 t2 += ido;
-                t3 = t2;
+            }
+        }
+
+        is = -ido;
+        t1 = 0;
+        if (nbd > l1)
+        {
+            for (j = 1; j < ip; j++)
+            {
+                t1 += t0;
+                is += ido;
+                t2 = -ido + t1;
+                for (k = 0; k < l1; k++)
+                {
+                    idij = is - 1;
+                    t2 += ido;
+                    t3 = t2;
+                    for (i = 2; i < ido; i += 2)
+                    {
+                        idij += 2;
+                        t3 += 2;
+                        ch[t3 - 1] = wa[idij - 1] * c1[t3 - 1] + wa[idij] * c1[t3];
+                        ch[t3] = wa[idij - 1] * c1[t3] - wa[idij] * c1[t3 - 1];
+                    }
+                }
+            }
+        }
+        else
+        {
+            for (j = 1; j < ip; j++)
+            {
+                is += ido;
+                idij = is - 1;
+                t1 += t0;
+                t2 = t1;
                 for (i = 2; i < ido; i += 2)
                 {
                     idij += 2;
-                    t3 += 2;
-                    ch[t3 - 1] = wa[idij - 1] * c1[t3 - 1] + wa[idij] * c1[t3];
-                    ch[t3] = wa[idij - 1] * c1[t3] - wa[idij] * c1[t3 - 1];
+                    t2 += 2;
+                    t3 = t2;
+                    for (k = 0; k < l1; k++)
+                    {
+                        ch[t3 - 1] = wa[idij - 1] * c1[t3 - 1] + wa[idij] * c1[t3];
+                        ch[t3] = wa[idij - 1] * c1[t3] - wa[idij] * c1[t3 - 1];
+                        t3 += ido;
+                    }
                 }
             }
         }
-    }
-    else
-    {
-        for (j = 1; j < ip; j++)
-        {
-            is += ido;
-            idij = is - 1;
-            t1 += t0;
-            t2 = t1;
-            for (i = 2; i < ido; i += 2)
-            {
-                idij += 2;
-                t2 += 2;
-                t3 = t2;
-                for (k = 0; k < l1; k++)
-                {
-                    ch[t3 - 1] = wa[idij - 1] * c1[t3 - 1] + wa[idij] * c1[t3];
-                    ch[t3] = wa[idij - 1] * c1[t3] - wa[idij] * c1[t3 - 1];
-                    t3 += ido;
-                }
-            }
-        }
-    }
 
-    t1 = 0;
-    t2 = ipp2 * t0;
-    if (nbd < l1)
-    {
-        for (j = 1; j < ipph; j++)
+        t1 = 0;
+        t2 = ipp2 * t0;
+        if (nbd < l1)
         {
-            t1 += t0;
-            t2 -= t0;
-            t3 = t1;
-            t4 = t2;
-            for (i = 2; i < ido; i += 2)
+            for (j = 1; j < ipph; j++)
             {
-                t3 += 2;
-                t4 += 2;
-                t5 = t3 - ido;
-                t6 = t4 - ido;
-                for (k = 0; k < l1; k++)
-                {
-                    t5 += ido;
-                    t6 += ido;
-                    c1[t5 - 1] = ch[t5 - 1] + ch[t6 - 1];
-                    c1[t6 - 1] = ch[t5] - ch[t6];
-                    c1[t5] = ch[t5] + ch[t6];
-                    c1[t6] = ch[t6 - 1] - ch[t5 - 1];
-                }
-            }
-        }
-    }
-    else
-    {
-        for (j = 1; j < ipph; j++)
-        {
-            t1 += t0;
-            t2 -= t0;
-            t3 = t1;
-            t4 = t2;
-            for (k = 0; k < l1; k++)
-            {
-                t5 = t3;
-                t6 = t4;
+                t1 += t0;
+                t2 -= t0;
+                t3 = t1;
+                t4 = t2;
                 for (i = 2; i < ido; i += 2)
                 {
-                    t5 += 2;
-                    t6 += 2;
-                    c1[t5 - 1] = ch[t5 - 1] + ch[t6 - 1];
-                    c1[t6 - 1] = ch[t5] - ch[t6];
-                    c1[t5] = ch[t5] + ch[t6];
-                    c1[t6] = ch[t6 - 1] - ch[t5 - 1];
+                    t3 += 2;
+                    t4 += 2;
+                    t5 = t3 - ido;
+                    t6 = t4 - ido;
+                    for (k = 0; k < l1; k++)
+                    {
+                        t5 += ido;
+                        t6 += ido;
+                        c1[t5 - 1] = ch[t5 - 1] + ch[t6 - 1];
+                        c1[t6 - 1] = ch[t5] - ch[t6];
+                        c1[t5] = ch[t5] + ch[t6];
+                        c1[t6] = ch[t6 - 1] - ch[t5 - 1];
+                    }
                 }
-                t3 += ido;
-                t4 += ido;
+            }
+        }
+        else
+        {
+            for (j = 1; j < ipph; j++)
+            {
+                t1 += t0;
+                t2 -= t0;
+                t3 = t1;
+                t4 = t2;
+                for (k = 0; k < l1; k++)
+                {
+                    t5 = t3;
+                    t6 = t4;
+                    for (i = 2; i < ido; i += 2)
+                    {
+                        t5 += 2;
+                        t6 += 2;
+                        c1[t5 - 1] = ch[t5 - 1] + ch[t6 - 1];
+                        c1[t6 - 1] = ch[t5] - ch[t6];
+                        c1[t5] = ch[t5] + ch[t6];
+                        c1[t6] = ch[t6 - 1] - ch[t5 - 1];
+                    }
+                    t3 += ido;
+                    t4 += ido;
+                }
             }
         }
     }
 
-  L119:
     for (ik = 0; ik < idl1; ik++)
         c2[ik] = ch2[ik];
 
@@ -596,37 +596,35 @@ static void dradfg(
             ch2[ik] += c2[t2++];
     }
 
-    if (ido < l1)
-        goto L132;
-
-    t1 = 0;
-    t2 = 0;
-    for (k = 0; k < l1; k++)
+    if (ido >= l1)
     {
-        t3 = t1;
-        t4 = t2;
         for (i = 0; i < ido; i++)
-            cc[t4++] = ch[t3++];
-        t1 += ido;
-        t2 += t10;
+        {
+            t1 = i;
+            t2 = i;
+            for (k = 0; k < l1; k++)
+            {
+                cc[t2] = ch[t1];
+                t1 += ido;
+                t2 += t10;
+            }
+        }
     }
-
-    goto L135;
-
-  L132:
-    for (i = 0; i < ido; i++)
+    else
     {
-        t1 = i;
-        t2 = i;
+        t1 = 0;
+        t2 = 0;
         for (k = 0; k < l1; k++)
         {
-            cc[t2] = ch[t1];
+            t3 = t1;
+            t4 = t2;
+            for (i = 0; i < ido; i++)
+                cc[t4++] = ch[t3++];
             t1 += ido;
             t2 += t10;
         }
     }
 
-  L135:
     t1 = 0;
     t2 = ido << 1;
     t3 = 0;
@@ -653,42 +651,41 @@ static void dradfg(
 
     if (ido == 1)
         return;
-    if (nbd < l1)
-        goto L141;
 
-    t1 = -ido;
-    t3 = 0;
-    t4 = 0;
-    t5 = ipp2*t0;
-    for (j = 1; j < ipph; j++)
+    if (nbd >= l1)
     {
-        t1 += t2;
-        t3 += t2;
-        t4 += t0;
-        t5 -= t0;
-        t6 = t1;
-        t7 = t3;
-        t8 = t4;
-        t9 = t5;
-        for (k = 0; k < l1; k++)
+        t1 = -ido;
+        t3 = 0;
+        t4 = 0;
+        t5 = ipp2*t0;
+        for (j = 1; j < ipph; j++)
         {
-            for (i = 2; i < ido; i += 2)
+            t1 += t2;
+            t3 += t2;
+            t4 += t0;
+            t5 -= t0;
+            t6 = t1;
+            t7 = t3;
+            t8 = t4;
+            t9 = t5;
+            for (k = 0; k < l1; k++)
             {
-                ic = idp2 - i;
-                cc[i + t7 - 1] = ch[i + t8 - 1] + ch[i + t9 - 1];
-                cc[ic + t6 - 1] = ch[i + t8 - 1] - ch[i + t9 - 1];
-                cc[i + t7] = ch[i + t8] + ch[i + t9];
-                cc[ic + t6] = ch[i + t9] - ch[i + t8];
+                for (i = 2; i < ido; i += 2)
+                {
+                    ic = idp2 - i;
+                    cc[i + t7 - 1] = ch[i + t8 - 1] + ch[i + t9 - 1];
+                    cc[ic + t6 - 1] = ch[i + t8 - 1] - ch[i + t9 - 1];
+                    cc[i + t7] = ch[i + t8] + ch[i + t9];
+                    cc[ic + t6] = ch[i + t9] - ch[i + t8];
+                }
+                t6 += t10;
+                t7 += t10;
+                t8 += ido;
+                t9 += ido;
             }
-            t6 += t10;
-            t7 += t10;
-            t8 += ido;
-            t9 += ido;
         }
+        return;
     }
-    return;
-
-  L141:
 
     t1 = -ido;
     t3 = 0;
@@ -708,8 +705,8 @@ static void dradfg(
             t9 = i + t5;
             for (k = 0; k < l1; k++)
             {
-                cc[t7-1] = ch[t8 - 1] + ch[t9 - 1];
-                cc[t6-1] = ch[t8 - 1] - ch[t9 - 1];
+                cc[t7 - 1] = ch[t8 - 1] + ch[t9 - 1];
+                cc[t6 - 1] = ch[t8 - 1] - ch[t9 - 1];
                 cc[t7] = ch[t8] + ch[t9];
                 cc[t6] = ch[t9] - ch[t8];
                 t6 += t10;
