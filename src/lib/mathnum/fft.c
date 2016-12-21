@@ -218,38 +218,38 @@ static void dradf2(int ido, int l1, float* cc, float* ch, const float* wa1)
 
     if (ido < 2)
         return;
-    if (ido == 2)
-        goto L105;
 
-    t1 = 0;
-    t2 = t0;
-    for (k = 0; k < l1; k++)
+    if (ido != 2)
     {
-        t3 = t2;
-        t4 = (t1 << 1) + (ido << 1);
-        t5 = t1;
-        t6 = t1 + t1;
-        for (i = 2; i < ido; i += 2)
+        t1 = 0;
+        t2 = t0;
+        for (k = 0; k < l1; k++)
         {
-            t3 += 2;
-            t4 -= 2;
-            t5 += 2;
-            t6 += 2;
-            tr2 = wa1[i - 2] * cc[t3 - 1] + wa1[i - 1] * cc[t3];
-            ti2 = wa1[i - 2] * cc[t3] - wa1[i - 1] * cc[t3 - 1];
-            ch[t6] = cc[t5] + ti2;
-            ch[t4] = ti2 - cc[t5];
-            ch[t6 - 1] = cc[t5 - 1] + tr2;
-            ch[t4 - 1] = cc[t5 - 1] - tr2;
+            t3 = t2;
+            t4 = (t1 << 1) + (ido << 1);
+            t5 = t1;
+            t6 = t1 + t1;
+            for (i = 2; i < ido; i += 2)
+            {
+                t3 += 2;
+                t4 -= 2;
+                t5 += 2;
+                t6 += 2;
+                tr2 = wa1[i - 2] * cc[t3 - 1] + wa1[i - 1] * cc[t3];
+                ti2 = wa1[i - 2] * cc[t3] - wa1[i - 1] * cc[t3 - 1];
+                ch[t6] = cc[t5] + ti2;
+                ch[t4] = ti2 - cc[t5];
+                ch[t6 - 1] = cc[t5 - 1] + tr2;
+                ch[t4 - 1] = cc[t5 - 1] - tr2;
+            }
+            t1 += ido;
+            t2 += ido;
         }
-        t1 += ido;
-        t2 += ido;
+
+        if (ido % 2 == 1)
+            return;
     }
 
-    if (ido % 2 == 1)
-        return;
-
-  L105:
     t3 = (t2 = (t1 = ido) - 1);
     t2 += t0;
     for (k = 0; k < l1; k++)
@@ -276,10 +276,10 @@ static void dradf4(
 
     t0 = l1 * ido;
 
-    t1=t0;
-    t4=t1<<1;
-    t2=t1+(t1<<1);
-    t3=0;
+    t1 = t0;
+    t4 = t1 << 1;
+    t2 = t1 + (t1 << 1);
+    t3 = 0;
 
     for (k = 0; k < l1; k++)
     {
@@ -298,58 +298,57 @@ static void dradf4(
 
     if (ido < 2)
         return;
-    if (ido == 2)
-        goto L105;
 
-    t1=0;
-    for (k = 0; k < l1; k++)
+    if (ido != 2)
     {
-        t2 = t1;
-        t4 = t1 << 2;
-        t5 = (t6 = ido << 1) + t4;
-        for (i = 2; i < ido; i += 2)
+        t1 = 0;
+        for (k = 0; k < l1; k++)
         {
-            t3 = (t2 += 2);
-            t4 += 2;
-            t5 -= 2;
+            t2 = t1;
+            t4 = t1 << 2;
+            t5 = (t6 = ido << 1) + t4;
+            for (i = 2; i < ido; i += 2)
+            {
+                t3 = (t2 += 2);
+                t4 += 2;
+                t5 -= 2;
 
-            t3 += t0;
-            cr2 = wa1[i - 2] * cc[t3 - 1] + wa1[i - 1] * cc[t3];
-            ci2 = wa1[i - 2] * cc[t3] - wa1[i - 1] * cc[t3 - 1];
-            t3 += t0;
-            cr3 = wa2[i - 2] * cc[t3 - 1] + wa2[i - 1] * cc[t3];
-            ci3 = wa2[i - 2] * cc[t3] - wa2[i - 1] * cc[t3 - 1];
-            t3 += t0;
-            cr4 = wa3[i - 2] * cc[t3 - 1] + wa3[i - 1] * cc[t3];
-            ci4 = wa3[i - 2] * cc[t3] - wa3[i - 1] * cc[t3 - 1];
+                t3 += t0;
+                cr2 = wa1[i - 2] * cc[t3 - 1] + wa1[i - 1] * cc[t3];
+                ci2 = wa1[i - 2] * cc[t3] - wa1[i - 1] * cc[t3 - 1];
+                t3 += t0;
+                cr3 = wa2[i - 2] * cc[t3 - 1] + wa2[i - 1] * cc[t3];
+                ci3 = wa2[i - 2] * cc[t3] - wa2[i - 1] * cc[t3 - 1];
+                t3 += t0;
+                cr4 = wa3[i - 2] * cc[t3 - 1] + wa3[i - 1] * cc[t3];
+                ci4 = wa3[i - 2] * cc[t3] - wa3[i - 1] * cc[t3 - 1];
 
-            tr1 = cr2 + cr4;
-            tr4 = cr4 - cr2;
-            ti1 = ci2 + ci4;
-            ti4 = ci2 - ci4;
-            ti2 = cc[t2] + ci3;
-            ti3 = cc[t2] - ci3;
-            tr2 = cc[t2 - 1] + cr3;
-            tr3 = cc[t2 - 1] - cr3;
+                tr1 = cr2 + cr4;
+                tr4 = cr4 - cr2;
+                ti1 = ci2 + ci4;
+                ti4 = ci2 - ci4;
+                ti2 = cc[t2] + ci3;
+                ti3 = cc[t2] - ci3;
+                tr2 = cc[t2 - 1] + cr3;
+                tr3 = cc[t2 - 1] - cr3;
 
-            ch[t4 - 1] = tr1 + tr2;
-            ch[t4] = ti1 + ti2;
+                ch[t4 - 1] = tr1 + tr2;
+                ch[t4] = ti1 + ti2;
 
-            ch[t5 - 1] = tr3 - ti4;
-            ch[t5] = tr4 - ti3;
+                ch[t5 - 1] = tr3 - ti4;
+                ch[t5] = tr4 - ti3;
 
-            ch[t4 + t6 - 1] = ti4 + tr3;
-            ch[t4 + t6] = tr4 + ti3;
+                ch[t4 + t6 - 1] = ti4 + tr3;
+                ch[t4 + t6] = tr4 + ti3;
 
-            ch[t5 + t6 - 1] = tr2 - tr1;
-            ch[t5 + t6] = ti1 - ti2;
+                ch[t5 + t6 - 1] = tr2 - tr1;
+                ch[t5 + t6] = ti1 - ti2;
+            }
+            t1 += ido;
         }
-        t1 += ido;
+        if (ido % 2 == 1)
+            return;
     }
-    if (ido % 2 == 1)
-        return;
-
-  L105:
 
     t2 = (t1 = t0 + ido - 1) + (t0 << 1);
     t3 = ido << 2;
@@ -414,8 +413,8 @@ static void dradfg(
         }
     }
 
-    is=-ido;
-    t1=0;
+    is = -ido;
+    t1 = 0;
     if (nbd > l1)
     {
         for (j = 1; j < ip; j++)
