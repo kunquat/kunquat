@@ -1015,32 +1015,27 @@ static void dradbg(
         int ido, int ip, int l1, int idl1, float* cc, float* c1,
         float* c2, float* ch, float* ch2, const float* wa)
 {
-    int idij = 0, ipph = 0, i = 0, j = 0, k = 0, l = 0, ik = 0, is = 0;
     int t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0;
     int t7 = 0, t8 = 0, t9 = 0, t10 = 0, t11 = 0, t12 = 0;
-    float dc2 = 0, ai1 = 0, ai2 = 0, ar1 = 0, ar2 = 0, ds2 = 0;
-    int nbd = 0;
-    float dcp = 0, arg = 0, dsp = 0, ar1h = 0, ar2h = 0;
-    int ipp2 = 0;
 
     t10 = ip * ido;
     t0 = l1 * ido;
-    arg = (float)(PI2 / ip);
-    dcp = cosf(arg);
-    dsp = sinf(arg);
-    nbd = (ido - 1) >> 1;
-    ipp2 = ip;
-    ipph = (ip + 1) >> 1;
+    const float arg = (float)(PI2 / ip);
+    const float dcp = cosf(arg);
+    const float dsp = sinf(arg);
+    const int nbd = (ido - 1) >> 1;
+    const int ipp2 = ip;
+    const int ipph = (ip + 1) >> 1;
 
     if (ido >= l1)
     {
         t1 = 0;
         t2 = 0;
-        for (k = 0; k < l1; k++)
+        for (int k = 0; k < l1; k++)
         {
             t3 = t1;
             t4 = t2;
-            for (i = 0; i < ido; i++)
+            for (int i = 0; i < ido; i++)
             {
                 ch[t3] = cc[t4];
                 t3++;
@@ -1053,11 +1048,11 @@ static void dradbg(
     else
     {
         t1 = 0;
-        for (i = 0; i < ido; i++)
+        for (int i = 0; i < ido; i++)
         {
             t2 = t1;
             t3 = t1;
-            for (k = 0; k < l1; k++)
+            for (int k = 0; k < l1; k++)
             {
                 ch[t2] = cc[t3];
                 t2 += ido;
@@ -1070,14 +1065,14 @@ static void dradbg(
     t1 = 0;
     t2 = ipp2 * t0;
     t7 = (t5 = ido << 1);
-    for (j = 1; j < ipph; j++)
+    for (int j = 1; j < ipph; j++)
     {
         t1 += t0;
         t2 -= t0;
         t3 = t1;
         t4 = t2;
         t6 = t5;
-        for (k = 0; k < l1; k++)
+        for (int k = 0; k < l1; k++)
         {
             ch[t3] = cc[t6 - 1] + cc[t6 - 1];
             ch[t4] = cc[t6] + cc[t6];
@@ -1095,7 +1090,7 @@ static void dradbg(
             t1 = 0;
             t2 = ipp2 * t0;
             t7 = 0;
-            for (j = 1; j < ipph; j++)
+            for (int j = 1; j < ipph; j++)
             {
                 t1 += t0;
                 t2 -= t0;
@@ -1104,13 +1099,13 @@ static void dradbg(
 
                 t7 += (ido << 1);
                 t8 = t7;
-                for (k = 0; k < l1; k++)
+                for (int k = 0; k < l1; k++)
                 {
                     t5 = t3;
                     t6 = t4;
                     t9 = t8;
                     t11 = t8;
-                    for (i = 2; i < ido; i += 2)
+                    for (int i = 2; i < ido; i += 2)
                     {
                         t5 += 2;
                         t6 += 2;
@@ -1132,7 +1127,7 @@ static void dradbg(
             t1 = 0;
             t2 = ipp2 * t0;
             t7 = 0;
-            for (j = 1; j < ipph; j++)
+            for (int j = 1; j < ipph; j++)
             {
                 t1 += t0;
                 t2 -= t0;
@@ -1141,7 +1136,7 @@ static void dradbg(
                 t7 += (ido << 1);
                 t8 = t7;
                 t9 = t7;
-                for (i = 2; i < ido; i += 2)
+                for (int i = 2; i < ido; i += 2)
                 {
                     t3 += 2;
                     t4 += 2;
@@ -1151,7 +1146,7 @@ static void dradbg(
                     t6 = t4;
                     t11 = t8;
                     t12 = t9;
-                    for (k = 0; k < l1; k++)
+                    for (int k = 0; k < l1; k++)
                     {
                         ch[t5 - 1] = cc[t11 - 1] + cc[t12 - 1];
                         ch[t6 - 1] = cc[t11 - 1] - cc[t12 - 1];
@@ -1167,17 +1162,17 @@ static void dradbg(
         }
     }
 
-    ar1 = 1.0f;
-    ai1 = 0.0f;
+    float ar1 = 1.0f;
+    float ai1 = 0.0f;
     t1 = 0;
     t9 = (t2 = ipp2 * idl1);
     t3 = (ip - 1) * idl1;
-    for (l = 1; l < ipph; l++)
+    for (int l = 1; l < ipph; l++)
     {
         t1 += idl1;
         t2 -= idl1;
 
-        ar1h = dcp * ar1 - dsp * ai1;
+        const float ar1h = dcp * ar1 - dsp * ai1;
         ai1 = dcp * ai1 + dsp * ar1;
         ar1 = ar1h;
         t4 = t1;
@@ -1185,30 +1180,30 @@ static void dradbg(
         t6 = 0;
         t7 = idl1;
         t8 = t3;
-        for (ik = 0; ik < idl1; ik++)
+        for (int ik = 0; ik < idl1; ik++)
         {
             c2[t4++] = ch2[t6++] + ar1 * ch2[t7++];
             c2[t5++] = ai1 * ch2[t8++];
         }
-        dc2 = ar1;
-        ds2 = ai1;
-        ar2 = ar1;
-        ai2 = ai1;
+        const float dc2 = ar1;
+        const float ds2 = ai1;
+        float ar2 = ar1;
+        float ai2 = ai1;
 
         t6 = idl1;
         t7 = t9 - idl1;
-        for (j = 2; j < ipph; j++)
+        for (int j = 2; j < ipph; j++)
         {
             t6 += idl1;
             t7 -= idl1;
-            ar2h = dc2 * ar2 - ds2 * ai2;
+            const float ar2h = dc2 * ar2 - ds2 * ai2;
             ai2 = dc2 * ai2 + ds2 * ar2;
             ar2 = ar2h;
             t4 = t1;
             t5 = t2;
             t11 = t6;
             t12 = t7;
-            for (ik = 0; ik < idl1; ik++)
+            for (int ik = 0; ik < idl1; ik++)
             {
                 c2[t4++] += ar2 * ch2[t11++];
                 c2[t5++] += ai2 * ch2[t12++];
@@ -1217,23 +1212,23 @@ static void dradbg(
     }
 
     t1 = 0;
-    for (j = 1; j < ipph; j++)
+    for (int j = 1; j < ipph; j++)
     {
         t1 += idl1;
         t2 = t1;
-        for (ik = 0; ik < idl1; ik++)
+        for (int ik = 0; ik < idl1; ik++)
             ch2[ik] += ch2[t2++];
     }
 
     t1 = 0;
     t2 = ipp2 * t0;
-    for (j = 1; j < ipph; j++)
+    for (int j = 1; j < ipph; j++)
     {
         t1 += t0;
         t2 -= t0;
         t3 = t1;
         t4 = t2;
-        for (k = 0; k < l1; k++)
+        for (int k = 0; k < l1; k++)
         {
             ch[t3] = c1[t3] - c1[t4];
             ch[t4] = c1[t3] + c1[t4];
@@ -1248,17 +1243,17 @@ static void dradbg(
         {
             t1 = 0;
             t2 = ipp2 * t0;
-            for (j = 1; j < ipph; j++)
+            for (int j = 1; j < ipph; j++)
             {
                 t1 += t0;
                 t2 -= t0;
                 t3 = t1;
                 t4 = t2;
-                for (k = 0; k < l1; k++)
+                for (int k = 0; k < l1; k++)
                 {
                     t5 = t3;
                     t6 = t4;
-                    for (i = 2; i < ido; i += 2)
+                    for (int i = 2; i < ido; i += 2)
                     {
                         t5 += 2;
                         t6 += 2;
@@ -1276,19 +1271,19 @@ static void dradbg(
         {
             t1 = 0;
             t2 = ipp2 * t0;
-            for (j = 1; j < ipph; j++)
+            for (int j = 1; j < ipph; j++)
             {
                 t1 += t0;
                 t2 -= t0;
                 t3 = t1;
                 t4 = t2;
-                for (i = 2; i < ido; i += 2)
+                for (int i = 2; i < ido; i += 2)
                 {
                     t3 += 2;
                     t4 += 2;
                     t5 = t3;
                     t6 = t4;
-                    for (k = 0; k < l1; k++)
+                    for (int k = 0; k < l1; k++)
                     {
                         ch[t5 - 1] = c1[t5 - 1] - c1[t6];
                         ch[t6 - 1] = c1[t5 - 1] + c1[t6];
@@ -1305,36 +1300,37 @@ static void dradbg(
     if (ido == 1)
         return;
 
-    for (ik = 0; ik < idl1; ik++)
+    for (int ik = 0; ik < idl1; ik++)
         c2[ik] = ch2[ik];
 
     t1 = 0;
-    for (j = 1; j < ip; j++)
+    for (int j = 1; j < ip; j++)
     {
         t2 = (t1 += t0);
-        for (k = 0; k < l1; k++)
+        for (int k = 0; k < l1; k++)
         {
             c1[t2] = ch[t2];
             t2 += ido;
         }
     }
 
+    int is = -ido - 1;
+
     if (nbd <= l1)
     {
-        is = -ido - 1;
         t1 = 0;
-        for (j = 1; j < ip; j++)
+        for (int j = 1; j < ip; j++)
         {
             is += ido;
             t1 += t0;
-            idij = is;
+            int idij = is;
             t2 = t1;
-            for (i = 2; i < ido; i += 2)
+            for (int i = 2; i < ido; i += 2)
             {
                 t2 += 2;
                 idij += 2;
                 t3 = t2;
-                for (k = 0; k < l1; k++)
+                for (int k = 0; k < l1; k++)
                 {
                     c1[t3 - 1] = wa[idij - 1] * ch[t3 - 1] - wa[idij] * ch[t3];
                     c1[t3] = wa[idij - 1] * ch[t3] + wa[idij] * ch[t3 - 1];
@@ -1345,18 +1341,17 @@ static void dradbg(
         return;
     }
 
-    is = -ido - 1;
     t1 = 0;
-    for (j = 1; j < ip; j++)
+    for (int j = 1; j < ip; j++)
     {
         is += ido;
         t1 += t0;
         t2 = t1;
-        for (k = 0; k < l1; k++)
+        for (int k = 0; k < l1; k++)
         {
-            idij = is;
+            int idij = is;
             t3 = t2;
-            for (i = 2; i < ido; i += 2)
+            for (int i = 2; i < ido; i += 2)
             {
                 idij += 2;
                 t3 += 2;
