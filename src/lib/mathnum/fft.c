@@ -1368,25 +1368,21 @@ static void dradbg(
 
 static void drftb1(int32_t n, float* c, float* ch, const float* wa, const int* ifac)
 {
-    int i = 0, k1 = 0, l1 = 0, l2 = 0;
+    const int nf = ifac[1];
     int na = 0;
-    int nf = 0, ip = 0, iw = 0, ix2 = 0, ix3 = 0, ido = 0, idl1 = 0;
+    int l1 = 1;
+    int iw = 1;
 
-    nf = ifac[1];
-    na = 0;
-    l1 = 1;
-    iw = 1;
-
-    for (k1 = 0; k1 < nf; k1++)
+    for (int k1 = 0; k1 < nf; k1++)
     {
-        ip = ifac[k1 + 2];
-        l2 = ip * l1;
-        ido = n / l2;
-        idl1 = ido * l1;
+        const int ip = ifac[k1 + 2];
+        const int l2 = ip * l1;
+        const int ido = n / l2;
+        const int idl1 = ido * l1;
         if (ip == 4)
         {
-            ix2 = iw + ido;
-            ix3 = ix2 + ido;
+            const int ix2 = iw + ido;
+            const int ix3 = ix2 + ido;
 
             if (na != 0)
                 dradb4(ido, l1, ch, c, wa + iw - 1, wa + ix2 - 1, wa + ix3 - 1);
@@ -1404,7 +1400,7 @@ static void drftb1(int32_t n, float* c, float* ch, const float* wa, const int* i
         }
         else if (ip == 3)
         {
-            ix2 = iw + ido;
+            const int ix2 = iw + ido;
             if (na != 0)
                 dradb3(ido, l1, ch, c, wa + iw - 1, wa + ix2 - 1);
             else
@@ -1428,7 +1424,7 @@ static void drftb1(int32_t n, float* c, float* ch, const float* wa, const int* i
     if (na == 0)
         return;
 
-    for (i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
         c[i] = ch[i];
 
     return;
