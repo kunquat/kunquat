@@ -742,45 +742,44 @@ static void drftf1(int32_t n, float* c, float* ch, float* wa, const int* ifac)
         iw -= (ip - 1) * ido;
         na = 1 - na;
 
-        if (ip != 4)
-            goto L102;
+        if (ip == 4)
+        {
+            ix2 = iw + ido;
+            ix3 = ix2 + ido;
+            if (na != 0)
+                dradf4(ido, l1, ch, c, wa + iw - 1, wa + ix2 - 1, wa + ix3 - 1);
+            else
+                dradf4(ido, l1, c, ch, wa + iw - 1, wa + ix2 - 1, wa + ix3 - 1);
 
-        ix2 = iw + ido;
-        ix3 = ix2 + ido;
-        if (na != 0)
-            dradf4(ido, l1, ch, c, wa + iw - 1, wa + ix2 - 1, wa + ix3 - 1);
-        else
-            dradf4(ido, l1, c, ch, wa + iw - 1, wa + ix2 - 1, wa + ix3 - 1);
-        goto L110;
+            l2 = l1;
+            continue;
+        }
 
-      L102:
-        if (ip != 2)
-            goto L104;
-        if (na != 0)
-            goto L103;
+        if (ip == 2)
+        {
+            if (na == 0)
+                dradf2(ido, l1, c, ch, wa + iw - 1);
+            else
+                dradf2(ido, l1, ch, c, wa + iw - 1);
 
-        dradf2(ido, l1, c, ch, wa + iw - 1);
-        goto L110;
+            l2 = l1;
+            continue;
+        }
 
-      L103:
-        dradf2(ido, l1, ch, c, wa + iw - 1);
-        goto L110;
-
-      L104:
         if (ido == 1)
             na = 1 - na;
-        if (na != 0)
-            goto L109;
 
-        dradfg(ido, ip, l1, idl1, c, c, c, ch, ch, wa + iw - 1);
-        na = 1;
-        goto L110;
+        if (na == 0)
+        {
+            dradfg(ido, ip, l1, idl1, c, c, c, ch, ch, wa + iw - 1);
+            na = 1;
+        }
+        else
+        {
+            dradfg(ido, ip, l1, idl1, ch, ch, ch, c, c, wa + iw - 1);
+            na = 0;
+        }
 
-      L109:
-        dradfg(ido, ip, l1, idl1, ch, ch, ch, c, c, wa + iw - 1);
-        na = 0;
-
-      L110:
         l2 = l1;
     }
 
