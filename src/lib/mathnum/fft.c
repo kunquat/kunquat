@@ -713,61 +713,52 @@ static void dradfg(
 
 static void drftf1(int32_t n, float* c, float* ch, float* wa, const int* ifac)
 {
-    int i = 0, k1 = 0, l1 = 0, l2 = 0;
-    int na = 0, kh = 0, nf = 0;
-    int ip = 0, iw = 0, ido = 0, idl1 = 0, ix2 = 0, ix3 = 0;
+    const int nf = ifac[1];
+    int na = 1;
+    int l2 = n;
+    int iw = n;
 
-    nf = ifac[1];
-    na = 1;
-    l2 = n;
-    iw = n;
-
-    for (k1 = 0; k1 < nf; k1++)
+    for (int k1 = 0; k1 < nf; k1++)
     {
-        kh = nf - k1;
-        ip = ifac[kh + 1];
-        l1 = l2 / ip;
-        ido = n / l2;
-        idl1 = ido * l1;
+        const int kh = nf - k1;
+        const int ip = ifac[kh + 1];
+        const int l1 = l2 / ip;
+        const int ido = n / l2;
+        const int idl1 = ido * l1;
         iw -= (ip - 1) * ido;
         na = 1 - na;
 
         if (ip == 4)
         {
-            ix2 = iw + ido;
-            ix3 = ix2 + ido;
+            const int ix2 = iw + ido;
+            const int ix3 = ix2 + ido;
             if (na != 0)
                 dradf4(ido, l1, ch, c, wa + iw - 1, wa + ix2 - 1, wa + ix3 - 1);
             else
                 dradf4(ido, l1, c, ch, wa + iw - 1, wa + ix2 - 1, wa + ix3 - 1);
-
-            l2 = l1;
-            continue;
         }
-
-        if (ip == 2)
+        else if (ip == 2)
         {
             if (na == 0)
                 dradf2(ido, l1, c, ch, wa + iw - 1);
             else
                 dradf2(ido, l1, ch, c, wa + iw - 1);
-
-            l2 = l1;
-            continue;
-        }
-
-        if (ido == 1)
-            na = 1 - na;
-
-        if (na == 0)
-        {
-            dradfg(ido, ip, l1, idl1, c, c, c, ch, ch, wa + iw - 1);
-            na = 1;
         }
         else
         {
-            dradfg(ido, ip, l1, idl1, ch, ch, ch, c, c, wa + iw - 1);
-            na = 0;
+            if (ido == 1)
+                na = 1 - na;
+
+            if (na == 0)
+            {
+                dradfg(ido, ip, l1, idl1, c, c, c, ch, ch, wa + iw - 1);
+                na = 1;
+            }
+            else
+            {
+                dradfg(ido, ip, l1, idl1, ch, ch, ch, c, c, wa + iw - 1);
+                na = 0;
+            }
         }
 
         l2 = l1;
@@ -776,7 +767,7 @@ static void drftf1(int32_t n, float* c, float* ch, float* wa, const int* ifac)
     if (na == 1)
         return;
 
-    for (i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
         c[i] = ch[i];
 
     return;
@@ -785,15 +776,14 @@ static void drftf1(int32_t n, float* c, float* ch, float* wa, const int* ifac)
 
 static void dradb2(int ido, int l1, float* cc, float* ch, const float* wa1)
 {
-    int i = 0, k = 0, t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0;
-    float ti2 = 0, tr2 = 0;
+    int t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0;
 
     t0 = l1 * ido;
 
     t1 = 0;
     t2 = 0;
     t3 = (ido << 1) - 1;
-    for (k = 0; k < l1; k++)
+    for (int k = 0; k < l1; k++)
     {
         ch[t1] = cc[t2] + cc[t3 + t2];
         ch[t1 + t0] = cc[t2] - cc[t3 + t2];
@@ -807,21 +797,21 @@ static void dradb2(int ido, int l1, float* cc, float* ch, const float* wa1)
     {
         t1 = 0;
         t2 = 0;
-        for (k = 0; k < l1; k++)
+        for (int k = 0; k < l1; k++)
         {
             t3 = t1;
             t5 = (t4 = t2) + (ido << 1);
             t6 = t0 + t1;
-            for (i = 2; i < ido; i += 2)
+            for (int i = 2; i < ido; i += 2)
             {
                 t3 += 2;
                 t4 += 2;
                 t5 -= 2;
                 t6 += 2;
                 ch[t3 - 1] = cc[t4 - 1] + cc[t5 - 1];
-                tr2 = cc[t4 - 1] - cc[t5 - 1];
+                const float tr2 = cc[t4 - 1] - cc[t5 - 1];
                 ch[t3] = cc[t4] - cc[t5];
-                ti2 = cc[t4] + cc[t5];
+                const float ti2 = cc[t4] + cc[t5];
                 ch[t6 - 1] = wa1[i - 2] * tr2 - wa1[i - 1] * ti2;
                 ch[t6] = wa1[i - 2] * ti2 + wa1[i - 1] * tr2;
             }
@@ -834,7 +824,7 @@ static void dradb2(int ido, int l1, float* cc, float* ch, const float* wa1)
 
     t1 = ido - 1;
     t2 = ido - 1;
-    for (k = 0; k < l1; k++)
+    for (int k = 0; k < l1; k++)
     {
         ch[t1] = cc[t2] + cc[t2];
         ch[t1 + t0] = -(cc[t2 + 1] + cc[t2 + 1]);
@@ -851,11 +841,8 @@ static void dradb3(
 {
     const float taur = -0.5f;
     const float taui = 0.86602540378443864676372317075293618f;
-    int i = 0, k = 0;
     int t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0;
     int t6 = 0, t7 = 0, t8 = 0, t9 = 0, t10 = 0;
-    float ci2 = 0, ci3 = 0, di2 = 0, di3 = 0, cr2 = 0, cr3 = 0;
-    float dr2 = 0, dr3 = 0, ti2 = 0, tr2 = 0;
 
     t0 = l1 * ido;
 
@@ -864,12 +851,12 @@ static void dradb3(
     t3 = ido << 1;
     t4 = ido + (ido << 1);
     t5 = 0;
-    for (k = 0; k < l1; k++)
+    for (int k = 0; k < l1; k++)
     {
-        tr2 = cc[t3 - 1] + cc[t3 - 1];
-        cr2 = cc[t5] + (taur * tr2);
+        const float tr2 = cc[t3 - 1] + cc[t3 - 1];
+        const float cr2 = cc[t5] + (taur * tr2);
         ch[t1] = cc[t5] + tr2;
-        ci3 = taui * (cc[t3] + cc[t3]);
+        const float ci3 = taui * (cc[t3] + cc[t3]);
         ch[t1 + t0] = cr2 - ci3;
         ch[t1 + t2] = cr2 + ci3;
         t1 += ido;
@@ -882,14 +869,14 @@ static void dradb3(
 
     t1 = 0;
     t3 = ido << 1;
-    for (k = 0; k < l1; k++)
+    for (int k = 0; k < l1; k++)
     {
         t7 = t1 + (t1 << 1);
         t6 = (t5 = t7 + t3);
         t8 = t1;
         t10 = (t9 = t1 + t0) + t0;
 
-        for (i = 2; i < ido; i += 2)
+        for (int i = 2; i < ido; i += 2)
         {
             t5 += 2;
             t6 -= 2;
@@ -897,18 +884,18 @@ static void dradb3(
             t8 += 2;
             t9 += 2;
             t10 += 2;
-            tr2 = cc[t5 - 1] + cc[t6 - 1];
-            cr2 = cc[t7 - 1] + (taur * tr2);
+            const float tr2 = cc[t5 - 1] + cc[t6 - 1];
+            const float cr2 = cc[t7 - 1] + (taur * tr2);
             ch[t8 - 1] = cc[t7 - 1] + tr2;
-            ti2 =cc[t5] - cc[t6];
-            ci2 =cc[t7] + (taur * ti2);
+            const float ti2 = cc[t5] - cc[t6];
+            const float ci2 = cc[t7] + (taur * ti2);
             ch[t8] = cc[t7] + ti2;
-            cr3 = taui * (cc[t5 - 1] - cc[t6 - 1]);
-            ci3 = taui * (cc[t5] + cc[t6]);
-            dr2 = cr2 - ci3;
-            dr3 = cr2 + ci3;
-            di2 = ci2 + cr3;
-            di3 = ci2 - cr3;
+            const float cr3 = taui * (cc[t5 - 1] - cc[t6 - 1]);
+            const float ci3 = taui * (cc[t5] + cc[t6]);
+            const float dr2 = cr2 - ci3;
+            const float dr3 = cr2 + ci3;
+            const float di2 = ci2 + cr3;
+            const float di3 = ci2 - cr3;
             ch[t9 - 1] = wa1[i - 2] * dr2 - wa1[i - 1] * di2;
             ch[t9] = wa1[i - 2] * di2 + wa1[i - 1] * dr2;
             ch[t10 - 1] = wa2[i - 2] * dr3 - wa2[i - 1] * di3;
@@ -925,11 +912,7 @@ static void dradb4(
         int ido, int l1, float* cc, float* ch,
         const float* wa1, const float* wa2, const float* wa3)
 {
-    const float sqrt2 = 1.4142135623730950488016887242097f;
-    int i = 0, k = 0;
     int t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0, t7 = 0, t8 = 0;
-    float ci2 = 0, ci3 = 0, ci4 = 0, cr2 = 0, cr3 = 0, cr4 = 0;
-    float ti1 = 0, ti2 = 0, ti3 = 0, ti4 = 0, tr1 = 0, tr2 = 0, tr3 = 0, tr4 = 0;
 
     t0 = l1 * ido;
 
@@ -937,14 +920,14 @@ static void dradb4(
     t2 = ido << 2;
     t3 = 0;
     t6 = ido << 1;
-    for (k = 0; k < l1; k++)
+    for (int k = 0; k < l1; k++)
     {
         t4 = t3 + t6;
         t5 = t1;
-        tr3 = cc[t4 - 1] + cc[t4 - 1];
-        tr4 = cc[t4] + cc[t4];
-        tr1 = cc[t3] - cc[(t4 += t6) - 1];
-        tr2 = cc[t3] + cc[t4 - 1];
+        const float tr3 = cc[t4 - 1] + cc[t4 - 1];
+        const float tr4 = cc[t4] + cc[t4];
+        const float tr1 = cc[t3] - cc[(t4 += t6) - 1];
+        const float tr2 = cc[t3] + cc[t4 - 1];
         ch[t5] = tr2 + tr3;
         ch[t5 += t0] = tr1 - tr4;
         ch[t5 += t0] = tr2 - tr3;
@@ -959,35 +942,35 @@ static void dradb4(
     if (ido != 2)
     {
         t1 = 0;
-        for (k = 0; k < l1; k++)
+        for (int k = 0; k < l1; k++)
         {
             t5 = (t4 = (t3 = (t2 = t1 << 2) + t6)) + t6;
             t7 = t1;
-            for (i = 2; i < ido; i += 2)
+            for (int i = 2; i < ido; i += 2)
             {
                 t2 += 2;
                 t3 += 2;
                 t4 -= 2;
                 t5 -= 2;
                 t7 += 2;
-                ti1 = cc[t2] + cc[t5];
-                ti2 = cc[t2] - cc[t5];
-                ti3 = cc[t3] - cc[t4];
-                tr4 = cc[t3] + cc[t4];
-                tr1 = cc[t2 - 1] - cc[t5 - 1];
-                tr2 = cc[t2 - 1] + cc[t5 - 1];
-                ti4 = cc[t3 - 1] - cc[t4 - 1];
-                tr3 = cc[t3 - 1] + cc[t4 - 1];
+                const float ti1 = cc[t2] + cc[t5];
+                const float ti2 = cc[t2] - cc[t5];
+                const float ti3 = cc[t3] - cc[t4];
+                const float tr4 = cc[t3] + cc[t4];
+                const float tr1 = cc[t2 - 1] - cc[t5 - 1];
+                const float tr2 = cc[t2 - 1] + cc[t5 - 1];
+                const float ti4 = cc[t3 - 1] - cc[t4 - 1];
+                const float tr3 = cc[t3 - 1] + cc[t4 - 1];
                 ch[t7 - 1] = tr2 + tr3;
-                cr3 = tr2 - tr3;
+                const float cr3 = tr2 - tr3;
                 ch[t7] = ti2 + ti3;
-                ci3 = ti2 - ti3;
-                cr2 = tr1 - tr4;
-                cr4 = tr1 + tr4;
-                ci2 = ti1 + ti4;
-                ci4 = ti1 - ti4;
+                const float ci3 = ti2 - ti3;
+                const float cr2 = tr1 - tr4;
+                const float cr4 = tr1 + tr4;
+                const float ci2 = ti1 + ti4;
+                const float ci4 = ti1 - ti4;
 
-                ch[(t8 = t7 + t0) - 1] = wa1[i - 2] * cr2 - wa1[i - 1]*ci2;
+                ch[(t8 = t7 + t0) - 1] = wa1[i - 2] * cr2 - wa1[i - 1] * ci2;
                 ch[t8] = wa1[i - 2] * ci2 + wa1[i - 1] * cr2;
                 ch[(t8 += t0) - 1] = wa2[i - 2] * cr3 - wa2[i - 1] * ci3;
                 ch[t8] = wa2[i - 2] * ci3 + wa2[i - 1] * cr3;
@@ -1001,17 +984,19 @@ static void dradb4(
             return;
     }
 
+    const float sqrt2 = 1.4142135623730950488016887242097f;
+
     t1 = ido;
     t2 = ido << 2;
     t3 = ido - 1;
     t4 = ido + (ido << 1);
-    for (k = 0; k < l1; k++)
+    for (int k = 0; k < l1; k++)
     {
         t5 = t3;
-        ti1 = cc[t1] + cc[t4];
-        ti2 = cc[t4] - cc[t1];
-        tr1 = cc[t1 - 1] - cc[t4 - 1];
-        tr2 = cc[t1 - 1] + cc[t4 - 1];
+        const float ti1 = cc[t1] + cc[t4];
+        const float ti2 = cc[t4] - cc[t1];
+        const float tr1 = cc[t1 - 1] - cc[t4 - 1];
+        const float tr2 = cc[t1 - 1] + cc[t4 - 1];
         ch[t5] = tr2 + tr2;
         ch[t5 += t0] = sqrt2 * (tr1 - ti1);
         ch[t5 += t0] = ti2 + ti2;
