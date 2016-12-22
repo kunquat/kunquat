@@ -1413,50 +1413,44 @@ static void drftb1(int32_t n, float* c, float* ch, const float* wa, const int* i
         l2 = ip * l1;
         ido = n / l2;
         idl1 = ido * l1;
-        if (ip != 4)
-            goto L103;
-        ix2 = iw + ido;
-        ix3 = ix2 + ido;
+        if (ip == 4)
+        {
+            ix2 = iw + ido;
+            ix3 = ix2 + ido;
 
-        if (na != 0)
-            dradb4(ido, l1, ch, c, wa + iw - 1, wa + ix2 - 1, wa + ix3 - 1);
-        else
-            dradb4(ido, l1, c, ch, wa + iw - 1, wa + ix2 - 1, wa + ix3 - 1);
-        na = 1 - na;
-        goto L115;
-
-      L103:
-        if (ip != 2)
-            goto L106;
-
-        if (na != 0)
-            dradb2(ido, l1, ch, c, wa + iw - 1);
-        else
-            dradb2(ido, l1, c, ch, wa + iw - 1);
-        na = 1 - na;
-        goto L115;
-
-      L106:
-        if (ip != 3)
-            goto L109;
-
-        ix2 = iw + ido;
-        if (na != 0)
-            dradb3(ido, l1, ch, c, wa + iw - 1, wa + ix2 - 1);
-        else
-            dradb3(ido, l1, c, ch, wa + iw - 1, wa + ix2 - 1);
-        na = 1 - na;
-        goto L115;
-
-      L109:
-        if (na != 0)
-            dradbg(ido, ip, l1, idl1, ch, ch, ch, c, c, wa + iw - 1);
-        else
-            dradbg(ido, ip, l1, idl1, c, c, c, ch, ch, wa + iw - 1);
-        if (ido == 1)
+            if (na != 0)
+                dradb4(ido, l1, ch, c, wa + iw - 1, wa + ix2 - 1, wa + ix3 - 1);
+            else
+                dradb4(ido, l1, c, ch, wa + iw - 1, wa + ix2 - 1, wa + ix3 - 1);
             na = 1 - na;
+        }
+        else if (ip == 2)
+        {
+            if (na != 0)
+                dradb2(ido, l1, ch, c, wa + iw - 1);
+            else
+                dradb2(ido, l1, c, ch, wa + iw - 1);
+            na = 1 - na;
+        }
+        else if (ip == 3)
+        {
+            ix2 = iw + ido;
+            if (na != 0)
+                dradb3(ido, l1, ch, c, wa + iw - 1, wa + ix2 - 1);
+            else
+                dradb3(ido, l1, c, ch, wa + iw - 1, wa + ix2 - 1);
+            na = 1 - na;
+        }
+        else
+        {
+            if (na != 0)
+                dradbg(ido, ip, l1, idl1, ch, ch, ch, c, c, wa + iw - 1);
+            else
+                dradbg(ido, ip, l1, idl1, c, c, c, ch, ch, wa + iw - 1);
+            if (ido == 1)
+                na = 1 - na;
+        }
 
-      L115:
         l1 = l2;
         iw += (ip - 1) * ido;
     }
