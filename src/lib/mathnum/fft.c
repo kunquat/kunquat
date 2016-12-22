@@ -121,10 +121,6 @@ void FFT_worker_deinit(FFT_worker* worker)
 static void drfti1(int32_t n, float* wa, int* ifac)
 {
     const int ntryh[4] = { 4, 2, 3, 5 };
-    float arg = 0, argh = 0, argld = 0, fi = 0;
-    int l1 = 0, l2 = 0;
-    int ld = 0, ip = 0, nq = 0, nr = 0;
-    int ido = 0, ipm = 0, nfm1 = 0;
     int nf = 0;
 
     // Divide n into preferred set of factors
@@ -135,8 +131,8 @@ static void drfti1(int32_t n, float* wa, int* ifac)
         // Try dividing by numbers in ntryh followed by 7, 9, 11,...
         const int ntry = (test_index < 4) ? ntryh[test_index] : test_index * 2 - 1;
 
-        nq = left / ntry;
-        nr = left - ntry * nq;
+        const int nq = left / ntry;
+        const int nr = left - ntry * nq;
         if (nr != 0)
         {
             ++test_index;
@@ -161,32 +157,34 @@ static void drfti1(int32_t n, float* wa, int* ifac)
     ifac[0] = n;
     ifac[1] = nf;
 
-    argh = (float)(PI2 / n);
-    int is = 0;
-    nfm1 = nf - 1;
-    l1 = 1;
+    // Fill complex roots of unity
+    const int nfm1 = nf - 1;
 
     if (nfm1 == 0)
         return;
 
+    const float argh = (float)(PI2 / n);
+    int is = 0;
+    int l1 = 1;
+
     for (int k1 = 0; k1 < nfm1; k1++)
     {
-        ip = ifac[k1 + 2];
-        ld = 0;
-        l2 = l1 * ip;
-        ido = n / l2;
-        ipm = ip - 1;
+        const int ip = ifac[k1 + 2];
+        int ld = 0;
+        const int l2 = l1 * ip;
+        const int ido = n / l2;
+        const int ipm = ip - 1;
 
         for (int j = 0; j < ipm; j++)
         {
             ld += l1;
             int i = is;
-            argld = (float)ld * argh;
-            fi = 0.0f;
+            const float argld = (float)ld * argh;
+            float fi = 0.0f;
             for (int ii = 2; ii < ido; ii += 2)
             {
                 fi += 1.0f;
-                arg = fi * argld;
+                const float arg = fi * argld;
                 wa[i++] = cosf(arg);
                 wa[i++] = sinf(arg);
             }
