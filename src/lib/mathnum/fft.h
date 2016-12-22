@@ -25,7 +25,7 @@ typedef struct FFT_worker
     int32_t max_length;
     int32_t cur_length;
     float* wsave;
-    int ifac[32];
+    int32_t ifac[32];
 } FFT_worker;
 
 

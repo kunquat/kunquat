@@ -19,6 +19,7 @@
 #include <mathnum/Random.h>
 
 #include <math.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -56,7 +57,7 @@ START_TEST(Factorisation_is_valid)
     fail_unless(fw->ifac[1] > 0,
             "Number of factors (%d) is not positive", fw->ifac[1]);
 
-    int prod = 1;
+    int32_t prod = 1;
     for (int i = 0; i < fw->ifac[1]; ++i)
         prod *= fw->ifac[2 + i];
 

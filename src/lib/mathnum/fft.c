@@ -24,9 +24,9 @@
 #include <stdlib.h>
 
 
-static void drfti1(int32_t n, float* wa, int* ifac);
-static void drftf1(int32_t n, float* c, float* ch, float* wa, const int* ifac);
-static void drftb1(int32_t n, float* c, float* ch, const float* wa, const int* ifac);
+static void drfti1(int32_t n, float* wa, int32_t* ifac);
+static void drftf1(int32_t n, float* c, float* ch, float* wa, const int32_t* ifac);
+static void drftb1(int32_t n, float* c, float* ch, const float* wa, const int32_t* ifac);
 
 
 FFT_worker* FFT_worker_init(FFT_worker* worker, int32_t max_tlength)
@@ -48,7 +48,7 @@ FFT_worker* FFT_worker_init(FFT_worker* worker, int32_t max_tlength)
 }
 
 
-static void rfft_init(int32_t n, float* wsave, int* ifac)
+static void rfft_init(int32_t n, float* wsave, int32_t* ifac)
 {
     rassert(n >= 1);
     rassert(wsave != NULL);
@@ -118,21 +118,21 @@ void FFT_worker_deinit(FFT_worker* worker)
 }
 
 
-static void drfti1(int32_t n, float* wa, int* ifac)
+static void drfti1(int32_t n, float* wa, int32_t* ifac)
 {
     const int ntryh[4] = { 4, 2, 3, 5 };
     int nf = 0;
 
     // Divide n into preferred set of factors
-    int test_index = 0;
-    int left = n;
+    int32_t test_index = 0;
+    int32_t left = n;
     while (left > 1)
     {
         // Try dividing by numbers in ntryh followed by 7, 9, 11,...
-        const int ntry = (test_index < 4) ? ntryh[test_index] : test_index * 2 - 1;
+        const int32_t ntry = (test_index < 4) ? ntryh[test_index] : test_index * 2 - 1;
 
-        const int nq = left / ntry;
-        const int nr = left - ntry * nq;
+        const int32_t nq = left / ntry;
+        const int32_t nr = left - ntry * nq;
         if (nr != 0)
         {
             ++test_index;
@@ -163,25 +163,25 @@ static void drfti1(int32_t n, float* wa, int* ifac)
     if (nfm1 == 0)
         return;
 
-    const float argh = (float)(PI2 / n);
-    int is = 0;
-    int l1 = 1;
+    const float argh = (float)(PI2 / (double)n);
+    int32_t is = 0;
+    int32_t l1 = 1;
 
     for (int k1 = 0; k1 < nfm1; k1++)
     {
-        const int ip = ifac[k1 + 2];
-        int ld = 0;
-        const int l2 = l1 * ip;
-        const int ido = n / l2;
-        const int ipm = ip - 1;
+        const int32_t ip = ifac[k1 + 2];
+        int32_t ld = 0;
+        const int32_t l2 = l1 * ip;
+        const int32_t ido = n / l2;
+        const int32_t ipm = ip - 1;
 
-        for (int j = 0; j < ipm; j++)
+        for (int32_t j = 0; j < ipm; j++)
         {
             ld += l1;
-            int i = is;
+            int32_t i = is;
             const float argld = (float)ld * argh;
             float fi = 0.0f;
-            for (int ii = 2; ii < ido; ii += 2)
+            for (int32_t ii = 2; ii < ido; ii += 2)
             {
                 fi += 1.0f;
                 const float arg = fi * argld;
@@ -197,14 +197,14 @@ static void drfti1(int32_t n, float* wa, int* ifac)
 }
 
 
-static void dradf2(int ido, int l1, float* cc, float* ch, const float* wa1)
+static void dradf2(int32_t ido, int32_t l1, float* cc, float* ch, const float* wa1)
 {
-    int t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0;
+    int32_t t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0;
 
     t1 = 0;
     t0 = (t2 = l1 * ido);
     t3 = ido << 1;
-    for (int k = 0; k < l1; k++)
+    for (int32_t k = 0; k < l1; k++)
     {
         ch[t1 << 1] = cc[t1] + cc[t2];
         ch[(t1 << 1) + t3 - 1] = cc[t1] - cc[t2];
@@ -219,13 +219,13 @@ static void dradf2(int ido, int l1, float* cc, float* ch, const float* wa1)
     {
         t1 = 0;
         t2 = t0;
-        for (int k = 0; k < l1; k++)
+        for (int32_t k = 0; k < l1; k++)
         {
             t3 = t2;
             t4 = (t1 << 1) + (ido << 1);
             t5 = t1;
             t6 = t1 + t1;
-            for (int i = 2; i < ido; i += 2)
+            for (int32_t i = 2; i < ido; i += 2)
             {
                 t3 += 2;
                 t4 -= 2;
@@ -248,7 +248,7 @@ static void dradf2(int ido, int l1, float* cc, float* ch, const float* wa1)
 
     t3 = (t2 = (t1 = ido) - 1);
     t2 += t0;
-    for (int k = 0; k < l1; k++)
+    for (int32_t k = 0; k < l1; k++)
     {
         ch[t1] = -cc[t2];
         ch[t1 - 1] = cc[t3];
@@ -262,10 +262,10 @@ static void dradf2(int ido, int l1, float* cc, float* ch, const float* wa1)
 
 
 static void dradf4(
-        int ido, int l1, float* cc, float* ch,
+        int32_t ido, int32_t l1, float* cc, float* ch,
         const float* wa1, const float* wa2, const float* wa3)
 {
-    int t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0;
+    int32_t t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0;
 
     t0 = l1 * ido;
 
@@ -274,7 +274,7 @@ static void dradf4(
     t2 = t1 + (t1 << 1);
     t3 = 0;
 
-    for (int k = 0; k < l1; k++)
+    for (int32_t k = 0; k < l1; k++)
     {
         const float tr1 = cc[t1] + cc[t2];
         const float tr2 = cc[t3] + cc[t4];
@@ -295,12 +295,12 @@ static void dradf4(
     if (ido != 2)
     {
         t1 = 0;
-        for (int k = 0; k < l1; k++)
+        for (int32_t k = 0; k < l1; k++)
         {
             t2 = t1;
             t4 = t1 << 2;
             t5 = (t6 = ido << 1) + t4;
-            for (int i = 2; i < ido; i += 2)
+            for (int32_t i = 2; i < ido; i += 2)
             {
                 t3 = (t2 += 2);
                 t4 += 2;
@@ -351,7 +351,7 @@ static void dradf4(
 
     const float hsqt2 = 0.70710678118654752440084436210485f;
 
-    for (int k = 0; k < l1; k++)
+    for (int32_t k = 0; k < l1; k++)
     {
         const float ti1 = -hsqt2 * (cc[t1] + cc[t2]);
         const float tr1 = hsqt2 * (cc[t1] - cc[t2]);
@@ -370,54 +370,54 @@ static void dradf4(
 
 
 static void dradfg(
-        int ido, int ip, int l1, int idl1, float* cc, float* c1,
+        int32_t ido, int32_t ip, int32_t l1, int32_t idl1, float* cc, float* c1,
         float* c2, float* ch, float* ch2, float* wa)
 {
-    int t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0;
-    int t6 = 0, t7 = 0, t8 = 0, t9 = 0, t10 = 0;
+    int32_t t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0;
+    int32_t t6 = 0, t7 = 0, t8 = 0, t9 = 0, t10 = 0;
 
-    const float arg = (float)(PI2 / ip);
+    const float arg = (float)(PI2 / (double)ip);
     const float dcp = cosf(arg);
     const float dsp = sinf(arg);
-    const int ipph = (ip + 1) >> 1;
-    const int ipp2 = ip;
-    const int idp2 = ido;
-    const int nbd = (ido - 1) >> 1;
+    const int32_t ipph = (ip + 1) >> 1;
+    const int32_t ipp2 = ip;
+    const int32_t idp2 = ido;
+    const int32_t nbd = (ido - 1) >> 1;
     t0 = l1 * ido;
     t10 = ip * ido;
 
     if (ido != 1)
     {
-        for (int ik = 0; ik < idl1; ik++)
+        for (int32_t ik = 0; ik < idl1; ik++)
             ch2[ik] = c2[ik];
 
         t1 = 0;
-        for (int j = 1; j < ip; j++)
+        for (int32_t j = 1; j < ip; j++)
         {
             t1 += t0;
             t2 = t1;
-            for (int k = 0; k < l1; k++)
+            for (int32_t k = 0; k < l1; k++)
             {
                 ch[t2] = c1[t2];
                 t2 += ido;
             }
         }
 
-        int is = -ido;
+        int32_t is = -ido;
         t1 = 0;
         if (nbd > l1)
         {
-            for (int j = 1; j < ip; j++)
+            for (int32_t j = 1; j < ip; j++)
             {
                 t1 += t0;
                 is += ido;
                 t2 = -ido + t1;
-                for (int k = 0; k < l1; k++)
+                for (int32_t k = 0; k < l1; k++)
                 {
-                    int idij = is - 1;
+                    int32_t idij = is - 1;
                     t2 += ido;
                     t3 = t2;
-                    for (int i = 2; i < ido; i += 2)
+                    for (int32_t i = 2; i < ido; i += 2)
                     {
                         idij += 2;
                         t3 += 2;
@@ -429,18 +429,18 @@ static void dradfg(
         }
         else
         {
-            for (int j = 1; j < ip; j++)
+            for (int32_t j = 1; j < ip; j++)
             {
                 is += ido;
-                int idij = is - 1;
+                int32_t idij = is - 1;
                 t1 += t0;
                 t2 = t1;
-                for (int i = 2; i < ido; i += 2)
+                for (int32_t i = 2; i < ido; i += 2)
                 {
                     idij += 2;
                     t2 += 2;
                     t3 = t2;
-                    for (int k = 0; k < l1; k++)
+                    for (int32_t k = 0; k < l1; k++)
                     {
                         ch[t3 - 1] = wa[idij - 1] * c1[t3 - 1] + wa[idij] * c1[t3];
                         ch[t3] = wa[idij - 1] * c1[t3] - wa[idij] * c1[t3 - 1];
@@ -454,19 +454,19 @@ static void dradfg(
         t2 = ipp2 * t0;
         if (nbd < l1)
         {
-            for (int j = 1; j < ipph; j++)
+            for (int32_t j = 1; j < ipph; j++)
             {
                 t1 += t0;
                 t2 -= t0;
                 t3 = t1;
                 t4 = t2;
-                for (int i = 2; i < ido; i += 2)
+                for (int32_t i = 2; i < ido; i += 2)
                 {
                     t3 += 2;
                     t4 += 2;
                     t5 = t3 - ido;
                     t6 = t4 - ido;
-                    for (int k = 0; k < l1; k++)
+                    for (int32_t k = 0; k < l1; k++)
                     {
                         t5 += ido;
                         t6 += ido;
@@ -480,17 +480,17 @@ static void dradfg(
         }
         else
         {
-            for (int j = 1; j < ipph; j++)
+            for (int32_t j = 1; j < ipph; j++)
             {
                 t1 += t0;
                 t2 -= t0;
                 t3 = t1;
                 t4 = t2;
-                for (int k = 0; k < l1; k++)
+                for (int32_t k = 0; k < l1; k++)
                 {
                     t5 = t3;
                     t6 = t4;
-                    for (int i = 2; i < ido; i += 2)
+                    for (int32_t i = 2; i < ido; i += 2)
                     {
                         t5 += 2;
                         t6 += 2;
@@ -506,18 +506,18 @@ static void dradfg(
         }
     }
 
-    for (int ik = 0; ik < idl1; ik++)
+    for (int32_t ik = 0; ik < idl1; ik++)
         c2[ik] = ch2[ik];
 
     t1 = 0;
     t2 = ipp2 * idl1;
-    for (int j = 1; j < ipph; j++)
+    for (int32_t j = 1; j < ipph; j++)
     {
         t1 += t0;
         t2 -= t0;
         t3 = t1 - ido;
         t4 = t2 - ido;
-        for (int k = 0; k < l1; k++)
+        for (int32_t k = 0; k < l1; k++)
         {
             t3 += ido;
             t4 += ido;
@@ -531,7 +531,7 @@ static void dradfg(
     t1 = 0;
     t2 = ipp2 * idl1;
     t3 = (ip - 1) * idl1;
-    for (int l = 1; l < ipph; l++)
+    for (int32_t l = 1; l < ipph; l++)
     {
         t1 += idl1;
         t2 -= idl1;
@@ -543,7 +543,7 @@ static void dradfg(
         t6 = t3;
         t7 = idl1;
 
-        for (int ik = 0; ik < idl1; ik++)
+        for (int32_t ik = 0; ik < idl1; ik++)
         {
             ch2[t4++] = c2[ik] + ar1 * c2[t7++];
             ch2[t5++] = ai1 * c2[t6++];
@@ -556,7 +556,7 @@ static void dradfg(
 
         t4 = idl1;
         t5 = (ipp2 - 1) * idl1;
-        for (int j = 2; j < ipph; j++)
+        for (int32_t j = 2; j < ipph; j++)
         {
             t4 += idl1;
             t5 -= idl1;
@@ -569,7 +569,7 @@ static void dradfg(
             t7 = t2;
             t8 = t4;
             t9 = t5;
-            for (int ik = 0; ik < idl1; ik++)
+            for (int32_t ik = 0; ik < idl1; ik++)
             {
                 ch2[t6++] += ar2 * c2[t8++];
                 ch2[t7++] += ai2 * c2[t9++];
@@ -578,21 +578,21 @@ static void dradfg(
     }
 
     t1 = 0;
-    for (int j = 1; j < ipph; j++)
+    for (int32_t j = 1; j < ipph; j++)
     {
         t1 += idl1;
         t2 = t1;
-        for (int ik = 0; ik < idl1; ik++)
+        for (int32_t ik = 0; ik < idl1; ik++)
             ch2[ik] += c2[t2++];
     }
 
     if (ido >= l1)
     {
-        for (int i = 0; i < ido; i++)
+        for (int32_t i = 0; i < ido; i++)
         {
             t1 = i;
             t2 = i;
-            for (int k = 0; k < l1; k++)
+            for (int32_t k = 0; k < l1; k++)
             {
                 cc[t2] = ch[t1];
                 t1 += ido;
@@ -604,11 +604,11 @@ static void dradfg(
     {
         t1 = 0;
         t2 = 0;
-        for (int k = 0; k < l1; k++)
+        for (int32_t k = 0; k < l1; k++)
         {
             t3 = t1;
             t4 = t2;
-            for (int i = 0; i < ido; i++)
+            for (int32_t i = 0; i < ido; i++)
                 cc[t4++] = ch[t3++];
             t1 += ido;
             t2 += t10;
@@ -619,7 +619,7 @@ static void dradfg(
     t2 = ido << 1;
     t3 = 0;
     t4 = ipp2 * t0;
-    for (int j = 1; j < ipph; j++)
+    for (int32_t j = 1; j < ipph; j++)
     {
         t1 += t2;
         t3 += t0;
@@ -629,7 +629,7 @@ static void dradfg(
         t6 = t3;
         t7 = t4;
 
-        for (int k = 0; k < l1; k++)
+        for (int32_t k = 0; k < l1; k++)
         {
             cc[t5 - 1] = ch[t6];
             cc[t5] = ch[t7];
@@ -648,7 +648,7 @@ static void dradfg(
         t3 = 0;
         t4 = 0;
         t5 = ipp2 * t0;
-        for (int j = 1; j < ipph; j++)
+        for (int32_t j = 1; j < ipph; j++)
         {
             t1 += t2;
             t3 += t2;
@@ -658,11 +658,11 @@ static void dradfg(
             t7 = t3;
             t8 = t4;
             t9 = t5;
-            for (int k = 0; k < l1; k++)
+            for (int32_t k = 0; k < l1; k++)
             {
-                for (int i = 2; i < ido; i += 2)
+                for (int32_t i = 2; i < ido; i += 2)
                 {
-                    const int ic = idp2 - i;
+                    const int32_t ic = idp2 - i;
                     cc[i + t7 - 1] = ch[i + t8 - 1] + ch[i + t9 - 1];
                     cc[ic + t6 - 1] = ch[i + t8 - 1] - ch[i + t9 - 1];
                     cc[i + t7] = ch[i + t8] + ch[i + t9];
@@ -681,19 +681,19 @@ static void dradfg(
     t3 = 0;
     t4 = 0;
     t5 = ipp2 * t0;
-    for (int j = 1; j < ipph; j++)
+    for (int32_t j = 1; j < ipph; j++)
     {
         t1 += t2;
         t3 += t2;
         t4 += t0;
         t5 -= t0;
-        for (int i = 2; i < ido; i += 2)
+        for (int32_t i = 2; i < ido; i += 2)
         {
             t6 = idp2 + t1 - i;
             t7 = i + t3;
             t8 = i + t4;
             t9 = i + t5;
-            for (int k = 0; k < l1; k++)
+            for (int32_t k = 0; k < l1; k++)
             {
                 cc[t7 - 1] = ch[t8 - 1] + ch[t9 - 1];
                 cc[t6 - 1] = ch[t8 - 1] - ch[t9 - 1];
@@ -711,27 +711,27 @@ static void dradfg(
 }
 
 
-static void drftf1(int32_t n, float* c, float* ch, float* wa, const int* ifac)
+static void drftf1(int32_t n, float* c, float* ch, float* wa, const int32_t* ifac)
 {
-    const int nf = ifac[1];
+    const int32_t nf = ifac[1];
     int na = 1;
-    int l2 = n;
-    int iw = n;
+    int32_t l2 = n;
+    int32_t iw = n;
 
-    for (int k1 = 0; k1 < nf; k1++)
+    for (int32_t k1 = 0; k1 < nf; k1++)
     {
-        const int kh = nf - k1;
-        const int ip = ifac[kh + 1];
-        const int l1 = l2 / ip;
-        const int ido = n / l2;
-        const int idl1 = ido * l1;
+        const int32_t kh = nf - k1;
+        const int32_t ip = ifac[kh + 1];
+        const int32_t l1 = l2 / ip;
+        const int32_t ido = n / l2;
+        const int32_t idl1 = ido * l1;
         iw -= (ip - 1) * ido;
         na = 1 - na;
 
         if (ip == 4)
         {
-            const int ix2 = iw + ido;
-            const int ix3 = ix2 + ido;
+            const int32_t ix2 = iw + ido;
+            const int32_t ix3 = ix2 + ido;
             if (na != 0)
                 dradf4(ido, l1, ch, c, wa + iw - 1, wa + ix2 - 1, wa + ix3 - 1);
             else
@@ -767,23 +767,23 @@ static void drftf1(int32_t n, float* c, float* ch, float* wa, const int* ifac)
     if (na == 1)
         return;
 
-    for (int i = 0; i < n; i++)
+    for (int32_t i = 0; i < n; i++)
         c[i] = ch[i];
 
     return;
 }
 
 
-static void dradb2(int ido, int l1, float* cc, float* ch, const float* wa1)
+static void dradb2(int32_t ido, int32_t l1, float* cc, float* ch, const float* wa1)
 {
-    int t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0;
+    int32_t t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0;
 
     t0 = l1 * ido;
 
     t1 = 0;
     t2 = 0;
     t3 = (ido << 1) - 1;
-    for (int k = 0; k < l1; k++)
+    for (int32_t k = 0; k < l1; k++)
     {
         ch[t1] = cc[t2] + cc[t3 + t2];
         ch[t1 + t0] = cc[t2] - cc[t3 + t2];
@@ -797,12 +797,12 @@ static void dradb2(int ido, int l1, float* cc, float* ch, const float* wa1)
     {
         t1 = 0;
         t2 = 0;
-        for (int k = 0; k < l1; k++)
+        for (int32_t k = 0; k < l1; k++)
         {
             t3 = t1;
             t5 = (t4 = t2) + (ido << 1);
             t6 = t0 + t1;
-            for (int i = 2; i < ido; i += 2)
+            for (int32_t i = 2; i < ido; i += 2)
             {
                 t3 += 2;
                 t4 += 2;
@@ -824,7 +824,7 @@ static void dradb2(int ido, int l1, float* cc, float* ch, const float* wa1)
 
     t1 = ido - 1;
     t2 = ido - 1;
-    for (int k = 0; k < l1; k++)
+    for (int32_t k = 0; k < l1; k++)
     {
         ch[t1] = cc[t2] + cc[t2];
         ch[t1 + t0] = -(cc[t2 + 1] + cc[t2 + 1]);
@@ -837,12 +837,12 @@ static void dradb2(int ido, int l1, float* cc, float* ch, const float* wa1)
 
 
 static void dradb3(
-        int ido, int l1, float* cc, float* ch, const float* wa1, const float *wa2)
+        int32_t ido, int32_t l1, float* cc, float* ch, const float* wa1, const float *wa2)
 {
     const float taur = -0.5f;
     const float taui = 0.86602540378443864676372317075293618f;
-    int t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0;
-    int t6 = 0, t7 = 0, t8 = 0, t9 = 0, t10 = 0;
+    int32_t t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0;
+    int32_t t6 = 0, t7 = 0, t8 = 0, t9 = 0, t10 = 0;
 
     t0 = l1 * ido;
 
@@ -851,7 +851,7 @@ static void dradb3(
     t3 = ido << 1;
     t4 = ido + (ido << 1);
     t5 = 0;
-    for (int k = 0; k < l1; k++)
+    for (int32_t k = 0; k < l1; k++)
     {
         const float tr2 = cc[t3 - 1] + cc[t3 - 1];
         const float cr2 = cc[t5] + (taur * tr2);
@@ -869,14 +869,14 @@ static void dradb3(
 
     t1 = 0;
     t3 = ido << 1;
-    for (int k = 0; k < l1; k++)
+    for (int32_t k = 0; k < l1; k++)
     {
         t7 = t1 + (t1 << 1);
         t6 = (t5 = t7 + t3);
         t8 = t1;
         t10 = (t9 = t1 + t0) + t0;
 
-        for (int i = 2; i < ido; i += 2)
+        for (int32_t i = 2; i < ido; i += 2)
         {
             t5 += 2;
             t6 -= 2;
@@ -909,10 +909,10 @@ static void dradb3(
 
 
 static void dradb4(
-        int ido, int l1, float* cc, float* ch,
+        int32_t ido, int32_t l1, float* cc, float* ch,
         const float* wa1, const float* wa2, const float* wa3)
 {
-    int t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0, t7 = 0, t8 = 0;
+    int32_t t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0, t7 = 0, t8 = 0;
 
     t0 = l1 * ido;
 
@@ -920,7 +920,7 @@ static void dradb4(
     t2 = ido << 2;
     t3 = 0;
     t6 = ido << 1;
-    for (int k = 0; k < l1; k++)
+    for (int32_t k = 0; k < l1; k++)
     {
         t4 = t3 + t6;
         t5 = t1;
@@ -942,11 +942,11 @@ static void dradb4(
     if (ido != 2)
     {
         t1 = 0;
-        for (int k = 0; k < l1; k++)
+        for (int32_t k = 0; k < l1; k++)
         {
             t5 = (t4 = (t3 = (t2 = t1 << 2) + t6)) + t6;
             t7 = t1;
-            for (int i = 2; i < ido; i += 2)
+            for (int32_t i = 2; i < ido; i += 2)
             {
                 t2 += 2;
                 t3 += 2;
@@ -990,7 +990,7 @@ static void dradb4(
     t2 = ido << 2;
     t3 = ido - 1;
     t4 = ido + (ido << 1);
-    for (int k = 0; k < l1; k++)
+    for (int32_t k = 0; k < l1; k++)
     {
         t5 = t3;
         const float ti1 = cc[t1] + cc[t4];
@@ -1012,30 +1012,30 @@ static void dradb4(
 
 
 static void dradbg(
-        int ido, int ip, int l1, int idl1, float* cc, float* c1,
+        int32_t ido, int32_t ip, int32_t l1, int32_t idl1, float* cc, float* c1,
         float* c2, float* ch, float* ch2, const float* wa)
 {
-    int t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0;
-    int t7 = 0, t8 = 0, t9 = 0, t10 = 0, t11 = 0, t12 = 0;
+    int32_t t0 = 0, t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0;
+    int32_t t7 = 0, t8 = 0, t9 = 0, t10 = 0, t11 = 0, t12 = 0;
 
     t10 = ip * ido;
     t0 = l1 * ido;
-    const float arg = (float)(PI2 / ip);
+    const float arg = (float)(PI2 / (double)ip);
     const float dcp = cosf(arg);
     const float dsp = sinf(arg);
-    const int nbd = (ido - 1) >> 1;
-    const int ipp2 = ip;
-    const int ipph = (ip + 1) >> 1;
+    const int32_t nbd = (ido - 1) >> 1;
+    const int32_t ipp2 = ip;
+    const int32_t ipph = (ip + 1) >> 1;
 
     if (ido >= l1)
     {
         t1 = 0;
         t2 = 0;
-        for (int k = 0; k < l1; k++)
+        for (int32_t k = 0; k < l1; k++)
         {
             t3 = t1;
             t4 = t2;
-            for (int i = 0; i < ido; i++)
+            for (int32_t i = 0; i < ido; i++)
             {
                 ch[t3] = cc[t4];
                 t3++;
@@ -1048,11 +1048,11 @@ static void dradbg(
     else
     {
         t1 = 0;
-        for (int i = 0; i < ido; i++)
+        for (int32_t i = 0; i < ido; i++)
         {
             t2 = t1;
             t3 = t1;
-            for (int k = 0; k < l1; k++)
+            for (int32_t k = 0; k < l1; k++)
             {
                 ch[t2] = cc[t3];
                 t2 += ido;
@@ -1065,14 +1065,14 @@ static void dradbg(
     t1 = 0;
     t2 = ipp2 * t0;
     t7 = (t5 = ido << 1);
-    for (int j = 1; j < ipph; j++)
+    for (int32_t j = 1; j < ipph; j++)
     {
         t1 += t0;
         t2 -= t0;
         t3 = t1;
         t4 = t2;
         t6 = t5;
-        for (int k = 0; k < l1; k++)
+        for (int32_t k = 0; k < l1; k++)
         {
             ch[t3] = cc[t6 - 1] + cc[t6 - 1];
             ch[t4] = cc[t6] + cc[t6];
@@ -1090,7 +1090,7 @@ static void dradbg(
             t1 = 0;
             t2 = ipp2 * t0;
             t7 = 0;
-            for (int j = 1; j < ipph; j++)
+            for (int32_t j = 1; j < ipph; j++)
             {
                 t1 += t0;
                 t2 -= t0;
@@ -1099,13 +1099,13 @@ static void dradbg(
 
                 t7 += (ido << 1);
                 t8 = t7;
-                for (int k = 0; k < l1; k++)
+                for (int32_t k = 0; k < l1; k++)
                 {
                     t5 = t3;
                     t6 = t4;
                     t9 = t8;
                     t11 = t8;
-                    for (int i = 2; i < ido; i += 2)
+                    for (int32_t i = 2; i < ido; i += 2)
                     {
                         t5 += 2;
                         t6 += 2;
@@ -1127,7 +1127,7 @@ static void dradbg(
             t1 = 0;
             t2 = ipp2 * t0;
             t7 = 0;
-            for (int j = 1; j < ipph; j++)
+            for (int32_t j = 1; j < ipph; j++)
             {
                 t1 += t0;
                 t2 -= t0;
@@ -1136,7 +1136,7 @@ static void dradbg(
                 t7 += (ido << 1);
                 t8 = t7;
                 t9 = t7;
-                for (int i = 2; i < ido; i += 2)
+                for (int32_t i = 2; i < ido; i += 2)
                 {
                     t3 += 2;
                     t4 += 2;
@@ -1146,7 +1146,7 @@ static void dradbg(
                     t6 = t4;
                     t11 = t8;
                     t12 = t9;
-                    for (int k = 0; k < l1; k++)
+                    for (int32_t k = 0; k < l1; k++)
                     {
                         ch[t5 - 1] = cc[t11 - 1] + cc[t12 - 1];
                         ch[t6 - 1] = cc[t11 - 1] - cc[t12 - 1];
@@ -1167,7 +1167,7 @@ static void dradbg(
     t1 = 0;
     t9 = (t2 = ipp2 * idl1);
     t3 = (ip - 1) * idl1;
-    for (int l = 1; l < ipph; l++)
+    for (int32_t l = 1; l < ipph; l++)
     {
         t1 += idl1;
         t2 -= idl1;
@@ -1180,7 +1180,7 @@ static void dradbg(
         t6 = 0;
         t7 = idl1;
         t8 = t3;
-        for (int ik = 0; ik < idl1; ik++)
+        for (int32_t ik = 0; ik < idl1; ik++)
         {
             c2[t4++] = ch2[t6++] + ar1 * ch2[t7++];
             c2[t5++] = ai1 * ch2[t8++];
@@ -1192,7 +1192,7 @@ static void dradbg(
 
         t6 = idl1;
         t7 = t9 - idl1;
-        for (int j = 2; j < ipph; j++)
+        for (int32_t j = 2; j < ipph; j++)
         {
             t6 += idl1;
             t7 -= idl1;
@@ -1203,7 +1203,7 @@ static void dradbg(
             t5 = t2;
             t11 = t6;
             t12 = t7;
-            for (int ik = 0; ik < idl1; ik++)
+            for (int32_t ik = 0; ik < idl1; ik++)
             {
                 c2[t4++] += ar2 * ch2[t11++];
                 c2[t5++] += ai2 * ch2[t12++];
@@ -1212,23 +1212,23 @@ static void dradbg(
     }
 
     t1 = 0;
-    for (int j = 1; j < ipph; j++)
+    for (int32_t j = 1; j < ipph; j++)
     {
         t1 += idl1;
         t2 = t1;
-        for (int ik = 0; ik < idl1; ik++)
+        for (int32_t ik = 0; ik < idl1; ik++)
             ch2[ik] += ch2[t2++];
     }
 
     t1 = 0;
     t2 = ipp2 * t0;
-    for (int j = 1; j < ipph; j++)
+    for (int32_t j = 1; j < ipph; j++)
     {
         t1 += t0;
         t2 -= t0;
         t3 = t1;
         t4 = t2;
-        for (int k = 0; k < l1; k++)
+        for (int32_t k = 0; k < l1; k++)
         {
             ch[t3] = c1[t3] - c1[t4];
             ch[t4] = c1[t3] + c1[t4];
@@ -1243,17 +1243,17 @@ static void dradbg(
         {
             t1 = 0;
             t2 = ipp2 * t0;
-            for (int j = 1; j < ipph; j++)
+            for (int32_t j = 1; j < ipph; j++)
             {
                 t1 += t0;
                 t2 -= t0;
                 t3 = t1;
                 t4 = t2;
-                for (int k = 0; k < l1; k++)
+                for (int32_t k = 0; k < l1; k++)
                 {
                     t5 = t3;
                     t6 = t4;
-                    for (int i = 2; i < ido; i += 2)
+                    for (int32_t i = 2; i < ido; i += 2)
                     {
                         t5 += 2;
                         t6 += 2;
@@ -1271,19 +1271,19 @@ static void dradbg(
         {
             t1 = 0;
             t2 = ipp2 * t0;
-            for (int j = 1; j < ipph; j++)
+            for (int32_t j = 1; j < ipph; j++)
             {
                 t1 += t0;
                 t2 -= t0;
                 t3 = t1;
                 t4 = t2;
-                for (int i = 2; i < ido; i += 2)
+                for (int32_t i = 2; i < ido; i += 2)
                 {
                     t3 += 2;
                     t4 += 2;
                     t5 = t3;
                     t6 = t4;
-                    for (int k = 0; k < l1; k++)
+                    for (int32_t k = 0; k < l1; k++)
                     {
                         ch[t5 - 1] = c1[t5 - 1] - c1[t6];
                         ch[t6 - 1] = c1[t5 - 1] + c1[t6];
@@ -1300,37 +1300,37 @@ static void dradbg(
     if (ido == 1)
         return;
 
-    for (int ik = 0; ik < idl1; ik++)
+    for (int32_t ik = 0; ik < idl1; ik++)
         c2[ik] = ch2[ik];
 
     t1 = 0;
-    for (int j = 1; j < ip; j++)
+    for (int32_t j = 1; j < ip; j++)
     {
         t2 = (t1 += t0);
-        for (int k = 0; k < l1; k++)
+        for (int32_t k = 0; k < l1; k++)
         {
             c1[t2] = ch[t2];
             t2 += ido;
         }
     }
 
-    int is = -ido - 1;
+    int32_t is = -ido - 1;
 
     if (nbd <= l1)
     {
         t1 = 0;
-        for (int j = 1; j < ip; j++)
+        for (int32_t j = 1; j < ip; j++)
         {
             is += ido;
             t1 += t0;
-            int idij = is;
+            int32_t idij = is;
             t2 = t1;
-            for (int i = 2; i < ido; i += 2)
+            for (int32_t i = 2; i < ido; i += 2)
             {
                 t2 += 2;
                 idij += 2;
                 t3 = t2;
-                for (int k = 0; k < l1; k++)
+                for (int32_t k = 0; k < l1; k++)
                 {
                     c1[t3 - 1] = wa[idij - 1] * ch[t3 - 1] - wa[idij] * ch[t3];
                     c1[t3] = wa[idij - 1] * ch[t3] + wa[idij] * ch[t3 - 1];
@@ -1342,16 +1342,16 @@ static void dradbg(
     }
 
     t1 = 0;
-    for (int j = 1; j < ip; j++)
+    for (int32_t j = 1; j < ip; j++)
     {
         is += ido;
         t1 += t0;
         t2 = t1;
-        for (int k = 0; k < l1; k++)
+        for (int32_t k = 0; k < l1; k++)
         {
-            int idij = is;
+            int32_t idij = is;
             t3 = t2;
-            for (int i = 2; i < ido; i += 2)
+            for (int32_t i = 2; i < ido; i += 2)
             {
                 idij += 2;
                 t3 += 2;
@@ -1366,23 +1366,23 @@ static void dradbg(
 }
 
 
-static void drftb1(int32_t n, float* c, float* ch, const float* wa, const int* ifac)
+static void drftb1(int32_t n, float* c, float* ch, const float* wa, const int32_t* ifac)
 {
-    const int nf = ifac[1];
+    const int32_t nf = ifac[1];
     int na = 0;
-    int l1 = 1;
-    int iw = 1;
+    int32_t l1 = 1;
+    int32_t iw = 1;
 
-    for (int k1 = 0; k1 < nf; k1++)
+    for (int32_t k1 = 0; k1 < nf; k1++)
     {
-        const int ip = ifac[k1 + 2];
-        const int l2 = ip * l1;
-        const int ido = n / l2;
-        const int idl1 = ido * l1;
+        const int32_t ip = ifac[k1 + 2];
+        const int32_t l2 = ip * l1;
+        const int32_t ido = n / l2;
+        const int32_t idl1 = ido * l1;
         if (ip == 4)
         {
-            const int ix2 = iw + ido;
-            const int ix3 = ix2 + ido;
+            const int32_t ix2 = iw + ido;
+            const int32_t ix3 = ix2 + ido;
 
             if (na != 0)
                 dradb4(ido, l1, ch, c, wa + iw - 1, wa + ix2 - 1, wa + ix3 - 1);
@@ -1400,7 +1400,7 @@ static void drftb1(int32_t n, float* c, float* ch, const float* wa, const int* i
         }
         else if (ip == 3)
         {
-            const int ix2 = iw + ido;
+            const int32_t ix2 = iw + ido;
             if (na != 0)
                 dradb3(ido, l1, ch, c, wa + iw - 1, wa + ix2 - 1);
             else
@@ -1424,7 +1424,7 @@ static void drftb1(int32_t n, float* c, float* ch, const float* wa, const int* i
     if (na == 0)
         return;
 
-    for (int i = 0; i < n; i++)
+    for (int32_t i = 0; i < n; i++)
         c[i] = ch[i];
 
     return;
