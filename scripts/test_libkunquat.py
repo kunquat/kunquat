@@ -57,6 +57,7 @@ def test_libkunquat(builder, options, cc):
             'handle': ['streader', 'tstamp'],
             'player': ['handle', 'streader', 'fast_sin', 'fast_exp2', 'fast_log2'],
             'memory': ['handle'],
+            'fft': ['memory'],
             'connections': ['handle', 'player'],
             'generator': ['connections'],
             'instrument': ['connections'],

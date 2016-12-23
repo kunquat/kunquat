@@ -21,6 +21,7 @@
 #include <init/devices/processors/Proc_init_utils.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
+#include <mathnum/fft.h>
 #include <memory.h>
 #include <player/devices/Proc_state.h>
 #include <player/devices/processors/Add_state.h>
@@ -28,12 +29,12 @@
 
 #include <math.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 
 static float sine(double phase, double modifier);
+static bool fill_buf(float* buf, const Sample* sample);
 
 static Set_sample_func  Proc_add_set_base;
 static Set_bool_func    Proc_add_set_ramp_attack;
@@ -84,14 +85,16 @@ Device_impl* new_Proc_add(void)
 #undef REG_KEY
 #undef REG_KEY_BOOL
 
-    float* buf = memory_alloc_items(float, ADD_BASE_FUNC_SIZE + 1);
+    // For easier resampling, * 4 adds space for a sample with double resolution
+    // plus shorter waveforms progressively downsampled by a factor of 2
+    float* buf = memory_alloc_items(float, ADD_BASE_FUNC_SIZE * 4);
     if (buf == NULL)
     {
         del_Device_impl(&add->parent);
         return NULL;
     }
 
-    add->base = new_Sample_from_buffers(&buf, 1, ADD_BASE_FUNC_SIZE + 1);
+    add->base = new_Sample_from_buffers(&buf, 1, ADD_BASE_FUNC_SIZE * 4);
     if (add->base == NULL)
     {
         memory_free(buf);
@@ -99,9 +102,7 @@ Device_impl* new_Proc_add(void)
         return NULL;
     }
 
-    for (int i = 0; i < ADD_BASE_FUNC_SIZE; ++i)
-        buf[i] = sine((double)i / ADD_BASE_FUNC_SIZE, 0);
-    buf[ADD_BASE_FUNC_SIZE] = buf[0];
+    fill_buf(Sample_get_buffer(add->base, 0), NULL);
 
     for (int h = 0; h < ADD_TONES_MAX; ++h)
     {
@@ -124,30 +125,81 @@ static float sine(double phase, double modifier)
 }
 
 
-static void fill_buf(float* buf, const Sample* sample)
+static bool fill_buf(float* buf, const Sample* sample)
 {
     rassert(buf != NULL);
 
+    rassert(is_p2(ADD_BASE_FUNC_SIZE));
+
     if ((sample != NULL) && (sample->data[0] != NULL) && sample->is_float)
     {
-        int available = (int)min(sample->len, ADD_BASE_FUNC_SIZE);
+        FFT_worker* fw = FFT_worker_init(FFT_WORKER_AUTO, ADD_BASE_FUNC_SIZE * 2);
+        if (fw == NULL)
+            return false;
 
-        const float* from_buf = sample->data[0];
-
-        for (int i = 0; i < available; ++i)
-            buf[i] = clamp(from_buf[i], -1.0f, 1.0f);
-        for (int i = available; i < ADD_BASE_FUNC_SIZE; ++i)
+        for (int i = 0; i < ADD_BASE_FUNC_SIZE * 4; ++i)
             buf[i] = 0;
+
+        // Get original sample data
+        {
+            const int available = (int)min(sample->len, ADD_BASE_FUNC_SIZE);
+
+            const float* from_buf = sample->data[0];
+
+            for (int i = 0; i < available; ++i)
+                buf[i] = clamp(from_buf[i], -1.0f, 1.0f);
+        }
+
+        // Get frequency components
+        FFT_worker_rfft(fw, buf, ADD_BASE_FUNC_SIZE);
+        for (int i = 0; i < ADD_BASE_FUNC_SIZE; ++i)
+            buf[i] *= 2;
+
+        // Copy frequency components to smaller arrays
+        {
+            int from_offset = 0;
+            int from_length = ADD_BASE_FUNC_SIZE * 2;
+            int target_offset = from_length;
+
+            for (; from_length > 1; from_length >>= 1)
+            {
+                const int copy_amount = (from_length / 2) - 1;
+                for (int i = 0; i < copy_amount; ++i)
+                    buf[target_offset + i] = buf[from_offset + i] / 2.0f;
+
+                from_offset += from_length;
+                target_offset += from_length / 2;
+            }
+        }
+
+        // Get resampled waveforms
+        {
+            int start_offset = 0;
+            for (int length = ADD_BASE_FUNC_SIZE * 2; length > 0; length >>= 1)
+            {
+                FFT_worker_irfft(fw, buf + start_offset, length);
+                for (int i = 0; i < length; ++i)
+                    buf[start_offset + i] /= (float)length;
+
+                start_offset += length;
+            }
+        }
+
+        FFT_worker_deinit(fw);
     }
     else
     {
-        for (int i = 0; i < ADD_BASE_FUNC_SIZE; ++i)
-            buf[i] = sine((double)i / ADD_BASE_FUNC_SIZE, 0);
+        int start_offset = 0;
+        for (int length = ADD_BASE_FUNC_SIZE * 2; length > 0; length >>= 1)
+        {
+            for (int i = 0; i < length; ++i)
+                buf[start_offset + i] = sine((double)i / length, 0);
+
+            start_offset += length;
+        }
     }
 
-    buf[ADD_BASE_FUNC_SIZE] = buf[0];
-
-    return;
+    return true;
 }
 
 
@@ -159,9 +211,7 @@ static bool Proc_add_set_base(
 
     Proc_add* add = (Proc_add*)dimpl;
 
-    fill_buf(Sample_get_buffer(add->base, 0), value);
-
-    return true;
+    return fill_buf(Sample_get_buffer(add->base, 0), value);
 }
 
 

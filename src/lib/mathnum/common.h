@@ -24,7 +24,11 @@
 
 
 #undef PI
-#define PI (3.14159265358979323846)
+#define PI 3.14159265358979323846
+
+
+#undef PI2
+#define PI2 6.28318530717958647692
 
 
 #undef min
