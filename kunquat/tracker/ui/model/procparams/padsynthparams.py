@@ -20,59 +20,211 @@ from .basewave import BaseWave
 from .procparams import ProcParams
 
 
-def bit_reversal_permute(data):
-    bit_count = int(round(math.log(len(data), 2)))
-    assert bit_count < 32
-
-    def reverse_bits(n):
-        n = ((n & 0xaaaaaaaa) >> 1) | ((n & 0x55555555) << 1)
-        n = ((n & 0xcccccccc) >> 2) | ((n & 0x33333333) << 2)
-        n = ((n & 0xf0f0f0f0) >> 4) | ((n & 0x0f0f0f0f) << 4)
-        n = ((n & 0xff00ff00) >> 8) | ((n & 0x00ff00ff) << 8)
-        n = ((n & 0xffff0000) >> 16) | ((n & 0x0000ffff) << 16)
-        return n >> (32 - bit_count)
-
-    for i in range(len(data)):
-        rev_i = reverse_bits(i)
-        if rev_i > i:
-            data[i], data[rev_i] = data[rev_i], data[i]
-
-
-def W(index, count):
-    u = 2 * math.pi * index / count
-    return complex(math.cos(u), math.sin(u))
-
-
+# Algorithmically based on the FFTPACK C implementation,
+# source: http://www.netlib.org/fftpack/fft.c
 def rfft(data):
-    bit_reversal_permute(data)
+    def get_workspace(n):
+        wa = [0.0] * n
+        ifac = [0] * 32
 
-    Ws = [W(x, len(data)) for x in range(len(data) // 4)]
+        ntryh = [4, 2, 3, 5]
+        nf = 0
 
-    # Algorithmically based on the description in the LaTeX documentation
-    # of GNU Scientific Library, http://www.gnu.org/software/gsl/
-    bit_count = int(round(math.log(len(data), 2)))
-    for i in range(1, bit_count + 1):
-        p_i = 1 << i
-        p_im1 = p_i >> 1
-        q_i = len(data) // p_i
+        # Divide n into preferred set of factors
+        test_index = 0
+        left = n
+        while left > 1:
+            ntry = ntryh[test_index] if test_index < 4 else test_index * 2 - 1
 
-        for b in range(q_i):
-            ix0 = b * p_i
-            ix1 = b * p_i + p_im1
-            data[ix0], data[ix1] = data[ix0] + data[ix1], data[ix0] - data[ix1]
+            nq = left // ntry
+            nr = left - ntry * nq
+            if nr != 0:
+                test_index += 1
+                continue
 
-        for a in range(1, p_im1 >> 1):
-            for b in range(q_i):
-                bp_i = b * p_i
+            nf += 1
+            ifac[nf + 1] = ntry
+            left = nq
 
-                z0 = complex(data[bp_i + a], data[bp_i + p_im1 - a])
-                z1 = complex(data[bp_i + p_im1 + a], data[bp_i + p_i - a])
-                #Wa_p_iz1 = W(a, p_i) * z1
-                Wa_p_iz1 = Ws[a * q_i] * z1
-                t0 = z0 + Wa_p_iz1
-                t1 = z0 - Wa_p_iz1
-                data[bp_i + a], data[bp_i + p_i - a] = t0.real, t0.imag
-                data[bp_i + p_im1 - a], data[bp_i + p_im1 + a] = t1.real, -t1.imag
+            if (ntry == 2) and (nf != 1):
+                for i in range(1, nf):
+                    ib = nf - i + 1
+                    ifac[ib + 1] = ifac[ib]
+                ifac[2] = 2
+
+        ifac[0] = n
+        ifac[1] = nf
+
+        # Fill in complex roots of unity
+        nfm1 = nf - 1
+
+        if nfm1 == 0:
+            return ([0] * n) + wa, ifac
+
+        argh = math.pi * 2 / n
+        is_ = 0
+        l1 = 1
+
+        for k1 in range(nfm1):
+            ip = ifac[k1 + 2]
+            ld = 0
+            l2 = l1 * ip
+            ido = n // l2
+            ipm = ip - 1
+
+            for j in range(ipm):
+                ld += l1
+                i = is_
+                argld = ld * argh
+                fi = 0.0
+                for ii in range(2, ido, 2):
+                    fi += 1.0
+                    arg = fi * argld
+                    wa[i] = math.cos(arg)
+                    wa[i + 1] = math.sin(arg)
+                    i += 2
+                is_ += ido
+            l1 = l2
+
+        return wa, ifac
+
+    def drftf1(n, c, ch, wa, ifac):
+
+        def dradf4(ido, l1, cc, ch, wa1, wa1o, wa2, wa2o, wa3, wa3o):
+            t0 = l1 * ido
+
+            t1 = t0
+            t4 = t1 << 1
+            t2 = t1 + (t1 << 1)
+            t3 = 0
+
+            for k in range(l1):
+                tr1 = cc[t1] + cc[t2]
+                tr2 = cc[t3] + cc[t4]
+                t5 = t3 << 2
+                ch[t5] = tr1 + tr2
+                ch[(ido << 2) + t5 - 1] = tr2 - tr1
+                t5 += (ido << 1)
+                ch[t5 - 1] = cc[t3] - cc[t4]
+                ch[t5] = cc[t2] - cc[t1]
+
+                t1 += ido
+                t2 += ido
+                t3 += ido
+                t4 += ido
+
+            if ido < 2:
+                return
+
+            if ido != 2:
+                t1 = 0
+                for k in range(l1):
+                    t2 = t1
+                    t4 = t1 << 2
+                    t6 = ido << 1
+                    t5 = t6 + t4
+                    for i in range(2, ido, 2):
+                        t2 += 2
+                        t3 = t2
+                        t4 += 2
+                        t5 -= 2
+
+                        t3 += t0
+                        cr2 = wa1[wa1o + i - 2] * cc[t3 - 1] + wa1[wa1o + i - 1] * cc[t3]
+                        ci2 = wa1[wa1o + i - 2] * cc[t3] - wa1[wa1o + i - 1] * cc[t3 - 1]
+                        t3 += t0
+                        cr3 = wa2[wa2o + i - 2] * cc[t3 - 1] + wa2[wa2o + i - 1] * cc[t3]
+                        ci3 = wa2[wa2o + i - 2] * cc[t3] - wa2[wa2o + i - 1] * cc[t3 - 1]
+                        t3 += t0
+                        cr4 = wa3[wa3o + i - 2] * cc[t3 - 1] + wa3[wa3o + i - 1] * cc[t3]
+                        ci4 = wa3[wa3o + i - 2] * cc[t3] - wa3[wa3o + i - 1] * cc[t3 - 1]
+
+                        tr1 = cr2 + cr4;
+                        tr4 = cr4 - cr2;
+                        ti1 = ci2 + ci4;
+                        ti4 = ci2 - ci4;
+                        ti2 = cc[t2] + ci3;
+                        ti3 = cc[t2] - ci3;
+                        tr2 = cc[t2 - 1] + cr3;
+                        tr3 = cc[t2 - 1] - cr3;
+
+                        ch[t4 - 1] = tr1 + tr2;
+                        ch[t4] = ti1 + ti2;
+
+                        ch[t5 - 1] = tr3 - ti4;
+                        ch[t5] = tr4 - ti3;
+
+                        ch[t4 + t6 - 1] = ti4 + tr3;
+                        ch[t4 + t6] = tr4 + ti3;
+
+                        ch[t5 + t6 - 1] = tr2 - tr1;
+                        ch[t5 + t6] = ti1 - ti2;
+
+                    t1 += ido
+
+                if ido % 2 == 1:
+                    return
+
+            t1 = t0 + ido - 1
+            t2 = t1 + (t0 << 1)
+            t3 = ido << 2
+            t4 = ido
+            t5 = ido << 1
+            t6 = ido
+
+            hsqt2 = 0.70710678118654752440084436210485;
+
+            for k in range(l1):
+                ti1 = -hsqt2 * (cc[t1] + cc[t2])
+                tr1 = hsqt2 * (cc[t1] - cc[t2])
+                ch[t4 - 1] = tr1 + cc[t6 - 1];
+                ch[t4 + t5 - 1] = cc[t6 - 1] - tr1;
+                ch[t4] = ti1 - cc[t1 + t0];
+                ch[t4 + t5] = ti1 + cc[t1 + t0];
+                t1 += ido;
+                t2 += ido;
+                t4 += t3;
+                t6 += ido;
+
+
+        nf = ifac[1]
+        na = 1
+        l2 = n
+        iw = n
+
+        for k1 in range(nf):
+            kh = nf - k1
+            ip = ifac[kh + 1]
+            l1 = l2 // ip
+            ido = n // l2
+            idl1 = ido * l1
+            iw -= (ip - 1) * ido
+            na = 1 - na
+
+            if ip == 4:
+                ix2 = iw + ido
+                ix3 = ix2 + ido
+                if na != 0:
+                    dradf4(ido, l1, ch, c, wa, iw - 1, wa, ix2 - 1, wa, ix3 - 1)
+                else:
+                    dradf4(ido, l1, c, ch, wa, iw - 1, wa, ix2 - 1, wa, ix3 - 1)
+            elif ip == 2:
+                assert False # we shouldn't need this with n == 4096
+            else:
+                assert False # we shouldn't need this with n == 4096
+
+            l2 = l1
+
+        if na == 1:
+            return
+
+        for i in range(n):
+            c[i] = ch[i]
+
+    wsave, ifac = get_workspace(len(data))
+
+    n = len(data)
+    drftf1(n, data, [0.0] * n, wsave, ifac)
 
 
 class PadsynthParams(ProcParams):
@@ -200,8 +352,8 @@ class PadsynthParams(ProcParams):
             hl = []
             for freq_mult, amp_mult in self._get_harmonic_scales_data():
                 for i in range(1, len(waveform) // 2):
-                    fr = waveform[i]
-                    fi = waveform[-i]
+                    fr = waveform[i * 2 - 1]
+                    fi = waveform[i * 2]
                     amplitude = math.sqrt(fr * fr + fi * fi)
                     hl.append([i * freq_mult, amplitude * amp_mult])
         else:
