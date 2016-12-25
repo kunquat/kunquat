@@ -22,7 +22,7 @@
 #include <init/devices/processors/Proc_init_utils.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
-#include <mathnum/irfft.h>
+#include <mathnum/fft.h>
 #include <mathnum/Random.h>
 #include <memory.h>
 #include <player/devices/processors/Padsynth_state.h>
@@ -368,13 +368,13 @@ static void make_padsynth_sample(
         Random* random,
         double* freq_amp,
         double* freq_phase,
-        const float* Ws,
+        FFT_worker* fw,
         const Padsynth_params* params)
 {
     rassert(entry != NULL);
     rassert(freq_amp != NULL);
     rassert(freq_phase != NULL);
-    rassert(Ws != NULL);
+    rassert(fw != NULL);
 
     int32_t sample_length = PADSYNTH_DEFAULT_SAMPLE_LENGTH;
     if (params != NULL)
@@ -456,7 +456,7 @@ static void make_padsynth_sample(
     // Add randomised phases
     {
         for (int32_t i = 0; i < buf_length; ++i)
-            freq_phase[i] = Random_get_float_lb(random) * 2 * PI;
+            freq_phase[i] = Random_get_float_lb(random) * PI2;
     }
 
     // Set up frequencies in half-complex representation
@@ -466,12 +466,12 @@ static void make_padsynth_sample(
     buf[buf_length] = 0;
     for (int32_t i = 1; i < buf_length; ++i)
     {
-        buf[i] = (float)(freq_amp[i] * cos(freq_phase[i]));
-        buf[sample_length - i] = (float)(freq_amp[i] * sin(freq_phase[i]));
+        buf[i * 2 - 1] = (float)(freq_amp[i] * cos(freq_phase[i]));
+        buf[i * 2] = (float)(freq_amp[i] * sin(freq_phase[i]));
     }
 
     // Apply IFFT
-    irfft(buf, Ws, sample_length);
+    FFT_worker_irfft(fw, buf, sample_length);
 
     // Normalise
     {
@@ -517,12 +517,13 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
 
     double* freq_amp = memory_alloc_items(double, buf_length);
     double* freq_phase = memory_alloc_items(double, buf_length);
-    float* Ws = memory_alloc_items(float, buf_length);
-    if (freq_amp == NULL || freq_phase == NULL || Ws == NULL)
+    FFT_worker* fw = FFT_worker_init(FFT_WORKER_AUTO, sample_length);
+    if (freq_amp == NULL || freq_phase == NULL || fw == NULL)
     {
         memory_free(freq_amp);
         memory_free(freq_phase);
-        memory_free(Ws);
+        if (fw != NULL)
+            FFT_worker_deinit(fw);
         return false;
     }
 
@@ -541,7 +542,7 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
         {
             memory_free(freq_amp);
             memory_free(freq_phase);
-            memory_free(Ws);
+            FFT_worker_deinit(fw);
             return false;
         }
 
@@ -556,8 +557,6 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
 
     Random_reset(&padsynth->random);
 
-    fill_Ws(Ws, sample_length);
-
     // Build samples
     if (params != NULL)
     {
@@ -568,7 +567,7 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
         while (entry != NULL)
         {
             make_padsynth_sample(
-                    entry, &padsynth->random, freq_amp, freq_phase, Ws, params);
+                    entry, &padsynth->random, freq_amp, freq_phase, fw, params);
             entry = AAiter_get_next(iter);
         }
     }
@@ -579,12 +578,12 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
             AAtree_get_at_least(padsynth->sample_map->map, key);
         rassert(entry != NULL);
 
-        make_padsynth_sample(entry, &padsynth->random, freq_amp, freq_phase, Ws, NULL);
+        make_padsynth_sample(entry, &padsynth->random, freq_amp, freq_phase, fw, NULL);
     }
 
     memory_free(freq_amp);
     memory_free(freq_phase);
-    memory_free(Ws);
+    FFT_worker_deinit(fw);
 
     return true;
 }
