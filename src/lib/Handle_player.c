@@ -24,6 +24,7 @@
 #include <string/common.h>
 
 #include <inttypes.h>
+#include <limits.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -87,11 +88,13 @@ int kqt_Handle_set_audio_rate(kqt_Handle handle, long rate)
         Handle_set_error(h, ERROR_ARGUMENT, "Audio rate must be positive");
         return 0;
     }
+#if LONG_MAX > INT32_MAX
     else if ((int64_t)rate > INT32_MAX)
     {
         Handle_set_error(h, ERROR_ARGUMENT, "Audio rate must be <= %" PRId32, INT32_MAX);
         return 0;
     }
+#endif
 
     if (!Player_set_audio_rate(h->player, (int32_t)rate))
     {
