@@ -126,12 +126,12 @@ class Config():
 
         # Read file
         try:
-            with open(self._config_path) as f:
+            with open(self._config_path, encoding='utf-8') as f:
                 chunks = self._load_config_data(f)
         except FileNotFoundError:
             old_path = self._config_path + '.old'
             try:
-                with open(old_path) as f:
+                with open(old_path, encoding='utf-8') as f:
                     chunks = self._load_config_data(f)
             except FileNotFoundError:
                 # Nothing to do, using default settings
@@ -184,7 +184,7 @@ class Config():
         out_data = json.dumps(self._config, indent=4, cls=_ConfigEncoder, sort_keys=True)
         assert len(out_data) <= self._MAX_CHARS
         try:
-            with open(new_path, 'w') as f:
+            with open(new_path, 'w', encoding='utf-8') as f:
                 f.write(out_data)
         except OSError as e:
             print('Could not write new configuration file: {}'.format(e.strerror),
