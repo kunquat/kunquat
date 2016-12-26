@@ -17,6 +17,7 @@ import collections
 import getopt
 from itertools import cycle, chain
 import json
+import locale
 import math
 import multiprocessing
 import os.path
@@ -34,6 +35,8 @@ from kunquat.extras import pulseaudio
 PROGRAM_NAME = 'kunquat-player'
 PROGRAM_VERSION = '0.7.2'
 AUTHORS = [ 'Tomi Jylhä-Ollila', 'Toni Ruottu' ]
+
+ENABLE_UNICODE_OUTPUT = (locale.getpreferredencoding().lower() == 'utf-8')
 
 
 def author_list(authors):
@@ -98,7 +101,11 @@ def print_meta(meta):
     field_width = max(len(f) for f in fields)
     fields = (f + ' ' * (field_width - len(f)) for f in fields)
     rows = (' '.join(r) for r in zip(fields, values))
-    print('\n'.join(rows))
+    for row in rows:
+        try:
+            print(row)
+        except UnicodeEncodeError:
+            pass
 
 
 def load_kqt(path, rate):
@@ -564,7 +571,11 @@ class Status():
             components.append('Load: {:.0f} %'.format(mix_load * 100))
         if voice_count != None:
             components.append('Voices: {:d}'.format(voice_count))
-        return self.get_peak_meter(14, -40, 0, bufs) + ', '.join(components)
+
+        text_info = ', '.join(components)
+        if ENABLE_UNICODE_OUTPUT:
+            return self.get_peak_meter(14, -40, 0, bufs) + text_info
+        return text_info
 
     def get_peak_meter(self, length, lower, upper, bufs):
         if lower < Status.SILENCE:
