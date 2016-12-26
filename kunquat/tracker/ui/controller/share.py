@@ -36,7 +36,7 @@ class Share():
         for path in notation_paths:
             base_name = os.path.basename(path)
             key = '.'.join(base_name.split('.')[:-1]) # strip the .json suffix
-            with open(path) as f:
+            with open(path, encoding='utf-8') as f:
                 try:
                     unsafe_data = json.load(f)
                 except json.JSONDecodeError:
