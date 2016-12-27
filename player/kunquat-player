@@ -101,11 +101,15 @@ def print_meta(meta):
     field_width = max(len(f) for f in fields)
     fields = (f + ' ' * (field_width - len(f)) for f in fields)
     rows = (' '.join(r) for r in zip(fields, values))
+    fail_count = 0
     for row in rows:
         try:
             print(row)
         except UnicodeEncodeError:
-            pass
+            fail_count += 1
+    if fail_count > 0:
+        print('(Note: Some metadata cannot be displayed'
+                ' due to character encoding restrictions)')
 
 
 def load_kqt(path, rate):
