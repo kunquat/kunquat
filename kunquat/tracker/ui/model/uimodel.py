@@ -28,6 +28,7 @@ from .gridmanager import GridManager
 from .orderlistmanager import OrderlistManager
 from .processmanager import ProcessManager
 from .iconbank import IconBank
+from .stylemanager import StyleManager
 
 
 class UiModel():
@@ -238,6 +239,13 @@ class UiModel():
     def get_icon_bank(self):
         return self._icon_bank
 
+    def set_style_manager(self, style_manager):
+        self._style_manager = style_manager
+        self._style_manager.set_ui_model(self)
+
+    def get_style_manager(self):
+        return self._style_manager
+
     def play(self):
         self._controller.play()
 
@@ -311,6 +319,7 @@ def create_ui_model():
     orderlist_manager = OrderlistManager()
     process_manager = ProcessManager()
     icon_bank = IconBank()
+    style_manager = StyleManager()
     ui_model = UiModel()
     ui_model.set_stat_manager(stat_manager)
     ui_model.set_control_manager(control_manager)
@@ -328,6 +337,7 @@ def create_ui_model():
     ui_model.set_orderlist_manager(orderlist_manager)
     ui_model.set_process_manager(process_manager)
     ui_model.set_icon_bank(icon_bank)
+    ui_model.set_style_manager(style_manager)
     return ui_model
 
 
