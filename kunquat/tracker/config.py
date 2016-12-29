@@ -11,9 +11,11 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from copy import deepcopy
 import json
 import os
 import os.path
+import string
 import sys
 
 
@@ -39,7 +41,7 @@ class _Entry():
         self._value = value
 
     def get(self):
-        return self._value
+        return deepcopy(self._value)
 
 
 class _ConfigEncoder(json.JSONEncoder):
@@ -66,12 +68,36 @@ class Config():
         def v_dir(x):
             return (x == None) or (isinstance(x, str) and len(x) < 1024)
 
+        def v_style(x):
+            if x == None:
+                return True
+            if not isinstance(x, dict):
+                return False
+
+            def v_colour(x):
+                return (isinstance(x, str) and
+                        len(x) in (4, 7) and
+                        x[0] == '#' and
+                        all(c in string.hexdigits for c in x[1:]))
+
+            style_config = {
+                'enabled'           : _Entry(lambda x: isinstance(x, bool), False),
+                'bg_colour'         : _Entry(v_colour, '#000'),
+                'fg_colour'         : _Entry(v_colour, '#000'),
+                'disabled_fg_colour': _Entry(v_colour, '#000'),
+            }
+
+            is_valid = all(k not in style_config or style_config[k].accepts(v)
+                    for (k, v) in x.items())
+            return is_valid
+
         self._config = {
             'version'        : _Entry(v_version, self._VERSION),
             'dir_effects'    : _Entry(v_dir, None),
             'dir_instruments': _Entry(v_dir, None),
             'dir_modules'    : _Entry(v_dir, None),
             'dir_samples'    : _Entry(v_dir, None),
+            'style'          : _Entry(v_style, {}),
         }
 
     def get_value(self, key):
