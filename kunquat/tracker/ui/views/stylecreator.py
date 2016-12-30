@@ -475,6 +475,21 @@ class StyleCreator():
                 margin-top: 3px;
             }
 
+            QTableView
+            {
+                margin: 0;
+                border: 2px solid;
+                border-top-color: <bg_colour_dark>;
+                border-left-color: <bg_colour_dark>;
+                border-right-color: <bg_colour_light>;
+                border-bottom-color: <bg_colour_light>;
+                border-radius: 3px;
+                padding: 0;
+                background-color: <text_bg_colour>;
+                color: <text_fg_colour>;
+                gridline-color: <bg_colour_dark>;
+            }
+
             QTableView QTableCornerButton::section
             {
                 background-color: transparent;
