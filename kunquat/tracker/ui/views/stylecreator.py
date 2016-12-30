@@ -71,12 +71,15 @@ class StyleCreator():
                 style_manager.get_style_param('disabled_fg_colour', '#543'))
 
         button_bg_colour_str = style_manager.get_style_param('button_bg_colour', '#b97')
+        button_fg_colour_str = style_manager.get_style_param('button_fg_colour', '#000')
 
         bg_colour = self._get_colour_from_str(bg_colour_str)
         fg_colour = self._get_colour_from_str(fg_colour_str)
 
         button_bg_colour = self._get_colour_from_str(button_bg_colour_str)
+        button_fg_colour = self._get_colour_from_str(button_fg_colour_str)
         button_down_bg_colour = self._adjust_brightness(button_bg_colour, button_down)
+        button_down_fg_colour = self._adjust_brightness(button_fg_colour, button_down)
 
         text_bg_colour = self._get_colour_from_str(
                 style_manager.get_style_param('text_bg_colour', '#000'))
@@ -107,6 +110,8 @@ class StyleCreator():
             'button_down_bg_colour_light': make_light(button_down_bg_colour),
             'button_down_bg_colour_grad' : make_grad(button_down_bg_colour),
             'button_down_bg_colour_dark' : make_dark(button_down_bg_colour),
+            'button_fg_colour'           : button_fg_colour,
+            'button_down_fg_colour'      : button_down_fg_colour,
             'scrollbar_bg_colour'        : self._adjust_brightness(bg_colour, -0.2),
             'text_bg_colour'             : text_bg_colour,
             'text_fg_colour'             : text_fg_colour,
@@ -124,6 +129,78 @@ class StyleCreator():
                 color: <disabled_fg_colour>;
             }
 
+            QComboBox
+            {
+                border: 1px solid;
+                border-top-color: <button_bg_colour_light>;
+                border-left-color: <button_bg_colour_light>;
+                border-right-color: <button_bg_colour_dark>;
+                border-bottom-color: <button_bg_colour_dark>;
+                border-radius: 2px;
+                padding: 3px;
+                background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
+                    stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
+                color: <button_fg_colour>;
+            }
+
+            QComboBox::drop-down
+            {
+                subcontrol-origin: margin;
+                subcontrol-position: top right;
+                width: 12px;
+                margin: 0;
+                border: 1px solid;
+                border-top-color: <button_bg_colour_light>;
+                border-left-color: <button_bg_colour_light>;
+                border-right-color: <button_bg_colour_dark>;
+                border-bottom-color: <button_bg_colour_dark>;
+                border-radius: 0;
+                border-top-right-radius: 2px;
+                border-bottom-right-radius: 2px;
+                padding: 3px;
+                background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
+                    stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
+                color: <button_fg_colour>;
+            }
+
+            QComboBox:!editable, QComboBox::drop-down:editable
+            {
+                margin: 0;
+                border: 1px solid;
+                border-top-color: <button_bg_colour_light>;
+                border-left-color: <button_bg_colour_light>;
+                border-right-color: <button_bg_colour_dark>;
+                border-bottom-color: <button_bg_colour_dark>;
+                border-radius: 2px;
+                padding: 3px;
+                background-color: <button_bg_colour>;
+                /*
+                background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
+                    stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
+                */
+                color: <button_fg_colour>;
+            }
+
+            QComboBox::down-arrow
+            {
+                /*image: url(/home/tjo/code/kunquat/kunquat/share/kunquat/icons/arrow_down_small.png);*/
+            }
+
+            QComboBox QAbstractItemView
+            {
+                border: 1px solid;
+                border-top-color: <bg_colour_light>;
+                border-left-color: <bg_colour_light>;
+                border-right-color: <bg_colour_dark>;
+                border-bottom-color: <bg_colour_dark>;
+                border-radius: 2px;
+                background-color: <bg_colour>;
+                color: <fg_colour>;
+
+                selection-background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
+                    stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
+            }
+
             QPushButton, QToolButton:hover
             {
                 border: 1px solid;
@@ -135,6 +212,7 @@ class StyleCreator():
                 padding: 3px;
                 background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
                     stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
+                color: <button_fg_colour>;
             }
 
             QPushButton:pressed, QToolButton:pressed
@@ -147,6 +225,7 @@ class StyleCreator():
                 background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
                     stop: 0.5 <button_down_bg_colour>,
                     stop: 1 <button_down_bg_colour_grad>);
+                color: <button_fg_colour>;
             }
 
             QLineEdit, QSpinBox, QDoubleSpinBox
