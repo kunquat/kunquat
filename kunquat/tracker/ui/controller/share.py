@@ -217,6 +217,10 @@ class Share():
                 'add',
                 'arrow_down_small',
                 'arrow_up_small',
+                'arrow_down_tiny',
+                'arrow_left_tiny',
+                'arrow_right_tiny',
+                'arrow_up_tiny',
                 'col_expand',
                 'col_reset_width',
                 'col_shrink',
@@ -253,6 +257,9 @@ class Share():
         icon_filename = '{}.png'.format(icon_name)
         icon_path = os.path.join(self._icons_path, icon_filename)
         return icon_path
+
+    def get_icons_dir(self):
+        return self._icons_path
 
     def get_style_sheet(self, style_name):
         ss_path = os.path.join(self._styles_path, '{}.css'.format(style_name))
