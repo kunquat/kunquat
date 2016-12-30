@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import os.path
 import re
 
 from PySide.QtCore import *
@@ -64,6 +65,9 @@ class StyleCreator():
         grad = -0.07
         button_down = -0.15
 
+        icons_dir = style_manager.get_icons_dir()
+        icons_path = '/'.join(os.path.split(icons_dir))
+
         bg_colour_str = style_manager.get_style_param('bg_colour', '#db9')
         fg_colour_str = style_manager.get_style_param('fg_colour', '#000')
 
@@ -97,6 +101,7 @@ class StyleCreator():
 
         # Get derived colours
         colours = {
+            'icons_path'                 : icons_path,
             'bg_colour'                  : bg_colour,
             'bg_colour_light'            : make_light(bg_colour),
             'bg_colour_dark'             : make_dark(bg_colour),
@@ -119,7 +124,8 @@ class StyleCreator():
 
         template = style_manager.get_style_sheet_template()
 
-        replacements = { '<' + k + '>': self._get_str_from_colour(v)
+        replacements = {
+                '<' + k + '>': (self._get_str_from_colour(v) if type(v) == tuple else v)
                 for (k, v) in colours.items() }
         regexp = re.compile('|'.join(re.escape(k) for k in replacements.keys()))
         style_sheet = regexp.sub(lambda match: replacements[match.group(0)], template)

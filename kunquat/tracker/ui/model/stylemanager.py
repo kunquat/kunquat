@@ -19,10 +19,12 @@ class StyleManager():
     def __init__(self):
         self._controller = None
         self._ui_model = None
+        self._share = None
         self._init_ss = None
 
     def set_controller(self, controller):
         self._controller = controller
+        self._share = controller.get_share()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -34,8 +36,10 @@ class StyleManager():
         return self._init_ss
 
     def get_style_sheet_template(self):
-        share = self._controller.get_share()
-        return share.get_style_sheet('default')
+        return self._share.get_style_sheet('default')
+
+    def get_icons_dir(self):
+        return self._share.get_icons_dir()
 
     def set_custom_style_enabled(self, enabled):
         config_style = self._get_config_style()
