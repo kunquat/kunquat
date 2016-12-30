@@ -85,6 +85,9 @@ class Config():
                 'bg_colour'         : _Entry(v_colour, '#000'),
                 'fg_colour'         : _Entry(v_colour, '#000'),
                 'disabled_fg_colour': _Entry(v_colour, '#000'),
+                'button_bg_colour'  : _Entry(v_colour, '#000'),
+                'text_bg_colour'    : _Entry(v_colour, '#000'),
+                'text_fg_colour'    : _Entry(v_colour, '#000'),
             }
 
             is_valid = all(k not in style_config or style_config[k].accepts(v)

@@ -59,19 +59,58 @@ class StyleCreator():
 
         icon_bank = self._ui_model.get_icon_bank()
 
-        bg_colour_str = style_manager.get_style_param('bg_colour', '#555')
-        fg_colour_str = style_manager.get_style_param('fg_colour', '#fed')
-        disabled_fg_colour_str = style_manager.get_style_param(
-                'disabled_fg_colour', '#999')
+        # Get colours from the configuration
+        contrast = 0.3
+        grad = -0.07
+        button_down = -0.15
+
+        bg_colour_str = style_manager.get_style_param('bg_colour', '#db9')
+        fg_colour_str = style_manager.get_style_param('fg_colour', '#000')
+
+        disabled_fg_colour = self._get_colour_from_str(
+                style_manager.get_style_param('disabled_fg_colour', '#543'))
+
+        button_bg_colour_str = style_manager.get_style_param('button_bg_colour', '#b97')
 
         bg_colour = self._get_colour_from_str(bg_colour_str)
+        fg_colour = self._get_colour_from_str(fg_colour_str)
 
-        contrast = 0.3
+        button_bg_colour = self._get_colour_from_str(button_bg_colour_str)
+        button_down_bg_colour = self._adjust_brightness(button_bg_colour, button_down)
 
-        bg_colour_light = self._adjust_brightness(bg_colour, contrast)
-        bg_colour_dark = self._adjust_brightness(bg_colour, -contrast)
+        text_bg_colour = self._get_colour_from_str(
+                style_manager.get_style_param('text_bg_colour', '#000'))
+        text_fg_colour = self._get_colour_from_str(
+                style_manager.get_style_param('text_fg_colour', '#da5'))
 
-        scrollbar_bg_colour = self._adjust_brightness(bg_colour, -0.2)
+        def make_light(colour):
+            return self._adjust_brightness(colour, contrast)
+
+        def make_grad(colour):
+            return self._adjust_brightness(colour, grad)
+
+        def make_dark(colour):
+            return self._adjust_brightness(colour, -contrast)
+
+        # Get derived colours
+        colours = {
+            'bg_colour'                  : bg_colour,
+            'bg_colour_light'            : make_light(bg_colour),
+            'bg_colour_dark'             : make_dark(bg_colour),
+            'fg_colour'                  : fg_colour,
+            'disabled_fg_colour'         : disabled_fg_colour,
+            'button_bg_colour'           : button_bg_colour,
+            'button_bg_colour_light'     : make_light(button_bg_colour),
+            'button_bg_colour_grad'      : make_grad(button_bg_colour),
+            'button_bg_colour_dark'      : make_dark(button_bg_colour),
+            'button_down_bg_colour'      : button_down_bg_colour,
+            'button_down_bg_colour_light': make_light(button_down_bg_colour),
+            'button_down_bg_colour_grad' : make_grad(button_down_bg_colour),
+            'button_down_bg_colour_dark' : make_dark(button_down_bg_colour),
+            'scrollbar_bg_colour'        : self._adjust_brightness(bg_colour, -0.2),
+            'text_bg_colour'             : text_bg_colour,
+            'text_fg_colour'             : text_fg_colour,
+        }
 
         template = '''
             QWidget
@@ -83,6 +122,88 @@ class StyleCreator():
             QWidget:disabled
             {
                 color: <disabled_fg_colour>;
+            }
+
+            QPushButton, QToolButton:hover
+            {
+                border: 1px solid;
+                border-top-color: <button_bg_colour_light>;
+                border-left-color: <button_bg_colour_light>;
+                border-right-color: <button_bg_colour_dark>;
+                border-bottom-color: <button_bg_colour_dark>;
+                border-radius: 2px;
+                padding: 3px;
+                background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
+                    stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
+            }
+
+            QPushButton:pressed, QToolButton:pressed
+            {
+                border: 1px solid;
+                border-top-color: <button_down_bg_colour_light>;
+                border-left-color: <button_down_bg_colour_light>;
+                border-right-color: <button_down_bg_colour_dark>;
+                border-bottom-color: <button_down_bg_colour_dark>;
+                background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
+                    stop: 0.5 <button_down_bg_colour>,
+                    stop: 1 <button_down_bg_colour_grad>);
+            }
+
+            QLineEdit, QSpinBox, QDoubleSpinBox
+            {
+                margin: 1px;
+                border: 2px solid;
+                border-top-color: <bg_colour_dark>;
+                border-left-color: <bg_colour_dark>;
+                border-right-color: <bg_colour_light>;
+                border-bottom-color: <bg_colour_light>;
+                border-radius: 3px;
+                padding: 0;
+                background-color: <text_bg_colour>;
+                color: <text_fg_colour>;
+            }
+
+            QSpinBox, QDoubleSpinBox
+            {
+                padding-right: 16px;
+                border-right-color: <text_bg_colour>;
+            }
+
+            QSpinBox::up-button, QDoubleSpinBox::up-button,
+            QSpinBox::down-button, QDoubleSpinBox::down-button
+            {
+                width: 16px;
+                border: 1px solid;
+                border-top-color: <button_bg_colour_light>;
+                border-left-color: <button_bg_colour_light>;
+                border-right-color: <button_bg_colour_dark>;
+                border-bottom-color: <button_bg_colour_dark>;
+                padding: 0;
+                background-color: <button_bg_colour>;
+            }
+
+            QSpinBox::up-button:pressed, QDoubleSpinBox::up-button:pressed,
+            QSpinBox::down-button:pressed, QDoubleSpinBox::down-button:pressed
+            {
+                border-top-color: <button_down_bg_colour_light>;
+                border-left-color: <button_down_bg_colour_light>;
+                border-right-color: <button_down_bg_colour_dark>;
+                border-bottom-color: <button_down_bg_colour_dark>;
+                background-color: <button_down_bg_colour>;
+            }
+
+            QSpinBox::up-button, QDoubleSpinBox::up-button
+            {
+                subcontrol-origin: border;
+                subcontrol-position: top right;
+                border-top-right-radius: 2px;
+            }
+
+            QSpinBox::down-button, QDoubleSpinBox::down-button
+            {
+                subcontrol-origin: border;
+                subcontrol-position: bottom right;
+                border-bottom-right-radius: 2px;
             }
 
             QHeaderView::section
@@ -282,18 +403,8 @@ class StyleCreator():
             }
             '''
 
-        bg_colour_light_str = self._get_str_from_colour(bg_colour_light)
-        bg_colour_dark_str = self._get_str_from_colour(bg_colour_dark)
-        scrollbar_bg_colour_str = self._get_str_from_colour(scrollbar_bg_colour)
-
-        replacements = {
-            '<bg_colour>'          : bg_colour_str,
-            '<bg_colour_dark>'     : bg_colour_dark_str,
-            '<bg_colour_light>'    : bg_colour_light_str,
-            '<fg_colour>'          : fg_colour_str,
-            '<disabled_fg_colour>' : disabled_fg_colour_str,
-            '<scrollbar_bg_colour>': scrollbar_bg_colour_str,
-        }
+        replacements = { '<' + k + '>': self._get_str_from_colour(v)
+                for (k, v) in colours.items() }
         regexp = re.compile('|'.join(re.escape(k) for k in replacements.keys()))
         style_sheet = regexp.sub(lambda match: replacements[match.group(0)], template)
 
