@@ -415,4 +415,19 @@ QTableView QTableCornerButton::section
     border: none;
 }
 
+QTreeView::branch
+{
+    background-color: transparent;
+}
+
+QTreeView::branch:has-children:closed
+{
+    image: url(<icons_path>/arrow_right_tiny.png);
+}
+
+QTreeView::branch:has-children:open
+{
+    image: url(<icons_path>/arrow_right_tiny.png);
+}
+
 
