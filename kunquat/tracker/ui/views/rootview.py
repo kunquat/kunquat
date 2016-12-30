@@ -73,7 +73,7 @@ class RootView():
         self._module = self._ui_model.get_module()
 
         style_manager = self._ui_model.get_style_manager()
-        style_manager.set_default_style_sheet(QApplication.instance().styleSheet())
+        style_manager.set_init_style_sheet(QApplication.instance().styleSheet())
         self._style_creator.update_style_sheet()
 
     def show_main_window(self):

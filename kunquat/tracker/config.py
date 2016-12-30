@@ -86,6 +86,7 @@ class Config():
                 'fg_colour'         : _Entry(v_colour, '#000'),
                 'disabled_fg_colour': _Entry(v_colour, '#000'),
                 'button_bg_colour'  : _Entry(v_colour, '#000'),
+                'button_fg_colour'  : _Entry(v_colour, '#000'),
                 'text_bg_colour'    : _Entry(v_colour, '#000'),
                 'text_fg_colour'    : _Entry(v_colour, '#000'),
             }

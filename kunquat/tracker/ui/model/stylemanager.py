@@ -17,17 +17,25 @@ import kunquat.tracker.config as config
 class StyleManager():
 
     def __init__(self):
+        self._controller = None
         self._ui_model = None
-        self._default_ss = None
+        self._init_ss = None
+
+    def set_controller(self, controller):
+        self._controller = controller
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
-    def set_default_style_sheet(self, default_ss):
-        self._default_ss = default_ss
+    def set_init_style_sheet(self, init_ss):
+        self._init_ss = init_ss
 
-    def get_default_style_sheet(self):
-        return self._default_ss
+    def get_init_style_sheet(self):
+        return self._init_ss
+
+    def get_style_sheet_template(self):
+        share = self._controller.get_share()
+        return share.get_style_sheet('default')
 
     def set_custom_style_enabled(self, enabled):
         config_style = self._get_config_style()

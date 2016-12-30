@@ -27,6 +27,7 @@ class Share():
         self._icons_path = os.path.join(self._path, 'icons')
         self._keymaps_path = os.path.join(self._path, 'keymaps')
         self._notations_path = os.path.join(self._path, 'notations')
+        self._styles_path = os.path.join(self._path, 'styles')
 
         self._notations = {}
         self._read_notations()
@@ -252,5 +253,14 @@ class Share():
         icon_filename = '{}.png'.format(icon_name)
         icon_path = os.path.join(self._icons_path, icon_filename)
         return icon_path
+
+    def get_style_sheet(self, style_name):
+        ss_path = os.path.join(self._styles_path, '{}.css'.format(style_name))
+        try:
+            with open(ss_path, encoding='utf-8') as f:
+                ss = f.read(131072) # TODO: Add some basic sanity checks
+        except FileNotFoundError:
+            return ''
+        return ss
 
 

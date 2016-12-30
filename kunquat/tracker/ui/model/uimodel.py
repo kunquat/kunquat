@@ -129,6 +129,7 @@ class UiModel():
         self._orderlist_manager.set_controller(self._controller)
         self._process_manager.set_controller(self._controller)
         self._icon_bank.set_controller(self._controller)
+        self._style_manager.set_controller(self._controller)
 
     def get_updater(self):
         updater = self._controller.get_updater()
