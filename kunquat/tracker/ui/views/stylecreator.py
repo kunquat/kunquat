@@ -55,7 +55,7 @@ class StyleCreator():
         app = QApplication.instance()
 
         if not style_manager.is_custom_style_enabled():
-            app.setStyleSheet(style_manager.get_default_style_sheet())
+            app.setStyleSheet(style_manager.get_init_style_sheet())
             return
 
         icon_bank = self._ui_model.get_icon_bank()
