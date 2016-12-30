@@ -119,7 +119,7 @@ QPushButton:pressed, QToolButton:pressed
     color: <button_fg_colour>;
 }
 
-QLineEdit, QSpinBox, QDoubleSpinBox
+QLineEdit, QAbstractSpinBox
 {
     margin: 1px;
     border: 2px solid;
@@ -133,14 +133,13 @@ QLineEdit, QSpinBox, QDoubleSpinBox
     color: <text_fg_colour>;
 }
 
-QSpinBox, QDoubleSpinBox
+QAbstractSpinBox
 {
     padding-right: 16px;
     border-right-color: <text_bg_colour>;
 }
 
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button
+QAbstractSpinBox::up-button, QAbstractSpinBox::down-button
 {
     width: 16px;
     border: 1px solid;
@@ -152,8 +151,7 @@ QSpinBox::down-button, QDoubleSpinBox::down-button
     background-color: <button_bg_colour>;
 }
 
-QSpinBox::up-button:pressed, QDoubleSpinBox::up-button:pressed,
-QSpinBox::down-button:pressed, QDoubleSpinBox::down-button:pressed
+QAbstractSpinBox::up-button:pressed, QAbstractSpinBox::down-button:pressed
 {
     border-top-color: <button_down_bg_colour_light>;
     border-left-color: <button_down_bg_colour_light>;
@@ -162,7 +160,7 @@ QSpinBox::down-button:pressed, QDoubleSpinBox::down-button:pressed
     background-color: <button_down_bg_colour>;
 }
 
-QSpinBox::up-button, QDoubleSpinBox::up-button
+QAbstractSpinBox::up-button
 {
     subcontrol-origin: border;
     subcontrol-position: top right;
@@ -170,7 +168,7 @@ QSpinBox::up-button, QDoubleSpinBox::up-button
     image: url(<icons_path>/arrow_up_tiny.png);
 }
 
-QSpinBox::down-button, QDoubleSpinBox::down-button
+QAbstractSpinBox::down-button
 {
     subcontrol-origin: border;
     subcontrol-position: bottom right;
