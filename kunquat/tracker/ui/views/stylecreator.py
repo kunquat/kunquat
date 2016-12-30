@@ -475,7 +475,7 @@ class StyleCreator():
                 margin-top: 3px;
             }
 
-            QTableView
+            QTableView, QTreeView
             {
                 margin: 0;
                 border: 2px solid;
@@ -487,6 +487,10 @@ class StyleCreator():
                 padding: 0;
                 background-color: <text_bg_colour>;
                 color: <text_fg_colour>;
+            }
+
+            QTableView
+            {
                 gridline-color: <bg_colour_dark>;
             }
 
