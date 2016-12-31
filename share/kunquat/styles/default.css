@@ -311,7 +311,6 @@ QScrollBar::add-line, QScrollBar::sub-line
 {
     margin: 0;
     padding: 0;
-    background: <bg_colour>;
     width: 12px;
     height: 12px;
 }
