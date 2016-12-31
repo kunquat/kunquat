@@ -247,6 +247,7 @@ class Share():
                 'rest',
                 'reuse_pattern',
                 'silence',
+                'splitter_vertical',
                 'undo',
                 'warning',
                 'zoom_in',
