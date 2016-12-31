@@ -176,6 +176,11 @@ QPushButton, QToolButton:hover
     color: <button_fg_colour>;
 }
 
+QPushButton::menu-indicator, QToolButton::menu-indicator
+{
+    image: url(<icons_path>/arrow_down_tiny.png);
+}
+
 QLineEdit, QAbstractSpinBox
 {
     margin: 1px;
