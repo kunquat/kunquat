@@ -81,14 +81,17 @@ class Config():
                         all(c in string.hexdigits for c in x[1:]))
 
             style_config = {
-                'enabled'           : _Entry(lambda x: isinstance(x, bool), False),
-                'bg_colour'         : _Entry(v_colour, '#000'),
-                'fg_colour'         : _Entry(v_colour, '#000'),
-                'disabled_fg_colour': _Entry(v_colour, '#000'),
-                'button_bg_colour'  : _Entry(v_colour, '#000'),
-                'button_fg_colour'  : _Entry(v_colour, '#000'),
-                'text_bg_colour'    : _Entry(v_colour, '#000'),
-                'text_fg_colour'    : _Entry(v_colour, '#000'),
+                'enabled'               : _Entry(lambda x: isinstance(x, bool), False),
+                'bg_colour'             : _Entry(v_colour, '#000'),
+                'fg_colour'             : _Entry(v_colour, '#000'),
+                'disabled_fg_colour'    : _Entry(v_colour, '#000'),
+                'button_bg_colour'      : _Entry(v_colour, '#000'),
+                'button_fg_colour'      : _Entry(v_colour, '#000'),
+                'sheet_canvas_bg_colour': _Entry(v_colour, '#000'),
+                'sheet_ruler_bg_colour' : _Entry(v_colour, '#000'),
+                'sheet_ruler_fg_colour' : _Entry(v_colour, '#000'),
+                'text_bg_colour'        : _Entry(v_colour, '#000'),
+                'text_fg_colour'        : _Entry(v_colour, '#000'),
             }
 
             is_valid = all(k not in style_config or style_config[k].accepts(v)

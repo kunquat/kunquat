@@ -89,7 +89,7 @@ class Corner(QWidget):
 
 class SheetArea(QAbstractScrollArea):
 
-    def __init__(self, config={}):
+    def __init__(self):
         super().__init__()
         self.setFocusPolicy(Qt.NoFocus)
 
@@ -105,8 +105,7 @@ class SheetArea(QAbstractScrollArea):
         self._header = Header()
 
         # Config
-        self._config = None
-        self._set_config(config)
+        self._config = {}
 
         # Layout
         g = QGridLayout()
@@ -143,6 +142,8 @@ class SheetArea(QAbstractScrollArea):
         self._ruler.set_ui_model(ui_model)
         self.viewport().set_ui_model(ui_model)
 
+        self._update_config()
+
         # Initialise zoom levels
         px_per_beat = self._config['trs_per_beat'] * self._config['tr_height']
         self._zoom_levels = utils.get_zoom_levels(
@@ -176,12 +177,57 @@ class SheetArea(QAbstractScrollArea):
             self._update_zoom()
         if 'signal_sheet_column_width' in signals:
             self._update_column_width()
+        if 'signal_style_changed' in signals:
+            self._update_config()
+
+    def _update_config(self):
+        style_manager = self._ui_model.get_style_manager()
+
+        if not style_manager.is_custom_style_enabled():
+            self._set_config({})
+            return
+
+        config = {}
+        config['ruler'] = {}
+        config['header'] = {}
+        config['trigger'] = {}
+        config['edit_cursor'] = {}
+        config['area_selection'] = {}
+        config['grid'] = {} # TODO: dicts
+
+        def _get_colour(s):
+            if isinstance(s, QColor):
+                return s
+            if len(s) == 4:
+                cs = [s[1], s[2], s[3]]
+                cs = [c + c for c in cs]
+            elif len(s) == 7:
+                cs = [s[1:3], s[3:5], s[5:7]]
+            else:
+                assert False
+            colour = [int(c, 16) for c in cs]
+            return QColor(colour[0], colour[1], colour[2])
+
+        canvas_bg_colour = _get_colour(style_manager.get_style_param(
+                'sheet_canvas_bg_colour', DEFAULT_CONFIG['canvas_bg_colour']))
+
+        config['canvas_bg_colour'] = canvas_bg_colour
+
+        config['ruler']['canvas_bg_colour'] = canvas_bg_colour
+        config['ruler']['bg_colour'] = _get_colour(style_manager.get_style_param(
+                'sheet_ruler_bg_colour', DEFAULT_CONFIG['ruler']['bg_colour']))
+        config['ruler']['fg_colour'] = _get_colour(style_manager.get_style_param(
+                'sheet_ruler_fg_colour', DEFAULT_CONFIG['ruler']['fg_colour']))
+
+        self._set_config(config)
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
         self._config.update(config)
 
-        for subcfg in ('ruler', 'header', 'trigger', 'edit_cursor', 'grid'):
+        subcfgs = ('ruler', 'header', 'trigger', 'edit_cursor', 'area_selection', 'grid')
+
+        for subcfg in subcfgs:
             self._config[subcfg] = DEFAULT_CONFIG[subcfg].copy()
             if subcfg in config:
                 self._config[subcfg].update(config[subcfg])
