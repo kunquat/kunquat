@@ -64,6 +64,8 @@ class StyleCreator():
         contrast = 0.3
         grad = -0.07
         button_down = -0.15
+        tab_shade_top = -0.1
+        tab_shade_bottom = -0.25
 
         icons_dir = style_manager.get_icons_dir()
         icons_path = '/'.join(os.path.split(icons_dir))
@@ -84,6 +86,9 @@ class StyleCreator():
         button_fg_colour = self._get_colour_from_str(button_fg_colour_str)
         button_down_bg_colour = self._adjust_brightness(button_bg_colour, button_down)
         button_down_fg_colour = self._adjust_brightness(button_fg_colour, button_down)
+
+        tab_shade_top_colour = self._adjust_brightness(bg_colour, tab_shade_top)
+        tab_shade_bottom_colour = self._adjust_brightness(bg_colour, tab_shade_bottom)
 
         text_bg_colour = self._get_colour_from_str(
                 style_manager.get_style_param('text_bg_colour', '#000'))
@@ -118,6 +123,10 @@ class StyleCreator():
             'button_fg_colour'           : button_fg_colour,
             'button_down_fg_colour'      : button_down_fg_colour,
             'scrollbar_bg_colour'        : self._adjust_brightness(bg_colour, -0.2),
+            'tab_shade_top_colour'       : tab_shade_top_colour,
+            'tab_shade_top_colour_light' : make_light(tab_shade_top_colour),
+            'tab_shade_top_colour_dark'  : make_dark(tab_shade_top_colour),
+            'tab_shade_bottom_colour'    : tab_shade_bottom_colour,
             'text_bg_colour'             : text_bg_colour,
             'text_fg_colour'             : text_fg_colour,
         }
