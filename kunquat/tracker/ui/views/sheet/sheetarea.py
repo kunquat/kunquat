@@ -259,6 +259,13 @@ class SheetArea(QAbstractScrollArea):
         guide_colour = QColor(elc.red(), elc.green(), elc.blue(), 0x7f)
         config['edit_cursor']['guide_colour'] = guide_colour
 
+        asc = _get_colour(style_manager.get_style_param(
+            'sheet_area_selection_colour',
+            DEFAULT_CONFIG['area_selection']['border_colour']))
+        as_fill_colour = QColor(asc.red(), asc.green(), asc.blue(), 0x7f)
+        config['area_selection']['border_colour'] = asc
+        config['area_selection']['fill_colour'] = as_fill_colour
+
         self._set_config(config)
 
     def _set_config(self, config):

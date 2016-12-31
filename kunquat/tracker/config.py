@@ -90,6 +90,7 @@ class Config():
                 'disabled_fg_colour'             : _Entry(v_colour, '#000'),
                 'button_bg_colour'               : _Entry(v_colour, '#000'),
                 'button_fg_colour'               : _Entry(v_colour, '#000'),
+                'sheet_area_selection_colour'    : _Entry(v_colour, '#000'),
                 'sheet_canvas_bg_colour'         : _Entry(v_colour, '#000'),
                 'sheet_column_bg_colour'         : _Entry(v_colour, '#000'),
                 'sheet_column_border_colour'     : _Entry(v_colour, '#000'),
