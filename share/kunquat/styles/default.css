@@ -25,6 +25,7 @@ QWidget:disabled
 QComboBox QAbstractItemView,
 QHeaderView::section:horizontal,
 QHeaderView::section:vertical,
+QMenu,
 QScrollBar::handle,
 QSlider::handle:horizontal,
 QTabWidget::pane
@@ -43,6 +44,7 @@ QComboBox,
 QComboBox::drop-down,
 QComboBox:!editable,
 QComboBox::drop-down:editable,
+QMenu::item:selected,
 QPushButton,
 QToolButton:hover,
 QAbstractSpinBox::up-button,
@@ -180,6 +182,11 @@ QLineEdit, QAbstractSpinBox
     padding: 0;
     background-color: <text_bg_colour>;
     color: <text_fg_colour>;
+}
+
+QMenu::item
+{
+    padding: 2px;
 }
 
 QAbstractSpinBox
