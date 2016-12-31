@@ -413,7 +413,7 @@ QTabBar::tab:!selected
     margin-top: 3px;
 }
 
-QTableView, QTreeView
+QTableView, QTreeView, QListView
 {
     margin: 0;
     border: 2px solid;
