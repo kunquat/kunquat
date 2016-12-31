@@ -250,6 +250,7 @@ class View(QWidget):
         self._config = config
         for cr in self._col_rends:
             cr.set_config(self._config)
+        self.update()
 
     def set_first_column(self, first_col):
         if self._first_col != first_col:

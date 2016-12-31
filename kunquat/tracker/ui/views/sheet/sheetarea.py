@@ -212,6 +212,10 @@ class SheetArea(QAbstractScrollArea):
                 'sheet_canvas_bg_colour', DEFAULT_CONFIG['canvas_bg_colour']))
 
         config['canvas_bg_colour'] = canvas_bg_colour
+        config['bg_colour'] = _get_colour(style_manager.get_style_param(
+            'sheet_column_bg_colour', DEFAULT_CONFIG['bg_colour']))
+        config['border_colour'] = _get_colour(style_manager.get_style_param(
+            'sheet_column_border_colour', DEFAULT_CONFIG['border_colour']))
 
         config['ruler']['canvas_bg_colour'] = canvas_bg_colour
         config['ruler']['bg_colour'] = _get_colour(style_manager.get_style_param(
