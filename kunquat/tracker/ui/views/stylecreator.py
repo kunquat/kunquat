@@ -64,6 +64,7 @@ class StyleCreator():
         contrast = 0.3
         grad = -0.07
         button_down = -0.15
+        button_down2 = 1.5 * button_down
         tab_shade_top = -0.1
         tab_shade_bottom = -0.25
 
@@ -86,6 +87,8 @@ class StyleCreator():
         button_fg_colour = self._get_colour_from_str(button_fg_colour_str)
         button_down_bg_colour = self._adjust_brightness(button_bg_colour, button_down)
         button_down_fg_colour = self._adjust_brightness(button_fg_colour, button_down)
+        button_down2_bg_colour = self._adjust_brightness(button_bg_colour, button_down2)
+        button_down2_fg_colour = self._adjust_brightness(button_fg_colour, button_down2)
 
         tab_shade_top_colour = self._adjust_brightness(bg_colour, tab_shade_top)
         tab_shade_bottom_colour = self._adjust_brightness(bg_colour, tab_shade_bottom)
@@ -106,29 +109,34 @@ class StyleCreator():
 
         # Get derived colours
         colours = {
-            'icons_path'                 : icons_path,
-            'bg_colour'                  : bg_colour,
-            'bg_colour_light'            : make_light(bg_colour),
-            'bg_colour_dark'             : make_dark(bg_colour),
-            'fg_colour'                  : fg_colour,
-            'disabled_fg_colour'         : disabled_fg_colour,
-            'button_bg_colour'           : button_bg_colour,
-            'button_bg_colour_light'     : make_light(button_bg_colour),
-            'button_bg_colour_grad'      : make_grad(button_bg_colour),
-            'button_bg_colour_dark'      : make_dark(button_bg_colour),
-            'button_down_bg_colour'      : button_down_bg_colour,
-            'button_down_bg_colour_light': make_light(button_down_bg_colour),
-            'button_down_bg_colour_grad' : make_grad(button_down_bg_colour),
-            'button_down_bg_colour_dark' : make_dark(button_down_bg_colour),
-            'button_fg_colour'           : button_fg_colour,
-            'button_down_fg_colour'      : button_down_fg_colour,
-            'scrollbar_bg_colour'        : self._adjust_brightness(bg_colour, -0.2),
-            'tab_shade_top_colour'       : tab_shade_top_colour,
-            'tab_shade_top_colour_light' : make_light(tab_shade_top_colour),
-            'tab_shade_top_colour_dark'  : make_dark(tab_shade_top_colour),
-            'tab_shade_bottom_colour'    : tab_shade_bottom_colour,
-            'text_bg_colour'             : text_bg_colour,
-            'text_fg_colour'             : text_fg_colour,
+            'icons_path'                  : icons_path,
+            'bg_colour'                   : bg_colour,
+            'bg_colour_light'             : make_light(bg_colour),
+            'bg_colour_dark'              : make_dark(bg_colour),
+            'fg_colour'                   : fg_colour,
+            'disabled_fg_colour'          : disabled_fg_colour,
+            'button_bg_colour'            : button_bg_colour,
+            'button_bg_colour_light'      : make_light(button_bg_colour),
+            'button_bg_colour_grad'       : make_grad(button_bg_colour),
+            'button_bg_colour_dark'       : make_dark(button_bg_colour),
+            'button_down_bg_colour'       : button_down_bg_colour,
+            'button_down_bg_colour_light' : make_light(button_down_bg_colour),
+            'button_down_bg_colour_grad'  : make_grad(button_down_bg_colour),
+            'button_down_bg_colour_dark'  : make_dark(button_down_bg_colour),
+            'button_down2_bg_colour'      : button_down2_bg_colour,
+            'button_down2_bg_colour_light': make_light(button_down2_bg_colour),
+            'button_down2_bg_colour_grad' : make_grad(button_down2_bg_colour),
+            'button_down2_bg_colour_dark' : make_dark(button_down2_bg_colour),
+            'button_fg_colour'            : button_fg_colour,
+            'button_down_fg_colour'       : button_down_fg_colour,
+            'button_down2_fg_colour'      : button_down2_fg_colour,
+            'scrollbar_bg_colour'         : self._adjust_brightness(bg_colour, -0.2),
+            'tab_shade_top_colour'        : tab_shade_top_colour,
+            'tab_shade_top_colour_light'  : make_light(tab_shade_top_colour),
+            'tab_shade_top_colour_dark'   : make_dark(tab_shade_top_colour),
+            'tab_shade_bottom_colour'     : tab_shade_bottom_colour,
+            'text_bg_colour'              : text_bg_colour,
+            'text_fg_colour'              : text_fg_colour,
         }
 
         template = style_manager.get_style_sheet_template()

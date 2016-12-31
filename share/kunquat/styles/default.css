@@ -64,7 +64,9 @@ QScrollBar::sub-line
 }
 
 QPushButton:pressed,
+QPushButton:checked,
 QToolButton:pressed,
+QToolButton:checked,
 QAbstractSpinBox::up-button:pressed,
 QAbstractSpinBox::down-button:pressed,
 QScrollBar::add-line:pressed,
@@ -76,7 +78,7 @@ QScrollBar::sub-line:pressed
     border-bottom-color: <button_down_bg_colour_dark>;
     background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
         stop: 0.5 <button_down_bg_colour>, stop: 1 <button_down_bg_colour_grad>);
-    color: <button_fg_colour>;
+    color: <button_down_fg_colour>;
 }
 
 /* Base style for sunken containers */
@@ -174,6 +176,17 @@ QPushButton, QToolButton:hover
     background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
         stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
     color: <button_fg_colour>;
+}
+
+QPushButton:checked:pressed, QToolButton:checked:pressed
+{
+    border-top-color: <button_down2_bg_colour_light>;
+    border-left-color: <button_down2_bg_colour_light>;
+    border-right-color: <button_down2_bg_colour_dark>;
+    border-bottom-color: <button_down2_bg_colour_dark>;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
+        stop: 0.5 <button_down2_bg_colour>, stop: 1 <button_down2_bg_colour_grad>);
+    color: <button_down2_fg_colour>;
 }
 
 QPushButton::menu-indicator, QToolButton::menu-indicator
