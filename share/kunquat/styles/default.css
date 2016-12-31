@@ -244,6 +244,11 @@ QLabel
     background-color: transparent;
 }
 
+QAbstractScrollArea::corner
+{
+    background-color: transparent;
+}
+
 QScrollBar
 {
     margin: 0;
