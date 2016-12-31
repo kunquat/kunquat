@@ -20,6 +20,31 @@ QWidget:disabled
     color: <disabled_fg_colour>;
 }
 
+QCheckBox
+{
+    spacing: 5px;
+}
+
+QCheckBox::indicator
+{
+    margin: 0;
+    border: 1px solid;
+    border-top-color: <bg_colour_dark>;
+    border-left-color: <bg_colour_dark>;
+    border-right-color: <bg_colour_light>;
+    border-bottom-color: <bg_colour_light>;
+    border-radius: 1px;
+    padding: 0;
+    width: 12px;
+    height: 12px;
+    background-color: <text_bg_colour>;
+}
+
+QCheckBox::indicator:checked
+{
+    image: url('<icons_path>/check_mark.png');
+}
+
 QComboBox
 {
     border: 1px solid;
@@ -425,7 +450,7 @@ QTreeView::branch:has-children:closed
 
 QTreeView::branch:has-children:open
 {
-    image: url(<icons_path>/arrow_right_tiny.png);
+    image: url(<icons_path>/arrow_down_tiny.png);
 }
 
 
