@@ -384,10 +384,12 @@ QTabBar::tab
     border-top-color: <bg_colour_light>;
     border-left-color: <bg_colour_light>;
     border-right-color: <bg_colour_dark>;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
     border-bottom: none;
     min-width: 2em;
     margin: 0;
-    padding: 3px;
+    padding: 3px 10px 3px 10px;
 }
 
 QTabBar::tab:selected
@@ -397,6 +399,12 @@ QTabBar::tab:selected
 QTabBar::tab:!selected
 {
     margin-top: 3px;
+    border-top-color: <tab_shade_top_colour_light>;
+    border-left-color: <tab_shade_top_colour_light>;
+    border-right-color: <tab_shade_top_colour_dark>;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+        stop: 0.5 <tab_shade_top_colour>, stop: 1 <tab_shade_bottom_colour>);
+    color: <button_fg_colour>;
 }
 
 QTableView, QTreeView, QListView
