@@ -221,6 +221,7 @@ class Share():
                 'arrow_left_tiny',
                 'arrow_right_tiny',
                 'arrow_up_tiny',
+                'check_mark',
                 'col_expand',
                 'col_reset_width',
                 'col_shrink',
