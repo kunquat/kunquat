@@ -266,6 +266,26 @@ class GridListToolBar(QToolBar):
             'signal_grid_pattern_selection']))
 
 
+class Corner(QWidget):
+
+    def __init__(self):
+        super().__init__()
+
+        self._bg_colour = QColor(0, 0, 0)
+
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_OpaquePaintEvent)
+        self.setAttribute(Qt.WA_NoSystemBackground)
+
+    def set_config(self, config):
+        self._bg_colour = config['bg_colour']
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setBackground(self._bg_colour)
+        painter.eraseRect(event.rect())
+
+
 class GridArea(QAbstractScrollArea):
 
     def __init__(self):
@@ -274,19 +294,15 @@ class GridArea(QAbstractScrollArea):
 
         self._ui_model = None
         self._updater = None
+        self._config = None
 
         # Widgets
         self.setViewport(GridView())
 
-        self._corner = QWidget()
-        self._corner.setStyleSheet('QWidget { background-color: #000 }')
+        self._corner = Corner()
 
         self._ruler = Ruler(is_grid_ruler=True)
         self._header = GridHeader()
-
-        # Config
-        self._config = None
-        self._set_config({})
 
         # Layout
         g = QGridLayout()
@@ -308,6 +324,8 @@ class GridArea(QAbstractScrollArea):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+
+        self._update_config()
 
         grid_manager = self._ui_model.get_grid_manager()
 
@@ -335,14 +353,19 @@ class GridArea(QAbstractScrollArea):
         self._ruler.unregister_updaters()
         self.viewport().unregister_updaters()
 
-    def _set_config(self, config):
+    def _update_config(self):
+        style_manager = self._ui_model.get_style_manager()
+
         self._config = DEFAULT_CONFIG.copy()
+        config = get_config_with_custom_style(style_manager)
         self._config.update(config)
 
         for subcfg in ('ruler', 'header', 'edit_cursor', 'grid'):
             self._config[subcfg] = DEFAULT_CONFIG[subcfg].copy()
             if subcfg in config:
                 self._config[subcfg].update(config[subcfg])
+
+        self._corner.set_config(self._config)
 
         fm = QFontMetrics(self._config['font'], self)
         self._config['font_metrics'] = fm
@@ -380,6 +403,9 @@ class GridArea(QAbstractScrollArea):
 
         if 'signal_grid_zoom' in signals:
             self._update_zoom()
+        if 'signal_style_changed' in signals:
+            self._update_config()
+            self.update()
 
     def _update_selected_grid_pattern(self):
         self._ruler.update_grid_pattern()
@@ -799,6 +825,8 @@ class GeneralEditor(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        self._update_config()
+
         QObject.connect(
                 self._name, SIGNAL('textEdited(QString)'), self._change_name)
 
@@ -828,6 +856,17 @@ class GeneralEditor(QWidget):
             'signal_grid_pattern_selection', 'signal_grid_pattern_modified'])
         if not signals.isdisjoint(update_signals):
             self._update_all()
+        if 'signal_style_changed' in signals:
+            self._update_config()
+            self.update()
+
+    def _update_config(self):
+        style_manager = self._ui_model.get_style_manager()
+        config = DEFAULT_CONFIG.copy()
+        custom_config = get_config_with_custom_style(style_manager)
+        config.update(custom_config)
+
+        self._spacing_style.set_config(config)
 
     def _get_selected_grid_pattern(self):
         grid_manager = self._ui_model.get_grid_manager()
@@ -960,6 +999,8 @@ class SubdivEditor(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        self._update_config()
+
         QObject.connect(
                 self._subdiv_count, SIGNAL('valueChanged(int)'), self._change_count)
 
@@ -986,6 +1027,17 @@ class SubdivEditor(QWidget):
             'signal_grid_pattern_subdiv'])
         if not signals.isdisjoint(update_signals):
             self._update_all()
+        if 'signal_style_changed' in signals:
+            self._update_config()
+            self.update()
+
+    def _update_config(self):
+        style_manager = self._ui_model.get_style_manager()
+        config = DEFAULT_CONFIG.copy()
+        custom_config = get_config_with_custom_style(style_manager)
+        config.update(custom_config)
+
+        self._subdiv_line_style.set_config(config)
 
     def _get_selected_line_ts(self):
         grid_manager = self._ui_model.get_grid_manager()
@@ -1077,6 +1129,8 @@ class LineEditor(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        self._update_config()
+
         QObject.connect(
                 self._line_style,
                 SIGNAL('currentIndexChanged(int)'),
@@ -1096,6 +1150,16 @@ class LineEditor(QWidget):
             'signal_grid_pattern_modified'])
         if not signals.isdisjoint(update_signals):
             self._update_all()
+        if 'signal_style_changed' in signals:
+            self._update_config()
+
+    def _update_config(self):
+        style_manager = self._ui_model.get_style_manager()
+        config = DEFAULT_CONFIG.copy()
+        custom_config = get_config_with_custom_style(style_manager)
+        config.update(custom_config)
+
+        self._line_style.set_config(config)
 
     def _get_grid_pattern(self):
         grid_manager = self._ui_model.get_grid_manager()
@@ -1297,6 +1361,9 @@ class LineStyle(QComboBox):
 
         self.set_config(DEFAULT_CONFIG)
 
+        for i in range(self._first_style, STYLE_COUNT):
+            self.addItem(str(i), i)
+
     def set_config(self, config):
         self._config = config
 
@@ -1305,9 +1372,6 @@ class LineStyle(QComboBox):
         self._ls_delegate.set_config(self._config)
 
         self.setItemDelegate(self._ls_delegate)
-
-        for i in range(self._first_style, STYLE_COUNT):
-            self.addItem(str(i), i)
 
     def get_current_line_style(self):
         return self.itemData(self.currentIndex())
