@@ -230,6 +230,24 @@ class SheetArea(QAbstractScrollArea):
         config['header']['border_colour'] = _get_colour(style_manager.get_style_param(
             'sheet_header_border_colour', DEFAULT_CONFIG['header']['border_colour']))
 
+        config['trigger']['default_colour'] = _get_colour(style_manager.get_style_param(
+            'sheet_trigger_default_colour', DEFAULT_CONFIG['trigger']['default_colour']))
+        config['trigger']['note_on_colour'] = _get_colour(style_manager.get_style_param(
+            'sheet_trigger_note_on_colour', DEFAULT_CONFIG['trigger']['note_on_colour']))
+        config['trigger']['hit_colour'] = _get_colour(style_manager.get_style_param(
+            'sheet_trigger_hit_colour', DEFAULT_CONFIG['trigger']['hit_colour']))
+        config['trigger']['note_off_colour'] = _get_colour(style_manager.get_style_param(
+            'sheet_trigger_note_off_colour',
+            DEFAULT_CONFIG['trigger']['note_off_colour']))
+        config['trigger']['warning_bg_colour'] = _get_colour(
+            style_manager.get_style_param(
+                'sheet_trigger_warning_bg_colour',
+                DEFAULT_CONFIG['trigger']['warning_bg_colour']))
+        config['trigger']['warning_fg_colour'] = _get_colour(
+            style_manager.get_style_param(
+                'sheet_trigger_warning_fg_colour',
+                DEFAULT_CONFIG['trigger']['warning_fg_colour']))
+
         self._set_config(config)
 
     def _set_config(self, config):
