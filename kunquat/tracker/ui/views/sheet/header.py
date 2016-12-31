@@ -32,6 +32,8 @@ class Header(QWidget):
 
     def set_config(self, config):
         self._config = config
+        for header in self._headers:
+            header.set_config(self._config)
         self._update_contents()
 
     def set_column_width(self, width):
