@@ -20,6 +20,92 @@ QWidget:disabled
     color: <disabled_fg_colour>;
 }
 
+/* Base style for non-button container widgets */
+
+QComboBox QAbstractItemView,
+QHeaderView::section:horizontal,
+QHeaderView::section:vertical,
+QScrollBar::handle,
+QSlider::handle:horizontal,
+QTabWidget::pane
+{
+    border: 1px solid;
+    border-top-color: <bg_colour_light>;
+    border-left-color: <bg_colour_light>;
+    border-right-color: <bg_colour_dark>;
+    border-bottom-color: <bg_colour_dark>;
+    border-radius: 2px;
+}
+
+/* Base styles for button container widgets */
+
+QComboBox,
+QComboBox::drop-down,
+QComboBox:!editable,
+QComboBox::drop-down:editable,
+QPushButton,
+QToolButton:hover,
+QAbstractSpinBox::up-button,
+QAbstractSpinBox::down-button,
+QScrollBar::add-line,
+QScrollBar::sub-line
+{
+    border: 1px solid;
+    border-top-color: <button_bg_colour_light>;
+    border-left-color: <button_bg_colour_light>;
+    border-right-color: <button_bg_colour_dark>;
+    border-bottom-color: <button_bg_colour_dark>;
+    border-radius: 2px;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
+        stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
+    color: <button_fg_colour>;
+}
+
+QPushButton:pressed,
+QToolButton:pressed,
+QAbstractSpinBox::up-button:pressed,
+QAbstractSpinBox::down-button:pressed,
+QScrollBar::add-line:pressed,
+QScrollBar::sub-line:pressed
+{
+    border-top-color: <button_down_bg_colour_light>;
+    border-left-color: <button_down_bg_colour_light>;
+    border-right-color: <button_down_bg_colour_dark>;
+    border-bottom-color: <button_down_bg_colour_dark>;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
+        stop: 0.5 <button_down_bg_colour>, stop: 1 <button_down_bg_colour_grad>);
+    color: <button_fg_colour>;
+}
+
+/* Base style for sunken containers */
+
+QCheckBox::indicator,
+QSlider::groove:horizontal
+{
+    border: 1px solid;
+    border-top-color: <bg_colour_dark>;
+    border-left-color: <bg_colour_dark>;
+    border-right-color: <bg_colour_light>;
+    border-bottom-color: <bg_colour_light>;
+    border-radius: 2px;
+}
+
+QAbstractSpinBox,
+QLineEdit,
+QListView,
+QTableView,
+QTreeView
+{
+    border: 2px solid;
+    border-top-color: <bg_colour_dark>;
+    border-left-color: <bg_colour_dark>;
+    border-right-color: <bg_colour_light>;
+    border-bottom-color: <bg_colour_light>;
+    border-radius: 3px;
+}
+
+/* Other tweaks */
+
 QCheckBox
 {
     spacing: 5px;
@@ -28,12 +114,6 @@ QCheckBox
 QCheckBox::indicator
 {
     margin: 0;
-    border: 1px solid;
-    border-top-color: <bg_colour_dark>;
-    border-left-color: <bg_colour_dark>;
-    border-right-color: <bg_colour_light>;
-    border-bottom-color: <bg_colour_light>;
-    border-radius: 1px;
     padding: 0;
     width: 12px;
     height: 12px;
@@ -47,12 +127,6 @@ QCheckBox::indicator:checked
 
 QComboBox
 {
-    border: 1px solid;
-    border-top-color: <button_bg_colour_light>;
-    border-left-color: <button_bg_colour_light>;
-    border-right-color: <button_bg_colour_dark>;
-    border-bottom-color: <button_bg_colour_dark>;
-    border-radius: 2px;
     padding: 3px;
     background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
         stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
@@ -65,35 +139,16 @@ QComboBox::drop-down
     subcontrol-position: top right;
     width: 12px;
     margin: 0;
-    border: 1px solid;
-    border-top-color: <button_bg_colour_light>;
-    border-left-color: <button_bg_colour_light>;
-    border-right-color: <button_bg_colour_dark>;
-    border-bottom-color: <button_bg_colour_dark>;
-    border-radius: 0;
-    border-top-right-radius: 2px;
-    border-bottom-right-radius: 2px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
     padding: 3px;
-    background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
-        stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
-    color: <button_fg_colour>;
 }
 
 QComboBox:!editable, QComboBox::drop-down:editable
 {
     margin: 0;
-    border: 1px solid;
-    border-top-color: <button_bg_colour_light>;
-    border-left-color: <button_bg_colour_light>;
-    border-right-color: <button_bg_colour_dark>;
-    border-bottom-color: <button_bg_colour_dark>;
-    border-radius: 2px;
     padding: 3px;
     background-color: <button_bg_colour>;
-    /*
-    background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
-        stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
-    */
     color: <button_fg_colour>;
 }
 
@@ -104,12 +159,6 @@ QComboBox::down-arrow
 
 QComboBox QAbstractItemView
 {
-    border: 1px solid;
-    border-top-color: <bg_colour_light>;
-    border-left-color: <bg_colour_light>;
-    border-right-color: <bg_colour_dark>;
-    border-bottom-color: <bg_colour_dark>;
-    border-radius: 2px;
     background-color: <bg_colour>;
     color: <fg_colour>;
 
@@ -119,40 +168,15 @@ QComboBox QAbstractItemView
 
 QPushButton, QToolButton:hover
 {
-    border: 1px solid;
-    border-top-color: <button_bg_colour_light>;
-    border-left-color: <button_bg_colour_light>;
-    border-right-color: <button_bg_colour_dark>;
-    border-bottom-color: <button_bg_colour_dark>;
-    border-radius: 2px;
     padding: 3px;
     background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
         stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
     color: <button_fg_colour>;
 }
 
-QPushButton:pressed, QToolButton:pressed
-{
-    border: 1px solid;
-    border-top-color: <button_down_bg_colour_light>;
-    border-left-color: <button_down_bg_colour_light>;
-    border-right-color: <button_down_bg_colour_dark>;
-    border-bottom-color: <button_down_bg_colour_dark>;
-    background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
-        stop: 0.5 <button_down_bg_colour>,
-        stop: 1 <button_down_bg_colour_grad>);
-    color: <button_fg_colour>;
-}
-
 QLineEdit, QAbstractSpinBox
 {
     margin: 1px;
-    border: 2px solid;
-    border-top-color: <bg_colour_dark>;
-    border-left-color: <bg_colour_dark>;
-    border-right-color: <bg_colour_light>;
-    border-bottom-color: <bg_colour_light>;
-    border-radius: 3px;
     padding: 0;
     background-color: <text_bg_colour>;
     color: <text_fg_colour>;
@@ -167,28 +191,14 @@ QAbstractSpinBox
 QAbstractSpinBox::up-button, QAbstractSpinBox::down-button
 {
     width: 16px;
-    border: 1px solid;
-    border-top-color: <button_bg_colour_light>;
-    border-left-color: <button_bg_colour_light>;
-    border-right-color: <button_bg_colour_dark>;
-    border-bottom-color: <button_bg_colour_dark>;
     padding: 0;
-    background-color: <button_bg_colour>;
-}
-
-QAbstractSpinBox::up-button:pressed, QAbstractSpinBox::down-button:pressed
-{
-    border-top-color: <button_down_bg_colour_light>;
-    border-left-color: <button_down_bg_colour_light>;
-    border-right-color: <button_down_bg_colour_dark>;
-    border-bottom-color: <button_down_bg_colour_dark>;
-    background-color: <button_down_bg_colour>;
 }
 
 QAbstractSpinBox::up-button
 {
     subcontrol-origin: border;
     subcontrol-position: top right;
+    border-radius: 0;
     border-top-right-radius: 2px;
     image: url(<icons_path>/arrow_up_tiny.png);
 }
@@ -197,42 +207,24 @@ QAbstractSpinBox::down-button
 {
     subcontrol-origin: border;
     subcontrol-position: bottom right;
+    border-radius: 0;
     border-bottom-right-radius: 2px;
     image: url(<icons_path>/arrow_down_tiny.png);
 }
 
 QHeaderView::section
 {
-    background-color: transparent;
+    background-color: <bg_colour>;
 }
 
 QHeaderView::section:horizontal
 {
-    border-top: none;
-    border-left: 1px solid <bg_colour_light>;
-    border-right: 1px solid <bg_colour_dark>;
-    border-bottom: none;
-}
-
-QHeaderView::section:horizontal:first,
-QHeaderView::section:horizontal:only-one
-{
-    border-left: none;
+    border-radius: 0;
 }
 
 QHeaderView::section:vertical
 {
-    border-top: 1px solid <bg_colour_light>;
-    border-left: none;
-    border-right: none;
-    border-bottom: 1px solid <bg_colour_dark>;
-    min-width: 3px;
-}
-
-QHeaderView::section:vertical:first,
-QHeaderView::section:vertical:only-one
-{
-    border-top: none;
+    border-radius: 0;
 }
 
 QLabel
@@ -242,6 +234,7 @@ QLabel
 
 QScrollBar
 {
+    margin: 0;
     border: none;
     padding: 0;
     background-color: <scrollbar_bg_colour>;
@@ -268,11 +261,6 @@ QScrollBar::add-page, QScrollBar::sub-page
 
 QScrollBar::handle
 {
-    border: 1px solid;
-    border-top-color: <bg_colour_light>;
-    border-left-color: <bg_colour_light>;
-    border-right-color: <bg_colour_dark>;
-    border-bottom-color: <bg_colour_dark>;
     padding: 0;
     background: <bg_colour>;
 }
@@ -292,11 +280,6 @@ QScrollBar::handle:vertical
 QScrollBar::add-line, QScrollBar::sub-line
 {
     margin: 0;
-    border: 1px solid;
-    border-top-color: <bg_colour_light>;
-    border-left-color: <bg_colour_light>;
-    border-right-color: <bg_colour_dark>;
-    border-bottom-color: <bg_colour_dark>;
     padding: 0;
     background: <bg_colour>;
     width: 12px;
@@ -375,24 +358,12 @@ QScrollBar::right-arrow:horizontal
 
 QSlider::groove:horizontal
 {
-    border: 1px solid;
-    border-top-color: <bg_colour_dark>;
-    border-left-color: <bg_colour_dark>;
-    border-right-color: <bg_colour_light>;
-    border-bottom-color: <bg_colour_light>;
-    border-radius: 2px;
     background-color: <scrollbar_bg_colour>;
 }
 
 QSlider::handle:horizontal
 {
     margin: 0;
-    border: 1px solid;
-    border-top-color: <bg_colour_light>;
-    border-left-color: <bg_colour_light>;
-    border-right-color: <bg_colour_dark>;
-    border-bottom-color: <bg_colour_dark>;
-    border-radius: 2px;
     width: 32px;
     background-color: <bg_colour>;
 }
@@ -400,15 +371,6 @@ QSlider::handle:horizontal
 QSplitter::handle
 {
     /*image: url(<icons_path>/arrow_down_small.png);*/
-}
-
-QTabWidget::pane
-{
-    border: 1px solid;
-    border-top-color: <bg_colour_light>;
-    border-left-color: <bg_colour_light>;
-    border-right-color: <bg_colour_dark>;
-    border-bottom-color: <bg_colour_dark>;
 }
 
 QTabWidget::tab-bar
@@ -440,12 +402,6 @@ QTabBar::tab:!selected
 QTableView, QTreeView, QListView
 {
     margin: 0;
-    border: 2px solid;
-    border-top-color: <bg_colour_dark>;
-    border-left-color: <bg_colour_dark>;
-    border-right-color: <bg_colour_light>;
-    border-bottom-color: <bg_colour_light>;
-    border-radius: 3px;
     padding: 0;
     background-color: <text_bg_colour>;
     color: <text_fg_colour>;
@@ -458,7 +414,7 @@ QTableView
 
 QTableView QTableCornerButton::section
 {
-    background-color: transparent;
+    background-color: <bg_colour>;
     border: none;
 }
 
