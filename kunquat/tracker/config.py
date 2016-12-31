@@ -74,42 +74,47 @@ class Config():
             if not isinstance(x, dict):
                 return False
 
-            def v_bool(x):
-                return isinstance(x, bool)
-
             def v_colour(x):
                 return (isinstance(x, str) and
                         len(x) in (4, 7) and
                         x[0] == '#' and
                         all(c in string.hexdigits for c in x[1:]))
 
+            colour_names = [
+                'bg_colour',
+                'fg_colour',
+                'disabled_fg_colour',
+                'button_bg_colour',
+                'button_fg_colour',
+                'sheet_area_selection_colour',
+                'sheet_canvas_bg_colour',
+                'sheet_column_bg_colour',
+                'sheet_column_border_colour',
+                'sheet_cursor_view_line_colour',
+                'sheet_cursor_edit_line_colour',
+                'sheet_grid_level_1_colour',
+                'sheet_grid_level_2_colour',
+                'sheet_grid_level_3_colour',
+                'sheet_header_bg_colour',
+                'sheet_header_fg_colour',
+                'sheet_header_border_colour',
+                'sheet_ruler_bg_colour',
+                'sheet_ruler_fg_colour',
+                'sheet_trigger_default_colour',
+                'sheet_trigger_note_on_colour',
+                'sheet_trigger_hit_colour',
+                'sheet_trigger_note_off_colour',
+                'sheet_trigger_warning_bg_colour',
+                'sheet_trigger_warning_fg_colour',
+                'text_bg_colour',
+                'text_fg_colour',
+            ]
+
             style_config = {
-                'enabled'                        : _Entry(v_bool, False),
-                'bg_colour'                      : _Entry(v_colour, '#000'),
-                'fg_colour'                      : _Entry(v_colour, '#000'),
-                'disabled_fg_colour'             : _Entry(v_colour, '#000'),
-                'button_bg_colour'               : _Entry(v_colour, '#000'),
-                'button_fg_colour'               : _Entry(v_colour, '#000'),
-                'sheet_area_selection_colour'    : _Entry(v_colour, '#000'),
-                'sheet_canvas_bg_colour'         : _Entry(v_colour, '#000'),
-                'sheet_column_bg_colour'         : _Entry(v_colour, '#000'),
-                'sheet_column_border_colour'     : _Entry(v_colour, '#000'),
-                'sheet_cursor_view_line_colour'  : _Entry(v_colour, '#000'),
-                'sheet_cursor_edit_line_colour'  : _Entry(v_colour, '#000'),
-                'sheet_header_bg_colour'         : _Entry(v_colour, '#000'),
-                'sheet_header_fg_colour'         : _Entry(v_colour, '#000'),
-                'sheet_header_border_colour'     : _Entry(v_colour, '#000'),
-                'sheet_ruler_bg_colour'          : _Entry(v_colour, '#000'),
-                'sheet_ruler_fg_colour'          : _Entry(v_colour, '#000'),
-                'sheet_trigger_default_colour'   : _Entry(v_colour, '#000'),
-                'sheet_trigger_note_on_colour'   : _Entry(v_colour, '#000'),
-                'sheet_trigger_hit_colour'       : _Entry(v_colour, '#000'),
-                'sheet_trigger_note_off_colour'  : _Entry(v_colour, '#000'),
-                'sheet_trigger_warning_bg_colour': _Entry(v_colour, '#000'),
-                'sheet_trigger_warning_fg_colour': _Entry(v_colour, '#000'),
-                'text_bg_colour'                 : _Entry(v_colour, '#000'),
-                'text_fg_colour'                 : _Entry(v_colour, '#000'),
+                'enabled': _Entry(lambda x: isinstance(x, bool), False),
             }
+            for name in colour_names:
+                style_config[name] = _Entry(v_colour, '#000')
 
             is_valid = all(k not in style_config or style_config[k].accepts(v)
                     for (k, v) in x.items())

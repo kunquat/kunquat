@@ -193,11 +193,11 @@ class SheetArea(QAbstractScrollArea):
         config['trigger'] = {}
         config['edit_cursor'] = {}
         config['area_selection'] = {}
-        config['grid'] = {} # TODO: dicts
+        config['grid'] = {}
 
         def _get_colour(s):
             if isinstance(s, QColor):
-                return s
+                return QColor(s)
             if len(s) == 4:
                 cs = [s[1], s[2], s[3]]
                 cs = [c + c for c in cs]
@@ -210,19 +210,22 @@ class SheetArea(QAbstractScrollArea):
 
         canvas_bg_colour = _get_colour(style_manager.get_style_param(
                 'sheet_canvas_bg_colour', DEFAULT_CONFIG['canvas_bg_colour']))
-
         config['canvas_bg_colour'] = canvas_bg_colour
+
+        # Columns
         config['bg_colour'] = _get_colour(style_manager.get_style_param(
             'sheet_column_bg_colour', DEFAULT_CONFIG['bg_colour']))
         config['border_colour'] = _get_colour(style_manager.get_style_param(
             'sheet_column_border_colour', DEFAULT_CONFIG['border_colour']))
 
+        # Ruler
         config['ruler']['canvas_bg_colour'] = canvas_bg_colour
         config['ruler']['bg_colour'] = _get_colour(style_manager.get_style_param(
             'sheet_ruler_bg_colour', DEFAULT_CONFIG['ruler']['bg_colour']))
         config['ruler']['fg_colour'] = _get_colour(style_manager.get_style_param(
             'sheet_ruler_fg_colour', DEFAULT_CONFIG['ruler']['fg_colour']))
 
+        # Column headers
         config['header']['bg_colour'] = _get_colour(style_manager.get_style_param(
             'sheet_header_bg_colour', DEFAULT_CONFIG['header']['bg_colour']))
         config['header']['fg_colour'] = _get_colour(style_manager.get_style_param(
@@ -230,6 +233,7 @@ class SheetArea(QAbstractScrollArea):
         config['header']['border_colour'] = _get_colour(style_manager.get_style_param(
             'sheet_header_border_colour', DEFAULT_CONFIG['header']['border_colour']))
 
+        # Triggers
         config['trigger']['default_colour'] = _get_colour(style_manager.get_style_param(
             'sheet_trigger_default_colour', DEFAULT_CONFIG['trigger']['default_colour']))
         config['trigger']['note_on_colour'] = _get_colour(style_manager.get_style_param(
@@ -248,6 +252,7 @@ class SheetArea(QAbstractScrollArea):
                 'sheet_trigger_warning_fg_colour',
                 DEFAULT_CONFIG['trigger']['warning_fg_colour']))
 
+        # Cursor
         config['edit_cursor']['view_line_colour'] = _get_colour(
             style_manager.get_style_param(
                 'sheet_cursor_view_line_colour',
@@ -259,12 +264,32 @@ class SheetArea(QAbstractScrollArea):
         guide_colour = QColor(elc.red(), elc.green(), elc.blue(), 0x7f)
         config['edit_cursor']['guide_colour'] = guide_colour
 
+        # Area selection
         asc = _get_colour(style_manager.get_style_param(
             'sheet_area_selection_colour',
             DEFAULT_CONFIG['area_selection']['border_colour']))
         as_fill_colour = QColor(asc.red(), asc.green(), asc.blue(), 0x7f)
         config['area_selection']['border_colour'] = asc
         config['area_selection']['fill_colour'] = as_fill_colour
+
+        # Grid lines
+        grid_styles = {}
+        for i in range(9):
+            grid_styles[i] = QPen(DEFAULT_CONFIG['grid']['styles'][i])
+        grid_colours = [
+            _get_colour(style_manager.get_style_param(
+                'sheet_grid_level_1_colour', grid_styles[0].color())),
+            _get_colour(style_manager.get_style_param(
+                'sheet_grid_level_2_colour', grid_styles[3].color())),
+            _get_colour(style_manager.get_style_param(
+                'sheet_grid_level_3_colour', grid_styles[6].color())),
+        ]
+        for i in range(9):
+            grid_styles[i].setColor(grid_colours[i // 3])
+        grid_edit_cursor = DEFAULT_CONFIG['grid']['edit_cursor'].copy()
+        grid_edit_cursor['colour'] = elc
+        config['grid']['styles'] = grid_styles
+        config['grid']['edit_cursor'] = grid_edit_cursor
 
         self._set_config(config)
 
