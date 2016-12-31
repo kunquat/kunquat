@@ -373,6 +373,30 @@ QScrollBar::right-arrow:horizontal
     image: url(<icons_path>/arrow_right_tiny.png);
 }
 
+QSlider::groove:horizontal
+{
+    border: 1px solid;
+    border-top-color: <bg_colour_dark>;
+    border-left-color: <bg_colour_dark>;
+    border-right-color: <bg_colour_light>;
+    border-bottom-color: <bg_colour_light>;
+    border-radius: 2px;
+    background-color: <scrollbar_bg_colour>;
+}
+
+QSlider::handle:horizontal
+{
+    margin: 0;
+    border: 1px solid;
+    border-top-color: <bg_colour_light>;
+    border-left-color: <bg_colour_light>;
+    border-right-color: <bg_colour_dark>;
+    border-bottom-color: <bg_colour_dark>;
+    border-radius: 2px;
+    width: 32px;
+    background-color: <bg_colour>;
+}
+
 QSplitter::handle
 {
     /*image: url(<icons_path>/arrow_down_small.png);*/
