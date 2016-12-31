@@ -248,6 +248,17 @@ class SheetArea(QAbstractScrollArea):
                 'sheet_trigger_warning_fg_colour',
                 DEFAULT_CONFIG['trigger']['warning_fg_colour']))
 
+        config['edit_cursor']['view_line_colour'] = _get_colour(
+            style_manager.get_style_param(
+                'sheet_cursor_view_line_colour',
+                DEFAULT_CONFIG['edit_cursor']['view_line_colour']))
+        elc = _get_colour(style_manager.get_style_param(
+            'sheet_cursor_edit_line_colour',
+            DEFAULT_CONFIG['edit_cursor']['edit_line_colour']))
+        config['edit_cursor']['edit_line_colour'] = elc
+        guide_colour = QColor(elc.red(), elc.green(), elc.blue(), 0x7f)
+        config['edit_cursor']['guide_colour'] = guide_colour
+
         self._set_config(config)
 
     def _set_config(self, config):
