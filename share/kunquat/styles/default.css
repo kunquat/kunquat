@@ -385,9 +385,10 @@ QSlider::handle:horizontal
     background-color: <bg_colour>;
 }
 
-QSplitter::handle
+QSplitter::handle:vertical
 {
-    /*image: url(<icons_path>/arrow_down_small.png);*/
+    padding: 1px;
+    image: url(<icons_path>/splitter_vertical.png);
 }
 
 QTabWidget::tab-bar
