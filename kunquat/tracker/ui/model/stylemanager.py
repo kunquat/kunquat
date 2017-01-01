@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,36 @@ import kunquat.tracker.config as config
 
 
 class StyleManager():
+
+    _STYLE_DEFAULTS = {
+        'bg_colour'                      : '#db9',
+        'fg_colour'                      : '#000',
+        'disabled_fg_colour'             : '#543',
+        'button_bg_colour'               : '#b97',
+        'button_fg_colour'               : '#000',
+        'sheet_area_selection_colour'    : '#8ac',
+        'sheet_canvas_bg_colour'         : '#111',
+        'sheet_column_bg_colour'         : '#000',
+        'sheet_column_border_colour'     : '#555',
+        'sheet_cursor_view_line_colour'  : '#def',
+        'sheet_cursor_edit_line_colour'  : '#f84',
+        'sheet_grid_level_1_colour'      : '#a0a0a0',
+        'sheet_grid_level_2_colour'      : '#606060',
+        'sheet_grid_level_3_colour'      : '#404040',
+        'sheet_header_bg_colour'         : '#242',
+        'sheet_header_fg_colour'         : '#cea',
+        'sheet_header_border_colour'     : '#575',
+        'sheet_ruler_bg_colour'          : '#125',
+        'sheet_ruler_fg_colour'          : '#acf',
+        'sheet_trigger_default_colour'   : '#cde',
+        'sheet_trigger_note_on_colour'   : '#fdb',
+        'sheet_trigger_hit_colour'       : '#be8',
+        'sheet_trigger_note_off_colour'  : '#c96',
+        'sheet_trigger_warning_bg_colour': '#e31',
+        'sheet_trigger_warning_fg_colour': '#ffc',
+        'text_bg_colour'                 : '#000',
+        'text_fg_colour'                 : '#da5',
+    }
 
     def __init__(self):
         self._controller = None
@@ -50,9 +80,9 @@ class StyleManager():
         config_style = self._get_config_style()
         return config_style.get('enabled', False)
 
-    def get_style_param(self, key, default):
+    def get_style_param(self, key):
         config_style = self._get_config_style()
-        return config_style.get(key, default)
+        return config_style.get(key, self._STYLE_DEFAULTS[key])
 
     def set_style_param(self, key, value):
         config_style = self._get_config_style()

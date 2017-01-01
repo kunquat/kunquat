@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -71,14 +71,14 @@ class StyleCreator():
         icons_dir = style_manager.get_icons_dir()
         icons_path = '/'.join(os.path.split(icons_dir))
 
-        bg_colour_str = style_manager.get_style_param('bg_colour', '#db9')
-        fg_colour_str = style_manager.get_style_param('fg_colour', '#000')
+        bg_colour_str = style_manager.get_style_param('bg_colour')
+        fg_colour_str = style_manager.get_style_param('fg_colour')
 
         disabled_fg_colour = self._get_colour_from_str(
-                style_manager.get_style_param('disabled_fg_colour', '#543'))
+                style_manager.get_style_param('disabled_fg_colour'))
 
-        button_bg_colour_str = style_manager.get_style_param('button_bg_colour', '#b97')
-        button_fg_colour_str = style_manager.get_style_param('button_fg_colour', '#000')
+        button_bg_colour_str = style_manager.get_style_param('button_bg_colour')
+        button_fg_colour_str = style_manager.get_style_param('button_fg_colour')
 
         bg_colour = self._get_colour_from_str(bg_colour_str)
         fg_colour = self._get_colour_from_str(fg_colour_str)
@@ -94,9 +94,9 @@ class StyleCreator():
         tab_shade_bottom_colour = self._adjust_brightness(bg_colour, tab_shade_bottom)
 
         text_bg_colour = self._get_colour_from_str(
-                style_manager.get_style_param('text_bg_colour', '#000'))
+                style_manager.get_style_param('text_bg_colour'))
         text_fg_colour = self._get_colour_from_str(
-                style_manager.get_style_param('text_fg_colour', '#da5'))
+                style_manager.get_style_param('text_fg_colour'))
 
         def make_light(colour):
             return self._adjust_brightness(colour, contrast)

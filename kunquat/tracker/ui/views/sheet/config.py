@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2016
+# Author: Tomi Jylhä-Ollila, Finland 2013-2017
 #
 # This file is part of Kunquat.
 #
@@ -107,66 +107,55 @@ def get_config_with_custom_style(style_manager):
         colour = [int(c, 16) for c in cs]
         return QColor(colour[0], colour[1], colour[2])
 
-    canvas_bg_colour = _get_colour(style_manager.get_style_param(
-            'sheet_canvas_bg_colour', DEFAULT_CONFIG['canvas_bg_colour']))
+    canvas_bg_colour = _get_colour(
+            style_manager.get_style_param('sheet_canvas_bg_colour'))
     config['canvas_bg_colour'] = canvas_bg_colour
 
     # Columns
-    config['bg_colour'] = _get_colour(style_manager.get_style_param(
-        'sheet_column_bg_colour', DEFAULT_CONFIG['bg_colour']))
-    config['border_colour'] = _get_colour(style_manager.get_style_param(
-        'sheet_column_border_colour', DEFAULT_CONFIG['border_colour']))
+    config['bg_colour'] = _get_colour(
+            style_manager.get_style_param('sheet_column_bg_colour'))
+    config['border_colour'] = _get_colour(
+            style_manager.get_style_param('sheet_column_border_colour'))
 
     # Ruler
     config['ruler']['canvas_bg_colour'] = canvas_bg_colour
-    config['ruler']['bg_colour'] = _get_colour(style_manager.get_style_param(
-        'sheet_ruler_bg_colour', DEFAULT_CONFIG['ruler']['bg_colour']))
-    config['ruler']['fg_colour'] = _get_colour(style_manager.get_style_param(
-        'sheet_ruler_fg_colour', DEFAULT_CONFIG['ruler']['fg_colour']))
+    config['ruler']['bg_colour'] = _get_colour(
+            style_manager.get_style_param('sheet_ruler_bg_colour'))
+    config['ruler']['fg_colour'] = _get_colour(
+            style_manager.get_style_param('sheet_ruler_fg_colour'))
 
     # Column headers
-    config['header']['bg_colour'] = _get_colour(style_manager.get_style_param(
-        'sheet_header_bg_colour', DEFAULT_CONFIG['header']['bg_colour']))
-    config['header']['fg_colour'] = _get_colour(style_manager.get_style_param(
-        'sheet_header_fg_colour', DEFAULT_CONFIG['header']['fg_colour']))
-    config['header']['border_colour'] = _get_colour(style_manager.get_style_param(
-        'sheet_header_border_colour', DEFAULT_CONFIG['header']['border_colour']))
+    config['header']['bg_colour'] = _get_colour(
+            style_manager.get_style_param('sheet_header_bg_colour'))
+    config['header']['fg_colour'] = _get_colour(
+            style_manager.get_style_param('sheet_header_fg_colour'))
+    config['header']['border_colour'] = _get_colour(
+            style_manager.get_style_param('sheet_header_border_colour'))
 
     # Triggers
-    config['trigger']['default_colour'] = _get_colour(style_manager.get_style_param(
-        'sheet_trigger_default_colour', DEFAULT_CONFIG['trigger']['default_colour']))
-    config['trigger']['note_on_colour'] = _get_colour(style_manager.get_style_param(
-        'sheet_trigger_note_on_colour', DEFAULT_CONFIG['trigger']['note_on_colour']))
-    config['trigger']['hit_colour'] = _get_colour(style_manager.get_style_param(
-        'sheet_trigger_hit_colour', DEFAULT_CONFIG['trigger']['hit_colour']))
-    config['trigger']['note_off_colour'] = _get_colour(style_manager.get_style_param(
-        'sheet_trigger_note_off_colour',
-        DEFAULT_CONFIG['trigger']['note_off_colour']))
+    config['trigger']['default_colour'] = _get_colour(
+            style_manager.get_style_param('sheet_trigger_default_colour'))
+    config['trigger']['note_on_colour'] = _get_colour(
+            style_manager.get_style_param('sheet_trigger_note_on_colour'))
+    config['trigger']['hit_colour'] = _get_colour(
+            style_manager.get_style_param('sheet_trigger_hit_colour'))
+    config['trigger']['note_off_colour'] = _get_colour(
+            style_manager.get_style_param('sheet_trigger_note_off_colour'))
     config['trigger']['warning_bg_colour'] = _get_colour(
-        style_manager.get_style_param(
-            'sheet_trigger_warning_bg_colour',
-            DEFAULT_CONFIG['trigger']['warning_bg_colour']))
+            style_manager.get_style_param('sheet_trigger_warning_bg_colour'))
     config['trigger']['warning_fg_colour'] = _get_colour(
-        style_manager.get_style_param(
-            'sheet_trigger_warning_fg_colour',
-            DEFAULT_CONFIG['trigger']['warning_fg_colour']))
+            style_manager.get_style_param('sheet_trigger_warning_fg_colour'))
 
     # Cursor
     config['edit_cursor']['view_line_colour'] = _get_colour(
-        style_manager.get_style_param(
-            'sheet_cursor_view_line_colour',
-            DEFAULT_CONFIG['edit_cursor']['view_line_colour']))
-    elc = _get_colour(style_manager.get_style_param(
-        'sheet_cursor_edit_line_colour',
-        DEFAULT_CONFIG['edit_cursor']['edit_line_colour']))
+            style_manager.get_style_param('sheet_cursor_view_line_colour'))
+    elc = _get_colour(style_manager.get_style_param('sheet_cursor_edit_line_colour'))
     config['edit_cursor']['edit_line_colour'] = elc
     guide_colour = QColor(elc.red(), elc.green(), elc.blue(), 0x7f)
     config['edit_cursor']['guide_colour'] = guide_colour
 
     # Area selection
-    asc = _get_colour(style_manager.get_style_param(
-        'sheet_area_selection_colour',
-        DEFAULT_CONFIG['area_selection']['border_colour']))
+    asc = _get_colour(style_manager.get_style_param('sheet_area_selection_colour'))
     as_fill_colour = QColor(asc.red(), asc.green(), asc.blue(), 0x7f)
     config['area_selection']['border_colour'] = asc
     config['area_selection']['fill_colour'] = as_fill_colour
@@ -176,12 +165,9 @@ def get_config_with_custom_style(style_manager):
     for i in range(9):
         grid_styles[i] = QPen(DEFAULT_CONFIG['grid']['styles'][i])
     grid_colours = [
-        _get_colour(style_manager.get_style_param(
-            'sheet_grid_level_1_colour', grid_styles[0].color())),
-        _get_colour(style_manager.get_style_param(
-            'sheet_grid_level_2_colour', grid_styles[3].color())),
-        _get_colour(style_manager.get_style_param(
-            'sheet_grid_level_3_colour', grid_styles[6].color())),
+        _get_colour(style_manager.get_style_param('sheet_grid_level_1_colour')),
+        _get_colour(style_manager.get_style_param('sheet_grid_level_2_colour')),
+        _get_colour(style_manager.get_style_param('sheet_grid_level_3_colour')),
     ]
     for i in range(9):
         grid_styles[i].setColor(grid_colours[i // 3])
