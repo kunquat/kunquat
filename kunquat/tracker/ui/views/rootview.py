@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2017
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -274,6 +274,8 @@ class RootView():
                 self._start_export_au()
             if 'signal_export_au_finished' in signals:
                 self._on_export_au_finished()
+            if 'signal_style_changed' in signals:
+                self._style_creator.update_style_sheet()
         else:
             QApplication.quit()
 
