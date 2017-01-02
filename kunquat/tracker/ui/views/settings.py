@@ -209,11 +209,34 @@ class StyleToggle(QCheckBox):
         self._updater.signal_update(set(['signal_style_changed']))
 
 
+class ColourCategoryModel():
+
+    def __init__(self, name):
+        self._name = name
+        self._colours = []
+
+    def add_colour(self, colour):
+        self._colours.append(colour)
+
+    def get_name(self):
+        return self._name
+
+    def get_colour_count(self):
+        return len(self._colours)
+
+    def get_colour(self, index):
+        return self._colours[index]
+
+    def get_index_of_colour(self, colour):
+        return self._colours.index(colour)
+
+
 class ColourModel():
 
-    def __init__(self, key, colour):
+    def __init__(self, key, colour, category=None):
         self._key = key
         self._colour = colour
+        self._category = category
 
     def get_key(self):
         return self._key
@@ -221,13 +244,37 @@ class ColourModel():
     def get_colour(self):
         return self._colour
 
+    def get_category(self):
+        return self._category
+
 
 _COLOUR_DESCS = [
-    ('bg_colour'         , 'Default background'),
-    ('fg_colour'         , 'Default text'),
-    ('disabled_fg_colour', 'Disabled text'),
-    ('button_bg_colour'  , 'Button background'),
-    ('button_fg_colour'  , 'Button foreground'),
+    ('bg_colour',                       'Default background'),
+    ('fg_colour',                       'Default text'),
+    ('disabled_fg_colour',              'Disabled text'),
+    ('button_bg_colour',                'Button background'),
+    ('button_fg_colour',                'Button foreground'),
+    ('text_bg_colour',                  'Text field background'),
+    ('text_fg_colour',                  'Text field foreground'),
+    ('sheet_area_selection_colour',     'Sheet area selection'),
+    ('sheet_canvas_bg_colour',          'Sheet canvas background'),
+    ('sheet_column_bg_colour',          'Sheet column background'),
+    ('sheet_cursor_view_line_colour',   'Sheet navigating cursor line'),
+    ('sheet_cursor_edit_line_colour',   'Sheet editing cursor line'),
+    ('sheet_grid_level_1_colour',       'Sheet grid level 1'),
+    ('sheet_grid_level_2_colour',       'Sheet grid level 2'),
+    ('sheet_grid_level_3_colour',       'Sheet grid level 3'),
+    ('sheet_header_bg_colour',          'Sheet header background'),
+    ('sheet_header_fg_colour',          'Sheet header text'),
+    ('sheet_header_border_colour',      'Sheet header border'),
+    ('sheet_ruler_bg_colour',           'Sheet ruler background'),
+    ('sheet_ruler_fg_colour',           'Sheet ruler foreground'),
+    ('sheet_trigger_default_colour',    'Default trigger'),
+    ('sheet_trigger_note_on_colour',    'Note on trigger'),
+    ('sheet_trigger_hit_colour',        'Hit trigger'),
+    ('sheet_trigger_note_off_colour',   'Note off trigger'),
+    ('sheet_trigger_warning_bg_colour', 'Trigger warning background'),
+    ('sheet_trigger_warning_fg_colour', 'Trigger warning text'),
 ]
 
 _COLOUR_DESCS_DICT = dict(_COLOUR_DESCS)
@@ -251,15 +298,28 @@ class ColoursModel(QAbstractItemModel):
 
         colours = []
 
+        sheet_colours = None
+
         for k, _ in _COLOUR_DESCS:
             colour = style_manager.get_style_param(k)
-            colours.append(ColourModel(k, colour))
+            if k.startswith('sheet_'):
+                if not sheet_colours:
+                    sheet_colours = ColourCategoryModel('Sheet')
+                    colours.append(sheet_colours)
+                sheet_colours.add_colour(ColourModel(k, colour, sheet_colours))
+            else:
+                colours.append(ColourModel(k, colour))
 
         self._colours = colours
 
     def get_colour_indices(self):
         for row, node in enumerate(self._colours):
-            yield self.createIndex(row, 1, node)
+            if isinstance(node, ColourCategoryModel):
+                for i in range(node.get_colour_count()):
+                    contained_node = node.get_colour(i)
+                    yield self.createIndex(i, 1, contained_node)
+            else:
+                yield self.createIndex(row, 1, node)
 
     # Qt interface
 
@@ -269,29 +329,62 @@ class ColoursModel(QAbstractItemModel):
     def rowCount(self, parent):
         if not parent.isValid():
             return len(self._colours)
+        node = parent.internalPointer()
+        if isinstance(node, ColourCategoryModel):
+            return node.get_colour_count()
         return 0
 
     def index(self, row, col, parent):
         if not parent.isValid():
             node = self._colours[row]
         else:
-            return QModelIndex()
+            parent_node = parent.internalPointer()
+            if isinstance(parent_node, ColourCategoryModel):
+                node = parent_node.get_colour(row)
+            else:
+                return QModelIndex()
         return self.createIndex(row, col, node)
 
     def parent(self, index):
-        return QModelIndex()
+        if not index.isValid():
+            return QModelIndex()
+        node = index.internalPointer()
+        if isinstance(node, ColourCategoryModel):
+            return QModelIndex()
+        elif isinstance(node, ColourModel):
+            category = node.get_category()
+            if category:
+                index = category.get_index_of_colour(node)
+                return self.createIndex(index, 0, category)
+            else:
+                return QModelIndex()
+        else:
+            assert False
 
     def data(self, index, role):
         if role == Qt.DisplayRole:
             assert index.isValid()
             node = index.internalPointer()
             column = index.column()
-            if column == 0:
-                key = node.get_key()
-                desc = _COLOUR_DESCS_DICT[key]
-                return desc
-            elif column == 1:
-                return node.get_colour()
+            if isinstance(node, ColourCategoryModel):
+                if column == 0:
+                    return node.get_name()
+                elif column == 1:
+                    return ''
+            elif isinstance(node, ColourModel):
+                if column == 0:
+                    key = node.get_key()
+                    desc = _COLOUR_DESCS_DICT[key]
+                    category = node.get_category()
+                    if category:
+                        strip_prefix = category.get_name() + ' '
+                        if desc.startswith(strip_prefix):
+                            desc = desc[len(strip_prefix):].capitalize()
+                    return desc
+                elif column == 1:
+                    return node.get_colour()
+            else:
+                assert False
 
     def flags(self, index):
         default_flags = super().flags(index)
@@ -389,8 +482,9 @@ class ColourEditor(QWidget):
         self._new_colour = colour
 
         desc = _COLOUR_DESCS_DICT[key]
-        noncap_desc = desc[0].lower() + desc[1:]
-        self.setWindowTitle('Choose colour for ' + noncap_desc)
+        if not desc.startswith(('Note on ', 'Note off ', 'Hit ')):
+            desc = desc[0].lower() + desc[1:]
+        self.setWindowTitle('Colour of ' + desc)
 
         code = utils.get_str_from_colour(self._orig_colour)
         old_block = self._code_editor.blockSignals(True)
@@ -414,6 +508,9 @@ class ColourEditor(QWidget):
         QObject.emit(
                 self, SIGNAL('colourModified(QString, QString)'), self._key, orig_code)
         self.hide()
+
+    def sizeHint(self):
+        return QSize(256, 64)
 
 
 class Colours(QTreeView):
@@ -443,11 +540,16 @@ class Colours(QTreeView):
 
         for index in self._model.get_colour_indices():
             node = index.internalPointer()
-            key = node.get_key()
-            button = ColourButton(key)
-            QObject.connect(
-                    button, SIGNAL('colourSelected(QString)'), self._open_colour_editor)
-            self.setIndexWidget(index, button)
+            if isinstance(node, ColourModel):
+                key = node.get_key()
+                button = ColourButton(key)
+                QObject.connect(
+                        button,
+                        SIGNAL('colourSelected(QString)'),
+                        self._open_colour_editor)
+                self.setIndexWidget(index, button)
+
+        self.expandAll()
 
         self.resizeColumnToContents(0)
         self.setColumnWidth(1, 48)
@@ -477,9 +579,10 @@ class Colours(QTreeView):
 
         for index in self._model.get_colour_indices():
             button = self.indexWidget(index)
-            key = button.get_key()
-            colour = style_manager.get_style_param(key)
-            button.set_colour(colour)
+            if button:
+                key = button.get_key()
+                colour = style_manager.get_style_param(key)
+                button.set_colour(colour)
 
     def _open_colour_editor(self, key):
         style_manager = self._ui_model.get_style_manager()
