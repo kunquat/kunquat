@@ -432,6 +432,37 @@ class ColourCodeValidator(QValidator):
         return (QValidator.Acceptable, contents, pos)
 
 
+class ColourComparison(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        self._orig_colour = QColor(0, 0, 0)
+        self._new_colour = QColor(0, 0, 0)
+
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_OpaquePaintEvent)
+        self.setAttribute(Qt.WA_NoSystemBackground)
+
+    def set_original_colour(self, colour):
+        self._orig_colour = colour
+        self.update()
+
+    def set_new_colour(self, colour):
+        self._new_colour = colour
+        self.update()
+
+    def paintEvent(self, event):
+        width = self.width()
+        height = self.height()
+
+        painter = QPainter(self)
+        painter.fillRect(0, 0, width // 2, height, self._orig_colour)
+        painter.fillRect(width // 2, 0, width // 2, height, self._new_colour)
+
+    def minimumSizeHint(self):
+        return QSize(128, 32)
+
+
 class ColourEditor(QWidget):
 
     colourModified = Signal(str, str, 'colourModified')
@@ -445,25 +476,48 @@ class ColourEditor(QWidget):
         self._code_editor = QLineEdit()
         self._code_editor.setValidator(ColourCodeValidator())
 
+        self._comparison = ColourComparison()
+
         self._revert_button = QPushButton('Revert')
         self._accept_button = QPushButton('Done')
 
+        # Code editor layout
         cl = QHBoxLayout()
         cl.setContentsMargins(0, 0, 0, 0)
         cl.setSpacing(2)
         cl.addWidget(QLabel('Code:'))
         cl.addWidget(self._code_editor, 1)
 
+        # Colour comparison layout
+        orig_label = QLabel('Original')
+        orig_label.setAlignment(Qt.AlignHCenter)
+        new_label = QLabel('New')
+        new_label.setAlignment(Qt.AlignHCenter)
+
+        ctl = QHBoxLayout()
+        ctl.setContentsMargins(0, 0, 0, 0)
+        ctl.setSpacing(2)
+        ctl.addWidget(orig_label)
+        ctl.addWidget(new_label)
+        compl = QVBoxLayout()
+        compl.setContentsMargins(0, 0, 0, 0)
+        compl.setSpacing(2)
+        compl.addLayout(ctl)
+        compl.addWidget(self._comparison)
+
+        # Button layout
         bl = QHBoxLayout()
         bl.setContentsMargins(0, 0, 0, 0)
         bl.setSpacing(2)
         bl.addWidget(self._revert_button)
         bl.addWidget(self._accept_button)
 
+        # Top layout
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
-        v.setSpacing(2)
+        v.setSpacing(4)
         v.addLayout(cl)
+        v.addLayout(compl)
         v.addLayout(bl)
         self.setLayout(v)
 
@@ -491,10 +545,14 @@ class ColourEditor(QWidget):
         self._code_editor.setText(code)
         self._code_editor.blockSignals(old_block)
 
+        self._comparison.set_original_colour(self._orig_colour)
+        self._comparison.set_new_colour(self._new_colour)
+
         self._revert_button.setEnabled(False)
 
     def _update_colour(self, new_colour):
         self._new_colour = new_colour
+        self._comparison.set_new_colour(self._new_colour)
         self._revert_button.setEnabled(self._new_colour != self._orig_colour)
 
     def _change_code(self, text):
