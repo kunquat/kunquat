@@ -420,6 +420,12 @@ class ColourButton(QPushButton):
 
 class ColourChooser(QWidget):
 
+    colourChanged = Signal('colourChanged()')
+
+    _STATE_IDLE = 'idle'
+    _STATE_EDITING_HUE = 'editing_hue'
+    _STATE_EDITING_SV = 'editing_sv'
+
     def __init__(self):
         super().__init__()
 
@@ -443,12 +449,87 @@ class ColourChooser(QWidget):
 
         self._make_sv_gradients()
 
+        self._state = self._STATE_IDLE
+
+        self.setMouseTracking(True)
+
     def set_colour(self, colour):
         if self._colour != colour:
             self._colour = colour
             self._hue, self._saturation, self._value, _ = self._colour.getHsvF()
             self._sv_triangle = None
             self.update()
+
+    def get_colour(self):
+        return self._colour
+
+    def _set_colour(self, colour):
+        if self._colour != colour:
+            self._colour = colour
+            self._sv_triangle = None
+            QObject.emit(self, SIGNAL('colourChanged()'))
+            self.update()
+
+    def _get_rel_coords(self, event):
+        x = event.x() - (self.width() // 2)
+        y = event.y() - (self.height() // 2)
+        return x, y
+
+    def _length_and_dir(self, v):
+        x = v.x()
+        y = v.y()
+        vlen = math.sqrt(x * x + y * y)
+        vdir = QPointF(1, 0)
+        if vlen > 0.05:
+            vdir = v * (1 / vlen)
+        return vlen, vdir
+
+    def _set_hue_from_coords(self, x, y):
+        v = QPointF(x, y)
+        _, vdir = self._length_and_dir(v)
+
+        def dot(a, b):
+            return a.x() * b.x() + a.y() * b.y()
+
+        d = dot(vdir, QPointF(1, 0))
+        angle = math.acos(min(max(-1, d), 1))
+        if vdir.y() > 0:
+            angle = 2 * math.pi - angle
+
+        new_hue = angle / (2 * math.pi)
+        self._hue = new_hue
+        new_colour = QColor.fromHsvF(new_hue, self._saturation, self._value)
+        self._set_colour(new_colour)
+
+    def mouseMoveEvent(self, event):
+        x, y = self._get_rel_coords(event)
+
+        if self._state == self._STATE_IDLE:
+            pass
+        elif self._state == self._STATE_EDITING_HUE:
+            self._set_hue_from_coords(x, y)
+        elif self._state == self._STATE_EDITING_SV:
+            pass
+        else:
+            assert False
+
+    def mousePressEvent(self, event):
+        if event.buttons() != Qt.LeftButton:
+            return
+
+        x, y = self._get_rel_coords(event)
+
+        hue_ring_thickness = self._config['hue_ring_thickness']
+        hue_inner_radius = self._hue_outer_radius * (1 - hue_ring_thickness)
+
+        dist_from_center = math.sqrt(x * x + y * y)
+        if hue_inner_radius < dist_from_center < self._hue_outer_radius:
+            self._state = self._STATE_EDITING_HUE
+            self._set_hue_from_coords(x, y)
+            return
+
+    def mouseReleaseEvent(self, event):
+        self._state = self._STATE_IDLE
 
     def _get_marker_colour(self, colour):
         intensity = colour.red() * 0.212 + colour.green() * 0.715 + colour.blue() * 0.072
@@ -580,17 +661,8 @@ class ColourChooser(QWidget):
         sv_black_pos = sv_black_dir * hue_inner_radius
         sv_white_pos = sv_white_dir * hue_inner_radius
 
-        def length_and_dir(v):
-            x = v.x()
-            y = v.y()
-            vlen = math.sqrt(x * x + y * y)
-            vdir = QPointF(0, 0)
-            if vlen > 0.5:
-                vdir = v * (1 / vlen)
-            return vlen, vdir
-
         sv_val_start_pos = utils.lerp_val(sv_black_pos, sv_white_pos, self._value)
-        sat_max_length, sat_dir = length_and_dir(sv_colour_pos - sv_white_pos)
+        sat_max_length, sat_dir = self._length_and_dir(sv_colour_pos - sv_white_pos)
         sat_length = sat_max_length * self._value
         sv_final_pos = sv_val_start_pos + (sat_dir * (sat_length * self._saturation))
 
@@ -792,6 +864,8 @@ class ColourEditor(QWidget):
         v.addLayout(bl)
         self.setLayout(v)
 
+        QObject.connect(self._chooser, SIGNAL('colourChanged()'), self._change_colour)
+
         QObject.connect(
                 self._code_editor,
                 SIGNAL('textEdited(const QString&)'),
@@ -828,6 +902,12 @@ class ColourEditor(QWidget):
         self._chooser.set_colour(self._new_colour)
         self._comparison.set_new_colour(self._new_colour)
         self._revert_button.setEnabled(self._new_colour != self._orig_colour)
+
+    def _change_colour(self):
+        colour = self._chooser.get_colour()
+        self._update_colour(colour)
+        text = utils.get_str_from_colour(colour)
+        QObject.emit(self, SIGNAL('colourModified(QString, QString)'), self._key, text)
 
     def _change_code(self, text):
         if self._code_editor.hasAcceptableInput():
