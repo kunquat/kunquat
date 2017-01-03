@@ -427,6 +427,8 @@ class ColourChooser(QWidget):
             'hue_ring_thickness'  : 0.25,
             'sv_gradient_radius'  : 16,
             'hue_marker_thickness': 2.5,
+            'sv_marker_radius'    : 6,
+            'sv_marker_thickness' : 2,
         }
 
         self._hue_outer_radius = None
@@ -553,18 +555,50 @@ class ColourChooser(QWidget):
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setBrush(Qt.NoBrush)
 
+        # Hue marker
         hue_colour = QColor.fromHsvF(self._hue, 1, 1)
         hue_marker_colour = self._get_marker_colour(hue_colour)
         hue_angle = self._hue * 2 * math.pi
-        hue_x_unit = math.cos(hue_angle)
-        hue_y_unit = -math.sin(hue_angle)
+        hue_dir = QPointF(math.cos(hue_angle), -math.sin(hue_angle))
         hue_pen = QPen()
         hue_pen.setColor(hue_marker_colour)
         hue_pen.setWidth(self._config['hue_marker_thickness'])
         painter.setPen(hue_pen)
-        painter.drawLine(
-                QPointF(hue_x_unit * hue_inner_radius, hue_y_unit * hue_inner_radius),
-                QPointF(hue_x_unit * hue_outer_radius, hue_y_unit * hue_outer_radius))
+        painter.drawLine(hue_dir * hue_inner_radius, hue_dir * hue_outer_radius)
+
+        # SV marker
+        sv_marker_colour = self._get_marker_colour(self._colour)
+        sv_marker_radius = self._config['sv_marker_radius']
+
+        sv_black_dir = QPointF(
+                math.cos(hue_angle + math.pi * 2 / 3),
+                -math.sin(hue_angle + math.pi * 2 / 3))
+        sv_white_dir = QPointF(
+                math.cos(hue_angle - math.pi * 2 / 3),
+                -math.sin(hue_angle - math.pi * 2 / 3))
+        sv_colour_pos = hue_dir * hue_inner_radius
+        sv_black_pos = sv_black_dir * hue_inner_radius
+        sv_white_pos = sv_white_dir * hue_inner_radius
+
+        def length_and_dir(v):
+            x = v.x()
+            y = v.y()
+            vlen = math.sqrt(x * x + y * y)
+            vdir = QPointF(0, 0)
+            if vlen > 0.5:
+                vdir = v * (1 / vlen)
+            return vlen, vdir
+
+        sv_val_start_pos = utils.lerp_val(sv_black_pos, sv_white_pos, self._value)
+        sat_max_length, sat_dir = length_and_dir(sv_colour_pos - sv_white_pos)
+        sat_length = sat_max_length * self._value
+        sv_final_pos = sv_val_start_pos + (sat_dir * (sat_length * self._saturation))
+
+        sv_pen = QPen()
+        sv_pen.setColor(sv_marker_colour)
+        sv_pen.setWidth(self._config['sv_marker_thickness'])
+        painter.setPen(sv_pen)
+        painter.drawEllipse(sv_final_pos, sv_marker_radius, sv_marker_radius)
 
     def _get_hue_ring(self):
         if self._hue_ring:
