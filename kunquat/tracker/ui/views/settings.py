@@ -424,8 +424,9 @@ class ColourChooser(QWidget):
         super().__init__()
 
         self._config = {
-            'hue_ring_thickness': 0.25,
-            'sv_gradient_radius': 16,
+            'hue_ring_thickness'  : 0.25,
+            'sv_gradient_radius'  : 16,
+            'hue_marker_thickness': 2.5,
         }
 
         self._hue_outer_radius = None
@@ -449,7 +450,7 @@ class ColourChooser(QWidget):
 
     def _get_marker_colour(self, colour):
         intensity = colour.red() * 0.212 + colour.green() * 0.715 + colour.blue() * 0.072
-        return QColor(0, 0, 0) if intensity < 127 else QColor(0xff, 0xff, 0xff)
+        return QColor(0xff, 0xff, 0xff) if intensity < 127 else QColor(0, 0, 0)
 
     def _make_sv_gradients(self):
         radius = self._config['sv_gradient_radius']
@@ -547,6 +548,23 @@ class ColourChooser(QWidget):
 
         painter.drawImage(-hue_inner_radius, -hue_inner_radius, sv_triangle)
         painter.drawImage(-hue_outer_radius, -hue_outer_radius, hue_ring)
+
+        # Draw markers
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setBrush(Qt.NoBrush)
+
+        hue_colour = QColor.fromHsvF(self._hue, 1, 1)
+        hue_marker_colour = self._get_marker_colour(hue_colour)
+        hue_angle = self._hue * 2 * math.pi
+        hue_x_unit = math.cos(hue_angle)
+        hue_y_unit = -math.sin(hue_angle)
+        hue_pen = QPen()
+        hue_pen.setColor(hue_marker_colour)
+        hue_pen.setWidth(self._config['hue_marker_thickness'])
+        painter.setPen(hue_pen)
+        painter.drawLine(
+                QPointF(hue_x_unit * hue_inner_radius, hue_y_unit * hue_inner_radius),
+                QPointF(hue_x_unit * hue_outer_radius, hue_y_unit * hue_outer_radius))
 
     def _get_hue_ring(self):
         if self._hue_ring:
