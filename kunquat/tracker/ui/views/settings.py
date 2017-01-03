@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import math
 import os
 import string
 
@@ -417,6 +418,219 @@ class ColourButton(QPushButton):
         QObject.emit(self, SIGNAL('colourSelected(QString)'), self._key)
 
 
+class ColourChooser(QWidget):
+
+    def __init__(self):
+        super().__init__()
+
+        self._config = {
+            'hue_ring_thickness': 0.25,
+            'sv_gradient_radius': 16,
+        }
+
+        self._hue_outer_radius = None
+        self._hue_ring = None
+        self._sv_triangle = None
+        self._sv_gradients = []
+
+        self._colour = QColor(0, 0, 0)
+        self._hue = 0
+        self._saturation = 0
+        self._value = 0
+
+        self._make_sv_gradients()
+
+    def set_colour(self, colour):
+        if self._colour != colour:
+            self._colour = colour
+            self._hue, self._saturation, self._value, _ = self._colour.getHsvF()
+            self._sv_triangle = None
+            self.update()
+
+    def _get_marker_colour(self, colour):
+        intensity = colour.red() * 0.212 + colour.green() * 0.715 + colour.blue() * 0.072
+        return QColor(0, 0, 0) if intensity < 127 else QColor(0xff, 0xff, 0xff)
+
+    def _make_sv_gradients(self):
+        radius = self._config['sv_gradient_radius']
+        wh = radius * 2
+
+        red = QImage(wh, wh, QImage.Format_ARGB32_Premultiplied)
+        red.fill(0)
+
+        # Make black -> white gradient
+        painter = QPainter(red)
+        painter.translate(radius, radius)
+        painter.setPen(Qt.NoPen)
+
+        white_grad = QLinearGradient(
+                radius * math.cos(math.pi * 2 / 3), radius * math.sin(math.pi * 2 / 3),
+                radius * (math.cos(math.pi * 4 / 3) + 1) / 2,
+                radius * math.sin(math.pi * 4 / 3) / 2)
+        white_grad.setColorAt(0, QColor(0xff, 0xff, 0xff))
+        white_grad.setColorAt(1, QColor(0, 0, 0))
+        painter.fillRect(-radius, -radius, wh, wh, QBrush(white_grad))
+        painter.end()
+
+        # Use the black -> white gradient as a basis for the other images
+        yellow = QImage(red)
+        green = QImage(red)
+        magenta = QImage(red)
+
+        # Add colour gradients with additive blending
+        def fill_one_component_column(image, x, start_y, end_y, alpha_add, shift):
+            mask = 0xffffffff ^ (0xff << shift)
+            for y in range(start_y, end_y):
+                argb = image.pixel(x, y)
+                c = (argb >> shift) & 0xff
+                c = min(0xff, c + alpha_add)
+                argb = (argb & mask) + (c << shift)
+                image.setPixel(x, y, argb)
+
+        def fill_two_component_column(
+                image, x, start_y, end_y, alpha_add, shift1, shift2):
+            mask = 0xffffffff ^ (0xff << shift1) ^ (0xff << shift2)
+            for y in range(start_y, end_y):
+                argb = image.pixel(x, y)
+                c1 = (argb >> shift1) & 0xff
+                c2 = (argb >> shift2) & 0xff
+                c1 = min(0xff, c1 + alpha_add)
+                c2 = min(0xff, c2 + alpha_add)
+                argb = (argb & mask) + (c1 << shift1) + (c2 << shift2)
+                image.setPixel(x, y, argb)
+
+        start_x = int(radius + radius * math.cos(math.pi * 2 / 3))
+        end_x = wh
+        col_count = end_x - start_x
+        for x in range(start_x, end_x):
+            col_index = (x - start_x)
+            alpha_add_norm = min(max(0, col_index / col_count), 1)
+            alpha_add = int(alpha_add_norm * 0xff)
+            start_y = col_index // 2
+            end_y = wh - (col_index // 2)
+
+            fill_one_component_column(red, x, start_y, end_y, alpha_add, 16)
+            fill_one_component_column(green, x, start_y, end_y, alpha_add, 8)
+            fill_two_component_column(yellow, x, start_y, end_y, alpha_add, 16, 8)
+            fill_two_component_column(magenta, x, start_y, end_y, alpha_add, 16, 0)
+
+        # Create missing gradients from existing ones
+        cyan = yellow.rgbSwapped()
+        blue = red.rgbSwapped()
+
+        self._sv_gradients = [red, yellow, green, cyan, blue, magenta]
+
+    def _clear_cache(self):
+        self._hue_ring = None
+        self._sv_triangle = None
+
+    def paintEvent(self, event):
+        width = self.width()
+        height = self.height()
+
+        hue_outer_radius = min(width, height) // 2
+        if hue_outer_radius < 1:
+            return
+
+        hue_inner_radius = hue_outer_radius * (1 - self._config['hue_ring_thickness'])
+
+        if hue_outer_radius != self._hue_outer_radius:
+            self._hue_outer_radius = hue_outer_radius
+            self._clear_cache()
+
+        painter = QPainter(self)
+        painter.translate(width // 2, height // 2)
+        painter.setRenderHint(QPainter.SmoothPixmapTransform)
+
+        hue_ring = self._get_hue_ring()
+        sv_triangle = self._get_sv_triangle(hue_inner_radius)
+
+        painter.drawImage(-hue_inner_radius, -hue_inner_radius, sv_triangle)
+        painter.drawImage(-hue_outer_radius, -hue_outer_radius, hue_ring)
+
+    def _get_hue_ring(self):
+        if self._hue_ring:
+            return self._hue_ring
+
+        diam = self._hue_outer_radius * 2
+        cut_diam = diam * (1 - self._config['hue_ring_thickness'])
+        cut_offset = (diam - cut_diam) / 2
+
+        self._hue_ring = QImage(diam, diam, QImage.Format_ARGB32_Premultiplied)
+        self._hue_ring.fill(0)
+
+        hues = QConicalGradient()
+        hues.setCenter(QPointF(self._hue_outer_radius, self._hue_outer_radius))
+        hues.setColorAt(0,     QColor(0xff, 0,    0))
+        hues.setColorAt(1 / 6, QColor(0xff, 0xff, 0))
+        hues.setColorAt(2 / 6, QColor(0,    0xff, 0))
+        hues.setColorAt(3 / 6, QColor(0,    0xff, 0xff))
+        hues.setColorAt(4 / 6, QColor(0,    0,    0xff))
+        hues.setColorAt(5 / 6, QColor(0xff, 0,    0xff))
+        hues.setColorAt(1,     QColor(0xff, 0,    0))
+
+        painter = QPainter(self._hue_ring)
+        painter.setPen(Qt.NoPen)
+        painter.setRenderHint(QPainter.Antialiasing)
+
+        painter.setBrush(QBrush(hues))
+        painter.drawEllipse(QRectF(0, 0, diam, diam))
+
+        painter.setBrush(QColor(0xff, 0xff, 0xff))
+        painter.setCompositionMode(QPainter.CompositionMode_DestinationOut)
+        painter.drawEllipse(QRectF(cut_offset, cut_offset, cut_diam, cut_diam))
+
+        return self._hue_ring
+
+    def _get_sv_triangle(self, inner_radius):
+        if self._sv_triangle:
+            return self._sv_triangle
+
+        # Get hue gradient
+        hue_scaled = self._hue * 6
+        hue_index1 = int(math.floor(hue_scaled)) % 6
+        hue_index2 = (hue_index1 + 1) % 6
+        hue2_alpha = hue_scaled - math.floor(hue_scaled)
+
+        hue_grad = QImage(self._sv_gradients[hue_index1])
+        hue2_grad = QImage(self._sv_gradients[hue_index2])
+
+        hue_painter = QPainter(hue_grad)
+        hue_painter.setOpacity(hue2_alpha)
+        hue_painter.drawImage(0, 0, hue2_grad)
+        hue_painter.end()
+
+        # Draw the triangle
+        wh = inner_radius * 2
+        self._sv_triangle = QImage(wh, wh, QImage.Format_ARGB32)
+        self._sv_triangle.fill(0)
+
+        painter = QPainter(self._sv_triangle)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.SmoothPixmapTransform)
+        painter.translate(inner_radius, inner_radius)
+        painter.rotate(-self._hue * 360)
+        painter.setPen(Qt.NoPen)
+
+        ir = inner_radius
+
+        painter.drawImage(QRectF(-ir, -ir, wh, wh), hue_grad)
+
+        triangle = QPolygonF([
+            QPointF(ir, 0),
+            QPointF(ir * math.cos(math.pi * 2 / 3), ir * math.sin(math.pi * 2 / 3)),
+            QPointF(ir * math.cos(math.pi * 4 / 3), ir * math.sin(math.pi * 4 / 3))])
+        mask = QPolygonF(QRectF(-ir - 1, -ir - 1, wh + 2, wh + 2)).subtracted(triangle)
+        painter.setBrush(QColor(0, 0, 0))
+        painter.setCompositionMode(QPainter.CompositionMode_DestinationOut)
+        painter.drawPolygon(mask)
+
+        return self._sv_triangle
+
+    def minimumSizeHint(self):
+        return QSize(192, 192)
+
+
 class ColourCodeValidator(QValidator):
 
     def __init__(self):
@@ -473,6 +687,8 @@ class ColourEditor(QWidget):
         self._orig_colour = None
         self._new_colour = None
 
+        self._chooser = ColourChooser()
+
         self._code_editor = QLineEdit()
         self._code_editor.setValidator(ColourCodeValidator())
 
@@ -491,8 +707,10 @@ class ColourEditor(QWidget):
         # Colour comparison layout
         orig_label = QLabel('Original')
         orig_label.setAlignment(Qt.AlignHCenter)
+        orig_label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
         new_label = QLabel('New')
         new_label.setAlignment(Qt.AlignHCenter)
+        new_label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
 
         ctl = QHBoxLayout()
         ctl.setContentsMargins(0, 0, 0, 0)
@@ -516,6 +734,7 @@ class ColourEditor(QWidget):
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
+        v.addWidget(self._chooser)
         v.addLayout(cl)
         v.addLayout(compl)
         v.addLayout(bl)
@@ -540,6 +759,8 @@ class ColourEditor(QWidget):
             desc = desc[0].lower() + desc[1:]
         self.setWindowTitle('Colour of ' + desc)
 
+        self._chooser.set_colour(self._orig_colour)
+
         code = utils.get_str_from_colour(self._orig_colour)
         old_block = self._code_editor.blockSignals(True)
         self._code_editor.setText(code)
@@ -552,6 +773,7 @@ class ColourEditor(QWidget):
 
     def _update_colour(self, new_colour):
         self._new_colour = new_colour
+        self._chooser.set_colour(self._new_colour)
         self._comparison.set_new_colour(self._new_colour)
         self._revert_button.setEnabled(self._new_colour != self._orig_colour)
 
