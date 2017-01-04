@@ -418,9 +418,10 @@ class ColourButton(QPushButton):
         QObject.emit(self, SIGNAL('colourSelected(QString)'), self._key)
 
 
-class ColourChooser(QWidget):
+class ColourSelector(QWidget):
 
     colourChanged = Signal('colourChanged()')
+    colourSelected = Signal('colourSelected()')
 
     _STATE_IDLE = 'idle'
     _STATE_EDITING_HUE = 'editing_hue'
@@ -454,19 +455,20 @@ class ColourChooser(QWidget):
         self.setMouseTracking(True)
 
     def set_colour(self, colour):
-        if self._colour != colour:
+        if self._colour.toRgb() != colour.toRgb():
             self._colour = colour
             self._hue, self._saturation, self._value, _ = self._colour.getHsvF()
+            self._hue = max(0, self._hue) # set indeterminate hue to red
             self._sv_triangle = None
             self.update()
 
     def get_colour(self):
-        return self._colour
+        return self._colour.toRgb()
 
     def _set_colour(self, colour):
         if self._colour != colour:
-            self._colour = colour
             self._sv_triangle = None
+            self._colour = colour
             QObject.emit(self, SIGNAL('colourChanged()'))
             self.update()
 
@@ -484,14 +486,18 @@ class ColourChooser(QWidget):
             vdir = v * (1 / vlen)
         return vlen, vdir
 
+    def _dir(self, v):
+        _, dir_v = self._length_and_dir(v)
+        return dir_v
+
+    def _dot(self, a, b):
+        return a.x() * b.x() + a.y() * b.y()
+
     def _set_hue_from_coords(self, x, y):
         v = QPointF(x, y)
         _, vdir = self._length_and_dir(v)
 
-        def dot(a, b):
-            return a.x() * b.x() + a.y() * b.y()
-
-        d = dot(vdir, QPointF(1, 0))
+        d = self._dot(vdir, QPointF(1, 0))
         angle = math.acos(min(max(-1, d), 1))
         if vdir.y() > 0:
             angle = 2 * math.pi - angle
@@ -501,6 +507,126 @@ class ColourChooser(QWidget):
         new_colour = QColor.fromHsvF(new_hue, self._saturation, self._value)
         self._set_colour(new_colour)
 
+    def _get_sv_corners(self):
+        hue_ring_thickness = self._config['hue_ring_thickness']
+        hue_inner_radius = self._hue_outer_radius * (1 - hue_ring_thickness)
+
+        hue_angle = self._hue * 2 * math.pi
+        hue_dir = QPointF(math.cos(hue_angle), -math.sin(hue_angle))
+        sv_black_dir = QPointF(
+                math.cos(hue_angle + math.pi * 2 / 3),
+                -math.sin(hue_angle + math.pi * 2 / 3))
+        sv_white_dir = QPointF(
+                math.cos(hue_angle - math.pi * 2 / 3),
+                -math.sin(hue_angle - math.pi * 2 / 3))
+        sv_colour_pos = hue_dir * hue_inner_radius
+        sv_black_pos = sv_black_dir * hue_inner_radius
+        sv_white_pos = sv_white_dir * hue_inner_radius
+
+        return sv_colour_pos, sv_black_pos, sv_white_pos
+
+    def _try_set_sv_from_coords(self, x, y, allow_any_point=False):
+        v = QPointF(x, y)
+
+        sv_colour_pos, sv_black_pos, sv_white_pos = self._get_sv_corners()
+        side_length, sat_dir = self._length_and_dir(sv_colour_pos - sv_white_pos)
+
+        if allow_any_point:
+            # Check snapping to corners and edges
+            min_dot = math.cos(math.pi / 3)
+
+            def is_at_corner(corner):
+                return (self._dot(self._dir(corner), self._dir(v - corner)) >= min_dot)
+
+            def is_at_edge(point, normal):
+                return (self._dot(self._dir(v - point), normal) > 0)
+
+            def get_proj_pos_norm_at_line(a, b):
+                amb = a - b
+                length_sq = (amb.x() * amb.x()) + (amb.y() * amb.y())
+                return min(max(0, self._dot(v - a, b - a) / length_sq), 1)
+
+            new_saturation = None
+            new_value = None
+
+            if is_at_corner(sv_colour_pos):
+                new_saturation = 1
+                new_value = 1
+            elif is_at_corner(sv_black_pos):
+                new_saturation = 0
+                new_value = 0
+            elif is_at_corner(sv_white_pos):
+                new_saturation = 0
+                new_value = 1
+            elif is_at_edge(sv_colour_pos, -self._dir(sv_white_pos)):
+                new_saturation = 1
+                new_value = get_proj_pos_norm_at_line(sv_black_pos, sv_colour_pos)
+            elif is_at_edge(sv_white_pos, -self._dir(sv_black_pos)):
+                new_saturation = get_proj_pos_norm_at_line(sv_white_pos, sv_colour_pos)
+                new_value = 1
+            elif is_at_edge(sv_white_pos, -self._dir(sv_colour_pos)):
+                new_saturation = 0
+                new_value = get_proj_pos_norm_at_line(sv_black_pos, sv_white_pos)
+
+            if new_saturation != None:
+                self._value = new_value
+                self._saturation = new_saturation
+                new_colour = QColor.fromHsvF(self._hue, new_saturation, new_value)
+                self._set_colour(new_colour)
+                return True
+
+        # Get new value
+        bx, by = sv_black_pos.x(), sv_black_pos.y()
+        wx, wy = sv_white_pos.x(), sv_white_pos.y()
+        x2, y2 = v.x() + sat_dir.x(), v.y() + sat_dir.y()
+        val_x = (((bx * wy - by * wx) * (x - x2) - (bx - wx) * (x * y2 - y * x2)) /
+                ((bx - wx) * (y - y2) - (by - wy) * (x - x2)))
+        val_y = (((bx * wy - by * wx) * (y - y2) - (by - wy) * (x * y2 - y * x2)) /
+                ((bx - wx) * (y - y2) - (by - wy) * (x - x2)))
+        val_pos = QPointF(val_x, val_y)
+        val_dist_from_black, _ = self._length_and_dir(val_pos - sv_black_pos)
+        val_dist_from_white, _ = self._length_and_dir(val_pos - sv_white_pos)
+        if val_dist_from_black + val_dist_from_white > side_length + 0.0001:
+            if not allow_any_point:
+                return False
+            if val_dist_from_black < val_dist_from_white:
+                new_value = 0
+            else:
+                new_value = 1
+        else:
+            new_value = min(max(0, val_dist_from_black / side_length), 1)
+
+        # Get new saturation
+        sat_length = new_value * side_length
+        sat_max_pos = val_pos + (sat_dir * sat_length)
+        v_dist_from_grey, _ = self._length_and_dir(v - val_pos)
+        v_dist_from_colour, _ = self._length_and_dir(v - sat_max_pos)
+        if v_dist_from_grey + v_dist_from_colour > sat_length + 0.0001:
+            if not allow_any_point:
+                return False
+            if v_dist_from_grey < v_dist_from_colour:
+                new_saturation = 0
+            else:
+                new_saturation = 1
+        else:
+            if sat_length > 0.001:
+                new_saturation = min(max(0, v_dist_from_grey / sat_length), 1)
+            else:
+                new_saturation = 1
+
+        self._value = new_value
+        self._saturation = new_saturation
+        new_colour = QColor.fromHsvF(self._hue, new_saturation, new_value)
+        self._set_colour(new_colour)
+        return True
+
+    def hideEvent(self, event):
+        self._colour = QColor(0, 0, 0)
+        self._hue = 0
+        self._saturation = 0
+        self._value = 0
+        self._sv_triangle = None
+
     def mouseMoveEvent(self, event):
         x, y = self._get_rel_coords(event)
 
@@ -509,7 +635,7 @@ class ColourChooser(QWidget):
         elif self._state == self._STATE_EDITING_HUE:
             self._set_hue_from_coords(x, y)
         elif self._state == self._STATE_EDITING_SV:
-            pass
+            self._try_set_sv_from_coords(x, y, allow_any_point=True)
         else:
             assert False
 
@@ -528,8 +654,13 @@ class ColourChooser(QWidget):
             self._set_hue_from_coords(x, y)
             return
 
+        if self._try_set_sv_from_coords(x, y, allow_any_point=False):
+            self._state = self._STATE_EDITING_SV
+            return
+
     def mouseReleaseEvent(self, event):
         self._state = self._STATE_IDLE
+        QObject.emit(self, SIGNAL('colourSelected()'))
 
     def _get_marker_colour(self, colour):
         intensity = colour.red() * 0.212 + colour.green() * 0.715 + colour.blue() * 0.072
@@ -598,7 +729,7 @@ class ColourChooser(QWidget):
             fill_two_component_column(yellow, x, start_y, end_y, alpha_add, 16, 8)
             fill_two_component_column(magenta, x, start_y, end_y, alpha_add, 16, 0)
 
-        # Create missing gradients from existing ones
+        # Create remaining gradients from existing ones
         cyan = yellow.rgbSwapped()
         blue = red.rgbSwapped()
 
@@ -651,15 +782,7 @@ class ColourChooser(QWidget):
         sv_marker_colour = self._get_marker_colour(self._colour)
         sv_marker_radius = self._config['sv_marker_radius']
 
-        sv_black_dir = QPointF(
-                math.cos(hue_angle + math.pi * 2 / 3),
-                -math.sin(hue_angle + math.pi * 2 / 3))
-        sv_white_dir = QPointF(
-                math.cos(hue_angle - math.pi * 2 / 3),
-                -math.sin(hue_angle - math.pi * 2 / 3))
-        sv_colour_pos = hue_dir * hue_inner_radius
-        sv_black_pos = sv_black_dir * hue_inner_radius
-        sv_white_pos = sv_white_dir * hue_inner_radius
+        sv_colour_pos, sv_black_pos, sv_white_pos = self._get_sv_corners()
 
         sv_val_start_pos = utils.lerp_val(sv_black_pos, sv_white_pos, self._value)
         sat_max_length, sat_dir = self._length_and_dir(sv_colour_pos - sv_white_pos)
@@ -811,7 +934,7 @@ class ColourEditor(QWidget):
         self._orig_colour = None
         self._new_colour = None
 
-        self._chooser = ColourChooser()
+        self._selector = ColourSelector()
 
         self._code_editor = QLineEdit()
         self._code_editor.setValidator(ColourCodeValidator())
@@ -858,13 +981,14 @@ class ColourEditor(QWidget):
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
-        v.addWidget(self._chooser)
+        v.addWidget(self._selector)
         v.addLayout(cl)
         v.addLayout(compl)
         v.addLayout(bl)
         self.setLayout(v)
 
-        QObject.connect(self._chooser, SIGNAL('colourChanged()'), self._change_colour)
+        QObject.connect(self._selector, SIGNAL('colourChanged()'), self._change_colour)
+        QObject.connect(self._selector, SIGNAL('colourSelected()'), self._select_colour)
 
         QObject.connect(
                 self._code_editor,
@@ -885,7 +1009,7 @@ class ColourEditor(QWidget):
             desc = desc[0].lower() + desc[1:]
         self.setWindowTitle('Colour of ' + desc)
 
-        self._chooser.set_colour(self._orig_colour)
+        self._selector.set_colour(self._orig_colour)
 
         code = utils.get_str_from_colour(self._orig_colour)
         old_block = self._code_editor.blockSignals(True)
@@ -899,12 +1023,22 @@ class ColourEditor(QWidget):
 
     def _update_colour(self, new_colour):
         self._new_colour = new_colour
-        self._chooser.set_colour(self._new_colour)
+        self._selector.set_colour(self._new_colour)
         self._comparison.set_new_colour(self._new_colour)
         self._revert_button.setEnabled(self._new_colour != self._orig_colour)
 
+        old_block = self._code_editor.blockSignals(True)
+        new_code = utils.get_str_from_colour(self._new_colour)
+        if new_code != self._code_editor.text():
+            self._code_editor.setText(new_code)
+        self._code_editor.blockSignals(old_block)
+
     def _change_colour(self):
-        colour = self._chooser.get_colour()
+        colour = self._selector.get_colour()
+        self._update_colour(colour)
+
+    def _select_colour(self):
+        colour = self._selector.get_colour()
         self._update_colour(colour)
         text = utils.get_str_from_colour(colour)
         QObject.emit(self, SIGNAL('colourModified(QString, QString)'), self._key, text)
