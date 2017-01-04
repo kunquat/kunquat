@@ -274,8 +274,8 @@ _COLOUR_DESCS = [
     ('sheet_trigger_note_on_colour',    'Note on trigger'),
     ('sheet_trigger_hit_colour',        'Hit trigger'),
     ('sheet_trigger_note_off_colour',   'Note off trigger'),
-    ('sheet_trigger_warning_bg_colour', 'Trigger warning background'),
-    ('sheet_trigger_warning_fg_colour', 'Trigger warning text'),
+    ('sheet_trigger_warning_bg_colour', 'Trigger value warning background'),
+    ('sheet_trigger_warning_fg_colour', 'Trigger value warning text'),
 ]
 
 _COLOUR_DESCS_DICT = dict(_COLOUR_DESCS)
