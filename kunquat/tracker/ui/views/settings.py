@@ -775,6 +775,7 @@ class ColourSelector(QWidget):
         hue_pen = QPen()
         hue_pen.setColor(hue_marker_colour)
         hue_pen.setWidth(self._config['hue_marker_thickness'])
+        hue_pen.setCapStyle(Qt.FlatCap)
         painter.setPen(hue_pen)
         painter.drawLine(hue_dir * hue_inner_radius, hue_dir * hue_outer_radius)
 
