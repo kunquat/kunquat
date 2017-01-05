@@ -252,11 +252,13 @@ class ColourModel():
 _COLOUR_DESCS = [
     ('bg_colour',                       'Default background'),
     ('fg_colour',                       'Default text'),
+    ('bg_colour_sunken',                'Sunken background'),
     ('disabled_fg_colour',              'Disabled text'),
     ('button_bg_colour',                'Button background'),
     ('button_fg_colour',                'Button foreground'),
     ('text_bg_colour',                  'Text field background'),
     ('text_fg_colour',                  'Text field foreground'),
+    ('typewriter_active_note_colour',   'Active note light'),
     ('sheet_area_selection_colour',     'Sheet area selection'),
     ('sheet_canvas_bg_colour',          'Sheet canvas background'),
     ('sheet_column_bg_colour',          'Sheet column background'),

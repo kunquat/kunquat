@@ -19,6 +19,7 @@ class StyleManager():
     _STYLE_DEFAULTS = {
         'bg_colour'                      : '#db9',
         'fg_colour'                      : '#000',
+        'bg_colour_sunken'               : '#a86',
         'disabled_fg_colour'             : '#543',
         'button_bg_colour'               : '#b97',
         'button_fg_colour'               : '#000',
@@ -28,9 +29,9 @@ class StyleManager():
         'sheet_column_border_colour'     : '#555',
         'sheet_cursor_view_line_colour'  : '#def',
         'sheet_cursor_edit_line_colour'  : '#f84',
-        'sheet_grid_level_1_colour'      : '#a0a0a0',
-        'sheet_grid_level_2_colour'      : '#606060',
-        'sheet_grid_level_3_colour'      : '#404040',
+        'sheet_grid_level_1_colour'      : '#aaa',
+        'sheet_grid_level_2_colour'      : '#666',
+        'sheet_grid_level_3_colour'      : '#444',
         'sheet_header_bg_colour'         : '#242',
         'sheet_header_fg_colour'         : '#cea',
         'sheet_header_border_colour'     : '#575',
@@ -44,6 +45,7 @@ class StyleManager():
         'sheet_trigger_warning_fg_colour': '#ffc',
         'text_bg_colour'                 : '#000',
         'text_fg_colour'                 : '#da5',
+        'typewriter_active_note_colour'  : '#f00',
     }
 
     def __init__(self):

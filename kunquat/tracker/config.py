@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -83,6 +83,7 @@ class Config():
             colour_names = [
                 'bg_colour',
                 'fg_colour',
+                'bg_colour_sunken',
                 'disabled_fg_colour',
                 'button_bg_colour',
                 'button_fg_colour',
@@ -108,6 +109,7 @@ class Config():
                 'sheet_trigger_warning_fg_colour',
                 'text_bg_colour',
                 'text_fg_colour',
+                'typewriter_active_note_colour',
             ]
 
             style_config = {

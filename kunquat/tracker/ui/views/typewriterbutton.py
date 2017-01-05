@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2013-2016
+#          Tomi Jylhä-Ollila, Finland 2013-2017
 #
 # This file is part of Kunquat.
 #
@@ -23,6 +23,16 @@ class TWLight(QWidget):
         self._state = 0
         self._colours = [QColor(x, 0, 0) for x in (0x44, 0xcc, 0xff)]
         self._disabled_colour = QColor(0x88, 0x88, 0x88)
+
+    def set_colours(self, active_colour, disabled_colour):
+        colour = QColor(active_colour)
+        ar = colour.red()
+        ag = colour.green()
+        ab = colour.blue()
+        self._colours = [QColor(int(ar * m), int(ag * m), int(ab * m))
+                for m in (0.25, 0.75, 1)]
+
+        self._disabled_colour = QColor(disabled_colour)
 
     def set_state(self, state):
         if self._state != state:
@@ -61,6 +71,10 @@ class TWLed(QFrame):
         self.setLayout(h)
 
         self.set_leds(0, 0, 0)
+
+    def set_colours(self, active_colour, disabled_colour):
+        for widget in (self._left, self._center, self._right):
+            widget.set_colours(active_colour, disabled_colour)
 
     def set_leds(self, left_on, center_on, right_on):
         self._left.set_state(left_on + center_on)
@@ -104,6 +118,8 @@ class TypewriterButton(QPushButton):
 
         self._button_model = self._typewriter_manager.get_button_model(
                 self._row, self._index)
+
+        self._update_style()
         self._update_properties()
 
     def _perform_updates(self, signals):
@@ -115,7 +131,16 @@ class TypewriterButton(QPushButton):
             if keymap_manager.is_hit_keymap_active():
                 self._update_properties()
 
+        if 'signal_style_changed' in signals:
+            self._update_style()
+
         self._update_leds()
+
+    def _update_style(self):
+        style_manager = self._ui_model.get_style_manager()
+        self._led.set_colours(
+                style_manager.get_style_param('typewriter_active_note_colour'),
+                style_manager.get_style_param('bg_colour_sunken'))
 
     def _update_properties(self):
         name = self._button_model.get_name()
