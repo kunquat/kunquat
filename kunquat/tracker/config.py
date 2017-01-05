@@ -109,6 +109,13 @@ class Config():
                 'sheet_trigger_warning_fg_colour',
                 'text_bg_colour',
                 'text_fg_colour',
+                'position_bg_colour',
+                'position_fg_colour',
+                'position_stopped_colour',
+                'position_play_colour',
+                'position_record_colour',
+                'position_infinite_colour',
+                'position_title_colour',
                 'typewriter_active_note_colour',
             ]
 

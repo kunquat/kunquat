@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -56,6 +56,7 @@ class PlaybackPosition(QWidget):
         'bg_colour'      : QColor(0, 0, 0),
         'fg_colour'      : QColor(0x66, 0xdd, 0x66),
         'stopped_colour' : QColor(0x55, 0x55, 0x55),
+        'play_colour'    : QColor(0x66, 0xdd, 0x66),
         'record_colour'  : QColor(0xdd, 0x44, 0x33),
         'infinite_colour': QColor(0xff, 0xdd, 0x55),
         'title_colour'   : QColor(0x77, 0x77, 0x77),
@@ -85,7 +86,6 @@ class PlaybackPosition(QWidget):
         self._baseline_offsets = {}
 
         self._config = None
-        self._set_config({})
 
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
@@ -96,11 +96,39 @@ class PlaybackPosition(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        self._update_style()
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
+    def _update_style(self):
+        style_manager = self._ui_model.get_style_manager()
+        if not style_manager.is_custom_style_enabled():
+            self._set_config({})
+            self.update()
+            return
+
+        config = {
+            'bg_colour':
+                QColor(style_manager.get_style_param('position_bg_colour')),
+            'fg_colour':
+                QColor(style_manager.get_style_param('position_fg_colour')),
+            'stopped_colour':
+                QColor(style_manager.get_style_param('position_stopped_colour')),
+            'play_colour':
+                QColor(style_manager.get_style_param('position_play_colour')),
+            'record_colour':
+                QColor(style_manager.get_style_param('position_record_colour')),
+            'infinite_colour':
+                QColor(style_manager.get_style_param('position_infinite_colour')),
+            'title_colour':
+                QColor(style_manager.get_style_param('position_title_colour')),
+        }
+        self._set_config(config)
+        self.update()
+
     def _set_config(self, config):
-        self._config = self._DEFAULT_CONFIG
+        self._config = self._DEFAULT_CONFIG.copy()
         self._config.update(config)
 
         self._state_icons = {}
@@ -219,6 +247,9 @@ class PlaybackPosition(QWidget):
             self._state = state
             self.update()
 
+        if 'signal_style_changed' in signals:
+            self._update_style()
+
     def minimumSizeHint(self):
         return QSize(sum(self._widths), self._min_height)
 
@@ -300,7 +331,7 @@ class PlaybackPosition(QWidget):
             painter.drawPolygon(shape)
 
         # Outline
-        painter.setBrush(QColor(0, 0, 0))
+        painter.setBrush(self._config['bg_colour'])
         draw_drop_shape(-0.03, 0.68)
         draw_drop_shape(1.03, 0.32)
 
@@ -310,7 +341,7 @@ class PlaybackPosition(QWidget):
         draw_drop_shape(1, 0.35)
 
         # Hole of the coloured fill
-        painter.setBrush(QColor(0, 0, 0))
+        painter.setBrush(self._config['bg_colour'])
         draw_drop_shape(0.1, 0.45)
         draw_drop_shape(0.9, 0.55)
 
@@ -334,7 +365,7 @@ class PlaybackPosition(QWidget):
             if playback_state == self._STOPPED:
                 self._draw_stop_icon_shape(img_painter, self._config['stopped_colour'])
             elif playback_state == self._PLAYING:
-                self._draw_play_icon_shape(img_painter, self._config['fg_colour'])
+                self._draw_play_icon_shape(img_painter, self._config['play_colour'])
             elif playback_state == self._RECORDING:
                 self._draw_record_icon_shape(img_painter, self._config['record_colour'])
 

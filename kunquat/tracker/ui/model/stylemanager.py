@@ -45,6 +45,13 @@ class StyleManager():
         'sheet_trigger_warning_fg_colour': '#ffc',
         'text_bg_colour'                 : '#000',
         'text_fg_colour'                 : '#da5',
+        'position_bg_colour'             : '#000',
+        'position_fg_colour'             : '#6d6',
+        'position_stopped_colour'        : '#555',
+        'position_play_colour'           : '#6d6',
+        'position_record_colour'         : '#d43',
+        'position_infinite_colour'       : '#fd5',
+        'position_title_colour'          : '#777',
         'typewriter_active_note_colour'  : '#f00',
     }
 

@@ -18,6 +18,7 @@ import string
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.config as config
 from .headerline import HeaderLine
 from . import utils
@@ -278,6 +279,13 @@ _COLOUR_DESCS = [
     ('sheet_trigger_note_off_colour',   'Note off trigger'),
     ('sheet_trigger_warning_bg_colour', 'Trigger value warning background'),
     ('sheet_trigger_warning_fg_colour', 'Trigger value warning text'),
+    ('position_bg_colour',              'Position view background'),
+    ('position_fg_colour',              'Position view numbers'),
+    ('position_stopped_colour',         'Position view stop'),
+    ('position_play_colour',            'Position view play'),
+    ('position_record_colour',          'Position view record'),
+    ('position_infinite_colour',        'Position view infinite mode'),
+    ('position_title_colour',           'Position view text'),
 ]
 
 _COLOUR_DESCS_DICT = dict(_COLOUR_DESCS)
@@ -302,6 +310,7 @@ class ColoursModel(QAbstractItemModel):
         colours = []
 
         sheet_colours = None
+        pos_colours = None
 
         for k, _ in _COLOUR_DESCS:
             colour = style_manager.get_style_param(k)
@@ -310,6 +319,12 @@ class ColoursModel(QAbstractItemModel):
                     sheet_colours = ColourCategoryModel('Sheet')
                     colours.append(sheet_colours)
                 sheet_colours.add_colour(ColourModel(k, colour, sheet_colours))
+            elif k.startswith('position_'):
+                if not pos_colours:
+                    pos_colours = ColourCategoryModel('Position view')
+                    colours.append(pos_colours)
+                if cmdline.get_experimental() or (k != 'position_record_colour'):
+                    pos_colours.add_colour(ColourModel(k, colour, pos_colours))
             else:
                 colours.append(ColourModel(k, colour))
 
