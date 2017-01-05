@@ -21,8 +21,12 @@ class TWLight(QWidget):
     def __init__(self):
         super().__init__()
         self._state = 0
-        self._colours = [QColor(x, 0, 0) for x in (0x44, 0xcc, 0xff)]
-        self._disabled_colour = QColor(0x88, 0x88, 0x88)
+        self._colours = None
+        self._disabled_colour = None
+        self.set_default_colours()
+
+    def set_default_colours(self):
+        self.set_colours('#f00', '#888')
 
     def set_colours(self, active_colour, disabled_colour):
         colour = QColor(active_colour)
@@ -71,6 +75,10 @@ class TWLed(QFrame):
         self.setLayout(h)
 
         self.set_leds(0, 0, 0)
+
+    def set_default_colours(self):
+        for widget in (self._left, self._center, self._right):
+            widget.set_default_colours()
 
     def set_colours(self, active_colour, disabled_colour):
         for widget in (self._left, self._center, self._right):
@@ -138,9 +146,12 @@ class TypewriterButton(QPushButton):
 
     def _update_style(self):
         style_manager = self._ui_model.get_style_manager()
-        self._led.set_colours(
-                style_manager.get_style_param('typewriter_active_note_colour'),
-                style_manager.get_style_param('bg_colour_sunken'))
+        if not style_manager.is_custom_style_enabled():
+            self._led.set_default_colours()
+        else:
+            self._led.set_colours(
+                    style_manager.get_style_param('typewriter_active_note_colour'),
+                    style_manager.get_style_param('bg_colour_sunken'))
 
     def _update_properties(self):
         name = self._button_model.get_name()
