@@ -413,7 +413,8 @@ class ColoursModel(QAbstractItemModel):
                     if category:
                         strip_prefix = category.get_name() + ' '
                         if desc.startswith(strip_prefix):
-                            desc = desc[len(strip_prefix):].capitalize()
+                            desc = desc[len(strip_prefix):]
+                            desc = desc[0].upper() + desc[1:]
                     return desc
                 elif column == 1:
                     return node.get_colour()
