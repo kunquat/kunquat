@@ -84,6 +84,8 @@ class StyleManager():
         'system_load_high_colour'           : '#e21',
         'text_bg_colour'                    : '#000',
         'text_fg_colour'                    : '#da5',
+        'text_selected_bg_colour'           : '#36a',
+        'text_selected_fg_colour'           : '#ffc',
         'text_disabled_fg_colour'           : '#864',
     }
 

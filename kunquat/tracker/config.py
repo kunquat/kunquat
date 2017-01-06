@@ -147,6 +147,8 @@ class Config():
                 'system_load_high_colour',
                 'text_bg_colour',
                 'text_fg_colour',
+                'text_selected_bg_colour',
+                'text_selected_fg_colour',
                 'text_disabled_fg_colour',
             ]
 

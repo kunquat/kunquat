@@ -116,6 +116,8 @@ QTreeView
     border-right-color: <bg_colour_light>;
     border-bottom-color: <bg_colour_light>;
     border-radius: 3px;
+    selection-background-color: <text_selected_bg_colour>;
+    selection-color: <text_selected_fg_colour>;
 }
 
 /* Other tweaks */

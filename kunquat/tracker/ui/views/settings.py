@@ -309,6 +309,8 @@ _COLOUR_DESCS = [
     ('disabled_fg_colour',              'Disabled text'),
     ('text_bg_colour',                  'Text field background'),
     ('text_fg_colour',                  'Text field text'),
+    ('text_selected_bg_colour',         'Text field selected background'),
+    ('text_selected_fg_colour',         'Text field selected text'),
     ('text_disabled_fg_colour',         'Text field disabled text'),
     ('active_indicator_colour',         'Activity indicator'),
     ('conns_bg_colour',                 'Connections background'),

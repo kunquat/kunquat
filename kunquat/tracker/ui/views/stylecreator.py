@@ -97,6 +97,10 @@ class StyleCreator():
                 style_manager.get_style_param('text_bg_colour'))
         text_fg_colour = self._get_colour_from_str(
                 style_manager.get_style_param('text_fg_colour'))
+        text_selected_bg_colour = self._get_colour_from_str(
+                style_manager.get_style_param('text_selected_bg_colour'))
+        text_selected_fg_colour = self._get_colour_from_str(
+                style_manager.get_style_param('text_selected_fg_colour'))
         text_disabled_fg_colour = self._get_colour_from_str(
                 style_manager.get_style_param('text_disabled_fg_colour'))
 
@@ -139,6 +143,8 @@ class StyleCreator():
             'tab_shade_bottom_colour'     : tab_shade_bottom_colour,
             'text_bg_colour'              : text_bg_colour,
             'text_fg_colour'              : text_fg_colour,
+            'text_selected_bg_colour'     : text_selected_bg_colour,
+            'text_selected_fg_colour'     : text_selected_fg_colour,
             'text_disabled_fg_colour'     : text_disabled_fg_colour,
         }
 
