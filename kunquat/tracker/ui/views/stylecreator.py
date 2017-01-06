@@ -97,6 +97,8 @@ class StyleCreator():
                 style_manager.get_style_param('text_bg_colour'))
         text_fg_colour = self._get_colour_from_str(
                 style_manager.get_style_param('text_fg_colour'))
+        text_disabled_fg_colour = self._get_colour_from_str(
+                style_manager.get_style_param('text_disabled_fg_colour'))
 
         def make_light(colour):
             return self._adjust_brightness(colour, contrast)
@@ -137,6 +139,7 @@ class StyleCreator():
             'tab_shade_bottom_colour'     : tab_shade_bottom_colour,
             'text_bg_colour'              : text_bg_colour,
             'text_fg_colour'              : text_fg_colour,
+            'text_disabled_fg_colour'     : text_disabled_fg_colour,
         }
 
         template = style_manager.get_style_sheet_template()

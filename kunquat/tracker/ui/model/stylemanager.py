@@ -79,6 +79,7 @@ class StyleManager():
         'sheet_trigger_warning_fg_colour'   : '#ffc',
         'text_bg_colour'                    : '#000',
         'text_fg_colour'                    : '#da5',
+        'text_disabled_fg_colour'           : '#864',
         'typewriter_active_note_colour'     : '#f00',
     }
 

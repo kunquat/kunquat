@@ -142,6 +142,7 @@ class Config():
                 'sheet_trigger_warning_fg_colour',
                 'text_bg_colour',
                 'text_fg_colour',
+                'text_disabled_fg_colour',
                 'typewriter_active_note_colour',
             ]
 

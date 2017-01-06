@@ -202,6 +202,11 @@ QLineEdit, QAbstractSpinBox
     color: <text_fg_colour>;
 }
 
+QLineEdit:disabled, QAbstractSpinBox:disabled
+{
+    color: <text_disabled_fg_colour>;
+}
+
 QMenu::item
 {
     padding: 2px;
@@ -443,6 +448,11 @@ QTableView, QTreeView, QListView
     padding: 0;
     background-color: <text_bg_colour>;
     color: <text_fg_colour>;
+}
+
+QTableView:disabled, QTreeView:disabled, QListView:disabled
+{
+    color: <text_disabled_fg_colour>;
 }
 
 QTableView
