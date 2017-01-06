@@ -1,7 +1,7 @@
 
 
 /*
- * This is the style sheet used for custom Kunquat appearance.
+ * This is the style sheet template used for custom Kunquat appearance.
  * Names enclosed in angle brackets are filled with settings based on
  * user configuration.
  *
@@ -46,6 +46,7 @@ QComboBox:!editable,
 QComboBox::drop-down:editable,
 QMenu::item:selected,
 QPushButton,
+QPushButton:flat:hover,
 QToolButton:hover,
 QAbstractSpinBox::up-button,
 QAbstractSpinBox::down-button,
@@ -63,8 +64,17 @@ QScrollBar::sub-line
     color: <button_fg_colour>;
 }
 
+QPushButton:flat:!hover:!checked
+{
+    border: none;
+    background-color: <bg_colour>;
+    color: <fg_colour>;
+}
+
 QPushButton:pressed,
+QPushButton:flat:pressed,
 QPushButton:checked,
+QPushButton:flat:checked:hover,
 QToolButton:pressed,
 QToolButton:checked,
 QAbstractSpinBox::up-button:pressed,
@@ -178,7 +188,9 @@ QPushButton, QToolButton:hover
     color: <button_fg_colour>;
 }
 
-QPushButton:checked:pressed, QToolButton:checked:pressed
+QPushButton:checked:pressed,
+QPushButton:flat:checked:pressed,
+QToolButton:checked:pressed
 {
     border-top-color: <button_down2_bg_colour_light>;
     border-left-color: <button_down2_bg_colour_light>;
