@@ -21,6 +21,7 @@ from PySide.QtGui import *
 import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.config as config
 from .headerline import HeaderLine
+from .numberslider import NumberSlider
 from . import utils
 
 
@@ -35,6 +36,7 @@ class Settings(QWidget):
         self._effects = Effects()
 
         self._style_toggle = StyleToggle()
+        self._button_brightness = ButtonBrightness()
         self._colours = Colours()
 
         dgl = QGridLayout()
@@ -62,6 +64,7 @@ class Settings(QWidget):
         uil.setSpacing(4)
         uil.addWidget(HeaderLine('User interface'))
         uil.addWidget(self._style_toggle)
+        uil.addWidget(self._button_brightness)
         uil.addWidget(self._colours)
 
         h = QHBoxLayout()
@@ -77,10 +80,12 @@ class Settings(QWidget):
         self._samples.set_ui_model(ui_model)
         self._effects.set_ui_model(ui_model)
         self._style_toggle.set_ui_model(ui_model)
+        self._button_brightness.set_ui_model(ui_model)
         self._colours.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._colours.unregister_updaters()
+        self._button_brightness.unregister_updaters()
         self._style_toggle.unregister_updaters()
         self._effects.unregister_updaters()
         self._samples.unregister_updaters()
@@ -211,6 +216,48 @@ class StyleToggle(QCheckBox):
         self._updater.signal_update(set(['signal_style_changed']))
 
 
+class StyleSlider(NumberSlider):
+
+    def __init__(self, param, desc, min_val, max_val):
+        super().__init__(2, min_val, max_val, title=desc)
+        self._ui_model = None
+        self._updater = None
+
+        self._param = param
+
+        QObject.connect(self, SIGNAL('numberChanged(float)'), self._change_param)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        self._update_param()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        if 'signal_style_changed' in signals:
+            self._update_param()
+
+    def _update_param(self):
+        style_manager = self._ui_model.get_style_manager()
+        self.setEnabled(style_manager.is_custom_style_enabled())
+        self.set_number(style_manager.get_style_param(self._param))
+
+    def _change_param(self, new_value):
+        style_manager = self._ui_model.get_style_manager()
+        style_manager.set_style_param(self._param, new_value)
+        self._updater.signal_update(set(['signal_style_changed']))
+
+
+class ButtonBrightness(StyleSlider):
+
+    def __init__(self):
+        super().__init__('button_brightness', 'Button brightness', -1.0, 1.0)
+
+
 class ColourCategoryModel():
 
     def __init__(self, name):
@@ -260,10 +307,8 @@ _COLOUR_DESCS = [
     ('fg_colour',                       'Default text'),
     ('bg_colour_sunken',                'Sunken background'),
     ('disabled_fg_colour',              'Disabled text'),
-    ('button_bg_colour',                'Button background'),
-    ('button_fg_colour',                'Button foreground'),
     ('text_bg_colour',                  'Text field background'),
-    ('text_fg_colour',                  'Text field foreground'),
+    ('text_fg_colour',                  'Text field text'),
     ('typewriter_active_note_colour',   'Active note light'),
     ('conns_bg_colour',                 'Connections background'),
     ('conns_focus_colour',              'Connections focus highlight'),
@@ -272,17 +317,13 @@ _COLOUR_DESCS = [
     ('conns_invalid_port_colour',       'Connections invalid connection'),
     ('conns_inst_bg_colour',            'Connections instrument background'),
     ('conns_inst_fg_colour',            'Connections instrument text'),
-    ('conns_inst_button_bg_colour',     'Connections instrument button background'),
     ('conns_effect_bg_colour',          'Connections effect background'),
     ('conns_effect_fg_colour',          'Connections effect text'),
-    ('conns_effect_button_bg_colour',   'Connections effect button background'),
     ('conns_proc_voice_bg_colour',      'Connections voice signal processor background'),
     ('conns_proc_voice_fg_colour',      'Connections voice signal processor text'),
-    ('conns_proc_voice_button_bg_colour', 'Connections voice signal processor button background'),
     ('conns_proc_voice_hilight_selected', 'Connections voice signal processor highlight'),
     ('conns_proc_mixed_bg_colour',      'Connections mixed signal processor background'),
     ('conns_proc_mixed_fg_colour',      'Connections mixed signal processor text'),
-    ('conns_proc_mixed_button_bg_colour', 'Connections mixed signal processor button background'),
     ('conns_master_bg_colour',          'Connections master background'),
     ('conns_master_fg_colour',          'Connections master text'),
     ('peak_meter_bg_colour',            'Peak meter background'),

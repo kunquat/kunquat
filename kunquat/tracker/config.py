@@ -85,8 +85,6 @@ class Config():
                 'fg_colour',
                 'bg_colour_sunken',
                 'disabled_fg_colour',
-                'button_bg_colour',
-                'button_fg_colour',
                 'conns_bg_colour',
                 'conns_focus_colour',
                 'conns_edge_colour',
@@ -94,17 +92,13 @@ class Config():
                 'conns_invalid_port_colour',
                 'conns_inst_bg_colour',
                 'conns_inst_fg_colour',
-                'conns_inst_button_bg_colour',
                 'conns_effect_bg_colour',
                 'conns_effect_fg_colour',
-                'conns_effect_button_bg_colour',
                 'conns_proc_voice_bg_colour',
                 'conns_proc_voice_fg_colour',
-                'conns_proc_voice_button_bg_colour',
                 'conns_proc_voice_hilight_selected',
                 'conns_proc_mixed_bg_colour',
                 'conns_proc_mixed_fg_colour',
-                'conns_proc_mixed_button_bg_colour',
                 'conns_master_bg_colour',
                 'conns_master_fg_colour',
                 'peak_meter_bg_colour',
@@ -146,6 +140,7 @@ class Config():
 
             style_config = {
                 'enabled': _Entry(lambda x: isinstance(x, bool), False),
+                'button_brightness': _Entry(lambda x: -1 <= x <= 1, 0),
             }
             for name in colour_names:
                 style_config[name] = _Entry(v_colour, '#000')

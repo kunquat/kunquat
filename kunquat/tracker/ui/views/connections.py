@@ -408,6 +408,11 @@ class ConnectionsView(QWidget):
         def get_colour(name):
             return QColor(style_manager.get_style_param(name))
 
+        button_brightness = style_manager.get_style_param('button_brightness')
+
+        def get_button_colour(name):
+            return QColor(style_manager.get_adjusted_colour(name, button_brightness))
+
         pv_hilight_selected = get_colour('conns_proc_voice_hilight_selected')
         focus_colour = get_colour('conns_focus_colour')
         bg_colour = get_colour('conns_bg_colour')
@@ -421,17 +426,17 @@ class ConnectionsView(QWidget):
             'instrument': {
                 'bg_colour': get_colour('conns_inst_bg_colour'),
                 'fg_colour': get_colour('conns_inst_fg_colour'),
-                'button_bg_colour': get_colour('conns_inst_button_bg_colour'),
+                'button_bg_colour': get_button_colour('conns_inst_bg_colour'),
             },
             'effect': {
                 'bg_colour': get_colour('conns_effect_bg_colour'),
                 'fg_colour': get_colour('conns_effect_fg_colour'),
-                'button_bg_colour': get_colour('conns_effect_button_bg_colour'),
+                'button_bg_colour': get_button_colour('conns_effect_bg_colour'),
             },
             'proc_voice': {
                 'bg_colour': get_colour('conns_proc_voice_bg_colour'),
                 'fg_colour': get_colour('conns_proc_voice_fg_colour'),
-                'button_bg_colour': get_colour('conns_proc_voice_button_bg_colour'),
+                'button_bg_colour': get_button_colour('conns_proc_voice_bg_colour'),
                 'hilight_selected': pv_hilight_selected,
                 'hilight_excluded': pv_hilight_excluded,
                 'hilight_selected_focused': focus_colour,
@@ -440,7 +445,7 @@ class ConnectionsView(QWidget):
             'proc_mixed': {
                 'bg_colour': get_colour('conns_proc_mixed_bg_colour'),
                 'fg_colour': get_colour('conns_proc_mixed_fg_colour'),
-                'button_bg_colour': get_colour('conns_proc_mixed_button_bg_colour'),
+                'button_bg_colour': get_button_colour('conns_proc_mixed_bg_colour'),
             },
             'master': {
                 'bg_colour': get_colour('conns_master_bg_colour'),

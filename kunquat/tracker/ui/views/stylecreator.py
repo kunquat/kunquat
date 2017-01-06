@@ -63,6 +63,7 @@ class StyleCreator():
         # Get colours from the configuration
         contrast = 0.3
         grad = -0.07
+        button_brightness = style_manager.get_style_param('button_brightness')
         button_down = -0.15
         button_down2 = 1.5 * button_down
         tab_shade_top = -0.1
@@ -78,15 +79,12 @@ class StyleCreator():
         disabled_fg_colour = self._get_colour_from_str(
                 style_manager.get_style_param('disabled_fg_colour'))
 
-        button_bg_colour_str = style_manager.get_style_param('button_bg_colour')
-        button_fg_colour_str = style_manager.get_style_param('button_fg_colour')
-
         bg_colour = self._get_colour_from_str(bg_colour_str)
         fg_colour = self._get_colour_from_str(fg_colour_str)
         bg_colour_sunken = self._get_colour_from_str(bg_colour_sunken_str)
 
-        button_bg_colour = self._get_colour_from_str(button_bg_colour_str)
-        button_fg_colour = self._get_colour_from_str(button_fg_colour_str)
+        button_bg_colour = self._adjust_brightness(bg_colour, button_brightness)
+        button_fg_colour = fg_colour
         button_down_bg_colour = self._adjust_brightness(button_bg_colour, button_down)
         button_down_fg_colour = self._adjust_brightness(button_fg_colour, button_down)
         button_down2_bg_colour = self._adjust_brightness(button_bg_colour, button_down2)
