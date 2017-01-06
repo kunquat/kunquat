@@ -265,6 +265,26 @@ _COLOUR_DESCS = [
     ('text_bg_colour',                  'Text field background'),
     ('text_fg_colour',                  'Text field foreground'),
     ('typewriter_active_note_colour',   'Active note light'),
+    ('conns_bg_colour',                 'Connections background'),
+    ('conns_focus_colour',              'Connections focus highlight'),
+    ('conns_edge_colour',               'Connections wire'),
+    ('conns_port_colour',               'Connections port'),
+    ('conns_invalid_port_colour',       'Connections invalid connection'),
+    ('conns_inst_bg_colour',            'Connections instrument background'),
+    ('conns_inst_fg_colour',            'Connections instrument text'),
+    ('conns_inst_button_bg_colour',     'Connections instrument button background'),
+    ('conns_effect_bg_colour',          'Connections effect background'),
+    ('conns_effect_fg_colour',          'Connections effect text'),
+    ('conns_effect_button_bg_colour',   'Connections effect button background'),
+    ('conns_proc_voice_bg_colour',      'Connections voice signal processor background'),
+    ('conns_proc_voice_fg_colour',      'Connections voice signal processor text'),
+    ('conns_proc_voice_button_bg_colour', 'Connections voice signal processor button background'),
+    ('conns_proc_voice_hilight_selected', 'Connections voice signal processor highlight'),
+    ('conns_proc_mixed_bg_colour',      'Connections mixed signal processor background'),
+    ('conns_proc_mixed_fg_colour',      'Connections mixed signal processor text'),
+    ('conns_proc_mixed_button_bg_colour', 'Connections mixed signal processor button background'),
+    ('conns_master_bg_colour',          'Connections master background'),
+    ('conns_master_fg_colour',          'Connections master text'),
     ('peak_meter_bg_colour',            'Peak meter background'),
     ('peak_meter_low_colour',           'Peak meter low level'),
     ('peak_meter_mid_colour',           'Peak meter -6 dB level'),
@@ -319,13 +339,19 @@ class ColoursModel(QAbstractItemModel):
 
         colours = []
 
+        conns_colours = None
         sheet_colours = None
         pos_colours = None
         peak_colours = None
 
         for k, _ in _COLOUR_DESCS:
             colour = style_manager.get_style_param(k)
-            if k.startswith('sheet_'):
+            if k.startswith('conns_'):
+                if not conns_colours:
+                    conns_colours = ColourCategoryModel('Connections')
+                    colours.append(conns_colours)
+                conns_colours.add_colour(ColourModel(k, colour))
+            elif k.startswith('sheet_'):
                 if not sheet_colours:
                     sheet_colours = ColourCategoryModel('Sheet')
                     colours.append(sheet_colours)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -22,6 +22,7 @@ from kunquat.tracker.ui.model.module import Module
 from kunquat.tracker.ui.model.processor import Processor
 from .confirmdialog import ConfirmDialog
 from .linesegment import LineSegment
+from . import utils
 
 
 _title_font = QFont(QFont().defaultFamily(), 10)
@@ -55,19 +56,19 @@ DEFAULT_CONFIG = {
                 'bg_colour'       : QColor(0x33, 0x33, 0x55),
                 'fg_colour'       : QColor(0xdd, 0xee, 0xff),
                 'button_bg_colour': QColor(0x11, 0x11, 0x33),
-                'button_focused_bg_colour': QColor(0, 0, 0x77),
+                #'button_focused_bg_colour': QColor(0, 0, 0x77),
             },
             'effect': {
                 'bg_colour'       : QColor(0x55, 0x44, 0x33),
                 'fg_colour'       : QColor(0xff, 0xee, 0xdd),
                 'button_bg_colour': QColor(0x33, 0x22, 0x11),
-                'button_focused_bg_colour': QColor(0x77, 0x22, 0),
+                #'button_focused_bg_colour': QColor(0x77, 0x22, 0),
             },
             'proc_voice': {
                 'bg_colour'       : QColor(0x22, 0x55, 0x55),
                 'fg_colour'       : QColor(0xcc, 0xff, 0xff),
                 'button_bg_colour': QColor(0x11, 0x33, 0x33),
-                'button_focused_bg_colour': QColor(0, 0x55, 0x55),
+                #'button_focused_bg_colour': QColor(0, 0x55, 0x55),
                 'hilight_selected': QColor(0x99, 0xbb, 0x99),
                 'hilight_excluded': QColor(0x55, 0x44, 0x33),
                 'hilight_selected_focused': QColor(0xff, 0x88, 0x44),
@@ -78,7 +79,7 @@ DEFAULT_CONFIG = {
                 'bg_colour'       : QColor(0x55, 0x22, 0x55),
                 'fg_colour'       : QColor(0xff, 0xcc, 0xff),
                 'button_bg_colour': QColor(0x33, 0x11, 0x33),
-                'button_focused_bg_colour': QColor(0x55, 0, 0x55),
+                #'button_focused_bg_colour': QColor(0x55, 0, 0x55),
                 # TODO: Mixed processors shouldn't be highlighted;
                 #       these are just a temp fix to prevent crash
                 'hilight_selected': QColor(0x99, 0xbb, 0x99),
@@ -91,7 +92,7 @@ DEFAULT_CONFIG = {
                 'bg_colour'       : QColor(0x33, 0x55, 0x33),
                 'fg_colour'       : QColor(0xdd, 0xff, 0xdd),
                 'button_bg_colour': QColor(0x11, 0x33, 0x11),
-                'button_focused_bg_colour': QColor(0, 0x77, 0),
+                #'button_focused_bg_colour': QColor(0, 0x77, 0),
             },
         },
     }
@@ -256,7 +257,7 @@ class ConnectionsView(QWidget):
 
     positionsChanged = Signal(name='positionsChanged')
 
-    def __init__(self, config={}):
+    def __init__(self):
         super().__init__()
         self._ui_model = None
         self._au_id = None
@@ -294,7 +295,6 @@ class ConnectionsView(QWidget):
                 self._edge_menu, SIGNAL('triggered(QAction*)'), self._remove_edge)
 
         self._config = None
-        self._set_config(config)
 
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
@@ -312,6 +312,7 @@ class ConnectionsView(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        self._update_style()
         self._update_devices()
 
     def unregister_updaters(self):
@@ -380,7 +381,88 @@ class ConnectionsView(QWidget):
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
+
+        if 'devices' in config:
+            devices = config.pop('devices')
+
+            for dtype in ('instrument', 'effect', 'proc_voice', 'proc_mixed', 'master'):
+                if dtype in devices:
+                    self._config['devices'][dtype].update(devices.pop(dtype))
+            self._config['devices'].update(devices)
+
         self._config.update(config)
+
+        for device in self._visible_devices.values():
+            device.set_config(self._config['devices'])
+            device.draw_pixmaps()
+
+        self._ls_cache = {}
+
+    def _update_style(self):
+        style_manager = self._ui_model.get_style_manager()
+        if not style_manager.is_custom_style_enabled():
+            self._set_config({})
+            self.update()
+            return
+
+        def get_colour(name):
+            return QColor(style_manager.get_style_param(name))
+
+        pv_hilight_selected = get_colour('conns_proc_voice_hilight_selected')
+        focus_colour = get_colour('conns_focus_colour')
+        bg_colour = get_colour('conns_bg_colour')
+
+        pv_hilight_excluded = utils.lerp_colour(pv_hilight_selected, bg_colour, 0.5)
+        pv_hilight_excluded_focused = utils.lerp_colour(focus_colour, bg_colour, 0.5)
+
+        devices = {
+            'port_colour': get_colour('conns_port_colour'),
+            'focused_port_colour': focus_colour,
+            'instrument': {
+                'bg_colour': get_colour('conns_inst_bg_colour'),
+                'fg_colour': get_colour('conns_inst_fg_colour'),
+                'button_bg_colour': get_colour('conns_inst_button_bg_colour'),
+            },
+            'effect': {
+                'bg_colour': get_colour('conns_effect_bg_colour'),
+                'fg_colour': get_colour('conns_effect_fg_colour'),
+                'button_bg_colour': get_colour('conns_effect_button_bg_colour'),
+            },
+            'proc_voice': {
+                'bg_colour': get_colour('conns_proc_voice_bg_colour'),
+                'fg_colour': get_colour('conns_proc_voice_fg_colour'),
+                'button_bg_colour': get_colour('conns_proc_voice_button_bg_colour'),
+                'hilight_selected': pv_hilight_selected,
+                'hilight_excluded': pv_hilight_excluded,
+                'hilight_selected_focused': focus_colour,
+                'hilight_excluded_focused': pv_hilight_excluded_focused,
+            },
+            'proc_mixed': {
+                'bg_colour': get_colour('conns_proc_mixed_bg_colour'),
+                'fg_colour': get_colour('conns_proc_mixed_fg_colour'),
+                'button_bg_colour': get_colour('conns_proc_mixed_button_bg_colour'),
+            },
+            'master': {
+                'bg_colour': get_colour('conns_master_bg_colour'),
+                'fg_colour': get_colour('conns_master_fg_colour'),
+            },
+        }
+
+        config = {
+            'bg_colour':
+                QColor(style_manager.get_style_param('conns_bg_colour')),
+            'edge_colour':
+                QColor(style_manager.get_style_param('conns_edge_colour')),
+            'focused_edge_colour':
+                QColor(style_manager.get_style_param('conns_focus_colour')),
+            'invalid_port_colour':
+                QColor(style_manager.get_style_param('conns_invalid_port_colour')),
+
+            'devices': devices,
+        }
+
+        self._set_config(config)
+        self.update()
 
     def _perform_updates(self, signals):
         update_signals = set([
@@ -397,6 +479,9 @@ class ConnectionsView(QWidget):
 
         if not signals.isdisjoint(update_signals):
             self._update_devices()
+
+        if 'signal_style_changed' in signals:
+            self._update_style()
 
     def _get_full_id(self, dev_id):
         assert '/' not in dev_id
@@ -535,10 +620,10 @@ class ConnectionsView(QWidget):
 
                 device = Device(
                         dev_id,
-                        self._config['devices'],
                         in_ports,
                         out_ports,
                         lambda: self._get_device(dev_id))
+                device.set_config(self._config['devices'])
                 device.draw_pixmaps()
                 new_visible_devices[dev_id] = device
 
@@ -1261,9 +1346,10 @@ class RemoveDeviceConfirmDialog(ConfirmDialog):
 
 class Device():
 
-    def __init__(self, dev_id, config, in_ports, out_ports, get_model_device):
+    def __init__(self, dev_id, in_ports, out_ports, get_model_device):
         self._id = dev_id
-        self._config = config
+        self._config = None
+        self._type_config = None
 
         self._offset_x = 0
         self._offset_y = 0
@@ -1271,26 +1357,26 @@ class Device():
         model_device = get_model_device()
         name = model_device.get_name()
 
-        self._name = name
-
-        if dev_id in ('master', 'Iin'):
-            self._type_config = self._config['master']
-        elif dev_id.startswith('au'):
+        if self._id in ('master', 'Iin'):
+            self._type = 'master'
+        elif self._id.startswith('au'):
             if model_device.is_instrument():
-                self._type_config = self._config['instrument']
+                self._type = 'instrument'
             elif model_device.is_effect():
-                self._type_config = self._config['effect']
+                self._type = 'effect'
             else:
                 assert False
-        elif dev_id.startswith('proc'):
+        elif self._id.startswith('proc'):
             if model_device.get_signal_type() == 'voice':
-                self._type_config = self._config['proc_voice']
+                self._type = 'proc_voice'
             elif model_device.get_signal_type() == 'mixed':
-                self._type_config = self._config['proc_mixed']
+                self._type = 'proc_mixed'
             else:
                 assert False
         else:
             raise ValueError('Unexpected type of device ID: {}'.format(dev_id))
+
+        self._name = name
 
         self._in_ports = in_ports
         self._out_ports = out_ports
@@ -1298,6 +1384,10 @@ class Device():
         self._port_names = model_device.get_port_info()
 
         self._bg = None
+
+    def set_config(self, config):
+        self._config = config
+        self._type_config = self._config[self._type]
 
     def get_name(self):
         return self._name
@@ -1487,7 +1577,8 @@ class Device():
         shift_x, shift_y = self._get_top_left_pos((0, 0))
         painter.translate(self._offset_x + shift_x, self._offset_y + shift_y)
 
-        bg_colour = self._type_config['button_focused_bg_colour']
+        #bg_colour = self._type_config['button_focused_bg_colour']
+        bg_colour = self._type_config['button_bg_colour']
         fg_colour = self._type_config['fg_colour']
         if info.get('pressed'):
             bg_colour, fg_colour = fg_colour, bg_colour
