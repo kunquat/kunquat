@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -95,6 +95,8 @@ class TimeEnvelope(QWidget):
                 SIGNAL('envelopeChanged()'),
                 self._envelope_changed)
 
+        self._envelope.update_style(self._ui_model.get_style_manager())
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
@@ -102,6 +104,8 @@ class TimeEnvelope(QWidget):
         update_signals = set(['signal_au', self._get_update_signal_type()])
         if not signals.isdisjoint(update_signals):
             self._update_envelope()
+        if 'signal_style_changed' in signals:
+            self._envelope.update_style(self._ui_model.get_style_manager())
 
     def _update_envelope(self):
         is_enabled = True;

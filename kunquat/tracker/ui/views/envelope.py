@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -50,26 +50,26 @@ AXIS_CONFIG = {
 
 
 DEFAULT_CONFIG = {
-        'font'                      : _font,
-        'padding'                   : 3,
-        'is_square_area'            : False,
-        'bg_colour'                 : QColor(0, 0, 0),
-        'line_colour'               : QColor(0x66, 0x88, 0xaa),
-        'node_colour'               : QColor(0xee, 0xcc, 0xaa),
-        'focused_node_colour'       : QColor(0xff, 0x77, 0x22),
-        'focused_node_axis_colour'  : QColor(0xff, 0x77, 0x22, 0x7f),
-        'node_size'                 : 7,
-        'node_focus_dist_max'       : 5,
-        'node_remove_dist_min'      : 200,
-        'loop_line_colour'          : QColor(0x77, 0x99, 0xbb),
-        'focused_loop_line_colour'  : QColor(0xee, 0xaa, 0x66),
-        'loop_line_dash'            : [4, 4],
-        'loop_handle_colour'        : QColor(0x88, 0xbb, 0xee),
-        'focused_loop_handle_colour': QColor(0xff, 0xaa, 0x55),
-        'loop_handle_size'          : 12,
-        'loop_handle_focus_dist_max': 14,
-        'disabled_colour'           : QColor(0x88, 0x88, 0x88, 0x7f),
-    }
+    'font'                      : _font,
+    'padding'                   : 3,
+    'is_square_area'            : False,
+    'bg_colour'                 : QColor(0, 0, 0),
+    'line_colour'               : QColor(0x66, 0x88, 0xaa),
+    'node_colour'               : QColor(0xee, 0xcc, 0xaa),
+    'focused_node_colour'       : QColor(0xff, 0x77, 0x22),
+    'focused_node_axis_colour'  : QColor(0xff, 0x77, 0x22, 0x7f),
+    'node_size'                 : 7,
+    'node_focus_dist_max'       : 5,
+    'node_remove_dist_min'      : 200,
+    'loop_line_colour'          : QColor(0x77, 0x99, 0xbb),
+    'focused_loop_line_colour'  : QColor(0xee, 0xaa, 0x66),
+    'loop_line_dash'            : [4, 4],
+    'loop_handle_colour'        : QColor(0x88, 0xbb, 0xee),
+    'focused_loop_handle_colour': QColor(0xff, 0xaa, 0x55),
+    'loop_handle_size'          : 12,
+    'loop_handle_focus_dist_max': 14,
+    'disabled_colour'           : QColor(0x88, 0x88, 0x88, 0x7f),
+}
 
 
 def signum(x):
@@ -90,7 +90,7 @@ class Envelope(QWidget):
 
     envelopeChanged = Signal(name='envelopeChanged')
 
-    def __init__(self, config={}):
+    def __init__(self, init_config={}):
         super().__init__()
 
         self._range_x = None
@@ -137,7 +137,8 @@ class Envelope(QWidget):
 
         self._config = None
         self._axis_config = None
-        self._set_config(config)
+        self._init_config = init_config
+        self._set_configs({}, {})
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
@@ -205,11 +206,50 @@ class Envelope(QWidget):
         self._loop_markers_changed = []
         return nodes_changed, loop_markers_changed
 
-    def _set_config(self, config):
+    def update_style(self, style_manager):
+        if not style_manager.is_custom_style_enabled():
+            self._set_configs({}, {})
+            self.update()
+            return
+
+        def get_colour(name):
+            return QColor(style_manager.get_style_param(name))
+
+        focused_colour = get_colour('envelope_focus_colour')
+        focused_axis_colour = QColor(focused_colour)
+        focused_axis_colour.setAlpha(0x7f)
+
+        disabled_colour = QColor(get_colour('bg_colour_sunken'))
+        disabled_colour.setAlpha(0x7f)
+
+        config = {
+            'bg_colour': get_colour('envelope_bg_colour'),
+            'line_colour': get_colour('envelope_curve_colour'),
+            'node_colour': get_colour('envelope_node_colour'),
+            'focused_node_colour': focused_colour,
+            'focused_node_axis_colour': focused_axis_colour,
+            'loop_line_colour': get_colour('envelope_loop_marker_colour'),
+            'focused_loop_line_colour': focused_colour,
+            'loop_handle_colour': get_colour('envelope_loop_marker_colour'),
+            'focused_loop_handle_colour': focused_colour,
+            'disabled_colour': disabled_colour,
+        }
+
+        axis_config = {
+            'label_colour': get_colour('envelope_axis_label_colour'),
+            'line_colour': get_colour('envelope_axis_line_colour'),
+        }
+
+        self._set_configs(config, axis_config)
+        self.update()
+
+    def _set_configs(self, config, axis_config):
         self._config = DEFAULT_CONFIG.copy()
+        self._config.update(self._init_config)
         self._config.update(config)
 
         self._axis_config = AXIS_CONFIG.copy()
+        self._axis_config.update(axis_config)
         self._axis_x_renderer.set_config(self._axis_config, self)
         self._axis_y_renderer.set_config(self._axis_config, self)
         self._ls_cache = {}

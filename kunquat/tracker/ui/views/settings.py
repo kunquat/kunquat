@@ -326,6 +326,13 @@ _COLOUR_DESCS = [
     ('conns_proc_mixed_fg_colour',      'Connections mixed signal processor text'),
     ('conns_master_bg_colour',          'Connections master background'),
     ('conns_master_fg_colour',          'Connections master text'),
+    ('envelope_bg_colour',              'Envelope background'),
+    ('envelope_axis_label_colour',      'Envelope axis label'),
+    ('envelope_axis_line_colour',       'Envelope axis line'),
+    ('envelope_curve_colour',           'Envelope curve'),
+    ('envelope_node_colour',            'Envelope node'),
+    ('envelope_focus_colour',           'Envelope focus highlight'),
+    ('envelope_loop_marker_colour',     'Envelope loop marker'),
     ('peak_meter_bg_colour',            'Peak meter background'),
     ('peak_meter_low_colour',           'Peak meter low level'),
     ('peak_meter_mid_colour',           'Peak meter -6 dB level'),
@@ -381,9 +388,10 @@ class ColoursModel(QAbstractItemModel):
         colours = []
 
         conns_colours = None
-        sheet_colours = None
-        pos_colours = None
+        env_colours = None
         peak_colours = None
+        pos_colours = None
+        sheet_colours = None
 
         for k, _ in _COLOUR_DESCS:
             colour = style_manager.get_style_param(k)
@@ -392,11 +400,11 @@ class ColoursModel(QAbstractItemModel):
                     conns_colours = ColourCategoryModel('Connections')
                     colours.append(conns_colours)
                 conns_colours.add_colour(ColourModel(k, colour))
-            elif k.startswith('sheet_'):
-                if not sheet_colours:
-                    sheet_colours = ColourCategoryModel('Sheet')
-                    colours.append(sheet_colours)
-                sheet_colours.add_colour(ColourModel(k, colour))
+            elif k.startswith('envelope_'):
+                if not env_colours:
+                    env_colours = ColourCategoryModel('Envelope')
+                    colours.append(env_colours)
+                env_colours.add_colour(ColourModel(k, colour))
             elif k.startswith('peak_meter_'):
                 if not peak_colours:
                     peak_colours = ColourCategoryModel('Peak meter')
@@ -408,6 +416,11 @@ class ColoursModel(QAbstractItemModel):
                     colours.append(pos_colours)
                 if cmdline.get_experimental() or (k != 'position_record_colour'):
                     pos_colours.add_colour(ColourModel(k, colour))
+            elif k.startswith('sheet_'):
+                if not sheet_colours:
+                    sheet_colours = ColourCategoryModel('Sheet')
+                    colours.append(sheet_colours)
+                sheet_colours.add_colour(ColourModel(k, colour))
             else:
                 colours.append(ColourModel(k, colour))
 
