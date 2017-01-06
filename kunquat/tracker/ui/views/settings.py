@@ -310,7 +310,7 @@ _COLOUR_DESCS = [
     ('text_bg_colour',                  'Text field background'),
     ('text_fg_colour',                  'Text field text'),
     ('text_disabled_fg_colour',         'Text field disabled text'),
-    ('typewriter_active_note_colour',   'Active note light'),
+    ('active_indicator_colour',         'Activity indicator'),
     ('conns_bg_colour',                 'Connections background'),
     ('conns_focus_colour',              'Connections focus highlight'),
     ('conns_edge_colour',               'Connections cable'),

@@ -22,6 +22,7 @@ class StyleManager():
         'fg_colour'                         : '#000',
         'bg_colour_sunken'                  : '#a86',
         'disabled_fg_colour'                : '#543',
+        'active_indicator_colour'           : '#f00',
         'conns_bg_colour'                   : '#111',
         'conns_edge_colour'                 : '#ccc',
         'conns_focus_colour'                : '#f72',
@@ -80,7 +81,6 @@ class StyleManager():
         'text_bg_colour'                    : '#000',
         'text_fg_colour'                    : '#da5',
         'text_disabled_fg_colour'           : '#864',
-        'typewriter_active_note_colour'     : '#f00',
     }
 
     def __init__(self):

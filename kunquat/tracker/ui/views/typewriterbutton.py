@@ -150,7 +150,7 @@ class TypewriterButton(QPushButton):
             self._led.set_default_colours()
         else:
             self._led.set_colours(
-                    style_manager.get_style_param('typewriter_active_note_colour'),
+                    style_manager.get_style_param('active_indicator_colour'),
                     style_manager.get_style_param('bg_colour_sunken'))
 
     def _update_properties(self):

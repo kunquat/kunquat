@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -31,13 +31,18 @@ class EventLight(QWidget):
 
     def __init__(self):
         super().__init__()
-        self._config = _LIGHT_CONFIG.copy()
+        self._config = None
+        self.set_config({})
 
         self._light_norm = 0
 
         self._refresh_timer = QTimer()
         QObject.connect(self._refresh_timer, SIGNAL('timeout()'), self._update_vis)
         self._refresh_timer.start(self._config['delta'] * 1000)
+
+    def set_config(self, config):
+        self._config = _LIGHT_CONFIG.copy()
+        self._config.update(config)
 
     def do_flash(self):
         self._light_norm = 1
@@ -87,6 +92,8 @@ class EventListButton(QToolButton):
         self._updater.register_updater(self._perform_updates)
         QObject.connect(self, SIGNAL('clicked()'), self._clicked)
 
+        self._update_style()
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
@@ -106,6 +113,25 @@ class EventListButton(QToolButton):
             self._last_event_count = event_count
             self._light.do_flash()
             self._text.setText(self._get_text(event_count))
+
+        if 'signal_style_changed' in signals:
+            self._update_style()
+
+    def _update_style(self):
+        style_manager = self._ui_model.get_style_manager()
+        if not style_manager.is_custom_style_enabled():
+            self._light.set_config({})
+            return
+
+        active_colour = QColor(style_manager.get_style_param('active_indicator_colour'))
+        inactive_colour = utils.lerp_colour(QColor(0, 0, 0), active_colour, 0.25)
+
+        config = {
+            'colour_on': active_colour,
+            'colour_off': inactive_colour,
+        }
+
+        self._light.set_config(config)
 
     def sizeHint(self):
         return self.layout().sizeHint()

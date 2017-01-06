@@ -85,6 +85,7 @@ class Config():
                 'fg_colour',
                 'bg_colour_sunken',
                 'disabled_fg_colour',
+                'active_indicator_colour',
                 'conns_bg_colour',
                 'conns_focus_colour',
                 'conns_edge_colour',
@@ -143,7 +144,6 @@ class Config():
                 'text_bg_colour',
                 'text_fg_colour',
                 'text_disabled_fg_colour',
-                'typewriter_active_note_colour',
             ]
 
             style_config = {
