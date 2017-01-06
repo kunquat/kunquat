@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -43,6 +43,7 @@ class NumberSlider(QWidget):
         self._value.setFixedWidth(width)
 
         h = QHBoxLayout()
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(5)
         if title:
             h.addWidget(QLabel(title))
