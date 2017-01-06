@@ -365,6 +365,10 @@ _COLOUR_DESCS = [
     ('sheet_trigger_note_off_colour',   'Note off trigger'),
     ('sheet_trigger_warning_bg_colour', 'Trigger value warning background'),
     ('sheet_trigger_warning_fg_colour', 'Trigger value warning text'),
+    ('system_load_bg_colour',           'System load background'),
+    ('system_load_low_colour',          'System load low level'),
+    ('system_load_mid_colour',          'System load medium level'),
+    ('system_load_high_colour',         'System load high level'),
 ]
 
 _COLOUR_DESCS_DICT = dict(_COLOUR_DESCS)
@@ -388,40 +392,28 @@ class ColoursModel(QAbstractItemModel):
 
         colours = []
 
-        conns_colours = None
-        env_colours = None
-        peak_colours = None
-        pos_colours = None
-        sheet_colours = None
+        categories = {}
+        category_info = {
+            'conns_'      : 'Connections',
+            'envelope_'   : 'Envelope',
+            'peak_meter_' : 'Peak meter',
+            'position_'   : 'Position view',
+            'sheet_'      : 'Sheet',
+            'system_load_': 'System load',
+        }
 
         for k, _ in _COLOUR_DESCS:
             colour = style_manager.get_style_param(k)
-            if k.startswith('conns_'):
-                if not conns_colours:
-                    conns_colours = ColourCategoryModel('Connections')
-                    colours.append(conns_colours)
-                conns_colours.add_colour(ColourModel(k, colour))
-            elif k.startswith('envelope_'):
-                if not env_colours:
-                    env_colours = ColourCategoryModel('Envelope')
-                    colours.append(env_colours)
-                env_colours.add_colour(ColourModel(k, colour))
-            elif k.startswith('peak_meter_'):
-                if not peak_colours:
-                    peak_colours = ColourCategoryModel('Peak meter')
-                    colours.append(peak_colours)
-                peak_colours.add_colour(ColourModel(k, colour))
-            elif k.startswith('position_'):
-                if not pos_colours:
-                    pos_colours = ColourCategoryModel('Position view')
-                    colours.append(pos_colours)
-                if cmdline.get_experimental() or (k != 'position_record_colour'):
-                    pos_colours.add_colour(ColourModel(k, colour))
-            elif k.startswith('sheet_'):
-                if not sheet_colours:
-                    sheet_colours = ColourCategoryModel('Sheet')
-                    colours.append(sheet_colours)
-                sheet_colours.add_colour(ColourModel(k, colour))
+            for cat_prefix, cat_name in category_info.items():
+                if k.startswith(cat_prefix):
+                    if cat_prefix not in categories:
+                        categories[cat_prefix] = ColourCategoryModel(cat_name)
+                        colours.append(categories[cat_prefix])
+                    if ((cat_prefix != 'position_') or
+                            cmdline.get_experimental() or
+                            (k != 'position_record_colour')):
+                        categories[cat_prefix].add_colour(ColourModel(k, colour))
+                    break
             else:
                 colours.append(ColourModel(k, colour))
 
