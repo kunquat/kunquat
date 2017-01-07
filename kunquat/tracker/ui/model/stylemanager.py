@@ -87,6 +87,13 @@ class StyleManager():
         'text_selected_bg_colour'           : '#36a',
         'text_selected_fg_colour'           : '#ffc',
         'text_disabled_fg_colour'           : '#864',
+        'waveform_bg_colour'                : '#000',
+        'waveform_focus_colour'             : '#fa5',
+        'waveform_centre_line_colour'       : '#666',
+        'waveform_zoomed_out_colour'        : '#5f9',
+        'waveform_single_item_colour'       : '#5f9',
+        'waveform_interpolated_colour'      : '#396',
+        'waveform_loop_marker_colour'       : '#de8',
     }
 
     def __init__(self):

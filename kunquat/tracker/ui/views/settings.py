@@ -371,6 +371,13 @@ _COLOUR_DESCS = [
     ('system_load_low_colour',          'System load low level'),
     ('system_load_mid_colour',          'System load medium level'),
     ('system_load_high_colour',         'System load high level'),
+    ('waveform_bg_colour',              'Waveform background'),
+    ('waveform_focus_colour',           'Waveform focus highlight'),
+    ('waveform_centre_line_colour',     'Waveform centre line'),
+    ('waveform_zoomed_out_colour',      'Waveform zoomed out'),
+    ('waveform_single_item_colour',     'Waveform single item'),
+    ('waveform_interpolated_colour',    'Waveform interpolated'),
+    ('waveform_loop_marker_colour',     'Waveform loop marker'),
 ]
 
 _COLOUR_DESCS_DICT = dict(_COLOUR_DESCS)
@@ -402,6 +409,7 @@ class ColoursModel(QAbstractItemModel):
             'position_'   : 'Position view',
             'sheet_'      : 'Sheet',
             'system_load_': 'System load',
+            'waveform_'   : 'Waveform',
         }
 
         for k, _ in _COLOUR_DESCS:

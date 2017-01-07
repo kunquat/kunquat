@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -1767,6 +1767,7 @@ class SampleEditor(QWidget):
         QObject.connect(
                 self._format_change, SIGNAL('clicked()'), self._change_format)
 
+        self._update_style()
         self._update_all()
 
     def unregister_updaters(self):
@@ -1805,22 +1806,52 @@ class SampleEditor(QWidget):
             self._get_selection_update_signal_type()])
         if not signals.isdisjoint(update_all_signals):
             self._update_all()
-        elif self._get_rename_signal_type() in signals:
-            self._update_name()
-        elif self._get_freq_signal_type() in signals:
-            self._update_freq()
-        elif self._get_resample_signal_type() in signals:
-            self._update_freq()
-            self._update_sample_view()
-            self._update_loop()
-        elif self._get_format_signal_type() in signals:
-            self._update_format()
-            self._update_sample_view()
-        elif self._get_loop_signal_type() in signals:
-            self._update_loop()
+        else:
+            if self._get_rename_signal_type() in signals:
+                self._update_name()
+            if self._get_freq_signal_type() in signals:
+                self._update_freq()
+            if self._get_resample_signal_type() in signals:
+                self._update_freq()
+                self._update_sample_view()
+                self._update_loop()
+            if self._get_format_signal_type() in signals:
+                self._update_format()
+                self._update_sample_view()
+                self._update_loop()
+            if self._get_loop_signal_type() in signals:
+                self._update_loop()
+
+        if 'signal_style_changed' in signals:
+            self._update_style()
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_style(self):
+        style_manager = self._ui_model.get_style_manager()
+        if not style_manager.is_custom_style_enabled():
+            self._sample_view.set_config({})
+            return
+
+        def get_colour(name):
+            return QColor(style_manager.get_style_param(name))
+
+        config = {
+            'bg_colour': get_colour('waveform_bg_colour'),
+            'centre_line_colour': get_colour('waveform_centre_line_colour'),
+            'zoomed_out_colour': get_colour('waveform_zoomed_out_colour'),
+            'single_item_colour': get_colour('waveform_single_item_colour'),
+            'interp_colour': get_colour('waveform_interpolated_colour'),
+            'loop_line_colour': get_colour('waveform_loop_marker_colour'),
+            'focused_loop_line_colour': get_colour('waveform_focus_colour'),
+            'loop_handle_colour': get_colour('waveform_loop_marker_colour'),
+            'focused_loop_handle_colour': get_colour('waveform_focus_colour'),
+        }
+
+        self._sample_view.set_config(config)
+        self._update_sample_view()
+        self._update_loop()
 
     def _update_all(self):
         sample_params = self._get_sample_params()

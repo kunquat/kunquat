@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -70,6 +70,7 @@ class WaveformEditor(QWidget):
 
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+        self._update_style()
         self._update_all()
 
         QObject.connect(
@@ -86,6 +87,29 @@ class WaveformEditor(QWidget):
         update_signals = set(['signal_au', self._get_update_signal_type()])
         if not signals.isdisjoint(update_signals):
             self._update_all()
+        if 'signal_style_changed' in signals:
+            self._update_style()
+
+    def _update_style(self):
+        style_manager = self._ui_model.get_style_manager()
+        if not style_manager.is_custom_style_enabled():
+            self._waveform.set_config({})
+            return
+
+        def get_colour(name):
+            return QColor(style_manager.get_style_param(name))
+
+        disabled_colour = QColor(get_colour('bg_colour_sunken'))
+        disabled_colour.setAlpha(0x7f)
+
+        config = {
+            'bg_colour': get_colour('waveform_bg_colour'),
+            'centre_line_colour': get_colour('waveform_centre_line_colour'),
+            'waveform_colour': get_colour('waveform_zoomed_out_colour'),
+            'disabled_colour': disabled_colour,
+        }
+
+        self._waveform.set_config(config)
 
     def _update_all(self):
         base_wave = self._get_base_wave()

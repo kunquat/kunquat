@@ -150,6 +150,13 @@ class Config():
                 'text_selected_bg_colour',
                 'text_selected_fg_colour',
                 'text_disabled_fg_colour',
+                'waveform_bg_colour',
+                'waveform_focus_colour',
+                'waveform_centre_line_colour',
+                'waveform_zoomed_out_colour',
+                'waveform_single_item_colour',
+                'waveform_interpolated_colour',
+                'waveform_loop_marker_colour',
             ]
 
             style_config = {

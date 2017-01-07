@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -19,7 +19,7 @@ from PySide.QtGui import *
 
 DEFAULT_CONFIG = {
     'bg_colour'         : QColor(0, 0, 0),
-    'center_line_colour': QColor(0x66, 0x66, 0x66),
+    'centre_line_colour': QColor(0x66, 0x66, 0x66),
     'waveform_colour'   : QColor(0x55, 0xff, 0x55),
     'disabled_colour'   : QColor(0x88, 0x88, 0x88, 0x7f),
 }
@@ -27,11 +27,11 @@ DEFAULT_CONFIG = {
 
 class Waveform(QWidget):
 
-    def __init__(self, config={}):
+    def __init__(self):
         super().__init__()
 
         self._config = None
-        self._set_config(config)
+        self.set_config({})
 
         self._waveform = None
         self._path = None
@@ -51,9 +51,11 @@ class Waveform(QWidget):
         self._pixmap = None
         self.update()
 
-    def _set_config(self, config):
+    def set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
         self._config.update(config)
+        self._pixmap = None
+        self.update()
 
     def _update_pixmap(self):
         sample_count = 4096
@@ -76,10 +78,10 @@ class Waveform(QWidget):
         painter.setBackground(self._config['bg_colour'])
         painter.eraseRect(0, 0, self.width(), self.height())
 
-        # Draw the center line
-        center_y = self.height() / 2
-        painter.setPen(self._config['center_line_colour'])
-        painter.drawLine(0, center_y, self.width() - 1, center_y)
+        # Draw the centre line
+        centre_y = self.height() / 2
+        painter.setPen(self._config['centre_line_colour'])
+        painter.drawLine(0, centre_y, self.width() - 1, centre_y)
 
         # Draw the waveform
         painter.setTransform(QTransform().translate(0, 0.5).scale(
