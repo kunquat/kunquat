@@ -150,6 +150,11 @@ class StyleManager():
         adjusted_colour = (c + brightness for c in orig_colour)
         return self._get_str_from_colour(adjusted_colour)
 
+    def get_link_colour(self):
+        shift = (-0.3, 0.1, 0.6)
+        fg_colour = self._get_colour_from_str(self.get_style_param('fg_colour'))
+        return self._get_str_from_colour(c + s for (c, s) in zip(fg_colour, shift))
+
     def _get_colour_from_str(self, s):
         if len(s) == 4:
             cs = [s[1], s[2], s[3]]

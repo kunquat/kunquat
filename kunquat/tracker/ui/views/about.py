@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2017
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -41,9 +41,9 @@ class AboutMessage(QWidget):
         lib_version_str = 'Library version: {}'.format(get_version())
         lib_version = QLabel(lib_version_str)
 
-        website_str = '<a href="http://kunquat.org/">http://kunquat.org/</a>'
-        website = QLabel(website_str)
-        website.setTextFormat(Qt.RichText)
+        website_str = self._get_website_str()
+        self._website = QLabel(website_str)
+        self._website.setTextFormat(Qt.RichText)
 
         copyright_str = 'CC0 1.0 Universal'
         copyright = QLabel(copyright_str)
@@ -67,7 +67,7 @@ class AboutMessage(QWidget):
         add_authors_list = QLabel(add_authors_list_str)
 
         for label in (
-                program_name, tracker_version, lib_version, website, copyright,
+                program_name, tracker_version, lib_version, self._website, copyright,
                 main_authors, main_authors_list, add_authors, add_authors_list):
             label.setAlignment(Qt.AlignHCenter)
 
@@ -77,7 +77,7 @@ class AboutMessage(QWidget):
         v.addWidget(tracker_version)
         v.addWidget(lib_version)
         v.addSpacing(8)
-        v.addWidget(website)
+        v.addWidget(self._website)
         v.addSpacing(8)
         v.addWidget(copyright)
         v.addSpacing(8)
@@ -88,12 +88,28 @@ class AboutMessage(QWidget):
         v.addStretch(1)
         self.setLayout(v)
 
+    def update_style(self, style_manager):
+        website_str = self._get_website_str(style_manager)
+        self._website.setText(website_str)
+        self.update()
+
+    def _get_website_str(self, style_manager=None):
+        website_base = '<a{} href="http://kunquat.org/">http://kunquat.org/</a>'
+        style = ''
+
+        if style_manager and style_manager.is_custom_style_enabled():
+            colour = style_manager.get_link_colour()
+            style = ' style="color: {};"'.format(colour)
+
+        return website_base.format(style)
+
 
 class About(QWidget):
 
     def __init__(self):
         super().__init__()
         self._ui_model = None
+        self._updater = None
 
         self._logo = Logo()
         self._about_message = AboutMessage()
@@ -110,9 +126,18 @@ class About(QWidget):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
         self._logo.set_ui_model(ui_model)
+
+        self._about_message.update_style(self._ui_model.get_style_manager())
 
     def unregister_updaters(self):
         self._logo.unregister_updaters()
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        if 'signal_style_changed' in signals:
+            self._about_message.update_style(self._ui_model.get_style_manager())
 
 
