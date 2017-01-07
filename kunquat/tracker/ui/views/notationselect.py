@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2014
-#          Tomi Jylhä-Ollila, Finland 2016
+#          Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,8 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from .kqtcombobox import KqtComboBox
+
 
 class NotationSelect(QWidget):
 
@@ -26,7 +28,7 @@ class NotationSelect(QWidget):
         self._typewriter_manager = None
         self._notation_catalog = dict()
 
-        self._notations = QComboBox()
+        self._notations = KqtComboBox()
         self._notations.setSizeAdjustPolicy(QComboBox.AdjustToContents)
 
         h = QHBoxLayout()

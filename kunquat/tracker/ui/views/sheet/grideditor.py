@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -20,6 +20,7 @@ from PySide.QtGui import *
 import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.model.gridpattern import STYLE_COUNT
 from kunquat.tracker.ui.views.headerline import HeaderLine
+from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.numberslider import NumberSlider
 from .config import *
 from .ruler import Ruler
@@ -1350,7 +1351,7 @@ class LineStyleDelegate(QItemDelegate):
         return pixmap.size()
 
 
-class LineStyle(QComboBox):
+class LineStyle(KqtComboBox):
 
     def __init__(self, is_major_enabled=False):
         super().__init__()

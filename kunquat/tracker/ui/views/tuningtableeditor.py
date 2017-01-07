@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -17,6 +17,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
+from .kqtcombobox import KqtComboBox
 from .notationeditor import RatioValidator
 
 
@@ -44,7 +45,7 @@ class TuningTableEditor(QWidget):
         self._center_octave = QSpinBox()
         self._center_octave.setRange(0, TUNING_TABLE_OCTAVES - 1)
 
-        self._tuning_center = QComboBox()
+        self._tuning_center = KqtComboBox()
 
         self._notes = Notes()
 

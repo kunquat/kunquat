@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
+from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from .aunumslider import AuNumSlider
 from .components import Components
 from .expressions import Expressions
@@ -175,7 +176,7 @@ class TestForce(AuNumSlider):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
-class TestExpression(QComboBox):
+class TestExpression(KqtComboBox):
 
     def __init__(self, index):
         super().__init__()

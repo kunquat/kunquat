@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -17,6 +17,7 @@ from PySide.QtGui import *
 from kunquat.kunquat.limits import *
 from .editorlist import EditorList
 from .headerline import HeaderLine
+from .kqtcombobox import KqtComboBox
 from .varnamevalidator import MaybeVarNameValidator
 
 
@@ -91,7 +92,7 @@ class ChDefaults(QWidget):
         width += 20
         num_widget.setFixedWidth(width)
 
-        self._au_selector = QComboBox()
+        self._au_selector = KqtComboBox()
         self._au_selector.setSizePolicy(
                 QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
 

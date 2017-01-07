@@ -17,6 +17,7 @@ from PySide.QtGui import *
 from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.ui.model.tstamp as tstamp
+from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from .editbutton import EditButton
 from .replacebutton import ReplaceButton
 from .restbutton import RestButton
@@ -474,7 +475,7 @@ class GridEditorButton(QPushButton):
         visibility_manager.show_grid_editor()
 
 
-class GridSelector(QComboBox):
+class GridSelector(KqtComboBox):
 
     def __init__(self):
         super().__init__()

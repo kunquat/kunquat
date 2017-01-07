@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -17,6 +17,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .headerline import HeaderLine
+from .kqtcombobox import KqtComboBox
 
 
 class NotationEditor(QWidget):
@@ -729,7 +730,7 @@ class CenterPitch(QWidget):
         self._value.setRange(-9999, 9999)
         self._value.setValue(0)
 
-        self._units = QComboBox()
+        self._units = KqtComboBox()
         self._units.addItem('cents')
         self._units.addItem('Hz')
         self._units.setCurrentIndex(self._units.findText('cents'))
@@ -2290,7 +2291,7 @@ class KeyEditor(QWidget):
             'signal_notation', 'signal_notation_editor_key']))
 
 
-class KeyNoteSelector(QComboBox):
+class KeyNoteSelector(KqtComboBox):
 
     def __init__(self):
         super().__init__()

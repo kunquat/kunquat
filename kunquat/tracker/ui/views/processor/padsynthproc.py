@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -19,6 +19,7 @@ from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
+from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from . import utils
 from .procnumslider import ProcNumSlider
 from .waveformeditor import WaveformEditor
@@ -233,7 +234,7 @@ class SampleConfigEditor(QWidget):
         self._ui_model = None
         self._updater = None
 
-        self._sample_size = QComboBox()
+        self._sample_size = KqtComboBox()
         self._sample_count = QSpinBox()
         self._sample_count.setRange(1, 128)
         self._range_min = SamplePitchRangeMinEditor()

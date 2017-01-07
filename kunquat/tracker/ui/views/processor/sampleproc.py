@@ -23,6 +23,7 @@ from kunquat.tracker.ui.views.audio_unit.hitselector import HitSelector
 from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
+from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.utils import lerp_val
 from .sampleview import SampleView
 from . import utils
@@ -765,7 +766,7 @@ class RandomEntryEditor(QWidget):
 
         self._index = index
 
-        self._sample_selector = QComboBox()
+        self._sample_selector = KqtComboBox()
         self._sample_selector.setSizeAdjustPolicy(QComboBox.AdjustToContents)
 
         self._pitch_shift = QDoubleSpinBox()
@@ -1678,7 +1679,7 @@ class SampleEditor(QWidget):
         freq_l.addWidget(self._freq, 1)
         freq_l.addWidget(self._resample)
 
-        self._loop_mode = QComboBox()
+        self._loop_mode = KqtComboBox()
         loop_modes = (
                 ('Off', 'off'),
                 ('Unidirectional', 'uni'),
@@ -2076,7 +2077,7 @@ class SampleFormatEditor(QDialog):
         sample_id = self._sample_params.get_selected_sample_id()
         sample_format = self._sample_params.get_sample_format(sample_id)
 
-        self._format = QComboBox()
+        self._format = KqtComboBox()
         self._normalise = QCheckBox()
 
         formats = [(8, False), (16, False), (24, False), (32, False), (32, True)]

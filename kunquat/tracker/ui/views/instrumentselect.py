@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2016
+#          Tomi Jylhä-Ollila, Finland 2013-2017
 #
 # This file is part of Kunquat.
 #
@@ -16,7 +16,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 
-class InstrumentSelect(QComboBox):
+class InstrumentSelect(KqtComboBox):
 
     def __init__(self):
         super().__init__()

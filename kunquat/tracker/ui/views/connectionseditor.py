@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -17,6 +17,7 @@ from PySide.QtGui import *
 from kunquat.kunquat.limits import *
 from .connections import Connections
 from .processor import proctypeinfo
+from .kqtcombobox import KqtComboBox
 from .kqtutils import get_kqt_file_path, open_kqt_au
 from .saving import get_instrument_save_path, get_effect_save_path
 
@@ -393,7 +394,7 @@ class ExpressionEditingToggle(EditingToggle):
         self._updater.signal_update(set([_get_au_conns_edit_signal_type(self._au_id)]))
 
 
-class HitSelector(QComboBox):
+class HitSelector(KqtComboBox):
 
     def __init__(self):
         super().__init__()
@@ -454,7 +455,7 @@ class HitSelector(QComboBox):
         self._updater.signal_update(set(['signal_au_conns_hit_{}'.format(self._au_id)]))
 
 
-class ExpressionSelector(QComboBox):
+class ExpressionSelector(KqtComboBox):
 
     def __init__(self):
         super().__init__()

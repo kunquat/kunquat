@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -19,6 +19,7 @@ import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.views.connectionseditor import ConnectionsEditor
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
+from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.varnamevalidator import *
 from kunquat.tracker.ui.views.varvalidators import *
 
@@ -358,7 +359,7 @@ class StreamNameEditor(NameEditor):
         self._updater.signal_update(set([_get_stream_update_signal_type(self._au_id)]))
 
 
-class StreamTargetProcEditor(QComboBox):
+class StreamTargetProcEditor(KqtComboBox):
 
     def __init__(self):
         super().__init__()
@@ -701,7 +702,7 @@ class ControlVariableNameEditor(NameEditor):
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
-class ControlVariableTypeEditor(QComboBox):
+class ControlVariableTypeEditor(KqtComboBox):
 
     def __init__(self):
         super().__init__()
@@ -1137,7 +1138,7 @@ class BindTargetEditor(QWidget):
         self._name_editor.set_used_names(used_names)
 
 
-class BindTargetDeviceSelector(QComboBox):
+class BindTargetDeviceSelector(KqtComboBox):
 
     def __init__(self):
         super().__init__()
@@ -1286,7 +1287,7 @@ class BindTargetNameEditor(NameEditor):
         self.blockSignals(old_block)
 
 
-class BindTargetVariableTypeEditor(QComboBox):
+class BindTargetVariableTypeEditor(KqtComboBox):
 
     def __init__(self):
         super().__init__()

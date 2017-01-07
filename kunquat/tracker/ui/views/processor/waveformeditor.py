@@ -16,6 +16,7 @@ from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
+from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from .waveform import Waveform
 
 
@@ -30,7 +31,7 @@ class WaveformEditor(QWidget):
 
         self._prewarp_list = WarpList(
                 'pre', self._get_base_wave, self._get_update_signal_type)
-        self._base_func_selector = QComboBox()
+        self._base_func_selector = KqtComboBox()
         self._postwarp_list = WarpList(
                 'post', self._get_base_wave, self._get_update_signal_type)
         self._waveform = Waveform()
@@ -291,7 +292,7 @@ class WarpEditor(QWidget):
 
         self._down_button = SmallButton()
         self._up_button = SmallButton()
-        self._func_selector = QComboBox()
+        self._func_selector = KqtComboBox()
         self._slider = QSlider(Qt.Horizontal)
         self._slider.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
         self._value_display = QLabel()

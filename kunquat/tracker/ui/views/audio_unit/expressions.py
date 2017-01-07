@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
+from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.varnamevalidator import VarNameValidator
 
 
@@ -60,7 +61,7 @@ class DefaultNoteExpr(QWidget):
         self._ui_model = None
         self._updater = None
 
-        self._expr_names = QComboBox()
+        self._expr_names = KqtComboBox()
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)

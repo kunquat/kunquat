@@ -44,6 +44,7 @@ QComboBox,
 QComboBox::drop-down,
 QComboBox:!editable,
 QComboBox::drop-down:editable,
+QComboBox QAbstractItemView::item:selected,
 QMenu::item:selected,
 QPushButton,
 QPushButton:flat:hover,
@@ -168,6 +169,11 @@ QComboBox:!editable, QComboBox::drop-down:editable
     color: <button_fg_colour>;
 }
 
+QComboBox:disabled
+{
+    color: <disabled_fg_colour>;
+}
+
 QComboBox::down-arrow
 {
     image: url(<icons_path>/arrow_down_tiny.png);
@@ -177,9 +183,12 @@ QComboBox QAbstractItemView
 {
     background-color: <bg_colour>;
     color: <fg_colour>;
+    outline: 0;
+}
 
-    selection-background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
-        stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
+QComboBox QAbstractItemView::item
+{
+    padding: 2px;
 }
 
 QPushButton, QToolButton:hover
