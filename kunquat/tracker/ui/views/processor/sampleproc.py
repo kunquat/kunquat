@@ -152,11 +152,11 @@ class RandomListMap(QWidget):
         self._updater = None
 
         self._axis_x_renderer = HorizontalAxisRenderer()
-        self._axis_x_renderer.set_config(self._AXIS_CONFIG, self)
+        self._axis_x_renderer.set_config(self._AXIS_CONFIG.copy(), self)
         self._axis_x_renderer.set_val_range([-36, 0])
 
         self._axis_y_renderer = VerticalAxisRenderer()
-        self._axis_y_renderer.set_config(self._AXIS_CONFIG, self)
+        self._axis_y_renderer.set_config(self._AXIS_CONFIG.copy(), self)
         y_range = [-6000, 6000] if self._has_pitch_axis() else [0, 0]
         self._axis_y_renderer.set_val_range(y_range)
 
@@ -168,7 +168,7 @@ class RandomListMap(QWidget):
         self._moving_pointer_offset = (0, 0)
 
         self._config = None
-        self._set_config({})
+        self._set_configs({}, {})
 
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
@@ -187,10 +187,12 @@ class RandomListMap(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        self._update_style()
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
-    def _set_config(self, config):
+    def _set_configs(self, config, axis_config):
         self._config = self._DEFAULT_CONFIG.copy()
         self._config.update(config)
 
@@ -199,10 +201,48 @@ class RandomListMap(QWidget):
             x_axis_height = self._AXIS_CONFIG['axis_x']['height']
             self.setFixedHeight(padding * 2 + x_axis_height)
 
+        final_axis_config = self._AXIS_CONFIG.copy()
+        final_axis_config.update(axis_config)
+        self._axis_x_renderer.set_config(final_axis_config, self)
+        self._axis_y_renderer.set_config(final_axis_config, self)
+
+    def _update_style(self):
+        style_manager = self._ui_model.get_style_manager()
+        if not style_manager.is_custom_style_enabled():
+            self._set_configs({}, {})
+            self.update()
+            return
+
+        def get_colour(param):
+            return QColor(style_manager.get_style_param(param))
+
+        focus_colour = get_colour('sample_map_focus_colour')
+        focus_axis_colour = QColor(focus_colour)
+        focus_axis_colour.setAlpha(0x7f)
+
+        config = {
+            'bg_colour': get_colour('sample_map_bg_colour'),
+            'point_colour': get_colour('sample_map_point_colour'),
+            'focused_point_colour': focus_colour,
+            'focused_point_axis_colour': focus_axis_colour,
+            'selected_highlight_colour': get_colour('sample_map_selected_colour'),
+        }
+
+        axis_config = {
+            'label_colour': get_colour('sample_map_axis_label_colour'),
+            'line_colour': get_colour('sample_map_axis_line_colour'),
+        }
+
+        self._set_configs(config, axis_config)
+        self.update()
+
     def _perform_updates(self, signals):
         update_signals = self._get_update_signals()
         if not signals.isdisjoint(update_signals):
             self.update()
+
+        if 'signal_style_changed' in signals:
+            self._update_style()
 
     def _get_area_offset(self):
         padding = self._config['padding']
