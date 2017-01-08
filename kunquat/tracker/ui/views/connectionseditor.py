@@ -430,21 +430,19 @@ class HitSelector(KqtComboBox):
         prev_list_index = self.currentIndex()
 
         old_block = self.blockSignals(True)
-        self.clear()
-        is_enabled = False
-        for i in range(HITS_MAX):
-            hit = au.get_hit(i)
-            if hit.get_existence():
-                is_enabled = True
-                vis_name = self._get_hit_vis_name(hit)
-                self.addItem('{}: {}'.format(i, vis_name), i)
-        self.setEnabled(is_enabled)
-        self.blockSignals(old_block)
 
-        if is_enabled and (prev_list_index == -1):
+        hits = ((i, au.get_hit(i)) for i in range(HITS_MAX))
+        vis_names = ((i, self._get_hit_vis_name(hit)) for (i, hit) in hits
+                if hit.get_existence())
+        self.set_items(('{}: {}'.format(i, name), i) for (i, name) in vis_names)
+        self.setEnabled(self.count() > 0)
+
+        if self.isEnabled() and (prev_list_index == -1):
             self.setCurrentIndex(0)
             cur_hit_index = self.itemData(0)
             au.set_connections_hit_index(cur_hit_index)
+
+        self.blockSignals(old_block)
 
     def _change_hit(self, item_index):
         hit_index = self.itemData(item_index)
@@ -491,15 +489,15 @@ class ExpressionSelector(KqtComboBox):
         expr_names = sorted(au.get_expression_names())
 
         old_block = self.blockSignals(True)
-        self.clear()
-        self.setEnabled(len(expr_names) > 0)
-        for expr_name in expr_names:
-            self.addItem(expr_name)
-        self.blockSignals(old_block)
+
+        self.set_items(name for name in expr_names)
+        self.setEnabled(self.count() > 0)
 
         if expr_names and (prev_list_index == -1):
             self.setCurrentIndex(0)
             au.set_connections_expr_name(expr_names[0])
+
+        self.blockSignals(old_block)
 
     def _change_expression(self, item_index):
         expr_name = str(self.itemText(item_index))

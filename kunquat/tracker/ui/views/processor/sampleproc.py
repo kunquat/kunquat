@@ -897,14 +897,17 @@ class RandomEntryEditor(QWidget):
             (sid, sample_params.get_sample_name(sid)) for sid in sample_ids])
 
         old_block = self._sample_selector.blockSignals(True)
-        self._sample_selector.clear()
         self._sample_selector.setEnabled(len(sample_ids) > 0)
+        items = []
+        cur_index = -1
         for i, info in enumerate(sample_info):
             sample_id, sample_name = info
             vis_name = sample_name or '-'
-            self._sample_selector.addItem(vis_name, sample_id)
+            items.append((vis_name, sample_id))
             if sample_id == cur_sample_id:
-                self._sample_selector.setCurrentIndex(i)
+                cur_index = i
+        self._sample_selector.set_items(items)
+        self._sample_selector.setCurrentIndex(cur_index)
         self._sample_selector.blockSignals(old_block)
 
         if (point != None) and (point in self._get_map_points()):

@@ -504,9 +504,7 @@ class GridSelector(KqtComboBox):
         gp_items = sorted(gp_items, key=lambda x: x[1])
 
         old_block = self.blockSignals(True)
-        self.clear()
-        for (gp_id, name) in gp_items:
-            self.addItem(name, gp_id)
+        self.set_items((name, gp_id) for (gp_id, name) in gp_items)
         self.blockSignals(old_block)
 
     def _get_pattern_instance(self):

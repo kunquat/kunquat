@@ -405,18 +405,19 @@ class StreamTargetProcEditor(KqtComboBox):
 
         old_block = self.blockSignals(True)
 
-        self.clear()
+        items = []
         for proc_id in au.get_processor_ids():
             proc = au.get_processor(proc_id)
             if proc.get_existence():
                 name = proc.get_name() or '-'
                 cur_target_proc_id = proc_id.split('/')[-1]
                 cur_target_proc_num = int(cur_target_proc_id.split('_')[-1], 16)
-                self.addItem(name, cur_target_proc_num)
+                items.append((name, cur_target_proc_num))
+        self.set_items(items)
 
-            selected_index = self.findData(target_proc_num)
-            if selected_index >= 0:
-                self.setCurrentIndex(selected_index)
+        selected_index = self.findData(target_proc_num)
+        if selected_index >= 0:
+            self.setCurrentIndex(selected_index)
 
         self.blockSignals(old_block)
 
@@ -1206,14 +1207,15 @@ class BindTargetDeviceSelector(KqtComboBox):
 
         old_block = self.blockSignals(True)
 
-        self.clear()
+        items = []
         for dev_id in self._get_internal_dev_ids():
             dev = self._get_internal_dev(dev_id)
 
             if dev.get_existence():
                 name = dev.get_name() or '-'
                 cur_target_dev_id = dev_id.split('/')[-1]
-                self.addItem(name, cur_target_dev_id)
+                items.append((name, cur_target_dev_id))
+        self.set_items(items)
 
         selected_index = self.findData(target_dev_id)
         if selected_index >= 0:

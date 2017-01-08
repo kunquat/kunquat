@@ -2331,12 +2331,11 @@ class KeyNoteSelector(KqtComboBox):
         notation = notation_manager.get_editor_selected_notation()
 
         old_block = self.blockSignals(True)
-        self.clear()
         if notation:
-            for note in notation.get_notes():
-                cents, name = note
-                self.addItem(name, cents)
+            self.set_items((name, cents) for (cents, name) in notation.get_notes())
             self._update_selection()
+        else:
+            self.set_items([])
         self.blockSignals(old_block)
 
     def _update_selection(self):

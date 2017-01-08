@@ -11,6 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from itertools import chain
+
 from PySide.QtCore import *
 from PySide.QtGui import *
 
@@ -223,12 +225,10 @@ class TestExpression(KqtComboBox):
         expr_names = sorted(au.get_expression_names())
 
         old_block = self.blockSignals(True)
-        self.clear()
         self.setEnabled(len(expr_names) > 0)
-        self.addItem('(none)')
+        self.set_items(chain(['(none)'], (name for name in expr_names)))
         self.setCurrentIndex(0)
         for i, expr_name in enumerate(expr_names):
-            self.addItem(expr_name)
             if au.get_test_expression(self._index) == expr_name:
                 self.setCurrentIndex(i + 1) # + 1 compensates for the (none) entry
         self.blockSignals(old_block)

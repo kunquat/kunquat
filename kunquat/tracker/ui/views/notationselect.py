@@ -26,7 +26,7 @@ class NotationSelect(QWidget):
         self._updater = None
         self._notation_manager = None
         self._typewriter_manager = None
-        self._notation_catalog = dict()
+        self._notation_catalog = {}
 
         self._notations = KqtComboBox()
         self._notations.setSizeAdjustPolicy(QComboBox.AdjustToContents)
@@ -91,15 +91,18 @@ class NotationSelect(QWidget):
             self._notations.setItemText(i, notation_name)
 
     def _update_notations(self):
-        notation_ids = self._notation_manager.get_all_notation_ids()
-        self._notation_catalog = dict(enumerate(sorted(notation_ids)))
+        notation_ids = sorted(self._notation_manager.get_all_notation_ids())
+        self._notation_catalog = dict(enumerate(notation_ids))
+
         selected_notation_id = self._notation_manager.get_selected_notation_id()
+        try:
+            selected_index = notation_ids.index(selected_notation_id)
+        except ValueError:
+            selected_index = -1
+
         old_block = self._notations.blockSignals(True)
-        self._notations.clear()
-        for i, notation_id in self._notation_catalog.items():
-            self._notations.addItem('')
-            if selected_notation_id and notation_id == selected_notation_id:
-                self._notations.setCurrentIndex(i)
+        self._notations.set_items('' for _ in notation_ids)
+        self._notations.setCurrentIndex(selected_index)
         self._update_notation_texts()
         self._notations.blockSignals(old_block)
 

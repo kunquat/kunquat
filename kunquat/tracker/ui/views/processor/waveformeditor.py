@@ -121,15 +121,12 @@ class WaveformEditor(QWidget):
         self._prewarp_list.setEnabled(enable_warps)
 
         old_block = self._base_func_selector.blockSignals(True)
-        self._base_func_selector.clear()
-        func_names = base_wave.get_waveform_func_names()
-        for i, name in enumerate(func_names):
-            self._base_func_selector.addItem(name)
-            if name == selected_base_func:
-                self._base_func_selector.setCurrentIndex(i)
+        func_names = list(base_wave.get_waveform_func_names())
         if not selected_base_func:
-            self._base_func_selector.addItem('Custom')
-            self._base_func_selector.setCurrentIndex(len(func_names))
+            func_names.append('Custom')
+        self._base_func_selector.set_items(func_names)
+        self._base_func_selector.setCurrentIndex(
+                self._base_func_selector.findText(selected_base_func or 'Custom'))
         self._base_func_selector.blockSignals(old_block)
 
         self._postwarp_list.setEnabled(enable_warps)
@@ -337,11 +334,7 @@ class WarpEditor(QWidget):
         base_wave = self._get_base_wave()
 
         func_names = base_wave.get_warp_func_names(self._warp_type)
-        old_block = self._func_selector.blockSignals(True)
-        self._func_selector.clear()
-        for name in func_names:
-            self._func_selector.addItem(name)
-        self._func_selector.blockSignals(old_block)
+        self._func_selector.set_items(name for name in func_names)
 
         self._update_all()
 

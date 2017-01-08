@@ -280,11 +280,7 @@ class EventBox(KqtComboBox):
             if event['name'] not in excluded),
             key=lambda x: x.lstrip('/=.->+<') or x)
 
-        old_block = self.blockSignals(True)
-        self.clear()
-        for event_name in event_names:
-            self.addItem(event_name)
-        self.blockSignals(old_block)
+        self.set_items(name for name in event_names)
 
         if selected:
             self.try_select_event(selected)

@@ -175,10 +175,8 @@ class TuningTableEditor(QWidget):
         ref_note_index = table.get_ref_note_index()
 
         old_block = self._tuning_center.blockSignals(True)
-        self._tuning_center.clear()
-        for i in range(table.get_note_count()):
-            note_name = table.get_note_name(i)
-            self._tuning_center.addItem(note_name)
+        self._tuning_center.set_items(
+                table.get_note_name(i) for i in range(table.get_note_count()))
         self._tuning_center.setCurrentIndex(ref_note_index)
         self._tuning_center.blockSignals(old_block)
 
