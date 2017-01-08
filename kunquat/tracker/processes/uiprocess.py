@@ -11,9 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from multiprocessing import Process, Queue
+from multiprocessing import Lock, Process, Queue
 from queue import Empty
-from threading import Lock
 
 from PySide.QtCore import *
 
