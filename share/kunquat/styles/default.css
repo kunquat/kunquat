@@ -146,9 +146,6 @@ QCheckBox::indicator:checked
 QComboBox
 {
     padding: 3px;
-    background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
-        stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
-    color: <button_fg_colour>;
 }
 
 QComboBox::drop-down
@@ -160,14 +157,6 @@ QComboBox::drop-down
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     padding: 3px;
-}
-
-QComboBox:!editable, QComboBox::drop-down:editable
-{
-    margin: 0;
-    padding: 3px;
-    background-color: <button_bg_colour>;
-    color: <button_fg_colour>;
 }
 
 QComboBox:disabled
