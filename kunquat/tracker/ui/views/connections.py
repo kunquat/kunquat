@@ -409,6 +409,7 @@ class ConnectionsView(QWidget):
             return QColor(style_manager.get_style_param(name))
 
         button_brightness = style_manager.get_style_param('button_brightness')
+        press_brightness = style_manager.get_style_param('button_press_brightness')
 
         def get_button_colour(name):
             return QColor(style_manager.get_adjusted_colour(name, button_brightness))
@@ -416,6 +417,9 @@ class ConnectionsView(QWidget):
         pv_hilight_selected = get_colour('conns_proc_voice_hilight_selected')
         focus_colour = get_colour('conns_focus_colour')
         bg_colour = get_colour('conns_bg_colour')
+
+        focus_pressed_colour = QColor(style_manager.get_adjusted_colour(
+            'conns_focus_colour', press_brightness))
 
         pv_hilight_excluded = utils.lerp_colour(pv_hilight_selected, bg_colour, 0.5)
         pv_hilight_excluded_focused = utils.lerp_colour(focus_colour, bg_colour, 0.5)
@@ -441,6 +445,7 @@ class ConnectionsView(QWidget):
                 'hilight_excluded': pv_hilight_excluded,
                 'hilight_selected_focused': focus_colour,
                 'hilight_excluded_focused': pv_hilight_excluded_focused,
+                'hilight_pressed' : focus_pressed_colour,
             },
             'proc_mixed': {
                 'bg_colour': get_colour('conns_proc_mixed_bg_colour'),
