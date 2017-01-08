@@ -18,6 +18,7 @@ class StyleManager():
 
     _STYLE_DEFAULTS = {
         'button_brightness'                 : -0.15,
+        'button_press_brightness'           : -0.15,
         'bg_colour'                         : '#db9',
         'fg_colour'                         : '#000',
         'bg_colour_sunken'                  : '#a86',

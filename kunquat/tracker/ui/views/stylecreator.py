@@ -62,7 +62,7 @@ class StyleCreator():
         contrast = 0.3
         grad = -0.07
         button_brightness = style_manager.get_style_param('button_brightness')
-        button_down = -0.15
+        button_down = style_manager.get_style_param('button_press_brightness')
         button_down2 = 1.5 * button_down
         tab_shade_top = -0.1
         tab_shade_bottom = -0.25

@@ -37,6 +37,7 @@ class Settings(QWidget):
 
         self._style_toggle = StyleToggle()
         self._button_brightness = ButtonBrightness()
+        self._button_press_brightness = ButtonPressBrightness()
         self._colours = Colours()
 
         dgl = QGridLayout()
@@ -59,12 +60,20 @@ class Settings(QWidget):
         dl.addLayout(dgl)
         dl.addStretch(1)
 
+        bl = QGridLayout()
+        bl.setContentsMargins(0, 0, 0, 0)
+        bl.setSpacing(2)
+        bl.addWidget(QLabel('Button brightness:'), 0, 0)
+        bl.addWidget(self._button_brightness, 0, 1)
+        bl.addWidget(QLabel('Button press brightness:'), 1, 0)
+        bl.addWidget(self._button_press_brightness, 1, 1)
+
         uil = QVBoxLayout()
         uil.setContentsMargins(0, 0, 0, 0)
         uil.setSpacing(4)
         uil.addWidget(HeaderLine('User interface'))
         uil.addWidget(self._style_toggle)
-        uil.addWidget(self._button_brightness)
+        uil.addLayout(bl)
         uil.addWidget(self._colours)
 
         h = QHBoxLayout()
@@ -81,10 +90,12 @@ class Settings(QWidget):
         self._effects.set_ui_model(ui_model)
         self._style_toggle.set_ui_model(ui_model)
         self._button_brightness.set_ui_model(ui_model)
+        self._button_press_brightness.set_ui_model(ui_model)
         self._colours.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._colours.unregister_updaters()
+        self._button_press_brightness.unregister_updaters()
         self._button_brightness.unregister_updaters()
         self._style_toggle.unregister_updaters()
         self._effects.unregister_updaters()
@@ -218,7 +229,7 @@ class StyleToggle(QCheckBox):
 
 class StyleSlider(NumberSlider):
 
-    def __init__(self, param, desc, min_val, max_val):
+    def __init__(self, param, min_val, max_val, desc=''):
         super().__init__(2, min_val, max_val, title=desc)
         self._ui_model = None
         self._updater = None
@@ -255,7 +266,13 @@ class StyleSlider(NumberSlider):
 class ButtonBrightness(StyleSlider):
 
     def __init__(self):
-        super().__init__('button_brightness', 'Button brightness', -1.0, 1.0)
+        super().__init__('button_brightness', -1.0, 1.0)
+
+
+class ButtonPressBrightness(StyleSlider):
+
+    def __init__(self):
+        super().__init__('button_press_brightness', -1.0, 1.0)
 
 
 class ColourCategoryModel():

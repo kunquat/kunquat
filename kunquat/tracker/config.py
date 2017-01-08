@@ -170,6 +170,7 @@ class Config():
             style_config = {
                 'enabled': _Entry(lambda x: isinstance(x, bool), False),
                 'button_brightness': _Entry(lambda x: -1 <= x <= 1, 0),
+                'button_press_brightness': _Entry(lambda x: -1 <= x <= 1, 0),
             }
             for name in colour_names:
                 style_config[name] = _Entry(v_colour, '#000')
