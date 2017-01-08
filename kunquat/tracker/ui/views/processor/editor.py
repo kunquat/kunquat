@@ -194,6 +194,7 @@ class Signals(QWidget):
             self._signal_type.addItem(text)
 
         v = QHBoxLayout()
+        v.setContentsMargins(4, 4, 4, 4)
         v.addWidget(HeaderFrame('Signal type', self._signal_type))
         self.setLayout(v)
 

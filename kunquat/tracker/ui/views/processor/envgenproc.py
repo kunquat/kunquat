@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -46,7 +46,8 @@ class EnvgenProc(QWidget):
         rl.addWidget(self._range)
 
         v = QVBoxLayout()
-        v.setSpacing(10)
+        v.setContentsMargins(4, 4, 4, 4)
+        v.setSpacing(4)
         v.addWidget(self._global_adjust)
         v.addLayout(rl)
         v.addWidget(self._time_env)

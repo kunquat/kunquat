@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -26,6 +26,7 @@ class Name(QWidget):
         self._edit = QLineEdit()
 
         h = QHBoxLayout()
+        h.setContentsMargins(0, 0, 0, 0)
         h.addWidget(QLabel('Name:'))
         h.addWidget(self._edit)
         self.setLayout(h)

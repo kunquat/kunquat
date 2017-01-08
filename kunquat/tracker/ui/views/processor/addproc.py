@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -40,13 +40,14 @@ class AddProc(QWidget):
         self._base_tone_editor = ToneList()
 
         h = QHBoxLayout()
-        h.setContentsMargins(0, 0, 0, 0)
+        h.setContentsMargins(4, 4, 4, 4)
         h.setSpacing(10)
         h.addWidget(self._ramp_attack)
         h.addWidget(self._rand_phase)
         h.addStretch(1)
 
         v = QVBoxLayout()
+        v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(10)
         v.addLayout(h)
         v.addWidget(self._base_waveform)

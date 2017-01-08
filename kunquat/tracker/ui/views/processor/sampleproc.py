@@ -76,7 +76,7 @@ class NoteMapEditor(QWidget):
         self._note_map_entry = NoteMapEntry()
 
         h = QHBoxLayout()
-        h.setContentsMargins(2, 2, 2, 2)
+        h.setContentsMargins(4, 4, 4, 4)
         h.setSpacing(4)
         h.addWidget(self._note_map, 1)
         h.addWidget(self._note_map_entry, 2)
@@ -997,7 +997,7 @@ class HitMapEditor(QWidget):
         self._hit_map_entry = HitMapEntry()
 
         v = QVBoxLayout()
-        v.setContentsMargins(2, 2, 2, 2)
+        v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(2)
         v.addWidget(self._hit_selector)
         v.addWidget(self._hit_map)
@@ -1296,7 +1296,6 @@ class Samples(QSplitter):
         self._keyboard_mapper = KeyboardMapper()
 
         h = QHBoxLayout()
-        h.setContentsMargins(2, 2, 2, 2)
         h.setSpacing(4)
         h.addWidget(self._sample_list, 1)
         h.addWidget(self._sample_editor, 2)
@@ -1650,7 +1649,7 @@ class SampleList(QWidget):
         self._list_view = SampleListView()
 
         v = QVBoxLayout()
-        v.setContentsMargins(0, 0, 0, 0)
+        v.setContentsMargins(4, 4, 2, 4)
         v.setSpacing(0)
         v.addWidget(self._toolbar)
         v.addWidget(self._list_view)
@@ -1766,7 +1765,7 @@ class SampleEditor(QWidget):
         self._sample_view = SampleView()
 
         v = QVBoxLayout()
-        v.setContentsMargins(0, 0, 0, 0)
+        v.setContentsMargins(2, 4, 4, 4)
         v.setSpacing(0)
         v.addLayout(gl)
         v.addWidget(self._sample_view, 1)

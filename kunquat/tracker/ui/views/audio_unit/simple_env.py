@@ -33,7 +33,7 @@ class SimpleEnvelope(QWidget):
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
-        v.setSpacing(6)
+        v.setSpacing(2)
         v.addWidget(header)
         v.addWidget(self._enabled_toggle)
         v.addWidget(self._envelope)

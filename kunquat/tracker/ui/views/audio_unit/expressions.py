@@ -31,7 +31,7 @@ class Expressions(QWidget):
         self._expr_editor = ExpressionEditor()
 
         v = QVBoxLayout()
-        v.setContentsMargins(0, 0, 0, 0)
+        v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
         v.addWidget(self._default_note_expr)
         v.addWidget(self._expr_list)

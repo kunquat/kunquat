@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -35,12 +35,16 @@ class ForceProc(QWidget):
         self._force_release_envelope = ForceReleaseEnvelope()
 
         sliders = QGridLayout()
+        sliders.setContentsMargins(0, 0, 0, 0)
+        sliders.setSpacing(4)
         sliders.addWidget(QLabel('Global force:'), 0, 0)
         sliders.addWidget(self._global_force, 0, 1)
         sliders.addWidget(QLabel('Force variation:'), 1, 0)
         sliders.addWidget(self._force_variation, 1, 1)
 
         v = QVBoxLayout()
+        v.setContentsMargins(4, 4, 4, 4)
+        v.setSpacing(4)
         v.addLayout(sliders)
         v.addWidget(self._force_envelope)
         v.addWidget(self._ramp_release)
@@ -79,7 +83,7 @@ class ForceProc(QWidget):
 class ForceNumSlider(ProcNumSlider):
 
     def __init__(self, decimals, min_value, max_value):
-        super().__init__(decimals, min_value, max_value, '')
+        super().__init__(decimals, min_value, max_value, title='', width_txt='-00.0')
 
     def _get_force_params(self):
         module = self._ui_model.get_module()

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -26,6 +26,8 @@ class InfoEditor(QWidget):
         self._name = Name()
 
         v = QVBoxLayout()
+        v.setContentsMargins(4, 4, 4, 4)
+        v.setSpacing(4)
         v.addWidget(self._name, 0, Qt.AlignTop)
         self.setLayout(v)
 

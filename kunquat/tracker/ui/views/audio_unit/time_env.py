@@ -52,7 +52,7 @@ class TimeEnvelope(QWidget):
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
-        v.setSpacing(0)
+        v.setSpacing(2)
         v.addWidget(header)
         v.addLayout(h)
         v.addWidget(self._envelope)
