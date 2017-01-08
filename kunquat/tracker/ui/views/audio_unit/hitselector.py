@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -163,6 +163,7 @@ class HitBankButton(QPushButton):
 
         self._index = index
 
+        self.setFixedSize(QSize(60, 30))
         self.setCheckable(True)
         self.setText(str(self._index)) # TODO: maybe something more descriptive?
 
