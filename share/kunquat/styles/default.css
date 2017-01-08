@@ -109,6 +109,7 @@ QAbstractSpinBox,
 QLineEdit,
 QListView,
 QTableView,
+QTextEdit,
 QTreeView
 {
     border: 2px solid;
@@ -465,7 +466,7 @@ QTabBar::tab:!selected
     color: <button_fg_colour>;
 }
 
-QTableView, QTreeView, QListView
+QTableView, QTreeView, QListView, QTextEdit
 {
     margin: 0;
     padding: 0;
