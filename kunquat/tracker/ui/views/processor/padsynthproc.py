@@ -20,6 +20,7 @@ from PySide.QtGui import *
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
+from kunquat.tracker.ui.views.stylecreator import StyleCreator
 from . import utils
 from .procnumslider import ProcNumSlider
 from .waveformeditor import WaveformEditor
@@ -169,16 +170,11 @@ class ApplyButton(QPushButton):
         self._ui_model = None
         self._updater = None
 
+        self._style_creator = StyleCreator()
+        self._style_sheet = ''
+
         self.setText('Apply parameters')
         self.setEnabled(False)
-
-        self.setStyleSheet(
-            '''QPushButton:enabled
-            {
-                background-color: #a32;
-                color: #fff;
-            }
-            ''')
 
     def set_au_id(self, au_id):
         self._au_id = au_id
@@ -191,11 +187,15 @@ class ApplyButton(QPushButton):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        self._style_creator.set_ui_model(ui_model)
+
         QObject.connect(self, SIGNAL('clicked()'), self._apply_params)
 
+        self._style_sheet = QApplication.instance().styleSheet()
         self._update_status()
 
     def unregister_updaters(self):
+        self._style_creator.unregister_updaters()
         self._updater.unregister_updater(self._perform_updates)
 
     def _get_update_signal_type(self):
@@ -206,9 +206,19 @@ class ApplyButton(QPushButton):
         if not signals.isdisjoint(update_signals):
             self._update_status()
 
+        if 'signal_style_changed' in signals:
+            self._update_style()
+
+    def _update_style(self):
+        self._style_sheet = self._style_creator.get_updated_style_sheet()
+        self.setStyleSheet(self._style_sheet)
+
     def _update_status(self):
         params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         self.setEnabled(not params.is_config_applied())
+
+        self.setObjectName('Important' if self.isEnabled() else '')
+        self.setStyleSheet(self._style_sheet)
 
     def _apply_params(self):
         params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)

@@ -50,13 +50,11 @@ class StyleCreator():
     def _adjust_brightness(self, colour, add):
         return tuple(c + add for c in colour)
 
-    def update_style_sheet(self):
+    def get_updated_style_sheet(self):
         style_manager = self._ui_model.get_style_manager()
-        app = QApplication.instance()
 
         if not style_manager.is_custom_style_enabled():
-            app.setStyleSheet(style_manager.get_init_style_sheet())
-            return
+            return style_manager.get_init_style_sheet()
 
         icon_bank = self._ui_model.get_icon_bank()
 
@@ -89,6 +87,15 @@ class StyleCreator():
         button_down_fg_colour = self._adjust_brightness(button_fg_colour, button_down)
         button_down2_bg_colour = self._adjust_brightness(button_bg_colour, button_down2)
         button_down2_fg_colour = self._adjust_brightness(button_fg_colour, button_down2)
+
+        ib_bg_colour = self._get_colour_from_str(
+                style_manager.get_style_param('important_button_bg_colour'))
+        ib_fg_colour = self._get_colour_from_str(
+                style_manager.get_style_param('important_button_fg_colour'))
+        ib_down_bg_colour = self._adjust_brightness(ib_bg_colour, button_down)
+        ib_down_fg_colour = self._adjust_brightness(ib_fg_colour, button_down)
+        ib_down2_bg_colour = self._adjust_brightness(ib_bg_colour, button_down2)
+        ib_down2_fg_colour = self._adjust_brightness(ib_fg_colour, button_down2)
 
         tab_shade_top_colour = self._adjust_brightness(bg_colour, tab_shade_top)
         tab_shade_bottom_colour = self._adjust_brightness(bg_colour, tab_shade_bottom)
@@ -136,6 +143,21 @@ class StyleCreator():
             'button_fg_colour'            : button_fg_colour,
             'button_down_fg_colour'       : button_down_fg_colour,
             'button_down2_fg_colour'      : button_down2_fg_colour,
+            'important_button_bg_colour'            : ib_bg_colour,
+            'important_button_bg_colour_light'      : make_light(ib_bg_colour),
+            'important_button_bg_colour_grad'       : make_grad(ib_bg_colour),
+            'important_button_bg_colour_dark'       : make_dark(ib_bg_colour),
+            'important_button_down_bg_colour'       : ib_down_bg_colour,
+            'important_button_down_bg_colour_light' : make_light(ib_down_bg_colour),
+            'important_button_down_bg_colour_grad'  : make_grad(ib_down_bg_colour),
+            'important_button_down_bg_colour_dark'  : make_dark(ib_down_bg_colour),
+            'important_button_down2_bg_colour'      : ib_down2_bg_colour,
+            'important_button_down2_bg_colour_light': make_light(ib_down2_bg_colour),
+            'important_button_down2_bg_colour_grad' : make_grad(ib_down2_bg_colour),
+            'important_button_down2_bg_colour_dark' : make_dark(ib_down2_bg_colour),
+            'important_button_fg_colour'            : ib_fg_colour,
+            'important_button_down_fg_colour'       : ib_down_fg_colour,
+            'important_button_down2_fg_colour'      : ib_down2_fg_colour,
             'scrollbar_bg_colour'         : bg_colour_sunken,
             'tab_shade_top_colour'        : tab_shade_top_colour,
             'tab_shade_top_colour_light'  : make_light(tab_shade_top_colour),
@@ -156,6 +178,6 @@ class StyleCreator():
         regexp = re.compile('|'.join(re.escape(k) for k in replacements.keys()))
         style_sheet = regexp.sub(lambda match: replacements[match.group(0)], template)
 
-        app.setStyleSheet(style_sheet)
+        return style_sheet
 
 

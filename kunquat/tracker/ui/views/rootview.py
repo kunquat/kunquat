@@ -74,7 +74,8 @@ class RootView():
 
         style_manager = self._ui_model.get_style_manager()
         style_manager.set_init_style_sheet(QApplication.instance().styleSheet())
-        self._style_creator.update_style_sheet()
+        style_sheet = self._style_creator.get_updated_style_sheet()
+        QApplication.instance().setStyleSheet(style_sheet)
 
     def show_main_window(self):
         visibility_manager = self._ui_model.get_visibility_manager()
@@ -275,7 +276,8 @@ class RootView():
             if 'signal_export_au_finished' in signals:
                 self._on_export_au_finished()
             if 'signal_style_changed' in signals:
-                self._style_creator.update_style_sheet()
+                style_sheet = self._style_creator.get_updated_style_sheet()
+                QApplication.instance().setStyleSheet(style_sheet)
         else:
             QApplication.quit()
 

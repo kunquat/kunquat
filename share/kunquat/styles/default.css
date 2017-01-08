@@ -218,6 +218,43 @@ QPushButton::menu-indicator, QToolButton::menu-indicator
     image: url(<icons_path>/arrow_down_tiny.png);
 }
 
+QPushButton#Important
+{
+    border-top-color: <important_button_bg_colour_light>;
+    border-left-color: <important_button_bg_colour_light>;
+    border-right-color: <important_button_bg_colour_dark>;
+    border-bottom-color: <important_button_bg_colour_dark>;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
+        stop: 0.5 <important_button_bg_colour>,
+        stop: 1 <important_button_bg_colour_grad>);
+    color: <important_button_fg_colour>;
+}
+
+QPushButton#Important:pressed,
+QPushButton#Important:checked
+{
+    border-top-color: <important_button_down_bg_colour_light>;
+    border-left-color: <important_button_down_bg_colour_light>;
+    border-right-color: <important_button_down_bg_colour_dark>;
+    border-bottom-color: <important_button_down_bg_colour_dark>;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
+        stop: 0.5 <important_button_down_bg_colour>,
+        stop: 1 <important_button_down_bg_colour_grad>);
+    color: <important_button_down_fg_colour>;
+}
+
+QPushButton#Important:checked:pressed
+{
+    border-top-color: <important_button_down2_bg_colour_light>;
+    border-left-color: <important_button_down2_bg_colour_light>;
+    border-right-color: <important_button_down2_bg_colour_dark>;
+    border-bottom-color: <important_button_down2_bg_colour_dark>;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
+        stop: 0.5 <important_button_down2_bg_colour>,
+        stop: 1 <important_button_down2_bg_colour_grad>);
+    color: <important_button_down2_fg_colour>;
+}
+
 QLineEdit, QAbstractSpinBox
 {
     margin: 1px;

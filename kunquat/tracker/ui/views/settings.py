@@ -307,6 +307,8 @@ _COLOUR_DESCS = [
     ('fg_colour',                       'Default text'),
     ('bg_colour_sunken',                'Sunken background'),
     ('disabled_fg_colour',              'Disabled text'),
+    ('important_button_bg_colour',      'Important button background'),
+    ('important_button_fg_colour',      'Important button text'),
     ('text_bg_colour',                  'Text field background'),
     ('text_fg_colour',                  'Text field text'),
     ('text_selected_bg_colour',         'Text field selected background'),

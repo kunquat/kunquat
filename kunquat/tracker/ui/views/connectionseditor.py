@@ -20,6 +20,7 @@ from .processor import proctypeinfo
 from .kqtcombobox import KqtComboBox
 from .kqtutils import get_kqt_file_path, open_kqt_au
 from .saving import get_instrument_save_path, get_effect_save_path
+from .stylecreator import StyleCreator
 
 
 class ConnectionsEditor(QWidget):
@@ -274,13 +275,8 @@ class EditingToggle(QPushButton):
         self._ui_model = None
         self._updater = None
 
-        self.setStyleSheet(
-                '''QPushButton:checked
-                {
-                    background-color: #a32;
-                    color: #fff;
-                }
-                ''')
+        self._style_creator = StyleCreator()
+        self._style_sheet = ''
 
         self.setCheckable(True)
 
@@ -294,15 +290,31 @@ class EditingToggle(QPushButton):
 
         QObject.connect(self, SIGNAL('clicked()'), self._change_enabled)
 
+        self._style_creator.set_ui_model(ui_model)
+
+        self._style_sheet = QApplication.instance().styleSheet()
         self._update_enabled()
 
     def unregister_updaters(self):
+        self._style_creator.unregister_updaters()
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
         update_signals = self._get_update_signal_types()
         if not signals.isdisjoint(update_signals):
             self._update_enabled()
+
+        if 'signal_style_changed' in signals:
+            self._update_style()
+
+    def _update_style(self):
+        self._style_sheet = self._style_creator.get_updated_style_sheet()
+        self.setStyleSheet(self._style_sheet)
+
+    def setChecked(self, checked):
+        super().setChecked(checked)
+        self.setObjectName('Important' if checked else '')
+        self.setStyleSheet(self._style_sheet)
 
     # Protected interface
 

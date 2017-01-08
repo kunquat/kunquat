@@ -85,6 +85,8 @@ class Config():
                 'fg_colour',
                 'bg_colour_sunken',
                 'disabled_fg_colour',
+                'important_button_bg_colour',
+                'important_button_fg_colour',
                 'active_indicator_colour',
                 'conns_bg_colour',
                 'conns_focus_colour',

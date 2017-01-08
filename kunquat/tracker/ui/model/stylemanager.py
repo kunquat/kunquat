@@ -22,6 +22,8 @@ class StyleManager():
         'fg_colour'                         : '#000',
         'bg_colour_sunken'                  : '#a86',
         'disabled_fg_colour'                : '#543',
+        'important_button_bg_colour'        : '#a32',
+        'important_button_fg_colour'        : '#fff',
         'active_indicator_colour'           : '#f00',
         'conns_bg_colour'                   : '#111',
         'conns_edge_colour'                 : '#ccc',
