@@ -43,7 +43,7 @@ class PadsynthProc(QWidget):
         self._harmonic_scales = HarmonicScales()
 
         v = QVBoxLayout()
-        v.setContentsMargins(0, 0, 0, 0)
+        v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
         v.addWidget(self._playback_params)
         v.addWidget(self._apply_button)
@@ -707,6 +707,8 @@ class HarmonicScales(QWidget):
         self._editor = HarmonicScalesList()
 
         v = QVBoxLayout()
+        v.setContentsMargins(0, 0, 0, 0)
+        v.setSpacing(2)
         v.addWidget(HeaderLine('Harmonic scales'))
         v.addWidget(self._editor)
         self.setLayout(v)

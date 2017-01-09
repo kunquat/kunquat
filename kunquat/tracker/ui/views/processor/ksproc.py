@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -47,6 +47,8 @@ class KsProc(QWidget):
         shift_params.addWidget(self._shift_var)
 
         v = QVBoxLayout()
+        v.setContentsMargins(4, 4, 4, 4)
+        v.setSpacing(4)
         v.addLayout(sliders)
         v.addWidget(self._init_env)
         v.addWidget(self._shift_env)
