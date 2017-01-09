@@ -28,7 +28,8 @@ QHeaderView::section:vertical,
 QMenu,
 QScrollBar::handle,
 QSlider::handle:horizontal,
-QTabWidget::pane
+QTabWidget::pane,
+QToolBar
 {
     border: 1px solid;
     border-top-color: <bg_colour_light>;
@@ -312,6 +313,16 @@ QLabel
     background-color: transparent;
 }
 
+QAbstractScrollArea
+{
+    border: 1px solid;
+    border-top-color: <bg_colour_dark>;
+    border-left-color: <bg_colour_dark>;
+    border-right-color: <bg_colour_light>;
+    border-bottom-color: <bg_colour_light>;
+    border-radius: 1px;
+}
+
 QAbstractScrollArea::corner
 {
     background-color: transparent;
@@ -443,6 +454,7 @@ QScrollBar::right-arrow:horizontal
 QSlider::groove:horizontal
 {
     background-color: <scrollbar_bg_colour>;
+    height: 12px;
 }
 
 QSlider::handle:horizontal
@@ -520,6 +532,23 @@ QTableView QTableCornerButton::section
 {
     background-color: <bg_colour>;
     border: none;
+}
+
+QToolBar
+{
+    border-radius: 0;
+}
+
+QToolBar::separator
+{
+    margin: 2px 4px;
+    border: 1px solid;
+    border-top-color: <bg_colour_dark>;
+    border-left-color: <bg_colour_dark>;
+    border-right-color: <bg_colour_light>;
+    border-bottom-color: <bg_colour_light>;
+    padding: 0;
+    width: 0;
 }
 
 QTreeView::branch
