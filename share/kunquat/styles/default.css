@@ -452,6 +452,12 @@ QSlider::handle:horizontal
     background-color: <bg_colour>;
 }
 
+QSplitter::handle:horizontal
+{
+    padding: 1px;
+    image: url(<icons_path>/splitter_horizontal.png);
+}
+
 QSplitter::handle:vertical
 {
     padding: 1px;
