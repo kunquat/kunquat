@@ -506,7 +506,7 @@ QTableView, QTreeView, QListView, QTextEdit
     color: <text_fg_colour>;
 }
 
-QTableView:disabled, QTreeView:disabled, QListView:disabled
+QTableView:disabled, QTreeView:disabled, QListView:disabled, QTextEdit:disabled
 {
     color: <text_disabled_fg_colour>;
 }
