@@ -53,45 +53,55 @@ DEFAULT_CONFIG = {
             'button_width'       : 44,
             'button_padding'     : 2,
             'instrument': {
-                'bg_colour'       : QColor(0x33, 0x33, 0x55),
-                'fg_colour'       : QColor(0xdd, 0xee, 0xff),
-                'button_bg_colour': QColor(0x11, 0x11, 0x33),
+                'bg_colours'       : [QColor('#335'), QColor('#668'), QColor('#002')],
+                'fg_colour'        : QColor(0xdd, 0xee, 0xff),
+                'button_bg_colours': [QColor('#335'), QColor('#668'), QColor('#002')],
+                'button_down_bg_colours':
+                                     [QColor('#113'), QColor('#446'), QColor('#000')],
                 #'button_focused_bg_colour': QColor(0, 0, 0x77),
             },
             'effect': {
-                'bg_colour'       : QColor(0x55, 0x44, 0x33),
-                'fg_colour'       : QColor(0xff, 0xee, 0xdd),
-                'button_bg_colour': QColor(0x33, 0x22, 0x11),
+                'bg_colours'       : [QColor('#543'), QColor('#876'), QColor('#210')],
+                'fg_colour'        : QColor(0xff, 0xee, 0xdd),
+                'button_bg_colours': [QColor('#543'), QColor('#876'), QColor('#210')],
+                'button_down_bg_colours':
+                                     [QColor('#321'), QColor('#654'), QColor('#000')],
                 #'button_focused_bg_colour': QColor(0x77, 0x22, 0),
             },
             'proc_voice': {
-                'bg_colour'       : QColor(0x22, 0x55, 0x55),
-                'fg_colour'       : QColor(0xcc, 0xff, 0xff),
-                'button_bg_colour': QColor(0x11, 0x33, 0x33),
+                'bg_colours'       : [QColor('#255'), QColor('#588'), QColor('#022')],
+                'fg_colour'        : QColor(0xcc, 0xff, 0xff),
+                'button_bg_colours': [QColor('#255'), QColor('#588'), QColor('#022')],
+                'button_down_bg_colours':
+                                     [QColor('#033'), QColor('#366'), QColor('#000')],
                 #'button_focused_bg_colour': QColor(0, 0x55, 0x55),
-                'hilight_selected': QColor(0x99, 0xbb, 0x99),
-                'hilight_excluded': QColor(0x55, 0x44, 0x33),
+                'hilight_selected' : QColor(0x99, 0xbb, 0x99),
+                'hilight_excluded' : QColor(0x55, 0x44, 0x33),
                 'hilight_selected_focused': QColor(0xff, 0x88, 0x44),
                 'hilight_excluded_focused': QColor(0x88, 0x33, 0x11),
-                'hilight_pressed' : QColor(0xff, 0xff, 0xff),
+                'hilight_pressed'  : QColor(0xff, 0xff, 0xff),
             },
             'proc_mixed': {
-                'bg_colour'       : QColor(0x55, 0x22, 0x55),
-                'fg_colour'       : QColor(0xff, 0xcc, 0xff),
-                'button_bg_colour': QColor(0x33, 0x11, 0x33),
+                'bg_colours'       : [QColor('#525'), QColor('#858'), QColor('#202')],
+                'fg_colour'        : QColor(0xff, 0xcc, 0xff),
+                'button_bg_colours': [QColor('#525'), QColor('#858'), QColor('#202')],
+                'button_down_bg_colours':
+                                     [QColor('#303'), QColor('#636'), QColor('#000')],
                 #'button_focused_bg_colour': QColor(0x55, 0, 0x55),
                 # TODO: Mixed processors shouldn't be highlighted;
                 #       these are just a temp fix to prevent crash
-                'hilight_selected': QColor(0x99, 0xbb, 0x99),
-                'hilight_excluded': QColor(0x55, 0x44, 0x33),
+                'hilight_selected' : QColor(0x99, 0xbb, 0x99),
+                'hilight_excluded' : QColor(0x55, 0x44, 0x33),
                 'hilight_selected_focused': QColor(0xff, 0x88, 0x44),
                 'hilight_excluded_focused': QColor(0x88, 0x33, 0x11),
-                'hilight_pressed' : QColor(0xff, 0xff, 0xff),
+                'hilight_pressed'  : QColor(0xff, 0xff, 0xff),
             },
             'master': {
-                'bg_colour'       : QColor(0x33, 0x55, 0x33),
-                'fg_colour'       : QColor(0xdd, 0xff, 0xdd),
-                'button_bg_colour': QColor(0x11, 0x33, 0x11),
+                'bg_colours'       : [QColor('#353'), QColor('#686'), QColor('#020')],
+                'fg_colour'        : QColor(0xdd, 0xff, 0xdd),
+                'button_bg_colours': [QColor('#353'), QColor('#686'), QColor('#020')],
+                'button_down_bg_colours':
+                                     [QColor('#131'), QColor('#464'), QColor('#000')],
                 #'button_focused_bg_colour': QColor(0, 0x77, 0),
             },
         },
@@ -384,9 +394,11 @@ class ConnectionsView(QWidget):
 
         if 'devices' in config:
             devices = config.pop('devices')
+            self._config['devices'] = DEFAULT_CONFIG['devices'].copy()
 
             for dtype in ('instrument', 'effect', 'proc_voice', 'proc_mixed', 'master'):
                 if dtype in devices:
+                    self._config['devices'][dtype] = DEFAULT_CONFIG['devices'][dtype].copy()
                     self._config['devices'][dtype].update(devices.pop(dtype))
             self._config['devices'].update(devices)
 
@@ -394,7 +406,7 @@ class ConnectionsView(QWidget):
 
         for device in self._visible_devices.values():
             device.set_config(self._config['devices'])
-            device.draw_pixmaps()
+            device.draw_images()
 
         self._ls_cache = {}
 
@@ -408,11 +420,29 @@ class ConnectionsView(QWidget):
         def get_colour(name):
             return QColor(style_manager.get_style_param(name))
 
+        border_contrast = style_manager.get_style_param('border_contrast')
         button_brightness = style_manager.get_style_param('button_brightness')
         press_brightness = style_manager.get_style_param('button_press_brightness')
 
-        def get_button_colour(name):
-            return QColor(style_manager.get_adjusted_colour(name, button_brightness))
+        def get_outset_colours(name):
+            return (QColor(style_manager.get_adjusted_colour(name, 0)),
+                    QColor(style_manager.get_adjusted_colour(name, border_contrast)),
+                    QColor(style_manager.get_adjusted_colour(name, -border_contrast)))
+
+        def get_button_colours(name):
+            return (QColor(style_manager.get_adjusted_colour(name, button_brightness)),
+                    QColor(style_manager.get_adjusted_colour(
+                        name, button_brightness + border_contrast)),
+                    QColor(style_manager.get_adjusted_colour(
+                        name, button_brightness - border_contrast)))
+
+        def get_down_colours(name):
+            down_brightness = button_brightness + press_brightness
+            return (QColor(style_manager.get_adjusted_colour(name, down_brightness)),
+                    QColor(style_manager.get_adjusted_colour(
+                        name, down_brightness + border_contrast)),
+                    QColor(style_manager.get_adjusted_colour(
+                        name, down_brightness - border_contrast)))
 
         pv_hilight_selected = get_colour('conns_proc_voice_hilight_selected')
         focus_colour = get_colour('conns_focus_colour')
@@ -428,19 +458,22 @@ class ConnectionsView(QWidget):
             'port_colour': get_colour('conns_port_colour'),
             'focused_port_colour': focus_colour,
             'instrument': {
-                'bg_colour': get_colour('conns_inst_bg_colour'),
+                'bg_colours': get_outset_colours('conns_inst_bg_colour'),
                 'fg_colour': get_colour('conns_inst_fg_colour'),
-                'button_bg_colour': get_button_colour('conns_inst_bg_colour'),
+                'button_bg_colours': get_button_colours('conns_inst_bg_colour'),
+                'button_down_bg_colours': get_down_colours('conns_inst_bg_colour'),
             },
             'effect': {
-                'bg_colour': get_colour('conns_effect_bg_colour'),
+                'bg_colours': get_outset_colours('conns_effect_bg_colour'),
                 'fg_colour': get_colour('conns_effect_fg_colour'),
-                'button_bg_colour': get_button_colour('conns_effect_bg_colour'),
+                'button_bg_colours': get_button_colours('conns_effect_bg_colour'),
+                'button_down_bg_colours': get_down_colours('conns_effect_bg_colour'),
             },
             'proc_voice': {
-                'bg_colour': get_colour('conns_proc_voice_bg_colour'),
+                'bg_colours': get_outset_colours('conns_proc_voice_bg_colour'),
                 'fg_colour': get_colour('conns_proc_voice_fg_colour'),
-                'button_bg_colour': get_button_colour('conns_proc_voice_bg_colour'),
+                'button_bg_colours': get_button_colours('conns_proc_voice_bg_colour'),
+                'button_down_bg_colours': get_down_colours('conns_proc_voice_bg_colour'),
                 'hilight_selected': pv_hilight_selected,
                 'hilight_excluded': pv_hilight_excluded,
                 'hilight_selected_focused': focus_colour,
@@ -448,12 +481,13 @@ class ConnectionsView(QWidget):
                 'hilight_pressed' : focus_pressed_colour,
             },
             'proc_mixed': {
-                'bg_colour': get_colour('conns_proc_mixed_bg_colour'),
+                'bg_colours': get_outset_colours('conns_proc_mixed_bg_colour'),
                 'fg_colour': get_colour('conns_proc_mixed_fg_colour'),
-                'button_bg_colour': get_button_colour('conns_proc_mixed_bg_colour'),
+                'button_bg_colours': get_button_colours('conns_proc_mixed_bg_colour'),
+                'button_down_bg_colours': get_down_colours('conns_proc_mixed_bg_colour'),
             },
             'master': {
-                'bg_colour': get_colour('conns_master_bg_colour'),
+                'bg_colours': get_outset_colours('conns_master_bg_colour'),
                 'fg_colour': get_colour('conns_master_fg_colour'),
             },
         }
@@ -634,7 +668,7 @@ class ConnectionsView(QWidget):
                         out_ports,
                         lambda: self._get_device(dev_id))
                 device.set_config(self._config['devices'])
-                device.draw_pixmaps()
+                device.draw_images()
                 new_visible_devices[dev_id] = device
 
             dev_layout = layout.get(dev_id, {})
@@ -793,7 +827,7 @@ class ConnectionsView(QWidget):
                     continue
 
             device = self._visible_devices[dev_id]
-            device.copy_pixmaps(painter)
+            device.copy_images(painter)
 
             focus_info = self._focused_port_info
             if self._adding_edge_info:
@@ -1410,18 +1444,23 @@ class Device():
     def get_port_info(self):
         return self._port_names
 
-    def draw_pixmaps(self):
-        self._bg = QPixmap(self._config['width'], self._get_height())
+    def draw_images(self):
+        self._bg = QImage(
+                self._config['width'],
+                self._get_height(),
+                QImage.Format_ARGB32_Premultiplied)
+        self._bg.fill(0)
         painter = QPainter(self._bg)
         pad = self._config['padding']
 
         # Background
-        painter.setBackground(self._type_config['bg_colour'])
-        painter.eraseRect(0, 0, self._bg.width(), self._bg.height())
-        painter.setPen(self._type_config['fg_colour'])
-        painter.drawRect(0, 0, self._bg.width() - 1, self._bg.height() - 1)
+        self._draw_rounded_rect(
+                painter,
+                self._type_config['bg_colours'],
+                QRect(0, 0, self._bg.width(), self._bg.height()))
 
         # Title
+        painter.setPen(QColor(self._type_config['fg_colour']))
         painter.setFont(self._config['title_font'])
         text_option = QTextOption(Qt.AlignCenter)
         title_height = self._get_title_height()
@@ -1468,23 +1507,23 @@ class Device():
         if self._has_edit_button():
             self._draw_edit_button(
                     painter,
-                    self._type_config['button_bg_colour'],
+                    self._type_config['button_bg_colours'],
                     self._type_config['fg_colour'])
 
         # Remove button
         if self._has_remove_button():
             self._draw_remove_button(
                     painter,
-                    self._type_config['button_bg_colour'],
+                    self._type_config['button_bg_colours'],
                     self._type_config['fg_colour'])
 
-    def copy_pixmaps(self, painter):
+    def copy_images(self, painter):
         painter.save()
 
         painter.translate(self._offset_x, self._offset_y)
 
         bg_offset_x, bg_offset_y = self._get_top_left_pos((0, 0))
-        painter.drawPixmap(bg_offset_x, bg_offset_y, self._bg)
+        painter.drawImage(bg_offset_x, bg_offset_y, self._bg)
 
         painter.restore()
 
@@ -1583,22 +1622,23 @@ class Device():
 
     def draw_button_highlight(self, painter, info):
         assert 'button_type' in info
+
+        if not info.get('pressed'):
+            return # TODO: add hover support if needed
+
         painter.save()
         shift_x, shift_y = self._get_top_left_pos((0, 0))
         painter.translate(self._offset_x + shift_x, self._offset_y + shift_y)
 
-        #bg_colour = self._type_config['button_focused_bg_colour']
-        bg_colour = self._type_config['button_bg_colour']
+        bg_colours = self._type_config['button_down_bg_colours']
         fg_colour = self._type_config['fg_colour']
-        if info.get('pressed'):
-            bg_colour, fg_colour = fg_colour, bg_colour
 
         if info['button_type'] == 'edit':
             assert self._has_edit_button()
-            self._draw_edit_button(painter, bg_colour, fg_colour)
+            self._draw_edit_button(painter, bg_colours, fg_colour)
         elif info['button_type'] == 'remove':
             assert self._has_remove_button()
-            self._draw_remove_button(painter, bg_colour, fg_colour)
+            self._draw_remove_button(painter, bg_colours, fg_colour)
 
         painter.restore()
 
@@ -1610,22 +1650,64 @@ class Device():
         center_x, center_y = center_pos
         return (center_x + self._bg.width() // 2, center_y + self._bg.height() // 2)
 
-    def _draw_button(self, painter, bg_colour, fg_colour, rect, text):
+    def _draw_rounded_rect(self, painter, colours, rect):
+        inner_rect = rect.adjusted(1, 1, -1, -1)
+        assert inner_rect.isValid()
+
+        # Background fill
+        painter.setPen(Qt.NoPen)
+        painter.fillRect(inner_rect, colours[0])
+
+        painter.save()
+        painter.setRenderHint(QPainter.Antialiasing)
+        top = rect.top() + 0.5
+        left = rect.left() + 0.5
+        right = rect.right() + 0.5
+        bottom = rect.bottom() + 0.5
+
+        radius = 1.5
+        diam = radius * 2
+
+        # Dark shade
+        painter.setPen(QPen(QBrush(colours[2]), 1, cap=Qt.FlatCap))
+        dark_path = QPainterPath()
+        dark_path.arcMoveTo(QRectF(left, bottom - diam, diam, diam), 225)
+        dark_path.arcTo(QRectF(left, bottom - diam, diam, diam), 225, 45)
+        dark_path.lineTo(QPointF(right - radius, bottom))
+        dark_path.arcTo(QRectF(right - diam, bottom - diam, diam, diam), 270, 90)
+        dark_path.lineTo(QPointF(right, top + radius))
+        dark_path.arcTo(QRectF(right - diam, top, diam, diam), 0, 45)
+        painter.drawPath(dark_path)
+
+        # Light shade
+        painter.setPen(QPen(QBrush(colours[1]), 1, cap=Qt.FlatCap))
+        light_path = QPainterPath()
+        light_path.arcMoveTo(QRectF(left, bottom - diam, diam, diam), 225)
+        light_path.arcTo(QRectF(left, bottom - diam, diam, diam), 225, -45)
+        light_path.lineTo(QPointF(left, top + radius))
+        light_path.arcTo(QRectF(left, top, diam, diam), 180, -90)
+        light_path.lineTo(QPointF(right - radius, top))
+        light_path.arcTo(QRectF(right - diam, top, diam, diam), 90, -45)
+        painter.drawPath(light_path)
+
+        painter.restore()
+
+    def _draw_button(self, painter, bg_colours, fg_colour, rect, text):
+        self._draw_rounded_rect(painter, bg_colours, rect)
+
         painter.setPen(fg_colour)
-        painter.setBrush(bg_colour)
-        painter.drawRect(rect)
 
         painter.setFont(self._config['title_font'])
         text_option = QTextOption(Qt.AlignCenter)
         painter.drawText(QRectF(rect), text, text_option)
 
-    def _draw_edit_button(self, painter, bg_colour, fg_colour):
+    def _draw_edit_button(self, painter, bg_colours, fg_colour):
         rect = self._get_edit_button_rect()
-        self._draw_button(painter, bg_colour, fg_colour, rect, 'Edit')
+        self._draw_button(painter, bg_colours, fg_colour, rect, 'Edit')
 
-    def _draw_remove_button(self, painter, bg_colour, fg_colour):
+    def _draw_remove_button(self, painter, bg_colours, fg_colour):
         rect = self._get_remove_button_rect()
-        self._draw_button(painter, bg_colour, fg_colour, rect, 'Del')
+        self._draw_button(painter, bg_colours, fg_colour, rect, 'Del')
 
     def set_offset(self, offset):
         self._offset_x, self._offset_y = offset
