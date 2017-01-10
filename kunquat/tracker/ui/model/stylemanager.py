@@ -17,6 +17,7 @@ import kunquat.tracker.config as config
 class StyleManager():
 
     _STYLE_DEFAULTS = {
+        'border_contrast'                   : 0.3,
         'button_brightness'                 : -0.15,
         'button_press_brightness'           : -0.15,
         'bg_colour'                         : '#db9',

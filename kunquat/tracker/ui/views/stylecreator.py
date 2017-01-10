@@ -59,7 +59,7 @@ class StyleCreator():
         icon_bank = self._ui_model.get_icon_bank()
 
         # Get colours from the configuration
-        contrast = 0.3
+        contrast = style_manager.get_style_param('border_contrast')
         grad = -0.07
         button_brightness = style_manager.get_style_param('button_brightness')
         button_down = style_manager.get_style_param('button_press_brightness')

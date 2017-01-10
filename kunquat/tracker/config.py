@@ -169,6 +169,7 @@ class Config():
 
             style_config = {
                 'enabled': _Entry(lambda x: isinstance(x, bool), False),
+                'border_contrast': _Entry(lambda x: 0 <= x <= 1, 0.3),
                 'button_brightness': _Entry(lambda x: -1 <= x <= 1, 0),
                 'button_press_brightness': _Entry(lambda x: -1 <= x <= 1, 0),
             }
