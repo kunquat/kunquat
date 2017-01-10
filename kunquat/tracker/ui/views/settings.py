@@ -36,6 +36,7 @@ class Settings(QWidget):
         self._effects = Effects()
 
         self._style_toggle = StyleToggle()
+        self._border_contrast = BorderContrast()
         self._button_brightness = ButtonBrightness()
         self._button_press_brightness = ButtonPressBrightness()
         self._colours = Colours()
@@ -63,10 +64,12 @@ class Settings(QWidget):
         bl = QGridLayout()
         bl.setContentsMargins(0, 0, 0, 0)
         bl.setSpacing(2)
-        bl.addWidget(QLabel('Button brightness:'), 0, 0)
-        bl.addWidget(self._button_brightness, 0, 1)
-        bl.addWidget(QLabel('Button press brightness:'), 1, 0)
-        bl.addWidget(self._button_press_brightness, 1, 1)
+        bl.addWidget(QLabel('Border contrast:'), 0, 0)
+        bl.addWidget(self._border_contrast, 0, 1)
+        bl.addWidget(QLabel('Button brightness:'), 1, 0)
+        bl.addWidget(self._button_brightness, 1, 1)
+        bl.addWidget(QLabel('Button press brightness:'), 2, 0)
+        bl.addWidget(self._button_press_brightness, 2, 1)
 
         uil = QVBoxLayout()
         uil.setContentsMargins(0, 0, 0, 0)
@@ -89,6 +92,7 @@ class Settings(QWidget):
         self._samples.set_ui_model(ui_model)
         self._effects.set_ui_model(ui_model)
         self._style_toggle.set_ui_model(ui_model)
+        self._border_contrast.set_ui_model(ui_model)
         self._button_brightness.set_ui_model(ui_model)
         self._button_press_brightness.set_ui_model(ui_model)
         self._colours.set_ui_model(ui_model)
@@ -97,6 +101,7 @@ class Settings(QWidget):
         self._colours.unregister_updaters()
         self._button_press_brightness.unregister_updaters()
         self._button_brightness.unregister_updaters()
+        self._border_contrast.unregister_updaters()
         self._style_toggle.unregister_updaters()
         self._effects.unregister_updaters()
         self._samples.unregister_updaters()
@@ -230,7 +235,7 @@ class StyleToggle(QCheckBox):
 class StyleSlider(NumberSlider):
 
     def __init__(self, param, min_val, max_val, desc=''):
-        super().__init__(2, min_val, max_val, title=desc)
+        super().__init__(2, min_val, max_val, title=desc, width_txt='-0.00')
         self._ui_model = None
         self._updater = None
 
@@ -261,6 +266,12 @@ class StyleSlider(NumberSlider):
         style_manager = self._ui_model.get_style_manager()
         style_manager.set_style_param(self._param, new_value)
         self._updater.signal_update(set(['signal_style_changed']))
+
+
+class BorderContrast(StyleSlider):
+
+    def __init__(self):
+        super().__init__('border_contrast', 0.0, 1.0)
 
 
 class ButtonBrightness(StyleSlider):
