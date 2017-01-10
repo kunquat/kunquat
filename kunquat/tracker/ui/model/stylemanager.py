@@ -137,7 +137,7 @@ class StyleManager():
 
     def is_custom_style_enabled(self):
         config_style = self._get_config_style()
-        return config_style.get('enabled', False)
+        return config_style.get('enabled', True)
 
     def get_style_param(self, key):
         config_style = self._get_config_style()
