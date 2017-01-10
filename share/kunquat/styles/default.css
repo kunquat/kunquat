@@ -182,6 +182,12 @@ QComboBox QAbstractItemView::item
     padding: 2px;
 }
 
+QDialog QPushButton
+{
+    padding: 4px;
+    min-width: 100px;
+}
+
 QPushButton, QToolButton:hover
 {
     padding: 3px;
