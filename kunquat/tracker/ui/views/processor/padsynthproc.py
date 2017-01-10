@@ -249,7 +249,7 @@ class SampleConfigEditor(QWidget):
         self._sample_count.setRange(1, 128)
         self._range_min = SamplePitchRangeMinEditor()
         self._range_max = SamplePitchRangeMaxEditor()
-        self._center_pitch = SampleCenterPitchEditor()
+        self._centre_pitch = SampleCentrePitchEditor()
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -261,21 +261,21 @@ class SampleConfigEditor(QWidget):
         h.addWidget(QLabel('Pitch range:'))
         h.addWidget(self._range_min)
         h.addWidget(self._range_max)
-        h.addWidget(QLabel('Center pitch:'))
-        h.addWidget(self._center_pitch)
+        h.addWidget(QLabel('Centre pitch:'))
+        h.addWidget(self._centre_pitch)
         self.setLayout(h)
 
     def set_au_id(self, au_id):
         self._au_id = au_id
         self._range_min.set_au_id(au_id)
         self._range_max.set_au_id(au_id)
-        self._center_pitch.set_au_id(au_id)
+        self._centre_pitch.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._proc_id = proc_id
         self._range_min.set_proc_id(proc_id)
         self._range_max.set_proc_id(proc_id)
-        self._center_pitch.set_proc_id(proc_id)
+        self._centre_pitch.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -283,7 +283,7 @@ class SampleConfigEditor(QWidget):
         self._updater.register_updater(self._perform_updates)
         self._range_min.set_ui_model(ui_model)
         self._range_max.set_ui_model(ui_model)
-        self._center_pitch.set_ui_model(ui_model)
+        self._centre_pitch.set_ui_model(ui_model)
 
         for sample_length in self._get_params().get_allowed_sample_lengths():
             self._sample_size.addItem(str(sample_length), userData=sample_length)
@@ -301,7 +301,7 @@ class SampleConfigEditor(QWidget):
         self._update_sample_params()
 
     def unregister_updaters(self):
-        self._center_pitch.unregister_updaters()
+        self._centre_pitch.unregister_updaters()
         self._range_max.unregister_updaters()
         self._range_min.unregister_updaters()
         self._updater.unregister_updater(self._perform_updates)
@@ -379,17 +379,17 @@ class SamplePitchRangeMaxEditor(PadsynthParamSlider):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
-class SampleCenterPitchEditor(PadsynthParamSlider):
+class SampleCentrePitchEditor(PadsynthParamSlider):
 
     def __init__(self):
         super().__init__(0, -6000.0, 6000.0)
 
     def _update_value(self):
-        center_pitch = self._get_params().get_sample_center_pitch()
-        self.set_number(center_pitch)
+        centre_pitch = self._get_params().get_sample_centre_pitch()
+        self.set_number(centre_pitch)
 
-    def _value_changed(self, center_pitch):
-        self._get_params().set_sample_center_pitch(center_pitch)
+    def _value_changed(self, centre_pitch):
+        self._get_params().set_sample_centre_pitch(centre_pitch)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 

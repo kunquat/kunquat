@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -82,10 +82,10 @@ class TuningTable():
         table['octave_width'] = octave_width
         self._set_table(table)
 
-    def get_center_octave(self):
+    def get_centre_octave(self):
         return self._get_table()['center_octave']
 
-    def set_center_octave(self, index):
+    def set_centre_octave(self, index):
         table = deepcopy(self._get_table())
         table['center_octave'] = index
         self._set_table(table)
@@ -170,16 +170,16 @@ class TuningTable():
     def apply_notation_template(self, notation_name, template):
         # Get general parameters
         ref_note_index = 0
-        center_pitch_value, units = template.get_center_pitch()
+        centre_pitch_value, units = template.get_centre_pitch()
         if units == 'cents':
-            ref_pitch = center_pitch_value
+            ref_pitch = centre_pitch_value
         elif units == 'Hz':
-            ref_pitch = math.log(center_pitch_value / 440.0, 2) * 1200
+            ref_pitch = math.log(centre_pitch_value / 440.0, 2) * 1200
         else:
             assert False
         pitch_offset = 0
         octave_width = template.get_octave_ratio()
-        _, center_octave, _ = template.get_octaves()
+        _, centre_octave, _ = template.get_octaves()
 
         # Get notes
         notes = []
@@ -192,7 +192,7 @@ class TuningTable():
         table['ref_pitch'] = ref_pitch
         table['pitch_offset'] = pitch_offset
         table['octave_width'] = octave_width
-        table['center_octave'] = center_octave
+        table['center_octave'] = centre_octave
         table['notes'] = [pitch for _, pitch in notes]
 
         note_names = [name for name, _ in notes]

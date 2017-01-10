@@ -302,7 +302,7 @@ class PlaybackPosition(QWidget):
         painter.setPen(Qt.NoPen)
         painter.setRenderHint(QPainter.Antialiasing)
 
-        center_y = icon_width * 0.5
+        centre_y = icon_width * 0.5
         height_norm = 0.4
 
         def draw_drop_shape(round_x_norm, sharp_x_norm):
@@ -323,7 +323,7 @@ class PlaybackPosition(QWidget):
                 norm_x = min(max(0, math.cos(t) + 1), 1)
                 norm_y = math.sin(t * 2)
                 x = utils.lerp_val(round_x, sharp_x, norm_x)
-                y = center_y + (norm_y * height)
+                y = centre_y + (norm_y * height)
 
                 points.append(QPointF(x, y))
 

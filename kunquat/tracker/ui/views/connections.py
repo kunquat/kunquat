@@ -278,7 +278,7 @@ class ConnectionsView(QWidget):
         self._visible_device_ids = []
         self._visible_devices = {}
 
-        self._center_pos = (0, 0)
+        self._centre_pos = (0, 0)
 
         self._focused_id = None
         self._focused_rel_pos = (0, 0)
@@ -339,8 +339,8 @@ class ConnectionsView(QWidget):
         return area_rect
 
     def get_visible_rect(self):
-        x_start = self._center_pos[0] - self.width() // 2
-        y_start = self._center_pos[1] - self.height() // 2
+        x_start = self._centre_pos[0] - self.width() // 2
+        y_start = self._centre_pos[1] - self.height() // 2
         return QRect(x_start, y_start, self.width(), self.height())
 
     def _get_connections(self):
@@ -383,11 +383,11 @@ class ConnectionsView(QWidget):
             return
 
         full_rect = area_rect.united(visible_rect)
-        new_center_pos = (
+        new_centre_pos = (
                 full_rect.left() + self.width() // 2 + area_x,
                 full_rect.top() + self.height() // 2 + area_y)
 
-        self._change_layout_entry('center_pos', new_center_pos)
+        self._change_layout_entry('center_pos', new_centre_pos)
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
@@ -574,7 +574,7 @@ class ConnectionsView(QWidget):
         connections = self._get_connections()
         layout = connections.get_layout()
 
-        self._center_pos = layout.get('center_pos', (0, 0))
+        self._centre_pos = layout.get('center_pos', (0, 0))
 
         # Get visible device IDs
         visible_set = set(['master'])
@@ -682,8 +682,8 @@ class ConnectionsView(QWidget):
                 y_offset_factor *= (-1 if (pos_cfg['index'] % 2 == 1) else 1)
                 pos_cfg['index'] += 1
                 offset = (
-                        self._center_pos[0] + pos_cfg['offset_x'],
-                        self._center_pos[1] + y_offset_factor * pos_cfg['offset_y'])
+                        self._centre_pos[0] + pos_cfg['offset_x'],
+                        self._centre_pos[1] + y_offset_factor * pos_cfg['offset_y'])
                 self._default_offsets[dev_id] = offset
 
             device = new_visible_devices[dev_id]
@@ -730,10 +730,10 @@ class ConnectionsView(QWidget):
             dev_id = 'master' if port_id.startswith('out') else 'Iin'
         return (dev_id, port_id)
 
-    def _get_port_center_from_path(self, path):
+    def _get_port_centre_from_path(self, path):
         dev_id, port_id = self._split_path(path)
-        port_center = self._visible_devices[dev_id].get_port_center(port_id)
-        return port_center
+        port_centre = self._visible_devices[dev_id].get_port_centre(port_id)
+        return port_centre
 
     def paintEvent(self, event):
         start = time.time()
@@ -743,8 +743,8 @@ class ConnectionsView(QWidget):
         painter.eraseRect(0, 0, self.width(), self.height())
 
         painter.translate(
-                self.width() // 2 - self._center_pos[0],
-                self.height() // 2 - self._center_pos[1])
+                self.width() // 2 - self._centre_pos[0],
+                self.height() // 2 - self._centre_pos[1])
 
         connections = self._get_connections()
         layout = connections.get_layout()
@@ -755,8 +755,8 @@ class ConnectionsView(QWidget):
         edges = connections.get_connections()
         for edge in edges:
             from_path, to_path = edge
-            from_pos = self._get_port_center_from_path(from_path)
-            to_pos = self._get_port_center_from_path(to_path)
+            from_pos = self._get_port_centre_from_path(from_path)
+            to_pos = self._get_port_centre_from_path(to_path)
             key = (from_pos, to_pos)
             if key in self._ls_cache:
                 new_ls_cache[key] = self._ls_cache[key]
@@ -773,8 +773,8 @@ class ConnectionsView(QWidget):
         # Highlight focused connection
         if self._focused_edge_info:
             from_path, to_path = self._focused_edge_info['paths']
-            from_x, from_y = self._get_port_center_from_path(from_path)
-            to_x, to_y = self._get_port_center_from_path(to_path)
+            from_x, from_y = self._get_port_centre_from_path(from_path)
+            to_x, to_y = self._get_port_centre_from_path(to_path)
             edge_width = self._config['focused_edge_width']
             offset = edge_width // 2
             from_x, from_y = from_x + offset, from_y + offset
@@ -794,7 +794,7 @@ class ConnectionsView(QWidget):
             from_info = self._adding_edge_info['from']
             from_dev_id = from_info['dev_id']
             from_port = from_info['port']
-            from_pos = self._visible_devices[from_dev_id].get_port_center(from_port)
+            from_pos = self._visible_devices[from_dev_id].get_port_centre(from_port)
             from_x, from_y = from_pos
 
             pen = QPen(self._config['focused_edge_colour'])
@@ -803,7 +803,7 @@ class ConnectionsView(QWidget):
             if to_info:
                 to_dev_id = to_info['dev_id']
                 to_port = to_info['port']
-                to_pos = self._visible_devices[to_dev_id].get_port_center(to_port)
+                to_pos = self._visible_devices[to_dev_id].get_port_centre(to_port)
                 to_x, to_y = to_pos
                 pen.setWidth(self._config['focused_edge_width'])
             else:
@@ -865,7 +865,7 @@ class ConnectionsView(QWidget):
         if invalid_target_info:
             dev_id = invalid_target_info['dev_id']
             port_id = invalid_target_info['port']
-            pos = self._visible_devices[dev_id].get_port_center(port_id)
+            pos = self._visible_devices[dev_id].get_port_centre(port_id)
             pos_x, pos_y = pos
 
             pen = QPen(
@@ -886,8 +886,8 @@ class ConnectionsView(QWidget):
         #print('Connections view updated in {:.2f} ms'.format(elapsed * 1000))
 
     def _get_area_pos(self, widget_x, widget_y):
-        return (widget_x - self.width() // 2 + self._center_pos[0],
-                widget_y - self.height() // 2 + self._center_pos[1])
+        return (widget_x - self.width() // 2 + self._centre_pos[0],
+                widget_y - self.height() // 2 + self._centre_pos[1])
 
     def _edge_menu_closing(self):
         self._state = STATE_IDLE
@@ -987,8 +987,8 @@ class ConnectionsView(QWidget):
                 edges = connections.get_connections()
                 for edge in edges:
                     from_path, to_path = edge
-                    from_pos = self._get_port_center_from_path(from_path)
-                    to_pos = self._get_port_center_from_path(to_path)
+                    from_pos = self._get_port_centre_from_path(from_path)
+                    to_pos = self._get_port_centre_from_path(to_path)
                     dist = get_dist_to_ls(area_pos, from_pos, to_pos)
                     if dist <= self._config['edge_focus_dist_max']:
                         new_focused_edge_info = { 'paths': edge }
@@ -1527,7 +1527,7 @@ class Device():
 
         painter.restore()
 
-    def _get_in_port_centers(self):
+    def _get_in_port_centres(self):
         bg_offset_x, bg_offset_y = self._get_top_left_pos(
                 (self._offset_x, self._offset_y))
 
@@ -1540,7 +1540,7 @@ class Device():
             yield (port_x, port_y)
             port_y += self._get_port_height()
 
-    def _get_out_port_centers(self):
+    def _get_out_port_centres(self):
         bg_offset_x, bg_offset_y = self._get_top_left_pos(
                 (self._offset_x, self._offset_y))
 
@@ -1553,13 +1553,13 @@ class Device():
             yield (port_x, port_y)
             port_y += self._get_port_height()
 
-    def get_port_center(self, port_id):
+    def get_port_centre(self, port_id):
         if port_id.startswith('in') != (self._id in ('master', 'Iin')):
-            for i, point in enumerate(self._get_in_port_centers()):
+            for i, point in enumerate(self._get_in_port_centres()):
                 if self._in_ports[i] == port_id:
                     return point
         else:
-            for i, point in enumerate(self._get_out_port_centers()):
+            for i, point in enumerate(self._get_out_port_centres()):
                 if self._out_ports[i] == port_id:
                     return point
 
@@ -1568,14 +1568,14 @@ class Device():
     def _get_in_port_rects(self):
         handle_size = self._config['port_handle_size']
         handle_offset = -handle_size // 2 + 1
-        for point in self._get_in_port_centers():
+        for point in self._get_in_port_centres():
             x, y = point
             yield QRect(x + handle_offset, y + handle_offset, handle_size, handle_size)
 
     def _get_out_port_rects(self):
         handle_size = self._config['port_handle_size']
         handle_offset = -handle_size // 2 + 1
-        for point in self._get_out_port_centers():
+        for point in self._get_out_port_centres():
             x, y = point
             yield QRect(x + handle_offset, y + handle_offset, handle_size, handle_size)
 
@@ -1642,13 +1642,13 @@ class Device():
 
         painter.restore()
 
-    def _get_top_left_pos(self, center_pos):
-        center_x, center_y = center_pos
-        return (center_x - self._bg.width() // 2, center_y - self._bg.height() // 2)
+    def _get_top_left_pos(self, centre_pos):
+        centre_x, centre_y = centre_pos
+        return (centre_x - self._bg.width() // 2, centre_y - self._bg.height() // 2)
 
-    def _get_dev_biased_pos(self, center_pos):
-        center_x, center_y = center_pos
-        return (center_x + self._bg.width() // 2, center_y + self._bg.height() // 2)
+    def _get_dev_biased_pos(self, centre_pos):
+        centre_x, centre_y = centre_pos
+        return (centre_x + self._bg.width() // 2, centre_y + self._bg.height() // 2)
 
     def _draw_rounded_rect(self, painter, colours, rect):
         inner_rect = rect.adjusted(1, 1, -1, -1)
@@ -1731,14 +1731,14 @@ class Device():
             return None
 
         if dev_x < 0:
-            for i, point in enumerate(self._get_in_port_centers()):
+            for i, point in enumerate(self._get_in_port_centres()):
                 x, y = point
                 x -= self._offset_x
                 y -= self._offset_y
                 if max(abs(dev_x - x), abs(dev_y - y)) <= port_dist_max:
                     return self._in_ports[i]
         else:
-            for i, point in enumerate(self._get_out_port_centers()):
+            for i, point in enumerate(self._get_out_port_centres()):
                 x, y = point
                 x -= self._offset_x
                 y -= self._offset_y

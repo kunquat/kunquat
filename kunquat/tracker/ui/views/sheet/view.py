@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -465,10 +465,10 @@ class View(QWidget):
             self.update()
             return
         min_snap_dist = self._config['edit_cursor']['min_snap_dist']
-        min_center_dist = min(min_snap_dist, self.height() // 2)
+        min_centre_dist = min(min_snap_dist, self.height() // 2)
         tr_height = self._config['tr_height']
-        min_y_offset = min_center_dist - tr_height // 2
-        max_y_offset = self.height() - min_center_dist - tr_height // 2
+        min_y_offset = min_centre_dist - tr_height // 2
+        max_y_offset = self.height() - min_centre_dist - tr_height // 2
         if y_offset < min_y_offset:
             is_view_scrolling_required = True
             new_y_offset = new_y_offset - (min_y_offset - y_offset)

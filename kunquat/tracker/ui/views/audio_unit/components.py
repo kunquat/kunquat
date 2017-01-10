@@ -665,12 +665,12 @@ class ControlVariableTypeExpander(QPushButton):
         painter.setPen(colour)
         painter.setBrush(colour)
 
-        center_x = self.width() // 2
-        center_y = self.height() // 2
+        centre_x = self.width() // 2
+        centre_y = self.height() // 2
 
         triangle_extent = 5
 
-        painter.translate(QPoint(center_x, center_y))
+        painter.translate(QPoint(centre_x, centre_y))
         if self.isChecked():
             painter.drawPolygon(QPolygon([
                     QPoint(-triangle_extent, 0),

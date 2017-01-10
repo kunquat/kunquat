@@ -42,10 +42,10 @@ class TuningTableEditor(QWidget):
         self._octave_width = QLineEdit()
         self._octave_width.setValidator(RatioValidator())
 
-        self._center_octave = QSpinBox()
-        self._center_octave.setRange(0, TUNING_TABLE_OCTAVES - 1)
+        self._centre_octave = QSpinBox()
+        self._centre_octave.setRange(0, TUNING_TABLE_OCTAVES - 1)
 
-        self._tuning_center = KqtComboBox()
+        self._tuning_centre = KqtComboBox()
 
         self._notes = Notes()
 
@@ -61,10 +61,10 @@ class TuningTableEditor(QWidget):
         gl.addWidget(self._pitch_offset, 2, 1)
         gl.addWidget(QLabel('Octave width:'), 3, 0)
         gl.addWidget(self._octave_width, 3, 1)
-        gl.addWidget(QLabel('Center octave:'), 4, 0)
-        gl.addWidget(self._center_octave, 4, 1)
-        gl.addWidget(QLabel('Tuning center:'), 5, 0)
-        gl.addWidget(self._tuning_center, 5, 1)
+        gl.addWidget(QLabel('Centre octave:'), 4, 0)
+        gl.addWidget(self._centre_octave, 4, 1)
+        gl.addWidget(QLabel('Tuning centre:'), 5, 0)
+        gl.addWidget(self._tuning_centre, 5, 1)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -96,13 +96,13 @@ class TuningTableEditor(QWidget):
                 SIGNAL('editingFinished()'),
                 self._change_octave_width)
         QObject.connect(
-                self._center_octave,
+                self._centre_octave,
                 SIGNAL('valueChanged(int)'),
-                self._change_center_octave)
+                self._change_centre_octave)
         QObject.connect(
-                self._tuning_center,
+                self._tuning_centre,
                 SIGNAL('currentIndexChanged(int)'),
-                self._change_tuning_center)
+                self._change_tuning_centre)
 
         self._update_name()
         self._update_params()
@@ -163,22 +163,22 @@ class TuningTableEditor(QWidget):
             self._octave_width.setText(octave_width_text)
         self._octave_width.blockSignals(old_block)
 
-        # Center octave
-        center_octave = table.get_center_octave()
+        # Centre octave
+        centre_octave = table.get_centre_octave()
 
-        old_block = self._center_octave.blockSignals(True)
-        if self._center_octave.value() != center_octave:
-            self._center_octave.setValue(center_octave)
-        self._center_octave.blockSignals(old_block)
+        old_block = self._centre_octave.blockSignals(True)
+        if self._centre_octave.value() != centre_octave:
+            self._centre_octave.setValue(centre_octave)
+        self._centre_octave.blockSignals(old_block)
 
-        # Tuning center
+        # Tuning centre
         ref_note_index = table.get_ref_note_index()
 
-        old_block = self._tuning_center.blockSignals(True)
-        self._tuning_center.set_items(
+        old_block = self._tuning_centre.blockSignals(True)
+        self._tuning_centre.set_items(
                 table.get_note_name(i) for i in range(table.get_note_count()))
-        self._tuning_center.setCurrentIndex(ref_note_index)
-        self._tuning_center.blockSignals(old_block)
+        self._tuning_centre.setCurrentIndex(ref_note_index)
+        self._tuning_centre.blockSignals(old_block)
 
     def _change_name(self, name):
         table = self._get_tuning_table()
@@ -207,14 +207,14 @@ class TuningTableEditor(QWidget):
         table.set_octave_width(octave_width)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
-    def _change_center_octave(self, index):
+    def _change_centre_octave(self, index):
         table = self._get_tuning_table()
-        table.set_center_octave(index)
+        table.set_centre_octave(index)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
-    def _change_tuning_center(self, center):
+    def _change_tuning_centre(self, centre):
         table = self._get_tuning_table()
-        table.set_ref_note_index(center)
+        table.set_ref_note_index(centre)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 

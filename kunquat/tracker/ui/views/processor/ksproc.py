@@ -165,11 +165,11 @@ class InitEnvelope(TimeEnvelope):
     def _set_scale_amount(self, value):
         self._get_ks_params().set_init_env_scale_amount(value)
 
-    def _get_scale_center(self):
-        return self._get_ks_params().get_init_env_scale_center()
+    def _get_scale_centre(self):
+        return self._get_ks_params().get_init_env_scale_centre()
 
-    def _set_scale_center(self, value):
-        self._get_ks_params().set_init_env_scale_center(value)
+    def _set_scale_centre(self, value):
+        self._get_ks_params().set_init_env_scale_centre(value)
 
     def _get_envelope_data(self):
         return self._get_ks_params().get_init_env()
@@ -226,11 +226,11 @@ class ShiftEnvelope(TimeEnvelope):
     def _set_scale_amount(self, value):
         self._get_ks_params().set_shift_env_scale_amount(value)
 
-    def _get_scale_center(self):
-        return self._get_ks_params().get_shift_env_scale_center()
+    def _get_scale_centre(self):
+        return self._get_ks_params().get_shift_env_scale_centre()
 
-    def _set_scale_center(self, value):
-        self._get_ks_params().set_shift_env_scale_center(value)
+    def _set_scale_centre(self, value):
+        self._get_ks_params().set_shift_env_scale_centre(value)
 
     def _get_envelope_data(self):
         return self._get_ks_params().get_shift_env()
@@ -329,11 +329,11 @@ class ReleaseEnvelope(TimeEnvelope):
     def _set_scale_amount(self, value):
         self._get_ks_params().set_release_env_scale_amount(value)
 
-    def _get_scale_center(self):
-        return self._get_ks_params().get_release_env_scale_center()
+    def _get_scale_centre(self):
+        return self._get_ks_params().get_release_env_scale_centre()
 
-    def _set_scale_center(self, value):
-        self._get_ks_params().set_release_env_scale_center(value)
+    def _set_scale_centre(self, value):
+        self._get_ks_params().set_release_env_scale_centre(value)
 
     def _get_envelope_data(self):
         return self._get_ks_params().get_release_env()

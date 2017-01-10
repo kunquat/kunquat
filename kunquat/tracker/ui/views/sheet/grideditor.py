@@ -591,11 +591,11 @@ class GridView(QWidget):
         is_scrolling_required = False
 
         min_snap_dist = self._config['edit_cursor']['min_snap_dist']
-        min_center_dist = min(min_snap_dist, self.height() // 2)
-        min_y_offset = min_center_dist
-        max_y_offset = self.height() - min_center_dist
+        min_centre_dist = min(min_snap_dist, self.height() // 2)
+        min_y_offset = min_centre_dist
+        max_y_offset = self.height() - min_centre_dist
 
-        if cursor_rel_y < min_center_dist:
+        if cursor_rel_y < min_centre_dist:
             is_scrolling_required = True
             new_px_offset = self._px_offset - (min_y_offset - cursor_rel_y)
         elif cursor_rel_y >= max_y_offset:

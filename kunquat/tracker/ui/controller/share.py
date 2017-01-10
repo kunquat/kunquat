@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2017
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -114,24 +114,24 @@ class Share():
                 return None
             template = {}
 
-            # Center pitch
-            center_pitch = unsafe_template.get('center_pitch', None)
-            if not isinstance(center_pitch, list):
+            # Centre pitch
+            centre_pitch = unsafe_template.get('center_pitch', None)
+            if not isinstance(centre_pitch, list):
                 return None
-            if len(center_pitch) != 2:
+            if len(centre_pitch) != 2:
                 return None
-            center, units = center_pitch
-            if not isinstance(center, (int, float)):
+            centre, units = centre_pitch
+            if not isinstance(centre, (int, float)):
                 return None
             if units == 'cents':
-                if not -9999 <= center <= 9999:
+                if not -9999 <= centre <= 9999:
                     return None
             elif units == 'Hz':
-                if not 1 <= center <= 20000:
+                if not 1 <= centre <= 20000:
                     return None
             else:
                 return None
-            template['center_pitch'] = center_pitch
+            template['center_pitch'] = centre_pitch
 
             def _get_validated_ratio(parts):
                 if len(parts) != 2:

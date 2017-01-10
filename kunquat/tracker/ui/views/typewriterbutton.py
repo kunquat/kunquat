@@ -62,13 +62,13 @@ class TWLed(QFrame):
 
         self._left = TWLight()
         self._left.setMaximumWidth(10)
-        self._center = TWLight()
+        self._centre = TWLight()
         self._right = TWLight()
         self._right.setMaximumWidth(10)
 
         h = QHBoxLayout()
         h.addWidget(self._left)
-        h.addWidget(self._center)
+        h.addWidget(self._centre)
         h.addWidget(self._right)
         h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(0)
@@ -77,17 +77,17 @@ class TWLed(QFrame):
         self.set_leds(0, 0, 0)
 
     def set_default_colours(self):
-        for widget in (self._left, self._center, self._right):
+        for widget in (self._left, self._centre, self._right):
             widget.set_default_colours()
 
     def set_colours(self, active_colour, disabled_colour):
-        for widget in (self._left, self._center, self._right):
+        for widget in (self._left, self._centre, self._right):
             widget.set_colours(active_colour, disabled_colour)
 
-    def set_leds(self, left_on, center_on, right_on):
-        self._left.set_state(left_on + center_on)
-        self._center.set_state(center_on)
-        self._right.set_state(right_on + center_on)
+    def set_leds(self, left_on, centre_on, right_on):
+        self._left.set_state(left_on + centre_on)
+        self._centre.set_state(centre_on)
+        self._right.set_state(right_on + centre_on)
 
 
 class TypewriterButton(QPushButton):
@@ -178,8 +178,8 @@ class TypewriterButton(QPushButton):
 
     def _update_leds(self):
         led_state = self._button_model.get_led_state() or (False, False, False)
-        left_on, center_on, right_on = (int(state) for state in led_state)
-        self._led.set_leds(left_on, center_on, right_on)
+        left_on, centre_on, right_on = (int(state) for state in led_state)
+        self._led.set_leds(left_on, centre_on, right_on)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)

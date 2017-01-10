@@ -802,8 +802,8 @@ class ColourSelector(QWidget):
         hue_ring_thickness = self._config['hue_ring_thickness']
         hue_inner_radius = self._hue_outer_radius * (1 - hue_ring_thickness)
 
-        dist_from_center = math.sqrt(x * x + y * y)
-        if hue_inner_radius < dist_from_center < self._hue_outer_radius:
+        dist_from_centre = math.sqrt(x * x + y * y)
+        if hue_inner_radius < dist_from_centre < self._hue_outer_radius:
             self._state = self._STATE_EDITING_HUE
             self._set_hue_from_coords(x, y)
             return
