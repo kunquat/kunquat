@@ -83,7 +83,7 @@ class Config():
             colour_names = [
                 'bg_colour',
                 'fg_colour',
-                'bg_colour_sunken',
+                'bg_sunken_colour',
                 'disabled_fg_colour',
                 'important_button_bg_colour',
                 'important_button_fg_colour',
@@ -99,7 +99,7 @@ class Config():
                 'conns_effect_fg_colour',
                 'conns_proc_voice_bg_colour',
                 'conns_proc_voice_fg_colour',
-                'conns_proc_voice_hilight_selected',
+                'conns_proc_voice_selected_colour',
                 'conns_proc_mixed_bg_colour',
                 'conns_proc_mixed_fg_colour',
                 'conns_master_bg_colour',
@@ -174,6 +174,7 @@ class Config():
                 'button_press_brightness': _Entry(lambda x: -1 <= x <= 1, 0),
             }
             for name in colour_names:
+                assert name.endswith('_colour')
                 style_config[name] = _Entry(v_colour, '#000')
 
             is_valid = all(k not in style_config or style_config[k].accepts(v)

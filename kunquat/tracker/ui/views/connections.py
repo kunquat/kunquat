@@ -444,7 +444,7 @@ class ConnectionsView(QWidget):
                     QColor(style_manager.get_adjusted_colour(
                         name, down_brightness - border_contrast)))
 
-        pv_hilight_selected = get_colour('conns_proc_voice_hilight_selected')
+        pv_hilight_selected = get_colour('conns_proc_voice_selected_colour')
         focus_colour = get_colour('conns_focus_colour')
         bg_colour = get_colour('conns_bg_colour')
 

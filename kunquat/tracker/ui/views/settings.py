@@ -333,7 +333,7 @@ class ColourModel():
 _COLOUR_DESCS = [
     ('bg_colour',                       'Default background'),
     ('fg_colour',                       'Default text'),
-    ('bg_colour_sunken',                'Sunken background'),
+    ('bg_sunken_colour',                'Sunken background'),
     ('disabled_fg_colour',              'Disabled text'),
     ('important_button_bg_colour',      'Important button background'),
     ('important_button_fg_colour',      'Important button text'),
@@ -354,7 +354,7 @@ _COLOUR_DESCS = [
     ('conns_effect_fg_colour',          'Connections effect text'),
     ('conns_proc_voice_bg_colour',      'Connections voice signal processor background'),
     ('conns_proc_voice_fg_colour',      'Connections voice signal processor text'),
-    ('conns_proc_voice_hilight_selected', 'Connections voice signal processor highlight'),
+    ('conns_proc_voice_selected_colour', 'Connections voice signal processor highlight'),
     ('conns_proc_mixed_bg_colour',      'Connections mixed signal processor background'),
     ('conns_proc_mixed_fg_colour',      'Connections mixed signal processor text'),
     ('conns_master_bg_colour',          'Connections master background'),

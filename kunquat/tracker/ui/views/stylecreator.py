@@ -72,14 +72,14 @@ class StyleCreator():
 
         bg_colour_str = style_manager.get_style_param('bg_colour')
         fg_colour_str = style_manager.get_style_param('fg_colour')
-        bg_colour_sunken_str = style_manager.get_style_param('bg_colour_sunken')
+        bg_sunken_colour_str = style_manager.get_style_param('bg_sunken_colour')
 
         disabled_fg_colour = self._get_colour_from_str(
                 style_manager.get_style_param('disabled_fg_colour'))
 
         bg_colour = self._get_colour_from_str(bg_colour_str)
         fg_colour = self._get_colour_from_str(fg_colour_str)
-        bg_colour_sunken = self._get_colour_from_str(bg_colour_sunken_str)
+        bg_sunken_colour = self._get_colour_from_str(bg_sunken_colour_str)
 
         button_bg_colour = self._adjust_brightness(bg_colour, button_brightness)
         button_fg_colour = fg_colour
@@ -158,7 +158,7 @@ class StyleCreator():
             'important_button_fg_colour'            : ib_fg_colour,
             'important_button_down_fg_colour'       : ib_down_fg_colour,
             'important_button_down2_fg_colour'      : ib_down2_fg_colour,
-            'scrollbar_bg_colour'         : bg_colour_sunken,
+            'scrollbar_bg_colour'         : bg_sunken_colour,
             'tab_shade_top_colour'        : tab_shade_top_colour,
             'tab_shade_top_colour_light'  : make_light(tab_shade_top_colour),
             'tab_shade_top_colour_dark'   : make_dark(tab_shade_top_colour),

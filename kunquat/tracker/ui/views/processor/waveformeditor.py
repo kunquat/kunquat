@@ -100,7 +100,7 @@ class WaveformEditor(QWidget):
         def get_colour(name):
             return QColor(style_manager.get_style_param(name))
 
-        disabled_colour = QColor(get_colour('bg_colour_sunken'))
+        disabled_colour = QColor(get_colour('bg_sunken_colour'))
         disabled_colour.setAlpha(0x7f)
 
         config = {

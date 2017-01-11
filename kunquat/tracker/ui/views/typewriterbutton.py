@@ -151,7 +151,7 @@ class TypewriterButton(QPushButton):
         else:
             self._led.set_colours(
                     style_manager.get_style_param('active_indicator_colour'),
-                    style_manager.get_style_param('bg_colour_sunken'))
+                    style_manager.get_style_param('bg_sunken_colour'))
 
     def _update_properties(self):
         name = self._button_model.get_name()
