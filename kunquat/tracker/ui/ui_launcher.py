@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -106,20 +106,17 @@ class UiLauncher():
         root_view.set_task_executer(self.add_task)
 
         update_timer = QTimer()
-        QObject.connect(update_timer,
-                        SIGNAL('timeout()'),
-                        self.update)
+        QObject.connect(update_timer, SIGNAL('timeout()'), self.update)
         update_timer.start(1000 * self.UI_DELTA)
+
         root_view.set_ui_model(self._ui_model)
+        root_view.set_crash_dialog(error_dialog)
 
         self._event_pump_starter()
 
         self._task_timer = QTimer()
         self._task_timer.setSingleShot(True)
-        QObject.connect(
-                self._task_timer,
-                SIGNAL('timeout()'),
-                self._execute_tasks)
+        QObject.connect(self._task_timer, SIGNAL('timeout()'), self._execute_tasks)
 
         if not self._show:
             visibility_manager = self._ui_model.get_visibility_manager()

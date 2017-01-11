@@ -44,6 +44,8 @@ class RootView():
         self._visible = set()
 
         self._style_creator = StyleCreator()
+        self._crash_dialog = None
+
         self._main_window = MainWindow()
         self._about_window = None
         self._event_log = None
@@ -76,6 +78,10 @@ class RootView():
         style_manager.set_init_style_sheet(QApplication.instance().styleSheet())
         style_sheet = self._style_creator.get_updated_style_sheet()
         QApplication.instance().setStyleSheet(style_sheet)
+
+    def set_crash_dialog(self, crash_dialog):
+        self._crash_dialog = crash_dialog
+        self._crash_dialog.update_link_colour(self._ui_model.get_style_manager())
 
     def show_main_window(self):
         visibility_manager = self._ui_model.get_visibility_manager()
@@ -278,6 +284,7 @@ class RootView():
             if 'signal_style_changed' in signals:
                 style_sheet = self._style_creator.get_updated_style_sheet()
                 QApplication.instance().setStyleSheet(style_sheet)
+                self._crash_dialog.update_link_colour(self._ui_model.get_style_manager())
         else:
             QApplication.quit()
 
