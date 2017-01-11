@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -22,8 +22,9 @@ from PySide.QtGui import *
 
 DEFAULT_CONFIG = {
     'bg_colour'                 : QColor(0, 0, 0),
-    'center_line_colour'        : QColor(0x66, 0x66, 0x66),
-    'sample_colour'             : QColor(0x44, 0xcc, 0xff),
+    'centre_line_colour'        : QColor(0x66, 0x66, 0x66),
+    'zoomed_out_colour'         : QColor(0x44, 0xcc, 0xff),
+    'single_item_colour'        : QColor(0x44, 0xcc, 0xff),
     'interp_colour'             : QColor(0x22, 0x88, 0xaa),
     'max_node_size'             : 6,
     'loop_line_colour'          : QColor(0x77, 0x99, 0xbb),
@@ -61,6 +62,9 @@ class SampleView(QWidget):
                 self._area,
                 SIGNAL('rangeChanged(int, int)'),
                 self._toolbar.set_view_range)
+
+    def set_config(self, config):
+        self._area.set_config(config)
 
     def set_icon_bank(self, icon_bank):
         self._toolbar.set_icon_bank(icon_bank)
@@ -148,6 +152,9 @@ class SampleViewArea(QAbstractScrollArea):
 
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+    def set_config(self, config):
+        self.viewport().set_config(config)
 
     def set_sample(self, length, get_sample_data):
         self.viewport().set_sample(length, get_sample_data)
@@ -249,14 +256,14 @@ class SampleViewCanvas(QWidget):
     _STATE_WAITING = 'waiting'
     _STATE_MOVING_MARKER = 'moving_marker'
 
-    def __init__(self, signal_loop_start_changed, signal_loop_stop_changed, config={}):
+    def __init__(self, signal_loop_start_changed, signal_loop_stop_changed):
         super().__init__()
 
         self._signal_loop_start_changed = signal_loop_start_changed
         self._signal_loop_stop_changed = signal_loop_stop_changed
 
         self._config = None
-        self._set_config(config)
+        self.set_config({})
 
         self._length = 0
         self._range = [0, 0]
@@ -276,9 +283,10 @@ class SampleViewCanvas(QWidget):
 
         self.setMouseTracking(True)
 
-        QObject.connect(self, SIGNAL('refresh()'), self._refresh)
+        QObject.connect(
+                self, SIGNAL('refresh()'), self._refresh, type=Qt.QueuedConnection)
 
-    def _set_config(self, config):
+    def set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
         self._config.update(config)
 
@@ -450,7 +458,7 @@ class SampleViewCanvas(QWidget):
 
                 if shape:
                     pixmap = QPixmap(self._REF_PIXMAP_WIDTH, height)
-                    pixmap.fill(QColor(0, 0, 0))
+                    pixmap.fill(self._config['bg_colour'])
 
                     painter = QPainter(pixmap)
                     painter.setRenderHint(QPainter.Antialiasing)
@@ -490,7 +498,7 @@ class SampleViewCanvas(QWidget):
         start = time.time()
 
         painter = QPainter(self)
-        painter.setBackground(QColor(0, 0, 0))
+        painter.setBackground(self._config['bg_colour'])
         painter.eraseRect(0, 0, self.width(), self.height())
         painter.setRenderHint(QPainter.SmoothPixmapTransform)
 
@@ -576,7 +584,7 @@ class Shape():
 
     def __init__(self):
         self._shapes = []
-        self._center_line_length = 0
+        self._centre_line_length = 0
 
         # Additional information required when displaying individual items
         self._items = []
@@ -586,8 +594,6 @@ class Shape():
         if not self._shapes:
             return
 
-        sample_colour = config['sample_colour']
-
         ch_count = len(self._shapes)
 
         painter.save()
@@ -595,14 +601,14 @@ class Shape():
         painter.translate(0, -ch_count + 1)
 
         for i, shape in enumerate(self._shapes):
-            # Center line
-            painter.setPen(config['center_line_colour'])
-            painter.drawLine(QPointF(0, 0), QPointF(self._center_line_length, 0))
+            # Centre line
+            painter.setPen(config['centre_line_colour'])
+            painter.drawLine(QPointF(0, 0), QPointF(self._centre_line_length, 0))
 
             if isinstance(shape, QPolygonF):
                 # Filled blob
-                painter.setPen(sample_colour)
-                painter.setBrush(sample_colour)
+                painter.setPen(config['zoomed_out_colour'])
+                painter.setBrush(config['zoomed_out_colour'])
                 painter.drawPolygon(shape)
 
             elif isinstance(shape, QPainterPath):
@@ -627,7 +633,7 @@ class Shape():
                     painter.fillRect(
                             QRectF(x - node_width / 2, y - node_height / 2,
                                 node_width, node_height),
-                            sample_colour)
+                            config['single_item_colour'])
                 painter.restore()
 
             painter.translate(0, 2)
@@ -642,7 +648,7 @@ class Shape():
         slice_range_width = stop - start
         assert slice_range_width > 0
 
-        self._center_line_length = slice_range_width / ref_fpp
+        self._centre_line_length = slice_range_width / ref_fpp
 
         if ref_fpp > 2:
             # Filled blob

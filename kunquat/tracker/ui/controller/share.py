@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2017
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -27,6 +27,7 @@ class Share():
         self._icons_path = os.path.join(self._path, 'icons')
         self._keymaps_path = os.path.join(self._path, 'keymaps')
         self._notations_path = os.path.join(self._path, 'notations')
+        self._styles_path = os.path.join(self._path, 'styles')
 
         self._notations = {}
         self._read_notations()
@@ -113,24 +114,24 @@ class Share():
                 return None
             template = {}
 
-            # Center pitch
-            center_pitch = unsafe_template.get('center_pitch', None)
-            if not isinstance(center_pitch, list):
+            # Centre pitch
+            centre_pitch = unsafe_template.get('center_pitch', None)
+            if not isinstance(centre_pitch, list):
                 return None
-            if len(center_pitch) != 2:
+            if len(centre_pitch) != 2:
                 return None
-            center, units = center_pitch
-            if not isinstance(center, (int, float)):
+            centre, units = centre_pitch
+            if not isinstance(centre, (int, float)):
                 return None
             if units == 'cents':
-                if not -9999 <= center <= 9999:
+                if not -9999 <= centre <= 9999:
                     return None
             elif units == 'Hz':
-                if not 1 <= center <= 20000:
+                if not 1 <= centre <= 20000:
                     return None
             else:
                 return None
-            template['center_pitch'] = center_pitch
+            template['center_pitch'] = centre_pitch
 
             def _get_validated_ratio(parts):
                 if len(parts) != 2:
@@ -216,6 +217,11 @@ class Share():
                 'add',
                 'arrow_down_small',
                 'arrow_up_small',
+                'arrow_down_tiny',
+                'arrow_left_tiny',
+                'arrow_right_tiny',
+                'arrow_up_tiny',
+                'check_mark',
                 'col_expand',
                 'col_reset_width',
                 'col_shrink',
@@ -241,6 +247,7 @@ class Share():
                 'rest',
                 'reuse_pattern',
                 'silence',
+                'splitter_vertical',
                 'undo',
                 'warning',
                 'zoom_in',
@@ -252,5 +259,17 @@ class Share():
         icon_filename = '{}.png'.format(icon_name)
         icon_path = os.path.join(self._icons_path, icon_filename)
         return icon_path
+
+    def get_icons_dir(self):
+        return self._icons_path
+
+    def get_style_sheet(self, style_name):
+        ss_path = os.path.join(self._styles_path, '{}.css'.format(style_name))
+        try:
+            with open(ss_path, encoding='utf-8') as f:
+                ss = f.read(131072) # TODO: Add some basic sanity checks
+        except FileNotFoundError:
+            return ''
+        return ss
 
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -20,6 +20,7 @@ from PySide.QtGui import *
 import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.model.gridpattern import STYLE_COUNT
 from kunquat.tracker.ui.views.headerline import HeaderLine
+from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.numberslider import NumberSlider
 from .config import *
 from .ruler import Ruler
@@ -266,6 +267,26 @@ class GridListToolBar(QToolBar):
             'signal_grid_pattern_selection']))
 
 
+class Corner(QWidget):
+
+    def __init__(self):
+        super().__init__()
+
+        self._bg_colour = QColor(0, 0, 0)
+
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_OpaquePaintEvent)
+        self.setAttribute(Qt.WA_NoSystemBackground)
+
+    def set_config(self, config):
+        self._bg_colour = config['bg_colour']
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setBackground(self._bg_colour)
+        painter.eraseRect(event.rect())
+
+
 class GridArea(QAbstractScrollArea):
 
     def __init__(self):
@@ -274,19 +295,15 @@ class GridArea(QAbstractScrollArea):
 
         self._ui_model = None
         self._updater = None
+        self._config = None
 
         # Widgets
         self.setViewport(GridView())
 
-        self._corner = QWidget()
-        self._corner.setStyleSheet('QWidget { background-color: #000 }')
+        self._corner = Corner()
 
         self._ruler = Ruler(is_grid_ruler=True)
         self._header = GridHeader()
-
-        # Config
-        self._config = None
-        self._set_config({})
 
         # Layout
         g = QGridLayout()
@@ -308,6 +325,8 @@ class GridArea(QAbstractScrollArea):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+
+        self._update_config()
 
         grid_manager = self._ui_model.get_grid_manager()
 
@@ -335,14 +354,19 @@ class GridArea(QAbstractScrollArea):
         self._ruler.unregister_updaters()
         self.viewport().unregister_updaters()
 
-    def _set_config(self, config):
+    def _update_config(self):
+        style_manager = self._ui_model.get_style_manager()
+
         self._config = DEFAULT_CONFIG.copy()
+        config = get_config_with_custom_style(style_manager)
         self._config.update(config)
 
         for subcfg in ('ruler', 'header', 'edit_cursor', 'grid'):
             self._config[subcfg] = DEFAULT_CONFIG[subcfg].copy()
             if subcfg in config:
                 self._config[subcfg].update(config[subcfg])
+
+        self._corner.set_config(self._config)
 
         fm = QFontMetrics(self._config['font'], self)
         self._config['font_metrics'] = fm
@@ -380,6 +404,9 @@ class GridArea(QAbstractScrollArea):
 
         if 'signal_grid_zoom' in signals:
             self._update_zoom()
+        if 'signal_style_changed' in signals:
+            self._update_config()
+            self.update()
 
     def _update_selected_grid_pattern(self):
         self._ruler.update_grid_pattern()
@@ -564,11 +591,11 @@ class GridView(QWidget):
         is_scrolling_required = False
 
         min_snap_dist = self._config['edit_cursor']['min_snap_dist']
-        min_center_dist = min(min_snap_dist, self.height() // 2)
-        min_y_offset = min_center_dist
-        max_y_offset = self.height() - min_center_dist
+        min_centre_dist = min(min_snap_dist, self.height() // 2)
+        min_y_offset = min_centre_dist
+        max_y_offset = self.height() - min_centre_dist
 
-        if cursor_rel_y < min_center_dist:
+        if cursor_rel_y < min_centre_dist:
             is_scrolling_required = True
             new_px_offset = self._px_offset - (min_y_offset - cursor_rel_y)
         elif cursor_rel_y >= max_y_offset:
@@ -799,6 +826,8 @@ class GeneralEditor(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        self._update_config()
+
         QObject.connect(
                 self._name, SIGNAL('textEdited(QString)'), self._change_name)
 
@@ -828,6 +857,17 @@ class GeneralEditor(QWidget):
             'signal_grid_pattern_selection', 'signal_grid_pattern_modified'])
         if not signals.isdisjoint(update_signals):
             self._update_all()
+        if 'signal_style_changed' in signals:
+            self._update_config()
+            self.update()
+
+    def _update_config(self):
+        style_manager = self._ui_model.get_style_manager()
+        config = DEFAULT_CONFIG.copy()
+        custom_config = get_config_with_custom_style(style_manager)
+        config.update(custom_config)
+
+        self._spacing_style.set_config(config)
 
     def _get_selected_grid_pattern(self):
         grid_manager = self._ui_model.get_grid_manager()
@@ -960,6 +1000,8 @@ class SubdivEditor(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        self._update_config()
+
         QObject.connect(
                 self._subdiv_count, SIGNAL('valueChanged(int)'), self._change_count)
 
@@ -986,6 +1028,17 @@ class SubdivEditor(QWidget):
             'signal_grid_pattern_subdiv'])
         if not signals.isdisjoint(update_signals):
             self._update_all()
+        if 'signal_style_changed' in signals:
+            self._update_config()
+            self.update()
+
+    def _update_config(self):
+        style_manager = self._ui_model.get_style_manager()
+        config = DEFAULT_CONFIG.copy()
+        custom_config = get_config_with_custom_style(style_manager)
+        config.update(custom_config)
+
+        self._subdiv_line_style.set_config(config)
 
     def _get_selected_line_ts(self):
         grid_manager = self._ui_model.get_grid_manager()
@@ -1077,6 +1130,8 @@ class LineEditor(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        self._update_config()
+
         QObject.connect(
                 self._line_style,
                 SIGNAL('currentIndexChanged(int)'),
@@ -1096,6 +1151,16 @@ class LineEditor(QWidget):
             'signal_grid_pattern_modified'])
         if not signals.isdisjoint(update_signals):
             self._update_all()
+        if 'signal_style_changed' in signals:
+            self._update_config()
+
+    def _update_config(self):
+        style_manager = self._ui_model.get_style_manager()
+        config = DEFAULT_CONFIG.copy()
+        custom_config = get_config_with_custom_style(style_manager)
+        config.update(custom_config)
+
+        self._line_style.set_config(config)
 
     def _get_grid_pattern(self):
         grid_manager = self._ui_model.get_grid_manager()
@@ -1286,7 +1351,7 @@ class LineStyleDelegate(QItemDelegate):
         return pixmap.size()
 
 
-class LineStyle(QComboBox):
+class LineStyle(KqtComboBox):
 
     def __init__(self, is_major_enabled=False):
         super().__init__()
@@ -1297,6 +1362,9 @@ class LineStyle(QComboBox):
 
         self.set_config(DEFAULT_CONFIG)
 
+        for i in range(self._first_style, STYLE_COUNT):
+            self.addItem(str(i), i)
+
     def set_config(self, config):
         self._config = config
 
@@ -1305,9 +1373,6 @@ class LineStyle(QComboBox):
         self._ls_delegate.set_config(self._config)
 
         self.setItemDelegate(self._ls_delegate)
-
-        for i in range(self._first_style, STYLE_COUNT):
-            self.addItem(str(i), i)
 
     def get_current_line_style(self):
         return self.itemData(self.currentIndex())

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -103,19 +103,19 @@ class AbstractAxisRenderer():
         if dist < marker_dist_min * 2:
             return
 
-        val_center = (val_start + val_stop) / 2.0
-        px_center = int((px_start + px_stop) / 2)
+        val_centre = (val_start + val_stop) / 2.0
+        px_centre = int((px_start + px_stop) / 2)
 
-        draw_marker_func(painter, px_center, marker_width)
+        draw_marker_func(painter, px_centre, marker_width)
 
         if dist >= label_dist_min * 2:
-            draw_label_func(painter, px_center, val_center)
+            draw_label_func(painter, px_centre, val_centre)
 
         self._fill_markers_interval(
                 painter,
                 draw_marker_func,
-                val_start, val_center,
-                px_start, px_center,
+                val_start, val_centre,
+                px_start, px_centre,
                 dist / 2.0,
                 marker_dist_min,
                 marker_width - 1,
@@ -125,8 +125,8 @@ class AbstractAxisRenderer():
         self._fill_markers_interval(
                 painter,
                 draw_marker_func,
-                val_center, val_stop,
-                px_center, px_stop,
+                val_centre, val_stop,
+                px_centre, px_stop,
                 dist / 2.0,
                 marker_dist_min,
                 marker_width - 1,
@@ -286,17 +286,17 @@ class HorizontalAxisRenderer(AbstractAxisRenderer):
         painter.drawLine(0, 0, self._axis_length - 1, 0)
 
         # Marker drawing callback
-        def draw_marker(painter, px_center, marker_width):
+        def draw_marker(painter, px_centre, marker_width):
             painter.setPen(self._config['line_colour'])
             marker_width = max(marker_width, self._config['axis_x']['marker_min_width'])
             marker_start = marker_width
-            painter.drawLine(px_center, marker_start, px_center, 1)
+            painter.drawLine(px_centre, marker_start, px_centre, 1)
 
         # Label drawing callback
         painter.setFont(self._config['label_font'])
         text_option = QTextOption(Qt.AlignHCenter | Qt.AlignTop)
 
-        def draw_label(painter, px_center, num):
+        def draw_label(painter, px_centre, num):
             painter.setPen(self._config['label_colour'])
             marker_width = self._config['axis_x']['marker_max_width']
 
@@ -307,7 +307,7 @@ class HorizontalAxisRenderer(AbstractAxisRenderer):
             # Draw
             width = self._config['axis_x']['label_min_dist']
             rect = QRectF(
-                    px_center - width / 2.0, marker_width - 1,
+                    px_centre - width / 2.0, marker_width - 1,
                     width, self._num_space.height())
             painter.drawText(rect, text, text_option)
 
@@ -367,9 +367,9 @@ class VerticalAxisRenderer(AbstractAxisRenderer):
             return self._axis_length - ruler_px - 1
 
         # Marker drawing callback
-        def draw_marker(painter, px_center, marker_width):
+        def draw_marker(painter, px_centre, marker_width):
             painter.setPen(self._config['line_colour'])
-            px_y = ruler_to_y(px_center)
+            px_y = ruler_to_y(px_centre)
             marker_width = max(marker_width, self._config['axis_y']['marker_min_width'])
             marker_start = axis_width - marker_width - 1
             painter.drawLine(marker_start, px_y, axis_width - 2, px_y)
@@ -378,10 +378,10 @@ class VerticalAxisRenderer(AbstractAxisRenderer):
         painter.setFont(self._config['label_font'])
         text_option = QTextOption(Qt.AlignRight | Qt.AlignVCenter)
 
-        def draw_label(painter, px_center, num):
+        def draw_label(painter, px_centre, num):
             painter.setPen(self._config['label_colour'])
             marker_width = self._config['axis_y']['marker_max_width']
-            px_y = ruler_to_y(px_center)
+            px_y = ruler_to_y(px_centre)
 
             # Text
             numi = int(num)

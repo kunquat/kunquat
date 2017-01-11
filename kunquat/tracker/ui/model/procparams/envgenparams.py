@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -60,10 +60,10 @@ class EnvgenParams(ProcParams):
     def set_time_env_scale_amount(self, value):
         self._set_value('p_f_env_scale_amount.json', value)
 
-    def get_time_env_scale_center(self):
+    def get_time_env_scale_centre(self):
         return self._get_value('p_f_env_scale_center.json', 0)
 
-    def set_time_env_scale_center(self, value):
+    def set_time_env_scale_centre(self, value):
         self._set_value('p_f_env_scale_center.json', value)
 
     def get_linear_force_enabled(self):

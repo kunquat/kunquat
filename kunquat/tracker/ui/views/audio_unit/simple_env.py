@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -33,7 +33,7 @@ class SimpleEnvelope(QWidget):
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
-        v.setSpacing(6)
+        v.setSpacing(2)
         v.addWidget(header)
         v.addWidget(self._enabled_toggle)
         v.addWidget(self._envelope)
@@ -57,6 +57,8 @@ class SimpleEnvelope(QWidget):
                 SIGNAL('envelopeChanged()'),
                 self._envelope_changed)
 
+        self._envelope.update_style(self._ui_model.get_style_manager())
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
@@ -64,6 +66,9 @@ class SimpleEnvelope(QWidget):
         update_signals = set(['signal_au', self._get_update_signal_type()])
         if not signals.isdisjoint(update_signals):
             self._update_envelope()
+
+        if 'signal_style_changed' in signals:
+            self._envelope.update_style(self._ui_model.get_style_manager())
 
     def _update_envelope(self):
         old_block = self._enabled_toggle.blockSignals(True)

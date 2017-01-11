@@ -33,6 +33,8 @@ class Ruler(QWidget):
 
         self._is_grid_ruler = is_grid_ruler
 
+        self._width = 16
+
         self._lengths = []
         self._px_offset = 0
         self._px_per_beat = None
@@ -236,6 +238,7 @@ class RulerCache():
 
     def set_config(self, config):
         self._config = config
+        self._pixmaps = {}
 
     def set_width(self, width):
         if width != self._width:

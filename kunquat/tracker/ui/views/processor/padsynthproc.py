@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -19,6 +19,8 @@ from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
+from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
+from kunquat.tracker.ui.views.stylecreator import StyleCreator
 from . import utils
 from .procnumslider import ProcNumSlider
 from .waveformeditor import WaveformEditor
@@ -41,7 +43,7 @@ class PadsynthProc(QWidget):
         self._harmonic_scales = HarmonicScales()
 
         v = QVBoxLayout()
-        v.setContentsMargins(0, 0, 0, 0)
+        v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
         v.addWidget(self._playback_params)
         v.addWidget(self._apply_button)
@@ -168,16 +170,11 @@ class ApplyButton(QPushButton):
         self._ui_model = None
         self._updater = None
 
+        self._style_creator = StyleCreator()
+        self._style_sheet = ''
+
         self.setText('Apply parameters')
         self.setEnabled(False)
-
-        self.setStyleSheet(
-            '''QPushButton:enabled
-            {
-                background-color: #a32;
-                color: #fff;
-            }
-            ''')
 
     def set_au_id(self, au_id):
         self._au_id = au_id
@@ -190,11 +187,15 @@ class ApplyButton(QPushButton):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        self._style_creator.set_ui_model(ui_model)
+
         QObject.connect(self, SIGNAL('clicked()'), self._apply_params)
 
+        self._style_sheet = QApplication.instance().styleSheet()
         self._update_status()
 
     def unregister_updaters(self):
+        self._style_creator.unregister_updaters()
         self._updater.unregister_updater(self._perform_updates)
 
     def _get_update_signal_type(self):
@@ -205,9 +206,19 @@ class ApplyButton(QPushButton):
         if not signals.isdisjoint(update_signals):
             self._update_status()
 
+        if 'signal_style_changed' in signals:
+            self._update_style()
+
+    def _update_style(self):
+        self._style_sheet = self._style_creator.get_updated_style_sheet()
+        self.setStyleSheet(self._style_sheet)
+
     def _update_status(self):
         params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         self.setEnabled(not params.is_config_applied())
+
+        self.setObjectName('Important' if self.isEnabled() else '')
+        self.setStyleSheet(self._style_sheet)
 
     def _apply_params(self):
         params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -233,12 +244,12 @@ class SampleConfigEditor(QWidget):
         self._ui_model = None
         self._updater = None
 
-        self._sample_size = QComboBox()
+        self._sample_size = KqtComboBox()
         self._sample_count = QSpinBox()
         self._sample_count.setRange(1, 128)
         self._range_min = SamplePitchRangeMinEditor()
         self._range_max = SamplePitchRangeMaxEditor()
-        self._center_pitch = SampleCenterPitchEditor()
+        self._centre_pitch = SampleCentrePitchEditor()
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -250,21 +261,21 @@ class SampleConfigEditor(QWidget):
         h.addWidget(QLabel('Pitch range:'))
         h.addWidget(self._range_min)
         h.addWidget(self._range_max)
-        h.addWidget(QLabel('Center pitch:'))
-        h.addWidget(self._center_pitch)
+        h.addWidget(QLabel('Centre pitch:'))
+        h.addWidget(self._centre_pitch)
         self.setLayout(h)
 
     def set_au_id(self, au_id):
         self._au_id = au_id
         self._range_min.set_au_id(au_id)
         self._range_max.set_au_id(au_id)
-        self._center_pitch.set_au_id(au_id)
+        self._centre_pitch.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._proc_id = proc_id
         self._range_min.set_proc_id(proc_id)
         self._range_max.set_proc_id(proc_id)
-        self._center_pitch.set_proc_id(proc_id)
+        self._centre_pitch.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -272,7 +283,7 @@ class SampleConfigEditor(QWidget):
         self._updater.register_updater(self._perform_updates)
         self._range_min.set_ui_model(ui_model)
         self._range_max.set_ui_model(ui_model)
-        self._center_pitch.set_ui_model(ui_model)
+        self._centre_pitch.set_ui_model(ui_model)
 
         for sample_length in self._get_params().get_allowed_sample_lengths():
             self._sample_size.addItem(str(sample_length), userData=sample_length)
@@ -290,7 +301,7 @@ class SampleConfigEditor(QWidget):
         self._update_sample_params()
 
     def unregister_updaters(self):
-        self._center_pitch.unregister_updaters()
+        self._centre_pitch.unregister_updaters()
         self._range_max.unregister_updaters()
         self._range_min.unregister_updaters()
         self._updater.unregister_updater(self._perform_updates)
@@ -368,17 +379,17 @@ class SamplePitchRangeMaxEditor(PadsynthParamSlider):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
-class SampleCenterPitchEditor(PadsynthParamSlider):
+class SampleCentrePitchEditor(PadsynthParamSlider):
 
     def __init__(self):
         super().__init__(0, -6000.0, 6000.0)
 
     def _update_value(self):
-        center_pitch = self._get_params().get_sample_center_pitch()
-        self.set_number(center_pitch)
+        centre_pitch = self._get_params().get_sample_centre_pitch()
+        self.set_number(centre_pitch)
 
-    def _value_changed(self, center_pitch):
-        self._get_params().set_sample_center_pitch(center_pitch)
+    def _value_changed(self, centre_pitch):
+        self._get_params().set_sample_centre_pitch(centre_pitch)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
@@ -696,6 +707,8 @@ class HarmonicScales(QWidget):
         self._editor = HarmonicScalesList()
 
         v = QVBoxLayout()
+        v.setContentsMargins(0, 0, 0, 0)
+        v.setSpacing(2)
         v.addWidget(HeaderLine('Harmonic scales'))
         v.addWidget(self._editor)
         self.setLayout(v)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -17,6 +17,7 @@ from PySide.QtGui import *
 from kunquat.kunquat.limits import *
 from .editorlist import EditorList
 from .headerline import HeaderLine
+from .kqtcombobox import KqtComboBox
 from .varnamevalidator import MaybeVarNameValidator
 
 
@@ -91,7 +92,7 @@ class ChDefaults(QWidget):
         width += 20
         num_widget.setFixedWidth(width)
 
-        self._au_selector = QComboBox()
+        self._au_selector = KqtComboBox()
         self._au_selector.setSizePolicy(
                 QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
 
@@ -143,6 +144,8 @@ class ChDefaults(QWidget):
         control_num = int(second, 16)
         control = self._module.get_control(control_id)
         au = control.get_audio_unit()
+        if not au.get_existence():
+            return '-'
         au_type = 'Instrument' if au.is_instrument() else 'Effect'
         au_name = au.get_name() or '-'
         text = '{} {}: {}'.format(au_type, control_num, au_name)
@@ -152,16 +155,19 @@ class ChDefaults(QWidget):
         chd = self._module.get_channel_defaults()
         default_control_id = chd.get_default_control_id(self._ch_num) if chd else None
 
-        control_ids = self._module.get_control_ids()
-        self._control_catalog = dict(enumerate(sorted(control_ids)))
+        control_ids = sorted(self._module.get_control_ids())
+        try:
+            default_index = control_ids.index(default_control_id)
+        except ValueError:
+            default_index = -1
 
         old_block = self._au_selector.blockSignals(True)
-        self._au_selector.clear()
-        for i, control_id in self._control_catalog.items():
-            self._au_selector.addItem(self._get_control_text(control_id))
-            if default_control_id == control_id:
-                self._au_selector.setCurrentIndex(i)
+        self._au_selector.set_items(
+                self._get_control_text(control_id) for control_id in control_ids)
+        self._au_selector.setCurrentIndex(default_index)
         self._au_selector.blockSignals(old_block)
+
+        self._control_catalog = dict(enumerate(control_ids))
 
         old_block = self._init_expr.blockSignals(True)
         expr_name = chd.get_initial_expression(self._ch_num)

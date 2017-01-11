@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2017
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -17,6 +17,7 @@ from PySide.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
 from kunquat.tracker.ui.identifiers import *
+from .stylecreator import StyleCreator
 from .mainwindow import MainWindow
 from .aboutwindow import AboutWindow
 from .eventlist import EventList
@@ -42,6 +43,9 @@ class RootView():
         self._updater = None
         self._visible = set()
 
+        self._style_creator = StyleCreator()
+        self._crash_dialog = None
+
         self._main_window = MainWindow()
         self._about_window = None
         self._event_log = None
@@ -63,10 +67,21 @@ class RootView():
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+
+        self._style_creator.set_ui_model(ui_model)
         self._main_window.set_ui_model(ui_model)
         self._updater = self._ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._module = self._ui_model.get_module()
+
+        style_manager = self._ui_model.get_style_manager()
+        style_manager.set_init_style_sheet(QApplication.instance().styleSheet())
+        style_sheet = self._style_creator.get_updated_style_sheet()
+        QApplication.instance().setStyleSheet(style_sheet)
+
+    def set_crash_dialog(self, crash_dialog):
+        self._crash_dialog = crash_dialog
+        self._crash_dialog.update_link_colour(self._ui_model.get_style_manager())
 
     def show_main_window(self):
         visibility_manager = self._ui_model.get_visibility_manager()
@@ -266,6 +281,10 @@ class RootView():
                 self._start_export_au()
             if 'signal_export_au_finished' in signals:
                 self._on_export_au_finished()
+            if 'signal_style_changed' in signals:
+                style_sheet = self._style_creator.get_updated_style_sheet()
+                QApplication.instance().setStyleSheet(style_sheet)
+                self._crash_dialog.update_link_colour(self._ui_model.get_style_manager())
         else:
             QApplication.quit()
 
@@ -298,6 +317,7 @@ class RootView():
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
         self._main_window.unregister_updaters()
+        self._style_creator.unregister_updaters()
 
     def _start_save_module(self):
         self._set_windows_enabled(False)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2016
+# Author: Tomi Jylhä-Ollila, Finland 2013-2017
 #
 # This file is part of Kunquat.
 #
@@ -178,6 +178,8 @@ class EventFilterView(QWidget):
         super().__init__()
 
         h = QHBoxLayout()
+        h.setContentsMargins(6, 6, 6, 6)
+        h.setSpacing(8)
         self._mix_toggle = EventFilterButton('mix')
         self._fire_toggle = EventFilterButton('fire')
         #self._tfire_toggle = EventFilterButton('tfire')
@@ -209,6 +211,8 @@ class EventList(QWidget):
         self._logmodel = EventListModel()
 
         v = QVBoxLayout()
+        v.setContentsMargins(4, 4, 4, 4)
+        v.setSpacing(4)
 
         self._tableview = EventTable()
         self._tableview.setModel(self._logmodel)

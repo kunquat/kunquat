@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -51,10 +51,10 @@ class KsParams(ProcParams):
     def set_init_env_scale_amount(self, value):
         self._set_value('p_f_init_env_scale_amount.json', value)
 
-    def get_init_env_scale_center(self):
+    def get_init_env_scale_centre(self):
         return self._get_value('p_f_init_env_scale_center.json', 0.0)
 
-    def set_init_env_scale_center(self, value):
+    def set_init_env_scale_centre(self, value):
         self._set_value('p_f_init_env_scale_center.json', value)
 
     def get_init_env(self):
@@ -78,10 +78,10 @@ class KsParams(ProcParams):
     def set_shift_env_scale_amount(self, value):
         self._set_value('p_f_shift_env_scale_amount.json', value)
 
-    def get_shift_env_scale_center(self):
+    def get_shift_env_scale_centre(self):
         return self._get_value('p_f_shift_env_scale_center.json', 0.0)
 
-    def set_shift_env_scale_center(self, value):
+    def set_shift_env_scale_centre(self, value):
         self._set_value('p_f_shift_env_scale_center.json', value)
 
     def get_shift_env(self):
@@ -117,10 +117,10 @@ class KsParams(ProcParams):
     def set_release_env_scale_amount(self, value):
         self._set_value('p_f_rel_env_scale_amount.json', value)
 
-    def get_release_env_scale_center(self):
+    def get_release_env_scale_centre(self):
         return self._get_value('p_f_rel_env_scale_center.json', 0.0)
 
-    def set_release_env_scale_center(self, value):
+    def set_release_env_scale_centre(self, value):
         self._set_value('p_f_rel_env_scale_center.json', value)
 
     def get_release_env(self):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -18,6 +18,7 @@ from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
 from .editorlist import EditorList
 from .headerline import HeaderLine
+from .kqtcombobox import KqtComboBox
 from .varnamevalidator import VarNameValidator
 from .varvalidators import *
 
@@ -196,7 +197,7 @@ class VarNameEditor(QLineEdit):
             return super().keyPressEvent(event)
 
 
-class VarTypeEditor(QComboBox):
+class VarTypeEditor(KqtComboBox):
 
     def __init__(self):
         super().__init__()

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -17,7 +17,7 @@ from PySide.QtGui import *
 from kunquat.tracker.ui.model.trigger import Trigger
 
 
-class RestButton(QToolButton):
+class RestButton(QPushButton):
 
     def __init__(self):
         super().__init__()
@@ -25,8 +25,8 @@ class RestButton(QToolButton):
         self._updater = None
         self._sheet_manager = None
 
-        self.setAutoRaise(True)
-        self.setText('══')
+        self.setFlat(True)
+        #self.setText('══')
         self.setToolTip('Add rest (1)')
 
     def set_ui_model(self, ui_model):

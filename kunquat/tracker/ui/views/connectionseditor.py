@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -17,8 +17,10 @@ from PySide.QtGui import *
 from kunquat.kunquat.limits import *
 from .connections import Connections
 from .processor import proctypeinfo
+from .kqtcombobox import KqtComboBox
 from .kqtutils import get_kqt_file_path, open_kqt_au
 from .saving import get_instrument_save_path, get_effect_save_path
+from .stylecreator import StyleCreator
 
 
 class ConnectionsEditor(QWidget):
@@ -273,13 +275,8 @@ class EditingToggle(QPushButton):
         self._ui_model = None
         self._updater = None
 
-        self.setStyleSheet(
-                '''QPushButton:checked
-                {
-                    background-color: #a32;
-                    color: #fff;
-                }
-                ''')
+        self._style_creator = StyleCreator()
+        self._style_sheet = ''
 
         self.setCheckable(True)
 
@@ -293,15 +290,31 @@ class EditingToggle(QPushButton):
 
         QObject.connect(self, SIGNAL('clicked()'), self._change_enabled)
 
+        self._style_creator.set_ui_model(ui_model)
+
+        self._style_sheet = QApplication.instance().styleSheet()
         self._update_enabled()
 
     def unregister_updaters(self):
+        self._style_creator.unregister_updaters()
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
         update_signals = self._get_update_signal_types()
         if not signals.isdisjoint(update_signals):
             self._update_enabled()
+
+        if 'signal_style_changed' in signals:
+            self._update_style()
+
+    def _update_style(self):
+        self._style_sheet = self._style_creator.get_updated_style_sheet()
+        self.setStyleSheet(self._style_sheet)
+
+    def setChecked(self, checked):
+        super().setChecked(checked)
+        self.setObjectName('Important' if checked else '')
+        self.setStyleSheet(self._style_sheet)
 
     # Protected interface
 
@@ -393,7 +406,7 @@ class ExpressionEditingToggle(EditingToggle):
         self._updater.signal_update(set([_get_au_conns_edit_signal_type(self._au_id)]))
 
 
-class HitSelector(QComboBox):
+class HitSelector(KqtComboBox):
 
     def __init__(self):
         super().__init__()
@@ -429,21 +442,19 @@ class HitSelector(QComboBox):
         prev_list_index = self.currentIndex()
 
         old_block = self.blockSignals(True)
-        self.clear()
-        is_enabled = False
-        for i in range(HITS_MAX):
-            hit = au.get_hit(i)
-            if hit.get_existence():
-                is_enabled = True
-                vis_name = self._get_hit_vis_name(hit)
-                self.addItem('{}: {}'.format(i, vis_name), i)
-        self.setEnabled(is_enabled)
-        self.blockSignals(old_block)
 
-        if is_enabled and (prev_list_index == -1):
+        hits = ((i, au.get_hit(i)) for i in range(HITS_MAX))
+        vis_names = ((i, self._get_hit_vis_name(hit)) for (i, hit) in hits
+                if hit.get_existence())
+        self.set_items(('{}: {}'.format(i, name), i) for (i, name) in vis_names)
+        self.setEnabled(self.count() > 0)
+
+        if self.isEnabled() and (prev_list_index == -1):
             self.setCurrentIndex(0)
             cur_hit_index = self.itemData(0)
             au.set_connections_hit_index(cur_hit_index)
+
+        self.blockSignals(old_block)
 
     def _change_hit(self, item_index):
         hit_index = self.itemData(item_index)
@@ -454,7 +465,7 @@ class HitSelector(QComboBox):
         self._updater.signal_update(set(['signal_au_conns_hit_{}'.format(self._au_id)]))
 
 
-class ExpressionSelector(QComboBox):
+class ExpressionSelector(KqtComboBox):
 
     def __init__(self):
         super().__init__()
@@ -490,15 +501,15 @@ class ExpressionSelector(QComboBox):
         expr_names = sorted(au.get_expression_names())
 
         old_block = self.blockSignals(True)
-        self.clear()
-        self.setEnabled(len(expr_names) > 0)
-        for expr_name in expr_names:
-            self.addItem(expr_name)
-        self.blockSignals(old_block)
+
+        self.set_items(name for name in expr_names)
+        self.setEnabled(self.count() > 0)
 
         if expr_names and (prev_list_index == -1):
             self.setCurrentIndex(0)
             au.set_connections_expr_name(expr_names[0])
+
+        self.blockSignals(old_block)
 
     def _change_expression(self, item_index):
         expr_name = str(self.itemText(item_index))

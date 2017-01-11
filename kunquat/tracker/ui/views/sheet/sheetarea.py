@@ -89,7 +89,7 @@ class Corner(QWidget):
 
 class SheetArea(QAbstractScrollArea):
 
-    def __init__(self, config={}):
+    def __init__(self):
         super().__init__()
         self.setFocusPolicy(Qt.NoFocus)
 
@@ -105,8 +105,7 @@ class SheetArea(QAbstractScrollArea):
         self._header = Header()
 
         # Config
-        self._config = None
-        self._set_config(config)
+        self._config = {}
 
         # Layout
         g = QGridLayout()
@@ -143,6 +142,8 @@ class SheetArea(QAbstractScrollArea):
         self._ruler.set_ui_model(ui_model)
         self.viewport().set_ui_model(ui_model)
 
+        self._update_config()
+
         # Initialise zoom levels
         px_per_beat = self._config['trs_per_beat'] * self._config['tr_height']
         self._zoom_levels = utils.get_zoom_levels(
@@ -176,12 +177,21 @@ class SheetArea(QAbstractScrollArea):
             self._update_zoom()
         if 'signal_sheet_column_width' in signals:
             self._update_column_width()
+        if 'signal_style_changed' in signals:
+            self._update_config()
+
+    def _update_config(self):
+        style_manager = self._ui_model.get_style_manager()
+        config = get_config_with_custom_style(style_manager)
+        self._set_config(config)
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
         self._config.update(config)
 
-        for subcfg in ('ruler', 'header', 'trigger', 'edit_cursor', 'grid'):
+        subcfgs = ('ruler', 'header', 'trigger', 'edit_cursor', 'area_selection', 'grid')
+
+        for subcfg in subcfgs:
             self._config[subcfg] = DEFAULT_CONFIG[subcfg].copy()
             if subcfg in config:
                 self._config[subcfg].update(config[subcfg])

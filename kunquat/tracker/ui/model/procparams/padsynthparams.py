@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -301,10 +301,10 @@ class PadsynthParams(ProcParams):
     def set_sample_pitch_range(self, min_pitch, max_pitch):
         self._set_value('i_pitch_range.json', [min_pitch, max_pitch])
 
-    def get_sample_center_pitch(self):
+    def get_sample_centre_pitch(self):
         return self._get_value('i_center_pitch.json', 0)
 
-    def set_sample_center_pitch(self, pitch):
+    def set_sample_centre_pitch(self, pitch):
         self._set_value('i_center_pitch.json', pitch)
 
     def _get_harmonics_wave_def_data(self):
@@ -403,7 +403,7 @@ class PadsynthParams(ProcParams):
             'audio_rate'     : self.get_audio_rate(),
             'sample_count'   : self.get_sample_count(),
             'pitch_range'    : self.get_sample_pitch_range(),
-            'center_pitch'   : self.get_sample_center_pitch(),
+            'center_pitch'   : self.get_sample_centre_pitch(),
             'bandwidth_base' : self.get_bandwidth_base(),
             'bandwidth_scale': self.get_bandwidth_scale(),
             'harmonics'      : self._get_harmonics_data(),

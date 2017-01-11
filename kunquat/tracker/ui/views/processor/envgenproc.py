@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -46,7 +46,8 @@ class EnvgenProc(QWidget):
         rl.addWidget(self._range)
 
         v = QVBoxLayout()
-        v.setSpacing(10)
+        v.setContentsMargins(4, 4, 4, 4)
+        v.setSpacing(4)
         v.addWidget(self._global_adjust)
         v.addLayout(rl)
         v.addWidget(self._time_env)
@@ -281,11 +282,11 @@ class EgenTimeEnv(TimeEnvelope):
     def _set_scale_amount(self, value):
         self._get_egen_params().set_time_env_scale_amount(value)
 
-    def _get_scale_center(self):
-        return self._get_egen_params().get_time_env_scale_center()
+    def _get_scale_centre(self):
+        return self._get_egen_params().get_time_env_scale_centre()
 
-    def _set_scale_center(self, value):
-        self._get_egen_params().set_time_env_scale_center(value)
+    def _set_scale_centre(self, value):
+        self._get_egen_params().set_time_env_scale_centre(value)
 
     def _get_envelope_data(self):
         return self._get_egen_params().get_time_env()

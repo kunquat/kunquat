@@ -1,0 +1,575 @@
+
+
+/*
+ * This is the style sheet template used for custom Kunquat appearance.
+ * Names enclosed in angle brackets are filled with settings based on
+ * user configuration.
+ *
+ * (TODO: list supported custom names)
+ */
+
+
+QWidget
+{
+    background-color: <bg_colour>;
+    color: <fg_colour>;
+}
+
+QWidget:disabled
+{
+    color: <disabled_fg_colour>;
+}
+
+/* Base style for non-button container widgets */
+
+QComboBox QAbstractItemView,
+QHeaderView::section:horizontal,
+QHeaderView::section:vertical,
+QMenu,
+QScrollBar::handle,
+QSlider::handle:horizontal,
+QTabWidget::pane,
+QToolBar
+{
+    border: 1px solid;
+    border-top-color: <bg_colour_light>;
+    border-left-color: <bg_colour_light>;
+    border-right-color: <bg_colour_dark>;
+    border-bottom-color: <bg_colour_dark>;
+    border-radius: 2px;
+}
+
+/* Base styles for button container widgets */
+
+QComboBox,
+QComboBox::drop-down,
+QComboBox:!editable,
+QComboBox::drop-down:editable,
+QComboBox QAbstractItemView::item:selected,
+QMenu::item:selected,
+QPushButton,
+QPushButton:flat:hover,
+QToolButton:hover,
+QAbstractSpinBox::up-button,
+QAbstractSpinBox::down-button,
+QScrollBar::add-line,
+QScrollBar::sub-line
+{
+    border: 1px solid;
+    border-top-color: <button_bg_colour_light>;
+    border-left-color: <button_bg_colour_light>;
+    border-right-color: <button_bg_colour_dark>;
+    border-bottom-color: <button_bg_colour_dark>;
+    border-radius: 2px;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
+        stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
+    color: <button_fg_colour>;
+}
+
+QPushButton:flat:!hover:!checked
+{
+    border: none;
+    background-color: <bg_colour>;
+    color: <fg_colour>;
+}
+
+QPushButton:pressed,
+QPushButton:flat:pressed,
+QPushButton:checked,
+QPushButton:flat:checked:hover,
+QToolButton:pressed,
+QToolButton:checked,
+QAbstractSpinBox::up-button:pressed,
+QAbstractSpinBox::down-button:pressed,
+QScrollBar::add-line:pressed,
+QScrollBar::sub-line:pressed
+{
+    border-top-color: <button_down_bg_colour_light>;
+    border-left-color: <button_down_bg_colour_light>;
+    border-right-color: <button_down_bg_colour_dark>;
+    border-bottom-color: <button_down_bg_colour_dark>;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
+        stop: 0.5 <button_down_bg_colour>, stop: 1 <button_down_bg_colour_grad>);
+    color: <button_down_fg_colour>;
+}
+
+/* Base style for sunken containers */
+
+QCheckBox::indicator,
+QSlider::groove:horizontal
+{
+    border: 1px solid;
+    border-top-color: <bg_colour_dark>;
+    border-left-color: <bg_colour_dark>;
+    border-right-color: <bg_colour_light>;
+    border-bottom-color: <bg_colour_light>;
+    border-radius: 2px;
+}
+
+QAbstractSpinBox,
+QLineEdit,
+QListView,
+QTableView,
+QTextEdit,
+QTreeView
+{
+    border: 2px solid;
+    border-top-color: <bg_colour_dark>;
+    border-left-color: <bg_colour_dark>;
+    border-right-color: <bg_colour_light>;
+    border-bottom-color: <bg_colour_light>;
+    border-radius: 3px;
+    selection-background-color: <text_selected_bg_colour>;
+    selection-color: <text_selected_fg_colour>;
+}
+
+/* Other tweaks */
+
+QCheckBox
+{
+    spacing: 5px;
+}
+
+QCheckBox::indicator
+{
+    margin: 0;
+    padding: 0;
+    width: 12px;
+    height: 12px;
+    background-color: <text_bg_colour>;
+}
+
+QCheckBox::indicator:checked
+{
+    image: url('<icons_path>/check_mark.png');
+}
+
+QComboBox
+{
+    padding: 3px;
+}
+
+QComboBox::drop-down
+{
+    subcontrol-origin: margin;
+    subcontrol-position: top right;
+    width: 12px;
+    margin: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    padding: 3px;
+}
+
+QComboBox:disabled
+{
+    color: <disabled_fg_colour>;
+}
+
+QComboBox::down-arrow
+{
+    image: url(<icons_path>/arrow_down_tiny.png);
+}
+
+QComboBox QAbstractItemView
+{
+    background-color: <bg_colour>;
+    color: <fg_colour>;
+    outline: 0;
+}
+
+QComboBox QAbstractItemView::item
+{
+    padding: 2px;
+}
+
+QDialog QPushButton
+{
+    padding: 4px;
+    min-width: 100px;
+}
+
+QPushButton, QToolButton:hover
+{
+    padding: 3px;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
+        stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
+    color: <button_fg_colour>;
+}
+
+QPushButton:checked:pressed,
+QPushButton:flat:checked:pressed,
+QToolButton:checked:pressed
+{
+    border-top-color: <button_down2_bg_colour_light>;
+    border-left-color: <button_down2_bg_colour_light>;
+    border-right-color: <button_down2_bg_colour_dark>;
+    border-bottom-color: <button_down2_bg_colour_dark>;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
+        stop: 0.5 <button_down2_bg_colour>, stop: 1 <button_down2_bg_colour_grad>);
+    color: <button_down2_fg_colour>;
+}
+
+QPushButton::menu-indicator, QToolButton::menu-indicator
+{
+    image: url(<icons_path>/arrow_down_tiny.png);
+}
+
+QPushButton#Important
+{
+    border-top-color: <important_button_bg_colour_light>;
+    border-left-color: <important_button_bg_colour_light>;
+    border-right-color: <important_button_bg_colour_dark>;
+    border-bottom-color: <important_button_bg_colour_dark>;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
+        stop: 0.5 <important_button_bg_colour>,
+        stop: 1 <important_button_bg_colour_grad>);
+    color: <important_button_fg_colour>;
+}
+
+QPushButton#Important:pressed,
+QPushButton#Important:checked
+{
+    border-top-color: <important_button_down_bg_colour_light>;
+    border-left-color: <important_button_down_bg_colour_light>;
+    border-right-color: <important_button_down_bg_colour_dark>;
+    border-bottom-color: <important_button_down_bg_colour_dark>;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
+        stop: 0.5 <important_button_down_bg_colour>,
+        stop: 1 <important_button_down_bg_colour_grad>);
+    color: <important_button_down_fg_colour>;
+}
+
+QPushButton#Important:checked:pressed
+{
+    border-top-color: <important_button_down2_bg_colour_light>;
+    border-left-color: <important_button_down2_bg_colour_light>;
+    border-right-color: <important_button_down2_bg_colour_dark>;
+    border-bottom-color: <important_button_down2_bg_colour_dark>;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
+        stop: 0.5 <important_button_down2_bg_colour>,
+        stop: 1 <important_button_down2_bg_colour_grad>);
+    color: <important_button_down2_fg_colour>;
+}
+
+QLineEdit, QAbstractSpinBox
+{
+    margin: 1px;
+    padding: 0;
+    background-color: <text_bg_colour>;
+    color: <text_fg_colour>;
+}
+
+QLineEdit:disabled, QAbstractSpinBox:disabled
+{
+    color: <text_disabled_fg_colour>;
+}
+
+QMenu::item
+{
+    padding: 2px;
+}
+
+QAbstractSpinBox
+{
+    padding-right: 16px;
+    border-right-color: <text_bg_colour>;
+}
+
+QAbstractSpinBox::up-button, QAbstractSpinBox::down-button
+{
+    width: 16px;
+    padding: 0;
+}
+
+QAbstractSpinBox::up-button
+{
+    subcontrol-origin: border;
+    subcontrol-position: top right;
+    border-radius: 0;
+    border-top-right-radius: 2px;
+    image: url(<icons_path>/arrow_up_tiny.png);
+}
+
+QAbstractSpinBox::down-button
+{
+    subcontrol-origin: border;
+    subcontrol-position: bottom right;
+    border-radius: 0;
+    border-bottom-right-radius: 2px;
+    image: url(<icons_path>/arrow_down_tiny.png);
+}
+
+QHeaderView::section
+{
+    background-color: <bg_colour>;
+}
+
+QHeaderView::section:horizontal
+{
+    border-radius: 0;
+}
+
+QHeaderView::section:vertical
+{
+    border-radius: 0;
+}
+
+QLabel
+{
+    background-color: transparent;
+}
+
+QAbstractScrollArea
+{
+    border: 1px solid;
+    border-top-color: <bg_colour_dark>;
+    border-left-color: <bg_colour_dark>;
+    border-right-color: <bg_colour_light>;
+    border-bottom-color: <bg_colour_light>;
+    border-radius: 1px;
+}
+
+QAbstractScrollArea::corner
+{
+    background-color: transparent;
+}
+
+QScrollBar
+{
+    margin: 0;
+    border: none;
+    padding: 0;
+    background-color: <scrollbar_bg_colour>;
+}
+
+QScrollBar:horizontal
+{
+    margin: 0 4px 0 4px;
+    height: 14px;
+}
+
+QScrollBar:vertical
+{
+    margin: 4px 0 4px 0;
+    width: 14px;
+}
+
+QScrollBar::add-page, QScrollBar::sub-page
+{
+    background: transparent;
+    margin: 0;
+    padding: 0;
+}
+
+QScrollBar::handle
+{
+    padding: 0;
+    background: <bg_colour>;
+}
+
+QScrollBar::handle:horizontal
+{
+    margin: 0 10px 0 10px;
+    min-width: 20px;
+}
+
+QScrollBar::handle:vertical
+{
+    margin: 10px 0 10px 0;
+    min-height: 20px;
+}
+
+QScrollBar::add-line, QScrollBar::sub-line
+{
+    margin: 0;
+    padding: 0;
+    width: 12px;
+    height: 12px;
+}
+
+QScrollBar::add-line:horizontal
+{
+    border-top-left-radius: 0;
+    border-top-right-radius: 2px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 2px;
+    subcontrol-position: right;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::add-line:vertical
+{
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:horizontal
+{
+    border-top-left-radius: 2px;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 0;
+    subcontrol-position: left;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:vertical
+{
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical,
+QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal
+{
+    margin: 0;
+    border: none;
+    padding: 0;
+    width: 12px;
+    height: 12px;
+}
+
+QScrollBar::up-arrow:vertical
+{
+    image: url(<icons_path>/arrow_up_tiny.png);
+}
+
+QScrollBar::down-arrow:vertical
+{
+    image: url(<icons_path>/arrow_down_tiny.png);
+}
+
+QScrollBar::left-arrow:horizontal
+{
+    image: url(<icons_path>/arrow_left_tiny.png);
+}
+
+QScrollBar::right-arrow:horizontal
+{
+    image: url(<icons_path>/arrow_right_tiny.png);
+}
+
+QSlider::groove:horizontal
+{
+    background-color: <scrollbar_bg_colour>;
+    height: 12px;
+}
+
+QSlider::handle:horizontal
+{
+    margin: 0;
+    width: 32px;
+    background-color: <bg_colour>;
+}
+
+QSplitter::handle:horizontal
+{
+    padding: 1px;
+    image: url(<icons_path>/splitter_horizontal.png);
+}
+
+QSplitter::handle:vertical
+{
+    padding: 1px;
+    image: url(<icons_path>/splitter_vertical.png);
+}
+
+QTabWidget::tab-bar
+{
+    left: 3px;
+}
+
+QTabBar::tab
+{
+    border: 1px solid;
+    border-top-color: <bg_colour_light>;
+    border-left-color: <bg_colour_light>;
+    border-right-color: <bg_colour_dark>;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-bottom: none;
+    min-width: 2em;
+    margin: 0;
+    padding: 3px 10px 3px 10px;
+}
+
+QTabBar::tab:selected
+{
+}
+
+QTabBar::tab:!selected
+{
+    margin-top: 3px;
+    border-top-color: <tab_shade_top_colour_light>;
+    border-left-color: <tab_shade_top_colour_light>;
+    border-right-color: <tab_shade_top_colour_dark>;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+        stop: 0.5 <tab_shade_top_colour>, stop: 1 <tab_shade_bottom_colour>);
+    color: <button_fg_colour>;
+}
+
+QTableView, QTreeView, QListView, QTextEdit
+{
+    margin: 0;
+    padding: 0;
+    background-color: <text_bg_colour>;
+    color: <text_fg_colour>;
+}
+
+QTableView:disabled, QTreeView:disabled, QListView:disabled, QTextEdit:disabled
+{
+    color: <text_disabled_fg_colour>;
+}
+
+QTableView
+{
+    gridline-color: <bg_colour_dark>;
+}
+
+QTableView QTableCornerButton::section
+{
+    background-color: <bg_colour>;
+    border: none;
+}
+
+QToolBar
+{
+    border-radius: 0;
+}
+
+QToolBar::separator
+{
+    margin: 2px 4px;
+    border: 1px solid;
+    border-top-color: <bg_colour_dark>;
+    border-left-color: <bg_colour_dark>;
+    border-right-color: <bg_colour_light>;
+    border-bottom-color: <bg_colour_light>;
+    padding: 0;
+    width: 0;
+}
+
+QTreeView::branch
+{
+    background-color: transparent;
+}
+
+QTreeView::branch:has-children:closed
+{
+    image: url(<icons_path>/arrow_right_tiny.png);
+}
+
+QTreeView::branch:has-children:open
+{
+    image: url(<icons_path>/arrow_down_tiny.png);
+}
+
+

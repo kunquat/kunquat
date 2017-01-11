@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -21,12 +21,12 @@ from PySide.QtGui import *
 from kunquat.tracker.errorbase import *
 
 
-MESSAGE_RICH = \
+MESSAGE_RICH_FMT = \
 '''<h3>We are sorry, but Kunquat Tracker
 encountered an error and needs to close.</h3>
 <p>This is a programming error. If you would like to help us fix it,
 please submit an issue to Kunquat issue tracker at
-<a href="https://github.com/kunquat/kunquat/issues">https://github.com/kunquat/kunquat/issues</a>
+<a{} href="https://github.com/kunquat/kunquat/issues">https://github.com/kunquat/kunquat/issues</a>
 with the following information attached.</p>'''
 
 
@@ -57,7 +57,7 @@ class ErrorDialog(QDialog):
         super().__init__()
 
         self.setWindowTitle('Oh no!')
-        self._message = QLabel(MESSAGE_RICH)
+        self._message = QLabel(MESSAGE_RICH_FMT.format(''))
         self._message.setWordWrap(True)
         self._details = ErrorDetails()
         self._closebutton = QPushButton('Exit Kunquat')
@@ -74,6 +74,15 @@ class ErrorDialog(QDialog):
         QObject.connect(self._closebutton, SIGNAL('clicked()'), self.close)
 
         sys.excepthook = self._excepthook
+
+    def update_link_colour(self, style_manager):
+        style = ''
+
+        if style_manager.is_custom_style_enabled():
+            colour = style_manager.get_link_colour()
+            style = ' style="color: {};"'.format(colour)
+
+        self._message.setText(MESSAGE_RICH_FMT.format(style))
 
     def _excepthook(self, eclass, einst, trace):
         if eclass == KeyboardInterrupt:

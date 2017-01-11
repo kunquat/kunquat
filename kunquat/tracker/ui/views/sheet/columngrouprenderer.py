@@ -45,6 +45,9 @@ class ColumnGroupRenderer():
 
     def set_config(self, config):
         self._config = config
+        if self._caches:
+            for cache in self._caches:
+                cache.set_config(self._config)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model

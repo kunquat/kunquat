@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,7 +15,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 
-class DelSelectionButton(QToolButton):
+class DelSelectionButton(QPushButton):
 
     def __init__(self):
         super().__init__()
@@ -23,8 +23,8 @@ class DelSelectionButton(QToolButton):
         self._updater = None
         self._sheet_manager = None
 
-        self.setAutoRaise(True)
-        self.setText('Del')
+        self.setFlat(True)
+        #self.setText('Del')
         self.setToolTip('Delete selection (Delete)')
 
     def set_ui_model(self, ui_model):

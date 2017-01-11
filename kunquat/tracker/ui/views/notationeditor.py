@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -17,6 +17,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .headerline import HeaderLine
+from .kqtcombobox import KqtComboBox
 
 
 class NotationEditor(QWidget):
@@ -616,7 +617,7 @@ class Template(QWidget):
         self._ui_model = None
         self._updater = None
 
-        self._center_pitch = CenterPitch()
+        self._centre_pitch = CentrePitch()
         self._octave_ratio = OctaveRatio()
         self._octaves = TemplateOctaves()
         self._notes = TemplateNotes()
@@ -627,7 +628,7 @@ class Template(QWidget):
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Template'))
-        v.addWidget(self._center_pitch)
+        v.addWidget(self._centre_pitch)
         v.addWidget(self._octave_ratio)
         v.addWidget(self._octaves)
         v.addWidget(self._notes)
@@ -639,7 +640,7 @@ class Template(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
-        self._center_pitch.set_ui_model(ui_model)
+        self._centre_pitch.set_ui_model(ui_model)
         self._octave_ratio.set_ui_model(ui_model)
         self._octaves.set_ui_model(ui_model)
         self._notes.set_ui_model(ui_model)
@@ -654,7 +655,7 @@ class Template(QWidget):
         self._notes.unregister_updaters()
         self._octaves.unregister_updaters()
         self._octave_ratio.unregister_updaters()
-        self._center_pitch.unregister_updaters()
+        self._centre_pitch.unregister_updaters()
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
@@ -717,7 +718,7 @@ class Template(QWidget):
         self._updater.signal_update(set(['signal_tuning_tables']))
 
 
-class CenterPitch(QWidget):
+class CentrePitch(QWidget):
 
     def __init__(self):
         super().__init__()
@@ -729,7 +730,7 @@ class CenterPitch(QWidget):
         self._value.setRange(-9999, 9999)
         self._value.setValue(0)
 
-        self._units = QComboBox()
+        self._units = KqtComboBox()
         self._units.addItem('cents')
         self._units.addItem('Hz')
         self._units.setCurrentIndex(self._units.findText('cents'))
@@ -737,7 +738,7 @@ class CenterPitch(QWidget):
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
-        h.addWidget(QLabel('Center pitch:'), 0)
+        h.addWidget(QLabel('Centre pitch:'), 0)
         h.addWidget(self._value, 1)
         h.addWidget(self._units, 1)
         self.setLayout(h)
@@ -747,7 +748,7 @@ class CenterPitch(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
-        QObject.connect(self._value, SIGNAL('valueChanged(double)'), self._change_center)
+        QObject.connect(self._value, SIGNAL('valueChanged(double)'), self._change_centre)
         QObject.connect(
                 self._units, SIGNAL('currentIndexChanged(int)'), self._change_units)
 
@@ -770,7 +771,7 @@ class CenterPitch(QWidget):
         if not notation:
             return
 
-        value, units = notation.get_template().get_center_pitch()
+        value, units = notation.get_template().get_centre_pitch()
 
         old_block = self._value.blockSignals(True)
         if units == 'cents':
@@ -787,13 +788,13 @@ class CenterPitch(QWidget):
         self._units.setCurrentIndex(self._units.findText(units))
         self._units.blockSignals(old_block)
 
-    def _change_center(self, new_center):
+    def _change_centre(self, new_centre):
         notation_manager = self._ui_model.get_notation_manager()
         notation = notation_manager.get_editor_selected_notation()
         template = notation.get_template()
 
-        _, units = template.get_center_pitch()
-        template.set_center_pitch(new_center, units)
+        _, units = template.get_centre_pitch()
+        template.set_centre_pitch(new_centre, units)
         self._updater.signal_update(set(['signal_notation_template_center_pitch']))
 
     def _get_cents(self, hz):
@@ -809,7 +810,7 @@ class CenterPitch(QWidget):
         notation = notation_manager.get_editor_selected_notation()
         template = notation.get_template()
 
-        value, units = template.get_center_pitch()
+        value, units = template.get_centre_pitch()
         if units == new_units:
             return
 
@@ -818,7 +819,7 @@ class CenterPitch(QWidget):
         elif new_units == 'Hz':
             new_value = self._get_hz(value)
 
-        template.set_center_pitch(new_value, new_units)
+        template.set_centre_pitch(new_value, new_units)
         self._updater.signal_update(set(['signal_notation_template_center_pitch']))
 
 
@@ -941,8 +942,8 @@ class TemplateOctaves(QWidget):
 
         self._lowest = QSpinBox()
         self._lowest.setRange(0, 15)
-        self._center = QSpinBox()
-        self._center.setRange(0, 15)
+        self._centre = QSpinBox()
+        self._centre.setRange(0, 15)
         self._highest = QSpinBox()
         self._highest.setRange(0, 15)
 
@@ -951,8 +952,8 @@ class TemplateOctaves(QWidget):
         h.setSpacing(4)
         h.addWidget(QLabel('Lowest octave:'))
         h.addWidget(self._lowest)
-        h.addWidget(QLabel('Center:'))
-        h.addWidget(self._center)
+        h.addWidget(QLabel('Centre:'))
+        h.addWidget(self._centre)
         h.addWidget(QLabel('Highest:'))
         h.addWidget(self._highest)
         self.setLayout(h)
@@ -963,7 +964,7 @@ class TemplateOctaves(QWidget):
         self._updater.register_updater(self._perform_updates)
 
         QObject.connect(self._lowest, SIGNAL('valueChanged(int)'), self._change_lowest)
-        QObject.connect(self._center, SIGNAL('valueChanged(int)'), self._change_center)
+        QObject.connect(self._centre, SIGNAL('valueChanged(int)'), self._change_centre)
         QObject.connect(self._highest, SIGNAL('valueChanged(int)'), self._change_highest)
 
         self._update_all()
@@ -985,18 +986,18 @@ class TemplateOctaves(QWidget):
         if not notation:
             return
 
-        lowest, center, highest = notation.get_template().get_octaves()
+        lowest, centre, highest = notation.get_template().get_octaves()
 
         old_block = self._lowest.blockSignals(True)
         if self._lowest.value() != lowest:
             self._lowest.setValue(lowest)
         self._lowest.blockSignals(old_block)
 
-        old_block = self._center.blockSignals(True)
-        self._center.setRange(lowest, highest)
-        if self._center.value() != center:
-            self._center.setValue(center)
-        self._center.blockSignals(old_block)
+        old_block = self._centre.blockSignals(True)
+        self._centre.setRange(lowest, highest)
+        if self._centre.value() != centre:
+            self._centre.setValue(centre)
+        self._centre.blockSignals(old_block)
 
         old_block = self._highest.blockSignals(True)
         if self._highest.value() != highest:
@@ -1016,7 +1017,7 @@ class TemplateOctaves(QWidget):
         template.set_octaves(*octaves)
         self._updater.signal_update(set(['signal_notation_template_octaves']))
 
-    def _change_center(self, value):
+    def _change_centre(self, value):
         notation_manager = self._ui_model.get_notation_manager()
         notation = notation_manager.get_editor_selected_notation()
         template = notation.get_template()
@@ -2290,7 +2291,7 @@ class KeyEditor(QWidget):
             'signal_notation', 'signal_notation_editor_key']))
 
 
-class KeyNoteSelector(QComboBox):
+class KeyNoteSelector(KqtComboBox):
 
     def __init__(self):
         super().__init__()
@@ -2330,12 +2331,11 @@ class KeyNoteSelector(QComboBox):
         notation = notation_manager.get_editor_selected_notation()
 
         old_block = self.blockSignals(True)
-        self.clear()
         if notation:
-            for note in notation.get_notes():
-                cents, name = note
-                self.addItem(name, cents)
+            self.set_items((name, cents) for (cents, name) in notation.get_notes())
             self._update_selection()
+        else:
+            self.set_items([])
         self.blockSignals(old_block)
 
     def _update_selection(self):

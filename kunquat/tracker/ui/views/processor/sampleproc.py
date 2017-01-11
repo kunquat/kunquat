@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -23,6 +23,7 @@ from kunquat.tracker.ui.views.audio_unit.hitselector import HitSelector
 from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
+from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.utils import lerp_val
 from .sampleview import SampleView
 from . import utils
@@ -75,7 +76,7 @@ class NoteMapEditor(QWidget):
         self._note_map_entry = NoteMapEntry()
 
         h = QHBoxLayout()
-        h.setContentsMargins(2, 2, 2, 2)
+        h.setContentsMargins(4, 4, 4, 4)
         h.setSpacing(4)
         h.addWidget(self._note_map, 1)
         h.addWidget(self._note_map_entry, 2)
@@ -151,11 +152,11 @@ class RandomListMap(QWidget):
         self._updater = None
 
         self._axis_x_renderer = HorizontalAxisRenderer()
-        self._axis_x_renderer.set_config(self._AXIS_CONFIG, self)
+        self._axis_x_renderer.set_config(self._AXIS_CONFIG.copy(), self)
         self._axis_x_renderer.set_val_range([-36, 0])
 
         self._axis_y_renderer = VerticalAxisRenderer()
-        self._axis_y_renderer.set_config(self._AXIS_CONFIG, self)
+        self._axis_y_renderer.set_config(self._AXIS_CONFIG.copy(), self)
         y_range = [-6000, 6000] if self._has_pitch_axis() else [0, 0]
         self._axis_y_renderer.set_val_range(y_range)
 
@@ -167,7 +168,7 @@ class RandomListMap(QWidget):
         self._moving_pointer_offset = (0, 0)
 
         self._config = None
-        self._set_config({})
+        self._set_configs({}, {})
 
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
@@ -186,10 +187,12 @@ class RandomListMap(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        self._update_style()
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
-    def _set_config(self, config):
+    def _set_configs(self, config, axis_config):
         self._config = self._DEFAULT_CONFIG.copy()
         self._config.update(config)
 
@@ -198,10 +201,48 @@ class RandomListMap(QWidget):
             x_axis_height = self._AXIS_CONFIG['axis_x']['height']
             self.setFixedHeight(padding * 2 + x_axis_height)
 
+        final_axis_config = self._AXIS_CONFIG.copy()
+        final_axis_config.update(axis_config)
+        self._axis_x_renderer.set_config(final_axis_config, self)
+        self._axis_y_renderer.set_config(final_axis_config, self)
+
+    def _update_style(self):
+        style_manager = self._ui_model.get_style_manager()
+        if not style_manager.is_custom_style_enabled():
+            self._set_configs({}, {})
+            self.update()
+            return
+
+        def get_colour(param):
+            return QColor(style_manager.get_style_param(param))
+
+        focus_colour = get_colour('sample_map_focus_colour')
+        focus_axis_colour = QColor(focus_colour)
+        focus_axis_colour.setAlpha(0x7f)
+
+        config = {
+            'bg_colour': get_colour('sample_map_bg_colour'),
+            'point_colour': get_colour('sample_map_point_colour'),
+            'focused_point_colour': focus_colour,
+            'focused_point_axis_colour': focus_axis_colour,
+            'selected_highlight_colour': get_colour('sample_map_selected_colour'),
+        }
+
+        axis_config = {
+            'label_colour': get_colour('sample_map_axis_label_colour'),
+            'line_colour': get_colour('sample_map_axis_line_colour'),
+        }
+
+        self._set_configs(config, axis_config)
+        self.update()
+
     def _perform_updates(self, signals):
         update_signals = self._get_update_signals()
         if not signals.isdisjoint(update_signals):
             self.update()
+
+        if 'signal_style_changed' in signals:
+            self._update_style()
 
     def _get_area_offset(self):
         padding = self._config['padding']
@@ -765,7 +806,7 @@ class RandomEntryEditor(QWidget):
 
         self._index = index
 
-        self._sample_selector = QComboBox()
+        self._sample_selector = KqtComboBox()
         self._sample_selector.setSizeAdjustPolicy(QComboBox.AdjustToContents)
 
         self._pitch_shift = QDoubleSpinBox()
@@ -856,14 +897,17 @@ class RandomEntryEditor(QWidget):
             (sid, sample_params.get_sample_name(sid)) for sid in sample_ids])
 
         old_block = self._sample_selector.blockSignals(True)
-        self._sample_selector.clear()
         self._sample_selector.setEnabled(len(sample_ids) > 0)
+        items = []
+        cur_index = -1
         for i, info in enumerate(sample_info):
             sample_id, sample_name = info
             vis_name = sample_name or '-'
-            self._sample_selector.addItem(vis_name, sample_id)
+            items.append((vis_name, sample_id))
             if sample_id == cur_sample_id:
-                self._sample_selector.setCurrentIndex(i)
+                cur_index = i
+        self._sample_selector.set_items(items)
+        self._sample_selector.setCurrentIndex(cur_index)
         self._sample_selector.blockSignals(old_block)
 
         if (point != None) and (point in self._get_map_points()):
@@ -953,7 +997,7 @@ class HitMapEditor(QWidget):
         self._hit_map_entry = HitMapEntry()
 
         v = QVBoxLayout()
-        v.setContentsMargins(2, 2, 2, 2)
+        v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(2)
         v.addWidget(self._hit_selector)
         v.addWidget(self._hit_map)
@@ -1252,7 +1296,6 @@ class Samples(QSplitter):
         self._keyboard_mapper = KeyboardMapper()
 
         h = QHBoxLayout()
-        h.setContentsMargins(2, 2, 2, 2)
         h.setSpacing(4)
         h.addWidget(self._sample_list, 1)
         h.addWidget(self._sample_editor, 2)
@@ -1606,7 +1649,7 @@ class SampleList(QWidget):
         self._list_view = SampleListView()
 
         v = QVBoxLayout()
-        v.setContentsMargins(0, 0, 0, 0)
+        v.setContentsMargins(4, 4, 2, 4)
         v.setSpacing(0)
         v.addWidget(self._toolbar)
         v.addWidget(self._list_view)
@@ -1678,7 +1721,7 @@ class SampleEditor(QWidget):
         freq_l.addWidget(self._freq, 1)
         freq_l.addWidget(self._resample)
 
-        self._loop_mode = QComboBox()
+        self._loop_mode = KqtComboBox()
         loop_modes = (
                 ('Off', 'off'),
                 ('Unidirectional', 'uni'),
@@ -1722,7 +1765,7 @@ class SampleEditor(QWidget):
         self._sample_view = SampleView()
 
         v = QVBoxLayout()
-        v.setContentsMargins(0, 0, 0, 0)
+        v.setContentsMargins(2, 4, 4, 4)
         v.setSpacing(0)
         v.addLayout(gl)
         v.addWidget(self._sample_view, 1)
@@ -1767,6 +1810,7 @@ class SampleEditor(QWidget):
         QObject.connect(
                 self._format_change, SIGNAL('clicked()'), self._change_format)
 
+        self._update_style()
         self._update_all()
 
     def unregister_updaters(self):
@@ -1805,22 +1849,52 @@ class SampleEditor(QWidget):
             self._get_selection_update_signal_type()])
         if not signals.isdisjoint(update_all_signals):
             self._update_all()
-        elif self._get_rename_signal_type() in signals:
-            self._update_name()
-        elif self._get_freq_signal_type() in signals:
-            self._update_freq()
-        elif self._get_resample_signal_type() in signals:
-            self._update_freq()
-            self._update_sample_view()
-            self._update_loop()
-        elif self._get_format_signal_type() in signals:
-            self._update_format()
-            self._update_sample_view()
-        elif self._get_loop_signal_type() in signals:
-            self._update_loop()
+        else:
+            if self._get_rename_signal_type() in signals:
+                self._update_name()
+            if self._get_freq_signal_type() in signals:
+                self._update_freq()
+            if self._get_resample_signal_type() in signals:
+                self._update_freq()
+                self._update_sample_view()
+                self._update_loop()
+            if self._get_format_signal_type() in signals:
+                self._update_format()
+                self._update_sample_view()
+                self._update_loop()
+            if self._get_loop_signal_type() in signals:
+                self._update_loop()
+
+        if 'signal_style_changed' in signals:
+            self._update_style()
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_style(self):
+        style_manager = self._ui_model.get_style_manager()
+        if not style_manager.is_custom_style_enabled():
+            self._sample_view.set_config({})
+            return
+
+        def get_colour(name):
+            return QColor(style_manager.get_style_param(name))
+
+        config = {
+            'bg_colour': get_colour('waveform_bg_colour'),
+            'centre_line_colour': get_colour('waveform_centre_line_colour'),
+            'zoomed_out_colour': get_colour('waveform_zoomed_out_colour'),
+            'single_item_colour': get_colour('waveform_single_item_colour'),
+            'interp_colour': get_colour('waveform_interpolated_colour'),
+            'loop_line_colour': get_colour('waveform_loop_marker_colour'),
+            'focused_loop_line_colour': get_colour('waveform_focus_colour'),
+            'loop_handle_colour': get_colour('waveform_loop_marker_colour'),
+            'focused_loop_handle_colour': get_colour('waveform_focus_colour'),
+        }
+
+        self._sample_view.set_config(config)
+        self._update_sample_view()
+        self._update_loop()
 
     def _update_all(self):
         sample_params = self._get_sample_params()
@@ -2045,7 +2119,7 @@ class SampleFormatEditor(QDialog):
         sample_id = self._sample_params.get_selected_sample_id()
         sample_format = self._sample_params.get_sample_format(sample_id)
 
-        self._format = QComboBox()
+        self._format = KqtComboBox()
         self._normalise = QCheckBox()
 
         formats = [(8, False), (16, False), (24, False), (32, False), (32, True)]

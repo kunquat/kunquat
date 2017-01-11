@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,7 +15,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 
-class ZoomButton(QToolButton):
+class ZoomButton(QPushButton):
 
     INFO = {
             'in': ('Zoom In', 'zoom_in', 'Ctrl + +'),
@@ -33,8 +33,8 @@ class ZoomButton(QToolButton):
         self._sheet_manager = None
 
         self._mode = mode
-        self.setAutoRaise(True)
-        self.setText(self._get_text(mode))
+        self.setFlat(True)
+        #self.setText(self._get_text(mode))
         self.setToolTip(self._get_tooltip(mode))
 
     def set_ui_model(self, ui_model):

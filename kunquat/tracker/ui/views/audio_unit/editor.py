@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -11,10 +11,13 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from itertools import chain
+
 from PySide.QtCore import *
 from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
+from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from .aunumslider import AuNumSlider
 from .components import Components
 from .expressions import Expressions
@@ -175,7 +178,7 @@ class TestForce(AuNumSlider):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
-class TestExpression(QComboBox):
+class TestExpression(KqtComboBox):
 
     def __init__(self, index):
         super().__init__()
@@ -222,12 +225,10 @@ class TestExpression(QComboBox):
         expr_names = sorted(au.get_expression_names())
 
         old_block = self.blockSignals(True)
-        self.clear()
         self.setEnabled(len(expr_names) > 0)
-        self.addItem('(none)')
+        self.set_items(chain(['(none)'], (name for name in expr_names)))
         self.setCurrentIndex(0)
         for i, expr_name in enumerate(expr_names):
-            self.addItem(expr_name)
             if au.get_test_expression(self._index) == expr_name:
                 self.setCurrentIndex(i + 1) # + 1 compensates for the (none) entry
         self.blockSignals(old_block)

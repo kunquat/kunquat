@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -151,6 +151,7 @@ class SettingsButton(WindowOpenerButton):
 _RENDER_LOAD_METER_CONFIG = {
         'width'         : 12,
         'height'        : 12,
+        'bg_colour'     : QColor(0, 0, 0),
         'colour_low'    : QColor(0x11, 0x99, 0x11),
         'colour_mid'    : QColor(0xdd, 0xcc, 0x33),
         'colour_high'   : QColor(0xee, 0x22, 0x11),
@@ -161,8 +162,13 @@ class RenderLoadMeter(QWidget):
 
     def __init__(self):
         super().__init__()
-        self._config = _RENDER_LOAD_METER_CONFIG.copy()
+        self._config = None
         self._load_norm = 0
+
+    def set_config(self, config):
+        self._config = _RENDER_LOAD_METER_CONFIG.copy()
+        self._config.update(config)
+        self.update()
 
     def set_load_norm(self, load_norm):
         self._load_norm = min(max(0.0, load_norm), 1.0)
@@ -184,7 +190,7 @@ class RenderLoadMeter(QWidget):
         height = self._config['height']
 
         painter = QPainter(self)
-        painter.setBackground(QColor(0, 0, 0))
+        painter.setBackground(self._config['bg_colour'])
         painter.eraseRect(0, 0, width, height)
         painter.setRenderHint(QPainter.Antialiasing)
 
@@ -221,11 +227,34 @@ class RenderStatsButton(QToolButton):
 
         QObject.connect(self, SIGNAL('clicked()'), self._clicked)
 
+        self._update_style()
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
         self._load_meter.set_load_norm(self._stat_manager.get_render_load())
+
+        if 'signal_style_changed' in signals:
+            self._update_style()
+
+    def _update_style(self):
+        style_manager = self._ui_model.get_style_manager()
+        if not style_manager.is_custom_style_enabled():
+            self._load_meter.set_config({})
+            return
+
+        def get_colour(param):
+            return QColor(style_manager.get_style_param(param))
+
+        config = {
+            'bg_colour': get_colour('system_load_bg_colour'),
+            'colour_low': get_colour('system_load_low_colour'),
+            'colour_mid': get_colour('system_load_mid_colour'),
+            'colour_high': get_colour('system_load_high_colour'),
+        }
+
+        self._load_meter.set_config(config)
 
     def _clicked(self):
         visibility_manager = self._ui_model.get_visibility_manager()

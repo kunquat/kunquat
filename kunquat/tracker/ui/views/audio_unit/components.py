@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -19,6 +19,7 @@ import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.views.connectionseditor import ConnectionsEditor
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
+from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.varnamevalidator import *
 from kunquat.tracker.ui.views.varvalidators import *
 
@@ -358,7 +359,7 @@ class StreamNameEditor(NameEditor):
         self._updater.signal_update(set([_get_stream_update_signal_type(self._au_id)]))
 
 
-class StreamTargetProcEditor(QComboBox):
+class StreamTargetProcEditor(KqtComboBox):
 
     def __init__(self):
         super().__init__()
@@ -404,18 +405,19 @@ class StreamTargetProcEditor(QComboBox):
 
         old_block = self.blockSignals(True)
 
-        self.clear()
+        items = []
         for proc_id in au.get_processor_ids():
             proc = au.get_processor(proc_id)
             if proc.get_existence():
                 name = proc.get_name() or '-'
                 cur_target_proc_id = proc_id.split('/')[-1]
                 cur_target_proc_num = int(cur_target_proc_id.split('_')[-1], 16)
-                self.addItem(name, cur_target_proc_num)
+                items.append((name, cur_target_proc_num))
+        self.set_items(items)
 
-            selected_index = self.findData(target_proc_num)
-            if selected_index >= 0:
-                self.setCurrentIndex(selected_index)
+        selected_index = self.findData(target_proc_num)
+        if selected_index >= 0:
+            self.setCurrentIndex(selected_index)
 
         self.blockSignals(old_block)
 
@@ -663,12 +665,12 @@ class ControlVariableTypeExpander(QPushButton):
         painter.setPen(colour)
         painter.setBrush(colour)
 
-        center_x = self.width() // 2
-        center_y = self.height() // 2
+        centre_x = self.width() // 2
+        centre_y = self.height() // 2
 
         triangle_extent = 5
 
-        painter.translate(QPoint(center_x, center_y))
+        painter.translate(QPoint(centre_x, centre_y))
         if self.isChecked():
             painter.drawPolygon(QPolygon([
                     QPoint(-triangle_extent, 0),
@@ -701,7 +703,7 @@ class ControlVariableNameEditor(NameEditor):
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
-class ControlVariableTypeEditor(QComboBox):
+class ControlVariableTypeEditor(KqtComboBox):
 
     def __init__(self):
         super().__init__()
@@ -1137,7 +1139,7 @@ class BindTargetEditor(QWidget):
         self._name_editor.set_used_names(used_names)
 
 
-class BindTargetDeviceSelector(QComboBox):
+class BindTargetDeviceSelector(KqtComboBox):
 
     def __init__(self):
         super().__init__()
@@ -1205,14 +1207,15 @@ class BindTargetDeviceSelector(QComboBox):
 
         old_block = self.blockSignals(True)
 
-        self.clear()
+        items = []
         for dev_id in self._get_internal_dev_ids():
             dev = self._get_internal_dev(dev_id)
 
             if dev.get_existence():
                 name = dev.get_name() or '-'
                 cur_target_dev_id = dev_id.split('/')[-1]
-                self.addItem(name, cur_target_dev_id)
+                items.append((name, cur_target_dev_id))
+        self.set_items(items)
 
         selected_index = self.findData(target_dev_id)
         if selected_index >= 0:
@@ -1286,7 +1289,7 @@ class BindTargetNameEditor(NameEditor):
         self.blockSignals(old_block)
 
 
-class BindTargetVariableTypeEditor(QComboBox):
+class BindTargetVariableTypeEditor(KqtComboBox):
 
     def __init__(self):
         super().__init__()

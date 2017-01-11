@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -17,6 +17,7 @@ from PySide.QtGui import *
 from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.ui.model.tstamp as tstamp
+from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from .editbutton import EditButton
 from .replacebutton import ReplaceButton
 from .restbutton import RestButton
@@ -57,7 +58,7 @@ class Toolbar(QWidget):
 
         h = QHBoxLayout()
         h.setContentsMargins(4, 0, 4, 4)
-        h.setSpacing(5)
+        h.setSpacing(2)
 
         h.addWidget(self._edit_button)
         h.addWidget(self._replace_button)
@@ -128,15 +129,15 @@ class Toolbar(QWidget):
         self._length_editor.unregister_updaters()
 
 
-class UndoButton(QToolButton):
+class UndoButton(QPushButton):
 
     def __init__(self):
         super().__init__()
         self._ui_model = None
         self._updater = None
 
-        self.setAutoRaise(True)
-        self.setText('Undo')
+        self.setFlat(True)
+        #self.setText('Undo')
         self.setToolTip('Undo (Ctrl + Z)')
 
     def set_ui_model(self, ui_model):
@@ -175,15 +176,15 @@ class UndoButton(QToolButton):
         self._updater.signal_update(set(['signal_undo']))
 
 
-class RedoButton(QToolButton):
+class RedoButton(QPushButton):
 
     def __init__(self):
         super().__init__()
         self._ui_model = None
         self._updater = None
 
-        self.setAutoRaise(True)
-        self.setText('Redo')
+        self.setFlat(True)
+        #self.setText('Redo')
         self.setToolTip('Redo (Ctrl + Shift + Z)')
 
     def set_ui_model(self, ui_model):
@@ -222,7 +223,7 @@ class RedoButton(QToolButton):
         self._updater.signal_update(set(['signal_redo']))
 
 
-class CutOrCopyButton(QToolButton):
+class CutOrCopyButton(QPushButton):
 
     def __init__(self, button_type):
         super().__init__()
@@ -241,8 +242,8 @@ class CutOrCopyButton(QToolButton):
 
         self._button_type = button_type
 
-        self.setAutoRaise(True)
-        self.setText(text)
+        self.setFlat(True)
+        #self.setText(text)
         self.setToolTip('{} ({})'.format(text, shortcut))
 
     def set_ui_model(self, ui_model):
@@ -298,7 +299,7 @@ class CopyButton(CutOrCopyButton):
         super().__init__('copy')
 
 
-class PasteButton(QToolButton):
+class PasteButton(QPushButton):
 
     def __init__(self):
         super().__init__()
@@ -306,8 +307,8 @@ class PasteButton(QToolButton):
         self._updater = None
         self._sheet_manager = None
 
-        self.setAutoRaise(True)
-        self.setText('Paste')
+        self.setFlat(True)
+        #self.setText('Paste')
         self.setToolTip('Paste (Ctrl + V)')
 
         self._has_valid_data = False
@@ -356,15 +357,15 @@ class PasteButton(QToolButton):
             self._updater.signal_update(set(['signal_selection']))
 
 
-class ConvertTriggerButton(QToolButton):
+class ConvertTriggerButton(QPushButton):
 
     def __init__(self):
         super().__init__()
         self._ui_model = None
         self._updater = None
 
-        self.setAutoRaise(True)
-        self.setText('Convert')
+        self.setFlat(True)
+        #self.setText('Convert')
         self.setToolTip('Convert between set and slide trigger (/)')
 
     def set_ui_model(self, ui_model):
@@ -439,16 +440,13 @@ class GridToggle(QCheckBox):
         self._updater.signal_update(set(['signal_grid']))
 
 
-class GridEditorButton(QToolButton):
+class GridEditorButton(QPushButton):
 
     def __init__(self):
         super().__init__()
         self._ui_model = None
         self._updater = None
 
-        self.setStyleSheet('padding: 4px 0 4px 0;')
-
-        self.setAutoRaise(True)
         self.setText('Edit grids')
 
     def set_ui_model(self, ui_model):
@@ -477,7 +475,7 @@ class GridEditorButton(QToolButton):
         visibility_manager.show_grid_editor()
 
 
-class GridSelector(QComboBox):
+class GridSelector(KqtComboBox):
 
     def __init__(self):
         super().__init__()
@@ -506,9 +504,7 @@ class GridSelector(QComboBox):
         gp_items = sorted(gp_items, key=lambda x: x[1])
 
         old_block = self.blockSignals(True)
-        self.clear()
-        for (gp_id, name) in gp_items:
-            self.addItem(name, gp_id)
+        self.set_items((name, gp_id) for (gp_id, name) in gp_items)
         self.blockSignals(old_block)
 
     def _get_pattern_instance(self):

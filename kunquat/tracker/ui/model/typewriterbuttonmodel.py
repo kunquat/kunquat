@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -100,12 +100,12 @@ class TypewriterButtonModel():
         if pitch == None:
             return None
 
-        (left_on, center_on, right_on) = 3 * [False]
+        (left_on, centre_on, right_on) = 3 * [False]
         notes = selected_control.get_active_notes()
         for note in notes.values():
             if self._typewriter_manager.get_nearest_key_id(note) == key_id:
                 if abs(note - pitch) < 0.1:
-                    center_on = True
+                    centre_on = True
                 elif note < pitch:
                     left_on = True
                 elif note > pitch:
@@ -113,7 +113,7 @@ class TypewriterButtonModel():
                 else:
                     assert False
 
-        return (left_on, center_on, right_on)
+        return (left_on, centre_on, right_on)
 
     def start_tracked_note(self):
         event_type, param = self._get_event_type_and_param()

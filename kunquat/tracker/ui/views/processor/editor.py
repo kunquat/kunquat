@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -16,6 +16,7 @@ from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
+from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from .infoeditor import InfoEditor
 from . import proctypeinfo
 
@@ -187,12 +188,13 @@ class Signals(QWidget):
         self._ui_model = None
         self._updater = None
 
-        self._signal_type = QComboBox()
+        self._signal_type = KqtComboBox()
         for info in self._SIGNAL_INFO:
             _, text = info
             self._signal_type.addItem(text)
 
         v = QHBoxLayout()
+        v.setContentsMargins(4, 4, 4, 4)
         v.addWidget(HeaderFrame('Signal type', self._signal_type))
         self.setLayout(v)
 

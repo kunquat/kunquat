@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -18,6 +18,7 @@ import kunquat.kunquat.events as events
 from kunquat.kunquat.limits import *
 from .editorlist import EditorList
 from .headerline import HeaderLine
+from .kqtcombobox import KqtComboBox
 
 
 class BindEditor(QWidget):
@@ -260,7 +261,7 @@ class BindList(QWidget):
         self._list_view.setModel(self._list_model)
 
 
-class EventBox(QComboBox):
+class EventBox(KqtComboBox):
 
     def __init__(self, excluded=set()):
         super().__init__()
@@ -279,11 +280,7 @@ class EventBox(QComboBox):
             if event['name'] not in excluded),
             key=lambda x: x.lstrip('/=.->+<') or x)
 
-        old_block = self.blockSignals(True)
-        self.clear()
-        for event_name in event_names:
-            self.addItem(event_name)
-        self.blockSignals(old_block)
+        self.set_items(name for name in event_names)
 
         if selected:
             self.try_select_event(selected)

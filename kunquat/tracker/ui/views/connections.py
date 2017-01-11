@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -22,6 +22,7 @@ from kunquat.tracker.ui.model.module import Module
 from kunquat.tracker.ui.model.processor import Processor
 from .confirmdialog import ConfirmDialog
 from .linesegment import LineSegment
+from . import utils
 
 
 _title_font = QFont(QFont().defaultFamily(), 10)
@@ -52,46 +53,56 @@ DEFAULT_CONFIG = {
             'button_width'       : 44,
             'button_padding'     : 2,
             'instrument': {
-                'bg_colour'       : QColor(0x33, 0x33, 0x55),
-                'fg_colour'       : QColor(0xdd, 0xee, 0xff),
-                'button_bg_colour': QColor(0x11, 0x11, 0x33),
-                'button_focused_bg_colour': QColor(0, 0, 0x77),
+                'bg_colours'       : [QColor('#335'), QColor('#668'), QColor('#002')],
+                'fg_colour'        : QColor(0xdd, 0xee, 0xff),
+                'button_bg_colours': [QColor('#335'), QColor('#668'), QColor('#002')],
+                'button_down_bg_colours':
+                                     [QColor('#113'), QColor('#446'), QColor('#000')],
+                #'button_focused_bg_colour': QColor(0, 0, 0x77),
             },
             'effect': {
-                'bg_colour'       : QColor(0x55, 0x44, 0x33),
-                'fg_colour'       : QColor(0xff, 0xee, 0xdd),
-                'button_bg_colour': QColor(0x33, 0x22, 0x11),
-                'button_focused_bg_colour': QColor(0x77, 0x22, 0),
+                'bg_colours'       : [QColor('#543'), QColor('#876'), QColor('#210')],
+                'fg_colour'        : QColor(0xff, 0xee, 0xdd),
+                'button_bg_colours': [QColor('#543'), QColor('#876'), QColor('#210')],
+                'button_down_bg_colours':
+                                     [QColor('#321'), QColor('#654'), QColor('#000')],
+                #'button_focused_bg_colour': QColor(0x77, 0x22, 0),
             },
             'proc_voice': {
-                'bg_colour'       : QColor(0x22, 0x55, 0x55),
-                'fg_colour'       : QColor(0xcc, 0xff, 0xff),
-                'button_bg_colour': QColor(0x11, 0x33, 0x33),
-                'button_focused_bg_colour': QColor(0, 0x55, 0x55),
-                'hilight_selected': QColor(0x99, 0xbb, 0x99),
-                'hilight_excluded': QColor(0x55, 0x44, 0x33),
+                'bg_colours'       : [QColor('#255'), QColor('#588'), QColor('#022')],
+                'fg_colour'        : QColor(0xcc, 0xff, 0xff),
+                'button_bg_colours': [QColor('#255'), QColor('#588'), QColor('#022')],
+                'button_down_bg_colours':
+                                     [QColor('#033'), QColor('#366'), QColor('#000')],
+                #'button_focused_bg_colour': QColor(0, 0x55, 0x55),
+                'hilight_selected' : QColor(0x99, 0xbb, 0x99),
+                'hilight_excluded' : QColor(0x55, 0x44, 0x33),
                 'hilight_selected_focused': QColor(0xff, 0x88, 0x44),
                 'hilight_excluded_focused': QColor(0x88, 0x33, 0x11),
-                'hilight_pressed' : QColor(0xff, 0xff, 0xff),
+                'hilight_pressed'  : QColor(0xff, 0xff, 0xff),
             },
             'proc_mixed': {
-                'bg_colour'       : QColor(0x55, 0x22, 0x55),
-                'fg_colour'       : QColor(0xff, 0xcc, 0xff),
-                'button_bg_colour': QColor(0x33, 0x11, 0x33),
-                'button_focused_bg_colour': QColor(0x55, 0, 0x55),
+                'bg_colours'       : [QColor('#525'), QColor('#858'), QColor('#202')],
+                'fg_colour'        : QColor(0xff, 0xcc, 0xff),
+                'button_bg_colours': [QColor('#525'), QColor('#858'), QColor('#202')],
+                'button_down_bg_colours':
+                                     [QColor('#303'), QColor('#636'), QColor('#000')],
+                #'button_focused_bg_colour': QColor(0x55, 0, 0x55),
                 # TODO: Mixed processors shouldn't be highlighted;
                 #       these are just a temp fix to prevent crash
-                'hilight_selected': QColor(0x99, 0xbb, 0x99),
-                'hilight_excluded': QColor(0x55, 0x44, 0x33),
+                'hilight_selected' : QColor(0x99, 0xbb, 0x99),
+                'hilight_excluded' : QColor(0x55, 0x44, 0x33),
                 'hilight_selected_focused': QColor(0xff, 0x88, 0x44),
                 'hilight_excluded_focused': QColor(0x88, 0x33, 0x11),
-                'hilight_pressed' : QColor(0xff, 0xff, 0xff),
+                'hilight_pressed'  : QColor(0xff, 0xff, 0xff),
             },
             'master': {
-                'bg_colour'       : QColor(0x33, 0x55, 0x33),
-                'fg_colour'       : QColor(0xdd, 0xff, 0xdd),
-                'button_bg_colour': QColor(0x11, 0x33, 0x11),
-                'button_focused_bg_colour': QColor(0, 0x77, 0),
+                'bg_colours'       : [QColor('#353'), QColor('#686'), QColor('#020')],
+                'fg_colour'        : QColor(0xdd, 0xff, 0xdd),
+                'button_bg_colours': [QColor('#353'), QColor('#686'), QColor('#020')],
+                'button_down_bg_colours':
+                                     [QColor('#131'), QColor('#464'), QColor('#000')],
+                #'button_focused_bg_colour': QColor(0, 0x77, 0),
             },
         },
     }
@@ -256,7 +267,7 @@ class ConnectionsView(QWidget):
 
     positionsChanged = Signal(name='positionsChanged')
 
-    def __init__(self, config={}):
+    def __init__(self):
         super().__init__()
         self._ui_model = None
         self._au_id = None
@@ -267,7 +278,7 @@ class ConnectionsView(QWidget):
         self._visible_device_ids = []
         self._visible_devices = {}
 
-        self._center_pos = (0, 0)
+        self._centre_pos = (0, 0)
 
         self._focused_id = None
         self._focused_rel_pos = (0, 0)
@@ -294,7 +305,6 @@ class ConnectionsView(QWidget):
                 self._edge_menu, SIGNAL('triggered(QAction*)'), self._remove_edge)
 
         self._config = None
-        self._set_config(config)
 
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
@@ -312,6 +322,7 @@ class ConnectionsView(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        self._update_style()
         self._update_devices()
 
     def unregister_updaters(self):
@@ -328,8 +339,8 @@ class ConnectionsView(QWidget):
         return area_rect
 
     def get_visible_rect(self):
-        x_start = self._center_pos[0] - self.width() // 2
-        y_start = self._center_pos[1] - self.height() // 2
+        x_start = self._centre_pos[0] - self.width() // 2
+        y_start = self._centre_pos[1] - self.height() // 2
         return QRect(x_start, y_start, self.width(), self.height())
 
     def _get_connections(self):
@@ -372,15 +383,130 @@ class ConnectionsView(QWidget):
             return
 
         full_rect = area_rect.united(visible_rect)
-        new_center_pos = (
+        new_centre_pos = (
                 full_rect.left() + self.width() // 2 + area_x,
                 full_rect.top() + self.height() // 2 + area_y)
 
-        self._change_layout_entry('center_pos', new_center_pos)
+        self._change_layout_entry('center_pos', new_centre_pos)
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
+
+        if 'devices' in config:
+            devices = config.pop('devices')
+            self._config['devices'] = DEFAULT_CONFIG['devices'].copy()
+
+            for dtype in ('instrument', 'effect', 'proc_voice', 'proc_mixed', 'master'):
+                if dtype in devices:
+                    self._config['devices'][dtype] = DEFAULT_CONFIG['devices'][dtype].copy()
+                    self._config['devices'][dtype].update(devices.pop(dtype))
+            self._config['devices'].update(devices)
+
         self._config.update(config)
+
+        for device in self._visible_devices.values():
+            device.set_config(self._config['devices'])
+            device.draw_images()
+
+        self._ls_cache = {}
+
+    def _update_style(self):
+        style_manager = self._ui_model.get_style_manager()
+        if not style_manager.is_custom_style_enabled():
+            self._set_config({})
+            self.update()
+            return
+
+        def get_colour(name):
+            return QColor(style_manager.get_style_param(name))
+
+        border_contrast = style_manager.get_style_param('border_contrast')
+        button_brightness = style_manager.get_style_param('button_brightness')
+        press_brightness = style_manager.get_style_param('button_press_brightness')
+
+        def get_outset_colours(name):
+            return (QColor(style_manager.get_adjusted_colour(name, 0)),
+                    QColor(style_manager.get_adjusted_colour(name, border_contrast)),
+                    QColor(style_manager.get_adjusted_colour(name, -border_contrast)))
+
+        def get_button_colours(name):
+            return (QColor(style_manager.get_adjusted_colour(name, button_brightness)),
+                    QColor(style_manager.get_adjusted_colour(
+                        name, button_brightness + border_contrast)),
+                    QColor(style_manager.get_adjusted_colour(
+                        name, button_brightness - border_contrast)))
+
+        def get_down_colours(name):
+            down_brightness = button_brightness + press_brightness
+            return (QColor(style_manager.get_adjusted_colour(name, down_brightness)),
+                    QColor(style_manager.get_adjusted_colour(
+                        name, down_brightness + border_contrast)),
+                    QColor(style_manager.get_adjusted_colour(
+                        name, down_brightness - border_contrast)))
+
+        pv_hilight_selected = get_colour('conns_proc_voice_selected_colour')
+        focus_colour = get_colour('conns_focus_colour')
+        bg_colour = get_colour('conns_bg_colour')
+
+        focus_pressed_colour = QColor(style_manager.get_adjusted_colour(
+            'conns_focus_colour', press_brightness))
+
+        pv_hilight_excluded = utils.lerp_colour(pv_hilight_selected, bg_colour, 0.5)
+        pv_hilight_excluded_focused = utils.lerp_colour(focus_colour, bg_colour, 0.5)
+
+        devices = {
+            'port_colour': get_colour('conns_port_colour'),
+            'focused_port_colour': focus_colour,
+            'instrument': {
+                'bg_colours': get_outset_colours('conns_inst_bg_colour'),
+                'fg_colour': get_colour('conns_inst_fg_colour'),
+                'button_bg_colours': get_button_colours('conns_inst_bg_colour'),
+                'button_down_bg_colours': get_down_colours('conns_inst_bg_colour'),
+            },
+            'effect': {
+                'bg_colours': get_outset_colours('conns_effect_bg_colour'),
+                'fg_colour': get_colour('conns_effect_fg_colour'),
+                'button_bg_colours': get_button_colours('conns_effect_bg_colour'),
+                'button_down_bg_colours': get_down_colours('conns_effect_bg_colour'),
+            },
+            'proc_voice': {
+                'bg_colours': get_outset_colours('conns_proc_voice_bg_colour'),
+                'fg_colour': get_colour('conns_proc_voice_fg_colour'),
+                'button_bg_colours': get_button_colours('conns_proc_voice_bg_colour'),
+                'button_down_bg_colours': get_down_colours('conns_proc_voice_bg_colour'),
+                'hilight_selected': pv_hilight_selected,
+                'hilight_excluded': pv_hilight_excluded,
+                'hilight_selected_focused': focus_colour,
+                'hilight_excluded_focused': pv_hilight_excluded_focused,
+                'hilight_pressed' : focus_pressed_colour,
+            },
+            'proc_mixed': {
+                'bg_colours': get_outset_colours('conns_proc_mixed_bg_colour'),
+                'fg_colour': get_colour('conns_proc_mixed_fg_colour'),
+                'button_bg_colours': get_button_colours('conns_proc_mixed_bg_colour'),
+                'button_down_bg_colours': get_down_colours('conns_proc_mixed_bg_colour'),
+            },
+            'master': {
+                'bg_colours': get_outset_colours('conns_master_bg_colour'),
+                'fg_colour': get_colour('conns_master_fg_colour'),
+            },
+        }
+
+        config = {
+            'bg_colour':
+                QColor(style_manager.get_style_param('conns_bg_colour')),
+            'edge_colour':
+                QColor(style_manager.get_style_param('conns_edge_colour')),
+            'focused_edge_colour':
+                QColor(style_manager.get_style_param('conns_focus_colour')),
+            'invalid_port_colour':
+                QColor(style_manager.get_style_param('conns_invalid_port_colour')),
+
+            'devices': devices,
+        }
+
+        self._set_config(config)
+        self.update()
 
     def _perform_updates(self, signals):
         update_signals = set([
@@ -397,6 +523,9 @@ class ConnectionsView(QWidget):
 
         if not signals.isdisjoint(update_signals):
             self._update_devices()
+
+        if 'signal_style_changed' in signals:
+            self._update_style()
 
     def _get_full_id(self, dev_id):
         assert '/' not in dev_id
@@ -445,7 +574,7 @@ class ConnectionsView(QWidget):
         connections = self._get_connections()
         layout = connections.get_layout()
 
-        self._center_pos = layout.get('center_pos', (0, 0))
+        self._centre_pos = layout.get('center_pos', (0, 0))
 
         # Get visible device IDs
         visible_set = set(['master'])
@@ -535,11 +664,11 @@ class ConnectionsView(QWidget):
 
                 device = Device(
                         dev_id,
-                        self._config['devices'],
                         in_ports,
                         out_ports,
                         lambda: self._get_device(dev_id))
-                device.draw_pixmaps()
+                device.set_config(self._config['devices'])
+                device.draw_images()
                 new_visible_devices[dev_id] = device
 
             dev_layout = layout.get(dev_id, {})
@@ -553,8 +682,8 @@ class ConnectionsView(QWidget):
                 y_offset_factor *= (-1 if (pos_cfg['index'] % 2 == 1) else 1)
                 pos_cfg['index'] += 1
                 offset = (
-                        self._center_pos[0] + pos_cfg['offset_x'],
-                        self._center_pos[1] + y_offset_factor * pos_cfg['offset_y'])
+                        self._centre_pos[0] + pos_cfg['offset_x'],
+                        self._centre_pos[1] + y_offset_factor * pos_cfg['offset_y'])
                 self._default_offsets[dev_id] = offset
 
             device = new_visible_devices[dev_id]
@@ -601,10 +730,10 @@ class ConnectionsView(QWidget):
             dev_id = 'master' if port_id.startswith('out') else 'Iin'
         return (dev_id, port_id)
 
-    def _get_port_center_from_path(self, path):
+    def _get_port_centre_from_path(self, path):
         dev_id, port_id = self._split_path(path)
-        port_center = self._visible_devices[dev_id].get_port_center(port_id)
-        return port_center
+        port_centre = self._visible_devices[dev_id].get_port_centre(port_id)
+        return port_centre
 
     def paintEvent(self, event):
         start = time.time()
@@ -614,8 +743,8 @@ class ConnectionsView(QWidget):
         painter.eraseRect(0, 0, self.width(), self.height())
 
         painter.translate(
-                self.width() // 2 - self._center_pos[0],
-                self.height() // 2 - self._center_pos[1])
+                self.width() // 2 - self._centre_pos[0],
+                self.height() // 2 - self._centre_pos[1])
 
         connections = self._get_connections()
         layout = connections.get_layout()
@@ -626,8 +755,8 @@ class ConnectionsView(QWidget):
         edges = connections.get_connections()
         for edge in edges:
             from_path, to_path = edge
-            from_pos = self._get_port_center_from_path(from_path)
-            to_pos = self._get_port_center_from_path(to_path)
+            from_pos = self._get_port_centre_from_path(from_path)
+            to_pos = self._get_port_centre_from_path(to_path)
             key = (from_pos, to_pos)
             if key in self._ls_cache:
                 new_ls_cache[key] = self._ls_cache[key]
@@ -644,8 +773,8 @@ class ConnectionsView(QWidget):
         # Highlight focused connection
         if self._focused_edge_info:
             from_path, to_path = self._focused_edge_info['paths']
-            from_x, from_y = self._get_port_center_from_path(from_path)
-            to_x, to_y = self._get_port_center_from_path(to_path)
+            from_x, from_y = self._get_port_centre_from_path(from_path)
+            to_x, to_y = self._get_port_centre_from_path(to_path)
             edge_width = self._config['focused_edge_width']
             offset = edge_width // 2
             from_x, from_y = from_x + offset, from_y + offset
@@ -665,7 +794,7 @@ class ConnectionsView(QWidget):
             from_info = self._adding_edge_info['from']
             from_dev_id = from_info['dev_id']
             from_port = from_info['port']
-            from_pos = self._visible_devices[from_dev_id].get_port_center(from_port)
+            from_pos = self._visible_devices[from_dev_id].get_port_centre(from_port)
             from_x, from_y = from_pos
 
             pen = QPen(self._config['focused_edge_colour'])
@@ -674,7 +803,7 @@ class ConnectionsView(QWidget):
             if to_info:
                 to_dev_id = to_info['dev_id']
                 to_port = to_info['port']
-                to_pos = self._visible_devices[to_dev_id].get_port_center(to_port)
+                to_pos = self._visible_devices[to_dev_id].get_port_centre(to_port)
                 to_x, to_y = to_pos
                 pen.setWidth(self._config['focused_edge_width'])
             else:
@@ -698,7 +827,7 @@ class ConnectionsView(QWidget):
                     continue
 
             device = self._visible_devices[dev_id]
-            device.copy_pixmaps(painter)
+            device.copy_images(painter)
 
             focus_info = self._focused_port_info
             if self._adding_edge_info:
@@ -736,7 +865,7 @@ class ConnectionsView(QWidget):
         if invalid_target_info:
             dev_id = invalid_target_info['dev_id']
             port_id = invalid_target_info['port']
-            pos = self._visible_devices[dev_id].get_port_center(port_id)
+            pos = self._visible_devices[dev_id].get_port_centre(port_id)
             pos_x, pos_y = pos
 
             pen = QPen(
@@ -757,8 +886,8 @@ class ConnectionsView(QWidget):
         #print('Connections view updated in {:.2f} ms'.format(elapsed * 1000))
 
     def _get_area_pos(self, widget_x, widget_y):
-        return (widget_x - self.width() // 2 + self._center_pos[0],
-                widget_y - self.height() // 2 + self._center_pos[1])
+        return (widget_x - self.width() // 2 + self._centre_pos[0],
+                widget_y - self.height() // 2 + self._centre_pos[1])
 
     def _edge_menu_closing(self):
         self._state = STATE_IDLE
@@ -858,8 +987,8 @@ class ConnectionsView(QWidget):
                 edges = connections.get_connections()
                 for edge in edges:
                     from_path, to_path = edge
-                    from_pos = self._get_port_center_from_path(from_path)
-                    to_pos = self._get_port_center_from_path(to_path)
+                    from_pos = self._get_port_centre_from_path(from_path)
+                    to_pos = self._get_port_centre_from_path(to_path)
                     dist = get_dist_to_ls(area_pos, from_pos, to_pos)
                     if dist <= self._config['edge_focus_dist_max']:
                         new_focused_edge_info = { 'paths': edge }
@@ -1261,9 +1390,10 @@ class RemoveDeviceConfirmDialog(ConfirmDialog):
 
 class Device():
 
-    def __init__(self, dev_id, config, in_ports, out_ports, get_model_device):
+    def __init__(self, dev_id, in_ports, out_ports, get_model_device):
         self._id = dev_id
-        self._config = config
+        self._config = None
+        self._type_config = None
 
         self._offset_x = 0
         self._offset_y = 0
@@ -1271,26 +1401,26 @@ class Device():
         model_device = get_model_device()
         name = model_device.get_name()
 
-        self._name = name
-
-        if dev_id in ('master', 'Iin'):
-            self._type_config = self._config['master']
-        elif dev_id.startswith('au'):
+        if self._id in ('master', 'Iin'):
+            self._type = 'master'
+        elif self._id.startswith('au'):
             if model_device.is_instrument():
-                self._type_config = self._config['instrument']
+                self._type = 'instrument'
             elif model_device.is_effect():
-                self._type_config = self._config['effect']
+                self._type = 'effect'
             else:
                 assert False
-        elif dev_id.startswith('proc'):
+        elif self._id.startswith('proc'):
             if model_device.get_signal_type() == 'voice':
-                self._type_config = self._config['proc_voice']
+                self._type = 'proc_voice'
             elif model_device.get_signal_type() == 'mixed':
-                self._type_config = self._config['proc_mixed']
+                self._type = 'proc_mixed'
             else:
                 assert False
         else:
             raise ValueError('Unexpected type of device ID: {}'.format(dev_id))
+
+        self._name = name
 
         self._in_ports = in_ports
         self._out_ports = out_ports
@@ -1298,6 +1428,10 @@ class Device():
         self._port_names = model_device.get_port_info()
 
         self._bg = None
+
+    def set_config(self, config):
+        self._config = config
+        self._type_config = self._config[self._type]
 
     def get_name(self):
         return self._name
@@ -1310,18 +1444,23 @@ class Device():
     def get_port_info(self):
         return self._port_names
 
-    def draw_pixmaps(self):
-        self._bg = QPixmap(self._config['width'], self._get_height())
+    def draw_images(self):
+        self._bg = QImage(
+                self._config['width'],
+                self._get_height(),
+                QImage.Format_ARGB32_Premultiplied)
+        self._bg.fill(0)
         painter = QPainter(self._bg)
         pad = self._config['padding']
 
         # Background
-        painter.setBackground(self._type_config['bg_colour'])
-        painter.eraseRect(0, 0, self._bg.width(), self._bg.height())
-        painter.setPen(self._type_config['fg_colour'])
-        painter.drawRect(0, 0, self._bg.width() - 1, self._bg.height() - 1)
+        self._draw_rounded_rect(
+                painter,
+                self._type_config['bg_colours'],
+                QRect(0, 0, self._bg.width(), self._bg.height()))
 
         # Title
+        painter.setPen(QColor(self._type_config['fg_colour']))
         painter.setFont(self._config['title_font'])
         text_option = QTextOption(Qt.AlignCenter)
         title_height = self._get_title_height()
@@ -1368,27 +1507,27 @@ class Device():
         if self._has_edit_button():
             self._draw_edit_button(
                     painter,
-                    self._type_config['button_bg_colour'],
+                    self._type_config['button_bg_colours'],
                     self._type_config['fg_colour'])
 
         # Remove button
         if self._has_remove_button():
             self._draw_remove_button(
                     painter,
-                    self._type_config['button_bg_colour'],
+                    self._type_config['button_bg_colours'],
                     self._type_config['fg_colour'])
 
-    def copy_pixmaps(self, painter):
+    def copy_images(self, painter):
         painter.save()
 
         painter.translate(self._offset_x, self._offset_y)
 
         bg_offset_x, bg_offset_y = self._get_top_left_pos((0, 0))
-        painter.drawPixmap(bg_offset_x, bg_offset_y, self._bg)
+        painter.drawImage(bg_offset_x, bg_offset_y, self._bg)
 
         painter.restore()
 
-    def _get_in_port_centers(self):
+    def _get_in_port_centres(self):
         bg_offset_x, bg_offset_y = self._get_top_left_pos(
                 (self._offset_x, self._offset_y))
 
@@ -1401,7 +1540,7 @@ class Device():
             yield (port_x, port_y)
             port_y += self._get_port_height()
 
-    def _get_out_port_centers(self):
+    def _get_out_port_centres(self):
         bg_offset_x, bg_offset_y = self._get_top_left_pos(
                 (self._offset_x, self._offset_y))
 
@@ -1414,13 +1553,13 @@ class Device():
             yield (port_x, port_y)
             port_y += self._get_port_height()
 
-    def get_port_center(self, port_id):
+    def get_port_centre(self, port_id):
         if port_id.startswith('in') != (self._id in ('master', 'Iin')):
-            for i, point in enumerate(self._get_in_port_centers()):
+            for i, point in enumerate(self._get_in_port_centres()):
                 if self._in_ports[i] == port_id:
                     return point
         else:
-            for i, point in enumerate(self._get_out_port_centers()):
+            for i, point in enumerate(self._get_out_port_centres()):
                 if self._out_ports[i] == port_id:
                     return point
 
@@ -1429,14 +1568,14 @@ class Device():
     def _get_in_port_rects(self):
         handle_size = self._config['port_handle_size']
         handle_offset = -handle_size // 2 + 1
-        for point in self._get_in_port_centers():
+        for point in self._get_in_port_centres():
             x, y = point
             yield QRect(x + handle_offset, y + handle_offset, handle_size, handle_size)
 
     def _get_out_port_rects(self):
         handle_size = self._config['port_handle_size']
         handle_offset = -handle_size // 2 + 1
-        for point in self._get_out_port_centers():
+        for point in self._get_out_port_centres():
             x, y = point
             yield QRect(x + handle_offset, y + handle_offset, handle_size, handle_size)
 
@@ -1483,48 +1622,92 @@ class Device():
 
     def draw_button_highlight(self, painter, info):
         assert 'button_type' in info
+
+        if not info.get('pressed'):
+            return # TODO: add hover support if needed
+
         painter.save()
         shift_x, shift_y = self._get_top_left_pos((0, 0))
         painter.translate(self._offset_x + shift_x, self._offset_y + shift_y)
 
-        bg_colour = self._type_config['button_focused_bg_colour']
+        bg_colours = self._type_config['button_down_bg_colours']
         fg_colour = self._type_config['fg_colour']
-        if info.get('pressed'):
-            bg_colour, fg_colour = fg_colour, bg_colour
 
         if info['button_type'] == 'edit':
             assert self._has_edit_button()
-            self._draw_edit_button(painter, bg_colour, fg_colour)
+            self._draw_edit_button(painter, bg_colours, fg_colour)
         elif info['button_type'] == 'remove':
             assert self._has_remove_button()
-            self._draw_remove_button(painter, bg_colour, fg_colour)
+            self._draw_remove_button(painter, bg_colours, fg_colour)
 
         painter.restore()
 
-    def _get_top_left_pos(self, center_pos):
-        center_x, center_y = center_pos
-        return (center_x - self._bg.width() // 2, center_y - self._bg.height() // 2)
+    def _get_top_left_pos(self, centre_pos):
+        centre_x, centre_y = centre_pos
+        return (centre_x - self._bg.width() // 2, centre_y - self._bg.height() // 2)
 
-    def _get_dev_biased_pos(self, center_pos):
-        center_x, center_y = center_pos
-        return (center_x + self._bg.width() // 2, center_y + self._bg.height() // 2)
+    def _get_dev_biased_pos(self, centre_pos):
+        centre_x, centre_y = centre_pos
+        return (centre_x + self._bg.width() // 2, centre_y + self._bg.height() // 2)
 
-    def _draw_button(self, painter, bg_colour, fg_colour, rect, text):
+    def _draw_rounded_rect(self, painter, colours, rect):
+        inner_rect = rect.adjusted(1, 1, -1, -1)
+        assert inner_rect.isValid()
+
+        # Background fill
+        painter.setPen(Qt.NoPen)
+        painter.fillRect(inner_rect, colours[0])
+
+        painter.save()
+        painter.setRenderHint(QPainter.Antialiasing)
+        top = rect.top() + 0.5
+        left = rect.left() + 0.5
+        right = rect.right() + 0.5
+        bottom = rect.bottom() + 0.5
+
+        radius = 1.5
+        diam = radius * 2
+
+        # Dark shade
+        painter.setPen(QPen(QBrush(colours[2]), 1, cap=Qt.FlatCap))
+        dark_path = QPainterPath()
+        dark_path.arcMoveTo(QRectF(left, bottom - diam, diam, diam), 225)
+        dark_path.arcTo(QRectF(left, bottom - diam, diam, diam), 225, 45)
+        dark_path.lineTo(QPointF(right - radius, bottom))
+        dark_path.arcTo(QRectF(right - diam, bottom - diam, diam, diam), 270, 90)
+        dark_path.lineTo(QPointF(right, top + radius))
+        dark_path.arcTo(QRectF(right - diam, top, diam, diam), 0, 45)
+        painter.drawPath(dark_path)
+
+        # Light shade
+        painter.setPen(QPen(QBrush(colours[1]), 1, cap=Qt.FlatCap))
+        light_path = QPainterPath()
+        light_path.arcMoveTo(QRectF(left, bottom - diam, diam, diam), 225)
+        light_path.arcTo(QRectF(left, bottom - diam, diam, diam), 225, -45)
+        light_path.lineTo(QPointF(left, top + radius))
+        light_path.arcTo(QRectF(left, top, diam, diam), 180, -90)
+        light_path.lineTo(QPointF(right - radius, top))
+        light_path.arcTo(QRectF(right - diam, top, diam, diam), 90, -45)
+        painter.drawPath(light_path)
+
+        painter.restore()
+
+    def _draw_button(self, painter, bg_colours, fg_colour, rect, text):
+        self._draw_rounded_rect(painter, bg_colours, rect)
+
         painter.setPen(fg_colour)
-        painter.setBrush(bg_colour)
-        painter.drawRect(rect)
 
         painter.setFont(self._config['title_font'])
         text_option = QTextOption(Qt.AlignCenter)
         painter.drawText(QRectF(rect), text, text_option)
 
-    def _draw_edit_button(self, painter, bg_colour, fg_colour):
+    def _draw_edit_button(self, painter, bg_colours, fg_colour):
         rect = self._get_edit_button_rect()
-        self._draw_button(painter, bg_colour, fg_colour, rect, 'Edit')
+        self._draw_button(painter, bg_colours, fg_colour, rect, 'Edit')
 
-    def _draw_remove_button(self, painter, bg_colour, fg_colour):
+    def _draw_remove_button(self, painter, bg_colours, fg_colour):
         rect = self._get_remove_button_rect()
-        self._draw_button(painter, bg_colour, fg_colour, rect, 'Del')
+        self._draw_button(painter, bg_colours, fg_colour, rect, 'Del')
 
     def set_offset(self, offset):
         self._offset_x, self._offset_y = offset
@@ -1548,14 +1731,14 @@ class Device():
             return None
 
         if dev_x < 0:
-            for i, point in enumerate(self._get_in_port_centers()):
+            for i, point in enumerate(self._get_in_port_centres()):
                 x, y = point
                 x -= self._offset_x
                 y -= self._offset_y
                 if max(abs(dev_x - x), abs(dev_y - y)) <= port_dist_max:
                     return self._in_ports[i]
         else:
-            for i, point in enumerate(self._get_out_port_centers()):
+            for i, point in enumerate(self._get_out_port_centres()):
                 x, y = point
                 x -= self._offset_x
                 y -= self._offset_y

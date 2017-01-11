@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -36,7 +36,7 @@ class TimeEnvelope(QWidget):
         if self._allow_release_toggle():
             self._release_toggle = QCheckBox('Release')
         self._scale_amount = NumberSlider(2, -4, 4, title='Scale amount:')
-        self._scale_center = NumberSlider(0, -3600, 3600, title='Scale center:')
+        self._scale_centre = NumberSlider(0, -3600, 3600, title='Scale centre:')
 
         h = QHBoxLayout()
         if self._allow_toggle_enabled():
@@ -46,13 +46,13 @@ class TimeEnvelope(QWidget):
         if self._allow_release_toggle():
             h.addWidget(self._release_toggle)
         h.addWidget(self._scale_amount)
-        h.addWidget(self._scale_center)
+        h.addWidget(self._scale_centre)
 
         self._envelope = self._make_envelope_widget()
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
-        v.setSpacing(0)
+        v.setSpacing(2)
         v.addWidget(header)
         v.addLayout(h)
         v.addWidget(self._envelope)
@@ -87,13 +87,15 @@ class TimeEnvelope(QWidget):
                 SIGNAL('numberChanged(float)'),
                 self._scale_amount_changed)
         QObject.connect(
-                self._scale_center,
+                self._scale_centre,
                 SIGNAL('numberChanged(float)'),
-                self._scale_center_changed)
+                self._scale_centre_changed)
         QObject.connect(
                 self._envelope,
                 SIGNAL('envelopeChanged()'),
                 self._envelope_changed)
+
+        self._envelope.update_style(self._ui_model.get_style_manager())
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
@@ -102,6 +104,8 @@ class TimeEnvelope(QWidget):
         update_signals = set(['signal_au', self._get_update_signal_type()])
         if not signals.isdisjoint(update_signals):
             self._update_envelope()
+        if 'signal_style_changed' in signals:
+            self._envelope.update_style(self._ui_model.get_style_manager())
 
     def _update_envelope(self):
         is_enabled = True;
@@ -115,7 +119,7 @@ class TimeEnvelope(QWidget):
 
         self._envelope.setEnabled(is_enabled)
         self._scale_amount.setEnabled(is_enabled)
-        self._scale_center.setEnabled(is_enabled)
+        self._scale_centre.setEnabled(is_enabled)
 
         if self._allow_loop():
             old_block = self._loop_toggle.blockSignals(True)
@@ -132,7 +136,7 @@ class TimeEnvelope(QWidget):
             self._release_toggle.blockSignals(old_block)
 
         self._scale_amount.set_number(self._get_scale_amount())
-        self._scale_center.set_number(self._get_scale_center())
+        self._scale_centre.set_number(self._get_scale_centre())
 
         envelope = self._get_envelope_data()
         self._envelope.set_nodes(envelope['nodes'])
@@ -159,8 +163,8 @@ class TimeEnvelope(QWidget):
         self._set_scale_amount(num)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
-    def _scale_center_changed(self, num):
-        self._set_scale_center(num)
+    def _scale_centre_changed(self, num):
+        self._set_scale_centre(num)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _envelope_changed(self):
@@ -223,10 +227,10 @@ class TimeEnvelope(QWidget):
     def _set_scale_amount(self, value):
         raise NotImplementedError
 
-    def _get_scale_center(self):
+    def _get_scale_centre(self):
         raise NotImplementedError
 
-    def _set_scale_center(self, value):
+    def _set_scale_centre(self, value):
         raise NotImplementedError
 
     def _get_envelope_data(self):

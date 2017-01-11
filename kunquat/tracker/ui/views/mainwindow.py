@@ -93,7 +93,7 @@ class MainWindow(QWidget):
             visibility_manager.hide_main()
 
     def sizeHint(self):
-        return QSize(1024, 768)
+        return QSize(1280, 768)
 
 
 class ExitUnsavedConfirmDialog(ConfirmDialog):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -70,7 +70,7 @@ class InitStateEditor(QWidget):
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
-        h.setSpacing(4)
+        h.setSpacing(10)
         h.addWidget(QLabel('Initial value:'), 0)
         h.addWidget(self._init_val, 1)
         h.addWidget(QLabel('Initial oscillation speed:'), 0)

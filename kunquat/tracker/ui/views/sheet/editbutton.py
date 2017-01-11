@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,7 +15,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 
-class EditButton(QToolButton):
+class EditButton(QPushButton):
 
     def __init__(self):
         super().__init__()
@@ -24,8 +24,8 @@ class EditButton(QToolButton):
         self._sheet_manager = None
 
         self.setCheckable(True)
-        self.setAutoRaise(True)
-        self.setText('Edit')
+        self.setFlat(True)
+        #self.setText('Edit')
         self.setToolTip('Edit (Space)')
 
     def set_ui_model(self, ui_model):

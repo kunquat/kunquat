@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -212,12 +212,12 @@ class Notation():
     def apply_template_settings(self):
         template = self.get_template()
 
-        # Get center pitch in cents
-        center_pitch_value, center_pitch_units = template.get_center_pitch()
-        if center_pitch_units == 'cents':
-            center = center_pitch_value
-        elif center_pitch_units == 'Hz':
-            center = math.log(center_pitch_value / 440.0, 2) * 1200
+        # Get centre pitch in cents
+        centre_pitch_value, centre_pitch_units = template.get_centre_pitch()
+        if centre_pitch_units == 'cents':
+            centre = centre_pitch_value
+        elif centre_pitch_units == 'Hz':
+            centre = math.log(centre_pitch_value / 440.0, 2) * 1200
 
         # Get octave width in cents
         octave_ratio = template.get_octave_ratio()
@@ -252,8 +252,8 @@ class Notation():
             holes_after = []
 
         # Get octave range
-        min_octave, center_octave, max_octave = template.get_octaves()
-        center_octave_id = center_octave - min_octave
+        min_octave, centre_octave, max_octave = template.get_octaves()
+        centre_octave_id = centre_octave - min_octave
 
         # Generate new data
         octave_names = []
@@ -262,11 +262,11 @@ class Notation():
         for octave_id in range(min_octave, max_octave + 1):
             octave_names.append(str(octave_id))
 
-            rel_octave = octave_id - center_octave
+            rel_octave = octave_id - centre_octave
             octave_offset = octave_width * rel_octave
             cur_octave_cents = []
             for note_offset, base_name in zip(note_offsets, base_note_names):
-                cents = center + octave_offset + note_offset
+                cents = centre + octave_offset + note_offset
                 name = '{}{}'.format(base_name, octave_id)
                 notes.append([cents, name])
                 cur_octave_cents.append(cents)
@@ -281,7 +281,7 @@ class Notation():
         # Set new data
         data = deepcopy(self._get_raw_data())
         data['octave_names'] = octave_names
-        data['base_octave'] = center_octave_id
+        data['base_octave'] = centre_octave_id
         data['note_names'] = notes
         data['keymap'] = keymap
         self._set_raw_data(data)
@@ -293,10 +293,10 @@ class Template():
         self._get_data = get_data
         self._set_data = set_data
 
-    def get_center_pitch(self):
+    def get_centre_pitch(self):
         return self._get_data()['center_pitch']
 
-    def set_center_pitch(self, value, units):
+    def set_centre_pitch(self, value, units):
         data = deepcopy(self._get_data())
         data['center_pitch'] = [value, units]
         self._set_data(data)
@@ -312,9 +312,9 @@ class Template():
     def get_octaves(self):
         return self._get_data()['octaves']
 
-    def set_octaves(self, lowest, center, highest):
+    def set_octaves(self, lowest, centre, highest):
         data = deepcopy(self._get_data())
-        data['octaves'] = [lowest, center, highest]
+        data['octaves'] = [lowest, centre, highest]
         self._set_data(data)
 
     def get_note_count(self):

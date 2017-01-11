@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -16,6 +16,7 @@ from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
+from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from .waveform import Waveform
 
 
@@ -30,7 +31,7 @@ class WaveformEditor(QWidget):
 
         self._prewarp_list = WarpList(
                 'pre', self._get_base_wave, self._get_update_signal_type)
-        self._base_func_selector = QComboBox()
+        self._base_func_selector = KqtComboBox()
         self._postwarp_list = WarpList(
                 'post', self._get_base_wave, self._get_update_signal_type)
         self._waveform = Waveform()
@@ -70,6 +71,7 @@ class WaveformEditor(QWidget):
 
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+        self._update_style()
         self._update_all()
 
         QObject.connect(
@@ -86,6 +88,29 @@ class WaveformEditor(QWidget):
         update_signals = set(['signal_au', self._get_update_signal_type()])
         if not signals.isdisjoint(update_signals):
             self._update_all()
+        if 'signal_style_changed' in signals:
+            self._update_style()
+
+    def _update_style(self):
+        style_manager = self._ui_model.get_style_manager()
+        if not style_manager.is_custom_style_enabled():
+            self._waveform.set_config({})
+            return
+
+        def get_colour(name):
+            return QColor(style_manager.get_style_param(name))
+
+        disabled_colour = QColor(get_colour('bg_colour'))
+        disabled_colour.setAlpha(0x7f)
+
+        config = {
+            'bg_colour': get_colour('waveform_bg_colour'),
+            'centre_line_colour': get_colour('waveform_centre_line_colour'),
+            'waveform_colour': get_colour('waveform_zoomed_out_colour'),
+            'disabled_colour': disabled_colour,
+        }
+
+        self._waveform.set_config(config)
 
     def _update_all(self):
         base_wave = self._get_base_wave()
@@ -96,15 +121,12 @@ class WaveformEditor(QWidget):
         self._prewarp_list.setEnabled(enable_warps)
 
         old_block = self._base_func_selector.blockSignals(True)
-        self._base_func_selector.clear()
-        func_names = base_wave.get_waveform_func_names()
-        for i, name in enumerate(func_names):
-            self._base_func_selector.addItem(name)
-            if name == selected_base_func:
-                self._base_func_selector.setCurrentIndex(i)
+        func_names = list(base_wave.get_waveform_func_names())
         if not selected_base_func:
-            self._base_func_selector.addItem('Custom')
-            self._base_func_selector.setCurrentIndex(len(func_names))
+            func_names.append('Custom')
+        self._base_func_selector.set_items(func_names)
+        self._base_func_selector.setCurrentIndex(
+                self._base_func_selector.findText(selected_base_func or 'Custom'))
         self._base_func_selector.blockSignals(old_block)
 
         self._postwarp_list.setEnabled(enable_warps)
@@ -267,7 +289,7 @@ class WarpEditor(QWidget):
 
         self._down_button = SmallButton()
         self._up_button = SmallButton()
-        self._func_selector = QComboBox()
+        self._func_selector = KqtComboBox()
         self._slider = QSlider(Qt.Horizontal)
         self._slider.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
         self._value_display = QLabel()
@@ -312,11 +334,7 @@ class WarpEditor(QWidget):
         base_wave = self._get_base_wave()
 
         func_names = base_wave.get_warp_func_names(self._warp_type)
-        old_block = self._func_selector.blockSignals(True)
-        self._func_selector.clear()
-        for name in func_names:
-            self._func_selector.addItem(name)
-        self._func_selector.blockSignals(old_block)
+        self._func_selector.set_items(name for name in func_names)
 
         self._update_all()
 

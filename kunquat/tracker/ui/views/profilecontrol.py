@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -17,6 +17,8 @@ from io import StringIO
 
 from PySide.QtCore import *
 from PySide.QtGui import *
+
+from .kqtcombobox import KqtComboBox
 
 
 class ProfileControl(QDialog):
@@ -43,7 +45,7 @@ class ProfileControl(QDialog):
         self._running = False
         self._profiler = cProfile.Profile()
 
-        self._sort_selector = QComboBox()
+        self._sort_selector = KqtComboBox()
         for sort in sorted(self.SORTS.keys()):
             self._sort_selector.addItem(sort)
         QObject.connect(

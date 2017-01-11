@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -66,10 +66,10 @@ class ForceParams(ProcParams):
     def set_envelope_scale_amount(self, value):
         self._set_value('p_f_env_scale_amount.json', value)
 
-    def get_envelope_scale_center(self):
+    def get_envelope_scale_centre(self):
         return self._get_value('p_f_env_scale_center.json', 0.0)
 
-    def set_envelope_scale_center(self, value):
+    def set_envelope_scale_centre(self, value):
         self._set_value('p_f_env_scale_center.json', value)
 
     def get_release_envelope(self):
@@ -93,10 +93,10 @@ class ForceParams(ProcParams):
     def set_release_envelope_scale_amount(self, value):
         self._set_value('p_f_env_rel_scale_amount.json', value)
 
-    def get_release_envelope_scale_center(self):
+    def get_release_envelope_scale_centre(self):
         return self._get_value('p_f_env_rel_scale_center.json', 0.0)
 
-    def set_release_envelope_scale_center(self, value):
+    def set_release_envelope_scale_centre(self, value):
         self._set_value('p_f_env_rel_scale_center.json', value)
 
     def get_release_ramp_enabled(self):

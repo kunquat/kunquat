@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -11,10 +11,13 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from itertools import chain
+
 from PySide.QtCore import *
 from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
+from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.varnamevalidator import VarNameValidator
 
 
@@ -28,7 +31,7 @@ class Expressions(QWidget):
         self._expr_editor = ExpressionEditor()
 
         v = QVBoxLayout()
-        v.setContentsMargins(0, 0, 0, 0)
+        v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
         v.addWidget(self._default_note_expr)
         v.addWidget(self._expr_list)
@@ -60,7 +63,7 @@ class DefaultNoteExpr(QWidget):
         self._ui_model = None
         self._updater = None
 
-        self._expr_names = QComboBox()
+        self._expr_names = KqtComboBox()
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -106,17 +109,16 @@ class DefaultNoteExpr(QWidget):
 
     def _update_contents(self):
         au = self._get_audio_unit()
-        names = au.get_expression_names()
+        names = sorted(au.get_expression_names())
         selection = au.get_default_note_expression()
 
         old_block = self._expr_names.blockSignals(True)
-        self._expr_names.clear()
-        self._expr_names.addItem('(none)')
-        self._expr_names.setCurrentIndex(0)
-        for i, expr_name in enumerate(sorted(names)):
-            self._expr_names.addItem(expr_name)
-            if selection == expr_name:
-                self._expr_names.setCurrentIndex(i + 1) # compensate for the (none) entry
+        self._expr_names.setEnabled(len(names) > 0)
+        self._expr_names.set_items(chain(['(none)'], (name for name in names)))
+        try:
+            self._expr_names.setCurrentIndex(names.index(selection) + 1)
+        except ValueError:
+            self._expr_names.setCurrentIndex(0)
         self._expr_names.blockSignals(old_block)
 
     def _change_expression(self, item_index):

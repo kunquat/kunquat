@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -11,9 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from multiprocessing import Process, Queue
+from multiprocessing import Lock, Process, Queue
 from queue import Empty
-from threading import Lock
 
 from PySide.QtCore import *
 

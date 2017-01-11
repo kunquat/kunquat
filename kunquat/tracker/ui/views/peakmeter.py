@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2016
+# Author: Tomi Jylhä-Ollila, Finland 2013-2017
 #
 # This file is part of Kunquat.
 #
@@ -46,8 +46,9 @@ def lerp(from_val, to_val, lerp_val):
 
 class PeakMeter(QWidget):
 
-    def __init__(self, config={}):
+    def __init__(self):
         super().__init__()
+        self._ui_model = None
         self._updater = None
 
         self._config = None
@@ -55,7 +56,6 @@ class PeakMeter(QWidget):
         self._dim_colours = None
         self._bg_bar = None
         self._fg_bar = None
-        self._set_config(config)
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
 
@@ -88,6 +88,26 @@ class PeakMeter(QWidget):
             self._dim_colours[k] = QColor(r, g, b)
 
         self._update_buffers()
+
+    def _update_style(self):
+        style_manager = self._ui_model.get_style_manager()
+        if not style_manager.is_custom_style_enabled():
+            self._set_config({})
+            self.update()
+            return
+
+        colours = {
+            'bg':   QColor(style_manager.get_style_param('peak_meter_bg_colour')),
+            'low':  QColor(style_manager.get_style_param('peak_meter_low_colour')),
+            'mid':  QColor(style_manager.get_style_param('peak_meter_mid_colour')),
+            'high': QColor(style_manager.get_style_param('peak_meter_high_colour')),
+            'clip': QColor(style_manager.get_style_param('peak_meter_clip_colour')),
+        }
+
+        config = { 'colours': colours }
+
+        self._set_config(config)
+        self.update()
 
     def _update_buffers(self):
         # Common gradient properties
@@ -124,15 +144,21 @@ class PeakMeter(QWidget):
                 fg_grad)
 
     def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._stat_manager = ui_model.get_stat_manager()
+
+        self._update_style()
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
         self._update_levels()
+
+        if 'signal_style_changed' in signals:
+            self._update_style()
 
     def _update_levels(self):
         levels = self._stat_manager.get_audio_levels()
