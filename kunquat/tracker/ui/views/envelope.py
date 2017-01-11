@@ -219,7 +219,7 @@ class Envelope(QWidget):
         focused_axis_colour = QColor(focused_colour)
         focused_axis_colour.setAlpha(0x7f)
 
-        disabled_colour = QColor(get_colour('bg_sunken_colour'))
+        disabled_colour = QColor(get_colour('bg_colour'))
         disabled_colour.setAlpha(0x7f)
 
         config = {
