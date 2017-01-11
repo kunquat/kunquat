@@ -146,7 +146,14 @@ class StyleManager():
 
     def set_style_param(self, key, value):
         config_style = self._get_config_style()
+
         config_style[key] = value
+        if key.endswith('_colour'):
+            # Make sure that all colours are stored if one is changed
+            for k in self._STYLE_DEFAULTS.keys():
+                if (k != key) and (k not in config_style):
+                    config_style[k] = self._STYLE_DEFAULTS[k]
+
         self._set_config_style(config_style)
 
     def get_adjusted_colour(self, param, brightness):
