@@ -22,7 +22,6 @@ import time
 import json
 import tarfile
 from collections import deque
-from signal import SIGHUP, SIGKILL
 
 import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.config as config
@@ -45,7 +44,7 @@ class UiLauncher():
         self._queue_processor = None
         self._block = None
         self._ui_model = None
-        self._event_pump_starter = None
+        self._event_queue_processor = None
         self._lag_times = deque([], 20)
         self._tasks = deque([])
         self._task_timer = None
@@ -69,11 +68,12 @@ class UiLauncher():
         self._audio_engine = audio_engine
         self._controller.set_audio_engine(audio_engine)
 
-    def set_event_pump_starter(self, event_pump_starter):
-        self._event_pump_starter = event_pump_starter
+    def set_event_queue_processor(self, process_event_queue):
+        self._process_event_queue = process_event_queue
 
     def update(self):
         start = time.time()
+        self._process_event_queue()
         self._updater.perform_updates()
         end = time.time()
 
@@ -111,8 +111,6 @@ class UiLauncher():
 
         root_view.set_ui_model(self._ui_model)
         root_view.set_crash_dialog(error_dialog)
-
-        self._event_pump_starter()
 
         self._task_timer = QTimer()
         self._task_timer.setSingleShot(True)

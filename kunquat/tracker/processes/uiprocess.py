@@ -11,12 +11,11 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from itertools import repeat
 from multiprocessing import Lock, Process, Queue
 from queue import Empty
 
 from PySide.QtCore import *
-
-from .qteventpump import QtEventPump
 
 from kunquat.tracker.ui.ui_launcher import create_ui_launcher
 
@@ -38,21 +37,27 @@ class CommandQueue():
         self._terminating_commands = (
                 'notify_kunquat_exception', 'notify_libkunquat_error')
 
-    def block(self):
+    def update(self):
+        in_count = self._in.qsize()
         with self._state_lock:
-            timeout = 0.001 if self._state == self._STATE_FLUSHING else None
-        try:
-            command_data = self._in.get(block=True, timeout=timeout)
-        except Empty:
-            return
+            if self._state == self._STATE_FLUSHING:
+                get_counter = repeat(True)
+            else:
+                get_counter = range(in_count)
 
-        command, _ = command_data
-        if command in self._terminating_commands:
-            # Make sure we won't block the UI before the terminating command is sent
-            with self._state_lock:
-                self._state = self._STATE_FLUSHING
+        for _ in get_counter:
+            try:
+                command_data = self._in.get_nowait()
+            except Empty:
+                return
 
-        self._out.put(command_data)
+            command, _ = command_data
+            if command in self._terminating_commands:
+                # Make sure we won't block the UI before the terminating command is sent
+                with self._state_lock:
+                    self._state = self._STATE_FLUSHING
+
+            self._out.put(command_data)
 
     def put(self, command, *args):
         with self._state_lock:
@@ -80,7 +85,6 @@ class UiProcess(Process):
         self._controller = None
         self._audio_engine = None
         self._q = CommandQueue()
-        self._pump = None
 
     # UI engine access interface
 
@@ -155,16 +159,8 @@ class UiProcess(Process):
     def halt(self):
         self._q.put(HALT)
 
-    # _create_event_pump needs to be called after
-    # the main Qt stuff has first been initialised
-    # otherwise it will take over the main thread
-    def _start_event_pump(self):
-        self._pump = QtEventPump()
-        self._pump.set_blocker(self._q.block)
-        QObject.connect(self._pump, SIGNAL('process_queue()'), self._process_queue)
-        self._pump.start()
-
     def _process_queue(self):
+        self._q.update()
         cmd_count = self._q.get_command_count()
         for _ in range(cmd_count):
             try:
@@ -184,7 +180,7 @@ class UiProcess(Process):
         self._ui_launcher.set_audio_engine(self._audio_engine)
         self._controller = self._ui_launcher.get_controller()
 
-        self._ui_launcher.set_event_pump_starter(self._start_event_pump)
+        self._ui_launcher.set_event_queue_processor(self._process_queue)
         self._ui_launcher.run_ui()
 
 
