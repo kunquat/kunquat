@@ -44,8 +44,4 @@ class KqtComboBox(QComboBox):
         self.setModel(model)
         self.blockSignals(old_block)
 
-    def clear(self):
-        assert False, ('Calling QComboBox.clear causes stability issues.'
-                '\nUse KqtComboBox.set_items instead.')
-
 
