@@ -29,7 +29,8 @@ class InputControls(QWidget):
 
         self._full_controls = TypewriterPanel()
         self._compact_controls = CompactControls()
-        self._switch_button = QPushButton('Switch')
+        self._switch_button = QPushButton()
+        self._switch_button.setStyleSheet('QPushButton { margin: 0; padding: -1px; }')
 
         self._controls = ControlLayout()
         self._controls.setContentsMargins(0, 0, 0, 0)
@@ -65,13 +66,18 @@ class InputControls(QWidget):
 
     def _show_controls(self):
         visibility_manager = self._ui_model.get_visibility_manager()
+        icon_bank = self._ui_model.get_icon_bank()
         view_mode = visibility_manager.get_input_control_view()
         if view_mode == 'full':
             self._controls.setCurrentIndex(0)
-            self._switch_button.setText('Compact view')
+            icon_path = icon_bank.get_icon_path('input_compact')
+            self._switch_button.setIcon(QIcon(icon_path))
+            self._switch_button.setToolTip('Compact input view')
         elif view_mode == 'compact':
             self._controls.setCurrentIndex(1)
-            self._switch_button.setText('Full view')
+            icon_path = icon_bank.get_icon_path('input_full')
+            self._switch_button.setIcon(QIcon(icon_path))
+            self._switch_button.setToolTip('Full input view')
         else:
             assert False
 
