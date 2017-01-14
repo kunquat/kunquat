@@ -42,8 +42,8 @@ class TypewriterPanel(QFrame):
         il.addStretch(1)
 
         v = QVBoxLayout()
-        v.setContentsMargins(4, 4, 4, 0)
-        v.setSpacing(2)
+        v.setContentsMargins(4, 0, 4, 0)
+        v.setSpacing(6)
         v.addLayout(il)
         v.addWidget(self._octave_selector)
         v.addWidget(self._typewriter)
