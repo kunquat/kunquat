@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2013-2016
+#          Tomi Jylhä-Ollila, Finland 2013-2017
 #
 # This file is part of Kunquat.
 #
@@ -27,9 +27,10 @@ class OctaveButton(QPushButton):
         self._updater = None
 
         self.setCheckable(True)
-        self.setFixedSize(QSize(60, 30))
+        self.setFixedWidth(60)
         self.setToolTip('Select octave (Ctrl + O: next, Ctrl + Shift + O: previous)')
         layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         octavename = QLabel()
         self._octavename = octavename
         octavename.setAlignment(Qt.AlignCenter)
@@ -93,9 +94,6 @@ class OctaveButton(QPushButton):
         name_update_signals = set(['signal_notation', 'signal_select_keymap'])
         if not signals.isdisjoint(name_update_signals):
             self._update_name()
-
-        if not self.isVisible():
-            return
 
         if any(s in signals for s in ['signal_octave', 'signal_init']):
             self._update_pressed()
