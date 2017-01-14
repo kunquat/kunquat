@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2014-2016
+#          Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -27,9 +27,17 @@ class OctaveSelector(QFrame):
         self._updater = None
         self._typewriter_manager = None
 
+        self._title = QLabel('Octave:')
+
+        self._button_layout = QHBoxLayout()
+        self._button_layout.setContentsMargins(0, 0, 0, 0)
+        self._button_layout.setSpacing(4)
+
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
+        h.addWidget(self._title)
+        h.addLayout(self._button_layout)
         h.addStretch(1)
         self.setLayout(h)
 
@@ -42,8 +50,8 @@ class OctaveSelector(QFrame):
         self._update_layout()
 
     def unregister_updaters(self):
-        for i in range(self.layout().count() - 1):
-            button = self.layout().itemAt(i).widget()
+        for i in range(self._button_layout.count()):
+            button = self._button_layout.itemAt(i).widget()
             button.unregister_updaters()
         self._updater.unregister_updater(self._perform_updates)
 
@@ -53,21 +61,26 @@ class OctaveSelector(QFrame):
             self._update_layout()
 
     def _update_layout(self):
-        layout = self.layout()
+        keymap_manager = self._ui_model.get_keymap_manager()
+        use_hit_keymap = keymap_manager.is_hit_keymap_active()
+        if use_hit_keymap:
+            self._title.setText('Hit bank:')
+        else:
+            self._title.setText('Octave:')
 
-        old_button_count = max(0, layout.count() - 1)
+        old_button_count = self._button_layout.count()
         new_button_count = self._typewriter_manager.get_octave_count()
 
         # Create new widgets
         for i in range(old_button_count, new_button_count):
             button = self._get_button(i)
-            layout.insertWidget(i, button)
+            self._button_layout.insertWidget(i, button)
 
         # Make sure that correct widgets are shown
         for i in range(new_button_count):
-            layout.itemAt(i).widget().show()
+            self._button_layout.itemAt(i).widget().show()
         for i in range(new_button_count, old_button_count):
-            layout.itemAt(i).widget().hide()
+            self._button_layout.itemAt(i).widget().hide()
 
     def _get_buttons(self):
         octave_count = self._typewriter_manager.get_octave_count()
