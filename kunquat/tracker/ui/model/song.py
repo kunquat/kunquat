@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2017
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -93,6 +93,11 @@ class Song():
         for key in self._store:
             if key.startswith(start):
                 edit[key] = None
+        return edit
+
+    def get_edit_remove_song_and_pattern_instances(self):
+        edit = self.get_edit_remove_song()
+        edit[self._get_order_list_key()] = None
         return edit
 
     def get_edit_insert_pattern_instance(self, index, pattern_instance):
