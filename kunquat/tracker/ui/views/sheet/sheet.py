@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -41,5 +41,8 @@ class Sheet(QWidget):
     def unregister_updaters(self):
         self._sheet_area.unregister_updaters()
         self._toolbar.unregister_updaters()
+
+    def minimumSizeHint(self):
+        return QSize(self._toolbar.minimumSizeHint().width(), 0)
 
 
