@@ -79,7 +79,7 @@ class ChDefaults(QWidget):
         self._module = None
         self._updater = None
 
-        self._control_catalog = {}
+        self._control_catalogue = {}
 
         num_widget = QLabel('{}'.format(self._ch_num))
         num_font = QFont()
@@ -167,7 +167,7 @@ class ChDefaults(QWidget):
         self._au_selector.setCurrentIndex(default_index)
         self._au_selector.blockSignals(old_block)
 
-        self._control_catalog = dict(enumerate(control_ids))
+        self._control_catalogue = dict(enumerate(control_ids))
 
         old_block = self._init_expr.blockSignals(True)
         expr_name = chd.get_initial_expression(self._ch_num)
@@ -176,7 +176,7 @@ class ChDefaults(QWidget):
         self._init_expr.blockSignals(old_block)
 
     def _select_audio_unit(self, index):
-        control_id = self._control_catalog[index]
+        control_id = self._control_catalogue[index]
         chd = self._module.get_channel_defaults()
         if chd:
             chd.set_default_control_id(self._ch_num, control_id)
