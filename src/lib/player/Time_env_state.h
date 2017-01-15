@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -52,7 +52,7 @@ void Time_env_state_init(Time_env_state* testate);
  * \param env             The Envelope -- must not be \c NULL.
  * \param has_loop        Whether the Envelope contains a loop.
  * \param scale_amount    The time scale amount -- must be finite.
- * \param scale_center    The time scale center -- must be finite.
+ * \param scale_centre    The time scale centre -- must be finite.
  * \param sustain         Sustain value -- must be within range [0, 1]
  *                        (0 indicates no sustain).
  * \param min_value       Minimum envelope value -- must be finite.
@@ -73,7 +73,7 @@ int32_t Time_env_state_process(
         const Envelope* env,
         bool has_loop,
         double scale_amount,
-        double scale_center,
+        double scale_centre,
         double sustain,
         double min_value,
         double max_value,

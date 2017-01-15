@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -133,7 +133,7 @@ static Tuning_table* new_Tuning_table(double ref_pitch, double octave_width)
     tt->ref_note = 0;
     tt->ref_pitch = ref_pitch;
     tt->global_offset = 0;
-    tt->center_octave = 4;
+    tt->centre_octave = 4;
     Tuning_table_set_octave_width(tt, octave_width);
 
     for (int i = 0; i < KQT_TUNING_TABLE_NOTES_MAX; ++i)
@@ -280,7 +280,7 @@ static bool read_tuning_table_item(Streader* sr, const char* key, void* userdata
 
         Tuning_table_set_octave_width(tt, cents);
     }
-    else if (string_eq(key, "center_octave"))
+    else if (string_eq(key, "centre_octave"))
     {
         int64_t octave = -1;
         if (!Streader_read_int(sr, &octave))
@@ -288,11 +288,11 @@ static bool read_tuning_table_item(Streader* sr, const char* key, void* userdata
 
         if (octave < 0 || octave >= KQT_TUNING_TABLE_OCTAVES)
         {
-            Streader_set_error(sr, "Invalid center octave: %" PRId64, octave);
+            Streader_set_error(sr, "Invalid centre octave: %" PRId64, octave);
             return false;
         }
 
-        tt->center_octave = (int)octave;
+        tt->centre_octave = (int)octave;
         Tuning_table_set_octave_width(tt, tt->octave_width);
     }
     else if (string_eq(key, "notes"))
@@ -394,7 +394,7 @@ void Tuning_table_set_octave_width(Tuning_table* tt, double octave_width)
     tt->octave_width = octave_width;
     for (int i = 0; i < KQT_TUNING_TABLE_OCTAVES; ++i)
     {
-        const int rel_octave = i - tt->center_octave;
+        const int rel_octave = i - tt->centre_octave;
         tt->octave_offsets[i] = rel_octave * octave_width;
     }
 

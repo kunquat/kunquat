@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -29,13 +29,13 @@ typedef struct Proc_ks
     const Envelope* init_env;
     bool is_init_env_loop_enabled;
     double init_env_scale_amount;
-    double init_env_scale_center;
+    double init_env_scale_centre;
     Envelope* def_init_env;
 
     const Envelope* shift_env;
     bool is_shift_env_enabled;
     double shift_env_scale_amount;
-    double shift_env_scale_center;
+    double shift_env_scale_centre;
     Envelope* def_shift_env;
     double shift_env_trig_threshold;
     double shift_env_strength_var;
@@ -43,7 +43,7 @@ typedef struct Proc_ks
     const Envelope* rel_env;
     bool is_rel_env_enabled;
     double rel_env_scale_amount;
-    double rel_env_scale_center;
+    double rel_env_scale_centre;
     Envelope* def_rel_env;
     double rel_env_strength_var;
 } Proc_ks;

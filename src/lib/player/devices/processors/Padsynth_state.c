@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -136,7 +136,7 @@ static int32_t Padsynth_vstate_render_voice(
     const float* sample_buf = Sample_get_buffer(entry->sample, 0);
     const int32_t length = Padsynth_sample_map_get_sample_length(ps->sample_map);
     const int32_t sample_rate = PADSYNTH_DEFAULT_AUDIO_RATE;
-    const double sample_freq = cents_to_Hz(entry->center_pitch);
+    const double sample_freq = cents_to_Hz(entry->centre_pitch);
 
     const double audio_rate = dstate->audio_rate;
 

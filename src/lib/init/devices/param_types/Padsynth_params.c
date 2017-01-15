@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -143,13 +143,13 @@ static bool read_param(Streader* sr, const char* key, void* userdata)
         pp->min_pitch = min_pitch;
         pp->max_pitch = max_pitch;
     }
-    else if (string_eq(key, "center_pitch"))
+    else if (string_eq(key, "centre_pitch"))
     {
-        double center_pitch = NAN;
-        if (!Streader_read_float(sr, &center_pitch))
+        double centre_pitch = NAN;
+        if (!Streader_read_float(sr, &centre_pitch))
             return false;
 
-        pp->center_pitch = center_pitch;
+        pp->centre_pitch = centre_pitch;
     }
     else if (string_eq(key, "bandwidth_base"))
     {
@@ -230,7 +230,7 @@ Padsynth_params* new_Padsynth_params(Streader* sr)
     pp->sample_count = 1;
     pp->min_pitch = 0;
     pp->max_pitch = 0;
-    pp->center_pitch = 0;
+    pp->centre_pitch = 0;
 
     pp->bandwidth_base = PADSYNTH_DEFAULT_BANDWIDTH_BASE;
     pp->bandwidth_scale = PADSYNTH_DEFAULT_BANDWIDTH_SCALE;

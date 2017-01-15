@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -33,7 +33,7 @@ struct Tuning_table
     int ref_note;
     double ref_pitch;
     double global_offset;
-    int center_octave;
+    int centre_octave;
 
     double octave_width;
     double octave_offsets[KQT_TUNING_TABLE_OCTAVES];
