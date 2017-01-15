@@ -36,7 +36,7 @@
 
     "template":
     {
-        "center_pitch": [-900, "cents"],
+        "centre_pitch": [-900, "cents"],
         "octave_ratio": [2, 1],
         "octaves": [0, 4, 9],
         "notes":
