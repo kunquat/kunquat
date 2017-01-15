@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -31,6 +31,8 @@ class OrderlistEditor(QWidget):
         self._orderlist = Orderlist()
         self._toolbar = OrderlistToolBar(self._orderlist)
 
+        self._waiting_for_update = False
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
@@ -42,6 +44,7 @@ class OrderlistEditor(QWidget):
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
         module = ui_model.get_module()
         self._album = module.get_album()
         self._orderlist_manager = ui_model.get_orderlist_manager()
@@ -51,6 +54,11 @@ class OrderlistEditor(QWidget):
     def unregister_updaters(self):
         self._toolbar.unregister_updaters()
         self._orderlist.unregister_updaters()
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        if 'signal_order_list' in signals:
+            self._waiting_for_update = False
 
     def _handle_insert_at(self, offset):
         selection = self._orderlist.get_selected_object()
@@ -62,6 +70,7 @@ class OrderlistEditor(QWidget):
             self._orderlist_manager.set_orderlist_selection(
                     (track_num, system_num + offset))
             self._updater.signal_update(set(['signal_order_list']))
+            self._waiting_for_update = True
 
     def _handle_delete(self):
         selection = self._orderlist.get_selected_object()
@@ -72,6 +81,7 @@ class OrderlistEditor(QWidget):
             self._orderlist_manager.set_orderlist_selection(
                     (track_num, min(system_num, song.get_system_count() - 1)))
             self._updater.signal_update(set(['signal_order_list']))
+            self._waiting_for_update = True
 
     def _handle_move_pattern_instance(self, offset):
         selection = self._orderlist.get_selected_object()
@@ -85,8 +95,13 @@ class OrderlistEditor(QWidget):
                 self._orderlist_manager.set_orderlist_selection(
                         (track_num, new_system_num))
                 self._updater.signal_update(set(['signal_order_list']))
+                self._waiting_for_update = True
 
     def keyPressEvent(self, event):
+        if self._waiting_for_update:
+            event.ignore()
+            return
+
         if event.modifiers() == Qt.NoModifier:
             if event.key() == Qt.Key_Insert:
                 self._handle_insert_at(0)

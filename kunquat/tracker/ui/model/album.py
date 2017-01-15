@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2017
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -184,7 +184,7 @@ class Album():
             transaction.update(song.get_edit_remove_song())
             track_list = self._get_track_list()
             del track_list[track_num]
-            transaction.update({ 'album/p_tracks.json': track_list })
+            transaction.update({ 'album/p_tracks.json': track_list or None })
 
             if is_last_track:
                 transaction.update({ 'album/p_manifest.json': None })
@@ -197,9 +197,49 @@ class Album():
         self._store.put(transaction)
 
     def remove_song(self, track_num):
+        is_last_track = len(self._get_track_list()) == 1
+
         song = self.get_song_by_track(track_num)
-        while song.get_existence():
-            self.remove_pattern_instance(track_num, 0)
+        sheet_history = self._ui_model.get_sheet_history()
+
+        transaction = {}
+
+        song_pinst_counts = {}
+        total_pinst_counts = {}
+        for system_num in range(song.get_system_count()):
+            pinst = song.get_pattern_instance(system_num)
+            transaction.update(pinst.get_edit_remove_pattern_instance())
+
+            pattern = pinst.get_pattern()
+            pat_num = pinst.get_pattern_num()
+
+            # Get the number of instances of each pattern used in this song
+            if pat_num not in song_pinst_counts:
+                song_pinst_counts[pat_num] = 1
+                total_pinst_counts[pat_num] = len(pattern.get_instance_ids())
+            else:
+                song_pinst_counts[pat_num] += 1
+
+        # Remove patterns whose all instances are in this song
+        for pat_num in song_pinst_counts.keys():
+            if song_pinst_counts[pat_num] == total_pinst_counts[pat_num]:
+                pinst = PatternInstance(pat_num, 0) # :-P
+                pinst.set_controller(self._controller)
+                pattern = pinst.get_pattern()
+                transaction.update(pattern.get_edit_remove_pattern())
+                sheet_history.remove_pattern_changes(pattern)
+
+        transaction.update(song.get_edit_remove_song_and_pattern_instances())
+
+        if is_last_track:
+            transaction.update({ 'album/p_tracks.json': None })
+            transaction.update({ 'album/p_manifest.json': None })
+        else:
+            track_list = self._get_track_list()
+            del track_list[track_num]
+            transaction.update({ 'album/p_tracks.json': track_list })
+
+        self._store.put(transaction)
 
     def move_pattern_instance(
             self, from_track_num, from_system_num, to_track_num, to_system_num):
@@ -255,6 +295,6 @@ class Album():
             track_list = self._store[key]
         except KeyError:
             track_list = get_default_value(key)
-        return track_list
+        return list(track_list)
 
 
