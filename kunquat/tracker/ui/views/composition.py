@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -30,8 +30,6 @@ class Composition(QFrame):
         v.setSpacing(0)
         v.addWidget(self._sheet)
         self.setLayout(v)
-
-        self.setMinimumHeight(320)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model

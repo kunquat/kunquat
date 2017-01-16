@@ -57,7 +57,8 @@ class NotationSelect(QWidget):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        update_signals = set(['signal_module', 'signal_notation_list'])
+        update_signals = set([
+            'signal_module', 'signal_notation', 'signal_notation_list'])
         if not signals.isdisjoint(update_signals):
             self._update_notations()
 

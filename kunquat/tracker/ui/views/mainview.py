@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -16,11 +16,12 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
+from .composition import Composition
+from .importprogress import ImportProgress
+from .inputcontrols import InputControls
+from .peakmeter import PeakMeter
 from .portal import Portal
 from .topcontrols import TopControls
-from .mainsplitter import MainSplitter
-from .importprogress import ImportProgress
-from .peakmeter import PeakMeter
 
 
 class MainView(QWidget):
@@ -30,7 +31,8 @@ class MainView(QWidget):
         self._ui_model = None
         self._portal = Portal()
         self._top_controls = TopControls()
-        self._main_splitter = MainSplitter()
+        self._composition = Composition()
+        self._input_controls = InputControls()
         self._import_progress = ImportProgress()
         self._peak_meter = PeakMeter()
 
@@ -40,7 +42,8 @@ class MainView(QWidget):
         v.addWidget(self._portal)
         v.addWidget(self._top_controls)
         v.addSpacing(4)
-        v.addWidget(self._main_splitter)
+        v.addWidget(self._composition)
+        v.addWidget(self._input_controls)
         v.addWidget(self._import_progress)
         v.addSpacing(4)
         v.addWidget(self._peak_meter)
@@ -53,14 +56,16 @@ class MainView(QWidget):
         self._ui_model = ui_model
         self._portal.set_ui_model(ui_model)
         self._top_controls.set_ui_model(ui_model)
-        self._main_splitter.set_ui_model(ui_model)
+        self._composition.set_ui_model(ui_model)
+        self._input_controls.set_ui_model(ui_model)
         self._import_progress.set_ui_model(ui_model)
         self._peak_meter.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._peak_meter.unregister_updaters()
         self._import_progress.unregister_updaters()
-        self._main_splitter.unregister_updaters()
+        self._input_controls.unregister_updaters()
+        self._composition.unregister_updaters()
         self._top_controls.unregister_updaters()
         self._portal.unregister_updaters()
 

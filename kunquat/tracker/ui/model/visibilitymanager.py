@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2017
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -12,6 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from kunquat.tracker.config import get_config
 from kunquat.tracker.ui.identifiers import *
 
 
@@ -53,6 +54,14 @@ class VisibilityManager():
         # XXX: This hacky version can be called from an update function
         #      It only works because there are always some signals emitted
         self._session.hide_ui(UI_MAIN)
+
+    def set_input_control_view(self, mode):
+        config = get_config()
+        config.set_value('input_control_view', mode)
+
+    def get_input_control_view(self):
+        config = get_config()
+        return config.get_value('input_control_view')
 
     def show_about(self):
         if self._is_closing:

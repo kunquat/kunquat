@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -16,6 +16,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
+from .hitmaptoggle import HitMapToggle
 from .octaveselector import OctaveSelector
 from .typewriter import Typewriter
 from .notationselect import NotationSelect
@@ -35,14 +36,14 @@ class TypewriterPanel(QFrame):
 
         il = QHBoxLayout()
         il.setContentsMargins(0, 0, 0, 0)
-        il.setSpacing(4)
+        il.setSpacing(8)
         il.addWidget(self._notation_select)
         il.addWidget(self._hit_map_toggle)
         il.addStretch(1)
 
         v = QVBoxLayout()
-        v.setContentsMargins(4, 4, 4, 0)
-        v.setSpacing(2)
+        v.setContentsMargins(4, 0, 4, 0)
+        v.setSpacing(6)
         v.addLayout(il)
         v.addWidget(self._octave_selector)
         v.addWidget(self._typewriter)
@@ -70,40 +71,5 @@ class TypewriterPanel(QFrame):
         self._octave_selector.unregister_updaters()
         self._hit_map_toggle.unregister_updaters()
         self._notation_select.unregister_updaters()
-
-
-class HitMapToggle(QCheckBox):
-
-    def __init__(self):
-        super().__init__('Use hit keymap')
-        self._ui_model = None
-        self._updater = None
-
-        self.setToolTip('Use hit keymap (Ctrl + H)')
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
-        QObject.connect(self, SIGNAL('stateChanged(int)'), self._set_hit_map_active)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        keymap_manager = self._ui_model.get_keymap_manager()
-        is_active = keymap_manager.is_hit_keymap_active()
-        is_checked = (self.checkState() == Qt.Checked)
-        if is_checked != is_active:
-            old_block = self.blockSignals(True)
-            self.setCheckState(Qt.Checked if is_active else Qt.Unchecked)
-            self.blockSignals(old_block)
-
-    def _set_hit_map_active(self, state):
-        active = (state == Qt.Checked)
-        keymap_manager = self._ui_model.get_keymap_manager()
-        keymap_manager.set_hit_keymap_active(active)
-        self._updater.signal_update(set(['signal_select_keymap']))
 
 

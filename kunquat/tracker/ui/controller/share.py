@@ -232,6 +232,8 @@ class Share():
                 'delete_small',
                 'edit',
                 'error',
+                'input_compact',
+                'input_full',
                 'new_pattern',
                 'new_song',
                 'paste',
