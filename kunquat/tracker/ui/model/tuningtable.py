@@ -83,11 +83,11 @@ class TuningTable():
         self._set_table(table)
 
     def get_centre_octave(self):
-        return self._get_table()['center_octave']
+        return self._get_table()['centre_octave']
 
     def set_centre_octave(self, index):
         table = deepcopy(self._get_table())
-        table['center_octave'] = index
+        table['centre_octave'] = index
         self._set_table(table)
 
     def get_note_count(self):
@@ -192,7 +192,7 @@ class TuningTable():
         table['ref_pitch'] = ref_pitch
         table['pitch_offset'] = pitch_offset
         table['octave_width'] = octave_width
-        table['center_octave'] = centre_octave
+        table['centre_octave'] = centre_octave
         table['notes'] = [pitch for _, pitch in notes]
 
         note_names = [name for name, _ in notes]

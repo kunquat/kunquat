@@ -115,7 +115,7 @@ class Share():
             template = {}
 
             # Centre pitch
-            centre_pitch = unsafe_template.get('center_pitch', None)
+            centre_pitch = unsafe_template.get('centre_pitch', None)
             if not isinstance(centre_pitch, list):
                 return None
             if len(centre_pitch) != 2:
@@ -131,7 +131,7 @@ class Share():
                     return None
             else:
                 return None
-            template['center_pitch'] = centre_pitch
+            template['centre_pitch'] = centre_pitch
 
             def _get_validated_ratio(parts):
                 if len(parts) != 2:

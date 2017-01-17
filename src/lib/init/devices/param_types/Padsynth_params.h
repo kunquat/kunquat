@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -46,7 +46,7 @@ typedef struct Padsynth_params
     int sample_count;
     double min_pitch;
     double max_pitch;
-    double center_pitch;
+    double centre_pitch;
 
     double bandwidth_base;
     double bandwidth_scale;

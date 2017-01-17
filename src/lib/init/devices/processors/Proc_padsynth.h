@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -29,7 +29,7 @@ typedef struct Padsynth_sample_map Padsynth_sample_map;
 
 typedef struct Padsynth_sample_entry
 {
-    double center_pitch;
+    double centre_pitch;
     Sample* sample;
 } Padsynth_sample_entry;
 

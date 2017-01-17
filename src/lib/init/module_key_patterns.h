@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2017
  *
  * This file is part of Kunquat.
  *
@@ -85,7 +85,7 @@ MODULE_KEYP(tuning_table, "tuning_XX/p_tuning_table.json",
         ", \"ref_pitch\": 0"
         ", \"pitch_offset\": 0"
         ", \"octave_width\": [2, 1]"
-        ", \"center_octave\": 4"
+        ", \"centre_octave\": 4"
         ", \"notes\": [0]"
         "}")
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -94,7 +94,7 @@ bool Event_master_set_retuner_fixed_pitch_process(
 }
 
 
-bool Event_master_set_retuner_tuning_center_process(
+bool Event_master_set_retuner_tuning_centre_process(
         Master_params* master_params, const Value* value)
 {
     rassert(master_params != NULL);

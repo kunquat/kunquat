@@ -61,10 +61,10 @@ class EnvgenParams(ProcParams):
         self._set_value('p_f_env_scale_amount.json', value)
 
     def get_time_env_scale_centre(self):
-        return self._get_value('p_f_env_scale_center.json', 0)
+        return self._get_value('p_f_env_scale_centre.json', 0)
 
     def set_time_env_scale_centre(self, value):
-        self._set_value('p_f_env_scale_center.json', value)
+        self._set_value('p_f_env_scale_centre.json', value)
 
     def get_linear_force_enabled(self):
         return self._get_value('p_b_linear_force.json', False)

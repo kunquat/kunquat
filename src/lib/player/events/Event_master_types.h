@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2017
  *
  * This file is part of Kunquat.
  *
@@ -30,7 +30,7 @@ EVENT_MASTER_DEF("m/=t",    slide_tempo_length,         TSTAMP,         v_nonneg
 
 EVENT_MASTER_DEF("m.r",     set_retuner,                INT,            v_tuning_table)
 EVENT_MASTER_DEF("m.rfp",   set_retuner_fixed_pitch,    FLOAT,          v_pitch)
-EVENT_MASTER_DEF("m.rc",    set_retuner_tuning_center,  FLOAT,          v_pitch)
+EVENT_MASTER_DEF("m.rc",    set_retuner_tuning_centre,  FLOAT,          v_pitch)
 EVENT_MASTER_DEF("m.ro",    set_retuner_pitch_offset,   FLOAT,          v_finite_float)
 EVENT_MASTER_DEF("mmr",     mimic_retuner,              INT,            v_tuning_table)
 EVENT_MASTER_DEF("m<r",     reset_retuner,              NONE,           NULL)

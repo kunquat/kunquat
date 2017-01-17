@@ -67,10 +67,10 @@ class ForceParams(ProcParams):
         self._set_value('p_f_env_scale_amount.json', value)
 
     def get_envelope_scale_centre(self):
-        return self._get_value('p_f_env_scale_center.json', 0.0)
+        return self._get_value('p_f_env_scale_centre.json', 0.0)
 
     def set_envelope_scale_centre(self, value):
-        self._set_value('p_f_env_scale_center.json', value)
+        self._set_value('p_f_env_scale_centre.json', value)
 
     def get_release_envelope(self):
         ret_env = { 'nodes': [ [0, 1], [1, 0] ], 'smooth': False }
@@ -94,10 +94,10 @@ class ForceParams(ProcParams):
         self._set_value('p_f_env_rel_scale_amount.json', value)
 
     def get_release_envelope_scale_centre(self):
-        return self._get_value('p_f_env_rel_scale_center.json', 0.0)
+        return self._get_value('p_f_env_rel_scale_centre.json', 0.0)
 
     def set_release_envelope_scale_centre(self, value):
-        self._set_value('p_f_env_rel_scale_center.json', value)
+        self._set_value('p_f_env_rel_scale_centre.json', value)
 
     def get_release_ramp_enabled(self):
         return self._get_value('p_b_release_ramp.json', False)

@@ -761,7 +761,7 @@ class CentrePitch(QWidget):
         update_signals = set([
             'signal_notation_list',
             'signal_notation_editor_selection',
-            'signal_notation_template_center_pitch'])
+            'signal_notation_template_centre_pitch'])
         if not signals.isdisjoint(update_signals):
             self._update_all()
 
@@ -795,7 +795,7 @@ class CentrePitch(QWidget):
 
         _, units = template.get_centre_pitch()
         template.set_centre_pitch(new_centre, units)
-        self._updater.signal_update(set(['signal_notation_template_center_pitch']))
+        self._updater.signal_update(set(['signal_notation_template_centre_pitch']))
 
     def _get_cents(self, hz):
         return math.log(hz / 440.0, 2) * 1200
@@ -820,7 +820,7 @@ class CentrePitch(QWidget):
             new_value = self._get_hz(value)
 
         template.set_centre_pitch(new_value, new_units)
-        self._updater.signal_update(set(['signal_notation_template_center_pitch']))
+        self._updater.signal_update(set(['signal_notation_template_centre_pitch']))
 
 
 class RatioValidator(QValidator):

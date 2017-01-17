@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -47,7 +47,7 @@ int32_t Time_env_state_process(
         const Envelope* env,
         bool has_loop,
         double scale_amount,
-        double scale_center,
+        double scale_centre,
         double sustain,
         double min_value,
         double max_value,
@@ -60,7 +60,7 @@ int32_t Time_env_state_process(
     rassert(testate != NULL);
     rassert(env != NULL);
     rassert(isfinite(scale_amount));
-    rassert(isfinite(scale_center));
+    rassert(isfinite(scale_centre));
     rassert(sustain >= 0);
     rassert(sustain <= 1);
     rassert(isfinite(min_value));
@@ -79,7 +79,7 @@ int32_t Time_env_state_process(
     double fixed_scale_factor = 1.0;
     if (pitch_const_start < buf_stop)
         fixed_scale_factor =
-            exp2((pitch_buf[pitch_const_start] - scale_center) * scale_amount / 1200.0);
+            exp2((pitch_buf[pitch_const_start] - scale_centre) * scale_amount / 1200.0);
 
     // Get constant values used inside the loop
     const double slowdown_fac = 1.0 - sustain;
@@ -115,7 +115,7 @@ int32_t Time_env_state_process(
         // Apply pitch-based scaling
         scale_factor = fixed_scale_factor;
         if (i < pitch_const_start)
-            scale_factor = fast_exp2((pitch - scale_center) * scale_amount / 1200.0);
+            scale_factor = fast_exp2((pitch - scale_centre) * scale_amount / 1200.0);
 
         // Get envelope value at current position
         double value = last_node[1]; // initial value is used if next_node == NULL

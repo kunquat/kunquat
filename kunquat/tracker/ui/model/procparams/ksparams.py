@@ -52,10 +52,10 @@ class KsParams(ProcParams):
         self._set_value('p_f_init_env_scale_amount.json', value)
 
     def get_init_env_scale_centre(self):
-        return self._get_value('p_f_init_env_scale_center.json', 0.0)
+        return self._get_value('p_f_init_env_scale_centre.json', 0.0)
 
     def set_init_env_scale_centre(self, value):
-        self._set_value('p_f_init_env_scale_center.json', value)
+        self._set_value('p_f_init_env_scale_centre.json', value)
 
     def get_init_env(self):
         ret_env = { 'nodes': [ [0, 1], [0.01, 0] ], 'marks': [0, 1], 'smooth': False }
@@ -79,10 +79,10 @@ class KsParams(ProcParams):
         self._set_value('p_f_shift_env_scale_amount.json', value)
 
     def get_shift_env_scale_centre(self):
-        return self._get_value('p_f_shift_env_scale_center.json', 0.0)
+        return self._get_value('p_f_shift_env_scale_centre.json', 0.0)
 
     def set_shift_env_scale_centre(self, value):
-        self._set_value('p_f_shift_env_scale_center.json', value)
+        self._set_value('p_f_shift_env_scale_centre.json', value)
 
     def get_shift_env(self):
         ret_env = { 'nodes': [ [0, 1], [0.001, 0] ], 'smooth': False }
@@ -118,10 +118,10 @@ class KsParams(ProcParams):
         self._set_value('p_f_rel_env_scale_amount.json', value)
 
     def get_release_env_scale_centre(self):
-        return self._get_value('p_f_rel_env_scale_center.json', 0.0)
+        return self._get_value('p_f_rel_env_scale_centre.json', 0.0)
 
     def set_release_env_scale_centre(self, value):
-        self._set_value('p_f_rel_env_scale_center.json', value)
+        self._set_value('p_f_rel_env_scale_centre.json', value)
 
     def get_release_env(self):
         ret_env = { 'nodes': [ [0, 1], [0.01, 0] ], 'smooth': False }

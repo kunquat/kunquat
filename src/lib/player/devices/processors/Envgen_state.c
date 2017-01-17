@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -145,7 +145,7 @@ static int32_t Envgen_vstate_render_voice(
                     egen->time_env,
                     egen->is_loop_enabled,
                     egen->env_scale_amount,
-                    egen->env_scale_center,
+                    egen->env_scale_centre,
                     0, // sustain
                     0, 1, // range, NOTE: this needs to be mapped to our [y_min, y_max]!
                     pitches_wb,

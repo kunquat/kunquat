@@ -195,7 +195,7 @@ class Notation():
         if 'template' in data:
             return data['template']
         return {
-            'center_pitch': [0, 'cents'],
+            'centre_pitch': [0, 'cents'],
             'octave_ratio': [2, 1],
             'octaves'     : [0, 4, 9],
             'notes'       : [],
@@ -294,11 +294,11 @@ class Template():
         self._set_data = set_data
 
     def get_centre_pitch(self):
-        return self._get_data()['center_pitch']
+        return self._get_data()['centre_pitch']
 
     def set_centre_pitch(self, value, units):
         data = deepcopy(self._get_data())
-        data['center_pitch'] = [value, units]
+        data['centre_pitch'] = [value, units]
         self._set_data(data)
 
     def get_octave_ratio(self):

@@ -26,7 +26,7 @@ class NotationSelect(QWidget):
         self._updater = None
         self._notation_manager = None
         self._typewriter_manager = None
-        self._notation_catalog = {}
+        self._notation_catalogue = {}
 
         self._notations = KqtComboBox()
         self._notations.setSizeAdjustPolicy(QComboBox.AdjustToContents)
@@ -65,10 +65,10 @@ class NotationSelect(QWidget):
         if 'signal_select_keymap' in signals:
             self._update_enabled()
 
-    def _select_notation(self, catalog_index):
+    def _select_notation(self, catalogue_index):
         old_octave_id = self._typewriter_manager.get_octave()
 
-        notation_id = self._notation_catalog[catalog_index]
+        notation_id = self._notation_catalogue[catalogue_index]
         self._notation_manager.set_selected_notation_id(notation_id)
 
         signals = set(['signal_notation'])
@@ -86,14 +86,14 @@ class NotationSelect(QWidget):
         self.setEnabled(not keymap_manager.is_hit_keymap_active())
 
     def _update_notation_texts(self):
-        for i, notation_id in self._notation_catalog.items():
+        for i, notation_id in self._notation_catalogue.items():
             notation = self._notation_manager.get_notation(notation_id)
             notation_name = notation.get_name() or '-'
             self._notations.setItemText(i, notation_name)
 
     def _update_notations(self):
         notation_ids = sorted(self._notation_manager.get_all_notation_ids())
-        self._notation_catalog = dict(enumerate(notation_ids))
+        self._notation_catalogue = dict(enumerate(notation_ids))
 
         selected_notation_id = self._notation_manager.get_selected_notation_id()
         try:

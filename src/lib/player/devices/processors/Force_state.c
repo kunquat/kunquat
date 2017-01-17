@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -205,7 +205,7 @@ static int32_t Force_vstate_render_voice(
                 env,
                 force->is_force_env_loop_enabled,
                 force->force_env_scale_amount,
-                force->force_env_scale_center,
+                force->force_env_scale_centre,
                 0, // sustain
                 0, 1, // range
                 pitches_wb,
@@ -271,7 +271,7 @@ static int32_t Force_vstate_render_voice(
                     env,
                     false, // no loop
                     force->force_release_env_scale_amount,
-                    force->force_release_env_scale_center,
+                    force->force_release_env_scale_centre,
                     au_state->sustain,
                     0, 1, // range
                     pitches_wb,

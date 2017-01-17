@@ -387,7 +387,7 @@ class ConnectionsView(QWidget):
                 full_rect.left() + self.width() // 2 + area_x,
                 full_rect.top() + self.height() // 2 + area_y)
 
-        self._change_layout_entry('center_pos', new_centre_pos)
+        self._change_layout_entry('centre_pos', new_centre_pos)
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
@@ -574,7 +574,7 @@ class ConnectionsView(QWidget):
         connections = self._get_connections()
         layout = connections.get_layout()
 
-        self._centre_pos = layout.get('center_pos', (0, 0))
+        self._centre_pos = layout.get('centre_pos', (0, 0))
 
         # Get visible device IDs
         visible_set = set(['master'])
