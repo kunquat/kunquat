@@ -1291,6 +1291,8 @@ class Colours(QTreeView):
         cur_colour = utils.get_colour_from_str(cur_colour_str)
         self._colour_editor.set_colour(key, cur_colour)
         self._colour_editor.show()
+        self._colour_editor.activateWindow()
+        self._colour_editor.raise_()
 
     def _update_colour(self, key, colour_code):
         style_manager = self._ui_model.get_style_manager()

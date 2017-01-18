@@ -63,117 +63,110 @@ class VisibilityManager():
         config = get_config()
         return config.get_value('input_control_view')
 
-    def show_about(self):
+    def _show_window(self, ui):
         if self._is_closing:
             return
-        self._session.show_ui(UI_ABOUT)
-        self._updater.signal_update()
+        self._session.show_ui(ui)
+
+        if type(ui) == str:
+            signal = 'signal_window_{}'.format(ui)
+        else:
+            signal = 'signal_window_{}_{}'.format(ui[0], ui[1])
+        self._updater.signal_update(set([signal]))
+
+    def show_about(self):
+        self._show_window(UI_ABOUT)
 
     def hide_about(self):
         self._session.hide_ui(UI_ABOUT)
         self._updater.signal_update()
 
     def show_event_log(self):
-        if self._is_closing:
-            return
-        self._session.show_ui(UI_EVENT_LOG)
-        self._updater.signal_update()
+        self._show_window(UI_EVENT_LOG)
 
     def hide_event_log(self):
         self._session.hide_ui(UI_EVENT_LOG)
         self._updater.signal_update()
 
     def show_connections(self):
-        self._session.show_ui(UI_CONNECTIONS)
-        self._updater.signal_update()
+        self._show_window(UI_CONNECTIONS)
 
     def hide_connections(self):
         self._session.hide_ui(UI_CONNECTIONS)
         self._updater.signal_update()
 
     def show_audio_unit(self, au_id):
-        self._session.show_ui((UI_AUDIO_UNIT, au_id))
-        self._updater.signal_update()
+        self._show_window((UI_AUDIO_UNIT, au_id))
 
     def hide_audio_unit(self, au_id):
         self._session.hide_ui((UI_AUDIO_UNIT, au_id))
         self._updater.signal_update()
 
     def show_songs_channels(self):
-        self._session.show_ui(UI_SONGS_CHS)
-        self._updater.signal_update()
+        self._show_window(UI_SONGS_CHS)
 
     def hide_songs_channels(self):
         self._session.hide_ui(UI_SONGS_CHS)
         self._updater.signal_update()
 
     def show_env_and_bindings(self):
-        self._session.show_ui(UI_ENV_BIND)
-        self._updater.signal_update()
+        self._show_window(UI_ENV_BIND)
 
     def hide_env_and_bindings(self):
         self._session.hide_ui(UI_ENV_BIND)
         self._updater.signal_update()
 
     def show_processor(self, proc_id):
-        self._session.show_ui((UI_PROCESSOR, proc_id))
-        self._updater.signal_update()
+        self._show_window((UI_PROCESSOR, proc_id))
 
     def hide_processor(self, proc_id):
         self._session.hide_ui((UI_PROCESSOR, proc_id))
         self._updater.signal_update()
 
     def show_grid_editor(self):
-        self._session.show_ui(UI_GRID_EDITOR)
-        self._updater.signal_update()
+        self._show_window(UI_GRID_EDITOR)
 
     def hide_grid_editor(self):
         self._session.hide_ui(UI_GRID_EDITOR)
         self._updater.signal_update()
 
     def show_notation_editor(self):
-        self._session.show_ui(UI_NOTATION)
-        self._updater.signal_update()
+        self._show_window(UI_NOTATION)
 
     def hide_notation_editor(self):
         self._session.hide_ui(UI_NOTATION)
         self._updater.signal_update()
 
     def show_tuning_table_editor(self, table_id):
-        self._session.show_ui((UI_TUNING_TABLE, table_id))
-        self._updater.signal_update()
+        self._show_window((UI_TUNING_TABLE, table_id))
 
     def hide_tuning_table_editor(self, table_id):
         self._session.hide_ui((UI_TUNING_TABLE, table_id))
         self._updater.signal_update()
 
     def show_general_module_settings(self):
-        self._session.show_ui(UI_GENERAL_MOD)
-        self._updater.signal_update()
+        self._show_window(UI_GENERAL_MOD)
 
     def hide_general_module_settings(self):
         self._session.hide_ui(UI_GENERAL_MOD)
         self._updater.signal_update()
 
     def show_settings(self):
-        self._session.show_ui(UI_SETTINGS)
-        self._updater.signal_update()
+        self._show_window(UI_SETTINGS)
 
     def hide_settings(self):
         self._session.hide_ui(UI_SETTINGS)
         self._updater.signal_update()
 
     def show_render_stats(self):
-        self._session.show_ui(UI_RENDER_STATS)
-        self._updater.signal_update()
+        self._show_window(UI_RENDER_STATS)
 
     def hide_render_stats(self):
         self._session.hide_ui(UI_RENDER_STATS)
         self._updater.signal_update()
 
     def show_interactivity_controls(self):
-        self._session.show_ui(UI_IA_CONTROLS)
-        self._updater.signal_update()
+        self._show_window(UI_IA_CONTROLS)
 
     def hide_interactivity_controls(self):
         self._session.hide_ui(UI_IA_CONTROLS)

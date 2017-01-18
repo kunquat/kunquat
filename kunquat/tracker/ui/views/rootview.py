@@ -65,6 +65,22 @@ class RootView():
         self._module = None
         self._au_import_error_dialog = None
 
+        self._window_raise_signals = set('signal_window_{}'.format(ui) for ui in [
+                UI_ABOUT,
+                UI_EVENT_LOG,
+                UI_CONNECTIONS,
+                UI_SONGS_CHS,
+                UI_NOTATION,
+                UI_ENV_BIND,
+                UI_GENERAL_MOD,
+                UI_SETTINGS,
+                UI_GRID_EDITOR,
+                UI_IA_CONTROLS,
+                UI_RENDER_STATS,
+            ])
+        self._window_raise_signal_prefixes = tuple('signal_window_{}'.format(ui)
+                for ui in [UI_TUNING_TABLE, UI_AUDIO_UNIT, UI_PROCESSOR])
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
@@ -267,6 +283,51 @@ class RootView():
         self._visible = set(visibility_update)
 
         if self._visible:
+            # Raise signalled windows to top
+            bring_to_top = self._window_raise_signals & signals
+            if bring_to_top:
+                windows = {
+                    UI_ABOUT:           self._about_window,
+                    UI_EVENT_LOG:       self._event_log,
+                    UI_CONNECTIONS:     self._connections,
+                    UI_SONGS_CHS:       self._songs_channels,
+                    UI_NOTATION:        self._notation,
+                    UI_ENV_BIND:        self._env_bind,
+                    UI_GENERAL_MOD:     self._general_mod,
+                    UI_SETTINGS:        self._settings,
+                    UI_GRID_EDITOR:     self._grid_editor,
+                    UI_IA_CONTROLS:     self._ia_controls,
+                    UI_RENDER_STATS:    self._render_stats,
+                }
+                for ui, window in windows.items():
+                    sig = 'signal_window_{}'.format(ui)
+                    if sig in bring_to_top and window:
+                        window.activateWindow()
+                        window.raise_()
+
+            bring_to_top = (s for s in signals
+                    if s.startswith(self._window_raise_signal_prefixes))
+            for s in bring_to_top:
+                prefix_format = 'signal_window_{}_'
+                window = None
+                if s.startswith(prefix_format.format(UI_TUNING_TABLE)):
+                    tuning_id = '_'.join(s.split('_')[-2:])
+                    if tuning_id in self._tuning_tables:
+                        window = self._tuning_tables[tuning_id]
+                elif s.startswith(prefix_format.format(UI_AUDIO_UNIT)):
+                    au_id = '_'.join(s.split('_')[-2:])
+                    if au_id in self._au_windows:
+                        window = self._au_windows[au_id]
+                elif s.startswith(prefix_format.format(UI_PROCESSOR)):
+                    proc_id = s[len(prefix_format.format(UI_PROCESSOR)):]
+                    if proc_id in self._proc_windows:
+                        window = self._proc_windows[proc_id]
+
+                if window:
+                    window.activateWindow()
+                    window.raise_()
+
+            # Process other signals
             if 'signal_start_save_module' in signals:
                 self._start_save_module()
             if 'signal_save_module_finished' in signals:
