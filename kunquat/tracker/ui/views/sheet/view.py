@@ -145,6 +145,9 @@ class View(QWidget):
 
         self._field_edit = FieldEdit(self)
 
+        self._is_playback_cursor_visible = False
+        self._playback_cursor_offset = None
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
@@ -194,6 +197,8 @@ class View(QWidget):
         if not signals.isdisjoint(set(['signal_undo', 'signal_redo'])):
             self._update_all_patterns()
             self.update()
+        if 'signal_playback_cursor' in signals:
+            self._update_playback_cursor()
 
         for signal in signals:
             if signal.startswith(SheetManager.get_column_signal_head()):
@@ -227,6 +232,30 @@ class View(QWidget):
             cr.flush_caches()
         all_pinsts = utils.get_all_pattern_instances(self._ui_model)
         self.set_pattern_instances(all_pinsts)
+        self._update_playback_cursor()
+
+    def _update_playback_cursor(self):
+        playback_manager = self._ui_model.get_playback_manager()
+        was_playback_cursor_visible = self._is_playback_cursor_visible
+
+        prev_offset = self._playback_cursor_offset
+
+        self._is_playback_cursor_visible = False
+        self._playback_cursor_offset = None
+
+        if playback_manager.is_playback_active():
+            track_num, system_num, row_ts = playback_manager.get_playback_position()
+            location = TriggerPosition(
+                    track_num, system_num, 0, tstamp.Tstamp(row_ts), 0)
+            self._playback_cursor_offset = self._get_row_offset(location)
+
+        if self._playback_cursor_offset != None:
+            if 0 <= self._playback_cursor_offset < self.height():
+                self._is_playback_cursor_visible = True
+                if prev_offset != self._playback_cursor_offset:
+                    self.update()
+        elif was_playback_cursor_visible:
+            self.update()
 
     def _rearrange_patterns(self):
         self._pinsts = utils.get_all_pattern_instances(self._ui_model)
@@ -358,7 +387,6 @@ class View(QWidget):
         # Get location components
         track = location.get_track()
         system = location.get_system()
-        selected_col = location.get_col_num()
         row_ts = location.get_row_ts()
 
         # Get pattern that contains our location
@@ -507,8 +535,9 @@ class View(QWidget):
         # Draw guide extension line
         if self._sheet_manager.is_editing_enabled():
             painter.setPen(self._config['edit_cursor']['guide_colour'])
-            visible_col_nums = list(range(
-                self._first_col, self._first_col + self._visible_cols))
+            visible_col_nums = range(
+                self._first_col,
+                min(COLUMNS_MAX, self._first_col + self._visible_cols))
             for col_num in visible_col_nums:
                 if col_num != selected_col:
                     col_x_offset = self._get_col_offset(col_num)
@@ -1822,6 +1851,18 @@ class View(QWidget):
         if hor_trail_start < self.width():
             width = self.width() - hor_trail_start
             painter.eraseRect(QRect(hor_trail_start, 0, width, self.height()))
+
+        # Draw playback cursor
+        if self._is_playback_cursor_visible:
+            painter.setPen(self._config['play_cursor_colour'])
+            visible_col_nums = range(
+                    self._first_col,
+                    min(COLUMNS_MAX, self._first_col + self._visible_cols))
+            for col_num in visible_col_nums:
+                col_x_offset = self._get_col_offset(col_num)
+                tfm = QTransform().translate(col_x_offset, self._playback_cursor_offset)
+                painter.setTransform(tfm)
+                painter.drawLine(QPoint(0, 0), QPoint(self._col_width - 2, 0))
 
         # Draw edit cursor
         if self._sheet_manager.get_edit_mode():
