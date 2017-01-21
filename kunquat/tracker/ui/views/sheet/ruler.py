@@ -143,7 +143,8 @@ class Ruler(QWidget):
                 self._is_playback_cursor_visible = True
                 if prev_offset != self._playback_cursor_offset:
                     self.update()
-        elif was_playback_cursor_visible:
+
+        if (not self._is_playback_cursor_visible) and was_playback_cursor_visible:
             self.update()
 
     def update_grid_pattern(self):
