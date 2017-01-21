@@ -104,6 +104,9 @@ class Ruler(QWidget):
             self.update()
 
     def _update_playback_cursor(self):
+        if self._is_grid_ruler:
+            return
+
         playback_manager = self._ui_model.get_playback_manager()
         was_playback_cursor_visible = self._is_playback_cursor_visible
 
