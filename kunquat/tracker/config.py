@@ -143,6 +143,7 @@ class Config():
                 'sheet_header_border_colour',
                 'sheet_ruler_bg_colour',
                 'sheet_ruler_fg_colour',
+                'sheet_playback_cursor_colour',
                 'sheet_trigger_default_colour',
                 'sheet_trigger_note_on_colour',
                 'sheet_trigger_hit_colour',
