@@ -127,11 +127,12 @@ class View(QWidget):
         self._px_offset = 0
         self._pinsts = []
 
-        self._edit_px_offset = 0
-
         self._col_width = None
         self._first_col = 0
         self._visible_cols = 0
+
+        self._edit_first_col = 0
+        self._edit_px_offset = 0
 
         self._col_rends = [ColumnGroupRenderer(i) for i in range(COLUMNS_MAX)]
 
@@ -149,6 +150,7 @@ class View(QWidget):
 
         self._is_playback_cursor_visible = False
         self._playback_cursor_offset = None
+        self._was_playback_active = False
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -199,6 +201,8 @@ class View(QWidget):
         if not signals.isdisjoint(set(['signal_undo', 'signal_redo'])):
             self._update_all_patterns()
             self.update()
+        if 'signal_silence' in signals:
+            self._handle_silence()
         if 'signal_playback_cursor' in signals:
             self._update_playback_cursor()
 
@@ -262,6 +266,24 @@ class View(QWidget):
         if (not self._is_playback_cursor_visible) and was_playback_cursor_visible:
             self.update()
 
+        self._was_playback_active = playback_manager.is_playback_active()
+
+    def _handle_silence(self):
+        if self._was_playback_active:
+            self._was_playback_active = False
+            max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
+            edit_location = self._ui_model.get_selection().get_location()
+            edit_col_num = edit_location.get_col_num()
+            edit_row_offset = self._get_row_offset(edit_location)
+
+            if ((0 <= edit_row_offset < self.height()) and
+                    (0 <= edit_col_num - self._first_col < max_visible_cols)):
+                self._follow_edit_cursor()
+            else:
+                signal = SIGNAL('followCursor(QString, int)')
+                QObject.emit(
+                        self, signal, str(self._edit_px_offset), self._edit_first_col)
+
     def _rearrange_patterns(self):
         self._pinsts = utils.get_all_pattern_instances(self._ui_model)
         lengths = [pinst.get_pattern().get_length() for pinst in self._pinsts]
@@ -289,6 +311,9 @@ class View(QWidget):
     def set_first_column(self, first_col):
         if self._first_col != first_col:
             self._first_col = first_col
+            playback_manager = self._ui_model.get_playback_manager()
+            if not playback_manager.follow_playback_cursor():
+                self._edit_first_col = first_col
             self.update()
 
     def set_pattern_instances(self, pinsts):
