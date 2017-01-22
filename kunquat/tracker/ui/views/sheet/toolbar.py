@@ -16,6 +16,7 @@ from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
+from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from .editbutton import EditButton
@@ -176,6 +177,15 @@ class FollowPlaybackButton(QPushButton):
         is_enabled = self.isChecked()
         playback_manager = self._ui_model.get_playback_manager()
         playback_manager.set_playback_cursor_following(is_enabled)
+
+        if not is_enabled and playback_manager.is_playback_active():
+            track_num, system_num, row_ts = playback_manager.get_playback_position()
+            selection = self._ui_model.get_selection()
+            edit_location = selection.get_location()
+            col_num = edit_location.get_col_num()
+            new_location = TriggerPosition(track_num, system_num, col_num, row_ts, 0)
+            selection.set_location(new_location)
+
         self._updater.signal_update(set(['signal_follow_playback']))
 
 
