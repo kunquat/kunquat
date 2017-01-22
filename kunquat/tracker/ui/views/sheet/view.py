@@ -127,6 +127,8 @@ class View(QWidget):
         self._px_offset = 0
         self._pinsts = []
 
+        self._edit_px_offset = 0
+
         self._col_width = None
         self._first_col = 0
         self._visible_cols = 0
@@ -245,12 +247,14 @@ class View(QWidget):
 
         if playback_manager.is_playback_active():
             track_num, system_num, row_ts = playback_manager.get_playback_position()
-            location = TriggerPosition(
-                    track_num, system_num, 0, tstamp.Tstamp(row_ts), 0)
-            self._playback_cursor_offset = self._get_row_offset(location)
+            location = TriggerPosition(track_num, system_num, 0, row_ts, 0)
+            self._playback_cursor_offset = self._get_row_offset(location, absolute=True)
 
         if self._playback_cursor_offset != None:
-            if 0 <= self._playback_cursor_offset < self.height():
+            if playback_manager.follow_playback_cursor():
+                self._is_playback_cursor_visible = True
+                self._follow_playback_cursor()
+            elif 0 <= (self._playback_cursor_offset - self._px_offset) < self.height():
                 self._is_playback_cursor_visible = True
                 if prev_offset != self._playback_cursor_offset:
                     self.update()
@@ -313,6 +317,9 @@ class View(QWidget):
             self._px_offset = offset
             for cr in self._col_rends:
                 cr.set_px_offset(self._px_offset)
+            playback_manager = self._ui_model.get_playback_manager()
+            if not playback_manager.follow_playback_cursor():
+                self._edit_px_offset = offset
             self.update()
 
     def set_px_per_beat(self, px_per_beat):
@@ -334,11 +341,8 @@ class View(QWidget):
             # Adjust vertical position so that edit cursor maintains its height
             new_cursor_offset = self._get_row_offset(location, absolute=True) or 0
             new_px_offset = new_cursor_offset - orig_relative_offset
-            QObject.emit(
-                    self,
-                    SIGNAL('followCursor(QString, int)'),
-                    str(new_px_offset),
-                    self._first_col)
+            signal = SIGNAL('followCursor(QString, int)')
+            QObject.emit(self, signal, str(new_px_offset), self._first_col)
 
     def set_column_width(self, col_width):
         if self._col_width != col_width:
@@ -371,11 +375,8 @@ class View(QWidget):
             max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
             new_first_col = utils.clamp_start_col(new_first_col, max_visible_cols)
 
-            QObject.emit(
-                    self,
-                    SIGNAL('followCursor(QString, int)'),
-                    str(self._px_offset),
-                    new_first_col)
+            signal = SIGNAL('followCursor(QString, int)')
+            QObject.emit(self, signal, str(self._px_offset), new_first_col)
 
     def _get_col_offset(self, col_num):
         max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
@@ -463,9 +464,23 @@ class View(QWidget):
                 self._trow_px_offset = min(max(
                     min_offset, self._trow_px_offset), max_offset)
 
+    def _follow_playback_cursor(self):
+        selection = self._ui_model.get_selection()
+        selection_location = selection.get_location()
+        col_num = selection_location.get_col_num()
+
+        playback_manager = self._ui_model.get_playback_manager()
+        track_num, system_num, row_ts = playback_manager.get_playback_position()
+
+        location = TriggerPosition(track_num, system_num, col_num, row_ts, 0)
+        self._follow_location(location, self.height() // 2)
+
     def _follow_edit_cursor(self):
         selection = self._ui_model.get_selection()
         location = selection.get_location()
+        self._follow_location(location, self._config['edit_cursor']['min_snap_dist'])
+
+    def _follow_location(self, location, min_snap_dist):
         if not location:
             self.update()
             return
@@ -493,7 +508,6 @@ class View(QWidget):
         if y_offset == None:
             self.update()
             return
-        min_snap_dist = self._config['edit_cursor']['min_snap_dist']
         min_centre_dist = min(min_snap_dist, self.height() // 2)
         tr_height = self._config['tr_height']
         min_y_offset = min_centre_dist - tr_height // 2
@@ -506,11 +520,8 @@ class View(QWidget):
             new_y_offset = new_y_offset + (y_offset - max_y_offset)
 
         if is_view_scrolling_required:
-            QObject.emit(
-                    self,
-                    SIGNAL('followCursor(QString, int)'),
-                    str(new_y_offset),
-                    new_first_col)
+            signal = SIGNAL('followCursor(QString, int)')
+            QObject.emit(self, signal, str(new_y_offset), new_first_col)
         else:
             self.update()
 
@@ -1861,7 +1872,8 @@ class View(QWidget):
                     min(COLUMNS_MAX, self._first_col + self._visible_cols))
             for col_num in visible_col_nums:
                 col_x_offset = self._get_col_offset(col_num)
-                tfm = QTransform().translate(col_x_offset, self._playback_cursor_offset)
+                tfm = QTransform().translate(
+                        col_x_offset, self._playback_cursor_offset - self._px_offset)
                 painter.setTransform(tfm)
                 painter.drawLine(QPoint(0, 0), QPoint(self._col_width - 2, 0))
 

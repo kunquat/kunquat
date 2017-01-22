@@ -117,7 +117,6 @@ class Ruler(QWidget):
 
         if playback_manager.is_playback_active():
             track_num, system_num, row_ts = playback_manager.get_playback_position()
-            row_ts = tstamp.Tstamp(row_ts)
 
             cur_pinst = None
 
@@ -136,10 +135,11 @@ class Ruler(QWidget):
                         location_from_start_px = (
                                 (row_ts.beats * tstamp.BEAT + row_ts.rem) *
                                 self._px_per_beat) // tstamp.BEAT
-                        self._playback_cursor_offset = location_from_start_px + start_px
+                        self._playback_cursor_offset = (
+                                location_from_start_px + start_px + self._px_offset)
 
         if self._playback_cursor_offset != None:
-            if 0 <= self._playback_cursor_offset < self.height():
+            if 0 <= (self._playback_cursor_offset - self._px_offset) < self.height():
                 self._is_playback_cursor_visible = True
                 if prev_offset != self._playback_cursor_offset:
                     self.update()
@@ -267,7 +267,7 @@ class Ruler(QWidget):
 
         if self._playback_cursor_offset != None:
             painter.setPen(self._config['play_cursor_colour'])
-            offset = self._playback_cursor_offset
+            offset = self._playback_cursor_offset - self._px_offset
             painter.drawLine(0, offset, self._width, offset)
 
         end = time.time()
