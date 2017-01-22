@@ -183,13 +183,14 @@ class Config():
             return is_valid
 
         self._config = {
-            'version'           : _Entry(v_version, self._VERSION),
-            'input_control_view': _Entry(lambda x: x in ('full', 'compact'), 'full'),
-            'dir_effects'       : _Entry(v_dir, None),
-            'dir_instruments'   : _Entry(v_dir, None),
-            'dir_modules'       : _Entry(v_dir, None),
-            'dir_samples'       : _Entry(v_dir, None),
-            'style'             : _Entry(v_style, {}),
+            'version'               : _Entry(v_version, self._VERSION),
+            'input_control_view'    : _Entry(lambda x: x in ('full', 'compact'), 'full'),
+            'dir_effects'           : _Entry(v_dir, None),
+            'dir_instruments'       : _Entry(v_dir, None),
+            'dir_modules'           : _Entry(v_dir, None),
+            'dir_samples'           : _Entry(v_dir, None),
+            'follow_playback_cursor': _Entry(lambda x: type(x) == bool, False),
+            'style'                 : _Entry(v_style, {}),
         }
 
     def get_value(self, key):
