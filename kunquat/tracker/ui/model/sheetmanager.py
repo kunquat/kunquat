@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -710,8 +710,15 @@ class SheetManager():
     def get_typewriter_connected(self):
         return self._session.get_typewriter_connected()
 
+    def allow_editing(self):
+        playback_manager = self._ui_model.get_playback_manager()
+        return (not playback_manager.follow_playback_cursor() or
+                    playback_manager.is_recording())
+
     def is_editing_enabled(self):
-        return self.get_edit_mode() and self.get_typewriter_connected()
+        return (self.get_edit_mode() and
+                self.get_typewriter_connected() and
+                self.allow_editing())
 
     def set_replace_mode(self, enabled):
         self._session.set_replace_mode(enabled)

@@ -77,7 +77,6 @@ class MainView(QWidget):
                 self._ui_model.play()
             elif event.key() == Qt.Key_Period:
                 self._ui_model.silence()
-                self._updater.signal_update(set(['signal_silence']))
             else:
                 event.ignore()
         elif event.modifiers() == Qt.ControlModifier:

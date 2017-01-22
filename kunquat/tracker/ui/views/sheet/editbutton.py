@@ -45,13 +45,17 @@ class EditButton(QPushButton):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        if 'signal_edit_mode' in signals:
-            self._update_checked()
+        update_signals = set([
+            'signal_edit_mode', 'signal_play', 'signal_silence', 'signal_record_mode'])
+        if not signals.isdisjoint(update_signals):
+            self._update_state()
 
-    def _update_checked(self):
+    def _update_state(self):
         old_block = self.blockSignals(True)
-        is_checked = self._sheet_manager.get_typewriter_connected()
+        disable = not self._sheet_manager.allow_editing()
+        is_checked = self._sheet_manager.get_typewriter_connected() and not disable
         self.setChecked(is_checked)
+        self.setEnabled(not disable)
         self.blockSignals(old_block)
 
     def _clicked(self):

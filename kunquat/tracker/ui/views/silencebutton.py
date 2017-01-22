@@ -45,6 +45,5 @@ class SilenceButton(QToolButton):
     def _clicked(self):
         self._playback_manager.stop_recording()
         self._ui_model.silence()
-        self._updater.signal_update(set(['signal_silence']))
 
 
