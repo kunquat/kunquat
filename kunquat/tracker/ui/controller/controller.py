@@ -560,10 +560,10 @@ class Controller():
     def update_playback_cursor(self, row):
         self._session.set_playback_cursor(row)
         if self._session.get_record_mode():
-            self.move_edit_cursor_to_playback_cursor()
+            self._move_edit_cursor_to_playback_cursor()
         self._updater.signal_update(set(['signal_playback_cursor']))
 
-    def move_edit_cursor_to_playback_cursor(self):
+    def _move_edit_cursor_to_playback_cursor(self):
         (track, system, row) = self._session.get_playback_cursor_position()
         selection = self._ui_model.get_selection()
         current_location = selection.get_location()
