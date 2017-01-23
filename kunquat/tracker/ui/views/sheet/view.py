@@ -1985,6 +1985,7 @@ class View(QWidget):
 
             new_location = self._get_selected_location(event.x(), event.y())
             if new_location:
+                self._edit_px_offset = self._px_offset
                 selection.set_location(new_location)
 
     def mouseMoveEvent(self, event):
