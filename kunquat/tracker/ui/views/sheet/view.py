@@ -1334,6 +1334,9 @@ class View(QWidget):
         self._sheet_manager.try_remove_trigger()
 
     def _perform_delete(self):
+        if not self._sheet_manager.is_editing_enabled():
+            return
+
         selection = self._ui_model.get_selection()
         if selection.has_area():
             self._sheet_manager.try_remove_area()
@@ -1675,15 +1678,14 @@ class View(QWidget):
                 self.update()
 
         def area_cut():
-            if selection.has_area() and self._sheet_manager.is_editing_enabled():
+            if selection.has_area():
                 utils.copy_selected_area(self._sheet_manager)
                 self._sheet_manager.try_remove_area()
                 selection.clear_area()
 
         def area_paste():
-            if self._sheet_manager.is_editing_enabled():
-                utils.try_paste_area(self._sheet_manager)
-                selection.clear_area()
+            utils.try_paste_area(self._sheet_manager)
+            selection.clear_area()
 
         def handle_rest():
             if not event.isAutoRepeat():

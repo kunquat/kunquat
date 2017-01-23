@@ -341,15 +341,11 @@ class CutOrCopyButton(QPushButton):
     def _update_enabled(self):
         selection = self._ui_model.get_selection()
         enabled = selection.has_area()
-        if self._button_type == 'cut':
-            enabled = enabled and self._sheet_manager.is_editing_enabled()
         self.setEnabled(enabled)
 
     def _cut_or_copy(self):
         selection = self._ui_model.get_selection()
-        if (selection.has_area() and
-                (self._button_type == 'copy' or
-                    self._sheet_manager.is_editing_enabled())):
+        if selection.has_area():
             utils.copy_selected_area(self._sheet_manager)
             if self._button_type == 'cut':
                 self._sheet_manager.try_remove_area()
@@ -414,17 +410,14 @@ class PasteButton(QPushButton):
 
     def _update_enabled(self):
         selection = self._ui_model.get_selection()
-        enabled = (self._sheet_manager.is_editing_enabled() and
-                bool(selection.get_location()) and
-                self._has_valid_data)
+        enabled = bool(selection.get_location()) and self._has_valid_data
         self.setEnabled(enabled)
 
     def _paste(self):
-        if self._sheet_manager.is_editing_enabled():
-            selection = self._ui_model.get_selection()
-            utils.try_paste_area(self._sheet_manager)
-            selection.clear_area()
-            self._updater.signal_update(set(['signal_selection']))
+        selection = self._ui_model.get_selection()
+        utils.try_paste_area(self._sheet_manager)
+        selection.clear_area()
+        self._updater.signal_update(set(['signal_selection']))
 
 
 class ConvertTriggerButton(QPushButton):

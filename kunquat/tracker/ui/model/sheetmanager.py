@@ -319,9 +319,6 @@ class SheetManager():
             self._on_column_update(location)
 
     def try_remove_area(self):
-        if not self.is_editing_enabled():
-            return
-
         selection = self._ui_model.get_selection()
         if not selection.has_area():
             return
