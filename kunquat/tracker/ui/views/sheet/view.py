@@ -1509,11 +1509,6 @@ class View(QWidget):
         if note_pressed:
             return
 
-        def allow_editing_operations():
-            playback_manager = self._ui_model.get_playback_manager()
-            return (not playback_manager.follow_playback_cursor() or
-                    playback_manager.is_recording())
-
         if event.key() == Qt.Key_Tab:
             event.accept()
             selection.clear_area()
@@ -1677,21 +1672,20 @@ class View(QWidget):
             self.update()
 
         def area_copy():
-            if allow_editing_operations() and selection.has_area():
+            if selection.has_area():
                 utils.copy_selected_area(self._sheet_manager)
                 selection.clear_area()
                 self.update()
 
         def area_cut():
-            if allow_editing_operations() and selection.has_area():
+            if selection.has_area():
                 utils.copy_selected_area(self._sheet_manager)
                 self._sheet_manager.try_remove_area()
                 selection.clear_area()
 
         def area_paste():
-            if allow_editing_operations():
-                utils.try_paste_area(self._sheet_manager)
-                selection.clear_area()
+            utils.try_paste_area(self._sheet_manager)
+            selection.clear_area()
 
         def handle_rest():
             if not event.isAutoRepeat():
@@ -1731,7 +1725,39 @@ class View(QWidget):
             self._sheet_manager.flush_latest_column()
             self._updater.signal_update(set(['signal_redo']))
 
+        def allow_editing_operations():
+            playback_manager = self._ui_model.get_playback_manager()
+            return (not playback_manager.follow_playback_cursor() or
+                    playback_manager.is_recording())
+
         keymap = {
+            int(Qt.NoModifier): {
+            },
+
+            int(Qt.ControlModifier): {
+                Qt.Key_Minus:   lambda: self._sheet_manager.set_zoom(
+                                    self._sheet_manager.get_zoom() - 1),
+                Qt.Key_Plus:    lambda: self._sheet_manager.set_zoom(
+                                    self._sheet_manager.get_zoom() + 1),
+                Qt.Key_0:       lambda: self._sheet_manager.set_zoom(0),
+            },
+
+            int(Qt.ControlModifier | Qt.ShiftModifier): {
+            },
+
+            int(Qt.ControlModifier | Qt.AltModifier): {
+                Qt.Key_Minus:   lambda: self._sheet_manager.set_column_width(
+                                    self._sheet_manager.get_column_width() - 1),
+                Qt.Key_Plus:    lambda: self._sheet_manager.set_column_width(
+                                    self._sheet_manager.get_column_width() + 1),
+                Qt.Key_0:       lambda: self._sheet_manager.set_column_width(0),
+            },
+
+            int(Qt.ShiftModifier): {
+            },
+        }
+
+        edit_keymap = {
             int(Qt.NoModifier): {
                 Qt.Key_Up:      handle_move_up,
                 Qt.Key_Down:    handle_move_down,
@@ -1753,17 +1779,13 @@ class View(QWidget):
 
                 Qt.Key_Space:   handle_typewriter_connection,
                 Qt.Key_Insert:  handle_replace_mode,
-                Qt.Key_Escape:  lambda: self._sheet_manager.set_typewriter_connected(False),
+                Qt.Key_Escape:  (lambda:
+                    self._sheet_manager.set_typewriter_connected(False)),
 
                 Qt.Key_Return:  handle_field_edit,
             },
 
             int(Qt.ControlModifier): {
-                Qt.Key_Minus:   lambda: self._sheet_manager.set_zoom(
-                                    self._sheet_manager.get_zoom() - 1),
-                Qt.Key_Plus:    lambda: self._sheet_manager.set_zoom(
-                                    self._sheet_manager.get_zoom() + 1),
-                Qt.Key_0:       lambda: self._sheet_manager.set_zoom(0),
                 Qt.Key_A:       area_select_all,
                 Qt.Key_L:       area_select_columns,
                 Qt.Key_X:       area_cut,
@@ -1777,11 +1799,6 @@ class View(QWidget):
             },
 
             int(Qt.ControlModifier | Qt.AltModifier): {
-                Qt.Key_Minus:   lambda: self._sheet_manager.set_column_width(
-                                    self._sheet_manager.get_column_width() - 1),
-                Qt.Key_Plus:    lambda: self._sheet_manager.set_column_width(
-                                    self._sheet_manager.get_column_width() + 1),
-                Qt.Key_0:       lambda: self._sheet_manager.set_column_width(0),
             },
 
             int(Qt.ShiftModifier): {
@@ -1796,6 +1813,10 @@ class View(QWidget):
             },
         }
 
+        if allow_editing_operations():
+            for k in edit_keymap.keys():
+                keymap[k].update(edit_keymap[k])
+
         is_handled = False
         mod_map = keymap.get(int(event.modifiers()))
         if mod_map:
@@ -1804,6 +1825,13 @@ class View(QWidget):
                 func()
                 is_handled = True
 
+        # Prevent propagation of disabled key combinations
+        if not is_handled:
+            disabled_mod_map = edit_keymap.get(int(event.modifiers()), {})
+            if disabled_mod_map.get(event.key()):
+                is_handled = True
+
+        # Handle slash as a separate case (as it may or may not be behind a modifier)
         if not is_handled:
             if event.key() == Qt.Key_Slash:
                 handle_convert_trigger()
