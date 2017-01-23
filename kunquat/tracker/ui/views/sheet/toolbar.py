@@ -334,13 +334,17 @@ class CutOrCopyButton(QPushButton):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        update_signals = set(['signal_selection', 'signal_edit_mode'])
+        update_signals = set([
+            'signal_selection', 'signal_edit_mode', 'signal_play', 'signal_silence'])
         if not signals.isdisjoint(update_signals):
             self._update_enabled()
 
     def _update_enabled(self):
         selection = self._ui_model.get_selection()
         enabled = selection.has_area()
+        playback_manager = self._ui_model.get_playback_manager()
+        enabled = enabled and (not playback_manager.follow_playback_cursor() or
+                playback_manager.is_recording())
         self.setEnabled(enabled)
 
     def _cut_or_copy(self):
@@ -400,7 +404,8 @@ class PasteButton(QPushButton):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        update_signals = set(['signal_selection', 'signal_edit_mode'])
+        update_signals = set([
+            'signal_selection', 'signal_edit_mode', 'signal_play', 'signal_silence'])
         if not signals.isdisjoint(update_signals):
             self._update_enabled()
 
@@ -411,6 +416,9 @@ class PasteButton(QPushButton):
     def _update_enabled(self):
         selection = self._ui_model.get_selection()
         enabled = bool(selection.get_location()) and self._has_valid_data
+        playback_manager = self._ui_model.get_playback_manager()
+        enabled = enabled and (not playback_manager.follow_playback_cursor() or
+                playback_manager.is_recording())
         self.setEnabled(enabled)
 
     def _paste(self):

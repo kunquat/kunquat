@@ -1509,6 +1509,11 @@ class View(QWidget):
         if note_pressed:
             return
 
+        def allow_editing_operations():
+            playback_manager = self._ui_model.get_playback_manager()
+            return (not playback_manager.follow_playback_cursor() or
+                    playback_manager.is_recording())
+
         if event.key() == Qt.Key_Tab:
             event.accept()
             selection.clear_area()
@@ -1672,20 +1677,21 @@ class View(QWidget):
             self.update()
 
         def area_copy():
-            if selection.has_area():
+            if allow_editing_operations() and selection.has_area():
                 utils.copy_selected_area(self._sheet_manager)
                 selection.clear_area()
                 self.update()
 
         def area_cut():
-            if selection.has_area():
+            if allow_editing_operations() and selection.has_area():
                 utils.copy_selected_area(self._sheet_manager)
                 self._sheet_manager.try_remove_area()
                 selection.clear_area()
 
         def area_paste():
-            utils.try_paste_area(self._sheet_manager)
-            selection.clear_area()
+            if allow_editing_operations():
+                utils.try_paste_area(self._sheet_manager)
+                selection.clear_area()
 
         def handle_rest():
             if not event.isAutoRepeat():
