@@ -223,12 +223,17 @@ class UndoButton(QPushButton):
             'signal_redo',
             'signal_selection',
             'signal_pattern_length',
-            'signal_grid'])
+            'signal_grid',
+            'signal_play',
+            'signal_silence'])
         if not signals.isdisjoint(update_signals):
             self._update_enabled()
 
     def _update_enabled(self):
-        self.setEnabled(self._sheet_history.has_past_changes())
+        playback_manager = self._ui_model.get_playback_manager()
+        self.setEnabled(self._sheet_history.has_past_changes() and
+                (not playback_manager.follow_playback_cursor() or
+                    playback_manager.is_recording()))
 
     def _undo(self):
         self._sheet_history.undo()
@@ -270,12 +275,17 @@ class RedoButton(QPushButton):
             'signal_redo',
             'signal_selection',
             'signal_pattern_length',
-            'signal_grid'])
+            'signal_grid',
+            'signal_play',
+            'signal_silence'])
         if not signals.isdisjoint(update_signals):
             self._update_enabled()
 
     def _update_enabled(self):
-        self.setEnabled(self._sheet_history.has_future_changes())
+        playback_manager = self._ui_model.get_playback_manager()
+        self.setEnabled(self._sheet_history.has_future_changes() and
+                (not playback_manager.follow_playback_cursor() or
+                    playback_manager.is_recording()))
 
     def _redo(self):
         self._sheet_history.redo()
