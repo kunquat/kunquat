@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2016
+# Author: Tomi Jylhä-Ollila, Finland 2013-2017
 #
 # This file is part of Kunquat.
 #
@@ -131,6 +131,10 @@ class SheetArea(QAbstractScrollArea):
                 self.viewport(),
                 SIGNAL('followCursor(QString, int)'),
                 self._follow_cursor)
+        QObject.connect(
+                self.viewport(),
+                SIGNAL('followPlaybackColumn(int)'),
+                self._follow_playback_column)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -267,6 +271,14 @@ class SheetArea(QAbstractScrollArea):
             else:
                 # Position not changed, so just update our viewport
                 self.viewport().update()
+
+    def _follow_playback_column(self, new_first_col):
+        hscrollbar = self.horizontalScrollBar()
+        old_first_col = hscrollbar.value()
+
+        self._update_scrollbars()
+        hscrollbar.setValue(new_first_col)
+        self.viewport().update()
 
     def _update_zoom(self):
         zoom_level = self._sheet_manager.get_zoom()

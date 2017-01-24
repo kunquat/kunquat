@@ -105,6 +105,7 @@ class View(QWidget):
 
     heightChanged = Signal(name='heightChanged')
     followCursor = Signal(str, int, name='followCursor')
+    followPlaybackColumn = Signal(int, name='followPlaybackColumn')
 
     def __init__(self):
         super().__init__()
@@ -383,19 +384,24 @@ class View(QWidget):
                 cr.set_width(self._col_width)
             self.update()
 
-            # Adjust horizontal position so that edit cursor is visible
-            location = TriggerPosition(0, 0, 0, tstamp.Tstamp(0), 0)
-            if self._ui_model:
-                selection = self._ui_model.get_selection()
-                location = selection.get_location() or location
-            edit_col_num = location.get_col_num()
+            playback_manager = self._ui_model.get_playback_manager()
 
-            new_first_col = self._first_col
-            x_offset = self._get_col_offset(edit_col_num)
-            if x_offset < 0:
-                new_first_col = edit_col_num
-            elif x_offset + self._col_width > self.width():
-                new_first_col = edit_col_num - (self.width() // self._col_width) + 1
+            if playback_manager.follow_playback_cursor():
+                new_first_col = self._first_col
+            else:
+                # Adjust horizontal position so that edit cursor is visible
+                location = TriggerPosition(0, 0, 0, tstamp.Tstamp(0), 0)
+                if self._ui_model:
+                    selection = self._ui_model.get_selection()
+                    location = selection.get_location() or location
+                edit_col_num = location.get_col_num()
+
+                new_first_col = self._first_col
+                x_offset = self._get_col_offset(edit_col_num)
+                if x_offset < 0:
+                    new_first_col = edit_col_num
+                elif x_offset + self._col_width > self.width():
+                    new_first_col = edit_col_num - (self.width() // self._col_width) + 1
 
             max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
             new_first_col = utils.clamp_start_col(new_first_col, max_visible_cols)
@@ -492,7 +498,7 @@ class View(QWidget):
     def _follow_playback_cursor(self):
         selection = self._ui_model.get_selection()
         selection_location = selection.get_location()
-        col_num = selection_location.get_col_num()
+        col_num = self._first_col
 
         playback_manager = self._ui_model.get_playback_manager()
         track_num, system_num, row_ts = playback_manager.get_playback_position()
@@ -1509,16 +1515,34 @@ class View(QWidget):
         if note_pressed:
             return
 
-        if event.key() == Qt.Key_Tab:
-            event.accept()
-            selection.clear_area()
-            self._move_edit_cursor_column(1)
-            return True
-        elif event.key() == Qt.Key_Backtab:
-            event.accept()
-            selection.clear_area()
-            self._move_edit_cursor_column(-1)
-            return True
+        playback_manager = self._ui_model.get_playback_manager()
+        allow_editing_operations = (not playback_manager.follow_playback_cursor() or
+                playback_manager.is_recording())
+
+        if allow_editing_operations:
+            if event.key() == Qt.Key_Tab:
+                event.accept()
+                selection.clear_area()
+                self._move_edit_cursor_column(1)
+                return True
+            elif event.key() == Qt.Key_Backtab:
+                event.accept()
+                selection.clear_area()
+                self._move_edit_cursor_column(-1)
+                return True
+        else:
+            if event.key() == Qt.Key_Tab:
+                event.accept()
+                max_visible_cols = utils.get_max_visible_cols(
+                        self.width(), self._col_width)
+                first_col = utils.clamp_start_col(self._first_col + 1, max_visible_cols)
+                QObject.emit(self, SIGNAL('followPlaybackColumn(int)'), first_col)
+                return True
+            elif event.key() == Qt.Key_Backtab:
+                event.accept()
+                first_col = max(0, self._first_col - 1)
+                QObject.emit(self, SIGNAL('followPlaybackColumn(int)'), first_col)
+                return True
 
         def handle_move_up():
             selection.clear_area()
@@ -1725,11 +1749,6 @@ class View(QWidget):
             self._sheet_manager.flush_latest_column()
             self._updater.signal_update(set(['signal_redo']))
 
-        def allow_editing_operations():
-            playback_manager = self._ui_model.get_playback_manager()
-            return (not playback_manager.follow_playback_cursor() or
-                    playback_manager.is_recording())
-
         keymap = {
             int(Qt.NoModifier): {
             },
@@ -1813,7 +1832,7 @@ class View(QWidget):
             },
         }
 
-        if allow_editing_operations():
+        if allow_editing_operations:
             for k in edit_keymap.keys():
                 keymap[k].update(edit_keymap[k])
 
