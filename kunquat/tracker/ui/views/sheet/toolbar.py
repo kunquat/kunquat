@@ -149,12 +149,15 @@ class FollowPlaybackButton(QPushButton):
         self.setCheckable(True)
         self.setFlat(True)
         self.setToolTip('Follow playback')
-        self.setText('Follow playback')
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+
+        icon_bank = self._ui_model.get_icon_bank()
+        icon_path = icon_bank.get_icon_path('follow_playback')
+        self.setIcon(QIcon(icon_path))
 
         QObject.connect(self, SIGNAL('clicked()'), self._toggle_playback_following)
 

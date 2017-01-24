@@ -232,6 +232,7 @@ class Share():
                 'delete_small',
                 'edit',
                 'error',
+                'follow_playback',
                 'input_compact',
                 'input_full',
                 'new_pattern',
