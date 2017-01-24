@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2016
+# Author: Tomi Jylhä-Ollila, Finland 2013-2017
 #
 # This file is part of Kunquat.
 #
@@ -28,6 +28,8 @@ class Header(QWidget):
         self._col_width = DEFAULT_CONFIG['col_width']
         self._first_col = 0
 
+        self._width = 0
+
         self._headers = []
 
     def set_config(self, config):
@@ -38,6 +40,11 @@ class Header(QWidget):
 
     def set_column_width(self, width):
         self._col_width = width
+        self._update_contents()
+
+    def set_total_width(self, width):
+        # We set our actual width manually because Qt assumes incorrect width
+        self._width = width
         self._update_contents()
 
     def set_first_column(self, num):
@@ -66,7 +73,7 @@ class Header(QWidget):
             h.hide()
 
     def _update_contents(self):
-        max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
+        max_visible_cols = utils.get_max_visible_cols(self._width, self._col_width)
 
         self._first_col = utils.clamp_start_col(self._first_col, max_visible_cols)
 
@@ -81,8 +88,8 @@ class Header(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setBackground(self._config['canvas_bg_colour'])
-        x_offset = (self.width() // self._col_width) * self._col_width - 1
-        painter.eraseRect(x_offset + 1, 0, self.width(), self.height())
+        x_offset = (self._width // self._col_width) * self._col_width - 1
+        painter.eraseRect(x_offset + 1, 0, self._width, self.height())
 
 
 class ColumnHeader(QWidget):

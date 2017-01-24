@@ -223,6 +223,7 @@ class SheetArea(QAbstractScrollArea):
         self._config['tr_height'] = fm.tightBoundingRect('Ag').height() + 1
 
         self.viewport().set_config(self._config)
+        self._header.set_total_width(self.viewport().width())
 
     def _set_px_per_beat(self, px_per_beat):
         self._ruler.set_px_per_beat(px_per_beat)
@@ -296,6 +297,7 @@ class SheetArea(QAbstractScrollArea):
     def resizeEvent(self, ev):
         self._update_scrollbars()
         self.viewport().resizeEvent(ev)
+        self._header.set_total_width(self.viewport().width())
 
     def scrollContentsBy(self, dx, dy):
         hvalue = self.horizontalScrollBar().value()
