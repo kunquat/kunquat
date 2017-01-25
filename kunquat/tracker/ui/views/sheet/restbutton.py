@@ -46,12 +46,14 @@ class RestButton(QPushButton):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        update_signals = set(['signal_module', 'signal_edit_mode'])
+        update_signals = set([
+            'signal_module', 'signal_edit_mode', 'signal_play', 'signal_silence'])
         if not signals.isdisjoint(update_signals):
             self._update_enabled()
 
     def _update_enabled(self):
-        if not self._sheet_manager.is_editing_enabled():
+        if (not self._sheet_manager.is_editing_enabled() or
+                not self._sheet_manager.allow_editing()):
             self.setEnabled(False)
             return
 

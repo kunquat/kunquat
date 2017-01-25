@@ -105,6 +105,7 @@ class View(QWidget):
 
     heightChanged = Signal(name='heightChanged')
     followCursor = Signal(str, int, name='followCursor')
+    followPlaybackColumn = Signal(int, name='followPlaybackColumn')
 
     def __init__(self):
         super().__init__()
@@ -131,6 +132,9 @@ class View(QWidget):
         self._first_col = 0
         self._visible_cols = 0
 
+        self._edit_first_col = 0
+        self._edit_px_offset = 0
+
         self._col_rends = [ColumnGroupRenderer(i) for i in range(COLUMNS_MAX)]
 
         self._heights = []
@@ -144,6 +148,10 @@ class View(QWidget):
         self._mouse_selection_snapped_out = False
 
         self._field_edit = FieldEdit(self)
+
+        self._is_playback_cursor_visible = False
+        self._playback_cursor_offset = None
+        self._was_playback_active = False
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -194,6 +202,10 @@ class View(QWidget):
         if not signals.isdisjoint(set(['signal_undo', 'signal_redo'])):
             self._update_all_patterns()
             self.update()
+        if 'signal_silence' in signals:
+            self._handle_silence()
+        if 'signal_playback_cursor' in signals:
+            self._update_playback_cursor()
 
         for signal in signals:
             if signal.startswith(SheetManager.get_column_signal_head()):
@@ -227,6 +239,51 @@ class View(QWidget):
             cr.flush_caches()
         all_pinsts = utils.get_all_pattern_instances(self._ui_model)
         self.set_pattern_instances(all_pinsts)
+        self._update_playback_cursor()
+
+    def _update_playback_cursor(self):
+        playback_manager = self._ui_model.get_playback_manager()
+        was_playback_cursor_visible = self._is_playback_cursor_visible
+
+        prev_offset = self._playback_cursor_offset
+
+        self._is_playback_cursor_visible = False
+        self._playback_cursor_offset = None
+
+        if playback_manager.is_playback_active():
+            track_num, system_num, row_ts = playback_manager.get_playback_position()
+            location = TriggerPosition(track_num, system_num, 0, row_ts, 0)
+            self._playback_cursor_offset = self._get_row_offset(location, absolute=True)
+
+        if self._playback_cursor_offset != None:
+            if playback_manager.follow_playback_cursor():
+                self._is_playback_cursor_visible = True
+                self._follow_playback_cursor()
+            elif 0 <= (self._playback_cursor_offset - self._px_offset) < self.height():
+                self._is_playback_cursor_visible = True
+                if prev_offset != self._playback_cursor_offset:
+                    self.update()
+
+        if (not self._is_playback_cursor_visible) and was_playback_cursor_visible:
+            self.update()
+
+        self._was_playback_active = playback_manager.is_playback_active()
+
+    def _handle_silence(self):
+        if self._was_playback_active:
+            self._was_playback_active = False
+            max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
+            edit_location = self._ui_model.get_selection().get_location()
+            edit_col_num = edit_location.get_col_num()
+            edit_row_offset = self._get_row_offset(edit_location)
+
+            if ((0 <= edit_row_offset < self.height()) and
+                    (0 <= edit_col_num - self._first_col < max_visible_cols)):
+                self._follow_edit_cursor()
+            else:
+                signal = SIGNAL('followCursor(QString, int)')
+                QObject.emit(
+                        self, signal, str(self._edit_px_offset), self._edit_first_col)
 
     def _rearrange_patterns(self):
         self._pinsts = utils.get_all_pattern_instances(self._ui_model)
@@ -255,6 +312,9 @@ class View(QWidget):
     def set_first_column(self, first_col):
         if self._first_col != first_col:
             self._first_col = first_col
+            playback_manager = self._ui_model.get_playback_manager()
+            if not playback_manager.follow_playback_cursor():
+                self._edit_first_col = first_col
             self.update()
 
     def set_pattern_instances(self, pinsts):
@@ -283,6 +343,9 @@ class View(QWidget):
             self._px_offset = offset
             for cr in self._col_rends:
                 cr.set_px_offset(self._px_offset)
+            playback_manager = self._ui_model.get_playback_manager()
+            if not playback_manager.follow_playback_cursor():
+                self._edit_px_offset = offset
             self.update()
 
     def set_px_per_beat(self, px_per_beat):
@@ -304,11 +367,8 @@ class View(QWidget):
             # Adjust vertical position so that edit cursor maintains its height
             new_cursor_offset = self._get_row_offset(location, absolute=True) or 0
             new_px_offset = new_cursor_offset - orig_relative_offset
-            QObject.emit(
-                    self,
-                    SIGNAL('followCursor(QString, int)'),
-                    str(new_px_offset),
-                    self._first_col)
+            signal = SIGNAL('followCursor(QString, int)')
+            QObject.emit(self, signal, str(new_px_offset), self._first_col)
 
     def set_column_width(self, col_width):
         if self._col_width != col_width:
@@ -324,28 +384,30 @@ class View(QWidget):
                 cr.set_width(self._col_width)
             self.update()
 
-            # Adjust horizontal position so that edit cursor is visible
-            location = TriggerPosition(0, 0, 0, tstamp.Tstamp(0), 0)
-            if self._ui_model:
-                selection = self._ui_model.get_selection()
-                location = selection.get_location() or location
-            edit_col_num = location.get_col_num()
+            playback_manager = self._ui_model.get_playback_manager()
 
-            new_first_col = self._first_col
-            x_offset = self._get_col_offset(edit_col_num)
-            if x_offset < 0:
-                new_first_col = edit_col_num
-            elif x_offset + self._col_width > self.width():
-                new_first_col = edit_col_num - (self.width() // self._col_width) + 1
+            if playback_manager.follow_playback_cursor():
+                new_first_col = self._first_col
+            else:
+                # Adjust horizontal position so that edit cursor is visible
+                location = TriggerPosition(0, 0, 0, tstamp.Tstamp(0), 0)
+                if self._ui_model:
+                    selection = self._ui_model.get_selection()
+                    location = selection.get_location() or location
+                edit_col_num = location.get_col_num()
+
+                new_first_col = self._first_col
+                x_offset = self._get_col_offset(edit_col_num)
+                if x_offset < 0:
+                    new_first_col = edit_col_num
+                elif x_offset + self._col_width > self.width():
+                    new_first_col = edit_col_num - (self.width() // self._col_width) + 1
 
             max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
             new_first_col = utils.clamp_start_col(new_first_col, max_visible_cols)
 
-            QObject.emit(
-                    self,
-                    SIGNAL('followCursor(QString, int)'),
-                    str(self._px_offset),
-                    new_first_col)
+            signal = SIGNAL('followCursor(QString, int)')
+            QObject.emit(self, signal, str(self._px_offset), new_first_col)
 
     def _get_col_offset(self, col_num):
         max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
@@ -358,7 +420,6 @@ class View(QWidget):
         # Get location components
         track = location.get_track()
         system = location.get_system()
-        selected_col = location.get_col_num()
         row_ts = location.get_row_ts()
 
         # Get pattern that contains our location
@@ -434,9 +495,23 @@ class View(QWidget):
                 self._trow_px_offset = min(max(
                     min_offset, self._trow_px_offset), max_offset)
 
+    def _follow_playback_cursor(self):
+        selection = self._ui_model.get_selection()
+        selection_location = selection.get_location()
+        col_num = self._first_col
+
+        playback_manager = self._ui_model.get_playback_manager()
+        track_num, system_num, row_ts = playback_manager.get_playback_position()
+
+        location = TriggerPosition(track_num, system_num, col_num, row_ts, 0)
+        self._follow_location(location, self.height() // 2)
+
     def _follow_edit_cursor(self):
         selection = self._ui_model.get_selection()
         location = selection.get_location()
+        self._follow_location(location, self._config['edit_cursor']['min_snap_dist'])
+
+    def _follow_location(self, location, min_snap_dist):
         if not location:
             self.update()
             return
@@ -464,7 +539,6 @@ class View(QWidget):
         if y_offset == None:
             self.update()
             return
-        min_snap_dist = self._config['edit_cursor']['min_snap_dist']
         min_centre_dist = min(min_snap_dist, self.height() // 2)
         tr_height = self._config['tr_height']
         min_y_offset = min_centre_dist - tr_height // 2
@@ -477,11 +551,8 @@ class View(QWidget):
             new_y_offset = new_y_offset + (y_offset - max_y_offset)
 
         if is_view_scrolling_required:
-            QObject.emit(
-                    self,
-                    SIGNAL('followCursor(QString, int)'),
-                    str(new_y_offset),
-                    new_first_col)
+            signal = SIGNAL('followCursor(QString, int)')
+            QObject.emit(self, signal, str(new_y_offset), new_first_col)
         else:
             self.update()
 
@@ -507,8 +578,9 @@ class View(QWidget):
         # Draw guide extension line
         if self._sheet_manager.is_editing_enabled():
             painter.setPen(self._config['edit_cursor']['guide_colour'])
-            visible_col_nums = list(range(
-                self._first_col, self._first_col + self._visible_cols))
+            visible_col_nums = range(
+                self._first_col,
+                min(COLUMNS_MAX, self._first_col + self._visible_cols))
             for col_num in visible_col_nums:
                 if col_num != selected_col:
                     col_x_offset = self._get_col_offset(col_num)
@@ -1268,6 +1340,9 @@ class View(QWidget):
         self._sheet_manager.try_remove_trigger()
 
     def _perform_delete(self):
+        if not self._sheet_manager.is_editing_enabled():
+            return
+
         selection = self._ui_model.get_selection()
         if selection.has_area():
             self._sheet_manager.try_remove_area()
@@ -1440,16 +1515,34 @@ class View(QWidget):
         if note_pressed:
             return
 
-        if event.key() == Qt.Key_Tab:
-            event.accept()
-            selection.clear_area()
-            self._move_edit_cursor_column(1)
-            return True
-        elif event.key() == Qt.Key_Backtab:
-            event.accept()
-            selection.clear_area()
-            self._move_edit_cursor_column(-1)
-            return True
+        playback_manager = self._ui_model.get_playback_manager()
+        allow_editing_operations = (not playback_manager.follow_playback_cursor() or
+                playback_manager.is_recording())
+
+        if allow_editing_operations:
+            if event.key() == Qt.Key_Tab:
+                event.accept()
+                selection.clear_area()
+                self._move_edit_cursor_column(1)
+                return True
+            elif event.key() == Qt.Key_Backtab:
+                event.accept()
+                selection.clear_area()
+                self._move_edit_cursor_column(-1)
+                return True
+        else:
+            if event.key() == Qt.Key_Tab:
+                event.accept()
+                max_visible_cols = utils.get_max_visible_cols(
+                        self.width(), self._col_width)
+                first_col = utils.clamp_start_col(self._first_col + 1, max_visible_cols)
+                QObject.emit(self, SIGNAL('followPlaybackColumn(int)'), first_col)
+                return True
+            elif event.key() == Qt.Key_Backtab:
+                event.accept()
+                first_col = max(0, self._first_col - 1)
+                QObject.emit(self, SIGNAL('followPlaybackColumn(int)'), first_col)
+                return True
 
         def handle_move_up():
             selection.clear_area()
@@ -1609,15 +1702,14 @@ class View(QWidget):
                 self.update()
 
         def area_cut():
-            if selection.has_area() and self._sheet_manager.is_editing_enabled():
+            if selection.has_area():
                 utils.copy_selected_area(self._sheet_manager)
                 self._sheet_manager.try_remove_area()
                 selection.clear_area()
 
         def area_paste():
-            if self._sheet_manager.is_editing_enabled():
-                utils.try_paste_area(self._sheet_manager)
-                selection.clear_area()
+            utils.try_paste_area(self._sheet_manager)
+            selection.clear_area()
 
         def handle_rest():
             if not event.isAutoRepeat():
@@ -1659,6 +1751,33 @@ class View(QWidget):
 
         keymap = {
             int(Qt.NoModifier): {
+            },
+
+            int(Qt.ControlModifier): {
+                Qt.Key_Minus:   lambda: self._sheet_manager.set_zoom(
+                                    self._sheet_manager.get_zoom() - 1),
+                Qt.Key_Plus:    lambda: self._sheet_manager.set_zoom(
+                                    self._sheet_manager.get_zoom() + 1),
+                Qt.Key_0:       lambda: self._sheet_manager.set_zoom(0),
+            },
+
+            int(Qt.ControlModifier | Qt.ShiftModifier): {
+            },
+
+            int(Qt.ControlModifier | Qt.AltModifier): {
+                Qt.Key_Minus:   lambda: self._sheet_manager.set_column_width(
+                                    self._sheet_manager.get_column_width() - 1),
+                Qt.Key_Plus:    lambda: self._sheet_manager.set_column_width(
+                                    self._sheet_manager.get_column_width() + 1),
+                Qt.Key_0:       lambda: self._sheet_manager.set_column_width(0),
+            },
+
+            int(Qt.ShiftModifier): {
+            },
+        }
+
+        edit_keymap = {
+            int(Qt.NoModifier): {
                 Qt.Key_Up:      handle_move_up,
                 Qt.Key_Down:    handle_move_down,
                 Qt.Key_Left:    handle_move_left,
@@ -1679,17 +1798,13 @@ class View(QWidget):
 
                 Qt.Key_Space:   handle_typewriter_connection,
                 Qt.Key_Insert:  handle_replace_mode,
-                Qt.Key_Escape:  lambda: self._sheet_manager.set_typewriter_connected(False),
+                Qt.Key_Escape:  (lambda:
+                    self._sheet_manager.set_typewriter_connected(False)),
 
                 Qt.Key_Return:  handle_field_edit,
             },
 
             int(Qt.ControlModifier): {
-                Qt.Key_Minus:   lambda: self._sheet_manager.set_zoom(
-                                    self._sheet_manager.get_zoom() - 1),
-                Qt.Key_Plus:    lambda: self._sheet_manager.set_zoom(
-                                    self._sheet_manager.get_zoom() + 1),
-                Qt.Key_0:       lambda: self._sheet_manager.set_zoom(0),
                 Qt.Key_A:       area_select_all,
                 Qt.Key_L:       area_select_columns,
                 Qt.Key_X:       area_cut,
@@ -1703,11 +1818,6 @@ class View(QWidget):
             },
 
             int(Qt.ControlModifier | Qt.AltModifier): {
-                Qt.Key_Minus:   lambda: self._sheet_manager.set_column_width(
-                                    self._sheet_manager.get_column_width() - 1),
-                Qt.Key_Plus:    lambda: self._sheet_manager.set_column_width(
-                                    self._sheet_manager.get_column_width() + 1),
-                Qt.Key_0:       lambda: self._sheet_manager.set_column_width(0),
             },
 
             int(Qt.ShiftModifier): {
@@ -1722,6 +1832,10 @@ class View(QWidget):
             },
         }
 
+        if allow_editing_operations:
+            for k in edit_keymap.keys():
+                keymap[k].update(edit_keymap[k])
+
         is_handled = False
         mod_map = keymap.get(int(event.modifiers()))
         if mod_map:
@@ -1730,6 +1844,13 @@ class View(QWidget):
                 func()
                 is_handled = True
 
+        # Prevent propagation of disabled key combinations
+        if not is_handled:
+            disabled_mod_map = edit_keymap.get(int(event.modifiers()), {})
+            if disabled_mod_map.get(event.key()):
+                is_handled = True
+
+        # Handle slash as a separate case (as it may or may not be behind a modifier)
         if not is_handled:
             if event.key() == Qt.Key_Slash:
                 handle_convert_trigger()
@@ -1823,6 +1944,19 @@ class View(QWidget):
             width = self.width() - hor_trail_start
             painter.eraseRect(QRect(hor_trail_start, 0, width, self.height()))
 
+        # Draw playback cursor
+        if self._is_playback_cursor_visible:
+            painter.setPen(self._config['play_cursor_colour'])
+            visible_col_nums = range(
+                    self._first_col,
+                    min(COLUMNS_MAX, self._first_col + self._visible_cols))
+            for col_num in visible_col_nums:
+                col_x_offset = self._get_col_offset(col_num)
+                tfm = QTransform().translate(
+                        col_x_offset, self._playback_cursor_offset - self._px_offset)
+                painter.setTransform(tfm)
+                painter.drawLine(QPoint(0, 0), QPoint(self._col_width - 2, 0))
+
         # Draw edit cursor
         if self._sheet_manager.get_edit_mode():
             self._draw_edit_cursor(painter)
@@ -1870,6 +2004,7 @@ class View(QWidget):
 
             new_location = self._get_selected_location(event.x(), event.y())
             if new_location:
+                self._edit_px_offset = self._px_offset
                 selection.set_location(new_location)
 
     def mouseMoveEvent(self, event):

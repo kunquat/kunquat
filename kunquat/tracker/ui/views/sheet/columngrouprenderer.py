@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -166,14 +166,21 @@ class ColumnGroupRenderer():
 
         rel_end_height = 0 # empty song
 
-        # Get pattern index that contains the edit cursor
-        selection = self._ui_model.get_selection()
-        location = selection.get_location()
-        if location:
+        # Get pattern index that contains the active cursor
+        playback_manager = self._ui_model.get_playback_manager()
+        if (playback_manager.follow_playback_cursor() and
+                not playback_manager.is_recording()):
+            track_num, system_num, _ = playback_manager.get_playback_position()
             active_pattern_index = utils.get_pattern_index_at_location(
-                    self._ui_model, location.get_track(), location.get_system())
+                    self._ui_model, track_num, system_num)
         else:
-            active_pattern_index = None
+            selection = self._ui_model.get_selection()
+            location = selection.get_location()
+            if location:
+                active_pattern_index = utils.get_pattern_index_at_location(
+                        self._ui_model, location.get_track(), location.get_system())
+            else:
+                active_pattern_index = None
 
         for pi in range(first_index, len(self._heights)):
             if self._start_heights[pi] > self._px_offset + height:

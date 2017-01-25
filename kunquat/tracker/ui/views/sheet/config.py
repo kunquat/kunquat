@@ -17,15 +17,16 @@ from PySide.QtGui import *
 
 DEFAULT_CONFIG = {
     'ruler': {
-        'bg_colour'       : QColor(0x11, 0x22, 0x55),
-        'fg_colour'       : QColor(0xaa, 0xcc, 0xff),
-        'canvas_bg_colour': QColor(0x11, 0x11, 0x11),
-        'font'            : QFont(QFont().defaultFamily(), 9),
-        'line_min_dist'   : 3,
-        'line_len_short'  : 2,
-        'line_len_long'   : 4,
-        'num_min_dist'    : 48,
-        'inactive_dim'    : 0.6,
+        'bg_colour'         : QColor(0x11, 0x22, 0x55),
+        'fg_colour'         : QColor(0xaa, 0xcc, 0xff),
+        'canvas_bg_colour'  : QColor(0x11, 0x11, 0x11),
+        'play_cursor_colour': QColor(0x66, 0xee, 0x66),
+        'font'              : QFont(QFont().defaultFamily(), 9),
+        'line_min_dist'     : 3,
+        'line_len_short'    : 2,
+        'line_len_long'     : 4,
+        'num_min_dist'      : 48,
+        'inactive_dim'      : 0.6,
     },
     'header': {
         'bg_colour'    : QColor(0x22, 0x44, 0x22),
@@ -33,15 +34,16 @@ DEFAULT_CONFIG = {
         'border_colour': QColor(0x55, 0x77, 0x55),
         'font'         : QFont(QFont().defaultFamily(), 11, QFont.Bold),
     },
-    'col_width'       : 12, # unit is em
-    'trs_per_beat'    : 4,
-    'zoom_factor'     : 1.25,
-    'inactive_dim'    : 0.6,
-    'canvas_bg_colour': QColor(0x11, 0x11, 0x11),
-    'bg_colour'       : QColor(0, 0, 0),
-    'border_colour'   : QColor(0x55, 0x55, 0x55),
-    'font'            : QFont(QFont().defaultFamily(), 12),
-    'disabled_colour' : QColor(0x88, 0x88, 0x88, 0x7f),
+    'col_width'         : 12, # unit is em
+    'trs_per_beat'      : 4,
+    'zoom_factor'       : 1.25,
+    'inactive_dim'      : 0.6,
+    'canvas_bg_colour'  : QColor(0x11, 0x11, 0x11),
+    'bg_colour'         : QColor(0, 0, 0),
+    'border_colour'     : QColor(0x55, 0x55, 0x55),
+    'font'              : QFont(QFont().defaultFamily(), 12),
+    'disabled_colour'   : QColor(0x88, 0x88, 0x88, 0x7f),
+    'play_cursor_colour': QColor(0x66, 0xee, 0x66),
     'trigger': {
         'default_colour'   : QColor(0xcc, 0xdd, 0xee),
         'note_on_colour'   : QColor(0xff, 0xdd, 0xbb),
@@ -123,6 +125,8 @@ def get_config_with_custom_style(style_manager):
             style_manager.get_style_param('sheet_ruler_bg_colour'))
     config['ruler']['fg_colour'] = _get_colour(
             style_manager.get_style_param('sheet_ruler_fg_colour'))
+    config['ruler']['play_cursor_colour'] = _get_colour(
+            style_manager.get_style_param('sheet_playback_cursor_colour'))
 
     # Column headers
     config['header']['bg_colour'] = _get_colour(
@@ -153,6 +157,8 @@ def get_config_with_custom_style(style_manager):
     config['edit_cursor']['edit_line_colour'] = elc
     guide_colour = QColor(elc.red(), elc.green(), elc.blue(), 0x7f)
     config['edit_cursor']['guide_colour'] = guide_colour
+    config['play_cursor_colour'] = _get_colour(
+            style_manager.get_style_param('sheet_playback_cursor_colour'))
 
     # Area selection
     asc = _get_colour(style_manager.get_style_param('sheet_area_selection_colour'))

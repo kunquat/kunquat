@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -20,6 +20,7 @@ class SilenceButton(QToolButton):
     def __init__(self):
         super().__init__()
         self._ui_model = None
+        self._updater = None
         self._playback_manager = None
 
         self.setText('Silence')
@@ -28,6 +29,7 @@ class SilenceButton(QToolButton):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
         self._playback_manager = ui_model.get_playback_manager()
 
         icon_bank = self._ui_model.get_icon_bank()
@@ -35,8 +37,7 @@ class SilenceButton(QToolButton):
         icon = QIcon(icon_path)
         self.setIcon(icon)
 
-        QObject.connect(self, SIGNAL('clicked()'),
-                        self._clicked)
+        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
 
     def unregister_updaters(self):
         pass
@@ -44,4 +45,5 @@ class SilenceButton(QToolButton):
     def _clicked(self):
         self._playback_manager.stop_recording()
         self._ui_model.silence()
+
 

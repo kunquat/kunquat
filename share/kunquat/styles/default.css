@@ -76,6 +76,7 @@ QPushButton:flat:!hover:!checked
 QPushButton:pressed,
 QPushButton:flat:pressed,
 QPushButton:checked,
+QPushButton:flat:checked,
 QPushButton:flat:checked:hover,
 QToolButton:pressed,
 QToolButton:checked,
@@ -88,6 +89,7 @@ QScrollBar::sub-line:pressed
     border-left-color: <button_down_bg_colour_light>;
     border-right-color: <button_down_bg_colour_dark>;
     border-bottom-color: <button_down_bg_colour_dark>;
+    padding: 2px;
     background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
         stop: 0.5 <button_down_bg_colour>, stop: 1 <button_down_bg_colour_grad>);
     color: <button_down_fg_colour>;

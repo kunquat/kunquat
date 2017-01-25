@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -51,7 +51,15 @@ class SheetHistory():
         if commit:
             self.commit()
 
+    def _allow_sheet_changes(self):
+        playback_manager = self._ui_model.get_playback_manager()
+        return (not playback_manager.follow_playback_cursor() or
+                playback_manager.is_recording())
+
     def undo(self):
+        if not self._allow_sheet_changes():
+            return
+
         self.commit()
 
         past = self._session.get_sheet_past()
@@ -64,6 +72,9 @@ class SheetHistory():
         future.append(prev_entry)
 
     def redo(self):
+        if not self._allow_sheet_changes():
+            return
+
         future = self._session.get_sheet_future()
         if not future:
             return

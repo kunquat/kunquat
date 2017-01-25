@@ -29,6 +29,7 @@ class MainView(QWidget):
     def __init__(self):
         super().__init__()
         self._ui_model = None
+        self._updater = None
         self._portal = Portal()
         self._top_controls = TopControls()
         self._composition = Composition()
@@ -54,6 +55,7 @@ class MainView(QWidget):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
         self._portal.set_ui_model(ui_model)
         self._top_controls.set_ui_model(ui_model)
         self._composition.set_ui_model(ui_model)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -333,6 +333,7 @@ class Controller():
 
         self._audio_engine.tfire_event(0, ('cresume', None))
         self._session.set_playback_active(True)
+        self._updater.signal_update(set(['signal_play']))
 
     def play_pattern(self, pattern_instance):
         if self._session.is_playback_active():
@@ -354,6 +355,7 @@ class Controller():
         self._reset_expressions()
         self._audio_engine.tfire_event(0, ('cresume', None))
         self._session.set_playback_active(True)
+        self._updater.signal_update(set(['signal_play']))
 
     def play_from_cursor(self, pattern_instance, row_ts):
         if self._session.is_playback_active():
@@ -378,6 +380,7 @@ class Controller():
         self._reset_expressions()
         self._audio_engine.tfire_event(0, ('cresume', None))
         self._session.set_playback_active(True)
+        self._updater.signal_update(set(['signal_play']))
 
     def silence(self):
         self._reset_with_post_action(self._silence)
@@ -386,6 +389,7 @@ class Controller():
             self._check_update_random_seed()
 
         self._session.set_playback_active(False)
+        self._updater.signal_update(set(['signal_silence']))
 
     def _silence(self):
         self._session.reset_max_audio_levels()
@@ -560,10 +564,10 @@ class Controller():
     def update_playback_cursor(self, row):
         self._session.set_playback_cursor(row)
         if self._session.get_record_mode():
-            self.move_edit_cursor_to_playback_cursor()
+            self._move_edit_cursor_to_playback_cursor()
         self._updater.signal_update(set(['signal_playback_cursor']))
 
-    def move_edit_cursor_to_playback_cursor(self):
+    def _move_edit_cursor_to_playback_cursor(self):
         (track, system, row) = self._session.get_playback_cursor_position()
         selection = self._ui_model.get_selection()
         current_location = selection.get_location()

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2016
+# Author: Tomi Jylhä-Ollila, Finland 2013-2017
 #
 # This file is part of Kunquat.
 #
@@ -131,6 +131,10 @@ class SheetArea(QAbstractScrollArea):
                 self.viewport(),
                 SIGNAL('followCursor(QString, int)'),
                 self._follow_cursor)
+        QObject.connect(
+                self.viewport(),
+                SIGNAL('followPlaybackColumn(int)'),
+                self._follow_playback_column)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -219,6 +223,7 @@ class SheetArea(QAbstractScrollArea):
         self._config['tr_height'] = fm.tightBoundingRect('Ag').height() + 1
 
         self.viewport().set_config(self._config)
+        self._header.set_total_width(self.viewport().width())
 
     def _set_px_per_beat(self, px_per_beat):
         self._ruler.set_px_per_beat(px_per_beat)
@@ -268,6 +273,14 @@ class SheetArea(QAbstractScrollArea):
                 # Position not changed, so just update our viewport
                 self.viewport().update()
 
+    def _follow_playback_column(self, new_first_col):
+        hscrollbar = self.horizontalScrollBar()
+        old_first_col = hscrollbar.value()
+
+        self._update_scrollbars()
+        hscrollbar.setValue(new_first_col)
+        self.viewport().update()
+
     def _update_zoom(self):
         zoom_level = self._sheet_manager.get_zoom()
         cur_zoom_index = zoom_level + self._default_zoom_index
@@ -284,6 +297,7 @@ class SheetArea(QAbstractScrollArea):
     def resizeEvent(self, ev):
         self._update_scrollbars()
         self.viewport().resizeEvent(ev)
+        self._header.set_total_width(self.viewport().width())
 
     def scrollContentsBy(self, dx, dy):
         hvalue = self.horizontalScrollBar().value()

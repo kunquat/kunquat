@@ -16,6 +16,7 @@ from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
+from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from .editbutton import EditButton
@@ -33,6 +34,7 @@ class Toolbar(QWidget):
         super().__init__()
         self._ui_model = None
 
+        self._follow_playback_button = FollowPlaybackButton()
         self._edit_button = EditButton()
         self._replace_button = ReplaceButton()
         self._rest_button = RestButton()
@@ -60,6 +62,7 @@ class Toolbar(QWidget):
         h.setContentsMargins(4, 0, 4, 4)
         h.setSpacing(2)
 
+        h.addWidget(self._follow_playback_button)
         h.addWidget(self._edit_button)
         h.addWidget(self._replace_button)
         h.addWidget(HackSeparator())
@@ -89,10 +92,16 @@ class Toolbar(QWidget):
         h.addWidget(self._grid_selector)
         h.addWidget(self._length_editor)
 
+        for i in range(h.count()):
+            widget = h.itemAt(i).widget()
+            if isinstance(widget, (QPushButton, QCheckBox)):
+                widget.setFocusPolicy(Qt.NoFocus)
+
         self.setLayout(h)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._follow_playback_button.set_ui_model(ui_model)
         self._edit_button.set_ui_model(ui_model)
         self._replace_button.set_ui_model(ui_model)
         self._rest_button.set_ui_model(ui_model)
@@ -111,6 +120,7 @@ class Toolbar(QWidget):
         self._length_editor.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._follow_playback_button.unregister_updaters()
         self._edit_button.unregister_updaters()
         self._replace_button.unregister_updaters()
         self._rest_button.unregister_updaters()
@@ -127,6 +137,59 @@ class Toolbar(QWidget):
         self._grid_editor_button.unregister_updaters()
         self._grid_selector.unregister_updaters()
         self._length_editor.unregister_updaters()
+
+
+class FollowPlaybackButton(QPushButton):
+
+    def __init__(self):
+        super().__init__()
+        self._ui_model = None
+        self._updater = None
+
+        self.setCheckable(True)
+        self.setFlat(True)
+        self.setToolTip('Follow playback')
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        icon_bank = self._ui_model.get_icon_bank()
+        icon_path = icon_bank.get_icon_path('follow_playback')
+        self.setIcon(QIcon(icon_path))
+
+        QObject.connect(self, SIGNAL('clicked()'), self._toggle_playback_following)
+
+        self._update_playback_following()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        if 'signal_follow_playback' in signals:
+            self._update_playback_following()
+
+    def _update_playback_following(self):
+        playback_manager = self._ui_model.get_playback_manager()
+        old_block = self.blockSignals(True)
+        self.setChecked(playback_manager.get_playback_cursor_following())
+        self.blockSignals(old_block)
+
+    def _toggle_playback_following(self):
+        is_enabled = self.isChecked()
+        playback_manager = self._ui_model.get_playback_manager()
+        playback_manager.set_playback_cursor_following(is_enabled)
+
+        if not is_enabled and playback_manager.is_playback_active():
+            track_num, system_num, row_ts = playback_manager.get_playback_position()
+            selection = self._ui_model.get_selection()
+            edit_location = selection.get_location()
+            col_num = edit_location.get_col_num()
+            new_location = TriggerPosition(track_num, system_num, col_num, row_ts, 0)
+            selection.set_location(new_location)
+
+        self._updater.signal_update(set(['signal_follow_playback']))
 
 
 class UndoButton(QPushButton):
@@ -163,12 +226,17 @@ class UndoButton(QPushButton):
             'signal_redo',
             'signal_selection',
             'signal_pattern_length',
-            'signal_grid'])
+            'signal_grid',
+            'signal_play',
+            'signal_silence'])
         if not signals.isdisjoint(update_signals):
             self._update_enabled()
 
     def _update_enabled(self):
-        self.setEnabled(self._sheet_history.has_past_changes())
+        playback_manager = self._ui_model.get_playback_manager()
+        self.setEnabled(self._sheet_history.has_past_changes() and
+                (not playback_manager.follow_playback_cursor() or
+                    playback_manager.is_recording()))
 
     def _undo(self):
         self._sheet_history.undo()
@@ -210,12 +278,17 @@ class RedoButton(QPushButton):
             'signal_redo',
             'signal_selection',
             'signal_pattern_length',
-            'signal_grid'])
+            'signal_grid',
+            'signal_play',
+            'signal_silence'])
         if not signals.isdisjoint(update_signals):
             self._update_enabled()
 
     def _update_enabled(self):
-        self.setEnabled(self._sheet_history.has_future_changes())
+        playback_manager = self._ui_model.get_playback_manager()
+        self.setEnabled(self._sheet_history.has_future_changes() and
+                (not playback_manager.follow_playback_cursor() or
+                    playback_manager.is_recording()))
 
     def _redo(self):
         self._sheet_history.redo()
@@ -264,22 +337,22 @@ class CutOrCopyButton(QPushButton):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        update_signals = set(['signal_selection', 'signal_edit_mode'])
+        update_signals = set([
+            'signal_selection', 'signal_edit_mode', 'signal_play', 'signal_silence'])
         if not signals.isdisjoint(update_signals):
             self._update_enabled()
 
     def _update_enabled(self):
         selection = self._ui_model.get_selection()
         enabled = selection.has_area()
-        if self._button_type == 'cut':
-            enabled = enabled and self._sheet_manager.is_editing_enabled()
+        playback_manager = self._ui_model.get_playback_manager()
+        enabled = enabled and (not playback_manager.follow_playback_cursor() or
+                playback_manager.is_recording())
         self.setEnabled(enabled)
 
     def _cut_or_copy(self):
         selection = self._ui_model.get_selection()
-        if (selection.has_area() and
-                (self._button_type == 'copy' or
-                    self._sheet_manager.is_editing_enabled())):
+        if selection.has_area():
             utils.copy_selected_area(self._sheet_manager)
             if self._button_type == 'cut':
                 self._sheet_manager.try_remove_area()
@@ -334,7 +407,8 @@ class PasteButton(QPushButton):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        update_signals = set(['signal_selection', 'signal_edit_mode'])
+        update_signals = set([
+            'signal_selection', 'signal_edit_mode', 'signal_play', 'signal_silence'])
         if not signals.isdisjoint(update_signals):
             self._update_enabled()
 
@@ -344,17 +418,17 @@ class PasteButton(QPushButton):
 
     def _update_enabled(self):
         selection = self._ui_model.get_selection()
-        enabled = (self._sheet_manager.is_editing_enabled() and
-                bool(selection.get_location()) and
-                self._has_valid_data)
+        enabled = bool(selection.get_location()) and self._has_valid_data
+        playback_manager = self._ui_model.get_playback_manager()
+        enabled = enabled and (not playback_manager.follow_playback_cursor() or
+                playback_manager.is_recording())
         self.setEnabled(enabled)
 
     def _paste(self):
-        if self._sheet_manager.is_editing_enabled():
-            selection = self._ui_model.get_selection()
-            utils.try_paste_area(self._sheet_manager)
-            selection.clear_area()
-            self._updater.signal_update(set(['signal_selection']))
+        selection = self._ui_model.get_selection()
+        utils.try_paste_area(self._sheet_manager)
+        selection.clear_area()
+        self._updater.signal_update(set(['signal_selection']))
 
 
 class ConvertTriggerButton(QPushButton):
@@ -385,13 +459,16 @@ class ConvertTriggerButton(QPushButton):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        update_signals = set(['signal_selection', 'signal_edit_mode'])
+        update_signals = set([
+            'signal_selection', 'signal_edit_mode', 'signal_play', 'signal_silence'])
         if not signals.isdisjoint(update_signals):
             self._update_enabled()
 
     def _update_enabled(self):
         sheet_manager = self._ui_model.get_sheet_manager()
-        self.setEnabled(sheet_manager.is_editing_enabled() and
+        self.setEnabled(
+                sheet_manager.is_editing_enabled() and
+                sheet_manager.allow_editing() and
                 sheet_manager.is_at_convertible_set_or_slide_trigger())
 
     def _convert_trigger(self):

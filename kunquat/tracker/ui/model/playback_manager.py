@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2015-2016
+#          Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -12,7 +12,9 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from kunquat.tracker.config import get_config
 from .channel import Channel
+from . import tstamp
 
 
 class PlaybackManager():
@@ -38,13 +40,22 @@ class PlaybackManager():
 
     def get_playback_position(self):
         track_num, system_num, row_ts = self._session.get_playback_cursor_position()
-        return track_num, system_num, row_ts
+        return track_num, system_num, tstamp.Tstamp(row_ts)
 
     def set_infinite_mode(self, enabled):
         self._controller.set_infinite_mode(enabled)
 
     def get_infinite_mode(self):
         return self._controller.get_infinite_mode()
+
+    def set_playback_cursor_following(self, enabled):
+        get_config().set_value('follow_playback_cursor', enabled)
+
+    def get_playback_cursor_following(self):
+        return get_config().get_value('follow_playback_cursor')
+
+    def follow_playback_cursor(self):
+        return self.is_playback_active() and self.get_playback_cursor_following()
 
     def start_recording(self):
         self._session.set_record_mode(True)

@@ -82,6 +82,7 @@ class StyleManager():
         'sheet_header_border_colour'        : '#575',
         'sheet_ruler_bg_colour'             : '#125',
         'sheet_ruler_fg_colour'             : '#acf',
+        'sheet_playback_cursor_colour'      : '#6e6',
         'sheet_trigger_default_colour'      : '#cde',
         'sheet_trigger_note_on_colour'      : '#fdb',
         'sheet_trigger_hit_colour'          : '#be8',
