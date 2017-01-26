@@ -204,7 +204,7 @@ class Share():
         return self._notations
 
     def get_default_instrument(self):
-        path = os.path.join(self._instruments_path, 'example_ins.kqti.bz2')
+        path = os.path.join(self._instruments_path, 'example_ins.kqti')
         kqtifile = KqtiFile(path)
         return kqtifile
 

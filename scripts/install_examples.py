@@ -24,8 +24,8 @@ def install_examples(builder, install_prefix):
     build_dir = os.path.join('build', 'examples')
 
     names = [
-        'example.kqt.bz2',
-        'example_ins.kqti.bz2',
+        'example.kqt',
+        'example_ins.kqti',
     ]
 
     for name in names:
