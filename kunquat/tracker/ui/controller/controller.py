@@ -122,7 +122,18 @@ class Controller():
         values = dict()
         if module_path[-4:] in ['.kqt']:
             prefix = 'kqtc00'
-            tfile = tarfile.open(module_path, format=tarfile.USTAR_FORMAT)
+
+            # Accept bzip2 or uncompressed only
+            try:
+                tfile = tarfile.open(
+                        module_path, mode='r:bz2', format=tarfile.USTAR_FORMAT)
+            except tarfile.ReadError:
+                try:
+                    tfile = tarfile.open(
+                            module_path, mode='r:', format=tarfile.USTAR_FORMAT)
+                except tarfile.ReadError:
+                    raise
+
             members = tfile.getmembers()
             member_count = len(members)
             self.update_import_progress(0, member_count)
@@ -205,8 +216,16 @@ class Controller():
 
     def get_task_load_audio_unit(
             self, kqtifile, au_id, control_id=None, is_sandbox=False):
-        for _ in kqtifile.get_read_steps():
-            yield
+        try:
+            for _ in kqtifile.get_read_steps():
+                yield
+        except tarfile.ReadError:
+            self._session.set_au_import_error_info(
+                    kqtifile.get_path(),
+                    'File is not a valid Kunquat audio unit package.')
+            self._updater.signal_update(
+                    set(['signal_au_import_error', 'signal_au_import_finished']))
+            return
         contents = kqtifile.get_contents()
 
         # Validate contents
