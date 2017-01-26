@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -22,15 +22,11 @@ def get_kqt_file_path(types):
     filters = []
     if types == set(['kqt', 'kqti', 'kqte']):
         caption = 'Open Kunquat file'
-        filters.append('All Kunquat files'
-            ' (*.kqt *.kqt.gz *.kqt.bz2'
-            ' *.kqti *.kqti.gz *.kqti.bz2'
-            ' *.kqte *.kqte.gz *.kqte.bz2)')
+        filters.append('All Kunquat files (*.kqt *.kqti *.kqte)')
         def_dir_conf_key = 'dir_modules'
     elif types == set(['kqti', 'kqte']):
         caption = 'Open Kunquat instrument/effect'
-        filters.append('Kunquat instruments and effects'
-            ' (*.kqti *.kqti.gz *.kqti.bz2 *.kqte *.kqte.gz *.kqte.bz2)')
+        filters.append('Kunquat instruments and effects (*.kqti *.kqte)')
         def_dir_conf_key = 'dir_instruments'
     elif types == set(['kqte']):
         caption = 'Open Kunquat effect'
@@ -39,11 +35,11 @@ def get_kqt_file_path(types):
         assert False
 
     if 'kqt' in types:
-        filters.append('Kunquat compositions (*.kqt *.kqt.gz *.kqt.bz2)')
+        filters.append('Kunquat compositions (*.kqt)')
     if 'kqti' in types:
-        filters.append('Kunquat instruments (*.kqti *.kqti.gz *.kqti.bz2)')
+        filters.append('Kunquat instruments (*.kqti)')
     if 'kqte' in types:
-        filters.append('Kunquat effects (*.kqte *.kqte.gz *.kqte.bz2)')
+        filters.append('Kunquat effects (*.kqte)')
 
     default_dir = config.get_config().get_value(def_dir_conf_key) or ''
 
@@ -57,7 +53,7 @@ def get_kqt_file_path(types):
 def open_kqt_au(au_path, ui_model, container):
     is_inside_instrument = not (container is ui_model.get_module())
 
-    if au_path.endswith(('.kqti', '.kqti.gz', '.kqti.bz2')):
+    if au_path.endswith('.kqti'):
         au_id = container.get_free_au_id()
         if au_id == None:
             dialog = OutOfIDsErrorDialog(ui_model.get_icon_bank(), 'au')
@@ -73,7 +69,7 @@ def open_kqt_au(au_path, ui_model, container):
             control_id = None
         container.start_import_au(au_path, au_id, control_id)
 
-    elif au_path.endswith(('.kqte', '.kqte.gz', '.kqte.bz2')):
+    elif au_path.endswith('.kqte'):
         au_id = container.get_free_au_id()
         if au_id == None:
             dialog = OutOfIDsErrorDialog(

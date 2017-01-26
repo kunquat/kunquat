@@ -120,7 +120,7 @@ class Controller():
 
     def get_task_load_module(self, module_path):
         values = dict()
-        if module_path[-4:] in ['.kqt', '.bz2']:
+        if module_path[-4:] in ['.kqt']:
             prefix = 'kqtc00'
             tfile = tarfile.open(module_path, format=tarfile.USTAR_FORMAT)
             members = tfile.getmembers()
@@ -150,12 +150,7 @@ class Controller():
         assert module_path
         tmpname = None
         with tempfile.NamedTemporaryFile(delete=False) as f:
-            compression_suffix = ''
-            if module_path.endswith('.bz2'):
-                compression_suffix = '|bz2'
-            elif module_path.endswith('.gz'):
-                compression_suffix = '|gz'
-            mode = 'w' + compression_suffix
+            mode = 'w|bz2'
 
             with tarfile.open(mode=mode, fileobj=f, format=tarfile.USTAR_FORMAT) as tfile:
                 prefix = 'kqtc00'
@@ -182,12 +177,7 @@ class Controller():
         assert au_path
         tmpname = None
         with tempfile.NamedTemporaryFile(delete=False) as f:
-            compression_suffix = ''
-            if au_path.endswith('.bz2'):
-                compression_suffix = '|bz2'
-            elif au_path.endswith('.gz'):
-                compression_suffix = '|gz'
-            mode = 'w' + compression_suffix
+            mode = 'w|bz2'
 
             with tarfile.open(mode=mode, fileobj=f, format=tarfile.USTAR_FORMAT) as tfile:
                 prefix = 'kqti00'
