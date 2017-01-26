@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -24,10 +24,9 @@ def build_examples(builder):
     example_dir = os.path.join('examples')
 
     packages = {
-            'kqtc00': 'example.kqt.bz2',
-            'kqti00': 'example_ins.kqti.bz2',
-            'kqts00': 'example_scale.kqts.bz2',
-        }
+        'kqtc00': 'example.kqt.bz2',
+        'kqti00': 'example_ins.kqti.bz2',
+    }
 
     echo_prefix = '\n   Building example files\n\n'
     for src, dest in packages.items():
