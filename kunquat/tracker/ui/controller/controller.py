@@ -21,6 +21,7 @@ import tempfile
 from io import BytesIO
 import os.path
 
+from kunquat.kunquat.file import KqtFile, KQT_KEEP_ALL_DATA
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
@@ -120,37 +121,18 @@ class Controller():
 
     def get_task_load_module(self, module_path):
         values = dict()
-        if module_path[-4:] in ['.kqt']:
-            prefix = 'kqtc00'
+        if module_path.endswith('.kqt'):
+            kqtfile = KqtFile(module_path, KQT_KEEP_ALL_DATA)
 
-            # Accept bzip2 or uncompressed only
-            try:
-                tfile = tarfile.open(
-                        module_path, mode='r:bz2', format=tarfile.USTAR_FORMAT)
-            except tarfile.ReadError:
-                try:
-                    tfile = tarfile.open(
-                            module_path, mode='r:', format=tarfile.USTAR_FORMAT)
-                except tarfile.ReadError:
-                    raise
+            entries = kqtfile.get_entries()
+            entry_count = kqtfile.get_entry_count()
 
-            members = tfile.getmembers()
-            member_count = len(members)
-            self.update_import_progress(0, member_count)
-            for i, entry in zip(range(member_count), members):
+            for i, entry in enumerate(entries):
                 yield
-                tarpath = entry.name
-                key = self._remove_prefix(tarpath, prefix)
-                assert (key != None) #TODO broken file exception
-                if entry.isfile():
-                    value = tfile.extractfile(entry).read()
-                    if key.endswith('.json'):
-                        decoded = json.loads(str(value, encoding='utf-8'))
-                    else:
-                        decoded = value
-                    values[key] = decoded
-                self.update_import_progress(i + 1, member_count)
-            tfile.close()
+                key, value = entry
+                values[key] = value
+                self.update_import_progress(i + 1, entry_count)
+
             self._store.put(values)
             self._store.clear_modified_flag()
             self._updater.signal_update(set(['signal_controls', 'signal_module']))
