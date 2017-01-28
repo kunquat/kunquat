@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2012-2016
+# Author: Tomi Jylhä-Ollila, Finland 2012-2017
 #
 # This file is part of Kunquat.
 #
@@ -22,6 +22,7 @@ import sys
 import tarfile
 import time
 
+from kunquat.kunquat.file import KqtFile
 from kunquat.kunquat.kunquat import Kunquat, KunquatError
 import kunquat.extras.sndfile as sndfile
 
@@ -35,31 +36,11 @@ ENABLE_UNICODE_OUTPUT = (locale.getpreferredencoding().lower() == 'utf-8')
 
 def load_kqt(path, audio_rate):
     handle = Kunquat(audio_rate)
-    meta = {}
-    tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
 
-    for entry in tfile.getmembers():
-        key = entry.name
-        if not key.startswith('kqtc'):
-            raise KunquatError('Invalid composition')
-        if entry.isfile():
-            if '/' not in key:
-                raise KunquatError('Invalid composition')
-            key = key[key.index('/') + 1:]
-            value = tfile.extractfile(entry).read()
-            if key.endswith('.json'):
-                encoded = json.loads(str(value, encoding='utf-8'))
-            else:
-                encoded = value
-            handle.set_data(key, encoded)
+    f = KqtFile(path)
+    f.load_into_handle(handle)
 
-            last_elem = key.split('/')[-1]
-            if last_elem.startswith('m_'):
-                meta[key] = value
-
-    tfile.close()
-    handle.validate()
-    return handle, meta
+    return handle, dict(f.get_stored_entries())
 
 
 def export(in_path, out_path, options):
@@ -130,7 +111,7 @@ def export_all(options, paths):
             print('Exporting unpacked Kunquat composition directories is'
                     ' no longer supported.\n'
                     'You can make a Kunquat music file by running:\n'
-                    '  tar cj --format=ustar -f music.kqt.bz2 -C',
+                    '  tar cj --format=ustar -f music.kqt -C',
                     path_head, path_tail, file=sys.stderr)
             continue
         if 'output' in options:
@@ -299,7 +280,7 @@ def main():
 
 def create_output_path(path, format_option):
     path = os.path.basename(path)
-    if path.endswith(('.kqt', '.kqt.gz', '.kqt.bz2')):
+    if path.endswith('.kqt'):
         ext_index = path.rfind('kqt')
         assert ext_index != -1
         return path[:ext_index] + format_option

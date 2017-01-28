@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2013-2016
+#          Tomi Jylhä-Ollila, Finland 2013-2017
 #
 # This file is part of Kunquat.
 #
@@ -23,8 +23,7 @@ class Session():
         self._render_speed = 0
         self._render_load = 0
         self._ui_lag = 0
-        self._progress_position = 1
-        self._progress_steps = 1
+        self._progress_position = 0
         self._audio_levels = (0, 0)
         self._max_audio_levels = [0, 0]
         self._infinite_mode = False
@@ -142,12 +141,6 @@ class Session():
 
     def set_progress_position(self, progress_position):
         self._progress_position = progress_position
-
-    def get_progress_steps(self):
-        return self._progress_steps
-
-    def set_progress_steps(self, progress_steps):
-        self._progress_steps = progress_steps
 
     def get_audio_levels(self):
         return self._audio_levels

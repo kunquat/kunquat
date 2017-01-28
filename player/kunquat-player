@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2010-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2010-2017
 #          Toni Ruottu, Finland 2010
 #
 # This file is part of Kunquat.
@@ -28,6 +28,7 @@ import tarfile
 import termios
 import time
 
+from kunquat.kunquat.file import KqtFile
 from kunquat.kunquat.kunquat import Kunquat, KunquatError
 from kunquat.extras import pulseaudio
 
@@ -114,31 +115,11 @@ def print_meta(meta):
 
 def load_kqt(path, rate):
     handle = Kunquat(rate)
-    meta = {}
-    tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
 
-    for entry in tfile.getmembers():
-        key = entry.name
-        if not key.startswith('kqtc'):
-            raise KunquatError('Invalid composition')
-        if entry.isfile():
-            if '/' not in key:
-                raise KunquatError('Invalid composition')
-            key = key[key.index('/') + 1:]
-            value = tfile.extractfile(entry).read()
-            if key.endswith('.json'):
-                encoded = json.loads(str(value, encoding='utf-8'))
-            else:
-                encoded = value
-            handle.set_data(key, encoded)
+    f = KqtFile(path)
+    f.load_into_handle(handle)
 
-            last_elem = key.split('/')[-1]
-            if last_elem.startswith('m_') or key == 'album/p_tracks.json':
-                meta[key] = encoded
-
-    tfile.close()
-    handle.validate()
-    return handle, meta
+    return handle, dict(f.get_stored_entries())
 
 
 def track_exists(keys, num):
@@ -156,7 +137,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
         print('Playing unpacked Kunquat composition directories is'
                 ' no longer supported.\n'
                 'You can make a Kunquat music file by running:\n'
-                '  tar cj --format=ustar -f music.kqt.bz2 -C',
+                '  tar cj --format=ustar -f music.kqt -C',
                 path_head, path_tail, end='', file=sys.stderr)
         sys.stderr.flush()
         return KeyHandler.RETURN

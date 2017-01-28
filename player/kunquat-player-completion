@@ -19,7 +19,7 @@ _kunquat_player()
             COMPREPLY=( $( compgen -W "$options" -- $cur ) )
             ;;
         *)
-            _filedir '@(kqt|kqt.gz|kqt.bz2)'
+            _filedir '@(kqt)'
             ;;
     esac
     return 0

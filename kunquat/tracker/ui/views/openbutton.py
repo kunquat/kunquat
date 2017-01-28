@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2017
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -37,7 +37,7 @@ class OpenButton(QToolButton):
     def _clicked(self):
         file_path = get_kqt_file_path(set(['kqt', 'kqti', 'kqte']))
         if file_path:
-            if file_path.endswith(('.kqt', '.kqt.gz', 'kqt.bz2')):
+            if file_path.endswith('.kqt'):
                 process_manager = self._ui_model.get_process_manager()
                 process_manager.new_kunquat(file_path)
             else:

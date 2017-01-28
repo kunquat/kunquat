@@ -21,6 +21,7 @@ import tempfile
 from io import BytesIO
 import os.path
 
+from kunquat.kunquat.file import KqtFile, KQT_KEEP_NONE
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
@@ -120,26 +121,19 @@ class Controller():
 
     def get_task_load_module(self, module_path):
         values = dict()
-        if module_path[-4:] in ['.kqt', '.bz2']:
-            prefix = 'kqtc00'
-            tfile = tarfile.open(module_path, format=tarfile.USTAR_FORMAT)
-            members = tfile.getmembers()
-            member_count = len(members)
-            self.update_import_progress(0, member_count)
-            for i, entry in zip(range(member_count), members):
+        if module_path.endswith('.kqt'):
+            kqtfile = KqtFile(module_path, KQT_KEEP_NONE)
+
+            self.update_import_progress(0)
+
+            for i, entry in enumerate(kqtfile.get_entries()):
                 yield
-                tarpath = entry.name
-                key = self._remove_prefix(tarpath, prefix)
-                assert (key != None) #TODO broken file exception
-                if entry.isfile():
-                    value = tfile.extractfile(entry).read()
-                    if key.endswith('.json'):
-                        decoded = json.loads(str(value, encoding='utf-8'))
-                    else:
-                        decoded = value
-                    values[key] = decoded
-                self.update_import_progress(i + 1, member_count)
-            tfile.close()
+                key, value = entry
+                values[key] = value
+                self.update_import_progress(kqtfile.get_loading_progress())
+
+            self.update_import_progress(1)
+
             self._store.put(values)
             self._store.clear_modified_flag()
             self._updater.signal_update(set(['signal_controls', 'signal_module']))
@@ -150,12 +144,7 @@ class Controller():
         assert module_path
         tmpname = None
         with tempfile.NamedTemporaryFile(delete=False) as f:
-            compression_suffix = ''
-            if module_path.endswith('.bz2'):
-                compression_suffix = '|bz2'
-            elif module_path.endswith('.gz'):
-                compression_suffix = '|gz'
-            mode = 'w' + compression_suffix
+            mode = 'w|bz2'
 
             with tarfile.open(mode=mode, fileobj=f, format=tarfile.USTAR_FORMAT) as tfile:
                 prefix = 'kqtc00'
@@ -182,12 +171,7 @@ class Controller():
         assert au_path
         tmpname = None
         with tempfile.NamedTemporaryFile(delete=False) as f:
-            compression_suffix = ''
-            if au_path.endswith('.bz2'):
-                compression_suffix = '|bz2'
-            elif au_path.endswith('.gz'):
-                compression_suffix = '|gz'
-            mode = 'w' + compression_suffix
+            mode = 'w|bz2'
 
             with tarfile.open(mode=mode, fileobj=f, format=tarfile.USTAR_FORMAT) as tfile:
                 prefix = 'kqti00'
@@ -215,8 +199,16 @@ class Controller():
 
     def get_task_load_audio_unit(
             self, kqtifile, au_id, control_id=None, is_sandbox=False):
-        for _ in kqtifile.get_read_steps():
-            yield
+        try:
+            for _ in kqtifile.get_read_steps():
+                yield
+        except tarfile.ReadError:
+            self._session.set_au_import_error_info(
+                    kqtifile.get_path(),
+                    'File is not a valid Kunquat audio unit package.')
+            self._updater.signal_update(
+                    set(['signal_au_import_error', 'signal_au_import_finished']))
+            return
         contents = kqtifile.get_contents()
 
         # Validate contents
@@ -580,9 +572,8 @@ class Controller():
         self._session.log_event(channel_number, event_type, event_value, context)
         self._updater.signal_update()
 
-    def update_import_progress(self, position, steps):
-        self._session.set_progress_position(position)
-        self._session.set_progress_steps(steps)
+    def update_import_progress(self, pos_norm):
+        self._session.set_progress_position(pos_norm)
         self._updater.signal_update()
 
     def confirm_valid_data(self, transaction_id):

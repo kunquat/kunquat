@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -28,7 +28,15 @@ class KqtiFile():
         au_prefix = 'kqti00'
         self._contents = {}
 
-        tfile = tarfile.open(self._path, format=tarfile.USTAR_FORMAT)
+        # Accept bzip2 or uncompressed only
+        try:
+            tfile = tarfile.open(self._path, mode='r:bz2', format=tarfile.USTAR_FORMAT)
+        except tarfile.ReadError:
+            try:
+                tfile = tarfile.open(self._path, mode='r:', format=tarfile.USTAR_FORMAT)
+            except tarfile.ReadError:
+                raise
+
         members = tfile.getmembers()
         for entry in members:
             yield
