@@ -14,7 +14,7 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from kunquat.tracker.ui.views.audiounit.time_env import TimeEnvelope
+from kunquat.tracker.ui.views.audiounit.timeenv import TimeEnvelope
 from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from .procnumslider import ProcNumSlider

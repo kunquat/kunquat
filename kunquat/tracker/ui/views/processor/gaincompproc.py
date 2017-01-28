@@ -15,7 +15,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.envelope import Envelope
-from kunquat.tracker.ui.views.audiounit.simple_env import SimpleEnvelope
+from kunquat.tracker.ui.views.audiounit.simpleenv import SimpleEnvelope
 
 
 class GainCompProc(QWidget):
