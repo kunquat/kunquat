@@ -331,7 +331,7 @@ class RandomListMap(QWidget):
                     self._set_selected_point(None)
                     self._focused_point = None
                     self._state = self._STATE_IDLE
-                    self._updater.signal_update(set([self._get_selection_signal_type()]))
+                    self._updater.signal_update(self._get_selection_signal_type())
                     return
 
                 if self._is_start_snapping_active:
@@ -344,7 +344,7 @@ class RandomListMap(QWidget):
                         self._move_point(point, new_point)
                         self._set_selected_point(new_point)
                         self._focused_point = new_point
-                        self._updater.signal_update(set([self._get_move_signal_type()]))
+                        self._updater.signal_update(self._get_move_signal_type())
 
             else:
                 self._state = self._STATE_IDLE
@@ -361,7 +361,7 @@ class RandomListMap(QWidget):
                 point_vis = self._get_vis_coords(point)
                 self._moving_pointer_offset = (x - point_vis[0], y - point_vis[1])
 
-                self._updater.signal_update(set([self._get_selection_signal_type()]))
+                self._updater.signal_update(self._get_selection_signal_type())
             else:
                 new_point = self._get_point_coords((x, y))
                 pitch_range = self._axis_y_renderer.get_val_range()
@@ -375,7 +375,7 @@ class RandomListMap(QWidget):
                     self._is_start_snapping_active = True
                     self._moving_pointer_offset = (0, 0)
 
-                    self._updater.signal_update(set([self._get_selection_signal_type()]))
+                    self._updater.signal_update(self._get_selection_signal_type())
 
     def mouseReleaseEvent(self, event):
         self._state = self._STATE_IDLE
@@ -645,7 +645,7 @@ class NoteMapEntry(QWidget):
             if new_point not in sample_params.get_note_map_points():
                 sample_params.move_note_map_point(selected_point, new_point)
                 sample_params.set_selected_note_map_point(new_point)
-                self._updater.signal_update(set([self._get_move_signal_type()]))
+                self._updater.signal_update(self._get_move_signal_type())
 
 
 class RandomList(EditorList):
@@ -786,7 +786,7 @@ class RandomEntryAdder(QPushButton):
         if (point != None) and (point in self._get_map_points()):
             random_list = self._get_model_random_list(point)
             random_list.add_entry()
-            self._updater.signal_update(set([self._get_update_signal_type()]))
+            self._updater.signal_update(self._get_update_signal_type())
 
 
 class RandomEntryEditor(QWidget):
@@ -933,28 +933,28 @@ class RandomEntryEditor(QWidget):
             sample_id = self._sample_selector.itemData(item_index)
             random_list = self._get_model_random_list(point)
             random_list.set_sample_id(self._index, sample_id)
-            self._updater.signal_update(set([self._get_random_list_signal_type()]))
+            self._updater.signal_update(self._get_random_list_signal_type())
 
     def _change_pitch_shift(self, value):
         point = self._get_selected_map_point()
         if (point != None) and (point in self._get_map_points()):
             random_list = self._get_model_random_list(point)
             random_list.set_cents_offset(self._index, value)
-            self._updater.signal_update(set([self._get_random_list_signal_type()]))
+            self._updater.signal_update(self._get_random_list_signal_type())
 
     def _change_volume_shift(self, value):
         point = self._get_selected_map_point()
         if (point != None) and (point in self._get_map_points()):
             random_list = self._get_model_random_list(point)
             random_list.set_volume_adjust(self._index, value)
-            self._updater.signal_update(set([self._get_random_list_signal_type()]))
+            self._updater.signal_update(self._get_random_list_signal_type())
 
     def _remove_entry(self):
         point = self._get_selected_map_point()
         if (point != None) and (point in self._get_map_points()):
             random_list = self._get_model_random_list(point)
             random_list.remove_entry(self._index)
-            self._updater.signal_update(set([self._get_random_list_signal_type()]))
+            self._updater.signal_update(self._get_random_list_signal_type())
 
 
 class NoteRandomList(RandomList):
@@ -1073,7 +1073,7 @@ class SampleHitSelector(HitSelector):
     def _set_selected_hit_info(self, hit_info):
         sample_params = self._get_sample_params()
         sample_params.set_selected_hit_info(hit_info)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _get_hit_name(self, index):
         module = self._ui_model.get_module()
@@ -1241,7 +1241,7 @@ class HitMapEntry(QWidget):
                 (new_force not in sample_params.get_hit_map_forces(hit_info))):
             sample_params.move_hit_map_point(hit_info, selected_force, new_force)
             sample_params.set_selected_hit_map_force(new_force)
-            self._updater.signal_update(set([self._get_move_signal_type()]))
+            self._updater.signal_update(self._get_move_signal_type())
 
 
 class HitRandomList(RandomList):
@@ -1456,10 +1456,10 @@ class SampleListToolBar(QToolBar):
             imports = zip(sample_ids, sample_paths)
             try:
                 sample_params.import_samples(imports)
-                self._updater.signal_update(set([
+                self._updater.signal_update(
                     self._get_list_signal_type(),
                     self._get_note_map_random_list_signal_type(),
-                    self._get_hit_map_random_list_signal_type()]))
+                    self._get_hit_map_random_list_signal_type())
             except SampleImportError as e:
                 icon_bank = self._ui_model.get_icon_bank()
                 error_msg_lines = str(e).split('\n')
@@ -1472,10 +1472,10 @@ class SampleListToolBar(QToolBar):
         sample_id = sample_params.get_selected_sample_id()
         if sample_id:
             sample_params.remove_sample(sample_id)
-            self._updater.signal_update(set([
+            self._updater.signal_update(
                 self._get_list_signal_type(),
                 self._get_note_map_random_list_signal_type(),
-                self._get_hit_map_random_list_signal_type()]))
+                self._get_hit_map_random_list_signal_type())
 
 
 class ImportErrorDialog(QDialog):
@@ -1610,7 +1610,7 @@ class SampleListView(QListView):
             sample_params = utils.get_proc_params(
                     self._ui_model, self._au_id, self._proc_id)
             sample_params.set_selected_sample_id(sample_id)
-            self._updater.signal_update(set([self._get_update_signal_type()]))
+            self._updater.signal_update(self._get_update_signal_type())
 
     def setModel(self, model):
         super().setModel(model)
@@ -2002,28 +2002,28 @@ class SampleEditor(QWidget):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_name(sample_id, str(self._name.text()))
-        self._updater.signal_update(set([
+        self._updater.signal_update(
             self._get_rename_signal_type(),
             self._get_note_random_list_signal_type(),
-            self._get_hit_random_list_signal_type()]))
+            self._get_hit_random_list_signal_type())
 
     def _change_freq(self, value):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_freq(sample_id, value)
-        self._updater.signal_update(set([self._get_freq_signal_type()]))
+        self._updater.signal_update(self._get_freq_signal_type())
 
     def _convert_freq(self):
         sample_params = self._get_sample_params()
         on_resample = lambda: self._updater.signal_update(
-                set([self._get_resample_signal_type()]))
+                self._get_resample_signal_type())
         resample_editor = ResampleEditor(sample_params, on_resample)
         resample_editor.exec_()
 
     def _change_format(self):
         sample_params = self._get_sample_params()
         on_convert = lambda: self._updater.signal_update(
-                set([self._get_format_signal_type()]))
+                self._get_format_signal_type())
         format_editor = SampleFormatEditor(sample_params, on_convert)
         format_editor.exec_()
 
@@ -2032,19 +2032,19 @@ class SampleEditor(QWidget):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_loop_mode(sample_id, loop_mode)
-        self._updater.signal_update(set([self._get_loop_signal_type()]))
+        self._updater.signal_update(self._get_loop_signal_type())
 
     def _change_loop_start(self, start):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_loop_start(sample_id, start)
-        self._updater.signal_update(set([self._get_loop_signal_type()]))
+        self._updater.signal_update(self._get_loop_signal_type())
 
     def _change_loop_end(self, end):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_loop_end(sample_id, end)
-        self._updater.signal_update(set([self._get_loop_signal_type()]))
+        self._updater.signal_update(self._get_loop_signal_type())
 
 
 class ResampleEditor(QDialog):

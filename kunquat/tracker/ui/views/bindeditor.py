@@ -117,7 +117,7 @@ class BindListToolBar(QToolBar):
     def _add_binding(self):
         bindings = self._ui_model.get_module().get_bindings()
         bindings.add_binding()
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
     def _remove_binding(self):
         bindings = self._ui_model.get_module().get_bindings()
@@ -125,7 +125,7 @@ class BindListToolBar(QToolBar):
         if selected_index != None:
             bindings.remove_binding(selected_index)
             bindings.set_selected_binding_index(None)
-            self._updater.signal_update(set(['signal_bind']))
+            self._updater.signal_update('signal_bind')
 
 
 class BindListModel(QAbstractListModel):
@@ -199,7 +199,7 @@ class BindListView(QListView):
             index, _ = item
             bindings = self._ui_model.get_module().get_bindings()
             bindings.set_selected_binding_index(index)
-            self._updater.signal_update(set(['signal_bind']))
+            self._updater.signal_update('signal_bind')
 
     def setModel(self, model):
         super().setModel(model)
@@ -350,7 +350,7 @@ class SourceEventSelector(QWidget):
         bindings = self._ui_model.get_module().get_bindings()
         binding = bindings.get_selected_binding()
         binding.set_source_event(new_event)
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
 
 class TightLabel(QLabel):
@@ -451,7 +451,7 @@ class ConstraintAdder(QPushButton):
         bindings = self._ui_model.get_module().get_bindings()
         binding = bindings.get_selected_binding()
         binding.get_constraints().add_constraint()
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
 
 class ConstraintEditor(QWidget):
@@ -536,19 +536,19 @@ class ConstraintEditor(QWidget):
         event_name = self._event.get_selected_event()
         constraint = self._get_constraint()
         constraint.set_event_name(event_name)
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
     def _change_expression(self):
         expression = str(self._expression.text())
         constraint = self._get_constraint()
         constraint.set_expression(expression)
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
     def _remove(self):
         bindings = self._ui_model.get_module().get_bindings()
         binding = bindings.get_selected_binding()
         binding.get_constraints().remove_constraint(self._index)
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
 
 class Targets(QWidget):
@@ -642,7 +642,7 @@ class TargetAdder(QPushButton):
         bindings = self._ui_model.get_module().get_bindings()
         binding = bindings.get_selected_binding()
         binding.get_targets().add_target()
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
 
 class TargetEditor(QWidget):
@@ -750,7 +750,7 @@ class TargetEditor(QWidget):
     def _change_ch_offset(self, new_offset):
         target = self._get_target()
         target.set_channel_offset(new_offset)
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
     def _change_event(self, index):
         event_name = self._event.get_selected_event()
@@ -763,18 +763,18 @@ class TargetEditor(QWidget):
             expression = None
 
         target.set_event_info(event_name, expression)
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
     def _change_expression(self):
         expression = str(self._expression.text())
         target = self._get_target()
         target.set_event_info(self._event.get_selected_event(), expression)
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
     def _remove(self):
         bindings = self._ui_model.get_module().get_bindings()
         binding = bindings.get_selected_binding()
         binding.get_targets().remove_target(self._index)
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
 

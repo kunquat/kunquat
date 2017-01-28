@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -121,7 +121,7 @@ class Title(QLineEdit):
     def _change_title(self, title):
         module = self._ui_model.get_module()
         module.set_title(title)
-        self._updater.signal_update(set(['signal_title']))
+        self._updater.signal_update('signal_title')
 
 
 class AuthorTableModel(QAbstractTableModel):
@@ -195,7 +195,7 @@ class AuthorTableModel(QAbstractTableModel):
                 new_name = value
                 module = self._ui_model.get_module()
                 module.set_author(column, new_name)
-                self._updater.signal_update(set(['signal_authors']))
+                self._updater.signal_update('signal_authors')
                 return True
 
         return False
@@ -310,7 +310,7 @@ class MixingVolume(QDoubleSpinBox):
     def _change_mixing_volume(self, value):
         module = self._ui_model.get_module()
         module.set_mixing_volume(value)
-        self._updater.signal_update(set(['signal_mixing_volume']))
+        self._updater.signal_update('signal_mixing_volume')
 
 
 class ForceShift(NumberSlider):
@@ -343,7 +343,7 @@ class ForceShift(NumberSlider):
     def _change_shift(self, value):
         module = self._ui_model.get_module()
         module.set_force_shift(value)
-        self._updater.signal_update(set(['signal_force_shift']))
+        self._updater.signal_update('signal_force_shift')
 
 
 class DCBlocker(QCheckBox):
@@ -382,7 +382,7 @@ class DCBlocker(QCheckBox):
 
         module = self._ui_model.get_module()
         module.set_dc_blocker_enabled(enabled)
-        self._updater.signal_update(set(['signal_dc_blocker']))
+        self._updater.signal_update('signal_dc_blocker')
 
 
 class RandomSeed(QWidget):
@@ -435,13 +435,13 @@ class RandomSeed(QWidget):
     def _change_random_seed(self):
         module = self._ui_model.get_module()
         module.set_random_seed(self._seed.get_value())
-        self._updater.signal_update(set(['signal_random_seed']))
+        self._updater.signal_update('signal_random_seed')
 
     def _change_auto_update(self, state):
         enabled = (state == Qt.Checked)
         module = self._ui_model.get_module()
         module.set_random_seed_auto_update(enabled)
-        self._updater.signal_update(set(['signal_random_seed']))
+        self._updater.signal_update('signal_random_seed')
 
 
 class UInt63SpinBox(QAbstractSpinBox):

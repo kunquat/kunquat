@@ -112,7 +112,7 @@ class DampSlider(ProcNumSlider):
     def _value_changed(self, value):
         ks_params = self._get_ks_params()
         ks_params.set_damp(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class InitEnvelope(TimeEnvelope):
@@ -257,7 +257,7 @@ class ShiftThreshold(ProcNumSlider):
     def _value_changed(self, value):
         ks_params = self._get_ks_params()
         ks_params.set_shift_env_trigger_threshold(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class ShiftVar(ProcNumSlider):
@@ -278,7 +278,7 @@ class ShiftVar(ProcNumSlider):
     def _value_changed(self, value):
         ks_params = self._get_ks_params()
         ks_params.set_shift_env_strength_var(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class ReleaseEnvelope(TimeEnvelope):
@@ -360,6 +360,6 @@ class ReleaseVar(ProcNumSlider):
     def _value_changed(self, value):
         ks_params = self._get_ks_params()
         ks_params.set_release_env_strength_var(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 

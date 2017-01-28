@@ -69,7 +69,7 @@ class OrderlistEditor(QWidget):
                     track_num, system_num + offset, new_pattern_num, 0)
             self._orderlist_manager.set_orderlist_selection(
                     (track_num, system_num + offset))
-            self._updater.signal_update(set(['signal_order_list']))
+            self._updater.signal_update('signal_order_list')
             self._waiting_for_update = True
 
     def _handle_delete(self):
@@ -80,7 +80,7 @@ class OrderlistEditor(QWidget):
             self._album.remove_pattern_instance(track_num, system_num)
             self._orderlist_manager.set_orderlist_selection(
                     (track_num, min(system_num, song.get_system_count() - 1)))
-            self._updater.signal_update(set(['signal_order_list']))
+            self._updater.signal_update('signal_order_list')
             self._waiting_for_update = True
 
     def _handle_move_pattern_instance(self, offset):
@@ -94,7 +94,7 @@ class OrderlistEditor(QWidget):
                         track_num, system_num, track_num, new_system_num)
                 self._orderlist_manager.set_orderlist_selection(
                         (track_num, new_system_num))
-                self._updater.signal_update(set(['signal_order_list']))
+                self._updater.signal_update('signal_order_list')
                 self._waiting_for_update = True
 
     def keyPressEvent(self, event):
@@ -230,7 +230,7 @@ class OrderlistToolBar(QToolBar):
         self._album.insert_pattern_instance(
                 track_num, system_num, pattern_num, 0)
         self._orderlist_manager.set_orderlist_selection((track_num, system_num))
-        self._updater.signal_update(set(['signal_order_list']))
+        self._updater.signal_update('signal_order_list')
 
     def _pattern_removed(self):
         selection = self._orderlist.get_selected_object()
@@ -240,7 +240,7 @@ class OrderlistToolBar(QToolBar):
             self._album.remove_pattern_instance(track_num, system_num)
             self._orderlist_manager.set_orderlist_selection(
                     (track_num, min(system_num, song.get_system_count() - 1)))
-            self._updater.signal_update(set(['signal_order_list']))
+            self._updater.signal_update('signal_order_list')
 
     def _pattern_reused(self):
         selection = self._orderlist.get_selected_object()
@@ -254,7 +254,7 @@ class OrderlistToolBar(QToolBar):
                     track_num, system_num + 1, pattern_num, instance_num)
             self._orderlist_manager.set_orderlist_selection(
                     (track_num, system_num + 1))
-            self._updater.signal_update(set(['signal_order_list']))
+            self._updater.signal_update('signal_order_list')
 
     def _song_added(self):
         selection = self._orderlist.get_selected_object()
@@ -263,13 +263,13 @@ class OrderlistToolBar(QToolBar):
         else:
             track_num = self._album.get_track_count()
         self._album.insert_song(track_num)
-        self._updater.signal_update(set(['signal_order_list']))
+        self._updater.signal_update('signal_order_list')
 
     def _song_removed(self):
         selection = self._orderlist.get_selected_object()
         if isinstance(selection, Song):
             track_num = selection.get_containing_track_number()
             self._album.remove_song(track_num)
-            self._updater.signal_update(set(['signal_order_list']))
+            self._updater.signal_update('signal_order_list')
 
 

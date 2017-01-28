@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -110,7 +110,7 @@ class MaxDelay(QDoubleSpinBox):
     def _value_changed(self, value):
         delay_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         delay_params.set_max_delay(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class InitDelay(ProcNumSlider):
@@ -127,7 +127,7 @@ class InitDelay(ProcNumSlider):
     def _value_changed(self, value):
         delay_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         delay_params.set_init_delay(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _get_update_signal_type(self):
         return '_'.join(('signal_proc_delay', self._proc_id))

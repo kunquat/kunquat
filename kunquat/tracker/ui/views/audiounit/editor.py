@@ -175,7 +175,7 @@ class TestForce(AuNumSlider):
     def _value_changed(self, new_value):
         au = self._get_audio_unit()
         au.set_test_force(new_value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class TestExpression(KqtComboBox):

@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2016
+#          Tomi Jylhä-Ollila, Finland 2013-2017
 #
 # This file is part of Kunquat.
 #
@@ -375,7 +375,7 @@ class AudioUnit():
         self._session.set_saving(True)
         self._store.set_saving(True)
         self._session.set_au_export_info((self._au_id, path))
-        self._updater.signal_update(set(['signal_start_export_au']))
+        self._updater.signal_update('signal_start_export_au')
 
     def add_effect(self, au_id):
         key = '/'.join((self._au_id, au_id))

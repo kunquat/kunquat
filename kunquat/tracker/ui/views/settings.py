@@ -158,7 +158,7 @@ class Directory(QWidget):
     def _change_dir_text(self, text):
         cfg = config.get_config()
         cfg.set_value(self._conf_key, text)
-        self._updater.signal_update(set(['signal_settings_dir']))
+        self._updater.signal_update('signal_settings_dir')
 
     def _change_dir_browse(self):
         cfg = config.get_config()
@@ -229,7 +229,7 @@ class StyleToggle(QCheckBox):
         style_manager = self._ui_model.get_style_manager()
         style_manager.set_custom_style_enabled(enabled)
 
-        self._updater.signal_update(set(['signal_style_changed']))
+        self._updater.signal_update('signal_style_changed')
 
 
 class StyleSlider(NumberSlider):
@@ -265,7 +265,7 @@ class StyleSlider(NumberSlider):
     def _change_param(self, new_value):
         style_manager = self._ui_model.get_style_manager()
         style_manager.set_style_param(self._param, new_value)
-        self._updater.signal_update(set(['signal_style_changed']))
+        self._updater.signal_update('signal_style_changed')
 
 
 class BorderContrast(StyleSlider):
@@ -1298,7 +1298,7 @@ class Colours(QTreeView):
     def _update_colour(self, key, colour_code):
         style_manager = self._ui_model.get_style_manager()
         style_manager.set_style_param(key, colour_code)
-        self._updater.signal_update(set(['signal_style_changed']))
+        self._updater.signal_update('signal_style_changed')
 
     def hideEvent(self, event):
         self._colour_editor.hide()

@@ -137,7 +137,7 @@ class Editor(QWidget):
         enabled = (state == Qt.Checked)
         self._control_manager.set_processor_testing_enabled(self._proc_id, enabled)
         self._updater.signal_update(
-                set(['signal_proc_test_output{}'.format(self._proc_id)]))
+                'signal_proc_test_output{}'.format(self._proc_id))
 
     def keyPressEvent(self, event):
         module = self._ui_model.get_module()
@@ -257,10 +257,10 @@ class Signals(QWidget):
 
         new_signal_type = self._SIGNAL_INFO[index][0]
 
-        update_signals = set([
-            self._get_update_signal_type(), self._get_connections_signal_type()])
+        update_signals = [
+            self._get_update_signal_type(), self._get_connections_signal_type()]
 
         proc.set_signal_type(new_signal_type)
-        self._updater.signal_update(update_signals)
+        self._updater.signal_update(*update_signals)
 
 

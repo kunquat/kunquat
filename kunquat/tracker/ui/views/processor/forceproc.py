@@ -108,7 +108,7 @@ class GlobalForceSlider(ForceNumSlider):
     def _value_changed(self, value):
         force_params = self._get_force_params()
         force_params.set_global_force(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class ForceVarSlider(ForceNumSlider):
@@ -126,7 +126,7 @@ class ForceVarSlider(ForceNumSlider):
     def _value_changed(self, value):
         force_params = self._get_force_params()
         force_params.set_force_variation(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class RampReleaseToggle(QCheckBox):
@@ -187,7 +187,7 @@ class RampReleaseToggle(QCheckBox):
         enabled = (new_state == Qt.Checked)
         force_params = self._get_force_params()
         force_params.set_release_ramp_enabled(enabled)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class ForceEnvelopeBase(TimeEnvelope):

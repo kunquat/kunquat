@@ -183,17 +183,17 @@ class TuningTableEditor(QWidget):
     def _change_name(self, name):
         table = self._get_tuning_table()
         table.set_name(name)
-        self._updater.signal_update(set(['signal_tuning_tables']))
+        self._updater.signal_update('signal_tuning_tables')
 
     def _change_ref_pitch(self, pitch):
         table = self._get_tuning_table()
         table.set_ref_pitch(pitch)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _change_pitch_offset(self, offset):
         table = self._get_tuning_table()
         table.set_pitch_offset(offset)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _change_octave_width(self):
         text = str(self._octave_width.text())
@@ -205,17 +205,17 @@ class TuningTableEditor(QWidget):
 
         table = self._get_tuning_table()
         table.set_octave_width(octave_width)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _change_centre_octave(self, index):
         table = self._get_tuning_table()
         table.set_centre_octave(index)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _change_tuning_centre(self, centre):
         table = self._get_tuning_table()
         table.set_ref_note_index(centre)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class NotesToolBar(QToolBar):
@@ -285,7 +285,7 @@ class NotesToolBar(QToolBar):
     def _add_note(self):
         table = self._get_tuning_table()
         table.add_note()
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _remove_note(self):
         table = self._get_tuning_table()
@@ -294,8 +294,8 @@ class NotesToolBar(QToolBar):
         if selected_index != None:
             table.remove_note(selected_index)
             table.set_selected_note((max(0, selected_index - 1), coords[1]))
-            self._updater.signal_update(set([
-                self._get_update_signal_type(), self._get_selection_signal_type()]))
+            self._updater.signal_update(
+                self._get_update_signal_type(), self._get_selection_signal_type())
 
 
 class NoteTableModel(QAbstractTableModel):
@@ -411,7 +411,7 @@ class NoteTableModel(QAbstractTableModel):
                     new_name = value
                     table = self._get_tuning_table()
                     table.set_note_name(row, new_name)
-                    self._updater.signal_update(set([self._get_update_signal_type()]))
+                    self._updater.signal_update(self._get_update_signal_type())
                     return True
                 elif column == 1:
                     new_pitch = self._get_validated_pitch(value)
@@ -419,7 +419,7 @@ class NoteTableModel(QAbstractTableModel):
                         return False
                     table = self._get_tuning_table()
                     table.set_note_pitch(row, new_pitch)
-                    self._updater.signal_update(set([self._get_update_signal_type()]))
+                    self._updater.signal_update(self._get_update_signal_type())
                     return True
 
         return False
@@ -465,7 +465,7 @@ class NoteTableView(QTableView):
 
         table = self._get_tuning_table()
         table.set_selected_note((row, column))
-        self._updater.signal_update(set([self._get_selection_signal_type()]))
+        self._updater.signal_update(self._get_selection_signal_type())
 
     def setModel(self, model):
         super().setModel(model)

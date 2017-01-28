@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -85,7 +85,7 @@ class CutoffSlider(FilterSlider):
     def _value_changed(self, cutoff):
         filter_params = self._get_filter_params()
         filter_params.set_cutoff(cutoff)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class ResonanceSlider(FilterSlider):
@@ -103,6 +103,6 @@ class ResonanceSlider(FilterSlider):
     def _value_changed(self, resonance):
         filter_params = self._get_filter_params()
         filter_params.set_resonance(resonance)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 

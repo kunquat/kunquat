@@ -67,6 +67,6 @@ class Name(QWidget):
         au = module.get_audio_unit(self._au_id)
         proc = au.get_processor(self._proc_id)
         proc.set_name(text)
-        self._updater.signal_update(set(['signal_controls']))
+        self._updater.signal_update('signal_controls')
 
 

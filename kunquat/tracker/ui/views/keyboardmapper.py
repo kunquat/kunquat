@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -70,7 +70,7 @@ class KeyboardMapper():
                 keymap_manager = self._ui_model.get_keymap_manager()
                 is_hit_keymap_active = keymap_manager.is_hit_keymap_active()
                 keymap_manager.set_hit_keymap_active(not is_hit_keymap_active)
-                self._updater.signal_update(set(['signal_select_keymap']))
+                self._updater.signal_update('signal_select_keymap')
             return True
         return False
 

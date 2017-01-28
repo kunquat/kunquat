@@ -189,7 +189,7 @@ class FollowPlaybackButton(QPushButton):
             new_location = TriggerPosition(track_num, system_num, col_num, row_ts, 0)
             selection.set_location(new_location)
 
-        self._updater.signal_update(set(['signal_follow_playback']))
+        self._updater.signal_update('signal_follow_playback')
 
 
 class UndoButton(QPushButton):
@@ -241,7 +241,7 @@ class UndoButton(QPushButton):
     def _undo(self):
         self._sheet_history.undo()
         self._ui_model.get_sheet_manager().flush_latest_column()
-        self._updater.signal_update(set(['signal_undo']))
+        self._updater.signal_update('signal_undo')
 
 
 class RedoButton(QPushButton):
@@ -293,7 +293,7 @@ class RedoButton(QPushButton):
     def _redo(self):
         self._sheet_history.redo()
         self._ui_model.get_sheet_manager().flush_latest_column()
-        self._updater.signal_update(set(['signal_redo']))
+        self._updater.signal_update('signal_redo')
 
 
 class CutOrCopyButton(QPushButton):
@@ -357,7 +357,7 @@ class CutOrCopyButton(QPushButton):
             if self._button_type == 'cut':
                 self._sheet_manager.try_remove_area()
             selection.clear_area()
-            self._updater.signal_update(set(['signal_selection']))
+            self._updater.signal_update('signal_selection')
 
 
 class CutButton(CutOrCopyButton):
@@ -428,7 +428,7 @@ class PasteButton(QPushButton):
         selection = self._ui_model.get_selection()
         utils.try_paste_area(self._sheet_manager)
         selection.clear_area()
-        self._updater.signal_update(set(['signal_selection']))
+        self._updater.signal_update('signal_selection')
 
 
 class ConvertTriggerButton(QPushButton):
@@ -514,7 +514,7 @@ class GridToggle(QCheckBox):
 
         sheet_manager = self._ui_model.get_sheet_manager()
         sheet_manager.set_grid_enabled(enabled)
-        self._updater.signal_update(set(['signal_grid']))
+        self._updater.signal_update('signal_grid')
 
 
 class GridEditorButton(QPushButton):
@@ -716,7 +716,7 @@ class GridSelector(KqtComboBox):
                 sheet_manager.set_pattern_base_grid_pattern_id(
                         pattern, gp_id, is_final=True)
 
-        self._updater.signal_update(set(['signal_grid']))
+        self._updater.signal_update('signal_grid')
 
 
 class HackSeparator(QFrame):

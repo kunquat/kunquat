@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -90,7 +90,7 @@ class ReflSlider(FreeverbSlider):
     def _value_changed(self, value):
         fv_params = self._get_fv_params()
         fv_params.set_reflectivity(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class DampSlider(FreeverbSlider):
@@ -108,6 +108,6 @@ class DampSlider(FreeverbSlider):
     def _value_changed(self, value):
         fv_params = self._get_fv_params()
         fv_params.set_damp(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 

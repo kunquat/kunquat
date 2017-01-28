@@ -187,7 +187,7 @@ class VarNameEditor(QLineEdit):
         module = self._ui_model.get_module()
         env = module.get_environment()
         env.change_var_name(self._var_name, new_name)
-        self._updater.signal_update(set(['signal_environment']))
+        self._updater.signal_update('signal_environment')
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
@@ -248,7 +248,7 @@ class VarTypeEditor(KqtComboBox):
         env = module.get_environment()
         var_types = env.get_var_types()
         env.change_var_type(self._var_name, var_types[index])
-        self._updater.signal_update(set(['signal_environment']))
+        self._updater.signal_update('signal_environment')
 
 
 class VarValueEditor(QWidget):
@@ -337,7 +337,7 @@ class VarValueEditor(QWidget):
         module = self._ui_model.get_module()
         env = module.get_environment()
         env.change_var_init_value(self._var_name, new_value)
-        self._updater.signal_update(set(['signal_environment']))
+        self._updater.signal_update('signal_environment')
 
     def _change_bool_value(self, new_state):
         new_value = (new_state == Qt.Checked)
@@ -391,7 +391,7 @@ class VarRemoveButton(QPushButton):
         module = self._ui_model.get_module()
         env = module.get_environment()
         env.remove_var(self._var_name)
-        self._updater.signal_update(set(['signal_environment']))
+        self._updater.signal_update('signal_environment')
 
 
 class VariableAdder(QWidget):
@@ -461,7 +461,7 @@ class VariableAdder(QWidget):
 
         self._var_name.setText('')
 
-        self._updater.signal_update(set(['signal_environment']))
+        self._updater.signal_update('signal_environment')
 
 
 class NewVarNameEditor(QLineEdit):

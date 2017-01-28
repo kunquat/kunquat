@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2014
-#          Tomi Jylhä-Ollila, Finland 2014-2016
+#          Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -212,7 +212,7 @@ class AlbumTreeModel(QAbstractItemModel):
             from_track_num = item[1]
 
             self._album.move_song(from_track_num, to_track_num)
-            self._updater.signal_update(set(['signal_order_list']))
+            self._updater.signal_update('signal_order_list')
             return True
 
         elif item[0] == 'pinst':
@@ -242,7 +242,7 @@ class AlbumTreeModel(QAbstractItemModel):
 
             self._album.move_pattern_instance(
                     from_track_num, from_system_num, to_track_num, to_system_num)
-            self._updater.signal_update(set(['signal_order_list']))
+            self._updater.signal_update('signal_order_list')
             return True
 
 
@@ -367,6 +367,6 @@ class Orderlist(QWidget):
             song = node.get_payload()
             album = self._ui_model.get_module().get_album()
             album.set_selected_track_num(song.get_containing_track_number())
-            self._updater.signal_update(set(['signal_song']))
+            self._updater.signal_update('signal_song')
 
 

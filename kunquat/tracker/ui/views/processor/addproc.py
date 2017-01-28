@@ -113,13 +113,13 @@ class AddProc(QWidget):
         enabled = (state == Qt.Checked)
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.set_ramp_attack_enabled(enabled)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _change_rand_phase(self, state):
         enabled = (state == Qt.Checked)
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.set_rand_phase_enabled(enabled)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class AddWaveformEditor(WaveformEditor):
@@ -244,7 +244,7 @@ class ToneAdder(QPushButton):
     def _add_tone(self):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.add_tone()
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class ToneEditor(QWidget):
@@ -305,7 +305,7 @@ class ToneEditor(QWidget):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.remove_tone(self._index)
         updater = self._ui_model.get_updater()
-        updater.signal_update(set([self._get_update_signal_type()]))
+        updater.signal_update(self._get_update_signal_type())
 
 
 class TonePitchSpin(QWidget):
@@ -371,7 +371,7 @@ class TonePitchSpin(QWidget):
     def _value_changed(self, pitch):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.set_tone_pitch(self._index, pitch)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class ToneVolumeSlider(ProcNumSlider):
@@ -393,7 +393,7 @@ class ToneVolumeSlider(ProcNumSlider):
     def _value_changed(self, volume):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.set_tone_volume(self._index, volume)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _get_update_signal_type(self):
         return ''.join(('signal_proc_add_tone_', self._au_id, self._proc_id))
@@ -418,7 +418,7 @@ class TonePanningSlider(ProcNumSlider):
     def _value_changed(self, panning):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.set_tone_panning(self._index, panning)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _get_update_signal_type(self):
         return ''.join(('signal_proc_add_tone_', self._au_id, self._proc_id))

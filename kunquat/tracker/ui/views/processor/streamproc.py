@@ -142,16 +142,16 @@ class InitStateEditor(QWidget):
     def _set_init_value(self, value):
         stream_params = self._get_stream_params()
         stream_params.set_init_value(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _set_osc_speed(self, value):
         stream_params = self._get_stream_params()
         stream_params.set_init_osc_speed(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _set_osc_depth(self, value):
         stream_params = self._get_stream_params()
         stream_params.set_init_osc_depth(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 

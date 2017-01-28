@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -218,7 +218,7 @@ class PortAdder(QPushButton):
             parent_signal = au_signal[:au_signal.index('/')]
         else:
             parent_signal = 'signal_connections'
-        return set([au_signal, parent_signal])
+        return [au_signal, parent_signal]
 
     def _add_port(self):
         free_port_id = self._get_free_port_id()
@@ -229,7 +229,7 @@ class PortAdder(QPushButton):
         au = module.get_audio_unit(self._au_id)
         au.set_port_existence(free_port_id, True)
         self._updater.signal_update(
-                set([self._get_update_signal_type()]) | self._get_connections_signals())
+                self._get_update_signal_type(), *self._get_connections_signals())
 
 
 class PortEditor(QWidget):
@@ -310,7 +310,7 @@ class PortEditor(QWidget):
             parent_signal = au_signal[:au_signal.index('/')]
         else:
             parent_signal = 'signal_connections'
-        return set([au_signal, parent_signal])
+        return [au_signal, parent_signal]
 
     def _change_name(self, name):
         port_ids = self._get_port_ids()
@@ -321,7 +321,7 @@ class PortEditor(QWidget):
 
         au.set_port_name(port_id, name)
         self._updater.signal_update(
-                set([self._get_update_signal_type()]) | self._get_connections_signals())
+                self._get_update_signal_type(), *self._get_connections_signals())
 
     def _remove(self):
         port_ids = self._get_port_ids()
@@ -332,6 +332,6 @@ class PortEditor(QWidget):
 
         au.remove_port(port_id)
         self._updater.signal_update(
-                set([self._get_update_signal_type()]) | self._get_connections_signals())
+                self._get_update_signal_type(), *self._get_connections_signals())
 
 

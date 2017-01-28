@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -86,7 +86,7 @@ class InfiniteToggle(QCheckBox):
         playback_manager = self._ui_model.get_playback_manager()
         playback_manager.set_infinite_mode(enabled)
 
-        self._updater.signal_update(set(['infinite_mode']))
+        self._updater.signal_update('infinite_mode')
 
 
 class RuntimeVarList(EditorList):

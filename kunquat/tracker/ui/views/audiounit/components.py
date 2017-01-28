@@ -287,7 +287,7 @@ class StreamAdder(QPushButton):
         au = module.get_audio_unit(self._au_id)
 
         au.add_stream()
-        self._updater.signal_update(set([_get_stream_update_signal_type(self._au_id)]))
+        self._updater.signal_update(_get_stream_update_signal_type(self._au_id))
 
 
 class StreamEditor(QWidget):
@@ -356,7 +356,7 @@ class StreamNameEditor(NameEditor):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         au.change_stream_name(self._context, new_name)
-        self._updater.signal_update(set([_get_stream_update_signal_type(self._au_id)]))
+        self._updater.signal_update(_get_stream_update_signal_type(self._au_id))
 
 
 class StreamTargetProcEditor(KqtComboBox):
@@ -440,7 +440,7 @@ class StreamTargetProcEditor(KqtComboBox):
         au = module.get_audio_unit(self._au_id)
         au.set_stream_target_processor(stream_name, new_target_proc_num)
 
-        self._updater.signal_update(set([_get_stream_update_signal_type(self._au_id)]))
+        self._updater.signal_update(_get_stream_update_signal_type(self._au_id))
 
 
 class StreamRemoveButton(RemoveButton):
@@ -454,7 +454,7 @@ class StreamRemoveButton(RemoveButton):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         au.remove_stream(stream_name)
-        self._updater.signal_update(set([_get_stream_update_signal_type(self._au_id)]))
+        self._updater.signal_update(_get_stream_update_signal_type(self._au_id))
 
 
 class ControlVariables(QWidget):
@@ -643,9 +643,9 @@ class ControlVariableEditor(QWidget):
         if expand:
             self._bindings.setVisible(True)
         else:
-            self._updater.signal_update(set([
+            self._updater.signal_update(
                 _get_update_signal_type(self._au_id),
-                _get_rebuild_signal_type(self._au_id)]))
+                _get_rebuild_signal_type(self._au_id))
 
 
 class ControlVariableTypeExpander(QPushButton):
@@ -700,7 +700,7 @@ class ControlVariableNameEditor(NameEditor):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         au.change_control_var_name(self._context, new_name)
-        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
+        self._updater.signal_update(_get_update_signal_type(self._au_id))
 
 
 class ControlVariableTypeEditor(KqtComboBox):
@@ -763,9 +763,9 @@ class ControlVariableTypeEditor(KqtComboBox):
         au = module.get_audio_unit(self._au_id)
         var_types = au.get_control_var_types()
         au.change_control_var_type(self._context, var_types[index])
-        self._updater.signal_update(set([
+        self._updater.signal_update(
             _get_update_signal_type(self._au_id),
-            _get_rebuild_signal_type(self._au_id)]))
+            _get_rebuild_signal_type(self._au_id))
 
 
 class ControlVariableValueEditor(QWidget):
@@ -865,7 +865,7 @@ class ControlVariableValueEditor(QWidget):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         self._set_value(au, new_value)
-        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
+        self._updater.signal_update(_get_update_signal_type(self._au_id))
 
     def _change_bool_value(self, new_state):
         new_value = (new_state == Qt.Checked)
@@ -960,7 +960,7 @@ class ControlVariableAdder(QPushButton):
         au = module.get_audio_unit(self._au_id)
 
         au.add_control_var_bool()
-        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
+        self._updater.signal_update(_get_update_signal_type(self._au_id))
 
 
 class ControlVariableRemoveButton(RemoveButton):
@@ -974,7 +974,7 @@ class ControlVariableRemoveButton(RemoveButton):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         au.remove_control_var(var_name)
-        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
+        self._updater.signal_update(_get_update_signal_type(self._au_id))
 
 
 class ControlVariableBindings(QWidget):
@@ -1243,7 +1243,7 @@ class BindTargetDeviceSelector(KqtComboBox):
         au.change_control_var_binding_target_dev(
                 var_name, target_dev_id, target_var_name, new_target_dev_id)
 
-        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
+        self._updater.signal_update(_get_update_signal_type(self._au_id))
 
 
 class BindTargetNameValidator(QValidator):
@@ -1276,7 +1276,7 @@ class BindTargetNameEditor(NameEditor):
         au = module.get_audio_unit(self._au_id)
         au.change_control_var_binding_target_name(
                 var_name, target_dev_id, target_var_name, new_name)
-        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
+        self._updater.signal_update(_get_update_signal_type(self._au_id))
 
     def _update_contents(self):
         if not self._context:
@@ -1356,8 +1356,7 @@ class BindTargetVariableTypeEditor(KqtComboBox):
         au.change_control_var_binding_target_type(
                 var_name, target_dev_id, target_var_name, var_types[index])
 
-        self._updater.signal_update(set([
-            _get_update_signal_type(self._au_id)]))
+        self._updater.signal_update(_get_update_signal_type(self._au_id))
 
 
 class ExpressionValidator(QValidator):
@@ -1442,7 +1441,7 @@ class BindTargetExpressionEditor(QWidget):
 
         au.change_control_var_binding_expression(
                 var_name, target_dev_id, target_var_name, expr)
-        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
+        self._updater.signal_update(_get_update_signal_type(self._au_id))
 
 
 class BindTargetRemoveButton(RemoveButton):
@@ -1455,9 +1454,9 @@ class BindTargetRemoveButton(RemoveButton):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         au.remove_control_var_binding(var_name, target_dev_id, target_var_name)
-        self._updater.signal_update(set([
+        self._updater.signal_update(
             _get_update_signal_type(self._au_id),
-            _get_rebuild_signal_type(self._au_id)]))
+            _get_rebuild_signal_type(self._au_id))
 
 
 class BindTargetAdder(QPushButton):
@@ -1507,6 +1506,6 @@ class BindTargetAdder(QPushButton):
 
         au.add_control_var_binding(var_name, internal_dev_id, var_type)
 
-        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
+        self._updater.signal_update(_get_update_signal_type(self._au_id))
 
 

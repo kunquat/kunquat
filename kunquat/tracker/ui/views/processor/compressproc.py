@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -99,7 +99,7 @@ class Attack(CompressSlider):
     def _value_changed(self, value):
         params = self._get_compress_params()
         params.set_attack(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class Release(CompressSlider):
@@ -118,7 +118,7 @@ class Release(CompressSlider):
     def _value_changed(self, value):
         params = self._get_compress_params()
         params.set_release(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class CompressConfig(QWidget):
@@ -209,7 +209,7 @@ class CompressConfig(QWidget):
         enabled = (state == Qt.Checked)
         params = self._get_compress_params()
         getattr(params, 'set_{}_enabled'.format(self._mode))(enabled)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class Threshold(CompressSlider):
@@ -234,7 +234,7 @@ class Threshold(CompressSlider):
         else:
             params.set_downward_threshold(value)
             params.set_upward_threshold(min(params.get_upward_threshold(), value))
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class Ratio(CompressSlider):
@@ -254,7 +254,7 @@ class Ratio(CompressSlider):
     def _value_changed(self, value):
         params = self._get_compress_params()
         getattr(params, 'set_{}_ratio'.format(self._mode))(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class Range(CompressSlider):
@@ -273,6 +273,6 @@ class Range(CompressSlider):
     def _value_changed(self, value):
         params = self._get_compress_params()
         getattr(params, 'set_{}_range'.format(self._mode))(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 

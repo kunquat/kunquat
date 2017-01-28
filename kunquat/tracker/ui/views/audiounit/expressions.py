@@ -193,7 +193,7 @@ class ExpressionListToolBar(QToolBar):
     def _add_expression(self):
         au = self._get_audio_unit()
         au.add_expression()
-        self._updater.signal_update(set([self._get_list_update_signal_type()]))
+        self._updater.signal_update(self._get_list_update_signal_type())
 
     def _remove_expression(self):
         au = self._get_audio_unit()
@@ -203,10 +203,10 @@ class ExpressionListToolBar(QToolBar):
 
         au.remove_expression(selected_expr)
         au.set_selected_expression(None)
-        self._updater.signal_update(set([
+        self._updater.signal_update(
             self._get_list_update_signal_type(),
             'signal_au_conns_expr_{}'.format(self._au_id),
-            self._get_selection_update_signal_type()]))
+            self._get_selection_update_signal_type())
 
 
 class ExpressionListModel(QAbstractListModel):
@@ -297,7 +297,7 @@ class ExpressionListView(QListView):
             module = self._ui_model.get_module()
             au = module.get_audio_unit(self._au_id)
             au.set_selected_expression(expr_name)
-            self._updater.signal_update(set([self._get_selection_update_signal_type()]))
+            self._updater.signal_update(self._get_selection_update_signal_type())
 
 
 class ExpressionList(QWidget):
@@ -428,8 +428,8 @@ class ExpressionName(QWidget):
         if au.get_connections_expr_name() == old_name:
             au.set_connections_expr_name(new_name)
         self._updater.signal_update(
-                set([self._get_list_update_signal_type(),
-                    self._get_selection_update_signal_type()]))
+                self._get_list_update_signal_type(),
+                self._get_selection_update_signal_type())
 
 
 class ExpressionEditor(QWidget):

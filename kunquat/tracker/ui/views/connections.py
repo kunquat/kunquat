@@ -374,7 +374,7 @@ class ConnectionsView(QWidget):
         self._default_offsets = {}
 
         connections.set_layout(layout)
-        self._updater.signal_update(set([self._get_signal('signal_connections')]))
+        self._updater.signal_update(self._get_signal('signal_connections'))
 
     def scroll_to(self, area_x, area_y):
         area_rect = self.get_area_rect()
@@ -899,7 +899,7 @@ class ConnectionsView(QWidget):
         edges = connections.get_connections()
         edges.remove(edge)
         connections.set_connections(edges)
-        self._updater.signal_update(set([self._get_signal('signal_connections')]))
+        self._updater.signal_update(self._get_signal('signal_connections'))
         self.update()
 
     def _is_send_port(self, dev_id, port_id):
@@ -1213,7 +1213,7 @@ class ConnectionsView(QWidget):
                 connections.set_connections(edges)
 
             self._adding_edge_info = {}
-            self._updater.signal_update(set([self._get_signal('signal_connections')]))
+            self._updater.signal_update(self._get_signal('signal_connections'))
             self.update()
 
         self._state = STATE_IDLE
@@ -1238,7 +1238,7 @@ class ConnectionsView(QWidget):
                         excluded.append(self._focused_id)
                     hit.set_excluded_processors(excluded)
                     self._updater.signal_update(
-                            set([self._get_signal('signal_au_conns_hit')]))
+                            self._get_signal('signal_au_conns_hit'))
 
                 elif mode == 'expr_filter':
                     # Update exclusion list
@@ -1250,7 +1250,7 @@ class ConnectionsView(QWidget):
                         excluded.append(self._focused_id)
                     au.set_expression_proc_filter(selected_expr_name, excluded)
                     self._updater.signal_update(
-                            set([self._get_signal('signal_au_conns_expr')]))
+                            self._get_signal('signal_au_conns_expr'))
 
                 else:
                     assert False
@@ -1320,10 +1320,10 @@ class ConnectionsView(QWidget):
             del layout[dev_id]
             connections.set_layout(layout)
 
-        update_signals = set([self._get_signal('signal_connections')])
+        update_signals = [self._get_signal('signal_connections')]
         if self._au_id == None:
-            update_signals.add('signal_controls')
-        self._updater.signal_update(update_signals)
+            update_signals.append('signal_controls')
+        self._updater.signal_update(*update_signals)
 
     def _remove_proc(self, dev_id):
         full_dev_id = self._get_full_id(dev_id)
@@ -1344,8 +1344,8 @@ class ConnectionsView(QWidget):
             del layout[dev_id]
             connections.set_layout(layout)
 
-        update_signals = set([self._get_signal('signal_connections')])
-        self._updater.signal_update(update_signals)
+        update_signals = [self._get_signal('signal_connections')]
+        self._updater.signal_update(*update_signals)
 
     def leaveEvent(self, event):
         if self._state == STATE_EDGE_MENU:

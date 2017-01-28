@@ -147,25 +147,25 @@ class TimeEnvelope(QWidget):
     def _enabled_changed(self, state):
         new_enabled = (state == Qt.Checked)
         self._set_enabled(new_enabled)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _loop_enabled_changed(self, state):
         new_enabled = (state == Qt.Checked)
         self._set_loop_enabled(new_enabled)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _release_changed(self, state):
         new_enabled = (state == Qt.Checked)
         self._set_release_enabled(new_enabled)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _scale_amount_changed(self, num):
         self._set_scale_amount(num)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _scale_centre_changed(self, num):
         self._set_scale_centre(num)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _envelope_changed(self):
         new_nodes, new_loop = self._envelope.get_clear_changed()
@@ -181,7 +181,7 @@ class TimeEnvelope(QWidget):
                 self._set_enabled(True)
 
         self._set_envelope_data(envelope)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     # Protected callbacks
 

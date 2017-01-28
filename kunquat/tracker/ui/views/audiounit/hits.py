@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -105,7 +105,7 @@ class AuHitSelector(HitSelector):
         au = module.get_audio_unit(self._au_id)
         hit_base, hit_offset = hit_info
         au.set_edit_selected_hit_info(hit_base, hit_offset)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _get_hit_name(self, index):
         module = self._ui_model.get_module()
@@ -191,10 +191,10 @@ class HitEnabled(QCheckBox):
         existence = (state == Qt.Checked)
         hit = _get_current_hit(self._ui_model, self._au_id)
         hit.set_existence(existence)
-        self._updater.signal_update(set([
+        self._updater.signal_update(
             _get_update_signal_type(self._au_id),
             'signal_au_conns_hit_{}'.format(self._au_id),
-            'signal_hits']))
+            'signal_hits')
 
 
 class HitName(QWidget):
@@ -245,7 +245,7 @@ class HitName(QWidget):
     def _change_name(self, name):
         hit = _get_current_hit(self._ui_model, self._au_id)
         hit.set_name(name)
-        self._updater.signal_update(set([
-            _get_update_signal_type(self._au_id), 'signal_hits']))
+        self._updater.signal_update(
+            _get_update_signal_type(self._au_id), 'signal_hits')
 
 

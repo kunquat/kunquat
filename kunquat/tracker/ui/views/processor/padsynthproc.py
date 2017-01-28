@@ -152,13 +152,13 @@ class PlaybackParams(QWidget):
         enabled = (state == Qt.Checked)
         params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         params.set_ramp_attack_enabled(enabled)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _toggle_stereo(self, state):
         enabled = (state == Qt.Checked)
         params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         params.set_stereo_enabled(enabled)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class ApplyButton(QPushButton):
@@ -223,7 +223,7 @@ class ApplyButton(QPushButton):
     def _apply_params(self):
         params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         params.apply_config()
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class PadsynthParamSlider(ProcNumSlider):
@@ -337,12 +337,12 @@ class SampleConfigEditor(QWidget):
     def _change_sample_size(self, index):
         sample_size = self._sample_size.itemData(index)
         self._get_params().set_sample_length(sample_size)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _change_sample_count(self, count):
         params = self._get_params()
         params.set_sample_count(count)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class SamplePitchRangeMinEditor(PadsynthParamSlider):
@@ -359,7 +359,7 @@ class SamplePitchRangeMinEditor(PadsynthParamSlider):
         _, max_pitch = params.get_sample_pitch_range()
         max_pitch = max(min_pitch, max_pitch)
         params.set_sample_pitch_range(min_pitch, max_pitch)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class SamplePitchRangeMaxEditor(PadsynthParamSlider):
@@ -376,7 +376,7 @@ class SamplePitchRangeMaxEditor(PadsynthParamSlider):
         min_pitch, _ = params.get_sample_pitch_range()
         min_pitch = min(min_pitch, max_pitch)
         params.set_sample_pitch_range(min_pitch, max_pitch)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class SampleCentrePitchEditor(PadsynthParamSlider):
@@ -390,7 +390,7 @@ class SampleCentrePitchEditor(PadsynthParamSlider):
 
     def _value_changed(self, centre_pitch):
         self._get_params().set_sample_centre_pitch(centre_pitch)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class BandwidthEditor(QWidget):
@@ -442,7 +442,7 @@ class BandwidthBaseEditor(PadsynthParamSlider):
 
     def _value_changed(self, bandwidth):
         self._get_params().set_bandwidth_base(bandwidth)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class BandwidthScaleEditor(PadsynthParamSlider):
@@ -461,7 +461,7 @@ class BandwidthScaleEditor(PadsynthParamSlider):
 
     def _value_changed(self, scale):
         self._get_params().set_bandwidth_scale(scale)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class HarmonicsBaseEditor(WaveformEditor):
@@ -571,7 +571,7 @@ class HarmonicScaleAdder(QPushButton):
 
         scales = params.get_harmonic_scales()
         scales.append_scale()
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class HarmonicScaleEditor(QWidget):
@@ -664,7 +664,7 @@ class HarmonicScaleEditor(QWidget):
 
         scale = scales.get_scale(self._index)
         scale.set_freq_mul(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _remove_harmonic(self):
         scales = self._get_params().get_harmonic_scales()
@@ -672,7 +672,7 @@ class HarmonicScaleEditor(QWidget):
             return
 
         scales.remove_scale(self._index)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class AmplitudeEditor(PadsynthParamSlider):
@@ -696,7 +696,7 @@ class AmplitudeEditor(PadsynthParamSlider):
 
         scale = scales.get_scale(self._index)
         scale.set_amplitude(amplitude)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class HarmonicScales(QWidget):

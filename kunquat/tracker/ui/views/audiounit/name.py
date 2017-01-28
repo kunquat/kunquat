@@ -60,6 +60,6 @@ class Name(QWidget):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         au.set_name(text)
-        self._updater.signal_update(set(['signal_controls']))
+        self._updater.signal_update('signal_controls')
 
 

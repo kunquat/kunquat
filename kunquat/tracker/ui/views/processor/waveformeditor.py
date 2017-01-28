@@ -137,7 +137,7 @@ class WaveformEditor(QWidget):
         base_wave = self._get_base_wave()
         func_names = base_wave.get_waveform_func_names()
         base_wave.set_waveform_func(func_names[index])
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     # Protected interface
 
@@ -261,7 +261,7 @@ class WarpAdder(QPushButton):
     def _add_warp(self):
         base_wave = self._get_base_wave()
         base_wave.add_warp_func(self._warp_type)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class SmallButton(QPushButton):
@@ -385,19 +385,19 @@ class WarpEditor(QWidget):
     def _moved_down(self):
         base_wave = self._get_base_wave()
         base_wave.move_warp_func(self._warp_type, self._index, self._index + 1)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _moved_up(self):
         base_wave = self._get_base_wave()
         base_wave.move_warp_func(self._warp_type, self._index, self._index - 1)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _set_warp(self):
         base_wave = self._get_base_wave()
         name = str(self._func_selector.currentText())
         arg = self._slider.value() / float(self._ARG_SCALE)
         base_wave.set_warp_func(self._warp_type, self._index, name, arg)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _func_selected(self, index):
         self._set_warp()
@@ -408,6 +408,6 @@ class WarpEditor(QWidget):
     def _removed(self):
         base_wave = self._get_base_wave()
         base_wave.remove_warp_func(self._warp_type, self._index)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 

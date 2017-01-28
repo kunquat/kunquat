@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2014-2016
+#          Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -21,10 +21,12 @@ class Updater():
         self._iterator = set()
         self._is_updating = False
 
-    def signal_update(self, signals = set()):
+    def signal_update(self, *signals):
         assert not self._is_updating
         self._update_signals.add('signal_change')
-        self._update_signals |= signals
+        for s in signals:
+            assert type(s) == str
+        self._update_signals |= set([*signals])
 
     def register_updater(self, updater):
         self._updaters.add(updater)

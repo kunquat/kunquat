@@ -117,7 +117,7 @@ class EnvgenProc(QWidget):
 
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         egen_params.set_linear_force_enabled(enabled)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 # TODO: change this into a spinbox -- a proper range is too wide for a slider
@@ -134,7 +134,7 @@ class GlobalAdjustSlider(ProcNumSlider):
     def _value_changed(self, value):
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         egen_params.set_global_adjust(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _get_update_signal_type(self):
         return 'signal_egen_global_adjust_{}'.format(self._proc_id)
@@ -212,7 +212,7 @@ class RangeEditor(QWidget):
         y_range[0] = value
         y_range[1] = max(y_range)
         egen_params.set_y_range(y_range)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _set_range_max(self, value):
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -220,7 +220,7 @@ class RangeEditor(QWidget):
         y_range[1] = value
         y_range[0] = min(y_range)
         egen_params.set_y_range(y_range)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class EgenTimeEnv(TimeEnvelope):

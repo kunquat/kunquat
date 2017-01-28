@@ -84,7 +84,7 @@ class SimpleEnvelope(QWidget):
     def _enabled_changed(self, state):
         new_enabled = (state == Qt.Checked)
         self._set_enabled(new_enabled)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _envelope_changed(self):
         new_nodes, _ = self._envelope.get_clear_changed()
@@ -97,7 +97,7 @@ class SimpleEnvelope(QWidget):
             self._set_enabled(True)
 
         self._set_envelope_data(envelope)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     # Protected interface
 

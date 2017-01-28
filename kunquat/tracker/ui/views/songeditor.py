@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -98,7 +98,7 @@ class NameEditor(QLineEdit):
         song = album.get_song_by_track(track_num)
         song.set_name(text)
 
-        self._updater.signal_update(set(['signal_song', 'signal_order_list']))
+        self._updater.signal_update('signal_song', 'signal_order_list')
 
 
 class TempoEditor(QDoubleSpinBox):
@@ -154,6 +154,6 @@ class TempoEditor(QDoubleSpinBox):
         song = album.get_song_by_track(track_num)
         song.set_initial_tempo(value)
 
-        self._updater.signal_update(set(['signal_song']))
+        self._updater.signal_update('signal_song')
 
 

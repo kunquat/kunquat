@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -110,7 +110,7 @@ class LengthEditor(QWidget):
             return
 
         sheet_manager.set_pattern_length(pattern, length, is_final)
-        self._updater.signal_update(set(['signal_pattern_length']))
+        self._updater.signal_update('signal_pattern_length')
 
     def _change_length(self, new_value):
         self._is_latest_committed = False

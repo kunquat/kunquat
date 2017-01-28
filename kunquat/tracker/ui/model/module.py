@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2016
+#          Tomi Jylhä-Ollila, Finland 2013-2017
 #
 # This file is part of Kunquat.
 #
@@ -360,7 +360,7 @@ class Module():
         yield # make this a generator
         self._store['i_random_seed_auto_update.json'] = True
         self._store.clear_modified_flag()
-        self._updater.signal_update(set(['signal_module']))
+        self._updater.signal_update('signal_module')
 
     def execute_create_sandbox(self, task_executer):
         assert not self.is_saving()
@@ -376,7 +376,7 @@ class Module():
         assert not self.is_saving()
         assert not self.is_importing_audio_unit()
         self._session.set_au_import_info((path, au_id, control_id))
-        self._updater.signal_update(set(['signal_start_import_au']))
+        self._updater.signal_update('signal_start_import_au')
 
     def execute_import_au(self, task_executer):
         assert self.is_importing_audio_unit()
@@ -411,7 +411,7 @@ class Module():
         self._session.set_saving(True)
         self._store.set_saving(True)
         self._store.clear_modified_flag()
-        self._updater.signal_update(set(['signal_start_save_module']))
+        self._updater.signal_update('signal_start_save_module')
 
     def flush(self, callback):
         self._store.flush(callback)

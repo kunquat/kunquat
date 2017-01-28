@@ -86,7 +86,7 @@ class InputControls(QWidget):
         cur_view_mode = visibility_manager.get_input_control_view()
         new_view_mode = 'compact' if cur_view_mode != 'compact' else 'full'
         visibility_manager.set_input_control_view(new_view_mode)
-        self._updater.signal_update(set(['signal_input_control_layout']))
+        self._updater.signal_update('signal_input_control_layout')
 
 
 class ControlLayout(QVBoxLayout):
