@@ -43,7 +43,7 @@ class _KqtArchiveFile():
         self._key_prefix = key_prefix
         self._path = path
         self._keep_flags = keep_flags
-        self._entry_count = 0
+        self._loading_progress = 0
         self._stored_entries = {}
 
     def _remove_prefix(self, tarpath):
@@ -65,23 +65,11 @@ class _KqtArchiveFile():
                 return True
         return False
 
-    def get_entries(self):
-        self._stored_entries = {}
-
-        # Accept bzip2 or uncompressed only
-        try:
-            tfile = tarfile.open(self._path, mode='r:bz2', format=tarfile.USTAR_FORMAT)
-        except tarfile.ReadError:
-            try:
-                tfile = tarfile.open(self._path, mode='r:', format=tarfile.USTAR_FORMAT)
-            except tarfile.ReadError:
-                raise KunquatFileError('File is not a valid Kunquat file')
-
+    def _get_entries(self, tfile):
         try:
             members = tfile.getmembers()
-            self._entry_count = len(members)
-
-            for entry in members:
+            member_count = len(members)
+            for i, entry in enumerate(members):
                 tarpath = entry.name
                 key = self._remove_prefix(tarpath)
                 if entry.isfile():
@@ -93,11 +81,27 @@ class _KqtArchiveFile():
                     if self._keep_entry(key):
                         self._stored_entries[key] = decoded
                     yield (key, decoded)
+                self._loading_progress = (i + 1) / member_count
         finally:
             tfile.close()
 
-    def get_entry_count(self):
-        return self._entry_count
+    def get_entries(self):
+        self._stored_entries = {}
+        self._loading_progress = 0
+
+        # Accept bzip2 or uncompressed only
+        try:
+            tfile = tarfile.open(self._path, mode='r:bz2', format=tarfile.USTAR_FORMAT)
+        except tarfile.ReadError:
+            try:
+                tfile = tarfile.open(self._path, mode='r:', format=tarfile.USTAR_FORMAT)
+            except tarfile.ReadError:
+                raise KunquatFileError('File is not a valid Kunquat file')
+
+        return self._get_entries(tfile)
+
+    def get_loading_progress(self):
+        return self._loading_progress
 
     def get_stored_entries(self):
         return self._stored_entries.items()
@@ -111,7 +115,7 @@ class KqtFile(_KqtArchiveFile):
     load_into_handle       -- Load file contents into a Kunquat instance.
     load_into_handle_steps -- Load file contents into a Kunquat instance.
     get_entries            -- Get all entries of the module.
-    get_entry_count        -- Get the number of entries in the module.
+    get_loading_progress   -- Get normalised loading progress.
     get_stored_entries     -- Get entries stored in this object.
 
     '''
@@ -150,9 +154,7 @@ class KqtFile(_KqtArchiveFile):
 
         Return value:
         A generator that yields after every step of the loading
-        procedure.  The total number of steps can be retrieved with
-        get_entry_count() after this function has returned the
-        generator.
+        procedure.
 
         '''
         for (k, v) in self.get_entries():
@@ -177,15 +179,14 @@ class KqtFile(_KqtArchiveFile):
         '''
         return super().get_entries()
 
-    def get_entry_count(self):
-        '''Get number of entries in the Kunquat module file.
+    def get_loading_progress(self):
+        '''Get current loading progress.
 
         Return value:
-        The number of entries in the Kunquat module file if
-        get_entries() has been called, otherwise 0.
+        Current progress normalised to the range [0, 1].
 
         '''
-        return super().get_entry_count()
+        return super().get_loading_progress()
 
     def get_stored_entries(self):
         '''Get entries permanently stored in this object.

@@ -21,7 +21,7 @@ import tempfile
 from io import BytesIO
 import os.path
 
-from kunquat.kunquat.file import KqtFile, KQT_KEEP_ALL_DATA
+from kunquat.kunquat.file import KqtFile, KQT_KEEP_NONE
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
@@ -122,16 +122,17 @@ class Controller():
     def get_task_load_module(self, module_path):
         values = dict()
         if module_path.endswith('.kqt'):
-            kqtfile = KqtFile(module_path, KQT_KEEP_ALL_DATA)
+            kqtfile = KqtFile(module_path, KQT_KEEP_NONE)
 
-            entries = kqtfile.get_entries()
-            entry_count = kqtfile.get_entry_count()
+            self.update_import_progress(0)
 
-            for i, entry in enumerate(entries):
+            for i, entry in enumerate(kqtfile.get_entries()):
                 yield
                 key, value = entry
                 values[key] = value
-                self.update_import_progress(i + 1, entry_count)
+                self.update_import_progress(kqtfile.get_loading_progress())
+
+            self.update_import_progress(1)
 
             self._store.put(values)
             self._store.clear_modified_flag()
@@ -571,9 +572,8 @@ class Controller():
         self._session.log_event(channel_number, event_type, event_value, context)
         self._updater.signal_update()
 
-    def update_import_progress(self, position, steps):
-        self._session.set_progress_position(position)
-        self._session.set_progress_steps(steps)
+    def update_import_progress(self, pos_norm):
+        self._session.set_progress_position(pos_norm)
         self._updater.signal_update()
 
     def confirm_valid_data(self, transaction_id):
