@@ -30,7 +30,7 @@ from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 from .config import *
 from . import utils
 from .columngrouprenderer import ColumnGroupRenderer
-from .trigger_renderer import TriggerRenderer
+from .triggerrenderer import TriggerRenderer
 from .movestate import HorizontalMoveState, VerticalMoveState
 
 

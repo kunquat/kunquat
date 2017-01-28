@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -14,7 +14,7 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from kunquat.tracker.ui.views.audio_unit.aunumslider import AuNumSlider
+from kunquat.tracker.ui.views.audiounit.aunumslider import AuNumSlider
 
 
 class ProcNumSlider(AuNumSlider):

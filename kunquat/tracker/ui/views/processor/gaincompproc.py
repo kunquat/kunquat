@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,7 +15,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.envelope import Envelope
-from kunquat.tracker.ui.views.audio_unit.simple_env import SimpleEnvelope
+from kunquat.tracker.ui.views.audiounit.simple_env import SimpleEnvelope
 
 
 class GainCompProc(QWidget):

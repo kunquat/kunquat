@@ -17,7 +17,7 @@ from queue import Empty
 
 from PySide.QtCore import *
 
-from kunquat.tracker.ui.ui_launcher import create_ui_launcher
+from kunquat.tracker.ui.uilauncher import create_ui_launcher
 
 
 HALT = None

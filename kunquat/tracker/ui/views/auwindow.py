@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -14,7 +14,7 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from .audio_unit.editor import Editor
+from .audiounit.editor import Editor
 
 
 class AuWindow(QWidget):

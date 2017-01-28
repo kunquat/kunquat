@@ -19,7 +19,7 @@ from PySide.QtGui import *
 
 import kunquat.tracker.config as config
 from kunquat.tracker.ui.model.procparams.sampleparams import SampleImportError
-from kunquat.tracker.ui.views.audio_unit.hitselector import HitSelector
+from kunquat.tracker.ui.views.audiounit.hitselector import HitSelector
 from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
