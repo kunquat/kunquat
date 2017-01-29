@@ -16,15 +16,18 @@ from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
+from .updatingauview import UpdatingAUView
 
 
-class Ports(QWidget):
+class Ports(QWidget, UpdatingAUView):
 
     def __init__(self):
         super().__init__()
 
         self._input_ports = InputPorts()
         self._output_ports = OutputPorts()
+
+        self.add_updating_child(self._input_ports, self._output_ports)
 
         h = QHBoxLayout()
         h.setContentsMargins(4, 4, 4, 4)
@@ -33,28 +36,15 @@ class Ports(QWidget):
         h.addWidget(self._output_ports)
         self.setLayout(h)
 
-    def set_au_id(self, au_id):
-        self._input_ports.set_au_id(au_id)
-        self._output_ports.set_au_id(au_id)
 
-    def set_ui_model(self, ui_model):
-        self._input_ports.set_ui_model(ui_model)
-        self._output_ports.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._output_ports.unregister_updaters()
-        self._input_ports.unregister_updaters()
-
-
-class PortsEditor(QWidget):
+class PortsEditor(QWidget, UpdatingAUView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
-
         self._editor = PortList(
                 self._get_add_text, self._get_port_ids, self._get_free_port_id)
+
+        self.add_updating_child(self._editor)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -62,17 +52,6 @@ class PortsEditor(QWidget):
         v.addWidget(HeaderLine(self._get_title()))
         v.addWidget(self._editor)
         self.setLayout(v)
-
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._editor.set_au_id(au_id)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._editor.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._editor.unregister_updaters()
 
     # Port editor interface
 
@@ -127,37 +106,26 @@ class OutputPorts(PortsEditor):
         return au.get_free_output_port_id()
 
 
-class PortList(EditorList):
+class PortList(EditorList, UpdatingAUView):
 
     def __init__(self, get_add_text, get_port_ids, get_free_port_id):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
-
         self._adder = None
 
         self._get_add_text = get_add_text
         self._get_port_ids = get_port_ids
         self._get_free_port_id = get_free_port_id
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
+        self.register_action(self._get_update_signal_type(), self._update_all)
         self._update_all()
 
-    def unregister_updaters(self):
+    def _on_teardown(self):
         self.disconnect_widgets()
-        self._updater.unregister_updater(self._perform_updates)
 
     def _make_adder_widget(self):
         self._adder = PortAdder(self._get_add_text, self._get_free_port_id)
-        self._adder.set_au_id(self._au_id)
-        self._adder.set_ui_model(self._ui_model)
+        self.add_updating_child(self._adder)
         return self._adder
 
     def _get_updated_editor_count(self):
@@ -165,49 +133,31 @@ class PortList(EditorList):
 
     def _make_editor_widget(self, index):
         editor = PortEditor(index, self._get_port_ids)
-        editor.set_au_id(self._au_id)
-        editor.set_ui_model(self._ui_model)
+        self.add_updating_child(editor)
         return editor
 
     def _update_editor(self, index, editor):
         pass
 
     def _disconnect_widget(self, widget):
-        widget.unregister_updaters()
+        self.remove_updating_child(widget)
 
     def _get_update_signal_type(self):
         return 'signal_au_ports_{}'.format(self._au_id)
-
-    def _perform_updates(self, signals):
-        if self._get_update_signal_type() in signals:
-            self._update_all()
 
     def _update_all(self):
         self.update_list()
         self._adder.setEnabled(self._get_free_port_id() != None)
 
 
-class PortAdder(QPushButton):
+class PortAdder(QPushButton, UpdatingAUView):
 
     def __init__(self, get_add_text, get_free_port_id):
         super().__init__(get_add_text())
-        self._au_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._get_free_port_id = get_free_port_id
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         QObject.connect(self, SIGNAL('clicked()'), self._add_port)
-
-    def unregister_updaters(self):
-        pass
 
     def _get_update_signal_type(self):
         return 'signal_au_ports_{}'.format(self._au_id)
@@ -232,14 +182,10 @@ class PortAdder(QPushButton):
                 self._get_update_signal_type(), *self._get_connections_signals())
 
 
-class PortEditor(QWidget):
+class PortEditor(QWidget, UpdatingAUView):
 
     def __init__(self, index, get_port_ids):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._index = index
         self._get_port_ids = get_port_ids
 
@@ -256,17 +202,12 @@ class PortEditor(QWidget):
         h.addWidget(self._remove_button)
         self.setLayout(h)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
         icon_bank = self._ui_model.get_icon_bank()
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
         self._remove_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
+
+        self.register_action(self._get_update_signal_type(), self._update_all)
 
         QObject.connect(
                 self._name_editor,
@@ -277,15 +218,8 @@ class PortEditor(QWidget):
 
         self._update_all()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
     def _get_update_signal_type(self):
         return 'signal_au_ports_{}'.format(self._au_id)
-
-    def _perform_updates(self, signals):
-        if self._get_update_signal_type() in signals:
-            self._update_all()
 
     def _update_all(self):
         port_ids = self._get_port_ids()

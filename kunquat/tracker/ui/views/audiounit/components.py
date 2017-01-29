@@ -22,6 +22,7 @@ from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.varnamevalidator import *
 from kunquat.tracker.ui.views.varvalidators import *
+from .updatingauview import UpdatingAUView
 
 
 def _get_update_signal_type(au_id):
@@ -34,7 +35,7 @@ def _get_stream_update_signal_type(au_id):
     return 'signal_au_streams_{}'.format(au_id)
 
 
-class Components(QSplitter):
+class Components(QSplitter, UpdatingAUView):
 
     def __init__(self):
         super().__init__(Qt.Vertical)
@@ -42,6 +43,8 @@ class Components(QSplitter):
         self._conns_editor = ConnectionsEditor()
         self._streams = Streams()
         self._control_vars = ControlVariables()
+
+        self.add_updating_child(self._conns_editor, self._streams, self._control_vars)
 
         cl = QHBoxLayout()
         cl.setContentsMargins(0, 0, 0, 0)
@@ -57,54 +60,25 @@ class Components(QSplitter):
 
         self.setStretchFactor(0, 4)
 
-    def set_au_id(self, au_id):
-        self._conns_editor.set_au_id(au_id)
-        self._streams.set_au_id(au_id)
-        self._control_vars.set_au_id(au_id)
 
-    def set_ui_model(self, ui_model):
-        self._conns_editor.set_ui_model(ui_model)
-        self._streams.set_ui_model(ui_model)
-        self._control_vars.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._control_vars.unregister_updaters()
-        self._streams.unregister_updaters()
-        self._conns_editor.unregister_updaters()
-
-
-class NameEditor(QLineEdit):
+class NameEditor(QLineEdit, UpdatingAUView):
 
     def __init__(self, validator_cls):
         super().__init__()
-        self._au_id = None
         self._context = None
-        self._ui_model = None
-        self._updater = None
         self._validator = None
         self._validator_cls = validator_cls
 
         self.set_used_names(set())
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
     def set_context(self, context):
         self._context = context
-
         if self._ui_model:
             self._update_contents()
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         QObject.connect(self, SIGNAL('editingFinished()'), self._change_name_handler)
-
         self._update_contents()
-
-    def unregister_updaters(self):
-        pass
 
     def set_used_names(self, used_names):
         self._validator = self._validator_cls(used_names)
@@ -130,36 +104,22 @@ class NameEditor(QLineEdit):
         raise NotImplementedError
 
 
-class RemoveButton(QPushButton):
+class RemoveButton(QPushButton, UpdatingAUView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
         self._context = None
-        self._ui_model = None
-        self._updater = None
-
         self.setToolTip('Remove')
-
         self.setStyleSheet('padding: 0 -2px;')
-
-    def set_au_id(self, au_id):
-        self._au_id = au_id
 
     def set_context(self, context):
         self._context = context
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
-        icon_bank = ui_model.get_icon_bank()
+    def _on_setup(self):
+        icon_bank = self._ui_model.get_icon_bank()
         self.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
 
         QObject.connect(self, SIGNAL('clicked()'), self._remove)
-
-    def unregister_updaters(self):
-        pass
 
     # Protected interface
 
@@ -170,12 +130,13 @@ class RemoveButton(QPushButton):
         raise NotImplementedError
 
 
-class Streams(QWidget):
+class Streams(QWidget, UpdatingAUView):
 
     def __init__(self):
         super().__init__()
 
         self._stream_list = StreamList()
+        self.add_updating_child(self._stream_list)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -184,44 +145,21 @@ class Streams(QWidget):
         v.addWidget(self._stream_list)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._stream_list.set_au_id(au_id)
 
-    def set_ui_model(self, ui_model):
-        self._stream_list.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._stream_list.unregister_updaters()
-
-
-class StreamList(EditorList):
+class StreamList(EditorList, UpdatingAUView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._stream_names = None
         self._stream_names_set = None
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
+        self.register_action(
+                _get_stream_update_signal_type(self._au_id), self._update_stream_names)
         self._update_stream_names()
 
-    def unregister_updaters(self):
+    def _on_teardown(self):
         self.disconnect_widgets()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if _get_stream_update_signal_type(self._au_id) in signals:
-            self._update_stream_names()
 
     def _update_stream_names(self):
         module = self._ui_model.get_module()
@@ -233,8 +171,7 @@ class StreamList(EditorList):
 
     def _make_adder_widget(self):
         adder = StreamAdder()
-        adder.set_au_id(self._au_id)
-        adder.set_ui_model(self._ui_model)
+        self.add_updating_child(adder)
         return adder
 
     def _get_updated_editor_count(self):
@@ -245,9 +182,8 @@ class StreamList(EditorList):
         stream_name = self._stream_names[index]
 
         editor = StreamEditor()
-        editor.set_au_id(self._au_id)
         editor.set_context(stream_name)
-        editor.set_ui_model(self._ui_model)
+        self.add_updating_child(editor)
         return editor
 
     def _update_editor(self, index, editor):
@@ -257,30 +193,17 @@ class StreamList(EditorList):
         editor.set_used_names(self._stream_names_set)
 
     def _disconnect_widget(self, widget):
-        widget.unregister_updaters()
+        self.remove_updating_child(widget)
 
 
-class StreamAdder(QPushButton):
+class StreamAdder(QPushButton, UpdatingAUView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
-        self._updater = None
-
         self.setText('Add new stream')
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         QObject.connect(self, SIGNAL('clicked()'), self._add_new_entry)
-
-    def unregister_updaters(self):
-        pass
 
     def _add_new_entry(self):
         module = self._ui_model.get_module()
@@ -290,18 +213,18 @@ class StreamAdder(QPushButton):
         self._updater.signal_update(_get_stream_update_signal_type(self._au_id))
 
 
-class StreamEditor(QWidget):
+class StreamEditor(QWidget, UpdatingAUView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
         self._context = None
-        self._ui_model = None
-        self._updater = None
 
         self._name_editor = StreamNameEditor()
         self._target_proc_editor = StreamTargetProcEditor()
         self._remove_button = StreamRemoveButton()
+
+        self.add_updating_child(
+                self._name_editor, self._target_proc_editor, self._remove_button)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -311,29 +234,11 @@ class StreamEditor(QWidget):
         h.addWidget(self._remove_button)
         self.setLayout(h)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._name_editor.set_au_id(au_id)
-        self._target_proc_editor.set_au_id(au_id)
-        self._remove_button.set_au_id(au_id)
-
     def set_context(self, context):
         self._context = context
         self._name_editor.set_context(context)
         self._target_proc_editor.set_context(context)
         self._remove_button.set_context(context)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._name_editor.set_ui_model(ui_model)
-        self._target_proc_editor.set_ui_model(ui_model)
-        self._remove_button.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._remove_button.unregister_updaters()
-        self._target_proc_editor.unregister_updaters()
-        self._name_editor.unregister_updaters()
 
     def set_used_names(self, used_names):
         self._name_editor.set_used_names(used_names)
@@ -359,38 +264,25 @@ class StreamNameEditor(NameEditor):
         self._updater.signal_update(_get_stream_update_signal_type(self._au_id))
 
 
-class StreamTargetProcEditor(KqtComboBox):
+class StreamTargetProcEditor(KqtComboBox, UpdatingAUView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
         self._context = None
-        self._ui_model = None
-        self._updater = None
-
         self.setSizeAdjustPolicy(QComboBox.AdjustToContents)
-
-    def set_au_id(self, au_id):
-        self._au_id = au_id
 
     def set_context(self, context):
         self._context = context
-
         if self._ui_model:
             self._update_contents()
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
+        self.register_action(
+                'signal_connections_{}'.format(self._au_id), self._update_contents)
+        self.register_action('signal_controls', self._update_contents)
         QObject.connect(
                 self, SIGNAL('currentIndexChanged(int)'), self._change_target_proc_id)
-
         self._update_contents()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
 
     def _update_contents(self):
         if not self._context:
@@ -421,13 +313,6 @@ class StreamTargetProcEditor(KqtComboBox):
 
         self.blockSignals(old_block)
 
-    def _perform_updates(self, signals):
-        update_signals = set([
-            '_'.join(('signal_connections', self._au_id)),
-            'signal_controls'])
-        if not signals.isdisjoint(update_signals):
-            self._update_contents()
-
     def _change_target_proc_id(self, index):
         if index < 0:
             return
@@ -457,12 +342,13 @@ class StreamRemoveButton(RemoveButton):
         self._updater.signal_update(_get_stream_update_signal_type(self._au_id))
 
 
-class ControlVariables(QWidget):
+class ControlVariables(QWidget, UpdatingAUView):
 
     def __init__(self):
         super().__init__()
 
         self._var_list = ControlVariableList()
+        self.add_updating_child(self._var_list)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -470,15 +356,6 @@ class ControlVariables(QWidget):
         v.addWidget(HeaderLine('Control variables'))
         v.addWidget(self._var_list)
         self.setLayout(v)
-
-    def set_au_id(self, au_id):
-        self._var_list.set_au_id(au_id)
-
-    def set_ui_model(self, ui_model):
-        self._var_list.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._var_list.unregister_updaters()
 
 
 class ControlVariableList(EditorList):
@@ -548,14 +425,11 @@ class ControlVariableList(EditorList):
         widget.unregister_updaters()
 
 
-class ControlVariableEditor(QWidget):
+class ControlVariableEditor(QWidget, UpdatingAUView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
         self._context = None
-        self._ui_model = None
-        self._updater = None
 
         self._expander = ControlVariableTypeExpander()
         self._name_editor = ControlVariableNameEditor()
@@ -563,6 +437,13 @@ class ControlVariableEditor(QWidget):
         self._init_value_editor = ControlVariableInitValueEditor()
         self._remove_button = ControlVariableRemoveButton()
         self._bindings = ControlVariableBindings()
+
+        self.add_updating_child(
+                self._name_editor,
+                self._type_editor,
+                self._init_value_editor,
+                self._remove_button,
+                self._bindings)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -580,14 +461,6 @@ class ControlVariableEditor(QWidget):
         g.addWidget(self._bindings, 1, 1)
         self.setLayout(g)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._name_editor.set_au_id(au_id)
-        self._type_editor.set_au_id(au_id)
-        self._init_value_editor.set_au_id(au_id)
-        self._remove_button.set_au_id(au_id)
-        self._bindings.set_au_id(au_id)
-
     def set_context(self, context):
         self._context = context
         self._name_editor.set_context(context)
@@ -599,25 +472,9 @@ class ControlVariableEditor(QWidget):
         if self._ui_model:
             self._update_contents()
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._name_editor.set_ui_model(ui_model)
-        self._type_editor.set_ui_model(ui_model)
-        self._init_value_editor.set_ui_model(ui_model)
-        self._remove_button.set_ui_model(ui_model)
-        self._bindings.set_ui_model(ui_model)
-
+    def _on_setup(self):
         QObject.connect(self._expander, SIGNAL('clicked(bool)'), self._toggle_expand)
-
         self._update_contents()
-
-    def unregister_updaters(self):
-        self._bindings.unregister_updaters()
-        self._remove_button.unregister_updaters()
-        self._init_value_editor.unregister_updaters()
-        self._type_editor.unregister_updaters()
-        self._name_editor.unregister_updaters()
 
     def set_used_names(self, used_names):
         self._name_editor.set_used_names(used_names)
@@ -703,28 +560,18 @@ class ControlVariableNameEditor(NameEditor):
         self._updater.signal_update(_get_update_signal_type(self._au_id))
 
 
-class ControlVariableTypeEditor(KqtComboBox):
+class ControlVariableTypeEditor(KqtComboBox, UpdatingAUView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
         self._context = None
-        self._ui_model = None
-        self._updater = None
-
-    def set_au_id(self, au_id):
-        self._au_id = au_id
 
     def set_context(self, context):
         self._context = context
-
         if self._ui_model:
             self._update_contents()
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         var_types = au.get_control_var_types()
@@ -743,9 +590,6 @@ class ControlVariableTypeEditor(KqtComboBox):
         QObject.connect(self, SIGNAL('currentIndexChanged(int)'), self._change_type)
 
         self._update_contents()
-
-    def unregister_updaters(self):
-        pass
 
     def _update_contents(self):
         module = self._ui_model.get_module()
@@ -933,27 +777,14 @@ class ControlVariableInitValueEditor(ControlVariableValueEditor):
         au.change_control_var_init_value(self._context, new_value)
 
 
-class ControlVariableAdder(QPushButton):
+class ControlVariableAdder(QPushButton, UpdatingAUView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
-        self._updater = None
-
         self.setText('Add new variable')
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         QObject.connect(self, SIGNAL('clicked()'), self._add_new_entry)
-
-    def unregister_updaters(self):
-        pass
 
     def _add_new_entry(self):
         module = self._ui_model.get_module()
@@ -1139,38 +970,25 @@ class BindTargetEditor(QWidget):
         self._name_editor.set_used_names(used_names)
 
 
-class BindTargetDeviceSelector(KqtComboBox):
+class BindTargetDeviceSelector(KqtComboBox, UpdatingAUView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
         self._context = None
-        self._ui_model = None
-        self._updater = None
-
         self.setSizeAdjustPolicy(QComboBox.AdjustToContents)
-
-    def set_au_id(self, au_id):
-        self._au_id = au_id
 
     def set_context(self, context):
         self._context = context
-
         if self._ui_model:
             self._update_contents()
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
+        self.register_action(
+                'signal_connections_{}'.format(self._au_id), self._update_contents)
+        self.register_action('signal_controls', self._update_contents)
         QObject.connect(
                 self, SIGNAL('currentIndexChanged(int)'), self._change_target_dev_id)
-
         self._update_contents()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
 
     def _get_internal_dev_ids(self):
         module = self._ui_model.get_module()
@@ -1222,13 +1040,6 @@ class BindTargetDeviceSelector(KqtComboBox):
             self.setCurrentIndex(selected_index)
 
         self.blockSignals(old_block)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            '_'.join(('signal_connections', self._au_id)),
-            'signal_controls'])
-        if not signals.isdisjoint(update_signals):
-            self._update_contents()
 
     def _change_target_dev_id(self, index):
         if index < 0:
@@ -1289,28 +1100,18 @@ class BindTargetNameEditor(NameEditor):
         self.blockSignals(old_block)
 
 
-class BindTargetVariableTypeEditor(KqtComboBox):
+class BindTargetVariableTypeEditor(KqtComboBox, UpdatingAUView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
         self._context = None
-        self._ui_model = None
-        self._updater = None
-
-    def set_au_id(self, au_id):
-        self._au_id = au_id
 
     def set_context(self, context):
         self._context = context
-
         if self._ui_model:
             self._update_contents()
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         var_types = au.get_control_var_binding_target_types()
@@ -1329,9 +1130,6 @@ class BindTargetVariableTypeEditor(KqtComboBox):
         QObject.connect(self, SIGNAL('currentIndexChanged(int)'), self._change_type)
 
         self._update_contents()
-
-    def unregister_updaters(self):
-        pass
 
     def _update_contents(self):
         module = self._ui_model.get_module()
@@ -1459,31 +1257,18 @@ class BindTargetRemoveButton(RemoveButton):
             _get_rebuild_signal_type(self._au_id))
 
 
-class BindTargetAdder(QPushButton):
+class BindTargetAdder(QPushButton, UpdatingAUView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
         self._context = None
-        self._ui_model = None
-        self._updater = None
-
         self.setText('Add new binding')
-
-    def set_au_id(self, au_id):
-        self._au_id = au_id
 
     def set_context(self, context):
         self._context = context
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         QObject.connect(self, SIGNAL('clicked()'), self._add_new_entry)
-
-    def unregister_updaters(self):
-        pass
 
     def _add_new_entry(self):
         module = self._ui_model.get_module()
