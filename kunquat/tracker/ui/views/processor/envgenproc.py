@@ -19,10 +19,11 @@ from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.audiounit.simpleenv import SimpleEnvelope
 from kunquat.tracker.ui.views.audiounit.timeenv import TimeEnvelope
 from .procnumslider import ProcNumSlider
+from .updatingprocview import UpdatingProcView
 from . import utils
 
 
-class EnvgenProc(QWidget):
+class EnvgenProc(QWidget, UpdatingProcView):
 
     @staticmethod
     def get_name():
@@ -56,29 +57,10 @@ class EnvgenProc(QWidget):
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._global_adjust.set_au_id(au_id)
-        self._range.set_au_id(au_id)
-        self._time_env.set_au_id(au_id)
-        self._force_env.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-        self._global_adjust.set_proc_id(proc_id)
-        self._range.set_proc_id(proc_id)
-        self._time_env.set_proc_id(proc_id)
-        self._force_env.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._global_adjust.set_ui_model(ui_model)
-        self._range.set_ui_model(ui_model)
-        self._time_env.set_ui_model(ui_model)
-        self._force_env.set_ui_model(ui_model)
-
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.add_updating_child(
+                self._global_adjust, self._range, self._time_env, self._force_env)
+        self.register_action(self._get_update_signal_type(), self._update_linear_force)
 
         QObject.connect(
                 self._linear_force,
@@ -87,19 +69,8 @@ class EnvgenProc(QWidget):
 
         self._update_linear_force()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-        self._force_env.unregister_updaters()
-        self._time_env.unregister_updaters()
-        self._range.unregister_updaters()
-        self._global_adjust.unregister_updaters()
-
     def _get_update_signal_type(self):
         return 'signal_egen_linear_force_{}'.format(self._proc_id)
-
-    def _perform_updates(self, signals):
-        if self._get_update_signal_type() in signals:
-            self._update_linear_force()
 
     def _update_linear_force(self):
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -140,15 +111,10 @@ class GlobalAdjustSlider(ProcNumSlider):
         return 'signal_egen_global_adjust_{}'.format(self._proc_id)
 
 
-class RangeEditor(QWidget):
+class RangeEditor(QWidget, UpdatingProcView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._min_editor = QDoubleSpinBox()
         self._max_editor = QDoubleSpinBox()
 
@@ -164,16 +130,8 @@ class RangeEditor(QWidget):
         h.addWidget(self._max_editor, 1)
         self.setLayout(h)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action(self._get_update_signal_type(), self._update_range)
 
         QObject.connect(
                 self._min_editor, SIGNAL('valueChanged(double)'), self._set_range_min)
@@ -182,15 +140,8 @@ class RangeEditor(QWidget):
 
         self._update_range()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
     def _get_update_signal_type(self):
         return '_'.join(('signal_env_range', self._proc_id))
-
-    def _perform_updates(self, signals):
-        if self._get_update_signal_type() in signals:
-            self._update_range()
 
     def _update_range(self):
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)

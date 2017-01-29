@@ -17,9 +17,10 @@ from PySide.QtGui import *
 from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.audiounit.timeenv import TimeEnvelope
 from .procnumslider import ProcNumSlider
+from .updatingprocview import UpdatingProcView
 
 
-class ForceProc(QWidget):
+class ForceProc(QWidget, UpdatingProcView):
 
     @staticmethod
     def get_name():
@@ -33,6 +34,13 @@ class ForceProc(QWidget):
         self._force_envelope = ForceEnvelope()
         self._ramp_release = RampReleaseToggle()
         self._force_release_envelope = ForceReleaseEnvelope()
+
+        self.add_updating_child(
+                self._global_force,
+                self._force_variation,
+                self._force_envelope,
+                self._ramp_release,
+                self._force_release_envelope)
 
         sliders = QGridLayout()
         sliders.setContentsMargins(0, 0, 0, 0)
@@ -50,34 +58,6 @@ class ForceProc(QWidget):
         v.addWidget(self._ramp_release)
         v.addWidget(self._force_release_envelope)
         self.setLayout(v)
-
-    def set_au_id(self, au_id):
-        self._global_force.set_au_id(au_id)
-        self._force_variation.set_au_id(au_id)
-        self._force_envelope.set_au_id(au_id)
-        self._ramp_release.set_au_id(au_id)
-        self._force_release_envelope.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._global_force.set_proc_id(proc_id)
-        self._force_variation.set_proc_id(proc_id)
-        self._force_envelope.set_proc_id(proc_id)
-        self._ramp_release.set_proc_id(proc_id)
-        self._force_release_envelope.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._global_force.set_ui_model(ui_model)
-        self._force_variation.set_ui_model(ui_model)
-        self._force_envelope.set_ui_model(ui_model)
-        self._ramp_release.set_ui_model(ui_model)
-        self._force_release_envelope.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._force_release_envelope.unregister_updaters()
-        self._ramp_release.unregister_updaters()
-        self._force_envelope.unregister_updaters()
-        self._force_variation.unregister_updaters()
-        self._global_force.unregister_updaters()
 
 
 class ForceNumSlider(ProcNumSlider):
@@ -129,42 +109,24 @@ class ForceVarSlider(ForceNumSlider):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class RampReleaseToggle(QCheckBox):
+class RampReleaseToggle(QCheckBox, UpdatingProcView):
 
     def __init__(self):
         super().__init__()
         self.setText('Ramp release')
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action(self._get_update_signal_type(), self._update_state)
+        self.register_action(
+                'signal_force_release_envelope_{}'.format(self._proc_id),
+                self._update_state)
 
         QObject.connect(self, SIGNAL('stateChanged(int)'), self._state_changed)
 
         self._update_state()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
     def _get_update_signal_type(self):
         return '_'.join(('signal_force_ramp_release', self._proc_id))
-
-    def _perform_updates(self, signals):
-        update_signals = set([self._get_update_signal_type(),
-            '_'.join(('signal_force_release_envelope', self._proc_id))])
-        if not signals.isdisjoint(update_signals):
-            self._update_state()
 
     def _get_force_params(self):
         module = self._ui_model.get_module()

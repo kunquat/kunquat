@@ -17,10 +17,11 @@ from PySide.QtGui import *
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from .procnumslider import ProcNumSlider
+from .updatingprocview import UpdatingProcView
 from . import utils
 
 
-class DelayProc(QWidget):
+class DelayProc(QWidget, UpdatingProcView):
 
     @staticmethod
     def get_name():
@@ -31,6 +32,8 @@ class DelayProc(QWidget):
 
         self._max_delay = MaxDelay()
         self._init_delay = InitDelay()
+
+        self.add_updating_child(self._max_delay, self._init_delay)
 
         gl = QGridLayout()
         gl.addWidget(QLabel('Maximum delay:'), 0, 0)
@@ -43,60 +46,23 @@ class DelayProc(QWidget):
         v.addStretch(1)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._max_delay.set_au_id(au_id)
-        self._init_delay.set_au_id(au_id)
 
-    def set_proc_id(self, proc_id):
-        self._max_delay.set_proc_id(proc_id)
-        self._init_delay.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._max_delay.set_ui_model(ui_model)
-        self._init_delay.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._init_delay.unregister_updaters()
-        self._max_delay.unregister_updaters()
-
-
-class MaxDelay(QDoubleSpinBox):
+class MaxDelay(QDoubleSpinBox, UpdatingProcView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self.setDecimals(4)
         self.setMinimum(0.001)
         self.setMaximum(60)
         self.setValue(1)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
+        self.register_action(self._get_update_signal_type(), self._update_value)
         self._update_value()
         QObject.connect(self, SIGNAL('valueChanged(double)'), self._value_changed)
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
     def _get_update_signal_type(self):
         return '_'.join(('signal_proc_delay', self._proc_id))
-
-    def _perform_updates(self, signals):
-        if self._get_update_signal_type() in signals:
-            self._update_value()
 
     def _update_value(self):
         delay_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)

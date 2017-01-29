@@ -15,9 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .procnumslider import ProcNumSlider
+from .updatingprocview import UpdatingProcView
 
 
-class FreeverbProc(QWidget):
+class FreeverbProc(QWidget, UpdatingProcView):
 
     @staticmethod
     def get_name():
@@ -25,12 +26,10 @@ class FreeverbProc(QWidget):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-
         self._refl = ReflSlider()
         self._damp = DampSlider()
+
+        self.add_updating_child(self._refl, self._damp)
 
         sliders = QGridLayout()
         sliders.addWidget(QLabel('Reflectivity'), 0, 0)
@@ -44,22 +43,6 @@ class FreeverbProc(QWidget):
         self.setLayout(v)
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-
-    def set_au_id(self, au_id):
-        self._refl.set_au_id(au_id)
-        self._damp.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._refl.set_proc_id(proc_id)
-        self._damp.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._refl.set_ui_model(ui_model)
-        self._damp.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._damp.unregister_updaters()
-        self._refl.unregister_updaters()
 
 
 class FreeverbSlider(ProcNumSlider):

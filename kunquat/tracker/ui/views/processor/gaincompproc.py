@@ -16,9 +16,10 @@ from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.audiounit.simpleenv import SimpleEnvelope
+from .updatingprocview import UpdatingProcView
 
 
-class GainCompProc(QWidget):
+class GainCompProc(QWidget, UpdatingProcView):
 
     @staticmethod
     def get_name():
@@ -29,24 +30,14 @@ class GainCompProc(QWidget):
 
         self._mapping = MappingEnv()
 
+        self.add_updating_child(self._mapping)
+
         v = QVBoxLayout()
         v.setSpacing(10)
         v.addWidget(self._mapping)
         self.setLayout(v)
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-
-    def set_au_id(self, au_id):
-        self._mapping.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._mapping.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._mapping.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._mapping.unregister_updaters()
 
 
 class MappingEnv(SimpleEnvelope):
