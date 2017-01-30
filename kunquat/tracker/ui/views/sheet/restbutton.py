@@ -15,25 +15,26 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from kunquat.tracker.ui.model.trigger import Trigger
+from kunquat.tracker.ui.views.updatingview import UpdatingView
 
 
-class RestButton(QPushButton):
+class RestButton(QPushButton, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
         self._sheet_manager = None
 
         self.setFlat(True)
         #self.setText('══')
         self.setToolTip('Add rest (1)')
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._sheet_manager = ui_model.get_sheet_manager()
+    def _on_setup(self):
+        self.register_action('signal_module', self._update_enabled)
+        self.register_action('signal_edit_mode', self._update_enabled)
+        self.register_action('signal_play', self._update_enabled)
+        self.register_action('signal_silence', self._update_enabled)
+
+        self._sheet_manager = self._ui_model.get_sheet_manager()
 
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('rest')
@@ -41,15 +42,6 @@ class RestButton(QPushButton):
         self.setIcon(icon)
 
         QObject.connect(self, SIGNAL('clicked()'), self._clicked)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_module', 'signal_edit_mode', 'signal_play', 'signal_silence'])
-        if not signals.isdisjoint(update_signals):
-            self._update_enabled()
 
     def _update_enabled(self):
         if (not self._sheet_manager.is_editing_enabled() or

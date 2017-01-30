@@ -14,17 +14,19 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from kunquat.tracker.ui.views.updatingview import UpdatingView
 from .sheetarea import SheetArea
 from .toolbar import Toolbar
 
 
-class Sheet(QWidget):
+class Sheet(QWidget, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
         self._toolbar = Toolbar()
         self._sheet_area = SheetArea()
+
+        self.add_updating_child(self._toolbar, self._sheet_area)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 4)
@@ -32,15 +34,6 @@ class Sheet(QWidget):
         v.addWidget(self._toolbar)
         v.addWidget(self._sheet_area)
         self.setLayout(v)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._toolbar.set_ui_model(ui_model)
-        self._sheet_area.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._sheet_area.unregister_updaters()
-        self._toolbar.unregister_updaters()
 
     def minimumSizeHint(self):
         return QSize(self._toolbar.minimumSizeHint().width(), 0)

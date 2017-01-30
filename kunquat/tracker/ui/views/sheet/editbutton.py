@@ -14,13 +14,13 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from kunquat.tracker.ui.views.updatingview import UpdatingView
 
-class EditButton(QPushButton):
+
+class EditButton(QPushButton, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
         self._sheet_manager = None
 
         self.setCheckable(True)
@@ -28,11 +28,13 @@ class EditButton(QPushButton):
         #self.setText('Edit')
         self.setToolTip('Edit (Space)')
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._sheet_manager = ui_model.get_sheet_manager()
+    def _on_setup(self):
+        self.register_action('signal_edit_mode', self._update_state)
+        self.register_action('signal_play', self._update_state)
+        self.register_action('signal_silence', self._update_state)
+        self.register_action('signal_record_mode', self._update_state)
+
+        self._sheet_manager = self._ui_model.get_sheet_manager()
 
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('edit')
@@ -40,15 +42,6 @@ class EditButton(QPushButton):
         self.setIcon(icon)
 
         QObject.connect(self, SIGNAL('clicked()'), self._clicked)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_edit_mode', 'signal_play', 'signal_silence', 'signal_record_mode'])
-        if not signals.isdisjoint(update_signals):
-            self._update_state()
 
     def _update_state(self):
         old_block = self.blockSignals(True)

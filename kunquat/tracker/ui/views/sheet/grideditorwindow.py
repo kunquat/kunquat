@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -14,15 +14,17 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from kunquat.tracker.ui.views.updatingview import UpdatingView
 from .grideditor import GridEditor
 
 
-class GridEditorWindow(QWidget):
+class GridEditorWindow(QWidget, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
         self._grid_editor = GridEditor()
+
+        self.add_updating_child(self._grid_editor)
 
         self.setWindowTitle('Grid patterns')
 
@@ -31,13 +33,6 @@ class GridEditorWindow(QWidget):
         v.setSpacing(0)
         v.addWidget(self._grid_editor)
         self.setLayout(v)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._grid_editor.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._grid_editor.unregister_updaters()
 
     def closeEvent(self, event):
         event.ignore()

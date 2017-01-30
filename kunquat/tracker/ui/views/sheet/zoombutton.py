@@ -14,8 +14,10 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from kunquat.tracker.ui.views.updatingview import UpdatingView
 
-class ZoomButton(QPushButton):
+
+class ZoomButton(QPushButton, UpdatingView):
 
     INFO = {
             'in': ('Zoom In', 'zoom_in', 'Ctrl + +'),
@@ -28,8 +30,6 @@ class ZoomButton(QPushButton):
 
     def __init__(self, mode):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
         self._sheet_manager = None
 
         self._mode = mode
@@ -37,29 +37,18 @@ class ZoomButton(QPushButton):
         #self.setText(self._get_text(mode))
         self.setToolTip(self._get_tooltip(mode))
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._sheet_manager = ui_model.get_sheet_manager()
+    def _on_setup(self):
+        self.register_action('signal_sheet_zoom', self._update_enabled)
+        self.register_action('signal_sheet_zoom_range', self._update_enabled)
+        self.register_action('signal_sheet_column_width', self._update_enabled)
+
+        self._sheet_manager = self._ui_model.get_sheet_manager()
 
         icon = self._get_icon(self._mode)
         self.setIcon(icon)
 
         self._update_enabled()
         QObject.connect(self, SIGNAL('clicked()'), self._clicked)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_sheet_zoom',
-            'signal_sheet_zoom_range',
-            'signal_sheet_column_width'
-            ])
-        if not signals.isdisjoint(update_signals):
-            self._update_enabled()
 
     def _update_enabled(self):
         zoom = self._sheet_manager.get_zoom()

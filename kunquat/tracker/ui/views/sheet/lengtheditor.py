@@ -15,15 +15,13 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 import kunquat.tracker.ui.model.tstamp as tstamp
+from kunquat.tracker.ui.views.updatingview import UpdatingView
 
 
-class LengthEditor(QWidget):
+class LengthEditor(QWidget, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._is_latest_committed = True
 
         self._spinbox = QDoubleSpinBox()
@@ -38,10 +36,13 @@ class LengthEditor(QWidget):
         h.addWidget(self._spinbox)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_module', self._update_value)
+        self.register_action('signal_pattern_length', self._update_value)
+        self.register_action('signal_selection', self._update_value)
+        self.register_action('signal_order_list', self._update_value)
+        self.register_action('signal_undo', self._update_value)
+        self.register_action('signal_redo', self._update_value)
 
         self._update_value()
 
@@ -49,9 +50,6 @@ class LengthEditor(QWidget):
                 self._spinbox, SIGNAL('valueChanged(double)'), self._change_length)
         QObject.connect(
                 self._spinbox, SIGNAL('editingFinished()'), self._change_length_final)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
 
     def _get_pattern(self):
         module = self._ui_model.get_module()
@@ -83,17 +81,6 @@ class LengthEditor(QWidget):
         if length_val != self._spinbox.value():
             self._spinbox.setValue(length_val)
         self._spinbox.blockSignals(old_block)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_module',
-            'signal_pattern_length',
-            'signal_selection',
-            'signal_order_list',
-            'signal_undo',
-            'signal_redo'])
-        if not signals.isdisjoint(update_signals):
-            self._update_value()
 
     def _change_value(self, new_value, is_final):
         pattern = self._get_pattern()
