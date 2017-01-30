@@ -15,9 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .procnumslider import ProcNumSlider
+from .updatingprocview import UpdatingProcView
 
 
-class VolumeProc(QWidget):
+class VolumeProc(QWidget, UpdatingProcView):
 
     @staticmethod
     def get_name():
@@ -25,11 +26,10 @@ class VolumeProc(QWidget):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
 
         self._volume = VolumeSlider()
+
+        self.add_updating_child(self._volume)
 
         v = QVBoxLayout()
         v.setSpacing(10)
@@ -37,18 +37,6 @@ class VolumeProc(QWidget):
         self.setLayout(v)
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-
-    def set_au_id(self, au_id):
-        self._volume.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._volume.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._volume.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._volume.unregister_updaters()
 
 
 class VolumeSlider(ProcNumSlider):

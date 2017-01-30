@@ -14,8 +14,10 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from .updatingprocview import UpdatingProcView
 
-class StreamProc(QWidget):
+
+class StreamProc(QWidget, UpdatingProcView):
 
     @staticmethod
     def get_name():
@@ -26,32 +28,18 @@ class StreamProc(QWidget):
 
         self._init_state_editor = InitStateEditor()
 
+        self.add_updating_child(self._init_state_editor)
+
         v = QVBoxLayout()
         v.addWidget(self._init_state_editor)
         v.addStretch(1)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._init_state_editor.set_au_id(au_id)
 
-    def set_proc_id(self, proc_id):
-        self._init_state_editor.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._init_state_editor.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._init_state_editor.unregister_updaters()
-
-
-class InitStateEditor(QWidget):
+class InitStateEditor(QWidget, UpdatingProcView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
 
         self._init_val = QDoubleSpinBox()
         self._init_val.setMinimum(-99999)
@@ -80,17 +68,8 @@ class InitStateEditor(QWidget):
 
         self.setLayout(h)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action(self._get_update_signal_type(), self._update_state)
 
         QObject.connect(
                 self._init_val, SIGNAL('valueChanged(double)'), self._set_init_value)
@@ -101,15 +80,8 @@ class InitStateEditor(QWidget):
 
         self._update_state()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
     def _get_update_signal_type(self):
         return 'signal_stream_init_state_{}'.format(self._proc_id)
-
-    def _perform_updates(self, signals):
-        if self._get_update_signal_type() in signals:
-            self._update_state()
 
     def _get_stream_params(self):
         module = self._ui_model.get_module()

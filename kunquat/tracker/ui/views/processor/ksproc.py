@@ -18,10 +18,11 @@ from kunquat.tracker.ui.views.audiounit.timeenv import TimeEnvelope
 from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from .procnumslider import ProcNumSlider
+from .updatingprocview import UpdatingProcView
 from . import utils
 
 
-class KsProc(QWidget):
+class KsProc(QWidget, UpdatingProcView):
 
     @staticmethod
     def get_name():
@@ -36,6 +37,15 @@ class KsProc(QWidget):
         self._shift_var = ShiftVar()
         self._release_env = ReleaseEnvelope()
         self._release_var = ReleaseVar()
+
+        self.add_updating_child(
+                self._damp,
+                self._init_env,
+                self._shift_env,
+                self._shift_threshold,
+                self._shift_var,
+                self._release_env,
+                self._release_var)
 
         sliders = QGridLayout()
         sliders.addWidget(QLabel('Damp:'), 0, 0)
@@ -56,42 +66,6 @@ class KsProc(QWidget):
         v.addWidget(self._release_env)
         v.addWidget(self._release_var)
         self.setLayout(v)
-
-    def set_au_id(self, au_id):
-        self._damp.set_au_id(au_id)
-        self._init_env.set_au_id(au_id)
-        self._shift_env.set_au_id(au_id)
-        self._shift_threshold.set_au_id(au_id)
-        self._shift_var.set_au_id(au_id)
-        self._release_env.set_au_id(au_id)
-        self._release_var.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._damp.set_proc_id(proc_id)
-        self._init_env.set_proc_id(proc_id)
-        self._shift_env.set_proc_id(proc_id)
-        self._shift_threshold.set_proc_id(proc_id)
-        self._shift_var.set_proc_id(proc_id)
-        self._release_env.set_proc_id(proc_id)
-        self._release_var.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._damp.set_ui_model(ui_model)
-        self._init_env.set_ui_model(ui_model)
-        self._shift_env.set_ui_model(ui_model)
-        self._shift_threshold.set_ui_model(ui_model)
-        self._shift_var.set_ui_model(ui_model)
-        self._release_env.set_ui_model(ui_model)
-        self._release_var.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._release_var.unregister_updaters()
-        self._release_env.unregister_updaters()
-        self._shift_var.unregister_updaters()
-        self._shift_threshold.unregister_updaters()
-        self._shift_env.unregister_updaters()
-        self._init_env.unregister_updaters()
-        self._damp.unregister_updaters()
 
 
 class DampSlider(ProcNumSlider):

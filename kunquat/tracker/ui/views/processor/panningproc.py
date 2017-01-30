@@ -15,9 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .procnumslider import ProcNumSlider
+from .updatingprocview import UpdatingProcView
 
 
-class PanningProc(QWidget):
+class PanningProc(QWidget, UpdatingProcView):
 
     @staticmethod
     def get_name():
@@ -28,22 +29,12 @@ class PanningProc(QWidget):
 
         self._panning = PanningSlider()
 
+        self.add_updating_child(self._panning)
+
         v = QVBoxLayout()
         v.addWidget(self._panning)
         v.addStretch(1)
         self.setLayout(v)
-
-    def set_au_id(self, au_id):
-        self._panning.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._panning.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._panning.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._panning.unregister_updaters();
 
 
 class PanningSlider(ProcNumSlider):

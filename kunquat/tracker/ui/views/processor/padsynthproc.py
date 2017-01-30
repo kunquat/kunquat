@@ -23,10 +23,11 @@ from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.stylecreator import StyleCreator
 from . import utils
 from .procnumslider import ProcNumSlider
+from .updatingprocview import UpdatingProcView
 from .waveformeditor import WaveformEditor
 
 
-class PadsynthProc(QWidget):
+class PadsynthProc(QWidget, UpdatingProcView):
 
     @staticmethod
     def get_name():
@@ -42,6 +43,14 @@ class PadsynthProc(QWidget):
         self._harmonics_base = HarmonicsBaseEditor()
         self._harmonic_scales = HarmonicScales()
 
+        self.add_updating_child(
+                self._playback_params,
+                self._apply_button,
+                self._sample_config,
+                self._bandwidth,
+                self._harmonics_base,
+                self._harmonic_scales)
+
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
@@ -53,48 +62,11 @@ class PadsynthProc(QWidget):
         v.addWidget(self._harmonic_scales)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._playback_params.set_au_id(au_id)
-        self._apply_button.set_au_id(au_id)
-        self._sample_config.set_au_id(au_id)
-        self._bandwidth.set_au_id(au_id)
-        self._harmonics_base.set_au_id(au_id)
-        self._harmonic_scales.set_au_id(au_id)
 
-    def set_proc_id(self, proc_id):
-        self._playback_params.set_proc_id(proc_id)
-        self._apply_button.set_proc_id(proc_id)
-        self._sample_config.set_proc_id(proc_id)
-        self._bandwidth.set_proc_id(proc_id)
-        self._harmonics_base.set_proc_id(proc_id)
-        self._harmonic_scales.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._playback_params.set_ui_model(ui_model)
-        self._apply_button.set_ui_model(ui_model)
-        self._sample_config.set_ui_model(ui_model)
-        self._bandwidth.set_ui_model(ui_model)
-        self._harmonics_base.set_ui_model(ui_model)
-        self._harmonic_scales.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._harmonic_scales.unregister_updaters()
-        self._harmonics_base.unregister_updaters()
-        self._bandwidth.unregister_updaters()
-        self._sample_config.unregister_updaters()
-        self._apply_button.unregister_updaters()
-        self._playback_params.unregister_updaters()
-
-
-class PlaybackParams(QWidget):
+class PlaybackParams(QWidget, UpdatingProcView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._ramp_attack = QCheckBox('Ramp attack')
         self._stereo = QCheckBox('Stereo')
 
@@ -106,16 +78,9 @@ class PlaybackParams(QWidget):
         h.addStretch(1)
         self.setLayout(h)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_au', self._update_all)
+        self.register_action(self._get_update_signal_type(), self._update_all)
 
         QObject.connect(
                 self._ramp_attack, SIGNAL('stateChanged(int)'), self._toggle_ramp_attack)
@@ -124,16 +89,8 @@ class PlaybackParams(QWidget):
 
         self._update_all()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
     def _get_update_signal_type(self):
         return 'signal_padsynth_rt_{}'.format(self._proc_id)
-
-    def _perform_updates(self, signals):
-        update_signals = set(['signal_au', self._get_update_signal_type()])
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
 
     def _update_all(self):
         params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -161,53 +118,33 @@ class PlaybackParams(QWidget):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class ApplyButton(QPushButton):
+class ApplyButton(QPushButton, UpdatingProcView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._style_creator = StyleCreator()
         self._style_sheet = ''
 
         self.setText('Apply parameters')
         self.setEnabled(False)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
+    def _on_setup(self):
+        self._style_creator.set_ui_model(self._ui_model)
 
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
-        self._style_creator.set_ui_model(ui_model)
+        self.register_action('signal_au', self._update_status)
+        self.register_action(self._get_update_signal_type(), self._update_status)
+        self.register_action('signal_style_changed', self._update_style)
 
         QObject.connect(self, SIGNAL('clicked()'), self._apply_params)
 
         self._style_sheet = QApplication.instance().styleSheet()
         self._update_status()
 
-    def unregister_updaters(self):
+    def _on_teardown(self):
         self._style_creator.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
 
     def _get_update_signal_type(self):
         return 'signal_padsynth_{}'.format(self._proc_id)
-
-    def _perform_updates(self, signals):
-        update_signals = set(['signal_au', self._get_update_signal_type()])
-        if not signals.isdisjoint(update_signals):
-            self._update_status()
-
-        if 'signal_style_changed' in signals:
-            self._update_style()
 
     def _update_style(self):
         self._style_sheet = self._style_creator.get_updated_style_sheet()
@@ -235,21 +172,18 @@ class PadsynthParamSlider(ProcNumSlider):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
 
-class SampleConfigEditor(QWidget):
+class SampleConfigEditor(QWidget, UpdatingProcView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._sample_size = KqtComboBox()
         self._sample_count = QSpinBox()
         self._sample_count.setRange(1, 128)
         self._range_min = SamplePitchRangeMinEditor()
         self._range_max = SamplePitchRangeMaxEditor()
         self._centre_pitch = SampleCentrePitchEditor()
+
+        self.add_updating_child(self._range_min, self._range_max, self._centre_pitch)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -265,25 +199,9 @@ class SampleConfigEditor(QWidget):
         h.addWidget(self._centre_pitch)
         self.setLayout(h)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._range_min.set_au_id(au_id)
-        self._range_max.set_au_id(au_id)
-        self._centre_pitch.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-        self._range_min.set_proc_id(proc_id)
-        self._range_max.set_proc_id(proc_id)
-        self._centre_pitch.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._range_min.set_ui_model(ui_model)
-        self._range_max.set_ui_model(ui_model)
-        self._centre_pitch.set_ui_model(ui_model)
+    def _on_setup(self):
+        self.register_action('signal_au', self._update_sample_params)
+        self.register_action(self._get_update_signal_type(), self._update_sample_params)
 
         for sample_length in self._get_params().get_allowed_sample_lengths():
             self._sample_size.addItem(str(sample_length), userData=sample_length)
@@ -300,19 +218,8 @@ class SampleConfigEditor(QWidget):
 
         self._update_sample_params()
 
-    def unregister_updaters(self):
-        self._centre_pitch.unregister_updaters()
-        self._range_max.unregister_updaters()
-        self._range_min.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
     def _get_update_signal_type(self):
         return 'signal_padsynth_{}'.format(self._proc_id)
-
-    def _perform_updates(self, signals):
-        update_signals = set(['signal_au', self._get_update_signal_type()])
-        if not signals.isdisjoint(update_signals):
-            self._update_sample_params()
 
     def _get_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -393,17 +300,14 @@ class SampleCentrePitchEditor(PadsynthParamSlider):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class BandwidthEditor(QWidget):
+class BandwidthEditor(QWidget, UpdatingProcView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._base = BandwidthBaseEditor()
         self._scale = BandwidthScaleEditor()
+
+        self.add_updating_child(self._base, self._scale)
 
         g = QGridLayout()
         g.setContentsMargins(0, 0, 0, 0)
@@ -414,22 +318,6 @@ class BandwidthEditor(QWidget):
         g.addWidget(QLabel('Bandwidth scale:'), 1, 0)
         g.addWidget(self._scale, 1, 1)
         self.setLayout(g)
-
-    def set_au_id(self, au_id):
-        self._base.set_au_id(au_id)
-        self._scale.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._base.set_proc_id(proc_id)
-        self._scale.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._base.set_ui_model(ui_model)
-        self._scale.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._scale.unregister_updaters()
-        self._base.unregister_updaters()
 
 
 class BandwidthBaseEditor(PadsynthParamSlider):
@@ -475,36 +363,22 @@ class HarmonicsBaseEditor(WaveformEditor):
         return base_wave
 
 
-class HarmonicScalesList(EditorList):
+class HarmonicScalesList(EditorList, UpdatingProcView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_au', self._update_all)
+        self.register_action(self._get_update_signal_type(), self._update_all)
         self._update_all()
 
-    def unregister_updaters(self):
+    def _on_teardown(self):
         self.disconnect_widgets()
-        self._updater.unregister_updater(self._perform_updates)
 
     def _make_adder_widget(self):
         adder = HarmonicScaleAdder()
-        adder.set_au_id(self._au_id)
-        adder.set_proc_id(self._proc_id)
-        adder.set_ui_model(self._ui_model)
+        self.add_updating_child(adder)
         return adder
 
     def _get_updated_editor_count(self):
@@ -514,54 +388,30 @@ class HarmonicScalesList(EditorList):
 
     def _make_editor_widget(self, index):
         editor = HarmonicScaleEditor(index)
-        editor.set_au_id(self._au_id)
-        editor.set_proc_id(self._proc_id)
-        editor.set_ui_model(self._ui_model)
+        self.add_updating_child(editor)
         return editor
 
     def _update_editor(self, index, editor):
         editor.update_index(index)
 
     def _disconnect_widget(self, widget):
-        widget.unregister_updaters()
+        self.remove_updating_child(widget)
 
     def _get_update_signal_type(self):
         return 'signal_padsynth_{}'.format(self._proc_id)
-
-    def _perform_updates(self, signals):
-        update_signals = set(['signal_au', self._get_update_signal_type()])
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
 
     def _update_all(self):
         self.update_list()
 
 
-class HarmonicScaleAdder(QPushButton):
+class HarmonicScaleAdder(QPushButton, UpdatingProcView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self.setText('Add harmonic scale')
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         QObject.connect(self, SIGNAL('clicked()'), self._add_harmonic)
-
-    def unregister_updaters(self):
-        pass
 
     def _get_update_signal_type(self):
         return 'signal_padsynth_{}'.format(self._proc_id)
@@ -574,15 +424,10 @@ class HarmonicScaleAdder(QPushButton):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class HarmonicScaleEditor(QWidget):
+class HarmonicScaleEditor(QWidget, UpdatingProcView):
 
     def __init__(self, index):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._index = index
 
         self._pitch_factor = QDoubleSpinBox()
@@ -605,19 +450,8 @@ class HarmonicScaleEditor(QWidget):
         h.addWidget(self._remove_button)
         self.setLayout(h)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._amplitude.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-        self._amplitude.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
-        self._amplitude.set_ui_model(ui_model)
+    def _on_setup(self):
+        self.add_updating_child(self._amplitude)
 
         icon_bank = self._ui_model.get_icon_bank()
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
@@ -630,9 +464,6 @@ class HarmonicScaleEditor(QWidget):
         QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_harmonic)
 
         self.update_index(self._index)
-
-    def unregister_updaters(self):
-        self._amplitude.unregister_updaters()
 
     def _get_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -699,12 +530,12 @@ class AmplitudeEditor(PadsynthParamSlider):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class HarmonicScales(QWidget):
+class HarmonicScales(QWidget, UpdatingProcView):
 
     def __init__(self):
         super().__init__()
-
         self._editor = HarmonicScalesList()
+        self.add_updating_child(self._editor)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -712,17 +543,5 @@ class HarmonicScales(QWidget):
         v.addWidget(HeaderLine('Harmonic scales'))
         v.addWidget(self._editor)
         self.setLayout(v)
-
-    def set_au_id(self, au_id):
-        self._editor.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._editor.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._editor.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._editor.unregister_updaters()
 
 

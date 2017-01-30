@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -14,8 +14,10 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from .updatingprocview import UpdatingProcView
 
-class UnsupportedProc(QWidget):
+
+class UnsupportedProc(QWidget, UpdatingProcView):
 
     @staticmethod
     def get_name():
@@ -24,17 +26,5 @@ class UnsupportedProc(QWidget):
     def __init__(self):
         super().__init__()
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-
-    def set_au_id(self, au_id):
-        pass
-
-    def set_proc_id(self, proc_id):
-        pass
-
-    def set_ui_model(self, ui_model):
-        pass
-
-    def unregister_updaters(self):
-        pass
 
 
