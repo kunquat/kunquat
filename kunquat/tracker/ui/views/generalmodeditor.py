@@ -15,9 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .numberslider import NumberSlider
+from .updatingview import UpdatingView
 
 
-class GeneralModEditor(QWidget):
+class GeneralModEditor(QWidget, UpdatingView):
 
     def __init__(self):
         super().__init__()
@@ -29,6 +30,14 @@ class GeneralModEditor(QWidget):
         self._force_shift = ForceShift()
         self._dc_blocker = DCBlocker()
         self._random_seed = RandomSeed()
+
+        self.add_updating_child(
+                self._title,
+                self._authors,
+                self._mixing_volume,
+                self._force_shift,
+                self._dc_blocker,
+                self._random_seed)
 
         ml = QGridLayout()
         ml.setContentsMargins(0, 0, 0, 0)
@@ -69,45 +78,18 @@ class GeneralModEditor(QWidget):
         v.addStretch(1)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._title.set_ui_model(ui_model)
-        self._authors.set_ui_model(ui_model)
-        self._mixing_volume.set_ui_model(ui_model)
-        self._force_shift.set_ui_model(ui_model)
-        self._dc_blocker.set_ui_model(ui_model)
-        self._random_seed.set_ui_model(ui_model)
 
-    def unregister_updaters(self):
-        self._random_seed.unregister_updaters()
-        self._dc_blocker.unregister_updaters()
-        self._force_shift.unregister_updaters()
-        self._mixing_volume.unregister_updaters()
-        self._authors.unregister_updaters()
-        self._title.unregister_updaters()
-
-
-class Title(QLineEdit):
+class Title(QLineEdit, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_title', self._update_title)
 
         QObject.connect(self, SIGNAL('textEdited(const QString&)'), self._change_title)
 
         self._update_title()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_title' in signals:
-            self._update_title()
 
     def _update_title(self):
         module = self._ui_model.get_module()
@@ -124,22 +106,14 @@ class Title(QLineEdit):
         self._updater.signal_update('signal_title')
 
 
-class AuthorTableModel(QAbstractTableModel):
+class AuthorTableModel(QAbstractTableModel, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._items = ['']
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
+    def _on_setup(self):
         self._make_items()
-
-    def unregister_updaters(self):
-        pass
 
     def _make_items(self):
         module = self._ui_model.get_module()
@@ -201,13 +175,10 @@ class AuthorTableModel(QAbstractTableModel):
         return False
 
 
-class Authors(QTableView):
+class Authors(QTableView, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._model = None
 
         self.horizontalHeader().hide()
@@ -221,19 +192,9 @@ class Authors(QTableView):
                 QAbstractItemView.EditKeyPressed |
                 QAbstractItemView.AnyKeyPressed)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
+        self.register_action('signal_authors', self._update_model)
         self._update_model()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_authors' in signals:
-            self._update_model()
 
     def _update_model(self):
         selected = None
@@ -273,31 +234,19 @@ class Authors(QTableView):
         return super().keyPressEvent(event)
 
 
-class MixingVolume(QDoubleSpinBox):
+class MixingVolume(QDoubleSpinBox, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self.setDecimals(2)
         self.setRange(-384, 18)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_mixing_volume', self._update_mixing_volume)
 
         QObject.connect(self, SIGNAL('valueChanged(double)'), self._change_mixing_volume)
 
         self._update_mixing_volume()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_mixing_volume' in signals:
-            self._update_mixing_volume()
 
     def _update_mixing_volume(self):
         module = self._ui_model.get_module()
@@ -313,28 +262,17 @@ class MixingVolume(QDoubleSpinBox):
         self._updater.signal_update('signal_mixing_volume')
 
 
-class ForceShift(NumberSlider):
+class ForceShift(NumberSlider, UpdatingView):
 
     def __init__(self):
         super().__init__(0, -60, 0)
-        self._ui_model = None
-        self._updater = None
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_force_shift', self._update_shift)
 
         QObject.connect(self, SIGNAL('numberChanged(float)'), self._change_shift)
 
         self._update_shift()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_force_shift' in signals:
-            self._update_shift()
 
     def _update_shift(self):
         module = self._ui_model.get_module()
@@ -346,28 +284,17 @@ class ForceShift(NumberSlider):
         self._updater.signal_update('signal_force_shift')
 
 
-class DCBlocker(QCheckBox):
+class DCBlocker(QCheckBox, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_dc_blocker', self._update_enabled)
 
         QObject.connect(self, SIGNAL('stateChanged(int)'), self._change_enabled)
 
         self._update_enabled()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_dc_blocker' in signals:
-            self._update_enabled()
 
     def _update_enabled(self):
         module = self._ui_model.get_module()
@@ -385,13 +312,10 @@ class DCBlocker(QCheckBox):
         self._updater.signal_update('signal_dc_blocker')
 
 
-class RandomSeed(QWidget):
+class RandomSeed(QWidget, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._seed = UInt63SpinBox()
         self._auto_update = QCheckBox('Update automatically')
 
@@ -402,23 +326,14 @@ class RandomSeed(QWidget):
         h.addWidget(self._auto_update)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_random_seed', self._update_all)
 
         QObject.connect(self._seed, SIGNAL('valueChanged()'), self._change_random_seed)
         QObject.connect(
                 self._auto_update, SIGNAL('stateChanged(int)'), self._change_auto_update)
 
         self._update_all()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_random_seed' in signals:
-            self._update_all()
 
     def _update_all(self):
         module = self._ui_model.get_module()

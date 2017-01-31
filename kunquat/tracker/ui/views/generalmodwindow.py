@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,30 +15,23 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .generalmodeditor import GeneralModEditor
+from .updatingview import UpdatingView
 
 
-class GeneralModWindow(QWidget):
+class GeneralModWindow(QWidget, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-
         self.setWindowTitle('General module settings')
 
         self._editor = GeneralModEditor()
+        self.add_updating_child(self._editor)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
         v.addWidget(self._editor)
         self.setLayout(v)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._editor.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._editor.unregister_updaters()
 
     def closeEvent(self, event):
         event.ignore()

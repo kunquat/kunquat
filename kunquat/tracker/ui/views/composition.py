@@ -16,14 +16,16 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .sheet.sheet import Sheet
+from .updatingview import UpdatingView
 
 
-class Composition(QFrame):
+class Composition(QFrame, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
+
         self._sheet = Sheet()
+        self.add_updating_child(self._sheet)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -31,10 +33,4 @@ class Composition(QFrame):
         v.addWidget(self._sheet)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._sheet.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._sheet.unregister_updaters()
 

@@ -19,15 +19,18 @@ import kunquat.tracker.ui.model.tstamp as tstamp
 from .editorlist import EditorList
 from .headerline import HeaderLine
 from .kqtcombobox import KqtComboBox
+from .updatingview import UpdatingView
 from .varnamevalidator import VarNameValidator
 from .varvalidators import *
 
 
-class EnvironmentEditor(QWidget):
+class EnvironmentEditor(QWidget, UpdatingView):
 
     def __init__(self):
         super().__init__()
         self._vars = VariableList()
+
+        self.add_updating_child(self._vars)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -36,33 +39,20 @@ class EnvironmentEditor(QWidget):
         v.addWidget(self._vars)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._vars.set_ui_model(ui_model)
 
-    def unregister_updaters(self):
-        self._vars.unregister_updaters()
-
-
-class VariableList(EditorList):
+class VariableList(EditorList, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._var_names = None
         self._var_names_set = None
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
+        self.register_action('signal_environment', self._update_var_names)
         self._update_var_names()
 
-    def unregister_updaters(self):
+    def _on_teardown(self):
         self.disconnect_widgets()
-        self._updater.unregister_updater(self._perform_updates)
 
     def _update_var_names(self):
         module = self._ui_model.get_module()
@@ -72,13 +62,9 @@ class VariableList(EditorList):
 
         self.update_list()
 
-    def _perform_updates(self, signals):
-        if 'signal_environment' in signals:
-            self._update_var_names()
-
     def _make_adder_widget(self):
         adder = VariableAdder()
-        adder.set_ui_model(self._ui_model)
+        self.add_updating_child(adder)
         return adder
 
     def _get_updated_editor_count(self):
@@ -87,7 +73,7 @@ class VariableList(EditorList):
 
     def _make_editor_widget(self, index):
         editor = VariableEditor()
-        editor.set_ui_model(self._ui_model)
+        self.add_updating_child(editor)
         return editor
 
     def _update_editor(self, index, editor):
@@ -97,20 +83,25 @@ class VariableList(EditorList):
         editor.set_used_names(self._var_names_set)
 
     def _disconnect_widget(self, widget):
-        widget.unregister_updaters()
+        self.remove_updating_child(widget)
 
 
-class VariableEditor(QWidget):
+class VariableEditor(QWidget, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
         self._var_name = None
 
         self._name_editor = VarNameEditor()
         self._type_editor = VarTypeEditor()
         self._value_editor = VarValueEditor()
         self._remove_button = VarRemoveButton()
+
+        self.add_updating_child(
+                self._name_editor,
+                self._type_editor,
+                self._value_editor,
+                self._remove_button)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -120,20 +111,6 @@ class VariableEditor(QWidget):
         h.addWidget(self._value_editor)
         h.addWidget(self._remove_button)
         self.setLayout(h)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-
-        self._name_editor.set_ui_model(ui_model)
-        self._type_editor.set_ui_model(ui_model)
-        self._value_editor.set_ui_model(ui_model)
-        self._remove_button.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._remove_button.unregister_updaters()
-        self._value_editor.unregister_updaters()
-        self._type_editor.unregister_updaters()
-        self._name_editor.unregister_updaters()
 
     def set_var_name(self, name):
         self._var_name = name
@@ -147,26 +124,18 @@ class VariableEditor(QWidget):
         self._name_editor.set_used_names(used_names)
 
 
-class VarNameEditor(QLineEdit):
+class VarNameEditor(QLineEdit, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
         self._validator = None
 
         self.set_used_names(set())
 
         self._var_name = None
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         QObject.connect(self, SIGNAL('editingFinished()'), self._change_name)
-
-    def unregister_updaters(self):
-        pass
 
     def set_var_name(self, name):
         self._var_name = name
@@ -197,19 +166,13 @@ class VarNameEditor(QLineEdit):
             return super().keyPressEvent(event)
 
 
-class VarTypeEditor(KqtComboBox):
+class VarTypeEditor(KqtComboBox, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._var_name = None
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         module = self._ui_model.get_module()
         env = module.get_environment()
         var_types = env.get_var_types()
@@ -226,9 +189,6 @@ class VarTypeEditor(KqtComboBox):
             self.addItem(type_name)
 
         QObject.connect(self, SIGNAL('currentIndexChanged(int)'), self._change_type)
-
-    def unregister_updaters(self):
-        pass
 
     def set_var_name(self, name):
         self._var_name = name
@@ -251,13 +211,10 @@ class VarTypeEditor(KqtComboBox):
         self._updater.signal_update('signal_environment')
 
 
-class VarValueEditor(QWidget):
+class VarValueEditor(QWidget, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._var_name = None
 
         self._editors = {
@@ -273,10 +230,7 @@ class VarValueEditor(QWidget):
         self._editors[float].setValidator(FloatValidator())
         self._editors[tstamp.Tstamp].setValidator(FloatValidator())
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         module = self._ui_model.get_module()
         env = module.get_environment()
         var_types = env.get_var_types()
@@ -302,9 +256,6 @@ class VarValueEditor(QWidget):
                 self._editors[tstamp.Tstamp],
                 SIGNAL('editingFinished()'),
                 self._change_tstamp_value)
-
-    def unregister_updaters(self):
-        pass
 
     def set_var_name(self, name):
         self._var_name = name
@@ -359,30 +310,21 @@ class VarValueEditor(QWidget):
         self._change_value(new_value)
 
 
-class VarRemoveButton(QPushButton):
+class VarRemoveButton(QPushButton, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._var_name = None
 
         self.setToolTip('Remove')
 
         self.setStyleSheet('padding: 0 -2px;')
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
-        icon_bank = ui_model.get_icon_bank()
+    def _on_setup(self):
+        icon_bank = self._ui_model.get_icon_bank()
         self.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
 
         QObject.connect(self, SIGNAL('clicked()'), self._remove)
-
-    def unregister_updaters(self):
-        pass
 
     def set_var_name(self, name):
         self._var_name = name
@@ -394,13 +336,10 @@ class VarRemoveButton(QPushButton):
         self._updater.signal_update('signal_environment')
 
 
-class VariableAdder(QWidget):
+class VariableAdder(QWidget, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._var_name = NewVarNameEditor()
 
         self._var_add_button = QPushButton()
@@ -414,10 +353,8 @@ class VariableAdder(QWidget):
         h.addWidget(self._var_add_button)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_environment', self._update_used_names)
 
         self._update_used_names()
 
@@ -427,13 +364,6 @@ class VariableAdder(QWidget):
                 self._var_name, SIGNAL('returnPressed()'), self._add_new_var)
         QObject.connect(
                 self._var_add_button, SIGNAL('clicked()'), self._add_new_var)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_environment' in signals:
-            self._update_used_names()
 
     def _get_used_names(self):
         module = self._ui_model.get_module()

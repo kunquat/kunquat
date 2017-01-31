@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2017
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -16,27 +16,22 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .about import About
+from .updatingview import UpdatingView
 
 
-class AboutWindow(QWidget):
+class AboutWindow(QWidget, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
         self._about = About()
+
+        self.add_updating_child(self._about)
 
         self.setWindowTitle('About Kunquat Tracker')
 
         v = QVBoxLayout()
         v.addWidget(self._about)
         self.setLayout(v)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._about.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._about.unregister_updaters()
 
     def closeEvent(self, ev):
         ev.ignore()

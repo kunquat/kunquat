@@ -18,6 +18,7 @@ from PySide.QtGui import *
 from kunquat.tracker.version import KUNQUAT_VERSION
 from kunquat.kunquat.kunquat import get_version
 from .logo import Logo
+from .updatingview import UpdatingView
 
 
 class AboutMessage(QWidget):
@@ -104,15 +105,15 @@ class AboutMessage(QWidget):
         return website_base.format(style)
 
 
-class About(QWidget):
+class About(QWidget, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._logo = Logo()
         self._about_message = AboutMessage()
+
+        self.add_updating_child(self._logo)
+        self.register_action('signal_style_changed', self._update_style)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -124,20 +125,10 @@ class About(QWidget):
         v.setAlignment(self._about_message, Qt.AlignHCenter)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._logo.set_ui_model(ui_model)
-
+    def _on_setup(self):
         self._about_message.update_style(self._ui_model.get_style_manager())
 
-    def unregister_updaters(self):
-        self._logo.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_style_changed' in signals:
-            self._about_message.update_style(self._ui_model.get_style_manager())
+    def _update_style(self):
+        self._about_message.update_style(self._ui_model.get_style_manager())
 
 

@@ -18,15 +18,17 @@ from kunquat.kunquat.limits import *
 from .editorlist import EditorList
 from .headerline import HeaderLine
 from .kqtcombobox import KqtComboBox
+from .updatingview import UpdatingView
 from .varnamevalidator import MaybeVarNameValidator
 
 
-class ChDefaultsEditor(QWidget):
+class ChDefaultsEditor(QWidget, UpdatingView):
 
     def __init__(self):
         super().__init__()
 
         self._ch_defaults_list = ChDefaultsList()
+        self.add_updating_child(self._ch_defaults_list)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -35,24 +37,16 @@ class ChDefaultsEditor(QWidget):
         v.addWidget(self._ch_defaults_list, 1000)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ch_defaults_list.set_ui_model(ui_model)
 
-    def unregister_updaters(self):
-        self._ch_defaults_list.unregister_updaters()
-
-
-class ChDefaultsList(EditorList):
+class ChDefaultsList(EditorList, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
+    def _on_setup(self):
         self.update_list()
 
-    def unregister_updaters(self):
+    def _on_teardown(self):
         self.disconnect_widgets()
 
     def _get_updated_editor_count(self):
@@ -60,24 +54,22 @@ class ChDefaultsList(EditorList):
 
     def _make_editor_widget(self, index):
         chd = ChDefaults(index)
-        chd.set_ui_model(self._ui_model)
+        self.add_updating_child(chd)
         return chd
 
     def _update_editor(self, index, editor):
         pass
 
     def _disconnect_widget(self, widget):
-        widget.unregister_updaters()
+        self.remove_updating_child(widget)
 
 
-class ChDefaults(QWidget):
+class ChDefaults(QWidget, UpdatingView):
 
     def __init__(self, ch_num):
         super().__init__()
         self._ch_num = ch_num
-        self._ui_model = None
         self._module = None
-        self._updater = None
 
         self._control_catalogue = {}
 
@@ -108,11 +100,12 @@ class ChDefaults(QWidget):
         h.addWidget(self._init_expr)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._module = ui_model.get_module()
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_controls', self._update_all)
+        self.register_action('signal_order_list', self._update_all)
+        self.register_action(self._get_update_signal_type(), self._update_all)
+
+        self._module = self._ui_model.get_module()
 
         QObject.connect(
                 self._au_selector,
@@ -124,19 +117,8 @@ class ChDefaults(QWidget):
 
         self._update_all()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
     def _get_update_signal_type(self):
         return '_'.join(('signal_ch_defaults', str(self._ch_num)))
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_controls',
-            'signal_order_list',
-            self._get_update_signal_type()])
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
 
     def _get_control_text(self, control_id):
         parts = control_id.split('_')
