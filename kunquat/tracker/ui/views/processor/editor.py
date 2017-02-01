@@ -15,9 +15,9 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.headerline import HeaderLine
-from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from .infoeditor import InfoEditor
+from .prockeyboardmapper import ProcessorKeyboardMapper
 from . import proctypeinfo
 
 
@@ -35,7 +35,7 @@ class Editor(QWidget):
         self._signals = Signals()
         self._info_editor = InfoEditor()
 
-        self._keyboard_mapper = KeyboardMapper()
+        self._keyboard_mapper = ProcessorKeyboardMapper()
 
         self._test_output = QCheckBox('Test output')
 
@@ -49,11 +49,13 @@ class Editor(QWidget):
         self._au_id = au_id
         self._signals.set_au_id(au_id)
         self._info_editor.set_au_id(au_id)
+        self._keyboard_mapper.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._proc_id = proc_id
         self._signals.set_proc_id(proc_id)
         self._info_editor.set_proc_id(proc_id)
+        self._keyboard_mapper.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         assert self._au_id != None
@@ -140,21 +142,8 @@ class Editor(QWidget):
                 'signal_proc_test_output{}'.format(self._proc_id))
 
     def keyPressEvent(self, event):
-        module = self._ui_model.get_module()
-        control_id = module.get_control_id_by_au_id(self._au_id)
-        if not control_id:
-            return
-
-        use_test_output = (self._is_processor_testable() and
-            self._control_manager.is_processor_testing_enabled(self._proc_id))
-
-        self._control_manager.set_control_id_override(control_id)
-        if use_test_output:
-            self._control_manager.set_test_processor(control_id, self._proc_id)
         if not self._keyboard_mapper.process_typewriter_button_event(event):
             event.ignore()
-        self._control_manager.set_test_processor(control_id, None)
-        self._control_manager.set_control_id_override(None)
 
     def keyReleaseEvent(self, event):
         if not self._keyboard_mapper.process_typewriter_button_event(event):

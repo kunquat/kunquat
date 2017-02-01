@@ -14,6 +14,8 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from .updatingview import UpdatingView
+
 
 # TODO: Define alternatives for different environments if/when needed
 _TYPEWRITER_MAP = {}
@@ -24,21 +26,15 @@ _TYPEWRITER_MAP.update(dict((39 + x, (2, x)) for x in range(7)))
 _TYPEWRITER_MAP.update(dict((52 + x, (3, x)) for x in range(7)))
 
 
-class KeyboardMapper():
+class KeyboardMapper(UpdatingView):
 
     def __init__(self):
-        self._ui_model = None
-        self._updater = None
         self._typewriter_manager = None
         self._typewriter_map = _TYPEWRITER_MAP
+        super().__init__()
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._typewriter_manager = ui_model.get_typewriter_manager()
-
-    def unregister_updaters(self):
-        pass
+    def _on_setup(self):
+        self._typewriter_manager = self._ui_model.get_typewriter_manager()
 
     def process_typewriter_button_event(self, event):
         # Note playback
@@ -72,6 +68,7 @@ class KeyboardMapper():
                 keymap_manager.set_hit_keymap_active(not is_hit_keymap_active)
                 self._updater.signal_update('signal_select_keymap')
             return True
+
         return False
 
     def get_typewriter_button_model(self, scancode):

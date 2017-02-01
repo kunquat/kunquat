@@ -22,9 +22,9 @@ from kunquat.tracker.ui.model.procparams.sampleparams import SampleImportError
 from kunquat.tracker.ui.views.audiounit.hitselector import HitSelector
 from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
 from kunquat.tracker.ui.views.editorlist import EditorList
-from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.utils import lerp_val
+from .prockeyboardmapper import ProcessorKeyboardMapper
 from .sampleview import SampleView
 from .updatingprocview import UpdatingProcView
 from . import utils
@@ -1103,7 +1103,7 @@ class Samples(QSplitter):
         self._sample_list = SampleList()
         self._sample_editor = SampleEditor()
 
-        self._keyboard_mapper = KeyboardMapper()
+        self._keyboard_mapper = ProcessorKeyboardMapper()
 
         h = QHBoxLayout()
         h.setSpacing(4)
@@ -1115,11 +1115,13 @@ class Samples(QSplitter):
         self._au_id = au_id
         self._sample_list.set_au_id(au_id)
         self._sample_editor.set_au_id(au_id)
+        self._keyboard_mapper.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._proc_id = proc_id
         self._sample_list.set_proc_id(proc_id)
         self._sample_editor.set_proc_id(proc_id)
+        self._keyboard_mapper.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -1146,19 +1148,16 @@ class Samples(QSplitter):
         use_test_output = (proc.get_existence() and
             control_manager.is_processor_testing_enabled(self._proc_id))
 
-        control_manager.set_control_id_override(control_id)
         if use_test_output:
             sample_params = utils.get_proc_params(
                     self._ui_model, self._au_id, self._proc_id)
             sample_id = sample_params.get_selected_sample_id()
             sample_num = int(sample_id.split('_')[1], 16)
             sample_num_param = str(sample_num)
-            control_manager.set_test_processor(
-                    control_id, self._proc_id, sample_num_param)
+            control_manager.set_test_processor_param(self._proc_id, sample_num_param)
         if not self._keyboard_mapper.process_typewriter_button_event(event):
             event.ignore()
-        control_manager.set_test_processor(control_id, None)
-        control_manager.set_control_id_override(None)
+        control_manager.set_test_processor_param(self._proc_id, None)
 
 
 class SampleListToolBar(QToolBar, UpdatingProcView):
@@ -1357,15 +1356,17 @@ class SampleListView(QListView):
         self._ui_model = None
         self._updater = None
 
-        self._keyboard_mapper = KeyboardMapper()
+        self._keyboard_mapper = ProcessorKeyboardMapper()
 
         self.setSelectionMode(QAbstractItemView.SingleSelection)
 
     def set_au_id(self, au_id):
         self._au_id = au_id
+        self._keyboard_mapper.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._proc_id = proc_id
+        self._keyboard_mapper.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model

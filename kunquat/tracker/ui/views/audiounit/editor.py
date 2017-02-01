@@ -16,8 +16,8 @@ from itertools import chain
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
+from .aukeyboardmapper import AudioUnitKeyboardMapper
 from .aunumslider import AuNumSlider
 from .components import Components
 from .expressions import Expressions
@@ -44,7 +44,7 @@ class Editor(QWidget):
         self._ports = Ports()
         self._info_editor = InfoEditor()
 
-        self._keyboard_mapper = KeyboardMapper()
+        self._keyboard_mapper = AudioUnitKeyboardMapper()
 
     def set_au_id(self, au_id):
         self._au_id = au_id
@@ -54,6 +54,7 @@ class Editor(QWidget):
         self._expressions.set_au_id(au_id)
         self._ports.set_au_id(au_id)
         self._info_editor.set_au_id(au_id)
+        self._keyboard_mapper.set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -94,19 +95,8 @@ class Editor(QWidget):
         self._test_panel.unregister_updaters()
 
     def keyPressEvent(self, event):
-        module = self._ui_model.get_module()
-        control_id = module.get_control_id_by_au_id(self._au_id)
-        if not control_id:
-            return
-
-        au = module.get_audio_unit(self._au_id)
-
-        self._control_manager.set_control_id_override(control_id)
-        au.set_test_params_enabled(True)
         if not self._keyboard_mapper.process_typewriter_button_event(event):
             event.ignore()
-        self._control_manager.set_control_id_override(None)
-        au.set_test_params_enabled(False)
 
     def keyReleaseEvent(self, event):
         if not self._keyboard_mapper.process_typewriter_button_event(event):
