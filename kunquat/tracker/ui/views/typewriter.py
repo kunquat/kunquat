@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2014-2016
+#          Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -17,36 +17,23 @@ from PySide.QtGui import *
 
 from .keyboardmapper import KeyboardMapper
 from .typewriterbutton import TypewriterButton
+from .updatingview import UpdatingView
 
 
-class Typewriter(QFrame):
+class Typewriter(QFrame, UpdatingView):
 
     _PAD = 35
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
         self._typewriter_manager = None
-        self._current_buttons = set()
         self._keyboard_mapper = KeyboardMapper()
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._typewriter_manager = ui_model.get_typewriter_manager()
-        self._keyboard_mapper.set_ui_model(ui_model)
+    def _on_setup(self):
+        self.add_updating_child(self._keyboard_mapper)
 
+        self._typewriter_manager = self._ui_model.get_typewriter_manager()
         self.setLayout(self._get_layout())
-
-    def unregister_updaters(self):
-        self._keyboard_mapper.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-        self._unregister_button_updaters()
-
-    def _perform_updates(self, signals):
-        pass
 
     def _get_layout(self):
         rows = QVBoxLayout()
@@ -65,9 +52,8 @@ class Typewriter(QFrame):
 
         for i in range(self._typewriter_manager.get_button_count_at_row(index)):
             button = TypewriterButton(index, i)
-            button.set_ui_model(self._ui_model)
+            self.add_updating_child(button)
             row.addWidget(button)
-            self._current_buttons.add(button)
 
         row.addStretch(1)
         return row
@@ -76,11 +62,6 @@ class Typewriter(QFrame):
         pad = QWidget()
         pad.setFixedWidth(psize)
         return pad
-
-    def _unregister_button_updaters(self):
-        for button in list(self._current_buttons):
-            button.unregister_updaters()
-            self._current_buttons.remove(button)
 
     def keyPressEvent(self, event):
         selection = self._ui_model.get_selection()

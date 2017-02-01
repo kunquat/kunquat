@@ -1090,14 +1090,10 @@ class HitRandomList(RandomList):
             'signal_sample_format_{}'.format(self._proc_id)])
 
 
-class Samples(QSplitter):
+class Samples(QSplitter, UpdatingProcView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-
         self.setOrientation(Qt.Horizontal)
 
         self._sample_list = SampleList()
@@ -1105,34 +1101,14 @@ class Samples(QSplitter):
 
         self._keyboard_mapper = ProcessorKeyboardMapper()
 
+        self.add_updating_child(
+                self._sample_list, self._sample_editor, self._keyboard_mapper)
+
         h = QHBoxLayout()
         h.setSpacing(4)
         h.addWidget(self._sample_list, 1)
         h.addWidget(self._sample_editor, 2)
         self.setLayout(h)
-
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._sample_list.set_au_id(au_id)
-        self._sample_editor.set_au_id(au_id)
-        self._keyboard_mapper.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-        self._sample_list.set_proc_id(proc_id)
-        self._sample_editor.set_proc_id(proc_id)
-        self._keyboard_mapper.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._sample_list.set_ui_model(ui_model)
-        self._sample_editor.set_ui_model(ui_model)
-        self._keyboard_mapper.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._keyboard_mapper.unregister_updaters()
-        self._sample_editor.unregister_updaters()
-        self._sample_list.unregister_updaters()
 
     def keyPressEvent(self, event):
         module = self._ui_model.get_module()
@@ -1347,35 +1323,15 @@ class SampleListModel(QAbstractListModel, UpdatingProcView):
         return None
 
 
-class SampleListView(QListView):
+class SampleListView(QListView, UpdatingProcView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._keyboard_mapper = ProcessorKeyboardMapper()
 
+        self.add_updating_child(self._keyboard_mapper)
+
         self.setSelectionMode(QAbstractItemView.SingleSelection)
-
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._keyboard_mapper.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-        self._keyboard_mapper.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
-        self._keyboard_mapper.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._keyboard_mapper.unregister_updaters()
 
     def _get_update_signal_type(self):
         return 'signal_proc_select_sample_{}'.format(self._proc_id)

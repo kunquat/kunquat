@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -16,9 +16,10 @@ from PySide.QtGui import *
 
 from .connectionseditor import ConnectionsEditor
 from .keyboardmapper import KeyboardMapper
+from .updatingview import UpdatingView
 
 
-class ConnectionsWindow(QWidget):
+class ConnectionsWindow(QWidget, UpdatingView):
 
     def __init__(self):
         super().__init__()
@@ -27,6 +28,8 @@ class ConnectionsWindow(QWidget):
 
         self._keyboard_mapper = KeyboardMapper()
 
+        self.add_updating_child(self._conns_editor, self._keyboard_mapper)
+
         self.setWindowTitle('Connections')
 
         v = QVBoxLayout()
@@ -34,15 +37,6 @@ class ConnectionsWindow(QWidget):
         v.setSpacing(0)
         v.addWidget(self._conns_editor)
         self.setLayout(v)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._conns_editor.set_ui_model(ui_model)
-        self._keyboard_mapper.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._keyboard_mapper.unregister_updaters()
-        self._conns_editor.unregister_updaters()
 
     def closeEvent(self, event):
         event.ignore()
