@@ -18,14 +18,13 @@ from kunquat.tracker.ui.model.patterninstance import PatternInstance
 from kunquat.tracker.ui.model.song import Song
 from .headerline import HeaderLine
 from .orderlist import Orderlist
+from .updatingview import UpdatingView
 
 
-class OrderlistEditor(QWidget):
+class OrderlistEditor(QWidget, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
         self._album = None
         self._orderlist_manager = None
         self._orderlist = Orderlist()
@@ -41,24 +40,16 @@ class OrderlistEditor(QWidget):
         v.addWidget(self._orderlist)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        module = ui_model.get_module()
+    def _on_setup(self):
+        self.add_updating_child(self._orderlist, self._toolbar)
+        self.register_action('signal_order_list', self._acknowledge_update)
+
+        module = self._ui_model.get_module()
         self._album = module.get_album()
-        self._orderlist_manager = ui_model.get_orderlist_manager()
-        self._orderlist.set_ui_model(ui_model)
-        self._toolbar.set_ui_model(ui_model)
+        self._orderlist_manager = self._ui_model.get_orderlist_manager()
 
-    def unregister_updaters(self):
-        self._toolbar.unregister_updaters()
-        self._orderlist.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_order_list' in signals:
-            self._waiting_for_update = False
+    def _acknowledge_update(self):
+        self._waiting_for_update = False
 
     def _handle_insert_at(self, offset):
         selection = self._orderlist.get_selected_object()

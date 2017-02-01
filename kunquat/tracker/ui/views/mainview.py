@@ -22,20 +22,27 @@ from .inputcontrols import InputControls
 from .peakmeter import PeakMeter
 from .portal import Portal
 from .topcontrols import TopControls
+from .updatingview import UpdatingView
 
 
-class MainView(QWidget):
+class MainView(QWidget, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
         self._portal = Portal()
         self._top_controls = TopControls()
         self._composition = Composition()
         self._input_controls = InputControls()
         self._import_progress = ImportProgress()
         self._peak_meter = PeakMeter()
+
+        self.add_updating_child(
+                self._portal,
+                self._top_controls,
+                self._composition,
+                self._input_controls,
+                self._import_progress,
+                self._peak_meter)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -52,24 +59,6 @@ class MainView(QWidget):
 
         if not cmdline.get_experimental():
             self._import_progress.hide()
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._portal.set_ui_model(ui_model)
-        self._top_controls.set_ui_model(ui_model)
-        self._composition.set_ui_model(ui_model)
-        self._input_controls.set_ui_model(ui_model)
-        self._import_progress.set_ui_model(ui_model)
-        self._peak_meter.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._peak_meter.unregister_updaters()
-        self._import_progress.unregister_updaters()
-        self._input_controls.unregister_updaters()
-        self._composition.unregister_updaters()
-        self._top_controls.unregister_updaters()
-        self._portal.unregister_updaters()
 
     def keyPressEvent(self, event):
         if event.modifiers() == Qt.NoModifier:

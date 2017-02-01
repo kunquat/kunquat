@@ -57,7 +57,6 @@ class TypewriterPanel(QFrame):
         self._hit_map_toggle.set_ui_model(ui_model)
         self._octave_selector.set_ui_model(ui_model)
         self._typewriter.set_ui_model(ui_model)
-        self._profile_control.set_ui_model(ui_model)
 
     def keyPressEvent(self, event):
         modifiers = event.modifiers()

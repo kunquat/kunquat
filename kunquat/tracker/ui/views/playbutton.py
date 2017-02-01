@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2014-2016
+#          Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,30 +15,22 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from .updatingview import UpdatingView
 
-class PlayButton(QToolButton):
+
+class PlayButton(QToolButton, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-
         self.setText('Play')
         self.setToolTip('Play (Comma)')
         self.setAutoRaise(True)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
+    def _on_setup(self):
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('play')
         icon = QIcon(icon_path)
         self.setIcon(icon)
-        QObject.connect(self, SIGNAL('clicked()'),
-                        self._ui_model.play)
-
-    def unregister_updaters(self):
-        pass
-
-    def _update(self):
-        pass
+        QObject.connect(self, SIGNAL('clicked()'), self._ui_model.play)
 
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,16 +15,13 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .processor.editor import Editor
+from .processor.updatingprocview import UpdatingProcView
 
 
-class ProcWindow(QWidget):
+class ProcWindow(QWidget, UpdatingProcView):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
         self._editor = Editor()
 
         v = QVBoxLayout()
@@ -32,30 +29,11 @@ class ProcWindow(QWidget):
         v.addWidget(self._editor)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._editor.set_au_id(au_id)
+    def _on_setup(self):
+        self.add_updating_child(self._editor)
+        self.register_action('signal_controls', self._update_title)
 
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-        self._editor.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        assert self._au_id != None
-        assert self._proc_id != None
-        self._ui_model = ui_model
-        self._editor.set_ui_model(ui_model)
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
         self._update_title()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-        self._editor.unregister_updaters()
-
-    def _perform_updates(self, signals):
-        if 'signal_controls' in signals:
-            self._update_title()
 
     def _update_title(self):
         module = self._ui_model.get_module()

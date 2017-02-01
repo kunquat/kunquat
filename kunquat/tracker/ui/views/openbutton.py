@@ -17,22 +17,17 @@ from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 from .kqtutils import get_kqt_file_path, open_kqt_au
+from .updatingview import UpdatingView
 
 
-class OpenButton(QToolButton):
+class OpenButton(QToolButton, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-
         self.setText('Open')
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
+    def _on_setup(self):
         QObject.connect(self, SIGNAL('clicked()'), self._clicked)
-
-    def unregister_updaters(self):
-        pass
 
     def _clicked(self):
         file_path = get_kqt_file_path(set(['kqt', 'kqti', 'kqte']))

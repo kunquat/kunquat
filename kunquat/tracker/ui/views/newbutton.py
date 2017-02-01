@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2017
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -15,21 +15,17 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from .updatingview import UpdatingView
 
-class NewButton(QToolButton):
+
+class NewButton(QToolButton, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-
         self.setText('New')
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
+    def _on_setup(self):
         QObject.connect(self, SIGNAL('clicked()'), self._clicked)
-
-    def unregister_updaters(self):
-        pass
 
     def _clicked(self):
         process_manager = self._ui_model.get_process_manager()

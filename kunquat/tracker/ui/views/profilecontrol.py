@@ -71,9 +71,6 @@ class ProfileControl(QDialog):
         v.addWidget(self._details)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-
     def _set_profile_stats(self, profile):
         self._stats_output = StringIO()
         self._stats = pstats.Stats(profile, stream=self._stats_output)
