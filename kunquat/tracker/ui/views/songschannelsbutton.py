@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2014
-#          Tomi Jylhä-Ollila, Finland 2016
+#          Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,21 +15,17 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from .updatingview import UpdatingView
 
-class SongsChannelsButton(QToolButton):
+
+class SongsChannelsButton(QToolButton, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-
         self.setText('Songs && channels')
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
+    def _on_setup(self):
         QObject.connect(self, SIGNAL('clicked()'), self._clicked)
-
-    def unregister_updaters(self):
-        pass
 
     def _clicked(self):
         visibility_manager = self._ui_model.get_visibility_manager()

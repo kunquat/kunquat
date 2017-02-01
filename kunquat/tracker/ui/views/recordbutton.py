@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2014-2016
+#          Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,13 +15,13 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from .updatingview import UpdatingView
 
-class RecordButton(QToolButton):
+
+class RecordButton(QToolButton, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
         self._sheet_manager = None
         self._playback_manager = None
 
@@ -29,12 +29,11 @@ class RecordButton(QToolButton):
         self.setText('Record')
         self.setAutoRaise(True)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._sheet_manager = ui_model.get_sheet_manager()
-        self._playback_manager = ui_model.get_playback_manager()
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_record_mode', self._update_checked)
+
+        self._sheet_manager = self._ui_model.get_sheet_manager()
+        self._playback_manager = self._ui_model.get_playback_manager()
 
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('record')
@@ -43,13 +42,6 @@ class RecordButton(QToolButton):
 
         QObject.connect(self, SIGNAL('clicked()'),
                         self._clicked)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_record_mode' in signals:
-            self._update_checked()
 
     def _update_checked(self):
         old_block = self.blockSignals(True)

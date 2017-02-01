@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -20,9 +20,10 @@ from .playbutton import PlayButton
 from .playpatternbutton import PlayPatternButton
 from .recordbutton import RecordButton
 from .silencebutton import SilenceButton
+from .updatingview import UpdatingView
 
 
-class TopControls(QToolBar):
+class TopControls(QToolBar, UpdatingView):
 
     def __init__(self):
         super().__init__()
@@ -33,6 +34,15 @@ class TopControls(QToolBar):
         self._silence_button = SilenceButton()
         self._playback_pos = PlaybackPosition()
         self._interactivity_button = InteractivityButton()
+
+        self.add_updating_child(
+                self._play_button,
+                self._play_pattern_button,
+                self._play_from_cursor_button,
+                self._record_button,
+                self._silence_button,
+                self._playback_pos,
+                self._interactivity_button)
 
         self.addWidget(self._play_button)
         self.addWidget(self._play_pattern_button)
@@ -45,62 +55,31 @@ class TopControls(QToolBar):
         self.addSeparator()
         self.addWidget(self._interactivity_button)
 
-    def set_ui_model(self, ui_model):
-        self._play_button.set_ui_model(ui_model)
-        self._play_pattern_button.set_ui_model(ui_model)
-        self._play_from_cursor_button.set_ui_model(ui_model)
-        self._record_button.set_ui_model(ui_model)
-        self._silence_button.set_ui_model(ui_model)
-        self._playback_pos.set_ui_model(ui_model)
-        self._interactivity_button.set_ui_model(ui_model)
 
-    def unregister_updaters(self):
-        self._interactivity_button.unregister_updaters()
-        self._playback_pos.unregister_updaters()
-        self._silence_button.unregister_updaters()
-        self._record_button.unregister_updaters()
-        self._play_from_cursor_button.unregister_updaters()
-        self._play_pattern_button.unregister_updaters()
-        self._play_button.unregister_updaters()
-
-
-class PlayFromCursorButton(QToolButton):
+class PlayFromCursorButton(QToolButton, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-
         self.setText('Play from Cursor')
         self.setToolTip('Play from Cursor (Alt + Comma)')
         self.setAutoRaise(True)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
+    def _on_setup(self):
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('play_from_cursor')
         icon = QIcon(icon_path)
         self.setIcon(icon)
         QObject.connect(self, SIGNAL('clicked()'), self._ui_model.play_from_cursor)
 
-    def unregister_updaters(self):
-        pass
 
-
-class InteractivityButton(QToolButton):
+class InteractivityButton(QToolButton, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-
         self.setText('Interactivity')
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-
+    def _on_setup(self):
         QObject.connect(self, SIGNAL('clicked()'), self._show_ia_window)
-
-    def unregister_updaters(self):
-        pass
 
     def _show_ia_window(self):
         visibility_manager = self._ui_model.get_visibility_manager()

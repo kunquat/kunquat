@@ -14,23 +14,21 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from .updatingview import UpdatingView
 
-class SilenceButton(QToolButton):
+
+class SilenceButton(QToolButton, UpdatingView):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
         self._playback_manager = None
 
         self.setText('Silence')
         self.setToolTip('Silence (Period)')
         self.setAutoRaise(True)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._playback_manager = ui_model.get_playback_manager()
+    def _on_setup(self):
+        self._playback_manager = self._ui_model.get_playback_manager()
 
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('silence')
@@ -38,9 +36,6 @@ class SilenceButton(QToolButton):
         self.setIcon(icon)
 
         QObject.connect(self, SIGNAL('clicked()'), self._clicked)
-
-    def unregister_updaters(self):
-        pass
 
     def _clicked(self):
         self._playback_manager.stop_recording()
