@@ -16,9 +16,9 @@ from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.headerline import HeaderLine
-from kunquat.tracker.ui.views.audiounit.simpleenv import SimpleEnvelope
 from kunquat.tracker.ui.views.audiounit.timeenv import TimeEnvelope
 from .procnumslider import ProcNumSlider
+from .procsimpleenv import ProcessorSimpleEnvelope
 from .updatingprocview import UpdatingProcView
 from . import utils
 
@@ -246,14 +246,10 @@ class EgenTimeEnv(TimeEnvelope):
         self._get_egen_params().set_time_env(envelope)
 
 
-class ForceEnv(SimpleEnvelope):
+class ForceEnv(ProcessorSimpleEnvelope):
 
     def __init__(self):
         super().__init__()
-        self._proc_id = None
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
 
     def _get_update_signal_type(self):
         return ''.join(('signal_add_force_mod_volume_', self._au_id, self._proc_id))
