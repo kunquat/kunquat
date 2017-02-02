@@ -478,9 +478,11 @@ class Notes(QWidget, UpdatingView):
         return 'signal_tuning_table_{}'.format(self._table_id)
 
     def _update_model(self):
+        if self._table_model:
+            self.remove_updating_child(self._table_model)
         self._table_model = NoteTableModel()
         self._table_model.set_tuning_table_id(self._table_id)
-        self._table_model.set_ui_model(self._ui_model)
+        self.add_updating_child(self._table_model)
         self._table_view.setModel(self._table_model)
 
 

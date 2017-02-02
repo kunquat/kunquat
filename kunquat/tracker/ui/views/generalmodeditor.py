@@ -204,8 +204,10 @@ class Authors(QTableView, UpdatingView):
             if current_index.isValid():
                 selected = current_index.column()
 
+        if self._model:
+            self.remove_updating_child(self._model)
         self._model = AuthorTableModel()
-        self._model.set_ui_model(self._ui_model)
+        self.add_updating_child(self._model)
         self.setModel(self._model)
 
         if selected != None:

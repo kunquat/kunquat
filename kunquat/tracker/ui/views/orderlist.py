@@ -292,8 +292,10 @@ class Orderlist(QWidget, UpdatingView):
         self._update_model()
 
     def _update_model(self):
+        if self._album_tree_model:
+            self.remove_updating_child(self._album_tree_model)
         self._album_tree_model = AlbumTreeModel()
-        self._album_tree_model.set_ui_model(self._ui_model)
+        self.add_updating_child(self._album_tree_model)
         self._album_tree.setModel(self._album_tree_model)
         self._album_tree.expandAll()
 

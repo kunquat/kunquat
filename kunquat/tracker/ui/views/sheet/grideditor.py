@@ -161,8 +161,10 @@ class GridList(QWidget, UpdatingView):
         self._update_model()
 
     def _update_model(self):
+        if self._grid_list_model:
+            self.remove_updating_child(self._grid_list_model)
         self._grid_list_model = GridListModel()
-        self._grid_list_model.set_ui_model(self._ui_model)
+        self.add_updating_child(self._grid_list_model)
         self._grid_list_view.setModel(self._grid_list_model)
 
 

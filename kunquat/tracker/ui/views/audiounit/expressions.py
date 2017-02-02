@@ -257,9 +257,10 @@ class ExpressionList(QWidget, UpdatingAUView):
         return 'signal_expr_list_{}'.format(self._au_id)
 
     def _update_model(self):
+        if self._expr_list_model:
+            self.remove_updating_child(self._expr_list_model)
         self._expr_list_model = ExpressionListModel()
-        self._expr_list_model.set_au_id(self._au_id)
-        self._expr_list_model.set_ui_model(self._ui_model)
+        self.add_updating_child(self._expr_list_model)
         self._expr_list_view.setModel(self._expr_list_model)
 
 

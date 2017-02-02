@@ -195,8 +195,10 @@ class BindList(QWidget, UpdatingView):
         self._update_model()
 
     def _update_model(self):
+        if self._list_model:
+            self.remove_updating_child(self._list_model)
         self._list_model = BindListModel()
-        self._list_model.set_ui_model(self._ui_model)
+        self.add_updating_child(self._list_model)
         self._list_view.setModel(self._list_model)
 
 

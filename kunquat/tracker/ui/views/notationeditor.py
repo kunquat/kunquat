@@ -270,8 +270,10 @@ class Notations(QWidget, UpdatingView):
         self._update_model()
 
     def _update_model(self):
+        if self._list_model:
+            self.remove_updating_child(self._list_model)
         self._list_model = NotationListModel()
-        self._list_model.set_ui_model(self._ui_model)
+        self.add_updating_child(self._list_model)
         self._list_view.setModel(self._list_model)
 
 
@@ -492,8 +494,10 @@ class TuningTables(QWidget, UpdatingView):
         self._update_selection()
 
     def _update_model(self):
+        if self._list_model:
+            self.remove_updating_child(self._list_model)
         self._list_model = TuningTableListModel()
-        self._list_model.set_ui_model(self._ui_model)
+        self.add_updating_child(self._list_model)
         self._list_view.setModel(self._list_model)
 
     def _update_selection(self):
@@ -1126,8 +1130,10 @@ class TemplateNotes(QWidget, UpdatingView):
         self._update_model()
 
     def _update_model(self):
+        if self._table_model:
+            self.remove_updating_child(self._table_model)
         self._table_model = TemplateNoteTableModel()
-        self._table_model.set_ui_model(self._ui_model)
+        self.add_updating_child(self._table_model)
         self._table_view.setModel(self._table_model)
 
 
@@ -1356,8 +1362,10 @@ class Octaves(QWidget, UpdatingView):
         self._update_enabled()
 
     def _update_model(self):
+        if self._list_model:
+            self.remove_updating_child(self._list_model)
         self._list_model = OctaveListModel()
-        self._list_model.set_ui_model(self._ui_model)
+        self.add_updating_child(self._list_model)
         self._list_view.setModel(self._list_model)
 
     def _update_enabled(self):
@@ -1536,8 +1544,10 @@ class Notes(QWidget, UpdatingView):
         self._update_enabled()
 
     def _update_model(self):
+        if self._list_model:
+            self.remove_updating_child(self._list_model)
         self._list_model = NoteListModel()
-        self._list_model.set_ui_model(self._ui_model)
+        self.add_updating_child(self._list_model)
         self._list_view.setModel(self._list_model)
 
     def _update_enabled(self):

@@ -1398,10 +1398,10 @@ class SampleList(QWidget, UpdatingProcView):
         return 'signal_sample_rename_{}'.format(self._proc_id)
 
     def _update_model(self):
+        if self._list_model:
+            self.remove_updating_child(self._list_model)
         self._list_model = SampleListModel()
-        self._list_model.set_au_id(self._au_id)
-        self._list_model.set_proc_id(self._proc_id)
-        self._list_model.set_ui_model(self._ui_model)
+        self.add_updating_child(self._list_model)
         self._list_view.setModel(self._list_model)
 
 
