@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import types
 from collections import OrderedDict
 
 
@@ -52,7 +53,16 @@ class UpdatingView():
 
     def register_action(self, signal, action):
         assert signal not in self._signal_action_map
-        self._signal_action_map[signal] = action
+
+        if type(action) == types.BuiltinMethodType:
+            action_id = (id(action.__self__), id(action))
+        elif type(action) == types.MethodType:
+            action_id = (id(action.__self__), id(action.__func__))
+        else:
+            assert False, 'Unexpected action type: {}'.format(type(action))
+
+        action_info = (action, action_id)
+        self._signal_action_map[signal] = action_info
         if self._updater:
             self._updater.register_updater(self._update)
 
@@ -78,8 +88,11 @@ class UpdatingView():
             self._updater.unregister_updater(self._update)
 
     def _update(self, signals):
-        for signal, action in self._signal_action_map.items():
-            if signal in signals:
+        called_action_ids = set()
+        for signal, action_info in self._signal_action_map.items():
+            action, action_id = action_info
+            if (signal in signals) and (action_id not in called_action_ids):
+                called_action_ids.add(action_id)
                 action()
 
     # Protected callbacks
