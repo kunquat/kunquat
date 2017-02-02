@@ -15,8 +15,8 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.envelope import Envelope
-from kunquat.tracker.ui.views.audiounit.timeenv import TimeEnvelope
 from .procnumslider import ProcNumSlider
+from .proctimeenv import ProcessorTimeEnvelope
 from .updatingprocview import UpdatingProcView
 
 
@@ -152,14 +152,10 @@ class RampReleaseToggle(QCheckBox, UpdatingProcView):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class ForceEnvelopeBase(TimeEnvelope):
+class ForceEnvelopeBase(ProcessorTimeEnvelope):
 
     def __init__(self):
         super().__init__()
-        self._proc_id = None
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
 
     def _get_force_params(self):
         module = self._ui_model.get_module()

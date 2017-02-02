@@ -14,10 +14,10 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from kunquat.tracker.ui.views.audiounit.timeenv import TimeEnvelope
 from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from .procnumslider import ProcNumSlider
+from .proctimeenv import ProcessorTimeEnvelope
 from .updatingprocview import UpdatingProcView
 from . import utils
 
@@ -89,16 +89,11 @@ class DampSlider(ProcNumSlider):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class InitEnvelope(TimeEnvelope):
+class InitEnvelope(ProcessorTimeEnvelope):
 
     def __init__(self):
         super().__init__()
-        self._proc_id = None
-
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
 
     def _get_title(self):
         return 'Initial excitation envelope'
@@ -152,16 +147,11 @@ class InitEnvelope(TimeEnvelope):
         self._get_ks_params().set_init_env(envelope)
 
 
-class ShiftEnvelope(TimeEnvelope):
+class ShiftEnvelope(ProcessorTimeEnvelope):
 
     def __init__(self):
         super().__init__()
-        self._proc_id = None
-
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
 
     def _get_title(self):
         return 'Pitch shift excitation envelope'
@@ -255,16 +245,11 @@ class ShiftVar(ProcNumSlider):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class ReleaseEnvelope(TimeEnvelope):
+class ReleaseEnvelope(ProcessorTimeEnvelope):
 
     def __init__(self):
         super().__init__()
-        self._proc_id = None
-
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
 
     def _get_title(self):
         return 'Release excitation envelope'

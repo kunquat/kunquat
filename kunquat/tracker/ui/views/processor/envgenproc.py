@@ -16,9 +16,9 @@ from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.headerline import HeaderLine
-from kunquat.tracker.ui.views.audiounit.timeenv import TimeEnvelope
 from .procnumslider import ProcNumSlider
 from .procsimpleenv import ProcessorSimpleEnvelope
+from .proctimeenv import ProcessorTimeEnvelope
 from .updatingprocview import UpdatingProcView
 from . import utils
 
@@ -174,16 +174,11 @@ class RangeEditor(QWidget, UpdatingProcView):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class EgenTimeEnv(TimeEnvelope):
+class EgenTimeEnv(ProcessorTimeEnvelope):
 
     def __init__(self):
         super().__init__()
-        self._proc_id = None
-
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
 
     def _get_title(self):
         return 'Envelope'
