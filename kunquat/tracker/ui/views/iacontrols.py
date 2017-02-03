@@ -30,7 +30,7 @@ class IAControls(QWidget, Updater):
         self._inf_toggle = InfiniteToggle()
         self._runtime_var_list = RuntimeVarList()
 
-        self.add_updating_child(self._inf_toggle, self._runtime_var_list)
+        self.add_to_updaters(self._inf_toggle, self._runtime_var_list)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
@@ -95,7 +95,7 @@ class RuntimeVarList(EditorList, Updater):
         var_names = self._get_var_names()
 
         editor = RuntimeVarEditor()
-        self.add_updating_child(editor)
+        self.add_to_updaters(editor)
         editor.update_name(var_names[index])
         return editor
 
@@ -104,7 +104,7 @@ class RuntimeVarList(EditorList, Updater):
         editor.update_name(var_names[index])
 
     def _disconnect_widget(self, widget):
-        self.remove_updating_child(widget)
+        self.remove_from_updaters(widget)
 
 
 class RuntimeVarEditor(QWidget, Updater):
@@ -115,7 +115,7 @@ class RuntimeVarEditor(QWidget, Updater):
         self._header = QLabel()
         self._editor = RuntimeVarValueEditor()
 
-        self.add_updating_child(self._editor)
+        self.add_to_updaters(self._editor)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)

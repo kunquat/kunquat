@@ -26,7 +26,7 @@ class EnvBindWindow(QWidget, Updater):
         self._bind_editor = BindEditor()
         self._env_editor = EnvironmentEditor()
 
-        self.add_updating_child(self._bind_editor, self._env_editor)
+        self.add_to_updaters(self._bind_editor, self._env_editor)
 
         self.setWindowTitle('Environment & bindings')
 

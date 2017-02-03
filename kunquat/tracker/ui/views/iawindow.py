@@ -24,7 +24,7 @@ class IAWindow(QWidget, Updater):
         super().__init__()
         self._ia_controls = IAControls()
 
-        self.add_updating_child(self._ia_controls)
+        self.add_to_updaters(self._ia_controls)
 
         self.setWindowTitle('Interactivity controls')
 

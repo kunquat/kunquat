@@ -25,7 +25,7 @@ class Composition(QFrame, Updater):
         super().__init__()
 
         self._sheet = Sheet()
-        self.add_updating_child(self._sheet)
+        self.add_to_updaters(self._sheet)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)

@@ -28,7 +28,7 @@ class ChDefaultsEditor(QWidget, Updater):
         super().__init__()
 
         self._ch_defaults_list = ChDefaultsList()
-        self.add_updating_child(self._ch_defaults_list)
+        self.add_to_updaters(self._ch_defaults_list)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -54,14 +54,14 @@ class ChDefaultsList(EditorList, Updater):
 
     def _make_editor_widget(self, index):
         chd = ChDefaults(index)
-        self.add_updating_child(chd)
+        self.add_to_updaters(chd)
         return chd
 
     def _update_editor(self, index, editor):
         pass
 
     def _disconnect_widget(self, widget):
-        self.remove_updating_child(widget)
+        self.remove_from_updaters(widget)
 
 
 class ChDefaults(QWidget, Updater):

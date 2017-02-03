@@ -28,7 +28,7 @@ class ConnectionsWindow(QWidget, Updater):
 
         self._keyboard_mapper = KeyboardMapper()
 
-        self.add_updating_child(self._conns_editor, self._keyboard_mapper)
+        self.add_to_updaters(self._conns_editor, self._keyboard_mapper)
 
         self.setWindowTitle('Connections')
 

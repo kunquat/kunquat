@@ -35,7 +35,7 @@ class TypewriterPanel(QFrame, Updater):
         self._typewriter = Typewriter()
         self._profile_control = ProfileControl()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._notation_select,
                 self._hit_map_toggle,
                 self._octave_selector,

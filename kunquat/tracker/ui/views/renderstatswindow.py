@@ -24,7 +24,7 @@ class RenderStatsWindow(QWidget, Updater):
         super().__init__()
         self._render_stats = RenderStats()
 
-        self.add_updating_child(self._render_stats)
+        self.add_to_updaters(self._render_stats)
 
         self.setWindowTitle('System load')
 

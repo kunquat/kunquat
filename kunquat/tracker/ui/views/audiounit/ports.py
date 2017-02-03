@@ -27,7 +27,7 @@ class Ports(QWidget, AudioUnitUpdater):
         self._input_ports = InputPorts()
         self._output_ports = OutputPorts()
 
-        self.add_updating_child(self._input_ports, self._output_ports)
+        self.add_to_updaters(self._input_ports, self._output_ports)
 
         h = QHBoxLayout()
         h.setContentsMargins(4, 4, 4, 4)
@@ -44,7 +44,7 @@ class PortsEditor(QWidget, AudioUnitUpdater):
         self._editor = PortList(
                 self._get_add_text, self._get_port_ids, self._get_free_port_id)
 
-        self.add_updating_child(self._editor)
+        self.add_to_updaters(self._editor)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -125,7 +125,7 @@ class PortList(EditorList, AudioUnitUpdater):
 
     def _make_adder_widget(self):
         self._adder = PortAdder(self._get_add_text, self._get_free_port_id)
-        self.add_updating_child(self._adder)
+        self.add_to_updaters(self._adder)
         return self._adder
 
     def _get_updated_editor_count(self):
@@ -133,14 +133,14 @@ class PortList(EditorList, AudioUnitUpdater):
 
     def _make_editor_widget(self, index):
         editor = PortEditor(index, self._get_port_ids)
-        self.add_updating_child(editor)
+        self.add_to_updaters(editor)
         return editor
 
     def _update_editor(self, index, editor):
         pass
 
     def _disconnect_widget(self, widget):
-        self.remove_updating_child(widget)
+        self.remove_from_updaters(widget)
 
     def _get_update_signal_type(self):
         return 'signal_au_ports_{}'.format(self._au_id)

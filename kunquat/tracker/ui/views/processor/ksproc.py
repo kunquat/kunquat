@@ -38,7 +38,7 @@ class KsProc(QWidget, ProcessorUpdater):
         self._release_env = ReleaseEnvelope()
         self._release_var = ReleaseVar()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._damp,
                 self._init_env,
                 self._shift_env,

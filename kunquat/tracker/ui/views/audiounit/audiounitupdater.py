@@ -24,10 +24,10 @@ class AudioUnitUpdater(Updater):
         for widget in self._updating_children:
             widget.set_au_id(au_id)
 
-    def add_updating_child(self, *widgets):
+    def add_to_updaters(self, *widgets):
         if hasattr(self, '_au_id') and self._au_id != None:
             for widget in widgets:
                 widget.set_au_id(self._au_id)
-        super().add_updating_child(*widgets)
+        super().add_to_updaters(*widgets)
 
 

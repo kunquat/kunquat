@@ -41,7 +41,7 @@ class OrderlistEditor(QWidget, Updater):
         self.setLayout(v)
 
     def _on_setup(self):
-        self.add_updating_child(self._orderlist, self._toolbar)
+        self.add_to_updaters(self._orderlist, self._toolbar)
         self.register_action('signal_order_list', self._acknowledge_update)
 
         module = self._ui_model.get_module()

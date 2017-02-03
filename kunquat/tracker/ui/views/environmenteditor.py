@@ -30,7 +30,7 @@ class EnvironmentEditor(QWidget, Updater):
         super().__init__()
         self._vars = VariableList()
 
-        self.add_updating_child(self._vars)
+        self.add_to_updaters(self._vars)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -64,7 +64,7 @@ class VariableList(EditorList, Updater):
 
     def _make_adder_widget(self):
         adder = VariableAdder()
-        self.add_updating_child(adder)
+        self.add_to_updaters(adder)
         return adder
 
     def _get_updated_editor_count(self):
@@ -73,7 +73,7 @@ class VariableList(EditorList, Updater):
 
     def _make_editor_widget(self, index):
         editor = VariableEditor()
-        self.add_updating_child(editor)
+        self.add_to_updaters(editor)
         return editor
 
     def _update_editor(self, index, editor):
@@ -83,7 +83,7 @@ class VariableList(EditorList, Updater):
         editor.set_used_names(self._var_names_set)
 
     def _disconnect_widget(self, widget):
-        self.remove_updating_child(widget)
+        self.remove_from_updaters(widget)
 
 
 class VariableEditor(QWidget, Updater):
@@ -97,7 +97,7 @@ class VariableEditor(QWidget, Updater):
         self._value_editor = VarValueEditor()
         self._remove_button = VarRemoveButton()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._name_editor,
                 self._type_editor,
                 self._value_editor,

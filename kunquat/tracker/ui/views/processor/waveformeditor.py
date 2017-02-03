@@ -51,7 +51,7 @@ class WaveformEditor(QWidget, ProcessorUpdater):
         self.setLayout(v)
 
     def _on_setup(self):
-        self.add_updating_child(self._prewarp_list, self._postwarp_list)
+        self.add_to_updaters(self._prewarp_list, self._postwarp_list)
         self.register_action('signal_au', self._update_all)
         self.register_action(self._get_update_signal_type(), self._update_all)
         self.register_action('signal_style_changed', self._update_style)
@@ -143,7 +143,7 @@ class WarpList(EditorList, ProcessorUpdater):
     def _make_adder_widget(self):
         self._adder = WarpAdder(
                 self._warp_type, self._get_base_wave, self._get_update_signal_type)
-        self.add_updating_child(self._adder)
+        self.add_to_updaters(self._adder)
         return self._adder
 
     def _get_updated_editor_count(self):
@@ -161,14 +161,14 @@ class WarpList(EditorList, ProcessorUpdater):
                 index,
                 self._get_base_wave,
                 self._get_update_signal_type)
-        self.add_updating_child(editor)
+        self.add_to_updaters(editor)
         return editor
 
     def _update_editor(self, index, editor):
         pass
 
     def _disconnect_widget(self, widget):
-        self.remove_updating_child(widget)
+        self.remove_from_updaters(widget)
 
     def _update_all(self):
         self.update_list()

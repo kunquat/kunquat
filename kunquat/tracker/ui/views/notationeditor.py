@@ -33,7 +33,7 @@ class NotationEditor(QWidget, Updater):
         self._note = Note()
         self._keymap = Keymap()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._notations,
                 self._tuning_tables,
                 self._template,
@@ -264,16 +264,16 @@ class Notations(QWidget, Updater):
         self.setLayout(v)
 
     def _on_setup(self):
-        self.add_updating_child(self._toolbar, self._list_view)
+        self.add_to_updaters(self._toolbar, self._list_view)
         self.register_action('signal_notation_list', self._update_model)
 
         self._update_model()
 
     def _update_model(self):
         if self._list_model:
-            self.remove_updating_child(self._list_model)
+            self.remove_from_updaters(self._list_model)
         self._list_model = NotationListModel()
-        self.add_updating_child(self._list_model)
+        self.add_to_updaters(self._list_model)
         self._list_view.setModel(self._list_model)
 
 
@@ -484,7 +484,7 @@ class TuningTables(QWidget, Updater):
         self.setLayout(v)
 
     def _on_setup(self):
-        self.add_updating_child(self._toolbar, self._list_view)
+        self.add_to_updaters(self._toolbar, self._list_view)
         self.register_action('signal_tuning_tables', self._update_model)
         self.register_action('signal_tuning_table_selection', self._update_selection)
 
@@ -495,9 +495,9 @@ class TuningTables(QWidget, Updater):
 
     def _update_model(self):
         if self._list_model:
-            self.remove_updating_child(self._list_model)
+            self.remove_from_updaters(self._list_model)
         self._list_model = TuningTableListModel()
-        self.add_updating_child(self._list_model)
+        self.add_to_updaters(self._list_model)
         self._list_view.setModel(self._list_model)
 
     def _update_selection(self):
@@ -536,7 +536,7 @@ class Template(QWidget, Updater):
         self.setLayout(v)
 
     def _on_setup(self):
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._centre_pitch,
                 self._octave_ratio,
                 self._octaves,
@@ -1122,7 +1122,7 @@ class TemplateNotes(QWidget, Updater):
         self.setLayout(v)
 
     def _on_setup(self):
-        self.add_updating_child(self._toolbar, self._table_view)
+        self.add_to_updaters(self._toolbar, self._table_view)
         self.register_action('signal_notation_list', self._update_model)
         self.register_action('signal_notation_editor_selection', self._update_model)
         self.register_action('signal_notation_template_notes', self._update_model)
@@ -1131,9 +1131,9 @@ class TemplateNotes(QWidget, Updater):
 
     def _update_model(self):
         if self._table_model:
-            self.remove_updating_child(self._table_model)
+            self.remove_from_updaters(self._table_model)
         self._table_model = TemplateNoteTableModel()
-        self.add_updating_child(self._table_model)
+        self.add_to_updaters(self._table_model)
         self._table_view.setModel(self._table_model)
 
 
@@ -1348,7 +1348,7 @@ class Octaves(QWidget, Updater):
         self.setLayout(v)
 
     def _on_setup(self):
-        self.add_updating_child(self._toolbar, self._list_view)
+        self.add_to_updaters(self._toolbar, self._list_view)
         self.register_action('signal_notation_editor_selection', self._update_all)
         self.register_action('signal_notation_editor_octaves', self._update_all)
         self.register_action(
@@ -1363,9 +1363,9 @@ class Octaves(QWidget, Updater):
 
     def _update_model(self):
         if self._list_model:
-            self.remove_updating_child(self._list_model)
+            self.remove_from_updaters(self._list_model)
         self._list_model = OctaveListModel()
-        self.add_updating_child(self._list_model)
+        self.add_to_updaters(self._list_model)
         self._list_view.setModel(self._list_model)
 
     def _update_enabled(self):
@@ -1530,7 +1530,7 @@ class Notes(QWidget, Updater):
         self.setLayout(v)
 
     def _on_setup(self):
-        self.add_updating_child(self._toolbar, self._list_view)
+        self.add_to_updaters(self._toolbar, self._list_view)
         self.register_action('signal_notation_editor_selection', self._update_all)
         self.register_action('signal_notation_editor_notes', self._update_all)
         self.register_action(
@@ -1545,9 +1545,9 @@ class Notes(QWidget, Updater):
 
     def _update_model(self):
         if self._list_model:
-            self.remove_updating_child(self._list_model)
+            self.remove_from_updaters(self._list_model)
         self._list_model = NoteListModel()
-        self.add_updating_child(self._list_model)
+        self.add_to_updaters(self._list_model)
         self._list_view.setModel(self._list_model)
 
     def _update_enabled(self):
@@ -1646,7 +1646,7 @@ class Keymap(QWidget, Updater):
         self.setLayout(v)
 
     def _on_setup(self):
-        self.add_updating_child(self._key_count, self._key_selector, self._key_editor)
+        self.add_to_updaters(self._key_count, self._key_selector, self._key_editor)
         self.register_action('signal_notation_editor_selection', self._update_enabled)
         self.register_action('signal_notation_editor_octaves', self._update_enabled)
         self.register_action(
@@ -1771,7 +1771,7 @@ class KeySelector(QWidget, Updater):
         self.setLayout(rows)
 
     def _on_setup(self):
-        self.add_updating_child(*self._keys)
+        self.add_to_updaters(*self._keys)
         self.register_action('signal_notation_editor_selection', self._update_keys)
         self.register_action(
                 'signal_notation_editor_octave_selection', self._update_keys)
@@ -1839,7 +1839,7 @@ class KeyEditor(QWidget, Updater):
         self.setLayout(v)
 
     def _on_setup(self):
-        self.add_updating_child(self._note_selector)
+        self.add_to_updaters(self._note_selector)
         self.register_action('signal_notation_editor_selection', self._update_all)
         self.register_action('signal_notation_editor_octaves', self._update_all)
         self.register_action('signal_notation_editor_octave_selection', self._update_all)

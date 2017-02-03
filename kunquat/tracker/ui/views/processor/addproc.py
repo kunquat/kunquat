@@ -35,7 +35,7 @@ class AddProc(QWidget, ProcessorUpdater):
         self._base_waveform = AddWaveformEditor()
         self._base_tone_editor = ToneList()
 
-        self.add_updating_child(self._base_waveform, self._base_tone_editor)
+        self.add_to_updaters(self._base_waveform, self._base_tone_editor)
 
         h = QHBoxLayout()
         h.setContentsMargins(4, 4, 4, 4)
@@ -134,7 +134,7 @@ class ToneList(EditorList, ProcessorUpdater):
 
     def _make_adder_widget(self):
         self._adder = ToneAdder()
-        self.add_updating_child(self._adder)
+        self.add_to_updaters(self._adder)
         return self._adder
 
     def _get_updated_editor_count(self):
@@ -144,14 +144,14 @@ class ToneList(EditorList, ProcessorUpdater):
 
     def _make_editor_widget(self, index):
         editor = ToneEditor(index, self._icon_bank)
-        self.add_updating_child(editor)
+        self.add_to_updaters(editor)
         return editor
 
     def _update_editor(self, index, editor):
         pass
 
     def _disconnect_widget(self, widget):
-        self.remove_updating_child(widget)
+        self.remove_from_updaters(widget)
 
     def _get_update_signal_type(self):
         return ''.join(('signal_proc_add_tone_', self._au_id, self._proc_id))
@@ -195,7 +195,7 @@ class ToneEditor(QWidget, ProcessorUpdater):
         self._panning_slider = TonePanningSlider(index)
         self._remove_button = SmallButton(icon_bank.get_icon_path('delete_small'))
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._pitch_spin, self._volume_slider, self._panning_slider)
 
         self._remove_button.setEnabled(self._index != 0)

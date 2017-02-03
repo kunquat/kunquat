@@ -24,7 +24,7 @@ class AuWindow(QWidget, AudioUnitUpdater):
         super().__init__()
         self._editor = Editor()
 
-        self.add_updating_child(self._editor)
+        self.add_to_updaters(self._editor)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)

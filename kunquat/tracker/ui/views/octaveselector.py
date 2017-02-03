@@ -71,7 +71,7 @@ class OctaveSelector(QFrame, Updater):
 
     def _get_button(self, octave_id):
         button = OctaveButton(octave_id)
-        self.add_updating_child(button)
+        self.add_to_updaters(button)
         return button
 
 

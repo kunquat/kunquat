@@ -29,7 +29,7 @@ class PanningProc(QWidget, ProcessorUpdater):
 
         self._panning = PanningSlider()
 
-        self.add_updating_child(self._panning)
+        self.add_to_updaters(self._panning)
 
         v = QVBoxLayout()
         v.addWidget(self._panning)

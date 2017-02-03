@@ -25,7 +25,7 @@ class SettingsWindow(QWidget, Updater):
         self.setWindowTitle('Kunquat Tracker settings')
 
         self._settings = Settings()
-        self.add_updating_child(self._settings)
+        self.add_to_updaters(self._settings)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)

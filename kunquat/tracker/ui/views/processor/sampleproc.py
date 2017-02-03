@@ -43,7 +43,7 @@ class SampleProc(QTabWidget, ProcessorUpdater):
         self._hit_map_editor = HitMapEditor()
         self._samples = Samples()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._note_map_editor, self._hit_map_editor, self._samples)
 
         self.addTab(self._note_map_editor, 'Note map')
@@ -59,7 +59,7 @@ class NoteMapEditor(QWidget, ProcessorUpdater):
         self._note_map = NoteMap()
         self._note_map_entry = NoteMapEntry()
 
-        self.add_updating_child(self._note_map, self._note_map_entry)
+        self.add_to_updaters(self._note_map, self._note_map_entry)
 
         h = QHBoxLayout()
         h.setContentsMargins(4, 4, 4, 4)
@@ -511,7 +511,7 @@ class NoteMapEntry(QWidget, ProcessorUpdater):
 
         self._random_list = NoteRandomList()
 
-        self.add_updating_child(self._random_list)
+        self.add_to_updaters(self._random_list)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -606,7 +606,7 @@ class RandomList(EditorList, ProcessorUpdater):
 
     def _make_adder_widget(self):
         self._adder = RandomEntryAdder(self._get_callback_info())
-        self.add_updating_child(self._adder)
+        self.add_to_updaters(self._adder)
         return self._adder
 
     def _get_updated_editor_count(self):
@@ -619,14 +619,14 @@ class RandomList(EditorList, ProcessorUpdater):
 
     def _make_editor_widget(self, index):
         editor = RandomEntryEditor(self._get_callback_info(), index)
-        self.add_updating_child(editor)
+        self.add_to_updaters(editor)
         return editor
 
     def _update_editor(self, index, editor):
         pass
 
     def _disconnect_widget(self, widget):
-        self.remove_updating_child(widget)
+        self.remove_from_updaters(widget)
 
     def _update_all(self):
         self.update_list()
@@ -868,7 +868,7 @@ class HitMapEditor(QWidget, ProcessorUpdater):
         self._hit_map = HitMap()
         self._hit_map_entry = HitMapEntry()
 
-        self.add_updating_child(self._hit_selector, self._hit_map, self._hit_map_entry)
+        self.add_to_updaters(self._hit_selector, self._hit_map, self._hit_map_entry)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
@@ -1006,7 +1006,7 @@ class HitMapEntry(QWidget, ProcessorUpdater):
         self.setLayout(v)
 
     def _on_setup(self):
-        self.add_updating_child(self._random_list)
+        self.add_to_updaters(self._random_list)
 
         self.register_action(self._get_selection_signal_type(), self._update_all)
         self.register_action(self._get_move_signal_type(), self._update_all)
@@ -1101,7 +1101,7 @@ class Samples(QSplitter, ProcessorUpdater):
 
         self._keyboard_mapper = ProcessorKeyboardMapper()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._sample_list, self._sample_editor, self._keyboard_mapper)
 
         h = QHBoxLayout()
@@ -1329,7 +1329,7 @@ class SampleListView(QListView, ProcessorUpdater):
         super().__init__()
         self._keyboard_mapper = ProcessorKeyboardMapper()
 
-        self.add_updating_child(self._keyboard_mapper)
+        self.add_to_updaters(self._keyboard_mapper)
 
         self.setSelectionMode(QAbstractItemView.SingleSelection)
 
@@ -1385,7 +1385,7 @@ class SampleList(QWidget, ProcessorUpdater):
         self.setLayout(v)
 
     def _on_setup(self):
-        self.add_updating_child(self._toolbar, self._list_view)
+        self.add_to_updaters(self._toolbar, self._list_view)
         self.register_action(self._get_update_signal_type(), self._update_model)
         self.register_action(self._get_rename_signal_type(), self._update_model)
 
@@ -1399,9 +1399,9 @@ class SampleList(QWidget, ProcessorUpdater):
 
     def _update_model(self):
         if self._list_model:
-            self.remove_updating_child(self._list_model)
+            self.remove_from_updaters(self._list_model)
         self._list_model = SampleListModel()
-        self.add_updating_child(self._list_model)
+        self.add_to_updaters(self._list_model)
         self._list_view.setModel(self._list_model)
 
 

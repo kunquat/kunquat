@@ -43,7 +43,7 @@ class PadsynthProc(QWidget, ProcessorUpdater):
         self._harmonics_base = HarmonicsBaseEditor()
         self._harmonic_scales = HarmonicScales()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._playback_params,
                 self._apply_button,
                 self._sample_config,
@@ -183,7 +183,7 @@ class SampleConfigEditor(QWidget, ProcessorUpdater):
         self._range_max = SamplePitchRangeMaxEditor()
         self._centre_pitch = SampleCentrePitchEditor()
 
-        self.add_updating_child(self._range_min, self._range_max, self._centre_pitch)
+        self.add_to_updaters(self._range_min, self._range_max, self._centre_pitch)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -307,7 +307,7 @@ class BandwidthEditor(QWidget, ProcessorUpdater):
         self._base = BandwidthBaseEditor()
         self._scale = BandwidthScaleEditor()
 
-        self.add_updating_child(self._base, self._scale)
+        self.add_to_updaters(self._base, self._scale)
 
         g = QGridLayout()
         g.setContentsMargins(0, 0, 0, 0)
@@ -378,7 +378,7 @@ class HarmonicScalesList(EditorList, ProcessorUpdater):
 
     def _make_adder_widget(self):
         adder = HarmonicScaleAdder()
-        self.add_updating_child(adder)
+        self.add_to_updaters(adder)
         return adder
 
     def _get_updated_editor_count(self):
@@ -388,14 +388,14 @@ class HarmonicScalesList(EditorList, ProcessorUpdater):
 
     def _make_editor_widget(self, index):
         editor = HarmonicScaleEditor(index)
-        self.add_updating_child(editor)
+        self.add_to_updaters(editor)
         return editor
 
     def _update_editor(self, index, editor):
         editor.update_index(index)
 
     def _disconnect_widget(self, widget):
-        self.remove_updating_child(widget)
+        self.remove_from_updaters(widget)
 
     def _get_update_signal_type(self):
         return 'signal_padsynth_{}'.format(self._proc_id)
@@ -451,7 +451,7 @@ class HarmonicScaleEditor(QWidget, ProcessorUpdater):
         self.setLayout(h)
 
     def _on_setup(self):
-        self.add_updating_child(self._amplitude)
+        self.add_to_updaters(self._amplitude)
 
         icon_bank = self._ui_model.get_icon_bank()
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
@@ -535,7 +535,7 @@ class HarmonicScales(QWidget, ProcessorUpdater):
     def __init__(self):
         super().__init__()
         self._editor = HarmonicScalesList()
-        self.add_updating_child(self._editor)
+        self.add_to_updaters(self._editor)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)

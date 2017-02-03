@@ -57,7 +57,7 @@ class Toolbar(QWidget, Updater):
         self._grid_selector = GridSelector()
         self._length_editor = LengthEditor()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._follow_playback_button,
                 self._edit_button,
                 self._replace_button,

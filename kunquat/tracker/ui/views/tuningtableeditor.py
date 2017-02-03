@@ -78,7 +78,7 @@ class TuningTableEditor(QWidget, Updater):
 
     def _on_setup(self):
         assert self._table_id != None
-        self.add_updating_child(self._notes)
+        self.add_to_updaters(self._notes)
         self.register_action('signal_tuning_tables', self._update_name)
         self.register_action(self._get_update_signal_type(), self._update_params)
 
@@ -469,7 +469,7 @@ class Notes(QWidget, Updater):
         self._table_view.set_tuning_table_id(table_id)
 
     def _on_setup(self):
-        self.add_updating_child(self._toolbar, self._table_view)
+        self.add_to_updaters(self._toolbar, self._table_view)
         self.register_action(self._get_update_signal_type(), self._update_model)
 
         self._update_model()
@@ -479,10 +479,10 @@ class Notes(QWidget, Updater):
 
     def _update_model(self):
         if self._table_model:
-            self.remove_updating_child(self._table_model)
+            self.remove_from_updaters(self._table_model)
         self._table_model = NoteTableModel()
         self._table_model.set_tuning_table_id(self._table_id)
-        self.add_updating_child(self._table_model)
+        self.add_to_updaters(self._table_model)
         self._table_view.setModel(self._table_model)
 
 

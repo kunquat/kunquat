@@ -25,7 +25,7 @@ class AboutWindow(QWidget, Updater):
         super().__init__()
         self._about = About()
 
-        self.add_updating_child(self._about)
+        self.add_to_updaters(self._about)
 
         self.setWindowTitle('About Kunquat Tracker')
 

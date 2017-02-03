@@ -38,7 +38,7 @@ class Updater():
 
         raise AttributeError('Unexpected field access: {}'.format(name))
 
-    def add_updating_child(self, *widgets):
+    def add_to_updaters(self, *widgets):
         for widget in widgets:
             assert widget not in self._updating_children
         self._updating_children.extend(widgets)
@@ -46,7 +46,7 @@ class Updater():
             for widget in widgets:
                 widget.set_ui_model(self._ui_model)
 
-    def remove_updating_child(self, widget):
+    def remove_from_updaters(self, widget):
         self._updating_children.remove(widget)
         if self._updater:
             widget.unregister_updaters()

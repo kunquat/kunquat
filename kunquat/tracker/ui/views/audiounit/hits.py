@@ -48,7 +48,7 @@ class Hits(QWidget, AudioUnitUpdater):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         if au.is_instrument():
-            self.add_updating_child(self._hit_selector, self._hit_editor)
+            self.add_to_updaters(self._hit_selector, self._hit_editor)
 
 
 class AuHitSelector(HitSelector, AudioUnitUpdater):
@@ -100,7 +100,7 @@ class HitEditor(QWidget, AudioUnitUpdater):
         self.setLayout(v)
 
     def _on_setup(self):
-        self.add_updating_child(self._enabled, self._name)
+        self.add_to_updaters(self._enabled, self._name)
 
 
 def _get_current_hit(ui_model, au_id):

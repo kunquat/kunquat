@@ -142,7 +142,7 @@ class SheetArea(QAbstractScrollArea, Updater):
         self._sheet_manager = self._ui_model.get_sheet_manager()
 
         # Child widgets
-        self.add_updating_child(self._ruler, self.viewport())
+        self.add_to_updaters(self._ruler, self.viewport())
 
         self._update_config()
 

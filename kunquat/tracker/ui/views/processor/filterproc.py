@@ -30,7 +30,7 @@ class FilterProc(QWidget, ProcessorUpdater):
         self._cutoff = CutoffSlider()
         self._resonance = ResonanceSlider()
 
-        self.add_updating_child(self._cutoff, self._resonance)
+        self.add_to_updaters(self._cutoff, self._resonance)
 
         sliders = QGridLayout()
         sliders.addWidget(QLabel('Cutoff'), 0, 0)

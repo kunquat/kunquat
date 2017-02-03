@@ -33,7 +33,7 @@ class DelayProc(QWidget, ProcessorUpdater):
         self._max_delay = MaxDelay()
         self._init_delay = InitDelay()
 
-        self.add_updating_child(self._max_delay, self._init_delay)
+        self.add_to_updaters(self._max_delay, self._init_delay)
 
         gl = QGridLayout()
         gl.addWidget(QLabel('Maximum delay:'), 0, 0)

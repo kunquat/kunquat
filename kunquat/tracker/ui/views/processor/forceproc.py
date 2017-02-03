@@ -35,7 +35,7 @@ class ForceProc(QWidget, ProcessorUpdater):
         self._ramp_release = RampReleaseToggle()
         self._force_release_envelope = ForceReleaseEnvelope()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._global_force,
                 self._force_variation,
                 self._force_envelope,

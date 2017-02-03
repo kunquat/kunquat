@@ -26,7 +26,7 @@ class SongEditor(QWidget, Updater):
         self._name = NameEditor()
         self._tempo_editor = TempoEditor()
 
-        self.add_updating_child(self._name, self._tempo_editor)
+        self.add_to_updaters(self._name, self._tempo_editor)
 
         gl = QGridLayout()
         gl.addWidget(QLabel('Name:'), 0, 0)

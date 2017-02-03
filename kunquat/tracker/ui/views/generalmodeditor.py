@@ -31,7 +31,7 @@ class GeneralModEditor(QWidget, Updater):
         self._dc_blocker = DCBlocker()
         self._random_seed = RandomSeed()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._title,
                 self._authors,
                 self._mixing_volume,
@@ -205,9 +205,9 @@ class Authors(QTableView, Updater):
                 selected = current_index.column()
 
         if self._model:
-            self.remove_updating_child(self._model)
+            self.remove_from_updaters(self._model)
         self._model = AuthorTableModel()
-        self.add_updating_child(self._model)
+        self.add_to_updaters(self._model)
         self.setModel(self._model)
 
         if selected != None:

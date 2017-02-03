@@ -58,7 +58,7 @@ class EnvgenProc(QWidget, ProcessorUpdater):
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
     def _on_setup(self):
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._global_adjust, self._range, self._time_env, self._force_env)
         self.register_action(self._get_update_signal_type(), self._update_linear_force)
 

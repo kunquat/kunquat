@@ -112,7 +112,7 @@ class About(QWidget, Updater):
         self._logo = Logo()
         self._about_message = AboutMessage()
 
-        self.add_updating_child(self._logo)
+        self.add_to_updaters(self._logo)
         self.register_action('signal_style_changed', self._update_style)
 
         v = QVBoxLayout()

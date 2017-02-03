@@ -28,7 +28,7 @@ class StreamProc(QWidget, ProcessorUpdater):
 
         self._init_state_editor = InitStateEditor()
 
-        self.add_updating_child(self._init_state_editor)
+        self.add_to_updaters(self._init_state_editor)
 
         v = QVBoxLayout()
         v.addWidget(self._init_state_editor)

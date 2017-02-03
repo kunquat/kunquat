@@ -44,7 +44,7 @@ class Components(QSplitter, AudioUnitUpdater):
         self._streams = Streams()
         self._control_vars = ControlVariables()
 
-        self.add_updating_child(self._conns_editor, self._streams, self._control_vars)
+        self.add_to_updaters(self._conns_editor, self._streams, self._control_vars)
 
         cl = QHBoxLayout()
         cl.setContentsMargins(0, 0, 0, 0)
@@ -136,7 +136,7 @@ class Streams(QWidget, AudioUnitUpdater):
         super().__init__()
 
         self._stream_list = StreamList()
-        self.add_updating_child(self._stream_list)
+        self.add_to_updaters(self._stream_list)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -171,7 +171,7 @@ class StreamList(EditorList, AudioUnitUpdater):
 
     def _make_adder_widget(self):
         adder = StreamAdder()
-        self.add_updating_child(adder)
+        self.add_to_updaters(adder)
         return adder
 
     def _get_updated_editor_count(self):
@@ -183,7 +183,7 @@ class StreamList(EditorList, AudioUnitUpdater):
 
         editor = StreamEditor()
         editor.set_context(stream_name)
-        self.add_updating_child(editor)
+        self.add_to_updaters(editor)
         return editor
 
     def _update_editor(self, index, editor):
@@ -193,7 +193,7 @@ class StreamList(EditorList, AudioUnitUpdater):
         editor.set_used_names(self._stream_names_set)
 
     def _disconnect_widget(self, widget):
-        self.remove_updating_child(widget)
+        self.remove_from_updaters(widget)
 
 
 class StreamAdder(QPushButton, AudioUnitUpdater):
@@ -223,7 +223,7 @@ class StreamEditor(QWidget, AudioUnitUpdater):
         self._target_proc_editor = StreamTargetProcEditor()
         self._remove_button = StreamRemoveButton()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._name_editor, self._target_proc_editor, self._remove_button)
 
         h = QHBoxLayout()
@@ -348,7 +348,7 @@ class ControlVariables(QWidget, AudioUnitUpdater):
         super().__init__()
 
         self._var_list = ControlVariableList()
-        self.add_updating_child(self._var_list)
+        self.add_to_updaters(self._var_list)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -438,7 +438,7 @@ class ControlVariableEditor(QWidget, AudioUnitUpdater):
         self._remove_button = ControlVariableRemoveButton()
         self._bindings = ControlVariableBindings()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._name_editor,
                 self._type_editor,
                 self._init_value_editor,

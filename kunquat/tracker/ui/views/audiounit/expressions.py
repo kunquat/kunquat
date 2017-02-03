@@ -31,7 +31,7 @@ class Expressions(QWidget, AudioUnitUpdater):
         self._expr_list = ExpressionList()
         self._expr_editor = ExpressionEditor()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._default_note_expr, self._expr_list, self._expr_editor)
 
         v = QVBoxLayout()
@@ -240,7 +240,7 @@ class ExpressionList(QWidget, AudioUnitUpdater):
         self._expr_list_model = None
         self._expr_list_view = ExpressionListView()
 
-        self.add_updating_child(self._toolbar, self._expr_list_view)
+        self.add_to_updaters(self._toolbar, self._expr_list_view)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -258,9 +258,9 @@ class ExpressionList(QWidget, AudioUnitUpdater):
 
     def _update_model(self):
         if self._expr_list_model:
-            self.remove_updating_child(self._expr_list_model)
+            self.remove_from_updaters(self._expr_list_model)
         self._expr_list_model = ExpressionListModel()
-        self.add_updating_child(self._expr_list_model)
+        self.add_to_updaters(self._expr_list_model)
         self._expr_list_view.setModel(self._expr_list_model)
 
 
@@ -334,7 +334,7 @@ class ExpressionEditor(QWidget, AudioUnitUpdater):
 
         self._name = ExpressionName()
 
-        self.add_updating_child(self._name)
+        self.add_to_updaters(self._name)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)

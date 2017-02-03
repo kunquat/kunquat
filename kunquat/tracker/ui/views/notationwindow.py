@@ -27,7 +27,7 @@ class NotationWindow(QWidget, Updater):
         self.setWindowTitle('Notations')
 
         self._editor = NotationEditor()
-        self.add_updating_child(self._editor)
+        self.add_to_updaters(self._editor)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)

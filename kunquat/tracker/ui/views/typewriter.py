@@ -30,7 +30,7 @@ class Typewriter(QFrame, Updater):
         self._keyboard_mapper = KeyboardMapper()
 
     def _on_setup(self):
-        self.add_updating_child(self._keyboard_mapper)
+        self.add_to_updaters(self._keyboard_mapper)
 
         self._typewriter_manager = self._ui_model.get_typewriter_manager()
         self.setLayout(self._get_layout())
@@ -52,7 +52,7 @@ class Typewriter(QFrame, Updater):
 
         for i in range(self._typewriter_manager.get_button_count_at_row(index)):
             button = TypewriterButton(index, i)
-            self.add_updating_child(button)
+            self.add_to_updaters(button)
             row.addWidget(button)
 
         row.addStretch(1)

@@ -26,7 +26,7 @@ class Sheet(QWidget, Updater):
         self._toolbar = Toolbar()
         self._sheet_area = SheetArea()
 
-        self.add_updating_child(self._toolbar, self._sheet_area)
+        self.add_to_updaters(self._toolbar, self._sheet_area)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 4)

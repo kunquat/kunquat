@@ -24,10 +24,10 @@ class ProcessorUpdater(AudioUnitUpdater):
         for widget in self._updating_children:
             widget.set_proc_id(proc_id)
 
-    def add_updating_child(self, *widgets):
+    def add_to_updaters(self, *widgets):
         if hasattr(self, '_proc_id') and self._proc_id != None:
             for widget in widgets:
                 widget.set_proc_id(self._proc_id)
-        super().add_updating_child(*widgets)
+        super().add_to_updaters(*widgets)
 
 

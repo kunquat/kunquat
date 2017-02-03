@@ -29,7 +29,7 @@ class SongsChannelsWindow(QWidget, Updater):
         self._song_editor = SongEditor()
         self._ch_defaults_editor = ChDefaultsEditor()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._orderlist_editor, self._song_editor, self._ch_defaults_editor)
 
         self.setWindowTitle('Songs & channels')

@@ -24,7 +24,7 @@ class InfoEditor(QWidget, ProcessorUpdater):
         super().__init__()
         self._name = Name()
 
-        self.add_updating_child(self._name)
+        self.add_to_updaters(self._name)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)

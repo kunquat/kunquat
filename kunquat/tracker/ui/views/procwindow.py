@@ -30,7 +30,7 @@ class ProcWindow(QWidget, ProcessorUpdater):
         self.setLayout(v)
 
     def _on_setup(self):
-        self.add_updating_child(self._editor)
+        self.add_to_updaters(self._editor)
         self.register_action('signal_controls', self._update_title)
 
         self._update_title()

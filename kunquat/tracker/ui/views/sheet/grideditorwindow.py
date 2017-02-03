@@ -24,7 +24,7 @@ class GridEditorWindow(QWidget, Updater):
         super().__init__()
         self._grid_editor = GridEditor()
 
-        self.add_updating_child(self._grid_editor)
+        self.add_to_updaters(self._grid_editor)
 
         self.setWindowTitle('Grid patterns')
 

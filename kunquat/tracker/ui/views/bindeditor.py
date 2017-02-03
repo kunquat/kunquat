@@ -42,7 +42,7 @@ class BindEditor(QWidget, Updater):
         self.setLayout(v)
 
     def _on_setup(self):
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._bind_list, self._source_event, self._constraints, self._targets)
         self.register_action('signal_bind', self._update_editor_enabled)
 
@@ -189,16 +189,16 @@ class BindList(QWidget, Updater):
         self.setLayout(v)
 
     def _on_setup(self):
-        self.add_updating_child(self._toolbar, self._list_view)
+        self.add_to_updaters(self._toolbar, self._list_view)
         self.register_action('signal_bind', self._update_model)
 
         self._update_model()
 
     def _update_model(self):
         if self._list_model:
-            self.remove_updating_child(self._list_model)
+            self.remove_from_updaters(self._list_model)
         self._list_model = BindListModel()
-        self.add_updating_child(self._list_model)
+        self.add_to_updaters(self._list_model)
         self._list_view.setModel(self._list_model)
 
 
@@ -295,7 +295,7 @@ class Constraints(QWidget, Updater):
         super().__init__()
 
         self._cblist = ConstraintList()
-        self.add_updating_child(self._cblist)
+        self.add_to_updaters(self._cblist)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -319,7 +319,7 @@ class ConstraintList(EditorList, Updater):
 
     def _make_adder_widget(self):
         adder = ConstraintAdder()
-        self.add_updating_child(adder)
+        self.add_to_updaters(adder)
         return adder
 
     def _get_updated_editor_count(self):
@@ -332,14 +332,14 @@ class ConstraintList(EditorList, Updater):
 
     def _make_editor_widget(self, index):
         editor = ConstraintEditor(index)
-        self.add_updating_child(editor)
+        self.add_to_updaters(editor)
         return editor
 
     def _update_editor(self, index, editor):
         pass
 
     def _disconnect_widget(self, widget):
-        self.remove_updating_child(widget)
+        self.remove_from_updaters(widget)
 
     def _update_all(self):
         self.update_list()
@@ -452,7 +452,7 @@ class Targets(QWidget, Updater):
         super().__init__()
 
         self._target_list = TargetList()
-        self.add_updating_child(self._target_list)
+        self.add_to_updaters(self._target_list)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -477,7 +477,7 @@ class TargetList(EditorList, Updater):
 
     def _make_adder_widget(self):
         adder = TargetAdder()
-        self.add_updating_child(adder)
+        self.add_to_updaters(adder)
         return adder
 
     def _get_updated_editor_count(self):
@@ -490,14 +490,14 @@ class TargetList(EditorList, Updater):
 
     def _make_editor_widget(self, index):
         editor = TargetEditor(index)
-        self.add_updating_child(editor)
+        self.add_to_updaters(editor)
         return editor
 
     def _update_editor(self, index, editor):
         pass
 
     def _disconnect_widget(self, widget):
-        self.remove_updating_child(widget)
+        self.remove_from_updaters(widget)
 
     def _update_all(self):
         self.update_list()

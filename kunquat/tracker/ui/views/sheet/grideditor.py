@@ -40,7 +40,7 @@ class GridEditor(QWidget, Updater):
         self._subdiv_editor = SubdivEditor()
         self._line_editor = LineEditor()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._grid_list,
                 self._general_editor,
                 self._grid_area,
@@ -155,16 +155,16 @@ class GridList(QWidget, Updater):
         self.setLayout(v)
 
     def _on_setup(self):
-        self.add_updating_child(self._toolbar, self._grid_list_view)
+        self.add_to_updaters(self._toolbar, self._grid_list_view)
         self.register_action('signal_grid_pattern_list', self._update_model)
 
         self._update_model()
 
     def _update_model(self):
         if self._grid_list_model:
-            self.remove_updating_child(self._grid_list_model)
+            self.remove_from_updaters(self._grid_list_model)
         self._grid_list_model = GridListModel()
-        self.add_updating_child(self._grid_list_model)
+        self.add_to_updaters(self._grid_list_model)
         self._grid_list_view.setModel(self._grid_list_model)
 
 
@@ -294,7 +294,7 @@ class GridArea(QAbstractScrollArea, Updater):
 
         self._set_px_per_beat(self._zoom_levels[self._default_zoom_index])
 
-        self.add_updating_child(self._ruler, self.viewport())
+        self.add_to_updaters(self._ruler, self.viewport())
 
         QObject.connect(
                 self.viewport(), SIGNAL('followCursor(QString)'), self._follow_cursor)

@@ -29,7 +29,7 @@ class VolumeProc(QWidget, ProcessorUpdater):
 
         self._volume = VolumeSlider()
 
-        self.add_updating_child(self._volume)
+        self.add_to_updaters(self._volume)
 
         v = QVBoxLayout()
         v.setSpacing(10)

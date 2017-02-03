@@ -48,7 +48,7 @@ class Editor(QWidget, AudioUnitUpdater):
         self._keyboard_mapper = AudioUnitKeyboardMapper()
 
     def _on_setup(self):
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._test_panel,
                 self._components,
                 self._hits,
@@ -94,7 +94,7 @@ class TestPanel(QWidget, AudioUnitUpdater):
         self._test_force = TestForce()
         self._expressions = [TestExpression(i) for i in range(2)]
 
-        self.add_updating_child(self._test_button, self._test_force, *self._expressions)
+        self.add_to_updaters(self._test_button, self._test_force, *self._expressions)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)

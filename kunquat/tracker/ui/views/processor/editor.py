@@ -43,7 +43,7 @@ class Editor(QWidget, ProcessorUpdater):
         self.setLayout(v)
 
     def _on_setup(self):
-        self.add_updating_child(self._signals, self._info_editor, self._keyboard_mapper)
+        self.add_to_updaters(self._signals, self._info_editor, self._keyboard_mapper)
         self.register_action(
                 'signal_proc_test_output_{}'.format(self._proc_id),
                 self._update_test_toggle)
@@ -62,7 +62,7 @@ class Editor(QWidget, ProcessorUpdater):
         # Create the type-specific editor
         cons = proctypeinfo.get_class(proctype)
         self._proc_editor = cons()
-        self.add_updating_child(self._proc_editor)
+        self.add_to_updaters(self._proc_editor)
 
         # Set up tab view
         tabs = QTabWidget()

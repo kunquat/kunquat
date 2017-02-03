@@ -42,7 +42,7 @@ class Settings(QWidget, Updater):
         self._button_press_brightness = ButtonPressBrightness()
         self._colours = Colours()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._modules,
                 self._instruments,
                 self._samples,
@@ -1179,7 +1179,7 @@ class Colours(QTreeView, Updater):
         self.register_action('signal_style_changed', self._update_all)
 
         self._model = ColoursModel()
-        self.add_updating_child(self._model)
+        self.add_to_updaters(self._model)
         self.setModel(self._model)
 
         for index in self._model.get_colour_indices():

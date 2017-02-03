@@ -29,7 +29,7 @@ class FreeverbProc(QWidget, ProcessorUpdater):
         self._refl = ReflSlider()
         self._damp = DampSlider()
 
-        self.add_updating_child(self._refl, self._damp)
+        self.add_to_updaters(self._refl, self._damp)
 
         sliders = QGridLayout()
         sliders.addWidget(QLabel('Reflectivity'), 0, 0)

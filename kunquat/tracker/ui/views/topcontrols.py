@@ -35,7 +35,7 @@ class TopControls(QToolBar, Updater):
         self._playback_pos = PlaybackPosition()
         self._interactivity_button = InteractivityButton()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._play_button,
                 self._play_pattern_button,
                 self._play_from_cursor_button,

@@ -36,7 +36,7 @@ class MainView(QWidget, Updater):
         self._import_progress = ImportProgress()
         self._peak_meter = PeakMeter()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._portal,
                 self._top_controls,
                 self._composition,

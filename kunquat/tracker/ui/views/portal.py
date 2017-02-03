@@ -43,7 +43,7 @@ class Portal(QToolBar, Updater):
         self._event_list_button = EventListButton()
         self._render_stats_button = RenderStatsButton()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._new_button,
                 self._open_button,
                 self._save_button,

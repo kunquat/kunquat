@@ -30,7 +30,7 @@ class GainCompProc(QWidget, ProcessorUpdater):
 
         self._mapping = MappingEnv()
 
-        self.add_updating_child(self._mapping)
+        self.add_to_updaters(self._mapping)
 
         v = QVBoxLayout()
         v.setSpacing(10)

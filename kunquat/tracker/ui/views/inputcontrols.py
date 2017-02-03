@@ -43,7 +43,7 @@ class InputControls(QWidget, Updater):
         self.setLayout(h)
 
     def _on_setup(self):
-        self.add_updating_child(self._full_controls, self._compact_controls)
+        self.add_to_updaters(self._full_controls, self._compact_controls)
         self.register_action('signal_input_control_layout', self._show_controls)
 
         QObject.connect(self._switch_button, SIGNAL('clicked()'), self._switch_controls)
@@ -97,7 +97,7 @@ class CompactControls(QWidget, Updater):
         self._hit_map_toggle = HitMapToggle()
         self._octave_selector = OctaveSelector()
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._notation_select, self._hit_map_toggle, self._octave_selector)
 
         h = QHBoxLayout()

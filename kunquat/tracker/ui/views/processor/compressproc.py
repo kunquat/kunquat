@@ -36,7 +36,7 @@ class CompressProc(QWidget, ProcessorUpdater):
         self._upward_config = CompressConfig('upward')
         self._downward_config = CompressConfig('downward')
 
-        self.add_updating_child(
+        self.add_to_updaters(
                 self._attack, self._release, self._upward_config, self._downward_config)
 
         rl = QHBoxLayout()
@@ -141,7 +141,7 @@ class CompressConfig(QWidget, ProcessorUpdater):
         self._range.set_proc_id(proc_id)
 
     def _on_setup(self):
-        self.add_updating_child(self._threshold, self._ratio, self._range)
+        self.add_to_updaters(self._threshold, self._ratio, self._range)
         self.register_action(self._get_update_signal_type(), self._update_enabled)
         QObject.connect(self._enabled, SIGNAL('stateChanged(int)'), self._change_enabled)
 
