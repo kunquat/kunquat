@@ -93,14 +93,15 @@ class Toolbar(QWidget, Updater):
         h.addWidget(HackSeparator())
         for button in self._zoom_buttons:
             h.addWidget(button)
-        h.addWidget(HackSeparator())
-        h.addWidget(self._grid_toggle)
-        h.addWidget(self._grid_editor_button)
 
         spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         h.addWidget(spacer)
 
+        h.addWidget(self._grid_toggle)
+        h.addSpacing(2)
+        h.addWidget(self._grid_editor_button)
+        h.addSpacing(2)
         h.addWidget(self._grid_selector)
         h.addWidget(self._length_editor)
 
