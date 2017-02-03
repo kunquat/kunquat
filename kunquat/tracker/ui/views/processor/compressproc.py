@@ -17,11 +17,11 @@ from PySide.QtGui import *
 from kunquat.tracker.ui.model.procparams.compressparams import CompressParams
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from .procnumslider import ProcNumSlider
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 from . import utils
 
 
-class CompressProc(QWidget, UpdatingProcView):
+class CompressProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():
@@ -101,7 +101,7 @@ class Release(CompressSlider):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class CompressConfig(QWidget, UpdatingProcView):
+class CompressConfig(QWidget, ProcessorUpdater):
 
     def __init__(self, mode):
         super().__init__()

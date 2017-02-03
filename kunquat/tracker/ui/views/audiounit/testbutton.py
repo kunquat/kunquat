@@ -14,10 +14,10 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from .updatingauview import UpdatingAUView
+from .audiounitupdater import AudioUnitUpdater
 
 
-class TestButton(QPushButton, UpdatingAUView):
+class TestButton(QPushButton, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()

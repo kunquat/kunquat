@@ -18,10 +18,10 @@ from kunquat.tracker.ui.model.patterninstance import PatternInstance
 from kunquat.tracker.ui.model.song import Song
 from .headerline import HeaderLine
 from .orderlist import Orderlist
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class OrderlistEditor(QWidget, UpdatingView):
+class OrderlistEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

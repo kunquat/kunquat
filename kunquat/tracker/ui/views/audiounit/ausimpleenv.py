@@ -15,10 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.headerline import HeaderLine
-from .updatingauview import UpdatingAUView
+from .audiounitupdater import AudioUnitUpdater
 
 
-class AudioUnitSimpleEnvelope(QWidget, UpdatingAUView):
+class AudioUnitSimpleEnvelope(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()

@@ -15,10 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from . import utils
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 
 
-class RangeMapProc(QWidget, UpdatingProcView):
+class RangeMapProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():

@@ -19,11 +19,11 @@ from kunquat.tracker.ui.views.headerline import HeaderLine
 from .procnumslider import ProcNumSlider
 from .procsimpleenv import ProcessorSimpleEnvelope
 from .proctimeenv import ProcessorTimeEnvelope
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 from . import utils
 
 
-class EnvgenProc(QWidget, UpdatingProcView):
+class EnvgenProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():
@@ -111,7 +111,7 @@ class GlobalAdjustSlider(ProcNumSlider):
         return 'signal_egen_global_adjust_{}'.format(self._proc_id)
 
 
-class RangeEditor(QWidget, UpdatingProcView):
+class RangeEditor(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()

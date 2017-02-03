@@ -15,10 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .tuningtableeditor import TuningTableEditor
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class TuningTableWindow(QWidget, UpdatingView):
+class TuningTableWindow(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

@@ -17,10 +17,10 @@ from PySide.QtGui import *
 from kunquat.tracker.ui.views.envelope import Envelope
 from .procnumslider import ProcNumSlider
 from .proctimeenv import ProcessorTimeEnvelope
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 
 
-class ForceProc(QWidget, UpdatingProcView):
+class ForceProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():
@@ -109,7 +109,7 @@ class ForceVarSlider(ForceNumSlider):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class RampReleaseToggle(QCheckBox, UpdatingProcView):
+class RampReleaseToggle(QCheckBox, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()

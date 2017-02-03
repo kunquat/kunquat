@@ -15,10 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.audiounit.aunumslider import AuNumSlider
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 
 
-class ProcNumSlider(AuNumSlider, UpdatingProcView):
+class ProcNumSlider(AuNumSlider, ProcessorUpdater):
 
     def __init__(self, decimal_count, min_val, max_val, title='', width_txt=''):
         super().__init__(decimal_count, min_val, max_val, title, width_txt)

@@ -16,10 +16,10 @@ from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 from .headerline import HeaderLine
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class SongEditor(QWidget, UpdatingView):
+class SongEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -43,7 +43,7 @@ class SongEditor(QWidget, UpdatingView):
         self.setLayout(v)
 
 
-class NameEditor(QLineEdit, UpdatingView):
+class NameEditor(QLineEdit, Updater):
 
     def __init__(self):
         super().__init__()
@@ -84,7 +84,7 @@ class NameEditor(QLineEdit, UpdatingView):
         self._updater.signal_update('signal_song', 'signal_order_list')
 
 
-class TempoEditor(QDoubleSpinBox, UpdatingView):
+class TempoEditor(QDoubleSpinBox, Updater):
 
     def __init__(self):
         super().__init__()

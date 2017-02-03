@@ -16,10 +16,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .about import About
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class AboutWindow(QWidget, UpdatingView):
+class AboutWindow(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

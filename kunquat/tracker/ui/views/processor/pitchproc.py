@@ -14,10 +14,10 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 
 
-class PitchProc(QWidget, UpdatingProcView):
+class PitchProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():

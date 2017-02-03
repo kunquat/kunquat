@@ -14,10 +14,10 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 
 
-class StreamProc(QWidget, UpdatingProcView):
+class StreamProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():
@@ -36,7 +36,7 @@ class StreamProc(QWidget, UpdatingProcView):
         self.setLayout(v)
 
 
-class InitStateEditor(QWidget, UpdatingProcView):
+class InitStateEditor(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()

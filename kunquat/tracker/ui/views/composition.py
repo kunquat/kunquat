@@ -16,10 +16,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .sheet.sheet import Sheet
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class Composition(QFrame, UpdatingView):
+class Composition(QFrame, Updater):
 
     def __init__(self):
         super().__init__()

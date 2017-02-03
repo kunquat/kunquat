@@ -18,11 +18,11 @@ from kunquat.kunquat.limits import *
 from .editorlist import EditorList
 from .headerline import HeaderLine
 from .kqtcombobox import KqtComboBox
-from .updatingview import UpdatingView
+from .updater import Updater
 from .varnamevalidator import MaybeVarNameValidator
 
 
-class ChDefaultsEditor(QWidget, UpdatingView):
+class ChDefaultsEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -38,7 +38,7 @@ class ChDefaultsEditor(QWidget, UpdatingView):
         self.setLayout(v)
 
 
-class ChDefaultsList(EditorList, UpdatingView):
+class ChDefaultsList(EditorList, Updater):
 
     def __init__(self):
         super().__init__()
@@ -64,7 +64,7 @@ class ChDefaultsList(EditorList, UpdatingView):
         self.remove_updating_child(widget)
 
 
-class ChDefaults(QWidget, UpdatingView):
+class ChDefaults(QWidget, Updater):
 
     def __init__(self, ch_num):
         super().__init__()

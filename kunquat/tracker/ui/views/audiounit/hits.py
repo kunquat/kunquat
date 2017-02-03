@@ -19,14 +19,14 @@ from PySide.QtGui import *
 from kunquat.kunquat.limits import *
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from .hitselector import HitSelector
-from .updatingauview import UpdatingAUView
+from .audiounitupdater import AudioUnitUpdater
 
 
 def _get_update_signal_type(au_id):
     return 'signal_hit_{}'.format(au_id)
 
 
-class Hits(QWidget, UpdatingAUView):
+class Hits(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -51,7 +51,7 @@ class Hits(QWidget, UpdatingAUView):
             self.add_updating_child(self._hit_selector, self._hit_editor)
 
 
-class AuHitSelector(HitSelector, UpdatingAUView):
+class AuHitSelector(HitSelector, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -83,7 +83,7 @@ class AuHitSelector(HitSelector, UpdatingAUView):
         return hit.get_name()
 
 
-class HitEditor(QWidget, UpdatingAUView):
+class HitEditor(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -111,7 +111,7 @@ def _get_current_hit(ui_model, au_id):
     return au.get_hit(hit_index)
 
 
-class HitEnabled(QCheckBox, UpdatingAUView):
+class HitEnabled(QCheckBox, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -141,7 +141,7 @@ class HitEnabled(QCheckBox, UpdatingAUView):
             'signal_hits')
 
 
-class HitName(QWidget, UpdatingAUView):
+class HitName(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()

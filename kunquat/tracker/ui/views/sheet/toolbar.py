@@ -19,7 +19,7 @@ import kunquat.tracker.cmdline as cmdline
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
-from kunquat.tracker.ui.views.updatingview import UpdatingView
+from kunquat.tracker.ui.views.updater import Updater
 from .editbutton import EditButton
 from .replacebutton import ReplaceButton
 from .restbutton import RestButton
@@ -29,7 +29,7 @@ from .lengtheditor import LengthEditor
 from . import utils
 
 
-class Toolbar(QWidget, UpdatingView):
+class Toolbar(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -117,7 +117,7 @@ class Toolbar(QWidget, UpdatingView):
         self.setLayout(h)
 
 
-class FollowPlaybackButton(QPushButton, UpdatingView):
+class FollowPlaybackButton(QPushButton, Updater):
 
     def __init__(self):
         super().__init__()
@@ -158,7 +158,7 @@ class FollowPlaybackButton(QPushButton, UpdatingView):
         self._updater.signal_update('signal_follow_playback')
 
 
-class UndoButton(QPushButton, UpdatingView):
+class UndoButton(QPushButton, Updater):
 
     def __init__(self):
         super().__init__()
@@ -197,7 +197,7 @@ class UndoButton(QPushButton, UpdatingView):
         self._updater.signal_update('signal_undo')
 
 
-class RedoButton(QPushButton, UpdatingView):
+class RedoButton(QPushButton, Updater):
 
     def __init__(self):
         super().__init__()
@@ -236,7 +236,7 @@ class RedoButton(QPushButton, UpdatingView):
         self._updater.signal_update('signal_redo')
 
 
-class CutOrCopyButton(QPushButton, UpdatingView):
+class CutOrCopyButton(QPushButton, Updater):
 
     def __init__(self, button_type):
         super().__init__()
@@ -303,7 +303,7 @@ class CopyButton(CutOrCopyButton):
         super().__init__('copy')
 
 
-class PasteButton(QPushButton, UpdatingView):
+class PasteButton(QPushButton, Updater):
 
     def __init__(self):
         super().__init__()
@@ -353,7 +353,7 @@ class PasteButton(QPushButton, UpdatingView):
         self._updater.signal_update('signal_selection')
 
 
-class ConvertTriggerButton(QPushButton, UpdatingView):
+class ConvertTriggerButton(QPushButton, Updater):
 
     def __init__(self):
         super().__init__()
@@ -387,7 +387,7 @@ class ConvertTriggerButton(QPushButton, UpdatingView):
         sheet_manager.convert_set_or_slide_trigger()
 
 
-class GridToggle(QCheckBox, UpdatingView):
+class GridToggle(QCheckBox, Updater):
 
     def __init__(self):
         super().__init__()
@@ -416,7 +416,7 @@ class GridToggle(QCheckBox, UpdatingView):
         self._updater.signal_update('signal_grid')
 
 
-class GridEditorButton(QPushButton, UpdatingView):
+class GridEditorButton(QPushButton, Updater):
 
     def __init__(self):
         super().__init__()
@@ -439,7 +439,7 @@ class GridEditorButton(QPushButton, UpdatingView):
         visibility_manager.show_grid_editor()
 
 
-class GridSelector(KqtComboBox, UpdatingView):
+class GridSelector(KqtComboBox, Updater):
 
     def __init__(self):
         super().__init__()

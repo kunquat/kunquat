@@ -12,10 +12,10 @@
 #
 
 from kunquat.tracker.ui.views.audiounit.ausimpleenv import AudioUnitSimpleEnvelope
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 
 
-class ProcessorSimpleEnvelope(AudioUnitSimpleEnvelope, UpdatingProcView):
+class ProcessorSimpleEnvelope(AudioUnitSimpleEnvelope, ProcessorUpdater):
     pass
 
 

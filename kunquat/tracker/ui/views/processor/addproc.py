@@ -17,12 +17,12 @@ from PySide.QtGui import *
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from .procnumslider import ProcNumSlider
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 from .waveformeditor import WaveformEditor
 from . import utils
 
 
-class AddProc(QWidget, UpdatingProcView):
+class AddProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():
@@ -116,7 +116,7 @@ class SmallButton(QPushButton):
         self.setIcon(QIcon(icon))
 
 
-class ToneList(EditorList, UpdatingProcView):
+class ToneList(EditorList, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -165,7 +165,7 @@ class ToneList(EditorList, UpdatingProcView):
         self._adder.setVisible(not max_count_reached)
 
 
-class ToneAdder(QPushButton, UpdatingProcView):
+class ToneAdder(QPushButton, ProcessorUpdater):
 
     def __init__(self):
         super().__init__('Add tone')
@@ -182,7 +182,7 @@ class ToneAdder(QPushButton, UpdatingProcView):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class ToneEditor(QWidget, UpdatingProcView):
+class ToneEditor(QWidget, ProcessorUpdater):
 
     _ARG_SCALE = 1000
 
@@ -222,7 +222,7 @@ class ToneEditor(QWidget, UpdatingProcView):
         updater.signal_update(self._get_update_signal_type())
 
 
-class TonePitchSpin(QWidget, UpdatingProcView):
+class TonePitchSpin(QWidget, ProcessorUpdater):
 
     def __init__(self, index):
         super().__init__()

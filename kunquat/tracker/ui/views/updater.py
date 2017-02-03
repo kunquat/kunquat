@@ -15,7 +15,7 @@ import types
 from collections import OrderedDict
 
 
-class UpdatingView():
+class Updater():
 
     def __init__(self):
         self._ui_model = None

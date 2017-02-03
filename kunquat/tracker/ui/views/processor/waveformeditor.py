@@ -17,11 +17,11 @@ from PySide.QtGui import *
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 from .waveform import Waveform
 
 
-class WaveformEditor(QWidget, UpdatingProcView):
+class WaveformEditor(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -121,7 +121,7 @@ class WaveformEditor(QWidget, UpdatingProcView):
         raise NotImplementedError
 
 
-class WarpList(EditorList, UpdatingProcView):
+class WarpList(EditorList, ProcessorUpdater):
 
     def __init__(self, warp_type, get_base_wave, get_update_signal_type):
         super().__init__()
@@ -179,7 +179,7 @@ class WarpList(EditorList, UpdatingProcView):
         self._adder.setVisible(not max_count_reached)
 
 
-class WarpAdder(QPushButton, UpdatingProcView):
+class WarpAdder(QPushButton, ProcessorUpdater):
 
     def __init__(self, warp_type, get_base_wave, get_update_signal_type):
         super().__init__()
@@ -206,7 +206,7 @@ class SmallButton(QPushButton):
         self.setStyleSheet('padding: 0 -2px;')
 
 
-class WarpEditor(QWidget, UpdatingProcView):
+class WarpEditor(QWidget, ProcessorUpdater):
 
     _ARG_SCALE = 1000
 

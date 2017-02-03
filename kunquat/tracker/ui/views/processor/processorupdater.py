@@ -11,23 +11,23 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from kunquat.tracker.ui.views.updatingview import UpdatingView
+from kunquat.tracker.ui.views.audiounit.audiounitupdater import AudioUnitUpdater
 
 
-class UpdatingAUView(UpdatingView):
+class ProcessorUpdater(AudioUnitUpdater):
 
     def __init__(self):
-        self._au_id = None
+        self._proc_id = None
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
         for widget in self._updating_children:
-            widget.set_au_id(au_id)
+            widget.set_proc_id(proc_id)
 
     def add_updating_child(self, *widgets):
-        if hasattr(self, '_au_id') and self._au_id != None:
+        if hasattr(self, '_proc_id') and self._proc_id != None:
             for widget in widgets:
-                widget.set_au_id(self._au_id)
+                widget.set_proc_id(self._proc_id)
         super().add_updating_child(*widgets)
 
 

@@ -17,10 +17,10 @@ from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 from .kqtutils import get_kqt_file_path, open_kqt_au
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class OpenButton(QToolButton, UpdatingView):
+class OpenButton(QToolButton, Updater):
 
     def __init__(self):
         super().__init__()

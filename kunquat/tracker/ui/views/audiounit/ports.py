@@ -16,10 +16,10 @@ from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
-from .updatingauview import UpdatingAUView
+from .audiounitupdater import AudioUnitUpdater
 
 
-class Ports(QWidget, UpdatingAUView):
+class Ports(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -37,7 +37,7 @@ class Ports(QWidget, UpdatingAUView):
         self.setLayout(h)
 
 
-class PortsEditor(QWidget, UpdatingAUView):
+class PortsEditor(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -106,7 +106,7 @@ class OutputPorts(PortsEditor):
         return au.get_free_output_port_id()
 
 
-class PortList(EditorList, UpdatingAUView):
+class PortList(EditorList, AudioUnitUpdater):
 
     def __init__(self, get_add_text, get_port_ids, get_free_port_id):
         super().__init__()
@@ -150,7 +150,7 @@ class PortList(EditorList, UpdatingAUView):
         self._adder.setEnabled(self._get_free_port_id() != None)
 
 
-class PortAdder(QPushButton, UpdatingAUView):
+class PortAdder(QPushButton, AudioUnitUpdater):
 
     def __init__(self, get_add_text, get_free_port_id):
         super().__init__(get_add_text())
@@ -182,7 +182,7 @@ class PortAdder(QPushButton, UpdatingAUView):
                 self._get_update_signal_type(), *self._get_connections_signals())
 
 
-class PortEditor(QWidget, UpdatingAUView):
+class PortEditor(QWidget, AudioUnitUpdater):
 
     def __init__(self, index, get_port_ids):
         super().__init__()

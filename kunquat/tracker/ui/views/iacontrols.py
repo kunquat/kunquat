@@ -19,11 +19,11 @@ from PySide.QtGui import *
 import kunquat.tracker.ui.model.tstamp as tstamp
 from .editorlist import EditorList
 from .headerline import HeaderLine
-from .updatingview import UpdatingView
+from .updater import Updater
 from .varvalidators import *
 
 
-class IAControls(QWidget, UpdatingView):
+class IAControls(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -41,7 +41,7 @@ class IAControls(QWidget, UpdatingView):
         self.setLayout(v)
 
 
-class InfiniteToggle(QCheckBox, UpdatingView):
+class InfiniteToggle(QCheckBox, Updater):
 
     def __init__(self):
         super().__init__()
@@ -68,7 +68,7 @@ class InfiniteToggle(QCheckBox, UpdatingView):
         self._updater.signal_update('infinite_mode')
 
 
-class RuntimeVarList(EditorList, UpdatingView):
+class RuntimeVarList(EditorList, Updater):
 
     def __init__(self):
         super().__init__()
@@ -107,7 +107,7 @@ class RuntimeVarList(EditorList, UpdatingView):
         self.remove_updating_child(widget)
 
 
-class RuntimeVarEditor(QWidget, UpdatingView):
+class RuntimeVarEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -130,7 +130,7 @@ class RuntimeVarEditor(QWidget, UpdatingView):
         self._editor.set_var_name(self._name)
 
 
-class RuntimeVarValueEditor(QWidget, UpdatingView):
+class RuntimeVarValueEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

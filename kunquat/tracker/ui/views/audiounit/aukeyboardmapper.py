@@ -12,10 +12,10 @@
 #
 
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
-from .updatingauview import UpdatingAUView
+from .audiounitupdater import AudioUnitUpdater
 
 
-class AudioUnitKeyboardMapper(KeyboardMapper, UpdatingAUView):
+class AudioUnitKeyboardMapper(KeyboardMapper, AudioUnitUpdater):
 
     def get_control_id(self):
         module = self._ui_model.get_module()

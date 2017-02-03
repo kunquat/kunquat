@@ -23,10 +23,10 @@ import kunquat.tracker.config as config
 from .headerline import HeaderLine
 from .numberslider import NumberSlider
 from . import utils
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class Settings(QWidget, UpdatingView):
+class Settings(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -99,7 +99,7 @@ class Settings(QWidget, UpdatingView):
         self.setLayout(h)
 
 
-class Directory(QWidget, UpdatingView):
+class Directory(QWidget, Updater):
 
     def __init__(self, conf_key):
         super().__init__()
@@ -170,7 +170,7 @@ class Effects(Directory):
         super().__init__('dir_effects')
 
 
-class StyleToggle(QCheckBox, UpdatingView):
+class StyleToggle(QCheckBox, Updater):
 
     def __init__(self):
         super().__init__('Enable custom style')
@@ -197,7 +197,7 @@ class StyleToggle(QCheckBox, UpdatingView):
         self._updater.signal_update('signal_style_changed')
 
 
-class StyleSlider(NumberSlider, UpdatingView):
+class StyleSlider(NumberSlider, Updater):
 
     def __init__(self, param, min_val, max_val, desc=''):
         super().__init__(2, min_val, max_val, title=desc, width_txt='-0.00')
@@ -371,7 +371,7 @@ _COLOUR_DESCS = [
 _COLOUR_DESCS_DICT = dict(_COLOUR_DESCS)
 
 
-class ColoursModel(QAbstractItemModel, UpdatingView):
+class ColoursModel(QAbstractItemModel, Updater):
 
     def __init__(self):
         super().__init__()
@@ -1162,7 +1162,7 @@ class ColourEditor(QWidget):
         return QSize(256, 64)
 
 
-class Colours(QTreeView, UpdatingView):
+class Colours(QTreeView, Updater):
 
     def __init__(self):
         super().__init__()

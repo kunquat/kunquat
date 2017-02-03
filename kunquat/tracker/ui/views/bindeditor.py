@@ -19,10 +19,10 @@ from kunquat.kunquat.limits import *
 from .editorlist import EditorList
 from .headerline import HeaderLine
 from .kqtcombobox import KqtComboBox
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class BindEditor(QWidget, UpdatingView):
+class BindEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -56,7 +56,7 @@ class BindEditor(QWidget, UpdatingView):
         self._targets.setEnabled(enable_editor)
 
 
-class BindListToolBar(QToolBar, UpdatingView):
+class BindListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
@@ -99,7 +99,7 @@ class BindListToolBar(QToolBar, UpdatingView):
             self._updater.signal_update('signal_bind')
 
 
-class BindListModel(QAbstractListModel, UpdatingView):
+class BindListModel(QAbstractListModel, Updater):
 
     def __init__(self):
         super().__init__()
@@ -141,7 +141,7 @@ class BindListModel(QAbstractListModel, UpdatingView):
         return None
 
 
-class BindListView(QListView, UpdatingView):
+class BindListView(QListView, Updater):
 
     def __init__(self):
         super().__init__()
@@ -172,7 +172,7 @@ class BindListView(QListView, UpdatingView):
                 self._select_entry)
 
 
-class BindList(QWidget, UpdatingView):
+class BindList(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -240,7 +240,7 @@ class EventBox(KqtComboBox):
         return str(self.itemText(index))
 
 
-class SourceEventSelector(QWidget, UpdatingView):
+class SourceEventSelector(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -289,7 +289,7 @@ class TightLabel(QLabel):
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
 
 
-class Constraints(QWidget, UpdatingView):
+class Constraints(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -305,7 +305,7 @@ class Constraints(QWidget, UpdatingView):
         self.setLayout(v)
 
 
-class ConstraintList(EditorList, UpdatingView):
+class ConstraintList(EditorList, Updater):
 
     def __init__(self):
         super().__init__()
@@ -345,7 +345,7 @@ class ConstraintList(EditorList, UpdatingView):
         self.update_list()
 
 
-class ConstraintAdder(QPushButton, UpdatingView):
+class ConstraintAdder(QPushButton, Updater):
 
     def __init__(self):
         super().__init__()
@@ -361,7 +361,7 @@ class ConstraintAdder(QPushButton, UpdatingView):
         self._updater.signal_update('signal_bind')
 
 
-class ConstraintEditor(QWidget, UpdatingView):
+class ConstraintEditor(QWidget, Updater):
 
     def __init__(self, index):
         super().__init__()
@@ -446,7 +446,7 @@ class ConstraintEditor(QWidget, UpdatingView):
         self._updater.signal_update('signal_bind')
 
 
-class Targets(QWidget, UpdatingView):
+class Targets(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -462,7 +462,7 @@ class Targets(QWidget, UpdatingView):
         self.setLayout(v)
 
 
-class TargetList(EditorList, UpdatingView):
+class TargetList(EditorList, Updater):
 
     def __init__(self):
         super().__init__()
@@ -503,7 +503,7 @@ class TargetList(EditorList, UpdatingView):
         self.update_list()
 
 
-class TargetAdder(QPushButton, UpdatingView):
+class TargetAdder(QPushButton, Updater):
 
     def __init__(self):
         super().__init__()
@@ -519,7 +519,7 @@ class TargetAdder(QPushButton, UpdatingView):
         self._updater.signal_update('signal_bind')
 
 
-class TargetEditor(QWidget, UpdatingView):
+class TargetEditor(QWidget, Updater):
 
     def __init__(self, index):
         super().__init__()

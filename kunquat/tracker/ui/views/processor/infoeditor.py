@@ -15,10 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .name import Name
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 
 
-class InfoEditor(QWidget, UpdatingProcView):
+class InfoEditor(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()

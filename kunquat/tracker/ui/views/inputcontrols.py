@@ -18,10 +18,10 @@ from .hitmaptoggle import HitMapToggle
 from .notationselect import NotationSelect
 from .octaveselector import OctaveSelector
 from .typewriterpanel import TypewriterPanel
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class InputControls(QWidget, UpdatingView):
+class InputControls(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -89,7 +89,7 @@ class ControlLayout(QVBoxLayout):
             self.itemAt(i).widget().setVisible(i == index)
 
 
-class CompactControls(QWidget, UpdatingView):
+class CompactControls(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

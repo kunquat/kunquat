@@ -19,7 +19,7 @@ from PySide.QtGui import *
 
 from kunquat.tracker.ui.model.patterninstance import PatternInstance
 from kunquat.tracker.ui.model.song import Song
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
 class AlbumTreeModelNode():
@@ -48,7 +48,7 @@ class AlbumTreeModelNode():
         return self._parent
 
 
-class AlbumTreeModel(QAbstractItemModel, UpdatingView):
+class AlbumTreeModel(QAbstractItemModel, Updater):
 
     def __init__(self):
         super().__init__()
@@ -264,7 +264,7 @@ class AlbumTree(QTreeView):
             super().keyPressEvent(event)
 
 
-class Orderlist(QWidget, UpdatingView):
+class Orderlist(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

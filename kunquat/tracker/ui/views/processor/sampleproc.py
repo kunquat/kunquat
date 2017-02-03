@@ -26,11 +26,11 @@ from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.utils import lerp_val
 from .prockeyboardmapper import ProcessorKeyboardMapper
 from .sampleview import SampleView
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 from . import utils
 
 
-class SampleProc(QTabWidget, UpdatingProcView):
+class SampleProc(QTabWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():
@@ -51,7 +51,7 @@ class SampleProc(QTabWidget, UpdatingProcView):
         self.addTab(self._samples, 'Samples')
 
 
-class NoteMapEditor(QWidget, UpdatingProcView):
+class NoteMapEditor(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -69,7 +69,7 @@ class NoteMapEditor(QWidget, UpdatingProcView):
         self.setLayout(h)
 
 
-class RandomListMap(QWidget, UpdatingProcView):
+class RandomListMap(QWidget, ProcessorUpdater):
 
     _DEFAULT_CONFIG = {
         'padding'                  : 5,
@@ -496,7 +496,7 @@ class TightLabel(QLabel):
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
 
 
-class NoteMapEntry(QWidget, UpdatingProcView):
+class NoteMapEntry(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -579,7 +579,7 @@ class NoteMapEntry(QWidget, UpdatingProcView):
                 self._updater.signal_update(self._get_move_signal_type())
 
 
-class RandomList(EditorList, UpdatingProcView):
+class RandomList(EditorList, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -662,7 +662,7 @@ class RandomList(EditorList, UpdatingProcView):
         raise NotImplementedError
 
 
-class RandomEntryAdder(QPushButton, UpdatingProcView):
+class RandomEntryAdder(QPushButton, ProcessorUpdater):
 
     def __init__(self, cb_info):
         super().__init__('Add sample entry')
@@ -682,7 +682,7 @@ class RandomEntryAdder(QPushButton, UpdatingProcView):
             self._updater.signal_update(self._get_update_signal_type())
 
 
-class RandomEntryEditor(QWidget, UpdatingProcView):
+class RandomEntryEditor(QWidget, ProcessorUpdater):
 
     def __init__(self, cb_info, index):
         super().__init__()
@@ -860,7 +860,7 @@ class NoteRandomList(RandomList):
             'signal_sample_format_{}'.format(self._proc_id)])
 
 
-class HitMapEditor(QWidget, UpdatingProcView):
+class HitMapEditor(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -879,7 +879,7 @@ class HitMapEditor(QWidget, UpdatingProcView):
         self.setLayout(v)
 
 
-class SampleHitSelector(HitSelector, UpdatingProcView):
+class SampleHitSelector(HitSelector, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -980,7 +980,7 @@ class HitMap(RandomListMap):
         sample_params.remove_hit_map_point(hit_info, force)
 
 
-class HitMapEntry(QWidget, UpdatingProcView):
+class HitMapEntry(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -1090,7 +1090,7 @@ class HitRandomList(RandomList):
             'signal_sample_format_{}'.format(self._proc_id)])
 
 
-class Samples(QSplitter, UpdatingProcView):
+class Samples(QSplitter, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -1136,7 +1136,7 @@ class Samples(QSplitter, UpdatingProcView):
         control_manager.set_test_processor_param(self._proc_id, None)
 
 
-class SampleListToolBar(QToolBar, UpdatingProcView):
+class SampleListToolBar(QToolBar, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -1280,7 +1280,7 @@ class ImportErrorDialog(QDialog):
         QObject.connect(self._ok_button, SIGNAL('clicked()'), self.close)
 
 
-class SampleListModel(QAbstractListModel, UpdatingProcView):
+class SampleListModel(QAbstractListModel, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -1323,7 +1323,7 @@ class SampleListModel(QAbstractListModel, UpdatingProcView):
         return None
 
 
-class SampleListView(QListView, UpdatingProcView):
+class SampleListView(QListView, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -1367,7 +1367,7 @@ class SampleListView(QListView, UpdatingProcView):
             super().keyReleaseEvent(event)
 
 
-class SampleList(QWidget, UpdatingProcView):
+class SampleList(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -1405,7 +1405,7 @@ class SampleList(QWidget, UpdatingProcView):
         self._list_view.setModel(self._list_model)
 
 
-class SampleEditor(QWidget, UpdatingProcView):
+class SampleEditor(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()

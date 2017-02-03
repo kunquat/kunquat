@@ -18,7 +18,7 @@ from PySide.QtGui import *
 from kunquat.tracker.version import KUNQUAT_VERSION
 from kunquat.kunquat.kunquat import get_version
 from .logo import Logo
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
 class AboutMessage(QWidget):
@@ -105,7 +105,7 @@ class AboutMessage(QWidget):
         return website_base.format(style)
 
 
-class About(QWidget, UpdatingView):
+class About(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

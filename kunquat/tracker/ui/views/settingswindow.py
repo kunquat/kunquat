@@ -15,10 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .settings import Settings
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class SettingsWindow(QWidget, UpdatingView):
+class SettingsWindow(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

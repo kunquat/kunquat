@@ -25,10 +25,10 @@ from .hits import Hits
 from .ports import Ports
 from .infoeditor import InfoEditor
 from .testbutton import TestButton
-from .updatingauview import UpdatingAUView
+from .audiounitupdater import AudioUnitUpdater
 
 
-class Editor(QWidget, UpdatingAUView):
+class Editor(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -86,7 +86,7 @@ class Editor(QWidget, UpdatingAUView):
             event.ignore()
 
 
-class TestPanel(QWidget, UpdatingAUView):
+class TestPanel(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -130,7 +130,7 @@ class TestForce(AuNumSlider):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class TestExpression(KqtComboBox, UpdatingAUView):
+class TestExpression(KqtComboBox, AudioUnitUpdater):
 
     def __init__(self, index):
         super().__init__()

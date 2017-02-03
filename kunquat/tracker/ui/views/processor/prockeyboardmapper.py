@@ -12,10 +12,10 @@
 #
 
 from kunquat.tracker.ui.views.audiounit.aukeyboardmapper import AudioUnitKeyboardMapper
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 
 
-class ProcessorKeyboardMapper(AudioUnitKeyboardMapper, UpdatingProcView):
+class ProcessorKeyboardMapper(AudioUnitKeyboardMapper, ProcessorUpdater):
 
     def process_typewriter_button_event(self, event):
         control_manager = self._ui_model.get_control_manager()

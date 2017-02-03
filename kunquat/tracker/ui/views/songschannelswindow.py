@@ -18,10 +18,10 @@ from PySide.QtGui import *
 from .chdefaultseditor import ChDefaultsEditor
 from .orderlisteditor import OrderlistEditor
 from .songeditor import SongEditor
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class SongsChannelsWindow(QWidget, UpdatingView):
+class SongsChannelsWindow(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

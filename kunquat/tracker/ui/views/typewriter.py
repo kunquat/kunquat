@@ -17,10 +17,10 @@ from PySide.QtGui import *
 
 from .keyboardmapper import KeyboardMapper
 from .typewriterbutton import TypewriterButton
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class Typewriter(QFrame, UpdatingView):
+class Typewriter(QFrame, Updater):
 
     _PAD = 35
 

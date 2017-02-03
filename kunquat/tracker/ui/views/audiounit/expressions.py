@@ -19,10 +19,10 @@ from PySide.QtGui import *
 from kunquat.kunquat.limits import *
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.varnamevalidator import VarNameValidator
-from .updatingauview import UpdatingAUView
+from .audiounitupdater import AudioUnitUpdater
 
 
-class Expressions(QWidget, UpdatingAUView):
+class Expressions(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -44,7 +44,7 @@ class Expressions(QWidget, UpdatingAUView):
         self.setLayout(v)
 
 
-class DefaultNoteExpr(QWidget, UpdatingAUView):
+class DefaultNoteExpr(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -103,7 +103,7 @@ class DefaultNoteExpr(QWidget, UpdatingAUView):
             au.set_default_note_expression(expr_name)
 
 
-class ExpressionListToolBar(QToolBar, UpdatingAUView):
+class ExpressionListToolBar(QToolBar, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -165,7 +165,7 @@ class ExpressionListToolBar(QToolBar, UpdatingAUView):
             self._get_selection_update_signal_type())
 
 
-class ExpressionListModel(QAbstractListModel, UpdatingAUView):
+class ExpressionListModel(QAbstractListModel, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -207,7 +207,7 @@ class ExpressionListModel(QAbstractListModel, UpdatingAUView):
         return None
 
 
-class ExpressionListView(QListView, UpdatingAUView):
+class ExpressionListView(QListView, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -231,7 +231,7 @@ class ExpressionListView(QListView, UpdatingAUView):
             self._updater.signal_update(self._get_selection_update_signal_type())
 
 
-class ExpressionList(QWidget, UpdatingAUView):
+class ExpressionList(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -264,7 +264,7 @@ class ExpressionList(QWidget, UpdatingAUView):
         self._expr_list_view.setModel(self._expr_list_model)
 
 
-class ExpressionName(QWidget, UpdatingAUView):
+class ExpressionName(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -327,7 +327,7 @@ class ExpressionName(QWidget, UpdatingAUView):
                 self._get_selection_update_signal_type())
 
 
-class ExpressionEditor(QWidget, UpdatingAUView):
+class ExpressionEditor(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()

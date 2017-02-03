@@ -16,10 +16,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .octavebutton import OctaveButton
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class OctaveSelector(QFrame, UpdatingView):
+class OctaveSelector(QFrame, Updater):
 
     def __init__(self):
         super().__init__()

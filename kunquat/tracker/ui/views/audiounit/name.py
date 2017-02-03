@@ -14,10 +14,10 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from .updatingauview import UpdatingAUView
+from .audiounitupdater import AudioUnitUpdater
 
 
-class Name(QWidget, UpdatingAUView):
+class Name(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()

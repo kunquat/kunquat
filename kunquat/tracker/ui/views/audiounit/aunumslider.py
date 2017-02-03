@@ -15,10 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.numberslider import NumberSlider
-from .updatingauview import UpdatingAUView
+from .audiounitupdater import AudioUnitUpdater
 
 
-class AuNumSlider(NumberSlider, UpdatingAUView):
+class AuNumSlider(NumberSlider, AudioUnitUpdater):
 
     def __init__(self, decimal_count, min_val, max_val, title='', width_txt=''):
         super().__init__(decimal_count, min_val, max_val, title, width_txt)

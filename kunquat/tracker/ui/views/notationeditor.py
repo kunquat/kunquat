@@ -18,10 +18,10 @@ from PySide.QtGui import *
 
 from .headerline import HeaderLine
 from .kqtcombobox import KqtComboBox
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class NotationEditor(QWidget, UpdatingView):
+class NotationEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -82,7 +82,7 @@ class NotationEditor(QWidget, UpdatingView):
         self.setLayout(h)
 
 
-class NotationListToolBar(QToolBar, UpdatingView):
+class NotationListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
@@ -138,7 +138,7 @@ class NotationListToolBar(QToolBar, UpdatingView):
             'signal_notation_editor_selection')
 
 
-class NotationListModel(QAbstractListModel, UpdatingView):
+class NotationListModel(QAbstractListModel, Updater):
 
     def __init__(self):
         super().__init__()
@@ -210,7 +210,7 @@ class NotationListModel(QAbstractListModel, UpdatingView):
         return False
 
 
-class NotationListView(QListView, UpdatingView):
+class NotationListView(QListView, Updater):
 
     def __init__(self):
         super().__init__()
@@ -246,7 +246,7 @@ class NotationListView(QListView, UpdatingView):
                 self._select_entry)
 
 
-class Notations(QWidget, UpdatingView):
+class Notations(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -277,7 +277,7 @@ class Notations(QWidget, UpdatingView):
         self._list_view.setModel(self._list_model)
 
 
-class TuningTableListToolBar(QToolBar, UpdatingView):
+class TuningTableListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
@@ -334,7 +334,7 @@ class TuningTableListToolBar(QToolBar, UpdatingView):
                 'signal_tuning_tables', 'signal_tuning_table_selection')
 
 
-class TuningTableListModel(QAbstractTableModel, UpdatingView):
+class TuningTableListModel(QAbstractTableModel, Updater):
 
     def __init__(self):
         super().__init__()
@@ -425,7 +425,7 @@ class TuningTableListModel(QAbstractTableModel, UpdatingView):
         return False
 
 
-class TuningTableListView(QTableView, UpdatingView):
+class TuningTableListView(QTableView, Updater):
 
     def __init__(self):
         super().__init__()
@@ -462,7 +462,7 @@ class TuningTableListView(QTableView, UpdatingView):
                 self._select_entry)
 
 
-class TuningTables(QWidget, UpdatingView):
+class TuningTables(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -512,7 +512,7 @@ class TuningTables(QWidget, UpdatingView):
         visibility_manager.show_tuning_table_editor(selected_table_id)
 
 
-class Template(QWidget, UpdatingView):
+class Template(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -603,7 +603,7 @@ class Template(QWidget, UpdatingView):
         self._updater.signal_update('signal_tuning_tables')
 
 
-class CentrePitch(QWidget, UpdatingView):
+class CentrePitch(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -736,7 +736,7 @@ class RatioValidator(QValidator):
         return (QValidator.Acceptable, contents, pos)
 
 
-class OctaveRatio(QWidget, UpdatingView):
+class OctaveRatio(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -790,7 +790,7 @@ class OctaveRatio(QWidget, UpdatingView):
         self._updater.signal_update('signal_notation_template_octave_ratio')
 
 
-class TemplateOctaves(QWidget, UpdatingView):
+class TemplateOctaves(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -886,7 +886,7 @@ class TemplateOctaves(QWidget, UpdatingView):
         self._updater.signal_update('signal_notation_template_octaves')
 
 
-class TemplateNotesToolBar(QToolBar, UpdatingView):
+class TemplateNotesToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
@@ -947,7 +947,7 @@ class TemplateNotesToolBar(QToolBar, UpdatingView):
         self._updater.signal_update('signal_notation_template_notes')
 
 
-class TemplateNoteTableModel(QAbstractTableModel, UpdatingView):
+class TemplateNoteTableModel(QAbstractTableModel, Updater):
 
     def __init__(self):
         super().__init__()
@@ -1068,7 +1068,7 @@ class TemplateNoteTableModel(QAbstractTableModel, UpdatingView):
         return False
 
 
-class TemplateNoteTableView(QTableView, UpdatingView):
+class TemplateNoteTableView(QTableView, Updater):
 
     def __init__(self):
         super().__init__()
@@ -1105,7 +1105,7 @@ class TemplateNoteTableView(QTableView, UpdatingView):
                 self._select_entry)
 
 
-class TemplateNotes(QWidget, UpdatingView):
+class TemplateNotes(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -1137,7 +1137,7 @@ class TemplateNotes(QWidget, UpdatingView):
         self._table_view.setModel(self._table_model)
 
 
-class OctaveListToolBar(QToolBar, UpdatingView):
+class OctaveListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
@@ -1219,7 +1219,7 @@ class OctaveListToolBar(QToolBar, UpdatingView):
         self._updater.signal_update('signal_notation_editor_octaves')
 
 
-class OctaveListModel(QAbstractListModel, UpdatingView):
+class OctaveListModel(QAbstractListModel, Updater):
 
     def __init__(self):
         super().__init__()
@@ -1298,7 +1298,7 @@ class OctaveListModel(QAbstractListModel, UpdatingView):
         return False
 
 
-class OctaveListView(QListView, UpdatingView):
+class OctaveListView(QListView, Updater):
 
     def __init__(self):
         super().__init__()
@@ -1330,7 +1330,7 @@ class OctaveListView(QListView, UpdatingView):
                 self._select_entry)
 
 
-class Octaves(QWidget, UpdatingView):
+class Octaves(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -1373,7 +1373,7 @@ class Octaves(QWidget, UpdatingView):
         self.setEnabled(notation_manager.get_editor_selected_notation_id() != None)
 
 
-class NoteListToolBar(QToolBar, UpdatingView):
+class NoteListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
@@ -1434,7 +1434,7 @@ class NoteListToolBar(QToolBar, UpdatingView):
             'signal_notation', 'signal_notation_editor_notes')
 
 
-class NoteListModel(QAbstractListModel, UpdatingView):
+class NoteListModel(QAbstractListModel, Updater):
 
     def __init__(self):
         super().__init__()
@@ -1481,7 +1481,7 @@ class NoteListModel(QAbstractListModel, UpdatingView):
         return None
 
 
-class NoteListView(QListView, UpdatingView):
+class NoteListView(QListView, Updater):
 
     def __init__(self):
         super().__init__()
@@ -1512,7 +1512,7 @@ class NoteListView(QListView, UpdatingView):
                 self._select_entry)
 
 
-class Notes(QWidget, UpdatingView):
+class Notes(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -1555,7 +1555,7 @@ class Notes(QWidget, UpdatingView):
         self.setEnabled(notation_manager.get_editor_selected_notation_id() != None)
 
 
-class Note(QWidget, UpdatingView):
+class Note(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -1628,7 +1628,7 @@ class Note(QWidget, UpdatingView):
             'signal_notation', 'signal_notation_editor_notes')
 
 
-class Keymap(QWidget, UpdatingView):
+class Keymap(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -1668,7 +1668,7 @@ class Keymap(QWidget, UpdatingView):
 _KEYS_MAX = 33
 
 
-class KeyCount(QWidget, UpdatingView):
+class KeyCount(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -1719,7 +1719,7 @@ class KeyCount(QWidget, UpdatingView):
             'signal_notation', 'signal_notation_editor_key_count')
 
 
-class KeyButton(QPushButton, UpdatingView):
+class KeyButton(QPushButton, Updater):
 
     def __init__(self, index):
         super().__init__()
@@ -1742,7 +1742,7 @@ class KeyButton(QPushButton, UpdatingView):
         self._updater.signal_update('signal_notation_editor_key_selection')
 
 
-class KeySelector(QWidget, UpdatingView):
+class KeySelector(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -1804,7 +1804,7 @@ class KeySelector(QWidget, UpdatingView):
             key.set_pressed(i == selected_index)
 
 
-class KeyEditor(QWidget, UpdatingView):
+class KeyEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -1913,7 +1913,7 @@ class KeyEditor(QWidget, UpdatingView):
             'signal_notation', 'signal_notation_editor_key')
 
 
-class KeyNoteSelector(KqtComboBox, UpdatingView):
+class KeyNoteSelector(KqtComboBox, Updater):
 
     def __init__(self):
         super().__init__()

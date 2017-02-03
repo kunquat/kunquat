@@ -23,11 +23,11 @@ from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.stylecreator import StyleCreator
 from . import utils
 from .procnumslider import ProcNumSlider
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 from .waveformeditor import WaveformEditor
 
 
-class PadsynthProc(QWidget, UpdatingProcView):
+class PadsynthProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():
@@ -63,7 +63,7 @@ class PadsynthProc(QWidget, UpdatingProcView):
         self.setLayout(v)
 
 
-class PlaybackParams(QWidget, UpdatingProcView):
+class PlaybackParams(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -118,7 +118,7 @@ class PlaybackParams(QWidget, UpdatingProcView):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class ApplyButton(QPushButton, UpdatingProcView):
+class ApplyButton(QPushButton, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -172,7 +172,7 @@ class PadsynthParamSlider(ProcNumSlider):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
 
-class SampleConfigEditor(QWidget, UpdatingProcView):
+class SampleConfigEditor(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -300,7 +300,7 @@ class SampleCentrePitchEditor(PadsynthParamSlider):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class BandwidthEditor(QWidget, UpdatingProcView):
+class BandwidthEditor(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -363,7 +363,7 @@ class HarmonicsBaseEditor(WaveformEditor):
         return base_wave
 
 
-class HarmonicScalesList(EditorList, UpdatingProcView):
+class HarmonicScalesList(EditorList, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -404,7 +404,7 @@ class HarmonicScalesList(EditorList, UpdatingProcView):
         self.update_list()
 
 
-class HarmonicScaleAdder(QPushButton, UpdatingProcView):
+class HarmonicScaleAdder(QPushButton, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -424,7 +424,7 @@ class HarmonicScaleAdder(QPushButton, UpdatingProcView):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class HarmonicScaleEditor(QWidget, UpdatingProcView):
+class HarmonicScaleEditor(QWidget, ProcessorUpdater):
 
     def __init__(self, index):
         super().__init__()
@@ -530,7 +530,7 @@ class AmplitudeEditor(PadsynthParamSlider):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class HarmonicScales(QWidget, UpdatingProcView):
+class HarmonicScales(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()

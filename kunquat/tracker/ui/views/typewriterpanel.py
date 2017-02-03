@@ -21,10 +21,10 @@ from .octaveselector import OctaveSelector
 from .typewriter import Typewriter
 from .notationselect import NotationSelect
 from .profilecontrol import ProfileControl
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class TypewriterPanel(QFrame, UpdatingView):
+class TypewriterPanel(QFrame, Updater):
 
     def __init__(self):
         super().__init__()

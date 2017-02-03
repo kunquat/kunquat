@@ -17,11 +17,11 @@ from PySide.QtGui import *
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from .procnumslider import ProcNumSlider
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 from . import utils
 
 
-class DelayProc(QWidget, UpdatingProcView):
+class DelayProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():
@@ -47,7 +47,7 @@ class DelayProc(QWidget, UpdatingProcView):
         self.setLayout(v)
 
 
-class MaxDelay(QDoubleSpinBox, UpdatingProcView):
+class MaxDelay(QDoubleSpinBox, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()

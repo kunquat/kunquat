@@ -18,12 +18,12 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 import kunquat.tracker.ui.model.tstamp as tstamp
-from kunquat.tracker.ui.views.updatingview import UpdatingView
+from kunquat.tracker.ui.views.updater import Updater
 from .config import *
 from . import utils
 
 
-class Ruler(QWidget, UpdatingView):
+class Ruler(QWidget, Updater):
 
     heightChanged = Signal(name='heightChanged')
 

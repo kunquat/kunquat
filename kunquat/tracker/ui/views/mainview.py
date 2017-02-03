@@ -22,10 +22,10 @@ from .inputcontrols import InputControls
 from .peakmeter import PeakMeter
 from .portal import Portal
 from .topcontrols import TopControls
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class MainView(QWidget, UpdatingView):
+class MainView(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

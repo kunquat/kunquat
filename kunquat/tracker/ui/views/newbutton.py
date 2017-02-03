@@ -15,10 +15,10 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class NewButton(QToolButton, UpdatingView):
+class NewButton(QToolButton, Updater):
 
     def __init__(self):
         super().__init__()

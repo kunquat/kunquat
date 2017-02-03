@@ -14,10 +14,10 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 
 
-class Name(QWidget, UpdatingProcView):
+class Name(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()

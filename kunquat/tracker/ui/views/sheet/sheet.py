@@ -14,12 +14,12 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from kunquat.tracker.ui.views.updatingview import UpdatingView
+from kunquat.tracker.ui.views.updater import Updater
 from .sheetarea import SheetArea
 from .toolbar import Toolbar
 
 
-class Sheet(QWidget, UpdatingView):
+class Sheet(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

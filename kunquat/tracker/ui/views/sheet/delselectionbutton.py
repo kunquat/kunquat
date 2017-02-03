@@ -14,10 +14,10 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from kunquat.tracker.ui.views.updatingview import UpdatingView
+from kunquat.tracker.ui.views.updater import Updater
 
 
-class DelSelectionButton(QPushButton, UpdatingView):
+class DelSelectionButton(QPushButton, Updater):
 
     def __init__(self):
         super().__init__()

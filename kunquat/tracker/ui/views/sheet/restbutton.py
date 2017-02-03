@@ -15,10 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from kunquat.tracker.ui.model.trigger import Trigger
-from kunquat.tracker.ui.views.updatingview import UpdatingView
+from kunquat.tracker.ui.views.updater import Updater
 
 
-class RestButton(QPushButton, UpdatingView):
+class RestButton(QPushButton, Updater):
 
     def __init__(self):
         super().__init__()

@@ -23,10 +23,10 @@ from .songschannelsbutton import SongsChannelsButton
 from .eventlistbutton import EventListButton
 from .aboutbutton import AboutButton
 from . import utils
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class Portal(QToolBar, UpdatingView):
+class Portal(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
@@ -74,7 +74,7 @@ class Portal(QToolBar, UpdatingView):
         self.addWidget(self._about_button)
 
 
-class WindowOpenerButton(QToolButton, UpdatingView):
+class WindowOpenerButton(QToolButton, Updater):
 
     def __init__(self, text):
         super().__init__()

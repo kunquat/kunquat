@@ -16,10 +16,10 @@ from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.envelope import Envelope
 from .procsimpleenv import ProcessorSimpleEnvelope
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 
 
-class GainCompProc(QWidget, UpdatingProcView):
+class GainCompProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():

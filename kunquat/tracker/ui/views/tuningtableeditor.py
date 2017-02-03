@@ -19,10 +19,10 @@ from PySide.QtGui import *
 from kunquat.kunquat.limits import *
 from .kqtcombobox import KqtComboBox
 from .notationeditor import RatioValidator
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class TuningTableEditor(QWidget, UpdatingView):
+class TuningTableEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -207,7 +207,7 @@ class TuningTableEditor(QWidget, UpdatingView):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class NotesToolBar(QToolBar, UpdatingView):
+class NotesToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
@@ -275,7 +275,7 @@ class NotesToolBar(QToolBar, UpdatingView):
                 self._get_update_signal_type(), self._get_selection_signal_type())
 
 
-class NoteTableModel(QAbstractTableModel, UpdatingView):
+class NoteTableModel(QAbstractTableModel, Updater):
 
     def __init__(self):
         super().__init__()
@@ -394,7 +394,7 @@ class NoteTableModel(QAbstractTableModel, UpdatingView):
         return False
 
 
-class NoteTableView(QTableView, UpdatingView):
+class NoteTableView(QTableView, Updater):
 
     def __init__(self):
         super().__init__()
@@ -445,7 +445,7 @@ class NoteTableView(QTableView, UpdatingView):
                 self._select_entry)
 
 
-class Notes(QWidget, UpdatingView):
+class Notes(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

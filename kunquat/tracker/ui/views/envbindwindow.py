@@ -16,10 +16,10 @@ from PySide.QtGui import *
 
 from .bindeditor import BindEditor
 from .environmenteditor import EnvironmentEditor
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class EnvBindWindow(QWidget, UpdatingView):
+class EnvBindWindow(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

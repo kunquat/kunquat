@@ -16,10 +16,10 @@ from PySide.QtGui import *
 
 from .connectionseditor import ConnectionsEditor
 from .keyboardmapper import KeyboardMapper
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class ConnectionsWindow(QWidget, UpdatingView):
+class ConnectionsWindow(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

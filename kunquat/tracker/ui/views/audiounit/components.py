@@ -22,7 +22,7 @@ from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.varnamevalidator import *
 from kunquat.tracker.ui.views.varvalidators import *
-from .updatingauview import UpdatingAUView
+from .audiounitupdater import AudioUnitUpdater
 
 
 def _get_update_signal_type(au_id):
@@ -35,7 +35,7 @@ def _get_stream_update_signal_type(au_id):
     return 'signal_au_streams_{}'.format(au_id)
 
 
-class Components(QSplitter, UpdatingAUView):
+class Components(QSplitter, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__(Qt.Vertical)
@@ -61,7 +61,7 @@ class Components(QSplitter, UpdatingAUView):
         self.setStretchFactor(0, 4)
 
 
-class NameEditor(QLineEdit, UpdatingAUView):
+class NameEditor(QLineEdit, AudioUnitUpdater):
 
     def __init__(self, validator_cls):
         super().__init__()
@@ -104,7 +104,7 @@ class NameEditor(QLineEdit, UpdatingAUView):
         raise NotImplementedError
 
 
-class RemoveButton(QPushButton, UpdatingAUView):
+class RemoveButton(QPushButton, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -130,7 +130,7 @@ class RemoveButton(QPushButton, UpdatingAUView):
         raise NotImplementedError
 
 
-class Streams(QWidget, UpdatingAUView):
+class Streams(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -146,7 +146,7 @@ class Streams(QWidget, UpdatingAUView):
         self.setLayout(v)
 
 
-class StreamList(EditorList, UpdatingAUView):
+class StreamList(EditorList, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -196,7 +196,7 @@ class StreamList(EditorList, UpdatingAUView):
         self.remove_updating_child(widget)
 
 
-class StreamAdder(QPushButton, UpdatingAUView):
+class StreamAdder(QPushButton, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -213,7 +213,7 @@ class StreamAdder(QPushButton, UpdatingAUView):
         self._updater.signal_update(_get_stream_update_signal_type(self._au_id))
 
 
-class StreamEditor(QWidget, UpdatingAUView):
+class StreamEditor(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -264,7 +264,7 @@ class StreamNameEditor(NameEditor):
         self._updater.signal_update(_get_stream_update_signal_type(self._au_id))
 
 
-class StreamTargetProcEditor(KqtComboBox, UpdatingAUView):
+class StreamTargetProcEditor(KqtComboBox, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -342,7 +342,7 @@ class StreamRemoveButton(RemoveButton):
         self._updater.signal_update(_get_stream_update_signal_type(self._au_id))
 
 
-class ControlVariables(QWidget, UpdatingAUView):
+class ControlVariables(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -425,7 +425,7 @@ class ControlVariableList(EditorList):
         widget.unregister_updaters()
 
 
-class ControlVariableEditor(QWidget, UpdatingAUView):
+class ControlVariableEditor(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -560,7 +560,7 @@ class ControlVariableNameEditor(NameEditor):
         self._updater.signal_update(_get_update_signal_type(self._au_id))
 
 
-class ControlVariableTypeEditor(KqtComboBox, UpdatingAUView):
+class ControlVariableTypeEditor(KqtComboBox, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -777,7 +777,7 @@ class ControlVariableInitValueEditor(ControlVariableValueEditor):
         au.change_control_var_init_value(self._context, new_value)
 
 
-class ControlVariableAdder(QPushButton, UpdatingAUView):
+class ControlVariableAdder(QPushButton, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -970,7 +970,7 @@ class BindTargetEditor(QWidget):
         self._name_editor.set_used_names(used_names)
 
 
-class BindTargetDeviceSelector(KqtComboBox, UpdatingAUView):
+class BindTargetDeviceSelector(KqtComboBox, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -1100,7 +1100,7 @@ class BindTargetNameEditor(NameEditor):
         self.blockSignals(old_block)
 
 
-class BindTargetVariableTypeEditor(KqtComboBox, UpdatingAUView):
+class BindTargetVariableTypeEditor(KqtComboBox, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -1257,7 +1257,7 @@ class BindTargetRemoveButton(RemoveButton):
             _get_rebuild_signal_type(self._au_id))
 
 
-class BindTargetAdder(QPushButton, UpdatingAUView):
+class BindTargetAdder(QPushButton, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()

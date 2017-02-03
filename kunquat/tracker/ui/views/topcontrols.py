@@ -20,10 +20,10 @@ from .playbutton import PlayButton
 from .playpatternbutton import PlayPatternButton
 from .recordbutton import RecordButton
 from .silencebutton import SilenceButton
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class TopControls(QToolBar, UpdatingView):
+class TopControls(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
@@ -56,7 +56,7 @@ class TopControls(QToolBar, UpdatingView):
         self.addWidget(self._interactivity_button)
 
 
-class PlayFromCursorButton(QToolButton, UpdatingView):
+class PlayFromCursorButton(QToolButton, Updater):
 
     def __init__(self):
         super().__init__()
@@ -72,7 +72,7 @@ class PlayFromCursorButton(QToolButton, UpdatingView):
         QObject.connect(self, SIGNAL('clicked()'), self._ui_model.play_from_cursor)
 
 
-class InteractivityButton(QToolButton, UpdatingView):
+class InteractivityButton(QToolButton, Updater):
 
     def __init__(self):
         super().__init__()

@@ -16,10 +16,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 from PySide.QtSvg import QSvgRenderer
 
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class Logo(QWidget, UpdatingView):
+class Logo(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

@@ -14,10 +14,10 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from kunquat.tracker.ui.views.updatingview import UpdatingView
+from kunquat.tracker.ui.views.updater import Updater
 
 
-class ZoomButton(QPushButton, UpdatingView):
+class ZoomButton(QPushButton, Updater):
 
     INFO = {
             'in': ('Zoom In', 'zoom_in', 'Ctrl + +'),

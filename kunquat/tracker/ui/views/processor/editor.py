@@ -18,11 +18,11 @@ from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from .infoeditor import InfoEditor
 from .prockeyboardmapper import ProcessorKeyboardMapper
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 from . import proctypeinfo
 
 
-class Editor(QWidget, UpdatingProcView):
+class Editor(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -131,7 +131,7 @@ class HeaderFrame(QWidget):
         self.setLayout(v)
 
 
-class Signals(QWidget, UpdatingProcView):
+class Signals(QWidget, ProcessorUpdater):
 
     _SIGNAL_INFO = [
         ('voice', 'Voice signals'),

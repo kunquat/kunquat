@@ -19,7 +19,7 @@ from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
-from kunquat.tracker.ui.views.updatingview import UpdatingView
+from kunquat.tracker.ui.views.updater import Updater
 from .config import *
 from .header import Header
 from .ruler import Ruler
@@ -88,7 +88,7 @@ class Corner(QWidget):
         painter.eraseRect(event.rect())
 
 
-class SheetArea(QAbstractScrollArea, UpdatingView):
+class SheetArea(QAbstractScrollArea, Updater):
 
     def __init__(self):
         super().__init__()

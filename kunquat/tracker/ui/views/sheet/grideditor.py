@@ -22,13 +22,13 @@ from kunquat.tracker.ui.model.gridpattern import STYLE_COUNT
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.numberslider import NumberSlider
-from kunquat.tracker.ui.views.updatingview import UpdatingView
+from kunquat.tracker.ui.views.updater import Updater
 from .config import *
 from .ruler import Ruler
 from . import utils
 
 
-class GridEditor(QWidget, UpdatingView):
+class GridEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -70,7 +70,7 @@ class GridEditor(QWidget, UpdatingView):
         self.setLayout(v)
 
 
-class GridListModel(QAbstractListModel, UpdatingView):
+class GridListModel(QAbstractListModel, Updater):
 
     def __init__(self):
         super().__init__()
@@ -115,7 +115,7 @@ class GridListModel(QAbstractListModel, UpdatingView):
         return None
 
 
-class GridListView(QListView, UpdatingView):
+class GridListView(QListView, Updater):
 
     def __init__(self):
         super().__init__()
@@ -138,7 +138,7 @@ class GridListView(QListView, UpdatingView):
             self._updater.signal_update('signal_grid_pattern_selection')
 
 
-class GridList(QWidget, UpdatingView):
+class GridList(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -168,7 +168,7 @@ class GridList(QWidget, UpdatingView):
         self._grid_list_view.setModel(self._grid_list_model)
 
 
-class GridListToolBar(QToolBar, UpdatingView):
+class GridListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
@@ -239,7 +239,7 @@ class Corner(QWidget):
         painter.eraseRect(event.rect())
 
 
-class GridArea(QAbstractScrollArea, UpdatingView):
+class GridArea(QAbstractScrollArea, Updater):
 
     def __init__(self):
         super().__init__()
@@ -425,7 +425,7 @@ class GridHeader(QWidget):
         painter.eraseRect(0, 0, self.width(), self.height())
 
 
-class GridView(QWidget, UpdatingView):
+class GridView(QWidget, Updater):
 
     followCursor = Signal(str, name='followCursor')
 
@@ -685,7 +685,7 @@ class GridView(QWidget, UpdatingView):
                 self._updater.signal_update('signal_grid_zoom')
 
 
-class GeneralEditor(QWidget, UpdatingView):
+class GeneralEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -872,7 +872,7 @@ class GeneralEditor(QWidget, UpdatingView):
         self._updater.signal_update('signal_grid_pattern_modified')
 
 
-class SubdivEditor(QWidget, UpdatingView):
+class SubdivEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -1001,7 +1001,7 @@ class SubdivEditor(QWidget, UpdatingView):
         self._updater.signal_update('signal_grid_pattern_modified')
 
 
-class LineEditor(QWidget, UpdatingView):
+class LineEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

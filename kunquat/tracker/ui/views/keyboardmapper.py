@@ -14,7 +14,7 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
 # TODO: Define alternatives for different environments if/when needed
@@ -26,7 +26,7 @@ _TYPEWRITER_MAP.update(dict((39 + x, (2, x)) for x in range(7)))
 _TYPEWRITER_MAP.update(dict((52 + x, (3, x)) for x in range(7)))
 
 
-class KeyboardMapper(UpdatingView):
+class KeyboardMapper(Updater):
 
     def __init__(self):
         self._typewriter_manager = None

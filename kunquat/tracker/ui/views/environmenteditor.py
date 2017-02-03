@@ -19,12 +19,12 @@ import kunquat.tracker.ui.model.tstamp as tstamp
 from .editorlist import EditorList
 from .headerline import HeaderLine
 from .kqtcombobox import KqtComboBox
-from .updatingview import UpdatingView
+from .updater import Updater
 from .varnamevalidator import VarNameValidator
 from .varvalidators import *
 
 
-class EnvironmentEditor(QWidget, UpdatingView):
+class EnvironmentEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -40,7 +40,7 @@ class EnvironmentEditor(QWidget, UpdatingView):
         self.setLayout(v)
 
 
-class VariableList(EditorList, UpdatingView):
+class VariableList(EditorList, Updater):
 
     def __init__(self):
         super().__init__()
@@ -86,7 +86,7 @@ class VariableList(EditorList, UpdatingView):
         self.remove_updating_child(widget)
 
 
-class VariableEditor(QWidget, UpdatingView):
+class VariableEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -124,7 +124,7 @@ class VariableEditor(QWidget, UpdatingView):
         self._name_editor.set_used_names(used_names)
 
 
-class VarNameEditor(QLineEdit, UpdatingView):
+class VarNameEditor(QLineEdit, Updater):
 
     def __init__(self):
         super().__init__()
@@ -166,7 +166,7 @@ class VarNameEditor(QLineEdit, UpdatingView):
             return super().keyPressEvent(event)
 
 
-class VarTypeEditor(KqtComboBox, UpdatingView):
+class VarTypeEditor(KqtComboBox, Updater):
 
     def __init__(self):
         super().__init__()
@@ -211,7 +211,7 @@ class VarTypeEditor(KqtComboBox, UpdatingView):
         self._updater.signal_update('signal_environment')
 
 
-class VarValueEditor(QWidget, UpdatingView):
+class VarValueEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -310,7 +310,7 @@ class VarValueEditor(QWidget, UpdatingView):
         self._change_value(new_value)
 
 
-class VarRemoveButton(QPushButton, UpdatingView):
+class VarRemoveButton(QPushButton, Updater):
 
     def __init__(self):
         super().__init__()
@@ -336,7 +336,7 @@ class VarRemoveButton(QPushButton, UpdatingView):
         self._updater.signal_update('signal_environment')
 
 
-class VariableAdder(QWidget, UpdatingView):
+class VariableAdder(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

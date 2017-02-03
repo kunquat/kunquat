@@ -17,10 +17,10 @@ from PySide.QtGui import *
 from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.numberslider import NumberSlider
-from .updatingauview import UpdatingAUView
+from .audiounitupdater import AudioUnitUpdater
 
 
-class AudioUnitTimeEnvelope(QWidget, UpdatingAUView):
+class AudioUnitTimeEnvelope(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()

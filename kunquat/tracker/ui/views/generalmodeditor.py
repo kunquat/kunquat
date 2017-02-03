@@ -15,10 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .numberslider import NumberSlider
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class GeneralModEditor(QWidget, UpdatingView):
+class GeneralModEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -79,7 +79,7 @@ class GeneralModEditor(QWidget, UpdatingView):
         self.setLayout(v)
 
 
-class Title(QLineEdit, UpdatingView):
+class Title(QLineEdit, Updater):
 
     def __init__(self):
         super().__init__()
@@ -106,7 +106,7 @@ class Title(QLineEdit, UpdatingView):
         self._updater.signal_update('signal_title')
 
 
-class AuthorTableModel(QAbstractTableModel, UpdatingView):
+class AuthorTableModel(QAbstractTableModel, Updater):
 
     def __init__(self):
         super().__init__()
@@ -175,7 +175,7 @@ class AuthorTableModel(QAbstractTableModel, UpdatingView):
         return False
 
 
-class Authors(QTableView, UpdatingView):
+class Authors(QTableView, Updater):
 
     def __init__(self):
         super().__init__()
@@ -236,7 +236,7 @@ class Authors(QTableView, UpdatingView):
         return super().keyPressEvent(event)
 
 
-class MixingVolume(QDoubleSpinBox, UpdatingView):
+class MixingVolume(QDoubleSpinBox, Updater):
 
     def __init__(self):
         super().__init__()
@@ -264,7 +264,7 @@ class MixingVolume(QDoubleSpinBox, UpdatingView):
         self._updater.signal_update('signal_mixing_volume')
 
 
-class ForceShift(NumberSlider, UpdatingView):
+class ForceShift(NumberSlider, Updater):
 
     def __init__(self):
         super().__init__(0, -60, 0)
@@ -286,7 +286,7 @@ class ForceShift(NumberSlider, UpdatingView):
         self._updater.signal_update('signal_force_shift')
 
 
-class DCBlocker(QCheckBox, UpdatingView):
+class DCBlocker(QCheckBox, Updater):
 
     def __init__(self):
         super().__init__()
@@ -314,7 +314,7 @@ class DCBlocker(QCheckBox, UpdatingView):
         self._updater.signal_update('signal_dc_blocker')
 
 
-class RandomSeed(QWidget, UpdatingView):
+class RandomSeed(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

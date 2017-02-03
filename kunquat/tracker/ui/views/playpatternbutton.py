@@ -14,10 +14,10 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from .updatingview import UpdatingView
+from .updater import Updater
 
 
-class PlayPatternButton(QToolButton, UpdatingView):
+class PlayPatternButton(QToolButton, Updater):
 
     def __init__(self):
         super().__init__()

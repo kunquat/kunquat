@@ -18,11 +18,11 @@ from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from .procnumslider import ProcNumSlider
 from .proctimeenv import ProcessorTimeEnvelope
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 from . import utils
 
 
-class KsProc(QWidget, UpdatingProcView):
+class KsProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():

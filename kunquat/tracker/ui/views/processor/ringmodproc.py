@@ -14,10 +14,10 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 
 
-class RingmodProc(QWidget, UpdatingProcView):
+class RingmodProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():

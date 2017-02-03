@@ -15,10 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .procnumslider import ProcNumSlider
-from .updatingprocview import UpdatingProcView
+from .processorupdater import ProcessorUpdater
 
 
-class VolumeProc(QWidget, UpdatingProcView):
+class VolumeProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():
