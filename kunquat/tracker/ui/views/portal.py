@@ -15,14 +15,11 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from .newbutton import NewButton
-from .openbutton import OpenButton
-from .savebutton import SaveButton
-from .connectionsbutton import ConnectionsButton
-from .songschannelsbutton import SongsChannelsButton
+from kunquat.kunquat.limits import *
 from .eventlistbutton import EventListButton
-from .aboutbutton import AboutButton
 from . import utils
+from .kqtutils import get_kqt_file_path, open_kqt_au
+from .saving import get_module_save_path
 from .updater import Updater
 
 
@@ -74,6 +71,80 @@ class Portal(QToolBar, Updater):
         self.addWidget(self._about_button)
 
 
+class NewButton(QToolButton, Updater):
+
+    def __init__(self):
+        super().__init__()
+        self.setText('New')
+
+    def _on_setup(self):
+        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+
+    def _clicked(self):
+        process_manager = self._ui_model.get_process_manager()
+        process_manager.new_kunquat()
+
+
+class OpenButton(QToolButton, Updater):
+
+    def __init__(self):
+        super().__init__()
+        self.setText('Open')
+
+    def _on_setup(self):
+        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+
+    def _clicked(self):
+        file_path = get_kqt_file_path(set(['kqt', 'kqti', 'kqte']))
+        if file_path:
+            if file_path.endswith('.kqt'):
+                process_manager = self._ui_model.get_process_manager()
+                process_manager.new_kunquat(file_path)
+            else:
+                open_kqt_au(file_path, self._ui_model, self._ui_model.get_module())
+
+
+class SaveButton(QToolButton):
+
+    def __init__(self):
+        super().__init__()
+        self._ui_model = None
+        self._updater = None
+
+        self._module_loaded = False
+
+        self.setText('Save')
+        self.setEnabled(False)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        if 'signal_module' in signals:
+            self._module_loaded = True
+
+        if self._module_loaded:
+            module = self._ui_model.get_module()
+            self.setEnabled(module.is_modified())
+
+    def _clicked(self):
+        module = self._ui_model.get_module()
+
+        if not module.get_path():
+            module_path = get_module_save_path()
+            if not module_path:
+                return
+            module.set_path(module_path)
+
+        module.start_save()
+
+
 class WindowOpenerButton(QToolButton, Updater):
 
     def __init__(self, text):
@@ -91,6 +162,24 @@ class WindowOpenerButton(QToolButton, Updater):
 
     def _show_action(self, visibility_manager):
         raise NotImplementedError
+
+
+class ConnectionsButton(WindowOpenerButton):
+
+    def __init__(self):
+        super().__init__('Connections')
+
+    def _show_action(self, visibility_manager):
+        visibility_manager.show_connections()
+
+
+class SongsChannelsButton(WindowOpenerButton):
+
+    def __init__(self):
+        super().__init__('Songs && channels')
+
+    def _show_action(self, visibility_manager):
+        visibility_manager.show_songs_channels()
 
 
 class EnvBindButton(WindowOpenerButton):
@@ -127,6 +216,15 @@ class SettingsButton(WindowOpenerButton):
 
     def _show_action(self, visibility_manager):
         visibility_manager.show_settings()
+
+
+class AboutButton(WindowOpenerButton):
+
+    def __init__(self):
+        super().__init__('About')
+
+    def _show_action(self, visibility_manager):
+        visibility_manager.show_about()
 
 
 _RENDER_LOAD_METER_CONFIG = {
