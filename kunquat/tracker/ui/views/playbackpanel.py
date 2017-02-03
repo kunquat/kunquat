@@ -23,7 +23,7 @@ from .silencebutton import SilenceButton
 from .updater import Updater
 
 
-class TopControls(QToolBar, Updater):
+class PlaybackPanel(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()

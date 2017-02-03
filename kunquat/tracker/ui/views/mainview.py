@@ -21,7 +21,7 @@ from .importprogress import ImportProgress
 from .inputcontrols import InputControls
 from .peakmeter import PeakMeter
 from .portal import Portal
-from .topcontrols import TopControls
+from .playbackpanel import PlaybackPanel
 from .updater import Updater
 
 
@@ -30,7 +30,7 @@ class MainView(QWidget, Updater):
     def __init__(self):
         super().__init__()
         self._portal = Portal()
-        self._top_controls = TopControls()
+        self._playback_panel = PlaybackPanel()
         self._composition = Composition()
         self._input_controls = InputControls()
         self._import_progress = ImportProgress()
@@ -38,7 +38,7 @@ class MainView(QWidget, Updater):
 
         self.add_to_updaters(
                 self._portal,
-                self._top_controls,
+                self._playback_panel,
                 self._composition,
                 self._input_controls,
                 self._import_progress,
@@ -48,7 +48,7 @@ class MainView(QWidget, Updater):
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
         v.addWidget(self._portal)
-        v.addWidget(self._top_controls)
+        v.addWidget(self._playback_panel)
         v.addSpacing(4)
         v.addWidget(self._composition)
         v.addWidget(self._input_controls)
