@@ -39,6 +39,12 @@ class StatManager():
     def get_ui_lag(self):
         return self._session.get_ui_lag()
 
+    def get_progress_description(self):
+        return self._session.get_progress_description()
+
+    def get_progress_norm(self):
+        return self._session.get_progress_position()
+
     def get_import_progress_position(self):
         return self._session.get_progress_position()
 
