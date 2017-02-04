@@ -15,31 +15,21 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .name import Name
+from .audiounitupdater import AudioUnitUpdater
 
 
-class InfoEditor(QWidget):
+class InfoEditor(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._au_id = None
         self._name = Name()
+
+        self.add_to_updaters(self._name)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
         v.addWidget(self._name, 0, Qt.AlignTop)
         self.setLayout(v)
-
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._name.set_au_id(au_id)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._name.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._name.unregister_updaters()
 
 

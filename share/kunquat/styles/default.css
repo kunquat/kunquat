@@ -277,7 +277,10 @@ QAbstractSpinBox
     border-right-color: <text_bg_colour>;
 }
 
-QAbstractSpinBox::up-button, QAbstractSpinBox::down-button
+QAbstractSpinBox::up-button,
+QAbstractSpinBox::up-button:pressed,
+QAbstractSpinBox::down-button,
+QAbstractSpinBox::down-button:pressed
 {
     width: 16px;
     padding: 0;

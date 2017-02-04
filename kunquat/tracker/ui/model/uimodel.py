@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -15,7 +15,7 @@
 from .stat_manager import StatManager
 from .controlmanager import ControlManager
 from .keymapmanager import KeymapManager
-from .playback_manager import PlaybackManager
+from .playbackmanager import PlaybackManager
 from .typewritermanager import TypewriterManager
 from .eventhistory import EventHistory
 from .module import Module

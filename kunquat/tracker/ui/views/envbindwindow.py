@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -16,15 +16,17 @@ from PySide.QtGui import *
 
 from .bindeditor import BindEditor
 from .environmenteditor import EnvironmentEditor
+from .updater import Updater
 
 
-class EnvBindWindow(QWidget):
+class EnvBindWindow(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
         self._bind_editor = BindEditor()
         self._env_editor = EnvironmentEditor()
+
+        self.add_to_updaters(self._bind_editor, self._env_editor)
 
         self.setWindowTitle('Environment & bindings')
 
@@ -34,15 +36,6 @@ class EnvBindWindow(QWidget):
         h.addWidget(self._env_editor)
         h.addWidget(self._bind_editor)
         self.setLayout(h)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._env_editor.set_ui_model(ui_model)
-        self._bind_editor.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._env_editor.unregister_updaters()
-        self._bind_editor.unregister_updaters()
 
     def closeEvent(self, event):
         event.ignore()

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -19,16 +19,18 @@ from PySide.QtGui import *
 import kunquat.tracker.ui.model.tstamp as tstamp
 from .editorlist import EditorList
 from .headerline import HeaderLine
+from .updater import Updater
 from .varvalidators import *
 
 
-class IAControls(QWidget):
+class IAControls(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
         self._inf_toggle = InfiniteToggle()
         self._runtime_var_list = RuntimeVarList()
+
+        self.add_to_updaters(self._inf_toggle, self._runtime_var_list)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
@@ -38,40 +40,17 @@ class IAControls(QWidget):
         v.addWidget(self._runtime_var_list)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._inf_toggle.set_ui_model(ui_model)
-        self._runtime_var_list.set_ui_model(ui_model)
 
-    def unregister_updaters(self):
-        self._runtime_var_list.unregister_updaters()
-        self._inf_toggle.unregister_updaters()
-
-
-class InfiniteToggle(QCheckBox):
+class InfiniteToggle(QCheckBox, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self.setText('Enable infinite mode')
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
+        self.register_action('infinite_mode', self._update_inf_setting)
         QObject.connect(self, SIGNAL('stateChanged(int)'), self._toggle_infinite_mode)
-
         self._update_inf_setting()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'infinite_mode' in signals:
-            self._update_inf_setting()
 
     def _update_inf_setting(self):
         playback_manager = self._ui_model.get_playback_manager()
@@ -86,26 +65,21 @@ class InfiniteToggle(QCheckBox):
         playback_manager = self._ui_model.get_playback_manager()
         playback_manager.set_infinite_mode(enabled)
 
-        self._updater.signal_update(set(['infinite_mode']))
+        self._updater.signal_update('infinite_mode')
 
 
-class RuntimeVarList(EditorList):
+class RuntimeVarList(EditorList, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
+        self.register_action('signal_runtime_env', self.update_list)
+        self.register_action('signal_environment', self.update_list)
         self.update_list()
 
-    def unregister_updaters(self):
+    def _on_teardown(self):
         self.disconnect_widgets()
-        self._updater.unregister_updater(self._perform_updates)
 
     def _get_var_names(self):
         module = self._ui_model.get_module()
@@ -121,7 +95,7 @@ class RuntimeVarList(EditorList):
         var_names = self._get_var_names()
 
         editor = RuntimeVarEditor()
-        editor.set_ui_model(self._ui_model)
+        self.add_to_updaters(editor)
         editor.update_name(var_names[index])
         return editor
 
@@ -130,24 +104,18 @@ class RuntimeVarList(EditorList):
         editor.update_name(var_names[index])
 
     def _disconnect_widget(self, widget):
-        widget.unregister_updaters()
-
-    def _perform_updates(self, signals):
-        update_signals = set(['signal_runtime_env', 'signal_environment'])
-        if not signals.isdisjoint(update_signals):
-            self.update_list()
+        self.remove_from_updaters(widget)
 
 
-class RuntimeVarEditor(QWidget):
+class RuntimeVarEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._name = None
         self._header = QLabel()
         self._editor = RuntimeVarValueEditor()
+
+        self.add_to_updaters(self._editor)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -156,32 +124,16 @@ class RuntimeVarEditor(QWidget):
         h.addWidget(self._editor, 1)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._editor.set_ui_model(self._ui_model)
-
-    def unregister_updaters(self):
-        self._editor.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
     def update_name(self, name):
         self._name = name
         self._header.setText(self._name)
         self._editor.set_var_name(self._name)
 
-    def _perform_updates(self, signals):
-        pass
 
-
-class RuntimeVarValueEditor(QWidget):
+class RuntimeVarValueEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._var_name = None
 
         self._update_flag = False
@@ -199,10 +151,7 @@ class RuntimeVarValueEditor(QWidget):
         self._editors[float].setValidator(FloatValidator())
         self._editors[tstamp.Tstamp].setValidator(FloatValidator())
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         module = self._ui_model.get_module()
         env = module.get_environment()
         var_types = env.get_var_types()
@@ -228,9 +177,6 @@ class RuntimeVarValueEditor(QWidget):
                 self._editors[tstamp.Tstamp],
                 SIGNAL('editingFinished()'),
                 self._change_tstamp_value)
-
-    def unregister_updaters(self):
-        pass
 
     def set_var_name(self, name):
         self._var_name = name

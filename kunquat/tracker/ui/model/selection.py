@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -41,7 +41,7 @@ class Selection():
         control_manager = self._ui_model.get_control_manager()
         control_manager.set_selected_control_id(control_id)
 
-        self._updater.signal_update(set(['signal_selection']))
+        self._updater.signal_update('signal_selection')
 
     def get_location(self):
         location = self._session.get_selected_location()

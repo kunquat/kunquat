@@ -190,8 +190,8 @@ class ConnectionsToolBar(QToolBar):
             module.add_control(new_control_id)
             control = module.get_control(new_control_id)
             control.connect_to_au(new_au_id)
-            update_signals = set(['signal_connections', 'signal_controls'])
-            self._updater.signal_update(update_signals)
+            update_signals = ['signal_connections', 'signal_controls']
+            self._updater.signal_update(*update_signals)
 
     def _add_processor(self, action):
         assert action != None
@@ -204,7 +204,7 @@ class ConnectionsToolBar(QToolBar):
         if new_proc_id != None:
             au.add_processor(new_proc_id, proc_type)
             update_signal = '_'.join(('signal_connections', self._au_id))
-            self._updater.signal_update(set([update_signal]))
+            self._updater.signal_update(update_signal)
 
     def _add_effect(self):
         module = self._ui_model.get_module()
@@ -219,19 +219,19 @@ class ConnectionsToolBar(QToolBar):
 
         if (not is_control_needed or new_control_id) and new_au_id:
             parent_device.add_effect(new_au_id)
-            update_signals = set()
+            update_signals = []
             if is_control_needed:
                 parent_device.add_control(new_control_id)
                 control = parent_device.get_control(new_control_id)
                 control.connect_to_au(new_au_id)
-                update_signals.add('signal_controls')
+                update_signals.append('signal_controls')
 
             update_signal = 'signal_connections'
             if self._au_id != None:
                 update_signal = '_'.join((update_signal, self._au_id))
-            update_signals.add(update_signal)
+            update_signals.append(update_signal)
 
-            self._updater.signal_update(update_signals)
+            self._updater.signal_update(*update_signals)
 
     def _import_au(self):
         module = self._ui_model.get_module()
@@ -366,7 +366,7 @@ class HitEditingToggle(EditingToggle):
         mode = 'hit_proc_filter' if self.isChecked() else 'normal'
         au.set_connections_edit_mode(mode)
 
-        self._updater.signal_update(set([_get_au_conns_edit_signal_type(self._au_id)]))
+        self._updater.signal_update(_get_au_conns_edit_signal_type(self._au_id))
 
 
 class ExpressionEditingToggle(EditingToggle):
@@ -403,7 +403,7 @@ class ExpressionEditingToggle(EditingToggle):
         mode = 'expr_filter' if self.isChecked() else 'normal'
         au.set_connections_edit_mode(mode)
 
-        self._updater.signal_update(set([_get_au_conns_edit_signal_type(self._au_id)]))
+        self._updater.signal_update(_get_au_conns_edit_signal_type(self._au_id))
 
 
 class HitSelector(KqtComboBox):
@@ -462,7 +462,7 @@ class HitSelector(KqtComboBox):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         au.set_connections_hit_index(hit_index)
-        self._updater.signal_update(set(['signal_au_conns_hit_{}'.format(self._au_id)]))
+        self._updater.signal_update('signal_au_conns_hit_{}'.format(self._au_id))
 
 
 class ExpressionSelector(KqtComboBox):
@@ -517,6 +517,6 @@ class ExpressionSelector(KqtComboBox):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         au.set_connections_expr_name(expr_name)
-        self._updater.signal_update(set(['signal_au_conns_expr_{}'.format(self._au_id)]))
+        self._updater.signal_update('signal_au_conns_expr_{}'.format(self._au_id))
 
 

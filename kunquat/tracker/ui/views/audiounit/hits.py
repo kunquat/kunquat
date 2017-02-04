@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -19,18 +19,17 @@ from PySide.QtGui import *
 from kunquat.kunquat.limits import *
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from .hitselector import HitSelector
+from .audiounitupdater import AudioUnitUpdater
 
 
 def _get_update_signal_type(au_id):
     return 'signal_hit_{}'.format(au_id)
 
 
-class Hits(QWidget):
+class Hits(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
 
         self._hit_selector = AuHitSelector()
         self._hit_editor = HitEditor()
@@ -45,52 +44,22 @@ class Hits(QWidget):
         v.addStretch(1)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._hit_selector.set_au_id(self._au_id)
-        self._hit_editor.set_au_id(self._au_id)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
+    def _on_setup(self):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         if au.is_instrument():
-            self._hit_selector.set_ui_model(ui_model)
-            self._hit_editor.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        module = self._ui_model.get_module()
-        au = module.get_audio_unit(self._au_id)
-        if au.is_instrument():
-            self._hit_editor.unregister_updaters()
-            self._hit_selector.unregister_updaters()
+            self.add_to_updaters(self._hit_selector, self._hit_editor)
 
 
-class AuHitSelector(HitSelector):
+class AuHitSelector(HitSelector, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
-        self._updater = None
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
+        self.register_action(self._get_update_signal_type(), self.update_contents)
         self.create_layout(self._ui_model.get_typewriter_manager())
         self.update_contents()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if self._get_update_signal_type() in signals:
-            self.update_contents()
 
     def _get_update_signal_type(self):
         return _get_update_signal_type(self._au_id)
@@ -105,7 +74,7 @@ class AuHitSelector(HitSelector):
         au = module.get_audio_unit(self._au_id)
         hit_base, hit_offset = hit_info
         au.set_edit_selected_hit_info(hit_base, hit_offset)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _get_hit_name(self, index):
         module = self._ui_model.get_module()
@@ -114,7 +83,7 @@ class AuHitSelector(HitSelector):
         return hit.get_name()
 
 
-class HitEditor(QWidget):
+class HitEditor(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -130,17 +99,8 @@ class HitEditor(QWidget):
         v.addStretch(1)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._enabled.set_au_id(au_id)
-        self._name.set_au_id(au_id)
-
-    def set_ui_model(self, ui_model):
-        self._enabled.set_ui_model(ui_model)
-        self._name.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._name.unregister_updaters()
-        self._enabled.unregister_updaters()
+    def _on_setup(self):
+        self.add_to_updaters(self._enabled, self._name)
 
 
 def _get_current_hit(ui_model, au_id):
@@ -151,34 +111,18 @@ def _get_current_hit(ui_model, au_id):
     return au.get_hit(hit_index)
 
 
-class HitEnabled(QCheckBox):
+class HitEnabled(QCheckBox, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
-        self._updater = None
-
         self.setText('Enabled')
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
+        self.register_action(
+                _get_update_signal_type(self._au_id), self._update_existence)
         QObject.connect(self, SIGNAL('stateChanged(int)'), self._change_existence)
 
         self._update_existence()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if _get_update_signal_type(self._au_id) in signals:
-            self._update_existence()
 
     def _update_existence(self):
         hit = _get_current_hit(self._ui_model, self._au_id)
@@ -191,20 +135,16 @@ class HitEnabled(QCheckBox):
         existence = (state == Qt.Checked)
         hit = _get_current_hit(self._ui_model, self._au_id)
         hit.set_existence(existence)
-        self._updater.signal_update(set([
+        self._updater.signal_update(
             _get_update_signal_type(self._au_id),
             'signal_au_conns_hit_{}'.format(self._au_id),
-            'signal_hits']))
+            'signal_hits')
 
 
-class HitName(QWidget):
+class HitName(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._edit = QLineEdit()
 
         h = QHBoxLayout()
@@ -214,24 +154,11 @@ class HitName(QWidget):
         h.addWidget(self._edit)
         self.setLayout(h)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
+        self.register_action(_get_update_signal_type(self._au_id), self._update_name)
         QObject.connect(self._edit, SIGNAL('textEdited(QString)'), self._change_name)
 
         self._update_name()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if _get_update_signal_type(self._au_id) in signals:
-            self._update_name()
 
     def _update_name(self):
         hit = _get_current_hit(self._ui_model, self._au_id)
@@ -245,7 +172,7 @@ class HitName(QWidget):
     def _change_name(self, name):
         hit = _get_current_hit(self._ui_model, self._au_id)
         hit.set_name(name)
-        self._updater.signal_update(set([
-            _get_update_signal_type(self._au_id), 'signal_hits']))
+        self._updater.signal_update(
+            _get_update_signal_type(self._au_id), 'signal_hits')
 
 

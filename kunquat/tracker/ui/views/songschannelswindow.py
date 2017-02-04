@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2014
-#          Tomi Jylhä-Ollila, Finland 2015-2016
+#          Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -18,17 +18,19 @@ from PySide.QtGui import *
 from .chdefaultseditor import ChDefaultsEditor
 from .orderlisteditor import OrderlistEditor
 from .songeditor import SongEditor
+from .updater import Updater
 
 
-class SongsChannelsWindow(QWidget):
+class SongsChannelsWindow(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-
         self._orderlist_editor = OrderlistEditor()
         self._song_editor = SongEditor()
         self._ch_defaults_editor = ChDefaultsEditor()
+
+        self.add_to_updaters(
+                self._orderlist_editor, self._song_editor, self._ch_defaults_editor)
 
         self.setWindowTitle('Songs & channels')
 
@@ -39,17 +41,6 @@ class SongsChannelsWindow(QWidget):
         h.addWidget(self._song_editor)
         h.addWidget(self._ch_defaults_editor)
         self.setLayout(h)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._orderlist_editor.set_ui_model(ui_model)
-        self._song_editor.set_ui_model(ui_model)
-        self._ch_defaults_editor.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._ch_defaults_editor.unregister_updaters()
-        self._song_editor.unregister_updaters()
-        self._orderlist_editor.unregister_updaters()
 
     def closeEvent(self, event):
         event.ignore()

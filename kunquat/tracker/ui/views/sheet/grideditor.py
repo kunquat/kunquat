@@ -22,12 +22,13 @@ from kunquat.tracker.ui.model.gridpattern import STYLE_COUNT
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.numberslider import NumberSlider
+from kunquat.tracker.ui.views.updater import Updater
 from .config import *
 from .ruler import Ruler
 from . import utils
 
 
-class GridEditor(QWidget):
+class GridEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -38,6 +39,13 @@ class GridEditor(QWidget):
         self._grid_area = GridArea()
         self._subdiv_editor = SubdivEditor()
         self._line_editor = LineEditor()
+
+        self.add_to_updaters(
+                self._grid_list,
+                self._general_editor,
+                self._grid_area,
+                self._subdiv_editor,
+                self._line_editor)
 
         r = QVBoxLayout()
         r.setContentsMargins(0, 0, 0, 0)
@@ -61,33 +69,14 @@ class GridEditor(QWidget):
         v.addLayout(el, 4)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._grid_list.set_ui_model(ui_model)
-        self._general_editor.set_ui_model(ui_model)
-        self._grid_area.set_ui_model(ui_model)
-        self._subdiv_editor.set_ui_model(ui_model)
-        self._line_editor.set_ui_model(ui_model)
 
-    def unregister_updaters(self):
-        self._line_editor.unregister_updaters()
-        self._subdiv_editor.unregister_updaters()
-        self._grid_area.unregister_updaters()
-        self._general_editor.unregister_updaters()
-        self._grid_list.unregister_updaters()
-
-
-class GridListModel(QAbstractListModel):
+class GridListModel(QAbstractListModel, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._items = []
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
+    def _on_setup(self):
         self._make_items()
 
     def get_item(self, index):
@@ -106,9 +95,6 @@ class GridListModel(QAbstractListModel):
             self._items.append((gp_id, gp_name))
 
         self._items = sorted(self._items, key=lambda x: x[1])
-
-    def unregister_updaters(self):
-        pass
 
     # Qt interface
 
@@ -129,26 +115,17 @@ class GridListModel(QAbstractListModel):
         return None
 
 
-class GridListView(QListView):
+class GridListView(QListView, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self.setSelectionMode(QAbstractItemView.SingleSelection)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         for signal_type in ('clicked', 'activated'):
             signal = '{}(const QModelIndex&)'.format(signal_type)
             QObject.connect(
                     self, SIGNAL(signal), self._select_grid_pattern)
-
-    def unregister_updaters(self):
-        pass
 
     def _select_grid_pattern(self, index):
         item = self.model().get_item(index)
@@ -158,16 +135,13 @@ class GridListView(QListView):
             grid_manager = self._ui_model.get_grid_manager()
             grid_manager.select_grid_pattern(gp_id)
 
-            self._updater.signal_update(set(['signal_grid_pattern_selection']))
+            self._updater.signal_update('signal_grid_pattern_selection')
 
 
-class GridList(QWidget):
+class GridList(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._toolbar = GridListToolBar()
 
         self._grid_list_model = None
@@ -180,36 +154,24 @@ class GridList(QWidget):
         v.addWidget(self._grid_list_view)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._toolbar.set_ui_model(ui_model)
-        self._grid_list_view.set_ui_model(ui_model)
+    def _on_setup(self):
+        self.add_to_updaters(self._toolbar, self._grid_list_view)
+        self.register_action('signal_grid_pattern_list', self._update_model)
+
         self._update_model()
 
-    def unregister_updaters(self):
-        self._grid_list_view.unregister_updaters()
-        self._toolbar.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_grid_pattern_list' in signals:
-            self._update_model()
-
     def _update_model(self):
+        if self._grid_list_model:
+            self.remove_from_updaters(self._grid_list_model)
         self._grid_list_model = GridListModel()
-        self._grid_list_model.set_ui_model(self._ui_model)
+        self.add_to_updaters(self._grid_list_model)
         self._grid_list_view.setModel(self._grid_list_model)
 
 
-class GridListToolBar(QToolBar):
+class GridListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._new_button = QToolButton()
         self._new_button.setText('New grid')
         self._new_button.setEnabled(True)
@@ -221,25 +183,15 @@ class GridListToolBar(QToolBar):
         self.addWidget(self._new_button)
         self.addWidget(self._remove_button)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_grid_pattern_list', self._update_all)
+        self.register_action('signal_grid_pattern_selection', self._update_all)
 
         QObject.connect(self._new_button, SIGNAL('clicked()'), self._add_grid_pattern)
         QObject.connect(
                 self._remove_button, SIGNAL('clicked()'), self._remove_grid_pattern)
 
         self._update_all()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_grid_pattern_list', 'signal_grid_pattern_selection'])
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
 
     def _update_all(self):
         grid_manager = self._ui_model.get_grid_manager()
@@ -250,7 +202,7 @@ class GridListToolBar(QToolBar):
     def _add_grid_pattern(self):
         grid_manager = self._ui_model.get_grid_manager()
         grid_manager.add_grid_pattern()
-        self._updater.signal_update(set(['signal_grid_pattern_list']))
+        self._updater.signal_update('signal_grid_pattern_list')
 
     def _remove_grid_pattern(self):
         grid_manager = self._ui_model.get_grid_manager()
@@ -261,10 +213,10 @@ class GridListToolBar(QToolBar):
 
         grid_manager.remove_grid_pattern(gp_id)
         grid_manager.select_grid_pattern(None)
-        self._updater.signal_update(set([
+        self._updater.signal_update(
             'signal_grid_pattern_list',
             'signal_grid_pattern_modified',
-            'signal_grid_pattern_selection']))
+            'signal_grid_pattern_selection')
 
 
 class Corner(QWidget):
@@ -287,14 +239,12 @@ class Corner(QWidget):
         painter.eraseRect(event.rect())
 
 
-class GridArea(QAbstractScrollArea):
+class GridArea(QAbstractScrollArea, Updater):
 
     def __init__(self):
         super().__init__()
         self.setFocusPolicy(Qt.NoFocus)
 
-        self._ui_model = None
-        self._updater = None
         self._config = None
 
         # Widgets
@@ -321,10 +271,13 @@ class GridArea(QAbstractScrollArea):
 
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.MinimumExpanding)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action(
+                'signal_grid_pattern_selection', self._update_selected_grid_pattern)
+        self.register_action(
+                'signal_grid_pattern_modified', self._update_selected_grid_pattern)
+        self.register_action('signal_grid_zoom', self._update_zoom)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._update_config()
 
@@ -341,18 +294,16 @@ class GridArea(QAbstractScrollArea):
 
         self._set_px_per_beat(self._zoom_levels[self._default_zoom_index])
 
-        self._ruler.set_ui_model(ui_model)
-        self.viewport().set_ui_model(ui_model)
+        self.add_to_updaters(self._ruler, self.viewport())
 
         QObject.connect(
                 self.viewport(), SIGNAL('followCursor(QString)'), self._follow_cursor)
 
         self._update_selected_grid_pattern()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-        self._ruler.unregister_updaters()
-        self.viewport().unregister_updaters()
+    def _update_style(self):
+        self._update_config()
+        self.update()
 
     def _update_config(self):
         style_manager = self._ui_model.get_style_manager()
@@ -395,18 +346,6 @@ class GridArea(QAbstractScrollArea):
         zoom_level = grid_manager.get_zoom()
         cur_zoom_index = zoom_level + self._default_zoom_index
         self._set_px_per_beat(self._zoom_levels[cur_zoom_index])
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_grid_pattern_selection', 'signal_grid_pattern_modified'])
-        if not signals.isdisjoint(update_signals):
-            self._update_selected_grid_pattern()
-
-        if 'signal_grid_zoom' in signals:
-            self._update_zoom()
-        if 'signal_style_changed' in signals:
-            self._update_config()
-            self.update()
 
     def _update_selected_grid_pattern(self):
         self._ruler.update_grid_pattern()
@@ -460,7 +399,6 @@ class GridHeader(QWidget):
 
     def __init__(self):
         super().__init__()
-
         self._width = DEFAULT_CONFIG['col_width']
 
     def set_config(self, config):
@@ -487,15 +425,12 @@ class GridHeader(QWidget):
         painter.eraseRect(0, 0, self.width(), self.height())
 
 
-class GridView(QWidget):
+class GridView(QWidget, Updater):
 
     followCursor = Signal(str, name='followCursor')
 
     def __init__(self):
         super().__init__()
-
-        self._ui_model = None
-        self._updater = None
         self._config = None
 
         self._width = DEFAULT_CONFIG['col_width']
@@ -507,13 +442,12 @@ class GridView(QWidget):
         self.setAttribute(Qt.WA_NoSystemBackground)
         self.setFocusPolicy(Qt.StrongFocus)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_grid_pattern_selection', self._follow_edit_cursor)
+        self.register_action(
+                'signal_grid_pattern_line_selection', self._follow_edit_cursor)
+        self.register_action('signal_grid_pattern_modified', self.update)
+        self.register_action('signal_grid_zoom', self.update)
 
     def set_config(self, config):
         self._config = config
@@ -565,18 +499,6 @@ class GridView(QWidget):
         return (utils.get_px_from_tstamp(gp_length, self._px_per_beat) +
                 self._config['tr_height'])
 
-    def _perform_updates(self, signals):
-        cursor_signals = set([
-            'signal_grid_pattern_selection', 'signal_grid_pattern_line_selection'])
-        update_signals = cursor_signals | set([
-            'signal_grid_pattern_modified', 'signal_grid_zoom'])
-
-        if not signals.isdisjoint(cursor_signals):
-            self._follow_edit_cursor()
-
-        if not signals.isdisjoint(update_signals):
-            self.update()
-
     def _follow_edit_cursor(self):
         grid_manager = self._ui_model.get_grid_manager()
         gp_id = grid_manager.get_selected_grid_pattern_id()
@@ -604,6 +526,8 @@ class GridView(QWidget):
 
         if is_scrolling_required:
             QObject.emit(self, SIGNAL('followCursor(QString)'), str(new_px_offset))
+
+        self.update()
 
     def paintEvent(self, event):
         start = time.time()
@@ -704,7 +628,7 @@ class GridView(QWidget):
 
         assert nearest_ts != None
         gp.select_line(nearest_ts)
-        self._updater.signal_update(set(['signal_grid_pattern_line_selection']))
+        self._updater.signal_update('signal_grid_pattern_line_selection')
 
     def keyPressEvent(self, event):
         # Get grid pattern info
@@ -717,11 +641,11 @@ class GridView(QWidget):
         if event.modifiers() == Qt.NoModifier:
             if event.key() == Qt.Key_Up:
                 gp.select_prev_line()
-                self._updater.signal_update(set(['signal_grid_pattern_line_selection']))
+                self._updater.signal_update('signal_grid_pattern_line_selection')
 
             elif event.key() == Qt.Key_Down:
                 gp.select_next_line()
-                self._updater.signal_update(set(['signal_grid_pattern_line_selection']))
+                self._updater.signal_update('signal_grid_pattern_line_selection')
 
             elif event.key() == Qt.Key_Insert:
                 selected_line_ts = gp.get_selected_line()
@@ -732,7 +656,7 @@ class GridView(QWidget):
 
                     gp.subdivide_interval(
                             selected_line_ts, part_count, warp_value, line_style)
-                    self._updater.signal_update(set(['signal_grid_pattern_modified']))
+                    self._updater.signal_update('signal_grid_pattern_modified')
 
             elif event.key() == Qt.Key_Delete:
                 selected_line_ts = gp.get_selected_line()
@@ -745,29 +669,26 @@ class GridView(QWidget):
                         gp.select_prev_line()
 
                     gp.remove_line(selected_line_ts)
-                    self._updater.signal_update(set([
+                    self._updater.signal_update(
                         'signal_grid_pattern_line_selection',
-                        'signal_grid_pattern_modified']))
+                        'signal_grid_pattern_modified')
 
         elif event.modifiers() == Qt.ControlModifier:
             if event.key() == Qt.Key_Minus:
                 grid_manager.set_zoom(grid_manager.get_zoom() - 1)
-                self._updater.signal_update(set(['signal_grid_zoom']))
+                self._updater.signal_update('signal_grid_zoom')
             elif event.key() == Qt.Key_Plus:
                 grid_manager.set_zoom(grid_manager.get_zoom() + 1)
-                self._updater.signal_update(set(['signal_grid_zoom']))
+                self._updater.signal_update('signal_grid_zoom')
             elif event.key() == Qt.Key_0:
                 grid_manager.set_zoom(0)
-                self._updater.signal_update(set(['signal_grid_zoom']))
+                self._updater.signal_update('signal_grid_zoom')
 
 
-class GeneralEditor(QWidget):
+class GeneralEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._name = QLineEdit()
 
         self._length = QDoubleSpinBox()
@@ -821,10 +742,10 @@ class GeneralEditor(QWidget):
         v.addLayout(ol)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_grid_pattern_selection', self._update_all)
+        self.register_action('signal_grid_pattern_modified', self._update_all)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._update_config()
 
@@ -849,17 +770,9 @@ class GeneralEditor(QWidget):
 
         self._update_all()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_grid_pattern_selection', 'signal_grid_pattern_modified'])
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
-        if 'signal_style_changed' in signals:
-            self._update_config()
-            self.update()
+    def _update_style(self):
+        self._update_config()
+        self.update()
 
     def _update_config(self):
         style_manager = self._ui_model.get_style_manager()
@@ -922,8 +835,8 @@ class GeneralEditor(QWidget):
             return
 
         gp.set_name(text)
-        self._updater.signal_update(set([
-            'signal_grid_pattern_modified', 'signal_grid_pattern_list']))
+        self._updater.signal_update(
+            'signal_grid_pattern_modified', 'signal_grid_pattern_list')
 
     def _change_length(self, new_length):
         new_length_ts = tstamp.Tstamp(new_length)
@@ -933,7 +846,7 @@ class GeneralEditor(QWidget):
             return
 
         gp.set_length(new_length_ts)
-        self._updater.signal_update(set(['signal_grid_pattern_modified']))
+        self._updater.signal_update('signal_grid_pattern_modified')
 
     def _select_spacing_style(self, new_style):
         self._spacing_style.select_line_style(new_style)
@@ -946,7 +859,7 @@ class GeneralEditor(QWidget):
 
         line_style = self._spacing_style.get_current_line_style()
         gp.set_line_style_spacing(line_style, new_spacing)
-        self._updater.signal_update(set(['signal_grid_pattern_modified']))
+        self._updater.signal_update('signal_grid_pattern_modified')
 
     def _change_offset(self, new_offset):
         new_offset_ts = tstamp.Tstamp(new_offset)
@@ -956,16 +869,13 @@ class GeneralEditor(QWidget):
             return
 
         gp.set_offset(new_offset_ts)
-        self._updater.signal_update(set(['signal_grid_pattern_modified']))
+        self._updater.signal_update('signal_grid_pattern_modified')
 
 
-class SubdivEditor(QWidget):
+class SubdivEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._subdiv_count = QSpinBox()
         self._subdiv_count.setMinimum(2)
         self._subdiv_count.setMaximum(32)
@@ -995,10 +905,12 @@ class SubdivEditor(QWidget):
         v.addWidget(self._subdiv_apply, 0)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_grid_pattern_selection', self._update_all)
+        self.register_action('signal_grid_pattern_line_selection', self._update_all)
+        self.register_action('signal_grid_pattern_modified', self._update_all)
+        self.register_action('signal_grid_pattern_subdiv', self._update_all)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._update_config()
 
@@ -1017,20 +929,9 @@ class SubdivEditor(QWidget):
 
         self._update_all()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_grid_pattern_selection',
-            'signal_grid_pattern_line_selection',
-            'signal_grid_pattern_modified',
-            'signal_grid_pattern_subdiv'])
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
-        if 'signal_style_changed' in signals:
-            self._update_config()
-            self.update()
+    def _update_style(self):
+        self._update_config()
+        self.update()
 
     def _update_config(self):
         style_manager = self._ui_model.get_style_manager()
@@ -1071,18 +972,18 @@ class SubdivEditor(QWidget):
     def _change_count(self, new_count):
         grid_manager = self._ui_model.get_grid_manager()
         grid_manager.set_grid_pattern_subdiv_part_count(new_count)
-        self._updater.signal_update(set(['signal_grid_pattern_subdiv']))
+        self._updater.signal_update('signal_grid_pattern_subdiv')
 
     def _change_line_style(self, dummy):
         new_style = self._subdiv_line_style.get_current_line_style()
         grid_manager = self._ui_model.get_grid_manager()
         grid_manager.set_grid_pattern_subdiv_line_style(new_style)
-        self._updater.signal_update(set(['signal_grid_pattern_subdiv']))
+        self._updater.signal_update('signal_grid_pattern_subdiv')
 
     def _change_warp(self, new_warp):
         grid_manager = self._ui_model.get_grid_manager()
         grid_manager.set_grid_pattern_subdiv_warp(new_warp)
-        self._updater.signal_update(set(['signal_grid_pattern_subdiv']))
+        self._updater.signal_update('signal_grid_pattern_subdiv')
 
     def _apply_subdivision(self):
         selected_line_ts = self._get_selected_line_ts()
@@ -1097,16 +998,13 @@ class SubdivEditor(QWidget):
         line_style = grid_manager.get_grid_pattern_subdiv_line_style()
 
         gp.subdivide_interval(selected_line_ts, part_count, warp_value, line_style)
-        self._updater.signal_update(set(['signal_grid_pattern_modified']))
+        self._updater.signal_update('signal_grid_pattern_modified')
 
 
-class LineEditor(QWidget):
+class LineEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._line_style = LineStyle()
         self._remove_button = QPushButton('Remove line (Delete)')
 
@@ -1125,10 +1023,11 @@ class LineEditor(QWidget):
         v.addWidget(QWidget(), 1)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_grid_pattern_selection', self._update_all)
+        self.register_action('signal_grid_pattern_line_selection', self._update_all)
+        self.register_action('signal_grid_pattern_modified', self._update_all)
+        self.register_action('signal_style_changed', self._update_config)
 
         self._update_config()
 
@@ -1140,19 +1039,6 @@ class LineEditor(QWidget):
                 self._remove_button, SIGNAL('clicked()'), self._remove_selected_line)
 
         self._update_all()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_grid_pattern_selection',
-            'signal_grid_pattern_line_selection',
-            'signal_grid_pattern_modified'])
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
-        if 'signal_style_changed' in signals:
-            self._update_config()
 
     def _update_config(self):
         style_manager = self._ui_model.get_style_manager()
@@ -1204,7 +1090,7 @@ class LineEditor(QWidget):
         selected_line_ts = gp.get_selected_line()
 
         gp.change_line_style(selected_line_ts, line_style)
-        self._updater.signal_update(set(['signal_grid_pattern_modified']))
+        self._updater.signal_update('signal_grid_pattern_modified')
 
     def _remove_selected_line(self):
         gp = self._get_grid_pattern()
@@ -1212,7 +1098,7 @@ class LineEditor(QWidget):
         selected_line_ts = gp.get_selected_line()
 
         gp.remove_line(selected_line_ts)
-        self._updater.signal_update(set(['signal_grid_pattern_modified']))
+        self._updater.signal_update('signal_grid_pattern_modified')
 
 
 class LineStyleDelegate(QItemDelegate):

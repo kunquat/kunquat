@@ -30,7 +30,7 @@ from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 from .config import *
 from . import utils
 from .columngrouprenderer import ColumnGroupRenderer
-from .trigger_renderer import TriggerRenderer
+from .triggerrenderer import TriggerRenderer
 from .movestate import HorizontalMoveState, VerticalMoveState
 
 
@@ -1741,13 +1741,13 @@ class View(QWidget):
             history = self._ui_model.get_sheet_history()
             history.undo()
             self._sheet_manager.flush_latest_column()
-            self._updater.signal_update(set(['signal_undo']))
+            self._updater.signal_update('signal_undo')
 
         def handle_redo():
             history = self._ui_model.get_sheet_history()
             history.redo()
             self._sheet_manager.flush_latest_column()
-            self._updater.signal_update(set(['signal_redo']))
+            self._updater.signal_update('signal_redo')
 
         keymap = {
             int(Qt.NoModifier): {

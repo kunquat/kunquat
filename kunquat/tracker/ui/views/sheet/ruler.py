@@ -18,19 +18,17 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 import kunquat.tracker.ui.model.tstamp as tstamp
+from kunquat.tracker.ui.views.updater import Updater
 from .config import *
 from . import utils
 
 
-class Ruler(QWidget):
+class Ruler(QWidget, Updater):
 
     heightChanged = Signal(name='heightChanged')
 
     def __init__(self, is_grid_ruler=False):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._is_grid_ruler = is_grid_ruler
 
         self._width = 16
@@ -74,34 +72,19 @@ class Ruler(QWidget):
 
         self.update()
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        if not self._is_grid_ruler:
+            self.register_action('signal_module', self._update_all_patterns)
+            self.register_action('signal_order_list', self._update_all_patterns)
+            self.register_action('signal_pattern_length', self._update_all_patterns)
+            self.register_action('signal_undo', self._update_all_patterns)
+            self.register_action('signal_redo', self._update_all_patterns)
+            self.register_action('signal_playback_cursor', self._update_playback_cursor)
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
+        self.register_action('signal_selection', self.update)
 
     def get_total_height(self):
         return sum(self._heights)
-
-    def _perform_updates(self, signals):
-        if not self._is_grid_ruler:
-            update_signals = set([
-                'signal_module',
-                'signal_order_list',
-                'signal_pattern_length',
-                'signal_undo',
-                'signal_redo'])
-            if not signals.isdisjoint(update_signals):
-                self._update_all_patterns()
-                self.update()
-
-        if 'signal_playback_cursor' in signals:
-            self._update_playback_cursor()
-
-        if 'signal_selection' in signals:
-            self.update()
 
     def _update_playback_cursor(self):
         if self._is_grid_ruler:
@@ -165,6 +148,7 @@ class Ruler(QWidget):
     def _update_all_patterns(self):
         self._pinsts = utils.get_all_pattern_instances(self._ui_model)
         self.set_patterns(pinst.get_pattern() for pinst in self._pinsts)
+        self.update()
 
     def set_px_per_beat(self, px_per_beat):
         changed = self._px_per_beat != px_per_beat

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,30 +15,23 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .settings import Settings
+from .updater import Updater
 
 
-class SettingsWindow(QWidget):
+class SettingsWindow(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-
         self.setWindowTitle('Kunquat Tracker settings')
 
         self._settings = Settings()
+        self.add_to_updaters(self._settings)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
         v.addWidget(self._settings)
         self.setLayout(v)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._settings.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._settings.unregister_updaters()
 
     def closeEvent(self, event):
         event.ignore()

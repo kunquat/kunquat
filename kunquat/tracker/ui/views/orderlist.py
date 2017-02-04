@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2014
-#          Tomi Jylhä-Ollila, Finland 2014-2016
+#          Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -19,6 +19,7 @@ from PySide.QtGui import *
 
 from kunquat.tracker.ui.model.patterninstance import PatternInstance
 from kunquat.tracker.ui.model.song import Song
+from .updater import Updater
 
 
 class AlbumTreeModelNode():
@@ -47,7 +48,7 @@ class AlbumTreeModelNode():
         return self._parent
 
 
-class AlbumTreeModel(QAbstractItemModel):
+class AlbumTreeModel(QAbstractItemModel, Updater):
 
     def __init__(self):
         super().__init__()
@@ -55,9 +56,7 @@ class AlbumTreeModel(QAbstractItemModel):
         # We store the nodes because of reference handling issues
         self._songs = []
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
+    def _on_setup(self):
         self._module = self._ui_model.get_module()
         self._album = self._module.get_album()
         self._make_nodes()
@@ -212,7 +211,7 @@ class AlbumTreeModel(QAbstractItemModel):
             from_track_num = item[1]
 
             self._album.move_song(from_track_num, to_track_num)
-            self._updater.signal_update(set(['signal_order_list']))
+            self._updater.signal_update('signal_order_list')
             return True
 
         elif item[0] == 'pinst':
@@ -242,7 +241,7 @@ class AlbumTreeModel(QAbstractItemModel):
 
             self._album.move_pattern_instance(
                     from_track_num, from_system_num, to_track_num, to_system_num)
-            self._updater.signal_update(set(['signal_order_list']))
+            self._updater.signal_update('signal_order_list')
             return True
 
 
@@ -265,12 +264,10 @@ class AlbumTree(QTreeView):
             super().keyPressEvent(event)
 
 
-class Orderlist(QWidget):
+class Orderlist(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
         self._album = None
         self._orderlist_manager = None
         self._album_tree_model = None
@@ -286,18 +283,19 @@ class Orderlist(QWidget):
 
         self.setLayout(layout)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        module = ui_model.get_module()
+    def _on_setup(self):
+        self.register_action('signal_order_list', self._update_model)
+
+        module = self._ui_model.get_module()
         self._album = module.get_album()
-        self._orderlist_manager = ui_model.get_orderlist_manager()
+        self._orderlist_manager = self._ui_model.get_orderlist_manager()
         self._update_model()
 
     def _update_model(self):
+        if self._album_tree_model:
+            self.remove_from_updaters(self._album_tree_model)
         self._album_tree_model = AlbumTreeModel()
-        self._album_tree_model.set_ui_model(self._ui_model)
+        self.add_to_updaters(self._album_tree_model)
         self._album_tree.setModel(self._album_tree_model)
         self._album_tree.expandAll()
 
@@ -349,13 +347,6 @@ class Orderlist(QWidget):
         obj = node.get_payload()
         return obj
 
-    def _perform_updates(self, signals):
-        if 'signal_order_list' in signals:
-            self._update_model()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
     def _change_selection(self, current, previous):
         if not current.isValid():
             return
@@ -367,6 +358,6 @@ class Orderlist(QWidget):
             song = node.get_payload()
             album = self._ui_model.get_module().get_album()
             album.set_selected_track_num(song.get_containing_track_number())
-            self._updater.signal_update(set(['signal_song']))
+            self._updater.signal_update('signal_song')
 
 

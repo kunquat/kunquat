@@ -15,27 +15,24 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.headerline import HeaderLine
-from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from .infoeditor import InfoEditor
+from .prockeyboardmapper import ProcessorKeyboardMapper
+from .processorupdater import ProcessorUpdater
 from . import proctypeinfo
 
 
-class Editor(QWidget):
+class Editor(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
         self._control_manager = None
         self._proc_editor = None
 
         self._signals = Signals()
         self._info_editor = InfoEditor()
 
-        self._keyboard_mapper = KeyboardMapper()
+        self._keyboard_mapper = ProcessorKeyboardMapper()
 
         self._test_output = QCheckBox('Test output')
 
@@ -45,26 +42,16 @@ class Editor(QWidget):
         v.addWidget(self._test_output)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._signals.set_au_id(au_id)
-        self._info_editor.set_au_id(au_id)
+    def _on_setup(self):
+        self.add_to_updaters(self._signals, self._info_editor, self._keyboard_mapper)
+        self.register_action(
+                'signal_proc_test_output_{}'.format(self._proc_id),
+                self._update_test_toggle)
+        self.register_action(
+                'signal_proc_signals_{}'.format(self._proc_id),
+                self._update_test_toggle)
 
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-        self._signals.set_proc_id(proc_id)
-        self._info_editor.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        assert self._au_id != None
-        assert self._proc_id != None
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._control_manager = ui_model.get_control_manager()
-        self._signals.set_ui_model(ui_model)
-        self._info_editor.set_ui_model(ui_model)
-        self._keyboard_mapper.set_ui_model(ui_model)
-        self._updater.register_updater(self._perform_updates)
+        self._control_manager = self._ui_model.get_control_manager()
 
         # Get the processor type
         module = self._ui_model.get_module()
@@ -75,9 +62,7 @@ class Editor(QWidget):
         # Create the type-specific editor
         cons = proctypeinfo.get_class(proctype)
         self._proc_editor = cons()
-        self._proc_editor.set_au_id(self._au_id)
-        self._proc_editor.set_proc_id(self._proc_id)
-        self._proc_editor.set_ui_model(self._ui_model)
+        self.add_to_updaters(self._proc_editor)
 
         # Set up tab view
         tabs = QTabWidget()
@@ -92,21 +77,6 @@ class Editor(QWidget):
                 SIGNAL('stateChanged(int)'),
                 self._change_test_output_state)
         self._update_test_toggle()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-        self._keyboard_mapper.unregister_updaters()
-        self._proc_editor.unregister_updaters()
-        self._info_editor.unregister_updaters()
-        self._signals.unregister_updaters()
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_proc_test_output_{}'.format(self._proc_id),
-            'signal_proc_signals_{}'.format(self._proc_id),
-            ])
-        if not signals.isdisjoint(update_signals):
-            self._update_test_toggle()
 
     def _is_processor_testable(self):
         module = self._ui_model.get_module()
@@ -137,24 +107,11 @@ class Editor(QWidget):
         enabled = (state == Qt.Checked)
         self._control_manager.set_processor_testing_enabled(self._proc_id, enabled)
         self._updater.signal_update(
-                set(['signal_proc_test_output{}'.format(self._proc_id)]))
+                'signal_proc_test_output{}'.format(self._proc_id))
 
     def keyPressEvent(self, event):
-        module = self._ui_model.get_module()
-        control_id = module.get_control_id_by_au_id(self._au_id)
-        if not control_id:
-            return
-
-        use_test_output = (self._is_processor_testable() and
-            self._control_manager.is_processor_testing_enabled(self._proc_id))
-
-        self._control_manager.set_control_id_override(control_id)
-        if use_test_output:
-            self._control_manager.set_test_processor(control_id, self._proc_id)
         if not self._keyboard_mapper.process_typewriter_button_event(event):
             event.ignore()
-        self._control_manager.set_test_processor(control_id, None)
-        self._control_manager.set_control_id_override(None)
 
     def keyReleaseEvent(self, event):
         if not self._keyboard_mapper.process_typewriter_button_event(event):
@@ -174,7 +131,7 @@ class HeaderFrame(QWidget):
         self.setLayout(v)
 
 
-class Signals(QWidget):
+class Signals(QWidget, ProcessorUpdater):
 
     _SIGNAL_INFO = [
         ('voice', 'Voice signals'),
@@ -183,11 +140,6 @@ class Signals(QWidget):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._signal_type = KqtComboBox()
         for info in self._SIGNAL_INFO:
             _, text = info
@@ -198,16 +150,10 @@ class Signals(QWidget):
         v.addWidget(HeaderFrame('Signal type', self._signal_type))
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
+    def _on_setup(self):
+        self.register_action(self._get_update_signal_type(), self._update_settings)
+        self.register_action(self._get_connections_signal_type(), self._update_settings)
 
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
         self._update_settings()
 
         QObject.connect(
@@ -215,20 +161,11 @@ class Signals(QWidget):
                 SIGNAL('currentIndexChanged(int)'),
                 self._signal_type_changed)
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
     def _get_update_signal_type(self):
         return '_'.join(('signal_proc_signals', self._proc_id))
 
     def _get_connections_signal_type(self):
         return '_'.join(('signal_connections', self._au_id))
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            self._get_update_signal_type(), self._get_connections_signal_type()])
-        if not signals.isdisjoint(update_signals):
-            self._update_settings()
 
     def _update_settings(self):
         module = self._ui_model.get_module()
@@ -257,10 +194,10 @@ class Signals(QWidget):
 
         new_signal_type = self._SIGNAL_INFO[index][0]
 
-        update_signals = set([
-            self._get_update_signal_type(), self._get_connections_signal_type()])
+        update_signals = [
+            self._get_update_signal_type(), self._get_connections_signal_type()]
 
         proc.set_signal_type(new_signal_type)
-        self._updater.signal_update(update_signals)
+        self._updater.signal_update(*update_signals)
 
 

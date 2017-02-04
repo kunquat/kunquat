@@ -19,15 +19,14 @@ from PySide.QtGui import *
 from kunquat.kunquat.limits import *
 from .kqtcombobox import KqtComboBox
 from .notationeditor import RatioValidator
+from .updater import Updater
 
 
-class TuningTableEditor(QWidget):
+class TuningTableEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
         self._table_id = None
-        self._ui_model = None
-        self._updater = None
 
         self._name = QLineEdit()
 
@@ -77,11 +76,11 @@ class TuningTableEditor(QWidget):
         self._table_id = table_id
         self._notes.set_tuning_table_id(table_id)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._notes.set_ui_model(ui_model)
+    def _on_setup(self):
+        assert self._table_id != None
+        self.add_to_updaters(self._notes)
+        self.register_action('signal_tuning_tables', self._update_name)
+        self.register_action(self._get_update_signal_type(), self._update_params)
 
         QObject.connect(
                 self._name, SIGNAL('textChanged(const QString&)'), self._change_name)
@@ -107,18 +106,8 @@ class TuningTableEditor(QWidget):
         self._update_name()
         self._update_params()
 
-    def unregister_updaters(self):
-        self._notes.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
     def _get_update_signal_type(self):
         return 'signal_tuning_table_{}'.format(self._table_id)
-
-    def _perform_updates(self, signals):
-        if 'signal_tuning_tables' in signals:
-            self._update_name()
-        if self._get_update_signal_type() in signals:
-            self._update_params()
 
     def _get_tuning_table(self):
         module = self._ui_model.get_module()
@@ -183,17 +172,17 @@ class TuningTableEditor(QWidget):
     def _change_name(self, name):
         table = self._get_tuning_table()
         table.set_name(name)
-        self._updater.signal_update(set(['signal_tuning_tables']))
+        self._updater.signal_update('signal_tuning_tables')
 
     def _change_ref_pitch(self, pitch):
         table = self._get_tuning_table()
         table.set_ref_pitch(pitch)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _change_pitch_offset(self, offset):
         table = self._get_tuning_table()
         table.set_pitch_offset(offset)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _change_octave_width(self):
         text = str(self._octave_width.text())
@@ -205,26 +194,24 @@ class TuningTableEditor(QWidget):
 
         table = self._get_tuning_table()
         table.set_octave_width(octave_width)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _change_centre_octave(self, index):
         table = self._get_tuning_table()
         table.set_centre_octave(index)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _change_tuning_centre(self, centre):
         table = self._get_tuning_table()
         table.set_ref_note_index(centre)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
-class NotesToolBar(QToolBar):
+class NotesToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
         self._table_id = None
-        self._ui_model = None
-        self._updater = None
 
         self._add_button = QToolButton()
         self._add_button.setText('Add note')
@@ -242,10 +229,9 @@ class NotesToolBar(QToolBar):
     def set_tuning_table_id(self, table_id):
         self._table_id = table_id
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action(self._get_update_signal_type(), self._update_enabled)
+        self.register_action(self._get_selection_signal_type(), self._update_enabled)
 
         icon_bank = self._ui_model.get_icon_bank()
         self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
@@ -256,20 +242,11 @@ class NotesToolBar(QToolBar):
 
         self._update_enabled()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
     def _get_update_signal_type(self):
         return 'signal_tuning_table_{}'.format(self._table_id)
 
     def _get_selection_signal_type(self):
         return 'signal_tuning_table_note_selection_{}'.format(self._table_id)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            self._get_update_signal_type(), self._get_selection_signal_type()])
-        if not signals.isdisjoint(update_signals):
-            self._update_enabled()
 
     def _get_tuning_table(self):
         module = self._ui_model.get_module()
@@ -285,7 +262,7 @@ class NotesToolBar(QToolBar):
     def _add_note(self):
         table = self._get_tuning_table()
         table.add_note()
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _remove_note(self):
         table = self._get_tuning_table()
@@ -294,30 +271,22 @@ class NotesToolBar(QToolBar):
         if selected_index != None:
             table.remove_note(selected_index)
             table.set_selected_note((max(0, selected_index - 1), coords[1]))
-            self._updater.signal_update(set([
-                self._get_update_signal_type(), self._get_selection_signal_type()]))
+            self._updater.signal_update(
+                self._get_update_signal_type(), self._get_selection_signal_type())
 
 
-class NoteTableModel(QAbstractTableModel):
+class NoteTableModel(QAbstractTableModel, Updater):
 
     def __init__(self):
         super().__init__()
         self._table_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._items = []
 
     def set_tuning_table_id(self, table_id):
         self._table_id = table_id
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
+    def _on_setup(self):
         self._make_items()
-
-    def unregister_updaters(self):
-        pass
 
     def get_index(self, row, column):
         return self.createIndex(row, column, None)
@@ -411,7 +380,7 @@ class NoteTableModel(QAbstractTableModel):
                     new_name = value
                     table = self._get_tuning_table()
                     table.set_note_name(row, new_name)
-                    self._updater.signal_update(set([self._get_update_signal_type()]))
+                    self._updater.signal_update(self._get_update_signal_type())
                     return True
                 elif column == 1:
                     new_pitch = self._get_validated_pitch(value)
@@ -419,19 +388,17 @@ class NoteTableModel(QAbstractTableModel):
                         return False
                     table = self._get_tuning_table()
                     table.set_note_pitch(row, new_pitch)
-                    self._updater.signal_update(set([self._get_update_signal_type()]))
+                    self._updater.signal_update(self._get_update_signal_type())
                     return True
 
         return False
 
 
-class NoteTableView(QTableView):
+class NoteTableView(QTableView, Updater):
 
     def __init__(self):
         super().__init__()
         self._table_id = None
-        self._ui_model = None
-        self._updater = None
 
         self.setSelectionMode(QAbstractItemView.SingleSelection)
 
@@ -440,13 +407,6 @@ class NoteTableView(QTableView):
 
     def set_tuning_table_id(self, table_id):
         self._table_id = table_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
-    def unregister_updaters(self):
-        pass
 
     def _get_update_signal_type(self):
         return 'signal_tuning_table_{}'.format(self._table_id)
@@ -465,7 +425,7 @@ class NoteTableView(QTableView):
 
         table = self._get_tuning_table()
         table.set_selected_note((row, column))
-        self._updater.signal_update(set([self._get_selection_signal_type()]))
+        self._updater.signal_update(self._get_selection_signal_type())
 
     def setModel(self, model):
         super().setModel(model)
@@ -485,13 +445,11 @@ class NoteTableView(QTableView):
                 self._select_entry)
 
 
-class Notes(QWidget):
+class Notes(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
         self._table_id = None
-        self._ui_model = None
-        self._updater = None
 
         self._toolbar = NotesToolBar()
 
@@ -510,31 +468,21 @@ class Notes(QWidget):
         self._toolbar.set_tuning_table_id(table_id)
         self._table_view.set_tuning_table_id(table_id)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._toolbar.set_ui_model(ui_model)
-        self._table_view.set_ui_model(ui_model)
+    def _on_setup(self):
+        self.add_to_updaters(self._toolbar, self._table_view)
+        self.register_action(self._get_update_signal_type(), self._update_model)
 
         self._update_model()
-
-    def unregister_updaters(self):
-        self._table_view.unregister_updaters()
-        self._toolbar.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
 
     def _get_update_signal_type(self):
         return 'signal_tuning_table_{}'.format(self._table_id)
 
-    def _perform_updates(self, signals):
-        if self._get_update_signal_type() in signals:
-            self._update_model()
-
     def _update_model(self):
+        if self._table_model:
+            self.remove_from_updaters(self._table_model)
         self._table_model = NoteTableModel()
         self._table_model.set_tuning_table_id(self._table_id)
-        self._table_model.set_ui_model(self._ui_model)
+        self.add_to_updaters(self._table_model)
         self._table_view.setModel(self._table_model)
 
 

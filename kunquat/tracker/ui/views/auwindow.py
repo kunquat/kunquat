@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -14,42 +14,26 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from .audio_unit.editor import Editor
+from .audiounit.editor import Editor
+from .audiounit.audiounitupdater import AudioUnitUpdater
 
 
-class AuWindow(QWidget):
+class AuWindow(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._au_id = None
-        self._updater = None
         self._editor = Editor()
+
+        self.add_to_updaters(self._editor)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.addWidget(self._editor)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._editor.set_au_id(au_id)
-
-    def set_ui_model(self, ui_model):
-        assert self._au_id != None
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._editor.set_ui_model(ui_model)
+    def _on_setup(self):
+        self.register_action('signal_controls', self._update_title)
         self._update_title()
-
-    def unregister_updaters(self):
-        self._editor.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_controls' in signals:
-            self._update_title()
 
     def _update_title(self):
         module = self._ui_model.get_module()

@@ -16,8 +16,8 @@ from itertools import chain
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
+from .aukeyboardmapper import AudioUnitKeyboardMapper
 from .aunumslider import AuNumSlider
 from .components import Components
 from .expressions import Expressions
@@ -25,9 +25,10 @@ from .hits import Hits
 from .ports import Ports
 from .infoeditor import InfoEditor
 from .testbutton import TestButton
+from .audiounitupdater import AudioUnitUpdater
 
 
-class Editor(QWidget):
+class Editor(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -44,27 +45,19 @@ class Editor(QWidget):
         self._ports = Ports()
         self._info_editor = InfoEditor()
 
-        self._keyboard_mapper = KeyboardMapper()
+        self._keyboard_mapper = AudioUnitKeyboardMapper()
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._test_panel.set_au_id(au_id)
-        self._components.set_au_id(au_id)
-        self._hits.set_au_id(au_id)
-        self._expressions.set_au_id(au_id)
-        self._ports.set_au_id(au_id)
-        self._info_editor.set_au_id(au_id)
+    def _on_setup(self):
+        self.add_to_updaters(
+                self._test_panel,
+                self._components,
+                self._hits,
+                self._expressions,
+                self._ports,
+                self._info_editor,
+                self._keyboard_mapper)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._control_manager = ui_model.get_control_manager()
-        self._test_panel.set_ui_model(ui_model)
-        self._components.set_ui_model(ui_model)
-        self._hits.set_ui_model(ui_model)
-        self._expressions.set_ui_model(ui_model)
-        self._ports.set_ui_model(ui_model)
-        self._info_editor.set_ui_model(ui_model)
-        self._keyboard_mapper.set_ui_model(ui_model)
+        self._control_manager = self._ui_model.get_control_manager()
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
@@ -84,45 +77,24 @@ class Editor(QWidget):
         v.addWidget(self._tabs)
         self.setLayout(v)
 
-    def unregister_updaters(self):
-        self._keyboard_mapper.unregister_updaters()
-        self._info_editor.unregister_updaters()
-        self._ports.unregister_updaters()
-        self._expressions.unregister_updaters()
-        self._hits.unregister_updaters()
-        self._components.unregister_updaters()
-        self._test_panel.unregister_updaters()
-
     def keyPressEvent(self, event):
-        module = self._ui_model.get_module()
-        control_id = module.get_control_id_by_au_id(self._au_id)
-        if not control_id:
-            return
-
-        au = module.get_audio_unit(self._au_id)
-
-        self._control_manager.set_control_id_override(control_id)
-        au.set_test_params_enabled(True)
         if not self._keyboard_mapper.process_typewriter_button_event(event):
             event.ignore()
-        self._control_manager.set_control_id_override(None)
-        au.set_test_params_enabled(False)
 
     def keyReleaseEvent(self, event):
         if not self._keyboard_mapper.process_typewriter_button_event(event):
             event.ignore()
 
 
-class TestPanel(QWidget):
+class TestPanel(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
-
         self._test_button = TestButton()
         self._test_force = TestForce()
         self._expressions = [TestExpression(i) for i in range(2)]
+
+        self.add_to_updaters(self._test_button, self._test_force, *self._expressions)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -134,26 +106,6 @@ class TestPanel(QWidget):
         h.addWidget(QLabel('Note expression:'))
         h.addWidget(self._expressions[1])
         self.setLayout(h)
-
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._test_button.set_au_id(au_id)
-        self._test_force.set_au_id(au_id)
-        for expr in self._expressions:
-            expr.set_au_id(au_id)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._test_button.set_ui_model(ui_model)
-        self._test_force.set_ui_model(ui_model)
-        for expr in self._expressions:
-            expr.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        for expr in self._expressions:
-            expr.unregister_updaters()
-        self._test_force.unregister_updaters()
-        self._test_button.unregister_updaters()
 
 
 class TestForce(AuNumSlider):
@@ -175,29 +127,21 @@ class TestForce(AuNumSlider):
     def _value_changed(self, new_value):
         au = self._get_audio_unit()
         au.set_test_force(new_value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
-class TestExpression(KqtComboBox):
+class TestExpression(KqtComboBox, AudioUnitUpdater):
 
     def __init__(self, index):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._index = index
 
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
         self.setSizeAdjustPolicy(QComboBox.AdjustToContents)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action(
+                'signal_expr_list_{}'.format(self._au_id), self._update_expression_list)
 
         QObject.connect(
                 self, SIGNAL('currentIndexChanged(int)'), self._change_expression)
@@ -210,13 +154,6 @@ class TestExpression(KqtComboBox):
             au.set_test_expression(self._index, note_expr)
 
         self._update_expression_list()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_expr_list_{}'.format(self._au_id) in signals:
-            self._update_expression_list()
 
     def _update_expression_list(self):
         module = self._ui_model.get_module()

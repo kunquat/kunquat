@@ -16,24 +16,18 @@ from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
+from kunquat.tracker.ui.model.trigger import Trigger
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
-from .editbutton import EditButton
-from .replacebutton import ReplaceButton
-from .restbutton import RestButton
-from .delselectionbutton import DelSelectionButton
-from .zoombutton import ZoomButton
-from .lengtheditor import LengthEditor
+from kunquat.tracker.ui.views.updater import Updater
 from . import utils
 
 
-class Toolbar(QWidget):
+class Toolbar(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-
         self._follow_playback_button = FollowPlaybackButton()
         self._edit_button = EditButton()
         self._replace_button = ReplaceButton()
@@ -58,6 +52,24 @@ class Toolbar(QWidget):
         self._grid_selector = GridSelector()
         self._length_editor = LengthEditor()
 
+        self.add_to_updaters(
+                self._follow_playback_button,
+                self._edit_button,
+                self._replace_button,
+                self._rest_button,
+                self._del_selection_button,
+                self._undo_button,
+                self._redo_button,
+                self._cut_button,
+                self._copy_button,
+                self._paste_button,
+                self._convert_tr_button,
+                *self._zoom_buttons,
+                self._grid_toggle,
+                self._grid_editor_button,
+                self._grid_selector,
+                self._length_editor)
+
         h = QHBoxLayout()
         h.setContentsMargins(4, 0, 4, 4)
         h.setSpacing(2)
@@ -81,14 +93,15 @@ class Toolbar(QWidget):
         h.addWidget(HackSeparator())
         for button in self._zoom_buttons:
             h.addWidget(button)
-        h.addWidget(HackSeparator())
-        h.addWidget(self._grid_toggle)
-        h.addWidget(self._grid_editor_button)
 
         spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         h.addWidget(spacer)
 
+        h.addWidget(self._grid_toggle)
+        h.addSpacing(2)
+        h.addWidget(self._grid_editor_button)
+        h.addSpacing(2)
         h.addWidget(self._grid_selector)
         h.addWidget(self._length_editor)
 
@@ -99,61 +112,17 @@ class Toolbar(QWidget):
 
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._follow_playback_button.set_ui_model(ui_model)
-        self._edit_button.set_ui_model(ui_model)
-        self._replace_button.set_ui_model(ui_model)
-        self._rest_button.set_ui_model(ui_model)
-        self._del_selection_button.set_ui_model(ui_model)
-        self._undo_button.set_ui_model(ui_model)
-        self._redo_button.set_ui_model(ui_model)
-        self._cut_button.set_ui_model(ui_model)
-        self._copy_button.set_ui_model(ui_model)
-        self._paste_button.set_ui_model(ui_model)
-        self._convert_tr_button.set_ui_model(ui_model)
-        for button in self._zoom_buttons:
-            button.set_ui_model(ui_model)
-        self._grid_toggle.set_ui_model(ui_model)
-        self._grid_editor_button.set_ui_model(ui_model)
-        self._grid_selector.set_ui_model(ui_model)
-        self._length_editor.set_ui_model(ui_model)
 
-    def unregister_updaters(self):
-        self._follow_playback_button.unregister_updaters()
-        self._edit_button.unregister_updaters()
-        self._replace_button.unregister_updaters()
-        self._rest_button.unregister_updaters()
-        self._del_selection_button.unregister_updaters()
-        self._undo_button.unregister_updaters()
-        self._redo_button.unregister_updaters()
-        self._cut_button.unregister_updaters()
-        self._copy_button.unregister_updaters()
-        self._paste_button.unregister_updaters()
-        self._convert_tr_button.unregister_updaters()
-        for button in self._zoom_buttons:
-            button.unregister_updaters()
-        self._grid_toggle.unregister_updaters()
-        self._grid_editor_button.unregister_updaters()
-        self._grid_selector.unregister_updaters()
-        self._length_editor.unregister_updaters()
-
-
-class FollowPlaybackButton(QPushButton):
+class FollowPlaybackButton(QPushButton, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self.setCheckable(True)
         self.setFlat(True)
         self.setToolTip('Follow playback')
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_follow_playback', self._update_playback_following)
 
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('follow_playback')
@@ -162,13 +131,6 @@ class FollowPlaybackButton(QPushButton):
         QObject.connect(self, SIGNAL('clicked()'), self._toggle_playback_following)
 
         self._update_playback_following()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_follow_playback' in signals:
-            self._update_playback_following()
 
     def _update_playback_following(self):
         playback_manager = self._ui_model.get_playback_manager()
@@ -189,25 +151,194 @@ class FollowPlaybackButton(QPushButton):
             new_location = TriggerPosition(track_num, system_num, col_num, row_ts, 0)
             selection.set_location(new_location)
 
-        self._updater.signal_update(set(['signal_follow_playback']))
+        self._updater.signal_update('signal_follow_playback')
 
 
-class UndoButton(QPushButton):
+class EditButton(QPushButton, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
+        self._sheet_manager = None
 
+        self.setCheckable(True)
+        self.setFlat(True)
+        #self.setText('Edit')
+        self.setToolTip('Edit (Space)')
+
+    def _on_setup(self):
+        self.register_action('signal_edit_mode', self._update_state)
+        self.register_action('signal_play', self._update_state)
+        self.register_action('signal_silence', self._update_state)
+        self.register_action('signal_record_mode', self._update_state)
+
+        self._sheet_manager = self._ui_model.get_sheet_manager()
+
+        icon_bank = self._ui_model.get_icon_bank()
+        icon_path = icon_bank.get_icon_path('edit')
+        icon = QIcon(icon_path)
+        self.setIcon(icon)
+
+        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+
+    def _update_state(self):
+        old_block = self.blockSignals(True)
+        disable = not self._sheet_manager.allow_editing()
+        is_checked = self._sheet_manager.get_typewriter_connected() and not disable
+        self.setChecked(is_checked)
+        self.setEnabled(not disable)
+        self.blockSignals(old_block)
+
+    def _clicked(self):
+        self._sheet_manager.set_typewriter_connected(self.isChecked())
+
+
+class ReplaceButton(QPushButton, Updater):
+
+    def __init__(self):
+        super().__init__()
+        self._sheet_manager = None
+
+        self.setCheckable(True)
+        self.setFlat(True)
+        #self.setText('Replace')
+        self.setToolTip('Replace (Insert)')
+
+    def _on_setup(self):
+        self.register_action('signal_replace_mode', self._update_state)
+        self.register_action('signal_play', self._update_state)
+        self.register_action('signal_silence', self._update_state)
+        self.register_action('signal_record_mode', self._update_state)
+
+        self._sheet_manager = self._ui_model.get_sheet_manager()
+
+        icon_bank = self._ui_model.get_icon_bank()
+        icon_path = icon_bank.get_icon_path('replace')
+        icon = QIcon(icon_path)
+        self.setIcon(icon)
+
+        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+
+    def _update_state(self):
+        old_block = self.blockSignals(True)
+        disable = not self._sheet_manager.allow_editing()
+        is_checked = self._sheet_manager.get_replace_mode() and not disable
+        self.setChecked(is_checked)
+        self.setEnabled(not disable)
+        self.blockSignals(old_block)
+
+    def _clicked(self):
+        self._sheet_manager.set_replace_mode(self.isChecked())
+
+
+class RestButton(QPushButton, Updater):
+
+    def __init__(self):
+        super().__init__()
+        self._sheet_manager = None
+
+        self.setFlat(True)
+        #self.setText('══')
+        self.setToolTip('Add rest (1)')
+
+    def _on_setup(self):
+        self.register_action('signal_module', self._update_enabled)
+        self.register_action('signal_edit_mode', self._update_enabled)
+        self.register_action('signal_play', self._update_enabled)
+        self.register_action('signal_silence', self._update_enabled)
+
+        self._sheet_manager = self._ui_model.get_sheet_manager()
+
+        icon_bank = self._ui_model.get_icon_bank()
+        icon_path = icon_bank.get_icon_path('rest')
+        icon = QIcon(icon_path)
+        self.setIcon(icon)
+
+        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+
+    def _update_enabled(self):
+        if (not self._sheet_manager.is_editing_enabled() or
+                not self._sheet_manager.allow_editing()):
+            self.setEnabled(False)
+            return
+
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        cur_column = self._sheet_manager.get_column_at_location(location)
+        is_enabled = bool(cur_column)
+
+        self.setEnabled(is_enabled)
+
+    def _clicked(self):
+        trigger = Trigger('n-', None)
+        self._sheet_manager.add_trigger(trigger)
+
+
+class DelSelectionButton(QPushButton, Updater):
+
+    def __init__(self):
+        super().__init__()
+        self._sheet_manager = None
+
+        self.setFlat(True)
+        #self.setText('Del')
+        self.setToolTip('Delete selection (Delete)')
+
+    def _on_setup(self):
+        self.register_action('signal_selection', self._update_enabled)
+        self.register_action('signal_module', self._update_enabled)
+        self.register_action('signal_column', self._update_enabled)
+        self.register_action('signal_edit_mode', self._update_enabled)
+
+        self._sheet_manager = self._ui_model.get_sheet_manager()
+
+        icon_bank = self._ui_model.get_icon_bank()
+        icon_path = icon_bank.get_icon_path('delete')
+        icon = QIcon(icon_path)
+        self.setIcon(icon)
+
+        self._update_enabled()
+        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+
+    def _update_enabled(self):
+        if not self._sheet_manager.is_editing_enabled():
+            self.setEnabled(False)
+            return
+
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        if not location:
+            self.setEnabled(False)
+            return
+
+        cur_column = self._sheet_manager.get_column_at_location(location)
+
+        has_trigger = bool(cur_column) and cur_column.has_trigger(
+                location.get_row_ts(), location.get_trigger_index())
+
+        self.setEnabled(has_trigger)
+
+    def _clicked(self):
+        self._sheet_manager.try_remove_trigger()
+
+
+class UndoButton(QPushButton, Updater):
+
+    def __init__(self):
+        super().__init__()
         self.setFlat(True)
         #self.setText('Undo')
         self.setToolTip('Undo (Ctrl + Z)')
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._sheet_history = ui_model.get_sheet_history()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_undo', self._update_enabled)
+        self.register_action('signal_redo', self._update_enabled)
+        self.register_action('signal_selection', self._update_enabled)
+        self.register_action('signal_pattern_length', self._update_enabled)
+        self.register_action('signal_grid', self._update_enabled)
+        self.register_action('signal_play', self._update_enabled)
+        self.register_action('signal_silence', self._update_enabled)
+
+        self._sheet_history = self._ui_model.get_sheet_history()
 
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('undo')
@@ -216,21 +347,6 @@ class UndoButton(QPushButton):
         QObject.connect(self, SIGNAL('clicked()'), self._undo)
 
         self._update_enabled()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_undo',
-            'signal_redo',
-            'signal_selection',
-            'signal_pattern_length',
-            'signal_grid',
-            'signal_play',
-            'signal_silence'])
-        if not signals.isdisjoint(update_signals):
-            self._update_enabled()
 
     def _update_enabled(self):
         playback_manager = self._ui_model.get_playback_manager()
@@ -241,25 +357,27 @@ class UndoButton(QPushButton):
     def _undo(self):
         self._sheet_history.undo()
         self._ui_model.get_sheet_manager().flush_latest_column()
-        self._updater.signal_update(set(['signal_undo']))
+        self._updater.signal_update('signal_undo')
 
 
-class RedoButton(QPushButton):
+class RedoButton(QPushButton, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self.setFlat(True)
         #self.setText('Redo')
         self.setToolTip('Redo (Ctrl + Shift + Z)')
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._sheet_history = ui_model.get_sheet_history()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_undo', self._update_enabled)
+        self.register_action('signal_redo', self._update_enabled)
+        self.register_action('signal_selection', self._update_enabled)
+        self.register_action('signal_pattern_length', self._update_enabled)
+        self.register_action('signal_grid', self._update_enabled)
+        self.register_action('signal_play', self._update_enabled)
+        self.register_action('signal_silence', self._update_enabled)
+
+        self._sheet_history = self._ui_model.get_sheet_history()
 
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('redo')
@@ -268,21 +386,6 @@ class RedoButton(QPushButton):
         QObject.connect(self, SIGNAL('clicked()'), self._redo)
 
         self._update_enabled()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_undo',
-            'signal_redo',
-            'signal_selection',
-            'signal_pattern_length',
-            'signal_grid',
-            'signal_play',
-            'signal_silence'])
-        if not signals.isdisjoint(update_signals):
-            self._update_enabled()
 
     def _update_enabled(self):
         playback_manager = self._ui_model.get_playback_manager()
@@ -293,15 +396,13 @@ class RedoButton(QPushButton):
     def _redo(self):
         self._sheet_history.redo()
         self._ui_model.get_sheet_manager().flush_latest_column()
-        self._updater.signal_update(set(['signal_redo']))
+        self._updater.signal_update('signal_redo')
 
 
-class CutOrCopyButton(QPushButton):
+class CutOrCopyButton(QPushButton, Updater):
 
     def __init__(self, button_type):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
         self._sheet_manager = None
 
         if button_type == 'cut':
@@ -319,11 +420,13 @@ class CutOrCopyButton(QPushButton):
         #self.setText(text)
         self.setToolTip('{} ({})'.format(text, shortcut))
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._sheet_manager = ui_model.get_sheet_manager()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_selection', self._update_enabled)
+        self.register_action('signal_edit_mode', self._update_enabled)
+        self.register_action('signal_play', self._update_enabled)
+        self.register_action('signal_silence', self._update_enabled)
+
+        self._sheet_manager = self._ui_model.get_sheet_manager()
 
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path(self._button_type)
@@ -332,15 +435,6 @@ class CutOrCopyButton(QPushButton):
         QObject.connect(self, SIGNAL('clicked()'), self._cut_or_copy)
 
         self._update_enabled()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_selection', 'signal_edit_mode', 'signal_play', 'signal_silence'])
-        if not signals.isdisjoint(update_signals):
-            self._update_enabled()
 
     def _update_enabled(self):
         selection = self._ui_model.get_selection()
@@ -357,7 +451,7 @@ class CutOrCopyButton(QPushButton):
             if self._button_type == 'cut':
                 self._sheet_manager.try_remove_area()
             selection.clear_area()
-            self._updater.signal_update(set(['signal_selection']))
+            self._updater.signal_update('signal_selection')
 
 
 class CutButton(CutOrCopyButton):
@@ -372,12 +466,10 @@ class CopyButton(CutOrCopyButton):
         super().__init__('copy')
 
 
-class PasteButton(QPushButton):
+class PasteButton(QPushButton, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
         self._sheet_manager = None
 
         self.setFlat(True)
@@ -386,11 +478,13 @@ class PasteButton(QPushButton):
 
         self._has_valid_data = False
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._sheet_manager = ui_model.get_sheet_manager()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_selection', self._update_enabled)
+        self.register_action('signal_edit_mode', self._update_enabled)
+        self.register_action('signal_play', self._update_enabled)
+        self.register_action('signal_silence', self._update_enabled)
+
+        self._sheet_manager = self._ui_model.get_sheet_manager()
 
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('paste')
@@ -402,15 +496,6 @@ class PasteButton(QPushButton):
         QObject.connect(self, SIGNAL('clicked()'), self._paste)
 
         self._update_enabled_full()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_selection', 'signal_edit_mode', 'signal_play', 'signal_silence'])
-        if not signals.isdisjoint(update_signals):
-            self._update_enabled()
 
     def _update_enabled_full(self):
         self._has_valid_data = utils.is_clipboard_area_valid(self._sheet_manager)
@@ -428,24 +513,22 @@ class PasteButton(QPushButton):
         selection = self._ui_model.get_selection()
         utils.try_paste_area(self._sheet_manager)
         selection.clear_area()
-        self._updater.signal_update(set(['signal_selection']))
+        self._updater.signal_update('signal_selection')
 
 
-class ConvertTriggerButton(QPushButton):
+class ConvertTriggerButton(QPushButton, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self.setFlat(True)
         #self.setText('Convert')
         self.setToolTip('Convert between set and slide trigger (/)')
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_selection', self._update_enabled)
+        self.register_action('signal_edit_mode', self._update_enabled)
+        self.register_action('signal_play', self._update_enabled)
+        self.register_action('signal_silence', self._update_enabled)
 
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('convert_trigger')
@@ -454,15 +537,6 @@ class ConvertTriggerButton(QPushButton):
         QObject.connect(self, SIGNAL('clicked()'), self._convert_trigger)
 
         self._update_enabled()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_selection', 'signal_edit_mode', 'signal_play', 'signal_silence'])
-        if not signals.isdisjoint(update_signals):
-            self._update_enabled()
 
     def _update_enabled(self):
         sheet_manager = self._ui_model.get_sheet_manager()
@@ -476,30 +550,109 @@ class ConvertTriggerButton(QPushButton):
         sheet_manager.convert_set_or_slide_trigger()
 
 
-class GridToggle(QCheckBox):
+class ZoomButton(QPushButton, Updater):
+
+    INFO = {
+            'in': ('Zoom In', 'zoom_in', 'Ctrl + +'),
+            'out': ('Zoom Out', 'zoom_out', 'Ctrl + -'),
+            'original': ('Zoom to Original', 'zoom_reset', 'Ctrl + 0'),
+            'expand_w': ('Expand Columns', 'col_expand', 'Ctrl + Alt + +'),
+            'shrink_w': ('Shrink Columns', 'col_shrink', 'Ctrl + Alt + -'),
+            'original_w': ('Reset Column Width', 'col_reset_width', 'Ctrl + Alt + 0'),
+        }
+
+    def __init__(self, mode):
+        super().__init__()
+        self._sheet_manager = None
+
+        self._mode = mode
+        self.setFlat(True)
+        #self.setText(self._get_text(mode))
+        self.setToolTip(self._get_tooltip(mode))
+
+    def _on_setup(self):
+        self.register_action('signal_sheet_zoom', self._update_enabled)
+        self.register_action('signal_sheet_zoom_range', self._update_enabled)
+        self.register_action('signal_sheet_column_width', self._update_enabled)
+
+        self._sheet_manager = self._ui_model.get_sheet_manager()
+
+        icon = self._get_icon(self._mode)
+        self.setIcon(icon)
+
+        self._update_enabled()
+        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+
+    def _update_enabled(self):
+        zoom = self._sheet_manager.get_zoom()
+        width = self._sheet_manager.get_column_width()
+        if self._mode == 'in':
+            _, maximum = self._sheet_manager.get_zoom_range()
+            is_enabled = zoom < maximum
+        elif self._mode == 'out':
+            minimum, _ = self._sheet_manager.get_zoom_range()
+            is_enabled = zoom > minimum
+        elif self._mode == 'original':
+            is_enabled = zoom != 0
+        elif self._mode == 'expand_w':
+            _, maximum = self._sheet_manager.get_column_width_range()
+            is_enabled = width < maximum
+        elif self._mode == 'shrink_w':
+            minimum, _ = self._sheet_manager.get_column_width_range()
+            is_enabled = width > minimum
+        elif self._mode == 'original_w':
+            is_enabled = width != 0
+
+        self.setEnabled(is_enabled)
+
+    def _get_text(self, mode):
+        return ZoomButton.INFO[mode][0]
+
+    def _get_icon(self, mode):
+        icon_name = ZoomButton.INFO[mode][1]
+        icon_bank = self._ui_model.get_icon_bank()
+        try:
+            icon_path = icon_bank.get_icon_path(icon_name)
+        except ValueError:
+            return QIcon()
+        icon = QIcon(icon_path)
+        return icon
+
+    def _get_shortcut(self, mode):
+        return ZoomButton.INFO[mode][2]
+
+    def _get_tooltip(self, mode):
+        return '{} ({})'.format(self._get_text(mode), self._get_shortcut(mode))
+
+    def _clicked(self):
+        if self._mode in ('in', 'out', 'original'):
+            new_zoom = 0
+            if self._mode == 'in':
+                new_zoom = self._sheet_manager.get_zoom() + 1
+            elif self._mode == 'out':
+                new_zoom = self._sheet_manager.get_zoom() - 1
+            self._sheet_manager.set_zoom(new_zoom)
+        else:
+            new_width = 0
+            if self._mode == 'expand_w':
+                new_width = self._sheet_manager.get_column_width() + 1
+            elif self._mode == 'shrink_w':
+                new_width = self._sheet_manager.get_column_width() - 1
+            self._sheet_manager.set_column_width(new_width)
+
+
+class GridToggle(QCheckBox, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self.setText('Grid')
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_grid', self._update_state)
 
         QObject.connect(self, SIGNAL('clicked()'), self._set_grid_enabled)
 
         self._update_state()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_grid' in signals:
-            self._update_state()
 
     def _update_state(self):
         sheet_manager = self._ui_model.get_sheet_manager()
@@ -514,33 +667,21 @@ class GridToggle(QCheckBox):
 
         sheet_manager = self._ui_model.get_sheet_manager()
         sheet_manager.set_grid_enabled(enabled)
-        self._updater.signal_update(set(['signal_grid']))
+        self._updater.signal_update('signal_grid')
 
 
-class GridEditorButton(QPushButton):
+class GridEditorButton(QPushButton, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self.setText('Edit grids')
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_grid', self._update_enabled)
 
         QObject.connect(self, SIGNAL('clicked()'), self._open_grid_editor)
 
         self._update_enabled()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_grid' in signals:
-            self._update_enabled()
 
     def _update_enabled(self):
         sheet_manager = self._ui_model.get_sheet_manager()
@@ -552,25 +693,29 @@ class GridEditorButton(QPushButton):
         visibility_manager.show_grid_editor()
 
 
-class GridSelector(KqtComboBox):
+class GridSelector(KqtComboBox, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self.setSizeAdjustPolicy(QComboBox.AdjustToContents)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_module', self._update_list)
+        self.register_action('signal_grid_pattern_list', self._update_list)
+        self.register_action('signal_selection', self._update_selection)
+        self.register_action('signal_grid', self._update_selection)
 
         QObject.connect(
                 self, SIGNAL('activated(int)'), self._change_grid_pattern)
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
+    def _update_list(self):
+        self._update_grid_pattern_names()
+        self._set_default_grid_pattern()
+        self._update_grid_pattern_selection()
+
+    def _update_selection(self):
+        self._set_default_grid_pattern()
+        self._update_grid_pattern_selection()
 
     def _update_grid_pattern_names(self):
         grid_manager = self._ui_model.get_grid_manager()
@@ -633,18 +778,6 @@ class GridSelector(KqtComboBox):
         assert index >= 0
         self.setCurrentIndex(index)
         self.blockSignals(old_block)
-
-    def _perform_updates(self, signals):
-        list_signals = set(['signal_module', 'signal_grid_pattern_list'])
-        if not signals.isdisjoint(list_signals):
-            self._update_grid_pattern_names()
-            self._set_default_grid_pattern()
-            self._update_grid_pattern_selection()
-
-        update_signals = set(['signal_module', 'signal_selection', 'signal_grid'])
-        if not signals.isdisjoint(update_signals):
-            self._set_default_grid_pattern()
-            self._update_grid_pattern_selection()
 
     def _change_grid_pattern(self, index):
         gp_id = self.itemData(index)
@@ -716,7 +849,97 @@ class GridSelector(KqtComboBox):
                 sheet_manager.set_pattern_base_grid_pattern_id(
                         pattern, gp_id, is_final=True)
 
-        self._updater.signal_update(set(['signal_grid']))
+        self._updater.signal_update('signal_grid')
+
+
+class LengthEditor(QWidget, Updater):
+
+    def __init__(self):
+        super().__init__()
+        self._is_latest_committed = True
+
+        self._spinbox = QDoubleSpinBox()
+        self._spinbox.setMinimum(0)
+        self._spinbox.setMaximum(1024)
+        self._spinbox.setDecimals(3)
+
+        h = QHBoxLayout()
+        h.setContentsMargins(5, 0, 5, 0)
+        h.setSpacing(5)
+        h.addWidget(QLabel('Pattern length'))
+        h.addWidget(self._spinbox)
+        self.setLayout(h)
+
+    def _on_setup(self):
+        self.register_action('signal_module', self._update_value)
+        self.register_action('signal_pattern_length', self._update_value)
+        self.register_action('signal_selection', self._update_value)
+        self.register_action('signal_order_list', self._update_value)
+        self.register_action('signal_undo', self._update_value)
+        self.register_action('signal_redo', self._update_value)
+
+        self._update_value()
+
+        QObject.connect(
+                self._spinbox, SIGNAL('valueChanged(double)'), self._change_length)
+        QObject.connect(
+                self._spinbox, SIGNAL('editingFinished()'), self._change_length_final)
+
+    def _get_pattern(self):
+        module = self._ui_model.get_module()
+        album = module.get_album()
+        if not album.get_existence():
+            return None
+
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        song = album.get_song_by_track(location.get_track())
+        pinst = song.get_pattern_instance(location.get_system())
+        pattern = pinst.get_pattern()
+        return pattern
+
+    def _update_value(self):
+        pattern = self._get_pattern()
+        if not pattern:
+            self.setEnabled(False)
+            old_block = self._spinbox.blockSignals(True)
+            self._spinbox.setValue(0)
+            self._spinbox.blockSignals(old_block)
+            return
+
+        length = pattern.get_length()
+        length_val = float(length)
+
+        self.setEnabled(True)
+        old_block = self._spinbox.blockSignals(True)
+        if length_val != self._spinbox.value():
+            self._spinbox.setValue(length_val)
+        self._spinbox.blockSignals(old_block)
+
+    def _change_value(self, new_value, is_final):
+        pattern = self._get_pattern()
+        if not pattern:
+            return
+
+        sheet_manager = self._ui_model.get_sheet_manager()
+
+        length = tstamp.Tstamp(new_value)
+        if length == pattern.get_length():
+            if is_final and not self._is_latest_committed:
+                sheet_manager.set_pattern_length(pattern, length, is_final)
+                self._is_latest_committed = True
+            return
+
+        sheet_manager.set_pattern_length(pattern, length, is_final)
+        self._updater.signal_update('signal_pattern_length')
+
+    def _change_length(self, new_value):
+        self._is_latest_committed = False
+        self._change_value(new_value, is_final=False)
+
+    def _change_length_final(self):
+        new_value = self._spinbox.value()
+        self._change_value(new_value, is_final=True)
 
 
 class HackSeparator(QFrame):

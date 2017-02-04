@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,14 +15,16 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .iacontrols import IAControls
+from .updater import Updater
 
 
-class IAWindow(QWidget):
+class IAWindow(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
         self._ia_controls = IAControls()
+
+        self.add_to_updaters(self._ia_controls)
 
         self.setWindowTitle('Interactivity controls')
 
@@ -31,13 +33,6 @@ class IAWindow(QWidget):
         v.setSpacing(0)
         v.addWidget(self._ia_controls)
         self.setLayout(v)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._ia_controls.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._ia_controls.unregister_updaters()
 
     def closeEvent(self, event):
         event.ignore()

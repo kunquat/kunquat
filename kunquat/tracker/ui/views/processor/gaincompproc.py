@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,10 +15,11 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.envelope import Envelope
-from kunquat.tracker.ui.views.audio_unit.simple_env import SimpleEnvelope
+from .procsimpleenv import ProcessorSimpleEnvelope
+from .processorupdater import ProcessorUpdater
 
 
-class GainCompProc(QWidget):
+class GainCompProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():
@@ -29,6 +30,8 @@ class GainCompProc(QWidget):
 
         self._mapping = MappingEnv()
 
+        self.add_to_updaters(self._mapping)
+
         v = QVBoxLayout()
         v.setSpacing(10)
         v.addWidget(self._mapping)
@@ -36,27 +39,11 @@ class GainCompProc(QWidget):
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
-    def set_au_id(self, au_id):
-        self._mapping.set_au_id(au_id)
 
-    def set_proc_id(self, proc_id):
-        self._mapping.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._mapping.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._mapping.unregister_updaters()
-
-
-class MappingEnv(SimpleEnvelope):
+class MappingEnv(ProcessorSimpleEnvelope):
 
     def __init__(self):
         super().__init__()
-        self._proc_id = None
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
 
     def _get_update_signal_type(self):
         return ''.join(('signal_gaincomp_mapping_', self._proc_id))

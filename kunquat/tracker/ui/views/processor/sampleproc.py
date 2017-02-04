@@ -19,17 +19,18 @@ from PySide.QtGui import *
 
 import kunquat.tracker.config as config
 from kunquat.tracker.ui.model.procparams.sampleparams import SampleImportError
-from kunquat.tracker.ui.views.audio_unit.hitselector import HitSelector
+from kunquat.tracker.ui.views.audiounit.hitselector import HitSelector
 from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
 from kunquat.tracker.ui.views.editorlist import EditorList
-from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.utils import lerp_val
+from .prockeyboardmapper import ProcessorKeyboardMapper
 from .sampleview import SampleView
+from .processorupdater import ProcessorUpdater
 from . import utils
 
 
-class SampleProc(QTabWidget):
+class SampleProc(QTabWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():
@@ -42,38 +43,23 @@ class SampleProc(QTabWidget):
         self._hit_map_editor = HitMapEditor()
         self._samples = Samples()
 
+        self.add_to_updaters(
+                self._note_map_editor, self._hit_map_editor, self._samples)
+
         self.addTab(self._note_map_editor, 'Note map')
         self.addTab(self._hit_map_editor, 'Hit map')
         self.addTab(self._samples, 'Samples')
 
-    def set_au_id(self, au_id):
-        self._note_map_editor.set_au_id(au_id)
-        self._hit_map_editor.set_au_id(au_id)
-        self._samples.set_au_id(au_id)
 
-    def set_proc_id(self, proc_id):
-        self._note_map_editor.set_proc_id(proc_id)
-        self._hit_map_editor.set_proc_id(proc_id)
-        self._samples.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._note_map_editor.set_ui_model(ui_model)
-        self._hit_map_editor.set_ui_model(ui_model)
-        self._samples.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._samples.unregister_updaters()
-        self._hit_map_editor.unregister_updaters()
-        self._note_map_editor.unregister_updaters()
-
-
-class NoteMapEditor(QWidget):
+class NoteMapEditor(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
 
         self._note_map = NoteMap()
         self._note_map_entry = NoteMapEntry()
+
+        self.add_to_updaters(self._note_map, self._note_map_entry)
 
         h = QHBoxLayout()
         h.setContentsMargins(4, 4, 4, 4)
@@ -82,24 +68,8 @@ class NoteMapEditor(QWidget):
         h.addWidget(self._note_map_entry, 2)
         self.setLayout(h)
 
-    def set_au_id(self, au_id):
-        self._note_map.set_au_id(au_id)
-        self._note_map_entry.set_au_id(au_id)
 
-    def set_proc_id(self, proc_id):
-        self._note_map.set_proc_id(proc_id)
-        self._note_map_entry.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._note_map.set_ui_model(ui_model)
-        self._note_map_entry.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._note_map_entry.unregister_updaters()
-        self._note_map.unregister_updaters()
-
-
-class RandomListMap(QWidget):
+class RandomListMap(QWidget, ProcessorUpdater):
 
     _DEFAULT_CONFIG = {
         'padding'                  : 5,
@@ -146,11 +116,6 @@ class RandomListMap(QWidget):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._axis_x_renderer = HorizontalAxisRenderer()
         self._axis_x_renderer.set_config(self._AXIS_CONFIG.copy(), self)
         self._axis_x_renderer.set_val_range([-36, 0])
@@ -182,15 +147,12 @@ class RandomListMap(QWidget):
     def set_proc_id(self, proc_id):
         self._proc_id = proc_id
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        for signal in self._get_update_signals():
+            self.register_action(signal, self.update)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._update_style()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
 
     def _set_configs(self, config, axis_config):
         self._config = self._DEFAULT_CONFIG.copy()
@@ -235,14 +197,6 @@ class RandomListMap(QWidget):
 
         self._set_configs(config, axis_config)
         self.update()
-
-    def _perform_updates(self, signals):
-        update_signals = self._get_update_signals()
-        if not signals.isdisjoint(update_signals):
-            self.update()
-
-        if 'signal_style_changed' in signals:
-            self._update_style()
 
     def _get_area_offset(self):
         padding = self._config['padding']
@@ -331,7 +285,7 @@ class RandomListMap(QWidget):
                     self._set_selected_point(None)
                     self._focused_point = None
                     self._state = self._STATE_IDLE
-                    self._updater.signal_update(set([self._get_selection_signal_type()]))
+                    self._updater.signal_update(self._get_selection_signal_type())
                     return
 
                 if self._is_start_snapping_active:
@@ -344,7 +298,7 @@ class RandomListMap(QWidget):
                         self._move_point(point, new_point)
                         self._set_selected_point(new_point)
                         self._focused_point = new_point
-                        self._updater.signal_update(set([self._get_move_signal_type()]))
+                        self._updater.signal_update(self._get_move_signal_type())
 
             else:
                 self._state = self._STATE_IDLE
@@ -361,7 +315,7 @@ class RandomListMap(QWidget):
                 point_vis = self._get_vis_coords(point)
                 self._moving_pointer_offset = (x - point_vis[0], y - point_vis[1])
 
-                self._updater.signal_update(set([self._get_selection_signal_type()]))
+                self._updater.signal_update(self._get_selection_signal_type())
             else:
                 new_point = self._get_point_coords((x, y))
                 pitch_range = self._axis_y_renderer.get_val_range()
@@ -375,7 +329,7 @@ class RandomListMap(QWidget):
                     self._is_start_snapping_active = True
                     self._moving_pointer_offset = (0, 0)
 
-                    self._updater.signal_update(set([self._get_selection_signal_type()]))
+                    self._updater.signal_update(self._get_selection_signal_type())
 
     def mouseReleaseEvent(self, event):
         self._state = self._STATE_IDLE
@@ -542,15 +496,10 @@ class TightLabel(QLabel):
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
 
 
-class NoteMapEntry(QWidget):
+class NoteMapEntry(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self.setEnabled(False)
 
         self._pitch = QDoubleSpinBox()
@@ -561,6 +510,8 @@ class NoteMapEntry(QWidget):
         self._force.setRange(-36, 0)
 
         self._random_list = NoteRandomList()
+
+        self.add_to_updaters(self._random_list)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -578,40 +529,20 @@ class NoteMapEntry(QWidget):
         v.addWidget(self._random_list)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._random_list.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-        self._random_list.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._random_list.set_ui_model(ui_model)
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action(self._get_selection_signal_type(), self._update_all)
+        self.register_action(self._get_move_signal_type(), self._update_all)
 
         QObject.connect(self._pitch, SIGNAL('valueChanged(double)'), self._move)
         QObject.connect(self._force, SIGNAL('valueChanged(double)'), self._move)
 
         self._update_all()
 
-    def unregister_updaters(self):
-        self._random_list.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
     def _get_selection_signal_type(self):
         return 'signal_sample_note_map_selection_{}'.format(self._proc_id)
 
     def _get_move_signal_type(self):
         return 'signal_sample_note_map_move_{}'.format(self._proc_id)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            self._get_selection_signal_type(), self._get_move_signal_type()])
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -645,34 +576,22 @@ class NoteMapEntry(QWidget):
             if new_point not in sample_params.get_note_map_points():
                 sample_params.move_note_map_point(selected_point, new_point)
                 sample_params.set_selected_note_map_point(new_point)
-                self._updater.signal_update(set([self._get_move_signal_type()]))
+                self._updater.signal_update(self._get_move_signal_type())
 
 
-class RandomList(EditorList):
+class RandomList(EditorList, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        for signal in self._get_update_signals():
+            self.register_action(signal, self._update_all)
 
         self._update_all()
 
-    def unregister_updaters(self):
+    def _on_teardown(self):
         self.disconnect_widgets()
-        self._updater.unregister_updater(self._perform_updates)
 
     def _get_callback_info(self):
         cb_info = {
@@ -687,9 +606,7 @@ class RandomList(EditorList):
 
     def _make_adder_widget(self):
         self._adder = RandomEntryAdder(self._get_callback_info())
-        self._adder.set_au_id(self._au_id)
-        self._adder.set_proc_id(self._proc_id)
-        self._adder.set_ui_model(self._ui_model)
+        self.add_to_updaters(self._adder)
         return self._adder
 
     def _get_updated_editor_count(self):
@@ -702,21 +619,14 @@ class RandomList(EditorList):
 
     def _make_editor_widget(self, index):
         editor = RandomEntryEditor(self._get_callback_info(), index)
-        editor.set_au_id(self._au_id)
-        editor.set_proc_id(self._proc_id)
-        editor.set_ui_model(self._ui_model)
+        self.add_to_updaters(editor)
         return editor
 
     def _update_editor(self, index, editor):
         pass
 
     def _disconnect_widget(self, widget):
-        widget.unregister_updaters()
-
-    def _perform_updates(self, signals):
-        update_signals = self._get_update_signals()
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
+        self.remove_from_updaters(widget)
 
     def _update_all(self):
         self.update_list()
@@ -752,52 +662,30 @@ class RandomList(EditorList):
         raise NotImplementedError
 
 
-class RandomEntryAdder(QPushButton):
+class RandomEntryAdder(QPushButton, ProcessorUpdater):
 
     def __init__(self, cb_info):
         super().__init__('Add sample entry')
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._get_map_points = cb_info['get_map_points']
         self._get_selected_map_point = cb_info['get_selected_map_point']
         self._get_model_random_list = cb_info['get_model_random_list']
         self._get_update_signal_type = cb_info['get_random_list_signal_type']
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         QObject.connect(self, SIGNAL('clicked()'), self._add_entry)
-
-    def unregister_updaters(self):
-        pass
 
     def _add_entry(self):
         point = self._get_selected_map_point()
         if (point != None) and (point in self._get_map_points()):
             random_list = self._get_model_random_list(point)
             random_list.add_entry()
-            self._updater.signal_update(set([self._get_update_signal_type()]))
+            self._updater.signal_update(self._get_update_signal_type())
 
 
-class RandomEntryEditor(QWidget):
+class RandomEntryEditor(QWidget, ProcessorUpdater):
 
     def __init__(self, cb_info, index):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._get_map_points = cb_info['get_map_points']
         self._get_selected_map_point = cb_info['get_selected_map_point']
         self._get_model_random_list = cb_info['get_model_random_list']
@@ -833,16 +721,9 @@ class RandomEntryEditor(QWidget):
         h.addWidget(self._remove_button)
         self.setLayout(h)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        for signal in self._get_update_signals():
+            self.register_action(signal, self._update_all)
 
         icon_bank = self._ui_model.get_icon_bank()
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
@@ -866,14 +747,6 @@ class RandomEntryEditor(QWidget):
         QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_entry)
 
         self._update_all()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = self._get_update_signals()
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -933,28 +806,28 @@ class RandomEntryEditor(QWidget):
             sample_id = self._sample_selector.itemData(item_index)
             random_list = self._get_model_random_list(point)
             random_list.set_sample_id(self._index, sample_id)
-            self._updater.signal_update(set([self._get_random_list_signal_type()]))
+            self._updater.signal_update(self._get_random_list_signal_type())
 
     def _change_pitch_shift(self, value):
         point = self._get_selected_map_point()
         if (point != None) and (point in self._get_map_points()):
             random_list = self._get_model_random_list(point)
             random_list.set_cents_offset(self._index, value)
-            self._updater.signal_update(set([self._get_random_list_signal_type()]))
+            self._updater.signal_update(self._get_random_list_signal_type())
 
     def _change_volume_shift(self, value):
         point = self._get_selected_map_point()
         if (point != None) and (point in self._get_map_points()):
             random_list = self._get_model_random_list(point)
             random_list.set_volume_adjust(self._index, value)
-            self._updater.signal_update(set([self._get_random_list_signal_type()]))
+            self._updater.signal_update(self._get_random_list_signal_type())
 
     def _remove_entry(self):
         point = self._get_selected_map_point()
         if (point != None) and (point in self._get_map_points()):
             random_list = self._get_model_random_list(point)
             random_list.remove_entry(self._index)
-            self._updater.signal_update(set([self._get_random_list_signal_type()]))
+            self._updater.signal_update(self._get_random_list_signal_type())
 
 
 class NoteRandomList(RandomList):
@@ -987,14 +860,15 @@ class NoteRandomList(RandomList):
             'signal_sample_format_{}'.format(self._proc_id)])
 
 
-class HitMapEditor(QWidget):
+class HitMapEditor(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
-
         self._hit_selector = SampleHitSelector()
         self._hit_map = HitMap()
         self._hit_map_entry = HitMapEntry()
+
+        self.add_to_updaters(self._hit_selector, self._hit_map, self._hit_map_entry)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
@@ -1004,52 +878,18 @@ class HitMapEditor(QWidget):
         v.addWidget(self._hit_map_entry)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._hit_selector.set_au_id(au_id)
-        self._hit_map.set_au_id(au_id)
-        self._hit_map_entry.set_au_id(au_id)
 
-    def set_proc_id(self, proc_id):
-        self._hit_selector.set_proc_id(proc_id)
-        self._hit_map.set_proc_id(proc_id)
-        self._hit_map_entry.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._hit_selector.set_ui_model(ui_model)
-        self._hit_map.set_ui_model(ui_model)
-        self._hit_map_entry.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._hit_map_entry.unregister_updaters()
-        self._hit_map.unregister_updaters()
-        self._hit_selector.unregister_updaters()
-
-
-class SampleHitSelector(HitSelector):
+class SampleHitSelector(HitSelector, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action(self._get_update_signal_type(), self.update_contents)
+        self.register_action(self._get_hit_update_signal_type(), self.update_contents)
 
         self.create_layout(self._ui_model.get_typewriter_manager())
         self.update_contents()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
 
     def _get_update_signal_type(self):
         return 'signal_sample_hit_map_hit_selection_{}'.format(self._proc_id)
@@ -1060,12 +900,6 @@ class SampleHitSelector(HitSelector):
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
-    def _perform_updates(self, signals):
-        update_signals = set([
-            self._get_update_signal_type(), self._get_hit_update_signal_type()])
-        if not signals.isdisjoint(update_signals):
-            self.update_contents()
-
     def _get_selected_hit_info(self):
         sample_params = self._get_sample_params()
         return sample_params.get_selected_hit_info()
@@ -1073,7 +907,7 @@ class SampleHitSelector(HitSelector):
     def _set_selected_hit_info(self, hit_info):
         sample_params = self._get_sample_params()
         sample_params.set_selected_hit_info(hit_info)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _get_hit_name(self, index):
         module = self._ui_model.get_module()
@@ -1146,15 +980,10 @@ class HitMap(RandomListMap):
         sample_params.remove_hit_map_point(hit_info, force)
 
 
-class HitMapEntry(QWidget):
+class HitMapEntry(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self.setEnabled(False)
 
         self._force = QDoubleSpinBox()
@@ -1176,27 +1005,16 @@ class HitMapEntry(QWidget):
         v.addWidget(self._random_list)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._random_list.set_au_id(au_id)
+    def _on_setup(self):
+        self.add_to_updaters(self._random_list)
 
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-        self._random_list.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._random_list.set_ui_model(ui_model)
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+        self.register_action(self._get_selection_signal_type(), self._update_all)
+        self.register_action(self._get_move_signal_type(), self._update_all)
+        self.register_action(self._get_hit_selection_signal_type(), self._update_all)
 
         QObject.connect(self._force, SIGNAL('valueChanged(double)'), self._move)
 
         self._update_all()
-
-    def unregister_updaters(self):
-        self._random_list.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
 
     def _get_selection_signal_type(self):
         return 'signal_sample_hit_map_selection_{}'.format(self._proc_id)
@@ -1206,14 +1024,6 @@ class HitMapEntry(QWidget):
 
     def _get_hit_selection_signal_type(self):
         return 'signal_sample_hit_map_hit_selection_{}'.format(self._proc_id)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            self._get_selection_signal_type(),
-            self._get_move_signal_type(),
-            self._get_hit_selection_signal_type()])
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -1241,7 +1051,7 @@ class HitMapEntry(QWidget):
                 (new_force not in sample_params.get_hit_map_forces(hit_info))):
             sample_params.move_hit_map_point(hit_info, selected_force, new_force)
             sample_params.set_selected_hit_map_force(new_force)
-            self._updater.signal_update(set([self._get_move_signal_type()]))
+            self._updater.signal_update(self._get_move_signal_type())
 
 
 class HitRandomList(RandomList):
@@ -1280,47 +1090,25 @@ class HitRandomList(RandomList):
             'signal_sample_format_{}'.format(self._proc_id)])
 
 
-class Samples(QSplitter):
+class Samples(QSplitter, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-
         self.setOrientation(Qt.Horizontal)
 
         self._sample_list = SampleList()
         self._sample_editor = SampleEditor()
 
-        self._keyboard_mapper = KeyboardMapper()
+        self._keyboard_mapper = ProcessorKeyboardMapper()
+
+        self.add_to_updaters(
+                self._sample_list, self._sample_editor, self._keyboard_mapper)
 
         h = QHBoxLayout()
         h.setSpacing(4)
         h.addWidget(self._sample_list, 1)
         h.addWidget(self._sample_editor, 2)
         self.setLayout(h)
-
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._sample_list.set_au_id(au_id)
-        self._sample_editor.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-        self._sample_list.set_proc_id(proc_id)
-        self._sample_editor.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._sample_list.set_ui_model(ui_model)
-        self._sample_editor.set_ui_model(ui_model)
-        self._keyboard_mapper.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._keyboard_mapper.unregister_updaters()
-        self._sample_editor.unregister_updaters()
-        self._sample_list.unregister_updaters()
 
     def keyPressEvent(self, event):
         module = self._ui_model.get_module()
@@ -1336,29 +1124,22 @@ class Samples(QSplitter):
         use_test_output = (proc.get_existence() and
             control_manager.is_processor_testing_enabled(self._proc_id))
 
-        control_manager.set_control_id_override(control_id)
         if use_test_output:
             sample_params = utils.get_proc_params(
                     self._ui_model, self._au_id, self._proc_id)
             sample_id = sample_params.get_selected_sample_id()
             sample_num = int(sample_id.split('_')[1], 16)
             sample_num_param = str(sample_num)
-            control_manager.set_test_processor(
-                    control_id, self._proc_id, sample_num_param)
+            control_manager.set_test_processor_param(self._proc_id, sample_num_param)
         if not self._keyboard_mapper.process_typewriter_button_event(event):
             event.ignore()
-        control_manager.set_test_processor(control_id, None)
-        control_manager.set_control_id_override(None)
+        control_manager.set_test_processor_param(self._proc_id, None)
 
 
-class SampleListToolBar(QToolBar):
+class SampleListToolBar(QToolBar, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
 
         self._import_button = QToolButton()
         self._import_button.setText('Import samples')
@@ -1371,16 +1152,9 @@ class SampleListToolBar(QToolBar):
         self.addWidget(self._import_button)
         self.addWidget(self._remove_button)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action(self._get_list_signal_type(), self._update_enabled)
+        self.register_action(self._get_selection_signal_type(), self._update_enabled)
 
         QObject.connect(self._import_button, SIGNAL('clicked()'), self._import_samples)
         QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_sample)
@@ -1398,15 +1172,6 @@ class SampleListToolBar(QToolBar):
 
     def _get_hit_map_random_list_signal_type(self):
         return 'signal_sample_hit_map_random_list_{}'.format(self._proc_id)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            self._get_list_signal_type(), self._get_selection_signal_type()])
-        if not signals.isdisjoint(update_signals):
-            self._update_enabled()
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -1456,10 +1221,10 @@ class SampleListToolBar(QToolBar):
             imports = zip(sample_ids, sample_paths)
             try:
                 sample_params.import_samples(imports)
-                self._updater.signal_update(set([
+                self._updater.signal_update(
                     self._get_list_signal_type(),
                     self._get_note_map_random_list_signal_type(),
-                    self._get_hit_map_random_list_signal_type()]))
+                    self._get_hit_map_random_list_signal_type())
             except SampleImportError as e:
                 icon_bank = self._ui_model.get_icon_bank()
                 error_msg_lines = str(e).split('\n')
@@ -1472,10 +1237,10 @@ class SampleListToolBar(QToolBar):
         sample_id = sample_params.get_selected_sample_id()
         if sample_id:
             sample_params.remove_sample(sample_id)
-            self._updater.signal_update(set([
+            self._updater.signal_update(
                 self._get_list_signal_type(),
                 self._get_note_map_random_list_signal_type(),
-                self._get_hit_map_random_list_signal_type()]))
+                self._get_hit_map_random_list_signal_type())
 
 
 class ImportErrorDialog(QDialog):
@@ -1515,28 +1280,14 @@ class ImportErrorDialog(QDialog):
         QObject.connect(self._ok_button, SIGNAL('clicked()'), self.close)
 
 
-class SampleListModel(QAbstractListModel):
+class SampleListModel(QAbstractListModel, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-
         self._items = []
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
+    def _on_setup(self):
         self._make_items()
-
-    def unregister_updaters(self):
-        pass
 
     def get_item(self, index):
         row = index.row()
@@ -1572,33 +1323,15 @@ class SampleListModel(QAbstractListModel):
         return None
 
 
-class SampleListView(QListView):
+class SampleListView(QListView, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
+        self._keyboard_mapper = ProcessorKeyboardMapper()
 
-        self._keyboard_mapper = KeyboardMapper()
+        self.add_to_updaters(self._keyboard_mapper)
 
         self.setSelectionMode(QAbstractItemView.SingleSelection)
-
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
-        self._keyboard_mapper.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._keyboard_mapper.unregister_updaters()
 
     def _get_update_signal_type(self):
         return 'signal_proc_select_sample_{}'.format(self._proc_id)
@@ -1610,7 +1343,7 @@ class SampleListView(QListView):
             sample_params = utils.get_proc_params(
                     self._ui_model, self._au_id, self._proc_id)
             sample_params.set_selected_sample_id(sample_id)
-            self._updater.signal_update(set([self._get_update_signal_type()]))
+            self._updater.signal_update(self._get_update_signal_type())
 
     def setModel(self, model):
         super().setModel(model)
@@ -1634,14 +1367,10 @@ class SampleListView(QListView):
             super().keyReleaseEvent(event)
 
 
-class SampleList(QWidget):
+class SampleList(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
 
         self._toolbar = SampleListToolBar()
 
@@ -1655,29 +1384,12 @@ class SampleList(QWidget):
         v.addWidget(self._list_view)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._toolbar.set_au_id(au_id)
-        self._list_view.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-        self._toolbar.set_proc_id(proc_id)
-        self._list_view.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._toolbar.set_ui_model(ui_model)
-        self._list_view.set_ui_model(ui_model)
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.add_to_updaters(self._toolbar, self._list_view)
+        self.register_action(self._get_update_signal_type(), self._update_model)
+        self.register_action(self._get_rename_signal_type(), self._update_model)
 
         self._update_model()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-        self._list_view.unregister_updaters()
-        self._toolbar.unregister_updaters()
 
     def _get_update_signal_type(self):
         return 'signal_proc_sample_list_{}'.format(self._proc_id)
@@ -1685,27 +1397,18 @@ class SampleList(QWidget):
     def _get_rename_signal_type(self):
         return 'signal_sample_rename_{}'.format(self._proc_id)
 
-    def _perform_updates(self, signals):
-        update_signals = [self._get_update_signal_type(), self._get_rename_signal_type()]
-        if not signals.isdisjoint(update_signals):
-            self._update_model()
-
     def _update_model(self):
+        if self._list_model:
+            self.remove_from_updaters(self._list_model)
         self._list_model = SampleListModel()
-        self._list_model.set_au_id(self._au_id)
-        self._list_model.set_proc_id(self._proc_id)
-        self._list_model.set_ui_model(self._ui_model)
+        self.add_to_updaters(self._list_model)
         self._list_view.setModel(self._list_model)
 
 
-class SampleEditor(QWidget):
+class SampleEditor(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
 
         self._name = QLineEdit()
 
@@ -1771,16 +1474,16 @@ class SampleEditor(QWidget):
         v.addWidget(self._sample_view, 1)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action(self._get_list_update_signal_type(), self._update_all)
+        self.register_action(self._get_selection_update_signal_type(), self._update_all)
+        self.register_action(self._get_rename_signal_type(), self._update_name)
+        self.register_action(self._get_freq_signal_type(), self._update_freq)
+        self.register_action(
+                self._get_resample_signal_type(), self._update_after_resample)
+        self.register_action(self._get_format_signal_type(), self._update_after_format)
+        self.register_action(self._get_loop_signal_type(), self._update_loop)
+        self.register_action('signal_style_changed', self._update_style)
 
         QObject.connect(self._name, SIGNAL('editingFinished()'), self._change_name)
         QObject.connect(self._freq, SIGNAL('valueChanged(double)'), self._change_freq)
@@ -1813,9 +1516,6 @@ class SampleEditor(QWidget):
         self._update_style()
         self._update_all()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
     def _get_list_update_signal_type(self):
         return 'signal_proc_sample_list_{}'.format(self._proc_id)
 
@@ -1842,31 +1542,6 @@ class SampleEditor(QWidget):
 
     def _get_loop_signal_type(self):
         return 'signal_sample_loop_{}'.format(self._proc_id)
-
-    def _perform_updates(self, signals):
-        update_all_signals = set([
-            self._get_list_update_signal_type(),
-            self._get_selection_update_signal_type()])
-        if not signals.isdisjoint(update_all_signals):
-            self._update_all()
-        else:
-            if self._get_rename_signal_type() in signals:
-                self._update_name()
-            if self._get_freq_signal_type() in signals:
-                self._update_freq()
-            if self._get_resample_signal_type() in signals:
-                self._update_freq()
-                self._update_sample_view()
-                self._update_loop()
-            if self._get_format_signal_type() in signals:
-                self._update_format()
-                self._update_sample_view()
-                self._update_loop()
-            if self._get_loop_signal_type() in signals:
-                self._update_loop()
-
-        if 'signal_style_changed' in signals:
-            self._update_style()
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -1907,6 +1582,16 @@ class SampleEditor(QWidget):
         self._update_sample_view()
         self._update_loop()
         self._update_format()
+
+    def _update_after_resample(self):
+        self._update_freq()
+        self._update_sample_view()
+        self._update_loop()
+
+    def _update_after_format(self):
+        self._update_format()
+        self._update_sample_view()
+        self._update_loop()
 
     def _update_name(self):
         sample_params = self._get_sample_params()
@@ -2002,28 +1687,28 @@ class SampleEditor(QWidget):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_name(sample_id, str(self._name.text()))
-        self._updater.signal_update(set([
+        self._updater.signal_update(
             self._get_rename_signal_type(),
             self._get_note_random_list_signal_type(),
-            self._get_hit_random_list_signal_type()]))
+            self._get_hit_random_list_signal_type())
 
     def _change_freq(self, value):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_freq(sample_id, value)
-        self._updater.signal_update(set([self._get_freq_signal_type()]))
+        self._updater.signal_update(self._get_freq_signal_type())
 
     def _convert_freq(self):
         sample_params = self._get_sample_params()
         on_resample = lambda: self._updater.signal_update(
-                set([self._get_resample_signal_type()]))
+                self._get_resample_signal_type())
         resample_editor = ResampleEditor(sample_params, on_resample)
         resample_editor.exec_()
 
     def _change_format(self):
         sample_params = self._get_sample_params()
         on_convert = lambda: self._updater.signal_update(
-                set([self._get_format_signal_type()]))
+                self._get_format_signal_type())
         format_editor = SampleFormatEditor(sample_params, on_convert)
         format_editor.exec_()
 
@@ -2032,19 +1717,19 @@ class SampleEditor(QWidget):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_loop_mode(sample_id, loop_mode)
-        self._updater.signal_update(set([self._get_loop_signal_type()]))
+        self._updater.signal_update(self._get_loop_signal_type())
 
     def _change_loop_start(self, start):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_loop_start(sample_id, start)
-        self._updater.signal_update(set([self._get_loop_signal_type()]))
+        self._updater.signal_update(self._get_loop_signal_type())
 
     def _change_loop_end(self, end):
         sample_params = self._get_sample_params()
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_loop_end(sample_id, end)
-        self._updater.signal_update(set([self._get_loop_signal_type()]))
+        self._updater.signal_update(self._get_loop_signal_type())
 
 
 class ResampleEditor(QDialog):

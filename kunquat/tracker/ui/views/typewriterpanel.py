@@ -21,9 +21,10 @@ from .octaveselector import OctaveSelector
 from .typewriter import Typewriter
 from .notationselect import NotationSelect
 from .profilecontrol import ProfileControl
+from .updater import Updater
 
 
-class TypewriterPanel(QFrame):
+class TypewriterPanel(QFrame, Updater):
 
     def __init__(self):
         super().__init__()
@@ -33,6 +34,12 @@ class TypewriterPanel(QFrame):
         self._octave_selector = OctaveSelector()
         self._typewriter = Typewriter()
         self._profile_control = ProfileControl()
+
+        self.add_to_updaters(
+                self._notation_select,
+                self._hit_map_toggle,
+                self._octave_selector,
+                self._typewriter)
 
         il = QHBoxLayout()
         il.setContentsMargins(0, 0, 0, 0)
@@ -51,25 +58,11 @@ class TypewriterPanel(QFrame):
 
         self._typewriter.setFocus()
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._notation_select.set_ui_model(ui_model)
-        self._hit_map_toggle.set_ui_model(ui_model)
-        self._octave_selector.set_ui_model(ui_model)
-        self._typewriter.set_ui_model(ui_model)
-        self._profile_control.set_ui_model(ui_model)
-
     def keyPressEvent(self, event):
         modifiers = event.modifiers()
         key = event.key()
         if modifiers == Qt.ControlModifier and key == Qt.Key_P:
             if cmdline.get_experimental():
                 self._profile_control.show()
-
-    def unregister_updaters(self):
-        self._typewriter.unregister_updaters()
-        self._octave_selector.unregister_updaters()
-        self._hit_map_toggle.unregister_updaters()
-        self._notation_select.unregister_updaters()
 
 

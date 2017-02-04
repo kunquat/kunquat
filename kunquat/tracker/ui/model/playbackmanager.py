@@ -59,11 +59,11 @@ class PlaybackManager():
 
     def start_recording(self):
         self._session.set_record_mode(True)
-        self._updater.signal_update(set(['signal_record_mode']))
+        self._updater.signal_update('signal_record_mode')
 
     def stop_recording(self):
         self._session.set_record_mode(False)
-        self._updater.signal_update(set(['signal_record_mode']))
+        self._updater.signal_update('signal_record_mode')
 
     def is_recording(self):
         return self._session.get_record_mode()

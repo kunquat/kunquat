@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -14,8 +14,10 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from .processorupdater import ProcessorUpdater
 
-class RingmodProc(QWidget):
+
+class RingmodProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():
@@ -30,17 +32,5 @@ class RingmodProc(QWidget):
         self.setLayout(v)
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-
-    def set_au_id(self, au_id):
-        pass
-
-    def set_proc_id(self, proc_id):
-        pass
-
-    def set_ui_model(self, ui_model):
-        pass
-
-    def unregister_updaters(self):
-        pass
 
 

@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2014-2016
+#          Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -254,7 +254,7 @@ class TypewriterManager():
     def set_octave(self, octave_id):
         self._session.set_octave_id(octave_id)
         self._current_map_version = None
-        self._updater.signal_update(set(['signal_octave']))
+        self._updater.signal_update('signal_octave')
 
     def notify_notation_changed(self, notation_id):
         if self._current_map_version == notation_id:

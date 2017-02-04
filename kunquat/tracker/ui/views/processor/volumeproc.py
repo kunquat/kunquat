@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,9 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .procnumslider import ProcNumSlider
+from .processorupdater import ProcessorUpdater
 
 
-class VolumeProc(QWidget):
+class VolumeProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():
@@ -25,11 +26,10 @@ class VolumeProc(QWidget):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
 
         self._volume = VolumeSlider()
+
+        self.add_to_updaters(self._volume)
 
         v = QVBoxLayout()
         v.setSpacing(10)
@@ -37,18 +37,6 @@ class VolumeProc(QWidget):
         self.setLayout(v)
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-
-    def set_au_id(self, au_id):
-        self._volume.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._volume.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._volume.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._volume.unregister_updaters()
 
 
 class VolumeSlider(ProcNumSlider):
@@ -73,6 +61,6 @@ class VolumeSlider(ProcNumSlider):
     def _value_changed(self, volume):
         vol_params = self._get_vol_params()
         vol_params.set_volume(volume)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 

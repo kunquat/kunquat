@@ -14,15 +14,16 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from .audiounitupdater import AudioUnitUpdater
 
-class Name(QWidget):
+
+class Name(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._au_id = None
-        self._updater = None
         self._edit = QLineEdit()
+
+        self.register_action('signal_controls', self._update_name)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -30,22 +31,9 @@ class Name(QWidget):
         h.addWidget(self._edit)
         self.setLayout(h)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
         self._update_name()
         QObject.connect(self._edit, SIGNAL('textEdited(QString)'), self._text_edited)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_controls' in signals:
-            self._update_name()
 
     def _update_name(self):
         old_block = self._edit.blockSignals(True)
@@ -60,6 +48,6 @@ class Name(QWidget):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         au.set_name(text)
-        self._updater.signal_update(set(['signal_controls']))
+        self._updater.signal_update('signal_controls')
 
 

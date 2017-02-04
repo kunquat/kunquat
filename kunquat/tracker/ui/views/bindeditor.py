@@ -19,15 +19,13 @@ from kunquat.kunquat.limits import *
 from .editorlist import EditorList
 from .headerline import HeaderLine
 from .kqtcombobox import KqtComboBox
+from .updater import Updater
 
 
-class BindEditor(QWidget):
+class BindEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._bind_list = BindList()
         self._source_event = SourceEventSelector()
         self._constraints = Constraints()
@@ -43,27 +41,12 @@ class BindEditor(QWidget):
         v.addWidget(self._targets)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._bind_list.set_ui_model(ui_model)
-        self._source_event.set_ui_model(ui_model)
-        self._constraints.set_ui_model(ui_model)
-        self._targets.set_ui_model(ui_model)
+    def _on_setup(self):
+        self.add_to_updaters(
+                self._bind_list, self._source_event, self._constraints, self._targets)
+        self.register_action('signal_bind', self._update_editor_enabled)
 
         self._update_editor_enabled()
-
-    def unregister_updaters(self):
-        self._targets.unregister_updaters()
-        self._constraints.unregister_updaters()
-        self._source_event.unregister_updaters()
-        self._bind_list.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_bind' in signals:
-            self._update_editor_enabled()
 
     def _update_editor_enabled(self):
         bindings = self._ui_model.get_module().get_bindings()
@@ -73,13 +56,10 @@ class BindEditor(QWidget):
         self._targets.setEnabled(enable_editor)
 
 
-class BindListToolBar(QToolBar):
+class BindListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._add_button = QToolButton()
         self._add_button.setText('Add binding')
         self._add_button.setEnabled(True)
@@ -91,22 +71,13 @@ class BindListToolBar(QToolBar):
         self.addWidget(self._add_button)
         self.addWidget(self._remove_button)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_bind', self._update_enabled)
 
         QObject.connect(self._add_button, SIGNAL('clicked()'), self._add_binding)
         QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_binding)
 
         self._update_enabled()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_bind' in signals:
-            self._update_enabled()
 
     def _update_enabled(self):
         bindings = self._ui_model.get_module().get_bindings()
@@ -117,7 +88,7 @@ class BindListToolBar(QToolBar):
     def _add_binding(self):
         bindings = self._ui_model.get_module().get_bindings()
         bindings.add_binding()
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
     def _remove_binding(self):
         bindings = self._ui_model.get_module().get_bindings()
@@ -125,24 +96,17 @@ class BindListToolBar(QToolBar):
         if selected_index != None:
             bindings.remove_binding(selected_index)
             bindings.set_selected_binding_index(None)
-            self._updater.signal_update(set(['signal_bind']))
+            self._updater.signal_update('signal_bind')
 
 
-class BindListModel(QAbstractListModel):
+class BindListModel(QAbstractListModel, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._items = []
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
+    def _on_setup(self):
         self._make_items()
-
-    def unregister_updaters(self):
-        pass
 
     def get_item(self, index):
         row = index.row()
@@ -177,21 +141,11 @@ class BindListModel(QAbstractListModel):
         return None
 
 
-class BindListView(QListView):
+class BindListView(QListView, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self.setSelectionMode(QAbstractItemView.SingleSelection)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
-    def unregister_updaters(self):
-        pass
 
     def _select_entry(self, cur_index, prev_index):
         item = self.model().get_item(cur_index)
@@ -199,7 +153,7 @@ class BindListView(QListView):
             index, _ = item
             bindings = self._ui_model.get_module().get_bindings()
             bindings.set_selected_binding_index(index)
-            self._updater.signal_update(set(['signal_bind']))
+            self._updater.signal_update('signal_bind')
 
     def setModel(self, model):
         super().setModel(model)
@@ -218,13 +172,10 @@ class BindListView(QListView):
                 self._select_entry)
 
 
-class BindList(QWidget):
+class BindList(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._toolbar = BindListToolBar()
 
         self._list_model = None
@@ -237,27 +188,17 @@ class BindList(QWidget):
         v.addWidget(self._list_view)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._toolbar.set_ui_model(ui_model)
-        self._list_view.set_ui_model(ui_model)
+    def _on_setup(self):
+        self.add_to_updaters(self._toolbar, self._list_view)
+        self.register_action('signal_bind', self._update_model)
 
         self._update_model()
 
-    def unregister_updaters(self):
-        self._list_view.unregister_updaters()
-        self._toolbar.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_bind' in signals:
-            self._update_model()
-
     def _update_model(self):
+        if self._list_model:
+            self.remove_from_updaters(self._list_model)
         self._list_model = BindListModel()
-        self._list_model.set_ui_model(self._ui_model)
+        self.add_to_updaters(self._list_model)
         self._list_view.setModel(self._list_model)
 
 
@@ -299,13 +240,10 @@ class EventBox(KqtComboBox):
         return str(self.itemText(index))
 
 
-class SourceEventSelector(QWidget):
+class SourceEventSelector(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._selector = EventBox()
 
         h = QHBoxLayout()
@@ -315,22 +253,13 @@ class SourceEventSelector(QWidget):
         h.addWidget(self._selector)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_bind', self._update_event)
 
         QObject.connect(
                 self._selector, SIGNAL('currentIndexChanged(int)'), self._change_event)
 
         self._update_event()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_bind' in signals:
-            self._update_event()
 
     def _update_event(self):
         bindings = self._ui_model.get_module().get_bindings()
@@ -350,7 +279,7 @@ class SourceEventSelector(QWidget):
         bindings = self._ui_model.get_module().get_bindings()
         binding = bindings.get_selected_binding()
         binding.set_source_event(new_event)
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
 
 class TightLabel(QLabel):
@@ -360,12 +289,13 @@ class TightLabel(QLabel):
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
 
 
-class Constraints(QWidget):
+class Constraints(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
 
         self._cblist = ConstraintList()
+        self.add_to_updaters(self._cblist)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -374,32 +304,22 @@ class Constraints(QWidget):
         v.addWidget(self._cblist)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._cblist.set_ui_model(ui_model)
 
-    def unregister_updaters(self):
-        self._cblist.unregister_updaters()
-
-
-class ConstraintList(EditorList):
+class ConstraintList(EditorList, Updater):
 
     def __init__(self):
         super().__init__()
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
+        self.register_action('signal_bind', self._update_all)
         self._update_all()
 
-    def unregister_updaters(self):
+    def _on_teardown(self):
         self.disconnect_widgets()
-        self._updater.unregister_updater(self._perform_updates)
 
     def _make_adder_widget(self):
         adder = ConstraintAdder()
-        adder.set_ui_model(self._ui_model)
+        self.add_to_updaters(adder)
         return adder
 
     def _get_updated_editor_count(self):
@@ -412,55 +332,39 @@ class ConstraintList(EditorList):
 
     def _make_editor_widget(self, index):
         editor = ConstraintEditor(index)
-        editor.set_ui_model(self._ui_model)
+        self.add_to_updaters(editor)
         return editor
 
     def _update_editor(self, index, editor):
         pass
 
     def _disconnect_widget(self, widget):
-        widget.unregister_updaters()
-
-    def _perform_updates(self, signals):
-        if 'signal_bind' in signals:
-            self._update_all()
+        self.remove_from_updaters(widget)
 
     def _update_all(self):
         self.update_list()
 
 
-class ConstraintAdder(QPushButton):
+class ConstraintAdder(QPushButton, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self.setText('Add constraint')
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         QObject.connect(self, SIGNAL('clicked()'), self._add_constraint)
-
-    def unregister_updaters(self):
-        pass
 
     def _add_constraint(self):
         bindings = self._ui_model.get_module().get_bindings()
         binding = bindings.get_selected_binding()
         binding.get_constraints().add_constraint()
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
 
-class ConstraintEditor(QWidget):
+class ConstraintEditor(QWidget, Updater):
 
     def __init__(self, index):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._index = index
 
         self._event = EventBox()
@@ -479,10 +383,8 @@ class ConstraintEditor(QWidget):
         h.addWidget(self._remove_button)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_bind', self._update_all)
 
         icon_bank = self._ui_model.get_icon_bank()
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
@@ -497,13 +399,6 @@ class ConstraintEditor(QWidget):
         QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove)
 
         self._update_all()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_bind' in signals:
-            self._update_all()
 
     def _update_all(self):
         bindings = self._ui_model.get_module().get_bindings()
@@ -536,27 +431,28 @@ class ConstraintEditor(QWidget):
         event_name = self._event.get_selected_event()
         constraint = self._get_constraint()
         constraint.set_event_name(event_name)
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
     def _change_expression(self):
         expression = str(self._expression.text())
         constraint = self._get_constraint()
         constraint.set_expression(expression)
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
     def _remove(self):
         bindings = self._ui_model.get_module().get_bindings()
         binding = bindings.get_selected_binding()
         binding.get_constraints().remove_constraint(self._index)
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
 
-class Targets(QWidget):
+class Targets(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
 
         self._target_list = TargetList()
+        self.add_to_updaters(self._target_list)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -565,32 +461,23 @@ class Targets(QWidget):
         v.addWidget(self._target_list)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._target_list.set_ui_model(ui_model)
 
-    def unregister_updaters(self):
-        self._target_list.unregister_updaters()
-
-
-class TargetList(EditorList):
+class TargetList(EditorList, Updater):
 
     def __init__(self):
         super().__init__()
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_bind', self._update_all)
 
         self._update_all()
 
-    def unregister_updaters(self):
+    def _on_teardown(self):
         self.disconnect_widgets()
-        self._updater.unregister_updater(self._perform_updates)
 
     def _make_adder_widget(self):
         adder = TargetAdder()
-        adder.set_ui_model(self._ui_model)
+        self.add_to_updaters(adder)
         return adder
 
     def _get_updated_editor_count(self):
@@ -603,55 +490,39 @@ class TargetList(EditorList):
 
     def _make_editor_widget(self, index):
         editor = TargetEditor(index)
-        editor.set_ui_model(self._ui_model)
+        self.add_to_updaters(editor)
         return editor
 
     def _update_editor(self, index, editor):
         pass
 
     def _disconnect_widget(self, widget):
-        widget.unregister_updaters()
-
-    def _perform_updates(self, signals):
-        if 'signal_bind' in signals:
-            self._update_all()
+        self.remove_from_updaters(widget)
 
     def _update_all(self):
         self.update_list()
 
 
-class TargetAdder(QPushButton):
+class TargetAdder(QPushButton, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self.setText('Add event target')
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         QObject.connect(self, SIGNAL('clicked()'), self._add_target)
-
-    def unregister_updaters(self):
-        pass
 
     def _add_target(self):
         bindings = self._ui_model.get_module().get_bindings()
         binding = bindings.get_selected_binding()
         binding.get_targets().add_target()
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
 
-class TargetEditor(QWidget):
+class TargetEditor(QWidget, Updater):
 
     def __init__(self, index):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._index = index
 
         self._ch_offset = QSpinBox()
@@ -675,10 +546,8 @@ class TargetEditor(QWidget):
         h.addWidget(self._remove_button)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_bind', self._update_all)
 
         icon_bank = self._ui_model.get_icon_bank()
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
@@ -696,13 +565,6 @@ class TargetEditor(QWidget):
         QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove)
 
         self._update_all()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_bind' in signals:
-            self._update_all()
 
     def _update_all(self):
         bindings = self._ui_model.get_module().get_bindings()
@@ -750,7 +612,7 @@ class TargetEditor(QWidget):
     def _change_ch_offset(self, new_offset):
         target = self._get_target()
         target.set_channel_offset(new_offset)
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
     def _change_event(self, index):
         event_name = self._event.get_selected_event()
@@ -763,18 +625,18 @@ class TargetEditor(QWidget):
             expression = None
 
         target.set_event_info(event_name, expression)
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
     def _change_expression(self):
         expression = str(self._expression.text())
         target = self._get_target()
         target.set_event_info(self._event.get_selected_event(), expression)
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
     def _remove(self):
         bindings = self._ui_model.get_module().get_bindings()
         binding = bindings.get_selected_binding()
         binding.get_targets().remove_target(self._index)
-        self._updater.signal_update(set(['signal_bind']))
+        self._updater.signal_update('signal_bind')
 
 

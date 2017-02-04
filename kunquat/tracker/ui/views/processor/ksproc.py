@@ -14,14 +14,15 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from kunquat.tracker.ui.views.audio_unit.time_env import TimeEnvelope
 from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from .procnumslider import ProcNumSlider
+from .proctimeenv import ProcessorTimeEnvelope
+from .processorupdater import ProcessorUpdater
 from . import utils
 
 
-class KsProc(QWidget):
+class KsProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():
@@ -36,6 +37,15 @@ class KsProc(QWidget):
         self._shift_var = ShiftVar()
         self._release_env = ReleaseEnvelope()
         self._release_var = ReleaseVar()
+
+        self.add_to_updaters(
+                self._damp,
+                self._init_env,
+                self._shift_env,
+                self._shift_threshold,
+                self._shift_var,
+                self._release_env,
+                self._release_var)
 
         sliders = QGridLayout()
         sliders.addWidget(QLabel('Damp:'), 0, 0)
@@ -57,42 +67,6 @@ class KsProc(QWidget):
         v.addWidget(self._release_var)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._damp.set_au_id(au_id)
-        self._init_env.set_au_id(au_id)
-        self._shift_env.set_au_id(au_id)
-        self._shift_threshold.set_au_id(au_id)
-        self._shift_var.set_au_id(au_id)
-        self._release_env.set_au_id(au_id)
-        self._release_var.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._damp.set_proc_id(proc_id)
-        self._init_env.set_proc_id(proc_id)
-        self._shift_env.set_proc_id(proc_id)
-        self._shift_threshold.set_proc_id(proc_id)
-        self._shift_var.set_proc_id(proc_id)
-        self._release_env.set_proc_id(proc_id)
-        self._release_var.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._damp.set_ui_model(ui_model)
-        self._init_env.set_ui_model(ui_model)
-        self._shift_env.set_ui_model(ui_model)
-        self._shift_threshold.set_ui_model(ui_model)
-        self._shift_var.set_ui_model(ui_model)
-        self._release_env.set_ui_model(ui_model)
-        self._release_var.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._release_var.unregister_updaters()
-        self._release_env.unregister_updaters()
-        self._shift_var.unregister_updaters()
-        self._shift_threshold.unregister_updaters()
-        self._shift_env.unregister_updaters()
-        self._init_env.unregister_updaters()
-        self._damp.unregister_updaters()
-
 
 class DampSlider(ProcNumSlider):
 
@@ -112,19 +86,14 @@ class DampSlider(ProcNumSlider):
     def _value_changed(self, value):
         ks_params = self._get_ks_params()
         ks_params.set_damp(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
-class InitEnvelope(TimeEnvelope):
+class InitEnvelope(ProcessorTimeEnvelope):
 
     def __init__(self):
         super().__init__()
-        self._proc_id = None
-
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
 
     def _get_title(self):
         return 'Initial excitation envelope'
@@ -178,16 +147,11 @@ class InitEnvelope(TimeEnvelope):
         self._get_ks_params().set_init_env(envelope)
 
 
-class ShiftEnvelope(TimeEnvelope):
+class ShiftEnvelope(ProcessorTimeEnvelope):
 
     def __init__(self):
         super().__init__()
-        self._proc_id = None
-
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
 
     def _get_title(self):
         return 'Pitch shift excitation envelope'
@@ -257,7 +221,7 @@ class ShiftThreshold(ProcNumSlider):
     def _value_changed(self, value):
         ks_params = self._get_ks_params()
         ks_params.set_shift_env_trigger_threshold(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class ShiftVar(ProcNumSlider):
@@ -278,19 +242,14 @@ class ShiftVar(ProcNumSlider):
     def _value_changed(self, value):
         ks_params = self._get_ks_params()
         ks_params.set_shift_env_strength_var(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
-class ReleaseEnvelope(TimeEnvelope):
+class ReleaseEnvelope(ProcessorTimeEnvelope):
 
     def __init__(self):
         super().__init__()
-        self._proc_id = None
-
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
 
     def _get_title(self):
         return 'Release excitation envelope'
@@ -360,6 +319,6 @@ class ReleaseVar(ProcNumSlider):
     def _value_changed(self, value):
         ks_params = self._get_ks_params()
         ks_params.set_release_env_strength_var(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 

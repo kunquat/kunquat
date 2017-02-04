@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,27 +15,22 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .renderstats import RenderStats
+from .updater import Updater
 
 
-class RenderStatsWindow(QWidget):
+class RenderStatsWindow(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
         self._render_stats = RenderStats()
+
+        self.add_to_updaters(self._render_stats)
 
         self.setWindowTitle('System load')
 
         v = QVBoxLayout()
         v.addWidget(self._render_stats)
         self.setLayout(v)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._render_stats.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._render_stats.unregister_updaters()
 
     def closeEvent(self, event):
         event.ignore()

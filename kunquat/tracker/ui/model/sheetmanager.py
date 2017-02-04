@@ -648,7 +648,7 @@ class SheetManager():
         column = self.get_column_at_location(location)
         column.flush_cache()
 
-        self._updater.signal_update(set([signal]))
+        self._updater.signal_update(signal)
 
         # Clear cached column data
         self._session.set_last_column(None)
@@ -657,15 +657,15 @@ class SheetManager():
         old_zoom = self._session.get_sheet_zoom()
         self._session.set_sheet_zoom(zoom)
         if self._session.get_sheet_zoom() != old_zoom:
-            self._updater.signal_update(set(['signal_sheet_zoom']))
+            self._updater.signal_update('signal_sheet_zoom')
 
     def set_zoom_range(self, minimum, maximum):
         old_zoom = self._session.get_sheet_zoom()
         self._session.set_sheet_zoom_range(minimum, maximum)
-        signals = set(['signal_sheet_zoom_range'])
+        signals = ['signal_sheet_zoom_range']
         if self._session.get_sheet_zoom() != old_zoom:
-            signals.add('signal_sheet_zoom')
-        self._updater.signal_update(signals)
+            signals.append('signal_sheet_zoom')
+        self._updater.signal_update(*signals)
 
     def get_zoom(self):
         return self._session.get_sheet_zoom()
@@ -677,13 +677,13 @@ class SheetManager():
         old_width = self._session.get_sheet_column_width()
         self._session.set_sheet_column_width(width)
         if self._session.get_sheet_column_width() != old_width:
-            self._updater.signal_update(set(['signal_sheet_column_width']))
+            self._updater.signal_update('signal_sheet_column_width')
 
     def set_column_width_range(self, minimum, maximum):
         old_width = self._session.get_sheet_column_width()
         self._session.set_sheet_column_width_range(minimum, maximum)
         if self._session.get_sheet_column_width() != old_width:
-            self._updater.signal_update(set(['signal_sheet_column_width']))
+            self._updater.signal_update('signal_sheet_column_width')
 
     def get_column_width(self):
         return self._session.get_sheet_column_width()
@@ -693,14 +693,14 @@ class SheetManager():
 
     def set_edit_mode(self, enabled):
         self._session.set_edit_mode(enabled)
-        self._updater.signal_update(set(['signal_edit_mode']))
+        self._updater.signal_update('signal_edit_mode')
 
     def get_edit_mode(self):
         return self._session.get_edit_mode()
 
     def set_typewriter_connected(self, connected):
         self._session.set_typewriter_connected(connected)
-        self._updater.signal_update(set(['signal_edit_mode']))
+        self._updater.signal_update('signal_edit_mode')
         if not connected and self.get_replace_mode():
             self.set_replace_mode(False)
 
@@ -719,7 +719,7 @@ class SheetManager():
 
     def set_replace_mode(self, enabled):
         self._session.set_replace_mode(enabled)
-        self._updater.signal_update(set(['signal_replace_mode']))
+        self._updater.signal_update('signal_replace_mode')
         if enabled and not self.get_typewriter_connected():
             self.set_typewriter_connected(True)
 

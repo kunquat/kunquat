@@ -47,6 +47,6 @@ class HitMapToggle(QCheckBox):
         active = (state == Qt.Checked)
         keymap_manager = self._ui_model.get_keymap_manager()
         keymap_manager.set_hit_keymap_active(active)
-        self._updater.signal_update(set(['signal_select_keymap']))
+        self._updater.signal_update('signal_select_keymap')
 
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,9 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .procnumslider import ProcNumSlider
+from .processorupdater import ProcessorUpdater
 
 
-class FilterProc(QWidget):
+class FilterProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():
@@ -29,6 +30,8 @@ class FilterProc(QWidget):
         self._cutoff = CutoffSlider()
         self._resonance = ResonanceSlider()
 
+        self.add_to_updaters(self._cutoff, self._resonance)
+
         sliders = QGridLayout()
         sliders.addWidget(QLabel('Cutoff'), 0, 0)
         sliders.addWidget(self._cutoff, 0, 1)
@@ -39,22 +42,6 @@ class FilterProc(QWidget):
         v.addLayout(sliders)
         v.addStretch(1)
         self.setLayout(v)
-
-    def set_au_id(self, au_id):
-        self._cutoff.set_au_id(au_id)
-        self._resonance.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._cutoff.set_proc_id(proc_id)
-        self._resonance.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._cutoff.set_ui_model(ui_model)
-        self._resonance.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._resonance.unregister_updaters()
-        self._cutoff.unregister_updaters()
 
 
 class FilterSlider(ProcNumSlider):
@@ -85,7 +72,7 @@ class CutoffSlider(FilterSlider):
     def _value_changed(self, cutoff):
         filter_params = self._get_filter_params()
         filter_params.set_cutoff(cutoff)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class ResonanceSlider(FilterSlider):
@@ -103,6 +90,6 @@ class ResonanceSlider(FilterSlider):
     def _value_changed(self, resonance):
         filter_params = self._get_filter_params()
         filter_params.set_resonance(resonance)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 

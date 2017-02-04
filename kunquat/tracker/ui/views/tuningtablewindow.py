@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,9 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .tuningtableeditor import TuningTableEditor
+from .updater import Updater
 
 
-class TuningTableWindow(QWidget):
+class TuningTableWindow(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -35,22 +36,12 @@ class TuningTableWindow(QWidget):
         self._table_id = table_id
         self._editor.set_tuning_table_id(table_id)
 
-    def set_ui_model(self, ui_model):
+    def _on_setup(self):
         assert self._table_id != None
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._editor.set_ui_model(ui_model)
+        self.add_to_updaters(self._editor)
+        self.register_action('signal_tuning_tables', self._update_title)
 
         self._update_title()
-
-    def unregister_updaters(self):
-        self._editor.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_tuning_tables' in signals:
-            self._update_title()
 
     def _update_title(self):
         module = self._ui_model.get_module()

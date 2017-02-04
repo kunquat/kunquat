@@ -20,7 +20,7 @@ import kunquat.tracker.ui.model.tstamp as tstamp
 from .config import *
 from . import utils
 from .buffercache import BufferCache
-from .trigger_renderer import TriggerRenderer
+from .triggerrenderer import TriggerRenderer
 
 
 class ColumnGroupRenderer():

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,9 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from . import utils
+from .processorupdater import ProcessorUpdater
 
 
-class RangeMapProc(QWidget):
+class RangeMapProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():
@@ -25,11 +26,6 @@ class RangeMapProc(QWidget):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._from_min = RangeValue()
         self._from_max = RangeValue()
         self._min_to = RangeValue()
@@ -55,16 +51,8 @@ class RangeMapProc(QWidget):
         v.addStretch(1)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action(self._get_update_signal_type(), self._update_all)
 
         QObject.connect(
                 self._from_min, SIGNAL('valueChanged(double)'), self._set_from_min)
@@ -84,15 +72,8 @@ class RangeMapProc(QWidget):
 
         self._update_all()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
     def _get_update_signal_type(self):
         return 'signal_rangemap_{}'.format(self._proc_id)
-
-    def _perform_updates(self, signals):
-        if self._get_update_signal_type() in signals:
-            self._update_all()
 
     def _get_range_map_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -112,31 +93,31 @@ class RangeMapProc(QWidget):
         params = self._get_range_map_params()
         params.set_from_min(value)
         params.set_from_max(max(params.get_from_min(), params.get_from_max()))
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _set_from_max(self, value):
         params = self._get_range_map_params()
         params.set_from_max(value)
         params.set_from_min(min(params.get_from_min(), params.get_from_max()))
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _set_min_to(self, value):
         self._get_range_map_params().set_min_to(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _set_max_to(self, value):
         self._get_range_map_params().set_max_to(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _set_clamp_dest_min(self, state):
         enabled = (state == Qt.Checked)
         self._get_range_map_params().set_clamp_dest_min(enabled)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _set_clamp_dest_max(self, state):
         enabled = (state == Qt.Checked)
         self._get_range_map_params().set_clamp_dest_max(enabled)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class RangeValue(QDoubleSpinBox):

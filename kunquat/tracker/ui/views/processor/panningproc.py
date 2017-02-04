@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,9 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .procnumslider import ProcNumSlider
+from .processorupdater import ProcessorUpdater
 
 
-class PanningProc(QWidget):
+class PanningProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():
@@ -28,22 +29,12 @@ class PanningProc(QWidget):
 
         self._panning = PanningSlider()
 
+        self.add_to_updaters(self._panning)
+
         v = QVBoxLayout()
         v.addWidget(self._panning)
         v.addStretch(1)
         self.setLayout(v)
-
-    def set_au_id(self, au_id):
-        self._panning.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._panning.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._panning.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._panning.unregister_updaters();
 
 
 class PanningSlider(ProcNumSlider):
@@ -68,6 +59,6 @@ class PanningSlider(ProcNumSlider):
     def _value_changed(self, panning):
         panning_params = self._get_panning_params()
         panning_params.set_panning(panning)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,9 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .notationeditor import NotationEditor
+from .updater import Updater
 
 
-class NotationWindow(QWidget):
+class NotationWindow(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -26,19 +27,13 @@ class NotationWindow(QWidget):
         self.setWindowTitle('Notations')
 
         self._editor = NotationEditor()
+        self.add_to_updaters(self._editor)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
         v.addWidget(self._editor)
         self.setLayout(v)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._editor.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._editor.unregister_updaters()
 
     def closeEvent(self, event):
         event.ignore()

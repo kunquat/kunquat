@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -18,7 +18,7 @@ from multiprocessing import Process, Queue
 from queue import Empty
 
 from kunquat.kunquat.kunquat import KunquatError, set_assert_hook, set_segfault_hook
-from kunquat.tracker.audio.audio_engine import create_audio_engine
+from kunquat.tracker.audio.audioengine import create_audio_engine
 
 
 HALT = None

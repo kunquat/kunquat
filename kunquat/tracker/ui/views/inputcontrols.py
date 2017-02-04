@@ -18,15 +18,13 @@ from .hitmaptoggle import HitMapToggle
 from .notationselect import NotationSelect
 from .octaveselector import OctaveSelector
 from .typewriterpanel import TypewriterPanel
+from .updater import Updater
 
 
-class InputControls(QWidget):
+class InputControls(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._full_controls = TypewriterPanel()
         self._compact_controls = CompactControls()
         self._switch_button = QPushButton()
@@ -44,25 +42,13 @@ class InputControls(QWidget):
         h.addWidget(self._switch_button, 0, Qt.AlignTop)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._full_controls.set_ui_model(ui_model)
-        self._compact_controls.set_ui_model(ui_model)
+    def _on_setup(self):
+        self.add_to_updaters(self._full_controls, self._compact_controls)
+        self.register_action('signal_input_control_layout', self._show_controls)
 
         QObject.connect(self._switch_button, SIGNAL('clicked()'), self._switch_controls)
 
         self._show_controls()
-
-    def unregister_updaters(self):
-        self._compact_controls.unregister_updaters()
-        self._full_controls.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_input_control_layout' in signals:
-            self._show_controls()
 
     def _show_controls(self):
         visibility_manager = self._ui_model.get_visibility_manager()
@@ -86,7 +72,7 @@ class InputControls(QWidget):
         cur_view_mode = visibility_manager.get_input_control_view()
         new_view_mode = 'compact' if cur_view_mode != 'compact' else 'full'
         visibility_manager.set_input_control_view(new_view_mode)
-        self._updater.signal_update(set(['signal_input_control_layout']))
+        self._updater.signal_update('signal_input_control_layout')
 
 
 class ControlLayout(QVBoxLayout):
@@ -103,14 +89,16 @@ class ControlLayout(QVBoxLayout):
             self.itemAt(i).widget().setVisible(i == index)
 
 
-class CompactControls(QWidget):
+class CompactControls(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-
         self._notation_select = NotationSelect()
         self._hit_map_toggle = HitMapToggle()
         self._octave_selector = OctaveSelector()
+
+        self.add_to_updaters(
+                self._notation_select, self._hit_map_toggle, self._octave_selector)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -120,15 +108,5 @@ class CompactControls(QWidget):
         h.addWidget(self._octave_selector)
         h.addStretch()
         self.setLayout(h)
-
-    def set_ui_model(self, ui_model):
-        self._notation_select.set_ui_model(ui_model)
-        self._hit_map_toggle.set_ui_model(ui_model)
-        self._octave_selector.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._octave_selector.unregister_updaters()
-        self._hit_map_toggle.unregister_updaters()
-        self._notation_select.unregister_updaters()
 
 

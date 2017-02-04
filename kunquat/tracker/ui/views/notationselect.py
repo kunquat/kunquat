@@ -71,15 +71,15 @@ class NotationSelect(QWidget):
         notation_id = self._notation_catalogue[catalogue_index]
         self._notation_manager.set_selected_notation_id(notation_id)
 
-        signals = set(['signal_notation'])
+        signals = ['signal_notation']
 
         notation = self._notation_manager.get_selected_notation()
         new_octave_id = min(old_octave_id, notation.get_octave_count() - 1)
         if new_octave_id != old_octave_id:
             self._typewriter_manager.set_octave(new_octave_id)
-            signals.add('signal_octave')
+            signals.append('signal_octave')
 
-        self._updater.signal_update(signals)
+        self._updater.signal_update(*signals)
 
     def _update_enabled(self):
         keymap_manager = self._ui_model.get_keymap_manager()

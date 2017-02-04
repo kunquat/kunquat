@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -16,15 +16,17 @@ from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 from .headerline import HeaderLine
+from .updater import Updater
 
 
-class SongEditor(QWidget):
+class SongEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-
         self._name = NameEditor()
         self._tempo_editor = TempoEditor()
+
+        self.add_to_updaters(self._name, self._tempo_editor)
 
         gl = QGridLayout()
         gl.addWidget(QLabel('Name:'), 0, 0)
@@ -40,38 +42,19 @@ class SongEditor(QWidget):
         v.addStretch(1)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._name.set_ui_model(ui_model)
-        self._tempo_editor.set_ui_model(ui_model)
 
-    def unregister_updaters(self):
-        self._tempo_editor.unregister_updaters()
-        self._name.unregister_updaters()
-
-
-class NameEditor(QLineEdit):
+class NameEditor(QLineEdit, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_song', self._update_name)
+        self.register_action('signal_order_list', self._update_name)
 
         QObject.connect(self, SIGNAL('textEdited(const QString&)'), self._change_name)
 
         self._update_name()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set(['signal_song', 'signal_order_list'])
-        if not signals.isdisjoint(update_signals):
-            self._update_name()
 
     def _set_name(self, name):
         old_block = self.blockSignals(True)
@@ -98,36 +81,24 @@ class NameEditor(QLineEdit):
         song = album.get_song_by_track(track_num)
         song.set_name(text)
 
-        self._updater.signal_update(set(['signal_song', 'signal_order_list']))
+        self._updater.signal_update('signal_song', 'signal_order_list')
 
 
-class TempoEditor(QDoubleSpinBox):
+class TempoEditor(QDoubleSpinBox, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self.setDecimals(1)
         self.setMinimum(1)
         self.setMaximum(999)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_song', self._update_tempo)
+        self.register_action('signal_order_list', self._update_tempo)
 
         QObject.connect(self, SIGNAL('valueChanged(double)'), self._change_tempo)
 
         self._update_tempo()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set(['signal_song', 'signal_order_list'])
-        if not signals.isdisjoint(update_signals):
-            self._update_tempo()
 
     def _set_tempo(self, tempo):
         old_block = self.blockSignals(True)
@@ -154,6 +125,6 @@ class TempoEditor(QDoubleSpinBox):
         song = album.get_song_by_track(track_num)
         song.set_initial_tempo(value)
 
-        self._updater.signal_update(set(['signal_song']))
+        self._updater.signal_update('signal_song')
 
 

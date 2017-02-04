@@ -15,17 +15,15 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from .newbutton import NewButton
-from .openbutton import OpenButton
-from .savebutton import SaveButton
-from .connectionsbutton import ConnectionsButton
-from .songschannelsbutton import SongsChannelsButton
+from kunquat.kunquat.limits import *
 from .eventlistbutton import EventListButton
-from .aboutbutton import AboutButton
 from . import utils
+from .kqtutils import get_kqt_file_path, open_kqt_au
+from .saving import get_module_save_path
+from .updater import Updater
 
 
-class Portal(QToolBar):
+class Portal(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
@@ -41,6 +39,20 @@ class Portal(QToolBar):
         self._settings_button = SettingsButton()
         self._event_list_button = EventListButton()
         self._render_stats_button = RenderStatsButton()
+
+        self.add_to_updaters(
+                self._new_button,
+                self._open_button,
+                self._save_button,
+                self._connections_button,
+                self._songs_channels_button,
+                self._notation_button,
+                self._env_bind_button,
+                self._general_mod_button,
+                self._event_list_button,
+                self._render_stats_button,
+                self._settings_button,
+                self._about_button)
 
         self.addWidget(self._new_button)
         self.addWidget(self._open_button)
@@ -58,49 +70,89 @@ class Portal(QToolBar):
         self.addWidget(self._settings_button)
         self.addWidget(self._about_button)
 
-    def set_ui_model(self, ui_model):
-        self._new_button.set_ui_model(ui_model)
-        self._open_button.set_ui_model(ui_model)
-        self._save_button.set_ui_model(ui_model)
-        self._connections_button.set_ui_model(ui_model)
-        self._songs_channels_button.set_ui_model(ui_model)
-        self._notation_button.set_ui_model(ui_model)
-        self._env_bind_button.set_ui_model(ui_model)
-        self._general_mod_button.set_ui_model(ui_model)
-        self._event_list_button.set_ui_model(ui_model)
-        self._render_stats_button.set_ui_model(ui_model)
-        self._settings_button.set_ui_model(ui_model)
-        self._about_button.set_ui_model(ui_model)
 
-    def unregister_updaters(self):
-        self._about_button.unregister_updaters()
-        self._settings_button.unregister_updaters()
-        self._event_list_button.unregister_updaters()
-        self._render_stats_button.unregister_updaters()
-        self._general_mod_button.unregister_updaters()
-        self._env_bind_button.unregister_updaters()
-        self._notation_button.unregister_updaters()
-        self._songs_channels_button.unregister_updaters()
-        self._connections_button.unregister_updaters()
-        self._save_button.unregister_updaters()
-        self._open_button.unregister_updaters()
-        self._new_button.unregister_updaters()
+class NewButton(QToolButton, Updater):
+
+    def __init__(self):
+        super().__init__()
+        self.setText('New')
+
+    def _on_setup(self):
+        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+
+    def _clicked(self):
+        process_manager = self._ui_model.get_process_manager()
+        process_manager.new_kunquat()
 
 
-class WindowOpenerButton(QToolButton):
+class OpenButton(QToolButton, Updater):
 
-    def __init__(self, text):
+    def __init__(self):
+        super().__init__()
+        self.setText('Open')
+
+    def _on_setup(self):
+        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+
+    def _clicked(self):
+        file_path = get_kqt_file_path(set(['kqt', 'kqti', 'kqte']))
+        if file_path:
+            if file_path.endswith('.kqt'):
+                process_manager = self._ui_model.get_process_manager()
+                process_manager.new_kunquat(file_path)
+            else:
+                open_kqt_au(file_path, self._ui_model, self._ui_model.get_module())
+
+
+class SaveButton(QToolButton):
+
+    def __init__(self):
         super().__init__()
         self._ui_model = None
+        self._updater = None
 
-        self.setText(text)
+        self._module_loaded = False
+
+        self.setText('Save')
+        self.setEnabled(False)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
         QObject.connect(self, SIGNAL('clicked()'), self._clicked)
 
     def unregister_updaters(self):
-        pass
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        if 'signal_module' in signals:
+            self._module_loaded = True
+
+        if self._module_loaded:
+            module = self._ui_model.get_module()
+            self.setEnabled(module.is_modified())
+
+    def _clicked(self):
+        module = self._ui_model.get_module()
+
+        if not module.get_path():
+            module_path = get_module_save_path()
+            if not module_path:
+                return
+            module.set_path(module_path)
+
+        module.start_save()
+
+
+class WindowOpenerButton(QToolButton, Updater):
+
+    def __init__(self, text):
+        super().__init__()
+        self.setText(text)
+
+    def _on_setup(self):
+        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
 
     def _clicked(self):
         visibility_manager = self._ui_model.get_visibility_manager()
@@ -110,6 +162,24 @@ class WindowOpenerButton(QToolButton):
 
     def _show_action(self, visibility_manager):
         raise NotImplementedError
+
+
+class ConnectionsButton(WindowOpenerButton):
+
+    def __init__(self):
+        super().__init__('Connections')
+
+    def _show_action(self, visibility_manager):
+        visibility_manager.show_connections()
+
+
+class SongsChannelsButton(WindowOpenerButton):
+
+    def __init__(self):
+        super().__init__('Songs && channels')
+
+    def _show_action(self, visibility_manager):
+        visibility_manager.show_songs_channels()
 
 
 class EnvBindButton(WindowOpenerButton):
@@ -146,6 +216,15 @@ class SettingsButton(WindowOpenerButton):
 
     def _show_action(self, visibility_manager):
         visibility_manager.show_settings()
+
+
+class AboutButton(WindowOpenerButton):
+
+    def __init__(self):
+        super().__init__('About')
+
+    def _show_action(self, visibility_manager):
+        visibility_manager.show_about()
 
 
 _RENDER_LOAD_METER_CONFIG = {

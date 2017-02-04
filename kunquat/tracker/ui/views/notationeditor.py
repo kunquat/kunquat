@@ -18,13 +18,13 @@ from PySide.QtGui import *
 
 from .headerline import HeaderLine
 from .kqtcombobox import KqtComboBox
+from .updater import Updater
 
 
-class NotationEditor(QWidget):
+class NotationEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-
         self._notations = Notations()
         self._tuning_tables = TuningTables()
         self._template = Template()
@@ -32,6 +32,15 @@ class NotationEditor(QWidget):
         self._notes = Notes()
         self._note = Note()
         self._keymap = Keymap()
+
+        self.add_to_updaters(
+                self._notations,
+                self._tuning_tables,
+                self._template,
+                self._octaves,
+                self._notes,
+                self._note,
+                self._keymap)
 
         ll = QVBoxLayout()
         ll.setContentsMargins(0, 0, 0, 0)
@@ -72,32 +81,11 @@ class NotationEditor(QWidget):
         h.addLayout(el, 1)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._notations.set_ui_model(ui_model)
-        self._tuning_tables.set_ui_model(ui_model)
-        self._template.set_ui_model(ui_model)
-        self._octaves.set_ui_model(ui_model)
-        self._notes.set_ui_model(ui_model)
-        self._note.set_ui_model(ui_model)
-        self._keymap.set_ui_model(ui_model)
 
-    def unregister_updaters(self):
-        self._keymap.unregister_updaters()
-        self._note.unregister_updaters()
-        self._notes.unregister_updaters()
-        self._octaves.unregister_updaters()
-        self._template.unregister_updaters()
-        self._tuning_tables.unregister_updaters()
-        self._notations.unregister_updaters()
-
-
-class NotationListToolBar(QToolBar):
+class NotationListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._add_button = QToolButton()
         self._add_button.setText('Add notation')
         self._add_button.setToolTip('Add notation')
@@ -111,10 +99,9 @@ class NotationListToolBar(QToolBar):
         self.addWidget(self._add_button)
         self.addWidget(self._remove_button)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_notation_list', self._update_enabled)
+        self.register_action('signal_notation_editor_selection', self._update_enabled)
 
         icon_bank = self._ui_model.get_icon_bank()
         self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
@@ -125,15 +112,6 @@ class NotationListToolBar(QToolBar):
 
         self._update_enabled()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_notation_list', 'signal_notation_editor_selection'])
-        if not signals.isdisjoint(update_signals):
-            self._update_enabled()
-
     def _update_enabled(self):
         notation_manager = self._ui_model.get_notation_manager()
         has_custom_notations = len(notation_manager.get_custom_notation_ids()) > 0
@@ -143,7 +121,7 @@ class NotationListToolBar(QToolBar):
     def _add_notation(self):
         notation_manager = self._ui_model.get_notation_manager()
         notation_manager.add_custom_notation()
-        self._updater.signal_update(set(['signal_notation_list']))
+        self._updater.signal_update('signal_notation_list')
 
     def _remove_notation(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -154,28 +132,20 @@ class NotationListToolBar(QToolBar):
         notation_manager.set_editor_selected_note_index(None)
         notation_manager.set_editor_selected_key_index(None)
         notation_manager.set_editor_selected_template_note(None)
-        self._updater.signal_update(set([
+        self._updater.signal_update(
             'signal_notation',
             'signal_notation_list',
-            'signal_notation_editor_selection']))
+            'signal_notation_editor_selection')
 
 
-class NotationListModel(QAbstractListModel):
+class NotationListModel(QAbstractListModel, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._items = []
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
+    def _on_setup(self):
         self._make_items()
-
-    def unregister_updaters(self):
-        pass
 
     def get_item(self, index):
         row = index.row()
@@ -234,29 +204,18 @@ class NotationListModel(QAbstractListModel):
                 notation_manager = self._ui_model.get_notation_manager()
                 notation = notation_manager.get_editor_selected_notation()
                 notation.set_name(new_name)
-                self._updater.signal_update(set(['signal_notation_list']))
+                self._updater.signal_update('signal_notation_list')
                 return True
 
         return False
 
 
-class NotationListView(QListView):
+class NotationListView(QListView, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self.setSelectionMode(QAbstractItemView.SingleSelection)
-
         self.setMinimumWidth(100)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
-    def unregister_updaters(self):
-        pass
 
     def _select_entry(self, cur_index, prev_index):
         item = self.model().get_item(cur_index)
@@ -268,7 +227,7 @@ class NotationListView(QListView):
             notation_manager.set_editor_selected_note_index(None)
             notation_manager.set_editor_selected_key_index(None)
             notation_manager.set_editor_selected_template_note(None)
-            self._updater.signal_update(set(['signal_notation_editor_selection']))
+            self._updater.signal_update('signal_notation_editor_selection')
 
     def setModel(self, model):
         super().setModel(model)
@@ -287,13 +246,10 @@ class NotationListView(QListView):
                 self._select_entry)
 
 
-class Notations(QWidget):
+class Notations(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._toolbar = NotationListToolBar()
 
         self._list_model = None
@@ -307,37 +263,24 @@ class Notations(QWidget):
         v.addWidget(self._list_view)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._toolbar.set_ui_model(ui_model)
-        self._list_view.set_ui_model(ui_model)
+    def _on_setup(self):
+        self.add_to_updaters(self._toolbar, self._list_view)
+        self.register_action('signal_notation_list', self._update_model)
 
         self._update_model()
 
-    def unregister_updaters(self):
-        self._list_view.unregister_updaters()
-        self._toolbar.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_notation_list' in signals:
-            self._update_model()
-
     def _update_model(self):
+        if self._list_model:
+            self.remove_from_updaters(self._list_model)
         self._list_model = NotationListModel()
-        self._list_model.set_ui_model(self._ui_model)
+        self.add_to_updaters(self._list_model)
         self._list_view.setModel(self._list_model)
 
 
-class TuningTableListToolBar(QToolBar):
+class TuningTableListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._add_button = QToolButton()
         self._add_button.setText('Add tuning table')
         self._add_button.setToolTip('Add tuning table')
@@ -351,10 +294,9 @@ class TuningTableListToolBar(QToolBar):
         self.addWidget(self._add_button)
         self.addWidget(self._remove_button)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_tuning_tables', self._update_enabled)
+        self.register_action('signal_tuning_table_selection', self._update_enabled)
 
         icon_bank = self._ui_model.get_icon_bank()
         self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
@@ -365,14 +307,6 @@ class TuningTableListToolBar(QToolBar):
                 self._remove_button, SIGNAL('clicked()'), self._remove_tuning_table)
 
         self._update_enabled()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set(['signal_tuning_tables', 'signal_tuning_table_selection'])
-        if not signals.isdisjoint(update_signals):
-            self._update_enabled()
 
     def _update_enabled(self):
         module = self._ui_model.get_module()
@@ -385,7 +319,7 @@ class TuningTableListToolBar(QToolBar):
     def _add_tuning_table(self):
         module = self._ui_model.get_module()
         module.add_tuning_table(module.get_free_tuning_table_id())
-        self._updater.signal_update(set(['signal_tuning_tables']))
+        self._updater.signal_update('signal_tuning_tables')
 
     def _remove_tuning_table(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -397,25 +331,17 @@ class TuningTableListToolBar(QToolBar):
         visibility_manager = self._ui_model.get_visibility_manager()
         visibility_manager.hide_tuning_table_editor(selected_table_id)
         self._updater.signal_update(
-                set(['signal_tuning_tables', 'signal_tuning_table_selection']))
+                'signal_tuning_tables', 'signal_tuning_table_selection')
 
 
-class TuningTableListModel(QAbstractTableModel):
+class TuningTableListModel(QAbstractTableModel, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._items = []
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
+    def _on_setup(self):
         self._make_items()
-
-    def unregister_updaters(self):
-        pass
 
     def get_item(self, index):
         row = index.row()
@@ -493,19 +419,16 @@ class TuningTableListModel(QAbstractTableModel):
                 module = self._ui_model.get_module()
                 table = module.get_tuning_table(table_id)
                 table.set_name(new_name)
-                self._updater.signal_update(set(['signal_tuning_tables']))
+                self._updater.signal_update('signal_tuning_tables')
                 return True
 
         return False
 
 
-class TuningTableListView(QTableView):
+class TuningTableListView(QTableView, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self.setSelectionMode(QAbstractItemView.SingleSelection)
 
         self.setMinimumWidth(100)
@@ -514,20 +437,13 @@ class TuningTableListView(QTableView):
         hheader.setStretchLastSection(True)
         hheader.hide()
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
-    def unregister_updaters(self):
-        pass
-
     def _select_entry(self, cur_index, prev_index):
         item = self.model().get_item(cur_index)
         if item:
             table_id, _ = item
             notation_manager = self._ui_model.get_notation_manager()
             notation_manager.set_editor_selected_tuning_table_id(table_id)
-            self._updater.signal_update(set(['signal_tuning_table_selection']))
+            self._updater.signal_update('signal_tuning_table_selection')
 
     def setModel(self, model):
         super().setModel(model)
@@ -546,13 +462,10 @@ class TuningTableListView(QTableView):
                 self._select_entry)
 
 
-class TuningTables(QWidget):
+class TuningTables(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._toolbar = TuningTableListToolBar()
 
         self._list_model = None
@@ -570,32 +483,21 @@ class TuningTables(QWidget):
         v.addWidget(self._edit_button)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._toolbar.set_ui_model(ui_model)
-        self._list_view.set_ui_model(ui_model)
+    def _on_setup(self):
+        self.add_to_updaters(self._toolbar, self._list_view)
+        self.register_action('signal_tuning_tables', self._update_model)
+        self.register_action('signal_tuning_table_selection', self._update_selection)
 
         QObject.connect(self._edit_button, SIGNAL('clicked()'), self._open_editor)
 
         self._update_model()
         self._update_selection()
 
-    def unregister_updaters(self):
-        self._list_view.unregister_updaters()
-        self._toolbar.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_tuning_tables' in signals:
-            self._update_model()
-        if 'signal_tuning_table_selection' in signals:
-            self._update_selection()
-
     def _update_model(self):
+        if self._list_model:
+            self.remove_from_updaters(self._list_model)
         self._list_model = TuningTableListModel()
-        self._list_model.set_ui_model(self._ui_model)
+        self.add_to_updaters(self._list_model)
         self._list_view.setModel(self._list_model)
 
     def _update_selection(self):
@@ -610,13 +512,10 @@ class TuningTables(QWidget):
         visibility_manager.show_tuning_table_editor(selected_table_id)
 
 
-class Template(QWidget):
+class Template(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._centre_pitch = CentrePitch()
         self._octave_ratio = OctaveRatio()
         self._octaves = TemplateOctaves()
@@ -636,36 +535,22 @@ class Template(QWidget):
         v.addWidget(self._create_tt_button)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._centre_pitch.set_ui_model(ui_model)
-        self._octave_ratio.set_ui_model(ui_model)
-        self._octaves.set_ui_model(ui_model)
-        self._notes.set_ui_model(ui_model)
+    def _on_setup(self):
+        self.add_to_updaters(
+                self._centre_pitch,
+                self._octave_ratio,
+                self._octaves,
+                self._notes)
+        self.register_action('signal_notation_list', self._update_enabled)
+        self.register_action('signal_notation_editor_selection', self._update_enabled)
+        self.register_action('signal_notation_template_notes', self._update_enabled)
+        self.register_action('signal_tuning_tables', self._update_enabled)
 
         QObject.connect(self._create_button, SIGNAL('clicked()'), self._create)
         QObject.connect(
                 self._create_tt_button, SIGNAL('clicked()'), self._create_tuning_table)
 
         self._update_enabled()
-
-    def unregister_updaters(self):
-        self._notes.unregister_updaters()
-        self._octaves.unregister_updaters()
-        self._octave_ratio.unregister_updaters()
-        self._centre_pitch.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_notation_list',
-            'signal_notation_editor_selection',
-            'signal_notation_template_notes',
-            'signal_tuning_tables'])
-        if not signals.isdisjoint(update_signals):
-            self._update_enabled()
 
     def _update_enabled(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -697,14 +582,14 @@ class Template(QWidget):
                 typewriter_manager.get_octave() >= notation.get_octave_count()):
             typewriter_manager.set_octave(notation.get_octave_count() - 1)
 
-        self._updater.signal_update(set([
+        self._updater.signal_update(
             'signal_notation',
             'signal_notation_editor_octaves',
             'signal_notation_editor_octave_selection',
             'signal_notation_editor_notes',
             'signal_notation_editor_note_selection',
             'signal_notation_editor_key_count',
-            'signal_notation_editor_key_selection']))
+            'signal_notation_editor_key_selection')
 
     def _create_tuning_table(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -715,16 +600,13 @@ class Template(QWidget):
         table_id = module.get_free_tuning_table_id()
         assert table_id != None
         module.create_tuning_table_from_notation_template(table_id, name, template)
-        self._updater.signal_update(set(['signal_tuning_tables']))
+        self._updater.signal_update('signal_tuning_tables')
 
 
-class CentrePitch(QWidget):
+class CentrePitch(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._value = QDoubleSpinBox()
         self._value.setDecimals(2)
         self._value.setRange(-9999, 9999)
@@ -743,27 +625,16 @@ class CentrePitch(QWidget):
         h.addWidget(self._units, 1)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_notation_list', self._update_all)
+        self.register_action('signal_notation_editor_selection', self._update_all)
+        self.register_action('signal_notation_template_centre_pitch', self._update_all)
 
         QObject.connect(self._value, SIGNAL('valueChanged(double)'), self._change_centre)
         QObject.connect(
                 self._units, SIGNAL('currentIndexChanged(int)'), self._change_units)
 
         self._update_all()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_notation_list',
-            'signal_notation_editor_selection',
-            'signal_notation_template_centre_pitch'])
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
 
     def _update_all(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -795,7 +666,7 @@ class CentrePitch(QWidget):
 
         _, units = template.get_centre_pitch()
         template.set_centre_pitch(new_centre, units)
-        self._updater.signal_update(set(['signal_notation_template_centre_pitch']))
+        self._updater.signal_update('signal_notation_template_centre_pitch')
 
     def _get_cents(self, hz):
         return math.log(hz / 440.0, 2) * 1200
@@ -820,7 +691,7 @@ class CentrePitch(QWidget):
             new_value = self._get_hz(value)
 
         template.set_centre_pitch(new_value, new_units)
-        self._updater.signal_update(set(['signal_notation_template_centre_pitch']))
+        self._updater.signal_update('signal_notation_template_centre_pitch')
 
 
 class RatioValidator(QValidator):
@@ -865,13 +736,10 @@ class RatioValidator(QValidator):
         return (QValidator.Acceptable, contents, pos)
 
 
-class OctaveRatio(QWidget):
+class OctaveRatio(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._ratio = QLineEdit()
         self._ratio.setValidator(RatioValidator())
 
@@ -882,25 +750,14 @@ class OctaveRatio(QWidget):
         h.addWidget(self._ratio)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_notation_list', self._update_all)
+        self.register_action('signal_notation_editor_selection', self._update_all)
+        self.register_action('signal_notation_template_octave_ratio', self._update_all)
 
         QObject.connect(self._ratio, SIGNAL('editingFinished()'), self._change_ratio)
 
         self._update_all()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_notation_list',
-            'signal_notation_editor_selection',
-            'signal_notation_template_octave_ratio'])
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
 
     def _update_all(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -930,16 +787,13 @@ class OctaveRatio(QWidget):
         template = notation.get_template()
 
         template.set_octave_ratio(value)
-        self._updater.signal_update(set(['signal_notation_template_octave_ratio']))
+        self._updater.signal_update('signal_notation_template_octave_ratio')
 
 
-class TemplateOctaves(QWidget):
+class TemplateOctaves(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._lowest = QSpinBox()
         self._lowest.setRange(0, 15)
         self._centre = QSpinBox()
@@ -958,27 +812,16 @@ class TemplateOctaves(QWidget):
         h.addWidget(self._highest)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_notation_list', self._update_all)
+        self.register_action('signal_notation_editor_selection', self._update_all)
+        self.register_action('signal_notation_template_octaves', self._update_all)
 
         QObject.connect(self._lowest, SIGNAL('valueChanged(int)'), self._change_lowest)
         QObject.connect(self._centre, SIGNAL('valueChanged(int)'), self._change_centre)
         QObject.connect(self._highest, SIGNAL('valueChanged(int)'), self._change_highest)
 
         self._update_all()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_notation_list',
-            'signal_notation_editor_selection',
-            'signal_notation_template_octaves'])
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
 
     def _update_all(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -1015,7 +858,7 @@ class TemplateOctaves(QWidget):
         octaves[2] = max(octaves[0], octaves[2])
 
         template.set_octaves(*octaves)
-        self._updater.signal_update(set(['signal_notation_template_octaves']))
+        self._updater.signal_update('signal_notation_template_octaves')
 
     def _change_centre(self, value):
         notation_manager = self._ui_model.get_notation_manager()
@@ -1027,7 +870,7 @@ class TemplateOctaves(QWidget):
         assert octaves[0] <= octaves[1] <= octaves[2]
 
         template.set_octaves(*octaves)
-        self._updater.signal_update(set(['signal_notation_template_octaves']))
+        self._updater.signal_update('signal_notation_template_octaves')
 
     def _change_highest(self, value):
         notation_manager = self._ui_model.get_notation_manager()
@@ -1040,16 +883,13 @@ class TemplateOctaves(QWidget):
         octaves[0] = min(octaves[0], octaves[2])
 
         template.set_octaves(*octaves)
-        self._updater.signal_update(set(['signal_notation_template_octaves']))
+        self._updater.signal_update('signal_notation_template_octaves')
 
 
-class TemplateNotesToolBar(QToolBar):
+class TemplateNotesToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._add_button = QToolButton()
         self._add_button.setText('Add note')
         self._add_button.setToolTip('Add note')
@@ -1063,10 +903,12 @@ class TemplateNotesToolBar(QToolBar):
         self.addWidget(self._add_button)
         self.addWidget(self._remove_button)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_notation_list', self._update_enabled)
+        self.register_action('signal_notation_editor_selection', self._update_enabled)
+        self.register_action(
+                'signal_notation_template_note_selection', self._update_enabled)
+        self.register_action('signal_notation_template_notes', self._update_enabled)
 
         icon_bank = self._ui_model.get_icon_bank()
         self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
@@ -1076,18 +918,6 @@ class TemplateNotesToolBar(QToolBar):
         QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_note)
 
         self._update_enabled()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_notation_list',
-            'signal_notation_editor_selection',
-            'signal_notation_template_note_selection',
-            'signal_notation_template_notes'])
-        if not signals.isdisjoint(update_signals):
-            self._update_enabled()
 
     def _update_enabled(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -1100,7 +930,7 @@ class TemplateNotesToolBar(QToolBar):
         notation = notation_manager.get_editor_selected_notation()
         template = notation.get_template()
         template.add_note()
-        self._updater.signal_update(set(['signal_notation_template_notes']))
+        self._updater.signal_update('signal_notation_template_notes')
 
     def _remove_note(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -1114,25 +944,17 @@ class TemplateNotesToolBar(QToolBar):
                     (min(index, template.get_note_count() - 1), column))
         else:
             notation_manager.set_editor_selected_template_note(None)
-        self._updater.signal_update(set(['signal_notation_template_notes']))
+        self._updater.signal_update('signal_notation_template_notes')
 
 
-class TemplateNoteTableModel(QAbstractTableModel):
+class TemplateNoteTableModel(QAbstractTableModel, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._items = []
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
+    def _on_setup(self):
         self._make_items()
-
-    def unregister_updaters(self):
-        pass
 
     def get_index(self, row, column):
         return self.createIndex(row, column, None)
@@ -1230,7 +1052,7 @@ class TemplateNoteTableModel(QAbstractTableModel):
                     notation = notation_manager.get_editor_selected_notation()
                     template = notation.get_template()
                     template.set_note_name(row, new_name)
-                    self._updater.signal_update(set(['signal_notation_template_notes']))
+                    self._updater.signal_update('signal_notation_template_notes')
                     return True
                 elif column == 1:
                     new_ratio = self._get_validated_ratio(value)
@@ -1240,32 +1062,21 @@ class TemplateNoteTableModel(QAbstractTableModel):
                     notation = notation_manager.get_editor_selected_notation()
                     template = notation.get_template()
                     template.set_note_ratio(row, new_ratio)
-                    self._updater.signal_update(set(['signal_notation_template_notes']))
+                    self._updater.signal_update('signal_notation_template_notes')
                     return True
 
         return False
 
 
-class TemplateNoteTableView(QTableView):
+class TemplateNoteTableView(QTableView, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self.setSelectionMode(QAbstractItemView.SingleSelection)
-
         self.setMinimumWidth(100)
 
         header = self.horizontalHeader()
         header.setStretchLastSection(True)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
-    def unregister_updaters(self):
-        pass
 
     def _select_entry(self, cur_index, prev_index):
         if not cur_index.isValid():
@@ -1274,7 +1085,7 @@ class TemplateNoteTableView(QTableView):
 
         notation_manager = self._ui_model.get_notation_manager()
         notation_manager.set_editor_selected_template_note((row, column))
-        self._updater.signal_update(set(['signal_notation_template_note_selection']))
+        self._updater.signal_update('signal_notation_template_note_selection')
 
     def setModel(self, model):
         super().setModel(model)
@@ -1294,13 +1105,10 @@ class TemplateNoteTableView(QTableView):
                 self._select_entry)
 
 
-class TemplateNotes(QWidget):
+class TemplateNotes(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._toolbar = TemplateNotesToolBar()
 
         self._table_model = None
@@ -1313,41 +1121,26 @@ class TemplateNotes(QWidget):
         v.addWidget(self._table_view)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._toolbar.set_ui_model(ui_model)
-        self._table_view.set_ui_model(ui_model)
+    def _on_setup(self):
+        self.add_to_updaters(self._toolbar, self._table_view)
+        self.register_action('signal_notation_list', self._update_model)
+        self.register_action('signal_notation_editor_selection', self._update_model)
+        self.register_action('signal_notation_template_notes', self._update_model)
 
         self._update_model()
 
-    def unregister_updaters(self):
-        self._table_view.unregister_updaters()
-        self._toolbar.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_notation_list',
-            'signal_notation_editor_selection',
-            'signal_notation_template_notes'])
-        if not signals.isdisjoint(update_signals):
-            self._update_model()
-
     def _update_model(self):
+        if self._table_model:
+            self.remove_from_updaters(self._table_model)
         self._table_model = TemplateNoteTableModel()
-        self._table_model.set_ui_model(self._ui_model)
+        self.add_to_updaters(self._table_model)
         self._table_view.setModel(self._table_model)
 
 
-class OctaveListToolBar(QToolBar):
+class OctaveListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._add_button = QToolButton()
         self._add_button.setText('Add octave')
         self._add_button.setToolTip('Add octave')
@@ -1366,10 +1159,11 @@ class OctaveListToolBar(QToolBar):
         self.addWidget(self._remove_button)
         self.addWidget(self._set_base_button)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_notation_editor_selection', self._update_enabled)
+        self.register_action('signal_notation_editor_octaves', self._update_enabled)
+        self.register_action(
+                'signal_notation_editor_octave_selection', self._update_enabled)
 
         icon_bank = self._ui_model.get_icon_bank()
         self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
@@ -1381,17 +1175,6 @@ class OctaveListToolBar(QToolBar):
                 self._set_base_button, SIGNAL('clicked()'), self._set_base_octave)
 
         self._update_enabled()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_notation_editor_selection',
-            'signal_notation_editor_octaves',
-            'signal_notation_editor_octave_selection'])
-        if not signals.isdisjoint(update_signals):
-            self._update_enabled()
 
     def _update_enabled(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -1410,9 +1193,8 @@ class OctaveListToolBar(QToolBar):
         notation_manager = self._ui_model.get_notation_manager()
         notation = notation_manager.get_editor_selected_notation()
         notation.add_octave()
-        self._updater.signal_update(set([
-            'signal_notation',
-            'signal_notation_editor_octaves']))
+        self._updater.signal_update(
+            'signal_notation', 'signal_notation_editor_octaves')
 
     def _remove_octave(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -1424,35 +1206,27 @@ class OctaveListToolBar(QToolBar):
             notation.set_base_octave_id(base_octave_id - 1)
         notation_manager.set_editor_selected_octave_id(max(0, selected_octave_id - 1))
         notation_manager.set_editor_selected_key_index(None)
-        self._updater.signal_update(set([
+        self._updater.signal_update(
             'signal_notation',
             'signal_notation_editor_octaves',
-            'signal_notation_editor_octave_selection']))
+            'signal_notation_editor_octave_selection')
 
     def _set_base_octave(self):
         notation_manager = self._ui_model.get_notation_manager()
         selected_octave_id = notation_manager.get_editor_selected_octave_id()
         notation = notation_manager.get_editor_selected_notation()
         notation.set_base_octave_id(selected_octave_id)
-        self._updater.signal_update(set(['signal_notation_editor_octaves']))
+        self._updater.signal_update('signal_notation_editor_octaves')
 
 
-class OctaveListModel(QAbstractListModel):
+class OctaveListModel(QAbstractListModel, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._items = []
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
+    def _on_setup(self):
         self._make_items()
-
-    def unregister_updaters(self):
-        pass
 
     def get_item(self, index):
         row = index.row()
@@ -1517,31 +1291,19 @@ class OctaveListModel(QAbstractListModel):
                 notation_manager = self._ui_model.get_notation_manager()
                 notation = notation_manager.get_editor_selected_notation()
                 notation.set_octave_name(index.row(), new_name)
-                self._updater.signal_update(set([
-                    'signal_notation',
-                    'signal_notation_editor_octaves']))
+                self._updater.signal_update(
+                    'signal_notation', 'signal_notation_editor_octaves')
                 return True
 
         return False
 
 
-class OctaveListView(QListView):
+class OctaveListView(QListView, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self.setSelectionMode(QAbstractItemView.SingleSelection)
-
         self.setMinimumWidth(100)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
-    def unregister_updaters(self):
-        pass
 
     def _select_entry(self, cur_index, prev_index):
         item = self.model().get_item(cur_index)
@@ -1549,7 +1311,7 @@ class OctaveListView(QListView):
             notation_manager = self._ui_model.get_notation_manager()
             notation_manager.set_editor_selected_octave_id(cur_index.row())
             notation_manager.set_editor_selected_key_index(None)
-            self._updater.signal_update(set(['signal_notation_editor_octave_selection']))
+            self._updater.signal_update('signal_notation_editor_octave_selection')
 
     def setModel(self, model):
         super().setModel(model)
@@ -1568,13 +1330,10 @@ class OctaveListView(QListView):
                 self._select_entry)
 
 
-class Octaves(QWidget):
+class Octaves(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._toolbar = OctaveListToolBar()
 
         self._list_model = None
@@ -1588,33 +1347,25 @@ class Octaves(QWidget):
         v.addWidget(self._list_view)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._toolbar.set_ui_model(ui_model)
-        self._list_view.set_ui_model(ui_model)
+    def _on_setup(self):
+        self.add_to_updaters(self._toolbar, self._list_view)
+        self.register_action('signal_notation_editor_selection', self._update_all)
+        self.register_action('signal_notation_editor_octaves', self._update_all)
+        self.register_action(
+                'signal_notation_editor_octave_selection', self._update_enabled)
 
         self._update_model()
         self._update_enabled()
 
-    def unregister_updaters(self):
-        self._list_view.unregister_updaters()
-        self._toolbar.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        model_update_signals = set([
-            'signal_notation_editor_selection', 'signal_notation_editor_octaves'])
-        if not signals.isdisjoint(model_update_signals):
-            self._update_model()
-            self._update_enabled()
-        if 'signal_notation_editor_octave_selection' in signals:
-            self._update_enabled()
+    def _update_all(self):
+        self._update_model()
+        self._update_enabled()
 
     def _update_model(self):
+        if self._list_model:
+            self.remove_from_updaters(self._list_model)
         self._list_model = OctaveListModel()
-        self._list_model.set_ui_model(self._ui_model)
+        self.add_to_updaters(self._list_model)
         self._list_view.setModel(self._list_model)
 
     def _update_enabled(self):
@@ -1622,13 +1373,10 @@ class Octaves(QWidget):
         self.setEnabled(notation_manager.get_editor_selected_notation_id() != None)
 
 
-class NoteListToolBar(QToolBar):
+class NoteListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._add_button = QToolButton()
         self._add_button.setText('Add note')
         self._add_button.setToolTip('Add note')
@@ -1642,10 +1390,11 @@ class NoteListToolBar(QToolBar):
         self.addWidget(self._add_button)
         self.addWidget(self._remove_button)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_notation_editor_selection', self._update_enabled)
+        self.register_action('signal_notation_editor_notes', self._update_enabled)
+        self.register_action(
+                'signal_notation_editor_note_selection', self._update_enabled)
 
         icon_bank = self._ui_model.get_icon_bank()
         self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
@@ -1655,17 +1404,6 @@ class NoteListToolBar(QToolBar):
         QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_note)
 
         self._update_enabled()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_notation_editor_selection',
-            'signal_notation_editor_notes',
-            'signal_notation_editor_note_selection'])
-        if not signals.isdisjoint(update_signals):
-            self._update_enabled()
 
     def _update_enabled(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -1683,8 +1421,8 @@ class NoteListToolBar(QToolBar):
         notation_manager = self._ui_model.get_notation_manager()
         notation = notation_manager.get_editor_selected_notation()
         notation.add_note()
-        self._updater.signal_update(set([
-            'signal_notation', 'signal_notation_editor_notes']))
+        self._updater.signal_update(
+            'signal_notation', 'signal_notation_editor_notes')
 
     def _remove_note(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -1692,26 +1430,18 @@ class NoteListToolBar(QToolBar):
         notation = notation_manager.get_editor_selected_notation()
         notation.remove_note(note_index)
         notation_manager.set_editor_selected_note_index(None)
-        self._updater.signal_update(set([
-            'signal_notation', 'signal_notation_editor_notes']))
+        self._updater.signal_update(
+            'signal_notation', 'signal_notation_editor_notes')
 
 
-class NoteListModel(QAbstractListModel):
+class NoteListModel(QAbstractListModel, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._items = []
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
+    def _on_setup(self):
         self._make_items()
-
-    def unregister_updaters(self):
-        pass
 
     def get_item(self, index):
         row = index.row()
@@ -1751,30 +1481,19 @@ class NoteListModel(QAbstractListModel):
         return None
 
 
-class NoteListView(QListView):
+class NoteListView(QListView, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self.setSelectionMode(QAbstractItemView.SingleSelection)
-
         self.setMinimumWidth(100)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
-    def unregister_updaters(self):
-        pass
 
     def _select_entry(self, cur_index, prev_index):
         item = self.model().get_item(cur_index)
         if item != None:
             notation_manager = self._ui_model.get_notation_manager()
             notation_manager.set_editor_selected_note_index(cur_index.row())
-            self._updater.signal_update(set(['signal_notation_editor_note_selection']))
+            self._updater.signal_update('signal_notation_editor_note_selection')
 
     def setModel(self, model):
         super().setModel(model)
@@ -1793,13 +1512,10 @@ class NoteListView(QListView):
                 self._select_entry)
 
 
-class Notes(QWidget):
+class Notes(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._toolbar = NoteListToolBar()
 
         self._list_model = None
@@ -1813,33 +1529,25 @@ class Notes(QWidget):
         v.addWidget(self._list_view)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._toolbar.set_ui_model(ui_model)
-        self._list_view.set_ui_model(ui_model)
+    def _on_setup(self):
+        self.add_to_updaters(self._toolbar, self._list_view)
+        self.register_action('signal_notation_editor_selection', self._update_all)
+        self.register_action('signal_notation_editor_notes', self._update_all)
+        self.register_action(
+                'signal_notation_editor_note_selection', self._update_enabled)
 
         self._update_model()
         self._update_enabled()
 
-    def unregister_updaters(self):
-        self._list_view.unregister_updaters()
-        self._toolbar.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        model_update_signals = set([
-            'signal_notation_editor_selection', 'signal_notation_editor_notes'])
-        if not signals.isdisjoint(model_update_signals):
-            self._update_model()
-            self._update_enabled()
-        if 'signal_notation_editor_note_selection' in signals:
-            self._update_enabled()
+    def _update_all(self):
+        self._update_model()
+        self._update_enabled()
 
     def _update_model(self):
+        if self._list_model:
+            self.remove_from_updaters(self._list_model)
         self._list_model = NoteListModel()
-        self._list_model.set_ui_model(self._ui_model)
+        self.add_to_updaters(self._list_model)
         self._list_view.setModel(self._list_model)
 
     def _update_enabled(self):
@@ -1847,13 +1555,10 @@ class Notes(QWidget):
         self.setEnabled(notation_manager.get_editor_selected_notation_id() != None)
 
 
-class Note(QWidget):
+class Note(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._cents = QDoubleSpinBox()
         self._cents.setDecimals(0)
         self._cents.setRange(-9999, 9999)
@@ -1875,27 +1580,16 @@ class Note(QWidget):
         v.addLayout(el)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_notation_editor_selection', self._update_all)
+        self.register_action('signal_notation_editor_notes', self._update_all)
+        self.register_action('signal_notation_editor_note_selection', self._update_all)
 
         QObject.connect(self._cents, SIGNAL('valueChanged(double)'), self._change_cents)
         QObject.connect(
                 self._name, SIGNAL('textChanged(const QString&)'), self._change_name)
 
         self._update_all()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_notation_editor_selection',
-            'signal_notation_editor_notes',
-            'signal_notation_editor_note_selection'])
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
 
     def _update_all(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -1923,24 +1617,21 @@ class Note(QWidget):
         notation_manager = self._ui_model.get_notation_manager()
         notation = notation_manager.get_editor_selected_notation()
         notation.set_note_cents(notation_manager.get_editor_selected_note_index(), value)
-        self._updater.signal_update(set([
-            'signal_notation', 'signal_notation_editor_notes']))
+        self._updater.signal_update(
+            'signal_notation', 'signal_notation_editor_notes')
 
     def _change_name(self, name):
         notation_manager = self._ui_model.get_notation_manager()
         notation = notation_manager.get_editor_selected_notation()
         notation.set_note_name(notation_manager.get_editor_selected_note_index(), name)
-        self._updater.signal_update(set([
-            'signal_notation', 'signal_notation_editor_notes']))
+        self._updater.signal_update(
+            'signal_notation', 'signal_notation_editor_notes')
 
 
-class Keymap(QWidget):
+class Keymap(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._key_count = KeyCount()
         self._key_selector = KeySelector()
         self._key_editor = KeyEditor()
@@ -1954,29 +1645,14 @@ class Keymap(QWidget):
         v.addWidget(self._key_editor)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._key_count.set_ui_model(ui_model)
-        self._key_selector.set_ui_model(ui_model)
-        self._key_editor.set_ui_model(ui_model)
+    def _on_setup(self):
+        self.add_to_updaters(self._key_count, self._key_selector, self._key_editor)
+        self.register_action('signal_notation_editor_selection', self._update_enabled)
+        self.register_action('signal_notation_editor_octaves', self._update_enabled)
+        self.register_action(
+                'signal_notation_editor_octave_selection', self._update_enabled)
 
         self._update_enabled()
-
-    def unregister_updaters(self):
-        self._key_editor.unregister_updaters()
-        self._key_selector.unregister_updaters()
-        self._key_count.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_notation_editor_selection',
-            'signal_notation_editor_octaves',
-            'signal_notation_editor_octave_selection'])
-        if not signals.isdisjoint(update_signals):
-            self._update_enabled()
 
     def _update_enabled(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -1992,13 +1668,10 @@ class Keymap(QWidget):
 _KEYS_MAX = 33
 
 
-class KeyCount(QWidget):
+class KeyCount(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._count = QSpinBox()
         self._count.setRange(0, _KEYS_MAX)
 
@@ -2010,25 +1683,14 @@ class KeyCount(QWidget):
         h.addStretch(1)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_notation_editor_selection', self._update_all)
+        self.register_action('signal_notation_editor_octaves', self._update_all)
+        self.register_action('signal_notation_editor_octave_selection', self._update_all)
 
         QObject.connect(self._count, SIGNAL('valueChanged(int)'), self._change_key_count)
 
         self._update_all()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_notation_editor_selection',
-            'signal_notation_editor_octaves',
-            'signal_notation_editor_octave_selection'])
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
 
     def _update_all(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -2053,29 +1715,21 @@ class KeyCount(QWidget):
         octave_id = notation_manager.get_editor_selected_octave_id()
 
         notation.set_key_count_in_octave(octave_id, new_count)
-        self._updater.signal_update(set([
-            'signal_notation',
-            'signal_notation_editor_key_count']))
+        self._updater.signal_update(
+            'signal_notation', 'signal_notation_editor_key_count')
 
 
-class KeyButton(QPushButton):
+class KeyButton(QPushButton, Updater):
 
     def __init__(self, index):
         super().__init__()
-        self._ui_model = None
-
         self._index = index
 
         self.setFixedSize(QSize(60, 60))
         self.setCheckable(True)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
+    def _on_setup(self):
         QObject.connect(self, SIGNAL('clicked()'), self._select_key)
-
-    def unregister_updaters(self):
-        pass
 
     def set_pressed(self, pressed):
         old_block = self.blockSignals(True)
@@ -2085,16 +1739,13 @@ class KeyButton(QPushButton):
     def _select_key(self):
         notation_manager = self._ui_model.get_notation_manager()
         notation_manager.set_editor_selected_key_index(self._index)
-        self._updater.signal_update(set(['signal_notation_editor_key_selection']))
+        self._updater.signal_update('signal_notation_editor_key_selection')
 
 
-class KeySelector(QWidget):
+class KeySelector(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._keys = [KeyButton(i) for i in range(_KEYS_MAX)]
 
         top_row = QHBoxLayout()
@@ -2119,29 +1770,15 @@ class KeySelector(QWidget):
         rows.addLayout(bottom_row)
         self.setLayout(rows)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
-        for key in self._keys:
-            key.set_ui_model(self._ui_model)
-
-    def unregister_updaters(self):
-        for key in self._keys:
-            key.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_notation_editor_selection',
-            'signal_notation_editor_octave_selection',
-            'signal_notation_editor_notes',
-            'signal_notation_editor_key_count',
-            'signal_notation_editor_key_selection',
-            'signal_notation_editor_key'])
-        if not signals.isdisjoint(update_signals):
-            self._update_keys()
+    def _on_setup(self):
+        self.add_to_updaters(*self._keys)
+        self.register_action('signal_notation_editor_selection', self._update_keys)
+        self.register_action(
+                'signal_notation_editor_octave_selection', self._update_keys)
+        self.register_action('signal_notation_editor_notes', self._update_keys)
+        self.register_action('signal_notation_editor_key_count', self._update_keys)
+        self.register_action('signal_notation_editor_key_selection', self._update_keys)
+        self.register_action('signal_notation_editor_key', self._update_keys)
 
     def _update_keys(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -2167,13 +1804,10 @@ class KeySelector(QWidget):
             key.set_pressed(i == selected_index)
 
 
-class KeyEditor(QWidget):
+class KeyEditor(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._enabled = QCheckBox()
         self._enabled.setText('Enabled')
 
@@ -2204,30 +1838,18 @@ class KeyEditor(QWidget):
         v.addLayout(el)
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._note_selector.set_ui_model(ui_model)
+    def _on_setup(self):
+        self.add_to_updaters(self._note_selector)
+        self.register_action('signal_notation_editor_selection', self._update_all)
+        self.register_action('signal_notation_editor_octaves', self._update_all)
+        self.register_action('signal_notation_editor_octave_selection', self._update_all)
+        self.register_action('signal_notation_editor_key_selection', self._update_all)
+        self.register_action('signal_notation_editor_key', self._update_all)
 
         QObject.connect(self._enabled, SIGNAL('stateChanged(int)'), self._set_enabled)
         QObject.connect(self._cents, SIGNAL('valueChanged(double)'), self._set_cents)
 
         self._update_all()
-
-    def unregister_updaters(self):
-        self._note_selector.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_notation_editor_selection',
-            'signal_notation_editor_octaves',
-            'signal_notation_editor_octave_selection',
-            'signal_notation_editor_key_selection',
-            'signal_notation_editor_key'])
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
 
     def _update_all(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -2277,8 +1899,8 @@ class KeyEditor(QWidget):
         else:
             notation.set_key_cents(octave_id, key_index, None)
 
-        self._updater.signal_update(set([
-            'signal_notation', 'signal_notation_editor_key']))
+        self._updater.signal_update(
+            'signal_notation', 'signal_notation_editor_key')
 
     def _set_cents(self, cents):
         notation_manager = self._ui_model.get_notation_manager()
@@ -2287,44 +1909,28 @@ class KeyEditor(QWidget):
         key_index = notation_manager.get_editor_selected_key_index()
 
         notation.set_key_cents(octave_id, key_index, cents)
-        self._updater.signal_update(set([
-            'signal_notation', 'signal_notation_editor_key']))
+        self._updater.signal_update(
+            'signal_notation', 'signal_notation_editor_key')
 
 
-class KeyNoteSelector(KqtComboBox):
+class KeyNoteSelector(KqtComboBox, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_notation_editor_selection', self._update_notes)
+        self.register_action('signal_notation_editor_notes', self._update_notes)
+        self.register_action('signal_notation_editor_octaves', self._update_selection)
+        self.register_action(
+                'signal_notation_editor_octave_selection', self._update_selection)
+        self.register_action(
+                'signal_notation_editor_key_selection', self._update_selection)
+        self.register_action('signal_notation_editor_key', self._update_selection)
 
         QObject.connect(self, SIGNAL('activated(int)'), self._select_note)
 
         self._update_notes()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        notes_update_signals = set([
-            'signal_notation_editor_selection', 'signal_notation_editor_notes'])
-        if not signals.isdisjoint(notes_update_signals):
-            self._update_notes()
-            return
-
-        selection_update_signals = set([
-            'signal_notation_editor_selection',
-            'signal_notation_editor_octaves',
-            'signal_notation_editor_octave_selection',
-            'signal_notation_editor_key_selection',
-            'signal_notation_editor_key'])
-        if not signals.isdisjoint(selection_update_signals):
-            self._update_selection()
 
     def _update_notes(self):
         notation_manager = self._ui_model.get_notation_manager()
@@ -2369,7 +1975,7 @@ class KeyNoteSelector(KqtComboBox):
 
         cents = self.itemData(index)
         notation.set_key_cents(octave_id, key_index, cents)
-        self._updater.signal_update(set([
-            'signal_notation', 'signal_notation_editor_key']))
+        self._updater.signal_update(
+            'signal_notation', 'signal_notation_editor_key')
 
 

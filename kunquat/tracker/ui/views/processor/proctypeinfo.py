@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -18,7 +18,7 @@ from .envgenproc import EnvgenProc
 from .filterproc import FilterProc
 from .forceproc import ForceProc
 from .freeverbproc import FreeverbProc
-from .gaincomp_proc import GainCompProc
+from .gaincompproc import GainCompProc
 from .ksproc import KsProc
 from .padsynthproc import PadsynthProc
 from .panningproc import PanningProc

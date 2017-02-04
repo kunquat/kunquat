@@ -23,9 +23,10 @@ import kunquat.tracker.config as config
 from .headerline import HeaderLine
 from .numberslider import NumberSlider
 from . import utils
+from .updater import Updater
 
 
-class Settings(QWidget):
+class Settings(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -40,6 +41,17 @@ class Settings(QWidget):
         self._button_brightness = ButtonBrightness()
         self._button_press_brightness = ButtonPressBrightness()
         self._colours = Colours()
+
+        self.add_to_updaters(
+                self._modules,
+                self._instruments,
+                self._samples,
+                self._effects,
+                self._style_toggle,
+                self._border_contrast,
+                self._button_brightness,
+                self._button_press_brightness,
+                self._colours)
 
         dgl = QGridLayout()
         dgl.setContentsMargins(0, 0, 0, 0)
@@ -86,36 +98,11 @@ class Settings(QWidget):
         h.addLayout(uil)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._modules.set_ui_model(ui_model)
-        self._instruments.set_ui_model(ui_model)
-        self._samples.set_ui_model(ui_model)
-        self._effects.set_ui_model(ui_model)
-        self._style_toggle.set_ui_model(ui_model)
-        self._border_contrast.set_ui_model(ui_model)
-        self._button_brightness.set_ui_model(ui_model)
-        self._button_press_brightness.set_ui_model(ui_model)
-        self._colours.set_ui_model(ui_model)
 
-    def unregister_updaters(self):
-        self._colours.unregister_updaters()
-        self._button_press_brightness.unregister_updaters()
-        self._button_brightness.unregister_updaters()
-        self._border_contrast.unregister_updaters()
-        self._style_toggle.unregister_updaters()
-        self._effects.unregister_updaters()
-        self._samples.unregister_updaters()
-        self._instruments.unregister_updaters()
-        self._modules.unregister_updaters()
-
-
-class Directory(QWidget):
+class Directory(QWidget, Updater):
 
     def __init__(self, conf_key):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._conf_key = conf_key
 
         self._text = QLineEdit()
@@ -128,23 +115,14 @@ class Directory(QWidget):
         h.addWidget(self._browse)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_settings_dir', self._update_dir)
 
         QObject.connect(
                 self._text, SIGNAL('textEdited(const QString&)'), self._change_dir_text)
         QObject.connect(self._browse, SIGNAL('clicked()'), self._change_dir_browse)
 
         self._update_dir()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_settings_dir' in signals:
-            self._update_dir()
 
     def _update_dir(self):
         cfg = config.get_config()
@@ -158,7 +136,7 @@ class Directory(QWidget):
     def _change_dir_text(self, text):
         cfg = config.get_config()
         cfg.set_value(self._conf_key, text)
-        self._updater.signal_update(set(['signal_settings_dir']))
+        self._updater.signal_update('signal_settings_dir')
 
     def _change_dir_browse(self):
         cfg = config.get_config()
@@ -192,28 +170,15 @@ class Effects(Directory):
         super().__init__('dir_effects')
 
 
-class StyleToggle(QCheckBox):
+class StyleToggle(QCheckBox, Updater):
 
     def __init__(self):
         super().__init__('Enable custom style')
-        self._ui_model = None
-        self._updater = None
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_enabled)
         QObject.connect(self, SIGNAL('stateChanged(int)'), self._change_enabled)
-
         self._update_enabled()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_style_changed' in signals:
-            self._update_enabled()
 
     def _update_enabled(self):
         style_manager = self._ui_model.get_style_manager()
@@ -229,33 +194,19 @@ class StyleToggle(QCheckBox):
         style_manager = self._ui_model.get_style_manager()
         style_manager.set_custom_style_enabled(enabled)
 
-        self._updater.signal_update(set(['signal_style_changed']))
+        self._updater.signal_update('signal_style_changed')
 
 
-class StyleSlider(NumberSlider):
+class StyleSlider(NumberSlider, Updater):
 
     def __init__(self, param, min_val, max_val, desc=''):
         super().__init__(2, min_val, max_val, title=desc, width_txt='-0.00')
-        self._ui_model = None
-        self._updater = None
-
         self._param = param
-
         QObject.connect(self, SIGNAL('numberChanged(float)'), self._change_param)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_param)
         self._update_param()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_style_changed' in signals:
-            self._update_param()
 
     def _update_param(self):
         style_manager = self._ui_model.get_style_manager()
@@ -265,7 +216,7 @@ class StyleSlider(NumberSlider):
     def _change_param(self, new_value):
         style_manager = self._ui_model.get_style_manager()
         style_manager.set_style_param(self._param, new_value)
-        self._updater.signal_update(set(['signal_style_changed']))
+        self._updater.signal_update('signal_style_changed')
 
 
 class BorderContrast(StyleSlider):
@@ -420,17 +371,13 @@ _COLOUR_DESCS = [
 _COLOUR_DESCS_DICT = dict(_COLOUR_DESCS)
 
 
-class ColoursModel(QAbstractItemModel):
+class ColoursModel(QAbstractItemModel, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-
         self._colours = []
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-
+    def _on_setup(self):
         self._make_colour_list()
 
     def _make_colour_list(self):
@@ -1215,13 +1162,10 @@ class ColourEditor(QWidget):
         return QSize(256, 64)
 
 
-class Colours(QTreeView):
+class Colours(QTreeView, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._model = None
 
         self._colour_editor = ColourEditor()
@@ -1231,13 +1175,11 @@ class Colours(QTreeView):
         header.setResizeMode(0, QHeaderView.Stretch)
         self.setHeaderHidden(True)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_all)
 
         self._model = ColoursModel()
-        self._model.set_ui_model(ui_model)
+        self.add_to_updaters(self._model)
         self.setModel(self._model)
 
         for index in self._model.get_colour_indices():
@@ -1261,16 +1203,11 @@ class Colours(QTreeView):
                 SIGNAL('colourModified(QString, QString)'),
                 self._update_colour)
 
+        self._update_all()
+
+    def _update_all(self):
         self._update_enabled()
         self._update_button_colours()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_style_changed' in signals:
-            self._update_enabled()
-            self._update_button_colours()
 
     def _update_enabled(self):
         style_manager = self._ui_model.get_style_manager()
@@ -1298,7 +1235,7 @@ class Colours(QTreeView):
     def _update_colour(self, key, colour_code):
         style_manager = self._ui_model.get_style_manager()
         style_manager.set_style_param(key, colour_code)
-        self._updater.signal_update(set(['signal_style_changed']))
+        self._updater.signal_update('signal_style_changed')
 
     def hideEvent(self, event):
         self._colour_editor.hide()

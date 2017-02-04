@@ -19,9 +19,10 @@ from PySide.QtGui import *
 from kunquat.kunquat.limits import *
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.varnamevalidator import VarNameValidator
+from .audiounitupdater import AudioUnitUpdater
 
 
-class Expressions(QWidget):
+class Expressions(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -29,6 +30,9 @@ class Expressions(QWidget):
         self._default_note_expr = DefaultNoteExpr()
         self._expr_list = ExpressionList()
         self._expr_editor = ExpressionEditor()
+
+        self.add_to_updaters(
+                self._default_note_expr, self._expr_list, self._expr_editor)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
@@ -39,30 +43,11 @@ class Expressions(QWidget):
         v.addStretch(1)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._default_note_expr.set_au_id(au_id)
-        self._expr_list.set_au_id(au_id)
-        self._expr_editor.set_au_id(au_id)
 
-    def set_ui_model(self, ui_model):
-        self._default_note_expr.set_ui_model(ui_model)
-        self._expr_list.set_ui_model(ui_model)
-        self._expr_editor.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._expr_editor.unregister_updaters()
-        self._expr_list.unregister_updaters()
-        self._default_note_expr.unregister_updaters()
-
-
-class DefaultNoteExpr(QWidget):
+class DefaultNoteExpr(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._expr_names = KqtComboBox()
 
         h = QHBoxLayout()
@@ -72,13 +57,10 @@ class DefaultNoteExpr(QWidget):
         h.addWidget(self._expr_names, 1)
         self.setLayout(h)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action(self._get_list_update_signal_type(), self._update_contents)
+        self.register_action(
+                self._get_default_update_signal_type(), self._update_contents)
 
         QObject.connect(
                 self._expr_names,
@@ -87,20 +69,11 @@ class DefaultNoteExpr(QWidget):
 
         self._update_contents()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
     def _get_list_update_signal_type(self):
         return 'signal_expr_list_{}'.format(self._au_id)
 
     def _get_default_update_signal_type(self):
         return 'signal_expr_default_{}'.format(self._au_id)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            self._get_list_update_signal_type(), self._get_default_update_signal_type()])
-        if not signals.isdisjoint(update_signals):
-            self._update_contents()
 
     def _get_audio_unit(self):
         module = self._ui_model.get_module()
@@ -130,13 +103,10 @@ class DefaultNoteExpr(QWidget):
             au.set_default_note_expression(expr_name)
 
 
-class ExpressionListToolBar(QToolBar):
+class ExpressionListToolBar(QToolBar, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
-        self._updater = None
 
         self._new_button = QToolButton()
         self._new_button.setText('New expression')
@@ -149,13 +119,10 @@ class ExpressionListToolBar(QToolBar):
         self.addWidget(self._new_button)
         self.addWidget(self._remove_button)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action(self._get_list_update_signal_type(), self._update_buttons)
+        self.register_action(
+                self._get_selection_update_signal_type(), self._update_buttons)
 
         QObject.connect(self._new_button, SIGNAL('clicked()'), self._add_expression)
         QObject.connect(
@@ -163,22 +130,11 @@ class ExpressionListToolBar(QToolBar):
 
         self._update_buttons()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
     def _get_list_update_signal_type(self):
         return 'signal_expr_list_{}'.format(self._au_id)
 
     def _get_selection_update_signal_type(self):
         return 'signal_expr_selection_{}'.format(self._au_id)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            self._get_list_update_signal_type(),
-            self._get_selection_update_signal_type()])
-
-        if not signals.isdisjoint(update_signals):
-            self._update_buttons()
 
     def _get_audio_unit(self):
         module = self._ui_model.get_module()
@@ -193,7 +149,7 @@ class ExpressionListToolBar(QToolBar):
     def _add_expression(self):
         au = self._get_audio_unit()
         au.add_expression()
-        self._updater.signal_update(set([self._get_list_update_signal_type()]))
+        self._updater.signal_update(self._get_list_update_signal_type())
 
     def _remove_expression(self):
         au = self._get_audio_unit()
@@ -203,32 +159,20 @@ class ExpressionListToolBar(QToolBar):
 
         au.remove_expression(selected_expr)
         au.set_selected_expression(None)
-        self._updater.signal_update(set([
+        self._updater.signal_update(
             self._get_list_update_signal_type(),
             'signal_au_conns_expr_{}'.format(self._au_id),
-            self._get_selection_update_signal_type()]))
+            self._get_selection_update_signal_type())
 
 
-class ExpressionListModel(QAbstractListModel):
+class ExpressionListModel(QAbstractListModel, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._items = []
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
+    def _on_setup(self):
         self._make_items()
-
-    def unregister_updaters(self):
-        pass
 
     def get_item(self, index):
         row = index.row()
@@ -263,30 +207,17 @@ class ExpressionListModel(QAbstractListModel):
         return None
 
 
-class ExpressionListView(QListView):
+class ExpressionListView(QListView, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
-        self._updater = None
-
         self.setSelectionMode(QAbstractItemView.SingleSelection)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         for signal_type in ('clicked', 'activated'):
             signal = '{}(const QModelIndex&)'.format(signal_type)
             QObject.connect(
                     self, SIGNAL(signal), self._select_expression)
-
-    def unregister_updaters(self):
-        pass
 
     def _get_selection_update_signal_type(self):
         return 'signal_expr_selection_{}'.format(self._au_id)
@@ -297,21 +228,19 @@ class ExpressionListView(QListView):
             module = self._ui_model.get_module()
             au = module.get_audio_unit(self._au_id)
             au.set_selected_expression(expr_name)
-            self._updater.signal_update(set([self._get_selection_update_signal_type()]))
+            self._updater.signal_update(self._get_selection_update_signal_type())
 
 
-class ExpressionList(QWidget):
+class ExpressionList(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._toolbar = ExpressionListToolBar()
 
         self._expr_list_model = None
         self._expr_list_view = ExpressionListView()
+
+        self.add_to_updaters(self._toolbar, self._expr_list_view)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -320,47 +249,25 @@ class ExpressionList(QWidget):
         v.addWidget(self._expr_list_view)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._toolbar.set_au_id(au_id)
-        self._expr_list_view.set_au_id(au_id)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._toolbar.set_ui_model(ui_model)
-        self._expr_list_view.set_ui_model(ui_model)
-
+    def _on_setup(self):
+        self.register_action(self._get_list_update_signal_type(), self._update_model)
         self._update_model()
-
-    def unregister_updaters(self):
-        self._expr_list_view.unregister_updaters()
-        self._toolbar.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
 
     def _get_list_update_signal_type(self):
         return 'signal_expr_list_{}'.format(self._au_id)
 
-    def _perform_updates(self, signals):
-        if self._get_list_update_signal_type() in signals:
-            self._update_model()
-
     def _update_model(self):
+        if self._expr_list_model:
+            self.remove_from_updaters(self._expr_list_model)
         self._expr_list_model = ExpressionListModel()
-        self._expr_list_model.set_au_id(self._au_id)
-        self._expr_list_model.set_ui_model(self._ui_model)
+        self.add_to_updaters(self._expr_list_model)
         self._expr_list_view.setModel(self._expr_list_model)
 
 
-class ExpressionName(QWidget):
+class ExpressionName(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._name_editor = QLineEdit()
 
         h = QHBoxLayout()
@@ -370,33 +277,21 @@ class ExpressionName(QWidget):
         h.addWidget(self._name_editor)
         self.setLayout(h)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action(
+                self._get_list_update_signal_type(), self._update_used_names)
+        self.register_action(self._get_selection_update_signal_type(), self._update_name)
 
         QObject.connect(
                 self._name_editor, SIGNAL('editingFinished()'), self._change_name)
 
         self._update_name()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
     def _get_list_update_signal_type(self):
         return 'signal_expr_list_{}'.format(self._au_id)
 
     def _get_selection_update_signal_type(self):
         return 'signal_expr_selection_{}'.format(self._au_id)
-
-    def _perform_updates(self, signals):
-        if self._get_list_update_signal_type() in signals:
-            self._update_used_names()
-        if self._get_selection_update_signal_type() in signals:
-            self._update_name()
 
     def _get_audio_unit(self):
         module = self._ui_model.get_module()
@@ -428,30 +323,23 @@ class ExpressionName(QWidget):
         if au.get_connections_expr_name() == old_name:
             au.set_connections_expr_name(new_name)
         self._updater.signal_update(
-                set([self._get_list_update_signal_type(),
-                    self._get_selection_update_signal_type()]))
+                self._get_list_update_signal_type(),
+                self._get_selection_update_signal_type())
 
 
-class ExpressionEditor(QWidget):
+class ExpressionEditor(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
 
         self._name = ExpressionName()
 
+        self.add_to_updaters(self._name)
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(self._name)
         self.setLayout(v)
-
-    def set_au_id(self, au_id):
-        self._name.set_au_id(au_id)
-
-    def set_ui_model(self, ui_model):
-        self._name.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._name.unregister_updaters()
 
 

@@ -16,13 +16,14 @@ from PySide.QtGui import *
 
 from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.headerline import HeaderLine
-from kunquat.tracker.ui.views.audio_unit.simple_env import SimpleEnvelope
-from kunquat.tracker.ui.views.audio_unit.time_env import TimeEnvelope
 from .procnumslider import ProcNumSlider
+from .procsimpleenv import ProcessorSimpleEnvelope
+from .proctimeenv import ProcessorTimeEnvelope
+from .processorupdater import ProcessorUpdater
 from . import utils
 
 
-class EnvgenProc(QWidget):
+class EnvgenProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():
@@ -56,29 +57,10 @@ class EnvgenProc(QWidget):
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._global_adjust.set_au_id(au_id)
-        self._range.set_au_id(au_id)
-        self._time_env.set_au_id(au_id)
-        self._force_env.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-        self._global_adjust.set_proc_id(proc_id)
-        self._range.set_proc_id(proc_id)
-        self._time_env.set_proc_id(proc_id)
-        self._force_env.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._global_adjust.set_ui_model(ui_model)
-        self._range.set_ui_model(ui_model)
-        self._time_env.set_ui_model(ui_model)
-        self._force_env.set_ui_model(ui_model)
-
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.add_to_updaters(
+                self._global_adjust, self._range, self._time_env, self._force_env)
+        self.register_action(self._get_update_signal_type(), self._update_linear_force)
 
         QObject.connect(
                 self._linear_force,
@@ -87,19 +69,8 @@ class EnvgenProc(QWidget):
 
         self._update_linear_force()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-        self._force_env.unregister_updaters()
-        self._time_env.unregister_updaters()
-        self._range.unregister_updaters()
-        self._global_adjust.unregister_updaters()
-
     def _get_update_signal_type(self):
         return 'signal_egen_linear_force_{}'.format(self._proc_id)
-
-    def _perform_updates(self, signals):
-        if self._get_update_signal_type() in signals:
-            self._update_linear_force()
 
     def _update_linear_force(self):
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -117,7 +88,7 @@ class EnvgenProc(QWidget):
 
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         egen_params.set_linear_force_enabled(enabled)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 # TODO: change this into a spinbox -- a proper range is too wide for a slider
@@ -134,21 +105,16 @@ class GlobalAdjustSlider(ProcNumSlider):
     def _value_changed(self, value):
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         egen_params.set_global_adjust(value)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _get_update_signal_type(self):
         return 'signal_egen_global_adjust_{}'.format(self._proc_id)
 
 
-class RangeEditor(QWidget):
+class RangeEditor(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._min_editor = QDoubleSpinBox()
         self._max_editor = QDoubleSpinBox()
 
@@ -164,16 +130,8 @@ class RangeEditor(QWidget):
         h.addWidget(self._max_editor, 1)
         self.setLayout(h)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action(self._get_update_signal_type(), self._update_range)
 
         QObject.connect(
                 self._min_editor, SIGNAL('valueChanged(double)'), self._set_range_min)
@@ -182,15 +140,8 @@ class RangeEditor(QWidget):
 
         self._update_range()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
     def _get_update_signal_type(self):
         return '_'.join(('signal_env_range', self._proc_id))
-
-    def _perform_updates(self, signals):
-        if self._get_update_signal_type() in signals:
-            self._update_range()
 
     def _update_range(self):
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -212,7 +163,7 @@ class RangeEditor(QWidget):
         y_range[0] = value
         y_range[1] = max(y_range)
         egen_params.set_y_range(y_range)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _set_range_max(self, value):
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -220,19 +171,14 @@ class RangeEditor(QWidget):
         y_range[1] = value
         y_range[0] = min(y_range)
         egen_params.set_y_range(y_range)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
-class EgenTimeEnv(TimeEnvelope):
+class EgenTimeEnv(ProcessorTimeEnvelope):
 
     def __init__(self):
         super().__init__()
-        self._proc_id = None
-
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
 
     def _get_title(self):
         return 'Envelope'
@@ -295,14 +241,10 @@ class EgenTimeEnv(TimeEnvelope):
         self._get_egen_params().set_time_env(envelope)
 
 
-class ForceEnv(SimpleEnvelope):
+class ForceEnv(ProcessorSimpleEnvelope):
 
     def __init__(self):
         super().__init__()
-        self._proc_id = None
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
 
     def _get_update_signal_type(self):
         return ''.join(('signal_add_force_mod_volume_', self._au_id, self._proc_id))

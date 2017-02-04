@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -14,15 +14,13 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from kunquat.tracker.ui.views.audio_unit.aunumslider import AuNumSlider
+from kunquat.tracker.ui.views.audiounit.aunumslider import AuNumSlider
+from .processorupdater import ProcessorUpdater
 
 
-class ProcNumSlider(AuNumSlider):
+class ProcNumSlider(AuNumSlider, ProcessorUpdater):
 
     def __init__(self, decimal_count, min_val, max_val, title='', width_txt=''):
         super().__init__(decimal_count, min_val, max_val, title, width_txt)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
 
 

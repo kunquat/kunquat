@@ -16,15 +16,14 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .octavebutton import OctaveButton
+from .updater import Updater
 
 
-class OctaveSelector(QFrame):
+class OctaveSelector(QFrame, Updater):
 
     def __init__(self):
         super().__init__()
         self.setFocusPolicy(Qt.NoFocus)
-        self._ui_model = None
-        self._updater = None
         self._typewriter_manager = None
 
         self._title = QLabel('Octave:')
@@ -41,24 +40,12 @@ class OctaveSelector(QFrame):
         h.addStretch(1)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._typewriter_manager = ui_model.get_typewriter_manager()
+    def _on_setup(self):
+        self.register_action('signal_select_keymap', self._update_layout)
+        self.register_action('signal_notation', self._update_layout)
 
+        self._typewriter_manager = self._ui_model.get_typewriter_manager()
         self._update_layout()
-
-    def unregister_updaters(self):
-        for i in range(self._button_layout.count()):
-            button = self._button_layout.itemAt(i).widget()
-            button.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set(['signal_select_keymap', 'signal_notation'])
-        if not signals.isdisjoint(update_signals):
-            self._update_layout()
 
     def _update_layout(self):
         keymap_manager = self._ui_model.get_keymap_manager()
@@ -82,14 +69,9 @@ class OctaveSelector(QFrame):
         for i in range(new_button_count, old_button_count):
             self._button_layout.itemAt(i).widget().hide()
 
-    def _get_buttons(self):
-        octave_count = self._typewriter_manager.get_octave_count()
-        buttons = (self._get_button(i) for i in range(octave_count))
-        return buttons
-
     def _get_button(self, octave_id):
         button = OctaveButton(octave_id)
-        button.set_ui_model(self._ui_model)
+        self.add_to_updaters(button)
         return button
 
 

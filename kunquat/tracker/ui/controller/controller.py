@@ -136,7 +136,7 @@ class Controller():
 
             self._store.put(values)
             self._store.clear_modified_flag()
-            self._updater.signal_update(set(['signal_controls', 'signal_module']))
+            self._updater.signal_update('signal_controls', 'signal_module')
 
             self._reset_expressions()
 
@@ -165,7 +165,7 @@ class Controller():
         if tmpname:
             os.rename(tmpname, module_path)
 
-        self._updater.signal_update(set(['signal_save_module_finished']))
+        self._updater.signal_update('signal_save_module_finished')
 
     def get_task_export_audio_unit(self, au_id, au_path):
         assert au_path
@@ -195,7 +195,7 @@ class Controller():
         if tmpname:
             os.rename(tmpname, au_path)
 
-        self._updater.signal_update(set(['signal_export_au_finished']))
+        self._updater.signal_update('signal_export_au_finished')
 
     def get_task_load_audio_unit(
             self, kqtifile, au_id, control_id=None, is_sandbox=False):
@@ -207,7 +207,7 @@ class Controller():
                     kqtifile.get_path(),
                     'File is not a valid Kunquat audio unit package.')
             self._updater.signal_update(
-                    set(['signal_au_import_error', 'signal_au_import_finished']))
+                    'signal_au_import_error', 'signal_au_import_finished')
             return
         contents = kqtifile.get_contents()
 
@@ -219,7 +219,7 @@ class Controller():
             self._session.set_au_import_error_info(
                     kqtifile.get_path(), validator.get_validation_error())
             self._updater.signal_update(
-                    set(['signal_au_import_error', 'signal_au_import_finished']))
+                    'signal_au_import_error', 'signal_au_import_finished')
             return
 
         transaction = {}
@@ -273,7 +273,7 @@ class Controller():
         self._store.put(transaction)
 
         self._updater.signal_update(
-                set(['signal_controls', 'signal_au_import_finished']))
+                'signal_controls', 'signal_au_import_finished')
 
         if (not is_sandbox) and ('/' not in au_id):
             visibility_manager = self._ui_model.get_visibility_manager()
@@ -281,7 +281,7 @@ class Controller():
 
     def _reset_runtime_env(self):
         self._session.reset_runtime_env()
-        self._updater.signal_update(set(['signal_runtime_env']))
+        self._updater.signal_update('signal_runtime_env')
 
     def _reset_expressions(self):
         self._session.reset_active_ch_expressions()
@@ -300,7 +300,7 @@ class Controller():
             new_seed = (old_seed + 1) % 2**63
             transaction = { rand_seed_key: new_seed }
             self._store.put(transaction, mark_modified=False)
-            self._updater.signal_update(set(['signal_random_seed']))
+            self._updater.signal_update('signal_random_seed')
 
     def call_post_action(self, action_name, args):
         getattr(self, action_name)(*args)
@@ -325,7 +325,7 @@ class Controller():
 
         self._audio_engine.tfire_event(0, ('cresume', None))
         self._session.set_playback_active(True)
-        self._updater.signal_update(set(['signal_play']))
+        self._updater.signal_update('signal_play')
 
     def play_pattern(self, pattern_instance):
         if self._session.is_playback_active():
@@ -347,7 +347,7 @@ class Controller():
         self._reset_expressions()
         self._audio_engine.tfire_event(0, ('cresume', None))
         self._session.set_playback_active(True)
-        self._updater.signal_update(set(['signal_play']))
+        self._updater.signal_update('signal_play')
 
     def play_from_cursor(self, pattern_instance, row_ts):
         if self._session.is_playback_active():
@@ -372,7 +372,7 @@ class Controller():
         self._reset_expressions()
         self._audio_engine.tfire_event(0, ('cresume', None))
         self._session.set_playback_active(True)
-        self._updater.signal_update(set(['signal_play']))
+        self._updater.signal_update('signal_play')
 
     def silence(self):
         self._reset_with_post_action(self._silence)
@@ -381,7 +381,7 @@ class Controller():
             self._check_update_random_seed()
 
         self._session.set_playback_active(False)
-        self._updater.signal_update(set(['signal_silence']))
+        self._updater.signal_update('signal_silence')
 
     def _silence(self):
         self._session.reset_max_audio_levels()
@@ -520,7 +520,7 @@ class Controller():
 
     def update_active_var_value(self, ch, var_value):
         self._session.set_active_var_value(ch, var_value)
-        self._updater.signal_update(set(['signal_runtime_env']))
+        self._updater.signal_update('signal_runtime_env')
 
     def update_ch_expression(self, ch, expr_name):
         self._ch_expr_counter[ch] -= 1
@@ -557,7 +557,7 @@ class Controller():
         self._session.set_playback_cursor(row)
         if self._session.get_record_mode():
             self._move_edit_cursor_to_playback_cursor()
-        self._updater.signal_update(set(['signal_playback_cursor']))
+        self._updater.signal_update('signal_playback_cursor')
 
     def _move_edit_cursor_to_playback_cursor(self):
         (track, system, row) = self._session.get_playback_cursor_position()

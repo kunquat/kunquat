@@ -19,6 +19,7 @@ from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
+from kunquat.tracker.ui.views.updater import Updater
 from .config import *
 from .header import Header
 from .ruler import Ruler
@@ -87,14 +88,11 @@ class Corner(QWidget):
         painter.eraseRect(event.rect())
 
 
-class SheetArea(QAbstractScrollArea):
+class SheetArea(QAbstractScrollArea, Updater):
 
     def __init__(self):
         super().__init__()
         self.setFocusPolicy(Qt.NoFocus)
-
-        self._ui_model = None
-        self._updater = None
 
         # Widgets
         self.setViewport(View())
@@ -136,15 +134,15 @@ class SheetArea(QAbstractScrollArea):
                 SIGNAL('followPlaybackColumn(int)'),
                 self._follow_playback_column)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._sheet_manager = ui_model.get_sheet_manager()
+    def _on_setup(self):
+        self.register_action('signal_sheet_zoom', self._update_zoom)
+        self.register_action('signal_sheet_column_width', self._update_column_width)
+        self.register_action('signal_style_changed', self._update_config)
+
+        self._sheet_manager = self._ui_model.get_sheet_manager()
 
         # Child widgets
-        self._ruler.set_ui_model(ui_model)
-        self.viewport().set_ui_model(ui_model)
+        self.add_to_updaters(self._ruler, self.viewport())
 
         self._update_config()
 
@@ -170,19 +168,6 @@ class SheetArea(QAbstractScrollArea):
         # Apply default zoom level and column width
         self._set_px_per_beat(self._zoom_levels[self._default_zoom_index])
         self._set_column_width(self._col_width_levels[self._default_col_width_index])
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-        self._ruler.unregister_updaters()
-        self.viewport().unregister_updaters()
-
-    def _perform_updates(self, signals):
-        if 'signal_sheet_zoom' in signals:
-            self._update_zoom()
-        if 'signal_sheet_column_width' in signals:
-            self._update_column_width()
-        if 'signal_style_changed' in signals:
-            self._update_config()
 
     def _update_config(self):
         style_manager = self._ui_model.get_style_manager()

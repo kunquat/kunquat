@@ -17,11 +17,12 @@ from PySide.QtGui import *
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from .procnumslider import ProcNumSlider
+from .processorupdater import ProcessorUpdater
 from .waveformeditor import WaveformEditor
 from . import utils
 
 
-class AddProc(QWidget):
+class AddProc(QWidget, ProcessorUpdater):
 
     @staticmethod
     def get_name():
@@ -29,15 +30,12 @@ class AddProc(QWidget):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._ramp_attack = QCheckBox('Ramp attack')
         self._rand_phase = QCheckBox('Random initial phase')
         self._base_waveform = AddWaveformEditor()
         self._base_tone_editor = ToneList()
+
+        self.add_to_updaters(self._base_waveform, self._base_tone_editor)
 
         h = QHBoxLayout()
         h.setContentsMargins(4, 4, 4, 4)
@@ -56,22 +54,8 @@ class AddProc(QWidget):
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._base_waveform.set_au_id(au_id)
-        self._base_tone_editor.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-        self._base_waveform.set_proc_id(proc_id)
-        self._base_tone_editor.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._base_waveform.set_ui_model(ui_model)
-        self._base_tone_editor.set_ui_model(ui_model)
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action(self._get_update_signal_type(), self._update_simple_params)
 
         QObject.connect(
                 self._ramp_attack, SIGNAL('stateChanged(int)'), self._change_ramp_attack)
@@ -80,17 +64,8 @@ class AddProc(QWidget):
 
         self._update_simple_params()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-        self._base_tone_editor.unregister_updaters()
-        self._base_waveform.unregister_updaters()
-
     def _get_update_signal_type(self):
         return '_'.join(('signal_proc_add_simple_params', self._proc_id))
-
-    def _perform_updates(self, signals):
-        if self._get_update_signal_type() in signals:
-            self._update_simple_params()
 
     def _update_simple_params(self):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -113,13 +88,13 @@ class AddProc(QWidget):
         enabled = (state == Qt.Checked)
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.set_ramp_attack_enabled(enabled)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _change_rand_phase(self, state):
         enabled = (state == Qt.Checked)
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.set_rand_phase_enabled(enabled)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class AddWaveformEditor(WaveformEditor):
@@ -141,42 +116,25 @@ class SmallButton(QPushButton):
         self.setIcon(QIcon(icon))
 
 
-class ToneList(EditorList):
+class ToneList(EditorList, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
-
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
         self._icon_bank = None
-
         self._adder = None
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._icon_bank = ui_model.get_icon_bank()
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
+        self._icon_bank = self._ui_model.get_icon_bank()
+        self.register_action('signal_au', self._update_all)
+        self.register_action(self._get_update_signal_type(), self._update_all)
         self._update_all()
 
-    def unregister_updaters(self):
+    def _on_teardown(self):
         self.disconnect_widgets()
-        self._updater.unregister_updater(self._perform_updates)
 
     def _make_adder_widget(self):
         self._adder = ToneAdder()
-        self._adder.set_au_id(self._au_id)
-        self._adder.set_proc_id(self._proc_id)
-        self._adder.set_ui_model(self._ui_model)
+        self.add_to_updaters(self._adder)
         return self._adder
 
     def _get_updated_editor_count(self):
@@ -186,24 +144,17 @@ class ToneList(EditorList):
 
     def _make_editor_widget(self, index):
         editor = ToneEditor(index, self._icon_bank)
-        editor.set_au_id(self._au_id)
-        editor.set_proc_id(self._proc_id)
-        editor.set_ui_model(self._ui_model)
+        self.add_to_updaters(editor)
         return editor
 
     def _update_editor(self, index, editor):
         pass
 
     def _disconnect_widget(self, widget):
-        widget.unregister_updaters()
+        self.remove_from_updaters(widget)
 
     def _get_update_signal_type(self):
         return ''.join(('signal_proc_add_tone_', self._au_id, self._proc_id))
-
-    def _perform_updates(self, signals):
-        update_signals = set(['signal_au', self._get_update_signal_type()])
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
 
     def _update_all(self):
         self.update_list()
@@ -214,29 +165,13 @@ class ToneList(EditorList):
         self._adder.setVisible(not max_count_reached)
 
 
-class ToneAdder(QPushButton):
+class ToneAdder(QPushButton, ProcessorUpdater):
 
     def __init__(self):
         super().__init__('Add tone')
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         QObject.connect(self, SIGNAL('clicked()'), self._add_tone)
-
-    def unregister_updaters(self):
-        pass
 
     def _get_update_signal_type(self):
         return ''.join(('signal_proc_add_tone_', self._au_id, self._proc_id))
@@ -244,24 +179,24 @@ class ToneAdder(QPushButton):
     def _add_tone(self):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.add_tone()
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
-class ToneEditor(QWidget):
+class ToneEditor(QWidget, ProcessorUpdater):
 
     _ARG_SCALE = 1000
 
     def __init__(self, index, icon_bank):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
         self._index = index
 
         self._pitch_spin = TonePitchSpin(index)
         self._volume_slider = ToneVolumeSlider(index)
         self._panning_slider = TonePanningSlider(index)
         self._remove_button = SmallButton(icon_bank.get_icon_path('delete_small'))
+
+        self.add_to_updaters(
+                self._pitch_spin, self._volume_slider, self._panning_slider)
 
         self._remove_button.setEnabled(self._index != 0)
 
@@ -274,29 +209,8 @@ class ToneEditor(QWidget):
         h.addWidget(self._remove_button)
         self.setLayout(h)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._pitch_spin.set_au_id(au_id)
-        self._volume_slider.set_au_id(au_id)
-        self._panning_slider.set_au_id(au_id)
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-        self._pitch_spin.set_proc_id(proc_id)
-        self._volume_slider.set_proc_id(proc_id)
-        self._panning_slider.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._pitch_spin.set_ui_model(ui_model)
-        self._volume_slider.set_ui_model(ui_model)
-        self._panning_slider.set_ui_model(ui_model)
+    def _on_setup(self):
         QObject.connect(self._remove_button, SIGNAL('clicked()'), self._removed)
-
-    def unregister_updaters(self):
-        self._panning_slider.unregister_updaters()
-        self._volume_slider.unregister_updaters()
-        self._pitch_spin.unregister_updaters()
 
     def _get_update_signal_type(self):
         return ''.join(('signal_proc_add_tone_', self._au_id, self._proc_id))
@@ -305,17 +219,13 @@ class ToneEditor(QWidget):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.remove_tone(self._index)
         updater = self._ui_model.get_updater()
-        updater.signal_update(set([self._get_update_signal_type()]))
+        updater.signal_update(self._get_update_signal_type())
 
 
-class TonePitchSpin(QWidget):
+class TonePitchSpin(QWidget, ProcessorUpdater):
 
     def __init__(self, index):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
         self._index = index
 
         self._spin = QDoubleSpinBox()
@@ -330,30 +240,14 @@ class TonePitchSpin(QWidget):
         h.addWidget(self._spin)
         self.setLayout(h)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_au', self._update_value)
+        self.register_action(self._get_update_signal_type(), self._update_value)
         self._update_value()
-
         QObject.connect(self._spin, SIGNAL('valueChanged(double)'), self._value_changed)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
 
     def _get_update_signal_type(self):
         return ''.join(('signal_proc_add_tone_', self._au_id, self._proc_id))
-
-    def _perform_updates(self, signals):
-        update_signals = set(['signal_au', self._get_update_signal_type()])
-        if not signals.isdisjoint(update_signals):
-            self._update_value()
 
     def _update_value(self):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -371,7 +265,7 @@ class TonePitchSpin(QWidget):
     def _value_changed(self, pitch):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.set_tone_pitch(self._index, pitch)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class ToneVolumeSlider(ProcNumSlider):
@@ -393,7 +287,7 @@ class ToneVolumeSlider(ProcNumSlider):
     def _value_changed(self, volume):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.set_tone_volume(self._index, volume)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _get_update_signal_type(self):
         return ''.join(('signal_proc_add_tone_', self._au_id, self._proc_id))
@@ -418,7 +312,7 @@ class TonePanningSlider(ProcNumSlider):
     def _value_changed(self, panning):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         add_params.set_tone_panning(self._index, panning)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _get_update_signal_type(self):
         return ''.join(('signal_proc_add_tone_', self._au_id, self._proc_id))

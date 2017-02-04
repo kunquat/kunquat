@@ -17,18 +17,14 @@ from PySide.QtGui import *
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
+from .processorupdater import ProcessorUpdater
 from .waveform import Waveform
 
 
-class WaveformEditor(QWidget):
+class WaveformEditor(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._prewarp_list = WarpList(
                 'pre', self._get_base_wave, self._get_update_signal_type)
         self._base_func_selector = KqtComboBox()
@@ -54,23 +50,12 @@ class WaveformEditor(QWidget):
         v.addLayout(ed_layout)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._prewarp_list.set_au_id(au_id)
-        self._postwarp_list.set_au_id(au_id)
+    def _on_setup(self):
+        self.add_to_updaters(self._prewarp_list, self._postwarp_list)
+        self.register_action('signal_au', self._update_all)
+        self.register_action(self._get_update_signal_type(), self._update_all)
+        self.register_action('signal_style_changed', self._update_style)
 
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-        self._prewarp_list.set_proc_id(proc_id)
-        self._postwarp_list.set_proc_id(proc_id)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._prewarp_list.set_ui_model(ui_model)
-        self._postwarp_list.set_ui_model(ui_model)
-
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
         self._update_style()
         self._update_all()
 
@@ -78,18 +63,6 @@ class WaveformEditor(QWidget):
                 self._base_func_selector,
                 SIGNAL('currentIndexChanged(int)'),
                 self._base_func_selected)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-        self._prewarp_list.unregister_updaters()
-        self._postwarp_list.unregister_updaters()
-
-    def _perform_updates(self, signals):
-        update_signals = set(['signal_au', self._get_update_signal_type()])
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
-        if 'signal_style_changed' in signals:
-            self._update_style()
 
     def _update_style(self):
         style_manager = self._ui_model.get_style_manager()
@@ -137,7 +110,7 @@ class WaveformEditor(QWidget):
         base_wave = self._get_base_wave()
         func_names = base_wave.get_waveform_func_names()
         base_wave.set_waveform_func(func_names[index])
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     # Protected interface
 
@@ -148,43 +121,29 @@ class WaveformEditor(QWidget):
         raise NotImplementedError
 
 
-class WarpList(EditorList):
+class WarpList(EditorList, ProcessorUpdater):
 
     def __init__(self, warp_type, get_base_wave, get_update_signal_type):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._warp_type = warp_type
         self._get_base_wave = get_base_wave
         self._get_update_signal_type = get_update_signal_type
 
         self._adder = None
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
+    def _on_setup(self):
+        self.register_action('signal_au', self._update_all)
+        self.register_action(self._get_update_signal_type(), self._update_all)
 
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
         self._update_all()
 
-    def unregister_updaters(self):
+    def _on_teardown(self):
         self.disconnect_widgets()
-        self._updater.unregister_updater(self._perform_updates)
 
     def _make_adder_widget(self):
         self._adder = WarpAdder(
                 self._warp_type, self._get_base_wave, self._get_update_signal_type)
-        self._adder.set_au_id(self._au_id)
-        self._adder.set_proc_id(self._proc_id)
-        self._adder.set_ui_model(self._ui_model)
+        self.add_to_updaters(self._adder)
         return self._adder
 
     def _get_updated_editor_count(self):
@@ -202,21 +161,14 @@ class WarpList(EditorList):
                 index,
                 self._get_base_wave,
                 self._get_update_signal_type)
-        editor.set_au_id(self._au_id)
-        editor.set_proc_id(self._proc_id)
-        editor.set_ui_model(self._ui_model)
+        self.add_to_updaters(editor)
         return editor
 
     def _update_editor(self, index, editor):
         pass
 
     def _disconnect_widget(self, widget):
-        widget.unregister_updaters()
-
-    def _perform_updates(self, signals):
-        update_signals = set(['signal_au', self._get_update_signal_type()])
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
+        self.remove_from_updaters(widget)
 
     def _update_all(self):
         self.update_list()
@@ -227,15 +179,10 @@ class WarpList(EditorList):
         self._adder.setVisible(not max_count_reached)
 
 
-class WarpAdder(QPushButton):
+class WarpAdder(QPushButton, ProcessorUpdater):
 
     def __init__(self, warp_type, get_base_wave, get_update_signal_type):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._warp_type = warp_type
         self._get_base_wave = get_base_wave
         self._get_update_signal_type = get_update_signal_type
@@ -243,25 +190,13 @@ class WarpAdder(QPushButton):
         self._add_text = { 'pre': 'Add prewarp', 'post': 'Add postwarp' }[warp_type]
         self.setText(self._add_text)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         QObject.connect(self, SIGNAL('clicked()'), self._add_warp)
-
-    def unregister_updaters(self):
-        pass
 
     def _add_warp(self):
         base_wave = self._get_base_wave()
         base_wave.add_warp_func(self._warp_type)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class SmallButton(QPushButton):
@@ -271,17 +206,12 @@ class SmallButton(QPushButton):
         self.setStyleSheet('padding: 0 -2px;')
 
 
-class WarpEditor(QWidget):
+class WarpEditor(QWidget, ProcessorUpdater):
 
     _ARG_SCALE = 1000
 
     def __init__(self, warp_type, index, get_base_wave, get_update_signal_type):
         super().__init__()
-        self._au_id = None
-        self._proc_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._warp_type = warp_type
         self._index = index
         self._get_base_wave = get_base_wave
@@ -315,16 +245,9 @@ class WarpEditor(QWidget):
         h.addWidget(self._remove_button)
         self.setLayout(h)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_proc_id(self, proc_id):
-        self._proc_id = proc_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_au', self._update_all)
+        self.register_action(self._get_update_signal_type(), self._update_all)
 
         icon_bank = self._ui_model.get_icon_bank()
         self._down_button.setIcon(QIcon(icon_bank.get_icon_path('arrow_down_small')))
@@ -346,14 +269,6 @@ class WarpEditor(QWidget):
                 self._func_selected)
         QObject.connect(self._slider, SIGNAL('valueChanged(int)'), self._slider_adjusted)
         QObject.connect(self._remove_button, SIGNAL('clicked()'), self._removed)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set(['signal_au', self._get_update_signal_type()])
-        if not signals.isdisjoint(update_signals):
-            self._update_all()
 
     def _update_all(self):
         base_wave = self._get_base_wave()
@@ -385,19 +300,19 @@ class WarpEditor(QWidget):
     def _moved_down(self):
         base_wave = self._get_base_wave()
         base_wave.move_warp_func(self._warp_type, self._index, self._index + 1)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _moved_up(self):
         base_wave = self._get_base_wave()
         base_wave.move_warp_func(self._warp_type, self._index, self._index - 1)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _set_warp(self):
         base_wave = self._get_base_wave()
         name = str(self._func_selector.currentText())
         arg = self._slider.value() / float(self._ARG_SCALE)
         base_wave.set_warp_func(self._warp_type, self._index, name, arg)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
     def _func_selected(self, index):
         self._set_warp()
@@ -408,6 +323,6 @@ class WarpEditor(QWidget):
     def _removed(self):
         base_wave = self._get_base_wave()
         base_wave.remove_warp_func(self._warp_type, self._index)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        self._updater.signal_update(self._get_update_signal_type())
 
 

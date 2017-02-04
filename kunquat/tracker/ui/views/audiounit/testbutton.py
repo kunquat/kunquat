@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -14,31 +14,24 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from .audiounitupdater import AudioUnitUpdater
 
-class TestButton(QPushButton):
+
+class TestButton(QPushButton, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._au_id = None
         self._control_manager = None
         self._typewriter_manager = None
         self._button_model = None
 
         self.setText('Test')
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._control_manager = ui_model.get_control_manager()
-        self._typewriter_manager = ui_model.get_typewriter_manager()
+    def _on_setup(self):
+        self._control_manager = self._ui_model.get_control_manager()
+        self._typewriter_manager = self._ui_model.get_typewriter_manager()
         QObject.connect(self, SIGNAL('pressed()'), self._pressed)
         QObject.connect(self, SIGNAL('released()'), self._released)
-
-    def unregister_updaters(self):
-        pass
 
     def _pressed(self):
         module = self._ui_model.get_module()

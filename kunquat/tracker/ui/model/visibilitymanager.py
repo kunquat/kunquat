@@ -72,7 +72,7 @@ class VisibilityManager():
             signal = 'signal_window_{}'.format(ui)
         else:
             signal = 'signal_window_{}_{}'.format(ui[0], ui[1])
-        self._updater.signal_update(set([signal]))
+        self._updater.signal_update(signal)
 
     def show_about(self):
         self._show_window(UI_ABOUT)
