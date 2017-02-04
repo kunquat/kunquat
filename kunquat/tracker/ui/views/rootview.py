@@ -106,6 +106,7 @@ class RootView():
     def setup_module(self):
         module = self._ui_model.get_module()
         module_path = cmdline.get_kqt_file()
+        self._set_windows_enabled(False)
         if module_path:
             module.set_path(module_path)
             module.execute_load(self._task_executor)
@@ -328,6 +329,8 @@ class RootView():
                     window.raise_()
 
             # Process other signals
+            if 'signal_module' in signals:
+                self._enable_windows()
             if 'signal_start_save_module' in signals:
                 self._start_save_module()
             if 'signal_save_module_finished' in signals:
@@ -350,6 +353,9 @@ class RootView():
             QApplication.quit()
 
         self._ui_model.clock()
+
+    def _enable_windows(self):
+        self._set_windows_enabled(True)
 
     def _set_windows_enabled(self, enabled):
         def try_set_enabled(window):
