@@ -124,9 +124,12 @@ class Controller():
         if module_path.endswith('.kqt'):
             kqtfile = KqtFile(module_path, KQT_KEEP_NONE)
 
+            self._session.set_progress_description('Loading {}...'.format(module_path))
             self.update_import_progress(0)
+            self._updater.signal_update('signal_progress_start')
 
             for i, entry in enumerate(kqtfile.get_entries()):
+                self._updater.signal_update('signal_progress_step')
                 yield
                 key, value = entry
                 values[key] = value
@@ -136,7 +139,9 @@ class Controller():
 
             self._store.put(values)
             self._store.clear_modified_flag()
-            self._updater.signal_update('signal_controls', 'signal_module')
+
+            self._updater.signal_update(
+                    'signal_controls', 'signal_module', 'signal_progress_finished')
 
             self._reset_expressions()
 
