@@ -261,6 +261,10 @@ class Ruler(QWidget, Updater):
             offset = self._playback_cursor_offset - self._px_offset
             painter.drawLine(0, offset, self._width, offset)
 
+        if not self.isEnabled():
+            painter.fillRect(
+                    0, 0, self.width(), self.height(), self._config['disabled_colour'])
+
         end = time.time()
         elapsed = end - start
         #print('Ruler updated in {:.2f} ms'.format(elapsed * 1000))

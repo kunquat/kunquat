@@ -21,6 +21,7 @@ DEFAULT_CONFIG = {
         'fg_colour'         : QColor(0xaa, 0xcc, 0xff),
         'canvas_bg_colour'  : QColor(0x11, 0x11, 0x11),
         'play_cursor_colour': QColor(0x66, 0xee, 0x66),
+        'disabled_colour'   : QColor(0x88, 0x88, 0x88, 0x7f),
         'font'              : QFont(QFont().defaultFamily(), 9),
         'line_min_dist'     : 3,
         'line_len_short'    : 2,
@@ -113,6 +114,11 @@ def get_config_with_custom_style(style_manager):
             style_manager.get_style_param('sheet_canvas_bg_colour'))
     config['canvas_bg_colour'] = canvas_bg_colour
 
+    disabled_colour = _get_colour(
+            style_manager.get_style_param('bg_colour'))
+    disabled_colour.setAlpha(0x7f)
+    config['disabled_colour'] = disabled_colour
+
     # Columns
     config['bg_colour'] = _get_colour(
             style_manager.get_style_param('sheet_column_bg_colour'))
@@ -127,6 +133,7 @@ def get_config_with_custom_style(style_manager):
             style_manager.get_style_param('sheet_ruler_fg_colour'))
     config['ruler']['play_cursor_colour'] = _get_colour(
             style_manager.get_style_param('sheet_playback_cursor_colour'))
+    config['ruler']['disabled_colour'] = disabled_colour
 
     # Column headers
     config['header']['bg_colour'] = _get_colour(

@@ -1967,6 +1967,10 @@ class View(QWidget):
             self._draw_selected_area_rect(
                     painter, selection, draw_col_start, draw_col_stop)
 
+        if not self.isEnabled():
+            painter.fillRect(
+                    0, 0, self.width(), self.height(), self._config['disabled_colour'])
+
         if pixmaps_created == 0:
             pass # TODO: update was easy, predraw a likely next pixmap
         else:

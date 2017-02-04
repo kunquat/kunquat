@@ -81,11 +81,15 @@ class Corner(QWidget):
 
     def set_config(self, config):
         self._bg_colour = config['bg_colour']
+        self._disabled_colour = config['disabled_colour']
 
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setBackground(self._bg_colour)
         painter.eraseRect(event.rect())
+
+        if not self.isEnabled():
+            painter.fillRect(0, 0, self.width(), self.height(), self._disabled_colour)
 
 
 class SheetArea(QAbstractScrollArea, Updater):
