@@ -12,7 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from .stat_manager import StatManager
+from .statmanager import StatManager
 from .controlmanager import ControlManager
 from .keymapmanager import KeymapManager
 from .playbackmanager import PlaybackManager
