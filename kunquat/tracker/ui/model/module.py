@@ -351,10 +351,10 @@ class Module():
     def get_path(self):
         return self._session.get_module_path()
 
-    def execute_load(self, task_executer):
+    def execute_load(self, task_executor):
         assert not self.is_saving()
         task = self._controller.get_task_load_module(self.get_path())
-        task_executer(task)
+        task_executor(task)
 
     def finalise_create_sandbox(self):
         yield # make this a generator
@@ -362,7 +362,7 @@ class Module():
         self._store.clear_modified_flag()
         self._updater.signal_update('signal_module')
 
-    def execute_create_sandbox(self, task_executer):
+    def execute_create_sandbox(self, task_executor):
         assert not self.is_saving()
         self._controller.create_sandbox()
         kqtifile = self._controller.get_share().get_default_instrument()
@@ -370,7 +370,7 @@ class Module():
                 kqtifile, 'au_00', 'control_00', is_sandbox=True)
         finalise_task = self.finalise_create_sandbox()
         task = chain(load_au_task, finalise_task)
-        task_executer(task)
+        task_executor(task)
 
     def start_import_au(self, path, au_id, control_id=None):
         assert not self.is_saving()
@@ -378,13 +378,13 @@ class Module():
         self._session.set_au_import_info((path, au_id, control_id))
         self._updater.signal_update('signal_start_import_au')
 
-    def execute_import_au(self, task_executer):
+    def execute_import_au(self, task_executor):
         assert self.is_importing_audio_unit()
         path, au_id, control_id = self._session.get_au_import_info()
         kqtifile = KqtiFile(path)
         load_task = self._controller.get_task_load_audio_unit(
                 kqtifile, au_id, control_id)
-        task_executer(load_task)
+        task_executor(load_task)
 
     def finish_import_au(self):
         self._session.set_au_import_info(None)
@@ -392,11 +392,11 @@ class Module():
     def is_importing_audio_unit(self):
         return self._session.is_importing_audio_unit()
 
-    def execute_export_au(self, task_executer):
+    def execute_export_au(self, task_executor):
         au_id, path = self._session.get_au_export_info()
         self._session.set_au_export_info(None)
         task = self._controller.get_task_export_audio_unit(au_id, path)
-        task_executer(task)
+        task_executor(task)
 
     def finish_export_au(self):
         self._store.set_saving(False)
@@ -416,11 +416,11 @@ class Module():
     def flush(self, callback):
         self._store.flush(callback)
 
-    def execute_save(self, task_executer):
+    def execute_save(self, task_executor):
         assert self.is_saving()
         module_path = self._session.get_module_path()
         task = self._controller.get_task_save_module(module_path)
-        task_executer(task)
+        task_executor(task)
 
     def finish_save(self):
         self._store.set_saving(False)

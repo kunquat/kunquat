@@ -39,7 +39,7 @@ class RootView():
 
     def __init__(self):
         self._ui_model = None
-        self._task_executer = None
+        self._task_executor = None
         self._updater = None
         self._visible = set()
 
@@ -108,12 +108,12 @@ class RootView():
         module_path = cmdline.get_kqt_file()
         if module_path:
             module.set_path(module_path)
-            module.execute_load(self._task_executer)
+            module.execute_load(self._task_executor)
         else:
-            module.execute_create_sandbox(self._task_executer)
+            module.execute_create_sandbox(self._task_executor)
 
-    def set_task_executer(self, task_executer):
-        self._task_executer = task_executer
+    def set_task_executor(self, task_executor):
+        self._task_executor = task_executor
 
     def _perform_updates(self, signals):
         visibility_manager = self._ui_model.get_visibility_manager()
@@ -385,7 +385,7 @@ class RootView():
         self._module.flush(self._execute_save_module)
 
     def _execute_save_module(self):
-        self._module.execute_save(self._task_executer)
+        self._module.execute_save(self._task_executor)
 
     def _on_save_module_finished(self):
         self._module.finish_save()
@@ -393,7 +393,7 @@ class RootView():
 
     def _start_import_au(self):
         self._set_windows_enabled(False)
-        self._module.execute_import_au(self._task_executer)
+        self._module.execute_import_au(self._task_executor)
 
     def _on_au_import_error(self):
         def on_close():
@@ -418,7 +418,7 @@ class RootView():
         self._module.flush(self._execute_export_au)
 
     def _execute_export_au(self):
-        self._module.execute_export_au(self._task_executer)
+        self._module.execute_export_au(self._task_executor)
 
     def _on_export_au_finished(self):
         self._module.finish_export_au()

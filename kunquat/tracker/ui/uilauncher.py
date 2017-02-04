@@ -103,7 +103,7 @@ class UiLauncher():
         app = QApplication(sys.argv)
         error_dialog = ErrorDialog()
         root_view = RootView()
-        root_view.set_task_executer(self.add_task)
+        root_view.set_task_executor(self.add_task)
 
         update_timer = QTimer()
         QObject.connect(update_timer, SIGNAL('timeout()'), self.update)
