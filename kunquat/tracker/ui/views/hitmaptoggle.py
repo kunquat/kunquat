@@ -23,6 +23,7 @@ class HitMapToggle(QCheckBox):
         self._updater = None
 
         self.setToolTip('Use hit keymap (Ctrl + H)')
+        self.setFocusPolicy(Qt.NoFocus)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model

@@ -28,6 +28,7 @@ class InputControls(QWidget, Updater):
         self._full_controls = TypewriterPanel()
         self._compact_controls = CompactControls()
         self._switch_button = QPushButton()
+        self._switch_button.setFocusPolicy(Qt.NoFocus)
         self._switch_button.setStyleSheet('QPushButton { margin: 0; padding: -1px; }')
 
         self._controls = ControlLayout()

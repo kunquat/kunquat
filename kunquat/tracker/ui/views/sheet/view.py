@@ -106,8 +106,10 @@ class View(QWidget):
     heightChanged = Signal(name='heightChanged')
     followCursor = Signal(str, int, name='followCursor')
     followPlaybackColumn = Signal(int, name='followPlaybackColumn')
+    checkFixFocus = Signal(name='checkFixFocus')
 
     def __init__(self):
+        self._force_focus_on_enable = True
         super().__init__()
 
         self._ui_model = None
@@ -166,7 +168,10 @@ class View(QWidget):
         for cr in self._col_rends:
             cr.set_ui_model(ui_model)
 
-        self.setFocus()
+        QObject.connect(
+                self, SIGNAL('checkFixFocus()'),
+                self._check_fix_focus,
+                Qt.QueuedConnection)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
@@ -1502,10 +1507,11 @@ class View(QWidget):
             self._sheet_manager.try_remove_trigger()
         self._sheet_manager.add_trigger(new_trigger)
 
-    def event(self, ev):
-        if ev.type() == QEvent.KeyPress and ev.key() in (Qt.Key_Tab, Qt.Key_Backtab):
-            return self.keyPressEvent(ev) or False
-        return QWidget.event(self, ev)
+    def event(self, event):
+        if (event.type() == QEvent.KeyPress and
+                event.key() in (Qt.Key_Tab, Qt.Key_Backtab)):
+            return self.keyPressEvent(event) or False
+        return QWidget.event(self, event)
 
     def keyPressEvent(self, event):
         selection = self._ui_model.get_selection()
@@ -1880,7 +1886,7 @@ class View(QWidget):
         elif event.key() == Qt.Key_Right:
             self._horizontal_move_state.release_right()
 
-    def resizeEvent(self, ev):
+    def resizeEvent(self, event):
         max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
         first_col = utils.clamp_start_col(self._first_col, max_visible_cols)
         visible_cols = utils.get_visible_cols(first_col, max_visible_cols)
@@ -1897,19 +1903,19 @@ class View(QWidget):
         self._first_col = first_col
         self._visible_cols = visible_cols
 
-        if ev.size().height() > ev.oldSize().height():
+        if event.size().height() > event.oldSize().height():
             update_rect = QRect(0, 0, self.width(), self.height())
 
         if update_rect:
             self.update(update_rect)
 
-    def paintEvent(self, ev):
+    def paintEvent(self, event):
         start = time.time()
 
         painter = QPainter(self)
         painter.setBackground(self._config['canvas_bg_colour'])
 
-        rect = ev.rect()
+        rect = event.rect()
 
         # See which columns should be drawn
         draw_col_start = rect.x() // self._col_width
@@ -1984,10 +1990,10 @@ class View(QWidget):
         #print('View updated in {:.2f} ms, cache size {:.2f} MB'.format(
         #    elapsed * 1000, memory_usage / float(2**20)))
 
-    def focusInEvent(self, ev):
+    def focusInEvent(self, event):
         self._sheet_manager.set_edit_mode(True)
 
-    def focusOutEvent(self, ev):
+    def focusOutEvent(self, event):
         module = self._ui_model.get_module()
         allow_signals = (
                 self._visibility_manager.is_show_allowed() and
@@ -1997,6 +2003,22 @@ class View(QWidget):
         if allow_signals:
             self._sheet_manager.set_edit_mode(False)
             self._sheet_manager.set_chord_mode(False)
+
+        if event.reason() == Qt.OtherFocusReason:
+            # The user (hopefully) clicked the Save button while focused here
+            self._force_focus_on_enable = True
+
+    def _check_fix_focus(self):
+        if self._force_focus_on_enable:
+            self._force_focus_on_enable = False
+            self.setFocus()
+
+    def changeEvent(self, event):
+        if (self._force_focus_on_enable and
+                event.type() == QEvent.EnabledChange and
+                self.isEnabled()):
+            QObject.emit(self, SIGNAL('checkFixFocus()'))
+        event.ignore()
 
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:

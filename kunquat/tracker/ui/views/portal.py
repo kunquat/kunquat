@@ -70,6 +70,10 @@ class Portal(QToolBar, Updater):
         self.addWidget(self._settings_button)
         self.addWidget(self._about_button)
 
+    def addWidget(self, button):
+        button.setFocusPolicy(Qt.NoFocus)
+        super().addWidget(button)
+
 
 class NewButton(QToolButton, Updater):
 
