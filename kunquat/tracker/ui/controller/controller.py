@@ -126,7 +126,7 @@ class Controller():
             if progress < 1:
                 self._updater.signal_update('signal_progress_step')
             else:
-                self._updater.signal_update('signal_progress_finished')
+                self._updater.signal_update('signal_progress_finished', 'signal_module')
 
         return on_transaction_progress_update
 
@@ -152,7 +152,7 @@ class Controller():
                     transaction_notifier=self._get_transaction_notifier(0.5))
             self._store.clear_modified_flag()
 
-            self._updater.signal_update('signal_controls', 'signal_module')
+            self._updater.signal_update('signal_controls')
 
             self._reset_expressions()
 
