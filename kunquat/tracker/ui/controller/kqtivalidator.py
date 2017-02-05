@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -20,13 +20,19 @@ class KqtiValidator():
         self._validator = Kunquat()
         self._contents = contents
         self._validation_error = None
+        self._progress = 0
+
+    def get_progress(self):
+        return self._progress
 
     def get_validation_steps(self):
         target_prefix = 'au_00'
-        for (au_key, value) in self._contents.items():
+        step_count = len(self._contents.items())
+        for i, (au_key, value) in enumerate(self._contents.items()):
             yield
             key = '/'.join((target_prefix, au_key))
             self._validator.set_data(key, value)
+            self._progress = i / step_count
 
     def is_valid(self):
         if self._validation_error:
