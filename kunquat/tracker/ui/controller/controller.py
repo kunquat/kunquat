@@ -202,6 +202,16 @@ class Controller():
     def get_task_export_audio_unit(self, au_id, au_path):
         assert au_path
         tmpname = None
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(au_id)
+        au_type = 'instrument' if au.is_instrument() else 'effect'
+
+        self._session.set_progress_description(
+                'Exporting {} to {}...'.format(au_type, au_path))
+        self._session.set_progress_position(0)
+        self._updater.signal_update('signal_progress_start')
+
         with tempfile.NamedTemporaryFile(delete=False) as f:
             mode = 'w|bz2'
 
@@ -209,7 +219,10 @@ class Controller():
                 prefix = 'kqti00'
                 au_prefix = au_id + '/'
                 au_keys = [k for k in self._store.keys() if k.startswith(au_prefix)]
-                for key in au_keys:
+
+                step_count = len(au_keys) + 1
+
+                for i, key in enumerate(au_keys):
                     yield
                     value = self._store[key]
                     path = '{}/{}'.format(prefix, key[len(au_prefix):])
@@ -221,11 +234,15 @@ class Controller():
                     info.size = len(encoded)
                     encoded_file = BytesIO(encoded)
                     tfile.addfile(info, encoded_file)
+                    self._update_progress_step(i / step_count)
 
                 tmpname = f.name
 
         if tmpname:
             os.rename(tmpname, au_path)
+
+        self._session.set_progress_position(1)
+        self._updater.signal_update('signal_progress_finished')
 
         self._updater.signal_update('signal_export_au_finished')
 
