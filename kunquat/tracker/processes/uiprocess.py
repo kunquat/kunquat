@@ -148,6 +148,9 @@ class UiProcess(Process):
     def update_event_log_with(self, channel_number, event_type, event_value, context):
         self._q.put('update_event_log_with', channel_number, event_type, event_value, context)
 
+    def update_transaction_progress(self, transaction_id, progress):
+        self._q.put('update_transaction_progress', transaction_id, progress)
+
     def confirm_valid_data(self, transaction_id):
         self._q.put('confirm_valid_data', transaction_id)
 

@@ -119,29 +119,40 @@ class Controller():
         }
         self._store.put(transaction)
 
+    def _get_transaction_notifier(self, start_progress):
+        def on_transaction_progress_update(progress):
+            left = 1 - start_progress
+            self._session.set_progress_position(min(1, start_progress + left * progress))
+            if progress < 1:
+                self._updater.signal_update('signal_progress_step')
+            else:
+                self._updater.signal_update('signal_progress_finished')
+
+        return on_transaction_progress_update
+
     def get_task_load_module(self, module_path):
         values = dict()
         if module_path.endswith('.kqt'):
             kqtfile = KqtFile(module_path, KQT_KEEP_NONE)
 
             self._session.set_progress_description('Loading {}...'.format(module_path))
-            self.update_import_progress(0)
+            self._session.set_progress_position(0)
             self._updater.signal_update('signal_progress_start')
 
             for i, entry in enumerate(kqtfile.get_entries()):
-                self._updater.signal_update('signal_progress_step')
                 yield
                 key, value = entry
                 values[key] = value
-                self.update_import_progress(kqtfile.get_loading_progress())
+                self._session.set_progress_position(kqtfile.get_loading_progress() * 0.5)
+                self._updater.signal_update('signal_progress_step')
 
-            self.update_import_progress(1)
+            self._session.set_progress_position(0.5)
 
-            self._store.put(values)
+            self._store.put(values,
+                    transaction_notifier=self._get_transaction_notifier(0.5))
             self._store.clear_modified_flag()
 
-            self._updater.signal_update(
-                    'signal_controls', 'signal_module', 'signal_progress_finished')
+            self._updater.signal_update('signal_controls', 'signal_module')
 
             self._reset_expressions()
 
@@ -577,9 +588,8 @@ class Controller():
         self._session.log_event(channel_number, event_type, event_value, context)
         self._updater.signal_update()
 
-    def update_import_progress(self, pos_norm):
-        self._session.set_progress_position(pos_norm)
-        self._updater.signal_update()
+    def update_transaction_progress(self, transaction_id, progress):
+        self._store.update_transaction_progress(transaction_id, progress)
 
     def confirm_valid_data(self, transaction_id):
         self._store.confirm_valid_data(transaction_id)

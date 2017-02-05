@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2013-2016
+#          Tomi Jylhä-Ollila, Finland 2013-2017
 #
 # This file is part of Kunquat.
 #
@@ -172,10 +172,13 @@ class AudioEngine():
 
         #TODO: Remove sorting once it works without
         assert type(transaction) == dict
-        for (key, value) in sorted(transaction.items()):
+        step_count = len(transaction) + 1
+        for i, (key, value) in enumerate(sorted(transaction.items())):
             self._rendering_engine.set_data(key, value)
+            self._ui_engine.update_transaction_progress(transaction_id, i / step_count)
         self._rendering_engine.validate()
         self._ui_engine.confirm_valid_data(transaction_id)
+        self._ui_engine.update_transaction_progress(transaction_id, 1)
 
     def nanoseconds(self, nanos):
         self._rendering_engine.nanoseconds = nanos
