@@ -308,4 +308,11 @@ class SheetArea(QAbstractScrollArea, Updater):
     def mouseReleaseEvent(self, event):
         self.viewport().mouseReleaseEvent(event)
 
+    def changeEvent(self, event):
+        if event.type() == QEvent.EnabledChange:
+            self._corner.update()
+            self._header.update()
+            self._ruler.update()
+            self.viewport().update()
+
 
