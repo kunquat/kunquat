@@ -107,6 +107,7 @@ class UiModel():
         self._orderlist_manager = None
         self._process_manager = None
         self._icon_bank = None
+        self._task_executor = None
 
     def set_ui(self, ui):
         self._ui = ui
@@ -246,6 +247,12 @@ class UiModel():
 
     def get_style_manager(self):
         return self._style_manager
+
+    def set_task_executor(self, task_executor):
+        self._task_executor = task_executor
+
+    def get_task_executor(self):
+        return self._task_executor
 
     def play(self):
         self._controller.play()
