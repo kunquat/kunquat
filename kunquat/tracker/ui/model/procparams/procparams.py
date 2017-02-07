@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -27,6 +27,7 @@ class ProcParams():
         self._controller = controller
         self._store = controller.get_store()
         self._session = controller.get_session()
+        self._updater = controller.get_updater()
         self._proc_id = proc_id
 
     def _get_key(self, impl_or_conf, subkey):

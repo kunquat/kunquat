@@ -1219,18 +1219,23 @@ class SampleListToolBar(QToolBar, ProcessorUpdater):
                 return
 
             imports = zip(sample_ids, sample_paths)
-            try:
-                sample_params.import_samples(imports)
+
+            def on_complete():
                 self._updater.signal_update(
-                    self._get_list_signal_type(),
-                    self._get_note_map_random_list_signal_type(),
-                    self._get_hit_map_random_list_signal_type())
-            except SampleImportError as e:
+                        self._get_list_signal_type(),
+                        self._get_note_map_random_list_signal_type(),
+                        self._get_hit_map_random_list_signal_type())
+
+            def on_error(e):
                 icon_bank = self._ui_model.get_icon_bank()
                 error_msg_lines = str(e).split('\n')
                 error_msg = '<p>{}</p>'.format('<br>'.join(error_msg_lines))
                 dialog = ImportErrorDialog(icon_bank, error_msg)
                 dialog.exec_()
+
+            task = sample_params.get_task_import_samples(imports, on_complete, on_error)
+            task_executor = self._ui_model.get_task_executor()
+            task_executor(task)
 
     def _remove_sample(self):
         sample_params = self._get_sample_params()

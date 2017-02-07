@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -86,16 +86,6 @@ class SampleParams(ProcParams):
 
         return ret_ids
 
-    '''
-    def get_free_sample_id(self):
-        for i in range(self._SAMPLES_MAX):
-            cur_id = self._get_sample_id(i)
-            cur_header = self._get_sample_header(cur_id)
-            if not type(cur_header) == dict:
-                return cur_id
-        return None
-    '''
-
     def get_free_sample_ids(self):
         ids = []
         for i in range(self._SAMPLES_MAX):
@@ -158,18 +148,33 @@ class SampleParams(ProcParams):
 
         return transaction
 
-    def import_samples(self, imports):
+    def get_task_import_samples(self, imports, on_complete, on_error):
         transaction = {}
 
         failures = []
 
-        for sample_id, path in imports:
+        msg_fmt = 'Loading sample {}...'
+        self._session.set_progress_description('Loading sample(s)...')
+        self._session.set_progress_position(0)
+        self._updater.signal_update('signal_progress_start')
+
+        imports_list = list(imports)
+        step_count = len(imports_list)
+
+        for i, (sample_id, path) in enumerate(imports_list):
             try:
+                self._session.set_progress_description(msg_fmt.format(path))
+                self._session.set_progress_position((i / step_count) * 0.5)
+                self._updater.signal_update('signal_progress_step')
+                yield
+
                 transaction_add = self._get_transaction_import_sample(sample_id, path)
                 assert set(transaction.keys()).isdisjoint(set(transaction_add.keys()))
                 transaction.update(transaction_add)
             except SampleImportError as e:
                 failures.append(e)
+
+        self._session.set_progress_position(0.5)
 
         if failures:
             max_reported_count = 10
@@ -179,9 +184,22 @@ class SampleParams(ProcParams):
             if add_count > 0:
                 msg += '\nAdditionally, {} more import{} failed'.format(
                         add_count, '' if add_count == 1 else 's')
-            raise SampleImportError(msg)
 
-        self._store.put(transaction)
+            self._updater.signal_update('signal_progress_finished')
+            on_error(SampleImportError(msg))
+            return
+
+        self._session.set_progress_description('Finalising...')
+
+        def notifier(progress):
+            self._session.set_progress_position((1 + progress) * 0.5)
+            if progress < 1:
+                self._updater.signal_update('signal_progress_step')
+            else:
+                self._updater.signal_update('signal_progress_finished')
+                on_complete()
+
+        self._store.put(transaction, transaction_notifier=notifier)
 
     def remove_sample(self, sample_id):
         key_prefix = self._get_full_sample_key(sample_id, '')
