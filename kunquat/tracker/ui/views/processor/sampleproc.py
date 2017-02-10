@@ -1705,9 +1705,10 @@ class SampleEditor(QWidget, ProcessorUpdater):
 
     def _convert_freq(self):
         sample_params = self._get_sample_params()
+        task_executor = self._ui_model.get_task_executor()
         on_resample = lambda: self._updater.signal_update(
                 self._get_resample_signal_type())
-        resample_editor = ResampleEditor(sample_params, on_resample)
+        resample_editor = ResampleEditor(sample_params, task_executor, on_resample)
         resample_editor.exec_()
 
     def _change_format(self):
@@ -1739,9 +1740,10 @@ class SampleEditor(QWidget, ProcessorUpdater):
 
 class ResampleEditor(QDialog):
 
-    def __init__(self, sample_params, on_resample):
+    def __init__(self, sample_params, task_executor, on_resample):
         super().__init__()
         self._sample_params = sample_params
+        self._task_executor = task_executor
         self._on_resample = on_resample
 
         sample_id = self._sample_params.get_selected_sample_id()
@@ -1792,9 +1794,10 @@ class ResampleEditor(QDialog):
         self.setEnabled(False)
 
         target_freq = self._freq.value()
-        self._sample_params.convert_sample_freq(sample_id, target_freq)
 
-        self._on_resample()
+        task = self._sample_params.get_task_convert_sample_freq(
+                sample_id, target_freq, self._on_resample)
+        self._task_executor(task)
 
         self.close()
 
