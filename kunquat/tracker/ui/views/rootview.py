@@ -368,7 +368,7 @@ class RootView():
 
         visibility_manager = self._ui_model.get_visibility_manager()
         if visibility_manager.is_show_allowed():
-            self._progress_window.show()
+            self._progress_window.delayed_show()
 
     def _update_progress_window(self):
         assert self._progress_window
@@ -464,6 +464,7 @@ class RootView():
 class ProgressWindow(QWidget):
 
     _PROGRESS_STEP_COUNT = 10000
+    _SHOW_DELAY = 0.2
 
     def __init__(self):
         super().__init__()
@@ -485,7 +486,14 @@ class ProgressWindow(QWidget):
         v.addWidget(self._progress)
         self.setLayout(v)
 
+        self._show_timer = QTimer()
+        self._show_timer.setSingleShot(True)
+        QObject.connect(self._show_timer, SIGNAL('timeout()'), self.show)
+
         self.hide()
+
+    def delayed_show(self):
+        self._show_timer.start(self._SHOW_DELAY * 1000)
 
     def set_description(self, desc):
         self._desc.setText(desc)
