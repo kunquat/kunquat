@@ -1713,9 +1713,10 @@ class SampleEditor(QWidget, ProcessorUpdater):
 
     def _change_format(self):
         sample_params = self._get_sample_params()
+        task_executor = self._ui_model.get_task_executor()
         on_convert = lambda: self._updater.signal_update(
                 self._get_format_signal_type())
-        format_editor = SampleFormatEditor(sample_params, on_convert)
+        format_editor = SampleFormatEditor(sample_params, task_executor, on_convert)
         format_editor.exec_()
 
     def _change_loop_mode(self, item_index):
@@ -1804,9 +1805,10 @@ class ResampleEditor(QDialog):
 
 class SampleFormatEditor(QDialog):
 
-    def __init__(self, sample_params, on_convert):
+    def __init__(self, sample_params, task_executor, on_convert):
         super().__init__()
         self._sample_params = sample_params
+        self._task_executor = task_executor
         self._on_convert = on_convert
 
         sample_id = self._sample_params.get_selected_sample_id()
@@ -1886,9 +1888,10 @@ class SampleFormatEditor(QDialog):
 
         bits, is_float = self._format.itemData(self._format.currentIndex())
         normalise = (self._normalise.checkState() == Qt.Checked)
-        self._sample_params.convert_sample_format(sample_id, bits, is_float, normalise)
 
-        self._on_convert()
+        task = self._sample_params.get_task_convert_sample_format(
+                sample_id, bits, is_float, normalise, self._on_convert)
+        self._task_executor(task)
 
         self.close()
 

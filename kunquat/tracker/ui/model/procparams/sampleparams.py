@@ -330,18 +330,25 @@ class SampleParams(ProcParams):
 
         self._store.put(transaction, transaction_notifier=notifier)
 
-    def convert_sample_format(self, sample_id, bits, use_float, normalise):
+    def get_task_convert_sample_format(
+            self, sample_id, bits, use_float, normalise, on_complete):
         # Get current format parameters
         cur_handle = self._get_sample_data_handle(sample_id, convert_to_float=False)
         channels = cur_handle.get_channels()
         freq = cur_handle.get_audio_rate()
         cur_bits = cur_handle.get_bits()
         cur_is_float = cur_handle.is_float()
+        sample_length = cur_handle.get_length()
+
+        self._session.set_progress_description('Converting sample format...')
+        self._session.set_progress_position(0)
+        self._updater.signal_update('signal_progress_start')
+        yield
 
         # Read sample data
         data = [[] for _ in range(channels)]
         chunk = cur_handle.read()
-        while chunk[0]:
+        while len(chunk[0]) > 0:
             for d, buf in zip(data, chunk):
                 d.extend(buf)
             chunk = cur_handle.read()
@@ -357,8 +364,14 @@ class SampleParams(ProcParams):
         if normalise:
             # Normalise
             max_abs = 0
-            for ch in data:
-                for item in ch:
+            for ch_num, ch in enumerate(data):
+                for i, item in enumerate(ch):
+                    if (i & 0x3fff) == 0:
+                        self._session.set_progress_position(
+                                ((ch_num + i / sample_length) / channels) * 0.5)
+                        self._updater.signal_update('signal_progress_step')
+                        yield
+
                     max_abs = max(max_abs, abs(item))
 
             norm_mult = from_max / max_abs
@@ -383,16 +396,35 @@ class SampleParams(ProcParams):
                             item[2] += shift_dB
                 transaction[self._get_conf_key('p_hm_hit_map.json')] = hit_map
 
+        prog_phase_count = 2 if normalise else 1
+        prog_start = prog_phase_count - 1
+        self._session.set_progress_position(prog_start / prog_phase_count)
+
         # Write converted output
         new_handle = WavPackWMem(freq, channels, use_float, bits)
         if use_float:
-            for ch in data:
+            for ch_num, ch in enumerate(data):
                 for i in range(len(ch)):
+                    if (i & 0x3fff) == 0:
+                        self._session.set_progress_position(
+                                (prog_start + ((ch_num + i / sample_length) / channels)) /
+                                prog_phase_count)
+                        self._updater.signal_update('signal_progress_step')
+                        yield
+
                     ch[i] *= mult
         else:
-            for ch in data:
+            for ch_num, ch in enumerate(data):
                 for i in range(len(ch)):
+                    if (i & 0x3fff) == 0:
+                        self._session.set_progress_position(
+                                (prog_start + ((ch_num + i / sample_length) / channels)) /
+                                prog_phase_count)
+                        self._updater.signal_update('signal_progress_step')
+                        yield
+
                     ch[i] = min(max(to_min, int(ch[i] * mult)), to_max)
+
         new_handle.write(*data)
         raw_data = new_handle.get_contents()
 
@@ -400,7 +432,12 @@ class SampleParams(ProcParams):
 
         transaction[sample_data_key] = raw_data
 
-        self._store.put(transaction)
+        def notifier(progress):
+            if progress == 1:
+                self._updater.signal_update('signal_progress_finished')
+                on_complete()
+
+        self._store.put(transaction, transaction_notifier=notifier)
 
     def get_sample_loop_mode(self, sample_id):
         header = self._get_sample_header(sample_id) or {}
