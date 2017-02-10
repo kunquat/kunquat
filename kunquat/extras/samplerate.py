@@ -225,29 +225,6 @@ class SampleRate():
 
                 process()
 
-            still_left = self._get_total_est_frame_count() - self._out_frame_count
-            while still_left > 0:
-                # Add silence to input in order to force the rest of the output out
-                silence_frame_count = min(self._BUF_FRAME_COUNT, still_left)
-                self._in_buf[:] = [0] * (self._channels * self._BUF_FRAME_COUNT)
-                self._data.data_in = ctypes.cast(
-                        self._in_buf, ctypes.POINTER(ctypes.c_float))
-                self._data.input_frames = silence_frame_count
-                self._data.output_frames = self._BUF_FRAME_COUNT
-                self._data.input_frames_used = -1
-                self._data.output_frames_gen = 0
-                self._data.end_of_input = 0 #1
-
-                process()
-
-                add_count = min(still_left, self._data.output_frames_gen)
-                self._out_frame_count += add_count
-                for ch in range(self._channels):
-                    output_data[ch].extend(self._data.data_out[
-                        ch : ch + self._channels * add_count : self._channels])
-
-                still_left -= add_count
-
             # Clear input
             self._input_data = [[] for _ in range(self._channels)]
 
