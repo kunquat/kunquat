@@ -414,9 +414,24 @@ class PadsynthParams(ProcParams):
         config_params = self._get_config_params()
         return (applied_params == config_params)
 
-    def apply_config(self):
+    def get_task_apply_config(self, on_complete):
+        self._session.set_progress_description('Applying PADsynth parameters...')
+        self._session.set_progress_position(None)
+        self._updater.signal_update('signal_progress_start')
+        yield
+
         new_params = deepcopy(self._get_config_params())
-        self._set_value('p_ps_params.json', new_params)
+
+        params_key = self._get_conf_key('p_ps_params.json')
+        transaction = {}
+        transaction[params_key] = new_params
+
+        def notifier(progress):
+            if progress == 1:
+                self._updater.signal_update('signal_progress_finished')
+                on_complete()
+
+        self._store.put(transaction, transaction_notifier=notifier)
 
     def get_ramp_attack_enabled(self):
         return self._get_value('p_b_ramp_attack.json', True)
