@@ -250,7 +250,7 @@ class SampleParams(ProcParams):
             return None
         return (handle.get_bits(), handle.is_float())
 
-    def convert_sample_freq(self, sample_id, target_freq):
+    def get_task_convert_sample_freq(self, sample_id, target_freq, on_complete):
         # Get current data and format info
         cur_handle = self._get_sample_data_handle(sample_id, convert_to_float=True)
         channels = cur_handle.get_channels()
@@ -262,9 +262,29 @@ class SampleParams(ProcParams):
         # Get converted audio data
         src = SampleRate(SRC_SINC_BEST_QUALITY, channels)
         src.set_ratio(ratio)
-        src.add_input_data(*cur_handle.read())
-        new_data = src.get_output_data()
+
+        self._session.set_progress_description('Resampling...')
+        self._session.set_progress_position(0)
+        self._updater.signal_update('signal_progress_start')
+        est_length = int(cur_handle.get_length() * ratio)
+
+        new_data = [[] for _ in range(channels)]
+        cur_data = cur_handle.read(4096)
+        while cur_data[0]:
+            self._session.set_progress_position(min(1, len(new_data[0]) / est_length))
+            self._updater.signal_update('signal_progress_step')
+            yield
+
+            next_data = cur_handle.read(4096)
+            src.add_input_data(*cur_data, end_of_input=not bool(next_data[0]))
+            resampled_chunk = src.get_output_data()
+            for ch in range(channels):
+                new_data[ch].extend(resampled_chunk[ch])
+            cur_data = next_data
+
         new_length = len(new_data[0])
+
+        self._session.set_progress_position(1)
 
         # Write new sample
         new_handle = WavPackWMem(target_freq, channels, cur_is_float, cur_bits)
@@ -303,7 +323,12 @@ class SampleParams(ProcParams):
         transaction[sample_header_key] = new_header
         transaction[sample_data_key] = raw_data
 
-        self._store.put(transaction)
+        def notifier(progress):
+            if progress == 1:
+                self._updater.signal_update('signal_progress_finished')
+                on_complete()
+
+        self._store.put(transaction, transaction_notifier=notifier)
 
     def convert_sample_format(self, sample_id, bits, use_float, normalise):
         # Get current format parameters
