@@ -364,7 +364,7 @@ class RootView():
 
         stat_manager = self._ui_model.get_stat_manager()
         self._progress_window.set_description(stat_manager.get_progress_description())
-        self._progress_window.set_progress_norm(0)
+        self._progress_window.set_progress_norm(stat_manager.get_progress_norm())
 
         visibility_manager = self._ui_model.get_visibility_manager()
         if visibility_manager.is_show_allowed():
@@ -491,7 +491,11 @@ class ProgressWindow(QWidget):
         self._desc.setText(desc)
 
     def set_progress_norm(self, progress_norm):
-        self._progress.setValue(int(progress_norm * self._PROGRESS_STEP_COUNT))
+        if progress_norm == None:
+            self._progress.setMaximum(0)
+        else:
+            self._progress.setMaximum(self._PROGRESS_STEP_COUNT)
+            self._progress.setValue(int(progress_norm * self._PROGRESS_STEP_COUNT))
 
     def closeEvent(self, event):
         event.ignore()
