@@ -21,7 +21,7 @@ import tempfile
 from io import BytesIO
 import os.path
 
-from kunquat.kunquat.file import KqtFile, KQT_KEEP_NONE
+from kunquat.kunquat.file import KqtFile, KunquatFileError, KQT_KEEP_NONE
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
@@ -137,27 +137,34 @@ class Controller():
 
     def get_task_load_module(self, module_path):
         values = dict()
-        if module_path.endswith('.kqt'):
-            kqtfile = KqtFile(module_path, KQT_KEEP_NONE)
 
-            self._session.set_progress_description('Loading {}...'.format(module_path))
-            self._session.set_progress_position(0)
-            self._updater.signal_update('signal_progress_start')
+        kqtfile = KqtFile(module_path, KQT_KEEP_NONE)
+        self._session.set_progress_description('Loading {}...'.format(module_path))
+        self._session.set_progress_position(0)
+        self._updater.signal_update('signal_progress_start')
 
-            for i, entry in enumerate(kqtfile.get_entries()):
-                yield
-                key, value = entry
-                values[key] = value
-                self._update_progress_step(kqtfile.get_loading_progress() * 0.5)
+        try:
+            entries = kqtfile.get_entries()
+        except KunquatFileError as e:
+            self._session.set_module_load_error_info(module_path, e.args[0])
+            self._updater.signal_update(
+                    'signal_module_load_error', 'signal_progress_finished')
+            return
 
-            notifier = self._get_transaction_notifier(0.5,
-                    lambda: self._updater.signal_update('signal_module'))
-            self._store.put(values, transaction_notifier=notifier)
-            self._store.clear_modified_flag()
+        for i, entry in enumerate(kqtfile.get_entries()):
+            yield
+            key, value = entry
+            values[key] = value
+            self._update_progress_step(kqtfile.get_loading_progress() * 0.5)
 
-            self._updater.signal_update('signal_controls')
+        notifier = self._get_transaction_notifier(0.5,
+                lambda: self._updater.signal_update('signal_module'))
+        self._store.put(values, transaction_notifier=notifier)
+        self._store.clear_modified_flag()
 
-            self._reset_expressions()
+        self._updater.signal_update('signal_controls')
+
+        self._reset_expressions()
 
     def get_task_save_module(self, module_path):
         assert module_path

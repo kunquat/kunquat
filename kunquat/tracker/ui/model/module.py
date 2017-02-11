@@ -154,6 +154,9 @@ class Module():
         control.set_ui_model(self._ui_model)
         control.set_existence(True)
 
+    def get_load_error_info(self):
+        return self._session.get_module_load_error_info()
+
     def get_reset_au_import_error_info(self):
         return self._session.get_reset_au_import_error_info()
 
