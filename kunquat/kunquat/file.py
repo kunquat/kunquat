@@ -96,7 +96,11 @@ class _KqtArchiveFile():
             try:
                 tfile = tarfile.open(self._path, mode='r:', format=tarfile.USTAR_FORMAT)
             except tarfile.ReadError:
-                raise KunquatFileError('File is not a valid Kunquat file')
+                if isinstance(self, KqtFile):
+                    msg = 'File is not a valid Kunquat module'
+                else:
+                    msg = 'File is not a valid Kunquat file'
+                raise KunquatFileError(msg)
 
         return self._get_entries(tfile)
 
