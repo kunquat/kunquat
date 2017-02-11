@@ -51,6 +51,11 @@ class PlaybackPanel(QToolBar, Updater):
         self.addSeparator()
         self.addWidget(self._interactivity_button)
 
+    def addWidget(self, widget):
+        if isinstance(widget, QToolButton):
+            widget.setFocusPolicy(Qt.NoFocus)
+        super().addWidget(widget)
+
 
 class PlayButton(QToolButton, Updater):
 

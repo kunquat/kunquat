@@ -119,36 +119,64 @@ class Controller():
         }
         self._store.put(transaction)
 
+    def _get_transaction_notifier(self, start_progress, on_finished):
+        def on_transaction_progress_update(progress):
+            left = 1 - start_progress
+            self._session.set_progress_position(min(1, start_progress + left * progress))
+            if progress < 1:
+                self._updater.signal_update('signal_progress_step')
+            else:
+                self._updater.signal_update('signal_progress_finished')
+                on_finished()
+
+        return on_transaction_progress_update
+
+    def _update_progress_step(self, progress):
+        self._session.set_progress_position(progress)
+        self._updater.signal_update('signal_progress_step')
+
     def get_task_load_module(self, module_path):
         values = dict()
         if module_path.endswith('.kqt'):
             kqtfile = KqtFile(module_path, KQT_KEEP_NONE)
 
-            self.update_import_progress(0)
+            self._session.set_progress_description('Loading {}...'.format(module_path))
+            self._session.set_progress_position(0)
+            self._updater.signal_update('signal_progress_start')
 
             for i, entry in enumerate(kqtfile.get_entries()):
                 yield
                 key, value = entry
                 values[key] = value
-                self.update_import_progress(kqtfile.get_loading_progress())
+                self._update_progress_step(kqtfile.get_loading_progress() * 0.5)
 
-            self.update_import_progress(1)
-
-            self._store.put(values)
+            notifier = self._get_transaction_notifier(0.5,
+                    lambda: self._updater.signal_update('signal_module'))
+            self._store.put(values, transaction_notifier=notifier)
             self._store.clear_modified_flag()
-            self._updater.signal_update('signal_controls', 'signal_module')
+
+            self._updater.signal_update('signal_controls')
 
             self._reset_expressions()
 
     def get_task_save_module(self, module_path):
         assert module_path
         tmpname = None
+
+        self._session.set_progress_description(
+                'Saving module to {}...'.format(module_path))
+        self._session.set_progress_position(0)
+        self._updater.signal_update('signal_progress_start')
+
         with tempfile.NamedTemporaryFile(delete=False) as f:
             mode = 'w|bz2'
 
             with tarfile.open(mode=mode, fileobj=f, format=tarfile.USTAR_FORMAT) as tfile:
                 prefix = 'kqtc00'
-                for key, value in self._store.items():
+
+                step_count = len(self._store.items()) + 1
+
+                for i, (key, value) in enumerate(self._store.items()):
                     yield
                     path = '/'.join((prefix, key))
                     if key.endswith('.json'):
@@ -159,17 +187,31 @@ class Controller():
                     info.size = len(encoded)
                     encoded_file = BytesIO(encoded)
                     tfile.addfile(info, encoded_file)
+                    self._update_progress_step(i / step_count)
 
                 tmpname = f.name
 
         if tmpname:
             os.rename(tmpname, module_path)
 
+        self._session.set_progress_position(1)
+        self._updater.signal_update('signal_progress_finished')
+
         self._updater.signal_update('signal_save_module_finished')
 
     def get_task_export_audio_unit(self, au_id, au_path):
         assert au_path
         tmpname = None
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(au_id)
+        au_type = 'instrument' if au.is_instrument() else 'effect'
+
+        self._session.set_progress_description(
+                'Exporting {} to {}...'.format(au_type, au_path))
+        self._session.set_progress_position(0)
+        self._updater.signal_update('signal_progress_start')
+
         with tempfile.NamedTemporaryFile(delete=False) as f:
             mode = 'w|bz2'
 
@@ -177,7 +219,10 @@ class Controller():
                 prefix = 'kqti00'
                 au_prefix = au_id + '/'
                 au_keys = [k for k in self._store.keys() if k.startswith(au_prefix)]
-                for key in au_keys:
+
+                step_count = len(au_keys) + 1
+
+                for i, key in enumerate(au_keys):
                     yield
                     value = self._store[key]
                     path = '{}/{}'.format(prefix, key[len(au_prefix):])
@@ -189,18 +234,32 @@ class Controller():
                     info.size = len(encoded)
                     encoded_file = BytesIO(encoded)
                     tfile.addfile(info, encoded_file)
+                    self._update_progress_step(i / step_count)
 
                 tmpname = f.name
 
         if tmpname:
             os.rename(tmpname, au_path)
 
+        self._session.set_progress_position(1)
+        self._updater.signal_update('signal_progress_finished')
+
         self._updater.signal_update('signal_export_au_finished')
 
     def get_task_load_audio_unit(
             self, kqtifile, au_id, control_id=None, is_sandbox=False):
+        if not is_sandbox:
+            path = kqtifile.get_path()
+            self._session.set_progress_description(
+                    'Importing audio unit {}...'.format(path))
+            self._session.set_progress_position(0)
+            self._updater.signal_update('signal_progress_start')
+            yield
+
         try:
             for _ in kqtifile.get_read_steps():
+                if not is_sandbox:
+                    self._update_progress_step(kqtifile.get_loading_progress() / 3)
                 yield
         except tarfile.ReadError:
             self._session.set_au_import_error_info(
@@ -208,18 +267,24 @@ class Controller():
                     'File is not a valid Kunquat audio unit package.')
             self._updater.signal_update(
                     'signal_au_import_error', 'signal_au_import_finished')
+            if not is_sandbox:
+                self._updater.signal_update('signal_progress_finished')
             return
         contents = kqtifile.get_contents()
 
         # Validate contents
         validator = KqtiValidator(contents)
         for _ in validator.get_validation_steps():
+            if not is_sandbox:
+                self._update_progress_step((1 + validator.get_progress()) / 3)
             yield
         if not validator.is_valid():
             self._session.set_au_import_error_info(
                     kqtifile.get_path(), validator.get_validation_error())
             self._updater.signal_update(
                     'signal_au_import_error', 'signal_au_import_finished')
+            if not is_sandbox:
+                self._updater.signal_update('signal_progress_finished')
             return
 
         transaction = {}
@@ -269,15 +334,25 @@ class Controller():
                     conns.append(['{}/{}'.format(sub_au_id, send_port), recv_port])
                 transaction['p_connections.json'] = conns
 
+        # Set up transaction notifier
+        if not is_sandbox:
+            start_progress = 2 / 3
+            signaller = lambda: self._updater.signal_update('signal_au_import_finished')
+            if '/' not in au_id:
+                def on_finished():
+                    signaller()
+                    visibility_manager = self._ui_model.get_visibility_manager()
+                    visibility_manager.show_connections()
+                notifier = self._get_transaction_notifier(start_progress, on_finished)
+            else:
+                notifier = self._get_transaction_notifier(start_progress, signaller)
+        else:
+            notifier = None
+
         # Send data
-        self._store.put(transaction)
+        self._store.put(transaction, transaction_notifier=notifier)
 
-        self._updater.signal_update(
-                'signal_controls', 'signal_au_import_finished')
-
-        if (not is_sandbox) and ('/' not in au_id):
-            visibility_manager = self._ui_model.get_visibility_manager()
-            visibility_manager.show_connections()
+        self._updater.signal_update('signal_controls')
 
     def _reset_runtime_env(self):
         self._session.reset_runtime_env()
@@ -572,9 +647,8 @@ class Controller():
         self._session.log_event(channel_number, event_type, event_value, context)
         self._updater.signal_update()
 
-    def update_import_progress(self, pos_norm):
-        self._session.set_progress_position(pos_norm)
-        self._updater.signal_update()
+    def update_transaction_progress(self, transaction_id, progress):
+        self._store.update_transaction_progress(transaction_id, progress)
 
     def confirm_valid_data(self, transaction_id):
         self._store.confirm_valid_data(transaction_id)

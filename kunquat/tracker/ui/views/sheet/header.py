@@ -91,6 +91,10 @@ class Header(QWidget):
         x_offset = (self._width // self._col_width) * self._col_width - 1
         painter.eraseRect(x_offset + 1, 0, self._width, self.height())
 
+        if not self.isEnabled():
+            painter.fillRect(
+                    0, 0, self.width(), self.height(), self._config['disabled_colour'])
+
 
 class ColumnHeader(QWidget):
 
@@ -134,6 +138,11 @@ class ColumnHeader(QWidget):
         # Border
         painter.setPen(self._config['header']['border_colour'])
         painter.drawLine(self.width() - 1, 0, self.width() - 1, self.height() - 1)
+
+        # Grey out if disabled
+        if not self.isEnabled():
+            painter.fillRect(
+                    0, 0, self.width(), self.height(), self._config['disabled_colour'])
 
     def minimumSizeHint(self):
         fm = QFontMetrics(self._config['header']['font'], self)

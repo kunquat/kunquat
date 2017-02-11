@@ -39,7 +39,6 @@ class RootView():
 
     def __init__(self):
         self._ui_model = None
-        self._task_executer = None
         self._updater = None
         self._visible = set()
 
@@ -61,6 +60,7 @@ class RootView():
         self._grid_editor = None
         self._ia_controls = None
         self._render_stats = None
+        self._progress_window = None
 
         self._module = None
         self._au_import_error_dialog = None
@@ -106,14 +106,13 @@ class RootView():
     def setup_module(self):
         module = self._ui_model.get_module()
         module_path = cmdline.get_kqt_file()
+        self._set_windows_enabled(False)
+        task_executor = self._ui_model.get_task_executor()
         if module_path:
             module.set_path(module_path)
-            module.execute_load(self._task_executer)
+            module.execute_load(task_executor)
         else:
-            module.execute_create_sandbox(self._task_executer)
-
-    def set_task_executer(self, task_executer):
-        self._task_executer = task_executer
+            module.execute_create_sandbox(task_executor)
 
     def _perform_updates(self, signals):
         visibility_manager = self._ui_model.get_visibility_manager()
@@ -328,6 +327,8 @@ class RootView():
                     window.raise_()
 
             # Process other signals
+            if 'signal_module' in signals:
+                self._on_module_setup_finished()
             if 'signal_start_save_module' in signals:
                 self._start_save_module()
             if 'signal_save_module_finished' in signals:
@@ -342,6 +343,12 @@ class RootView():
                 self._start_export_au()
             if 'signal_export_au_finished' in signals:
                 self._on_export_au_finished()
+            if 'signal_progress_start' in signals:
+                self._show_progress_window()
+            if 'signal_progress_step' in signals:
+                self._update_progress_window()
+            if 'signal_progress_finished' in signals:
+                self._hide_progress_window()
             if 'signal_style_changed' in signals:
                 style_sheet = self._style_creator.get_updated_style_sheet()
                 QApplication.instance().setStyleSheet(style_sheet)
@@ -350,6 +357,32 @@ class RootView():
             QApplication.quit()
 
         self._ui_model.clock()
+
+    def _show_progress_window(self):
+        assert not self._progress_window
+        self._progress_window = ProgressWindow()
+
+        stat_manager = self._ui_model.get_stat_manager()
+        self._progress_window.set_description(stat_manager.get_progress_description())
+        self._progress_window.set_progress_norm(stat_manager.get_progress_norm())
+
+        visibility_manager = self._ui_model.get_visibility_manager()
+        if visibility_manager.is_show_allowed():
+            self._progress_window.delayed_show()
+
+    def _update_progress_window(self):
+        assert self._progress_window
+        stat_manager = self._ui_model.get_stat_manager()
+        self._progress_window.set_description(stat_manager.get_progress_description())
+        self._progress_window.set_progress_norm(stat_manager.get_progress_norm())
+
+    def _hide_progress_window(self):
+        assert self._progress_window
+        self._progress_window.deleteLater()
+        self._progress_window = None
+
+    def _on_module_setup_finished(self):
+        self._set_windows_enabled(True)
 
     def _set_windows_enabled(self, enabled):
         def try_set_enabled(window):
@@ -385,7 +418,8 @@ class RootView():
         self._module.flush(self._execute_save_module)
 
     def _execute_save_module(self):
-        self._module.execute_save(self._task_executer)
+        task_executor = self._ui_model.get_task_executor()
+        self._module.execute_save(task_executor)
 
     def _on_save_module_finished(self):
         self._module.finish_save()
@@ -393,7 +427,8 @@ class RootView():
 
     def _start_import_au(self):
         self._set_windows_enabled(False)
-        self._module.execute_import_au(self._task_executer)
+        task_executor = self._ui_model.get_task_executor()
+        self._module.execute_import_au(task_executor)
 
     def _on_au_import_error(self):
         def on_close():
@@ -418,11 +453,60 @@ class RootView():
         self._module.flush(self._execute_export_au)
 
     def _execute_export_au(self):
-        self._module.execute_export_au(self._task_executer)
+        task_executor = self._ui_model.get_task_executor()
+        self._module.execute_export_au(task_executor)
 
     def _on_export_au_finished(self):
         self._module.finish_export_au()
         self._set_windows_enabled(True)
+
+
+class ProgressWindow(QWidget):
+
+    _PROGRESS_STEP_COUNT = 10000
+    _SHOW_DELAY = 0.2
+
+    def __init__(self):
+        super().__init__()
+        self.setMinimumWidth(512)
+        self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowFlags(Qt.FramelessWindowHint)
+        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Minimum)
+
+        self._desc = QLabel()
+        self._desc.setWordWrap(True)
+        self._progress = QProgressBar()
+        self._progress.setMaximum(self._PROGRESS_STEP_COUNT)
+        self._progress.setMinimum(0)
+
+        v = QVBoxLayout()
+        v.setContentsMargins(8, 8, 8, 8)
+        v.setSpacing(4)
+        v.addWidget(self._desc, Qt.AlignLeft)
+        v.addWidget(self._progress)
+        self.setLayout(v)
+
+        self._show_timer = QTimer()
+        self._show_timer.setSingleShot(True)
+        QObject.connect(self._show_timer, SIGNAL('timeout()'), self.show)
+
+        self.hide()
+
+    def delayed_show(self):
+        self._show_timer.start(self._SHOW_DELAY * 1000)
+
+    def set_description(self, desc):
+        self._desc.setText(desc)
+
+    def set_progress_norm(self, progress_norm):
+        if progress_norm == None:
+            self._progress.setMaximum(0)
+        else:
+            self._progress.setMaximum(self._PROGRESS_STEP_COUNT)
+            self._progress.setValue(int(progress_norm * self._PROGRESS_STEP_COUNT))
+
+    def closeEvent(self, event):
+        event.ignore()
 
 
 class AuImportErrorDialog(QDialog):

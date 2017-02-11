@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -96,9 +96,13 @@ class _WavPackRBase(_WavPackBase):
                     self._wpc, cdata, frame_count)
             if self._is_float:
                 fdata = ctypes.cast(cdata, ctypes.POINTER(ctypes.c_float))
-                for ch in range(self._channels):
-                    ch_data = fdata[ch:actual_frame_count * self._channels:self._channels]
-                    chunk[ch].extend(ch_data)
+                # For some reason, getting a 0-length slice of fdata doesn't work
+                # as expected, so we need to guard against that
+                if actual_frame_count > 0:
+                    for ch in range(self._channels):
+                        ch_data = fdata[
+                                ch:actual_frame_count * self._channels:self._channels]
+                        chunk[ch].extend(ch_data)
             else:
                 for ch in range(self._channels):
                     ch_data = cdata[ch:actual_frame_count * self._channels:self._channels]

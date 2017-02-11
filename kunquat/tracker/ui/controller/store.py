@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2014-2016
+#          Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -23,6 +23,7 @@ class Store(MutableMapping):
         self._audio_engine = None
         self._pending_validation = deque()
         self._transaction_ids = count()
+        self._transaction_notifiers = {}
         self._flush_callbacks = {}
         self._is_saving = False
         self._is_modified = False
@@ -30,9 +31,11 @@ class Store(MutableMapping):
     def set_audio_engine(self, audio_engine):
         self._audio_engine = audio_engine
 
-    def put(self, transaction, mark_modified=True):
+    def put(self, transaction, mark_modified=True, transaction_notifier=None):
         assert not self._is_saving
         transaction_id = next(self._transaction_ids)
+        if transaction_notifier != None:
+            self._transaction_notifiers[transaction_id] = transaction_notifier
         self._audio_engine.set_data(transaction_id, transaction)
         self._pending_validation.append((transaction_id, transaction))
         if mark_modified:
@@ -42,6 +45,12 @@ class Store(MutableMapping):
         transaction_id = next(self._transaction_ids)
         self._audio_engine.set_data(transaction_id, None)
         self._flush_callbacks[transaction_id] = callback
+
+    def update_transaction_progress(self, transaction_id, progress):
+        if transaction_id in self._transaction_notifiers:
+            self._transaction_notifiers[transaction_id](progress)
+            if progress >= 1:
+                del self._transaction_notifiers[transaction_id]
 
     def confirm_valid_data(self, transaction_id):
         if transaction_id in self._flush_callbacks:

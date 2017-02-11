@@ -56,8 +56,6 @@ class TypewriterPanel(QFrame, Updater):
         v.addWidget(self._typewriter)
         self.setLayout(v)
 
-        self._typewriter.setFocus()
-
     def keyPressEvent(self, event):
         modifiers = event.modifiers()
         key = event.key()

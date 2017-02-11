@@ -159,8 +159,13 @@ class ApplyButton(QPushButton, ProcessorUpdater):
 
     def _apply_params(self):
         params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
-        params.apply_config()
-        self._updater.signal_update(self._get_update_signal_type())
+
+        def on_complete():
+            self._updater.signal_update(self._get_update_signal_type())
+
+        task_executor = self._ui_model.get_task_executor()
+        task = params.get_task_apply_config(on_complete)
+        task_executor(task)
 
 
 class PadsynthParamSlider(ProcNumSlider):

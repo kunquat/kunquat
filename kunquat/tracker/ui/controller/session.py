@@ -23,6 +23,7 @@ class Session():
         self._render_speed = 0
         self._render_load = 0
         self._ui_lag = 0
+        self._progress_description = None
         self._progress_position = 0
         self._audio_levels = (0, 0)
         self._max_audio_levels = [0, 0]
@@ -135,6 +136,12 @@ class Session():
 
     def set_ui_lag(self, ui_lag):
         self._ui_lag = ui_lag
+
+    def get_progress_description(self):
+        return self._progress_description
+
+    def set_progress_description(self, desc):
+        self._progress_description = desc
 
     def get_progress_position(self):
         return self._progress_position

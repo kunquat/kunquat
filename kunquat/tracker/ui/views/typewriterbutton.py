@@ -113,6 +113,8 @@ class TypewriterButton(QPushButton):
         layout.addWidget(notename)
         layout.setAlignment(Qt.AlignCenter)
 
+        self.setFocusPolicy(Qt.NoFocus)
+
         self.setEnabled(False)
         QObject.connect(self, SIGNAL('pressed()'), self._press)
         QObject.connect(self, SIGNAL('released()'), self._release)

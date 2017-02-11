@@ -51,6 +51,7 @@ class UiLauncher():
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._ui_model.set_task_executor(self._add_task)
 
     def set_controller(self, controller):
         self._controller = controller
@@ -83,7 +84,7 @@ class UiLauncher():
         avg = sum(lag for lag in self._lag_times) / float(len(self._lag_times))
         self._controller.update_ui_lag(avg * 1000)
 
-    def add_task(self, task):
+    def _add_task(self, task):
         self._tasks.append(task)
         self._task_timer.start(0)
 
@@ -103,7 +104,6 @@ class UiLauncher():
         app = QApplication(sys.argv)
         error_dialog = ErrorDialog()
         root_view = RootView()
-        root_view.set_task_executer(self.add_task)
 
         update_timer = QTimer()
         QObject.connect(update_timer, SIGNAL('timeout()'), self.update)

@@ -15,9 +15,7 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-import kunquat.tracker.cmdline as cmdline
 from .composition import Composition
-from .importprogress import ImportProgress
 from .inputcontrols import InputControls
 from .peakmeter import PeakMeter
 from .portal import Portal
@@ -33,7 +31,6 @@ class MainView(QWidget, Updater):
         self._playback_panel = PlaybackPanel()
         self._composition = Composition()
         self._input_controls = InputControls()
-        self._import_progress = ImportProgress()
         self._peak_meter = PeakMeter()
 
         self.add_to_updaters(
@@ -41,7 +38,6 @@ class MainView(QWidget, Updater):
                 self._playback_panel,
                 self._composition,
                 self._input_controls,
-                self._import_progress,
                 self._peak_meter)
 
         v = QVBoxLayout()
@@ -52,13 +48,9 @@ class MainView(QWidget, Updater):
         v.addSpacing(4)
         v.addWidget(self._composition)
         v.addWidget(self._input_controls)
-        v.addWidget(self._import_progress)
         v.addSpacing(4)
         v.addWidget(self._peak_meter)
         self.setLayout(v)
-
-        if not cmdline.get_experimental():
-            self._import_progress.hide()
 
     def keyPressEvent(self, event):
         if event.modifiers() == Qt.NoModifier:

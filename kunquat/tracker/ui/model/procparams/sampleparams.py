@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -86,16 +86,6 @@ class SampleParams(ProcParams):
 
         return ret_ids
 
-    '''
-    def get_free_sample_id(self):
-        for i in range(self._SAMPLES_MAX):
-            cur_id = self._get_sample_id(i)
-            cur_header = self._get_sample_header(cur_id)
-            if not type(cur_header) == dict:
-                return cur_id
-        return None
-    '''
-
     def get_free_sample_ids(self):
         ids = []
         for i in range(self._SAMPLES_MAX):
@@ -158,18 +148,33 @@ class SampleParams(ProcParams):
 
         return transaction
 
-    def import_samples(self, imports):
+    def get_task_import_samples(self, imports, on_complete, on_error):
         transaction = {}
 
         failures = []
 
-        for sample_id, path in imports:
+        msg_fmt = 'Loading sample {}...'
+        self._session.set_progress_description('Loading sample(s)...')
+        self._session.set_progress_position(0)
+        self._updater.signal_update('signal_progress_start')
+
+        imports_list = list(imports)
+        step_count = len(imports_list)
+
+        for i, (sample_id, path) in enumerate(imports_list):
             try:
+                self._session.set_progress_description(msg_fmt.format(path))
+                self._session.set_progress_position((i / step_count) * 0.5)
+                self._updater.signal_update('signal_progress_step')
+                yield
+
                 transaction_add = self._get_transaction_import_sample(sample_id, path)
                 assert set(transaction.keys()).isdisjoint(set(transaction_add.keys()))
                 transaction.update(transaction_add)
             except SampleImportError as e:
                 failures.append(e)
+
+        self._session.set_progress_position(0.5)
 
         if failures:
             max_reported_count = 10
@@ -179,9 +184,22 @@ class SampleParams(ProcParams):
             if add_count > 0:
                 msg += '\nAdditionally, {} more import{} failed'.format(
                         add_count, '' if add_count == 1 else 's')
-            raise SampleImportError(msg)
 
-        self._store.put(transaction)
+            self._updater.signal_update('signal_progress_finished')
+            on_error(SampleImportError(msg))
+            return
+
+        self._session.set_progress_description('Finalising...')
+
+        def notifier(progress):
+            self._session.set_progress_position((1 + progress) * 0.5)
+            if progress < 1:
+                self._updater.signal_update('signal_progress_step')
+            else:
+                self._updater.signal_update('signal_progress_finished')
+                on_complete()
+
+        self._store.put(transaction, transaction_notifier=notifier)
 
     def remove_sample(self, sample_id):
         key_prefix = self._get_full_sample_key(sample_id, '')
@@ -232,7 +250,7 @@ class SampleParams(ProcParams):
             return None
         return (handle.get_bits(), handle.is_float())
 
-    def convert_sample_freq(self, sample_id, target_freq):
+    def get_task_convert_sample_freq(self, sample_id, target_freq, on_complete):
         # Get current data and format info
         cur_handle = self._get_sample_data_handle(sample_id, convert_to_float=True)
         channels = cur_handle.get_channels()
@@ -244,9 +262,29 @@ class SampleParams(ProcParams):
         # Get converted audio data
         src = SampleRate(SRC_SINC_BEST_QUALITY, channels)
         src.set_ratio(ratio)
-        src.add_input_data(*cur_handle.read())
-        new_data = src.get_output_data()
+
+        self._session.set_progress_description('Resampling...')
+        self._session.set_progress_position(0)
+        self._updater.signal_update('signal_progress_start')
+        est_length = int(cur_handle.get_length() * ratio)
+
+        new_data = [[] for _ in range(channels)]
+        cur_data = cur_handle.read(4096)
+        while cur_data[0]:
+            self._session.set_progress_position(min(1, len(new_data[0]) / est_length))
+            self._updater.signal_update('signal_progress_step')
+            yield
+
+            next_data = cur_handle.read(4096)
+            src.add_input_data(*cur_data, end_of_input=not bool(next_data[0]))
+            resampled_chunk = src.get_output_data()
+            for ch in range(channels):
+                new_data[ch].extend(resampled_chunk[ch])
+            cur_data = next_data
+
         new_length = len(new_data[0])
+
+        self._session.set_progress_position(1)
 
         # Write new sample
         new_handle = WavPackWMem(target_freq, channels, cur_is_float, cur_bits)
@@ -285,20 +323,32 @@ class SampleParams(ProcParams):
         transaction[sample_header_key] = new_header
         transaction[sample_data_key] = raw_data
 
-        self._store.put(transaction)
+        def notifier(progress):
+            if progress == 1:
+                self._updater.signal_update('signal_progress_finished')
+                on_complete()
 
-    def convert_sample_format(self, sample_id, bits, use_float, normalise):
+        self._store.put(transaction, transaction_notifier=notifier)
+
+    def get_task_convert_sample_format(
+            self, sample_id, bits, use_float, normalise, on_complete):
         # Get current format parameters
         cur_handle = self._get_sample_data_handle(sample_id, convert_to_float=False)
         channels = cur_handle.get_channels()
         freq = cur_handle.get_audio_rate()
         cur_bits = cur_handle.get_bits()
         cur_is_float = cur_handle.is_float()
+        sample_length = cur_handle.get_length()
+
+        self._session.set_progress_description('Converting sample format...')
+        self._session.set_progress_position(0)
+        self._updater.signal_update('signal_progress_start')
+        yield
 
         # Read sample data
         data = [[] for _ in range(channels)]
         chunk = cur_handle.read()
-        while chunk[0]:
+        while len(chunk[0]) > 0:
             for d, buf in zip(data, chunk):
                 d.extend(buf)
             chunk = cur_handle.read()
@@ -314,8 +364,14 @@ class SampleParams(ProcParams):
         if normalise:
             # Normalise
             max_abs = 0
-            for ch in data:
-                for item in ch:
+            for ch_num, ch in enumerate(data):
+                for i, item in enumerate(ch):
+                    if (i & 0x3fff) == 0:
+                        self._session.set_progress_position(
+                                ((ch_num + i / sample_length) / channels) * 0.5)
+                        self._updater.signal_update('signal_progress_step')
+                        yield
+
                     max_abs = max(max_abs, abs(item))
 
             norm_mult = from_max / max_abs
@@ -340,16 +396,35 @@ class SampleParams(ProcParams):
                             item[2] += shift_dB
                 transaction[self._get_conf_key('p_hm_hit_map.json')] = hit_map
 
+        prog_phase_count = 2 if normalise else 1
+        prog_start = prog_phase_count - 1
+        self._session.set_progress_position(prog_start / prog_phase_count)
+
         # Write converted output
         new_handle = WavPackWMem(freq, channels, use_float, bits)
         if use_float:
-            for ch in data:
+            for ch_num, ch in enumerate(data):
                 for i in range(len(ch)):
+                    if (i & 0x3fff) == 0:
+                        self._session.set_progress_position(
+                                (prog_start + ((ch_num + i / sample_length) / channels)) /
+                                prog_phase_count)
+                        self._updater.signal_update('signal_progress_step')
+                        yield
+
                     ch[i] *= mult
         else:
-            for ch in data:
+            for ch_num, ch in enumerate(data):
                 for i in range(len(ch)):
+                    if (i & 0x3fff) == 0:
+                        self._session.set_progress_position(
+                                (prog_start + ((ch_num + i / sample_length) / channels)) /
+                                prog_phase_count)
+                        self._updater.signal_update('signal_progress_step')
+                        yield
+
                     ch[i] = min(max(to_min, int(ch[i] * mult)), to_max)
+
         new_handle.write(*data)
         raw_data = new_handle.get_contents()
 
@@ -357,7 +432,12 @@ class SampleParams(ProcParams):
 
         transaction[sample_data_key] = raw_data
 
-        self._store.put(transaction)
+        def notifier(progress):
+            if progress == 1:
+                self._updater.signal_update('signal_progress_finished')
+                on_complete()
+
+        self._store.put(transaction, transaction_notifier=notifier)
 
     def get_sample_loop_mode(self, sample_id):
         header = self._get_sample_header(sample_id) or {}

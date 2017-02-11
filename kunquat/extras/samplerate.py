@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -61,6 +61,12 @@ class SampleRate():
                 0, # end of input
                 1.0) # ratio
 
+        self._prev_orig_frame_count = 0
+        self._prev_est_frame_count = 0
+        self._cur_orig_frame_count = 0
+        self._cur_est_frame_count = 0
+        self._out_frame_count = 0
+
     def set_ratio(self, ratio, smooth=True):
         '''Set sample rate conversion ratio.
 
@@ -71,6 +77,12 @@ class SampleRate():
         '''
         if math.isnan(ratio) or math.isinf(ratio) or (ratio <= 0.0):
             raise ValueError('Invalid sample rate conversion ratio: {}'.format(ratio))
+
+        if self._data.src_ratio != ratio:
+            self._prev_orig_frame_count += self._cur_orig_frame_count
+            self._prev_est_frame_count += self._cur_est_frame_count
+            self._cur_orig_frame_count = 0
+            self._cur_est_frame_count = 0
 
         self._data.src_ratio = ratio
 
@@ -92,12 +104,16 @@ class SampleRate():
 
         '''
         if not self._allow_input:
-            raise SampleRateError('More input data provided'
-                    ' after indicating end of input')
+            raise SampleRateError(
+                    'More input data provided after indicating end of input')
 
         if len(data) != self._channels:
             raise ValueError('Expected {} input channels, got {}'.format(
                 self._channels, len(data)))
+
+        self._cur_orig_frame_count += len(data[0])
+        self._cur_est_frame_count = int(
+                self._cur_orig_frame_count * self._data.src_ratio)
 
         frame_count = len(data[0])
         for ch in range(self._channels):
@@ -107,6 +123,9 @@ class SampleRate():
 
         if end_of_input:
             self._allow_input = False
+
+    def _get_total_est_frame_count(self):
+        return self._cur_est_frame_count + self._prev_est_frame_count
 
     def get_output_data(self):
         '''Get converted audio data.
@@ -132,6 +151,7 @@ class SampleRate():
 
         def extend_output():
             generated = self._data.output_frames_gen
+            self._out_frame_count += generated
             for ch in range(self._channels):
                 output_data[ch].extend(self._data.data_out[
                     ch : ch + self._channels * generated : self._channels])
@@ -152,7 +172,7 @@ class SampleRate():
                     self._in_buf, ctypes.POINTER(ctypes.c_float))
             self._data.input_frames = frame_count
             self._data.output_frames = self._BUF_FRAME_COUNT
-            self._data.input_frames_used = 0
+            self._data.input_frames_used = -1
             self._data.output_frames_gen = 0
             self._data.end_of_input = 1 if last_chunk else 0
 
@@ -162,6 +182,8 @@ class SampleRate():
 
                 # Get converted data
                 extend_output()
+
+                assert self._data.input_frames_used >= 0
 
                 frame_count -= self._data.input_frames_used
 
@@ -176,32 +198,42 @@ class SampleRate():
                 self._data.input_frames_used = 0
                 self._data.output_frames_gen = 0
 
-            cur_offset += orig_frame_count
-            frames_left -= orig_frame_count
+            cur_offset += orig_frame_count - frame_count
+            frames_left -= orig_frame_count - frame_count
 
-        # Make sure we get all the remaining output data
-        self._in_buf[:] = [0.0] * (self._BUF_FRAME_COUNT * self._channels)
-        self._data.input_frames = 0
-        self._data.output_frames = self._BUF_FRAME_COUNT
-        self._data.input_frames_used = 0
-        self._data.output_frames_gen = 0
-        self._data.end_of_input = 1
+        if not self._allow_input:
+            assert frames_left == 0
 
-        process()
-
-        while self._data.output_frames_gen > 0:
-            extend_output()
-
+            # Make sure we get all the remaining output data
+            self._in_buf[:] = [0.0] * (self._BUF_FRAME_COUNT * self._channels)
             self._data.input_frames = 0
             self._data.output_frames = self._BUF_FRAME_COUNT
             self._data.input_frames_used = 0
             self._data.output_frames_gen = 0
-            self._data.end_of_input = 1
+            self._data.end_of_input = 0
 
             process()
 
-        # Clear input
-        self._input_data = [[] for _ in range(self._channels)]
+            while self._data.output_frames_gen > 0:
+                extend_output()
+
+                self._data.input_frames = 0
+                self._data.output_frames = self._BUF_FRAME_COUNT
+                self._data.input_frames_used = 0
+                self._data.output_frames_gen = 0
+                self._data.end_of_input = 1
+
+                process()
+
+            # Clear input
+            self._input_data = [[] for _ in range(self._channels)]
+
+        else:
+            if frames_left == 0:
+                self._input_data = [[] for _ in range(self._channels)]
+            else:
+                for ch in range(self._channels):
+                    self._input_data[ch] = self._input_data[ch][-frames_left:]
 
         return tuple(output_data)
 

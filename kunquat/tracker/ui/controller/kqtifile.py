@@ -20,9 +20,13 @@ class KqtiFile():
     def __init__(self, path):
         self._path = path
         self._contents = None
+        self._loading_progress = 0
 
     def get_path(self):
         return self._path
+
+    def get_loading_progress(self):
+        return self._loading_progress
 
     def get_read_steps(self):
         au_prefix = 'kqti00'
@@ -38,7 +42,8 @@ class KqtiFile():
                 raise
 
         members = tfile.getmembers()
-        for entry in members:
+        member_count = len(members)
+        for i, entry in enumerate(members):
             yield
             path = entry.name
             path_components = path.split('/')
@@ -58,6 +63,8 @@ class KqtiFile():
                     decoded = value
 
                 self._contents[stripped_path] = decoded
+
+            self._loading_progress = (i + 1) / member_count
 
         tfile.close()
 
