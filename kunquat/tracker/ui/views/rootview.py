@@ -438,7 +438,6 @@ class RootView():
         def on_close():
             if self._load_error_dialog:
                 self._load_error_dialog.close()
-                self._load_error_dialog.deleteLater()
                 self._load_error_dialog = None
                 visibility_manager = self._ui_model.get_visibility_manager()
                 visibility_manager.hide_all()
@@ -571,6 +570,9 @@ class ImportErrorDialog(QDialog):
         self._button_layout.addStretch(1)
 
         QObject.connect(ok_button, SIGNAL('clicked()'), self._on_close)
+
+    def closeEvent(self, event):
+        self._on_close()
 
 
 class ModuleLoadErrorDialog(ImportErrorDialog):
