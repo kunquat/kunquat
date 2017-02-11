@@ -569,7 +569,7 @@ class ImportErrorDialog(QDialog):
         self._button_layout.addWidget(ok_button)
         self._button_layout.addStretch(1)
 
-        QObject.connect(ok_button, SIGNAL('clicked()'), self._on_close)
+        QObject.connect(ok_button, SIGNAL('clicked()'), self.close)
 
     def closeEvent(self, event):
         self._on_close()
