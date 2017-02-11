@@ -1974,6 +1974,7 @@ class View(QWidget):
                     painter, selection, draw_col_start, draw_col_stop)
 
         if not self.isEnabled():
+            painter.setTransform(QTransform())
             painter.fillRect(
                     0, 0, self.width(), self.height(), self._config['disabled_colour'])
 
