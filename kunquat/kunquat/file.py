@@ -30,6 +30,14 @@ KQT_KEEP_ALL_DATA       = (
         KQT_KEEP_RENDER_DATA | KQT_KEEP_PLAYER_DATA | KQT_KEEP_INTERFACE_DATA)
 
 
+def _get_file_type_desc(key_prefix):
+    kqt_prefixes = {
+        'kqtc00': 'Kunquat module',
+        'kqti00': 'Kunquat instrument or effect',
+    }
+    return kqt_prefixes.get(key_prefix)
+
+
 class _KqtArchiveFile():
 
     _KEEP_MAP = {
@@ -54,8 +62,16 @@ class _KqtArchiveFile():
             kp = keyparts.pop(0)
             removed_parts.append(kp)
             if pp != kp:
-                raise KunquatFileError(
-                        'Unexpected key prefix: {}'.format('/'.join(removed_parts)))
+                unexpected_prefix = '/'.join(removed_parts)
+                unexpected_desc = _get_file_type_desc(unexpected_prefix)
+                expected_desc = _get_file_type_desc(self._key_prefix)
+                assert expected_desc
+                assert unexpected_desc != expected_desc
+                if unexpected_desc:
+                    msg = 'File is a {}, not a {}'.format(unexpected_desc, expected_desc)
+                else:
+                    msg = 'Unexpected key prefix: {}'.format(unexpected_prefix)
+                raise KunquatFileError(msg)
         return '/'.join(keyparts)
 
     def _keep_entry(self, key):
@@ -66,24 +82,39 @@ class _KqtArchiveFile():
         return False
 
     def _get_entries(self, tfile):
+        data_found = False
         try:
             members = tfile.getmembers()
             member_count = len(members)
             for i, entry in enumerate(members):
                 tarpath = entry.name
                 key = self._remove_prefix(tarpath)
+                data_found = True
                 if entry.isfile():
                     value = tfile.extractfile(entry).read()
                     if key.endswith('.json'):
-                        decoded = json.loads(str(value, encoding='utf-8'))
+                        try:
+                            decoded = json.loads(str(value, encoding='utf-8'))
+                        except ValueError as e:
+                            msg = 'Invalid JSON data in {}: {}'.format(
+                                    key, str(e).capitalize())
+                            raise KunquatFileError(msg)
                     else:
                         decoded = value
                     if self._keep_entry(key):
                         self._stored_entries[key] = decoded
                     yield (key, decoded)
                 self._loading_progress = (i + 1) / member_count
+        except EOFError as e:
+            raise KunquatFileError(str(e))
+        except tarfile.ReadError as e:
+            raise KunquatFileError(str(e).capitalize())
         finally:
             tfile.close()
+
+        if not data_found:
+            type_desc = _get_file_type_desc(self._key_prefix)
+            raise KunquatFileError('File contains no {} data'.format(type_desc))
 
     def get_entries(self):
         self._stored_entries = {}
@@ -91,12 +122,21 @@ class _KqtArchiveFile():
 
         # Accept bzip2 or uncompressed only
         try:
-            tfile = tarfile.open(self._path, mode='r:bz2', format=tarfile.USTAR_FORMAT)
+            tfile = tarfile.open(
+                    self._path, mode='r:bz2', format=tarfile.USTAR_FORMAT, errorlevel=3)
+        except (IOError, OSError) as e:
+            raise KunquatFileError(str(e))
         except tarfile.ReadError:
             try:
-                tfile = tarfile.open(self._path, mode='r:', format=tarfile.USTAR_FORMAT)
+                tfile = tarfile.open(
+                        self._path, mode='r:', format=tarfile.USTAR_FORMAT, errorlevel=3)
             except tarfile.ReadError:
-                raise KunquatFileError('File is not a valid Kunquat file')
+                file_desc = _get_file_type_desc(self._key_prefix)
+                if file_desc:
+                    msg = 'File is not a valid {}'.format(file_desc)
+                else:
+                    msg = 'File is not a valid Kunquat file'
+                raise KunquatFileError(msg)
 
         return self._get_entries(tfile)
 

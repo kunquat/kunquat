@@ -21,7 +21,7 @@ import tempfile
 from io import BytesIO
 import os.path
 
-from kunquat.kunquat.file import KqtFile, KQT_KEEP_NONE
+from kunquat.kunquat.file import KqtFile, KunquatFileError, KQT_KEEP_NONE
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
@@ -60,6 +60,7 @@ class Controller():
         self._audio_engine = None
         self._ui_model = None
         self._ch_expr_counter = [-1] * CHANNELS_MAX
+        self._format_error_handler = None
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -119,6 +120,15 @@ class Controller():
         }
         self._store.put(transaction)
 
+    def _set_module_load_transaction_error_handler(self, module_path):
+        def _on_error(e):
+            desc = e.args[0]
+            self._session.set_module_load_error_info(module_path, desc['message'])
+            self._updater.signal_update(
+                    'signal_module_load_error', 'signal_progress_finished')
+
+        self._format_error_handler = _on_error
+
     def _get_transaction_notifier(self, start_progress, on_finished):
         def on_transaction_progress_update(progress):
             left = 1 - start_progress
@@ -127,6 +137,7 @@ class Controller():
                 self._updater.signal_update('signal_progress_step')
             else:
                 self._updater.signal_update('signal_progress_finished')
+                self._format_error_handler = None
                 on_finished()
 
         return on_transaction_progress_update
@@ -137,27 +148,34 @@ class Controller():
 
     def get_task_load_module(self, module_path):
         values = dict()
-        if module_path.endswith('.kqt'):
-            kqtfile = KqtFile(module_path, KQT_KEEP_NONE)
 
-            self._session.set_progress_description('Loading {}...'.format(module_path))
-            self._session.set_progress_position(0)
-            self._updater.signal_update('signal_progress_start')
+        kqtfile = KqtFile(module_path, KQT_KEEP_NONE)
+        self._session.set_progress_description('Loading {}...'.format(module_path))
+        self._session.set_progress_position(0)
+        self._updater.signal_update('signal_progress_start')
 
+        try:
             for i, entry in enumerate(kqtfile.get_entries()):
                 yield
                 key, value = entry
                 values[key] = value
                 self._update_progress_step(kqtfile.get_loading_progress() * 0.5)
+        except KunquatFileError as e:
+            self._session.set_module_load_error_info(module_path, e.args[0])
+            self._updater.signal_update(
+                    'signal_module_load_error', 'signal_progress_finished')
+            return
 
-            notifier = self._get_transaction_notifier(0.5,
-                    lambda: self._updater.signal_update('signal_module'))
-            self._store.put(values, transaction_notifier=notifier)
-            self._store.clear_modified_flag()
+        self._set_module_load_transaction_error_handler(module_path)
 
-            self._updater.signal_update('signal_controls')
+        notifier = self._get_transaction_notifier(0.5,
+                lambda: self._updater.signal_update('signal_module'))
+        self._store.put(values, transaction_notifier=notifier)
+        self._store.clear_modified_flag()
 
-            self._reset_expressions()
+        self._updater.signal_update('signal_controls')
+
+        self._reset_expressions()
 
     def get_task_save_module(self, module_path):
         assert module_path
@@ -557,7 +575,16 @@ class Controller():
         self._audio_engine.fire_event(channel_number, note_off_event)
 
     def notify_kunquat_exception(self, e):
-        raise e
+        handler = None
+        desc = e.args[0]
+        if type(desc) == dict:
+            if desc.get('type') == 'FormatError':
+                handler = self._format_error_handler
+
+        if handler:
+            handler(e)
+        else:
+            raise e
 
     def notify_libkunquat_error(self, e):
         raise e

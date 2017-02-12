@@ -97,6 +97,7 @@ class Session():
         self._active_var_names = {}
         self._runtime_env = {}
         self._selected_binding_index = None
+        self._module_load_error_info = None
         self._au_import_info = None
         self._au_import_error_info = None
         self._au_export_info = None
@@ -582,6 +583,12 @@ class Session():
 
     def get_module_path(self):
         return self._module_path
+
+    def set_module_load_error_info(self, path, msg):
+        self._module_load_error_info = (path, msg)
+
+    def get_module_load_error_info(self):
+        return self._module_load_error_info
 
     def set_saving(self, enabled):
         self._is_saving = enabled

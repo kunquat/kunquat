@@ -63,6 +63,8 @@ class RootView():
         self._progress_window = None
 
         self._module = None
+
+        self._load_error_dialog = None
         self._au_import_error_dialog = None
 
         self._window_raise_signals = set('signal_window_{}'.format(ui) for ui in [
@@ -349,6 +351,8 @@ class RootView():
                 self._update_progress_window()
             if 'signal_progress_finished' in signals:
                 self._hide_progress_window()
+            if 'signal_module_load_error' in signals:
+                self._on_module_load_error()
             if 'signal_style_changed' in signals:
                 style_sheet = self._style_creator.get_updated_style_sheet()
                 QApplication.instance().setStyleSheet(style_sheet)
@@ -430,6 +434,21 @@ class RootView():
         task_executor = self._ui_model.get_task_executor()
         self._module.execute_import_au(task_executor)
 
+    def _on_module_load_error(self):
+        def on_close():
+            if self._load_error_dialog:
+                self._load_error_dialog.close()
+                self._load_error_dialog = None
+                visibility_manager = self._ui_model.get_visibility_manager()
+                visibility_manager.hide_all()
+
+        error_info = self._module.get_load_error_info()
+        assert error_info
+        self._load_error_dialog = ModuleLoadErrorDialog(
+                self._ui_model.get_icon_bank(), error_info, on_close)
+        self._load_error_dialog.setModal(True)
+        self._load_error_dialog.show()
+
     def _on_au_import_error(self):
         def on_close():
             if self._au_import_error_dialog:
@@ -509,12 +528,12 @@ class ProgressWindow(QWidget):
         event.ignore()
 
 
-class AuImportErrorDialog(QDialog):
+class ImportErrorDialog(QDialog):
 
-    def __init__(self, icon_bank, error_info, on_close):
+    def __init__(self, title, msg_fmt, icon_bank, error_info, on_close):
         super().__init__()
 
-        self.setWindowTitle('Importing failed')
+        self.setWindowTitle(title)
 
         self._on_close = on_close
 
@@ -542,8 +561,7 @@ class AuImportErrorDialog(QDialog):
         self.setLayout(v)
 
         # Dialog contents
-        error_msg = ('<p>Could not import \'{}\' due to the following error:</p>'
-            '<p>{}</p>'.format(path, details))
+        error_msg = ('<p>{}</p> <p>{}</p>'.format(msg_fmt.format(path), details))
         self._message.setText(error_msg)
 
         ok_button = QPushButton('OK')
@@ -551,6 +569,31 @@ class AuImportErrorDialog(QDialog):
         self._button_layout.addWidget(ok_button)
         self._button_layout.addStretch(1)
 
-        QObject.connect(ok_button, SIGNAL('clicked()'), self._on_close)
+        QObject.connect(ok_button, SIGNAL('clicked()'), self.close)
+
+    def closeEvent(self, event):
+        self._on_close()
+
+
+class ModuleLoadErrorDialog(ImportErrorDialog):
+
+    def __init__(self, icon_bank, error_info, on_close):
+        super().__init__(
+                'Module loading failed',
+                'Could not load \'{}\' due to the following error:',
+                icon_bank,
+                error_info,
+                on_close)
+
+
+class AuImportErrorDialog(ImportErrorDialog):
+
+    def __init__(self, icon_bank, error_info, on_close):
+        super().__init__(
+                'Importing failed',
+                'Could not import \'{}\' due to the following error:',
+                icon_bank,
+                error_info,
+                on_close)
 
 
