@@ -505,9 +505,13 @@ class ExpressionSelector(KqtComboBox):
         self.set_items(name for name in expr_names)
         self.setEnabled(self.count() > 0)
 
-        if expr_names and (prev_list_index == -1):
-            self.setCurrentIndex(0)
-            au.set_connections_expr_name(expr_names[0])
+        if expr_names:
+            cur_name = au.get_connections_expr_name()
+            if cur_name in expr_names:
+                self.setCurrentIndex(expr_names.index(cur_name))
+            else:
+                self.setCurrentIndex(0)
+                au.set_connections_expr_name(expr_names[0])
 
         self.blockSignals(old_block)
 
