@@ -439,8 +439,6 @@ class HitSelector(KqtComboBox):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
-        prev_list_index = self.currentIndex()
-
         old_block = self.blockSignals(True)
 
         hits = ((i, au.get_hit(i)) for i in range(HITS_MAX))
@@ -449,10 +447,18 @@ class HitSelector(KqtComboBox):
         self.set_items(('{}: {}'.format(i, name), i) for (i, name) in vis_names)
         self.setEnabled(self.count() > 0)
 
-        if self.isEnabled() and (prev_list_index == -1):
-            self.setCurrentIndex(0)
-            cur_hit_index = self.itemData(0)
+        if self.isEnabled():
+            prev_hit_index = au.get_connections_hit_index()
+            prev_list_index = self.findData(prev_hit_index)
+            if prev_list_index != -1:
+                self.setCurrentIndex(prev_list_index)
+                cur_hit_index = prev_hit_index
+            else:
+                self.setCurrentIndex(0)
+                cur_hit_index = self.itemData(0)
             au.set_connections_hit_index(cur_hit_index)
+        else:
+            au.set_connections_hit_index(None)
 
         self.blockSignals(old_block)
 
@@ -505,9 +511,13 @@ class ExpressionSelector(KqtComboBox):
         self.set_items(name for name in expr_names)
         self.setEnabled(self.count() > 0)
 
-        if expr_names and (prev_list_index == -1):
-            self.setCurrentIndex(0)
-            au.set_connections_expr_name(expr_names[0])
+        if expr_names:
+            cur_name = au.get_connections_expr_name()
+            if cur_name in expr_names:
+                self.setCurrentIndex(expr_names.index(cur_name))
+            else:
+                self.setCurrentIndex(0)
+                au.set_connections_expr_name(expr_names[0])
 
         self.blockSignals(old_block)
 
