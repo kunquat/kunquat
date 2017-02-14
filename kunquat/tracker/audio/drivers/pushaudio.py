@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2014
+#          Tomi Jylhä-Ollila, Finland 2013-2017
 #
 # This file is part of Kunquat.
 #
@@ -14,14 +14,14 @@
 
 from kunquat.extras.pulseaudio import Simple
 
+
 class Pushaudio():
 
-    def __init__(self, latency):
+    def __init__(self, audio_rate, latency):
         self._started = False
         self._audio_source = None
-        self._pa = Simple('Kunquat Tracker',
-                          'Editor output',
-                          latency=latency)
+        self._pa = Simple(
+                'Kunquat Tracker', 'Editor output', rate=audio_rate, latency=latency)
 
     def set_audio_source(self, audio_source):
         self._audio_source = audio_source
@@ -47,5 +47,6 @@ class Pushaudio():
     def get_id(cls):
         return 'pushaudio'
 
-    #'PulseAudio synchronic push driver'
+    #'PulseAudio synchronous push driver'
+
 

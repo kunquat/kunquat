@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -27,6 +27,8 @@ def parse_arguments():
             help='Enable experimental features')
     ap.add_argument('--install-prefix', default=_find_install_prefix(),
             help=argparse.SUPPRESS)
+    ap.add_argument('-r', '--rate', type=int, default=48000, metavar='r',
+            help='Set audio rate to %(metavar)s frames/second (default: %(default)s)')
     ap.add_argument('--audio-latency', type=float, default=60, metavar='t',
             help='Set audio latency to %(metavar)s milliseconds (default: %(default)s)')
     ap.add_argument(
@@ -47,6 +49,9 @@ def get_kqt_file():
 def get_install_prefix():
     path = os.path.abspath(os.path.expanduser(_args.install_prefix))
     return path
+
+def get_audio_rate():
+    return min(max(2000, _args.rate), 192000)
 
 def get_audio_latency():
     return min(max(1, _args.audio_latency), 2000)
