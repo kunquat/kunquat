@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -227,21 +227,39 @@ static void Freeverb_pstate_render_mixed(
     }
 
     // Get damp parameter stream
-    float* damps = Device_thread_state_get_mixed_buffer_contents_mut(
+    const float damp_adjust = 44100 / (float)Device_state_get_audio_rate(dstate);
+    Work_buffer* damps_wb = Device_thread_state_get_mixed_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_DAMP);
-    if (damps == NULL)
+    float* damps = NULL;
+    if (damps_wb == NULL)
     {
         damps = Work_buffers_get_buffer_contents_mut(wbs, FREEVERB_WB_FIXED_DAMP);
-        const float fixed_damp = (float)(freeverb->damp_setting * 0.01);
+        const float adj_damp =
+            powf((float)(freeverb->damp_setting * 0.01f), damp_adjust);
+        const float clamped = clamp(adj_damp, 0, 1);
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            damps[i] = fixed_damp;
+            damps[i] = clamped;
     }
     else
     {
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        const int32_t const_start = Work_buffer_get_const_start(damps_wb);
+        const int32_t var_stop = clamp(const_start, buf_start, buf_stop);
+
+        damps = Work_buffer_get_contents_mut(damps_wb);
+
+        for (int32_t i = buf_start; i < var_stop; ++i)
         {
-            const float scaled_damp = damps[i] * 0.01f;
-            damps[i] = clamp(scaled_damp, 0, 1);
+            const float adj_damp = powf(damps[i] * 0.01f, damp_adjust);
+            damps[i] = clamp(adj_damp, 0, 1);
+        }
+
+        if (var_stop < buf_stop)
+        {
+            const float adj_damp = powf(damps[var_stop] * 0.01f, damp_adjust);
+            const float clamped = clamp(adj_damp, 0, 1);
+
+            for (int32_t i = var_stop; i < buf_stop; ++i)
+                damps[i] = clamped;
         }
     }
 
