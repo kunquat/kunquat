@@ -16,10 +16,11 @@ from PySide.QtGui import *
 
 from .connectionseditor import ConnectionsEditor
 from .keyboardmapper import KeyboardMapper
+from .saverwindow import SaverWindow
 from .updater import Updater
 
 
-class ConnectionsWindow(QWidget, Updater):
+class ConnectionsWindow(Updater, SaverWindow):
 
     def __init__(self):
         super().__init__()
@@ -48,7 +49,7 @@ class ConnectionsWindow(QWidget, Updater):
 
     def keyPressEvent(self, event):
         if not self._keyboard_mapper.process_typewriter_button_event(event):
-            event.ignore()
+            super().keyPressEvent(event)
 
     def keyReleaseEvent(self, event):
         if not self._keyboard_mapper.process_typewriter_button_event(event):

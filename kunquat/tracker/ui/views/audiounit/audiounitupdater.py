@@ -17,6 +17,7 @@ from kunquat.tracker.ui.views.updater import Updater
 class AudioUnitUpdater(Updater):
 
     def __init__(self):
+        super().__init__()
         self._au_id = None
 
     def set_au_id(self, au_id):

@@ -15,10 +15,11 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .notationeditor import NotationEditor
+from .saverwindow import SaverWindow
 from .updater import Updater
 
 
-class NotationWindow(QWidget, Updater):
+class NotationWindow(Updater, SaverWindow):
 
     def __init__(self):
         super().__init__()

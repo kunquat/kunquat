@@ -19,7 +19,7 @@ from kunquat.kunquat.limits import *
 from .eventlistbutton import EventListButton
 from . import utils
 from .kqtutils import try_open_kqt_module_or_au
-from .saving import get_module_save_path
+from .saving import try_save_module
 from .updater import Updater
 
 
@@ -114,6 +114,7 @@ class SaveButton(QToolButton):
         self._module_loaded = False
 
         self.setText('Save')
+        self.setToolTip('Save (Ctrl + S)')
         self.setEnabled(False)
 
     def set_ui_model(self, ui_model):
@@ -134,15 +135,7 @@ class SaveButton(QToolButton):
             self.setEnabled(module.is_modified())
 
     def _clicked(self):
-        module = self._ui_model.get_module()
-
-        if not module.get_path():
-            module_path = get_module_save_path()
-            if not module_path:
-                return
-            module.set_path(module_path)
-
-        module.start_save()
+        try_save_module(self._ui_model)
 
 
 class WindowOpenerButton(QToolButton, Updater):

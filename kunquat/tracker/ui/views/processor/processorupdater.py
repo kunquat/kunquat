@@ -17,6 +17,7 @@ from kunquat.tracker.ui.views.audiounit.audiounitupdater import AudioUnitUpdater
 class ProcessorUpdater(AudioUnitUpdater):
 
     def __init__(self):
+        super().__init__()
         self._proc_id = None
 
     def set_proc_id(self, proc_id):
