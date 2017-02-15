@@ -15,6 +15,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
+from .updater import Updater
 
 
 DISP_CONTEXTS = {
@@ -172,70 +173,42 @@ class EventFilterButton(QCheckBox):
         event_history.allow_context(self._context, is_checked)
 
 
-class EventFilterView(QWidget):
+class EventFilterView(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
+
+        self._mix_toggle = EventFilterButton('mix')
+        self._fire_toggle = EventFilterButton('fire')
+
+        self.add_to_updaters(self._mix_toggle, self._fire_toggle)
 
         h = QHBoxLayout()
         h.setContentsMargins(6, 6, 6, 6)
         h.setSpacing(8)
-        self._mix_toggle = EventFilterButton('mix')
-        self._fire_toggle = EventFilterButton('fire')
-        #self._tfire_toggle = EventFilterButton('tfire')
         h.addWidget(self._mix_toggle)
         h.addWidget(self._fire_toggle)
-        #h.addWidget(self._tfire_toggle)
         h.addStretch()
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._mix_toggle.set_ui_model(ui_model)
-        self._fire_toggle.set_ui_model(ui_model)
-        #self._tfire_toggle.set_ui_model(ui_model)
 
-    def unregister_updaters(self):
-        self._mix_toggle.unregister_updaters()
-        self._fire_toggle.unregister_updaters()
-        #self._tfire_toggle.unregister_updaters()
-
-
-class EventList(QWidget):
+class EventList(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-
-        self.setWindowTitle('Event Log')
-
         self._logmodel = EventListModel()
+        self._filters = EventFilterView()
+
+        self.add_to_updaters(self._logmodel, self._filters)
+
+        self._tableview = EventTable()
+        self._tableview.setModel(self._logmodel)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
-
-        self._tableview = EventTable()
-        self._tableview.setModel(self._logmodel)
         v.addWidget(self._tableview)
-        self._filters = EventFilterView()
         v.addWidget(self._filters)
         self.setLayout(v)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._logmodel.set_ui_model(ui_model)
-        self._filters.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._logmodel.unregister_updaters()
-        self._filters.unregister_updaters()
-
-    def closeEvent(self, event):
-        event.ignore()
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_event_log()
-
-    def sizeHint(self):
-        return QSize(600, 768)
 
 

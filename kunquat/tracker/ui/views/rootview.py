@@ -20,7 +20,7 @@ from kunquat.tracker.ui.identifiers import *
 from .stylecreator import StyleCreator
 from .mainwindow import MainWindow
 from .aboutwindow import AboutWindow
-from .eventlist import EventList
+from .eventlistwindow import EventListWindow
 from .connectionswindow import ConnectionsWindow
 from .songschannelswindow import SongsChannelsWindow
 from .notationwindow import NotationWindow
@@ -136,7 +136,7 @@ class RootView():
                 if is_show_allowed:
                     self._about_window.show()
             elif ui == UI_EVENT_LOG:
-                self._event_log = EventList()
+                self._event_log = EventListWindow()
                 self._event_log.set_ui_model(self._ui_model)
                 if is_show_allowed:
                     self._event_log.show()
