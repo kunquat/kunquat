@@ -50,6 +50,16 @@ def get_kqt_file_path(types):
     return None
 
 
+def try_open_kqt_module_or_au(ui_model):
+    file_path = get_kqt_file_path(set(['kqt', 'kqti', 'kqte']))
+    if file_path:
+        if file_path.endswith('.kqt'):
+            process_manager = ui_model.get_process_manager()
+            process_manager.new_kunquat(file_path)
+        else:
+            open_kqt_au(file_path, ui_model, ui_model.get_module())
+
+
 def open_kqt_au(au_path, ui_model, container):
     is_inside_instrument = not (container is ui_model.get_module())
 

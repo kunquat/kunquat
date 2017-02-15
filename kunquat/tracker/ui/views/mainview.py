@@ -17,6 +17,7 @@ from PySide.QtGui import *
 
 from .composition import Composition
 from .inputcontrols import InputControls
+from .kqtutils import try_open_kqt_module_or_au
 from .peakmeter import PeakMeter
 from .portal import Portal
 from .playbackpanel import PlaybackPanel
@@ -63,6 +64,11 @@ class MainView(QWidget, Updater):
         elif event.modifiers() == Qt.ControlModifier:
             if event.key() == Qt.Key_Comma:
                 self._ui_model.play_pattern()
+            elif event.key() == Qt.Key_N:
+                process_manager = self._ui_model.get_process_manager()
+                process_manager.new_kunquat()
+            elif event.key() == Qt.Key_O:
+                try_open_kqt_module_or_au(self._ui_model)
             else:
                 event.ignore()
         elif event.modifiers() == Qt.AltModifier:
