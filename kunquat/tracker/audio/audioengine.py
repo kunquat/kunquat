@@ -228,12 +228,12 @@ class AudioEngine():
 
 def create_audio_engine():
     latency = cmdline.get_audio_latency() * 0.001
-    rendering_engine = Kunquat()
+    rendering_engine = Kunquat(audio_rate=cmdline.get_audio_rate())
     rendering_engine.thread_count = cmdline.get_thread_count()
     audio_rate = rendering_engine.audio_rate
     chunk_size = max(1, int(latency * audio_rate * 0.5))
     audio_engine = AudioEngine(chunk_size)
-    audio_output = Pushaudio(latency)
+    audio_output = Pushaudio(audio_rate, latency)
     audio_output.set_audio_source(audio_engine)
     audio_output.start()
     audio_engine.set_rendering_engine(rendering_engine)
