@@ -81,11 +81,10 @@ class KeyboardMapper(Updater):
         return button
 
     def is_octave_up(self, event):
-        return event.key() == Qt.Key_O and event.modifiers() == Qt.ControlModifier
+        return event.key() == Qt.Key_Greater
 
     def is_octave_down(self, event):
-        return event.key() == Qt.Key_O and (
-                event.modifiers() == (Qt.ControlModifier | Qt.ShiftModifier))
+        return event.key() == Qt.Key_Less
 
     def is_hit_keymap_toggle(self, event):
         return (event.key() == Qt.Key_H) and (event.modifiers() == Qt.ControlModifier)
