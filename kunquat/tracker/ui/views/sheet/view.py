@@ -257,6 +257,10 @@ class View(QWidget):
 
         if playback_manager.is_playback_active():
             track_num, system_num, row_ts = playback_manager.get_playback_position()
+            if track_num < 0 or system_num < 0:
+                ploc = utils.get_current_playback_pattern_location(self._ui_model)
+                if ploc:
+                    track_num, system_num = ploc
             location = TriggerPosition(track_num, system_num, 0, row_ts, 0)
             self._playback_cursor_offset = self._get_row_offset(location, absolute=True)
 
@@ -507,6 +511,13 @@ class View(QWidget):
 
         playback_manager = self._ui_model.get_playback_manager()
         track_num, system_num, row_ts = playback_manager.get_playback_position()
+        if track_num < 0 or system_num < 0:
+            ploc = utils.get_current_playback_pattern_location(self._ui_model)
+            if ploc:
+                track_num, system_num = ploc
+            else:
+                # Location could not be determined
+                return
 
         location = TriggerPosition(track_num, system_num, col_num, row_ts, 0)
         self._follow_location(location, self.height() // 2)
