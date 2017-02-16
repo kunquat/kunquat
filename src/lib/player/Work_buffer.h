@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -37,6 +37,22 @@
  *           failed.
  */
 Work_buffer* new_Work_buffer(int32_t size);
+
+
+/**
+ * Create a new Work buffer with support for large sizes.
+ *
+ * Typical Work buffers are used for storing temporary audio data during a
+ * single rendering call, and has safety checks adjusted accordingly. This
+ * function creates a Work buffer that supports buffer sizes up to
+ * INT32_MAX / 4 elements.
+ *
+ * \param size   The buffer size -- must be >= \c 0 and <= \c INT32_MAX / 4.
+ *
+ * \return   The new unbounded Work buffer if successful, or \c NULL if memory
+ *           allocation failed.
+ */
+Work_buffer* new_Work_buffer_unbounded(int32_t size);
 
 
 /**

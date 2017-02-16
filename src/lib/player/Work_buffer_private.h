@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 #define KQT_WORK_BUFFER_PRIVATE_H
 
 
+#include <stdbool.h>
 #include <stdint.h>
 
 
@@ -23,6 +24,7 @@ struct Work_buffer
 {
     int32_t size;
     int32_t const_start;
+    bool is_unbounded;
     void* contents;
 };
 
