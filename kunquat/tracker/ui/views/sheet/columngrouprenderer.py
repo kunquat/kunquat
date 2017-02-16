@@ -170,9 +170,8 @@ class ColumnGroupRenderer():
         playback_manager = self._ui_model.get_playback_manager()
         if (playback_manager.follow_playback_cursor() and
                 not playback_manager.is_recording()):
-            track_num, system_num, _ = playback_manager.get_playback_position()
-            active_pattern_index = utils.get_pattern_index_at_location(
-                    self._ui_model, track_num, system_num)
+            active_pattern_index = utils.get_current_playback_pattern_index(
+                    self._ui_model)
         else:
             selection = self._ui_model.get_selection()
             location = selection.get_location()
