@@ -26,7 +26,7 @@ class EventListWindow(QWidget, Updater):
 
         self.add_to_updaters(self._event_list)
 
-        self.setWindowTitle('Event Log')
+        self.setWindowTitle('Event log')
 
         v = QVBoxLayout()
         v.addWidget(self._event_list)
