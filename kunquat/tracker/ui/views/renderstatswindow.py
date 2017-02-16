@@ -15,11 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .renderstats import RenderStats
-from .saverwindow import SaverWindow
 from .updater import Updater
 
 
-class RenderStatsWindow(Updater, SaverWindow):
+class RenderStatsWindow(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

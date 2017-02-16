@@ -16,11 +16,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .about import About
-from .saverwindow import SaverWindow
 from .updater import Updater
 
 
-class AboutWindow(Updater, SaverWindow):
+class AboutWindow(QWidget, Updater):
 
     def __init__(self):
         super().__init__()

@@ -15,11 +15,10 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .eventlist import EventList
-from .saverwindow import SaverWindow
 from .updater import Updater
 
 
-class EventListWindow(Updater, SaverWindow):
+class EventListWindow(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
