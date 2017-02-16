@@ -100,6 +100,10 @@ class Ruler(QWidget, Updater):
 
         if playback_manager.is_playback_active():
             track_num, system_num, row_ts = playback_manager.get_playback_position()
+            if track_num < 0 or system_num < 0:
+                ploc = utils.get_current_playback_pattern_location(self._ui_model)
+                if ploc:
+                    track_num, system_num = ploc
 
             cur_pinst = None
 
