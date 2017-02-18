@@ -145,11 +145,17 @@ class FollowPlaybackButton(QPushButton, Updater):
 
         if not is_enabled and playback_manager.is_playback_active():
             track_num, system_num, row_ts = playback_manager.get_playback_position()
-            selection = self._ui_model.get_selection()
-            edit_location = selection.get_location()
-            col_num = edit_location.get_col_num()
-            new_location = TriggerPosition(track_num, system_num, col_num, row_ts, 0)
-            selection.set_location(new_location)
+            if track_num < 0 or system_num < 0:
+                ploc = utils.get_current_playback_pattern_location(self._ui_model)
+                if ploc:
+                    track_num, system_num = ploc
+
+            if track_num >= 0 and system_num >= 0:
+                selection = self._ui_model.get_selection()
+                edit_location = selection.get_location()
+                col_num = edit_location.get_col_num()
+                new_location = TriggerPosition(track_num, system_num, col_num, row_ts, 0)
+                selection.set_location(new_location)
 
         self._updater.signal_update('signal_follow_playback')
 

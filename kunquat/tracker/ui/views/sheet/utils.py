@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2016
+# Author: Tomi Jylhä-Ollila, Finland 2013-2017
 #
 # This file is part of Kunquat.
 #
@@ -53,6 +53,31 @@ def get_pattern_index_at_location(ui_model, track, system):
         cur_track, cur_system = loc
         if track == cur_track and system == cur_system:
             return index
+    return None
+
+def get_current_playback_pattern_location(ui_model):
+    playback_manager = ui_model.get_playback_manager()
+
+    track_num, system_num, _ = playback_manager.get_playback_position()
+    if track_num >= 0 and system_num >= 0:
+        return track_num, system_num
+
+    # Pattern playback mode
+    location = None
+    cur_piref = playback_manager.get_playback_pattern()
+    if cur_piref:
+        album = ui_model.get_module().get_album()
+        if album.get_existence():
+            pat_num, inst_num = cur_piref
+            location = album.get_pattern_instance_location_by_nums(pat_num, inst_num)
+
+    return location
+
+def get_current_playback_pattern_index(ui_model):
+    location = get_current_playback_pattern_location(ui_model)
+    if location:
+        track_num, system_num = location
+        return get_pattern_index_at_location(ui_model, track_num, system_num)
     return None
 
 
