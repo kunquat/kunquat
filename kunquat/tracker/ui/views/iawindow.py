@@ -15,10 +15,11 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .iacontrols import IAControls
+from .saverwindow import SaverWindow
 from .updater import Updater
 
 
-class IAWindow(QWidget, Updater):
+class IAWindow(Updater, SaverWindow):
 
     def __init__(self):
         super().__init__()

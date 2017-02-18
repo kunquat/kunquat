@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -18,10 +18,11 @@ from PySide.QtGui import *
 import kunquat.tracker.cmdline as cmdline
 from .confirmdialog import ConfirmDialog
 from .mainview import MainView
+from .saverwindow import SaverWindow
 from .saving import get_module_save_path
 
 
-class MainWindow(QWidget):
+class MainWindow(SaverWindow):
 
     def __init__(self):
         super().__init__()

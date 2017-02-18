@@ -16,9 +16,10 @@ from PySide.QtGui import *
 
 from .processor.editor import Editor
 from .processor.processorupdater import ProcessorUpdater
+from .saverwindow import SaverWindow
 
 
-class ProcWindow(QWidget, ProcessorUpdater):
+class ProcWindow(ProcessorUpdater, SaverWindow):
 
     def __init__(self):
         super().__init__()

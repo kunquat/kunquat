@@ -18,6 +18,7 @@ from collections import OrderedDict
 class Updater():
 
     def __init__(self):
+        super().__init__()
         self._ui_model = None
         self._updater = None
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2017
 #
 # This file is part of Kunquat.
 #
@@ -14,34 +14,30 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from .notationeditor import NotationEditor
-from .saverwindow import SaverWindow
+from .eventlist import EventList
 from .updater import Updater
 
 
-class NotationWindow(Updater, SaverWindow):
+class EventListWindow(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
+        self._event_list = EventList()
 
-        self.setWindowTitle('Notations')
+        self.add_to_updaters(self._event_list)
 
-        self._editor = NotationEditor()
-        self.add_to_updaters(self._editor)
+        self.setWindowTitle('Event log')
 
         v = QVBoxLayout()
-        v.setContentsMargins(4, 4, 4, 4)
-        v.setSpacing(4)
-        v.addWidget(self._editor)
+        v.addWidget(self._event_list)
         self.setLayout(v)
 
     def closeEvent(self, event):
         event.ignore()
         visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_notation_editor()
+        visibility_manager.hide_event_log()
 
     def sizeHint(self):
-        return QSize(1280, 768)
+        return QSize(600, 768)
 
 

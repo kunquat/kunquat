@@ -19,6 +19,18 @@ from PySide.QtGui import *
 import kunquat.tracker.config as config
 
 
+def try_save_module(ui_model):
+    module = ui_model.get_module()
+
+    if not module.get_path():
+        module_path = get_module_save_path()
+        if not module_path:
+            return
+        module.set_path(module_path)
+
+    module.start_save()
+
+
 def get_module_save_path():
     default_dir = config.get_config().get_value('dir_modules') or ''
     module_path, _ = QFileDialog.getSaveFileName(

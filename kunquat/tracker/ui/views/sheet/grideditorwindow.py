@@ -14,11 +14,12 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from kunquat.tracker.ui.views.saverwindow import SaverWindow
 from kunquat.tracker.ui.views.updater import Updater
 from .grideditor import GridEditor
 
 
-class GridEditorWindow(QWidget, Updater):
+class GridEditorWindow(Updater, SaverWindow):
 
     def __init__(self):
         super().__init__()

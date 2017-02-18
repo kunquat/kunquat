@@ -18,8 +18,8 @@ from PySide.QtGui import *
 from kunquat.kunquat.limits import *
 from .eventlistbutton import EventListButton
 from . import utils
-from .kqtutils import get_kqt_file_path, open_kqt_au
-from .saving import get_module_save_path
+from .kqtutils import try_open_kqt_module_or_au
+from .saving import try_save_module
 from .updater import Updater
 
 
@@ -80,6 +80,7 @@ class NewButton(QToolButton, Updater):
     def __init__(self):
         super().__init__()
         self.setText('New')
+        self.setToolTip('New (Ctrl + N)')
 
     def _on_setup(self):
         QObject.connect(self, SIGNAL('clicked()'), self._clicked)
@@ -94,18 +95,13 @@ class OpenButton(QToolButton, Updater):
     def __init__(self):
         super().__init__()
         self.setText('Open')
+        self.setToolTip('Open (Ctrl + O)')
 
     def _on_setup(self):
         QObject.connect(self, SIGNAL('clicked()'), self._clicked)
 
     def _clicked(self):
-        file_path = get_kqt_file_path(set(['kqt', 'kqti', 'kqte']))
-        if file_path:
-            if file_path.endswith('.kqt'):
-                process_manager = self._ui_model.get_process_manager()
-                process_manager.new_kunquat(file_path)
-            else:
-                open_kqt_au(file_path, self._ui_model, self._ui_model.get_module())
+        try_open_kqt_module_or_au(self._ui_model)
 
 
 class SaveButton(QToolButton):
@@ -118,6 +114,7 @@ class SaveButton(QToolButton):
         self._module_loaded = False
 
         self.setText('Save')
+        self.setToolTip('Save (Ctrl + S)')
         self.setEnabled(False)
 
     def set_ui_model(self, ui_model):
@@ -138,15 +135,7 @@ class SaveButton(QToolButton):
             self.setEnabled(module.is_modified())
 
     def _clicked(self):
-        module = self._ui_model.get_module()
-
-        if not module.get_path():
-            module_path = get_module_save_path()
-            if not module_path:
-                return
-            module.set_path(module_path)
-
-        module.start_save()
+        try_save_module(self._ui_model)
 
 
 class WindowOpenerButton(QToolButton, Updater):

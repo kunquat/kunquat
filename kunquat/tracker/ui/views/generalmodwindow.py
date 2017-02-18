@@ -15,10 +15,11 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .generalmodeditor import GeneralModEditor
+from .saverwindow import SaverWindow
 from .updater import Updater
 
 
-class GeneralModWindow(QWidget, Updater):
+class GeneralModWindow(Updater, SaverWindow):
 
     def __init__(self):
         super().__init__()

@@ -16,9 +16,10 @@ from PySide.QtGui import *
 
 from .audiounit.editor import Editor
 from .audiounit.audiounitupdater import AudioUnitUpdater
+from .saverwindow import SaverWindow
 
 
-class AuWindow(QWidget, AudioUnitUpdater):
+class AuWindow(AudioUnitUpdater, SaverWindow):
 
     def __init__(self):
         super().__init__()
