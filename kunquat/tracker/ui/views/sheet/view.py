@@ -53,6 +53,8 @@ class TriggerArgumentValidator(QValidator):
         super().__init__()
 
     def validate(self, contents, pos):
+        if not all(0x20 <= ord(c) <= 0x7e for c in contents):
+            return (QValidator.Invalid, contents, pos)
         return (QValidator.Acceptable, contents, pos)
 
 
