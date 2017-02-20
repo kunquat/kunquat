@@ -52,7 +52,7 @@ class EnvgenProc(QWidget, ProcessorUpdater):
         v.addWidget(self._global_adjust)
         v.addLayout(rl)
         v.addWidget(self._time_env)
-        v.addWidget(self._force_env)
+        #v.addWidget(self._force_env)
         self.setLayout(v)
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
