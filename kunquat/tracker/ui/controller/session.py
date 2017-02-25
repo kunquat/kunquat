@@ -28,6 +28,7 @@ class Session():
         self._audio_levels = (0, 0)
         self._max_audio_levels = [0, 0]
         self._infinite_mode = False
+        self._playback_track = None
         self._selected_control_id = 0
         self._is_hit_keymap_active = False
         self._selected_notation_id = (True, '12tetsharp')
@@ -169,6 +170,12 @@ class Session():
 
     def get_infinite_mode(self):
         return self._infinite_mode
+
+    def set_playback_track(self, track_num):
+        self._playback_track = track_num
+
+    def get_playback_track(self):
+        return self._playback_track
 
     def get_selected_control_id(self):
         return self._selected_control_id

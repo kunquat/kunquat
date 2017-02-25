@@ -400,12 +400,14 @@ class Controller():
 
     def _reset_with_post_action(self, action, *args):
         assert hasattr(self, action.__name__)
-        self._audio_engine.reset_and_pause()
+        track_num = self._session.get_playback_track()
+        self._audio_engine.reset_and_pause(track_num)
         self._audio_engine.sync_call_post_action(action.__name__, args)
 
-    def play(self):
+    def play(self, track=None):
         if self._session.is_playback_active():
             self._check_update_random_seed()
+        self._session.set_playback_track(track)
         self._reset_with_post_action(self._play)
 
     def _play(self):

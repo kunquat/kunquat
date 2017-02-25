@@ -255,7 +255,10 @@ class UiModel():
         return self._task_executor
 
     def play(self):
-        self._controller.play()
+        selection = self.get_selection()
+        location = selection.get_location()
+        track = location.get_track() if location else 0
+        self._controller.play(track)
 
     def _get_pattern_instance(self, location):
         module = self.get_module()

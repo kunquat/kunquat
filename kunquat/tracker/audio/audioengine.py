@@ -183,7 +183,8 @@ class AudioEngine():
     def nanoseconds(self, nanos):
         self._rendering_engine.nanoseconds = nanos
 
-    def reset_and_pause(self):
+    def reset_and_pause(self, track_num):
+        self._rendering_engine.track = track_num
         self._rendering_engine.nanoseconds = 0
         pause_event = ('cpause', None)
         self.tfire_event(0, pause_event)

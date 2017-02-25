@@ -76,8 +76,8 @@ class AudioProcess(Process):
     def nanoseconds(self, nanos):
         self._q.put('nanoseconds', nanos)
 
-    def reset_and_pause(self):
-        self._q.put('reset_and_pause')
+    def reset_and_pause(self, track_num):
+        self._q.put('reset_and_pause', track_num)
 
     def sync_call_post_action(self, action_name, args):
         self._q.put('sync_call_post_action', action_name, args)
