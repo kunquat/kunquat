@@ -263,14 +263,12 @@ class Module():
         fallback_au_ids = self.get_au_ids()
         fallback_au_ids.discard(au_id)
         fallback_au_id = min(fallback_au_ids) if fallback_au_ids else 'au_00'
-        if fallback_au_id == au_id:
-            return
-        fallback_control_id = (
-                self.get_control_id_by_au_id(fallback_au_id) or 'control_00')
-
-        ch_defs = self.get_channel_defaults()
-        transaction.update(ch_defs.get_edit_remove_controls_to_audio_unit(
-            au_id, fallback_control_id))
+        if fallback_au_id != au_id:
+            fallback_control_id = (
+                    self.get_control_id_by_au_id(fallback_au_id) or 'control_00')
+            ch_defs = self.get_channel_defaults()
+            transaction.update(ch_defs.get_edit_remove_controls_to_audio_unit(
+                au_id, fallback_control_id))
 
         # Remove controls
         remove_control_nums = []
