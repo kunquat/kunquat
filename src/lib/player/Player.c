@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2017
  *
  * This file is part of Kunquat.
  *
@@ -581,6 +581,15 @@ void Player_reset(Player* player, int track_num)
     rassert(track_num < KQT_TRACKS_MAX);
 
     Master_params_reset(&player->master_params);
+    if (track_num == -1)
+    {
+        player->master_params.playback_state = PLAYBACK_MODULE;
+        player->master_params.cur_pos.track = 0;
+    }
+    else
+    {
+        player->master_params.cur_pos.track = track_num;
+    }
 
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         Channel_set_random_seed(player->channels[i], player->module->random_seed);
