@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2017
  *
  * This file is part of Kunquat.
  *
@@ -199,10 +199,7 @@ const Sample_entry* Hit_map_get_entry(
 
     AAtree* forces = map->hits[hit_index];
     if (forces == NULL)
-    {
-        fprintf(stderr, "no forces\n");
         return NULL;
-    }
 
     Random_list* key = &(Random_list){ .force = force };
     Random_list* greater = AAtree_get_at_least(forces, key);
