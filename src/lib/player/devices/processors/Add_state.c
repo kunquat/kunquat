@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -191,7 +191,7 @@ static int32_t Add_vstate_render_voice(
                 int32_t cur_size = ADD_BASE_FUNC_SIZE;
                 if (isfinite(shift_norm) && (shift_norm > 0.0f))
                 {
-                    cur_size = (int32_t)ipowi(2, max(-shift_exp + 1, 3));
+                    cur_size = (int32_t)ipowi(2, clamp(-shift_exp + 1, 3, 30));
                     cur_size = min(cur_size, ADD_BASE_FUNC_SIZE * 2);
                     rassert(is_p2(cur_size));
                 }
