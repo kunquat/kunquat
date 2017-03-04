@@ -39,6 +39,9 @@ def get_module_save_path():
             filter='Kunquat compositions (*.kqt)')
     if not module_path:
         return None
+
+    if not module_path.endswith('.kqt'):
+        module_path += '.kqt'
     return module_path
 
 
@@ -60,6 +63,9 @@ def get_instrument_save_path(au_name):
             filter='Kunquat instruments (*.kqti)')
     if not au_path:
         return None
+
+    if not au_path.endswith('.kqti'):
+        au_path += '.kqti'
     return au_path
 
 
@@ -77,6 +83,9 @@ def get_effect_save_path(au_name):
             filter='Kunquat effects (*.kqte)')
     if not au_path:
         return None
+
+    if not au_path.endswith('.kqte'):
+        au_path += '.kqte'
     return au_path
 
 
