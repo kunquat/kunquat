@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,7 @@
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <kunquat/limits.h>
+#include <mathnum/Tstamp.h>
 #include <memory.h>
 #include <player/Linear_controls.h>
 #include <string/var_name.h>
@@ -34,6 +35,12 @@ typedef struct Entry
 
     Linear_controls controls;
     bool is_set;
+
+    Tstamp slide_length;
+    double osc_speed;
+    Tstamp osc_speed_slide;
+    double osc_depth;
+    Tstamp osc_depth_slide;
     bool carry;
 } Entry;
 
@@ -118,6 +125,12 @@ bool Channel_stream_state_add_entry(
         strcpy(new_entry->name, stream_name);
         Linear_controls_init(&new_entry->controls);
         new_entry->is_set = false;
+
+        Tstamp_set(&new_entry->slide_length, -1, 0);
+        new_entry->osc_speed = NAN;
+        Tstamp_set(&new_entry->osc_speed_slide, -1, 0);
+        new_entry->osc_depth = NAN;
+        Tstamp_set(&new_entry->osc_depth_slide, -1, 0);
         new_entry->carry = false;
 
         if (!AAtree_ins(state->tree, new_entry))
@@ -181,6 +194,7 @@ bool Channel_stream_state_slide_length(
         return false;
 
     Linear_controls_slide_value_length(&entry->controls, length);
+    Tstamp_copy(&entry->slide_length, length);
 
     return true;
 }
@@ -199,6 +213,7 @@ bool Channel_stream_state_set_osc_speed(
         return false;
 
     Linear_controls_osc_speed_value(&entry->controls, speed);
+    entry->osc_speed = speed;
 
     return true;
 }
@@ -217,6 +232,7 @@ bool Channel_stream_state_set_osc_depth(
         return false;
 
     Linear_controls_osc_depth_value(&entry->controls, depth);
+    entry->osc_depth = depth;
 
     return true;
 }
@@ -235,6 +251,7 @@ bool Channel_stream_state_set_osc_speed_slide(
         return false;
 
     Linear_controls_osc_speed_slide_value(&entry->controls, length);
+    Tstamp_copy(&entry->osc_speed_slide, length);
 
     return true;
 }
@@ -253,6 +270,7 @@ bool Channel_stream_state_set_osc_depth_slide(
         return false;
 
     Linear_controls_osc_depth_slide_value(&entry->controls, length);
+    Tstamp_copy(&entry->osc_depth_slide, length);
 
     return true;
 }
@@ -326,6 +344,35 @@ bool Channel_stream_state_is_carrying_enabled(
 }
 
 
+bool Channel_stream_state_apply_overrides(
+        const Channel_stream_state* state,
+        const char* stream_name,
+        Linear_controls* controls)
+{
+    rassert(state != NULL);
+    rassert(stream_name != NULL);
+    rassert(is_valid_var_name(stream_name));
+    rassert(controls != NULL);
+
+    Entry* entry = AAtree_get_exact(state->tree, stream_name);
+    if (entry == NULL)
+        return false;
+
+    if (Tstamp_get_beats(&entry->slide_length) >= 0)
+        Linear_controls_slide_value_length(controls, &entry->slide_length);
+    if (!isnan(entry->osc_speed))
+        Linear_controls_set_osc_speed_default_value(controls, entry->osc_speed);
+    if (Tstamp_get_beats(&entry->osc_speed_slide) >= 0)
+        Linear_controls_osc_speed_slide_value(controls, &entry->osc_speed_slide);
+    if (!isnan(entry->osc_depth))
+        Linear_controls_set_osc_depth_default_value(controls, entry->osc_depth);
+    if (Tstamp_get_beats(&entry->osc_depth_slide) >= 0)
+        Linear_controls_osc_depth_slide_value(controls, &entry->osc_depth_slide);
+
+    return true;
+}
+
+
 void Channel_stream_state_update(Channel_stream_state* state, int64_t step_count)
 {
     rassert(state != NULL);
@@ -357,6 +404,12 @@ void Channel_stream_state_reset(Channel_stream_state* state)
     {
         Linear_controls_init(&entry->controls);
         entry->is_set = false;
+
+        Tstamp_set(&entry->slide_length, -1, 0);
+        entry->osc_speed = NAN;
+        Tstamp_set(&entry->osc_speed_slide, -1, 0);
+        entry->osc_depth = NAN;
+        Tstamp_set(&entry->osc_depth_slide, -1, 0);
         entry->carry = false;
 
         entry = AAiter_get_next(iter);
