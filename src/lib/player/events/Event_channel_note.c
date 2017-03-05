@@ -65,6 +65,49 @@ static void init_force_controls(Channel* ch, const Master_params* master_params)
 }
 
 
+static void init_streams(Channel* ch, const Audio_unit* au)
+{
+    const Au_streams* streams = Audio_unit_get_streams(au);
+    if (streams != NULL)
+    {
+        Channel_stream_state* stream_state = Channel_get_stream_state_mut(ch);
+
+        Stream_target_dev_iter* iter =
+            Stream_target_dev_iter_init(STREAM_TARGET_DEV_ITER_AUTO, streams);
+        const char* stream_name = Stream_target_dev_iter_get_next(iter);
+        while (stream_name != NULL)
+        {
+            Voice_state* vstate = get_target_stream_vstate(ch, stream_name);
+            if (vstate != NULL)
+            {
+                const Linear_controls* cs_controls =
+                    Channel_stream_state_get_controls(stream_state, stream_name);
+                if (Channel_stream_state_is_carrying_enabled(stream_state, stream_name))
+                {
+                    if (!isnan(Linear_controls_get_value(cs_controls)))
+                        Stream_vstate_set_controls(vstate, cs_controls);
+                }
+                else
+                {
+                    Linear_controls new_lc;
+                    Linear_controls_copy(&new_lc, Stream_vstate_get_controls(vstate));
+                    Channel_stream_state_apply_overrides(
+                            stream_state, stream_name, &new_lc);
+
+                    Channel_stream_state_set_controls(
+                            stream_state, stream_name, &new_lc);
+                    Stream_vstate_set_controls(vstate, &new_lc);
+                }
+            }
+
+            stream_name = Stream_target_dev_iter_get_next(iter);
+        }
+    }
+
+    return;
+}
+
+
 bool Event_channel_note_on_process(
         Channel* ch,
         Device_states* dstates,
@@ -184,32 +227,7 @@ bool Event_channel_note_on_process(
             Channel_get_random_source(ch),
             ch);
 
-    // Initialise streams
-    const Au_streams* streams = Audio_unit_get_streams(au);
-    if (streams != NULL)
-    {
-        const Channel_stream_state* stream_state = Channel_get_stream_state(ch);
-
-        Stream_target_dev_iter* iter =
-            Stream_target_dev_iter_init(STREAM_TARGET_DEV_ITER_AUTO, streams);
-        const char* stream_name = Stream_target_dev_iter_get_next(iter);
-        while (stream_name != NULL)
-        {
-            if (Channel_stream_state_is_carrying_enabled(stream_state, stream_name))
-            {
-                Voice_state* vstate = get_target_stream_vstate(ch, stream_name);
-                if (vstate != NULL)
-                {
-                    const Linear_controls* controls =
-                        Channel_stream_state_get_controls(stream_state, stream_name);
-                    if (!isnan(Linear_controls_get_value(controls)))
-                        Stream_vstate_set_controls(vstate, controls);
-                }
-            }
-
-            stream_name = Stream_target_dev_iter_get_next(iter);
-        }
-    }
+    init_streams(ch, au);
 
     return true;
 }
@@ -300,32 +318,7 @@ bool Event_channel_hit_process(
             Channel_get_random_source(ch),
             ch);
 
-    // Initialise streams
-    const Au_streams* streams = Audio_unit_get_streams(au);
-    if (streams != NULL)
-    {
-        const Channel_stream_state* stream_state = Channel_get_stream_state(ch);
-
-        Stream_target_dev_iter* iter =
-            Stream_target_dev_iter_init(STREAM_TARGET_DEV_ITER_AUTO, streams);
-        const char* stream_name = Stream_target_dev_iter_get_next(iter);
-        while (stream_name != NULL)
-        {
-            if (Channel_stream_state_is_carrying_enabled(stream_state, stream_name))
-            {
-                Voice_state* vstate = get_target_stream_vstate(ch, stream_name);
-                if (vstate != NULL)
-                {
-                    const Linear_controls* controls =
-                        Channel_stream_state_get_controls(stream_state, stream_name);
-                    if (!isnan(Linear_controls_get_value(controls)))
-                        Stream_vstate_set_controls(vstate, controls);
-                }
-            }
-
-            stream_name = Stream_target_dev_iter_get_next(iter);
-        }
-    }
+    init_streams(ch, au);
 
     return true;
 }
