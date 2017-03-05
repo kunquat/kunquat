@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -89,10 +89,10 @@ static void Stream_pstate_reset(Device_state* dstate)
 
     Linear_controls_init(&spstate->controls);
     Linear_controls_set_value(&spstate->controls, spstate->init_value);
-    if (spstate->init_osc_speed > 0)
-        Linear_controls_osc_speed_value(&spstate->controls, spstate->init_osc_speed);
-    if (spstate->init_osc_depth > 0)
-        Linear_controls_osc_depth_value(&spstate->controls, spstate->init_osc_depth);
+    Linear_controls_set_osc_speed_init_value(
+            &spstate->controls, spstate->init_osc_speed);
+    Linear_controls_set_osc_depth_init_value(
+            &spstate->controls, spstate->init_osc_depth);
 
     return;
 }
@@ -371,10 +371,10 @@ void Stream_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     Linear_controls_set_audio_rate(&svstate->controls, proc_state->parent.audio_rate);
     Linear_controls_set_tempo(&svstate->controls, 120);
     Linear_controls_set_value(&svstate->controls, stream->init_value);
-    if (stream->init_osc_speed > 0)
-        Linear_controls_osc_speed_value(&svstate->controls, stream->init_osc_speed);
-    if (stream->init_osc_depth > 0)
-        Linear_controls_osc_depth_value(&svstate->controls, stream->init_osc_depth);
+    Linear_controls_set_osc_speed_init_value(
+            &svstate->controls, stream->init_osc_speed);
+    Linear_controls_set_osc_depth_init_value(
+            &svstate->controls, stream->init_osc_depth);
 
     return;
 }
