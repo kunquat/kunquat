@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -228,6 +228,22 @@ void kqt_Handle_clear_error(kqt_Handle handle)
     Error_clear(&h->error);
 
     return;
+}
+
+
+bool Handle_refresh_env_states(Handle* handle)
+{
+    rassert(handle != NULL);
+
+    if (!Player_refresh_env_state(handle->player) ||
+            !Player_refresh_env_state(handle->length_counter))
+    {
+        Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory for environment states");
+        return false;
+    }
+
+    return true;
 }
 
 

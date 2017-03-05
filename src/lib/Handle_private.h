@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -213,6 +213,16 @@ bool key_is_valid(Handle* handle, const char* key);
             return (ret);                   \
     }                                       \
     else ignore(0)
+
+
+/**
+ * Refresh environment states of all the Players in the Kunquat Handle.
+ *
+ * \param handle   The Kunquat Handle -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Handle_refresh_env_states(Handle* handle);
 
 
 /**

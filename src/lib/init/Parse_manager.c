@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -437,12 +437,8 @@ static bool read_environment(Reader_params* params)
         return false;
     }
 
-    if (!Player_refresh_env_state(params->handle->player))
-    {
-        Handle_set_error(params->handle, ERROR_MEMORY,
-                "Couldn't allocate memory for environment state");
+    if (!Handle_refresh_env_states(params->handle))
         return false;
-    }
 
     return true;
 }
