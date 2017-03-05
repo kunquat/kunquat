@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -34,6 +34,8 @@ struct Linear_controls
     double max_value;
     Slider slider;
     LFO lfo;
+    double def_osc_speed;
+    double def_osc_depth;
 };
 
 
@@ -71,6 +73,52 @@ void Linear_controls_set_tempo(Linear_controls* lc, double tempo);
  * \param max_value   The maximum value -- must be >= \a min_value.
  */
 void Linear_controls_set_range(Linear_controls* lc, double min_value, double max_value);
+
+
+/**
+ * Set the initial oscillation speed value of the Linear controls.
+ *
+ * This function sets the new speed value immediately without slide.
+ *
+ * \param lc      The Linear controls -- must not be \c NULL.
+ * \param speed   The oscillation speed -- must be finite and >= \c 0.
+ */
+void Linear_controls_set_osc_speed_init_value(Linear_controls* lc, double speed);
+
+
+/**
+ * Set the initial oscillation depth value of the Linear controls.
+ *
+ * This function sets the new depth value immediately without slide.
+ *
+ * \param lc      The Linear controls -- must not be \c NULL.
+ * \param depth   The oscillation depth -- must be finite.
+ */
+void Linear_controls_set_osc_depth_init_value(Linear_controls* lc, double depth);
+
+
+/**
+ * Set the default oscillation speed value of the Linear controls.
+ *
+ * If the given speed is positive, it will be applied at the next _depth_ setting
+ * unless another speed has been set via \a Linear_controls_osc_speed_value.
+ *
+ * \param lc      The Linear controls -- must not be \c NULL.
+ * \param speed   The default oscillation speed -- must be finite and >= \c 0.
+ */
+void Linear_controls_set_osc_speed_default_value(Linear_controls* lc, double speed);
+
+
+/**
+ * Set the default oscillation depth value of the Linear controls.
+ *
+ * If the given depth is non-zero, it will be applied at the next _speed_ setting
+ * unless another depth has been set via \a Linear_controls_osc_depth_value.
+ *
+ * \param lc      The Linear controls -- must not be \c NULL.
+ * \param depth   The default oscillation depth -- must be finite.
+ */
+void Linear_controls_set_osc_depth_default_value(Linear_controls* lc, double depth);
 
 
 /**
@@ -116,7 +164,7 @@ void Linear_controls_slide_value_length(Linear_controls* lc, const Tstamp* lengt
  * Set the oscillation speed in the Linear controls.
  *
  * \param lc      The Linear controls -- must not be \c NULL.
- * \param speed   The oscillation speed -- must be >= \c 0.
+ * \param speed   The oscillation speed -- must be finite and >= \c 0.
  */
 void Linear_controls_osc_speed_value(Linear_controls* lc, double speed);
 
