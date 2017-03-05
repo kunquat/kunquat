@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -41,6 +41,28 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+
+static void init_force_controls(Channel* ch, const Master_params* master_params)
+{
+    rassert(ch != NULL);
+    rassert(master_params != NULL);
+
+    if (!ch->carry_force)
+    {
+        Force_controls_reset(&ch->force_controls);
+        ch->force_controls.force = 0;
+
+        Slider_set_tempo(&ch->force_controls.slider, master_params->tempo);
+        Slider_set_length(&ch->force_controls.slider, &ch->force_slide_length);
+
+        LFO_set_tempo(&ch->force_controls.tremolo, master_params->tempo);
+        LFO_set_speed_slide(&ch->force_controls.tremolo, &ch->tremolo_speed_slide);
+        LFO_set_depth_slide(&ch->force_controls.tremolo, &ch->tremolo_depth_slide);
+    }
+
+    return;
+}
 
 
 bool Event_channel_note_on_process(
@@ -115,18 +137,7 @@ bool Event_channel_note_on_process(
             ch->pitch_controls.orig_carried_pitch = pitch_param;
     }
 
-    if (!ch->carry_force)
-    {
-        Force_controls_reset(&ch->force_controls);
-        ch->force_controls.force = 0;
-
-        Slider_set_tempo(&ch->force_controls.slider, master_params->tempo);
-        Slider_set_length(&ch->force_controls.slider, &ch->force_slide_length);
-
-        LFO_set_tempo(&ch->force_controls.tremolo, master_params->tempo);
-        LFO_set_speed_slide(&ch->force_controls.tremolo, &ch->tremolo_speed_slide);
-        LFO_set_depth_slide(&ch->force_controls.tremolo, &ch->tremolo_depth_slide);
-    }
+    init_force_controls(ch, master_params);
 
     // Don't attempt to play effects
     if (Audio_unit_get_type(au) != AU_TYPE_INSTRUMENT)
@@ -233,18 +244,7 @@ bool Event_channel_hit_process(
 
     const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
 
-    if (!ch->carry_force)
-    {
-        Force_controls_reset(&ch->force_controls);
-        ch->force_controls.force = 0;
-
-        Slider_set_tempo(&ch->force_controls.slider, master_params->tempo);
-        Slider_set_length(&ch->force_controls.slider, &ch->force_slide_length);
-
-        LFO_set_tempo(&ch->force_controls.tremolo, master_params->tempo);
-        LFO_set_speed_slide(&ch->force_controls.tremolo, &ch->tremolo_speed_slide);
-        LFO_set_depth_slide(&ch->force_controls.tremolo, &ch->tremolo_depth_slide);
-    }
+    init_force_controls(ch, master_params);
 
     // Don't attempt to hit effects
     if (Audio_unit_get_type(au) != AU_TYPE_INSTRUMENT)
