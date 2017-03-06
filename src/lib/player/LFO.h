@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -94,6 +94,28 @@ void LFO_set_audio_rate(LFO* lfo, int32_t audio_rate);
  * \param tempo   The tempo -- must be finite and > \c 0.
  */
 void LFO_set_tempo(LFO* lfo, double tempo);
+
+
+/**
+ * Set the initial speed of the LFO.
+ *
+ * This function sets the new speed without sliding.
+ *
+ * \param lfo     The LFO -- must not be \c NULL.
+ * \param speed   The speed -- must be finite and >= \c 0.
+ */
+void LFO_set_init_speed(LFO* lfo, double speed);
+
+
+/**
+ * Set the initial depth of the LFO.
+ *
+ * This function sets the new depth without sliding.
+ *
+ * \param lfo     The LFO -- must not be \c NULL.
+ * \param depth   The depth -- must be finite.
+ */
+void LFO_set_init_depth(LFO* lfo, double depth);
 
 
 /**

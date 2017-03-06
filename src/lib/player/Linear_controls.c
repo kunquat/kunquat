@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -34,6 +34,8 @@ void Linear_controls_init(Linear_controls* lc)
     lc->max_value = INFINITY;
     Slider_init(&lc->slider, SLIDE_MODE_LINEAR);
     LFO_init(&lc->lfo, LFO_MODE_LINEAR);
+    lc->def_osc_speed = 0;
+    lc->def_osc_depth = 0;
 
     return;
 }
@@ -71,6 +73,52 @@ void Linear_controls_set_range(Linear_controls* lc, double min_value, double max
 
     lc->min_value = min_value;
     lc->max_value = max_value;
+
+    return;
+}
+
+
+void Linear_controls_set_osc_speed_init_value(Linear_controls* lc, double speed)
+{
+    rassert(lc != NULL);
+    rassert(isfinite(speed));
+    rassert(speed >= 0);
+
+    LFO_set_init_speed(&lc->lfo, speed);
+
+    return;
+}
+
+
+void Linear_controls_set_osc_depth_init_value(Linear_controls* lc, double depth)
+{
+    rassert(lc != NULL);
+    rassert(isfinite(depth));
+
+    LFO_set_init_depth(&lc->lfo, depth);
+
+    return;
+}
+
+
+void Linear_controls_set_osc_speed_default_value(Linear_controls* lc, double speed)
+{
+    rassert(lc != NULL);
+    rassert(isfinite(speed));
+    rassert(speed >= 0);
+
+    lc->def_osc_speed = speed;
+
+    return;
+}
+
+
+void Linear_controls_set_osc_depth_default_value(Linear_controls* lc, double depth)
+{
+    rassert(lc != NULL);
+    rassert(isfinite(depth));
+
+    lc->def_osc_depth = depth;
 
     return;
 }
@@ -123,12 +171,15 @@ void Linear_controls_slide_value_length(Linear_controls* lc, const Tstamp* lengt
 void Linear_controls_osc_speed_value(Linear_controls* lc, double speed)
 {
     rassert(lc != NULL);
+    rassert(isfinite(speed));
     rassert(speed >= 0);
+
+    lc->def_osc_speed = speed;
 
     LFO_set_speed(&lc->lfo, speed);
 
-    //if (lc->osc_depth > 0)
-    //    LFO_set_depth(&lc->lfo, lc->osc_depth);
+    if (lc->def_osc_depth > 0)
+        LFO_set_depth(&lc->lfo, lc->def_osc_depth);
 
     LFO_turn_on(&lc->lfo);
 
@@ -141,8 +192,10 @@ void Linear_controls_osc_depth_value(Linear_controls* lc, double depth)
     rassert(lc != NULL);
     rassert(isfinite(depth));
 
-    //if (lc->osc_speed > 0)
-    //    LFO_set_speed(&lc->lfo, lc->osc_speed);
+    lc->def_osc_depth = depth;
+
+    if (lc->def_osc_speed > 0)
+        LFO_set_speed(&lc->lfo, lc->def_osc_speed);
 
     LFO_set_depth(&lc->lfo, depth);
     LFO_turn_on(&lc->lfo);

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -110,6 +110,31 @@ void LFO_set_tempo(LFO* lfo, double tempo)
     }
 
     LFO_update_time(lfo, lfo->audio_rate, tempo);
+
+    return;
+}
+
+
+void LFO_set_init_speed(LFO* lfo, double speed)
+{
+    rassert(lfo != NULL);
+    rassert(isfinite(speed));
+    rassert(speed >= 0);
+
+    lfo->target_speed = lfo->prev_speed = speed;
+    Slider_break(&lfo->speed_slider);
+
+    return;
+}
+
+
+void LFO_set_init_depth(LFO* lfo, double depth)
+{
+    rassert(lfo != NULL);
+    rassert(isfinite(depth));
+
+    lfo->target_depth = lfo->prev_depth = depth;
+    Slider_break(&lfo->depth_slider);
 
     return;
 }

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -220,6 +220,22 @@ bool Channel_stream_state_set_carrying_enabled(
  */
 bool Channel_stream_state_is_carrying_enabled(
         const Channel_stream_state* state, const char* stream_name);
+
+
+/**
+ * Apply overriden settings in the Channel stream state to Linear controls.
+ *
+ * \param state         The Channel stream state -- must not be \c NULL.
+ * \param stream_name   The name of the stream -- must be a valid variable name.
+ * \param controls      The Linear controls -- must not be \c NULL.
+ *
+ * \return   \c true if settings were applied, or \c false if \a stream_name
+ *           was not found in \a state.
+ */
+bool Channel_stream_state_apply_overrides(
+        const Channel_stream_state* state,
+        const char* stream_name,
+        Linear_controls* controls);
 
 
 /**
