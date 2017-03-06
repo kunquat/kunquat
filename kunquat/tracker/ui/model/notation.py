@@ -72,6 +72,7 @@ class Notation():
     def add_octave(self):
         data = deepcopy(self._get_raw_data())
         data['octave_names'].append('{}'.format(self.get_octave_count()))
+        data['keymap'].append([])
         self._set_raw_data(data)
 
     def remove_octave(self, octave_id):
