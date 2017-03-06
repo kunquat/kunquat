@@ -320,8 +320,9 @@ class RandomListMap(QWidget, ProcessorUpdater):
                 new_point = self._get_point_coords((x, y))
                 pitch_range = self._axis_y_renderer.get_val_range()
                 force_range = self._axis_x_renderer.get_val_range()
-                if ((pitch_range[0] <= new_point[0] <= pitch_range[1]) and
-                        force_range[0] <= new_point[1] <= force_range[1]):
+                if (pitch_range[0] <= new_point[0] <= pitch_range[1] and
+                        force_range[0] <= new_point[1] <= force_range[1] and
+                        new_point != point):
                     self._add_point(new_point)
                     self._set_selected_point(new_point)
 
