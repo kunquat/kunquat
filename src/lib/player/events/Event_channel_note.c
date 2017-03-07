@@ -48,7 +48,7 @@ static void init_force_controls(Channel* ch, const Master_params* master_params)
     rassert(ch != NULL);
     rassert(master_params != NULL);
 
-    if (!ch->carry_force)
+    if (!ch->carry_force || isnan(ch->force_controls.force))
     {
         Force_controls_reset(&ch->force_controls);
         ch->force_controls.force = 0;
