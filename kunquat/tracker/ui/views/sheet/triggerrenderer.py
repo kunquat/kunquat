@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -75,6 +75,17 @@ class TriggerRenderer():
                 if (not math.isinf(value) and
                         not math.isnan(value) and
                         value > -self._force_shift):
+                    evtype_bg_colour = self._config['trigger']['warning_bg_colour']
+                    evtype_fg_colour = self._config['trigger']['warning_fg_colour']
+            except ValueError:
+                pass
+        elif evtype in ('m.v', 'm/v'):
+            arg = self._trigger.get_argument()
+            try:
+                value = float(arg)
+                if (not math.isinf(value) and
+                        not math.isnan(value) and
+                        value > 0):
                     evtype_bg_colour = self._config['trigger']['warning_bg_colour']
                     evtype_fg_colour = self._config['trigger']['warning_fg_colour']
             except ValueError:
