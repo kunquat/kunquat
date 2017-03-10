@@ -115,8 +115,15 @@ class ColumnHeader(QWidget):
         self._pixmap = None
         self._width = 0
 
+        self._text_height = 0
+        self._baseline_offset = 0
+
     def set_config(self, config):
         self._config = config
+
+        fm = QFontMetrics(self._config['header']['font'], self)
+        self._text_height = fm.boundingRect('Ág').height()
+        self._baseline_offset = fm.tightBoundingRect('Á').height()
 
     def set_width(self, width):
         self._width = width - self._config['header']['padding_x'] * 2
@@ -148,7 +155,7 @@ class ColumnHeader(QWidget):
             text = str(self._num)
 
         rect = fm.tightBoundingRect(text)
-        baseline_offset = fm.tightBoundingRect('8').height()
+        rect.setHeight(self._text_height)
         self._pixmap = QPixmap(rect.size())
 
         painter = QPainter(self._pixmap)
@@ -156,7 +163,7 @@ class ColumnHeader(QWidget):
         painter.setPen(self._config['header']['fg_colour'])
         painter.setFont(self._config['header']['font'])
         painter.eraseRect(0, 0, self._pixmap.width(), self._pixmap.height())
-        painter.drawText(QPoint(0, baseline_offset), text)
+        painter.drawText(QPoint(0, self._baseline_offset), text)
 
         self.update()
 
@@ -183,7 +190,6 @@ class ColumnHeader(QWidget):
 
     def minimumSizeHint(self):
         fm = QFontMetrics(self._config['header']['font'], self)
-        height = fm.tightBoundingRect('Ag').height()
-        return QSize(10, height)
+        return QSize(10, self._text_height)
 
 
