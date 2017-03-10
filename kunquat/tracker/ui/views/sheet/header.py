@@ -89,7 +89,7 @@ class Header(QWidget):
 
         # Update headers
         for i, header in enumerate(self._headers):
-            header.set_width(self._width)
+            header.set_width(self._col_width)
             header.set_column(self._first_col + i, self._module)
             header.move(i * self._col_width, 0)
             header.setFixedWidth(self._col_width)
