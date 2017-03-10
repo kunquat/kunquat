@@ -30,6 +30,8 @@ class Header(QWidget):
 
         self._width = 0
 
+        self._module = None
+
         self._headers = []
 
     def set_config(self, config):
@@ -37,6 +39,9 @@ class Header(QWidget):
         for header in self._headers:
             header.set_config(self._config)
         self._update_contents()
+
+    def set_module(self, module):
+        self._module = module
 
     def set_column_width(self, width):
         self._col_width = width
@@ -49,6 +54,9 @@ class Header(QWidget):
 
     def set_first_column(self, num):
         self._first_col = num
+        self._update_contents()
+
+    def update_header_aus(self):
         self._update_contents()
 
     def resizeEvent(self, ev):
@@ -81,7 +89,8 @@ class Header(QWidget):
 
         # Update headers
         for i, header in enumerate(self._headers):
-            header.set_column(self._first_col + i)
+            header.set_width(self._width)
+            header.set_column(self._first_col + i, self._module)
             header.move(i * self._col_width, 0)
             header.setFixedWidth(self._col_width)
 
@@ -101,17 +110,45 @@ class ColumnHeader(QWidget):
     def __init__(self):
         super().__init__()
         self._config = DEFAULT_CONFIG
+        self._num = None
+        self._au_name = None
+        self._pixmap = None
+        self._width = 0
 
     def set_config(self, config):
         self._config = config
 
-    def set_column(self, num):
+    def set_width(self, width):
+        self._width = width
+
+    def set_column(self, num, module):
         self._num = num
 
+        self._au_name = None
+        chd = module.get_channel_defaults()
+        if chd:
+            control_id = chd.get_default_control_id(self._num)
+            control = module.get_control(control_id)
+            if control.get_existence():
+                au = control.get_audio_unit()
+                if au.get_existence():
+                    self._au_name = au.get_name()
+
+        self._update_pixmap()
+
+    def _update_pixmap(self):
         fm = QFontMetrics(self._config['header']['font'], self)
-        digit_count = len(str(num))
-        rect = fm.tightBoundingRect('8' * digit_count)
-        baseline_offset = rect.height()
+
+        assert self._num != None
+        if self._au_name != None:
+            vis_au_name = self._au_name or '-'
+            full_text = '{}: {}'.format(self._num, vis_au_name)
+            text = fm.elidedText(full_text, Qt.ElideRight, self._width)
+        else:
+            text = str(self._num)
+
+        rect = fm.tightBoundingRect(text)
+        baseline_offset = fm.tightBoundingRect('8').height()
         self._pixmap = QPixmap(rect.size())
 
         painter = QPainter(self._pixmap)
@@ -119,7 +156,7 @@ class ColumnHeader(QWidget):
         painter.setPen(self._config['header']['fg_colour'])
         painter.setFont(self._config['header']['font'])
         painter.eraseRect(0, 0, self._pixmap.width(), self._pixmap.height())
-        painter.drawText(QPoint(0, baseline_offset), str(num))
+        painter.drawText(QPoint(0, baseline_offset), text)
 
         self.update()
 

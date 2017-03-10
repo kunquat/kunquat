@@ -142,11 +142,15 @@ class SheetArea(QAbstractScrollArea, Updater):
         self.register_action('signal_sheet_zoom', self._update_zoom)
         self.register_action('signal_sheet_column_width', self._update_column_width)
         self.register_action('signal_style_changed', self._update_config)
+        self.register_action('signal_controls', self._update_header)
+        self.register_action('signal_ch_defaults', self._update_header)
 
         self._sheet_manager = self._ui_model.get_sheet_manager()
 
         # Child widgets
         self.add_to_updaters(self._ruler, self.viewport())
+
+        self._header.set_module(self._ui_model.get_module())
 
         self._update_config()
 
@@ -279,6 +283,9 @@ class SheetArea(QAbstractScrollArea, Updater):
         column_width_level = self._sheet_manager.get_column_width()
         cur_col_width_index = column_width_level + self._default_col_width_index
         self._set_column_width(self._col_width_levels[cur_col_width_index])
+
+    def _update_header(self):
+        self._header.update_header_aus()
 
     def paintEvent(self, ev):
         self.viewport().paintEvent(ev)
