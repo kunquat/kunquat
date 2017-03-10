@@ -162,6 +162,7 @@ class ChDefaults(QWidget, Updater):
         chd = self._module.get_channel_defaults()
         if chd:
             chd.set_default_control_id(self._ch_num, control_id)
+            self._updater.signal_update('signal_ch_defaults')
 
     def _change_init_expr(self):
         expr_name = str(self._init_expr.text())
