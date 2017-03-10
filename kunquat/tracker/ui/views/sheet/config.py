@@ -34,6 +34,7 @@ DEFAULT_CONFIG = {
         'fg_colour'    : QColor(0xcc, 0xee, 0xaa),
         'border_colour': QColor(0x55, 0x77, 0x55),
         'font'         : QFont(QFont().defaultFamily(), 11, QFont.Bold),
+        'padding_x'    : 2,
     },
     'col_width'         : 12, # unit is em
     'trs_per_beat'      : 4,

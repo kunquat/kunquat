@@ -119,7 +119,7 @@ class ColumnHeader(QWidget):
         self._config = config
 
     def set_width(self, width):
-        self._width = width
+        self._width = width - self._config['header']['padding_x'] * 2
 
     def set_column(self, num, module):
         self._num = num
