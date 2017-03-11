@@ -25,6 +25,7 @@ class GeneralModEditor(QWidget, Updater):
 
         self._title = Title()
         self._authors = Authors()
+        self._message = Message()
 
         self._mixing_volume = MixingVolume()
         self._force_shift = ForceShift()
@@ -34,6 +35,7 @@ class GeneralModEditor(QWidget, Updater):
         self.add_to_updaters(
                 self._title,
                 self._authors,
+                self._message,
                 self._mixing_volume,
                 self._force_shift,
                 self._dc_blocker,
@@ -73,9 +75,10 @@ class GeneralModEditor(QWidget, Updater):
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(4)
         v.addLayout(ml)
+        v.addWidget(QLabel('Message:'))
+        v.addWidget(self._message)
         v.addWidget(separator)
         v.addLayout(gl)
-        v.addStretch(1)
         self.setLayout(v)
 
 
@@ -234,6 +237,35 @@ class Authors(QTableView, Updater):
                     event.accept()
                     return
         return super().keyPressEvent(event)
+
+
+class Message(QTextEdit, Updater):
+
+    def __init__(self):
+        super().__init__()
+        self.setAcceptRichText(False)
+
+    def _on_setup(self):
+        self.register_action('signal_module_message', self._update_message)
+        QObject.connect(self, SIGNAL('textChanged()'), self._change_message)
+        self._update_message()
+
+    def _update_message(self):
+        module = self._ui_model.get_module()
+        msg = module.get_message()
+
+        if msg != self.toPlainText():
+            old_block = self.blockSignals(True)
+            self.setPlainText(msg)
+            self.blockSignals(old_block)
+
+    def _change_message(self):
+        text = self.toPlainText()
+
+        module = self._ui_model.get_module()
+        module.set_message(text)
+
+        self._updater.signal_update('signal_module_message')
 
 
 class MixingVolume(QDoubleSpinBox, Updater):
