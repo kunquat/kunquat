@@ -244,7 +244,9 @@ class Message(QTextEdit, Updater):
     def __init__(self):
         super().__init__()
         self.setAcceptRichText(False)
-        self.setFontFamily('monospace')
+        font = QFont('monospace', 10)
+        font.setStyleHint(QFont.TypeWriter)
+        self.document().setDefaultFont(font)
 
     def _on_setup(self):
         self.register_action('signal_module_message', self._update_message)
