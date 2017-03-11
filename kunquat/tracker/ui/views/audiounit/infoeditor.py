@@ -14,7 +14,6 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from .name import Name
 from .audiounitupdater import AudioUnitUpdater
 
 
@@ -31,5 +30,39 @@ class InfoEditor(QWidget, AudioUnitUpdater):
         v.setSpacing(4)
         v.addWidget(self._name, 0, Qt.AlignTop)
         self.setLayout(v)
+
+
+class Name(QWidget, AudioUnitUpdater):
+
+    def __init__(self):
+        super().__init__()
+        self._edit = QLineEdit()
+
+        self.register_action('signal_controls', self._update_name)
+
+        h = QHBoxLayout()
+        h.setContentsMargins(0, 0, 0, 0)
+        h.addWidget(QLabel('Name:'))
+        h.addWidget(self._edit)
+        self.setLayout(h)
+
+    def _on_setup(self):
+        self._update_name()
+        QObject.connect(self._edit, SIGNAL('textEdited(QString)'), self._text_edited)
+
+    def _update_name(self):
+        old_block = self._edit.blockSignals(True)
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        vis_text = au.get_name() or ''
+        if vis_text != str(self._edit.text()):
+            self._edit.setText(vis_text)
+        self._edit.blockSignals(old_block)
+
+    def _text_edited(self, text):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        au.set_name(text)
+        self._updater.signal_update('signal_controls')
 
 
