@@ -40,6 +40,6 @@ class GeneralModWindow(Updater, SaverWindow):
         visibility_manager.hide_general_module_settings()
 
     def sizeHint(self):
-        return QSize(960, 640)
+        return QSize(960, 768)
 
 
