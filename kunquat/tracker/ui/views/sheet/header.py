@@ -147,9 +147,8 @@ class ColumnHeader(QWidget):
         fm = QFontMetrics(self._config['header']['font'], self)
 
         assert self._num != None
-        if self._au_name != None:
-            vis_au_name = self._au_name or '-'
-            full_text = '{}: {}'.format(self._num, vis_au_name)
+        if self._au_name:
+            full_text = '{}: {}'.format(self._num, self._au_name)
             text = fm.elidedText(full_text, Qt.ElideRight, self._width)
         else:
             text = str(self._num)
