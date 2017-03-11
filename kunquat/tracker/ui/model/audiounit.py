@@ -422,6 +422,14 @@ class AudioUnit():
         key = self._get_key('m_name.json')
         self._store[key] = name
 
+    def get_message(self):
+        key = self._get_key('m_message.json')
+        return self._store.get(key, '')
+
+    def set_message(self, message):
+        key = self._get_key('m_message.json')
+        self._store[key] = message
+
     def _get_control_var_list(self):
         key = self._get_key('p_control_vars.json')
         ret = self._store.get(key, get_default_value(key))
