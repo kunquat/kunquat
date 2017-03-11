@@ -69,8 +69,8 @@ def print_over_status(s, status_line_length):
     print(new_s)
 
 
-def print_interactive_help():
-    help = ['\n',
+def print_interactive_help(status_line_length):
+    help = ['',
             'Supported keys in interactive mode:',
             '  `h`          Show this help.',
             '  Space        Pause/resume playback.',
@@ -84,7 +84,7 @@ def print_interactive_help():
             '  `m`          Show module message.',
             '  `q`          Quit.',
             '']
-    print('\n'.join(help))
+    print_over_status('\n'.join(help), status_line_length)
 
 
 def print_meta(meta):
@@ -234,7 +234,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                         return_key = key
                         break
                 elif key == 'h':
-                    print_interactive_help()
+                    print_interactive_help(status_len_max)
                 elif key == ' ':
                     print('\n --- PAUSE ---', end='\r')
                     res_key = key_handler.wait_key()
