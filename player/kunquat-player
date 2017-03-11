@@ -60,6 +60,15 @@ def print_version():
     print(PROGRAM_NAME, PROGRAM_VERSION)
 
 
+def print_over_status(s, status_line_length):
+    parts = s.split('\n', maxsplit=1)
+    first = parts[0]
+    first += ' ' * max(0, status_line_length - len(first))
+    parts[0] = first
+    new_s = '\n'.join(parts)
+    print(new_s)
+
+
 def print_interactive_help():
     help = ['\n',
             'Supported keys in interactive mode:',
@@ -72,6 +81,7 @@ def print_interactive_help():
             '  `n`          Select next track.',
             '  Backspace    Select previous file.',
             '  Return       Select next file.',
+            '  `m`          Show module message.',
             '  `q`          Quit.',
             '']
     print('\n'.join(help))
@@ -111,6 +121,20 @@ def print_meta(meta):
     if fail_count > 0:
         print('(Note: Some metadata cannot be displayed'
                 ' due to character encoding restrictions)')
+
+
+def print_message(meta, first_line_length):
+    msg = meta.get('m_message.json')
+    if not msg:
+        print_over_status('No message found.', first_line_length)
+        return
+
+    try:
+        print_over_status('Message:\n{}'.format(msg), first_line_length)
+    except UnicodeEncodeError:
+        print_over_status(
+                'Message cannot be displayed due to character encoding restrictions.',
+                first_line_length)
 
 
 def load_kqt(path, rate):
@@ -246,6 +270,8 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                     elif track_exists(meta, handle.track + 1):
                         handle.track = handle.track + 1
                         duration = handle.get_duration(handle.track)
+                elif key == 'm':
+                    print_message(meta, status_len_max)
                 """
                 elif key == '§':
                     #handle.fire(63, '["c.i", [1]]')
