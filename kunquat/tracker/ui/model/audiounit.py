@@ -428,7 +428,7 @@ class AudioUnit():
 
     def set_message(self, message):
         key = self._get_key('m_message.json')
-        self._store[key] = message
+        self._store[key] = message or None
 
     def _get_control_var_list(self):
         key = self._get_key('p_control_vars.json')
