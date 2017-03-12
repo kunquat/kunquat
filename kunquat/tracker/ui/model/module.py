@@ -80,6 +80,12 @@ class Module():
                 del authors[index]
         self._store['m_authors.json'] = authors
 
+    def get_message(self):
+        return self._store.get('m_message.json', '')
+
+    def set_message(self, message):
+        self._store['m_message.json'] = message or None
+
     def get_dc_blocker_enabled(self):
         key = 'p_dc_blocker_enabled.json'
         return self._store.get(key, get_default_value(key))

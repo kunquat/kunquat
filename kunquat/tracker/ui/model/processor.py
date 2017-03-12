@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -103,6 +103,14 @@ class Processor():
     def set_name(self, name):
         key = self._get_key('m_name.json')
         self._store[key] = name
+
+    def get_message(self):
+        key = self._get_key('m_message.json')
+        return self._store.get(key, '')
+
+    def set_message(self, message):
+        key = self._get_key('m_message.json')
+        self._store[key] = message or None
 
     def get_type(self):
         key = self._get_key('p_manifest.json')
