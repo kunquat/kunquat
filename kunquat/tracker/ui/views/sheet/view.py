@@ -1996,12 +1996,12 @@ class View(QWidget):
             for rel_col_index in range(draw_col_start, draw_col_stop):
                 if self._col_rends[self._first_col + rel_col_index].predraw(
                         self.height(), grid):
-                    print('1 column pixmap predrawn')
+                    #print('1 column pixmap predrawn')
                     break
         else:
             pass
-            print('{} column pixmap{} created'.format(
-                pixmaps_created, 's' if pixmaps_created != 1 else ''))
+            #print('{} column pixmap{} created'.format(
+            #    pixmaps_created, 's' if pixmaps_created != 1 else ''))
 
         end = time.time()
         elapsed = end - start

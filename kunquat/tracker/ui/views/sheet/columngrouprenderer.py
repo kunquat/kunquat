@@ -281,7 +281,7 @@ class ColumnGroupRenderer():
         return pixmaps_created
 
     def predraw(self, height, grid):
-        # Find a missing pixmap that isn't drawn yet but likely needed soon
+        # Find a missing pixmap that isn't drawn yet but is likely needed soon
         first_index = utils.get_first_visible_pat_index(
                 self._px_offset, self._start_heights)
 
@@ -296,14 +296,29 @@ class ColumnGroupRenderer():
             rel_end_height = rel_start_height + self._heights[pi]
             cur_offset = max(0, -rel_start_height)
 
-            # Choose cache that is not currently used for visible pixmaps
-            if pi == active_pattern_index:
-                cache = self._caches[pi].get_inactive_cache()
-            else:
-                cache = self._caches[pi].get_active_cache()
+            # Determine which cache is used for visible pixmaps and which isn't
+            vis_cache = self._caches[pi].get_active_cache()
+            invis_cache = self._caches[pi].get_inactive_cache()
+            if pi != active_pattern_index:
+                vis_cache, invis_cache = invis_cache, vis_cache
 
+            # Try predrawing a pixmap immediately below the last one
+            below_vis_cache = vis_cache
+            below_check_dist = ColumnCache.PIXMAP_HEIGHT // 2
+            if height <= rel_end_height < (height + below_check_dist):
+                next_pi = pi + 1
+                if next_pi < len(self._heights):
+                    if next_pi == active_pattern_index:
+                        below_vis_cache = self._caches[next_pi].get_active_cache()
+                    else:
+                        below_vis_cache = self._caches[next_pi].get_inactive_cache()
+            if below_vis_cache.predraw_pixmap(
+                    cur_offset + height, below_check_dist, grid):
+                return True
+
+            # Try predrawing a pixmap that is needed after active pattern change
             canvas_y = max(0, rel_start_height)
-            if cache.predraw_pixmap(
+            if invis_cache.predraw_pixmap(
                     cur_offset, min(rel_end_height, height) - canvas_y, grid):
                 return True
 
