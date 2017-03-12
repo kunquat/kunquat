@@ -152,6 +152,22 @@ class ColumnGroupRenderer():
             return 0
         return sum(cache.get_memory_usage() for cache in self._caches)
 
+    def _get_active_pattern_index(self):
+        playback_manager = self._ui_model.get_playback_manager()
+        active_pattern_index = None
+        if (playback_manager.follow_playback_cursor() and
+                not playback_manager.is_recording()):
+            active_pattern_index = utils.get_current_playback_pattern_index(
+                    self._ui_model)
+        else:
+            selection = self._ui_model.get_selection()
+            location = selection.get_location()
+            if location:
+                active_pattern_index = utils.get_pattern_index_at_location(
+                        self._ui_model, location.get_track(), location.get_system())
+
+        return active_pattern_index
+
     def draw(self, painter, height, grid):
         # Render columns of visible patterns
         first_index = utils.get_first_visible_pat_index(
@@ -166,20 +182,7 @@ class ColumnGroupRenderer():
 
         rel_end_height = 0 # empty song
 
-        # Get pattern index that contains the active cursor
-        playback_manager = self._ui_model.get_playback_manager()
-        if (playback_manager.follow_playback_cursor() and
-                not playback_manager.is_recording()):
-            active_pattern_index = utils.get_current_playback_pattern_index(
-                    self._ui_model)
-        else:
-            selection = self._ui_model.get_selection()
-            location = selection.get_location()
-            if location:
-                active_pattern_index = utils.get_pattern_index_at_location(
-                        self._ui_model, location.get_track(), location.get_system())
-            else:
-                active_pattern_index = None
+        active_pattern_index = self._get_active_pattern_index()
 
         for pi in range(first_index, len(self._heights)):
             if self._start_heights[pi] > self._px_offset + height:
@@ -276,6 +279,35 @@ class ColumnGroupRenderer():
         """
 
         return pixmaps_created
+
+    def predraw(self, height, grid):
+        # Find a missing pixmap that isn't drawn yet but likely needed soon
+        first_index = utils.get_first_visible_pat_index(
+                self._px_offset, self._start_heights)
+
+        active_pattern_index = self._get_active_pattern_index()
+
+        for pi in range(first_index, len(self._heights)):
+            if self._start_heights[pi] > self._px_offset + height:
+                break
+
+            # Current pattern offset and height
+            rel_start_height = self._start_heights[pi] - self._px_offset
+            rel_end_height = rel_start_height + self._heights[pi]
+            cur_offset = max(0, -rel_start_height)
+
+            # Choose cache that is not currently used for visible pixmaps
+            if pi == active_pattern_index:
+                cache = self._caches[pi].get_inactive_cache()
+            else:
+                cache = self._caches[pi].get_active_cache()
+
+            canvas_y = max(0, rel_start_height)
+            if cache.predraw_pixmap(
+                    cur_offset, min(rel_end_height, height) - canvas_y, grid):
+                return True
+
+        return False
 
 
 class ColumnCachePair():
@@ -419,6 +451,21 @@ class ColumnCache():
                     ColumnCache.PIXMAP_HEIGHT)
 
             yield (rect, pixmap)
+
+    def predraw_pixmap(self, start_px, height_px, grid):
+        assert start_px >= 0
+        assert height_px >= 0
+
+        # Get pixmap indices
+        start_index = start_px // ColumnCache.PIXMAP_HEIGHT
+        stop_index = 1 + (start_px + height_px - 1) // ColumnCache.PIXMAP_HEIGHT
+
+        for i in range(start_index, stop_index):
+            if i not in self._pixmaps:
+                self._pixmaps[i] = self._create_pixmap(i, grid)
+                return True
+
+        return False
 
     def get_pixmaps_created(self):
         return self._pixmaps_created
