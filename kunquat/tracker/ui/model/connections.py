@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -57,9 +57,9 @@ class Connections():
         key = self._get_layout_key()
         return self._store.get(key, {})
 
-    def set_layout(self, layout):
+    def set_layout(self, layout, mark_modified=True):
         key = self._get_layout_key()
-        self._store[key] = layout
+        self._store.put({ key: layout }, mark_modified=mark_modified)
 
     def get_send_device_ids(self, recv_id):
         sub_recv_id = recv_id.split('/')[-1]

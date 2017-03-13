@@ -358,7 +358,7 @@ class ConnectionsView(QWidget):
             parts.append(self._au_id)
         return '_'.join(parts)
 
-    def _change_layout_entry(self, key, value):
+    def _change_layout_entry(self, key, value, mark_modified=True):
         connections = self._get_connections()
         layout = connections.get_layout()
 
@@ -373,7 +373,7 @@ class ConnectionsView(QWidget):
                 layout[dev_id] = dev_layout
         self._default_offsets = {}
 
-        connections.set_layout(layout)
+        connections.set_layout(layout, mark_modified)
         self._updater.signal_update(self._get_signal('signal_connections'))
 
     def scroll_to(self, area_x, area_y):
@@ -1103,6 +1103,26 @@ class ConnectionsView(QWidget):
         else:
             assert False
 
+    def _is_device_behind_another(self, check_dev_id):
+        connections = self._get_connections()
+        layout = connections.get_layout()
+        z_order = layout.get('z_order', [])
+
+        def get_z_index(dev_id):
+            return z_order.index(dev_id) if dev_id in z_order else -1
+
+        check_device = self._visible_devices[check_dev_id]
+        check_rect = check_device.get_rect_in_area()
+        for dev_id in self._visible_device_ids:
+            if dev_id == check_dev_id:
+                continue
+            device = self._visible_devices[dev_id]
+            if (device.get_rect_in_area().intersects(check_rect) and
+                    get_z_index(check_dev_id) <= get_z_index(dev_id)):
+                return True
+
+        return False
+
     def _handle_mouse_press_normal(self, event):
         assert self._state != STATE_EDGE_MENU
 
@@ -1123,7 +1143,10 @@ class ConnectionsView(QWidget):
             new_visible_ids = list(self._visible_device_ids)
             new_visible_ids.remove(self._focused_id)
             new_visible_ids.append(self._focused_id)
-            self._change_layout_entry('z_order', new_visible_ids)
+
+            mark_modified = self._is_device_behind_another(self._focused_id)
+
+            self._change_layout_entry('z_order', new_visible_ids, mark_modified)
 
         if not self._focused_id:
             if self._focused_edge_info:
