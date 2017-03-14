@@ -98,6 +98,7 @@ QScrollBar::sub-line:pressed
 /* Base style for sunken containers */
 
 QCheckBox::indicator,
+QRadioButton::indicator,
 QSlider::groove:horizontal
 {
     border: 1px solid;
@@ -127,12 +128,14 @@ QTreeView
 
 /* Other tweaks */
 
-QCheckBox
+QCheckBox,
+QRadioButton
 {
     spacing: 5px;
 }
 
-QCheckBox::indicator
+QCheckBox::indicator,
+QRadioButton::indicator
 {
     margin: 0;
     padding: 0;
@@ -144,6 +147,16 @@ QCheckBox::indicator
 QCheckBox::indicator:checked
 {
     image: url('<icons_path>/check_mark.png');
+}
+
+QRadioButton::indicator
+{
+    border-radius: 7px;
+}
+
+QRadioButton::indicator:checked
+{
+    image: url('<icons_path>/radio_mark.png');
 }
 
 QComboBox
