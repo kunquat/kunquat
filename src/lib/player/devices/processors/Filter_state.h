@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -27,6 +27,9 @@
 
 Device_state* new_Filter_pstate(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
+
+bool Filter_pstate_set_type(
+        Device_state* dstate, const Key_indices indices, int64_t type);
 
 bool Filter_pstate_set_cutoff(
         Device_state* dstate, const Key_indices indices, double value);

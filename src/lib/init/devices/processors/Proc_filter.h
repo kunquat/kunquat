@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -23,9 +23,18 @@
 #define FILTER_DEFAULT_RESONANCE 0.0
 
 
+typedef enum
+{
+    FILTER_TYPE_LOWPASS = 0,
+    FILTER_TYPE_HIGHPASS,
+    FILTER_TYPE_COUNT,
+} Filter_type;
+
+
 typedef struct Proc_filter
 {
     Device_impl parent;
+    Filter_type type;
     double cutoff;
     double resonance;
 } Proc_filter;
