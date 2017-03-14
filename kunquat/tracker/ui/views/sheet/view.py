@@ -12,7 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from itertools import islice
+from itertools import count, islice
 import math
 import time
 
@@ -140,6 +140,8 @@ class View(QWidget):
         self._edit_px_offset = 0
 
         self._col_rends = [ColumnGroupRenderer(i) for i in range(COLUMNS_MAX)]
+
+        self._upcoming_test_start_index_add = count()
 
         self._heights = []
         self._start_heights = []
@@ -1992,7 +1994,14 @@ class View(QWidget):
                     0, 0, self.width(), self.height(), self._config['disabled_colour'])
 
         if pixmaps_created == 0:
-            pass # TODO: update was easy, predraw a likely next pixmap
+            # Update was easy; predraw a likely upcoming pixmap
+            index_add = next(self._upcoming_test_start_index_add)
+            for rel_col_index in range(draw_col_start, draw_col_stop):
+                col_count = draw_col_stop - draw_col_start
+                index = (self._first_col + rel_col_index + index_add) % col_count
+                if self._col_rends[index].predraw(self.height(), grid):
+                    #print('1 column pixmap predrawn')
+                    break
         else:
             pass
             #print('{} column pixmap{} created'.format(
