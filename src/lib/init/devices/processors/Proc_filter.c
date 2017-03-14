@@ -90,7 +90,7 @@ static bool Proc_filter_set_type(
 
     Proc_filter* filter = (Proc_filter*)dimpl;
     if (value >= FILTER_TYPE_LOWPASS && value < FILTER_TYPE_COUNT)
-        filter->type = value;
+        filter->type = (Filter_type)value;
     else
         filter->type = FILTER_TYPE_LOWPASS;
 
