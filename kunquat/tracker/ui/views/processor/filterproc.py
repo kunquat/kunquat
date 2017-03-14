@@ -27,10 +27,11 @@ class FilterProc(QWidget, ProcessorUpdater):
     def __init__(self):
         super().__init__()
 
+        self._filter_type = FilterType()
         self._cutoff = CutoffSlider()
         self._resonance = ResonanceSlider()
 
-        self.add_to_updaters(self._cutoff, self._resonance)
+        self.add_to_updaters(self._filter_type, self._cutoff, self._resonance)
 
         sliders = QGridLayout()
         sliders.addWidget(QLabel('Cutoff'), 0, 0)
@@ -39,9 +40,63 @@ class FilterProc(QWidget, ProcessorUpdater):
         sliders.addWidget(self._resonance, 1, 1)
 
         v = QVBoxLayout()
+        v.addWidget(self._filter_type)
         v.addLayout(sliders)
         v.addStretch(1)
         self.setLayout(v)
+
+
+class FilterType(QWidget, ProcessorUpdater):
+
+    def __init__(self):
+        super().__init__()
+
+        self._lowpass = QRadioButton('Lowpass')
+        self._highpass = QRadioButton('Highpass')
+
+        v = QVBoxLayout()
+        v.setContentsMargins(0, 0, 0, 0)
+        v.setSpacing(2)
+        v.addWidget(QLabel('Filter type:'))
+        v.addWidget(self._lowpass)
+        v.addWidget(self._highpass)
+        self.setLayout(v)
+
+    def _get_update_signal_type(self):
+        return 'signal_filter_type_{}'.format(self._proc_id)
+
+    def _on_setup(self):
+        self.register_action(self._get_update_signal_type(), self._update_type)
+
+        QObject.connect(self._lowpass, SIGNAL('clicked()'), self._set_lowpass)
+        QObject.connect(self._highpass, SIGNAL('clicked()'), self._set_highpass)
+
+        self._update_type()
+
+    def _get_filter_params(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        proc = au.get_processor(self._proc_id)
+        filter_params = proc.get_type_params()
+        return filter_params
+
+    def _update_type(self):
+        filter_params = self._get_filter_params()
+        types = { 'lowpass': self._lowpass, 'highpass': self._highpass }
+        filter_type = filter_params.get_type()
+        if filter_type in types:
+            widget = types[filter_type]
+            old_block = widget.blockSignals(True)
+            widget.setChecked(True)
+            widget.blockSignals(old_block)
+
+    def _set_lowpass(self):
+        filter_params = self._get_filter_params()
+        filter_params.set_type('lowpass')
+
+    def _set_highpass(self):
+        filter_params = self._get_filter_params()
+        filter_params.set_type('highpass')
 
 
 class FilterSlider(ProcNumSlider):
