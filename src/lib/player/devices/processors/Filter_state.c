@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -37,6 +37,7 @@
 
 typedef struct Single_filter_state
 {
+    Filter_type type;
     double coeffs[FILTER_ORDER];
     double mul;
     double history1[KQT_BUFFERS_MAX][FILTER_ORDER];
@@ -48,16 +49,18 @@ typedef struct Filter_state_impl
 {
     bool anything_rendered;
 
-    double applied_lowpass;
+    Filter_type applied_type;
+    double applied_cutoff;
     double applied_resonance;
-    double true_lowpass;
+    double true_cutoff;
     double true_resonance;
-    double lowpass_xfade_pos;
-    double lowpass_xfade_update;
-    int lowpass_xfade_state_used;
-    int lowpass_state_used;
-    Single_filter_state lowpass_state[2];
+    double filter_xfade_pos;
+    double filter_xfade_update;
+    int filter_xfade_state_used;
+    int filter_state_used;
+    Single_filter_state sf_state[2];
 
+    Filter_type type;
     double def_cutoff;
     double def_resonance;
 } Filter_state_impl;
@@ -69,31 +72,38 @@ static void Filter_state_impl_init(Filter_state_impl* fimpl, const Proc_filter* 
 
     fimpl->anything_rendered = false;
 
-    fimpl->applied_lowpass = FILTER_DEFAULT_CUTOFF;
+    fimpl->applied_type = filter->type;
+    fimpl->applied_cutoff = FILTER_DEFAULT_CUTOFF;
     fimpl->applied_resonance = FILTER_DEFAULT_RESONANCE;
-    fimpl->true_lowpass = INFINITY;
+    fimpl->true_cutoff = INFINITY;
     fimpl->true_resonance = 0.5;
-    fimpl->lowpass_state_used = -1;
-    fimpl->lowpass_xfade_state_used = -1;
-    fimpl->lowpass_xfade_pos = 1;
-    fimpl->lowpass_xfade_update = 0;
+    fimpl->filter_state_used = -1;
+    fimpl->filter_xfade_state_used = -1;
+    fimpl->filter_xfade_pos = 1;
+    fimpl->filter_xfade_update = 0;
+
+    // Hack: Make sure that interesting highpass cutoff values are applied
+    if (filter->type == FILTER_TYPE_HIGHPASS)
+        fimpl->applied_cutoff = -100.0;
 
     for (int si = 0; si < 2; ++si)
     {
-        fimpl->lowpass_state[si].mul = 0;
+        fimpl->sf_state[si].type = filter->type;
+        fimpl->sf_state[si].mul = 0;
 
         for (int i = 0; i < FILTER_ORDER; ++i)
         {
-            fimpl->lowpass_state[si].coeffs[i] = 0;
+            fimpl->sf_state[si].coeffs[i] = 0;
 
             for (int ch = 0; ch < KQT_BUFFERS_MAX; ++ch)
             {
-                fimpl->lowpass_state[si].history1[ch][i] = 0;
-                fimpl->lowpass_state[si].history2[ch][i] = 0;
+                fimpl->sf_state[si].history1[ch][i] = 0;
+                fimpl->sf_state[si].history2[ch][i] = 0;
             }
         }
     }
 
+    fimpl->type = filter->type;
     fimpl->def_cutoff = filter->cutoff;
     fimpl->def_resonance = filter->resonance;
 
@@ -118,7 +128,7 @@ static void Filter_state_impl_apply_filter_settings(
     rassert(in_buffers != NULL);
     rassert(out_buffers != NULL);
 
-    if ((fimpl->lowpass_state_used == -1) && (fimpl->lowpass_xfade_state_used == -1))
+    if ((fimpl->filter_state_used == -1) && (fimpl->filter_xfade_state_used == -1))
     {
         for (int ch = 0; ch < 2; ++ch)
         {
@@ -128,13 +138,13 @@ static void Filter_state_impl_apply_filter_settings(
         return;
     }
 
-    rassert(fimpl->lowpass_state_used != fimpl->lowpass_xfade_state_used);
+    rassert(fimpl->filter_state_used != fimpl->filter_xfade_state_used);
 
     // Get filter states used
-    Single_filter_state* in_fst = (fimpl->lowpass_state_used > -1) ?
-        &fimpl->lowpass_state[fimpl->lowpass_state_used] : NULL;
-    Single_filter_state* out_fst = (fimpl->lowpass_xfade_state_used > -1) ?
-        &fimpl->lowpass_state[fimpl->lowpass_xfade_state_used] : NULL;
+    Single_filter_state* in_fst = (fimpl->filter_state_used > -1) ?
+        &fimpl->sf_state[fimpl->filter_state_used] : NULL;
+    Single_filter_state* out_fst = (fimpl->filter_xfade_state_used > -1) ?
+        &fimpl->sf_state[fimpl->filter_xfade_state_used] : NULL;
 
     const double xfade_start_clamped = min(xfade_start, 1);
 
@@ -156,8 +166,13 @@ static void Filter_state_impl_apply_filter_settings(
             // Apply primary filter
             if (in_fst != NULL)
             {
-                result = nq_zero_filter(
-                        FILTER_ORDER, in_fst->history1[ch], input);
+                if (in_fst->type == FILTER_TYPE_LOWPASS)
+                    result = nq_zero_filter(
+                            FILTER_ORDER, in_fst->history1[ch], input);
+                else
+                    result = dc_zero_filter(
+                            FILTER_ORDER, in_fst->history1[ch], input);
+
                 result = iir_filter_strict_cascade_even_order(
                         FILTER_ORDER, in_fst->coeffs, in_fst->history2[ch], result);
                 result *= in_fst->mul;
@@ -172,8 +187,13 @@ static void Filter_state_impl_apply_filter_settings(
 
                 if (out_fst != NULL)
                 {
-                    fade_result = nq_zero_filter(
-                            FILTER_ORDER, out_fst->history1[ch], input);
+                    if (out_fst->type == FILTER_TYPE_LOWPASS)
+                        fade_result = nq_zero_filter(
+                                FILTER_ORDER, out_fst->history1[ch], input);
+                    else
+                        fade_result = dc_zero_filter(
+                                FILTER_ORDER, out_fst->history1[ch], input);
+
                     fade_result = iir_filter_strict_cascade_even_order(
                             FILTER_ORDER,
                             out_fst->coeffs,
@@ -223,11 +243,11 @@ static double get_resonance(double param)
 #define FILTER_XFADE_SPEED_MAX 200.0
 
 
-static double get_xfade_step(double audio_rate, double true_lowpass, double resonance)
+static double get_xfade_step(double audio_rate, double true_cutoff, double resonance)
 {
     rassert(audio_rate > 0);
 
-    if (true_lowpass >= audio_rate * 0.5)
+    if (true_cutoff >= audio_rate * 0.5)
         return FILTER_XFADE_SPEED_MAX / audio_rate;
 
     const double xfade_range = FILTER_XFADE_SPEED_MAX - FILTER_XFADE_SPEED_MIN;
@@ -289,17 +309,17 @@ static void Filter_state_impl_apply_input_buffers(
             resonances[i] = def_resonance;
     }
 
-    const double max_true_lowpass_change = 0.01;
+    const double max_true_cutoff_change = 0.01;
     const double max_resonance_change = 0.01;
 
-    fimpl->lowpass_xfade_update = get_xfade_step(
-            audio_rate, fimpl->true_lowpass, fimpl->applied_resonance);
+    fimpl->filter_xfade_update = get_xfade_step(
+            audio_rate, fimpl->true_cutoff, fimpl->applied_resonance);
 
     const double nyquist = (double)audio_rate * 0.5;
 
     int32_t apply_filter_start = buf_start;
     int32_t apply_filter_stop = buf_stop;
-    double xfade_start = fimpl->lowpass_xfade_pos;
+    double xfade_start = fimpl->filter_xfade_pos;
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
@@ -309,7 +329,7 @@ static void Filter_state_impl_apply_input_buffers(
         // TODO: apply force->filter envelope if applicable
         /*
         if (proc->au_params->env_force_filter_enabled &&
-                fimpl->lowpass_xfade_pos >= 1)
+                fimpl->filter_xfade_pos >= 1)
         {
             double force = Cond_work_buffer_get_value(actual_forces, i);
             if (force > 1)
@@ -322,9 +342,10 @@ static void Filter_state_impl_apply_input_buffers(
         // */
 
         // Initialise new filter settings if needed
-        if (fimpl->lowpass_xfade_pos >= 1 &&
-                ((fabs(cutoff - fimpl->applied_lowpass) >
-                    max_true_lowpass_change) ||
+        if (fimpl->filter_xfade_pos >= 1 &&
+                ((fimpl->applied_type != fimpl->type) ||
+                 (fabs(cutoff - fimpl->applied_cutoff) >
+                    max_true_cutoff_change) ||
                  (fabs(resonance - fimpl->applied_resonance) >
                     max_resonance_change)))
         {
@@ -335,7 +356,7 @@ static void Filter_state_impl_apply_input_buffers(
                     in_buffers,
                     out_buffers,
                     xfade_start,
-                    fimpl->lowpass_xfade_update,
+                    fimpl->filter_xfade_update,
                     apply_filter_start,
                     apply_filter_stop);
 
@@ -343,57 +364,65 @@ static void Filter_state_impl_apply_input_buffers(
             apply_filter_start = i;
             apply_filter_stop = buf_stop;
 
-            fimpl->lowpass_xfade_state_used = fimpl->lowpass_state_used;
+            fimpl->filter_xfade_state_used = fimpl->filter_state_used;
 
             // Only apply crossfade if we have rendered audio
             if (fimpl->anything_rendered)
-                fimpl->lowpass_xfade_pos = 0;
+                fimpl->filter_xfade_pos = 0;
             else
-                fimpl->lowpass_xfade_pos = 1;
+                fimpl->filter_xfade_pos = 1;
 
-            fimpl->applied_lowpass = cutoff;
-            fimpl->true_lowpass = get_cutoff_freq(fimpl->applied_lowpass);
+            fimpl->applied_type = fimpl->type;
+
+            fimpl->applied_cutoff = cutoff;
+            fimpl->true_cutoff = get_cutoff_freq(fimpl->applied_cutoff);
+            if (fimpl->applied_type == FILTER_TYPE_HIGHPASS)
+                fimpl->true_cutoff = min(fimpl->true_cutoff, nyquist - 1.0);
 
             fimpl->applied_resonance = resonance;
             fimpl->true_resonance = get_resonance(fimpl->applied_resonance);
 
-            fimpl->lowpass_xfade_update = get_xfade_step(
-                    audio_rate, fimpl->true_lowpass, fimpl->applied_resonance);
+            fimpl->filter_xfade_update = get_xfade_step(
+                    audio_rate, fimpl->true_cutoff, fimpl->applied_resonance);
 
-            if (fimpl->true_lowpass < nyquist)
+            if (fimpl->true_cutoff < nyquist)
             {
-                const int new_state = 1 - abs(fimpl->lowpass_state_used);
-                const double lowpass = max(fimpl->true_lowpass, 1);
-                two_pole_filter_create(lowpass / audio_rate,
+                const int new_state = 1 - abs(fimpl->filter_state_used);
+                const double true_cutoff = max(fimpl->true_cutoff, 1);
+                const int bandform =
+                    (fimpl->applied_type == FILTER_TYPE_HIGHPASS) ? 1 : 0;
+                fimpl->sf_state[new_state].type = fimpl->applied_type;
+                two_pole_filter_create(
+                        true_cutoff / audio_rate,
                         fimpl->true_resonance,
-                        0,
-                        fimpl->lowpass_state[new_state].coeffs,
-                        &fimpl->lowpass_state[new_state].mul);
+                        bandform,
+                        fimpl->sf_state[new_state].coeffs,
+                        &fimpl->sf_state[new_state].mul);
                 for (int a = 0; a < KQT_BUFFERS_MAX; ++a)
                 {
                     for (int k = 0; k < FILTER_ORDER; ++k)
                     {
-                        fimpl->lowpass_state[new_state].history1[a][k] = 0;
-                        fimpl->lowpass_state[new_state].history2[a][k] = 0;
+                        fimpl->sf_state[new_state].history1[a][k] = 0;
+                        fimpl->sf_state[new_state].history2[a][k] = 0;
                     }
                 }
-                fimpl->lowpass_state_used = new_state;
+                fimpl->filter_state_used = new_state;
                 //fprintf(stderr, "created filter with cutoff %f\n", cutoff);
             }
             else
             {
-                if (fimpl->lowpass_state_used == -1)
-                    fimpl->lowpass_xfade_pos = 1;
+                if (fimpl->filter_state_used == -1)
+                    fimpl->filter_xfade_pos = 1;
 
-                fimpl->lowpass_state_used = -1;
+                fimpl->filter_state_used = -1;
             }
 
-            xfade_start = fimpl->lowpass_xfade_pos;
+            xfade_start = fimpl->filter_xfade_pos;
         }
 
         fimpl->anything_rendered = true;
 
-        fimpl->lowpass_xfade_pos += fimpl->lowpass_xfade_update;
+        fimpl->filter_xfade_pos += fimpl->filter_xfade_update;
     }
 
     // Apply previous filter settings to the remaining signal
@@ -402,7 +431,7 @@ static void Filter_state_impl_apply_input_buffers(
             in_buffers,
             out_buffers,
             xfade_start,
-            fimpl->lowpass_xfade_update,
+            fimpl->filter_xfade_update,
             apply_filter_start,
             apply_filter_stop);
 
@@ -499,6 +528,22 @@ static void Filter_pstate_render_mixed(
             dstate->audio_rate);
 
     return;
+}
+
+
+bool Filter_pstate_set_type(
+        Device_state* dstate, const Key_indices indices, int64_t type)
+{
+    rassert(dstate != NULL);
+    rassert(indices != NULL);
+    ignore(type);
+
+    const Proc_filter* filter = (const Proc_filter*)dstate->device->dimpl;
+
+    Filter_pstate* fpstate = (Filter_pstate*)dstate;
+    fpstate->state_impl.type = filter->type;
+
+    return true;
 }
 
 

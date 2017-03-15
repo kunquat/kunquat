@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -24,6 +24,7 @@
 #include <stdbool.h>
 
 
+static Set_int_func   Proc_filter_set_type;
 static Set_float_func Proc_filter_set_cutoff;
 static Set_float_func Proc_filter_set_resonance;
 
@@ -46,10 +47,18 @@ Device_impl* new_Proc_filter(void)
     filter->parent.get_vstate_size = Filter_vstate_get_size;
     filter->parent.init_vstate = Filter_vstate_init;
 
+    filter->type = FILTER_TYPE_LOWPASS;
     filter->cutoff = FILTER_DEFAULT_CUTOFF;
     filter->resonance = FILTER_DEFAULT_RESONANCE;
 
     if (!(REGISTER_SET_WITH_STATE_CB(
+                filter,
+                int,
+                type,
+                "p_i_type.json",
+                FILTER_TYPE_LOWPASS,
+                Filter_pstate_set_type) &&
+            REGISTER_SET_WITH_STATE_CB(
                 filter,
                 float,
                 cutoff,
@@ -70,6 +79,22 @@ Device_impl* new_Proc_filter(void)
     }
 
     return &filter->parent;
+}
+
+
+static bool Proc_filter_set_type(
+        Device_impl* dimpl, const Key_indices indices, int64_t value)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+
+    Proc_filter* filter = (Proc_filter*)dimpl;
+    if (value >= FILTER_TYPE_LOWPASS && value < FILTER_TYPE_COUNT)
+        filter->type = (Filter_type)value;
+    else
+        filter->type = FILTER_TYPE_LOWPASS;
+
+    return true;
 }
 
 
