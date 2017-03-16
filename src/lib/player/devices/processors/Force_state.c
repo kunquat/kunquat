@@ -55,7 +55,8 @@ int32_t Force_vstate_get_size(void)
 
 enum
 {
-    PORT_IN_STRETCH = 0,
+    PORT_IN_ENV_STRETCH = 0,
+    PORT_IN_ENV_REL_STRETCH,
     PORT_IN_COUNT
 };
 
@@ -66,7 +67,8 @@ enum
 };
 
 
-static const int FORCE_WB_FIXED_STRETCH = WORK_BUFFER_IMPL_1;
+static const int FORCE_WB_FIXED_ENV_STRETCH = WORK_BUFFER_IMPL_1;
+static const int FORCE_WB_FIXED_ENV_REL_STRETCH = WORK_BUFFER_IMPL_2;
 
 
 static int32_t Force_vstate_render_voice(
@@ -91,20 +93,36 @@ static int32_t Force_vstate_render_voice(
 
     const Device_state* dstate = &proc_state->parent;
 
-    // Get envelope time stretch input
+    // Get envelope time stretch inputs
     Work_buffer* stretch_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_STRETCH);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_ENV_STRETCH);
     if (stretch_wb == NULL)
     {
-        stretch_wb = Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_STRETCH);
-        float* pitches = Work_buffer_get_contents_mut(stretch_wb);
+        stretch_wb = Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_ENV_STRETCH);
+        float* stretches = Work_buffer_get_contents_mut(stretch_wb);
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            pitches[i] = 0;
+            stretches[i] = 0;
         Work_buffer_set_const_start(stretch_wb, buf_start);
     }
     else
     {
         Proc_clamp_pitch_values(stretch_wb, buf_start, buf_stop);
+    }
+
+    Work_buffer* rel_stretch_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_ENV_REL_STRETCH);
+    if (rel_stretch_wb == NULL)
+    {
+        rel_stretch_wb =
+            Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_ENV_REL_STRETCH);
+        float* stretches = Work_buffer_get_contents_mut(rel_stretch_wb);
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            stretches[i] = 0;
+        Work_buffer_set_const_start(rel_stretch_wb, buf_start);
+    }
+    else
+    {
+        Proc_clamp_pitch_values(rel_stretch_wb, buf_start, buf_stop);
     }
 
     // Get output
@@ -270,7 +288,7 @@ static int32_t Force_vstate_render_voice(
                     false, // no loop
                     au_state->sustain,
                     0, 1, // range
-                    stretch_wb,
+                    rel_stretch_wb,
                     Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
                     buf_start,
                     new_buf_stop,
