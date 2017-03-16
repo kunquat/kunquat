@@ -17,7 +17,6 @@ from PySide.QtGui import *
 from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from .procnumslider import ProcNumSlider
-from .procsimpleenv import ProcessorSimpleEnvelope
 from .proctimeenv import ProcessorTimeEnvelope
 from .processorupdater import ProcessorUpdater
 from . import utils
@@ -40,7 +39,6 @@ class EnvgenProc(QWidget, ProcessorUpdater):
         self._linear_force = QCheckBox('Linear force')
         self._range = RangeEditor()
         self._time_env = EgenTimeEnv()
-        self._force_env = ForceEnv()
 
         rl = QHBoxLayout()
         rl.addWidget(self._linear_force)
@@ -52,14 +50,12 @@ class EnvgenProc(QWidget, ProcessorUpdater):
         v.addWidget(self._global_adjust)
         v.addLayout(rl)
         v.addWidget(self._time_env)
-        #v.addWidget(self._force_env)
         self.setLayout(v)
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
     def _on_setup(self):
-        self.add_to_updaters(
-                self._global_adjust, self._range, self._time_env, self._force_env)
+        self.add_to_updaters(self._global_adjust, self._range, self._time_env)
         self.register_action(self._get_update_signal_type(), self._update_linear_force)
 
         QObject.connect(
@@ -76,7 +72,6 @@ class EnvgenProc(QWidget, ProcessorUpdater):
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         enabled = egen_params.get_linear_force_enabled()
 
-        self._force_env.setEnabled(enabled)
         self._range.setEnabled(not enabled)
 
         old_block = self._linear_force.blockSignals(True)
@@ -227,42 +222,5 @@ class EgenTimeEnv(ProcessorTimeEnvelope):
 
     def _set_envelope_data(self, envelope):
         self._get_egen_params().set_time_env(envelope)
-
-
-class ForceEnv(ProcessorSimpleEnvelope):
-
-    def __init__(self):
-        super().__init__()
-
-    def _get_update_signal_type(self):
-        return ''.join(('signal_add_force_mod_volume_', self._au_id, self._proc_id))
-
-    def _get_title(self):
-        return 'Force envelope'
-
-    def _make_envelope_widget(self):
-        envelope = Envelope({ 'is_square_area': True })
-        envelope.set_node_count_max(32)
-        envelope.set_y_range(0, 1)
-        envelope.set_x_range(0, 1)
-        envelope.set_first_lock(True, False)
-        envelope.set_last_lock(True, False)
-        return envelope
-
-    def _get_enabled(self):
-        egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
-        return egen_params.get_force_env_enabled()
-
-    def _set_enabled(self, enabled):
-        egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
-        egen_params.set_force_env_enabled(enabled)
-
-    def _get_envelope_data(self):
-        egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
-        return egen_params.get_force_env()
-
-    def _set_envelope_data(self, envelope):
-        egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
-        egen_params.set_force_env(envelope)
 
 
