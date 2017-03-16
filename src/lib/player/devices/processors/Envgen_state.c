@@ -45,7 +45,7 @@ int32_t Envgen_vstate_get_size(void)
 
 enum
 {
-    PORT_IN_PITCH = 0,
+    PORT_IN_STRETCH = 0,
     PORT_IN_FORCE,
     PORT_IN_COUNT,
 };
@@ -57,7 +57,7 @@ enum
 };
 
 
-static const int ENVGEN_WB_FIXED_PITCH = WORK_BUFFER_IMPL_1;
+static const int ENVGEN_WB_FIXED_STRETCH = WORK_BUFFER_IMPL_1;
 
 
 static int32_t Envgen_vstate_render_voice(
@@ -83,20 +83,20 @@ static int32_t Envgen_vstate_render_voice(
     const Proc_envgen* egen = (Proc_envgen*)proc_state->parent.device->dimpl;
     Envgen_vstate* egen_state = (Envgen_vstate*)vstate;
 
-    // Get pitch input
-    Work_buffer* pitches_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
-    if (pitches_wb == NULL)
+    // Get time stretch input
+    Work_buffer* stretch_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_STRETCH);
+    if (stretch_wb == NULL)
     {
-        pitches_wb = Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_PITCH);
-        float* pitches = Work_buffer_get_contents_mut(pitches_wb);
+        stretch_wb = Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_STRETCH);
+        float* stretches = Work_buffer_get_contents_mut(stretch_wb);
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            pitches[i] = 0;
-        Work_buffer_set_const_start(pitches_wb, buf_start);
+            stretches[i] = 0;
+        Work_buffer_set_const_start(stretch_wb, buf_start);
     }
     else
     {
-        Proc_clamp_pitch_values(pitches_wb, buf_start, buf_stop);
+        Proc_clamp_pitch_values(stretch_wb, buf_start, buf_stop);
     }
 
     // Get force scales
@@ -144,11 +144,9 @@ static int32_t Envgen_vstate_render_voice(
                     &egen_state->env_state,
                     egen->time_env,
                     egen->is_loop_enabled,
-                    egen->env_scale_amount,
-                    egen->env_scale_centre,
                     0, // sustain
                     0, 1, // range, NOTE: this needs to be mapped to our [y_min, y_max]!
-                    pitches_wb,
+                    stretch_wb,
                     Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
                     buf_start,
                     new_buf_stop,
