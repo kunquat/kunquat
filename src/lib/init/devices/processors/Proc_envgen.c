@@ -35,8 +35,6 @@ static Set_bool_func        Proc_envgen_set_time_env_enabled;
 static Set_envelope_func    Proc_envgen_set_time_env;
 static Set_bool_func        Proc_envgen_set_loop_enabled;
 static Set_bool_func        Proc_envgen_set_release_env;
-static Set_float_func       Proc_envgen_set_env_scale_amount;
-static Set_float_func       Proc_envgen_set_env_scale_centre;
 static Set_bool_func        Proc_envgen_set_linear_force;
 static Set_float_func       Proc_envgen_set_global_adjust;
 static Set_bool_func        Proc_envgen_set_force_env_enabled;
@@ -56,8 +54,6 @@ Device_impl* new_Proc_envgen(void)
     envgen->time_env = NULL;
     envgen->is_loop_enabled = false;
     envgen->is_release_env = false;
-    envgen->env_scale_amount = 0;
-    envgen->env_scale_centre = 0;
 
     envgen->is_linear_force = false;
 
@@ -87,8 +83,6 @@ Device_impl* new_Proc_envgen(void)
             REG_KEY(envelope, time_env, "p_e_env.json", NULL) &&
             REG_KEY_BOOL(loop_enabled, "p_b_env_loop_enabled.json", false) &&
             REG_KEY_BOOL(release_env, "p_b_env_is_release.json", false) &&
-            REG_KEY(float, env_scale_amount, "p_f_env_scale_amount.json", 0.0) &&
-            REG_KEY(float, env_scale_centre, "p_f_env_scale_centre.json", 0.0) &&
             REG_KEY_BOOL(linear_force, "p_b_linear_force.json", false) &&
             REG_KEY(float, global_adjust, "p_f_global_adjust.json", 0.0) &&
             REG_KEY_BOOL(force_env_enabled, "p_b_force_env_enabled.json", false) &&
@@ -184,32 +178,6 @@ static bool Proc_envgen_set_release_env(
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
     egen->is_release_env = value;
-
-    return true;
-}
-
-
-static bool Proc_envgen_set_env_scale_amount(
-        Device_impl* dimpl, const Key_indices indices, double value)
-{
-    rassert(dimpl != NULL);
-    rassert(indices != NULL);
-
-    Proc_envgen* egen = (Proc_envgen*)dimpl;
-    egen->env_scale_amount = isfinite(value) ? value : 0;
-
-    return true;
-}
-
-
-static bool Proc_envgen_set_env_scale_centre(
-        Device_impl* dimpl, const Key_indices indices, double value)
-{
-    rassert(dimpl != NULL);
-    rassert(indices != NULL);
-
-    Proc_envgen* egen = (Proc_envgen*)dimpl;
-    egen->env_scale_centre = isfinite(value) ? value : 0;
 
     return true;
 }

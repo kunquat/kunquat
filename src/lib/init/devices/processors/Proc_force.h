@@ -30,13 +30,9 @@ typedef struct Proc_force
     const Envelope* force_env;
     bool is_force_env_enabled;
     bool is_force_env_loop_enabled;
-    double force_env_scale_amount;
-    double force_env_scale_centre;
 
     const Envelope* force_release_env;
     bool is_force_release_env_enabled;
-    double force_release_env_scale_amount;
-    double force_release_env_scale_centre;
 
     Envelope* def_force_release_env;
 

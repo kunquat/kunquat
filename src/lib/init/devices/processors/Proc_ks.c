@@ -31,20 +31,14 @@ static Set_float_func       Proc_ks_set_damp;
 
 static Set_envelope_func    Proc_ks_set_init_env;
 static Set_bool_func        Proc_ks_set_init_env_loop_enabled;
-static Set_float_func       Proc_ks_set_init_env_scale_amount;
-static Set_float_func       Proc_ks_set_init_env_scale_centre;
 
 static Set_envelope_func    Proc_ks_set_shift_env;
 static Set_bool_func        Proc_ks_set_shift_env_enabled;
-static Set_float_func       Proc_ks_set_shift_env_scale_amount;
-static Set_float_func       Proc_ks_set_shift_env_scale_centre;
 static Set_float_func       Proc_ks_set_shift_env_trig_threshold;
 static Set_float_func       Proc_ks_set_shift_env_strength_var;
 
 static Set_envelope_func    Proc_ks_set_rel_env;
 static Set_bool_func        Proc_ks_set_rel_env_enabled;
-static Set_float_func       Proc_ks_set_rel_env_scale_amount;
-static Set_float_func       Proc_ks_set_rel_env_scale_centre;
 static Set_float_func       Proc_ks_set_rel_env_strength_var;
 
 static Device_impl_get_voice_wb_size_func Proc_ks_get_voice_wb_size;
@@ -83,22 +77,16 @@ Device_impl* new_Proc_ks(void)
 
     ks->init_env = NULL;
     ks->is_init_env_loop_enabled = false;
-    ks->init_env_scale_amount = 0;
-    ks->init_env_scale_centre = 0;
     ks->def_init_env = NULL;
 
     ks->shift_env = NULL;
     ks->is_shift_env_enabled = false;
-    ks->shift_env_scale_amount = 0;
-    ks->shift_env_scale_centre = 0;
     ks->def_shift_env = NULL;
     ks->shift_env_trig_threshold = DEFAULT_SHIFT_ENV_TRIG_THRESHOLD;
     ks->shift_env_strength_var = 0;
 
     ks->rel_env = NULL;
     ks->is_rel_env_enabled = false;
-    ks->rel_env_scale_amount = 0;
-    ks->rel_env_scale_centre = 0;
     ks->def_rel_env = NULL;
     ks->rel_env_strength_var = 0;
 
@@ -153,16 +141,8 @@ Device_impl* new_Proc_ks(void)
                 REG_KEY(envelope, init_env, "p_e_init_env.json", NULL) &&
                 REG_KEY_BOOL(init_env_loop_enabled,
                     "p_b_init_env_loop_enabled.json", false) &&
-                REG_KEY(float, init_env_scale_amount,
-                    "p_f_init_env_scale_amount.json", 0.0) &&
-                REG_KEY(float, init_env_scale_centre,
-                    "p_f_init_env_scale_centre.json", 0.0) &&
                 REG_KEY(envelope, shift_env, "p_e_shift_env.json", NULL) &&
                 REG_KEY_BOOL(shift_env_enabled, "p_b_shift_env_enabled.json", false) &&
-                REG_KEY(float, shift_env_scale_amount,
-                    "p_f_shift_env_scale_amount.json", 0.0) &&
-                REG_KEY(float, shift_env_scale_centre,
-                    "p_f_shift_env_scale_centre.json", 0.0) &&
                 REG_KEY(float, shift_env_trig_threshold,
                     "p_f_shift_env_trig_threshold.json",
                     DEFAULT_SHIFT_ENV_TRIG_THRESHOLD) &&
@@ -170,10 +150,6 @@ Device_impl* new_Proc_ks(void)
                     "p_f_shift_env_strength_var.json", 0.0) &&
                 REG_KEY(envelope, rel_env, "p_e_rel_env.json", NULL) &&
                 REG_KEY_BOOL(rel_env_enabled, "p_b_rel_env_enabled.json", false) &&
-                REG_KEY(float, rel_env_scale_amount,
-                        "p_f_rel_env_scale_amount.json", 0.0) &&
-                REG_KEY(float, rel_env_scale_centre,
-                        "p_f_rel_env_scale_centre.json", 0.0) &&
                 REG_KEY(float, rel_env_strength_var,
                         "p_f_rel_env_strength_var.json", 0.0)
          ))
@@ -276,32 +252,6 @@ static bool Proc_ks_set_init_env_loop_enabled(
 }
 
 
-static bool Proc_ks_set_init_env_scale_amount(
-        Device_impl* dimpl, const Key_indices indices, double value)
-{
-    rassert(dimpl != NULL);
-    ignore(indices);
-
-    Proc_ks* ks = (Proc_ks*)dimpl;
-    ks->init_env_scale_amount = isfinite(value) ? value : 0;
-
-    return true;
-}
-
-
-static bool Proc_ks_set_init_env_scale_centre(
-        Device_impl* dimpl, const Key_indices indices, double value)
-{
-    rassert(dimpl != NULL);
-    ignore(indices);
-
-    Proc_ks* ks = (Proc_ks*)dimpl;
-    ks->init_env_scale_centre = isfinite(value) ? value : 0;
-
-    return true;
-}
-
-
 static bool Proc_ks_set_shift_env(
         Device_impl* dimpl, const Key_indices indices, const Envelope* value)
 {
@@ -324,32 +274,6 @@ static bool Proc_ks_set_shift_env_enabled(
 
     Proc_ks* ks = (Proc_ks*)dimpl;
     ks->is_shift_env_enabled = value;
-
-    return true;
-}
-
-
-static bool Proc_ks_set_shift_env_scale_amount(
-        Device_impl* dimpl, const Key_indices indices, double value)
-{
-    rassert(dimpl != NULL);
-    ignore(indices);
-
-    Proc_ks* ks = (Proc_ks*)dimpl;
-    ks->shift_env_scale_amount = isfinite(value) ? value : 0;
-
-    return true;
-}
-
-
-static bool Proc_ks_set_shift_env_scale_centre(
-        Device_impl* dimpl, const Key_indices indices, double value)
-{
-    rassert(dimpl != NULL);
-    ignore(indices);
-
-    Proc_ks* ks = (Proc_ks*)dimpl;
-    ks->shift_env_scale_centre = isfinite(value) ? value : 0;
 
     return true;
 }
@@ -404,32 +328,6 @@ static bool Proc_ks_set_rel_env_enabled(
 
     Proc_ks* ks = (Proc_ks*)dimpl;
     ks->is_rel_env_enabled = value;
-
-    return true;
-}
-
-
-static bool Proc_ks_set_rel_env_scale_amount(
-        Device_impl* dimpl, const Key_indices indices, double value)
-{
-    rassert(dimpl != NULL);
-    ignore(indices);
-
-    Proc_ks* ks = (Proc_ks*)dimpl;
-    ks->rel_env_scale_amount = isfinite(value) ? value : 0;
-
-    return true;
-}
-
-
-static bool Proc_ks_set_rel_env_scale_centre(
-        Device_impl* dimpl, const Key_indices indices, double value)
-{
-    rassert(dimpl != NULL);
-    ignore(indices);
-
-    Proc_ks* ks = (Proc_ks*)dimpl;
-    ks->rel_env_scale_centre = isfinite(value) ? value : 0;
 
     return true;
 }

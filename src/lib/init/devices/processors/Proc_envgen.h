@@ -31,8 +31,6 @@ typedef struct Proc_envgen
     const Envelope* time_env;
     bool is_loop_enabled;
     bool is_release_env;
-    double env_scale_amount;
-    double env_scale_centre;
 
     bool is_linear_force;
 

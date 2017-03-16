@@ -33,13 +33,9 @@ static Set_float_func       Proc_force_set_force_variation;
 static Set_envelope_func    Proc_force_set_env;
 static Set_bool_func        Proc_force_set_env_enabled;
 static Set_bool_func        Proc_force_set_env_loop_enabled;
-static Set_float_func       Proc_force_set_env_scale_amount;
-static Set_float_func       Proc_force_set_env_scale_centre;
 
 static Set_envelope_func    Proc_force_set_env_rel;
 static Set_bool_func        Proc_force_set_env_rel_enabled;
-static Set_float_func       Proc_force_set_env_rel_scale_amount;
-static Set_float_func       Proc_force_set_env_rel_scale_centre;
 
 static Set_bool_func        Proc_force_set_release_ramp;
 
@@ -59,13 +55,9 @@ Device_impl* new_Proc_force(void)
     force->force_env = NULL;
     force->is_force_env_enabled = false;
     force->is_force_env_loop_enabled = false;
-    force->force_env_scale_amount = 0.0;
-    force->force_env_scale_centre = 0.0;
 
     force->force_release_env = NULL;
     force->is_force_release_env_enabled = false;
-    force->force_release_env_scale_amount = 0.0;
-    force->force_release_env_scale_centre = 0.0;
 
     force->def_force_release_env = NULL;
 
@@ -117,12 +109,8 @@ Device_impl* new_Proc_force(void)
             REG_KEY(envelope, env, "p_e_env.json", NULL) &&
             REG_KEY_BOOL(env_enabled, "p_b_env_enabled.json", false) &&
             REG_KEY_BOOL(env_loop_enabled, "p_b_env_loop_enabled.json", false) &&
-            REG_KEY(float, env_scale_amount, "p_f_env_scale_amount.json", 0.0) &&
-            REG_KEY(float, env_scale_centre, "p_f_env_scale_centre.json", 0.0) &&
             REG_KEY(envelope, env_rel, "p_e_env_rel.json", NULL) &&
             REG_KEY_BOOL(env_rel_enabled, "p_b_env_rel_enabled.json", false) &&
-            REG_KEY(float, env_rel_scale_amount, "p_f_env_rel_scale_amount.json", 0.0) &&
-            REG_KEY(float, env_rel_scale_centre, "p_f_env_rel_scale_centre.json", 0.0) &&
             REG_KEY_BOOL(release_ramp, "p_b_release_ramp.json", false)
         ))
     {
@@ -230,32 +218,6 @@ static bool Proc_force_set_env_loop_enabled(
 }
 
 
-static bool Proc_force_set_env_scale_amount(
-        Device_impl* dimpl, const Key_indices indices, double value)
-{
-    rassert(dimpl != NULL);
-    rassert(indices != NULL);
-
-    Proc_force* force = (Proc_force*)dimpl;
-    force->force_env_scale_amount = isfinite(value) ? value : 0;
-
-    return true;
-}
-
-
-static bool Proc_force_set_env_scale_centre(
-        Device_impl* dimpl, const Key_indices indices, double value)
-{
-    rassert(dimpl != NULL);
-    rassert(indices != NULL);
-
-    Proc_force* force = (Proc_force*)dimpl;
-    force->force_env_scale_centre = isfinite(value) ? value : 0;
-
-    return true;
-}
-
-
 static bool Proc_force_set_env_rel(
         Device_impl* dimpl, const Key_indices indices, const Envelope* value)
 {
@@ -291,32 +253,6 @@ static bool Proc_force_set_env_rel_enabled(
 
     Proc_force* force = (Proc_force*)dimpl;
     force->is_force_release_env_enabled = value;
-
-    return true;
-}
-
-
-static bool Proc_force_set_env_rel_scale_amount(
-        Device_impl* dimpl, const Key_indices indices, double value)
-{
-    rassert(dimpl != NULL);
-    rassert(indices != NULL);
-
-    Proc_force* force = (Proc_force*)dimpl;
-    force->force_release_env_scale_amount = isfinite(value) ? value : 0;
-
-    return true;
-}
-
-
-static bool Proc_force_set_env_rel_scale_centre(
-        Device_impl* dimpl, const Key_indices indices, double value)
-{
-    rassert(dimpl != NULL);
-    rassert(indices != NULL);
-
-    Proc_force* force = (Proc_force*)dimpl;
-    force->force_release_env_scale_centre = isfinite(value) ? value : 0;
 
     return true;
 }
