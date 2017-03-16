@@ -36,9 +36,6 @@ typedef struct Proc_envgen
 
     double global_adjust;
 
-    bool is_force_env_enabled;
-    const Envelope* force_env;
-
     double y_min;
     double y_max;
 } Proc_envgen;

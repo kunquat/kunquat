@@ -37,8 +37,6 @@ static Set_bool_func        Proc_envgen_set_loop_enabled;
 static Set_bool_func        Proc_envgen_set_release_env;
 static Set_bool_func        Proc_envgen_set_linear_force;
 static Set_float_func       Proc_envgen_set_global_adjust;
-static Set_bool_func        Proc_envgen_set_force_env_enabled;
-static Set_envelope_func    Proc_envgen_set_force_env;
 static Set_num_list_func    Proc_envgen_set_y_range;
 
 static void del_Proc_envgen(Device_impl* dimpl);
@@ -58,9 +56,6 @@ Device_impl* new_Proc_envgen(void)
     envgen->is_linear_force = false;
 
     envgen->global_adjust = 0;
-
-    envgen->is_force_env_enabled = false;
-    envgen->force_env = NULL;
 
     envgen->y_min = 0;
     envgen->y_max = 1;
@@ -85,8 +80,6 @@ Device_impl* new_Proc_envgen(void)
             REG_KEY_BOOL(release_env, "p_b_env_is_release.json", false) &&
             REG_KEY_BOOL(linear_force, "p_b_linear_force.json", false) &&
             REG_KEY(float, global_adjust, "p_f_global_adjust.json", 0.0) &&
-            REG_KEY_BOOL(force_env_enabled, "p_b_force_env_enabled.json", false) &&
-            REG_KEY(envelope, force_env, "p_e_force_env.json", NULL) &&
             REG_KEY(num_list, y_range, "p_ln_y_range.json", NULL)
         ))
     {
@@ -205,64 +198,6 @@ static bool Proc_envgen_set_global_adjust(
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
     egen->global_adjust = isfinite(value) ? value : 0;
-
-    return true;
-}
-
-
-static bool Proc_envgen_set_force_env_enabled(
-        Device_impl* dimpl, const Key_indices indices, bool value)
-{
-    rassert(dimpl != NULL);
-    rassert(indices != NULL);
-
-    Proc_envgen* egen = (Proc_envgen*)dimpl;
-    egen->is_force_env_enabled = value;
-
-    return true;
-}
-
-
-static bool Proc_envgen_set_force_env(
-        Device_impl* dimpl, const Key_indices indices, const Envelope* value)
-{
-    rassert(dimpl != NULL);
-    rassert(indices != NULL);
-
-    Proc_envgen* egen = (Proc_envgen*)dimpl;
-
-    bool is_valid = false;
-
-    if ((value != NULL) &&
-            (Envelope_node_count(value) > 1) &&
-            (Envelope_node_count(value) <= 32))
-    {
-        // Check the endpoint x coordinates
-        const double* first_node = Envelope_get_node(value, 0);
-        const double* last_node = Envelope_get_node(
-                value, Envelope_node_count(value) - 1);
-
-        if ((first_node[0] == 0) && (last_node[0] == 1))
-        {
-            // Check y coordinates
-            bool invalid_found = false;
-
-            for (int i = 0; i < Envelope_node_count(value); ++i)
-            {
-                const double* node = Envelope_get_node(value, i);
-                if ((node[1] < 0) || (node[1] > 1))
-                {
-                    invalid_found = true;
-                    break;
-                }
-            }
-
-            if (!invalid_found)
-                is_valid = true;
-        }
-    }
-
-    egen->force_env = is_valid ? value : NULL;
 
     return true;
 }

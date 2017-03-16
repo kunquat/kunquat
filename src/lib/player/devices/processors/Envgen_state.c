@@ -115,8 +115,6 @@ static int32_t Envgen_vstate_render_voice(
 
     const bool is_time_env_enabled =
         egen->is_time_env_enabled && (egen->time_env != NULL);
-    const bool is_force_env_enabled =
-        egen->is_force_env_enabled && (egen->force_env != NULL);
 
     const double range_width = egen->y_max - egen->y_min;
 
@@ -205,37 +203,9 @@ static int32_t Envgen_vstate_render_voice(
             Proc_fill_scale_buffer(forces_wb, forces_wb, buf_start, buf_stop);
             const float* force_scales = Work_buffer_get_contents(forces_wb);
 
-            if (is_force_env_enabled)
-            {
-                // Apply force envelope
-                for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                {
-                    const float force_scale = force_scales[i];
-
-                    const double vol_clamped = min(1, force_scale);
-                    const float factor =
-                        (float)Envelope_get_value(egen->force_env, vol_clamped);
-                    rassert(isfinite(factor));
-                    out_buffer[i] *= factor;
-                }
-            }
-            else
-            {
-                // Apply linear scaling by default
-                for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                    out_buffer[i] *= force_scales[i];
-            }
-        }
-        else
-        {
-            if (is_force_env_enabled)
-            {
-                // Just apply the rightmost force envelope value (as we assume force 0 dB)
-                const float factor = (float)Envelope_get_node(
-                        egen->force_env, Envelope_node_count(egen->force_env) - 1)[1];
-                for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                    out_buffer[i] *= factor;
-            }
+            // Apply linear scaling by default
+            for (int32_t i = buf_start; i < new_buf_stop; ++i)
+                out_buffer[i] *= force_scales[i];
         }
 
         // Convert to dB
