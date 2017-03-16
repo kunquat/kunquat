@@ -22,7 +22,7 @@ class ForceParams(ProcParams):
 
     @staticmethod
     def get_port_info():
-        return { 'in_00': 'stretch', 'out_00': 'force' }
+        return { 'in_00': 'stretch', 'in_01': 'rel.stch', 'out_00': 'force' }
 
     def __init__(self, proc_id, controller):
         super().__init__(proc_id, controller)
