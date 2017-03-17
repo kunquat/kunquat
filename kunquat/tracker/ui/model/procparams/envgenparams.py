@@ -22,7 +22,7 @@ class EnvgenParams(ProcParams):
 
     @staticmethod
     def get_port_info():
-        return { 'in_00': 'pitch', 'in_01': 'force', 'out_00': 'env' }
+        return { 'in_00': 'stretch', 'out_00': 'env' }
 
     def __init__(self, proc_id, controller):
         super().__init__(proc_id, controller)
@@ -54,18 +54,6 @@ class EnvgenParams(ProcParams):
     def set_time_env_is_release(self, value):
         self._set_value('p_b_env_is_release.json', value)
 
-    def get_time_env_scale_amount(self):
-        return self._get_value('p_f_env_scale_amount.json', 0)
-
-    def set_time_env_scale_amount(self, value):
-        self._set_value('p_f_env_scale_amount.json', value)
-
-    def get_time_env_scale_centre(self):
-        return self._get_value('p_f_env_scale_centre.json', 0)
-
-    def set_time_env_scale_centre(self, value):
-        self._set_value('p_f_env_scale_centre.json', value)
-
     def get_linear_force_enabled(self):
         return self._get_value('p_b_linear_force.json', False)
 
@@ -77,21 +65,6 @@ class EnvgenParams(ProcParams):
 
     def set_global_adjust(self, value):
         self._set_value('p_f_global_adjust.json', value)
-
-    def get_force_env_enabled(self):
-        return self._get_value('p_b_force_env_enabled.json', False)
-
-    def set_force_env_enabled(self, enabled):
-        self._set_value('p_b_force_env_enabled.json', enabled)
-
-    def get_force_env(self):
-        ret_env = { 'nodes': [ [0, 0], [1, 1] ], 'smooth': False }
-        stored_env = self._get_value('p_e_force_env.json', None) or {}
-        ret_env.update(stored_env)
-        return ret_env
-
-    def set_force_env(self, envelope):
-        self._set_value('p_e_force_env.json', envelope)
 
     def get_y_range(self):
         return self._get_value('p_ln_y_range.json', [0, 1])

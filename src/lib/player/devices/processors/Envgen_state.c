@@ -45,8 +45,7 @@ int32_t Envgen_vstate_get_size(void)
 
 enum
 {
-    PORT_IN_PITCH = 0,
-    PORT_IN_FORCE,
+    PORT_IN_STRETCH = 0,
     PORT_IN_COUNT,
 };
 
@@ -57,7 +56,7 @@ enum
 };
 
 
-static const int ENVGEN_WB_FIXED_PITCH = WORK_BUFFER_IMPL_1;
+static const int ENVGEN_WB_FIXED_STRETCH = WORK_BUFFER_IMPL_1;
 
 
 static int32_t Envgen_vstate_render_voice(
@@ -83,25 +82,21 @@ static int32_t Envgen_vstate_render_voice(
     const Proc_envgen* egen = (Proc_envgen*)proc_state->parent.device->dimpl;
     Envgen_vstate* egen_state = (Envgen_vstate*)vstate;
 
-    // Get pitch input
-    Work_buffer* pitches_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
-    if (pitches_wb == NULL)
+    // Get time stretch input
+    Work_buffer* stretch_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_STRETCH);
+    if (stretch_wb == NULL)
     {
-        pitches_wb = Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_PITCH);
-        float* pitches = Work_buffer_get_contents_mut(pitches_wb);
+        stretch_wb = Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_STRETCH);
+        float* stretches = Work_buffer_get_contents_mut(stretch_wb);
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            pitches[i] = 0;
-        Work_buffer_set_const_start(pitches_wb, buf_start);
+            stretches[i] = 0;
+        Work_buffer_set_const_start(stretch_wb, buf_start);
     }
     else
     {
-        Proc_clamp_pitch_values(pitches_wb, buf_start, buf_stop);
+        Proc_clamp_pitch_values(stretch_wb, buf_start, buf_stop);
     }
-
-    // Get force scales
-    Work_buffer* forces_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
 
     // Get output buffer for writing
     Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
@@ -115,8 +110,6 @@ static int32_t Envgen_vstate_render_voice(
 
     const bool is_time_env_enabled =
         egen->is_time_env_enabled && (egen->time_env != NULL);
-    const bool is_force_env_enabled =
-        egen->is_force_env_enabled && (egen->force_env != NULL);
 
     const double range_width = egen->y_max - egen->y_min;
 
@@ -144,11 +137,9 @@ static int32_t Envgen_vstate_render_voice(
                     &egen_state->env_state,
                     egen->time_env,
                     egen->is_loop_enabled,
-                    egen->env_scale_amount,
-                    egen->env_scale_centre,
                     0, // sustain
                     0, 1, // range, NOTE: this needs to be mapped to our [y_min, y_max]!
-                    pitches_wb,
+                    stretch_wb,
                     Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
                     buf_start,
                     new_buf_stop,
@@ -192,70 +183,22 @@ static int32_t Envgen_vstate_render_voice(
             out_buffer[i] = 1;
     }
 
-    // Apply const start of input force buffer
-    if (forces_wb != NULL)
-    {
-        const int32_t force_const_start = Work_buffer_get_const_start(forces_wb);
-        const_start = max(const_start, force_const_start);
-    }
-
     if (egen->is_linear_force)
     {
-        if (forces_wb != NULL)
-        {
-            // Convert input force to linear scale
-            Proc_fill_scale_buffer(forces_wb, forces_wb, buf_start, buf_stop);
-            const float* force_scales = Work_buffer_get_contents(forces_wb);
-
-            if (is_force_env_enabled)
-            {
-                // Apply force envelope
-                for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                {
-                    const float force_scale = force_scales[i];
-
-                    const double vol_clamped = min(1, force_scale);
-                    const float factor =
-                        (float)Envelope_get_value(egen->force_env, vol_clamped);
-                    rassert(isfinite(factor));
-                    out_buffer[i] *= factor;
-                }
-            }
-            else
-            {
-                // Apply linear scaling by default
-                for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                    out_buffer[i] *= force_scales[i];
-            }
-        }
-        else
-        {
-            if (is_force_env_enabled)
-            {
-                // Just apply the rightmost force envelope value (as we assume force 0 dB)
-                const float factor = (float)Envelope_get_node(
-                        egen->force_env, Envelope_node_count(egen->force_env) - 1)[1];
-                for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                    out_buffer[i] *= factor;
-            }
-        }
-
         // Convert to dB
+        const double global_adjust = egen->global_adjust;
+
+        const int32_t fast_stop = min(const_start, new_buf_stop);
+
+        for (int32_t i = buf_start; i < fast_stop; ++i)
+            out_buffer[i] = (float)(fast_scale_to_dB(out_buffer[i]) + global_adjust);
+
+        if (fast_stop < new_buf_stop)
         {
-            const double global_adjust = egen->global_adjust;
-
-            const int32_t fast_stop = min(const_start, new_buf_stop);
-
-            for (int32_t i = buf_start; i < fast_stop; ++i)
-                out_buffer[i] = (float)(fast_scale_to_dB(out_buffer[i]) + global_adjust);
-
-            if (fast_stop < new_buf_stop)
-            {
-                const float dB =
-                    (float)(scale_to_dB(out_buffer[fast_stop]) + global_adjust);
-                for (int32_t i = fast_stop; i < new_buf_stop; ++i)
-                    out_buffer[i] = dB;
-            }
+            const float dB =
+                (float)(scale_to_dB(out_buffer[fast_stop]) + global_adjust);
+            for (int32_t i = fast_stop; i < new_buf_stop; ++i)
+                out_buffer[i] = dB;
         }
     }
     else
@@ -269,19 +212,8 @@ static int32_t Envgen_vstate_render_voice(
         }
 
         const float global_adjust = (float)egen->global_adjust;
-
-        if (forces_wb != NULL)
-        {
-            const float* force_scales = Work_buffer_get_contents(forces_wb);
-
-            for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                out_buffer[i] += force_scales[i] + global_adjust;
-        }
-        else
-        {
-            for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                out_buffer[i] += global_adjust;
-        }
+        for (int32_t i = buf_start; i < new_buf_stop; ++i)
+            out_buffer[i] += global_adjust;
     }
 
     // Mark constant region of the buffer

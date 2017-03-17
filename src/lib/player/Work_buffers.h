@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -32,6 +32,7 @@ typedef enum
     WORK_BUFFER_IMPL_4,
     WORK_BUFFER_IMPL_5,
     WORK_BUFFER_IMPL_6,
+    WORK_BUFFER_IMPL_7,
     WORK_BUFFER_TIME_ENV,
     WORK_BUFFER_COUNT_
 } Work_buffer_type;

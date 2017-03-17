@@ -260,6 +260,7 @@ enum
     PORT_IN_FORCE,
     PORT_IN_EXCITATION,
     PORT_IN_DAMP,
+    PORT_IN_ENV_STRETCH,
     PORT_IN_COUNT
 };
 
@@ -271,12 +272,13 @@ enum
 };
 
 
-static const int KS_WB_FIXED_PITCH      = WORK_BUFFER_IMPL_1;
-static const int KS_WB_FIXED_FORCE      = WORK_BUFFER_IMPL_2;
-static const int KS_WB_FIXED_EXCITATION = WORK_BUFFER_IMPL_3;
-static const int KS_WB_FIXED_DAMP       = WORK_BUFFER_IMPL_4;
-static const int KS_WB_ENVELOPE         = WORK_BUFFER_IMPL_5;
-static const int KS_WB_ENVELOPE_ADD     = WORK_BUFFER_IMPL_6;
+static const int KS_WB_FIXED_PITCH       = WORK_BUFFER_IMPL_1;
+static const int KS_WB_FIXED_FORCE       = WORK_BUFFER_IMPL_2;
+static const int KS_WB_FIXED_EXCITATION  = WORK_BUFFER_IMPL_3;
+static const int KS_WB_FIXED_DAMP        = WORK_BUFFER_IMPL_4;
+static const int KS_WB_ENVELOPE          = WORK_BUFFER_IMPL_5;
+static const int KS_WB_ENVELOPE_ADD      = WORK_BUFFER_IMPL_6;
+static const int KS_WB_FIXED_ENV_STRETCH = WORK_BUFFER_IMPL_7;
 
 
 static int32_t Ks_vstate_render_voice(
@@ -364,6 +366,21 @@ static int32_t Ks_vstate_render_voice(
     }
     const float* damps = Work_buffer_get_contents(damps_wb);
 
+    // Get envelope stretch signal
+    Work_buffer* stretch_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_ENV_STRETCH);
+    if (stretch_wb == NULL)
+    {
+        Work_buffer* fixed_stretch_wb =
+            Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_ENV_STRETCH);
+        Work_buffer_clear(fixed_stretch_wb, buf_start, buf_stop);
+        stretch_wb = fixed_stretch_wb;
+    }
+    else
+    {
+        Proc_clamp_pitch_values(stretch_wb, buf_start, buf_stop);
+    }
+
     // Get delay buffer
     Work_buffer* delay_wb = ks_vstate->parent.wb;
     rassert(delay_wb != NULL);
@@ -397,11 +414,9 @@ static int32_t Ks_vstate_render_voice(
                 &ks_vstate->init_env_state,
                 ks->init_env,
                 ks->is_init_env_loop_enabled,
-                ks->init_env_scale_amount,
-                ks->init_env_scale_centre,
                 0, // sustain
                 0, 1, // range
-                pitches_wb,
+                stretch_wb,
                 env_buf,
                 buf_start,
                 buf_stop,
@@ -474,11 +489,9 @@ static int32_t Ks_vstate_render_voice(
                             &ks_vstate->shift_env_state,
                             ks->shift_env,
                             false, // has loop
-                            ks->shift_env_scale_amount,
-                            ks->shift_env_scale_centre,
                             0, // sustain
                             0, 1, // range
-                            pitches_wb,
+                            stretch_wb,
                             env_add_buf,
                             process_start,
                             shift_i,
@@ -532,11 +545,9 @@ static int32_t Ks_vstate_render_voice(
                     &ks_vstate->rel_env_state,
                     ks->rel_env,
                     false, // has loop
-                    ks->rel_env_scale_amount,
-                    ks->rel_env_scale_centre,
                     0, // sustain
                     0, 1, // range
-                    pitches_wb,
+                    stretch_wb,
                     env_add_buf,
                     buf_start,
                     buf_stop,

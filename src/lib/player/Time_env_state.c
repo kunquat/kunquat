@@ -46,12 +46,10 @@ int32_t Time_env_state_process(
         Time_env_state* testate,
         const Envelope* env,
         bool has_loop,
-        double scale_amount,
-        double scale_centre,
         double sustain,
         double min_value,
         double max_value,
-        const Work_buffer* pitch_wb,
+        const Work_buffer* stretch_wb,
         float* env_buf,
         int32_t buf_start,
         int32_t buf_stop,
@@ -59,13 +57,11 @@ int32_t Time_env_state_process(
 {
     rassert(testate != NULL);
     rassert(env != NULL);
-    rassert(isfinite(scale_amount));
-    rassert(isfinite(scale_centre));
     rassert(sustain >= 0);
     rassert(sustain <= 1);
     rassert(isfinite(min_value));
     rassert(isfinite(max_value));
-    rassert(pitch_wb != NULL);
+    rassert(stretch_wb != NULL);
     rassert(env_buf != NULL);
     rassert(buf_start >= 0);
     rassert(buf_stop >= 0);
@@ -74,12 +70,11 @@ int32_t Time_env_state_process(
     if (testate->is_finished)
         return buf_start;
 
-    const float* pitch_buf = Work_buffer_get_contents(pitch_wb);
-    const int32_t pitch_const_start = Work_buffer_get_const_start(pitch_wb);
+    const float* stretch_buf = Work_buffer_get_contents(stretch_wb);
+    const int32_t stretch_const_start = Work_buffer_get_const_start(stretch_wb);
     double fixed_scale_factor = 1.0;
-    if (pitch_const_start < buf_stop)
-        fixed_scale_factor =
-            exp2((pitch_buf[pitch_const_start] - scale_centre) * scale_amount / 1200.0);
+    if (stretch_const_start < buf_stop)
+        fixed_scale_factor = exp2(stretch_buf[stretch_const_start]);
 
     // Get constant values used inside the loop
     const double slowdown_fac = 1.0 - sustain;
@@ -110,12 +105,12 @@ int32_t Time_env_state_process(
     int32_t i = buf_start;
     for (; i < buf_stop; ++i)
     {
-        const float pitch = pitch_buf[i];
+        const float stretch = stretch_buf[i];
 
-        // Apply pitch-based scaling
+        // Apply stretching in time
         scale_factor = fixed_scale_factor;
-        if (i < pitch_const_start)
-            scale_factor = fast_exp2((pitch - scale_centre) * scale_amount / 1200.0);
+        if (i < stretch_const_start)
+            scale_factor = fast_exp2(stretch);
 
         // Get envelope value at current position
         double value = last_node[1]; // initial value is used if next_node == NULL

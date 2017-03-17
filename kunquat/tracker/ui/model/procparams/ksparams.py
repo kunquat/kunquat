@@ -27,6 +27,7 @@ class KsParams(ProcParams):
             'in_01':  'force',
             'in_02':  'excit',
             'in_03':  'damp',
+            'in_04':  'env.stch',
             'out_00': 'audio',
         }
 
@@ -45,18 +46,6 @@ class KsParams(ProcParams):
     def set_init_env_loop_enabled(self, enabled):
         self._set_value('p_b_init_env_loop_enabled.json', enabled)
 
-    def get_init_env_scale_amount(self):
-        return self._get_value('p_f_init_env_scale_amount.json', 0.0)
-
-    def set_init_env_scale_amount(self, value):
-        self._set_value('p_f_init_env_scale_amount.json', value)
-
-    def get_init_env_scale_centre(self):
-        return self._get_value('p_f_init_env_scale_centre.json', 0.0)
-
-    def set_init_env_scale_centre(self, value):
-        self._set_value('p_f_init_env_scale_centre.json', value)
-
     def get_init_env(self):
         ret_env = { 'nodes': [ [0, 1], [0.01, 0] ], 'marks': [0, 1], 'smooth': False }
         stored_env = self._get_value('p_e_init_env.json', None) or {}
@@ -71,18 +60,6 @@ class KsParams(ProcParams):
 
     def set_shift_env_enabled(self, enabled):
         self._set_value('p_b_shift_env_enabled.json', enabled)
-
-    def get_shift_env_scale_amount(self):
-        return self._get_value('p_f_shift_env_scale_amount.json', 0.0)
-
-    def set_shift_env_scale_amount(self, value):
-        self._set_value('p_f_shift_env_scale_amount.json', value)
-
-    def get_shift_env_scale_centre(self):
-        return self._get_value('p_f_shift_env_scale_centre.json', 0.0)
-
-    def set_shift_env_scale_centre(self, value):
-        self._set_value('p_f_shift_env_scale_centre.json', value)
 
     def get_shift_env(self):
         ret_env = { 'nodes': [ [0, 1], [0.001, 0] ], 'smooth': False }
@@ -110,18 +87,6 @@ class KsParams(ProcParams):
 
     def set_release_env_enabled(self, enabled):
         self._set_value('p_b_rel_env_enabled.json', enabled)
-
-    def get_release_env_scale_amount(self):
-        return self._get_value('p_f_rel_env_scale_amount.json', 0.0)
-
-    def set_release_env_scale_amount(self, value):
-        self._set_value('p_f_rel_env_scale_amount.json', value)
-
-    def get_release_env_scale_centre(self):
-        return self._get_value('p_f_rel_env_scale_centre.json', 0.0)
-
-    def set_release_env_scale_centre(self, value):
-        self._set_value('p_f_rel_env_scale_centre.json', value)
 
     def get_release_env(self):
         ret_env = { 'nodes': [ [0, 1], [0.01, 0] ], 'smooth': False }

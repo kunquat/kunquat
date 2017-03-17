@@ -200,18 +200,6 @@ class ForceEnvelope(ForceEnvelopeBase):
     def _set_loop_enabled(self, enabled):
         self._get_force_params().set_envelope_loop_enabled(enabled)
 
-    def _get_scale_amount(self):
-        return self._get_force_params().get_envelope_scale_amount()
-
-    def _set_scale_amount(self, value):
-        self._get_force_params().set_envelope_scale_amount(value)
-
-    def _get_scale_centre(self):
-        return self._get_force_params().get_envelope_scale_centre()
-
-    def _set_scale_centre(self, value):
-        self._get_force_params().set_envelope_scale_centre(value)
-
     def _get_envelope_data(self):
         return self._get_force_params().get_envelope()
 
@@ -248,18 +236,6 @@ class ForceReleaseEnvelope(ForceEnvelopeBase):
 
     def _set_enabled(self, enabled):
         self._get_force_params().set_release_envelope_enabled(enabled)
-
-    def _get_scale_amount(self):
-        return self._get_force_params().get_release_envelope_scale_amount()
-
-    def _set_scale_amount(self, value):
-        self._get_force_params().set_release_envelope_scale_amount(value)
-
-    def _get_scale_centre(self):
-        return self._get_force_params().get_release_envelope_scale_centre()
-
-    def _set_scale_centre(self, value):
-        self._get_force_params().set_release_envelope_scale_centre(value)
 
     def _get_envelope_data(self):
         return self._get_force_params().get_release_envelope()

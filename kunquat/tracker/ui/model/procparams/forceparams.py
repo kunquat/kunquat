@@ -22,7 +22,7 @@ class ForceParams(ProcParams):
 
     @staticmethod
     def get_port_info():
-        return { 'in_00': 'pitch', 'out_00': 'force' }
+        return { 'in_00': 'stretch', 'in_01': 'rel.stch', 'out_00': 'force' }
 
     def __init__(self, proc_id, controller):
         super().__init__(proc_id, controller)
@@ -60,18 +60,6 @@ class ForceParams(ProcParams):
     def set_envelope_loop_enabled(self, enabled):
         self._set_value('p_b_env_loop_enabled.json', enabled)
 
-    def get_envelope_scale_amount(self):
-        return self._get_value('p_f_env_scale_amount.json', 0.0)
-
-    def set_envelope_scale_amount(self, value):
-        self._set_value('p_f_env_scale_amount.json', value)
-
-    def get_envelope_scale_centre(self):
-        return self._get_value('p_f_env_scale_centre.json', 0.0)
-
-    def set_envelope_scale_centre(self, value):
-        self._set_value('p_f_env_scale_centre.json', value)
-
     def get_release_envelope(self):
         ret_env = { 'nodes': [ [0, 1], [1, 0] ], 'smooth': False }
         stored_env = self._get_value('p_e_env_rel.json', None) or {}
@@ -86,18 +74,6 @@ class ForceParams(ProcParams):
 
     def set_release_envelope_enabled(self, enabled):
         self._set_value('p_b_env_rel_enabled.json', enabled)
-
-    def get_release_envelope_scale_amount(self):
-        return self._get_value('p_f_env_rel_scale_amount.json', 0.0)
-
-    def set_release_envelope_scale_amount(self, value):
-        self._set_value('p_f_env_rel_scale_amount.json', value)
-
-    def get_release_envelope_scale_centre(self):
-        return self._get_value('p_f_env_rel_scale_centre.json', 0.0)
-
-    def set_release_envelope_scale_centre(self, value):
-        self._set_value('p_f_env_rel_scale_centre.json', value)
 
     def get_release_ramp_enabled(self):
         return self._get_value('p_b_release_ramp.json', False)
