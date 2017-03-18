@@ -463,7 +463,9 @@ static void make_padsynth_sample(
     float* buf = Sample_get_buffer(entry->sample, 0);
 
     buf[0] = 0;
-    buf[buf_length] = 0;
+    buf[sample_length - 1] = 0;
+    buf[sample_length] = 0;
+
     for (int32_t i = 1; i < buf_length; ++i)
     {
         buf[i * 2 - 1] = (float)(freq_amp[i] * cos(freq_phase[i]));
