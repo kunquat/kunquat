@@ -255,6 +255,26 @@ void LFO_turn_off(LFO* lfo)
 }
 
 
+static bool LFO_is_standing_by(const LFO* lfo)
+{
+    rassert(lfo != NULL);
+    return (!LFO_active(lfo) && lfo->target_speed >= 0 && lfo->target_depth != 0);
+}
+
+
+static void LFO_start_with_init_values(LFO* lfo)
+{
+    rassert(lfo != NULL);
+    rassert(LFO_is_standing_by(lfo));
+
+    LFO_set_speed(lfo, lfo->target_speed);
+    LFO_set_depth(lfo, lfo->target_depth);
+    LFO_turn_on(lfo);
+
+    return;
+}
+
+
 double LFO_step(LFO* lfo)
 {
     rassert(lfo != NULL);
@@ -264,11 +284,18 @@ double LFO_step(LFO* lfo)
 
     if (!LFO_active(lfo))
     {
-        if (lfo->mode == LFO_MODE_EXP)
-            return 1;
+        if (LFO_is_standing_by(lfo))
+        {
+            LFO_start_with_init_values(lfo);
+        }
+        else
+        {
+            if (lfo->mode == LFO_MODE_EXP)
+                return 1;
 
-        rassert(lfo->mode == LFO_MODE_LINEAR);
-        return 0;
+            rassert(lfo->mode == LFO_MODE_LINEAR);
+            return 0;
+        }
     }
 
     double cur_speed = lfo->target_speed;
@@ -336,9 +363,14 @@ double LFO_skip(LFO* lfo, int64_t steps)
         rassert(lfo->mode == LFO_MODE_LINEAR);
         return 0;
     }
-    else if (steps == 1)
+
+    if (steps == 1)
     {
         return LFO_step(lfo);
+    }
+    else if (LFO_is_standing_by(lfo))
+    {
+        LFO_start_with_init_values(lfo);
     }
 
     const double speed_progress = Slider_skip(&lfo->speed_slider, steps);
@@ -397,7 +429,7 @@ int32_t LFO_estimate_active_steps_left(const LFO* lfo)
     if (Slider_in_progress(&lfo->depth_slider) && lfo->target_depth == 0)
         return Slider_estimate_active_steps_left(&lfo->depth_slider);
 
-    return LFO_active(lfo) ? INT32_MAX : 0;
+    return (LFO_active(lfo) || LFO_is_standing_by(lfo)) ? INT32_MAX : 0;
 }
 
 
