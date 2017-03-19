@@ -28,6 +28,26 @@
 #include <stdlib.h>
 
 
+static void clamp_buffer(Work_buffer* buffer, int32_t buf_start, int32_t buf_stop)
+{
+    rassert(buffer != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop > buf_start);
+
+    const int32_t const_start = Work_buffer_get_const_start(buffer);
+    float* buf = Work_buffer_get_contents_mut(buffer);
+
+    const float bound = 20000000000.0f;
+
+    for (int32_t i = buf_start; i < buf_stop; ++i)
+        buf[i] = clamp(buf[i], -bound, bound);
+
+    Work_buffer_set_const_start(buffer, const_start);
+
+    return;
+}
+
+
 static void process(
         const Work_buffer* in_wb,
         Work_buffer* out_wb,
@@ -146,7 +166,7 @@ static void Slope_pstate_render_mixed(
 
     Slope_pstate* spstate = (Slope_pstate*)dstate;
 
-    const Work_buffer* in_wb = Device_thread_state_get_mixed_buffer(
+    Work_buffer* in_wb = Device_thread_state_get_mixed_buffer(
             proc_ts, DEVICE_PORT_TYPE_SEND, PORT_IN_SIGNAL);
     if (in_wb == NULL)
     {
@@ -154,6 +174,10 @@ static void Slope_pstate_render_mixed(
             Work_buffers_get_buffer_mut(wbs, SLOPE_WB_FIXED_INPUT);
         Work_buffer_clear(fixed_in_wb, buf_start, buf_stop);
         in_wb = fixed_in_wb;
+    }
+    else
+    {
+        clamp_buffer(in_wb, buf_start, buf_stop);
     }
 
     Work_buffer* out_wb = Device_thread_state_get_mixed_buffer(
@@ -177,6 +201,8 @@ static void Slope_pstate_render_mixed(
             Device_state_get_audio_rate(dstate),
             &spstate->prev_value,
             &spstate->prev_slope);
+
+    clamp_buffer(out_wb, buf_start, buf_stop);
 
     return;
 }
@@ -263,7 +289,7 @@ static int32_t Slope_vstate_render_voice(
     const Device_state* dstate = &proc_state->parent;
     Slope_vstate* svstate = (Slope_vstate*)vstate;
 
-    const Work_buffer* in_wb = Device_thread_state_get_voice_buffer(
+    Work_buffer* in_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL);
     if (in_wb == NULL)
     {
@@ -271,6 +297,10 @@ static int32_t Slope_vstate_render_voice(
             Work_buffers_get_buffer_mut(wbs, SLOPE_WB_FIXED_INPUT);
         Work_buffer_clear(fixed_in_wb, buf_start, buf_stop);
         in_wb = fixed_in_wb;
+    }
+    else
+    {
+        clamp_buffer(in_wb, buf_start, buf_stop);
     }
 
     Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
@@ -294,6 +324,8 @@ static int32_t Slope_vstate_render_voice(
             Device_state_get_audio_rate(dstate),
             &svstate->prev_value,
             &svstate->prev_slope);
+
+    clamp_buffer(out_wb, buf_start, buf_stop);
 
     return buf_stop;
 }
