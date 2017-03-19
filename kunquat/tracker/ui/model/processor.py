@@ -27,6 +27,7 @@ from .procparams.pitchparams import PitchParams
 from .procparams.rangemapparams import RangeMapParams
 from .procparams.ringmodparams import RingmodParams
 from .procparams.sampleparams import SampleParams
+from .procparams.slopeparams import SlopeParams
 from .procparams.streamparams import StreamParams
 from .procparams.volumeparams import VolumeParams
 
@@ -47,6 +48,7 @@ _proc_classes = {
     'rangemap': RangeMapParams,
     'ringmod':  RingmodParams,
     'sample':   SampleParams,
+    'slope':    SlopeParams,
     'stream':   StreamParams,
     'volume':   VolumeParams,
 }

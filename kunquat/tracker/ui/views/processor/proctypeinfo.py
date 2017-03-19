@@ -26,6 +26,7 @@ from .pitchproc import PitchProc
 from .rangemapproc import RangeMapProc
 from .ringmodproc import RingmodProc
 from .sampleproc import SampleProc
+from .slopeproc import SlopeProc
 from .streamproc import StreamProc
 from .volumeproc import VolumeProc
 from .unsupportedproc import UnsupportedProc
@@ -47,6 +48,7 @@ _proc_classes = {
     'rangemap': RangeMapProc,
     'ringmod':  RingmodProc,
     'sample':   SampleProc,
+    'slope':    SlopeProc,
     'stream':   StreamProc,
     'volume':   VolumeProc,
 }
