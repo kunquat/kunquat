@@ -30,6 +30,12 @@ class SlopeParams(ProcParams):
     def __init__(self, proc_id, controller):
         super().__init__(proc_id, controller)
 
+    def get_absolute(self):
+        return self._get_value('p_b_absolute.json', False)
+
+    def set_absolute(self, enabled):
+        self._set_value('p_b_absolute.json', enabled)
+
     def get_smoothing(self):
         return self._get_value('p_f_smoothing.json', 0.0)
 

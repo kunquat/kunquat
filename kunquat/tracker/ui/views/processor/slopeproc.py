@@ -27,14 +27,51 @@ class SlopeProc(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
+        self._absolute = AbsoluteToggle()
         self._smoothing = SmoothingSlider()
 
-        self.add_to_updaters(self._smoothing)
+        self.add_to_updaters(self._absolute, self._smoothing)
 
         v = QVBoxLayout()
+        v.setContentsMargins(4, 4, 4, 4)
+        v.setSpacing(8)
+        v.addWidget(self._absolute)
         v.addWidget(self._smoothing)
         v.addStretch(1)
         self.setLayout(v)
+
+
+class AbsoluteToggle(QCheckBox, ProcessorUpdater):
+
+    def __init__(self):
+        super().__init__()
+        self.setText('Absolute')
+
+    def _on_setup(self):
+        self.register_action(self._get_update_signal_type(), self._update_absolute)
+
+        QObject.connect(self, SIGNAL('stateChanged(int)'), self._change_absolute)
+
+        self._update_absolute()
+
+    def _get_update_signal_type(self):
+        return 'signal_slope_absolute_{}'.format(self._proc_id)
+
+    def _get_slope_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_absolute(self):
+        slope_params = self._get_slope_params()
+
+        old_block = self.blockSignals(True)
+        self.setCheckState(Qt.Checked if slope_params.get_absolute() else Qt.Unchecked)
+        self.blockSignals(old_block)
+
+    def _change_absolute(self, state):
+        enabled = (state == Qt.Checked)
+        slope_params = self._get_slope_params()
+        slope_params.set_absolute(enabled)
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class SmoothingSlider(ProcNumSlider):
@@ -46,11 +83,7 @@ class SmoothingSlider(ProcNumSlider):
         return 'signal_slope_smoothing_{}'.format(self._proc_id)
 
     def _get_slope_params(self):
-        module = self._ui_model.get_module()
-        au = module.get_audio_unit(self._au_id)
-        proc = au.get_processor(self._proc_id)
-        slope_params = proc.get_type_params()
-        return slope_params
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
     def _update_value(self):
         slope_params = self._get_slope_params()
