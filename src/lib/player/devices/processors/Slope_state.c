@@ -167,7 +167,7 @@ static void Slope_pstate_render_mixed(
     Slope_pstate* spstate = (Slope_pstate*)dstate;
 
     Work_buffer* in_wb = Device_thread_state_get_mixed_buffer(
-            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_IN_SIGNAL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL);
     if (in_wb == NULL)
     {
         Work_buffer* fixed_in_wb =
