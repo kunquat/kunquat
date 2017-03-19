@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -35,6 +35,7 @@ PROC_TYPE(pitch)
 PROC_TYPE(rangemap)
 PROC_TYPE(ringmod)
 PROC_TYPE(sample)
+PROC_TYPE(slope)
 PROC_TYPE(stream)
 PROC_TYPE(volume)
 
