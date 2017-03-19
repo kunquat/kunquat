@@ -51,6 +51,7 @@ static void clamp_buffer(Work_buffer* buffer, int32_t buf_start, int32_t buf_sto
 static void process(
         const Work_buffer* in_wb,
         Work_buffer* out_wb,
+        bool absolute,
         double smoothing,
         int32_t buf_start,
         int32_t buf_stop,
@@ -91,6 +92,12 @@ static void process(
 
     *inout_prev_value = prev_value;
     *inout_prev_slope = prev_slope;
+
+    if (absolute)
+    {
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            out[i] = fabsf(out[i]);
+    }
 
     return;
 }
@@ -195,6 +202,7 @@ static void Slope_pstate_render_mixed(
 
     process(in_wb,
             out_wb,
+            slope->absolute,
             slope->smoothing,
             buf_start,
             buf_stop,
@@ -318,6 +326,7 @@ static int32_t Slope_vstate_render_voice(
 
     process(in_wb,
             out_wb,
+            slope->absolute,
             slope->smoothing,
             buf_start,
             buf_stop,

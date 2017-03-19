@@ -24,7 +24,8 @@
 #include <stdlib.h>
 
 
-static Set_float_func Proc_slope_set_smoothing;
+static Set_bool_func    Proc_slope_set_absolute;
+static Set_float_func   Proc_slope_set_smoothing;
 
 static Device_impl_destroy_func del_Proc_slope;
 
@@ -35,6 +36,7 @@ Device_impl* new_Proc_slope(void)
     if (slope == NULL)
         return NULL;
 
+    slope->absolute = false;
     slope->smoothing = 0;
 
     if (!Device_impl_init(&slope->parent, del_Proc_slope))
@@ -45,8 +47,12 @@ Device_impl* new_Proc_slope(void)
 
 #define REG_KEY(type, name, keyp, def_value) \
     REGISTER_SET_FIXED_STATE(slope, type, name, keyp, def_value)
+#define REG_KEY_BOOL(name, keyp, def_value) \
+    REGISTER_SET_FIXED_STATE(slope, bool, name, keyp, def_value)
 
-    if (!(REG_KEY(float, smoothing, "p_f_smoothing.json", 0.0)))
+    if (!(REG_KEY_BOOL(absolute, "p_b_absolute.json", false) &&
+            REG_KEY(float, smoothing, "p_f_smoothing.json", 0.0)
+        ))
     {
         del_Device_impl(&slope->parent);
         return NULL;
@@ -62,6 +68,19 @@ Device_impl* new_Proc_slope(void)
 }
 
 
+static bool Proc_slope_set_absolute(
+        Device_impl* dimpl, const Key_indices indices, bool value)
+{
+    rassert(dimpl != NULL);
+    ignore(indices);
+
+    Proc_slope* slope = (Proc_slope*)dimpl;
+    slope->absolute = value;
+
+    return true;
+}
+
+
 static bool Proc_slope_set_smoothing(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
@@ -69,7 +88,6 @@ static bool Proc_slope_set_smoothing(
     ignore(indices);
 
     Proc_slope* slope = (Proc_slope*)dimpl;
-
     slope->smoothing = (value >= 0 && value <= 10) ? value : 0.0;
 
     return true;

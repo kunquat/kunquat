@@ -23,6 +23,7 @@ typedef struct Proc_slope
 {
     Device_impl parent;
 
+    bool absolute;
     double smoothing;
 } Proc_slope;
 
