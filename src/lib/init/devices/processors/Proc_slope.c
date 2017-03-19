@@ -59,6 +59,7 @@ Device_impl* new_Proc_slope(void)
     }
 
 #undef REG_KEY
+#undef REG_KEY_BOOL
 
     slope->parent.create_pstate = new_Slope_pstate;
     slope->parent.get_vstate_size = Slope_vstate_get_size;
