@@ -34,7 +34,12 @@
 static Set_bool_func        Proc_envgen_set_time_env_enabled;
 static Set_envelope_func    Proc_envgen_set_time_env;
 static Set_bool_func        Proc_envgen_set_loop_enabled;
-static Set_bool_func        Proc_envgen_set_release_env;
+static Set_bool_func        Proc_envgen_set_trig_immediate;
+static Set_bool_func        Proc_envgen_set_trig_release;
+static Set_bool_func        Proc_envgen_set_trig_impulse_floor;
+static Set_num_list_func    Proc_envgen_set_trig_impulse_floor_bounds;
+static Set_bool_func        Proc_envgen_set_trig_impulse_ceil;
+static Set_num_list_func    Proc_envgen_set_trig_impulse_ceil_bounds;
 static Set_bool_func        Proc_envgen_set_linear_force;
 static Set_float_func       Proc_envgen_set_global_adjust;
 static Set_num_list_func    Proc_envgen_set_y_range;
@@ -51,7 +56,17 @@ Device_impl* new_Proc_envgen(void)
     envgen->is_time_env_enabled = false;
     envgen->time_env = NULL;
     envgen->is_loop_enabled = false;
-    envgen->is_release_env = false;
+
+    envgen->trig_immediate = true;
+    envgen->trig_release = false;
+
+    envgen->trig_impulse_floor = false;
+    envgen->trig_impulse_floor_on = -1.0f;
+    envgen->trig_impulse_floor_off = -0.5f;
+
+    envgen->trig_impulse_ceil = false;
+    envgen->trig_impulse_ceil_on = 1.0f;
+    envgen->trig_impulse_ceil_off = 0.5f;
 
     envgen->is_linear_force = false;
 
@@ -77,7 +92,14 @@ Device_impl* new_Proc_envgen(void)
     if (!(REG_KEY_BOOL(time_env_enabled, "p_b_env_enabled.json", false) &&
             REG_KEY(envelope, time_env, "p_e_env.json", NULL) &&
             REG_KEY_BOOL(loop_enabled, "p_b_env_loop_enabled.json", false) &&
-            REG_KEY_BOOL(release_env, "p_b_env_is_release.json", false) &&
+            REG_KEY_BOOL(trig_immediate, "p_b_trig_immediate.json", true) &&
+            REG_KEY_BOOL(trig_release, "p_b_trig_release.json", false) &&
+            REG_KEY_BOOL(trig_impulse_floor, "p_b_trig_impulse_floor.json", false) &&
+            REG_KEY_BOOL(trig_impulse_ceil, "p_b_trig_impulse_ceil.json", false) &&
+            REG_KEY(num_list, trig_impulse_floor_bounds,
+                "p_ln_trig_impulse_floor_bounds.json", NULL) &&
+            REG_KEY(num_list, trig_impulse_ceil_bounds,
+                "p_ln_trig_impulse_ceil_bounds.json", NULL) &&
             REG_KEY_BOOL(linear_force, "p_b_linear_force.json", false) &&
             REG_KEY(float, global_adjust, "p_f_global_adjust.json", 0.0) &&
             REG_KEY(num_list, y_range, "p_ln_y_range.json", NULL)
@@ -163,14 +185,107 @@ static bool Proc_envgen_set_loop_enabled(
 }
 
 
-static bool Proc_envgen_set_release_env(
+static bool Proc_envgen_set_trig_immediate(
         Device_impl* dimpl, const Key_indices indices, bool value)
 {
     rassert(dimpl != NULL);
     rassert(indices != NULL);
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
-    egen->is_release_env = value;
+    egen->trig_immediate = value;
+
+    return true;
+}
+
+
+static bool Proc_envgen_set_trig_release(
+        Device_impl* dimpl, const Key_indices indices, bool value)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+
+    Proc_envgen* egen = (Proc_envgen*)dimpl;
+    egen->trig_release = value;
+
+    return true;
+}
+
+
+static bool Proc_envgen_set_trig_impulse_floor(
+        Device_impl* dimpl, const Key_indices indices, bool value)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+
+    Proc_envgen* egen = (Proc_envgen*)dimpl;
+    egen->trig_impulse_floor = value;
+
+    return true;
+}
+
+
+static bool Proc_envgen_set_trig_impulse_floor_bounds(
+        Device_impl* dimpl, const Key_indices indices, const Num_list* value)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+
+    Proc_envgen* egen = (Proc_envgen*)dimpl;
+
+    egen->trig_impulse_floor_on = -1.0f;
+    egen->trig_impulse_floor_off = -0.5f;
+
+    if ((value != NULL) && (Num_list_length(value) == 2))
+    {
+        const double n1 = Num_list_get_num(value, 0);
+        const double n2 = Num_list_get_num(value, 1);
+
+        if (isfinite(n1) && isfinite(n2) && (n1 <= n2))
+        {
+            egen->trig_impulse_floor_on = (float)n1;
+            egen->trig_impulse_floor_off = (float)n2;
+        }
+    }
+
+    return true;
+}
+
+
+static bool Proc_envgen_set_trig_impulse_ceil_bounds(
+        Device_impl* dimpl, const Key_indices indices, const Num_list* value)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+
+    Proc_envgen* egen = (Proc_envgen*)dimpl;
+
+    egen->trig_impulse_ceil_on = 1.0f;
+    egen->trig_impulse_ceil_off = 0.5f;
+
+    if ((value != NULL) && (Num_list_length(value) == 2))
+    {
+        const double n1 = Num_list_get_num(value, 0);
+        const double n2 = Num_list_get_num(value, 1);
+
+        if (isfinite(n1) && isfinite(n2) && (n1 >= n2))
+        {
+            egen->trig_impulse_ceil_on = (float)n1;
+            egen->trig_impulse_ceil_off = (float)n2;
+        }
+    }
+
+    return true;
+}
+
+
+static bool Proc_envgen_set_trig_impulse_ceil(
+        Device_impl* dimpl, const Key_indices indices, bool value)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+
+    Proc_envgen* egen = (Proc_envgen*)dimpl;
+    egen->trig_impulse_ceil = value;
 
     return true;
 }

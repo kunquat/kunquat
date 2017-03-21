@@ -33,6 +33,10 @@ typedef struct Envgen_vstate
 {
     Voice_state parent;
 
+    bool activated;
+    bool trig_floor_active;
+    bool trig_ceil_active;
+    bool was_released;
     Time_env_state env_state;
 } Envgen_vstate;
 
@@ -46,6 +50,7 @@ int32_t Envgen_vstate_get_size(void)
 enum
 {
     PORT_IN_STRETCH = 0,
+    PORT_IN_TRIGGER,
     PORT_IN_COUNT,
 };
 
@@ -57,6 +62,7 @@ enum
 
 
 static const int ENVGEN_WB_FIXED_STRETCH = WORK_BUFFER_IMPL_1;
+static const int ENVGEN_WB_FIXED_TRIGGER = WORK_BUFFER_IMPL_2;
 
 
 static int32_t Envgen_vstate_render_voice(
@@ -98,6 +104,17 @@ static int32_t Envgen_vstate_render_voice(
         Proc_clamp_pitch_values(stretch_wb, buf_start, buf_stop);
     }
 
+    // Get trigger signal input
+    const Work_buffer* trigger_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_TRIGGER);
+    if (trigger_wb == NULL)
+    {
+        Work_buffer* fixed_trigger_wb =
+            Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_TRIGGER);
+        Work_buffer_clear(fixed_trigger_wb, buf_start, buf_stop);
+        trigger_wb = fixed_trigger_wb;
+    }
+
     // Get output buffer for writing
     Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_ENV);
@@ -119,61 +136,187 @@ static int32_t Envgen_vstate_render_voice(
 
     if (is_time_env_enabled)
     {
-        if (egen->is_release_env && vstate->note_on)
+        int32_t slice_start = buf_start;
+        while (slice_start < buf_stop)
         {
-            // Apply the start of release envelope during note on
-            const double* first_node = Envelope_get_node(egen->time_env, 0);
-            const float first_val = (float)first_node[1];
+            int32_t slice_stop = buf_stop;
 
-            for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                out_buffer[i] = first_val;
+            bool trigger_after = false;
 
-            const_start = buf_start;
-        }
-        else
-        {
-            // Apply the time envelope
-            const int32_t env_stop = Time_env_state_process(
-                    &egen_state->env_state,
-                    egen->time_env,
-                    egen->is_loop_enabled,
-                    0, // sustain
-                    0, 1, // range, NOTE: this needs to be mapped to our [y_min, y_max]!
-                    stretch_wb,
-                    Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
-                    buf_start,
-                    new_buf_stop,
-                    proc_state->parent.audio_rate);
-
-            float* time_env =
-                Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV);
-
-            // Check the end of envelope processing
-            if (egen_state->env_state.is_finished)
+            // Process trigger signal
+            if (egen->trig_impulse_floor || egen->trig_impulse_ceil)
             {
-                const double* last_node = Envelope_get_node(
-                        egen->time_env, Envelope_node_count(egen->time_env) - 1);
-                const float last_value = (float)last_node[1];
-                /*
-                if (fabs(egen->y_min + last_value * range_width) < 0.0001)
+                int32_t change_trig_floor_at = INT32_MAX;
+                int32_t change_trig_ceil_at = INT32_MAX;
+
+                // Process floor trigger
+                if (egen->trig_impulse_floor)
                 {
-                    Voice_state_set_finished(vstate);
-                    new_buf_stop = env_stop;
+                    const float* trigger = Work_buffer_get_contents(trigger_wb);
+
+                    if (egen_state->trig_floor_active)
+                    {
+                        // See how long we should continue in triggered state
+                        const float off_level = egen->trig_impulse_floor_off;
+                        for (int32_t on_i = slice_start; on_i < slice_stop; ++on_i)
+                        {
+                            if (trigger[on_i] > off_level)
+                            {
+                                change_trig_floor_at = on_i;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // See how long we should continue outside triggered state
+                        const float on_level = egen->trig_impulse_floor_on;
+                        for (int32_t off_i = slice_start; off_i < slice_stop; ++off_i)
+                        {
+                            if (trigger[off_i] <= on_level)
+                            {
+                                change_trig_floor_at = off_i;
+                                break;
+                            }
+                        }
+                    }
                 }
-                else
-                // */
+
+                // Process ceil trigger
+                if (egen->trig_impulse_ceil)
                 {
-                    // Fill the rest of the envelope buffer with the last value
-                    for (int32_t i = env_stop; i < new_buf_stop; ++i)
-                        time_env[i] = last_value;
+                    const float* trigger = Work_buffer_get_contents(trigger_wb);
+
+                    if (egen_state->trig_ceil_active)
+                    {
+                        // See how long we should continue in triggered state
+                        const float off_level = egen->trig_impulse_ceil_off;
+                        for (int32_t on_i = slice_start; on_i < slice_stop; ++on_i)
+                        {
+                            if (trigger[on_i] < off_level)
+                            {
+                                change_trig_ceil_at = on_i;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // See how long we should continue outside triggered state
+                        const float on_level = egen->trig_impulse_ceil_on;
+                        for (int32_t off_i = slice_start; off_i < slice_stop; ++off_i)
+                        {
+                            if (trigger[off_i] >= on_level)
+                            {
+                                change_trig_ceil_at = off_i;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (change_trig_floor_at < change_trig_ceil_at)
+                {
+                    // Change floor trigger status after this slice
+                    rassert(change_trig_floor_at < slice_stop);
+                    slice_stop = change_trig_floor_at;
+
+                    egen_state->trig_floor_active = !egen_state->trig_floor_active;
+                    if (egen_state->trig_floor_active)
+                        trigger_after = true;
+                }
+                else if (change_trig_ceil_at < change_trig_floor_at)
+                {
+                    // Change ceil trigger status after this slice
+                    rassert(change_trig_ceil_at < slice_stop);
+                    slice_stop = change_trig_ceil_at;
+
+                    egen_state->trig_ceil_active = !egen_state->trig_ceil_active;
+                    if (egen_state->trig_ceil_active)
+                        trigger_after = true;
+                }
+                else if (change_trig_ceil_at < slice_stop)
+                {
+                    // Change both trigger statuses after this slice
+                    rassert(change_trig_ceil_at == change_trig_floor_at);
+                    slice_stop = change_trig_ceil_at;
+
+                    egen_state->trig_floor_active = !egen_state->trig_floor_active;
+                    egen_state->trig_ceil_active = !egen_state->trig_ceil_active;
+                    if (egen_state->trig_floor_active || egen_state->trig_ceil_active)
+                        trigger_after = true;
                 }
             }
 
-            const_start = env_stop;
+            // Process release trigger
+            if (egen->trig_release)
+            {
+                if (!egen_state->was_released && !vstate->note_on)
+                {
+                    egen_state->was_released = true;
 
-            // Write to signal output
-            for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                out_buffer[i] = time_env[i];
+                    Time_env_state_init(&egen_state->env_state);
+                    egen_state->activated = true;
+                }
+            }
+
+            // Process envelope
+            if (!egen_state->activated)
+            {
+                // Apply the start of the envelope before activated for the first time
+                const double* first_node = Envelope_get_node(egen->time_env, 0);
+                const float first_val = (float)first_node[1];
+
+                for (int32_t i = slice_start; i < slice_stop; ++i)
+                    out_buffer[i] = first_val;
+
+                // Note: buf_start is correct here as we never return to inactive state
+                const_start = buf_start;
+            }
+            else
+            {
+                // Apply the time envelope
+                const int32_t env_stop = Time_env_state_process(
+                        &egen_state->env_state,
+                        egen->time_env,
+                        egen->is_loop_enabled,
+                        0, // sustain
+                        0, 1, // range, NOTE: this is mapped to [y_min, y_max] later
+                        stretch_wb,
+                        Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
+                        slice_start,
+                        slice_stop,
+                        proc_state->parent.audio_rate);
+
+                float* time_env =
+                    Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV);
+
+                // Check the end of envelope processing
+                if (egen_state->env_state.is_finished)
+                {
+                    const double* last_node = Envelope_get_node(
+                            egen->time_env, Envelope_node_count(egen->time_env) - 1);
+                    const float last_value = (float)last_node[1];
+
+                    // Fill the rest of the envelope buffer with the last value
+                    for (int32_t i = env_stop; i < slice_stop; ++i)
+                        time_env[i] = last_value;
+                }
+
+                const_start = env_stop;
+
+                // Write to signal output
+                for (int32_t i = slice_start; i < slice_stop; ++i)
+                    out_buffer[i] = time_env[i];
+            }
+
+            if (trigger_after)
+            {
+                Time_env_state_init(&egen_state->env_state);
+                egen_state->activated = true;
+            }
+
+            slice_start = slice_stop;
         }
     }
     else
@@ -230,8 +373,15 @@ void Envgen_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
     vstate->render_voice = Envgen_vstate_render_voice;
 
+    const Device_state* dstate = (const Device_state*)proc_state;
+    const Proc_envgen* egen = (const Proc_envgen*)dstate->device->dimpl;
+
     Envgen_vstate* egen_state = (Envgen_vstate*)vstate;
 
+    egen_state->activated = egen->trig_immediate;
+    egen_state->trig_floor_active = false;
+    egen_state->trig_ceil_active = false;
+    egen_state->was_released = false;
     Time_env_state_init(&egen_state->env_state);
 
     return;
