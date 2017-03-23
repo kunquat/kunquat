@@ -43,6 +43,8 @@ static Set_num_list_func    Proc_envgen_set_trig_impulse_ceil_bounds;
 static Set_bool_func        Proc_envgen_set_linear_force;
 static Set_float_func       Proc_envgen_set_global_adjust;
 static Set_num_list_func    Proc_envgen_set_y_range;
+static Set_float_func       Proc_envgen_set_y_range_min_var;
+static Set_float_func       Proc_envgen_set_y_range_max_var;
 
 static void del_Proc_envgen(Device_impl* dimpl);
 
@@ -74,6 +76,8 @@ Device_impl* new_Proc_envgen(void)
 
     envgen->y_min = 0;
     envgen->y_max = 1;
+    envgen->y_min_var = 0;
+    envgen->y_max_var = 0;
 
     if (!Device_impl_init(&envgen->parent, del_Proc_envgen))
     {
@@ -102,7 +106,9 @@ Device_impl* new_Proc_envgen(void)
                 "p_ln_trig_impulse_ceil_bounds.json", NULL) &&
             REG_KEY_BOOL(linear_force, "p_b_linear_force.json", false) &&
             REG_KEY(float, global_adjust, "p_f_global_adjust.json", 0.0) &&
-            REG_KEY(num_list, y_range, "p_ln_y_range.json", NULL)
+            REG_KEY(num_list, y_range, "p_ln_y_range.json", NULL) &&
+            REG_KEY(float, y_range_min_var, "p_f_y_range_min_var.json", 0.0) &&
+            REG_KEY(float, y_range_max_var, "p_f_y_range_max_var.json", 0.0)
         ))
     {
         del_Device_impl(&envgen->parent);
@@ -347,6 +353,32 @@ static bool Proc_envgen_set_y_range(
         egen->y_min = 0;
         egen->y_max = 1;
     }
+
+    return true;
+}
+
+
+static bool Proc_envgen_set_y_range_min_var(
+        Device_impl* dimpl, const Key_indices indices, double value)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+
+    Proc_envgen* egen = (Proc_envgen*)dimpl;
+    egen->y_min_var = (isfinite(value) && value >= 0) ? value : 0;
+
+    return true;
+}
+
+
+static bool Proc_envgen_set_y_range_max_var(
+        Device_impl* dimpl, const Key_indices indices, double value)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+
+    Proc_envgen* egen = (Proc_envgen*)dimpl;
+    egen->y_max_var = (isfinite(value) && value >= 0) ? value : 0;
 
     return true;
 }

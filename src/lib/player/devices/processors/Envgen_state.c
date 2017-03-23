@@ -18,6 +18,7 @@
 #include <init/devices/processors/Proc_envgen.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
+#include <mathnum/Random.h>
 #include <memory.h>
 #include <player/devices/Device_thread_state.h>
 #include <player/devices/Proc_state.h>
@@ -33,6 +34,8 @@ typedef struct Envgen_vstate
 {
     Voice_state parent;
 
+    float cur_y_min;
+    float cur_y_max;
     bool activated;
     bool trig_floor_active;
     bool trig_ceil_active;
@@ -63,6 +66,47 @@ enum
 
 static const int ENVGEN_WB_FIXED_STRETCH = WORK_BUFFER_IMPL_1;
 static const int ENVGEN_WB_FIXED_TRIGGER = WORK_BUFFER_IMPL_2;
+
+
+static void Envgen_state_set_cur_y_range(
+        Envgen_vstate* egen_state, Random* random, const Proc_envgen* egen)
+{
+    rassert(egen_state != NULL);
+    rassert(random != NULL);
+    rassert(egen != NULL);
+
+    if (egen->is_linear_force)
+    {
+        egen_state->cur_y_max =
+            (float)(Random_get_float_signal(random) * egen->y_max_var);
+        return;
+    }
+
+    const float min_y_allowed = (float)(egen->y_min - egen->y_min_var);
+    const float max_y_allowed = (float)(egen->y_max + egen->y_max_var);
+
+    float new_y_min =
+        (float)(egen->y_min + Random_get_float_signal(random) * egen->y_min_var);
+    new_y_min = min(new_y_min, max_y_allowed);
+
+    float new_y_max =
+        (float)(egen->y_max + Random_get_float_signal(random) * egen->y_max_var);
+    new_y_max = max(new_y_max, min_y_allowed);
+
+    if (new_y_min > new_y_max)
+    {
+        const float avg = (new_y_min + new_y_max) * 0.5f;
+        const float clamped_avg = clamp(avg, min_y_allowed, max_y_allowed);
+        new_y_min = clamped_avg;
+        new_y_max = clamped_avg;
+    }
+    rassert(new_y_min <= new_y_max);
+
+    egen_state->cur_y_min = new_y_min;
+    egen_state->cur_y_max = new_y_max;
+
+    return;
+}
 
 
 static int32_t Envgen_vstate_render_voice(
@@ -127,10 +171,6 @@ static int32_t Envgen_vstate_render_voice(
 
     const bool is_time_env_enabled =
         egen->is_time_env_enabled && (egen->time_env != NULL);
-
-    const double range_width = egen->y_max - egen->y_min;
-
-    int32_t new_buf_stop = buf_stop;
 
     int32_t const_start = buf_start;
 
@@ -255,6 +295,7 @@ static int32_t Envgen_vstate_render_voice(
                 {
                     egen_state->was_released = true;
 
+                    Envgen_state_set_cur_y_range(egen_state, vstate->rand_p, egen);
                     Time_env_state_init(&egen_state->env_state);
                     egen_state->activated = true;
                 }
@@ -310,8 +351,46 @@ static int32_t Envgen_vstate_render_voice(
                     out_buffer[i] = time_env[i];
             }
 
+            // Scale and write to output
+            if (egen->is_linear_force)
+            {
+                // Convert to dB
+                const double global_adjust = egen->global_adjust;
+
+                const float add = (float)global_adjust + egen_state->cur_y_max;
+
+                const int32_t fast_stop = min(const_start, slice_stop);
+
+                for (int32_t i = slice_start; i < fast_stop; ++i)
+                    out_buffer[i] = (float)fast_scale_to_dB(out_buffer[i]) + add;
+
+                if (fast_stop < slice_stop)
+                {
+                    const float dB = (float)scale_to_dB(out_buffer[fast_stop]) + add;
+                    for (int32_t i = fast_stop; i < slice_stop; ++i)
+                        out_buffer[i] = dB;
+                }
+            }
+            else
+            {
+                const double range_width = egen_state->cur_y_max - egen_state->cur_y_min;
+
+                if ((egen_state->cur_y_min != 0) || (egen_state->cur_y_max != 1))
+                {
+                    // Apply range
+                    for (int32_t i = slice_start; i < slice_stop; ++i)
+                        out_buffer[i] =
+                            (float)(egen_state->cur_y_min + out_buffer[i] * range_width);
+                }
+
+                const float global_adjust = (float)egen->global_adjust;
+                for (int32_t i = slice_start; i < slice_stop; ++i)
+                    out_buffer[i] += global_adjust;
+            }
+
             if (trigger_after)
             {
+                Envgen_state_set_cur_y_range(egen_state, vstate->rand_p, egen);
                 Time_env_state_init(&egen_state->env_state);
                 egen_state->activated = true;
             }
@@ -322,47 +401,15 @@ static int32_t Envgen_vstate_render_voice(
     else
     {
         // Initialise with default values
-        for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            out_buffer[i] = 1;
-    }
-
-    if (egen->is_linear_force)
-    {
-        // Convert to dB
-        const double global_adjust = egen->global_adjust;
-
-        const int32_t fast_stop = min(const_start, new_buf_stop);
-
-        for (int32_t i = buf_start; i < fast_stop; ++i)
-            out_buffer[i] = (float)(fast_scale_to_dB(out_buffer[i]) + global_adjust);
-
-        if (fast_stop < new_buf_stop)
-        {
-            const float dB =
-                (float)(scale_to_dB(out_buffer[fast_stop]) + global_adjust);
-            for (int32_t i = fast_stop; i < new_buf_stop; ++i)
-                out_buffer[i] = dB;
-        }
-    }
-    else
-    {
-        if ((egen->y_min != 0) || (egen->y_max != 1))
-        {
-            // Apply range
-            for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                out_buffer[i] =
-                    (float)(egen->y_min + out_buffer[i] * range_width);
-        }
-
-        const float global_adjust = (float)egen->global_adjust;
-        for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            out_buffer[i] += global_adjust;
+        const float value = egen_state->cur_y_max;
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            out_buffer[i] = value;
     }
 
     // Mark constant region of the buffer
     Work_buffer_set_const_start(out_wb, const_start);
 
-    return new_buf_stop;
+    return buf_stop;
 }
 
 
@@ -378,10 +425,14 @@ void Envgen_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
     Envgen_vstate* egen_state = (Envgen_vstate*)vstate;
 
+    egen_state->cur_y_min = 0;
+    egen_state->cur_y_max = 1;
     egen_state->activated = egen->trig_immediate;
     egen_state->trig_floor_active = false;
     egen_state->trig_ceil_active = false;
     egen_state->was_released = false;
+
+    Envgen_state_set_cur_y_range(egen_state, vstate->rand_p, egen);
     Time_env_state_init(&egen_state->env_state);
 
     return;

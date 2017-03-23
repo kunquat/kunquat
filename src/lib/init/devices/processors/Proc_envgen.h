@@ -48,6 +48,8 @@ typedef struct Proc_envgen
 
     double y_min;
     double y_max;
+    double y_min_var;
+    double y_max_var;
 } Proc_envgen;
 
 
