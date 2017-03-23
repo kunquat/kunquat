@@ -108,4 +108,18 @@ class EnvgenParams(ProcParams):
         assert y_range[0] <= y_range[1]
         self._set_value('p_ln_y_range.json', y_range)
 
+    def get_y_range_min_var(self):
+        return self._get_value('p_f_y_range_min_var.json', 0.0)
+
+    def set_y_range_min_var(self, value):
+        assert value >= 0
+        self._set_value('p_f_y_range_min_var.json', value)
+
+    def get_y_range_max_var(self):
+        return self._get_value('p_f_y_range_max_var.json', 0.0)
+
+    def set_y_range_max_var(self, value):
+        assert value >= 0
+        self._set_value('p_f_y_range_max_var.json', value)
+
 
