@@ -22,7 +22,7 @@ class EnvgenParams(ProcParams):
 
     @staticmethod
     def get_port_info():
-        return { 'in_00': 'stretch', 'out_00': 'env' }
+        return { 'in_00': 'stretch', 'in_01': 'trigger', 'out_00': 'env' }
 
     def __init__(self, proc_id, controller):
         super().__init__(proc_id, controller)
@@ -48,11 +48,45 @@ class EnvgenParams(ProcParams):
     def set_time_env_loop_enabled(self, enabled):
         self._set_value('p_b_env_loop_enabled.json', enabled)
 
-    def get_time_env_is_release(self):
-        return self._get_value('p_b_env_is_release.json', False)
+    def get_trig_immediate(self):
+        return self._get_value('p_b_trig_immediate.json', True)
 
-    def set_time_env_is_release(self, value):
-        self._set_value('p_b_env_is_release.json', value)
+    def set_trig_immediate(self, enabled):
+        self._set_value('p_b_trig_immediate.json', enabled)
+
+    def get_trig_release(self):
+        return self._get_value('p_b_trig_release.json', False)
+
+    def set_trig_release(self, enabled):
+        self._set_value('p_b_trig_release.json', enabled)
+
+    def get_trig_impulse_floor(self):
+        return self._get_value('p_b_trig_impulse_floor.json', False)
+
+    def set_trig_impulse_floor(self, enabled):
+        self._set_value('p_b_trig_impulse_floor.json', enabled)
+
+    def get_trig_impulse_ceil(self):
+        return self._get_value('p_b_trig_impulse_ceil.json', False)
+
+    def set_trig_impulse_ceil(self, enabled):
+        self._set_value('p_b_trig_impulse_ceil.json', enabled)
+
+    def get_trig_impulse_floor_bounds(self):
+        return self._get_value('p_ln_trig_impulse_floor_bounds.json', [-1.0, -0.5])
+
+    def set_trig_impulse_floor_bounds(self, bounds):
+        assert len(bounds) == 2
+        assert bounds[0] <= bounds[1]
+        self._set_value('p_ln_trig_impulse_floor_bounds.json', bounds)
+
+    def get_trig_impulse_ceil_bounds(self):
+        return self._get_value('p_ln_trig_impulse_ceil_bounds.json', [1.0, 0.5])
+
+    def set_trig_impulse_ceil_bounds(self, bounds):
+        assert len(bounds) == 2
+        assert bounds[0] >= bounds[1]
+        self._set_value('p_ln_trig_impulse_ceil_bounds.json', bounds)
 
     def get_linear_force_enabled(self):
         return self._get_value('p_b_linear_force.json', False)
@@ -73,5 +107,19 @@ class EnvgenParams(ProcParams):
         assert len(y_range) == 2
         assert y_range[0] <= y_range[1]
         self._set_value('p_ln_y_range.json', y_range)
+
+    def get_y_range_min_var(self):
+        return self._get_value('p_f_y_range_min_var.json', 0.0)
+
+    def set_y_range_min_var(self, value):
+        assert value >= 0
+        self._set_value('p_f_y_range_min_var.json', value)
+
+    def get_y_range_max_var(self):
+        return self._get_value('p_f_y_range_max_var.json', 0.0)
+
+    def set_y_range_max_var(self, value):
+        assert value >= 0
+        self._set_value('p_f_y_range_max_var.json', value)
 
 

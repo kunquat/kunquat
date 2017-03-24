@@ -38,6 +38,7 @@ class EnvgenProc(QWidget, ProcessorUpdater):
         self._global_adjust = GlobalAdjustSlider()
         self._linear_force = QCheckBox('Linear force')
         self._range = RangeEditor()
+        self._triggers = Triggers()
         self._time_env = EgenTimeEnv()
 
         rl = QHBoxLayout()
@@ -49,13 +50,15 @@ class EnvgenProc(QWidget, ProcessorUpdater):
         v.setSpacing(4)
         v.addWidget(self._global_adjust)
         v.addLayout(rl)
+        v.addWidget(self._triggers)
         v.addWidget(self._time_env)
         self.setLayout(v)
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
     def _on_setup(self):
-        self.add_to_updaters(self._global_adjust, self._range, self._time_env)
+        self.add_to_updaters(
+                self._global_adjust, self._range, self._triggers, self._time_env)
         self.register_action(self._get_update_signal_type(), self._update_linear_force)
 
         QObject.connect(
@@ -71,8 +74,6 @@ class EnvgenProc(QWidget, ProcessorUpdater):
     def _update_linear_force(self):
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         enabled = egen_params.get_linear_force_enabled()
-
-        self._range.setEnabled(not enabled)
 
         old_block = self._linear_force.blockSignals(True)
         self._linear_force.setCheckState(Qt.Checked if enabled else Qt.Unchecked)
@@ -112,45 +113,88 @@ class RangeEditor(QWidget, ProcessorUpdater):
         super().__init__()
         self._min_editor = QDoubleSpinBox()
         self._max_editor = QDoubleSpinBox()
+        self._min_var_editor = QDoubleSpinBox()
+        self._max_var_editor = QDoubleSpinBox()
 
         for editor in (self._min_editor, self._max_editor):
             editor.setMinimum(-99999)
             editor.setMaximum(99999)
 
+        for editor in (self._min_var_editor, self._max_var_editor):
+            editor.setMinimum(0)
+            editor.setMaximum(99999)
+
+        d = QHBoxLayout()
+        d.setContentsMargins(0, 0, 0, 0)
+        d.setSpacing(4)
+        d.addWidget(QLabel('Minimum value:'))
+        d.addWidget(self._min_editor)
+        d.addWidget(QLabel('±'))
+        d.addWidget(self._min_var_editor)
+        d.addWidget(QLabel('Maximum value:'))
+        d.addWidget(self._max_editor)
+        self._disableables = d
+
         h = QHBoxLayout()
         h.setContentsMargins(10, 0, 10, 0)
-        h.addWidget(QLabel('Minimum value:'), 0)
-        h.addWidget(self._min_editor, 1)
-        h.addWidget(QLabel('Maximum value:'), 0)
-        h.addWidget(self._max_editor, 1)
+        h.setSpacing(4)
+        h.addLayout(self._disableables)
+        h.addWidget(QLabel('±'))
+        h.addWidget(self._max_var_editor)
+        h.addStretch(1)
+
         self.setLayout(h)
 
     def _on_setup(self):
-        self.register_action(self._get_update_signal_type(), self._update_range)
+        self.register_action(self._get_update_signal_type(), self._update_range_params)
+        self.register_action(
+                self._get_linear_force_signal_type(), self._update_force_type)
 
         QObject.connect(
                 self._min_editor, SIGNAL('valueChanged(double)'), self._set_range_min)
         QObject.connect(
+                self._min_var_editor,
+                SIGNAL('valueChanged(double)'),
+                self._set_range_min_var)
+        QObject.connect(
                 self._max_editor, SIGNAL('valueChanged(double)'), self._set_range_max)
+        QObject.connect(
+                self._max_var_editor,
+                SIGNAL('valueChanged(double)'),
+                self._set_range_max_var)
 
-        self._update_range()
+        self._update_range_params()
+        self._update_force_type()
 
     def _get_update_signal_type(self):
         return '_'.join(('signal_env_range', self._proc_id))
 
-    def _update_range(self):
+    def _get_linear_force_signal_type(self):
+        return 'signal_egen_linear_force_{}'.format(self._proc_id)
+
+    def _update_range_params(self):
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         y_range = egen_params.get_y_range()
+        min_var = egen_params.get_y_range_min_var()
+        max_var = egen_params.get_y_range_max_var()
 
-        if y_range[0] != self._min_editor.value():
-            old_block = self._min_editor.blockSignals(True)
-            self._min_editor.setValue(y_range[0])
-            self._min_editor.blockSignals(old_block)
+        def try_update(sb, value):
+            if value != sb.value():
+                old_block = sb.blockSignals(True)
+                sb.setValue(value)
+                sb.blockSignals(old_block)
 
-        if y_range[1] != self._max_editor.value():
-            old_block = self._max_editor.blockSignals(True)
-            self._max_editor.setValue(y_range[1])
-            self._max_editor.blockSignals(old_block)
+        try_update(self._min_editor, y_range[0])
+        try_update(self._max_editor, y_range[1])
+        try_update(self._min_var_editor, min_var)
+        try_update(self._max_var_editor, max_var)
+
+    def _update_force_type(self):
+        egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        lf_enabled = egen_params.get_linear_force_enabled()
+
+        for i in range(self._disableables.count()):
+            self._disableables.itemAt(i).widget().setEnabled(not lf_enabled)
 
     def _set_range_min(self, value):
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -160,12 +204,242 @@ class RangeEditor(QWidget, ProcessorUpdater):
         egen_params.set_y_range(y_range)
         self._updater.signal_update(self._get_update_signal_type())
 
+    def _set_range_min_var(self, value):
+        egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        egen_params.set_y_range_min_var(value)
+        self._updater.signal_update(self._get_update_signal_type())
+
     def _set_range_max(self, value):
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         y_range = egen_params.get_y_range()
         y_range[1] = value
         y_range[0] = min(y_range)
         egen_params.set_y_range(y_range)
+        self._updater.signal_update(self._get_update_signal_type())
+
+    def _set_range_max_var(self, value):
+        egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        egen_params.set_y_range_max_var(value)
+        self._updater.signal_update(self._get_update_signal_type())
+
+
+class Triggers(QWidget, ProcessorUpdater):
+
+    def __init__(self):
+        super().__init__()
+
+        self._immediate = QCheckBox('Immediately')
+        self._release = QCheckBox('On release')
+        self._impulse_floor = QCheckBox('On signal floor,')
+        self._impulse_floor_bounds = TriggerImpulseFloorBounds()
+        self._impulse_ceil = QCheckBox('On signal ceiling,')
+        self._impulse_ceil_bounds = TriggerImpulseCeilBounds()
+
+        gl = QGridLayout()
+        gl.setContentsMargins(12, 0, 0, 0)
+        gl.setVerticalSpacing(2)
+        gl.setHorizontalSpacing(8)
+        gl.setColumnStretch(2, 1)
+        gl.addWidget(self._immediate, 0, 0)
+        gl.addWidget(QWidget(), 0, 2)
+        gl.addWidget(self._release, 1, 0)
+        gl.addWidget(self._impulse_floor, 2, 0)
+        gl.addWidget(self._impulse_floor_bounds, 2, 1)
+        gl.addWidget(self._impulse_ceil, 3, 0)
+        gl.addWidget(self._impulse_ceil_bounds, 3, 1)
+
+        v = QVBoxLayout()
+        v.setContentsMargins(2, 2, 2, 2)
+        v.setSpacing(4)
+        v.addWidget(QLabel('Trigger:'))
+        v.addLayout(gl)
+        self.setLayout(v)
+
+    def _get_update_signal_type(self):
+        return 'signal_env_trig_{}'.format(self._proc_id)
+
+    def _on_setup(self):
+        self.add_to_updaters(self._impulse_floor_bounds, self._impulse_ceil_bounds)
+        self.register_action(self._get_update_signal_type(), self._update_all)
+
+        QObject.connect(
+                self._immediate, SIGNAL('stateChanged(int)'), self._change_immediate)
+        QObject.connect(
+                self._release, SIGNAL('stateChanged(int)'), self._change_release)
+        QObject.connect(
+                self._impulse_floor,
+                SIGNAL('stateChanged(int)'),
+                self._change_impulse_floor)
+        QObject.connect(
+                self._impulse_ceil,
+                SIGNAL('stateChanged(int)'),
+                self._change_impulse_ceil)
+
+        self._update_all()
+
+    def _get_egen_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_all(self):
+        egen_params = self._get_egen_params()
+
+        def update(cb, enabled):
+            old_block = cb.blockSignals(True)
+            cb.setCheckState(Qt.Checked if enabled else Qt.Unchecked)
+            cb.blockSignals(old_block)
+
+        update(self._immediate, egen_params.get_trig_immediate())
+        update(self._release, egen_params.get_trig_release())
+        update(self._impulse_floor, egen_params.get_trig_impulse_floor())
+        update(self._impulse_ceil, egen_params.get_trig_impulse_ceil())
+
+    def _change_immediate(self, state):
+        enabled = (state == Qt.Checked)
+
+        self._get_egen_params().set_trig_immediate(enabled)
+        self._updater.signal_update(self._get_update_signal_type())
+
+    def _change_release(self, state):
+        enabled = (state == Qt.Checked)
+
+        self._get_egen_params().set_trig_release(enabled)
+        self._updater.signal_update(self._get_update_signal_type())
+
+    def _change_impulse_floor(self, state):
+        enabled = (state == Qt.Checked)
+
+        self._get_egen_params().set_trig_impulse_floor(enabled)
+        self._updater.signal_update(self._get_update_signal_type())
+
+    def _change_impulse_ceil(self, state):
+        enabled = (state == Qt.Checked)
+
+        self._get_egen_params().set_trig_impulse_ceil(enabled)
+        self._updater.signal_update(self._get_update_signal_type())
+
+
+class TriggerImpulseBounds(QWidget, ProcessorUpdater):
+
+    def __init__(self):
+        super().__init__()
+
+        self._start_value = QDoubleSpinBox()
+        self._stop_value = QDoubleSpinBox()
+
+        self._start_value.setRange(-99999, 99999)
+        self._stop_value.setRange(-99999, 99999)
+
+        h = QHBoxLayout()
+        h.setContentsMargins(0, 0, 0, 0)
+        h.setSpacing(8)
+        h.addWidget(QLabel('Start value:'))
+        h.addWidget(self._start_value, 1)
+        h.addWidget(QLabel('Stop value:'))
+        h.addWidget(self._stop_value, 1)
+        self.setLayout(h)
+
+    def _get_update_signal_type(self):
+        return 'signal_env_trig_{}'.format(self._proc_id)
+
+    def _on_setup(self):
+        self.register_action(self._get_update_signal_type(), self._update_all)
+
+        QObject.connect(
+                self._start_value, SIGNAL('valueChanged(double)'), self._change_start)
+        QObject.connect(
+                self._stop_value, SIGNAL('valueChanged(double)'), self._change_stop)
+
+        self._update_all()
+
+    def _get_egen_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_all(self):
+        self._update_enabled()
+        self._update_bounds()
+
+    def _try_update_bounds(self, bounds):
+        def try_update(sb, value):
+            if value != sb.value():
+                old_block = sb.blockSignals(True)
+                sb.setValue(value)
+                sb.blockSignals(old_block)
+
+        try_update(self._start_value, bounds[0])
+        try_update(self._stop_value, bounds[1])
+
+    # Protected callbacks
+
+    def _update_enabled(self):
+        raise NotImplementedError
+
+    def _update_bounds(self):
+        raise NotImplementedError
+
+    def _change_start(self, new_start):
+        raise NotImplementedError
+
+    def _change_stop(self, new_stop):
+        raise NotImplementedError
+
+
+class TriggerImpulseFloorBounds(TriggerImpulseBounds):
+
+    def __init__(self):
+        super().__init__()
+
+    def _update_enabled(self):
+        egen_params = self._get_egen_params()
+        self.setEnabled(egen_params.get_trig_impulse_floor())
+
+    def _update_bounds(self):
+        egen_params = self._get_egen_params()
+        self._try_update_bounds(egen_params.get_trig_impulse_floor_bounds())
+
+    def _change_start(self, new_start):
+        egen_params = self._get_egen_params()
+        cur_bounds = egen_params.get_trig_impulse_floor_bounds()
+
+        new_stop = max(cur_bounds[1], new_start)
+        egen_params.set_trig_impulse_floor_bounds([new_start, new_stop])
+        self._updater.signal_update(self._get_update_signal_type())
+
+    def _change_stop(self, new_stop):
+        egen_params = self._get_egen_params()
+        cur_bounds = egen_params.get_trig_impulse_floor_bounds()
+
+        new_start = min(cur_bounds[0], new_stop)
+        egen_params.set_trig_impulse_floor_bounds([new_start, new_stop])
+        self._updater.signal_update(self._get_update_signal_type())
+
+
+class TriggerImpulseCeilBounds(TriggerImpulseBounds):
+
+    def __init__(self):
+        super().__init__()
+
+    def _update_enabled(self):
+        egen_params = self._get_egen_params()
+        self.setEnabled(egen_params.get_trig_impulse_ceil())
+
+    def _update_bounds(self):
+        egen_params = self._get_egen_params()
+        self._try_update_bounds(egen_params.get_trig_impulse_ceil_bounds())
+
+    def _change_start(self, new_start):
+        egen_params = self._get_egen_params()
+        cur_bounds = egen_params.get_trig_impulse_ceil_bounds()
+
+        new_stop = min(cur_bounds[1], new_start)
+        egen_params.set_trig_impulse_ceil_bounds([new_start, new_stop])
+        self._updater.signal_update(self._get_update_signal_type())
+
+    def _change_stop(self, new_stop):
+        egen_params = self._get_egen_params()
+        cur_bounds = egen_params.get_trig_impulse_ceil_bounds()
+
+        new_start = max(cur_bounds[0], new_stop)
+        egen_params.set_trig_impulse_ceil_bounds([new_start, new_stop])
         self._updater.signal_update(self._get_update_signal_type())
 
 
@@ -179,9 +453,6 @@ class EgenTimeEnv(ProcessorTimeEnvelope):
         return 'Envelope'
 
     def _allow_loop(self):
-        return True
-
-    def _allow_release_toggle(self):
         return True
 
     def _make_envelope_widget(self):
@@ -210,12 +481,6 @@ class EgenTimeEnv(ProcessorTimeEnvelope):
 
     def _set_loop_enabled(self, enabled):
         self._get_egen_params().set_time_env_loop_enabled(enabled)
-
-    def _get_release_enabled(self):
-        return self._get_egen_params().get_time_env_is_release()
-
-    def _set_release_enabled(self, enabled):
-        self._get_egen_params().set_time_env_is_release(enabled)
 
     def _get_envelope_data(self):
         return self._get_egen_params().get_time_env()

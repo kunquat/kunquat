@@ -30,7 +30,17 @@ typedef struct Proc_envgen
     bool is_time_env_enabled;
     const Envelope* time_env;
     bool is_loop_enabled;
-    bool is_release_env;
+
+    bool trig_immediate;
+    bool trig_release;
+
+    bool trig_impulse_floor;
+    float trig_impulse_floor_on;
+    float trig_impulse_floor_off;
+
+    bool trig_impulse_ceil;
+    float trig_impulse_ceil_on;
+    float trig_impulse_ceil_off;
 
     bool is_linear_force;
 
@@ -38,6 +48,8 @@ typedef struct Proc_envgen
 
     double y_min;
     double y_max;
+    double y_min_var;
+    double y_max_var;
 } Proc_envgen;
 
 

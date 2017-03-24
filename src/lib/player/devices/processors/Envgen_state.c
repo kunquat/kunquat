@@ -18,6 +18,7 @@
 #include <init/devices/processors/Proc_envgen.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
+#include <mathnum/Random.h>
 #include <memory.h>
 #include <player/devices/Device_thread_state.h>
 #include <player/devices/Proc_state.h>
@@ -33,6 +34,12 @@ typedef struct Envgen_vstate
 {
     Voice_state parent;
 
+    float cur_y_min;
+    float cur_y_max;
+    bool activated;
+    bool trig_floor_active;
+    bool trig_ceil_active;
+    bool was_released;
     Time_env_state env_state;
 } Envgen_vstate;
 
@@ -46,6 +53,7 @@ int32_t Envgen_vstate_get_size(void)
 enum
 {
     PORT_IN_STRETCH = 0,
+    PORT_IN_TRIGGER,
     PORT_IN_COUNT,
 };
 
@@ -57,6 +65,48 @@ enum
 
 
 static const int ENVGEN_WB_FIXED_STRETCH = WORK_BUFFER_IMPL_1;
+static const int ENVGEN_WB_FIXED_TRIGGER = WORK_BUFFER_IMPL_2;
+
+
+static void Envgen_state_set_cur_y_range(
+        Envgen_vstate* egen_state, Random* random, const Proc_envgen* egen)
+{
+    rassert(egen_state != NULL);
+    rassert(random != NULL);
+    rassert(egen != NULL);
+
+    if (egen->is_linear_force)
+    {
+        egen_state->cur_y_max =
+            (float)(Random_get_float_signal(random) * egen->y_max_var);
+        return;
+    }
+
+    const float min_y_allowed = (float)(egen->y_min - egen->y_min_var);
+    const float max_y_allowed = (float)(egen->y_max + egen->y_max_var);
+
+    float new_y_min =
+        (float)(egen->y_min + Random_get_float_signal(random) * egen->y_min_var);
+    new_y_min = min(new_y_min, max_y_allowed);
+
+    float new_y_max =
+        (float)(egen->y_max + Random_get_float_signal(random) * egen->y_max_var);
+    new_y_max = max(new_y_max, min_y_allowed);
+
+    if (new_y_min > new_y_max)
+    {
+        const float avg = (new_y_min + new_y_max) * 0.5f;
+        const float clamped_avg = clamp(avg, min_y_allowed, max_y_allowed);
+        new_y_min = clamped_avg;
+        new_y_max = clamped_avg;
+    }
+    rassert(new_y_min <= new_y_max);
+
+    egen_state->cur_y_min = new_y_min;
+    egen_state->cur_y_max = new_y_max;
+
+    return;
+}
 
 
 static int32_t Envgen_vstate_render_voice(
@@ -98,6 +148,17 @@ static int32_t Envgen_vstate_render_voice(
         Proc_clamp_pitch_values(stretch_wb, buf_start, buf_stop);
     }
 
+    // Get trigger signal input
+    const Work_buffer* trigger_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_TRIGGER);
+    if (trigger_wb == NULL)
+    {
+        Work_buffer* fixed_trigger_wb =
+            Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_TRIGGER);
+        Work_buffer_clear(fixed_trigger_wb, buf_start, buf_stop);
+        trigger_wb = fixed_trigger_wb;
+    }
+
     // Get output buffer for writing
     Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_ENV);
@@ -111,115 +172,244 @@ static int32_t Envgen_vstate_render_voice(
     const bool is_time_env_enabled =
         egen->is_time_env_enabled && (egen->time_env != NULL);
 
-    const double range_width = egen->y_max - egen->y_min;
-
-    int32_t new_buf_stop = buf_stop;
-
     int32_t const_start = buf_start;
 
     if (is_time_env_enabled)
     {
-        if (egen->is_release_env && vstate->note_on)
+        int32_t slice_start = buf_start;
+        while (slice_start < buf_stop)
         {
-            // Apply the start of release envelope during note on
-            const double* first_node = Envelope_get_node(egen->time_env, 0);
-            const float first_val = (float)first_node[1];
+            int32_t slice_stop = buf_stop;
 
-            for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                out_buffer[i] = first_val;
+            bool trigger_after = false;
 
-            const_start = buf_start;
-        }
-        else
-        {
-            // Apply the time envelope
-            const int32_t env_stop = Time_env_state_process(
-                    &egen_state->env_state,
-                    egen->time_env,
-                    egen->is_loop_enabled,
-                    0, // sustain
-                    0, 1, // range, NOTE: this needs to be mapped to our [y_min, y_max]!
-                    stretch_wb,
-                    Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
-                    buf_start,
-                    new_buf_stop,
-                    proc_state->parent.audio_rate);
-
-            float* time_env =
-                Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV);
-
-            // Check the end of envelope processing
-            if (egen_state->env_state.is_finished)
+            // Process trigger signal
+            if (egen->trig_impulse_floor || egen->trig_impulse_ceil)
             {
-                const double* last_node = Envelope_get_node(
-                        egen->time_env, Envelope_node_count(egen->time_env) - 1);
-                const float last_value = (float)last_node[1];
-                /*
-                if (fabs(egen->y_min + last_value * range_width) < 0.0001)
+                int32_t change_trig_floor_at = INT32_MAX;
+                int32_t change_trig_ceil_at = INT32_MAX;
+
+                // Process floor trigger
+                if (egen->trig_impulse_floor)
                 {
-                    Voice_state_set_finished(vstate);
-                    new_buf_stop = env_stop;
+                    const float* trigger = Work_buffer_get_contents(trigger_wb);
+
+                    if (egen_state->trig_floor_active)
+                    {
+                        // See how long we should continue in triggered state
+                        const float off_level = egen->trig_impulse_floor_off;
+                        for (int32_t on_i = slice_start; on_i < slice_stop; ++on_i)
+                        {
+                            if (trigger[on_i] > off_level)
+                            {
+                                change_trig_floor_at = on_i;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // See how long we should continue outside triggered state
+                        const float on_level = egen->trig_impulse_floor_on;
+                        for (int32_t off_i = slice_start; off_i < slice_stop; ++off_i)
+                        {
+                            if (trigger[off_i] <= on_level)
+                            {
+                                change_trig_floor_at = off_i;
+                                break;
+                            }
+                        }
+                    }
                 }
-                else
-                // */
+
+                // Process ceil trigger
+                if (egen->trig_impulse_ceil)
                 {
-                    // Fill the rest of the envelope buffer with the last value
-                    for (int32_t i = env_stop; i < new_buf_stop; ++i)
-                        time_env[i] = last_value;
+                    const float* trigger = Work_buffer_get_contents(trigger_wb);
+
+                    if (egen_state->trig_ceil_active)
+                    {
+                        // See how long we should continue in triggered state
+                        const float off_level = egen->trig_impulse_ceil_off;
+                        for (int32_t on_i = slice_start; on_i < slice_stop; ++on_i)
+                        {
+                            if (trigger[on_i] < off_level)
+                            {
+                                change_trig_ceil_at = on_i;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // See how long we should continue outside triggered state
+                        const float on_level = egen->trig_impulse_ceil_on;
+                        for (int32_t off_i = slice_start; off_i < slice_stop; ++off_i)
+                        {
+                            if (trigger[off_i] >= on_level)
+                            {
+                                change_trig_ceil_at = off_i;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (change_trig_floor_at < change_trig_ceil_at)
+                {
+                    // Change floor trigger status after this slice
+                    rassert(change_trig_floor_at < slice_stop);
+                    slice_stop = change_trig_floor_at;
+
+                    egen_state->trig_floor_active = !egen_state->trig_floor_active;
+                    if (egen_state->trig_floor_active)
+                        trigger_after = true;
+                }
+                else if (change_trig_ceil_at < change_trig_floor_at)
+                {
+                    // Change ceil trigger status after this slice
+                    rassert(change_trig_ceil_at < slice_stop);
+                    slice_stop = change_trig_ceil_at;
+
+                    egen_state->trig_ceil_active = !egen_state->trig_ceil_active;
+                    if (egen_state->trig_ceil_active)
+                        trigger_after = true;
+                }
+                else if (change_trig_ceil_at < slice_stop)
+                {
+                    // Change both trigger statuses after this slice
+                    rassert(change_trig_ceil_at == change_trig_floor_at);
+                    slice_stop = change_trig_ceil_at;
+
+                    egen_state->trig_floor_active = !egen_state->trig_floor_active;
+                    egen_state->trig_ceil_active = !egen_state->trig_ceil_active;
+                    if (egen_state->trig_floor_active || egen_state->trig_ceil_active)
+                        trigger_after = true;
                 }
             }
 
-            const_start = env_stop;
+            // Process release trigger
+            if (egen->trig_release)
+            {
+                if (!egen_state->was_released && !vstate->note_on)
+                {
+                    egen_state->was_released = true;
 
-            // Write to signal output
-            for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                out_buffer[i] = time_env[i];
+                    Envgen_state_set_cur_y_range(egen_state, vstate->rand_p, egen);
+                    Time_env_state_init(&egen_state->env_state);
+                    egen_state->activated = true;
+                }
+            }
+
+            // Process envelope
+            if (!egen_state->activated)
+            {
+                // Apply the start of the envelope before activated for the first time
+                const double* first_node = Envelope_get_node(egen->time_env, 0);
+                const float first_val = (float)first_node[1];
+
+                for (int32_t i = slice_start; i < slice_stop; ++i)
+                    out_buffer[i] = first_val;
+
+                // Note: buf_start is correct here as we never return to inactive state
+                const_start = buf_start;
+            }
+            else
+            {
+                // Apply the time envelope
+                const int32_t env_stop = Time_env_state_process(
+                        &egen_state->env_state,
+                        egen->time_env,
+                        egen->is_loop_enabled,
+                        0, // sustain
+                        0, 1, // range, NOTE: this is mapped to [y_min, y_max] later
+                        stretch_wb,
+                        Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
+                        slice_start,
+                        slice_stop,
+                        proc_state->parent.audio_rate);
+
+                float* time_env =
+                    Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV);
+
+                // Check the end of envelope processing
+                if (egen_state->env_state.is_finished)
+                {
+                    const double* last_node = Envelope_get_node(
+                            egen->time_env, Envelope_node_count(egen->time_env) - 1);
+                    const float last_value = (float)last_node[1];
+
+                    // Fill the rest of the envelope buffer with the last value
+                    for (int32_t i = env_stop; i < slice_stop; ++i)
+                        time_env[i] = last_value;
+                }
+
+                const_start = env_stop;
+
+                // Write to signal output
+                for (int32_t i = slice_start; i < slice_stop; ++i)
+                    out_buffer[i] = time_env[i];
+            }
+
+            // Scale and write to output
+            if (egen->is_linear_force)
+            {
+                // Convert to dB
+                const double global_adjust = egen->global_adjust;
+
+                const float add = (float)global_adjust + egen_state->cur_y_max;
+
+                const int32_t fast_stop = min(const_start, slice_stop);
+
+                for (int32_t i = slice_start; i < fast_stop; ++i)
+                    out_buffer[i] = (float)fast_scale_to_dB(out_buffer[i]) + add;
+
+                if (fast_stop < slice_stop)
+                {
+                    const float dB = (float)scale_to_dB(out_buffer[fast_stop]) + add;
+                    for (int32_t i = fast_stop; i < slice_stop; ++i)
+                        out_buffer[i] = dB;
+                }
+            }
+            else
+            {
+                const double range_width = egen_state->cur_y_max - egen_state->cur_y_min;
+
+                if ((egen_state->cur_y_min != 0) || (egen_state->cur_y_max != 1))
+                {
+                    // Apply range
+                    for (int32_t i = slice_start; i < slice_stop; ++i)
+                        out_buffer[i] =
+                            (float)(egen_state->cur_y_min + out_buffer[i] * range_width);
+                }
+
+                const float global_adjust = (float)egen->global_adjust;
+                for (int32_t i = slice_start; i < slice_stop; ++i)
+                    out_buffer[i] += global_adjust;
+            }
+
+            if (trigger_after)
+            {
+                Envgen_state_set_cur_y_range(egen_state, vstate->rand_p, egen);
+                Time_env_state_init(&egen_state->env_state);
+                egen_state->activated = true;
+            }
+
+            slice_start = slice_stop;
         }
     }
     else
     {
         // Initialise with default values
-        for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            out_buffer[i] = 1;
-    }
-
-    if (egen->is_linear_force)
-    {
-        // Convert to dB
-        const double global_adjust = egen->global_adjust;
-
-        const int32_t fast_stop = min(const_start, new_buf_stop);
-
-        for (int32_t i = buf_start; i < fast_stop; ++i)
-            out_buffer[i] = (float)(fast_scale_to_dB(out_buffer[i]) + global_adjust);
-
-        if (fast_stop < new_buf_stop)
-        {
-            const float dB =
-                (float)(scale_to_dB(out_buffer[fast_stop]) + global_adjust);
-            for (int32_t i = fast_stop; i < new_buf_stop; ++i)
-                out_buffer[i] = dB;
-        }
-    }
-    else
-    {
-        if ((egen->y_min != 0) || (egen->y_max != 1))
-        {
-            // Apply range
-            for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                out_buffer[i] =
-                    (float)(egen->y_min + out_buffer[i] * range_width);
-        }
-
-        const float global_adjust = (float)egen->global_adjust;
-        for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            out_buffer[i] += global_adjust;
+        const float value = egen_state->cur_y_max;
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            out_buffer[i] = value;
     }
 
     // Mark constant region of the buffer
     Work_buffer_set_const_start(out_wb, const_start);
 
-    return new_buf_stop;
+    return buf_stop;
 }
 
 
@@ -230,8 +420,19 @@ void Envgen_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
     vstate->render_voice = Envgen_vstate_render_voice;
 
+    const Device_state* dstate = (const Device_state*)proc_state;
+    const Proc_envgen* egen = (const Proc_envgen*)dstate->device->dimpl;
+
     Envgen_vstate* egen_state = (Envgen_vstate*)vstate;
 
+    egen_state->cur_y_min = 0;
+    egen_state->cur_y_max = 1;
+    egen_state->activated = egen->trig_immediate;
+    egen_state->trig_floor_active = false;
+    egen_state->trig_ceil_active = false;
+    egen_state->was_released = false;
+
+    Envgen_state_set_cur_y_range(egen_state, vstate->rand_p, egen);
     Time_env_state_init(&egen_state->env_state);
 
     return;
