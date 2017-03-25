@@ -46,7 +46,7 @@ class AudioUnitSimpleEnvelope(QWidget, AudioUnitUpdater):
                 SIGNAL('stateChanged(int)'),
                 self._enabled_changed)
         QObject.connect(
-                self._envelope,
+                self._envelope.get_envelope_view(),
                 SIGNAL('envelopeChanged()'),
                 self._envelope_changed)
 
@@ -65,7 +65,8 @@ class AudioUnitSimpleEnvelope(QWidget, AudioUnitUpdater):
         self._envelope.setEnabled(self._get_enabled())
 
         envelope = self._get_envelope_data()
-        self._envelope.set_nodes(envelope['nodes'])
+        ev = self._envelope.get_envelope_view()
+        ev.set_nodes(envelope['nodes'])
 
     def _enabled_changed(self, state):
         new_enabled = (state == Qt.Checked)
@@ -73,7 +74,7 @@ class AudioUnitSimpleEnvelope(QWidget, AudioUnitUpdater):
         self._updater.signal_update(self._get_update_signal_type())
 
     def _envelope_changed(self):
-        new_nodes, _ = self._envelope.get_clear_changed()
+        new_nodes, _ = self._envelope.get_envelope_view().get_clear_changed()
 
         envelope = self._get_envelope_data()
         if new_nodes:

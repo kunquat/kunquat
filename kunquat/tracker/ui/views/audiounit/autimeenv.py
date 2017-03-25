@@ -73,7 +73,7 @@ class AudioUnitTimeEnvelope(QWidget, AudioUnitUpdater):
                     SIGNAL('stateChanged(int)'),
                     self._release_changed)
         QObject.connect(
-                self._envelope,
+                self._envelope.get_envelope_view(),
                 SIGNAL('envelopeChanged()'),
                 self._envelope_changed)
 
@@ -84,7 +84,7 @@ class AudioUnitTimeEnvelope(QWidget, AudioUnitUpdater):
         self._envelope.update_style(self._ui_model.get_style_manager())
 
     def _update_envelope(self):
-        is_enabled = True;
+        is_enabled = True
         if self._allow_toggle_enabled():
             old_block = self._enabled_toggle.blockSignals(True)
             self._enabled_toggle.setCheckState(
@@ -110,10 +110,11 @@ class AudioUnitTimeEnvelope(QWidget, AudioUnitUpdater):
             self._release_toggle.blockSignals(old_block)
 
         envelope = self._get_envelope_data()
-        self._envelope.set_nodes(envelope['nodes'])
+        ev = self._envelope.get_envelope_view()
+        ev.set_nodes(envelope['nodes'])
         if self._allow_loop():
-            self._envelope.set_loop_markers(envelope['marks'])
-            self._envelope.set_loop_enabled(self._get_loop_enabled())
+            ev.set_loop_markers(envelope['marks'])
+            ev.set_loop_enabled(self._get_loop_enabled())
 
     def _enabled_changed(self, state):
         new_enabled = (state == Qt.Checked)
@@ -131,7 +132,7 @@ class AudioUnitTimeEnvelope(QWidget, AudioUnitUpdater):
         self._updater.signal_update(self._get_update_signal_type())
 
     def _envelope_changed(self):
-        new_nodes, new_loop = self._envelope.get_clear_changed()
+        new_nodes, new_loop = self._envelope.get_envelope_view().get_clear_changed()
 
         envelope = self._get_envelope_data()
         if new_nodes:

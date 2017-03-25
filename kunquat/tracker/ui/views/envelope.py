@@ -72,6 +72,40 @@ DEFAULT_CONFIG = {
 }
 
 
+class Envelope(QAbstractScrollArea):
+
+    def __init__(self, init_config={}):
+        super().__init__()
+        self.setFocusPolicy(Qt.NoFocus)
+
+        self.setViewport(EnvelopeView(init_config))
+        self.viewport().setFocusProxy(None)
+
+    def get_envelope_view(self):
+        return self.viewport()
+
+    def update_style(self, style_manager):
+        self.viewport().update_style(style_manager)
+
+    def paintEvent(self, event):
+        self.viewport().paintEvent(event)
+
+    def resizeEvent(self, event):
+        self.viewport().resizeEvent(event)
+
+    def mousePressEvent(self, event):
+        self.viewport().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        self.viewport().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self.viewport().mouseReleaseEvent(event)
+
+    def changeEvent(self, event):
+        self.viewport().changeEvent(event)
+
+
 def signum(x):
     if x > 0:
         return 1
@@ -86,7 +120,7 @@ STATE_WAITING = 'waiting'
 STATE_MOVING_MARKER = 'moving_marker'
 
 
-class Envelope(QWidget):
+class EnvelopeView(QWidget):
 
     envelopeChanged = Signal(name='envelopeChanged')
 
