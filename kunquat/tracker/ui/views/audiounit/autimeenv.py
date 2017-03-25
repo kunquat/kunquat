@@ -57,6 +57,8 @@ class AudioUnitTimeEnvelope(QWidget, AudioUnitUpdater):
         self.register_action(self._get_update_signal_type(), self._update_envelope)
         self.register_action('signal_style_changed', self._update_style)
 
+        self._envelope.set_icon_bank(self._ui_model.get_icon_bank())
+
         if self._allow_toggle_enabled():
             QObject.connect(
                     self._enabled_toggle,

@@ -456,7 +456,7 @@ class EgenTimeEnv(ProcessorTimeEnvelope):
         return True
 
     def _make_envelope_widget(self):
-        envelope = Envelope()
+        envelope = Envelope({ 'enable_zoom_x': True })
         ev = envelope.get_envelope_view()
         ev.set_node_count_max(32)
         ev.set_y_range(0, 1)

@@ -53,6 +53,7 @@ DEFAULT_CONFIG = {
     'font'                      : _font,
     'padding'                   : 3,
     'is_square_area'            : False,
+    'enable_zoom_x'             : False,
     'bg_colour'                 : QColor(0, 0, 0),
     'line_colour'               : QColor(0x66, 0x88, 0xaa),
     'node_colour'               : QColor(0xee, 0xcc, 0xaa),
@@ -72,11 +73,59 @@ DEFAULT_CONFIG = {
 }
 
 
-class Envelope(QAbstractScrollArea):
+class Envelope(QWidget):
+
+    def __init__(self, init_config={}):
+        super().__init__()
+
+        self._zoom_in_x = QToolButton()
+        self._zoom_in_x.setText('Zoom in')
+        self._zoom_out_x = QToolButton()
+        self._zoom_out_x.setText('Zoom out')
+
+        self._toolbar = QToolBar()
+        self._area = EnvelopeArea(init_config)
+
+        self._config = DEFAULT_CONFIG.copy()
+        self._config.update(init_config)
+
+        if self._config['enable_zoom_x']:
+            self._toolbar.setOrientation(Qt.Vertical)
+            self._toolbar.addWidget(self._zoom_in_x)
+            self._toolbar.addWidget(self._zoom_out_x)
+        else:
+            self._toolbar.hide()
+
+        h = QHBoxLayout()
+        h.setContentsMargins(0, 0, 0, 0)
+        h.setSpacing(0)
+        h.addWidget(self._toolbar)
+        h.addWidget(self._area)
+        self.setLayout(h)
+
+    def set_icon_bank(self, icon_bank):
+        self._zoom_in_x.setIcon(QIcon(icon_bank.get_icon_path('zoom_in')))
+        self._zoom_out_x.setIcon(QIcon(icon_bank.get_icon_path('zoom_out')))
+
+    def get_envelope_view(self):
+        return self._area.get_envelope_view()
+
+    def update_style(self, style_manager):
+        self._area.update_style(style_manager)
+
+
+class EnvelopeArea(QAbstractScrollArea):
 
     def __init__(self, init_config={}):
         super().__init__()
         self.setFocusPolicy(Qt.NoFocus)
+
+        self._config = DEFAULT_CONFIG.copy()
+        self._config.update(init_config)
+
+        self.setHorizontalScrollBarPolicy(
+                Qt.ScrollBarAlwaysOn if self._config['enable_zoom_x']
+                else Qt.ScrollBarAlwaysOff)
 
         self.setViewport(EnvelopeView(init_config))
         self.viewport().setFocusProxy(None)

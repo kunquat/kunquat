@@ -41,6 +41,8 @@ class AudioUnitSimpleEnvelope(QWidget, AudioUnitUpdater):
         self.register_action(self._get_update_signal_type(), self._update_envelope)
         self.register_action('signal_style_changed', self._update_style)
 
+        self._envelope.set_icon_bank(self._ui_model.get_icon_bank())
+
         QObject.connect(
                 self._enabled_toggle,
                 SIGNAL('stateChanged(int)'),
