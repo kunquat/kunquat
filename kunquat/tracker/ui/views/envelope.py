@@ -78,10 +78,10 @@ class Envelope(QWidget):
     def __init__(self, init_config={}):
         super().__init__()
 
-        self._zoom_in_x = QToolButton()
-        self._zoom_in_x.setText('Zoom in')
-        self._zoom_out_x = QToolButton()
-        self._zoom_out_x.setText('Zoom out')
+        self._zoom_in_x_button = QToolButton()
+        self._zoom_in_x_button.setText('Zoom in')
+        self._zoom_out_x_button = QToolButton()
+        self._zoom_out_x_button.setText('Zoom out')
 
         self._toolbar = QToolBar()
         self._area = EnvelopeArea(init_config)
@@ -91,8 +91,8 @@ class Envelope(QWidget):
 
         if self._config['enable_zoom_x']:
             self._toolbar.setOrientation(Qt.Vertical)
-            self._toolbar.addWidget(self._zoom_in_x)
-            self._toolbar.addWidget(self._zoom_out_x)
+            self._toolbar.addWidget(self._zoom_in_x_button)
+            self._toolbar.addWidget(self._zoom_out_x_button)
         else:
             self._toolbar.hide()
 
@@ -103,15 +103,24 @@ class Envelope(QWidget):
         h.addWidget(self._area)
         self.setLayout(h)
 
+        QObject.connect(self._zoom_in_x_button, SIGNAL('clicked()'), self._zoom_in_x)
+        QObject.connect(self._zoom_out_x_button, SIGNAL('clicked()'), self._zoom_out_x)
+
     def set_icon_bank(self, icon_bank):
-        self._zoom_in_x.setIcon(QIcon(icon_bank.get_icon_path('zoom_in')))
-        self._zoom_out_x.setIcon(QIcon(icon_bank.get_icon_path('zoom_out')))
+        self._zoom_in_x_button.setIcon(QIcon(icon_bank.get_icon_path('zoom_in')))
+        self._zoom_out_x_button.setIcon(QIcon(icon_bank.get_icon_path('zoom_out')))
 
     def get_envelope_view(self):
         return self._area.get_envelope_view()
 
     def update_style(self, style_manager):
         self._area.update_style(style_manager)
+
+    def _zoom_in_x(self):
+        self._area.get_envelope_view().zoom_in_x()
+
+    def _zoom_out_x(self):
+        self._area.get_envelope_view().zoom_out_x()
 
 
 class EnvelopeArea(QAbstractScrollArea):
@@ -179,6 +188,9 @@ class EnvelopeView(QWidget):
         self._range_x = None
         self._range_y = None
 
+        self._vis_range_x = None
+        self._vis_range_y = None
+
         self._range_adjust_x = (False, False)
         self._range_adjust_y = (False, False)
 
@@ -236,16 +248,22 @@ class EnvelopeView(QWidget):
 
     def set_x_range(self, min_x, max_x):
         assert signum(min_x) != signum(max_x)
-        new_range = (min_x, max_x)
-        if new_range != self._range_x:
-            self._range_x = new_range
+        new_val_range = (min_x, max_x)
+        self._range_x = new_val_range
+
+        new_vis_range = self._get_range_bound(min_x), self._get_range_bound(max_x)
+        if new_vis_range != self._vis_range_x:
+            self._vis_range_x = new_vis_range
             self._axis_x_renderer.flush_cache()
 
     def set_y_range(self, min_y, max_y):
         assert signum(min_y) != signum(max_y)
-        new_range = (min_y, max_y)
-        if new_range != self._range_y:
-            self._range_y = new_range
+        new_val_range = (min_y, max_y)
+        self._range_y = new_val_range
+
+        new_vis_range = self._get_range_bound(min_y), self._get_range_bound(max_y)
+        if new_vis_range != self._vis_range_y:
+            self._vis_range_y = new_vis_range
             self._axis_y_renderer.flush_cache()
 
     def set_x_range_adjust(self, allow_neg, allow_pos):
@@ -288,6 +306,54 @@ class EnvelopeView(QWidget):
         self._nodes_changed = []
         self._loop_markers_changed = []
         return nodes_changed, loop_markers_changed
+
+    def zoom_in_x(self):
+        vis_min_x, vis_max_x = self._vis_range_x
+        range_width = vis_max_x - vis_min_x
+        range_centre = (vis_min_x + vis_max_x) * 0.5
+        new_range_width = range_width * 0.5
+
+        if self._range_x[0] == 0 and vis_min_x == 0:
+            new_vis_min_x = 0
+            new_vis_max_x = new_vis_min_x + new_range_width
+        elif self._range_x[1] == 0 and vis_max_x == 0:
+            new_vis_max_x = 0
+            new_vis_min_x = new_vis_max_x - new_range_width
+        else:
+            new_vis_min_x = range_centre - new_range_width * 0.5
+            new_vis_max_x = range_centre + new_range_width * 0.5
+
+        self._vis_range_x = new_vis_min_x, new_vis_max_x
+        self._axis_x_renderer.flush_cache()
+        self._ls_cache = {}
+        self.update()
+
+    def zoom_out_x(self):
+        vis_min_x, vis_max_x = self._vis_range_x
+        range_width = vis_max_x - vis_min_x
+        range_centre = (vis_min_x + vis_max_x) * 0.5
+        new_range_width = range_width * 2
+
+        vis_range_x_min = self._get_range_bound(self._range_x[0])
+        vis_range_x_max = self._get_range_bound(self._range_x[1])
+        max_range_width = vis_range_x_max - vis_range_x_min
+
+        if new_range_width < max_range_width:
+            new_vis_min_x = range_centre - new_range_width * 0.5
+            new_vis_max_x = range_centre + new_range_width * 0.5
+            if new_vis_min_x < vis_range_x_min:
+                new_vis_min_x = vis_range_x_min
+                new_vis_max_x = new_vis_min_x + new_range_width
+            elif new_vis_max_x > vis_range_x_max:
+                new_vis_max_x = vis_range_x_max
+                new_vis_min_x = new_vis_max_x - new_range_width
+        else:
+            new_vis_min_x, new_vis_max_x = vis_range_x_min, vis_range_x_max
+
+        self._vis_range_x = new_vis_min_x, new_vis_max_x
+        self._axis_x_renderer.flush_cache()
+        self._ls_cache = {}
+        self.update()
 
     def update_style(self, style_manager):
         if not style_manager.is_custom_style_enabled():
@@ -387,10 +453,12 @@ class EnvelopeView(QWidget):
                 (self._envelope_height > 0))
 
     def _get_display_val_max(self, val_range):
-        return self._get_range_bound(val_range[1])
+        #return self._get_range_bound(val_range[1])
+        return val_range[1]
 
     def _get_display_val_min(self, val_range):
-        return self._get_range_bound(val_range[0])
+        #return self._get_range_bound(val_range[0])
+        return val_range[0]
 
     def _get_ls_coords(self, nodes):
         return zip(nodes, islice(nodes, 1, None))
@@ -412,13 +480,13 @@ class EnvelopeView(QWidget):
         vis_x = zero_x
 
         if val_x >= 0:
-            val_x_max = self._get_display_val_max(self._range_x)
+            val_x_max = self._get_display_val_max(self._vis_range_x)
             pos_width_vis = self._envelope_width - zero_x - 1
 
             if val_x_max != 0:
                 vis_x = zero_x + pos_width_vis * val_x / val_x_max
         else:
-            val_x_min = self._get_display_val_min(self._range_x)
+            val_x_min = self._get_display_val_min(self._vis_range_x)
             neg_width_vis = zero_x
 
             if val_x_min != 0:
@@ -428,13 +496,13 @@ class EnvelopeView(QWidget):
         vis_y = zero_y
 
         if val_y >= 0:
-            val_y_max = self._get_display_val_max(self._range_y)
+            val_y_max = self._get_display_val_max(self._vis_range_y)
             pos_height_vis = zero_y
 
             if val_y_max != 0:
                 vis_y = zero_y - pos_height_vis * val_y / val_y_max
         else:
-            val_y_min = self._get_display_val_min(self._range_y)
+            val_y_min = self._get_display_val_min(self._vis_range_y)
             neg_height_vis = self._envelope_height - zero_y - 1
 
             if val_y_min != 0:
@@ -605,18 +673,18 @@ class EnvelopeView(QWidget):
 
         if widget_x >= zero_x:
             pos_width_vis = get_pos_width_vis()
-            val_x_max = self._get_display_val_max(self._range_x)
+            val_x_max = self._get_display_val_max(self._vis_range_x)
             if pos_width_vis <= 0:
                 pos_width_vis = get_neg_width_vis()
-                val_x_max = -self._get_display_val_min(self._range_x)
+                val_x_max = -self._get_display_val_min(self._vis_range_x)
 
             val_x = (widget_x - zero_x) * val_x_max / float(pos_width_vis)
         else:
             neg_width_vis = get_neg_width_vis()
-            val_x_min = self._get_display_val_min(self._range_x)
+            val_x_min = self._get_display_val_min(self._vis_range_x)
             if neg_width_vis <= 0:
                 neg_width_vis = get_pos_width_vis()
-                val_x_min = -self._get_display_val_max(self._range_x)
+                val_x_min = -self._get_display_val_max(self._vis_range_x)
 
             val_x = (zero_x - widget_x) * val_x_min / float(neg_width_vis)
 
@@ -628,18 +696,18 @@ class EnvelopeView(QWidget):
 
         if widget_y <= zero_y:
             pos_height_vis = get_pos_height_vis()
-            val_y_max = self._get_display_val_max(self._range_y)
+            val_y_max = self._get_display_val_max(self._vis_range_y)
             if pos_height_vis <= 0:
                 pos_height_vis = get_neg_height_vis()
-                val_y_max = -self._get_display_val_min(self._range_y)
+                val_y_max = -self._get_display_val_min(self._vis_range_y)
 
             val_y = (zero_y - widget_y) * val_y_max / float(pos_height_vis)
         else:
             neg_height_vis = get_neg_height_vis()
-            val_y_min = self._get_display_val_min(self._range_y)
+            val_y_min = self._get_display_val_min(self._vis_range_y)
             if neg_height_vis <= 0:
                 neg_height_vis = get_pos_height_vis()
-                val_y_min = -self._get_display_val_max(self._range_y)
+                val_y_min = -self._get_display_val_max(self._vis_range_y)
 
             val_y = (widget_y - zero_y) * val_y_min / float(neg_height_vis)
 
@@ -991,7 +1059,7 @@ class EnvelopeView(QWidget):
         self._axis_x_renderer.set_x_offset(self._envelope_offset_x)
         self._axis_x_renderer.set_y_offset_x(self._axis_y_offset_x)
         self._axis_x_renderer.set_axis_length(self._envelope_width)
-        self._axis_x_renderer.set_val_range(self._range_x)
+        self._axis_x_renderer.set_val_range(self._vis_range_x)
         self._axis_x_renderer.set_draw_zero_marker_enabled(self._range_y[0] == 0)
         self._axis_x_renderer.render(painter)
         painter.restore()
@@ -1003,7 +1071,7 @@ class EnvelopeView(QWidget):
         self._axis_y_renderer.set_axis_length(self._envelope_height)
         self._axis_y_renderer.set_x_offset_y(self._axis_x_offset_y)
         self._axis_y_renderer.set_draw_zero_marker_enabled(self._range_x[0] == 0)
-        self._axis_y_renderer.set_val_range(self._range_y)
+        self._axis_y_renderer.set_val_range(self._vis_range_y)
         self._axis_y_renderer.render(painter)
         painter.restore()
 
@@ -1028,11 +1096,11 @@ class EnvelopeView(QWidget):
         #print('Envelope view updated in {:.2f} ms'.format(elapsed * 1000))
 
     def _get_display_x_range_width(self):
-        r = self._range_x
+        r = self._vis_range_x
         return self._get_display_val_max(r) - self._get_display_val_min(r)
 
     def _get_display_y_range_height(self):
-        r = self._range_y
+        r = self._vis_range_y
         return self._get_display_val_max(r) - self._get_display_val_min(r)
 
     def _update_display_area(self):
@@ -1056,7 +1124,7 @@ class EnvelopeView(QWidget):
         envelope_height_px = available_height_px
 
         # Get left border of the envelope
-        x_left_width = abs(self._get_display_val_min(self._range_x))
+        x_left_width = abs(self._get_display_val_min(self._vis_range_x))
         x_left_width_px = int(round(available_width_px * x_left_width / x_range_width))
         if x_left_width_px < axis_y_width:
             extra_space = axis_y_width - x_left_width_px
@@ -1066,7 +1134,7 @@ class EnvelopeView(QWidget):
             axis_y_offset_x_px = x_left_width_px - axis_y_width
 
         # Get bottom border of the envelope
-        y_down_height = abs(self._get_display_val_min(self._range_y))
+        y_down_height = abs(self._get_display_val_min(self._vis_range_y))
         y_down_height_px = int(round(
             available_height_px * y_down_height / y_range_height))
         if y_down_height_px < axis_x_height:
