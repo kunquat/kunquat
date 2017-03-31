@@ -351,6 +351,7 @@ class EnvelopeView(QWidget):
         self._nodes = [(a, b) for (a, b) in new_nodes]
 
         self._curve_path = None
+        self.update()
 
     def set_loop_markers(self, new_loop_markers):
         assert len(new_loop_markers) >= 2
@@ -621,6 +622,113 @@ class EnvelopeView(QWidget):
         if self._state == STATE_MOVING:
             assert self._focused_node != None
 
+            # Check if we have moved far enough to remove the node
+            is_node_locked = False
+            if self._moving_index == 0:
+                is_node_locked = any(self._first_lock)
+            elif self._moving_index == len(self._nodes) - 1:
+                is_node_locked = any(self._last_lock)
+
+            if (len(self._nodes) > 2) and (not is_node_locked):
+                remove_dist = self._config['node_remove_dist_min']
+                node_vis = vt.map(*self._focused_node)
+                node_offset_vis = node_vis - self._moving_pointer_offset
+                if self._get_dist_to_node(pointer_vis, node_offset_vis) >= remove_dist:
+                    self._nodes_changed = (
+                            self._nodes[:self._moving_index] +
+                            self._nodes[self._moving_index + 1:])
+
+                    new_loop_markers = [max(0, m if m < self._moving_index else m - 1)
+                            for m in self._loop_markers]
+                    if new_loop_markers != self._loop_markers:
+                        self._loop_markers_changed = new_loop_markers
+
+                    QObject.emit(self, SIGNAL('envelopeChanged()'))
+
+                    self._state = STATE_IDLE
+                    self._focused_node = None
+                    return
+
+            # Get node bounds
+            epsilon = 0.0000001
+
+            min_x, min_y = [float('-inf')] * 2
+            max_x, max_y = [float('inf')] * 2
+
+            if not self._range_adjust_x[0]:
+                min_x = self._range_x[0]
+            if not self._range_adjust_x[1]:
+                max_x = self._range_x[1]
+
+            if not self._range_adjust_y[0]:
+                min_y = self._range_y[0]
+            if not self._range_adjust_y[1]:
+                max_y = self._range_y[1]
+
+            if self._moving_index == 0:
+                # First node
+                if self._first_lock[0]:
+                    min_x = max_x = self._focused_node[0]
+                else:
+                    next_node = self._nodes[1]
+                    max_x = min(max_x, next_node[0] - epsilon)
+
+                if self._first_lock[1]:
+                    min_y = max_y = self._focused_node[1]
+
+            elif self._moving_index == len(self._nodes) - 1:
+                # Last node
+                if self._last_lock[0]:
+                    min_x = max_x = self._focused_node[0]
+                else:
+                    prev_node = self._nodes[self._moving_index - 1]
+                    min_x = max(min_x, prev_node[0] + epsilon)
+
+                if self._last_lock[1]:
+                    min_y = max_y = self._focused_node[1]
+
+            else:
+                # Middle node
+                prev_node = self._nodes[self._moving_index - 1]
+                min_x = max(min_x, prev_node[0] + epsilon)
+
+                next_node = self._nodes[self._moving_index + 1]
+                max_x = min(max_x, next_node[0] - epsilon)
+
+            # Get new coordinates
+            new_vis = pointer_vis + self._moving_pointer_offset
+
+            et = self._get_transform_to_env()
+            new_ep = et.map(new_vis)
+            new_x, new_y = new_ep.x(), new_ep.y()
+            clamped_x = min(max(min_x, new_x), max_x)
+            clamped_y = min(max(min_y, new_y), max_y)
+
+            new_coords = (clamped_x, clamped_y)
+
+            self._nodes_changed = (
+                    self._nodes[:self._moving_index] +
+                    [new_coords] +
+                    self._nodes[self._moving_index + 1:])
+            QObject.emit(self, SIGNAL('envelopeChanged()'))
+
+            self._focused_node = new_coords
+
+            self._moving_node_vis = vt.map(QPointF(*self._focused_node))
+
+            # Reduce pointer offset if possible
+            pointer_offset_x = self._moving_pointer_offset.x()
+            pointer_offset_y = self._moving_pointer_offset.y()
+            if clamped_x != new_x:
+                new_offset_x = self._moving_node_vis.x() - pointer_vis.x()
+                if abs(new_offset_x) < abs(pointer_offset_x):
+                    pointer_offset_x = new_offset_x
+            if clamped_y != new_y:
+                new_offset_y = self._moving_node_vis.y() - pointer_vis.y()
+                if abs(new_offset_y) < abs(pointer_offset_y):
+                    pointer_offset_y = new_offset_y
+            self._moving_pointer_offset = QPointF(pointer_offset_x, pointer_offset_y)
+
         elif self._state == STATE_MOVING_MARKER:
             pass
 
@@ -638,14 +746,33 @@ class EnvelopeView(QWidget):
         if self._state != STATE_IDLE:
             return
 
+        vt = self._get_transform_to_vis()
+        pointer_vis = QPointF(event.x(), event.y())
+
+        focused_node = self._find_focused_node(vt, pointer_vis)
+        focused_loop_marker = self._find_focused_loop_marker(vt, pointer_vis)
+
+        if focused_node:
+            self._state = STATE_MOVING
+            self._set_focused_node(focused_node)
+            focused_node_vis = vt.map(QPointF(*focused_node))
+            self._moving_index = self._nodes.index(focused_node)
+            self._moving_pointer_offset = focused_node_vis - pointer_vis
+
+        elif focused_loop_marker != None:
+            pass
+
+        elif len(self._nodes) < self._node_count_max:
+            pass
+
     def mouseReleaseEvent(self, event):
         self._state = STATE_IDLE
 
         vt = self._get_transform_to_vis()
-
         pointer_vis = QPointF(event.x(), event.y())
 
         self._set_focused_node(self._find_focused_node(vt, pointer_vis))
+        self._set_focused_loop_marker(self._find_focused_loop_marker(vt, pointer_vis))
 
     def leaveEvent(self, event):
         self._set_focused_node(None)
@@ -663,7 +790,6 @@ class EnvelopeView(QWidget):
         if not self._curve_image:
             self._curve_image = QImage(
                     rect.width(), rect.height(), QImage.Format_ARGB32_Premultiplied)
-            self._curve_image.fill(0)
 
         if not self._curve_path:
             self._curve_path = QPainterPath()
@@ -672,6 +798,7 @@ class EnvelopeView(QWidget):
                 self._curve_path.lineTo(node[0], node[1])
 
         if is_redraw_needed:
+            self._curve_image.fill(0)
             pw = self._curve_image.width()
             ph = self._curve_image.height()
 
