@@ -131,10 +131,16 @@ class Envelope(QWidget):
 
         QObject.connect(self._zoom_in_x_button, SIGNAL('clicked()'), self._zoom_in_x)
         QObject.connect(self._zoom_out_x_button, SIGNAL('clicked()'), self._zoom_out_x)
+        QObject.connect(
+                self._area.get_envelope_view(),
+                SIGNAL('visRangeNormChanged()'),
+                self._update_zoom_buttons_enabled)
 
     def set_icon_bank(self, icon_bank):
         self._zoom_in_x_button.setIcon(QIcon(icon_bank.get_icon_path('zoom_in')))
         self._zoom_out_x_button.setIcon(QIcon(icon_bank.get_icon_path('zoom_out')))
+
+        self._update_zoom_buttons_enabled()
 
     def get_envelope_view(self):
         return self._area.get_envelope_view()
@@ -147,6 +153,15 @@ class Envelope(QWidget):
 
     def _zoom_out_x(self):
         self._area.get_envelope_view().zoom_out_x()
+
+    def _update_zoom_buttons_enabled(self):
+        ev = self.get_envelope_view()
+
+        area_start_norm, area_end_norm = ev.get_vis_area_x_norm()
+        self._zoom_out_x_button.setEnabled((area_start_norm, area_end_norm) != (0, 1))
+
+        width = ev.get_vis_area_width()
+        self._zoom_in_x_button.setEnabled(width >= 0.001)
 
 
 class EnvelopeArea(QAbstractScrollArea):
@@ -336,7 +351,7 @@ class EnvelopeView(QWidget):
         self.update()
 
     def show_y_area_norm(self, area_start_norm, area_end_norm):
-        pass
+        pass # TODO
 
     def set_x_range_adjust(self, allow_neg, allow_pos):
         self._range_adjust_x = (allow_neg, allow_pos)
@@ -525,9 +540,8 @@ class EnvelopeView(QWidget):
         self.update()
 
     def get_vis_area_x_norm(self):
-        vis_range_min, vis_range_max = self._vis_range_x[0], self._vis_range_x[1]
-        full_range_min, full_range_max = (
-                self._full_vis_range_x[0], self._full_vis_range_x[1])
+        vis_range_min, vis_range_max = self._vis_range_x
+        full_range_min, full_range_max = self._full_vis_range_x
         vis_range_width = vis_range_max - vis_range_min
         full_range_width = full_range_max - full_range_min
 
@@ -536,6 +550,10 @@ class EnvelopeView(QWidget):
         vis_area_end_norm = vis_area_start_norm + vis_area_width_norm
 
         return (min(max(0, vis_area_start_norm), 1), min(max(0, vis_area_end_norm), 1))
+
+    def get_vis_area_width(self):
+        vis_range_min, vis_range_max = self._vis_range_x
+        return vis_range_max - vis_range_min
 
     def update_style(self, style_manager):
         if not style_manager.is_custom_style_enabled():
