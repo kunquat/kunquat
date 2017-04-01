@@ -308,12 +308,6 @@ class EnvelopeView(QWidget):
 
         self.setMouseTracking(True)
 
-    def _get_display_val_min(self, val_range):
-        return val_range[0]
-
-    def _get_display_val_max(self, val_range):
-        return val_range[1]
-
     def set_node_count_max(self, node_count_max):
         self._node_count_max = node_count_max
 
