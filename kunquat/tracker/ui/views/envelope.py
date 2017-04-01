@@ -52,7 +52,7 @@ AXIS_CONFIG = {
 
 DEFAULT_CONFIG = {
     'font'                      : _font,
-    'padding'                   : 3,
+    'padding'                   : 5,
     'is_square_area'            : False,
     'enable_zoom_x'             : False,
     'bg_colour'                 : QColor(0, 0, 0),
