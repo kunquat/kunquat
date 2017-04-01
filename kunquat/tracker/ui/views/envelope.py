@@ -348,10 +348,83 @@ class EnvelopeView(QWidget):
 
     def set_nodes(self, new_nodes):
         assert len(new_nodes) >= 2
+
+        old_vt = self._get_transform_to_vis()
+        old_vis_range_x = self._vis_range_x
+        old_vis_range_y = self._vis_range_y
+
         self._nodes = [(a, b) for (a, b) in new_nodes]
+
+        if any(self._range_adjust_x) or any(self._range_adjust_y):
+            if self._focused_node:
+                # Zoom out so that focused node is visible
+                x, y = self._focused_node
+
+                if not self._range_x[0] <= x <= self._range_x[1]:
+                    new_range_x_min = min(self._range_x[0], x)
+                    new_range_x_max = max(self._range_x[1], x)
+                    self._range_x = (new_range_x_min, new_range_x_max)
+
+                    new_full_vis_x_min = self._get_range_bound(new_range_x_min)
+                    new_full_vis_x_max = self._get_range_bound(new_range_x_max)
+                    self._full_vis_range_x = (new_full_vis_x_min, new_full_vis_x_max)
+
+                while not self._vis_range_x[0] <= x <= self._vis_range_x[1]:
+                    self.zoom_out_x()
+
+                if not self._range_y[0] <= y <= self._range_y[1]:
+                    new_range_y_min = min(self._range_y[0], y)
+                    new_range_y_max = max(self._range_y[1], y)
+                    self._range_y = (new_range_y_min, new_range_y_max)
+
+                    new_full_vis_y_min = self._get_range_bound(new_range_y_min)
+                    new_full_vis_y_max = self._get_range_bound(new_range_y_max)
+                    self._full_vis_range_y = (new_full_vis_y_min, new_full_vis_y_max)
+
+                while not self._vis_range_y[0] <= y <= self._vis_range_y[1]:
+                    self.zoom_out_y()
+
+            else:
+                # Update all ranges and zoom out full
+                min_x, max_x = self._range_x
+                min_y, max_y = self._range_y
+                for node in self._nodes:
+                    x, y = node
+                    min_x = min(min_x, x)
+                    min_y = min(min_y, y)
+                    max_x = max(max_x, x)
+                    max_y = max(max_y, y)
+
+                new_range_x = min_x, max_x
+                new_range_y = min_y, max_y
+
+                if new_range_x != self._range_x:
+                    self._vis_range_x = None
+                    self.set_x_range(min_x, max_x)
+                    self._flush_vis()
+
+                if new_range_y != self._range_y:
+                    self._vis_range_y = None
+                    self.set_y_range(min_y, max_y)
+                    self._flush_vis()
+
+            if (self._moving_node_vis and
+                    (old_vis_range_x != self._vis_range_x or
+                        old_vis_range_y != self._vis_range_y)):
+                assert self._focused_node
+
+                # Get new pointer offset from node
+                new_vt = self._get_transform_to_vis()
+                new_moving_node_vis = new_vt.map(QPointF(*self._focused_node))
+                sub_offset = self._moving_node_vis - new_moving_node_vis
+                self._moving_node_vis = new_moving_node_vis
+                self._moving_pointer_offset -= sub_offset
 
         self._curve_path = None
         self.update()
+
+        if self._state == STATE_WAITING:
+            self._state = STATE_MOVING
 
     def set_loop_markers(self, new_loop_markers):
         assert len(new_loop_markers) >= 2
@@ -398,32 +471,41 @@ class EnvelopeView(QWidget):
 
         self.update()
 
-    def zoom_out_x(self):
-        vis_min_x, vis_max_x = self._vis_range_x
-        range_width = vis_max_x - vis_min_x
-        range_centre = (vis_min_x + vis_max_x) * 0.5
-        new_range_width = 2**round(math.log(range_width * 2, 2))
+    def _get_zoom_out_range(self, cur_range, max_range):
+        min_x, max_x = cur_range
+        range_span = max_x - min_x
+        range_centre = (min_x + max_x) * 0.5
+        new_range_span = 2**round(math.log(range_span * 2, 2))
 
-        vis_range_x_min = self._get_range_bound(self._full_vis_range_x[0])
-        vis_range_x_max = self._get_range_bound(self._full_vis_range_x[1])
-        max_range_width = vis_range_x_max - vis_range_x_min
+        min_x_bound, max_x_bound = max_range
+        max_range_span = max_x_bound - min_x_bound
 
-        if new_range_width < max_range_width:
-            new_vis_min_x = range_centre - new_range_width * 0.5
-            new_vis_max_x = range_centre + new_range_width * 0.5
-            if new_vis_min_x < vis_range_x_min:
-                new_vis_min_x = vis_range_x_min
-                new_vis_max_x = new_vis_min_x + new_range_width
-            elif new_vis_max_x > vis_range_x_max:
-                new_vis_max_x = vis_range_x_max
-                new_vis_min_x = new_vis_max_x - new_range_width
+        if new_range_span < max_range_span:
+            new_min_x = range_centre - new_range_span * 0.5
+            new_max_x = range_centre + new_range_span * 0.5
+            if new_min_x < min_x_bound:
+                new_min_x = min_x_bound
+                new_max_x = min_x_bound + new_range_span
+            elif new_max_x > max_x_bound:
+                new_max_x = max_x_bound
+                new_min_x = max_x_bound - new_range_span
         else:
-            new_vis_min_x, new_vis_max_x = vis_range_x_min, vis_range_x_max
+            new_min_x, new_max_x = max_range
 
-        self._vis_range_x = new_vis_min_x, new_vis_max_x
+        return (new_min_x, new_max_x)
+
+    def zoom_out_x(self):
+        self._vis_range_x = self._get_zoom_out_range(
+                self._vis_range_x, self._full_vis_range_x)
 
         self._flush_vis()
+        self.update()
 
+    def zoom_out_y(self):
+        self._vis_range_y = self._get_zoom_out_range(
+                self._vis_range_y, self._full_vis_range_y)
+
+        self._flush_vis()
         self.update()
 
     def get_vis_area_x_norm(self):
