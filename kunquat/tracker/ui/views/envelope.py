@@ -625,7 +625,7 @@ class EnvelopeView(QWidget):
         et = self._get_envelope_transform()
 
         t = et * QTransform().translate(
-                rect.x(), rect.y() + area_h).scale(area_w - 1, -area_h + 1)
+                rect.x(), rect.y() + area_h - 1).scale(area_w - 1, -area_h + 1)
         return t
 
     def _get_transform_to_env(self):
@@ -996,8 +996,15 @@ class EnvelopeView(QWidget):
 
             pp = QPainter(self._curve_image)
 
+            # Test
+            '''
+            pp.setPen(QColor('#fff'))
+            pp.drawRect(0, 0, pw - 1, ph - 1)
+            '''
+
             et = self._get_envelope_transform()
             t = et * QTransform().translate(0.5, -0.5 + ph).scale(pw - 1, -ph + 1)
+            #t = et * QTransform().translate(0, ph - 1).scale(pw - 1, -ph + 1)
             pp.setTransform(t)
 
             pp.setPen(QColor(self._config['line_colour']))
@@ -1023,7 +1030,7 @@ class EnvelopeView(QWidget):
         painter.setPen(self._config['focused_node_axis_colour'])
 
         node_point = vt.map(QPointF(*self._focused_node))
-        node_x, node_y = node_point.x(), node_point.y()
+        node_x, node_y = int(round(node_point.x())), int(round(node_point.y()))
 
         painter.drawLine(rect.x(), node_y, rect.x() + rect.width() - 1, node_y)
         painter.drawLine(node_x, rect.y(), node_x, rect.y() + rect.height() - 1)
@@ -1057,8 +1064,8 @@ class EnvelopeView(QWidget):
         # Get x coordinates
         start_index = self._loop_markers[0]
         end_index = self._loop_markers[1]
-        start_x = t.map(QPointF(*self._nodes[start_index])).x()
-        end_x = t.map(QPointF(*self._nodes[end_index])).x()
+        start_x = int(round(t.map(QPointF(*self._nodes[start_index])).x()))
+        end_x = int(round(t.map(QPointF(*self._nodes[end_index])).x()))
 
         # Draw marker lines
         pen = QPen()
@@ -1118,14 +1125,14 @@ class EnvelopeView(QWidget):
                 continue
 
             point = t.map(QPointF(x, y))
-            vis_x, vis_y = point.x(), point.y()
+            vis_x, vis_y = int(round(point.x())), int(round(point.y()))
 
             colour = self._config['node_colour']
             if node == self._focused_node:
                 colour = self._config['focused_node_colour']
 
             painter.fillRect(
-                    vis_x - node_size / 2, vis_y - node_size / 2,
+                    vis_x - node_size // 2, vis_y - node_size // 2,
                     node_size, node_size,
                     colour)
 
@@ -1156,7 +1163,7 @@ class EnvelopeView(QWidget):
         painter.restore()
 
         painter.save()
-        painter.translate(QPoint(padding, 0))
+        painter.translate(QPoint(padding + 1, 0))
         self._axis_y_renderer.set_height(self.height())
         self._axis_y_renderer.set_padding(padding)
         self._axis_y_renderer.set_x_offset_y(rect.y() + rect.height() - 1)
