@@ -144,11 +144,9 @@ class Envelope(QWidget):
 
     def _zoom_in_x(self):
         self._area.get_envelope_view().zoom_in_x()
-        self._area.update_scrollbars()
 
     def _zoom_out_x(self):
         self._area.get_envelope_view().zoom_out_x()
-        self._area.update_scrollbars()
 
 
 class EnvelopeArea(QAbstractScrollArea):
@@ -170,13 +168,18 @@ class EnvelopeArea(QAbstractScrollArea):
         self.setViewport(EnvelopeView(init_config))
         self.viewport().setFocusProxy(None)
 
+        QObject.connect(
+                self.viewport(),
+                SIGNAL('visRangeNormChanged()'),
+                self._update_scrollbars)
+
     def get_envelope_view(self):
         return self.viewport()
 
     def update_style(self, style_manager):
         self.viewport().update_style(style_manager)
 
-    def update_scrollbars(self):
+    def _update_scrollbars(self):
         if self._config['enable_zoom_x']:
             ev = self.get_envelope_view()
             area_start_norm, area_end_norm = ev.get_vis_area_x_norm()
@@ -225,6 +228,7 @@ STATE_MOVING_MARKER = 'moving_marker'
 class EnvelopeView(QWidget):
 
     envelopeChanged = Signal(name='envelopeChanged')
+    visRangeNormChanged = Signal(name='visRangeNormChanged')
 
     def __init__(self, init_config={}):
         super().__init__()
@@ -398,14 +402,20 @@ class EnvelopeView(QWidget):
                 new_range_x = min_x, max_x
                 new_range_y = min_y, max_y
 
+                ranges_changed = False
+
                 if new_range_x != self._range_x:
+                    ranges_changed = True
                     self._vis_range_x = None
                     self.set_x_range(min_x, max_x)
-                    self._flush_vis()
 
                 if new_range_y != self._range_y:
+                    ranges_changed = True
                     self._vis_range_y = None
                     self.set_y_range(min_y, max_y)
+
+                if ranges_changed:
+                    QObject.emit(self, SIGNAL('visRangeNormChanged()'))
                     self._flush_vis()
 
             if (self._moving_node_vis and
@@ -467,6 +477,8 @@ class EnvelopeView(QWidget):
 
         self._vis_range_x = new_vis_min_x, new_vis_max_x
 
+        QObject.emit(self, SIGNAL('visRangeNormChanged()'))
+
         self._flush_vis()
 
         self.update()
@@ -498,12 +510,16 @@ class EnvelopeView(QWidget):
         self._vis_range_x = self._get_zoom_out_range(
                 self._vis_range_x, self._full_vis_range_x)
 
+        QObject.emit(self, SIGNAL('visRangeNormChanged()'))
+
         self._flush_vis()
         self.update()
 
     def zoom_out_y(self):
         self._vis_range_y = self._get_zoom_out_range(
                 self._vis_range_y, self._full_vis_range_y)
+
+        QObject.emit(self, SIGNAL('visRangeNormChanged()'))
 
         self._flush_vis()
         self.update()
