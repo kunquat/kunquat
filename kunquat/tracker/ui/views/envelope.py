@@ -19,7 +19,6 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
-from .linesegment import LineSegment
 from .utils import lerp_val
 
 
