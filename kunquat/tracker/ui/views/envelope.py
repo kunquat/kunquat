@@ -257,7 +257,7 @@ class EnvelopeView(QWidget):
 
         self._state = STATE_IDLE
         self._moving_index = None
-        self._moving_pointer_offset = (0, 0)
+        self._moving_pointer_offset = QPointF(0, 0)
         self._moving_node_vis = None
 
         self._moving_loop_marker = None
@@ -713,7 +713,7 @@ class EnvelopeView(QWidget):
 
             if (len(self._nodes) > 2) and (not is_node_locked):
                 remove_dist = self._config['node_remove_dist_min']
-                node_vis = vt.map(*self._focused_node)
+                node_vis = vt.map(QPointF(*self._focused_node))
                 node_offset_vis = node_vis - self._moving_pointer_offset
                 if self._get_dist_to_node(pointer_vis, node_offset_vis) >= remove_dist:
                     self._nodes_changed = (
@@ -845,7 +845,69 @@ class EnvelopeView(QWidget):
             pass
 
         elif len(self._nodes) < self._node_count_max:
-            pass
+            et = self._get_transform_to_env()
+            new_val_point = et.map(pointer_vis)
+            new_val_x = new_val_point.x()
+            new_val_y = new_val_point.y()
+
+            epsilon = 0.0000001
+
+            # Get x limits
+            min_x = float('-inf')
+            max_x = float('inf')
+
+            if not self._range_adjust_x[0]:
+                min_x = self._range_x[0]
+            if not self._range_adjust_x[1]:
+                max_x = self._range_x[1]
+
+            if any(self._first_lock):
+                min_x = self._nodes[0][0] + epsilon
+            if any(self._last_lock):
+                max_x = self._nodes[-1][0] - epsilon
+
+            insert_pos = 0
+            for i, node in enumerate(self._nodes):
+                insert_pos = i
+                cur_x, _ = node
+                if cur_x < new_val_x:
+                    min_x = cur_x + epsilon
+                else:
+                    max_x = cur_x - epsilon
+                    break
+            else:
+                insert_pos = len(self._nodes)
+
+            # Get y limits
+            min_y = float('-inf')
+            max_y = float('inf')
+
+            if not self._range_adjust_y[0]:
+                min_y = self._range_y[0]
+            if not self._range_adjust_y[1]:
+                max_y = self._range_y[1]
+
+            if min_x <= max_x and min_y <= max_y:
+                new_val_x = min(max(min_x, new_val_x), max_x)
+                new_val_y = min(max(min_y, new_val_y), max_y)
+                new_node = (new_val_x, new_val_y)
+
+                self._nodes_changed = (
+                        self._nodes[:insert_pos] +
+                        [new_node] +
+                        self._nodes[insert_pos:])
+
+                new_loop_markers = [(m if m < insert_pos else m + 1)
+                        for m in self._loop_markers]
+                if new_loop_markers != self._loop_markers:
+                    self._loop_markers_changed = new_loop_markers
+
+                QObject.emit(self, SIGNAL('envelopeChanged()'))
+
+                self._state = STATE_WAITING
+                self._set_focused_node(new_node)
+                self._moving_index = insert_pos
+                self._moving_pointer_offset = QPointF(0, 0)
 
     def mouseReleaseEvent(self, event):
         self._state = STATE_IDLE
