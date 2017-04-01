@@ -75,7 +75,8 @@ DEFAULT_CONFIG = {
 
 class EnvelopeScrollBar(QScrollBar):
 
-    _AREA_WIDTH = 10000
+    _AREA_SPAN = 1000000
+    _STEP_SIZE = 40
 
     def __init__(self, orientation):
         super().__init__(orientation)
@@ -86,14 +87,19 @@ class EnvelopeScrollBar(QScrollBar):
 
         old_block = self.blockSignals(True)
         self.setMinimum(0)
-        self.setMaximum(max(0, self._AREA_WIDTH * (1 - width_norm)))
-        self.setPageStep(self._AREA_WIDTH * width_norm)
-        self.setValue(area_start_norm * self._AREA_WIDTH)
+        self.setMaximum(max(0, self._AREA_SPAN * (1 - width_norm)))
+        self.setPageStep(self._AREA_SPAN * width_norm)
+        self.setValue(area_start_norm * self._AREA_SPAN)
         self.blockSignals(old_block)
 
+    def set_vis_area_span(self, vis_area_span):
+        width_norm = self.pageStep() / self._AREA_SPAN
+        self.setSingleStep(
+                max(1, int(self._AREA_SPAN / (self._STEP_SIZE / vis_area_span))))
+
     def get_area(self):
-        width_norm = self.pageStep() / self._AREA_WIDTH
-        area_start_norm = self.value() / self._AREA_WIDTH
+        width_norm = self.pageStep() / self._AREA_SPAN
+        area_start_norm = self.value() / self._AREA_SPAN
         area_end_norm = min(1, area_start_norm + width_norm)
         return (area_start_norm, area_end_norm)
 
@@ -197,7 +203,10 @@ class EnvelopeArea(QAbstractScrollArea):
         if self._config['enable_zoom_x']:
             ev = self.get_envelope_view()
             area_start_norm, area_end_norm = ev.get_vis_area_x_norm()
-            self.horizontalScrollBar().set_area(area_start_norm, area_end_norm)
+            area_width = ev.get_vis_area_width()
+            hs = self.horizontalScrollBar()
+            hs.set_area(area_start_norm, area_end_norm)
+            hs.set_vis_area_span(area_width)
 
     def paintEvent(self, event):
         self.viewport().paintEvent(event)
