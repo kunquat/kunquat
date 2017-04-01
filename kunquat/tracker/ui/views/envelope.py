@@ -611,6 +611,10 @@ class EnvelopeView(QWidget):
         width_px = self.width() - padding * 2 - axis_y_width
         height_px = self.height() - padding * 2 - axis_x_height
 
+        if self._config['is_square_area']:
+            min_dim_px = min(width_px, height_px)
+            width_px = height_px = min_dim_px
+
         return QRect(padding + axis_y_width, padding, width_px, height_px)
 
     def _get_transform_to_vis(self):
