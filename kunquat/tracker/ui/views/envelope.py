@@ -1183,7 +1183,7 @@ class EnvelopeView(QWidget):
 
         end = time.time()
         elapsed = end - start
-        print('Envelope view updated in {:.2f} ms'.format(elapsed * 1000))
+        #print('Envelope view updated in {:.2f} ms'.format(elapsed * 1000))
 
     def resizeEvent(self, event):
         self._curve_image = None
