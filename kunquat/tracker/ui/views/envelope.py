@@ -812,7 +812,33 @@ class EnvelopeView(QWidget):
             self._moving_pointer_offset = QPointF(pointer_offset_x, pointer_offset_y)
 
         elif self._state == STATE_MOVING_MARKER:
-            pass
+            assert self._focused_loop_marker != None
+
+            pointer_vis_x = pointer_vis.x()
+
+            # Find the nearest node by x coordinate
+            nearest_node_index = None
+            nearest_dist = float('inf')
+            for i, node in enumerate(self._nodes):
+                node_vis = vt.map(QPointF(*node))
+                node_vis_x = node_vis.x()
+                dist_x = abs(pointer_vis_x - node_vis_x)
+                if dist_x < nearest_dist:
+                    nearest_node_index = i
+                    nearest_dist = dist_x
+
+            # Clamp to boundaries
+            new_loop_markers = list(self._loop_markers)
+            if self._focused_loop_marker == 0:
+                new_loop_markers[0] = min(max(
+                    0, nearest_node_index), new_loop_markers[1])
+            else:
+                new_loop_markers[1] = min(max(
+                    new_loop_markers[0], nearest_node_index), len(self._nodes) - 1)
+
+            if new_loop_markers != self._loop_markers:
+                self._loop_markers_changed = new_loop_markers
+                QObject.emit(self, SIGNAL('envelopeChanged()'))
 
         elif self._state == STATE_IDLE:
             focused_node = self._find_focused_node(vt, pointer_vis)
@@ -842,7 +868,9 @@ class EnvelopeView(QWidget):
             self._moving_pointer_offset = focused_node_vis - pointer_vis
 
         elif focused_loop_marker != None:
-            pass
+            self._state = STATE_MOVING_MARKER
+            self._set_focused_loop_marker(focused_loop_marker)
+            self._moving_loop_marker = focused_loop_marker
 
         elif len(self._nodes) < self._node_count_max:
             et = self._get_transform_to_env()
