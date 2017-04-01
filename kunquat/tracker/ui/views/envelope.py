@@ -1081,6 +1081,8 @@ class EnvelopeView(QWidget):
         # Get x coordinates
         start_index = self._loop_markers[0]
         end_index = self._loop_markers[1]
+        start_node_x, _ = self._nodes[start_index]
+        end_node_x, _ = self._nodes[end_index]
         start_x = int(round(t.map(QPointF(*self._nodes[start_index])).x()))
         end_x = int(round(t.map(QPointF(*self._nodes[end_index])).x()))
 
@@ -1090,36 +1092,44 @@ class EnvelopeView(QWidget):
 
         # Make sure the focused line is drawn on top
         x_coords = start_x, end_x
+        node_x_coords = start_node_x, end_node_x
         first_line_index = 1 if self._focused_loop_marker == 0 else 0
         second_line_index = 1 - first_line_index
 
-        pen.setColor(get_line_colour(first_line_index))
-        painter.setPen(pen)
-        painter.drawLine(
-                x_coords[first_line_index], 0,
-                x_coords[first_line_index], rect.height() - 1)
-        pen.setColor(get_line_colour(second_line_index))
-        painter.setPen(pen)
-        painter.drawLine(
-                x_coords[second_line_index], 0,
-                x_coords[second_line_index], rect.height() - 1)
+        vis_x_min, vis_x_max = self._vis_range_x
+
+        if vis_x_min <= node_x_coords[first_line_index] <= vis_x_max:
+            pen.setColor(get_line_colour(first_line_index))
+            painter.setPen(pen)
+            painter.drawLine(
+                    x_coords[first_line_index], 0,
+                    x_coords[first_line_index], rect.height() - 1)
+
+        if vis_x_min <= node_x_coords[second_line_index] <= vis_x_max:
+            pen.setColor(get_line_colour(second_line_index))
+            painter.setPen(pen)
+            painter.drawLine(
+                    x_coords[second_line_index], 0,
+                    x_coords[second_line_index], rect.height() - 1)
 
         # Draw marker handles
         painter.setPen(Qt.NoPen)
         handle_size = self._config['loop_handle_size']
         focused = self._focused_loop_marker
 
-        painter.setBrush(get_handle_colour(0))
-        painter.drawConvexPolygon(QPolygon([
-                QPoint(start_x - handle_size + 1, 0),
-                QPoint(start_x + handle_size, 0),
-                QPoint(start_x, handle_size)]))
+        if vis_x_min <= start_node_x <= vis_x_max:
+            painter.setBrush(get_handle_colour(0))
+            painter.drawConvexPolygon(QPolygon([
+                    QPoint(start_x - handle_size + 1, 0),
+                    QPoint(start_x + handle_size, 0),
+                    QPoint(start_x, handle_size)]))
 
-        painter.setBrush(get_handle_colour(1))
-        painter.drawConvexPolygon(QPolygon([
-                QPoint(end_x - handle_size, rect.height() - 1),
-                QPoint(end_x + handle_size + 1, rect.height() - 1),
-                QPoint(end_x, rect.height() - 1 - handle_size)]))
+        if vis_x_min <= end_node_x <= vis_x_max:
+            painter.setBrush(get_handle_colour(1))
+            painter.drawConvexPolygon(QPolygon([
+                    QPoint(end_x - handle_size, rect.height() - 1),
+                    QPoint(end_x + handle_size + 1, rect.height() - 1),
+                    QPoint(end_x, rect.height() - 1 - handle_size)]))
 
         painter.restore()
 
