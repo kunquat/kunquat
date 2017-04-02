@@ -198,12 +198,14 @@ class AbstractAxisRenderer():
             start_px = int(round(get_pos_norm(min_whole) * (self._axis_length - 1)))
 
             for i in range(min_whole, max_whole + marker_interval, marker_interval):
-                end_px = int(round(get_pos_norm(i + 1) * (self._axis_length - 1)))
+                end_px = int(round(
+                    get_pos_norm(i + marker_interval) * (self._axis_length - 1)))
 
-                draw_marker(painter, start_px, init_marker_width)
+                if val_min <= i <= val_max:
+                    draw_marker(painter, start_px, init_marker_width)
 
-                if i % whole_num_interval == 0:
-                    draw_label(painter, start_px, i)
+                    if i % whole_num_interval == 0:
+                        draw_label(painter, start_px, i)
 
                 start_px = end_px
 

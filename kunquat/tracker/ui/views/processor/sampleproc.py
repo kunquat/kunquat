@@ -355,20 +355,18 @@ class RandomListMap(QWidget, ProcessorUpdater):
         axis_x_length = self.width() - axis_y_width - (padding * 2) + 1
         axis_y_length = self.height() - axis_x_height - (padding * 2) + 1
 
-        painter.setTransform(
-                QTransform().translate(padding, axis_x_top))
+        painter.setTransform(QTransform().translate(0, axis_x_top))
         self._axis_x_renderer.set_width(self.width())
+        self._axis_x_renderer.set_x_offset(padding + axis_y_width - 1)
         self._axis_x_renderer.set_axis_length(axis_x_length)
-        self._axis_x_renderer.set_x_offset(axis_y_width - 1)
-        self._axis_x_renderer.set_y_offset_x(self.width() - axis_y_width - padding * 2)
         self._axis_x_renderer.render(painter)
 
         if self._has_pitch_axis():
-            painter.setTransform(QTransform().translate(padding, padding))
+            painter.setTransform(QTransform().translate(padding, 0))
             self._axis_y_renderer.set_height(self.height())
+            self._axis_y_renderer.set_padding(padding)
+            self._axis_y_renderer.set_x_offset_y(axis_x_top - 1)
             self._axis_y_renderer.set_axis_length(axis_y_length)
-            self._axis_y_renderer.set_x_offset_y(
-                    (self.height() - axis_x_height - padding * 2) // 2)
             self._axis_y_renderer.render(painter)
 
         # Note map points
