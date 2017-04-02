@@ -739,7 +739,7 @@ class EnvelopeView(QWidget):
         vt = self._get_transform_to_vis()
         et = self._get_transform_to_env()
 
-        pointer_vis = QPointF(event.x(), event.y())
+        pointer_vis = QPointF(event.x() - 1, event.y() - 1)
 
         if self._state == STATE_MOVING:
             assert self._focused_node != None
@@ -895,7 +895,7 @@ class EnvelopeView(QWidget):
             return
 
         vt = self._get_transform_to_vis()
-        pointer_vis = QPointF(event.x(), event.y())
+        pointer_vis = QPointF(event.x() - 1, event.y() - 1)
 
         focused_node = self._find_focused_node(vt, pointer_vis)
         focused_loop_marker = self._find_focused_loop_marker(vt, pointer_vis)
@@ -981,7 +981,7 @@ class EnvelopeView(QWidget):
         self._state = STATE_IDLE
 
         vt = self._get_transform_to_vis()
-        pointer_vis = QPointF(event.x(), event.y())
+        pointer_vis = QPointF(event.x() - 1, event.y() - 1)
 
         self._set_focused_node(self._find_focused_node(vt, pointer_vis))
         self._set_focused_loop_marker(self._find_focused_loop_marker(vt, pointer_vis))
