@@ -151,10 +151,10 @@ class AbstractAxisRenderer():
             min_whole = int(math.floor(val_range[0]))
             max_whole = int(math.ceil(val_range[1]))
 
-            start_px = get_pos_norm(min_whole) * (self._axis_length - 1)
+            start_px = int(round(get_pos_norm(min_whole) * (self._axis_length - 1)))
 
             for i in range(min_whole, max_whole + 1):
-                end_px = get_pos_norm(i + 1) * (self._axis_length - 1)
+                end_px = int(round(get_pos_norm(i + 1) * (self._axis_length - 1)))
 
                 if (val_min <= i <= val_max) and ((i != 0) or self._draw_zero_marker):
                     draw_marker(painter, start_px, init_marker_width)
@@ -186,10 +186,10 @@ class AbstractAxisRenderer():
             max_whole = (int(math.ceil(val_range[1] / marker_interval)) *
                     marker_interval)
 
-            start_px = get_pos_norm(min_whole) * (self._axis_length - 1)
+            start_px = int(round(get_pos_norm(min_whole) * (self._axis_length - 1)))
 
             for i in range(min_whole, max_whole + marker_interval, marker_interval):
-                end_px = get_pos_norm(i + 1) * (self._axis_length - 1)
+                end_px = int(round(get_pos_norm(i + 1) * (self._axis_length - 1)))
 
                 draw_marker(painter, start_px, init_marker_width)
 
