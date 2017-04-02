@@ -456,12 +456,13 @@ class EgenTimeEnv(ProcessorTimeEnvelope):
         return True
 
     def _make_envelope_widget(self):
-        envelope = Envelope()
-        envelope.set_node_count_max(32)
-        envelope.set_y_range(0, 1)
-        envelope.set_x_range(0, 4)
-        envelope.set_first_lock(True, False)
-        envelope.set_x_range_adjust(False, True)
+        envelope = Envelope({ 'enable_zoom_x': True })
+        ev = envelope.get_envelope_view()
+        ev.set_node_count_max(32)
+        ev.set_y_range(0, 1)
+        ev.set_x_range(0, 4)
+        ev.set_first_lock(True, False)
+        ev.set_x_range_adjust(False, True)
         return envelope
 
     def _get_update_signal_type(self):
