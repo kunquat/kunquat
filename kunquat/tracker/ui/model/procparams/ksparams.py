@@ -27,7 +27,6 @@ class KsParams(ProcParams):
             'in_01':  'force',
             'in_02':  'excit',
             'in_03':  'damp',
-            'in_04':  'env.stch',
             'out_00': 'audio',
         }
 
@@ -39,68 +38,5 @@ class KsParams(ProcParams):
 
     def set_damp(self, value):
         self._set_value('p_f_damp.json', value)
-
-    def get_init_env_loop_enabled(self):
-        return self._get_value('p_b_init_env_loop_enabled.json', False)
-
-    def set_init_env_loop_enabled(self, enabled):
-        self._set_value('p_b_init_env_loop_enabled.json', enabled)
-
-    def get_init_env(self):
-        ret_env = { 'nodes': [ [0, 1], [0.01, 0] ], 'marks': [0, 1], 'smooth': False }
-        stored_env = self._get_value('p_e_init_env.json', None) or {}
-        ret_env.update(stored_env)
-        return ret_env
-
-    def set_init_env(self, envelope):
-        self._set_value('p_e_init_env.json', envelope)
-
-    def get_shift_env_enabled(self):
-        return self._get_value('p_b_shift_env_enabled.json', False)
-
-    def set_shift_env_enabled(self, enabled):
-        self._set_value('p_b_shift_env_enabled.json', enabled)
-
-    def get_shift_env(self):
-        ret_env = { 'nodes': [ [0, 1], [0.001, 0] ], 'smooth': False }
-        stored_env = self._get_value('p_e_shift_env.json', None) or {}
-        ret_env.update(stored_env)
-        return ret_env
-
-    def set_shift_env(self, envelope):
-        self._set_value('p_e_shift_env.json', envelope)
-
-    def get_shift_env_trigger_threshold(self):
-        return self._get_value('p_f_shift_env_trig_threshold.json', 40)
-
-    def set_shift_env_trigger_threshold(self, value):
-        self._set_value('p_f_shift_env_trig_threshold.json', value)
-
-    def get_shift_env_strength_var(self):
-        return self._get_value('p_f_shift_env_strength_var.json', 0)
-
-    def set_shift_env_strength_var(self, value):
-        self._set_value('p_f_shift_env_strength_var.json', value)
-
-    def get_release_env_enabled(self):
-        return self._get_value('p_b_rel_env_enabled.json', False)
-
-    def set_release_env_enabled(self, enabled):
-        self._set_value('p_b_rel_env_enabled.json', enabled)
-
-    def get_release_env(self):
-        ret_env = { 'nodes': [ [0, 1], [0.01, 0] ], 'smooth': False }
-        stored_env = self._get_value('p_e_rel_env.json', None) or {}
-        ret_env.update(stored_env)
-        return ret_env
-
-    def set_release_env(self, envelope):
-        self._set_value('p_e_rel_env.json', envelope)
-
-    def get_release_env_strength_var(self):
-        return self._get_value('p_f_rel_env_strength_var.json', 0)
-
-    def set_release_env_strength_var(self, value):
-        self._set_value('p_f_rel_env_strength_var.json', value)
 
 

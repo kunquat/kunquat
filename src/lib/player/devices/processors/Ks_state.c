@@ -24,7 +24,6 @@
 #include <player/devices/processors/Filter.h>
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/devices/Voice_state.h>
-#include <player/Time_env_state.h>
 #include <player/Work_buffer.h>
 #include <player/Work_buffers.h>
 
@@ -233,18 +232,6 @@ typedef struct Ks_vstate
     bool is_xfading;
     double xfade_progress;
     Read_state read_states[2];
-
-    Time_env_state init_env_state;
-
-    bool is_shifting;
-    bool is_shift_env_active;
-    float shift_env_scale;
-    float prev_pitch;
-    Time_env_state shift_env_state;
-
-    float rel_env_scale;
-    bool has_rel_started;
-    Time_env_state rel_env_state;
 } Ks_vstate;
 
 
@@ -260,7 +247,6 @@ enum
     PORT_IN_FORCE,
     PORT_IN_EXCITATION,
     PORT_IN_DAMP,
-    PORT_IN_ENV_STRETCH,
     PORT_IN_COUNT
 };
 
@@ -276,9 +262,6 @@ static const int KS_WB_FIXED_PITCH       = WORK_BUFFER_IMPL_1;
 static const int KS_WB_FIXED_FORCE       = WORK_BUFFER_IMPL_2;
 static const int KS_WB_FIXED_EXCITATION  = WORK_BUFFER_IMPL_3;
 static const int KS_WB_FIXED_DAMP        = WORK_BUFFER_IMPL_4;
-static const int KS_WB_ENVELOPE          = WORK_BUFFER_IMPL_5;
-static const int KS_WB_ENVELOPE_ADD      = WORK_BUFFER_IMPL_6;
-static const int KS_WB_FIXED_ENV_STRETCH = WORK_BUFFER_IMPL_7;
 
 
 static int32_t Ks_vstate_render_voice(
@@ -366,21 +349,6 @@ static int32_t Ks_vstate_render_voice(
     }
     const float* damps = Work_buffer_get_contents(damps_wb);
 
-    // Get envelope stretch signal
-    Work_buffer* stretch_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_ENV_STRETCH);
-    if (stretch_wb == NULL)
-    {
-        Work_buffer* fixed_stretch_wb =
-            Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_ENV_STRETCH);
-        Work_buffer_clear(fixed_stretch_wb, buf_start, buf_stop);
-        stretch_wb = fixed_stretch_wb;
-    }
-    else
-    {
-        Proc_clamp_pitch_values(stretch_wb, buf_start, buf_stop);
-    }
-
     // Get delay buffer
     Work_buffer* delay_wb = ks_vstate->parent.wb;
     rassert(delay_wb != NULL);
@@ -393,8 +361,6 @@ static int32_t Ks_vstate_render_voice(
     {
         ks_vstate->write_pos = 0;
 
-        ks_vstate->prev_pitch = pitches[buf_start];
-
         Read_state_init(
                 &ks_vstate->read_states[ks_vstate->primary_read_state],
                 damps[buf_start],
@@ -402,166 +368,6 @@ static int32_t Ks_vstate_render_voice(
                 ks_vstate->write_pos,
                 delay_wb_size,
                 audio_rate);
-    }
-
-    // Process excitation envelopes
-    {
-        Work_buffer* env_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_ENVELOPE);
-        float* env_buf = Work_buffer_get_contents_mut(env_wb);
-
-        // Get initial envelope stream
-        const int32_t init_env_buf_stop = Time_env_state_process(
-                &ks_vstate->init_env_state,
-                ks->init_env,
-                ks->is_init_env_loop_enabled,
-                0, // sustain
-                0, 1, // range
-                stretch_wb,
-                env_buf,
-                buf_start,
-                buf_stop,
-                audio_rate);
-
-        // Check the end of initial envelope processing
-        if (ks_vstate->init_env_state.is_finished)
-        {
-            const double* last_node = Envelope_get_node(
-                    ks->init_env, Envelope_node_count(ks->init_env) - 1);
-            const float last_value = (float)last_node[1];
-
-            for (int32_t i = init_env_buf_stop; i < buf_stop; ++i)
-                env_buf[i] = last_value;
-        }
-
-        // Apply shift envelope
-        if (ks->is_shift_env_enabled)
-        {
-            const double threshold = ks->shift_env_trig_threshold;
-
-            float prev_pitch = ks_vstate->prev_pitch;
-
-            int32_t shift_i = buf_start;
-            while (shift_i < buf_stop)
-            {
-                const int32_t process_start = shift_i;
-
-                bool restart_after = false;
-
-                if (ks_vstate->is_shifting)
-                {
-                    // See how long we should continue in shifting state
-                    for (; shift_i < buf_stop; ++shift_i)
-                    {
-                        const double pitch_diff = fabs(pitches[shift_i] - prev_pitch);
-                        prev_pitch = pitches[shift_i];
-                        if (pitch_diff < threshold)
-                        {
-                            ks_vstate->is_shifting = false;
-                            ++shift_i;
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    // See how long we should continue outside shifting state
-                    for (; shift_i < buf_stop; ++shift_i)
-                    {
-                        const double pitch_diff = fabs(pitches[shift_i] - prev_pitch);
-                        prev_pitch = pitches[shift_i];
-                        if (pitch_diff >= threshold)
-                        {
-                            ks_vstate->is_shifting = true;
-                            restart_after = true;
-                            ++shift_i;
-                            break;
-                        }
-                    }
-                }
-
-                // Process envelope
-                if (ks_vstate->is_shift_env_active)
-                {
-                    float* env_add_buf = Work_buffers_get_buffer_contents_mut(
-                            wbs, KS_WB_ENVELOPE_ADD);
-
-                    const int32_t shift_env_buf_stop = Time_env_state_process(
-                            &ks_vstate->shift_env_state,
-                            ks->shift_env,
-                            false, // has loop
-                            0, // sustain
-                            0, 1, // range
-                            stretch_wb,
-                            env_add_buf,
-                            process_start,
-                            shift_i,
-                            audio_rate);
-
-                    if (ks_vstate->shift_env_state.is_finished)
-                        ks_vstate->is_shift_env_active = false;
-
-                    // Add envelope to the main envelope buffer
-                    const float scale = ks_vstate->shift_env_scale;
-                    for (int32_t i = process_start; i < shift_env_buf_stop; ++i)
-                        env_buf[i] += env_add_buf[i] * scale;
-                }
-
-                if (restart_after)
-                {
-                    Time_env_state_init(&ks_vstate->shift_env_state);
-                    ks_vstate->is_shift_env_active = true;
-
-                    double strength_dB =
-                        Random_get_float_scale(vstate->rand_p) *
-                        ks->shift_env_strength_var *
-                        2.0;
-                    strength_dB -= ks->shift_env_strength_var;
-                    ks_vstate->shift_env_scale = (float)dB_to_scale(strength_dB);
-                }
-            }
-
-            ks_vstate->prev_pitch = prev_pitch;
-        }
-
-        // Apply release envelope
-        if (!vstate->note_on && ks->is_rel_env_enabled)
-        {
-            if (!ks_vstate->has_rel_started)
-            {
-                double strength_dB =
-                    Random_get_float_scale(vstate->rand_p) *
-                    ks->rel_env_strength_var *
-                    2.0;
-                strength_dB -= ks->rel_env_strength_var;
-                ks_vstate->rel_env_scale = (float)dB_to_scale(strength_dB);
-
-                ks_vstate->has_rel_started = true;
-            }
-
-            float* env_add_buf = Work_buffers_get_buffer_contents_mut(
-                    wbs, KS_WB_ENVELOPE_ADD);
-
-            const int32_t rel_env_buf_stop = Time_env_state_process(
-                    &ks_vstate->rel_env_state,
-                    ks->rel_env,
-                    false, // has loop
-                    0, // sustain
-                    0, 1, // range
-                    stretch_wb,
-                    env_add_buf,
-                    buf_start,
-                    buf_stop,
-                    audio_rate);
-
-            // Add envelope to the main envelope buffer
-            const float scale = ks_vstate->rel_env_scale;
-            for (int32_t i = buf_start; i < rel_env_buf_stop; ++i)
-                env_buf[i] += env_add_buf[i] * scale;
-        }
-
-        // Apply envelope(s) to the excitation signal
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            excits[i] *= env_buf[i];
     }
 
     int32_t write_pos = ks_vstate->write_pos;
@@ -677,18 +483,6 @@ void Ks_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     Work_buffer* delay_wb = ks_vstate->parent.wb;
     rassert(delay_wb != NULL);
     Work_buffer_clear(delay_wb, 0, Work_buffer_get_size(delay_wb));
-
-    Time_env_state_init(&ks_vstate->init_env_state);
-
-    ks_vstate->is_shifting = false;
-    ks_vstate->is_shift_env_active = false;
-    ks_vstate->shift_env_scale = 1.0f;
-    ks_vstate->prev_pitch = NAN;
-    Time_env_state_init(&ks_vstate->shift_env_state);
-
-    ks_vstate->rel_env_scale = 1.0f;
-    ks_vstate->has_rel_started = false;
-    Time_env_state_init(&ks_vstate->rel_env_state);
 
     return;
 }
