@@ -1181,9 +1181,14 @@ class EnvelopeView(QWidget):
 
         padding = self._config['padding']
 
+        vt = self._get_transform_to_vis()
+        zero_point = vt.map(QPointF(0, 0))
+        zero_x, zero_y = int(round(zero_point.x())), int(round(zero_point.y()))
+
         # Axes
         painter.save()
-        painter.translate(QPoint(0, rect.y() + rect.height() - 1))
+        painter.translate(QPoint(
+            0, min(max(rect.y(), zero_y), rect.y() + rect.height() - 1)))
         self._axis_x_renderer.set_width(self.width())
         self._axis_x_renderer.set_x_offset(rect.x())
         self._axis_x_renderer.set_axis_length(rect.width())
@@ -1193,7 +1198,8 @@ class EnvelopeView(QWidget):
         painter.restore()
 
         painter.save()
-        painter.translate(QPoint(padding + 1, 0))
+        painter.translate(QPoint(
+            padding + 1 + min(max(0, zero_x - rect.x()), rect.width() - 1), 0))
         self._axis_y_renderer.set_height(self.height())
         self._axis_y_renderer.set_padding(padding)
         self._axis_y_renderer.set_x_offset_y(rect.y() + rect.height() - 1)
