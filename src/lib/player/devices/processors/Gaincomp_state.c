@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -46,16 +46,30 @@ static void distort(
         const float* in_values = Work_buffer_get_contents(in_buffer);
         float* out_values = Work_buffer_get_contents_mut(out_buffer);
 
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        const double* first = Envelope_get_node(gc->map, 0);
+        if (first[0] == -1)
         {
-            const float in_value = in_values[i];
-            const float abs_value = fabsf(in_value);
+            // Asymmetric distortion
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+            {
+                const float clamped_in_value = clamp(in_values[i], -1.0f, 1.0f);
+                out_values[i] = (float)Envelope_get_value(gc->map, clamped_in_value);
+            }
+        }
+        else
+        {
+            // Symmetric distortion
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+            {
+                const float in_value = in_values[i];
+                const float abs_value = fabsf(in_value);
 
-            float out_value = (float)Envelope_get_value(gc->map, min(abs_value, 1));
-            if (in_value < 0)
-                out_value = -out_value;
+                float out_value = (float)Envelope_get_value(gc->map, min(abs_value, 1));
+                if (in_value < 0)
+                    out_value = -out_value;
 
-            out_values[i] = out_value;
+                out_values[i] = out_value;
+            }
         }
     }
     else

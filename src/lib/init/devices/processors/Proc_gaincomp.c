@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2017
  *
  * This file is part of Kunquat.
  *
@@ -92,17 +92,19 @@ static bool Proc_gc_set_map(
     if (value != NULL && Envelope_node_count(value) > 1)
     {
         double* node = Envelope_get_node(value, 0);
-        if (node[0] != 0)
+        if (node[0] != 0 && node[0] != -1)
             valid = false;
 
         node = Envelope_get_node(value, Envelope_node_count(value) - 1);
         if (node[0] != 1)
             valid = false;
 
+        const double min_value = (node[0] == 0) ? 0 : -1;
+
         for (int i = 0; i < Envelope_node_count(value); ++i)
         {
             node = Envelope_get_node(value, i);
-            if (node[1] < 0)
+            if (node[1] < min_value || node[1] > 1)
             {
                 valid = false;
                 break;
