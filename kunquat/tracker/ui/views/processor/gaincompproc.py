@@ -28,7 +28,7 @@ class GainCompProc(QWidget, ProcessorUpdater):
     def __init__(self):
         super().__init__()
 
-        self._sym_toggle = QCheckBox('Symmetric')
+        self._sym_toggle = QCheckBox('Adjust magnitude only')
         self._asym_mapping = AsymMappingEnv()
         self._sym_mapping = SymMappingEnv()
 
@@ -73,6 +73,7 @@ class GainCompProc(QWidget, ProcessorUpdater):
         self._mappings.setCurrentIndex(1 if gc_params.is_mapping_symmetric() else 0)
 
         old_block = self._sym_toggle.blockSignals(True)
+        self._sym_toggle.setEnabled(gc_params.get_mapping_enabled())
         self._sym_toggle.setCheckState(
                 Qt.Checked if gc_params.is_mapping_symmetric() else Qt.Unchecked)
         self._sym_toggle.blockSignals(old_block)
