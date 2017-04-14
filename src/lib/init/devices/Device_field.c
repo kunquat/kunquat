@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -23,6 +23,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+
+#define ENVELOPE_NODES_MAX 256
 
 
 typedef union
@@ -223,8 +226,10 @@ bool Device_field_change(Device_field* field, Streader* sr)
             Envelope* env = NULL;
             if (data != NULL)
             {
-                env = new_Envelope(32, -INFINITY, INFINITY, 0,
-                                       -INFINITY, INFINITY, 0);
+                env = new_Envelope(
+                        ENVELOPE_NODES_MAX,
+                        -INFINITY, INFINITY, 0,
+                        -INFINITY, INFINITY, 0);
                 if (env == NULL)
                     return false;
 
