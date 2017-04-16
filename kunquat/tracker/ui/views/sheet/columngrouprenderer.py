@@ -324,6 +324,34 @@ class ColumnGroupRenderer():
 
         return False
 
+    def update_hit_names(self, height):
+        # Flush parts of the cache that contain hits
+        first_index = utils.get_first_visible_pat_index(
+                self._px_offset, self._start_heights)
+
+        active_pattern_index = self._get_active_pattern_index()
+
+        for pi in range(0, first_index):
+            self._caches[pi].flush()
+
+        stop_index = first_index
+
+        for pi in range(first_index, len(self._heights)):
+            if self._start_heights[pi] > self._px_offset + height:
+                stop_index = pi + 1
+                break
+
+            vis_cache = self._caches[pi].get_active_cache()
+            invis_cache = self._caches[pi].get_inactive_cache()
+            if pi != active_pattern_index:
+                vis_cache, invis_cache = invis_cache, vis_cache
+
+            vis_cache.update_hit_names()
+            invis_cache.flush()
+
+        for pi in range(stop_index, len(self._heights)):
+            self._caches[pi].flush()
+
 
 class ColumnCachePair():
 
@@ -438,6 +466,11 @@ class ColumnCache():
     def get_memory_usage(self):
         tr_memory_usage = self._tr_cache.get_memory_usage()
         return self._pixmaps.get_memory_usage() + tr_memory_usage
+
+    def update_hit_names(self):
+        if self._tr_cache.contains_hits():
+            self._pixmaps.flush()
+            self._tr_cache.flush()
 
     def iter_pixmaps(self, start_px, height_px, grid):
         assert start_px >= 0
@@ -589,6 +622,7 @@ class TRCache():
         self._ui_model = None
         self._notation_manager = None
         self._inactive = False
+        self._rows = []
 
     def set_inactive(self):
         self._inactive = True
@@ -604,6 +638,14 @@ class TRCache():
     def set_triggers(self, column):
         self._rows = self._build_trigger_rows(column)
         self._images.flush() # TODO: only remove out-of-date images
+
+    def contains_hits(self):
+        for row in self._rows:
+            ts, triggers = row
+            for trigger in triggers:
+                if trigger.get_type() == 'h':
+                    return True
+        return False
 
     def flush(self):
         self._images.flush()
