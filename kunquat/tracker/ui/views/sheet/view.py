@@ -185,7 +185,7 @@ class View(QWidget):
             self._update_all_patterns()
             self.update()
         if 'signal_hits' in signals:
-            self._update_all_patterns()
+            self._update_hit_names()
             self.update()
         if 'signal_module' in signals:
             self._update_all_patterns()
@@ -309,6 +309,19 @@ class View(QWidget):
     def _update_grid(self):
         for cr in self._col_rends:
             cr.flush_final_pixmaps()
+
+    def _update_hit_names(self):
+        for cr in self._col_rends[:self._first_col]:
+            cr.flush_caches()
+
+        max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
+        vis_col_stop = min(COLUMNS_MAX, self._first_col + max_visible_cols)
+
+        for cr in self._col_rends[self._first_col:vis_col_stop]:
+            cr.update_hit_names(self.height())
+
+        for cr in self._col_rends[vis_col_stop:]:
+            cr.flush_caches()
 
     def _update_column(self, track_num, system_num, col_num):
         pattern_index = utils.get_pattern_index_at_location(
