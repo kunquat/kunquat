@@ -77,8 +77,6 @@ class Ruler(QWidget, Updater):
             self.register_action('signal_module', self._update_all_patterns)
             self.register_action('signal_order_list', self._update_all_patterns)
             self.register_action('signal_pattern_length', self._update_all_patterns)
-            self.register_action('signal_undo', self._update_all_patterns)
-            self.register_action('signal_redo', self._update_all_patterns)
             self.register_action('signal_playback_cursor', self._update_playback_cursor)
 
         self.register_action('signal_selection', self.update)

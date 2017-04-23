@@ -11,6 +11,10 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import re
+
+from kunquat.kunquat.limits import *
+from .sheetmanager import SheetManager
 from .triggerposition import TriggerPosition
 
 
@@ -21,11 +25,13 @@ class SheetHistory():
         self._session = None
         self._store = None
         self._ui_model = None
+        self._updater = None
 
     def set_controller(self, controller):
         self._controller = controller
         self._session = controller.get_session()
         self._store = controller.get_store()
+        self._updater = controller.get_updater()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -71,6 +77,9 @@ class SheetHistory():
         future = self._session.get_sheet_future()
         future.append(prev_entry)
 
+        self._ui_model.get_sheet_manager().flush_latest_column()
+        self._updater.signal_update('signal_sheet_undo')
+
     def redo(self):
         if not self._allow_sheet_changes():
             return
@@ -84,6 +93,9 @@ class SheetHistory():
         next_entry.apply_new_data()
         past = self._session.get_sheet_past()
         past.append(next_entry)
+
+        self._ui_model.get_sheet_manager().flush_latest_column()
+        self._updater.signal_update('signal_sheet_redo')
 
     def has_past_changes(self):
         return bool(self._session.get_sheet_past() or self._session.get_sheet_cur_step())
@@ -108,6 +120,7 @@ class Step():
     def __init__(self, store, ui_model):
         self._store = store
         self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
 
         self._old_data = {}
         self._new_data = {}
@@ -150,9 +163,48 @@ class Step():
                 self._location.get_row_ts(),
                 self._location.get_trigger_index())
 
+    def _signal_change(self, key):
+        if re.match('pat_[0-9a-f]{3}/col_[0-9a-f]{2}/p_triggers.json', key):
+            parts = key.split('/')
+
+            album = self._ui_model.get_module().get_album()
+            if album.get_existence():
+                pat_num = int(parts[0].split('_')[1], 16)
+                col_num = int(parts[1].split('_')[1], 16)
+
+                for i in range(PAT_INSTANCES_MAX):
+                    key = '{}/instance_{:03x}/p_manifest.json'.format(parts[0], i)
+                    if key in self._store.keys():
+                        inst_num = i
+                        break
+                else:
+                    return
+
+                track_num, system_num = album.get_pattern_instance_location_by_nums(
+                        pat_num, inst_num)
+
+                self._updater.signal_update(SheetManager.encode_column_signal(
+                    track_num, system_num, col_num))
+                return
+
+        elif re.match('pat_[0-9a-f]{3}/col_[0-9a-f]{2}/i_overlay_grids.json', key):
+            self._updater.signal_update('signal_grid')
+            return
+
+        elif re.match('pat_[0-9a-f]{3}/p_length.json', key):
+            self._updater.signal_update('signal_pattern_length')
+            return
+
+        elif re.match('pat_[0-9a-f]{3}/i_base_grid.json', key):
+            self._updater.signal_update('signal_grid')
+            return
+
+        assert False
+
     def apply_old_data(self):
         for k, v in self._old_data.items():
             self._store[k] = v
+            self._signal_change(k)
 
         new_location = self._get_new_location()
         if new_location:
@@ -162,6 +214,7 @@ class Step():
     def apply_new_data(self):
         for k, v in self._new_data.items():
             self._store[k] = v
+            self._signal_change(k)
 
         new_location = self._get_new_location()
         if new_location:
