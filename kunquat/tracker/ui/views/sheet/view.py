@@ -194,7 +194,7 @@ class View(QWidget):
             self._rearrange_patterns()
             self.update()
         if 'signal_pattern_length' in signals:
-            self._update_all_patterns()
+            self._update_resized_patterns()
             self.update()
         if 'signal_selection' in signals:
             self._follow_edit_cursor()
@@ -322,6 +322,10 @@ class View(QWidget):
 
         for cr in self._col_rends[vis_col_stop:]:
             cr.flush_caches()
+
+    def _update_resized_patterns(self):
+        self._rearrange_patterns()
+        self._update_playback_cursor()
 
     def _update_column(self, track_num, system_num, col_num):
         pattern_index = utils.get_pattern_index_at_location(
