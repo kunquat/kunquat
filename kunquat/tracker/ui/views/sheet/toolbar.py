@@ -336,8 +336,8 @@ class UndoButton(QPushButton, Updater):
         self.setToolTip('Undo (Ctrl + Z)')
 
     def _on_setup(self):
-        self.register_action('signal_undo', self._update_enabled)
-        self.register_action('signal_redo', self._update_enabled)
+        self.register_action('signal_sheet_undo', self._update_enabled)
+        self.register_action('signal_sheet_redo', self._update_enabled)
         self.register_action('signal_selection', self._update_enabled)
         self.register_action('signal_pattern_length', self._update_enabled)
         self.register_action('signal_grid', self._update_enabled)
@@ -362,8 +362,6 @@ class UndoButton(QPushButton, Updater):
 
     def _undo(self):
         self._sheet_history.undo()
-        self._ui_model.get_sheet_manager().flush_latest_column()
-        self._updater.signal_update('signal_undo')
 
 
 class RedoButton(QPushButton, Updater):
@@ -375,8 +373,8 @@ class RedoButton(QPushButton, Updater):
         self.setToolTip('Redo (Ctrl + Shift + Z)')
 
     def _on_setup(self):
-        self.register_action('signal_undo', self._update_enabled)
-        self.register_action('signal_redo', self._update_enabled)
+        self.register_action('signal_sheet_undo', self._update_enabled)
+        self.register_action('signal_sheet_redo', self._update_enabled)
         self.register_action('signal_selection', self._update_enabled)
         self.register_action('signal_pattern_length', self._update_enabled)
         self.register_action('signal_grid', self._update_enabled)
@@ -401,8 +399,6 @@ class RedoButton(QPushButton, Updater):
 
     def _redo(self):
         self._sheet_history.redo()
-        self._ui_model.get_sheet_manager().flush_latest_column()
-        self._updater.signal_update('signal_redo')
 
 
 class CutOrCopyButton(QPushButton, Updater):
@@ -881,8 +877,8 @@ class LengthEditor(QWidget, Updater):
         self.register_action('signal_pattern_length', self._update_value)
         self.register_action('signal_selection', self._update_value)
         self.register_action('signal_order_list', self._update_value)
-        self.register_action('signal_undo', self._update_value)
-        self.register_action('signal_redo', self._update_value)
+        self.register_action('signal_sheet_undo', self._update_value)
+        self.register_action('signal_sheet_redo', self._update_value)
 
         self._update_value()
 

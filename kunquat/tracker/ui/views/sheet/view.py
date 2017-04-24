@@ -208,9 +208,6 @@ class View(QWidget):
         if 'signal_force_shift' in signals:
             self._update_all_patterns()
             self.update()
-        if not signals.isdisjoint(set(['signal_undo', 'signal_redo'])):
-            self._update_all_patterns()
-            self.update()
         if 'signal_silence' in signals:
             self._handle_silence()
         if 'signal_playback_cursor' in signals:
@@ -1778,14 +1775,10 @@ class View(QWidget):
         def handle_undo():
             history = self._ui_model.get_sheet_history()
             history.undo()
-            self._sheet_manager.flush_latest_column()
-            self._updater.signal_update('signal_undo')
 
         def handle_redo():
             history = self._ui_model.get_sheet_history()
             history.redo()
-            self._sheet_manager.flush_latest_column()
-            self._updater.signal_update('signal_redo')
 
         keymap = {
             int(Qt.NoModifier): {
