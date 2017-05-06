@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2017
  *
  * This file is part of Kunquat.
  *
@@ -55,9 +55,6 @@ struct Device_state
 
     int32_t audio_rate;
     int32_t audio_buffer_size;
-
-    // TODO: temp hack -- replace with proper type identifier
-    bool is_stream_state;
 
     // Protected interface
     bool (*add_buffer)(struct Device_state*, Device_port_type, int port);

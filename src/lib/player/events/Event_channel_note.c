@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <init/devices/Au_streams.h>
 #include <init/devices/Param_proc_filter.h>
+#include <init/devices/Proc_type.h>
 #include <init/Input_map.h>
 #include <init/Module.h>
 #include <init/Tuning_table.h>
@@ -208,10 +209,10 @@ bool Event_channel_note_on_process(
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
 
-        if (vs->is_pitch_state)
+        if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_set_controls(vs, &ch->pitch_controls);
 
-        if (vs->is_force_state)
+        if (vs->proc_type == Proc_type_force)
         {
             Force_controls* fc = Force_vstate_get_force_controls_mut(vs);
             Force_controls_copy(fc, &ch->force_controls);
@@ -302,7 +303,7 @@ bool Event_channel_hit_process(
         Voice_state* vs = voice->state;
         vs->hit_index = hit_index;
 
-        if (vs->is_force_state)
+        if (vs->proc_type == Proc_type_force)
         {
             Force_controls* fc = Force_vstate_get_force_controls_mut(vs);
             Force_controls_copy(fc, &ch->force_controls);

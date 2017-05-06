@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -136,7 +136,9 @@ void Voice_init(
     Random_set_seed(&voice->rand_p, seed);
     Random_set_seed(&voice->rand_s, seed);
 
-    Voice_state_init(voice->state, &voice->rand_p, &voice->rand_s);
+    Proc_type proc_type = Device_impl_get_proc_type(proc->parent.dimpl);
+
+    Voice_state_init(voice->state, proc_type, &voice->rand_p, &voice->rand_s);
     Voice_state_set_work_buffer(voice->state, voice->wb);
 
     const Device_impl* dimpl = Device_get_impl((const Device*)proc);

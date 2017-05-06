@@ -139,7 +139,6 @@ Device_state* new_Stream_pstate(
         return NULL;
     }
 
-    spstate->parent.parent.is_stream_state = true;
     spstate->parent.set_audio_rate = Stream_pstate_set_audio_rate;
     spstate->parent.reset = Stream_pstate_reset;
     spstate->parent.render_mixed = Stream_pstate_render_mixed;
@@ -361,8 +360,6 @@ void Stream_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
     vstate->render_voice = Stream_vstate_render_voice;
 
-    vstate->is_stream_state = true;
-
     Stream_vstate* svstate = (Stream_vstate*)vstate;
 
     const Proc_stream* stream = (const Proc_stream*)proc_state->parent.device->dimpl;
@@ -383,7 +380,7 @@ void Stream_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 const Linear_controls* Stream_vstate_get_controls(const Voice_state* vstate)
 {
     rassert(vstate != NULL);
-    rassert(vstate->is_stream_state);
+    rassert(vstate->proc_type == Proc_type_stream);
 
     const Stream_vstate* svstate = (const Stream_vstate*)vstate;
 
@@ -394,7 +391,7 @@ const Linear_controls* Stream_vstate_get_controls(const Voice_state* vstate)
 void Stream_vstate_set_controls(Voice_state* vstate, const Linear_controls* controls)
 {
     rassert(vstate != NULL);
-    rassert(vstate->is_stream_state);
+    rassert(vstate->proc_type == Proc_type_stream);
     rassert(controls != NULL);
 
     Stream_vstate* svstate = (Stream_vstate*)vstate;

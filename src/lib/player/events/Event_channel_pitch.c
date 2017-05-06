@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -15,6 +15,7 @@
 #include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
+#include <init/devices/Proc_type.h>
 #include <init/Module.h>
 #include <init/Tuning_table.h>
 #include <kunquat/limits.h>
@@ -74,7 +75,7 @@ bool Event_channel_slide_pitch_process(
 
         Voice_state* vs = voice->state;
 
-        if (vs->is_pitch_state)
+        if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_set_controls(vs, &ch->pitch_controls);
     }
 
@@ -103,7 +104,7 @@ bool Event_channel_slide_pitch_length_process(
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
 
-        if (vs->is_pitch_state)
+        if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_set_controls(vs, &ch->pitch_controls);
     }
 
@@ -137,7 +138,7 @@ bool Event_channel_vibrato_speed_process(
 
         Voice_state* vs = ch->fg[i]->state;
 
-        if (vs->is_pitch_state)
+        if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_set_controls(vs, &ch->pitch_controls);
     }
 
@@ -172,7 +173,7 @@ bool Event_channel_vibrato_depth_process(
 
         Voice_state* vs = ch->fg[i]->state;
 
-        if (vs->is_pitch_state)
+        if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_set_controls(vs, &ch->pitch_controls);
     }
 
@@ -201,7 +202,7 @@ bool Event_channel_vibrato_speed_slide_process(
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
 
-        if (vs->is_pitch_state)
+        if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_set_controls(vs, &ch->pitch_controls);
     }
 
@@ -230,7 +231,7 @@ bool Event_channel_vibrato_depth_slide_process(
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
 
-        if (vs->is_pitch_state)
+        if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_set_controls(vs, &ch->pitch_controls);
     }
 

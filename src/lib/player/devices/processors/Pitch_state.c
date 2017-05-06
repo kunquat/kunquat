@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -238,8 +238,6 @@ void Pitch_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     pvstate->arpeggio_tone_progress = 0;
     pvstate->arpeggio_tone_index = 0;
     pvstate->arpeggio_tones[0] = pvstate->arpeggio_tones[1] = NAN;
-
-    vstate->is_pitch_state = true;
 
     return;
 }

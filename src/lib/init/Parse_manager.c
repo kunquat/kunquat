@@ -23,6 +23,7 @@
 #include <init/devices/Au_streams.h>
 #include <init/devices/Audio_unit.h>
 #include <init/devices/Device_params.h>
+#include <init/devices/Device_impl.h>
 #include <init/devices/Param_proc_filter.h>
 #include <init/devices/Proc_type.h>
 #include <init/Environment.h>
@@ -1061,6 +1062,7 @@ static bool read_any_proc_out_port_manifest(
 typedef struct pmdata
 {
     Handle* handle;
+    Proc_type type;
     Proc_cons* cons;
 } pmdata;
 
@@ -1079,15 +1081,15 @@ static bool read_proc_manifest_entry(Streader* sr, const char* key, void* userda
         if (!Streader_read_string(sr, PROC_TYPE_NAME_LENGTH_MAX, type_name))
             return false;
 
-        const Proc_type type = Proc_type_get_from_string(type_name);
-        if (type == Proc_type_COUNT)
+        d->type = Proc_type_get_from_string(type_name);
+        if (d->type == Proc_type_COUNT)
         {
             Handle_set_error(d->handle, ERROR_FORMAT,
                     "Unsupported Processor type: %s", type_name);
             return false;
         }
 
-        d->cons = Proc_type_get_cons(type);
+        d->cons = Proc_type_get_cons(d->type);
     }
 
     return true;
@@ -1135,11 +1137,12 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
         return false;
 
     // Create the Processor implementation
-    pmdata* d = &(pmdata){ .handle = params->handle, .cons = NULL };
+    pmdata* d = &(pmdata){
+        .handle = params->handle, .type = Proc_type_COUNT, .cons = NULL };
     if (!Streader_read_dict(params->sr, read_proc_manifest_entry, d))
         return false;
 
-    if (d->cons == NULL)
+    if (d->type == Proc_type_COUNT)
         return false;
 
     rassert(d->cons != NULL);
@@ -1151,6 +1154,7 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
         return false;
     }
 
+    Device_impl_set_proc_type(proc_impl, d->type);
     Device_set_impl((Device*)proc, proc_impl);
 
     // Remove old Processor Device state

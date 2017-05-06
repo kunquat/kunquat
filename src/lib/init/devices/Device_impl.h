@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2017
  *
  * This file is part of Kunquat.
  *
@@ -24,6 +24,7 @@
 #include <init/devices/param_types/Num_list.h>
 #include <init/devices/param_types/Padsynth_params.h>
 #include <init/devices/param_types/Sample.h>
+#include <init/devices/Proc_type.h>
 #include <mathnum/Tstamp.h>
 #include <player/devices/Device_state.h>
 #include <player/devices/Proc_state.h>
@@ -70,6 +71,8 @@ struct Device_impl
     const Device* device;
     AAtree* set_cbs;
     AAtree* update_cv_cbs;
+
+    Proc_type proc_type;
 
     Device_state_create_func* create_pstate;
     Voice_state_get_size_func* get_vstate_size;
@@ -126,6 +129,25 @@ typedef struct Device_impl_voice_cv_callback
  *           handles its own partially initialised state correctly.
  */
 bool Device_impl_init(Device_impl* dimpl, Device_impl_destroy_func* destroy);
+
+
+/**
+ * Set the Processor type of the Device implementation.
+ *
+ * \param dimpl       The Device implementation -- must not be \c NULL.
+ * \param proc_type   The Processor type -- must be valid.
+ */
+void Device_impl_set_proc_type(Device_impl* dimpl, Proc_type proc_type);
+
+
+/**
+ * Get the Processor type of the Device implementation.
+ *
+ * \param dimpl   The Device implementation -- must not be \c NULL.
+ *
+ * \return   The Processor type.
+ */
+Proc_type Device_impl_get_proc_type(const Device_impl* dimpl);
 
 
 /**

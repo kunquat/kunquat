@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -19,6 +19,7 @@
 #include <init/devices/Audio_unit.h>
 #include <init/devices/Device_impl.h>
 #include <init/devices/Param_proc_filter.h>
+#include <init/devices/Proc_type.h>
 #include <init/devices/Processor.h>
 #include <kunquat/limits.h>
 #include <mathnum/Tstamp.h>
@@ -33,13 +34,19 @@
 #include <string.h>
 
 
-Voice_state* Voice_state_init(Voice_state* state, Random* rand_p, Random* rand_s)
+Voice_state* Voice_state_init(
+        Voice_state* state, Proc_type proc_type, Random* rand_p, Random* rand_s)
 {
     rassert(state != NULL);
+    rassert(proc_type >= 0);
+    rassert(proc_type < Proc_type_COUNT);
     rassert(rand_p != NULL);
     rassert(rand_s != NULL);
 
     Voice_state_clear(state);
+
+    state->proc_type = proc_type;
+
     state->active = true;
     state->has_finished = false;
     state->note_on = true;
@@ -51,10 +58,6 @@ Voice_state* Voice_state_init(Voice_state* state, Random* rand_p, Random* rand_s
 
     state->has_release_data = false;
     state->release_stop = 0;
-
-    state->is_pitch_state = false;
-    state->is_force_state = false;
-    state->is_stream_state = false;
 
     return state;
 }
@@ -71,6 +74,8 @@ void Voice_state_set_work_buffer(Voice_state* state, Work_buffer* wb)
 Voice_state* Voice_state_clear(Voice_state* state)
 {
     rassert(state != NULL);
+
+    state->proc_type = Proc_type_COUNT;
 
     state->active = false;
     state->has_finished = false;
@@ -92,10 +97,6 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->note_on = false;
     state->noff_pos = 0;
     state->noff_pos_rem = 0;
-
-    state->is_pitch_state = false;
-    state->is_force_state = false;
-    state->is_stream_state = false;
 
     return state;
 }

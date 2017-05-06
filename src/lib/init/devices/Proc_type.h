@@ -16,8 +16,7 @@
 #define KQT_PROC_TYPE_H
 
 
-#include <init/devices/Device_impl.h>
-#include <init/devices/Processor.h>
+#include <decl.h>
 
 #include <stdlib.h>
 

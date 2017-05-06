@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,7 @@
 
 
 #include <decl.h>
+#include <init/devices/Proc_type.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <mathnum/Tstamp.h>
@@ -61,6 +62,8 @@ typedef void Voice_state_set_cv_tstamp_func(
 
 struct Voice_state
 {
+    Proc_type proc_type;
+
     bool active;                   ///< Whether there is anything left to process.
     bool has_finished;
     Random* rand_p;                ///< Parameter random source.
@@ -90,24 +93,21 @@ struct Voice_state
     bool note_on;                  ///< Whether the note is still on.
     int64_t noff_pos;              ///< Note Off position.
     double noff_pos_rem;           ///< Note Off position remainder.
-
-    // TODO: temp hack -- replace with proper type identifier
-    bool is_pitch_state;
-    bool is_force_state;
-    bool is_stream_state;
 };
 
 
 /**
  * Initialise a Voice state.
  *
- * \param state    The Voice state -- must not be \c NULL.
- * \param rand_p   The parameter Random source -- must not be \c NULL.
- * \param rand_s   The signal Random source -- must not be \c NULL.
+ * \param state       The Voice state -- must not be \c NULL.
+ * \param proc_type   The Processor type -- must be valid.
+ * \param rand_p      The parameter Random source -- must not be \c NULL.
+ * \param rand_s      The signal Random source -- must not be \c NULL.
  *
  * \return   The parameter \a state.
  */
-Voice_state* Voice_state_init(Voice_state* state, Random* rand_p, Random* rand_s);
+Voice_state* Voice_state_init(
+        Voice_state* state, Proc_type proc_type, Random* rand_p, Random* rand_s);
 
 
 /**

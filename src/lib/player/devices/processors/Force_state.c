@@ -392,8 +392,6 @@ void Force_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     Time_env_state_init(&fvstate->env_state);
     Time_env_state_init(&fvstate->release_env_state);
 
-    vstate->is_force_state = true;
-
     return;
 }
 
@@ -401,7 +399,7 @@ void Force_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 Force_controls* Force_vstate_get_force_controls_mut(Voice_state* vstate)
 {
     rassert(vstate != NULL);
-    rassert(vstate->is_force_state);
+    rassert(vstate->proc_type == Proc_type_force);
 
     Force_vstate* fvstate = (Force_vstate*)vstate;
 

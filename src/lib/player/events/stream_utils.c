@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <init/devices/Au_streams.h>
 #include <init/devices/Audio_unit.h>
+#include <init/devices/Proc_type.h>
 #include <init/Module.h>
 #include <player/Channel.h>
 #include <player/devices/Voice_state.h>
@@ -57,7 +58,7 @@ Voice_state* get_target_stream_vstate(Channel* channel, const char* stream_name)
         return NULL;
 
     Voice_state* vstate = channel->fg[proc_index]->state;
-    if (!vstate->is_stream_state)
+    if (vstate->proc_type != Proc_type_stream)
         return NULL;
 
     return vstate;
