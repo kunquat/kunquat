@@ -1075,17 +1075,19 @@ static bool read_proc_manifest_entry(Streader* sr, const char* key, void* userda
 
     if (string_eq(key, "type"))
     {
-        char type[PROC_TYPE_LENGTH_MAX] = "";
-        if (!Streader_read_string(sr, PROC_TYPE_LENGTH_MAX, type))
+        char type_name[PROC_TYPE_NAME_LENGTH_MAX] = "";
+        if (!Streader_read_string(sr, PROC_TYPE_NAME_LENGTH_MAX, type_name))
             return false;
 
-        d->cons = Proc_type_find_cons(type);
-        if (d->cons == NULL)
+        const Proc_type type = Proc_type_get_from_string(type_name);
+        if (type == Proc_type_COUNT)
         {
             Handle_set_error(d->handle, ERROR_FORMAT,
-                    "Unsupported Processor type: %s", type);
+                    "Unsupported Processor type: %s", type_name);
             return false;
         }
+
+        d->cons = Proc_type_get_cons(type);
     }
 
     return true;
