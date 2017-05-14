@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -147,6 +147,16 @@ Device_state* new_Ringmod_pstate(
 }
 
 
+static bool is_final_zero(const Work_buffer* in_wb, int32_t buf_start)
+{
+    rassert(buf_start >= 0);
+    return ((in_wb == NULL) ||
+            (Work_buffer_is_final(in_wb) &&
+             (Work_buffer_get_const_start(in_wb) <= buf_start) &&
+             (Work_buffer_get_contents(in_wb)[buf_start] == 0.0f)));
+}
+
+
 static int32_t Ringmod_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
@@ -184,20 +194,46 @@ static int32_t Ringmod_vstate_render_voice(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_2_R),
     };
 
-    if (((in1_buffers[0] == NULL) || (in2_buffers[0] == NULL)) &&
-            ((in1_buffers[1] == NULL) || (in2_buffers[1] == NULL)))
+    const bool is_out1_final_zero = (is_final_zero(in1_buffers[0], buf_start) ||
+            is_final_zero(in2_buffers[0], buf_start));
+    const bool is_out2_final_zero = (is_final_zero(in1_buffers[1], buf_start) ||
+            is_final_zero(in2_buffers[1], buf_start));
+
+    if (is_out1_final_zero && is_out2_final_zero)
     {
         vstate->active = false;
         return buf_start;
     }
 
-    // Get output
+    // Get outputs
+    Work_buffer* out_wbs[2] =
+    {
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
+    };
+
     float* out_buffers[2] = { NULL };
     Proc_state_get_voice_audio_out_buffers(
             proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
 
     // Multiply the signals
     multiply_signals(in1_buffers, in2_buffers, out_buffers, buf_start, buf_stop);
+
+    if (is_out1_final_zero && (out_wbs[0] != NULL))
+    {
+        rassert(out_buffers[0][buf_start] == 0);
+        Work_buffer_set_const_start(out_wbs[0], buf_start);
+        Work_buffer_set_final(out_wbs[0], true);
+    }
+
+    if (is_out2_final_zero && (out_wbs[1] != NULL))
+    {
+        rassert(out_buffers[1][buf_start] == 0);
+        Work_buffer_set_const_start(out_wbs[1], buf_start);
+        Work_buffer_set_final(out_wbs[1], true);
+    }
 
     return buf_stop;
 }
