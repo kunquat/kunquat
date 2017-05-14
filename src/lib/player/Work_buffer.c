@@ -42,8 +42,8 @@ Work_buffer* new_Work_buffer(int32_t size)
 
     // Sanitise fields
     buffer->size = size;
-    buffer->const_start = INT32_MAX;
-    buffer->is_final = false;
+    buffer->const_start = 0;
+    buffer->is_final = true;
     buffer->is_unbounded = false;
     buffer->contents = NULL;
 
@@ -92,8 +92,8 @@ void Work_buffer_init_with_memory(
     rassert(raw_elem_count >= 2);
 
     buffer->size = raw_elem_count - 2;
-    buffer->const_start = INT32_MAX;
-    buffer->is_final = false;
+    buffer->const_start = 0;
+    buffer->is_final = true;
     buffer->is_unbounded = false;
     buffer->contents = space;
 
@@ -149,6 +149,7 @@ void Work_buffer_clear(Work_buffer* buffer, int32_t buf_start, int32_t buf_stop)
         fcontents[i] = 0;
 
     Work_buffer_set_const_start(buffer, max(0, buf_start));
+    Work_buffer_set_final(buffer, true);
 
     return;
 }
