@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -107,6 +107,9 @@ static int32_t Sample_render(
         return buf_start;
     }
 
+    if (buf_start == buf_stop)
+        return buf_stop;
+
     // Get frequencies
     Work_buffer* freqs_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
@@ -181,6 +184,12 @@ static int32_t Sample_render(
         {
             const int32_t length = (int32_t)sample->len;
 
+            if (positions[buf_start] >= length)
+            {
+                vstate->active = false;
+                return buf_start;
+            }
+
             // Current positions
             for (int32_t i = buf_start; i < buf_stop; ++i)
             {
@@ -188,7 +197,6 @@ static int32_t Sample_render(
                 {
                     new_buf_stop = i;
                     positions[i] = length - 1; // Make the index safe to access
-                    Voice_state_set_finished(vstate);
                     break;
                 }
             }

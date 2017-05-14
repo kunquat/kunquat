@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -214,9 +214,10 @@ void Voice_reset(Voice* voice);
  * \param buf_stop     The stop index of the buffer area to be rendered.
  * \param tempo        The current tempo -- must be > \c 0.
  *
- * \return   The stop index of release note frames rendered to voice buffers,
- *           or \a buf_stop if the Voice is inactive or has a note still on.
- *           This is always within the range [\a buf_start, \a buf_stop].
+ * \return   The stop index for keeping the Voice alive. This is always within
+ *           the range [\a buf_start, \a buf_stop]. If equal to \a buf_stop,
+ *           the Voice processing may not have finished and therefore should be
+ *           kept alive.
  */
 int32_t Voice_render(
         Voice* voice,

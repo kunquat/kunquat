@@ -65,15 +65,13 @@ struct Voice_state
     Proc_type proc_type;
 
     bool active;                   ///< Whether there is anything left to process.
-    bool has_finished;
+    int32_t keep_alive_stop;
+
     Random* rand_p;                ///< Parameter random source.
     Random* rand_s;                ///< Signal random source.
     Work_buffer* wb;
 
     Voice_state_render_voice_func* render_voice;
-
-    bool has_release_data;
-    int32_t release_stop;
 
     bool expr_filters_applied;
     char ch_expr_name[KQT_VAR_NAME_MAX];
@@ -175,24 +173,14 @@ void Voice_state_mix_signals(
 
 
 /**
- * Mark Voice state as having release data.
+ * Set request to keep the Voice state alive.
  *
- * \param vstate         The Voice state -- must not be \c NULL.
- * \param release_stop   The buffer end index of rendered release data
- *                       -- must be >= \c 0.
+ * \param stop   The buffer index at which it is OK to stop processing
+ *               -- must be >= \c 0. Note that the Voice state may be kept
+ *               alive longer and the associated Processor must provide data as
+ *               long as the output may contain non-zero values.
  */
-void Voice_state_mark_release_data(Voice_state* vstate, int32_t release_stop);
-
-
-/**
- * Set Voice state as finished.
- *
- * The Voice state will be deactivated after retrieving the buffer contents
- * written during the current cycle.
- *
- * \param vstate       The Voice state -- must not be \c NULL.
- */
-void Voice_state_set_finished(Voice_state* vstate);
+void Voice_state_set_keep_alive_stop(Voice_state* vstate, int32_t stop);
 
 
 /**
