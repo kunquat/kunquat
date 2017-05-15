@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -89,7 +89,7 @@ void assert_print_msg(
 
 
 // Debug assert that should only be used in performance-critical code.
-#ifndef NDEBUG
+#ifdef ENABLE_DEBUG_ASSERTS
 #define dassert rassert
 #else
 #define dassert(expr) ignore(expr)
