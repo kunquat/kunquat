@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -15,6 +15,9 @@
 #include <player/events/Event_au_decl.h>
 
 #include <init/devices/Au_streams.h>
+#include <init/devices/Device.h>
+#include <init/devices/Device_impl.h>
+#include <init/devices/Proc_type.h>
 #include <debug/assert.h>
 #include <player/devices/processors/Stream_state.h>
 #include <player/events/set_active_name.h>
@@ -46,7 +49,7 @@ static Device_state* get_target_dstate(
 
     Device_state* dstate =
         Device_states_get_state(dstates, Device_get_id((const Device*)proc));
-    if (!dstate->is_stream_state)
+    if (Device_impl_get_proc_type(dstate->device->dimpl) != Proc_type_stream)
         return NULL;
 
     return dstate;

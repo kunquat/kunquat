@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -212,7 +212,7 @@ static int32_t process_voice_group(
         }
     }
 
-    int32_t release_stop = buf_start;
+    int32_t keep_alive_stop = buf_start;
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -230,7 +230,7 @@ static int32_t process_voice_group(
                 continue;
             }
 
-            const int32_t sub_release_stop = process_voice_group(
+            const int32_t sub_keep_alive_stop = process_voice_group(
                     edge->node,
                     vgroup,
                     dstates,
@@ -241,7 +241,7 @@ static int32_t process_voice_group(
                     audio_rate,
                     tempo);
 
-            release_stop = max(release_stop, sub_release_stop);
+            keep_alive_stop = max(keep_alive_stop, sub_keep_alive_stop);
 
             if ((Device_node_get_type(node) == DEVICE_NODE_TYPE_PROCESSOR) &&
                     (Device_node_get_type(edge->node) == DEVICE_NODE_TYPE_PROCESSOR))
@@ -273,16 +273,16 @@ static int32_t process_voice_group(
 
             if (voice != NULL)
             {
-                const int32_t voice_release_stop = Voice_render(
+                const int32_t voice_keep_alive_stop = Voice_render(
                         voice, dstates, thread_id, wbs, buf_start, buf_stop, tempo);
-                release_stop = max(release_stop, voice_release_stop);
+                keep_alive_stop = max(keep_alive_stop, voice_keep_alive_stop);
             }
         }
     }
 
     Device_thread_state_set_node_state(node_ts, DEVICE_NODE_STATE_VISITED);
 
-    return release_stop;
+    return keep_alive_stop;
 }
 
 
@@ -450,7 +450,7 @@ void Voice_group_deactivate_unreachable(Voice_group* vg)
     for (int i = 0; i < vg->size; ++i)
     {
         Voice* voice = vg->voices[i];
-        if (!voice->updated || !voice->state->active || voice->state->has_finished)
+        if (!voice->updated || !voice->state->active)
             Voice_reset(voice);
     }
 

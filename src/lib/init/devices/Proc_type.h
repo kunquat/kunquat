@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -16,17 +16,24 @@
 #define KQT_PROC_TYPE_H
 
 
-#include <init/devices/Device_impl.h>
-#include <init/devices/Processor.h>
+#include <decl.h>
 
 #include <stdlib.h>
 
 
-#define PROC_TYPE_LENGTH_MAX 128
+typedef enum
+{
+#define PROC_TYPE(name) Proc_type_##name,
+#include <init/devices/Proc_types.h>
+    Proc_type_COUNT
+} Proc_type;
+
+
+#define PROC_TYPE_NAME_LENGTH_MAX 128
 
 
 /**
- * This is the type of a Processor implementation constructor.
+ * The type of a Processor implementation constructor.
  *
  * \return   The new Processor if successful, or \c NULL if memory allocation
  *           failed.
@@ -35,13 +42,24 @@ typedef Device_impl* Proc_cons(void);
 
 
 /**
- * Find a Processor constructor.
+ * Get the Processor type from a type name.
  *
- * \param type   The Processor type -- must not be \c NULL.
+ * \param type_name   The name of the Processor type -- must not be \c NULL.
  *
- * \return   The constructor if \a type is supported, otherwise \c NULL.
+ * \return   The Processor type if \a type_name is supported, otherwise
+ *           \c Proc_type_COUNT.
  */
-Proc_cons* Proc_type_find_cons(const char* type);
+Proc_type Proc_type_get_from_string(const char* type_name);
+
+
+/**
+ * Get the constructor of a Processor type.
+ *
+ * \param type   The Processor type -- must be valid.
+ *
+ * \return   The Processor constructor.
+ */
+Proc_cons* Proc_type_get_cons(Proc_type type);
 
 
 #endif // KQT_PROC_TYPE_H

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -213,6 +213,15 @@ static int32_t Volume_vstate_render_voice(
     // Get control stream
     Work_buffer* vol_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
+    if ((vol_wb != NULL) &&
+            Work_buffer_is_final(vol_wb) &&
+            (Work_buffer_get_const_start(vol_wb) <= buf_start) &&
+            (Work_buffer_get_contents(vol_wb)[buf_start] == -INFINITY))
+    {
+        // We are only getting silent force from this point onwards
+        vstate->active = false;
+        return buf_start;
+    }
 
     // Get input
     float* in_bufs[2] = { NULL };

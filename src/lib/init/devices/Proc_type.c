@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -22,14 +22,14 @@
 #include <stdlib.h>
 
 
-typedef struct Proc_type
+typedef struct Proc_type_info
 {
-    const char* type;
+    const char* type_name;
     Proc_cons* cons;
-} Proc_type;
+} Proc_type_info;
 
 
-static const Proc_type proc_types[] =
+static const Proc_type_info proc_type_infos[] =
 {
 #define PROC_TYPE(name) { #name, new_Proc_ ## name },
 #include <init/devices/Proc_types.h>
@@ -37,17 +37,26 @@ static const Proc_type proc_types[] =
 };
 
 
-Proc_cons* Proc_type_find_cons(const char* type)
+Proc_type Proc_type_get_from_string(const char* type_name)
 {
-    rassert(type != NULL);
+    rassert(type_name != NULL);
 
-    for (int i = 0; proc_types[i].type != NULL; ++i)
+    for (int i = 0; proc_type_infos[i].type_name != NULL; ++i)
     {
-        if (string_eq(type, proc_types[i].type))
-            return proc_types[i].cons;
+        if (string_eq(type_name, proc_type_infos[i].type_name))
+            return (Proc_type)i;
     }
 
-    return NULL;
+    return Proc_type_COUNT;
+}
+
+
+Proc_cons* Proc_type_get_cons(Proc_type type)
+{
+    rassert(type >= 0);
+    rassert(type < Proc_type_COUNT);
+
+    return proc_type_infos[type].cons;
 }
 
 

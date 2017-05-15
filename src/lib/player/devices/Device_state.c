@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2017
  *
  * This file is part of Kunquat.
  *
@@ -42,8 +42,6 @@ bool Device_state_init(
 
     ds->audio_rate = audio_rate;
     ds->audio_buffer_size = audio_buffer_size;
-
-    ds->is_stream_state = false;
 
     ds->add_buffer = NULL;
     ds->set_audio_rate = NULL;

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2017
  *
  * This file is part of Kunquat.
  *
@@ -15,6 +15,7 @@
 #include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
+#include <init/devices/Proc_type.h>
 #include <player/devices/processors/Pitch_state.h>
 #include <player/devices/Voice_state.h>
 #include <player/events/Event_common.h>
@@ -50,7 +51,7 @@ bool Event_channel_arpeggio_on_process(
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
 
-        if (vs->is_pitch_state)
+        if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_arpeggio_on(
                     vs, ch->arpeggio_speed, ch->arpeggio_ref, ch->arpeggio_tones);
     }
@@ -75,7 +76,7 @@ bool Event_channel_arpeggio_off_process(
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
 
-        if (vs->is_pitch_state)
+        if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_arpeggio_off(vs);
     }
 
@@ -124,7 +125,7 @@ bool Event_channel_set_arpeggio_note_process(
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
 
-        if (vs->is_pitch_state)
+        if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_update_arpeggio_tones(vs, ch->arpeggio_tones);
     }
 
@@ -154,7 +155,7 @@ bool Event_channel_set_arpeggio_speed_process(
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
 
-        if (vs->is_pitch_state)
+        if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_update_arpeggio_speed(vs, ch->arpeggio_speed);
     }
 
@@ -182,7 +183,7 @@ bool Event_channel_reset_arpeggio_process(
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
 
-        if (vs->is_pitch_state)
+        if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_reset_arpeggio(vs);
     }
 

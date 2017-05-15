@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -19,6 +19,7 @@
 #include <init/devices/Audio_unit.h>
 #include <init/devices/Device_impl.h>
 #include <init/devices/Param_proc_filter.h>
+#include <init/devices/Proc_type.h>
 #include <init/devices/Processor.h>
 #include <kunquat/limits.h>
 #include <mathnum/Tstamp.h>
@@ -33,28 +34,27 @@
 #include <string.h>
 
 
-Voice_state* Voice_state_init(Voice_state* state, Random* rand_p, Random* rand_s)
+Voice_state* Voice_state_init(
+        Voice_state* state, Proc_type proc_type, Random* rand_p, Random* rand_s)
 {
     rassert(state != NULL);
+    rassert(proc_type >= 0);
+    rassert(proc_type < Proc_type_COUNT);
     rassert(rand_p != NULL);
     rassert(rand_s != NULL);
 
     Voice_state_clear(state);
+
+    state->proc_type = proc_type;
+
     state->active = true;
-    state->has_finished = false;
+    state->keep_alive_stop = 0;
     state->note_on = true;
     state->rand_p = rand_p;
     state->rand_s = rand_s;
     state->wb = NULL;
 
     state->render_voice = NULL;
-
-    state->has_release_data = false;
-    state->release_stop = 0;
-
-    state->is_pitch_state = false;
-    state->is_force_state = false;
-    state->is_stream_state = false;
 
     return state;
 }
@@ -72,8 +72,10 @@ Voice_state* Voice_state_clear(Voice_state* state)
 {
     rassert(state != NULL);
 
+    state->proc_type = Proc_type_COUNT;
+
     state->active = false;
-    state->has_finished = false;
+    state->keep_alive_stop = 0;
     state->ramp_attack = 0;
 
     state->expr_filters_applied = false;
@@ -92,10 +94,6 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->note_on = false;
     state->noff_pos = 0;
     state->noff_pos_rem = 0;
-
-    state->is_pitch_state = false;
-    state->is_force_state = false;
-    state->is_stream_state = false;
 
     return state;
 }
@@ -137,9 +135,6 @@ int32_t Voice_state_render_voice(
     rassert(buf_start >= 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
-
-    vstate->has_release_data = false;
-    vstate->release_stop = buf_start;
 
     const Processor* proc = (const Processor*)proc_state->parent.device;
     if (!Processor_get_voice_signals(proc) || (vstate->render_voice == NULL))
@@ -210,22 +205,13 @@ void Voice_state_mix_signals(
 }
 
 
-void Voice_state_mark_release_data(Voice_state* vstate, int32_t release_stop)
+void Voice_state_set_keep_alive_stop(Voice_state* vstate, int32_t stop)
 {
     rassert(vstate != NULL);
-    rassert(release_stop >= 0);
+    rassert(stop >= 0);
 
-    vstate->has_release_data = true;
-    vstate->release_stop = release_stop;
+    vstate->keep_alive_stop = stop;
 
-    return;
-}
-
-
-void Voice_state_set_finished(Voice_state* vstate)
-{
-    rassert(vstate != NULL);
-    vstate->has_finished = true;
     return;
 }
 

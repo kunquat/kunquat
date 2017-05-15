@@ -342,6 +342,13 @@ static int32_t Envgen_vstate_render_voice(
                     // Fill the rest of the envelope buffer with the last value
                     for (int32_t i = env_stop; i < slice_stop; ++i)
                         time_env[i] = last_value;
+
+                    const bool is_final =
+                        !egen->trig_impulse_floor &&
+                        !egen->trig_impulse_ceil &&
+                        (!egen->trig_release || egen_state->was_released);
+
+                    Work_buffer_set_final(out_wb, is_final);
                 }
 
                 const_start = env_stop;
@@ -404,6 +411,8 @@ static int32_t Envgen_vstate_render_voice(
         const float value = egen_state->cur_y_max;
         for (int32_t i = buf_start; i < buf_stop; ++i)
             out_buffer[i] = value;
+
+        Work_buffer_set_final(out_wb, true);
     }
 
     // Mark constant region of the buffer

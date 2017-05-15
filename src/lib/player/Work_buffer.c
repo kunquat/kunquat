@@ -42,7 +42,8 @@ Work_buffer* new_Work_buffer(int32_t size)
 
     // Sanitise fields
     buffer->size = size;
-    buffer->const_start = INT32_MAX;
+    buffer->const_start = 0;
+    buffer->is_final = true;
     buffer->is_unbounded = false;
     buffer->contents = NULL;
 
@@ -91,7 +92,8 @@ void Work_buffer_init_with_memory(
     rassert(raw_elem_count >= 2);
 
     buffer->size = raw_elem_count - 2;
-    buffer->const_start = INT32_MAX;
+    buffer->const_start = 0;
+    buffer->is_final = true;
     buffer->is_unbounded = false;
     buffer->contents = space;
 
@@ -128,6 +130,7 @@ bool Work_buffer_resize(Work_buffer* buffer, int32_t new_size)
     buffer->contents = new_contents;
 
     Work_buffer_clear_const_start(buffer);
+    Work_buffer_set_final(buffer, false);
 
     return true;
 }
@@ -146,6 +149,7 @@ void Work_buffer_clear(Work_buffer* buffer, int32_t buf_start, int32_t buf_stop)
         fcontents[i] = 0;
 
     Work_buffer_set_const_start(buffer, max(0, buf_start));
+    Work_buffer_set_final(buffer, true);
 
     return;
 }
@@ -170,6 +174,7 @@ float* Work_buffer_get_contents_mut(Work_buffer* buffer)
     rassert(buffer != NULL);
 
     Work_buffer_clear_const_start(buffer);
+    Work_buffer_set_final(buffer, false);
 
     return (float*)buffer->contents + 1;
 }
@@ -180,6 +185,7 @@ int32_t* Work_buffer_get_contents_int_mut(Work_buffer* buffer)
     rassert(buffer != NULL);
 
     Work_buffer_clear_const_start(buffer);
+    Work_buffer_set_final(buffer, false);
 
     return (int32_t*)buffer->contents + 1;
 }
@@ -244,6 +250,21 @@ int32_t Work_buffer_get_const_start(const Work_buffer* buffer)
 }
 
 
+void Work_buffer_set_final(Work_buffer* buffer, bool is_final)
+{
+    rassert(buffer != NULL);
+    buffer->is_final = is_final;
+    return;
+}
+
+
+bool Work_buffer_is_final(const Work_buffer* buffer)
+{
+    rassert(buffer != NULL);
+    return buffer->is_final;
+}
+
+
 void Work_buffer_mix(
         Work_buffer* buffer,
         const Work_buffer* in,
@@ -262,14 +283,48 @@ void Work_buffer_mix(
         return;
 
     const int32_t orig_const_start = Work_buffer_get_const_start(buffer);
-    float* buf_contents = Work_buffer_get_contents_mut(buffer);
 
+    const bool buffer_has_final_value =
+        (Work_buffer_is_final(buffer) && (orig_const_start < buf_stop));
+    const bool in_has_final_value =
+        (Work_buffer_is_final(in) && (in->const_start < buf_stop));
+
+    float* buf_contents = Work_buffer_get_contents_mut(buffer);
     const float* in_contents = Work_buffer_get_contents(in);
+
+    const bool buffer_has_neg_inf_final_value =
+        (buffer_has_final_value && (buf_contents[orig_const_start] == -INFINITY));
+    const bool in_has_neg_inf_final_value =
+        (in_has_final_value && (in_contents[in->const_start] == -INFINITY));
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
         buf_contents[i] += in_contents[i];
 
-    Work_buffer_set_const_start(buffer, max(orig_const_start, in->const_start));
+    bool result_is_const_final = (buffer_has_final_value && in_has_final_value);
+    int32_t new_const_start = max(orig_const_start, in->const_start);
+
+    // Fill result buffer trail with negative infinity
+    // if one of the inputs ends with final negative infinity
+    if (buffer_has_neg_inf_final_value)
+    {
+        result_is_const_final = true;
+        new_const_start = min(new_const_start, orig_const_start);
+
+        for (int32_t i = orig_const_start; i < buf_stop; ++i)
+            buf_contents[i] = -INFINITY;
+    }
+
+    if (in_has_neg_inf_final_value)
+    {
+        result_is_const_final = true;
+        new_const_start = min(new_const_start, in->const_start);
+
+        for (int32_t i = in->const_start; i < buf_stop; ++i)
+            buf_contents[i] = -INFINITY;
+    }
+
+    Work_buffer_set_const_start(buffer, new_const_start);
+    Work_buffer_set_final(buffer, result_is_const_final);
 
     return;
 }

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -56,19 +56,32 @@ static int32_t Debug_vstate_render_voice(
     {
         if (buf_start < buf_stop)
         {
+            if (vstate->pos == 1)
+            {
+                vstate->active = false;
+                return buf_start;
+            }
+
             const float val = 1.0;
             if (out_buffers[0] != NULL)
                 out_buffers[0][buf_start] = val;
             if (out_buffers[1] != NULL)
                 out_buffers[1][buf_start] = val;
-            Voice_state_set_finished(vstate);
 
             // We want all single pulses to be included in test buffers,
             // even if another voice replaces us in the channel foreground
-            Voice_state_mark_release_data(vstate, buf_start + 1);
+            Voice_state_set_keep_alive_stop(vstate, buf_start + 1);
+
+            vstate->pos = 1;
 
             return buf_start + 1;
         }
+        return buf_start;
+    }
+
+    if ((vstate->pos >= 10) || (!vstate->note_on && vstate->noff_pos_rem >= 2))
+    {
+        vstate->active = false;
         return buf_start;
     }
 
@@ -95,8 +108,6 @@ static int32_t Debug_vstate_render_voice(
         {
             vals[0] = -vals[0];
             vals[1] = -vals[1];
-
-            Voice_state_mark_release_data(vstate, i + 1);
         }
 
         if (out_buffers[0] != NULL)
@@ -111,7 +122,7 @@ static int32_t Debug_vstate_render_voice(
             vstate->noff_pos_rem += freq / audio_rate;
             if (vstate->noff_pos_rem >= 2)
             {
-                Voice_state_set_finished(vstate);
+                Voice_state_set_keep_alive_stop(vstate, i + 1);
                 return i + 1;
             }
         }
@@ -121,13 +132,15 @@ static int32_t Debug_vstate_render_voice(
             ++vstate->pos;
             if (vstate->pos >= 10)
             {
-                Voice_state_set_finished(vstate);
+                Voice_state_set_keep_alive_stop(vstate, i + 1);
                 return i + 1;
             }
             vstate->rel_pos = 0;
             vstate->rel_pos_rem -= floor(vstate->rel_pos_rem);
         }
     }
+
+    Voice_state_set_keep_alive_stop(vstate, buf_stop);
 
     return buf_stop;
 }

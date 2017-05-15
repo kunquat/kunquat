@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -136,7 +136,9 @@ void Voice_init(
     Random_set_seed(&voice->rand_p, seed);
     Random_set_seed(&voice->rand_s, seed);
 
-    Voice_state_init(voice->state, &voice->rand_p, &voice->rand_s);
+    Proc_type proc_type = Device_impl_get_proc_type(proc->parent.dimpl);
+
+    Voice_state_init(voice->state, proc_type, &voice->rand_p, &voice->rand_s);
     Voice_state_set_work_buffer(voice->state, voice->wb);
 
     const Device_impl* dimpl = Device_get_impl((const Device*)proc);
@@ -223,7 +225,7 @@ int32_t Voice_render(
     rassert(buf_stop >= buf_start);
 
     if (voice->prio == VOICE_PRIO_INACTIVE)
-        return buf_stop;
+        return buf_start;
 
     const uint32_t proc_id = Device_get_id((const Device*)voice->proc);
 
@@ -233,9 +235,11 @@ int32_t Voice_render(
     const Au_state* au_state = (const Au_state*)Device_states_get_state(
             dstates, voice->proc->au_params->device_id);
 
+    voice->state->keep_alive_stop = 0;
+
     const int32_t process_stop = Voice_state_render_voice(
             voice->state, pstate, proc_ts, au_state, wbs, buf_start, buf_stop, tempo);
-    ignore(process_stop); // TODO: this should probably be release_stop
+    ignore(process_stop); // TODO: not sure if we have any use for this
 
     voice->updated = true;
 
@@ -244,16 +248,11 @@ int32_t Voice_render(
         Voice_reset(voice);
         return buf_start;
     }
-    else if (!voice->state->note_on)
-    {
+
+    if (!voice->state->note_on)
         voice->prio = VOICE_PRIO_BG;
-        if (voice->state->has_release_data)
-            return voice->state->release_stop;
 
-        return buf_start;
-    }
-
-    return buf_stop;
+    return clamp(voice->state->keep_alive_stop, buf_start, buf_stop);
 }
 
 

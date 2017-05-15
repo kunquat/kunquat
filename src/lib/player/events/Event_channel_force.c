@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -15,6 +15,7 @@
 #include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
+#include <init/devices/Proc_type.h>
 #include <init/Module.h>
 #include <player/devices/Voice_state.h>
 #include <player/devices/processors/Force_state.h>
@@ -31,7 +32,7 @@
 
 static Force_controls* get_force_controls(Voice_state* vstate)
 {
-    if (!vstate->is_force_state)
+    if (vstate->proc_type != Proc_type_force)
         return NULL;
 
     return Force_vstate_get_force_controls_mut(vstate);

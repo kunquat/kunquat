@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,7 @@
 
 
 #include <decl.h>
+#include <init/devices/Proc_type.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <mathnum/Tstamp.h>
@@ -61,16 +62,16 @@ typedef void Voice_state_set_cv_tstamp_func(
 
 struct Voice_state
 {
+    Proc_type proc_type;
+
     bool active;                   ///< Whether there is anything left to process.
-    bool has_finished;
+    int32_t keep_alive_stop;
+
     Random* rand_p;                ///< Parameter random source.
     Random* rand_s;                ///< Signal random source.
     Work_buffer* wb;
 
     Voice_state_render_voice_func* render_voice;
-
-    bool has_release_data;
-    int32_t release_stop;
 
     bool expr_filters_applied;
     char ch_expr_name[KQT_VAR_NAME_MAX];
@@ -90,24 +91,21 @@ struct Voice_state
     bool note_on;                  ///< Whether the note is still on.
     int64_t noff_pos;              ///< Note Off position.
     double noff_pos_rem;           ///< Note Off position remainder.
-
-    // TODO: temp hack -- replace with proper type identifier
-    bool is_pitch_state;
-    bool is_force_state;
-    bool is_stream_state;
 };
 
 
 /**
  * Initialise a Voice state.
  *
- * \param state    The Voice state -- must not be \c NULL.
- * \param rand_p   The parameter Random source -- must not be \c NULL.
- * \param rand_s   The signal Random source -- must not be \c NULL.
+ * \param state       The Voice state -- must not be \c NULL.
+ * \param proc_type   The Processor type -- must be valid.
+ * \param rand_p      The parameter Random source -- must not be \c NULL.
+ * \param rand_s      The signal Random source -- must not be \c NULL.
  *
  * \return   The parameter \a state.
  */
-Voice_state* Voice_state_init(Voice_state* state, Random* rand_p, Random* rand_s);
+Voice_state* Voice_state_init(
+        Voice_state* state, Proc_type proc_type, Random* rand_p, Random* rand_s);
 
 
 /**
@@ -175,24 +173,14 @@ void Voice_state_mix_signals(
 
 
 /**
- * Mark Voice state as having release data.
+ * Set request to keep the Voice state alive.
  *
- * \param vstate         The Voice state -- must not be \c NULL.
- * \param release_stop   The buffer end index of rendered release data
- *                       -- must be >= \c 0.
+ * \param stop   The buffer index at which it is OK to stop processing
+ *               -- must be >= \c 0. Note that the Voice state may be kept
+ *               alive longer and the associated Processor must provide data as
+ *               long as the output may contain non-zero values.
  */
-void Voice_state_mark_release_data(Voice_state* vstate, int32_t release_stop);
-
-
-/**
- * Set Voice state as finished.
- *
- * The Voice state will be deactivated after retrieving the buffer contents
- * written during the current cycle.
- *
- * \param vstate       The Voice state -- must not be \c NULL.
- */
-void Voice_state_set_finished(Voice_state* vstate);
+void Voice_state_set_keep_alive_stop(Voice_state* vstate, int32_t stop);
 
 
 /**

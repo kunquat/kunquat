@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2017
  *
  * This file is part of Kunquat.
  *
@@ -104,6 +104,8 @@ bool Device_impl_init(Device_impl* dimpl, Device_impl_destroy_func* destroy)
     rassert(dimpl != NULL);
     rassert(destroy != NULL);
 
+    dimpl->proc_type = Proc_type_COUNT;
+
     dimpl->create_pstate = NULL;
     dimpl->get_vstate_size = NULL;
     dimpl->get_voice_wb_size = NULL;
@@ -124,6 +126,25 @@ bool Device_impl_init(Device_impl* dimpl, Device_impl_destroy_func* destroy)
     }
 
     return true;
+}
+
+
+void Device_impl_set_proc_type(Device_impl* dimpl, Proc_type proc_type)
+{
+    rassert(dimpl != NULL);
+    rassert(proc_type >= 0);
+    rassert(proc_type < Proc_type_COUNT);
+
+    dimpl->proc_type = proc_type;
+
+    return;
+}
+
+
+Proc_type Device_impl_get_proc_type(const Device_impl* dimpl)
+{
+    rassert(dimpl != NULL);
+    return dimpl->proc_type;
 }
 
 

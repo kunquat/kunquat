@@ -213,6 +213,8 @@ static int32_t Force_vstate_render_voice(
         const_start = max(const_start, final_lfo_stop);
     }
 
+    int32_t keep_alive_stop = buf_stop;
+
     // Apply force envelope
     if (force->is_force_env_enabled && (force->force_env != NULL))
     {
@@ -253,8 +255,7 @@ static int32_t Force_vstate_render_voice(
                 for (int32_t i = new_buf_stop; i < buf_stop; ++i)
                     out_buf[i] = -INFINITY;
 
-                // TODO: add interface for reporting that we'll only give -INFINITY
-                //Voice_state_set_finished(vstate);
+                keep_alive_stop = min(keep_alive_stop, new_buf_stop);
             }
             else
             {
@@ -267,9 +268,6 @@ static int32_t Force_vstate_render_voice(
 
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
             out_buf[i] += time_env[i];
-
-        if (vstate->has_finished)
-            return new_buf_stop;
     }
 
     if (!vstate->note_on)
@@ -311,14 +309,8 @@ static int32_t Force_vstate_render_voice(
             for (int32_t i = new_buf_stop; i < buf_stop; ++i)
                 out_buf[i] = -INFINITY;
 
-            // Keep the note running
-            Voice_state_mark_release_data(vstate, new_buf_stop);
-
             if (fvstate->release_env_state.is_finished)
-            {
-                Voice_state_set_finished(vstate);
-                return new_buf_stop;
-            }
+                keep_alive_stop = min(keep_alive_stop, new_buf_stop);
         }
         else if (force->is_release_ramping_enabled)
         {
@@ -344,21 +336,23 @@ static int32_t Force_vstate_render_voice(
                 fvstate->release_ramp_progress = progress;
             }
 
-            // Keep the note running
-            Voice_state_mark_release_data(vstate, new_buf_stop);
-
             for (int32_t i = new_buf_stop; i < buf_stop; ++i)
                 out_buf[i] = -INFINITY;
 
             if (fvstate->release_ramp_progress >= 1)
-                Voice_state_set_finished(vstate);
-
-            return new_buf_stop;
+                keep_alive_stop = min(keep_alive_stop, new_buf_stop);
+        }
+        else
+        {
+            keep_alive_stop = buf_start;
         }
     }
 
     // Mark constant region of the buffer
     Work_buffer_set_const_start(out_wb, const_start);
+    Work_buffer_set_final(out_wb, keep_alive_stop < buf_stop);
+
+    Voice_state_set_keep_alive_stop(vstate, keep_alive_stop);
 
     return buf_stop;
 }
@@ -392,8 +386,6 @@ void Force_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     Time_env_state_init(&fvstate->env_state);
     Time_env_state_init(&fvstate->release_env_state);
 
-    vstate->is_force_state = true;
-
     return;
 }
 
@@ -401,7 +393,7 @@ void Force_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 Force_controls* Force_vstate_get_force_controls_mut(Voice_state* vstate)
 {
     rassert(vstate != NULL);
-    rassert(vstate->is_force_state);
+    rassert(vstate->proc_type == Proc_type_force);
 
     Force_vstate* fvstate = (Force_vstate*)vstate;
 

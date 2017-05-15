@@ -24,6 +24,7 @@ struct Work_buffer
 {
     int32_t size;
     int32_t const_start;
+    bool is_final;
     bool is_unbounded;
     void* contents;
 };

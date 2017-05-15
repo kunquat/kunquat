@@ -315,6 +315,16 @@ static int32_t Ks_vstate_render_voice(
     Work_buffer* scales_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     Work_buffer* dBs_wb = scales_wb;
+    if ((dBs_wb != NULL) &&
+            Work_buffer_is_final(dBs_wb) &&
+            (Work_buffer_get_const_start(dBs_wb) <= buf_start) &&
+            (Work_buffer_get_contents(dBs_wb)[buf_start] == -INFINITY))
+    {
+        // We are only getting silent force from this point onwards
+        vstate->active = false;
+        return buf_start;
+    }
+
     if (scales_wb == NULL)
         scales_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_FORCE);
     Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);

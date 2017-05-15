@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -107,6 +107,9 @@ static int32_t Sample_render(
         return buf_start;
     }
 
+    if (buf_start == buf_stop)
+        return buf_stop;
+
     // Get frequencies
     Work_buffer* freqs_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
@@ -120,6 +123,16 @@ static int32_t Sample_render(
     Work_buffer* force_scales_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     Work_buffer* dBs_wb = force_scales_wb;
+    if ((dBs_wb != NULL) &&
+            Work_buffer_is_final(dBs_wb) &&
+            (Work_buffer_get_const_start(dBs_wb) <= buf_start) &&
+            (Work_buffer_get_contents(dBs_wb)[buf_start] == -INFINITY))
+    {
+        // We are only getting silent force from this point onwards
+        vstate->active = false;
+        return buf_start;
+    }
+
     if (force_scales_wb == NULL)
         force_scales_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_FORCE);
     Proc_fill_scale_buffer(force_scales_wb, dBs_wb, buf_start, buf_stop);
@@ -181,6 +194,12 @@ static int32_t Sample_render(
         {
             const int32_t length = (int32_t)sample->len;
 
+            if (positions[buf_start] >= length)
+            {
+                vstate->active = false;
+                return buf_start;
+            }
+
             // Current positions
             for (int32_t i = buf_start; i < buf_stop; ++i)
             {
@@ -188,7 +207,6 @@ static int32_t Sample_render(
                 {
                     new_buf_stop = i;
                     positions[i] = length - 1; // Make the index safe to access
-                    Voice_state_set_finished(vstate);
                     break;
                 }
             }

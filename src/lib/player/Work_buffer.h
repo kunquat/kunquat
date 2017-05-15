@@ -197,6 +197,25 @@ int32_t Work_buffer_get_const_start(const Work_buffer* buffer);
 
 
 /**
+ * Mark the constant trail of the buffer as final value.
+ *
+ * \param buffer     The Work buffer -- must not be \c NULL.
+ * \param is_final   Whether or not the trailing constant is the final value.
+ */
+void Work_buffer_set_final(Work_buffer* buffer, bool is_final);
+
+
+/**
+ * Get the final status of the Work buffer.
+ *
+ * \param buffer   The Work buffer -- must not be \c NULL.
+ *
+ * \return   \c true if the constant trail of \a buffer is final, otherwise \c false.
+ */
+bool Work_buffer_is_final(const Work_buffer* buffer);
+
+
+/**
  * Mix the contents of a Work buffer into another as floating-point data.
  *
  * If the two buffers are the same Work buffer, this function does nothing.
