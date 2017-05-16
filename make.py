@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -156,6 +156,9 @@ def build():
     cc = get_cc(options.cc)
 
     cc.set_debug(options.enable_debug)
+
+    if options.enable_debug_asserts:
+        cc.add_define('ENABLE_DEBUG_ASSERTS')
 
     #if options.enable_profiling:
     #    compile_flags.append('-pg')

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -50,8 +50,8 @@ static AAnode* aasplit(AAnode* root);
 
 static void aafree(AAnode* node, void (*destroy)(void*));
 
-#ifndef NDEBUG
-#define aavalidate(node, msg) (rassert(aavalidate_(node, msg)))
+#ifdef ENABLE_DEBUG_ASSERTS
+#define aavalidate(node, msg) (dassert(aavalidate_(node, msg)))
 static bool aavalidate_(const AAnode* node, const char* msg);
 #else
 #define aavalidate(node, msg) ignore(0)
@@ -686,7 +686,7 @@ static void aafree(AAnode* node, void (*destroy)(void*))
 }
 
 
-#ifndef NDEBUG
+#ifdef ENABLE_DEBUG_ASSERTS
 static bool aavalidate_(const AAnode* node, const char* msg)
 {
     if (node == NULL

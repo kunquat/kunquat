@@ -6,6 +6,9 @@ prefix = '/usr/local'
 # build in debug mode
 enable_debug = True
 
+# enable debug asserts
+enable_debug_asserts = False
+
 # enable libkunquat
 enable_libkunquat = True
 
