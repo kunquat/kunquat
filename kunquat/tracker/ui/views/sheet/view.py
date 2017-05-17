@@ -2004,14 +2004,17 @@ class View(QWidget):
                     0, 0, self.width(), self.height(), self._config['disabled_colour'])
 
         if pixmaps_created == 0:
-            # Update was easy; predraw a likely upcoming pixmap
-            index_add = next(self._upcoming_test_start_index_add)
-            for rel_col_index in range(draw_col_start, draw_col_stop):
-                col_count = draw_col_stop - draw_col_start
-                index = (self._first_col + rel_col_index + index_add) % col_count
-                if self._col_rends[index].predraw(self.height(), grid):
-                    #print('1 column pixmap predrawn')
-                    break
+            # Update was easy; predraw some likely upcoming pixmaps
+            max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
+            pixmap_count = min(max(1, max_visible_cols // 4), 10)
+            for _ in range(pixmap_count):
+                index_add = next(self._upcoming_test_start_index_add)
+                for rel_col_index in range(draw_col_start, draw_col_stop):
+                    col_count = draw_col_stop - draw_col_start
+                    index = (self._first_col + rel_col_index + index_add) % col_count
+                    if self._col_rends[index].predraw(self.height(), grid):
+                        #print('1 column pixmap predrawn')
+                        break
         else:
             pass
             #print('{} column pixmap{} created'.format(

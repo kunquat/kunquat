@@ -303,7 +303,6 @@ class ColumnGroupRenderer():
                 vis_cache, invis_cache = invis_cache, vis_cache
 
             # Try predrawing a pixmap immediately below the last one
-            below_vis_cache = vis_cache
             below_check_dist = ColumnCache.PIXMAP_HEIGHT // 2
             if height <= rel_end_height < (height + below_check_dist):
                 next_pi = pi + 1
@@ -312,7 +311,10 @@ class ColumnGroupRenderer():
                         below_vis_cache = self._caches[next_pi].get_active_cache()
                     else:
                         below_vis_cache = self._caches[next_pi].get_inactive_cache()
-            if below_vis_cache.predraw_pixmap(
+                    if below_vis_cache.predraw_pixmap(0, 1, grid):
+                        return True
+
+            if vis_cache.predraw_pixmap(
                     cur_offset + height, below_check_dist, grid):
                 return True
 
