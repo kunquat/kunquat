@@ -30,6 +30,7 @@ from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 from .config import *
 from . import utils
 from .columngrouprenderer import ColumnGroupRenderer
+from .triggercache import TriggerCache
 from .triggerrenderer import TriggerRenderer
 from .movestate import HorizontalMoveState, VerticalMoveState
 
@@ -139,7 +140,9 @@ class View(QWidget):
         self._edit_first_col = 0
         self._edit_px_offset = 0
 
-        self._col_rends = [ColumnGroupRenderer(i) for i in range(COLUMNS_MAX)]
+        self._trigger_cache = TriggerCache()
+        self._col_rends = [
+                ColumnGroupRenderer(i, self._trigger_cache) for i in range(COLUMNS_MAX)]
 
         self._upcoming_test_start_index_add = count()
 
@@ -332,6 +335,7 @@ class View(QWidget):
 
     def set_config(self, config):
         self._config = config
+        self._trigger_cache.flush()
         for cr in self._col_rends:
             cr.set_config(self._config)
         self.update()
@@ -491,8 +495,9 @@ class View(QWidget):
                 trigger_count = cur_column.get_trigger_count_at_row(row_ts)
                 triggers = [cur_column.get_trigger(row_ts, i)
                         for i in range(trigger_count)]
-                rends = [TriggerRenderer(self._config, t, notation, force_shift)
-                        for t in triggers]
+                rends = [TriggerRenderer(
+                    self._trigger_cache, self._config, t, notation, force_shift)
+                    for t in triggers]
                 row_width = sum(r.get_total_width() for r in rends)
 
                 init_trigger_row_width = self._get_init_trigger_row_width(
@@ -510,7 +515,11 @@ class View(QWidget):
                 # Lower bound for row offset
                 if trigger_index < len(triggers):
                     renderer = TriggerRenderer(
-                            self._config, triggers[trigger_index], notation, force_shift)
+                            self._trigger_cache,
+                            self._config,
+                            triggers[trigger_index],
+                            notation,
+                            force_shift)
                     # TODO: revisit field bounds handling, this is messy
                     trigger_width = renderer.get_total_width()
                 else:
@@ -695,8 +704,9 @@ class View(QWidget):
 
         notation = self._notation_manager.get_selected_notation()
         force_shift = self._ui_model.get_module().get_force_shift()
-        rends = [TriggerRenderer(self._config, trigger, notation, force_shift)
-                for trigger in triggers]
+        rends = [TriggerRenderer(
+            self._trigger_cache, self._config, trigger, notation, force_shift)
+            for trigger in triggers]
         widths = [r.get_total_width() for r in rends]
         total_width = sum(widths)
 
@@ -1131,8 +1141,9 @@ class View(QWidget):
                 for i in range(trigger_count))
         notation = self._notation_manager.get_selected_notation()
         force_shift = self._ui_model.get_module().get_force_shift()
-        rends = (TriggerRenderer(self._config, trigger, notation, force_shift)
-                for trigger in triggers)
+        rends = (TriggerRenderer(
+            self._trigger_cache, self._config, trigger, notation, force_shift)
+            for trigger in triggers)
         widths = [r.get_total_width() for r in rends]
         init_width = 0
         trigger_index = 0
@@ -1418,8 +1429,9 @@ class View(QWidget):
             trigger_count = column.get_trigger_count_at_row(row_ts)
             triggers = [column.get_trigger(row_ts, i)
                     for i in range(min(trigger_count, location.get_trigger_index()))]
-            rends = [TriggerRenderer(self._config, trigger, notation, force_shift)
-                    for trigger in triggers]
+            rends = [TriggerRenderer(
+                self._trigger_cache, self._config, trigger, notation, force_shift)
+                for trigger in triggers]
             widths = [r.get_total_width() for r in rends]
             init_width = sum(widths)
             x_offset += init_width
@@ -1506,7 +1518,8 @@ class View(QWidget):
         if trigger.get_type() not in ('n+', 'h'):
             notation = self._notation_manager.get_selected_notation()
             force_shift = self._ui_model.get_module().get_force_shift()
-            renderer = TriggerRenderer(self._config, trigger, notation, force_shift)
+            renderer = TriggerRenderer(
+                    self._trigger_cache, self._config, trigger, notation, force_shift)
             _, type_width = renderer.get_field_bounds(0)
             x_offset += type_width
 

@@ -29,8 +29,9 @@ class ColumnGroupRenderer():
 
     """
 
-    def __init__(self, num):
+    def __init__(self, num, trigger_cache):
         self._num = num
+        self._trigger_cache = trigger_cache
 
         self._ui_model = None
 
@@ -111,7 +112,7 @@ class ColumnGroupRenderer():
             if pinst_ref in cur_caches:
                 cache = cur_caches[pinst_ref]
             else:
-                cache = ColumnCachePair(self._num, pinst_ref)
+                cache = ColumnCachePair(self._num, pinst_ref, self._trigger_cache)
                 cache.set_config(self._config)
                 cache.set_ui_model(self._ui_model)
                 cache.set_column(column)
@@ -124,7 +125,10 @@ class ColumnGroupRenderer():
     def _create_caches(self):
         pinsts = utils.get_all_pattern_instances(self._ui_model)
         self._caches = [
-                ColumnCachePair(self._num, (p.get_pattern_num(), p.get_instance_num()))
+                ColumnCachePair(
+                    self._num,
+                    (p.get_pattern_num(), p.get_instance_num()),
+                    self._trigger_cache)
                 for p in pinsts]
         for cache in self._caches:
             cache.set_config(self._config)
@@ -357,10 +361,10 @@ class ColumnGroupRenderer():
 
 class ColumnCachePair():
 
-    def __init__(self, col_num, pinst_ref):
+    def __init__(self, col_num, pinst_ref, trigger_cache):
         self._pinst_ref = pinst_ref
-        self._active = ColumnCache(col_num, pinst_ref, inactive=False)
-        self._inactive = ColumnCache(col_num, pinst_ref, inactive=True)
+        self._active = ColumnCache(col_num, pinst_ref, trigger_cache, inactive=False)
+        self._inactive = ColumnCache(col_num, pinst_ref, trigger_cache, inactive=True)
 
     def get_pinst_ref(self):
         return self._pinst_ref
@@ -407,7 +411,7 @@ class ColumnCache():
 
     PIXMAP_HEIGHT = 256
 
-    def __init__(self, col_num, pinst_ref, *, inactive):
+    def __init__(self, col_num, pinst_ref, trigger_cache, *, inactive):
         self._col_num = col_num
         self._pinst_ref = pinst_ref
         self._inactive = inactive
@@ -416,7 +420,7 @@ class ColumnCache():
         self._pixmaps = BufferCache()
         self._pixmaps_created = 0
 
-        self._tr_cache = TRCache()
+        self._tr_cache = TRCache(trigger_cache)
         self._gl_cache = GridLineCache()
 
         if self._inactive:
@@ -619,8 +623,9 @@ class ColumnCache():
 
 class TRCache():
 
-    def __init__(self):
+    def __init__(self, trigger_cache):
         self._images = BufferCache()
+        self._trigger_cache = trigger_cache
         self._ui_model = None
         self._notation_manager = None
         self._inactive = False
@@ -696,8 +701,9 @@ class TRCache():
         force_shift = module.get_force_shift()
 
         notation = self._notation_manager.get_selected_notation()
-        rends = [TriggerRenderer(self._config, t, notation, force_shift)
-                for t in triggers]
+        rends = [TriggerRenderer(
+            self._trigger_cache, self._config, t, notation, force_shift)
+            for t in triggers]
         widths = [r.get_total_width() for r in rends]
 
         if self._inactive:
