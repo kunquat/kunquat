@@ -420,6 +420,9 @@ class ColumnCache():
         self._pixmaps = BufferCache()
         self._pixmaps_created = 0
 
+        self._trigger_cache = trigger_cache
+        self._rows = []
+
         self._tr_cache = TRCache(trigger_cache)
         self._gl_cache = GridLineCache()
 
@@ -440,8 +443,20 @@ class ColumnCache():
         self._ui_model = ui_model
         self._tr_cache.set_ui_model(ui_model)
 
+    def _build_trigger_rows(self, column):
+        trs = {}
+        for ts in column.get_trigger_row_positions():
+            trow = [column.get_trigger(ts, i)
+                    for i in range(column.get_trigger_count_at_row(ts))]
+            trs[ts] = trow
+
+        trlist = list(trs.items())
+        trlist.sort()
+        return trlist
+
     def set_column(self, column):
         self._column = column
+        self._rows = self._build_trigger_rows(column)
         self._tr_cache.set_triggers(column)
 
     def flush(self):
@@ -529,6 +544,12 @@ class ColumnCache():
             return utils.scale_colour(colour, self._config['inactive_dim'])
         return colour
 
+    def _ts_to_y_offset(self, ts, start_px):
+        rems = ts.beats * tstamp.BEAT + ts.rem
+        abs_y = rems * self._px_per_beat // tstamp.BEAT
+        y_offset = abs_y - start_px
+        return y_offset
+
     def _create_pixmap(self, index, grid):
         pixmap = QPixmap(self._width, ColumnCache.PIXMAP_HEIGHT)
 
@@ -553,12 +574,6 @@ class ColumnCache():
         stop_ts = tstamp.Tstamp(0,
                 stop_px * tstamp.BEAT // self._px_per_beat)
 
-        def ts_to_y_offset(ts):
-            rems = ts.beats * tstamp.BEAT + ts.rem
-            abs_y = rems * self._px_per_beat // tstamp.BEAT
-            y_offset = abs_y - start_px
-            return y_offset
-
         # Grid
         sheet_manager = self._ui_model.get_sheet_manager()
         if sheet_manager.is_grid_enabled():
@@ -573,21 +588,60 @@ class ColumnCache():
 
             for line_info in lines:
                 line_ts, line_style = line_info
-                line_y_offset = ts_to_y_offset(line_ts)
+                line_y_offset = self._ts_to_y_offset(line_ts, start_px)
 
                 line_pixmap = self._gl_cache.get_line_pixmap(line_style)
                 painter.drawPixmap(QPoint(0, line_y_offset), line_pixmap)
 
         # Trigger rows
+        force_shift = self._ui_model.get_module().get_force_shift()
+        notation = self._ui_model.get_notation_manager().get_selected_notation()
+
+        painter.save()
         painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
+        next_tstamps = (row[0] for row in islice(self._rows, 1, None))
+        for row, next_ts in zip_longest(self._rows, next_tstamps):
+            ts, triggers = row
+            if ts < start_ts:
+                continue
+            elif ts >= stop_ts:
+                break
+
+            y_offset = self._ts_to_y_offset(ts, start_px)
+            tr_height = self._config['tr_height']
+            if next_ts != None:
+                next_y_offset = self._ts_to_y_offset(next_ts, start_px)
+                tr_height = min(max(1, next_y_offset - y_offset), tr_height)
+
+            painter.save()
+
+            painter.translate(QPoint(0, y_offset))
+
+            for t in triggers:
+                renderer = TriggerRenderer(
+                        self._trigger_cache, self._config, t, notation, force_shift)
+                if self._inactive:
+                    renderer.set_inactive()
+
+                tr_width = renderer.get_total_width()
+                painter.setClipRegion(QRegion(0, 0, tr_width, tr_height))
+
+                renderer.draw_trigger(painter)
+                painter.translate(tr_width, 0)
+
+            painter.restore()
+
+        painter.restore()
+
+        '''
         for ts, image, next_ts in self._tr_cache.iter_images(start_ts, stop_ts):
-            y_offset = ts_to_y_offset(ts)
+            y_offset = self._ts_to_y_offset(ts, start_px)
 
             src_rect = image.rect()
             dest_rect = src_rect.translated(QPoint(0, y_offset))
 
             if next_ts != None:
-                next_y_offset = ts_to_y_offset(next_ts)
+                next_y_offset = self._ts_to_y_offset(next_ts, start_px)
                 y_dist = next_y_offset - y_offset
                 if y_dist < dest_rect.height():
                     rect_height = max(1, y_dist)
@@ -595,6 +649,7 @@ class ColumnCache():
                     src_rect.setHeight(rect_height)
 
             painter.drawImage(dest_rect, image, src_rect)
+        '''
 
         # Border
         painter.setPen(self._get_final_colour(self._config['border_colour']))
