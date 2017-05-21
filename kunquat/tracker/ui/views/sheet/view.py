@@ -1955,6 +1955,8 @@ class View(QWidget):
 
         rect = event.rect()
 
+        old_trigger_count = self._trigger_cache.trigger_count()
+
         # See which columns should be drawn
         draw_col_start = rect.x() // self._col_width
         draw_col_stop = 1 + (rect.x() + rect.width() - 1) // self._col_width
@@ -2033,11 +2035,17 @@ class View(QWidget):
             #print('{} column pixmap{} created'.format(
             #    pixmaps_created, 's' if pixmaps_created != 1 else ''))
 
+        new_trigger_count = self._trigger_cache.trigger_count()
+        triggers_rendered = max(0, new_trigger_count - old_trigger_count)
+
         end = time.time()
         elapsed = end - start
-        memory_usage = sum(cr.get_memory_usage() for cr in self._col_rends)
+        memory_usage = (sum(cr.get_memory_usage() for cr in self._col_rends) +
+                self._trigger_cache.get_memory_usage())
         #print('View updated in {:.2f} ms, cache size {:.2f} MB'.format(
         #    elapsed * 1000, memory_usage / float(2**20)))
+        #print('{} trigger{} rendered'.format(
+        #    triggers_rendered, '' if triggers_rendered == 1 else 's'))
 
     def focusInEvent(self, event):
         self._sheet_manager.set_edit_mode(True)
