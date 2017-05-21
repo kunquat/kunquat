@@ -507,7 +507,7 @@ class ColumnCache():
         return False
 
     def update_hit_names(self):
-        if self._trigger_cache.contains_hits():
+        if self._contains_hits():
             self._pixmaps.flush()
             self._first_row_info = None
             self._last_row_info = None
