@@ -430,6 +430,9 @@ class ColumnCache():
         self._trigger_cache = trigger_cache
         self._rows = []
 
+        self._first_row_info = None
+        self._last_row_info = None
+
         self._gl_cache = GridLineCache()
 
         if self._inactive:
@@ -441,6 +444,8 @@ class ColumnCache():
     def set_config(self, config):
         self._config = config
         self._pixmaps.flush()
+        self._first_row_info = None
+        self._last_row_info = None
         self._gl_cache.set_config(config)
 
     def set_ui_model(self, ui_model):
@@ -460,9 +465,14 @@ class ColumnCache():
     def set_column(self, column):
         self._column = column
         self._rows = self._build_trigger_rows(column)
+        self.flush_final_pixmaps()
+        self._first_row_info = None
+        self._last_row_info = None
 
     def flush(self):
         self._pixmaps.flush()
+        self._first_row_info = None
+        self._last_row_info = None
         self._gl_cache.flush()
 
     def flush_final_pixmaps(self):
@@ -499,6 +509,8 @@ class ColumnCache():
     def update_hit_names(self):
         if self._trigger_cache.contains_hits():
             self._pixmaps.flush()
+            self._first_row_info = None
+            self._last_row_info = None
 
     def iter_pixmaps(self, start_px, height_px, grid):
         assert start_px >= 0
@@ -659,6 +671,9 @@ class ColumnCache():
         return pixmap
 
     def get_first_trigger_row(self):
+        if self._first_row_info:
+            return self._first_row_info
+
         force_shift = self._ui_model.get_module().get_force_shift()
         notation = self._ui_model.get_notation_manager().get_selected_notation()
 
@@ -673,11 +688,15 @@ class ColumnCache():
 
             images = [r.get_trigger_image() for r in rends]
 
-            return ts, images
+            self._first_row_info = ts, images
+            return self._first_row_info
 
         return None
 
     def get_last_trigger_row(self, max_ts):
+        if self._last_row_info:
+            return self._last_row_info
+
         force_shift = self._ui_model.get_module().get_force_shift()
         notation = self._ui_model.get_notation_manager().get_selected_notation()
 
@@ -693,7 +712,8 @@ class ColumnCache():
 
                 images = [r.get_trigger_image() for r in rends]
 
-                return ts, images
+                self._last_row_info = ts, images
+                return self._last_row_info
 
         return None
 
