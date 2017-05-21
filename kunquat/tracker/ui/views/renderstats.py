@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -15,6 +15,8 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from .profilecontrol import ProfileControl
+
 
 class RenderStats(QWidget):
 
@@ -27,6 +29,10 @@ class RenderStats(QWidget):
         self._render_speed = QLabel(self)
         self._render_load = QLabel(self)
         self._ui_lag = QLabel(self)
+
+        self._profile_control = ProfileControl()
+
+        self.setFocusPolicy(Qt.StrongFocus)
 
         v = QVBoxLayout()
         v.addWidget(self._output_speed)
@@ -70,5 +76,11 @@ class RenderStats(QWidget):
         self.update_render_speed()
         self.update_render_load()
         self.update_ui_lag()
+
+    def keyPressEvent(self, event):
+        modifiers = event.modifiers()
+        key = event.key()
+        if modifiers == Qt.ControlModifier and key == Qt.Key_P:
+            self._profile_control.show()
 
 
