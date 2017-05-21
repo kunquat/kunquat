@@ -212,7 +212,7 @@ class View(QWidget):
             self._update_grid()
             self.update()
         if 'signal_force_shift' in signals:
-            self._update_all_patterns()
+            self._update_force_shift()
             self.update()
         if 'signal_silence' in signals:
             self._handle_silence()
@@ -333,6 +333,10 @@ class View(QWidget):
     def _update_resized_patterns(self):
         self._rearrange_patterns()
         self._update_playback_cursor()
+
+    def _update_force_shift(self):
+        for cr in self._col_rends:
+            cr.flush_final_pixmaps()
 
     def _update_column(self, track_num, system_num, col_num):
         pattern_index = utils.get_pattern_index_at_location(
