@@ -144,6 +144,9 @@ class View(QWidget):
         self._col_rends = [
                 ColumnGroupRenderer(i, self._trigger_cache) for i in range(COLUMNS_MAX)]
 
+        self._prev_first_kept_col = 0
+        self._prev_last_kept_col = COLUMNS_MAX - 1
+
         self._upcoming_test_start_index_add = count()
 
         self._heights = []
@@ -1978,9 +1981,11 @@ class View(QWidget):
         # Flush caches of (most) out-of-view columns
         first_kept_col = max(0, self._first_col - 1)
         last_kept_col = min(COLUMNS_MAX - 1, self._first_col + draw_col_stop)
-        for col_index in range(COLUMNS_MAX):
+        for col_index in range(self._prev_first_kept_col, self._prev_last_kept_col + 1):
             if not (first_kept_col <= col_index <= last_kept_col):
                 self._col_rends[col_index].flush_caches()
+        self._prev_first_kept_col = first_kept_col
+        self._prev_last_kept_col = last_kept_col
 
         painter.setTransform(QTransform())
 
