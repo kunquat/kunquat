@@ -188,7 +188,7 @@ class View(QWidget):
 
     def _perform_updates(self, signals):
         if 'signal_notation' in signals:
-            self._update_all_patterns()
+            self._update_notation()
             self.update()
         if 'signal_hits' in signals:
             self._update_hit_names()
@@ -310,6 +310,10 @@ class View(QWidget):
         self._set_pattern_heights()
 
     def _update_grid(self):
+        for cr in self._col_rends:
+            cr.flush_final_pixmaps()
+
+    def _update_notation(self):
         for cr in self._col_rends:
             cr.flush_final_pixmaps()
 
