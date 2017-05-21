@@ -315,7 +315,7 @@ class View(QWidget):
 
     def _update_notation(self):
         for cr in self._col_rends:
-            cr.flush_final_pixmaps()
+            cr.flush_caches()
 
     def _update_hit_names(self):
         for cr in self._col_rends[:self._first_col]:
@@ -336,7 +336,7 @@ class View(QWidget):
 
     def _update_force_shift(self):
         for cr in self._col_rends:
-            cr.flush_final_pixmaps()
+            cr.flush_caches()
 
     def _update_column(self, track_num, system_num, col_num):
         pattern_index = utils.get_pattern_index_at_location(
