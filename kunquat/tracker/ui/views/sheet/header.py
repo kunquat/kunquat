@@ -53,8 +53,9 @@ class Header(QWidget):
         self._update_contents()
 
     def set_first_column(self, num):
-        self._first_col = num
-        self._update_contents()
+        if num != self._first_col:
+            self._first_col = num
+            self._update_contents()
 
     def update_header_aus(self):
         self._update_contents()
