@@ -47,6 +47,25 @@ class TriggerRenderer():
     def get_total_width(self):
         return self._total_width
 
+    def get_trigger_image(self):
+        self._check_create_trigger_image()
+        key = self._get_trigger_image_key()
+        image = self._cache.get_trigger_image(key)
+        assert image
+        return image
+
+    def draw_trigger(self, painter, include_line=True, select=False):
+        use_cache = include_line and not select
+
+        if use_cache:
+            self._check_create_trigger_image()
+            key = self._get_trigger_image_key()
+            image = self._cache.get_trigger_image(key)
+            assert image
+            painter.drawImage(0, 0, image)
+        else:
+            self._draw_trigger(painter, include_line, select)
+
     def _get_final_colour(self, colour):
         if self._inactive:
             dim_factor = self._config['inactive_dim']
@@ -64,26 +83,21 @@ class TriggerRenderer():
         warn = self._use_warning_colours()
         return tuple([evtype, expr, self._inactive, warn] + texts)
 
-    def draw_trigger(self, painter, include_line=True, select=False):
-        use_cache = include_line and not select
+    def _check_create_trigger_image(self):
+        key = self._get_trigger_image_key()
+        if self._cache.get_trigger_image(key):
+            return
 
-        if use_cache:
-            key = self._get_trigger_image_key()
-            image = self._cache.get_trigger_image(key)
-            if not image:
-                image = QImage(
-                        self._total_width,
-                        self._config['tr_height'],
-                        QImage.Format_ARGB32)
-                image.fill(0)
-                img_painter = QPainter(image)
-                img_painter.setCompositionMode(QPainter.CompositionMode_Plus)
-                self._draw_trigger(img_painter, include_line, select)
-                img_painter.end()
-                self._cache.set_trigger_image(key, image)
-            painter.drawImage(0, 0, image)
-        else:
-            self._draw_trigger(painter, include_line, select)
+        image = QImage(
+                self._total_width,
+                self._config['tr_height'],
+                QImage.Format_ARGB32)
+        image.fill(0)
+        painter = QPainter(image)
+        painter.setCompositionMode(QPainter.CompositionMode_Plus)
+        self._draw_trigger(painter, include_line=True, select=False)
+        painter.end()
+        self._cache.set_trigger_image(key, image)
 
     def _use_warning_colours(self):
         evtype = self._trigger.get_type()

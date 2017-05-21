@@ -215,7 +215,7 @@ class ColumnGroupRenderer():
 
             # Draw overlapping part of previous pattern
             if overlap:
-                src_rect, image = overlap
+                src_rect, images = overlap
 
                 # Prevent from drawing over the first trigger row
                 first_tr = cache.get_first_trigger_row()
@@ -229,18 +229,25 @@ class ColumnGroupRenderer():
                         tr_overlap = src_rect_stop_y - first_start_y
                         src_rect.setHeight(src_rect.height() - tr_overlap)
 
-                width = min(max_tr_width, src_rect.width())
-                dest_rect = QRect(
-                        0, rel_start_height,
-                        width, src_rect.height())
-                src_rect.setWidth(width)
-                painter.drawImage(dest_rect, image, src_rect)
+                full_width = min(max_tr_width, src_rect.width())
+                offset_x = 0
+                for image in images:
+                    if offset_x >= full_width:
+                        break
+                    cur_width = image.width()
+                    dest_rect = QRect(
+                            offset_x, rel_start_height, cur_width, src_rect.height())
+                    src_rect.setWidth(cur_width)
+                    painter.drawImage(dest_rect, image, src_rect)
+                    offset_x += cur_width
+
                 overlap = None
 
             # Find trigger row that overlaps with next pattern
             last_tr = cache.get_last_trigger_row(self._lengths[pi])
             if last_tr:
-                last_ts, last_image = last_tr
+                last_ts, last_images = last_tr
+                row_width = sum(img.width() for img in last_images)
                 last_rems = last_ts.beats * tstamp.BEAT + last_ts.rem
                 last_start_y = last_rems * self._px_per_beat // tstamp.BEAT
                 last_stop_y = last_start_y + self._config['tr_height']
@@ -248,31 +255,31 @@ class ColumnGroupRenderer():
                     # + 1 is the shared pixel row between patterns
                     rect_height = last_stop_y - self._heights[pi] + 1
                     rect_start = self._config['tr_height'] - rect_height
-                    rect = QRect(
-                            0, rect_start,
-                            last_image.rect().width(), rect_height)
-                    overlap = rect, last_image
+                    rect = QRect(0, rect_start, row_width, rect_height)
+                    overlap = rect, last_images
         else:
             # Fill trailing blank
             painter.setBackground(self._config['canvas_bg_colour'])
             if rel_end_height < height:
                 painter.eraseRect(
-                        QRect(
-                            0, rel_end_height,
-                            self._width, height - rel_end_height)
-                        )
+                        QRect(0, rel_end_height, self._width, height - rel_end_height))
 
             # Draw trigger row that extends beyond the last pattern
             if overlap:
-                src_rect, image = overlap
+                src_rect, images = overlap
                 # Last pattern and blank do not share pixel rows
                 src_rect.setY(src_rect.y() + 1)
-                width = min(max_tr_width, src_rect.width())
-                dest_rect = QRect(
-                        0, rel_end_height,
-                        width, src_rect.height())
-                src_rect.setWidth(width)
-                painter.drawImage(dest_rect, image, src_rect)
+                full_width = min(max_tr_width, src_rect.width())
+                offset_x = 0
+                for image in images:
+                    if offset_x >= full_width:
+                        break
+                    cur_width = image.width()
+                    dest_rect = QRect(
+                            offset_x, rel_end_height, cur_width, src_rect.height())
+                    src_rect.setWidth(cur_width)
+                    painter.drawImage(dest_rect, image, src_rect)
+                    offset_x += cur_width
 
         # Testing
         """
@@ -423,11 +430,9 @@ class ColumnCache():
         self._trigger_cache = trigger_cache
         self._rows = []
 
-        self._tr_cache = TRCache(trigger_cache)
         self._gl_cache = GridLineCache()
 
         if self._inactive:
-            self._tr_cache.set_inactive()
             self._gl_cache.set_inactive()
 
         self._width = DEFAULT_CONFIG['col_width']
@@ -436,12 +441,10 @@ class ColumnCache():
     def set_config(self, config):
         self._config = config
         self._pixmaps.flush()
-        self._tr_cache.set_config(config)
         self._gl_cache.set_config(config)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._tr_cache.set_ui_model(ui_model)
 
     def _build_trigger_rows(self, column):
         trs = {}
@@ -457,11 +460,9 @@ class ColumnCache():
     def set_column(self, column):
         self._column = column
         self._rows = self._build_trigger_rows(column)
-        self._tr_cache.set_triggers(column)
 
     def flush(self):
         self._pixmaps.flush()
-        self._tr_cache.flush()
         self._gl_cache.flush()
 
     def flush_final_pixmaps(self):
@@ -485,13 +486,19 @@ class ColumnCache():
             self._pixmaps.flush()
 
     def get_memory_usage(self):
-        tr_memory_usage = self._tr_cache.get_memory_usage()
-        return self._pixmaps.get_memory_usage() + tr_memory_usage
+        return self._pixmaps.get_memory_usage()
+
+    def _contains_hits(self):
+        for row in self._rows:
+            ts, triggers = row
+            for trigger in triggers:
+                if trigger.get_type() == 'h':
+                    return True
+        return False
 
     def update_hit_names(self):
-        if self._tr_cache.contains_hits():
+        if self._trigger_cache.contains_hits():
             self._pixmaps.flush()
-            self._tr_cache.flush()
 
     def iter_pixmaps(self, start_px, height_px, grid):
         assert start_px >= 0
@@ -633,24 +640,6 @@ class ColumnCache():
 
         painter.restore()
 
-        '''
-        for ts, image, next_ts in self._tr_cache.iter_images(start_ts, stop_ts):
-            y_offset = self._ts_to_y_offset(ts, start_px)
-
-            src_rect = image.rect()
-            dest_rect = src_rect.translated(QPoint(0, y_offset))
-
-            if next_ts != None:
-                next_y_offset = self._ts_to_y_offset(next_ts, start_px)
-                y_dist = next_y_offset - y_offset
-                if y_dist < dest_rect.height():
-                    rect_height = max(1, y_dist)
-                    dest_rect.setHeight(rect_height)
-                    src_rect.setHeight(rect_height)
-
-            painter.drawImage(dest_rect, image, src_rect)
-        '''
-
         # Border
         painter.setPen(self._get_final_colour(self._config['border_colour']))
         painter.drawLine(
@@ -670,10 +659,43 @@ class ColumnCache():
         return pixmap
 
     def get_first_trigger_row(self):
-        return self._tr_cache.get_first_trigger_row()
+        force_shift = self._ui_model.get_module().get_force_shift()
+        notation = self._ui_model.get_notation_manager().get_selected_notation()
+
+        if self._rows:
+            ts, triggers = self._rows[0]
+            rends = [TriggerRenderer(
+                self._trigger_cache, self._config, t, notation, force_shift)
+                for t in triggers]
+            if self._inactive:
+                for r in rends:
+                    r.set_inactive()
+
+            images = [r.get_trigger_image() for r in rends]
+
+            return ts, images
+
+        return None
 
     def get_last_trigger_row(self, max_ts):
-        return self._tr_cache.get_last_trigger_row(max_ts)
+        force_shift = self._ui_model.get_module().get_force_shift()
+        notation = self._ui_model.get_notation_manager().get_selected_notation()
+
+        for row in reversed(self._rows):
+            ts, triggers = row
+            if ts <= max_ts:
+                rends = [TriggerRenderer(
+                    self._trigger_cache, self._config, t, notation, force_shift)
+                    for t in triggers]
+                if self._inactive:
+                    for r in rends:
+                        r.set_inactive()
+
+                images = [r.get_trigger_image() for r in rends]
+
+                return ts, images
+
+        return None
 
 
 class TRCache():
@@ -754,8 +776,8 @@ class TRCache():
     def _create_image(self, triggers):
         module = self._ui_model.get_module()
         force_shift = module.get_force_shift()
-
         notation = self._notation_manager.get_selected_notation()
+
         rends = [TriggerRenderer(
             self._trigger_cache, self._config, t, notation, force_shift)
             for t in triggers]
