@@ -650,17 +650,22 @@ class ColumnCache():
 
             painter.translate(QPoint(0, y_offset))
 
+            x_offset = 0
             for t in triggers:
+                if x_offset >= self._width:
+                    break
+
                 renderer = TriggerRenderer(
                         self._trigger_cache, self._config, t, notation, force_shift)
                 if self._inactive:
                     renderer.set_inactive()
 
-                tr_width = renderer.get_total_width()
-                painter.setClipRegion(QRegion(0, 0, tr_width, tr_height))
+                trigger_width = renderer.get_total_width()
+                painter.setClipRegion(QRegion(0, 0, trigger_width, tr_height))
 
                 renderer.draw_trigger(painter)
-                painter.translate(tr_width, 0)
+                painter.translate(trigger_width, 0)
+                x_offset += trigger_width
 
             painter.restore()
 
