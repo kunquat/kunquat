@@ -127,7 +127,6 @@ class AudioEngine():
             self._ui_engine.call_post_action(action_name, args)
 
     def _mix(self, nframes):
-        start = time.time()
         #data_mono = list(islice(self._sine, nframes))
         #audio_data = (data_mono, data_mono)
         self._rendering_engine.play(nframes)
@@ -139,14 +138,16 @@ class AudioEngine():
         if len(l) < 1:
             # TODO: clarify intent here
             audio_data = self._silence
-        end = time.time()
-        self._render_times.append((nframes, start, end))
         self._audio_levels = self._get_audio_levels(audio_data)
+        self._push_amount = nframes
         return audio_data
 
     def _generate_audio(self, nframes):
+        start = time.time()
         audio_data = self._mix(nframes)
-        self._push_amount = nframes
+        end = time.time()
+        self._render_times.append((nframes, start, end))
+
         self._audio_output.put_audio(audio_data)
 
     def _fire_event(self, channel, event, context):
