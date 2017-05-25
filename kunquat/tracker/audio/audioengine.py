@@ -52,7 +52,7 @@ class AudioEngine():
     def __init__(self, chunk_size):
         self._audio_output = None
         self._rendering_engine = None
-        self._push_time = None
+        self._cycle_time = None
         self._ui_engine = None
         self._nframes = chunk_size
         self._silence = ([0] * self._nframes, [0] * self._nframes)
@@ -201,8 +201,13 @@ class AudioEngine():
             return frames / total
 
     def acknowledge_audio(self):
+        start = self._cycle_time
         end = time.time()
-        start = self._push_time
+        self._cycle_time = time.time()
+
+        if start == None:
+            return
+
         nframes = self._push_amount
         self._output_times.append((nframes, start, end))
         self._output_fps = math.floor((nframes / (end - start)))
@@ -220,7 +225,6 @@ class AudioEngine():
             self._ui_engine.update_audio_levels(self._audio_levels)
 
     def produce_sound(self):
-        self._push_time = time.time()
         self._generate_audio(self._nframes)
 
     def close_device(self):
