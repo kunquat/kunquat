@@ -36,8 +36,8 @@ class StatManager():
     def get_render_load(self):
         return self._session.get_render_load()
 
-    def get_ui_lag(self):
-        return self._session.get_ui_lag()
+    def get_ui_load(self):
+        return self._session.get_ui_load()
 
     def get_progress_description(self):
         return self._session.get_progress_description()

@@ -28,7 +28,7 @@ class RenderStats(QWidget):
         self._output_speed = QLabel(self)
         self._render_speed = QLabel(self)
         self._render_load = QLabel(self)
-        self._ui_lag = QLabel(self)
+        self._ui_load = QLabel(self)
 
         self._profile_control = ProfileControl()
 
@@ -38,7 +38,7 @@ class RenderStats(QWidget):
         v.addWidget(self._output_speed)
         v.addWidget(self._render_speed)
         v.addWidget(self._render_load)
-        v.addWidget(self._ui_lag)
+        v.addWidget(self._ui_load)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
@@ -66,16 +66,16 @@ class RenderStats(QWidget):
         text = 'render load: {} %'.format(int(render_load * 100))
         self._render_load.setText(text)
 
-    def update_ui_lag(self):
-        ui_lag = self._stat_manager.get_ui_lag()
-        text = 'ui lag: {:.2f} ms'.format(ui_lag)
-        self._ui_lag.setText(text)
+    def update_ui_load(self):
+        ui_load = self._stat_manager.get_ui_load()
+        text = 'ui load: {} %'.format(int(ui_load * 100))
+        self._ui_load.setText(text)
 
     def perform_updates(self, signals):
         self.update_output_speed()
         self.update_render_speed()
         self.update_render_load()
-        self.update_ui_lag()
+        self.update_ui_load()
 
     def keyPressEvent(self, event):
         modifiers = event.modifiers()

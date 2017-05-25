@@ -45,7 +45,7 @@ class UiLauncher():
         self._block = None
         self._ui_model = None
         self._event_queue_processor = None
-        self._lag_times = deque([], 20)
+        self._ui_load_times = deque([], 1)
         self._tasks = deque([])
         self._task_timer = None
 
@@ -78,11 +78,11 @@ class UiLauncher():
         self._updater.perform_updates()
         end = time.time()
 
-        s = end - start
-        lag = s - self.UI_DELTA
-        self._lag_times.append(lag)
-        avg = sum(lag for lag in self._lag_times) / float(len(self._lag_times))
-        self._controller.update_ui_lag(avg * 1000)
+        elapsed = end - start
+        load = elapsed / self.UI_DELTA
+        self._ui_load_times.append(load)
+        avg = sum(load for load in self._ui_load_times) / float(len(self._ui_load_times))
+        self._controller.update_ui_load(avg)
 
     def _add_task(self, task):
         self._tasks.append(task)

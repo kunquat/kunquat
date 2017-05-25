@@ -22,7 +22,7 @@ class Session():
         self._output_speed = 0
         self._render_speed = 0
         self._render_load = 0
-        self._ui_lag = 0
+        self._ui_load = 0
         self._progress_description = None
         self._progress_position = 0
         self._audio_levels = (0, 0)
@@ -133,11 +133,11 @@ class Session():
     def set_render_load(self, render_load):
         self._render_load = render_load
 
-    def get_ui_lag(self):
-        return self._ui_lag
+    def get_ui_load(self):
+        return self._ui_load
 
-    def set_ui_lag(self, ui_lag):
-        self._ui_lag = ui_lag
+    def set_ui_load(self, ui_load):
+        self._ui_load = ui_load
 
     def get_progress_description(self):
         return self._progress_description
