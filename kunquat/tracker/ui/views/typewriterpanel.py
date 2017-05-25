@@ -15,12 +15,10 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-import kunquat.tracker.cmdline as cmdline
 from .hitmaptoggle import HitMapToggle
 from .octaveselector import OctaveSelector
 from .typewriter import Typewriter
 from .notationselect import NotationSelect
-from .profilecontrol import ProfileControl
 from .updater import Updater
 
 
@@ -33,7 +31,6 @@ class TypewriterPanel(QFrame, Updater):
         self._hit_map_toggle = HitMapToggle()
         self._octave_selector = OctaveSelector()
         self._typewriter = Typewriter()
-        self._profile_control = ProfileControl()
 
         self.add_to_updaters(
                 self._notation_select,
@@ -55,12 +52,5 @@ class TypewriterPanel(QFrame, Updater):
         v.addWidget(self._octave_selector)
         v.addWidget(self._typewriter)
         self.setLayout(v)
-
-    def keyPressEvent(self, event):
-        modifiers = event.modifiers()
-        key = event.key()
-        if modifiers == Qt.ControlModifier and key == Qt.Key_P:
-            if cmdline.get_experimental():
-                self._profile_control.show()
 
 

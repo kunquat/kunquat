@@ -22,8 +22,9 @@ import math
 
 class TriggerRenderer():
 
-    def __init__(self, config, trigger, notation, force_shift):
+    def __init__(self, cache, config, trigger, notation, force_shift):
         assert trigger
+        self._cache = cache
         self._config = config
         self._trigger = trigger
         self._notation = notation
@@ -46,6 +47,25 @@ class TriggerRenderer():
     def get_total_width(self):
         return self._total_width
 
+    def get_trigger_image(self):
+        self._check_create_trigger_image()
+        key = self._get_trigger_image_key()
+        image = self._cache.get_trigger_image(key)
+        assert image
+        return image
+
+    def draw_trigger(self, painter, include_line=True, select=False):
+        use_cache = include_line and not select
+
+        if use_cache:
+            self._check_create_trigger_image()
+            key = self._get_trigger_image_key()
+            image = self._cache.get_trigger_image(key)
+            assert image
+            painter.drawImage(0, 0, image)
+        else:
+            self._draw_trigger(painter, include_line, select)
+
     def _get_final_colour(self, colour):
         if self._inactive:
             dim_factor = self._config['inactive_dim']
@@ -56,7 +76,57 @@ class TriggerRenderer():
             return new_colour
         return colour
 
-    def draw_trigger(self, painter, include_line=True, select=False):
+    def _get_trigger_image_key(self):
+        evtype = self._trigger.get_type()
+        expr = self._trigger.get_argument()
+        texts = [f['text'] for f in self._fields]
+        warn = self._use_warning_colours()
+        return tuple([evtype, expr, self._inactive, warn] + texts)
+
+    def _check_create_trigger_image(self):
+        key = self._get_trigger_image_key()
+        if self._cache.get_trigger_image(key):
+            return
+
+        image = QImage(
+                self._total_width,
+                self._config['tr_height'],
+                QImage.Format_ARGB32)
+        image.fill(0)
+        painter = QPainter(image)
+        painter.setCompositionMode(QPainter.CompositionMode_Plus)
+        self._draw_trigger(painter, include_line=True, select=False)
+        painter.end()
+        self._cache.set_trigger_image(key, image)
+
+    def _use_warning_colours(self):
+        evtype = self._trigger.get_type()
+        if evtype in ('.f', '/f'):
+            arg = self._trigger.get_argument()
+            # Use warning colour at high force levels
+            try:
+                value = float(arg)
+                if (not math.isinf(value) and
+                        not math.isnan(value) and
+                        value > -self._force_shift):
+                    return True
+            except ValueError:
+                pass
+
+        elif evtype in ('m.v', 'm/v'):
+            arg = self._trigger.get_argument()
+            try:
+                value = float(arg)
+                if (not math.isinf(value) and
+                        not math.isnan(value) and
+                        value > 0):
+                    return True
+            except ValueError:
+                pass
+
+        return False
+
+    def _draw_trigger(self, painter, include_line=True, select=False):
         # Select colour based on event type
         evtype = self._trigger.get_type()
         evtype_bg_colour = None
@@ -67,29 +137,9 @@ class TriggerRenderer():
             evtype_fg_colour = self._config['trigger']['hit_colour']
         elif evtype == 'n-':
             evtype_fg_colour = self._config['trigger']['note_off_colour']
-        elif evtype in ('.f', '/f'):
-            arg = self._trigger.get_argument()
-            # Show warning colour at high force levels
-            try:
-                value = float(arg)
-                if (not math.isinf(value) and
-                        not math.isnan(value) and
-                        value > -self._force_shift):
-                    evtype_bg_colour = self._config['trigger']['warning_bg_colour']
-                    evtype_fg_colour = self._config['trigger']['warning_fg_colour']
-            except ValueError:
-                pass
-        elif evtype in ('m.v', 'm/v'):
-            arg = self._trigger.get_argument()
-            try:
-                value = float(arg)
-                if (not math.isinf(value) and
-                        not math.isnan(value) and
-                        value > 0):
-                    evtype_bg_colour = self._config['trigger']['warning_bg_colour']
-                    evtype_fg_colour = self._config['trigger']['warning_fg_colour']
-            except ValueError:
-                pass
+        elif self._use_warning_colours():
+            evtype_bg_colour = self._config['trigger']['warning_bg_colour']
+            evtype_fg_colour = self._config['trigger']['warning_fg_colour']
 
         if evtype_bg_colour:
             evtype_bg_colour = self._get_final_colour(evtype_bg_colour)

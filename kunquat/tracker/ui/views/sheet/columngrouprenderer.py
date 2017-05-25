@@ -29,8 +29,12 @@ class ColumnGroupRenderer():
 
     """
 
-    def __init__(self, num):
+    _playback_location = None
+    _playback_pattern_index = None
+
+    def __init__(self, num, trigger_cache):
         self._num = num
+        self._trigger_cache = trigger_cache
 
         self._ui_model = None
 
@@ -111,7 +115,7 @@ class ColumnGroupRenderer():
             if pinst_ref in cur_caches:
                 cache = cur_caches[pinst_ref]
             else:
-                cache = ColumnCachePair(self._num, pinst_ref)
+                cache = ColumnCachePair(self._num, pinst_ref, self._trigger_cache)
                 cache.set_config(self._config)
                 cache.set_ui_model(self._ui_model)
                 cache.set_column(column)
@@ -124,7 +128,10 @@ class ColumnGroupRenderer():
     def _create_caches(self):
         pinsts = utils.get_all_pattern_instances(self._ui_model)
         self._caches = [
-                ColumnCachePair(self._num, (p.get_pattern_num(), p.get_instance_num()))
+                ColumnCachePair(
+                    self._num,
+                    (p.get_pattern_num(), p.get_instance_num()),
+                    self._trigger_cache)
                 for p in pinsts]
         for cache in self._caches:
             cache.set_config(self._config)
@@ -157,8 +164,19 @@ class ColumnGroupRenderer():
         active_pattern_index = None
         if (playback_manager.follow_playback_cursor() and
                 not playback_manager.is_recording()):
-            active_pattern_index = utils.get_current_playback_pattern_index(
-                    self._ui_model)
+            location = utils.get_current_playback_pattern_location(self._ui_model)
+            if location:
+                if location != ColumnGroupRenderer._playback_location:
+                    ColumnGroupRenderer._playback_location = location
+                    track_num, system_num = location
+                    ColumnGroupRenderer._playback_pattern_index = (
+                            utils.get_pattern_index_at_location(
+                                self._ui_model, track_num, system_num))
+                active_pattern_index = ColumnGroupRenderer._playback_pattern_index
+            else:
+                active_pattern_index = None
+                ColumnGroupRenderer._playback_location = None
+                ColumnGroupRenderer._playback_pattern_index = None
         else:
             selection = self._ui_model.get_selection()
             location = selection.get_location()
@@ -211,7 +229,7 @@ class ColumnGroupRenderer():
 
             # Draw overlapping part of previous pattern
             if overlap:
-                src_rect, image = overlap
+                src_rect, images = overlap
 
                 # Prevent from drawing over the first trigger row
                 first_tr = cache.get_first_trigger_row()
@@ -225,18 +243,25 @@ class ColumnGroupRenderer():
                         tr_overlap = src_rect_stop_y - first_start_y
                         src_rect.setHeight(src_rect.height() - tr_overlap)
 
-                width = min(max_tr_width, src_rect.width())
-                dest_rect = QRect(
-                        0, rel_start_height,
-                        width, src_rect.height())
-                src_rect.setWidth(width)
-                painter.drawImage(dest_rect, image, src_rect)
+                full_width = min(max_tr_width, src_rect.width())
+                offset_x = 0
+                for image in images:
+                    if offset_x >= full_width:
+                        break
+                    cur_width = image.width()
+                    dest_rect = QRect(
+                            offset_x, rel_start_height, cur_width, src_rect.height())
+                    src_rect.setWidth(cur_width)
+                    painter.drawImage(dest_rect, image, src_rect)
+                    offset_x += cur_width
+
                 overlap = None
 
             # Find trigger row that overlaps with next pattern
             last_tr = cache.get_last_trigger_row(self._lengths[pi])
             if last_tr:
-                last_ts, last_image = last_tr
+                last_ts, last_images = last_tr
+                row_width = sum(img.width() for img in last_images)
                 last_rems = last_ts.beats * tstamp.BEAT + last_ts.rem
                 last_start_y = last_rems * self._px_per_beat // tstamp.BEAT
                 last_stop_y = last_start_y + self._config['tr_height']
@@ -244,31 +269,31 @@ class ColumnGroupRenderer():
                     # + 1 is the shared pixel row between patterns
                     rect_height = last_stop_y - self._heights[pi] + 1
                     rect_start = self._config['tr_height'] - rect_height
-                    rect = QRect(
-                            0, rect_start,
-                            last_image.rect().width(), rect_height)
-                    overlap = rect, last_image
+                    rect = QRect(0, rect_start, row_width, rect_height)
+                    overlap = rect, last_images
         else:
             # Fill trailing blank
             painter.setBackground(self._config['canvas_bg_colour'])
             if rel_end_height < height:
                 painter.eraseRect(
-                        QRect(
-                            0, rel_end_height,
-                            self._width, height - rel_end_height)
-                        )
+                        QRect(0, rel_end_height, self._width, height - rel_end_height))
 
             # Draw trigger row that extends beyond the last pattern
             if overlap:
-                src_rect, image = overlap
+                src_rect, images = overlap
                 # Last pattern and blank do not share pixel rows
                 src_rect.setY(src_rect.y() + 1)
-                width = min(max_tr_width, src_rect.width())
-                dest_rect = QRect(
-                        0, rel_end_height,
-                        width, src_rect.height())
-                src_rect.setWidth(width)
-                painter.drawImage(dest_rect, image, src_rect)
+                full_width = min(max_tr_width, src_rect.width())
+                offset_x = 0
+                for image in images:
+                    if offset_x >= full_width:
+                        break
+                    cur_width = image.width()
+                    dest_rect = QRect(
+                            offset_x, rel_end_height, cur_width, src_rect.height())
+                    src_rect.setWidth(cur_width)
+                    painter.drawImage(dest_rect, image, src_rect)
+                    offset_x += cur_width
 
         # Testing
         """
@@ -303,7 +328,6 @@ class ColumnGroupRenderer():
                 vis_cache, invis_cache = invis_cache, vis_cache
 
             # Try predrawing a pixmap immediately below the last one
-            below_vis_cache = vis_cache
             below_check_dist = ColumnCache.PIXMAP_HEIGHT // 2
             if height <= rel_end_height < (height + below_check_dist):
                 next_pi = pi + 1
@@ -312,7 +336,10 @@ class ColumnGroupRenderer():
                         below_vis_cache = self._caches[next_pi].get_active_cache()
                     else:
                         below_vis_cache = self._caches[next_pi].get_inactive_cache()
-            if below_vis_cache.predraw_pixmap(
+                    if below_vis_cache.predraw_pixmap(0, 1, grid):
+                        return True
+
+            if vis_cache.predraw_pixmap(
                     cur_offset + height, below_check_dist, grid):
                 return True
 
@@ -355,10 +382,10 @@ class ColumnGroupRenderer():
 
 class ColumnCachePair():
 
-    def __init__(self, col_num, pinst_ref):
+    def __init__(self, col_num, pinst_ref, trigger_cache):
         self._pinst_ref = pinst_ref
-        self._active = ColumnCache(col_num, pinst_ref, inactive=False)
-        self._inactive = ColumnCache(col_num, pinst_ref, inactive=True)
+        self._active = ColumnCache(col_num, pinst_ref, trigger_cache, inactive=False)
+        self._inactive = ColumnCache(col_num, pinst_ref, trigger_cache, inactive=True)
 
     def get_pinst_ref(self):
         return self._pinst_ref
@@ -405,7 +432,7 @@ class ColumnCache():
 
     PIXMAP_HEIGHT = 256
 
-    def __init__(self, col_num, pinst_ref, *, inactive):
+    def __init__(self, col_num, pinst_ref, trigger_cache, *, inactive):
         self._col_num = col_num
         self._pinst_ref = pinst_ref
         self._inactive = inactive
@@ -414,7 +441,8 @@ class ColumnCache():
         self._pixmaps = BufferCache()
         self._pixmaps_created = 0
 
-        self._tr_cache = TRCache()
+        self._trigger_cache = trigger_cache
+        self._tr_cache = TRCache(trigger_cache)
         self._gl_cache = GridLineCache()
 
         if self._inactive:
@@ -436,6 +464,7 @@ class ColumnCache():
 
     def set_column(self, column):
         self._column = column
+        self.flush_final_pixmaps()
         self._tr_cache.set_triggers(column)
 
     def flush(self):
@@ -464,11 +493,10 @@ class ColumnCache():
             self._pixmaps.flush()
 
     def get_memory_usage(self):
-        tr_memory_usage = self._tr_cache.get_memory_usage()
-        return self._pixmaps.get_memory_usage() + tr_memory_usage
+        return self._pixmaps.get_memory_usage()
 
     def update_hit_names(self):
-        if self._tr_cache.contains_hits():
+        if self._contains_hits():
             self._pixmaps.flush()
             self._tr_cache.flush()
 
@@ -573,22 +601,25 @@ class ColumnCache():
                 painter.drawPixmap(QPoint(0, line_y_offset), line_pixmap)
 
         # Trigger rows
-        painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
-        for ts, image, next_ts in self._tr_cache.iter_images(start_ts, stop_ts):
+        painter.save()
+        for ts, images, next_ts in self._tr_cache.iter_rows(start_ts, stop_ts):
             y_offset = ts_to_y_offset(ts)
 
-            src_rect = image.rect()
-            dest_rect = src_rect.translated(QPoint(0, y_offset))
-
+            tr_height = self._config['tr_height']
             if next_ts != None:
                 next_y_offset = ts_to_y_offset(next_ts)
-                y_dist = next_y_offset - y_offset
-                if y_dist < dest_rect.height():
-                    rect_height = max(1, y_dist)
-                    dest_rect.setHeight(rect_height)
-                    src_rect.setHeight(rect_height)
+                tr_height = min(max(1, next_y_offset - y_offset), tr_height)
 
-            painter.drawImage(dest_rect, image, src_rect)
+            x_offset = 0
+            for image in images:
+                if x_offset >= self._width:
+                    break
+
+                painter.setClipRegion(
+                        QRegion(x_offset, y_offset, image.width(), tr_height))
+                painter.drawImage(x_offset, y_offset, image)
+                x_offset += image.width()
+        painter.restore()
 
         # Border
         painter.setPen(self._get_final_colour(self._config['border_colour']))
@@ -617,19 +648,21 @@ class ColumnCache():
 
 class TRCache():
 
-    def __init__(self):
-        self._images = BufferCache()
+    def __init__(self, trigger_cache):
+        self._trigger_cache = trigger_cache
+        self._config = None
         self._ui_model = None
         self._notation_manager = None
         self._inactive = False
         self._rows = []
-
-    def set_inactive(self):
-        self._inactive = True
+        self._images = {}
 
     def set_config(self, config):
         self._config = config
-        self._images.flush()
+        self.flush()
+
+    def set_inactive(self):
+        self._inactive = True
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -637,33 +670,9 @@ class TRCache():
 
     def set_triggers(self, column):
         self._rows = self._build_trigger_rows(column)
-        self._images.flush() # TODO: only remove out-of-date images
+        self.flush()
 
-    def contains_hits(self):
-        for row in self._rows:
-            ts, triggers = row
-            for trigger in triggers:
-                if trigger.get_type() == 'h':
-                    return True
-        return False
-
-    def flush(self):
-        self._images.flush()
-
-    def _build_trigger_rows(self, column):
-        trs = {}
-        for ts in column.get_trigger_row_positions():
-            trow = [column.get_trigger(ts, i)
-                    for i in range(column.get_trigger_count_at_row(ts))]
-            trs[ts] = trow
-
-        trlist = list(trs.items())
-        trlist.sort()
-        return trlist
-
-    def iter_images(self, start_ts, stop_ts):
-        images_created = 0
-
+    def iter_rows(self, start_ts, stop_ts):
         next_tstamps = (row[0] for row in islice(self._rows, 1, None))
 
         for row, next_ts in zip_longest(self._rows, next_tstamps):
@@ -674,59 +683,23 @@ class TRCache():
                 break
 
             if ts not in self._images:
-                image = self._create_image(triggers)
-                self._images[ts] = image
-                images_created += 1
+                images = self._create_row(triggers)
+                self._images[ts] = images
             else:
-                image = self._images[ts]
+                images = self._images[ts]
 
-            yield (ts, image, next_ts)
+            yield (ts, images, next_ts)
 
-        #if images_created > 0:
-        #    print('{} trigger row image{} created'.format(
-        #        images_created, 's' if images_created != 1 else ''))
+    def contains_hits(self):
+        for row in self._rows:
+            ts, triggers = row
+            for trigger in triggers:
+                if trigger.get_type() == 'h':
+                    return True
+        return False
 
-    def get_memory_usage(self):
-        return self._images.get_memory_usage()
-
-    def _create_image(self, triggers):
-        module = self._ui_model.get_module()
-        force_shift = module.get_force_shift()
-
-        notation = self._notation_manager.get_selected_notation()
-        rends = [TriggerRenderer(self._config, t, notation, force_shift)
-                for t in triggers]
-        widths = [r.get_total_width() for r in rends]
-
-        if self._inactive:
-            for r in rends:
-                r.set_inactive()
-
-        image = QImage(
-                sum(widths),
-                self._config['tr_height'],
-                QImage.Format_ARGB32)
-        image.fill(0)
-
-        painter = QPainter(image)
-        painter.setCompositionMode(QPainter.CompositionMode_Plus)
-        for renderer, width in zip(rends, widths):
-            renderer.draw_trigger(painter)
-            painter.setTransform(QTransform().translate(width, 0), True)
-
-        # Testing
-        """
-        painter.setBackground(Qt.black)
-        painter.eraseRect(QRect(0, 0, image.width(), image.height()))
-        painter.setPen(Qt.red)
-        painter.drawRect(QRect(0, 0, image.width() - 1, image.height() - 1))
-        painter.setTransform(QTransform().rotate(-45))
-        for i in range(4):
-            side = self._config['tr_height']
-            painter.fillRect(QRect(i * side * 2, 0, side, (i + 1) * side * 3), Qt.red)
-        """
-
-        return image
+    def flush(self):
+        self._images = {}
 
     def get_first_trigger_row(self):
         if self._rows:
@@ -746,6 +719,33 @@ class TRCache():
                     return None
                 return ts, self._images[ts]
         return None
+
+    def _build_trigger_rows(self, column):
+        trs = {}
+        for ts in column.get_trigger_row_positions():
+            trow = [column.get_trigger(ts, i)
+                    for i in range(column.get_trigger_count_at_row(ts))]
+            trs[ts] = trow
+
+        trlist = list(trs.items())
+        trlist.sort()
+        return trlist
+
+    def _create_row(self, triggers):
+        force_shift = self._ui_model.get_module().get_force_shift()
+        notation = self._notation_manager.get_selected_notation()
+
+        rends = [TriggerRenderer(
+            self._trigger_cache, self._config, t, notation, force_shift)
+            for t in triggers]
+        widths = [r.get_total_width() for r in rends]
+
+        if self._inactive:
+            for r in rends:
+                r.set_inactive()
+
+        images = [r.get_trigger_image() for r in rends]
+        return images
 
 
 class GridLineCache():
