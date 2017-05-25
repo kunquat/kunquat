@@ -442,14 +442,11 @@ class ColumnCache():
         self._pixmaps_created = 0
 
         self._trigger_cache = trigger_cache
-        self._rows = []
-
-        self._first_row_info = None
-        self._last_row_info = None
-
+        self._tr_cache = TRCache(trigger_cache)
         self._gl_cache = GridLineCache()
 
         if self._inactive:
+            self._tr_cache.set_inactive()
             self._gl_cache.set_inactive()
 
         self._width = DEFAULT_CONFIG['col_width']
@@ -458,35 +455,21 @@ class ColumnCache():
     def set_config(self, config):
         self._config = config
         self._pixmaps.flush()
-        self._first_row_info = None
-        self._last_row_info = None
+        self._tr_cache.set_config(config)
         self._gl_cache.set_config(config)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-
-    def _build_trigger_rows(self, column):
-        trs = {}
-        for ts in column.get_trigger_row_positions():
-            trow = [column.get_trigger(ts, i)
-                    for i in range(column.get_trigger_count_at_row(ts))]
-            trs[ts] = trow
-
-        trlist = list(trs.items())
-        trlist.sort()
-        return trlist
+        self._tr_cache.set_ui_model(ui_model)
 
     def set_column(self, column):
         self._column = column
-        self._rows = self._build_trigger_rows(column)
         self.flush_final_pixmaps()
-        self._first_row_info = None
-        self._last_row_info = None
+        self._tr_cache.set_triggers(column)
 
     def flush(self):
         self._pixmaps.flush()
-        self._first_row_info = None
-        self._last_row_info = None
+        self._tr_cache.flush()
         self._gl_cache.flush()
 
     def flush_final_pixmaps(self):
@@ -512,19 +495,10 @@ class ColumnCache():
     def get_memory_usage(self):
         return self._pixmaps.get_memory_usage()
 
-    def _contains_hits(self):
-        for row in self._rows:
-            ts, triggers = row
-            for trigger in triggers:
-                if trigger.get_type() == 'h':
-                    return True
-        return False
-
     def update_hit_names(self):
         if self._contains_hits():
             self._pixmaps.flush()
-            self._first_row_info = None
-            self._last_row_info = None
+            self._tr_cache.flush()
 
     def iter_pixmaps(self, start_px, height_px, grid):
         assert start_px >= 0
@@ -577,12 +551,6 @@ class ColumnCache():
             return utils.scale_colour(colour, self._config['inactive_dim'])
         return colour
 
-    def _ts_to_y_offset(self, ts, start_px):
-        rems = ts.beats * tstamp.BEAT + ts.rem
-        abs_y = rems * self._px_per_beat // tstamp.BEAT
-        y_offset = abs_y - start_px
-        return y_offset
-
     def _create_pixmap(self, index, grid):
         pixmap = QPixmap(self._width, ColumnCache.PIXMAP_HEIGHT)
 
@@ -607,6 +575,12 @@ class ColumnCache():
         stop_ts = tstamp.Tstamp(0,
                 stop_px * tstamp.BEAT // self._px_per_beat)
 
+        def ts_to_y_offset(ts):
+            rems = ts.beats * tstamp.BEAT + ts.rem
+            abs_y = rems * self._px_per_beat // tstamp.BEAT
+            y_offset = abs_y - start_px
+            return y_offset
+
         # Grid
         sheet_manager = self._ui_model.get_sheet_manager()
         if sheet_manager.is_grid_enabled():
@@ -621,54 +595,30 @@ class ColumnCache():
 
             for line_info in lines:
                 line_ts, line_style = line_info
-                line_y_offset = self._ts_to_y_offset(line_ts, start_px)
+                line_y_offset = ts_to_y_offset(line_ts)
 
                 line_pixmap = self._gl_cache.get_line_pixmap(line_style)
                 painter.drawPixmap(QPoint(0, line_y_offset), line_pixmap)
 
         # Trigger rows
-        force_shift = self._ui_model.get_module().get_force_shift()
-        notation = self._ui_model.get_notation_manager().get_selected_notation()
-
         painter.save()
-        painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
-        next_tstamps = (row[0] for row in islice(self._rows, 1, None))
-        for row, next_ts in zip_longest(self._rows, next_tstamps):
-            ts, triggers = row
-            if ts < start_ts:
-                continue
-            elif ts >= stop_ts:
-                break
+        for ts, images, next_ts in self._tr_cache.iter_rows(start_ts, stop_ts):
+            y_offset = ts_to_y_offset(ts)
 
-            y_offset = self._ts_to_y_offset(ts, start_px)
             tr_height = self._config['tr_height']
             if next_ts != None:
-                next_y_offset = self._ts_to_y_offset(next_ts, start_px)
+                next_y_offset = ts_to_y_offset(next_ts)
                 tr_height = min(max(1, next_y_offset - y_offset), tr_height)
 
-            painter.save()
-
-            painter.translate(QPoint(0, y_offset))
-
             x_offset = 0
-            for t in triggers:
+            for image in images:
                 if x_offset >= self._width:
                     break
 
-                renderer = TriggerRenderer(
-                        self._trigger_cache, self._config, t, notation, force_shift)
-                if self._inactive:
-                    renderer.set_inactive()
-
-                trigger_width = renderer.get_total_width()
-                painter.setClipRegion(QRegion(0, 0, trigger_width, tr_height))
-
-                renderer.draw_trigger(painter)
-                painter.translate(trigger_width, 0)
-                x_offset += trigger_width
-
-            painter.restore()
-
+                painter.setClipRegion(
+                        QRegion(x_offset, y_offset, image.width(), tr_height))
+                painter.drawImage(x_offset, y_offset, image)
+                x_offset += image.width()
         painter.restore()
 
         # Border
@@ -690,51 +640,112 @@ class ColumnCache():
         return pixmap
 
     def get_first_trigger_row(self):
-        if self._first_row_info:
-            return self._first_row_info
+        return self._tr_cache.get_first_trigger_row()
 
-        force_shift = self._ui_model.get_module().get_force_shift()
-        notation = self._ui_model.get_notation_manager().get_selected_notation()
+    def get_last_trigger_row(self, max_ts):
+        return self._tr_cache.get_last_trigger_row(max_ts)
 
+
+class TRCache():
+
+    def __init__(self, trigger_cache):
+        self._trigger_cache = trigger_cache
+        self._config = None
+        self._ui_model = None
+        self._notation_manager = None
+        self._inactive = False
+        self._rows = []
+        self._images = {}
+
+    def set_config(self, config):
+        self._config = config
+        self.flush()
+
+    def set_inactive(self):
+        self._inactive = True
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._notation_manager = ui_model.get_notation_manager()
+
+    def set_triggers(self, column):
+        self._rows = self._build_trigger_rows(column)
+        self.flush()
+
+    def iter_rows(self, start_ts, stop_ts):
+        next_tstamps = (row[0] for row in islice(self._rows, 1, None))
+
+        for row, next_ts in zip_longest(self._rows, next_tstamps):
+            ts, triggers = row
+            if ts < start_ts:
+                continue
+            elif ts >= stop_ts:
+                break
+
+            if ts not in self._images:
+                images = self._create_row(triggers)
+                self._images[ts] = images
+            else:
+                images = self._images[ts]
+
+            yield (ts, images, next_ts)
+
+    def contains_hits(self):
+        for row in self._rows:
+            ts, triggers = row
+            for trigger in triggers:
+                if trigger.get_type() == 'h':
+                    return True
+        return False
+
+    def flush(self):
+        self._images = {}
+
+    def get_first_trigger_row(self):
         if self._rows:
-            ts, triggers = self._rows[0]
-            rends = [TriggerRenderer(
-                self._trigger_cache, self._config, t, notation, force_shift)
-                for t in triggers]
-            if self._inactive:
-                for r in rends:
-                    r.set_inactive()
-
-            images = [r.get_trigger_image() for r in rends]
-
-            self._first_row_info = ts, images
-            return self._first_row_info
-
+            ts, _ = self._rows[0]
+            if ts not in self._images:
+                return None
+            return ts, self._images[ts]
         return None
 
     def get_last_trigger_row(self, max_ts):
-        if self._last_row_info:
-            return self._last_row_info
-
-        force_shift = self._ui_model.get_module().get_force_shift()
-        notation = self._ui_model.get_notation_manager().get_selected_notation()
-
         for row in reversed(self._rows):
-            ts, triggers = row
+            ts, _ = row
             if ts <= max_ts:
-                rends = [TriggerRenderer(
-                    self._trigger_cache, self._config, t, notation, force_shift)
-                    for t in triggers]
-                if self._inactive:
-                    for r in rends:
-                        r.set_inactive()
-
-                images = [r.get_trigger_image() for r in rends]
-
-                self._last_row_info = ts, images
-                return self._last_row_info
-
+                if ts not in self._images:
+                    # We haven't rendered the trigger row yet,
+                    # so it must be outside the view
+                    return None
+                return ts, self._images[ts]
         return None
+
+    def _build_trigger_rows(self, column):
+        trs = {}
+        for ts in column.get_trigger_row_positions():
+            trow = [column.get_trigger(ts, i)
+                    for i in range(column.get_trigger_count_at_row(ts))]
+            trs[ts] = trow
+
+        trlist = list(trs.items())
+        trlist.sort()
+        return trlist
+
+    def _create_row(self, triggers):
+        force_shift = self._ui_model.get_module().get_force_shift()
+        notation = self._notation_manager.get_selected_notation()
+
+        rends = [TriggerRenderer(
+            self._trigger_cache, self._config, t, notation, force_shift)
+            for t in triggers]
+        widths = [r.get_total_width() for r in rends]
+
+        if self._inactive:
+            for r in rends:
+                r.set_inactive()
+
+        images = [r.get_trigger_image() for r in rends]
+        return images
 
 
 class GridLineCache():
