@@ -88,6 +88,8 @@ static void Stream_pstate_reset(Device_state* dstate)
     Stream_pstate* spstate = (Stream_pstate*)dstate;
 
     Linear_controls_init(&spstate->controls);
+    Linear_controls_set_audio_rate(&spstate->controls, dstate->audio_rate);
+    Linear_controls_set_tempo(&spstate->controls, 120);
     Linear_controls_set_value(&spstate->controls, spstate->init_value);
     Linear_controls_set_osc_speed_init_value(
             &spstate->controls, spstate->init_osc_speed);
