@@ -52,7 +52,7 @@ class AudioEngine():
     def __init__(self, chunk_size):
         self._audio_output = None
         self._rendering_engine = None
-        self._push_time = None
+        self._cycle_time = None
         self._ui_engine = None
         self._nframes = chunk_size
         self._silence = ([0] * self._nframes, [0] * self._nframes)
@@ -127,7 +127,6 @@ class AudioEngine():
             self._ui_engine.call_post_action(action_name, args)
 
     def _mix(self, nframes):
-        start = time.time()
         #data_mono = list(islice(self._sine, nframes))
         #audio_data = (data_mono, data_mono)
         self._rendering_engine.play(nframes)
@@ -139,14 +138,16 @@ class AudioEngine():
         if len(l) < 1:
             # TODO: clarify intent here
             audio_data = self._silence
-        end = time.time()
-        self._render_times.append((nframes, start, end))
         self._audio_levels = self._get_audio_levels(audio_data)
+        self._push_amount = nframes
         return audio_data
 
     def _generate_audio(self, nframes):
+        start = time.time()
         audio_data = self._mix(nframes)
-        self._push_amount = nframes
+        end = time.time()
+        self._render_times.append((nframes, start, end))
+
         self._audio_output.put_audio(audio_data)
 
     def _fire_event(self, channel, event, context):
@@ -201,8 +202,13 @@ class AudioEngine():
             return frames / total
 
     def acknowledge_audio(self):
+        start = self._cycle_time
         end = time.time()
-        start = self._push_time
+        self._cycle_time = time.time()
+
+        if start == None:
+            return
+
         nframes = self._push_amount
         self._output_times.append((nframes, start, end))
         self._output_fps = math.floor((nframes / (end - start)))
@@ -220,7 +226,6 @@ class AudioEngine():
             self._ui_engine.update_audio_levels(self._audio_levels)
 
     def produce_sound(self):
-        self._push_time = time.time()
         self._generate_audio(self._nframes)
 
     def close_device(self):

@@ -607,8 +607,8 @@ class Controller():
         self._session.set_audio_levels(levels)
         self._updater.signal_update()
 
-    def update_ui_lag(self, lag):
-        self._session.set_ui_lag(lag)
+    def update_ui_load(self, load):
+        self._session.set_ui_load(load)
         self._updater.signal_update()
 
     def update_selected_control(self, channel, control_id):
