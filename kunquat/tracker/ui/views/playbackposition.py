@@ -209,10 +209,10 @@ class PlaybackPosition(QWidget):
             track_width,
             spacing,
             system_width,
-            spacing,
+            0,
             pat_width,
             inst_width,
-            spacing,
+            spacing * 4,
             beat_width,
             dot_width,
             rem_width,
@@ -386,6 +386,18 @@ class PlaybackPosition(QWidget):
 
         return self._baseline_offsets[key]
 
+    def _get_num_width(self, num_str, digit_counts, font_name):
+        min_digits, max_digits = digit_counts
+        char_count = len(num_str)
+
+        width_factor = 1 if char_count <= min_digits else self._config['narrow_factor']
+        glyphs = self._glyphs[(font_name, width_factor)]
+        assert glyphs
+        width, _ = self._glyph_sizes[(font_name, width_factor)]
+
+        total_width = width * char_count
+        return total_width
+
     def _draw_str(
             self,
             painter,
@@ -503,24 +515,53 @@ class PlaybackPosition(QWidget):
         # Pattern instance
         shift_x()
         shift_x()
+
+        # Shift horizontally to align pattern + instance number properly
+        pat_shift = 0
+        if pat_num >= 0:
+            pat_num_width = self._get_num_width(
+                    str(pat_num), self._config['pat_digits'], 'num_font')
+            pat_shift = 0.5 * (pat_num_width -
+                    self._get_num_width('9', self._config['pat_digits'], 'num_font'))
+            if inst_num >= 0:
+                inst_num_width = self._get_num_width(
+                        str(inst_num), self._config['pat_inst_digits'], 'sub_font')
+                inst_def_width = self._get_num_width(
+                        '9', self._config['pat_inst_digits'], 'sub_font')
+                inst_shift = 0.5 * (inst_def_width - inst_num_width)
+                pat_shift += inst_shift
+        else:
+            inst_def_width = self._get_num_width(
+                    '9', self._config['pat_inst_digits'], 'sub_font')
+            pat_shift = 0.4 * inst_def_width
+
+        painter.save()
+        painter.translate(pat_shift, 0)
+        painter.setClipRegion(painter.clipRegion().translated(pat_shift, 0))
         self._draw_str(
                 painter,
                 str(pat_num) if pat_num >= 0 else '-',
                 self._config['pat_digits'],
                 'num_font',
                 Qt.AlignRight)
+        painter.restore()
 
         shift_x()
+
         if inst_num >= 0:
+            painter.save()
+            painter.translate(pat_shift, 0)
+            painter.setClipRegion(painter.clipRegion().translated(pat_shift, 0))
             self._draw_str(
                     painter,
                     str(inst_num),
                     self._config['pat_inst_digits'],
                     'sub_font',
                     Qt.AlignLeft)
+            painter.restore()
 
         painter.setClipping(False)
-        painter.drawPixmap(-20, title_y, self._titles['pattern'])
+        painter.drawPixmap(-19, title_y, self._titles['pattern'])
 
         # Timestamp
         beats, rem = row_ts
