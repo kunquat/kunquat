@@ -4,12 +4,12 @@ python:
   - "3.6"
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y build-essential libwavpack-dev libpulse-dev check libsndfile1-dev libsamplerate0-dev pulseaudio
+  - sudo apt-get install -y build-essential libwavpack-dev libpulse-dev check libsndfile1-dev libsamplerate0-dev pulseaudio xvfb
   - ./get_build_support.sh
   - gcc --version
   - clang --version
 install:
   - pip install pylint flake8 pyqt5
 script:
-  - ./make.py --enable-long-tests
-  - ./make.py --enable-long-tests --cc=clang
+  - xvfb-run ./make.py --enable-long-tests
+  - xvfb-run ./make.py --enable-long-tests --cc=clang
