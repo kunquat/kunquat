@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/processors/Proc_noise.h>
+#include <mathnum/Random.h>
 #include <memory.h>
 #include <player/devices/Device_thread_state.h>
 #include <player/devices/Proc_state.h>
@@ -66,6 +67,7 @@ Device_state* new_Noise_pstate(
 typedef struct Noise_vstate
 {
     Voice_state parent;
+    Random rands[2];
     double buf[2][NOISE_MAX];
 } Noise_vstate;
 
@@ -154,7 +156,7 @@ static int32_t Noise_vstate_render_voice(
                 const double val = dc_zero_filter(
                         noise_state->order,
                         noise_vstate->buf[ch],
-                        Random_get_float_signal(vstate->rand_s));
+                        Random_get_float_signal(&noise_vstate->rands[ch]));
                 out_buffer[i] = (float)val * scales[i];
             }
         }
@@ -165,7 +167,7 @@ static int32_t Noise_vstate_render_voice(
                 const double val = dc_pole_filter(
                         -noise_state->order,
                         noise_vstate->buf[ch],
-                        Random_get_float_signal(vstate->rand_s));
+                        Random_get_float_signal(&noise_vstate->rands[ch]));
                 out_buffer[i] = (float)val * scales[i];
             }
         }
@@ -187,6 +189,14 @@ void Noise_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     vstate->render_voice = Noise_vstate_render_voice;
 
     Noise_vstate* noise_vstate = (Noise_vstate*)vstate;
+
+    for (int i = 0; i < 2; ++i)
+    {
+        Random* rand = &noise_vstate->rands[i];
+        Random_init(rand, "noise");
+        Random_set_seed(rand, Random_get_uint64(vstate->rand_p));
+    }
+
     memset(noise_vstate->buf[0], 0, NOISE_MAX * sizeof(double));
     memset(noise_vstate->buf[1], 0, NOISE_MAX * sizeof(double));
 
