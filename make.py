@@ -151,7 +151,13 @@ class PrettyBuilder(fabricate.Builder):
 
 
 def build():
+
     process_cmd_line()
+
+    if options.enable_long_tests:
+        python_modules = ['scripts', 'kunquat']
+        fabricate.run('pylint', *python_modules)
+        fabricate.run('flake8', *python_modules)
 
     cc = get_cc(options.cc)
 
