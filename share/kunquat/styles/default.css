@@ -61,6 +61,7 @@ QScrollBar::sub-line
     border-right-color: <button_bg_colour_dark>;
     border-bottom-color: <button_bg_colour_dark>;
     border-radius: 2px;
+    padding: 2px;
     background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
         stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
     color: <button_fg_colour>;
@@ -159,11 +160,6 @@ QRadioButton::indicator:checked
     image: url('<icons_path>/radio_mark.png');
 }
 
-QComboBox
-{
-    padding: 3px;
-}
-
 QComboBox::drop-down
 {
     subcontrol-origin: margin;
@@ -172,7 +168,6 @@ QComboBox::drop-down
     margin: 0;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
-    padding: 3px;
 }
 
 QComboBox:disabled
@@ -201,14 +196,6 @@ QDialog QPushButton
 {
     padding: 4px;
     min-width: 100px;
-}
-
-QPushButton, QToolButton:hover
-{
-    padding: 3px;
-    background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
-        stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
-    color: <button_fg_colour>;
 }
 
 QPushButton:checked:pressed,
