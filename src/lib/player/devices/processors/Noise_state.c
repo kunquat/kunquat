@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -22,6 +22,8 @@
 #include <player/devices/processors/Filter.h>
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/devices/Voice_state.h>
+#include <player/Work_buffer.h>
+#include <player/Work_buffers.h>
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -74,6 +76,23 @@ int32_t Noise_vstate_get_size(void)
 }
 
 
+enum
+{
+    PORT_IN_FORCE = 0,
+    PORT_IN_COUNT
+};
+
+enum
+{
+    PORT_OUT_AUDIO_L = 0,
+    PORT_OUT_AUDIO_R,
+    PORT_OUT_COUNT
+};
+
+
+static const int NOISE_WB_FIXED_FORCE = WORK_BUFFER_IMPL_1;
+
+
 static int32_t Noise_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
@@ -94,43 +113,61 @@ static int32_t Noise_vstate_render_voice(
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
 
+    // Get volume scales
+    Work_buffer* scales_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
+    Work_buffer* dBs_wb = scales_wb;
+    if ((dBs_wb != NULL) &&
+            Work_buffer_is_final(dBs_wb) &&
+            (Work_buffer_get_const_start(dBs_wb) <= buf_start) &&
+            (Work_buffer_get_contents(dBs_wb)[buf_start] == -INFINITY))
+    {
+        // We are only getting silent force from this point onwards
+        vstate->active = false;
+        return buf_start;
+    }
+
+    if (scales_wb == NULL)
+        scales_wb = Work_buffers_get_buffer_mut(wbs, NOISE_WB_FIXED_FORCE);
+    Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);
+    const float* scales = Work_buffer_get_contents(scales_wb);
+
     Noise_pstate* noise_state = (Noise_pstate*)proc_state;
     Noise_vstate* noise_vstate = (Noise_vstate*)vstate;
 
     // Get output buffer for writing
-    float* out_buffers[] =
-    {
-        Device_thread_state_get_voice_buffer_contents(
-                proc_ts, DEVICE_PORT_TYPE_SEND, 0),
-        Device_thread_state_get_voice_buffer_contents(
-                proc_ts, DEVICE_PORT_TYPE_SEND, 1),
-    };
+    float* out_buffers[2] = { NULL };
+    Proc_state_get_voice_audio_out_buffers(
+            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
 
     for (int ch = 0; ch < 2; ++ch)
     {
-        if (out_buffers[ch] == NULL)
+        float* out_buffer = out_buffers[ch];
+        if (out_buffer == NULL)
             continue;
 
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        // FIXME: add independent random sources for both channels
+        if (noise_state->order >= 0)
         {
-            double val = 0;
-
-            if (noise_state->order < 0)
+            for (int32_t i = buf_start; i < buf_stop; ++i)
             {
-                val = dc_pole_filter(
-                        -noise_state->order,
-                        noise_vstate->buf[ch],
-                        Random_get_float_signal(vstate->rand_s));
-            }
-            else
-            {
-                val = dc_zero_filter(
+                const double val = dc_zero_filter(
                         noise_state->order,
                         noise_vstate->buf[ch],
                         Random_get_float_signal(vstate->rand_s));
+                out_buffer[i] = (float)val * scales[i];
             }
-
-            out_buffers[ch][i] = (float)val;
+        }
+        else
+        {
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+            {
+                const double val = dc_pole_filter(
+                        -noise_state->order,
+                        noise_vstate->buf[ch],
+                        Random_get_float_signal(vstate->rand_s));
+                out_buffer[i] = (float)val * scales[i];
+            }
         }
     }
 
