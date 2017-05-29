@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -174,14 +174,20 @@ class ClangCommand():
             '-std=c99',
             '-Weverything',
             '-Werror',
+            '-Wno-unknown-warning-option',
             '-Wno-bad-function-cast',
+            '-Wno-class-varargs',
             '-Wno-covered-switch-default',
+            '-Wno-date-time',
             '-Wno-disabled-macro-expansion',
+            '-Wno-double-promotion',
             '-Wno-float-equal',
             '-Wno-format-nonliteral',
+            '-Wno-missing-noreturn',
             '-Wno-padded',
             '-Wno-switch-enum',
             '-Wno-unreachable-code',
+            '-Wno-unreachable-code-break',
             '-Wno-vla',
         ]
         self._include_flags = []
