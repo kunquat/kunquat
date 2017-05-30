@@ -1,13 +1,11 @@
+dist: trusty
 language: c
 before_install:
-  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
   - sudo apt-get -qq update
-  - sudo apt-get install gcc-4.8 -y
-  - sudo update-alternatives --install `which gcc` gcc `which gcc-4.8` 90
+  - sudo apt-get install -y build-essential libwavpack-dev libpulse-dev python3 python3-pyside check libsndfile1-dev libsamplerate0-dev
+  - ./get_build_support.sh
   - gcc --version
   - clang --version
-  - sudo apt-get install -y build-essential scons libwavpack-dev libpulse-dev python-qt4 check libsndfile1-dev wget
-  - ./get_build_support.sh
 script:
   - ./make.py --enable-long-tests
   - ./make.py --enable-long-tests --cc=clang
