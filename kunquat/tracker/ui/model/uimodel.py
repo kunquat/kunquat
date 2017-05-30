@@ -72,7 +72,7 @@ class UiModel():
     Insert Notes
     >>> pattern.
 
-    
+
     >>> song.insert_new_instance(pattern)
     >>> system_count = song.system_count()
     >>> new_instance_number = system_count - 1
@@ -86,7 +86,7 @@ class UiModel():
     >>> song.create_pattern_instance()
     >>> song.pattern_instance_count()
     1
-   
+
 
     """
 
