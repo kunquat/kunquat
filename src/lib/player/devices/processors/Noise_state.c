@@ -148,7 +148,6 @@ static int32_t Noise_vstate_render_voice(
         if (out_buffer == NULL)
             continue;
 
-        // FIXME: add independent random sources for both channels
         if (noise_state->order >= 0)
         {
             for (int32_t i = buf_start; i < buf_stop; ++i)
