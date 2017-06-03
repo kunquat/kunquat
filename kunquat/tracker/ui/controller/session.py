@@ -23,6 +23,8 @@ class Session():
         self._render_speed = 0
         self._render_load = 0
         self._ui_load = 0
+        self._ui_load_averages = deque([], 3600)
+        self._ui_load_peaks = deque([], 3600)
         self._progress_description = None
         self._progress_position = 0
         self._audio_levels = (0, 0)
@@ -138,6 +140,18 @@ class Session():
 
     def set_ui_load(self, ui_load):
         self._ui_load = ui_load
+
+    def get_ui_load_averages(self):
+        return list(self._ui_load_averages)
+
+    def add_ui_load_average(self, load_avg):
+        self._ui_load_averages.append(load_avg)
+
+    def get_ui_load_peaks(self):
+        return list(self._ui_load_peaks)
+
+    def add_ui_load_peak(self, load_peak):
+        self._ui_load_peaks.append(load_peak)
 
     def get_progress_description(self):
         return self._progress_description
