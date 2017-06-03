@@ -22,6 +22,9 @@ class Session():
         self._output_speed = 0
         self._render_speed = 0
         self._render_load = 0
+        self._collected_render_loads = []
+        self._render_load_averages = deque([], 3600)
+        self._render_load_peaks = deque([], 3600)
         self._ui_load = 0
         self._ui_load_averages = deque([], 3600)
         self._ui_load_peaks = deque([], 3600)
@@ -134,6 +137,23 @@ class Session():
 
     def set_render_load(self, render_load):
         self._render_load = render_load
+        self._collected_render_loads.append(render_load)
+
+    def _update_render_load_history(self):
+        if self._collected_render_loads:
+            avg = (sum(self._collected_render_loads) /
+                    float(len(self._collected_render_loads)))
+            self._render_load_averages.append(avg)
+            self._render_load_peaks.append(max(self._collected_render_loads))
+            self._collected_render_loads = []
+
+    def get_render_load_averages(self):
+        self._update_render_load_history()
+        return list(self._render_load_averages)
+
+    def get_render_load_peaks(self):
+        self._update_render_load_history()
+        return list(self._render_load_peaks)
 
     def get_ui_load(self):
         return self._ui_load
