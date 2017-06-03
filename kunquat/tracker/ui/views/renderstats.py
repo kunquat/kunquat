@@ -29,6 +29,7 @@ class RenderStats(QWidget):
         self._ui_model = None
         self._stat_manaer = None
 
+        self._render_load_history = RenderLoadHistory()
         self._ui_load_history = UILoadHistory()
         self._output_speed = QLabel(self)
         self._render_speed = QLabel(self)
@@ -42,6 +43,9 @@ class RenderStats(QWidget):
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(2)
+        v.addWidget(QLabel('Audio rendering load:'))
+        v.addWidget(self._render_load_history)
+        v.addSpacing(4)
         v.addWidget(QLabel('UI load:'))
         v.addWidget(self._ui_load_history)
         v.addWidget(self._output_speed)
@@ -55,10 +59,12 @@ class RenderStats(QWidget):
         updater = ui_model.get_updater()
         updater.register_updater(self.perform_updates)
         self._stat_manager = ui_model.get_stat_manager()
+        self._render_load_history.set_ui_model(ui_model)
         self._ui_load_history.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._ui_load_history.unregister_updaters()
+        self._render_load_history.unregister_updaters()
         updater = self._ui_model.get_updater()
         updater.unregister_updater(self.perform_updates)
 
@@ -316,13 +322,30 @@ class LoadHistory(QWidget, Updater):
         raise NotImplementedError
 
 
+class RenderLoadHistory(LoadHistory):
+
+    def __init__(self):
+        super().__init__()
+
+    def _get_update_signal_type(self):
+        return 'signal_load_history'
+
+    def _get_peaks(self):
+        stat_manager = self._ui_model.get_stat_manager()
+        return stat_manager.get_render_load_peaks()
+
+    def _get_averages(self):
+        stat_manager = self._ui_model.get_stat_manager()
+        return stat_manager.get_render_load_averages()
+
+
 class UILoadHistory(LoadHistory):
 
     def __init__(self):
         super().__init__()
 
     def _get_update_signal_type(self):
-        return 'signal_ui_load_history'
+        return 'signal_load_history'
 
     def _get_peaks(self):
         stat_manager = self._ui_model.get_stat_manager()
