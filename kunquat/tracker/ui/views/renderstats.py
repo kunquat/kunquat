@@ -40,6 +40,9 @@ class RenderStats(QWidget):
         self.setFocusPolicy(Qt.StrongFocus)
 
         v = QVBoxLayout()
+        v.setContentsMargins(4, 4, 4, 4)
+        v.setSpacing(2)
+        v.addWidget(QLabel('UI load:'))
         v.addWidget(self._ui_load_history)
         v.addWidget(self._output_speed)
         v.addWidget(self._render_speed)
@@ -127,7 +130,7 @@ UI_LOAD_HISTORY_CONFIG = {
 }
 
 
-class UILoadHistory(QWidget, Updater):
+class LoadHistory(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
@@ -152,19 +155,18 @@ class UILoadHistory(QWidget, Updater):
         self.setAttribute(Qt.WA_NoSystemBackground)
 
     def _on_setup(self):
-        self.register_action('ui_load_history', self._update_history)
+        self.register_action(self._get_update_signal_type(), self._update_history)
         self.register_action('signal_style_changed', self._update_style)
 
         self._update_history()
 
     def _update_history(self):
-        stat_manager = self._ui_model.get_stat_manager()
-        ui_load_peaks = stat_manager.get_ui_load_peaks()
-        ui_load_avgs = stat_manager.get_ui_load_averages()
+        load_peaks = self._get_peaks()
+        load_avgs = self._get_averages()
 
-        # TODO: see if we can reuse old parts
-        self._max_vis_history = ui_load_peaks
-        self._avg_vis_history = ui_load_avgs
+        # TODO: see if we need to reuse old parts
+        self._max_vis_history = load_peaks
+        self._avg_vis_history = load_avgs
 
         if len(self._max_vis_history) >= 2:
             self._max_curve_path = QPainterPath()
@@ -300,6 +302,34 @@ class UILoadHistory(QWidget, Updater):
 
         end = time.time()
         elapsed = end - start
-        #print('UI load history updated in {:.2f} ms'.format(elapsed * 1000))
+        #print('Load history updated in {:.2f} ms'.format(elapsed * 1000))
+
+    # Protected callbacks
+
+    def _get_update_signal_type(self):
+        raise NotImplementedError
+
+    def _get_peaks(self):
+        raise NotImplementedError
+
+    def _get_averages(self):
+        raise NotImplementedError
+
+
+class UILoadHistory(LoadHistory):
+
+    def __init__(self):
+        super().__init__()
+
+    def _get_update_signal_type(self):
+        return 'signal_ui_load_history'
+
+    def _get_peaks(self):
+        stat_manager = self._ui_model.get_stat_manager()
+        return stat_manager.get_ui_load_peaks()
+
+    def _get_averages(self):
+        stat_manager = self._ui_model.get_stat_manager()
+        return stat_manager.get_ui_load_averages()
 
 

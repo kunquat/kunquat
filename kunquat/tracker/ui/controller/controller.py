@@ -613,11 +613,11 @@ class Controller():
 
     def add_ui_load_average(self, load_avg):
         self._session.add_ui_load_average(load_avg)
-        self._updater.signal_update('ui_load_history')
+        self._updater.signal_update('signal_ui_load_history')
 
     def add_ui_load_peak(self, load_peak):
         self._session.add_ui_load_peak(load_peak)
-        self._updater.signal_update('ui_load_history')
+        self._updater.signal_update('signal_ui_load_history')
 
     def update_selected_control(self, channel, control_id):
         self._session.set_selected_control_id_by_channel(channel, control_id)
