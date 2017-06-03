@@ -164,6 +164,7 @@ class LoadHistory(QWidget, Updater):
         self.register_action(self._get_update_signal_type(), self._update_history)
         self.register_action('signal_style_changed', self._update_style)
 
+        self._update_style()
         self._update_history()
 
     def _update_history(self):
