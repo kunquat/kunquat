@@ -39,6 +39,12 @@ class StatManager():
     def get_ui_load(self):
         return self._session.get_ui_load()
 
+    def get_ui_load_averages(self):
+        return self._session.get_ui_load_averages()
+
+    def get_ui_load_peaks(self):
+        return self._session.get_ui_load_peaks()
+
     def get_progress_description(self):
         return self._session.get_progress_description()
 

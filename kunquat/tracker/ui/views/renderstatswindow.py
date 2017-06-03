@@ -38,6 +38,6 @@ class RenderStatsWindow(QWidget, Updater):
         visibility_manager.hide_render_stats()
 
     def sizeHint(self):
-        return QSize(512, 384)
+        return QSize(768, 384)
 
 
