@@ -295,6 +295,9 @@ class LoadHistory(QWidget, Updater):
                     padding + area_rect.height() - 1 + 0.5)
             tfm.scale(-self._step_width, -area_rect.height() + 1)
             painter.setRenderHint(QPainter.Antialiasing)
+
+            clip_rect = QRect(padding, 0, 1, self.height()).united(area_rect)
+            painter.setClipRect(clip_rect)
             painter.setTransform(tfm)
 
             if self._max_curve_path:
