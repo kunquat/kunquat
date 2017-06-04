@@ -57,7 +57,6 @@ class AudioEngine():
         self._nframes = chunk_size
         self._silence = ([0] * self._nframes, [0] * self._nframes)
         self._render_time_infos = deque([], 1)
-        self._output_time_infos = deque([], 20)
         self._post_actions = deque()
 
         self._sine = gen_sine(48000)
@@ -209,10 +208,8 @@ class AudioEngine():
         if start == None:
             return
 
-        self._output_time_infos.append((self._push_amount, end - start))
-
         if self._ui_engine:
-            output_fps = int(self._average_fps(self._output_time_infos))
+            output_fps = self._rendering_engine.audio_rate
             render_fps = int(self._average_fps(self._render_time_infos))
             ratio = (output_fps / render_fps) if (render_fps > 0) else 0
 
