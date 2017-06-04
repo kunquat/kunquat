@@ -56,7 +56,7 @@ class AudioEngine():
         self._ui_engine = None
         self._nframes = chunk_size
         self._silence = ([0] * self._nframes, [0] * self._nframes)
-        self._render_time_infos = deque([], 1)
+        self._render_speed = 0
         self._post_actions = deque()
 
         self._sine = gen_sine(48000)
@@ -145,7 +145,10 @@ class AudioEngine():
         start = time.perf_counter()
         audio_data = self._mix(nframes)
         end = time.perf_counter()
-        self._render_time_infos.append((nframes, end - start))
+
+        elapsed = end - start
+        if elapsed > 0:
+            self._render_speed = self._push_amount / elapsed
 
         self._audio_output.put_audio(audio_data)
 
@@ -192,14 +195,6 @@ class AudioEngine():
     def sync_call_post_action(self, action_name, args):
         self._post_actions.append((action_name, args))
 
-    def _average_fps(self, times):
-        total = sum(duration for _, duration in times)
-        if total == 0:
-            return 0
-        else:
-            frames = sum(nframes for nframes, _ in times)
-            return frames / total
-
     def acknowledge_audio(self):
         start = self._cycle_time
         end = time.perf_counter()
@@ -210,12 +205,13 @@ class AudioEngine():
 
         if self._ui_engine:
             output_fps = self._rendering_engine.audio_rate
-            render_fps = int(self._average_fps(self._render_time_infos))
-            ratio = (output_fps / render_fps) if (render_fps > 0) else 0
-
             self._ui_engine.update_output_speed(output_fps)
-            self._ui_engine.update_render_speed(render_fps)
-            self._ui_engine.update_render_load(ratio)
+
+            if self._render_speed > 0:
+                ratio = (output_fps / self._render_speed)
+                self._ui_engine.update_render_speed(self._render_speed)
+                self._ui_engine.update_render_load(ratio)
+
             self._ui_engine.update_audio_levels(self._audio_levels)
 
     def produce_sound(self):
