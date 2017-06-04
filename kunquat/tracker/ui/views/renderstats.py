@@ -36,6 +36,9 @@ class RenderStats(QWidget):
         self._render_load = QLabel(self)
         self._ui_load = QLabel(self)
 
+        self._render_load_container = LoadHistoryContainer(self._render_load_history)
+        self._ui_load_container = LoadHistoryContainer(self._ui_load_history)
+
         self._profile_control = ProfileControl()
 
         self.setFocusPolicy(Qt.StrongFocus)
@@ -44,10 +47,10 @@ class RenderStats(QWidget):
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(2)
         v.addWidget(QLabel('Audio rendering load:'))
-        v.addWidget(self._render_load_history)
+        v.addWidget(self._render_load_container)
         v.addSpacing(4)
         v.addWidget(QLabel('UI load:'))
-        v.addWidget(self._ui_load_history)
+        v.addWidget(self._ui_load_container)
         v.addWidget(self._output_speed)
         v.addWidget(self._render_speed)
         v.addWidget(self._render_load)
@@ -61,6 +64,10 @@ class RenderStats(QWidget):
         self._stat_manager = ui_model.get_stat_manager()
         self._render_load_history.set_ui_model(ui_model)
         self._ui_load_history.set_ui_model(ui_model)
+
+        icon_bank = self._ui_model.get_icon_bank()
+        self._render_load_container.set_icon_bank(icon_bank)
+        self._ui_load_container.set_icon_bank(icon_bank)
 
     def unregister_updaters(self):
         self._ui_load_history.unregister_updaters()
@@ -99,6 +106,58 @@ class RenderStats(QWidget):
         key = event.key()
         if modifiers == Qt.ControlModifier and key == Qt.Key_P:
             self._profile_control.show()
+
+
+class LoadHistoryContainer(QWidget):
+
+    def __init__(self, load_history):
+        super().__init__()
+        self._load_history = load_history
+
+        self._zoom_levels = [2**x for x in range(5)]
+        self._zoom_level_index = self._zoom_levels.index(8)
+
+        self._zoom_in_button = QToolButton()
+        self._zoom_out_button = QToolButton()
+
+        self._toolbar = QToolBar()
+        self._toolbar.setOrientation(Qt.Vertical)
+        self._toolbar.addWidget(self._zoom_in_button)
+        self._toolbar.addWidget(self._zoom_out_button)
+
+        h = QHBoxLayout()
+        h.setContentsMargins(0, 0, 0, 0)
+        h.setSpacing(0)
+        h.addWidget(self._toolbar)
+        h.addWidget(self._load_history)
+        self.setLayout(h)
+
+        QObject.connect(self._zoom_in_button, SIGNAL('clicked()'), self._zoom_in)
+        QObject.connect(self._zoom_out_button, SIGNAL('clicked()'), self._zoom_out)
+
+        self._update_step_width()
+
+    def set_icon_bank(self, icon_bank):
+        self._zoom_in_button.setIcon(QIcon(icon_bank.get_icon_path('zoom_in')))
+        self._zoom_out_button.setIcon(QIcon(icon_bank.get_icon_path('zoom_out')))
+
+    def _update_enabled_buttons(self):
+        self._zoom_in_button.setEnabled(
+                self._zoom_level_index < len(self._zoom_levels) - 1)
+        self._zoom_out_button.setEnabled(self._zoom_level_index > 0)
+
+    def _update_step_width(self):
+        self._load_history.set_step_width(self._zoom_levels[self._zoom_level_index])
+        self._update_enabled_buttons()
+
+    def _zoom_in(self):
+        self._zoom_level_index = min(
+                self._zoom_level_index + 1, len(self._zoom_levels) - 1)
+        self._update_step_width()
+
+    def _zoom_out(self):
+        self._zoom_level_index = max(0, self._zoom_level_index - 1)
+        self._update_step_width()
 
 
 _font = QFont(QFont().defaultFamily(), 9)
@@ -160,6 +219,11 @@ class LoadHistory(QWidget, Updater):
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.setAttribute(Qt.WA_NoSystemBackground)
+
+    def set_step_width(self, step_width):
+        self._step_width = step_width
+        self._flush_vis()
+        self.update()
 
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_history)
