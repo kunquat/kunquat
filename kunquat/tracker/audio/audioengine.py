@@ -56,8 +56,8 @@ class AudioEngine():
         self._ui_engine = None
         self._nframes = chunk_size
         self._silence = ([0] * self._nframes, [0] * self._nframes)
-        self._render_times = deque([], 20)
-        self._output_times = deque([], 20)
+        self._render_time_infos = deque([], 20)
+        self._output_time_infos = deque([], 20)
         self._post_actions = deque()
 
         self._sine = gen_sine(48000)
@@ -146,7 +146,7 @@ class AudioEngine():
         start = time.perf_counter()
         audio_data = self._mix(nframes)
         end = time.perf_counter()
-        self._render_times.append((nframes, start, end))
+        self._render_time_infos.append((nframes, end - start))
 
         self._audio_output.put_audio(audio_data)
 
@@ -193,12 +193,12 @@ class AudioEngine():
     def sync_call_post_action(self, action_name, args):
         self._post_actions.append((action_name, args))
 
-    def _average_time(self, times):
-        total = sum(end - start for _, start, end in times)
-        frames = sum(nframes for nframes, _, _ in times)
+    def _average_fps(self, times):
+        total = sum(duration for _, duration in times)
         if total == 0:
             return 0
         else:
+            frames = sum(nframes for nframes, _ in times)
             return frames / total
 
     def acknowledge_audio(self):
@@ -209,19 +209,15 @@ class AudioEngine():
         if start == None:
             return
 
-        nframes = self._push_amount
-        self._output_times.append((nframes, start, end))
-        self._output_fps = math.floor((nframes / (end - start)))
-        output_avg = int(self._average_time(self._output_times))
-        render_avg = int(self._average_time(self._render_times))
-        if render_avg == 0:
-            ratio = 0
-        else:
-            ratio = float(output_avg) / float(render_avg)
-            ratio = min(max(0.0, ratio), 1.0)
+        self._output_time_infos.append((self._push_amount, end - start))
+
         if self._ui_engine:
-            self._ui_engine.update_output_speed(output_avg)
-            self._ui_engine.update_render_speed(render_avg)
+            output_fps = int(self._average_fps(self._output_time_infos))
+            render_fps = int(self._average_fps(self._render_time_infos))
+            ratio = (output_fps / render_fps) if (render_fps > 0) else 0
+
+            self._ui_engine.update_output_speed(output_fps)
+            self._ui_engine.update_render_speed(render_fps)
             self._ui_engine.update_render_load(ratio)
             self._ui_engine.update_audio_levels(self._audio_levels)
 
