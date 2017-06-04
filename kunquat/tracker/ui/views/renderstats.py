@@ -188,11 +188,16 @@ AXIS_CONFIG = {
 
 
 UI_LOAD_HISTORY_CONFIG = {
-    'padding'        : 5,
-    'bg_colour'      : QColor(0, 0, 0),
-    'max_line_colour': QColor(0x44, 0xcc, 0xff),
-    'avg_line_colour': QColor(0x22, 0x88, 0xaa),
-    'line_thickness' : 1.3,
+    'padding'           : 5,
+    'bg_colour'         : QColor(0, 0, 0),
+    'max_line_colour'   : QColor(0x44, 0xcc, 0xff),
+    'avg_line_colour'   : QColor(0x22, 0x88, 0xaa),
+    'line_thickness'    : 1.3,
+    'legend_margin'     : 10,
+    'legend_padding'    : 5,
+    'legend_line_length': 45,
+    'legend_font'       : _font,
+    'legend_text_colour': QColor(0xcc, 0xcc, 0xcc),
 }
 
 
@@ -210,6 +215,8 @@ class LoadHistory(QWidget, Updater):
 
         self._axis_x_renderer = HorizontalAxisRenderer()
         self._axis_y_renderer = VerticalAxisRenderer()
+
+        self._legend_image = None
 
         self._config = {}
         self._set_configs({}, {})
@@ -280,6 +287,7 @@ class LoadHistory(QWidget, Updater):
             'bg_colour': get_colour('waveform_bg_colour'),
             'max_line_colour': get_colour('waveform_single_item_colour'),
             'avg_line_colour': get_colour('waveform_interpolated_colour'),
+            'legend_text_colour': get_colour('envelope_axis_label_colour'),
         }
 
         axis_config = {
@@ -306,6 +314,7 @@ class LoadHistory(QWidget, Updater):
         self._avg_vis_history = []
         self._axis_x_renderer.flush_cache()
         self._axis_y_renderer.flush_cache()
+        self._legend_image = None
 
     def paintEvent(self, event):
         start = time.time()
@@ -379,6 +388,68 @@ class LoadHistory(QWidget, Updater):
                 painter.drawPath(self._max_curve_path)
 
             painter.restore()
+
+        # Legend
+        if not self._legend_image:
+            margin = self._config['legend_margin']
+            padding = self._config['legend_padding']
+            fm = QFontMetrics(self._config['legend_font'], self)
+
+            line_length = self._config['legend_line_length']
+            peaks_text = 'Peak'
+            avgs_text = 'Average'
+
+            baseline_offset = fm.tightBoundingRect('A').height()
+            strike_offset = fm.strikeOutPos()
+
+            text_width_reserve = max(
+                    fm.tightBoundingRect(peaks_text).width(),
+                    fm.tightBoundingRect(avgs_text).width())
+
+            width = margin + line_length + padding + text_width_reserve + margin
+
+            text_height = fm.tightBoundingRect('Ag').height()
+            height = padding + text_height + padding + text_height + padding
+
+            self._legend_image = QImage(width, height, QImage.Format_ARGB32)
+            self._legend_image.fill(0)
+            img_painter = QPainter(self._legend_image)
+
+            # Background
+            legend_bg_colour = QColor(self._config['bg_colour'])
+            legend_bg_colour.setAlpha(0xcc)
+            img_painter.setBackground(legend_bg_colour)
+            img_painter.eraseRect(
+                    0, 0, self._legend_image.width(), self._legend_image.height())
+
+            # Lines
+            img_painter.translate(margin, 0)
+            pen = QPen()
+            pen.setCosmetic(True)
+            pen.setWidthF(self._config['line_thickness'])
+
+            pen.setColor(self._config['max_line_colour'])
+            img_painter.setPen(pen)
+            offset_y = padding + strike_offset
+            img_painter.drawLine(0, offset_y, line_length, offset_y)
+
+            pen.setColor(self._config['avg_line_colour'])
+            img_painter.setPen(pen)
+            offset_y = padding + text_height + padding + strike_offset
+            img_painter.drawLine(0, offset_y, line_length, offset_y)
+
+            # Texts
+            img_painter.translate(line_length + padding, 0)
+            img_painter.setPen(self._config['legend_text_colour'])
+            offset_y = padding + baseline_offset
+            img_painter.drawText(QPoint(0, offset_y), peaks_text)
+            offset_y = padding + text_height + padding + baseline_offset
+            img_painter.drawText(QPoint(0, offset_y), avgs_text)
+
+            img_painter.end()
+
+        painter.setClipRect(area_rect)
+        painter.drawImage(area_rect.topLeft(), self._legend_image)
 
         end = time.time()
         elapsed = end - start
