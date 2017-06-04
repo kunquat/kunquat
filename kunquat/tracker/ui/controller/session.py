@@ -148,11 +148,9 @@ class Session():
             self._collected_render_loads = []
 
     def get_render_load_averages(self):
-        self._update_render_load_history()
         return list(self._render_load_averages)
 
     def get_render_load_peaks(self):
-        self._update_render_load_history()
         return list(self._render_load_peaks)
 
     def get_ui_load(self):
@@ -165,6 +163,10 @@ class Session():
         return list(self._ui_load_averages)
 
     def add_ui_load_average(self, load_avg):
+        # Sync render load history so that we get consistent stats
+        # FIXME: find a cleaner way to do this
+        self._update_render_load_history()
+
         self._ui_load_averages.append(load_avg)
 
     def get_ui_load_peaks(self):
