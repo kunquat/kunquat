@@ -56,7 +56,7 @@ class AudioEngine():
         self._ui_engine = None
         self._nframes = chunk_size
         self._silence = ([0] * self._nframes, [0] * self._nframes)
-        self._render_time_infos = deque([], 20)
+        self._render_time_infos = deque([], 1)
         self._output_time_infos = deque([], 20)
         self._post_actions = deque()
 
