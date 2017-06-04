@@ -129,10 +129,11 @@ AXIS_CONFIG = {
 
 
 UI_LOAD_HISTORY_CONFIG = {
-    'padding'       : 5,
-    'bg_colour'     : QColor(0, 0, 0),
+    'padding'        : 5,
+    'bg_colour'      : QColor(0, 0, 0),
     'max_line_colour': QColor(0x44, 0xcc, 0xff),
     'avg_line_colour': QColor(0x22, 0x88, 0xaa),
+    'line_thickness' : 1.3,
 }
 
 
@@ -299,14 +300,19 @@ class LoadHistory(QWidget, Updater):
             clip_rect = QRect(padding, 0, 1, self.height()).united(area_rect)
             painter.setClipRect(clip_rect)
             painter.setTransform(tfm)
-
-            if self._max_curve_path:
-                painter.setPen(QColor(self._config['max_line_colour']))
-                painter.drawPath(self._max_curve_path)
+            pen = QPen()
+            pen.setCosmetic(True)
+            pen.setWidthF(self._config['line_thickness'])
 
             if self._avg_curve_path:
-                painter.setPen(QColor(self._config['avg_line_colour']))
+                pen.setColor(QColor(self._config['avg_line_colour']))
+                painter.setPen(pen)
                 painter.drawPath(self._avg_curve_path)
+
+            if self._max_curve_path:
+                pen.setColor(QColor(self._config['max_line_colour']))
+                painter.setPen(pen)
+                painter.drawPath(self._max_curve_path)
 
             painter.restore()
 
