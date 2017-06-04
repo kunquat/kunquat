@@ -27,7 +27,7 @@ class RenderStats(QWidget):
     def __init__(self):
         super().__init__()
         self._ui_model = None
-        self._stat_manaer = None
+        self._stat_manager = None
 
         self._render_load_history = RenderLoadHistory()
         self._ui_load_history = UILoadHistory()
