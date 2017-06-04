@@ -31,10 +31,10 @@ class RenderStats(QWidget):
 
         self._render_load_history = RenderLoadHistory()
         self._ui_load_history = UILoadHistory()
-        self._output_speed = QLabel(self)
-        self._render_speed = QLabel(self)
-        self._render_load = QLabel(self)
-        self._ui_load = QLabel(self)
+        self._output_speed = QLabel()
+        self._render_speed = QLabel()
+        self._render_load = QLabel()
+        self._ui_load = QLabel()
 
         self._render_load_container = LoadHistoryContainer(self._render_load_history)
         self._ui_load_container = LoadHistoryContainer(self._ui_load_history)
@@ -51,10 +51,12 @@ class RenderStats(QWidget):
         v.addSpacing(4)
         v.addWidget(QLabel('UI load:'))
         v.addWidget(self._ui_load_container)
+        '''
         v.addWidget(self._output_speed)
         v.addWidget(self._render_speed)
         v.addWidget(self._render_load)
         v.addWidget(self._ui_load)
+        '''
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
