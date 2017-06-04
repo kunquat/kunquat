@@ -36,6 +36,8 @@ class UiLauncher():
     UI_FPS = 60
     UI_DELTA = 1.0 / float(UI_FPS)
 
+    _UI_LOAD_FLUSH_INTERVAL = 1
+
     def __init__(self, show=True):
         self._show = show
         self._updater = None
@@ -88,8 +90,9 @@ class UiLauncher():
         if self._ui_load_last_flush_time == None:
             self._ui_load_last_flush_time = time.time()
         cur_time = time.time()
-        if cur_time - self._ui_load_last_flush_time >= 1:
-            excess = cur_time - self._ui_load_last_flush_time - 1
+        flush_interval = self._UI_LOAD_FLUSH_INTERVAL
+        if cur_time - self._ui_load_last_flush_time >= flush_interval:
+            excess = cur_time - self._ui_load_last_flush_time - flush_interval
             if self._ui_loads:
                 avg = sum(self._ui_loads) / float(len(self._ui_loads))
                 self._controller.add_ui_load_average(avg)
