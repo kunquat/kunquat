@@ -134,18 +134,18 @@ class AudioEngine():
         event_data = self._rendering_engine.receive_events()
         self._process_events(event_data, CONTEXT_MIX)
         self._process_post_actions()
-        (l,r) = audio_data
-        if len(l) < 1:
+        (left, right) = audio_data
+        if len(left) < 1:
             # TODO: clarify intent here
             audio_data = self._silence
         self._audio_levels = self._get_audio_levels(audio_data)
-        self._push_amount = nframes
+        self._push_amount = len(left)
         return audio_data
 
     def _generate_audio(self, nframes):
-        start = time.time()
+        start = time.perf_counter()
         audio_data = self._mix(nframes)
-        end = time.time()
+        end = time.perf_counter()
         self._render_times.append((nframes, start, end))
 
         self._audio_output.put_audio(audio_data)
@@ -203,8 +203,8 @@ class AudioEngine():
 
     def acknowledge_audio(self):
         start = self._cycle_time
-        end = time.time()
-        self._cycle_time = time.time()
+        end = time.perf_counter()
+        self._cycle_time = end
 
         if start == None:
             return
