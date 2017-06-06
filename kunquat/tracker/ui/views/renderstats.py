@@ -205,6 +205,8 @@ UI_LOAD_HISTORY_CONFIG = {
 
 class LoadHistory(QWidget, Updater):
 
+    _PIXMAP_TARGET_WIDTH = 128
+
     def __init__(self):
         super().__init__()
 
@@ -217,6 +219,8 @@ class LoadHistory(QWidget, Updater):
 
         self._axis_x_renderer = HorizontalAxisRenderer()
         self._axis_y_renderer = VerticalAxisRenderer()
+
+        self._graph_images = {}
 
         self._legend_image = None
 
@@ -235,43 +239,10 @@ class LoadHistory(QWidget, Updater):
         self.update()
 
     def _on_setup(self):
-        self.register_action(self._get_update_signal_type(), self._update_history)
+        self.register_action(self._get_update_signal_type(), self.update)
         self.register_action('signal_style_changed', self._update_style)
 
         self._update_style()
-        self._update_history()
-
-    def _update_history(self):
-        load_peaks = self._get_peaks()
-        load_avgs = self._get_averages()
-
-        # TODO: see if we need to reuse old parts
-        self._max_vis_history = load_peaks
-        self._avg_vis_history = load_avgs
-
-        if len(self._max_vis_history) >= 2:
-            self._max_curve_path = QPainterPath()
-
-            '''
-            self._max_curve_path.moveTo(0, 0)
-            for i in range(1, 21):
-                self._max_curve_path.lineTo(i, (i // 2) % 2)
-            '''
-
-            self._max_curve_path.moveTo(0, self._max_vis_history[-1])
-            for i, load in enumerate(reversed(self._max_vis_history[:-1])):
-                self._max_curve_path.lineTo(i + 1, load)
-        else:
-            self._max_curve_path = None
-
-        if len(self._avg_vis_history) >= 2:
-            self._avg_curve_path = QPainterPath()
-            self._avg_curve_path.moveTo(0, self._avg_vis_history[-1])
-            for i, load in enumerate(reversed(self._avg_vis_history[:-1])):
-                self._avg_curve_path.lineTo(i + 1, load)
-        else:
-            self._avg_curve_path = None
-
         self.update()
 
     def _update_style(self):
@@ -316,6 +287,7 @@ class LoadHistory(QWidget, Updater):
         self._avg_vis_history = []
         self._axis_x_renderer.flush_cache()
         self._axis_y_renderer.flush_cache()
+        self._graph_images = {}
         self._legend_image = None
 
     def paintEvent(self, event):
@@ -362,34 +334,114 @@ class LoadHistory(QWidget, Updater):
         painter.restore()
 
         # Curves
-        if self._max_curve_path or self._avg_curve_path:
+        ls_per_pixmap = self._PIXMAP_TARGET_WIDTH // self._step_width
+        load_peaks = self._get_peaks()
+        load_avgs = self._get_averages()
+        assert len(load_avgs) == len(load_peaks)
+        full_pixmap_count = (len(load_peaks) - 1) // ls_per_pixmap
+        rem_ls_count = max(len(load_peaks) - 1, 0) % ls_per_pixmap
+        if rem_ls_count > 0:
+            # End of the curves
+            rem_point_count = rem_ls_count + 1
+
+            avg_path = QPainterPath()
+            avg_path.moveTo(0, load_avgs[-rem_point_count])
+            for i, load in enumerate(load_avgs[-rem_point_count + 1:]):
+                avg_path.lineTo(i + 1, load)
+
+            peak_path = QPainterPath()
+            peak_path.moveTo(0, load_peaks[-rem_point_count])
+            for i, load in enumerate(load_peaks[-rem_point_count + 1:]):
+                peak_path.lineTo(i + 1, load)
+
             painter.save()
-
-            tfm = QTransform()
-            tfm.translate(
-                    padding + area_rect.width() - 1 + 0.5,
-                    padding + area_rect.height() - 1 + 0.5)
-            tfm.scale(-self._step_width, -area_rect.height() + 1)
-            painter.setRenderHint(QPainter.Antialiasing)
-
             clip_rect = QRect(padding, 0, 1, self.height()).united(area_rect)
             painter.setClipRect(clip_rect)
+            painter.setRenderHint(QPainter.Antialiasing)
+
+            tfm = QTransform()
+            path_start = -self._step_width * (rem_point_count - 1)
+            tfm.translate(
+                    padding + area_rect.width() - 1 + 0.5 + path_start,
+                    padding + area_rect.height() - 1 + 0.5)
+            tfm.scale(self._step_width, -area_rect.height() + 1)
             painter.setTransform(tfm)
+
             pen = QPen()
             pen.setCosmetic(True)
             pen.setWidthF(self._config['line_thickness'])
 
-            if self._avg_curve_path:
-                pen.setColor(QColor(self._config['avg_line_colour']))
-                painter.setPen(pen)
-                painter.drawPath(self._avg_curve_path)
+            pen.setColor(QColor(self._config['avg_line_colour']))
+            painter.setPen(pen)
+            painter.drawPath(avg_path)
 
-            if self._max_curve_path:
-                pen.setColor(QColor(self._config['max_line_colour']))
-                painter.setPen(pen)
-                painter.drawPath(self._max_curve_path)
+            pen.setColor(QColor(self._config['max_line_colour']))
+            painter.setPen(pen)
+            painter.drawPath(peak_path)
 
             painter.restore()
+
+        for i in reversed(range(full_pixmap_count)):
+            # Cached curves
+            x_stop = area_rect.right() - (
+                    (rem_ls_count + (full_pixmap_count - i - 1) * ls_per_pixmap) *
+                    self._step_width)
+            if x_stop < area_rect.left():
+                break
+            x_start = x_stop - ls_per_pixmap * self._step_width
+
+            image_key = i * ls_per_pixmap
+            if image_key not in self._graph_images:
+                image_width = ls_per_pixmap * self._step_width
+                image = QImage(
+                        image_width,
+                        padding + area_rect.height(),
+                        QImage.Format_ARGB32)
+                image.fill(0)
+                img_painter = QPainter(image)
+                img_painter.setRenderHint(QPainter.Antialiasing)
+
+                left_index = i * ls_per_pixmap
+                right_index = (i + 1) * ls_per_pixmap
+                first_index = max(0, left_index - 1)
+                last_index = min(len(load_peaks) - 1, right_index + 1)
+
+                avg_path = QPainterPath()
+                avg_path.moveTo(first_index - left_index, load_avgs[first_index])
+                for k, load in enumerate(load_avgs[first_index + 1 : last_index + 1]):
+                    avg_path.lineTo(k + (first_index - left_index) + 1, load)
+
+                peak_path = QPainterPath()
+                peak_path.moveTo(first_index - left_index, load_peaks[first_index])
+                for k, load in enumerate(load_peaks[first_index + 1 : last_index + 1]):
+                    peak_path.lineTo(k + (first_index - left_index) + 1, load)
+
+                pen = QPen()
+                pen.setCosmetic(True)
+                pen.setWidthF(self._config['line_thickness'])
+
+                tfm = QTransform()
+                tfm.translate(0.5, padding + area_rect.height() - 1 + 0.5)
+                tfm.scale(self._step_width, -area_rect.height() + 1)
+                img_painter.setTransform(tfm)
+
+                pen.setColor(QColor(self._config['avg_line_colour']))
+                img_painter.setPen(pen)
+                img_painter.drawPath(avg_path)
+
+                pen.setColor(QColor(self._config['max_line_colour']))
+                img_painter.setPen(pen)
+                img_painter.drawPath(peak_path)
+
+                #img_painter.setPen(QColor('#fff'))
+                #img_painter.drawRect(0, 0, image.width() - 1, image.height() - 1)
+
+                img_painter.end()
+                self._graph_images[image_key] = image
+
+            clip_rect = QRect(padding, 0, 1, self.height()).united(area_rect)
+            painter.setClipRect(clip_rect)
+            painter.drawImage(x_start, 0, self._graph_images[image_key])
 
         # Legend
         if not self._legend_image:
@@ -456,6 +508,10 @@ class LoadHistory(QWidget, Updater):
         end = time.time()
         elapsed = end - start
         #print('Load history updated in {:.2f} ms'.format(elapsed * 1000))
+
+    def resizeEvent(self, event):
+        self._flush_vis()
+        self.update()
 
     # Protected callbacks
 
