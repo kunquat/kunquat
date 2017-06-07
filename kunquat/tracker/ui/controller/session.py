@@ -23,11 +23,11 @@ class Session():
         self._render_speed = 0
         self._render_load = 0
         self._collected_render_loads = []
-        self._render_load_averages = deque([], 3600)
-        self._render_load_peaks = deque([], 3600)
+        self._render_load_averages = deque([], 72000)
+        self._render_load_peaks = deque([], 72000)
         self._ui_load = 0
-        self._ui_load_averages = deque([], 3600)
-        self._ui_load_peaks = deque([], 3600)
+        self._ui_load_averages = deque([], 72000)
+        self._ui_load_peaks = deque([], 72000)
         self._progress_description = None
         self._progress_position = 0
         self._audio_levels = (0, 0)
