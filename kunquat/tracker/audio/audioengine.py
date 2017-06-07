@@ -56,8 +56,7 @@ class AudioEngine():
         self._ui_engine = None
         self._nframes = chunk_size
         self._silence = ([0] * self._nframes, [0] * self._nframes)
-        self._render_times = deque([], 20)
-        self._output_times = deque([], 20)
+        self._render_speed = 0
         self._post_actions = deque()
 
         self._sine = gen_sine(48000)
@@ -134,19 +133,22 @@ class AudioEngine():
         event_data = self._rendering_engine.receive_events()
         self._process_events(event_data, CONTEXT_MIX)
         self._process_post_actions()
-        (l,r) = audio_data
-        if len(l) < 1:
+        (left, right) = audio_data
+        if len(left) < 1:
             # TODO: clarify intent here
             audio_data = self._silence
         self._audio_levels = self._get_audio_levels(audio_data)
-        self._push_amount = nframes
+        self._push_amount = len(left)
         return audio_data
 
     def _generate_audio(self, nframes):
-        start = time.time()
+        start = time.perf_counter()
         audio_data = self._mix(nframes)
-        end = time.time()
-        self._render_times.append((nframes, start, end))
+        end = time.perf_counter()
+
+        elapsed = end - start
+        if elapsed > 0:
+            self._render_speed = self._push_amount / elapsed
 
         self._audio_output.put_audio(audio_data)
 
@@ -193,36 +195,23 @@ class AudioEngine():
     def sync_call_post_action(self, action_name, args):
         self._post_actions.append((action_name, args))
 
-    def _average_time(self, times):
-        total = sum(end - start for _, start, end in times)
-        frames = sum(nframes for nframes, _, _ in times)
-        if total == 0:
-            return 0
-        else:
-            return frames / total
-
     def acknowledge_audio(self):
         start = self._cycle_time
-        end = time.time()
-        self._cycle_time = time.time()
+        end = time.perf_counter()
+        self._cycle_time = end
 
         if start == None:
             return
 
-        nframes = self._push_amount
-        self._output_times.append((nframes, start, end))
-        self._output_fps = math.floor((nframes / (end - start)))
-        output_avg = int(self._average_time(self._output_times))
-        render_avg = int(self._average_time(self._render_times))
-        if render_avg == 0:
-            ratio = 0
-        else:
-            ratio = float(output_avg) / float(render_avg)
-            ratio = min(max(0.0, ratio), 1.0)
         if self._ui_engine:
-            self._ui_engine.update_output_speed(output_avg)
-            self._ui_engine.update_render_speed(render_avg)
-            self._ui_engine.update_render_load(ratio)
+            output_fps = self._rendering_engine.audio_rate
+            self._ui_engine.update_output_speed(output_fps)
+
+            if self._render_speed > 0:
+                ratio = (output_fps / self._render_speed)
+                self._ui_engine.update_render_speed(self._render_speed)
+                self._ui_engine.update_render_load(ratio)
+
             self._ui_engine.update_audio_levels(self._audio_levels)
 
     def produce_sound(self):

@@ -36,6 +36,8 @@ class UiLauncher():
     UI_FPS = 60
     UI_DELTA = 1.0 / float(UI_FPS)
 
+    _UI_LOAD_FLUSH_INTERVAL = 1
+
     def __init__(self, show=True):
         self._show = show
         self._updater = None
@@ -45,7 +47,8 @@ class UiLauncher():
         self._block = None
         self._ui_model = None
         self._event_queue_processor = None
-        self._ui_load_times = deque([], 1)
+        self._ui_loads = deque()
+        self._ui_load_last_flush_time = None
         self._tasks = deque([])
         self._task_timer = None
 
@@ -78,11 +81,32 @@ class UiLauncher():
         self._updater.perform_updates()
         end = time.time()
 
+        # Report load on current update
         elapsed = end - start
         load = elapsed / self.UI_DELTA
-        self._ui_load_times.append(load)
-        avg = sum(load for load in self._ui_load_times) / float(len(self._ui_load_times))
-        self._controller.update_ui_load(avg)
+        self._controller.update_ui_load(load)
+
+        # Report statistics if we have gathered enough data
+        if self._ui_load_last_flush_time == None:
+            self._ui_load_last_flush_time = time.time()
+        cur_time = time.time()
+        flush_interval = self._UI_LOAD_FLUSH_INTERVAL
+        if cur_time - self._ui_load_last_flush_time >= flush_interval:
+            excess = cur_time - self._ui_load_last_flush_time - flush_interval
+            if self._ui_loads:
+                avg = sum(self._ui_loads) / float(len(self._ui_loads))
+                self._controller.add_ui_load_average(avg)
+                self._controller.add_ui_load_peak(max(self._ui_loads))
+                self._ui_loads.clear()
+            else:
+                reported_load = (cur_time - self._ui_load_last_flush_time) * self.UI_FPS
+                self._controller.add_ui_load_average(reported_load)
+                self._controller.add_ui_load_peak(reported_load)
+
+            self._ui_load_last_flush_time = cur_time + excess
+
+        # Add to statistics
+        self._ui_loads.append(load)
 
     def _add_task(self, task):
         self._tasks.append(task)
