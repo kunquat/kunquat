@@ -16,10 +16,10 @@ import re
 import sys
 import json
 import time
-import tarfile
 import tempfile
 from io import BytesIO
 import os.path
+import zipfile
 
 from kunquat.kunquat.file import KqtFile, KunquatFileError, KQT_KEEP_NONE
 from kunquat.kunquat.kunquat import get_default_value
@@ -187,9 +187,7 @@ class Controller():
         self._updater.signal_update('signal_progress_start')
 
         with tempfile.NamedTemporaryFile(delete=False) as f:
-            mode = 'w|bz2'
-
-            with tarfile.open(mode=mode, fileobj=f, format=tarfile.USTAR_FORMAT) as tfile:
+            with zipfile.ZipFile(f, mode='w', compression=zipfile.ZIP_STORED) as zfile:
                 prefix = 'kqtc00'
 
                 step_count = len(self._store.items()) + 1
@@ -201,10 +199,8 @@ class Controller():
                         encoded = bytes(json.dumps(value), encoding='utf-8')
                     else:
                         encoded = value
-                    info = tarfile.TarInfo(name=path)
-                    info.size = len(encoded)
-                    encoded_file = BytesIO(encoded)
-                    tfile.addfile(info, encoded_file)
+                    compress = zipfile.ZIP_DEFLATED if key.endswith('.json') else None
+                    zfile.writestr(path, encoded, compress)
                     self._update_progress_step(i / step_count)
 
                 tmpname = f.name
@@ -231,9 +227,7 @@ class Controller():
         self._updater.signal_update('signal_progress_start')
 
         with tempfile.NamedTemporaryFile(delete=False) as f:
-            mode = 'w|bz2'
-
-            with tarfile.open(mode=mode, fileobj=f, format=tarfile.USTAR_FORMAT) as tfile:
+            with zipfile.ZipFile(f, mode='w', compression=zipfile.ZIP_STORED) as zfile:
                 prefix = 'kqti00'
                 au_prefix = au_id + '/'
                 au_keys = [k for k in self._store.keys() if k.startswith(au_prefix)]
@@ -248,10 +242,8 @@ class Controller():
                         encoded = bytes(json.dumps(value), encoding='utf-8')
                     else:
                         encoded = value
-                    info = tarfile.TarInfo(name=path)
-                    info.size = len(encoded)
-                    encoded_file = BytesIO(encoded)
-                    tfile.addfile(info, encoded_file)
+                    compress = zipfile.ZIP_DEFLATED if key.endswith('.json') else None
+                    zfile.writestr(path, encoded, compress)
                     self._update_progress_step(i / step_count)
 
                 tmpname = f.name
@@ -279,7 +271,7 @@ class Controller():
                 if not is_sandbox:
                     self._update_progress_step(kqtifile.get_loading_progress() / 3)
                 yield
-        except tarfile.ReadError:
+        except KunquatFileError:
             self._session.set_au_import_error_info(
                     kqtifile.get_path(),
                     'File is not a valid Kunquat audio unit package.')
