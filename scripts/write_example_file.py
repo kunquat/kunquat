@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -19,7 +19,7 @@ import sys
 
 
 # Note: This hackety sax works around the issue of Fabricate
-#       not tracking tar input files properly.
+#       not tracking zip input files properly.
 
 
 # Make Fabricate see our inputs
@@ -30,19 +30,18 @@ def look_at_files(in_files):
 
 
 def create_archive(out_file, examples_path, archive_root):
-    tar_path = find_executable('tar')
-    if not tar_path:
-        print('tar not found.')
+    exec_path = find_executable('python3')
+    if not exec_path:
+        print('python3 not found.')
         sys.exit(1)
 
     args = (
-        'tar',
-        'cj', '--format=ustar',
-        '-f', out_file,
-        '--directory', examples_path,
-        archive_root)
-    #print('running tar {}'.format(' '.join(args)))
-    os.execv(tar_path, args)
+        'python3',
+        '-m', 'zipfile',
+        '-c',
+        out_file,
+        os.path.join(examples_path, archive_root))
+    os.execv(exec_path, args)
 
 
 def main():
