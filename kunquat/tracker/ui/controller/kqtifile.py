@@ -56,7 +56,8 @@ class KqtiFile():
                 stripped_path = '/'.join(path_components[1:])
                 if not stripped_path:
                     raise KunquatFileError(
-                            'File contains the magic ID {} as a regular file')
+                            'File contains the magic ID {} as a regular file'.format(
+                                au_prefix))
                 if stripped_path in self._contents:
                     raise KunquatFileError('Duplicate entry: {}'.format(stripped_path))
 
