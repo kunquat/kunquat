@@ -103,7 +103,12 @@ class _KqtArchiveFile():
                 key = self._remove_prefix(path)
                 data_found = True
 
-                value = zfile.read(entry)
+                try:
+                    value = zfile.read(entry)
+                except zipfile.BadZipFile as e:
+                    raise KunquatFileError('Error while loading {}: {}'.format(
+                        key, str(e)))
+
                 if key.endswith('.json'):
                     try:
                         decoded = json.loads(str(value, encoding='utf-8'))
