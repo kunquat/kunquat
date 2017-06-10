@@ -72,6 +72,16 @@ class _KqtArchiveFile():
                 else:
                     msg = 'Unexpected key prefix: {}'.format(unexpected_prefix)
                 raise KunquatFileError(msg)
+
+        if not keyparts:
+            msg = 'File contains the magic ID {} as a regular file'.format(
+                    self._key_prefix)
+            raise KunquatFileError(msg)
+        elif '.' not in keyparts[-1]:
+            msg = 'The final element of key {} does not contain a period'.format(
+                    '/'.join((self._key_prefix, *keyparts)))
+            raise KunquatFileError(msg)
+
         return '/'.join(keyparts)
 
     def _keep_entry(self, key):
