@@ -58,10 +58,19 @@ class KqtiFile():
                     raise KunquatFileError(
                             'File contains the magic ID {} as a regular file'.format(
                                 au_prefix))
+                if '.' not in path_components[-1]:
+                    msg = 'The final element of key {} does not contain a period'.format(
+                                '/'.join((au_prefix, stripped_path)))
+                    raise KunquatFileError(msg)
                 if stripped_path in self._contents:
                     raise KunquatFileError('Duplicate entry: {}'.format(stripped_path))
 
-                value = zfile.read(entry)
+                try:
+                    value = zfile.read(entry)
+                except zipfile.BadZipFile as e:
+                    raise KunquatFileError('Error while loading key {}: {}'.format(
+                        stripped_path, str(e)))
+
                 if stripped_path.endswith('.json'):
                     decoded = json.loads(str(value, encoding='utf-8'))
                 else:
@@ -70,6 +79,9 @@ class KqtiFile():
                 self._contents[stripped_path] = decoded
 
                 self._loading_progress = (i + 1) / entry_count
+
+            if not self._contents:
+                raise KunquatFileError('File contains no Kunquat audio unit data')
 
         finally:
             zfile.close()
