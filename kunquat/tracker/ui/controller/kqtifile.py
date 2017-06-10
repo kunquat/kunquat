@@ -60,7 +60,7 @@ class KqtiFile():
                                 au_prefix))
                 if '.' not in path_components[-1]:
                     msg = 'The final element of key {} does not contain a period'.format(
-                                '/'.join((au_prefix, stripped_path)))
+                                stripped_path)
                     raise KunquatFileError(msg)
                 if stripped_path in self._contents:
                     raise KunquatFileError('Duplicate entry: {}'.format(stripped_path))
