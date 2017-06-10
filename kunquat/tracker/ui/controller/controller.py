@@ -271,10 +271,8 @@ class Controller():
                 if not is_sandbox:
                     self._update_progress_step(kqtifile.get_loading_progress() / 3)
                 yield
-        except KunquatFileError:
-            self._session.set_au_import_error_info(
-                    kqtifile.get_path(),
-                    'File is not a valid Kunquat audio unit package.')
+        except KunquatFileError as e:
+            self._session.set_au_import_error_info(kqtifile.get_path(), str(e))
             self._updater.signal_update(
                     'signal_au_import_error', 'signal_au_import_finished')
             if not is_sandbox:
