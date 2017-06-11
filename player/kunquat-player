@@ -24,7 +24,6 @@ import os.path
 import random
 import string
 import sys
-import tarfile
 import termios
 import time
 

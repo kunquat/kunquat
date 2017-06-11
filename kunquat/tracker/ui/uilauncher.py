@@ -20,7 +20,6 @@ import re
 import sys
 import time
 import json
-import tarfile
 from collections import deque
 
 import kunquat.tracker.cmdline as cmdline

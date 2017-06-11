@@ -12,7 +12,9 @@
 #
 
 import json
-import tarfile
+import zipfile
+
+from kunquat.kunquat.file import KunquatFileError
 
 
 class KqtiFile():
@@ -32,31 +34,43 @@ class KqtiFile():
         au_prefix = 'kqti00'
         self._contents = {}
 
-        # Accept bzip2 or uncompressed only
         try:
-            tfile = tarfile.open(self._path, mode='r:bz2', format=tarfile.USTAR_FORMAT)
-        except tarfile.ReadError:
-            try:
-                tfile = tarfile.open(self._path, mode='r:', format=tarfile.USTAR_FORMAT)
-            except tarfile.ReadError:
-                raise
+            zfile = zipfile.ZipFile(self._path, mode='r')
+        except OSError as e:
+            raise KunquatFileError(str(e))
+        except zipfile.BadZipFile:
+            raise KunquatFileError('File is not a valid Kunquat file')
 
-        members = tfile.getmembers()
-        member_count = len(members)
-        for i, entry in enumerate(members):
-            yield
-            path = entry.name
-            path_components = path.split('/')
-            if path_components[0] != au_prefix:
-                raise NotImplementedError # TODO: invalid path
-            if entry.isfile():
+        try:
+            entries = [e for e in zfile.infolist() if not e.filename.endswith('/')]
+
+            entry_count = len(entries)
+            for i, entry in enumerate(entries):
+                yield
+                path = entry.filename
+                path_components = path.split('/')
+                if path_components[0] != au_prefix:
+                    raise KunquatFileError(
+                            'Invalid magic ID: {}'.format(path_components[0]))
+
                 stripped_path = '/'.join(path_components[1:])
                 if not stripped_path:
-                    raise NotImplementedError # TODO: regular file named as magic id
+                    raise KunquatFileError(
+                            'File contains the magic ID {} as a regular file'.format(
+                                au_prefix))
+                if '.' not in path_components[-1]:
+                    msg = 'The final element of key {} does not contain a period'.format(
+                                stripped_path)
+                    raise KunquatFileError(msg)
                 if stripped_path in self._contents:
-                    raise NotImplementedError # TODO: handle path duplicates
+                    raise KunquatFileError('Duplicate entry: {}'.format(stripped_path))
 
-                value = tfile.extractfile(entry).read()
+                try:
+                    value = zfile.read(entry)
+                except zipfile.BadZipFile as e:
+                    raise KunquatFileError('Error while loading key {}: {}'.format(
+                        stripped_path, str(e)))
+
                 if stripped_path.endswith('.json'):
                     decoded = json.loads(str(value, encoding='utf-8'))
                 else:
@@ -64,9 +78,13 @@ class KqtiFile():
 
                 self._contents[stripped_path] = decoded
 
-            self._loading_progress = (i + 1) / member_count
+                self._loading_progress = (i + 1) / entry_count
 
-        tfile.close()
+            if not self._contents:
+                raise KunquatFileError('File contains no Kunquat audio unit data')
+
+        finally:
+            zfile.close()
 
     def get_contents(self):
         return self._contents

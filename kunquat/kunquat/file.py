@@ -16,7 +16,7 @@
 '''
 
 import json
-import tarfile
+import zipfile
 
 from .kunquat import Kunquat, KunquatError
 
@@ -54,9 +54,9 @@ class _KqtArchiveFile():
         self._loading_progress = 0
         self._stored_entries = {}
 
-    def _remove_prefix(self, tarpath):
+    def _remove_prefix(self, arc_path):
         preparts = self._key_prefix.split('/')
-        keyparts = tarpath.split('/')
+        keyparts = arc_path.split('/')
         removed_parts = []
         for pp in preparts:
             kp = keyparts.pop(0)
@@ -72,6 +72,16 @@ class _KqtArchiveFile():
                 else:
                     msg = 'Unexpected key prefix: {}'.format(unexpected_prefix)
                 raise KunquatFileError(msg)
+
+        if not keyparts:
+            msg = 'File contains the magic ID {} as a regular file'.format(
+                    self._key_prefix)
+            raise KunquatFileError(msg)
+        elif '.' not in keyparts[-1]:
+            msg = 'The final element of key {} does not contain a period'.format(
+                    '/'.join((self._key_prefix, *keyparts)))
+            raise KunquatFileError(msg)
+
         return '/'.join(keyparts)
 
     def _keep_entry(self, key):
@@ -81,36 +91,42 @@ class _KqtArchiveFile():
                 return True
         return False
 
-    def _get_entries(self, tfile):
+    def _get_entries(self, zfile):
         data_found = False
+
         try:
-            members = tfile.getmembers()
-            member_count = len(members)
-            for i, entry in enumerate(members):
-                tarpath = entry.name
-                key = self._remove_prefix(tarpath)
+            entries = [e for e in zfile.infolist() if not e.filename.endswith('/')]
+
+            entry_count = len(entries)
+            for i, entry in enumerate(entries):
+                path = entry.filename
+                key = self._remove_prefix(path)
                 data_found = True
-                if entry.isfile():
-                    value = tfile.extractfile(entry).read()
-                    if key.endswith('.json'):
-                        try:
-                            decoded = json.loads(str(value, encoding='utf-8'))
-                        except ValueError as e:
-                            msg = 'Invalid JSON data in {}: {}'.format(
-                                    key, str(e).capitalize())
-                            raise KunquatFileError(msg)
-                    else:
-                        decoded = value
-                    if self._keep_entry(key):
-                        self._stored_entries[key] = decoded
-                    yield (key, decoded)
-                self._loading_progress = (i + 1) / member_count
-        except EOFError as e:
-            raise KunquatFileError(str(e))
-        except tarfile.ReadError as e:
-            raise KunquatFileError(str(e).capitalize())
+
+                try:
+                    value = zfile.read(entry)
+                except zipfile.BadZipFile as e:
+                    raise KunquatFileError('Error while loading {}: {}'.format(
+                        key, str(e)))
+
+                if key.endswith('.json'):
+                    try:
+                        decoded = json.loads(str(value, encoding='utf-8'))
+                    except ValueError as e:
+                        msg = 'Invalid JSON data in {}: {}'.format(
+                                key, str(e).capitalize())
+                        raise KunquatFileError(msg)
+                else:
+                    decoded = value
+
+                if self._keep_entry(key):
+                    self._stored_entries[key] = decoded
+                yield (key, decoded)
+
+                self._loading_progress = (i + 1) / entry_count
+
         finally:
-            tfile.close()
+            zfile.close()
 
         if not data_found:
             type_desc = _get_file_type_desc(self._key_prefix)
@@ -120,25 +136,14 @@ class _KqtArchiveFile():
         self._stored_entries = {}
         self._loading_progress = 0
 
-        # Accept bzip2 or uncompressed only
         try:
-            tfile = tarfile.open(
-                    self._path, mode='r:bz2', format=tarfile.USTAR_FORMAT, errorlevel=3)
-        except (IOError, OSError) as e:
+            zfile = zipfile.ZipFile(self._path, mode='r')
+        except OSError as e:
             raise KunquatFileError(str(e))
-        except tarfile.ReadError:
-            try:
-                tfile = tarfile.open(
-                        self._path, mode='r:', format=tarfile.USTAR_FORMAT, errorlevel=3)
-            except tarfile.ReadError:
-                file_desc = _get_file_type_desc(self._key_prefix)
-                if file_desc:
-                    msg = 'File is not a valid {}'.format(file_desc)
-                else:
-                    msg = 'File is not a valid Kunquat file'
-                raise KunquatFileError(msg)
+        except zipfile.BadZipFile:
+            raise KunquatFileError('File is not a valid Kunquat file')
 
-        return self._get_entries(tfile)
+        return self._get_entries(zfile)
 
     def get_loading_progress(self):
         return self._loading_progress

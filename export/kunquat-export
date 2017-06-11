@@ -19,7 +19,6 @@ import locale
 import math
 import os.path
 import sys
-import tarfile
 import time
 
 from kunquat.kunquat.file import KqtFile
