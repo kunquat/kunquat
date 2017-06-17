@@ -19,10 +19,10 @@ from PySide.QtGui import *
 import kunquat.tracker.config as config
 
 
-def try_save_module(ui_model):
+def try_save_module(ui_model, save_as=False):
     module = ui_model.get_module()
 
-    if not module.get_path():
+    if (not module.get_path()) or save_as:
         module_path = get_module_save_path()
         if not module_path:
             return
