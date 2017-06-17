@@ -29,9 +29,6 @@ class Portal(QToolBar, Updater):
     def __init__(self):
         super().__init__()
         self._file_button = FileButton()
-        self._new_button = NewButton()
-        self._open_button = OpenButton()
-        self._save_button = SaveButton()
         self._about_button = AboutButton()
         self._connections_button = ConnectionsButton()
         self._songs_channels_button = SongsChannelsButton()
@@ -44,9 +41,6 @@ class Portal(QToolBar, Updater):
 
         self.add_to_updaters(
                 self._file_button,
-                self._new_button,
-                self._open_button,
-                self._save_button,
                 self._connections_button,
                 self._songs_channels_button,
                 self._notation_button,
@@ -58,9 +52,6 @@ class Portal(QToolBar, Updater):
                 self._about_button)
 
         self.addWidget(self._file_button)
-        self.addWidget(self._new_button)
-        self.addWidget(self._open_button)
-        self.addWidget(self._save_button)
         self.addSeparator()
         self.addWidget(self._connections_button)
         self.addWidget(self._songs_channels_button)
@@ -159,69 +150,6 @@ class FileButton(QToolButton, Updater):
 
     def _quit(self):
         self._exit_helper.try_exit()
-
-
-class NewButton(QToolButton, Updater):
-
-    def __init__(self):
-        super().__init__()
-        self.setText('New')
-        self.setToolTip('New (Ctrl + N)')
-
-    def _on_setup(self):
-        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
-
-    def _clicked(self):
-        process_manager = self._ui_model.get_process_manager()
-        process_manager.new_kunquat()
-
-
-class OpenButton(QToolButton, Updater):
-
-    def __init__(self):
-        super().__init__()
-        self.setText('Open')
-        self.setToolTip('Open (Ctrl + O)')
-
-    def _on_setup(self):
-        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
-
-    def _clicked(self):
-        try_open_kqt_module_or_au(self._ui_model)
-
-
-class SaveButton(QToolButton):
-
-    def __init__(self):
-        super().__init__()
-        self._ui_model = None
-        self._updater = None
-
-        self._module_loaded = False
-
-        self.setText('Save')
-        self.setToolTip('Save (Ctrl + S)')
-        self.setEnabled(False)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_module' in signals:
-            self._module_loaded = True
-
-        if self._module_loaded:
-            module = self._ui_model.get_module()
-            self.setEnabled(module.is_modified())
-
-    def _clicked(self):
-        try_save_module(self._ui_model)
 
 
 class WindowOpenerButton(QToolButton, Updater):
