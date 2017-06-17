@@ -57,7 +57,8 @@ class MainWindow(SaverWindow):
         self._main_view.unregister_updaters()
 
     def _perform_updates(self, signals):
-        self._exit_helper.update(signals)
+        if 'signal_save_module_finished' in signals:
+            self._exit_helper.notify_save_module_finished()
 
     def closeEvent(self, event):
         event.ignore()

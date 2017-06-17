@@ -28,8 +28,8 @@ class ExitHelper():
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
-    def update(self, signals):
-        if self._quit_after_saving and ('signal_save_module_finished' in signals):
+    def notify_save_module_finished(self):
+        if self._quit_after_saving:
             visibility_manager = self._ui_model.get_visibility_manager()
             visibility_manager.hide_main_after_saving()
 
