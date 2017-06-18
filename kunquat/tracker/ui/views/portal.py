@@ -17,6 +17,7 @@ from PySide.QtGui import *
 
 from kunquat.kunquat.limits import *
 from .eventlistbutton import EventListButton
+from .exiting import ExitHelper
 from . import utils
 from .kqtutils import try_open_kqt_module_or_au
 from .saving import try_save_module
@@ -27,9 +28,7 @@ class Portal(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
-        self._new_button = NewButton()
-        self._open_button = OpenButton()
-        self._save_button = SaveButton()
+        self._file_button = FileButton()
         self._about_button = AboutButton()
         self._connections_button = ConnectionsButton()
         self._songs_channels_button = SongsChannelsButton()
@@ -41,9 +40,7 @@ class Portal(QToolBar, Updater):
         self._render_stats_button = RenderStatsButton()
 
         self.add_to_updaters(
-                self._new_button,
-                self._open_button,
-                self._save_button,
+                self._file_button,
                 self._connections_button,
                 self._songs_channels_button,
                 self._notation_button,
@@ -54,9 +51,7 @@ class Portal(QToolBar, Updater):
                 self._settings_button,
                 self._about_button)
 
-        self.addWidget(self._new_button)
-        self.addWidget(self._open_button)
-        self.addWidget(self._save_button)
+        self.addWidget(self._file_button)
         self.addSeparator()
         self.addWidget(self._connections_button)
         self.addWidget(self._songs_channels_button)
@@ -75,67 +70,86 @@ class Portal(QToolBar, Updater):
         super().addWidget(button)
 
 
-class NewButton(QToolButton, Updater):
+class FileButton(QToolButton, Updater):
 
     def __init__(self):
         super().__init__()
-        self.setText('New')
-        self.setToolTip('New (Ctrl + N)')
-
-    def _on_setup(self):
-        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
-
-    def _clicked(self):
-        process_manager = self._ui_model.get_process_manager()
-        process_manager.new_kunquat()
-
-
-class OpenButton(QToolButton, Updater):
-
-    def __init__(self):
-        super().__init__()
-        self.setText('Open')
-        self.setToolTip('Open (Ctrl + O)')
-
-    def _on_setup(self):
-        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
-
-    def _clicked(self):
-        try_open_kqt_module_or_au(self._ui_model)
-
-
-class SaveButton(QToolButton):
-
-    def __init__(self):
-        super().__init__()
-        self._ui_model = None
-        self._updater = None
+        self.setText('File')
+        self.setPopupMode(QToolButton.InstantPopup)
 
         self._module_loaded = False
 
-        self.setText('Save')
-        self.setToolTip('Save (Ctrl + S)')
-        self.setEnabled(False)
+        self._exit_helper = ExitHelper()
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+        menu = QMenu()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
+        self._new_action = QAction(menu)
+        self._new_action.setText('New')
+        self._new_action.setShortcut(Qt.CTRL + Qt.Key_N)
 
-    def _perform_updates(self, signals):
-        if 'signal_module' in signals:
-            self._module_loaded = True
+        self._open_action = QAction(menu)
+        self._open_action.setText('Open...')
+        self._open_action.setShortcut(Qt.CTRL + Qt.Key_O)
 
+        self._save_action = QAction(menu)
+        self._save_action.setText('Save')
+        self._save_action.setShortcut(Qt.CTRL + Qt.Key_S)
+
+        self._save_as_action = QAction(menu)
+        self._save_as_action.setText('Save as...')
+
+        self._quit_action = QAction(menu)
+        self._quit_action.setText('Quit')
+
+        menu.addAction(self._new_action)
+        menu.addAction(self._open_action)
+        menu.addAction(self._save_action)
+        menu.addAction(self._save_as_action)
+        menu.addSeparator()
+        menu.addAction(self._quit_action)
+
+        self.setMenu(menu)
+
+    def _on_setup(self):
+        self.register_action('signal_module', self._set_module_loaded)
+        self.register_action('signal_change', self._update_save_enabled)
+        self.register_action(
+                'signal_save_module_finished', self._on_save_module_finished)
+
+        self._exit_helper.set_ui_model(self._ui_model)
+
+        QObject.connect(self._new_action, SIGNAL('triggered()'), self._new)
+        QObject.connect(self._open_action, SIGNAL('triggered()'), self._open)
+        QObject.connect(self._save_action, SIGNAL('triggered()'), self._save)
+        QObject.connect(self._save_as_action, SIGNAL('triggered()'), self._save_as)
+        QObject.connect(self._quit_action, SIGNAL('triggered()'), self._quit)
+
+    def _set_module_loaded(self):
+        self._module_loaded = True
+
+    def _update_save_enabled(self):
         if self._module_loaded:
             module = self._ui_model.get_module()
-            self.setEnabled(module.is_modified())
+            self._save_action.setEnabled(module.is_modified())
 
-    def _clicked(self):
+    def _on_save_module_finished(self):
+        self._exit_helper.notify_save_module_finished()
+
+    def _new(self):
+        process_manager = self._ui_model.get_process_manager()
+        process_manager.new_kunquat()
+
+    def _open(self):
+        try_open_kqt_module_or_au(self._ui_model)
+
+    def _save(self):
         try_save_module(self._ui_model)
+
+    def _save_as(self):
+        try_save_module(self._ui_model, save_as=True)
+
+    def _quit(self):
+        self._exit_helper.try_exit()
 
 
 class WindowOpenerButton(QToolButton, Updater):
