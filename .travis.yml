@@ -3,9 +3,6 @@ language: c
 python:
   - "3.4"
 before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get install -y python3
-  - ls /usr/lib/python3/dist-packages/
-  - python3 -v -c "import curl; print(123)"
+  - python -v -c "import curl; print(123)"
 script:
   - true
