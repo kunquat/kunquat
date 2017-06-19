@@ -3,6 +3,7 @@ language: python
 python:
   - "3.4"
 before_install:
-  - python -v -c "import curl; print(123)"
+  - pip install -U PySide
+  - python -v -c "import PySide; print(123)"
 script:
   - true
