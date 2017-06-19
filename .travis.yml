@@ -1,5 +1,7 @@
 dist: trusty
 language: c
+python:
+  - "3.4"
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y python3
