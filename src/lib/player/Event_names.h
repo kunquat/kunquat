@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,7 @@
 
 
 #include <player/Event_type.h>
+#include <player/Param_validator.h>
 #include <Value.h>
 
 #include <stdbool.h>
@@ -59,7 +60,7 @@ Event_names* new_Event_names(void);
  *
  * \return   \c true if an error has occurred, otherwise \c false.
  */
-bool Event_names_error(Event_names* names);
+bool Event_names_error(const Event_names* names);
 
 
 /**
@@ -83,6 +84,18 @@ Event_type Event_names_get(const Event_names* names, const char* name);
  * \return   The parameter type.
  */
 Value_type Event_names_get_param_type(const Event_names* names, const char* name);
+
+
+/**
+ * Retrieve the parameter validator for the given event name.
+ *
+ * \param names   The Event name collection -- must not be \c NULL.
+ * \param name    The Event name -- must be a supported name.
+ *
+ * \return   The parameter validator.
+ */
+Param_validator* Event_names_get_param_validator(
+        const Event_names* names, const char* name);
 
 
 /**

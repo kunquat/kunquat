@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2017
  *
  * This file is part of Kunquat.
  *
@@ -16,67 +16,69 @@
 #define KQT_PARAM_VALIDATOR_H
 
 
+#include <Value.h>
+
 #include <stdbool.h>
 
 
-typedef bool (*Param_validator)(const char* param);
+typedef bool Param_validator(const Value* value);
 
 
-bool v_any_bool(const char* param);
-bool v_any_int(const char* param);
-bool v_any_float(const char* param);
-bool v_any_str(const char* param);
-bool v_any_ts(const char* param);
+Param_validator v_any_bool;
+Param_validator v_any_int;
+Param_validator v_any_float;
+Param_validator v_any_str;
+Param_validator v_any_ts;
 
-bool v_arp_index(const char* param);
-bool v_arp_speed(const char* param);
+Param_validator v_arp_index;
+Param_validator v_arp_speed;
 
-bool v_au(const char* param);
+Param_validator v_au;
 
-bool v_cond(const char* param);
+Param_validator v_cond;
 
-bool v_counter(const char* param);
+Param_validator v_counter;
 
-bool v_finite_float(const char* param);
-bool v_finite_rt(const char* param);
+Param_validator v_finite_float;
+Param_validator v_finite_rt;
 
-bool v_force(const char* param);
+Param_validator v_force;
 
-bool v_proc(const char* param);
+Param_validator v_proc;
 
-bool v_hit(const char* param);
+Param_validator v_hit;
 
-bool v_key(const char* param);
+Param_validator v_key;
 
-bool v_maybe_var_name(const char* param);
+Param_validator v_maybe_var_name;
 
-bool v_nonneg_float(const char* param);
-bool v_nonneg_ts(const char* param);
+Param_validator v_nonneg_float;
+Param_validator v_nonneg_ts;
 
-bool v_note_entry(const char* param);
+Param_validator v_note_entry;
 
-bool v_pattern(const char* param);
-bool v_piref(const char* param);
+Param_validator v_pattern;
+Param_validator v_piref;
 
-bool v_pitch(const char* param);
+Param_validator v_pitch;
 
-bool v_song(const char* param);
+Param_validator v_song;
 
-bool v_system(const char* param);
+Param_validator v_system;
 
-bool v_sustain(const char* param);
+Param_validator v_sustain;
 
-bool v_tempo(const char* param);
+Param_validator v_tempo;
 
-bool v_track(const char* param);
+Param_validator v_track;
 
-bool v_tremolo_depth(const char* param);
+Param_validator v_tremolo_depth;
 
-bool v_tuning_table(const char* param);
+Param_validator v_tuning_table;
 
-bool v_var_name(const char* param);
+Param_validator v_var_name;
 
-bool v_volume(const char* param);
+Param_validator v_volume;
 
 
 #endif // KQT_PARAM_VALIDATOR_H
