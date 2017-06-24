@@ -92,7 +92,8 @@ Value_type Event_names_get_param_type(const Event_names* names, const char* name
  * \param names   The Event name collection -- must not be \c NULL.
  * \param name    The Event name -- must be a supported name.
  *
- * \return   The parameter validator.
+ * \return   The parameter validator, or \c NULL if there is no validator
+ *           associated with \a name.
  */
 Param_validator* Event_names_get_param_validator(
         const Event_names* names, const char* name);
