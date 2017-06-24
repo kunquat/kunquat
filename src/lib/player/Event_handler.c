@@ -289,6 +289,14 @@ bool Event_handler_trigger(
     rassert(name != NULL);
     rassert(arg != NULL);
 
+    Param_validator* validator = Event_names_get_param_validator(eh->event_names, name);
+    if ((validator != NULL) && !validator(arg))
+    {
+        // TODO: proper warning system
+        //fprintf(stdout, "Invalid argument for event %s\n", name);
+        return false;
+    }
+
     Event_type type = Event_names_get(eh->event_names, name);
     rassert(type != Event_NONE);
     rassert(!Event_is_query(type));
