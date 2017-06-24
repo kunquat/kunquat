@@ -120,7 +120,7 @@ bool v_counter(const Value* value)
 
     const int64_t counter = value->value.int_type;
 
-    return (counter >= 0) && (counter < 32767);
+    return (counter >= 0) && (counter < 32768);
 }
 
 
