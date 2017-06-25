@@ -31,6 +31,7 @@ class Typewriter(QFrame, Updater):
 
     def _on_setup(self):
         self.add_to_updaters(self._keyboard_mapper)
+        self.register_action('signal_change', self._update_button_leds)
 
         self._typewriter_manager = self._ui_model.get_typewriter_manager()
         self.setLayout(self._get_layout())
@@ -62,6 +63,17 @@ class Typewriter(QFrame, Updater):
         pad = QWidget()
         pad.setFixedWidth(psize)
         return pad
+
+    def _update_button_leds(self):
+        led_states = self._typewriter_manager.get_led_states()
+        rows = self.layout()
+        for ri in range(rows.count()):
+            row = rows.itemAt(ri).layout()
+            for ci in range(row.count() - 2): # -2 excludes padding and end stretch
+                button = row.itemAt(ci + 1).widget()
+                assert isinstance(button, TypewriterButton)
+                led_state = led_states.get((ri, ci), 3 * [False])
+                button.update_led_state(led_state)
 
     def keyPressEvent(self, event):
         selection = self._ui_model.get_selection()

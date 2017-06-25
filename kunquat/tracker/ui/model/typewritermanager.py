@@ -182,10 +182,13 @@ class TypewriterManager():
         return self._get_button_param(coords, get_pitch=False)
 
     def get_key_id(self, coords):
-        (row, column) = coords
         keymap_data = self._keymap_manager.get_selected_keymap()
         keymap = keymap_data['keymap']
         self._create_current_map(keymap)
+        return self._get_key_id_from_current_map(coords)
+
+    def _get_key_id_from_current_map(self, coords):
+        (row, column) = coords
 
         key_index = column * 2
         if row % 2 == 0:
@@ -255,6 +258,52 @@ class TypewriterManager():
         self._session.set_octave_id(octave_id)
         self._current_map_version = None
         self._updater.signal_update('signal_octave')
+
+    def get_led_states(self):
+        control_manager = self._ui_model.get_control_manager()
+        selected_control = control_manager.get_selected_control()
+        if selected_control == None:
+            return {}
+
+        keymap_data = self._keymap_manager.get_selected_keymap()
+        keymap = keymap_data['keymap']
+        self._create_current_map(keymap)
+        is_hit_keymap = keymap_data.get('is_hit_keymap', False)
+
+        if is_hit_keymap:
+            active_hits = selected_control.get_active_hits()
+        else:
+            active_notes = selected_control.get_active_notes()
+
+        led_states = {}
+
+        for ri, row_length in enumerate(self._ROW_LENGTHS):
+            param_row = self._current_map[ri]
+            for ci in range(min(row_length, len(param_row))):
+                if is_hit_keymap:
+                    hit = param_row[ci]
+                    states = 3 * [False]
+                    if hit in active_hits.values():
+                        states[1] = True
+                    led_states[(ri, ci)] = states
+                else:
+                    pitch = param_row[ci]
+                    key_id = self._get_key_id_from_current_map((ri, ci))
+                    states = 3 * [False]
+                    for note in active_notes.values():
+                        if self.get_nearest_key_id(note) == key_id:
+                            if abs(note - pitch) < 0.1:
+                                states[1] = True
+                            elif note < pitch:
+                                states[0] = True
+                            elif note > pitch:
+                                states[2] = True
+                            else:
+                                assert False
+                            break
+                    led_states[(ri, ci)] = states
+
+        return led_states
 
     def notify_notation_changed(self, notation_id):
         if self._current_map_version == notation_id:

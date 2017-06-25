@@ -132,6 +132,9 @@ class TypewriterButton(QPushButton):
         self._update_style()
         self._update_properties()
 
+    def update_led_state(self, led_state):
+        self._led.set_leds(*led_state)
+
     def _perform_updates(self, signals):
         if any(s in signals for s in ['signal_octave', 'signal_notation']):
             self._update_properties()
@@ -144,7 +147,7 @@ class TypewriterButton(QPushButton):
         if 'signal_style_changed' in signals:
             self._update_style()
 
-        self._update_leds()
+        #self._update_leds()
 
     def _update_style(self):
         style_manager = self._ui_model.get_style_manager()
