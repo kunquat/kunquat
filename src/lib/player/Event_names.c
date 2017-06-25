@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -31,7 +31,7 @@ typedef struct Name_info
     char name[EVENT_NAME_MAX + 1];
     Event_type type;
     Value_type param_type;
-    Param_validator validator;
+    Param_validator* validator;
 } Name_info;
 
 
@@ -121,7 +121,7 @@ static int event_name_cmp(const char* e1, const char* e2)
 }
 
 
-bool Event_names_error(Event_names* names)
+bool Event_names_error(const Event_names* names)
 {
     rassert(names != NULL);
     return names->error;
@@ -133,7 +133,7 @@ Event_type Event_names_get(const Event_names* names, const char* name)
     rassert(names != NULL);
     rassert(name != NULL);
 
-    Name_info* info = AAtree_get_exact(names->names, name);
+    const Name_info* info = AAtree_get_exact(names->names, name);
     if (info == NULL)
         return Event_NONE;
 
@@ -146,10 +146,23 @@ Value_type Event_names_get_param_type(const Event_names* names, const char* name
     rassert(names != NULL);
     rassert(name != NULL);
 
-    Name_info* info = AAtree_get_exact(names->names, name);
+    const Name_info* info = AAtree_get_exact(names->names, name);
     rassert(info != NULL);
 
     return info->param_type;
+}
+
+
+Param_validator* Event_names_get_param_validator(
+        const Event_names* names, const char* name)
+{
+    rassert(names != NULL);
+    rassert(name != NULL);
+
+    const Name_info* info = AAtree_get_exact(names->names, name);
+    rassert(info != NULL);
+
+    return info->validator;
 }
 
 

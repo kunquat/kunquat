@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2017
  *
  * This file is part of Kunquat.
  *
@@ -40,7 +40,7 @@ static const struct
 {
     const char* name;
     const Value_type arg_type;
-    const Param_validator validator;
+    Param_validator* validator;
 } name_to_arg_type[] =
 {
 #define EVENT_TYPE_DEF(name, category, type_suffix, arg_type, validator) \
@@ -58,7 +58,7 @@ const char* kqt_get_event_arg_type(const char* event_name)
         if (string_eq(event_name, cur_name))
         {
             // Special case handling for pitches
-            const Param_validator validator = name_to_arg_type[i].validator;
+            Param_validator* validator = name_to_arg_type[i].validator;
             if (validator == v_pitch)
                 return "pitch";
 

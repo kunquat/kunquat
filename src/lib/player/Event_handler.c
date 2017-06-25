@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -288,6 +288,14 @@ bool Event_handler_trigger(
     rassert(ch_num < KQT_CHANNELS_MAX);
     rassert(name != NULL);
     rassert(arg != NULL);
+
+    Param_validator* validator = Event_names_get_param_validator(eh->event_names, name);
+    if ((validator != NULL) && !validator(arg))
+    {
+        // TODO: proper warning system
+        //fprintf(stdout, "Invalid argument for event %s\n", name);
+        return false;
+    }
 
     Event_type type = Event_names_get(eh->event_names, name);
     rassert(type != Event_NONE);
