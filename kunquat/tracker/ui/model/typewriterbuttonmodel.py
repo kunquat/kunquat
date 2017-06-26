@@ -79,42 +79,6 @@ class TypewriterButtonModel():
     def _get_key_id(self):
         return self._typewriter_manager.get_key_id((self._row, self._index))
 
-    def get_led_state(self):
-        selected_control = self._control_manager.get_selected_control()
-        if selected_control == None:
-            return None
-
-        hit_index = self._get_hit()
-        if hit_index != None:
-            hits = selected_control.get_active_hits()
-            states = 3 * [False]
-            if hit_index in hits.values():
-                states = [False, True, False]
-            return tuple(states)
-
-        key_id = self._get_key_id()
-        if not key_id:
-            return None
-
-        pitch = self._get_pitch()
-        if pitch == None:
-            return None
-
-        (left_on, centre_on, right_on) = 3 * [False]
-        notes = selected_control.get_active_notes()
-        for note in notes.values():
-            if self._typewriter_manager.get_nearest_key_id(note) == key_id:
-                if abs(note - pitch) < 0.1:
-                    centre_on = True
-                elif note < pitch:
-                    left_on = True
-                elif note > pitch:
-                    right_on = True
-                else:
-                    assert False
-
-        return (left_on, centre_on, right_on)
-
     def start_tracked_note(self):
         event_type, param = self._get_event_type_and_param()
         if param == None:

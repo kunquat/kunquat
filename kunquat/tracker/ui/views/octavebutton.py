@@ -78,24 +78,6 @@ class OctaveButton(QPushButton):
             self.setChecked(False)
         self.blockSignals(old_block)
 
-    def update_leds(self):
-        selected_control = self._control_manager.get_selected_control()
-        if selected_control == None:
-            return
-        notes = selected_control.get_active_notes()
-        is_on = 0
-        for note in notes.values():
-            nearest_id = self._typewriter_manager.get_nearest_key_id(note)
-            if nearest_id:
-                octave_id, _ = nearest_id
-                if octave_id == self._octave_id:
-                    is_on = 1
-                    break
-        if is_on:
-            self._led.setText('*')
-        else:
-            self._led.setText('')
-
     def _perform_updates(self, signals):
         name_update_signals = set(['signal_notation', 'signal_select_keymap'])
         if not signals.isdisjoint(name_update_signals):
@@ -103,7 +85,5 @@ class OctaveButton(QPushButton):
 
         if any(s in signals for s in ['signal_octave', 'signal_init']):
             self._update_pressed()
-
-        #self.update_leds()
 
 
