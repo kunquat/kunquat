@@ -49,6 +49,9 @@ class OctaveSelector(QFrame, Updater):
         self._update_layout()
 
     def _update_leds(self):
+        if not self.isVisible():
+            return
+
         octaves_enabled = self._typewriter_manager.get_enabled_octave_leds()
         for octave_id in range(self._button_layout.count()):
             button = self._button_layout.itemAt(octave_id).widget()

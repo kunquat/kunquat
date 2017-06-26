@@ -65,6 +65,9 @@ class Typewriter(QFrame, Updater):
         return pad
 
     def _update_button_leds(self):
+        if not self.isVisible():
+            return
+
         led_states = self._typewriter_manager.get_led_states()
         rows = self.layout()
         for ri in range(rows.count()):
