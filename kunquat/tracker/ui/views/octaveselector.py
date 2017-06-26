@@ -43,9 +43,16 @@ class OctaveSelector(QFrame, Updater):
     def _on_setup(self):
         self.register_action('signal_select_keymap', self._update_layout)
         self.register_action('signal_notation', self._update_layout)
+        self.register_action('signal_change', self._update_leds)
 
         self._typewriter_manager = self._ui_model.get_typewriter_manager()
         self._update_layout()
+
+    def _update_leds(self):
+        octaves_enabled = self._typewriter_manager.get_enabled_octave_leds()
+        for octave_id in range(self._button_layout.count()):
+            button = self._button_layout.itemAt(octave_id).widget()
+            button.update_led_state(octave_id in octaves_enabled)
 
     def _update_layout(self):
         keymap_manager = self._ui_model.get_keymap_manager()

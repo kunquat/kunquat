@@ -305,6 +305,23 @@ class TypewriterManager():
 
         return led_states
 
+    def get_enabled_octave_leds(self):
+        control_manager = self._ui_model.get_control_manager()
+        selected_control = control_manager.get_selected_control()
+        if selected_control == None:
+            return set()
+
+        enabled_ids = set()
+
+        notes = selected_control.get_active_notes()
+        for note in notes.values():
+            nearest_id = self.get_nearest_key_id(note)
+            if nearest_id:
+                octave_id, _ = nearest_id
+                enabled_ids.add(octave_id)
+
+        return enabled_ids
+
     def notify_notation_changed(self, notation_id):
         if self._current_map_version == notation_id:
             self._current_map_version = None

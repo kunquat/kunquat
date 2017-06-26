@@ -60,6 +60,12 @@ class OctaveButton(QPushButton):
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
+    def update_led_state(self, enabled):
+        if enabled:
+            self._led.setText('*')
+        else:
+            self._led.setText('')
+
     def _update_name(self):
         octave_name = self._button_model.get_name()
         self._octavename.setText(octave_name)
@@ -97,6 +103,7 @@ class OctaveButton(QPushButton):
 
         if any(s in signals for s in ['signal_octave', 'signal_init']):
             self._update_pressed()
-        self.update_leds()
+
+        #self.update_leds()
 
 
