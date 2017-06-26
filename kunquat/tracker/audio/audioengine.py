@@ -128,17 +128,25 @@ class AudioEngine():
     def _mix(self, nframes):
         #data_mono = list(islice(self._sine, nframes))
         #audio_data = (data_mono, data_mono)
-        self._rendering_engine.play(nframes)
-        audio_data = self._rendering_engine.get_audio()
-        event_data = self._rendering_engine.receive_events()
-        self._process_events(event_data, CONTEXT_MIX)
-        self._process_post_actions()
-        (left, right) = audio_data
-        if len(left) < 1:
-            # TODO: clarify intent here
+
+        # Try rendering until we get more audio data
+        attempt_count = 16
+        for _ in range(attempt_count):
+            self._rendering_engine.play(nframes)
+            audio_data = self._rendering_engine.get_audio()
+            event_data = self._rendering_engine.receive_events()
+            self._process_events(event_data, CONTEXT_MIX)
+            self._process_post_actions()
+            frame_count = len(audio_data[0])
+            if frame_count > 0:
+                self._push_amount = frame_count
+                break
+        else:
+            # We are not getting more audio, possibly due to heavy event spamming
             audio_data = self._silence
+            self._push_amount = 0
+
         self._audio_levels = self._get_audio_levels(audio_data)
-        self._push_amount = len(left)
         return audio_data
 
     def _generate_audio(self, nframes):
