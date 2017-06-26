@@ -44,7 +44,7 @@ static Device_state* get_target_dstate(
         return NULL;
 
     const Processor* proc = Audio_unit_get_proc(au, proc_index);
-    if (proc == NULL)
+    if ((proc == NULL) || !Device_is_existent((const Device*)proc))
         return NULL;
 
     Device_state* dstate =

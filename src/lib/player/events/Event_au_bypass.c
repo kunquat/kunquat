@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2017
  *
  * This file is part of Kunquat.
  *
@@ -46,7 +46,7 @@ bool Event_au_bypass_on_process(
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         const Processor* proc = Audio_unit_get_proc(au, i);
-        if (proc != NULL)
+        if ((proc != NULL) && Device_is_existent((const Device*)proc))
         {
             Proc_state* proc_state = (Proc_state*)Device_states_get_state(
                     dstates, Device_get_id((const Device*)proc));
