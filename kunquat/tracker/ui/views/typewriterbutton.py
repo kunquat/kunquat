@@ -132,6 +132,9 @@ class TypewriterButton(QPushButton):
         self._update_style()
         self._update_properties()
 
+    def update_led_state(self, led_state):
+        self._led.set_leds(*led_state)
+
     def _perform_updates(self, signals):
         if any(s in signals for s in ['signal_octave', 'signal_notation']):
             self._update_properties()
@@ -143,8 +146,6 @@ class TypewriterButton(QPushButton):
 
         if 'signal_style_changed' in signals:
             self._update_style()
-
-        self._update_leds()
 
     def _update_style(self):
         style_manager = self._ui_model.get_style_manager()
@@ -177,11 +178,6 @@ class TypewriterButton(QPushButton):
 
     def _release(self):
         self._button_model.stop_tracked_note()
-
-    def _update_leds(self):
-        led_state = self._button_model.get_led_state() or (False, False, False)
-        left_on, centre_on, right_on = (int(state) for state in led_state)
-        self._led.set_leds(left_on, centre_on, right_on)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
