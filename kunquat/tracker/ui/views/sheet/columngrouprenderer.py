@@ -496,7 +496,7 @@ class ColumnCache():
         return self._pixmaps.get_memory_usage()
 
     def update_hit_names(self):
-        if self._contains_hits():
+        if self._tr_cache.contains_hits():
             self._pixmaps.flush()
             self._tr_cache.flush()
 
