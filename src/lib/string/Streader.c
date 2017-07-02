@@ -888,14 +888,14 @@ bool Streader_read_finite_rt(Streader* sr, Value* dest)
 
     if (Streader_read_bool(sr, &value->value.bool_type))
         value->type = VALUE_TYPE_BOOL;
-    else if ((recover(sr, start_pos), Streader_read_int(sr, &value->value.int_type)) &&
+    else if (((void)recover(sr, start_pos), Streader_read_int(sr, &value->value.int_type)) &&
             (CUR_CH != '.') && (CUR_CH != 'e') && (CUR_CH != 'E'))
         value->type = VALUE_TYPE_INT;
-    else if (recover(sr, start_pos),
+    else if ((void)recover(sr, start_pos),
             (Streader_read_float(sr, &value->value.float_type) &&
              isfinite(value->value.float_type)))
         value->type = VALUE_TYPE_FLOAT;
-    else if (recover(sr, start_pos), Streader_read_tstamp(sr, &value->value.Tstamp_type))
+    else if ((void)recover(sr, start_pos), Streader_read_tstamp(sr, &value->value.Tstamp_type))
         value->type = VALUE_TYPE_TSTAMP;
 
     if (value->type == VALUE_TYPE_NONE)
