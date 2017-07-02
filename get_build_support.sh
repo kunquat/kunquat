@@ -18,7 +18,7 @@ unverified_path="support/fabricate_unverified.py"
 
 if [ -f $verified_path ]
 then
-    existing_sha256sum=$(sha256sum $verified_path | cut -d" " -f1)
+    existing_sha256sum=$(shasum -a 256 $verified_path | cut -d" " -f1)
     if [ "$existing_sha256sum" = "$known_sha256sum" ]
     then
         echo ""
@@ -36,7 +36,7 @@ mkdir -p support
 touch support/__init__.py
 wget -O $unverified_path $fabricate_url
 
-retrieved_sha256sum=$(sha256sum $unverified_path | cut -d" " -f1)
+retrieved_sha256sum=$(shasum -a 256 $unverified_path | cut -d" " -f1)
 
 if [ "$retrieved_sha256sum" = "$known_sha256sum" ]
 then
