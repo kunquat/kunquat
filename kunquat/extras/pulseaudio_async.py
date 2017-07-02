@@ -22,6 +22,7 @@ becomes available in major distributions, this module will be removed.
 
 
 import ctypes
+import ctypes.util
 import queue
 
 from .pulseaudio_def import *
@@ -305,7 +306,7 @@ class Async():
         self.deinit()
 
 
-_pa = ctypes.CDLL('libpulse.so')
+_pa = ctypes.CDLL(ctypes.util.find_library('pulse'))
 
 _pa_ml = ctypes.c_void_p
 _pa_ml_api = ctypes.c_void_p

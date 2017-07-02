@@ -16,6 +16,7 @@
 '''
 
 import ctypes
+import ctypes.util
 import math
 
 
@@ -277,7 +278,7 @@ class _SRC_DATA(ctypes.Structure):
                 ('src_ratio', ctypes.c_double)]
 
 
-_samplerate = ctypes.CDLL('libsamplerate.so')
+_samplerate = ctypes.CDLL(ctypes.util.find_library('samplerate'))
 
 _samplerate.src_strerror.argtypes = [ctypes.c_int]
 _samplerate.src_strerror.restype = ctypes.c_char_p

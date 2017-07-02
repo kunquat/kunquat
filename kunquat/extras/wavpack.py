@@ -16,6 +16,7 @@
 """
 
 import ctypes
+import ctypes.util
 from io import BytesIO, SEEK_SET, SEEK_CUR, SEEK_END
 
 
@@ -597,7 +598,7 @@ _WavpackBlockOutput = ctypes.CFUNCTYPE(
         ctypes.c_int32) # bcount
 
 
-_wavpack = ctypes.CDLL('libwavpack.so')
+_wavpack = ctypes.CDLL(ctypes.util.find_library('wavpack'))
 
 _wavpack.WavpackGetErrorMessage.argtypes = [_WavpackContext]
 _wavpack.WavpackGetErrorMessage.restype = ctypes.c_char_p
