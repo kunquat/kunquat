@@ -42,7 +42,7 @@ class PythonCommand():
 def copy(builder, src, dest, echo=None):
     dir_name = os.path.dirname(dest)
     make_dirs(builder, dir_name, echo='')
-    return run_command(builder, 'cp', '--no-dereference', src, dest, echo=echo)
+    return run_command(builder, 'cp', '-P', src, dest, echo=echo)
 
 
 def link(builder, file_name, link_name, echo=None):
