@@ -12,6 +12,7 @@
 #
 
 import os.path
+import platform
 import subprocess
 import sys
 
@@ -145,7 +146,8 @@ class GccCommand():
     def link_lib(self, builder, obj_paths, so_path, version_major, echo=None):
         command.make_dirs(builder, os.path.dirname(so_path), echo='')
         lib_name = os.path.basename(so_path)
-        soname_flag = '-Wl,-soname,{}.{}'.format(lib_name, version_major)
+        soname = '-soname' if platform.system() != 'Darwin' else '-install_name'
+        soname_flag = '-Wl,{},{}.{}'.format(soname, lib_name, version_major)
         args = ([self._cmd] +
                 ['-o', so_path] +
                 obj_paths +
@@ -250,7 +252,8 @@ class ClangCommand():
     def link_lib(self, builder, obj_paths, so_path, version_major, echo=None):
         command.make_dirs(builder, os.path.dirname(so_path), echo='')
         lib_name = os.path.basename(so_path)
-        soname_flag = '-Wl,-soname,{}.{}'.format(lib_name, version_major)
+        soname = '-soname' if platform.system() != 'Darwin' else '-install_name'
+        soname_flag = '-Wl,{},{}.{}'.format(soname, lib_name, version_major)
         args = ([self._cmd] +
                 ['-o', so_path] +
                 obj_paths +
