@@ -22,6 +22,7 @@ becomes available in major distributions, this module will be removed.
 
 
 import ctypes
+import ctypes.util
 
 from .pulseaudio_def import *
 
@@ -138,7 +139,7 @@ class Simple():
         self._connection = None
 
 
-_simple = ctypes.CDLL('libpulse-simple.so')
+_simple = ctypes.CDLL(ctypes.util.find_library('pulse-simple'))
 
 _pa_usec = ctypes.c_uint64
 

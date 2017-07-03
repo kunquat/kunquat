@@ -16,6 +16,7 @@
 """
 
 import ctypes
+import ctypes.util
 import os
 
 
@@ -461,7 +462,7 @@ class _SF_VIRTUAL_IO(ctypes.Structure):
                 ('tell', _sf_vio_tell)]
 
 
-_sndfile = ctypes.CDLL('libsndfile.so')
+_sndfile = ctypes.CDLL(ctypes.util.find_library('sndfile'))
 
 _sndfile.sf_format_check.argtypes = [ctypes.POINTER(_SF_INFO)]
 _sndfile.sf_format_check.restype = ctypes.c_int
