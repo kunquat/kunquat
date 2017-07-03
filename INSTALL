@@ -5,7 +5,7 @@ sudo -k apt-get install build-essential libwavpack-dev libpulse-dev python3 pyth
 ./make.py
 ./make.py --prefix=~/kunquat install
 export LD_LIBRARY_PATH=~/kunquat/lib
-export PYTHONPATH=~/kunquat/lib/pythonX.Y/site-packages # replace X.Y with installed Python 3 version
+export PYTHONPATH=`python3 -c "import os, sys; print(os.path.expanduser('~/kunquat/lib/python{0}.{1}/site-packages'.format(*sys.version_info)))"`
 ~/kunquat/bin/kunquat-tracker
 
 NOTE: Kunquat is in an early development stage. Don't expect it to do anything useful.
