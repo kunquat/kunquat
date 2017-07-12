@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2017
  *
  * This file is part of Kunquat.
  *
@@ -86,6 +86,8 @@ void Device_states_remove_state(Device_states* states, uint32_t id);
  *                    -- must be a valid ID currently in use.
  * \param device_id   The Device ID -- must be > \c 0 and must match an
  *                    existing Device state.
+ *
+ * \return   The Device thread state.
  */
 Device_thread_state* Device_states_get_thread_state(
         const Device_states* states, int thread_id, uint32_t device_id);
