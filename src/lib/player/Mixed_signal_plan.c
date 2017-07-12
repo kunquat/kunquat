@@ -28,7 +28,6 @@
 #include <player/devices/Device_state.h>
 #include <player/devices/Device_thread_state.h>
 #include <player/Mixed_signal_plan.h>
-#include <player/Mixed_signal_plan_build.h>
 #include <player/Work_buffer.h>
 #include <threads/Mutex.h>
 
@@ -76,13 +75,13 @@ typedef struct Mixed_signal_connection
     (&(Mixed_signal_connection){ .recv_buf = (rb), .send_buf = (sb) })
 
 
-struct Mixed_signal_task_info
+typedef struct Mixed_signal_task_info
 {
     bool is_input_required;
     int level_index;
     uint32_t device_id;
     Vector* conns;
-};
+} Mixed_signal_task_info;
 
 
 #define MIXED_SIGNAL_TASK_INFO_KEY(dev_id)  \
@@ -94,7 +93,7 @@ struct Mixed_signal_task_info
     })
 
 
-void del_Mixed_signal_task_info(Mixed_signal_task_info* task_info)
+static void del_Mixed_signal_task_info(Mixed_signal_task_info* task_info)
 {
     if (task_info == NULL)
         return;
@@ -107,7 +106,8 @@ void del_Mixed_signal_task_info(Mixed_signal_task_info* task_info)
 }
 
 
-Mixed_signal_task_info* new_Mixed_signal_task_info(uint32_t device_id, int level_index)
+static Mixed_signal_task_info* new_Mixed_signal_task_info(
+        uint32_t device_id, int level_index)
 {
     rassert(level_index >= 0);
     rassert(level_index < MAX_LEVELS);
@@ -519,100 +519,7 @@ static bool Mixed_signal_plan_build_from_node(
 }
 
 
-static bool Mixed_signal_plan_build(
-        Mixed_signal_plan* plan,
-        Device_states* dstates,
-        const Connections* conns)
-{
-    rassert(plan != NULL);
-    rassert(dstates != NULL);
-    rassert(conns != NULL);
-
-    const Device_node* master = Connections_get_master(conns);
-    rassert(master != NULL);
-
-    Device_states_reset_node_states(dstates);
-
-    //fprintf(stdout, "Build new plan\n");
-
-    return (Mixed_signal_plan_build_from_node(plan, dstates, master, 0) &&
-            Mixed_signal_plan_finalise(plan));
-}
-
-
-Mixed_signal_plan* new_Mixed_signal_plan(
-    Device_states* dstates, const Connections* conns)
-{
-    rassert(dstates != NULL);
-
-    Mixed_signal_plan* plan = memory_alloc_item(Mixed_signal_plan);
-    if (plan == NULL)
-        return NULL;
-
-    // Sanitise fields
-    plan->is_finalised = false;
-    plan->level_count = 0;
-    plan->levels = NULL;
-    plan->build_task_infos = NULL;
-    plan->dstates = dstates;
-    plan->iter_level_index = -1;
-    plan->iter_task_index = 0;
-    plan->iter_lock = *MUTEX_AUTO;
-
-    // Initialise
-    plan->levels = new_Etable(MAX_LEVELS, (void(*)(void*))del_Level);
-    plan->build_task_infos = new_AAtree(
-            (AAtree_item_cmp*)Mixed_signal_task_info_cmp,
-            (AAtree_item_destroy*)del_Mixed_signal_task_info);
-    if ((plan->levels == NULL) ||
-            (plan->build_task_infos == NULL) ||
-            !Mixed_signal_plan_build(plan, dstates, conns))
-    {
-        del_Mixed_signal_plan(plan);
-        return NULL;
-    }
-
-#ifdef ENABLE_THREADS
-    Mutex_init(&plan->iter_lock);
-#endif
-
-    return plan;
-}
-
-
-bool Mixed_signal_plan_try_increase_level(
-        Mixed_signal_plan* plan, uint32_t device_id, int new_level_index)
-{
-    rassert(plan != NULL);
-    rassert(!plan->is_finalised);
-    rassert(new_level_index >= 0);
-
-    Mixed_signal_task_info* task_info =
-        AAtree_get_exact(plan->build_task_infos, MIXED_SIGNAL_TASK_INFO_KEY(device_id));
-    if (task_info == NULL)
-        return false;
-
-    if (task_info->level_index < new_level_index)
-        task_info->level_index = new_level_index;
-
-    return true;
-}
-
-
-bool Mixed_signal_plan_add_task(
-        Mixed_signal_plan* plan, Mixed_signal_task_info* task_info)
-{
-    rassert(plan != NULL);
-    rassert(!plan->is_finalised);
-    rassert(task_info != NULL);
-
-    // Add task_info to plan->build_task_infos
-    rassert(!AAtree_contains(plan->build_task_infos, task_info));
-    return AAtree_ins(plan->build_task_infos, task_info);
-}
-
-
-bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
+static bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
 {
     rassert(plan != NULL);
     rassert(!plan->is_finalised);
@@ -691,6 +598,101 @@ bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
 
     return true;
 }
+
+
+static bool Mixed_signal_plan_build(
+        Mixed_signal_plan* plan,
+        Device_states* dstates,
+        const Connections* conns)
+{
+    rassert(plan != NULL);
+    rassert(dstates != NULL);
+    rassert(conns != NULL);
+
+    const Device_node* master = Connections_get_master(conns);
+    rassert(master != NULL);
+
+    Device_states_reset_node_states(dstates);
+
+    //fprintf(stdout, "Build new plan\n");
+
+    return (Mixed_signal_plan_build_from_node(plan, dstates, master, 0) &&
+            Mixed_signal_plan_finalise(plan));
+}
+
+
+Mixed_signal_plan* new_Mixed_signal_plan(
+    Device_states* dstates, const Connections* conns)
+{
+    rassert(dstates != NULL);
+
+    Mixed_signal_plan* plan = memory_alloc_item(Mixed_signal_plan);
+    if (plan == NULL)
+        return NULL;
+
+    // Sanitise fields
+    plan->is_finalised = false;
+    plan->level_count = 0;
+    plan->levels = NULL;
+    plan->build_task_infos = NULL;
+    plan->dstates = dstates;
+    plan->iter_level_index = -1;
+    plan->iter_task_index = 0;
+    plan->iter_lock = *MUTEX_AUTO;
+
+    // Initialise
+    plan->levels = new_Etable(MAX_LEVELS, (void(*)(void*))del_Level);
+    plan->build_task_infos = new_AAtree(
+            (AAtree_item_cmp*)Mixed_signal_task_info_cmp,
+            (AAtree_item_destroy*)del_Mixed_signal_task_info);
+    if ((plan->levels == NULL) ||
+            (plan->build_task_infos == NULL) ||
+            !Mixed_signal_plan_build(plan, dstates, conns))
+    {
+        del_Mixed_signal_plan(plan);
+        return NULL;
+    }
+
+#ifdef ENABLE_THREADS
+    Mutex_init(&plan->iter_lock);
+#endif
+
+    return plan;
+}
+
+
+#if 0
+static bool Mixed_signal_plan_try_increase_level(
+        Mixed_signal_plan* plan, uint32_t device_id, int new_level_index)
+{
+    rassert(plan != NULL);
+    rassert(!plan->is_finalised);
+    rassert(new_level_index >= 0);
+
+    Mixed_signal_task_info* task_info =
+        AAtree_get_exact(plan->build_task_infos, MIXED_SIGNAL_TASK_INFO_KEY(device_id));
+    if (task_info == NULL)
+        return false;
+
+    if (task_info->level_index < new_level_index)
+        task_info->level_index = new_level_index;
+
+    return true;
+}
+
+
+static bool Mixed_signal_plan_add_task(
+        Mixed_signal_plan* plan, Mixed_signal_task_info* task_info)
+{
+    rassert(plan != NULL);
+    rassert(!plan->is_finalised);
+    rassert(task_info != NULL);
+
+    // Add task_info to plan->build_task_infos
+    rassert(!AAtree_contains(plan->build_task_infos, task_info));
+    return AAtree_ins(plan->build_task_infos, task_info);
+}
+#endif
 
 
 int Mixed_signal_plan_get_level_count(const Mixed_signal_plan* plan)
