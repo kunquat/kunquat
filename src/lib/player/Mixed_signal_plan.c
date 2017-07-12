@@ -305,7 +305,7 @@ static bool Mixed_signal_task_info_add_au_interface(
 
             if (in_buf != NULL)
             {
-                fprintf(stdout, "interface %p -> %p", (const void*)in_buf, (void*)out_buf);
+                //fprintf(stdout, "interface %p -> %p", (const void*)in_buf, (void*)out_buf);
                 if (!Mixed_signal_task_info_add_input(task_info, out_buf, in_buf))
                     return false;
             }
@@ -316,11 +316,13 @@ static bool Mixed_signal_task_info_add_au_interface(
 }
 
 
+#if 0
 static void DEBUG_indent_level(int level_index)
 {
     for (int i = 0; i < level_index; ++i)
         fprintf(stdout, " ");
 }
+#endif
 
 
 static bool Mixed_signal_plan_build_from_node(
@@ -339,10 +341,12 @@ static bool Mixed_signal_plan_build_from_node(
     if ((node_device == NULL) || !Device_is_existent(node_device))
         return true;
 
+#if 0
     {
         DEBUG_indent_level(level_index);
         fprintf(stdout, "Level %d: device %d\n", level_index, (int)Device_get_id(node_device));
     }
+#endif
 
     bool is_new_task_info = false;
 
@@ -388,6 +392,7 @@ static bool Mixed_signal_plan_build_from_node(
 
         // TODO: handle audio unit bypass case
 
+#if 0
         {
             DEBUG_indent_level(level_index);
             fprintf(stdout, "Entering audio unit %d, conns depth %d\n",
@@ -396,25 +401,30 @@ static bool Mixed_signal_plan_build_from_node(
             DEBUG_indent_level(level_index);
             fprintf(stdout, "output ");
         }
+#endif
 
         // Output interface
         if (is_new_task_info && !Mixed_signal_task_info_add_au_interface(
                     task_info, recv_ts, out_iface_ts))
             return false;
 
+#if 0
         {
             fprintf(stdout, "\n");
         }
+#endif
 
         // Audio unit graph
         if (!Mixed_signal_plan_build_from_node(
                     plan, dstates, au_master, level_index + 1))
             return false;
 
+#if 0
         {
             DEBUG_indent_level(level_index + 1 + au_conns_depth);
             fprintf(stdout, "Level %d: input ", level_index + 1 + au_conns_depth);
         }
+#endif
 
         // Input interface
         {
@@ -430,7 +440,7 @@ static bool Mixed_signal_plan_build_from_node(
 
             // NOTE: is_new_task_info is correct here, as the input interface
             //       has been touched by the recursive call above
-            fprintf(stdout, "(%s) ", is_new_task_info ? "new" : "old");
+            //fprintf(stdout, "(%s) ", is_new_task_info ? "new" : "old");
             if (is_new_task_info && !Mixed_signal_task_info_add_au_interface(
                         in_task_info, in_iface_ts, recv_ts))
                 return false;
@@ -440,6 +450,7 @@ static bool Mixed_signal_plan_build_from_node(
             recv_port_type = DEVICE_PORT_TYPE_SEND;
         }
 
+#if 0
         {
             fprintf(stdout, "\n");
         }
@@ -448,6 +459,7 @@ static bool Mixed_signal_plan_build_from_node(
             DEBUG_indent_level(level_index);
             fprintf(stdout, "Leaving audio unit\n");
         }
+#endif
 
         cur_depth = au_conns_depth + 2; // incl. audio unit interface bounds
     }
@@ -481,6 +493,7 @@ static bool Mixed_signal_plan_build_from_node(
             Work_buffer* recv_buf = Device_thread_state_get_mixed_buffer(
                     recv_ts, recv_port_type, port);
 
+#if 0
             {
                 DEBUG_indent_level(level_index + cur_depth);
                 if (Device_node_get_type(node) == DEVICE_NODE_TYPE_AU)
@@ -489,6 +502,7 @@ static bool Mixed_signal_plan_build_from_node(
                         (const void*)send_buf, (void*)recv_buf,
                         (void*)recv_ts, port);
             }
+#endif
 
             if ((send_buf != NULL) && (recv_buf != NULL))
             {
@@ -519,7 +533,7 @@ static bool Mixed_signal_plan_build(
 
     Device_states_reset_node_states(dstates);
 
-    fprintf(stdout, "Build new plan\n");
+    //fprintf(stdout, "Build new plan\n");
 
     return (Mixed_signal_plan_build_from_node(plan, dstates, master, 0) &&
             Mixed_signal_plan_finalise(plan));
@@ -644,6 +658,7 @@ bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
     del_AAtree(plan->build_task_infos);
     plan->build_task_infos = NULL;
 
+#if 0
     for (int li = plan->level_count - 1; li >= 0; --li)
     {
         const Level* level = Etable_get(plan->levels, li);
@@ -668,6 +683,7 @@ bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
 
         fflush(stdout);
     }
+#endif
 
     plan->is_finalised = true;
 
