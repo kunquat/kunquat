@@ -69,22 +69,8 @@ typedef struct Mixed_signal_connection
 {
     Work_buffer* recv_buf;
     const Work_buffer* send_buf;
-    /*
-    int recv_port;
-    int send_port;
-    uint32_t sender_id;
-    // */
 } Mixed_signal_connection;
 
-
-/*
-#define MIXED_SIGNAL_CONNECTION_AUTO(rport, dev_id, sport)  \
-    (&(Mixed_signal_connection){                            \
-        .recv_port = (rport),                               \
-        .send_port = (sport),                               \
-        .sender_id = (dev_id),                              \
-    })
-// */
 
 #define MIXED_SIGNAL_CONNECTION_AUTO(rb, sb) \
     (&(Mixed_signal_connection){ .recv_buf = (rb), .send_buf = (sb) })
@@ -157,24 +143,12 @@ static bool Mixed_signal_task_info_add_input(
         Mixed_signal_task_info* task_info,
         Work_buffer* recv_buf,
         const Work_buffer* send_buf)
-        /*
-        int recv_port,
-        uint32_t sender_id,
-        int send_port)
-        // */
 {
     rassert(task_info != NULL);
     rassert(recv_buf != NULL);
     rassert(send_buf != NULL);
-    /*
-    rassert(recv_port >= 0);
-    rassert(recv_port < KQT_DEVICE_PORTS_MAX);
-    rassert(send_port >= 0);
-    rassert(send_port < KQT_DEVICE_PORTS_MAX);
-    // */
 
     Mixed_signal_connection* conn = MIXED_SIGNAL_CONNECTION_AUTO(recv_buf, send_buf);
-        //MIXED_SIGNAL_CONNECTION_AUTO(recv_port, sender_id, send_port);
 
     // TODO: audio unit bypass
 
@@ -200,38 +174,15 @@ static void Mixed_signal_task_info_execute(
     Device_thread_state* target_ts =
         Device_states_get_thread_state(dstates, 0, task_info->device_id);
 
-    // Copy signals from input device states
+    // Copy signals between buffers
     for (int i = 0; i < Vector_size(task_info->conns); ++i)
     {
         const Mixed_signal_connection* conn = Vector_get_ref(task_info->conns, i);
-        /*
-        Device_thread_state* src_ts =
-            Device_states_get_thread_state(dstates, 0, conn->sender_id);
-
-        Work_buffer* target_buf = Device_thread_state_get_mixed_buffer(
-                target_ts, DEVICE_PORT_TYPE_RECV, conn->recv_port);
-        rassert(target_buf != NULL);
-
-        Work_buffer* src_buf = Device_thread_state_get_mixed_buffer(
-                src_ts, DEVICE_PORT_TYPE_SEND, conn->send_port);
-        rassert(src_buf != NULL);
-        // */
-
-        /*
-        fprintf(stdout, "####################### Mix %p -> %p, %.2f\n",
-                (const void*)conn->send_buf,
-                (void*)conn->recv_buf,
-                Work_buffer_get_contents(conn->send_buf)[buf_start]);
-        fflush(stdout);
-        // */
-
         Work_buffer_mix(conn->recv_buf, conn->send_buf, buf_start, buf_stop);
     }
 
     // Process current device state
     Device_state* target_dstate = Device_states_get_state(dstates, task_info->device_id);
-    //fprintf(stdout, "Render mixed [%d, %d]\n", (int)buf_start, (int)buf_stop);
-    //fflush(stdout);
     Device_state_render_mixed(target_dstate, target_ts, wbs, buf_start, buf_stop, tempo);
 
     return;
@@ -299,61 +250,6 @@ static bool Level_add_task_info(Level* level, Mixed_signal_task_info* task_info)
 
     return true;
 }
-
-
-#if 0
-static void Level_mix_send_buffers(
-        Level* level, Device_states* dstates, int32_t buf_start, int32_t buf_stop)
-{
-    rassert(level != NULL);
-    rassert(dstates != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= buf_start);
-
-    const int thread_count = Device_states_get_thread_count(dstates);
-    if (thread_count <= 1)
-        return;
-
-    // TODO: See if we should parallelise this
-
-    for (int ti = 0; ti < level->task_count; ++ti)
-    {
-        Mixed_signal_task_info* task_info = Etable_get(level->tasks, ti);
-        rassert(task_info != NULL);
-
-        Device_thread_state* target_ts =
-            Device_states_get_thread_state(dstates, 0, task_info->device_id);
-
-        if (!Device_thread_state_has_mixed_audio(target_ts))
-        {
-            for (int ci = 0; ci < Vector_size(task_info->conns); ++ci)
-            {
-                const Mixed_signal_connection* conn =
-                    Vector_get_ref(task_info->conns, ci);
-
-                const Work_buffer* target_buf = Device_thread_state_get_mixed_buffer(
-                        target_ts, DEVICE_PORT_TYPE_RECV, conn->recv_port);
-                rassert(target_buf != NULL);
-
-                const Device_thread_state* src_ts =
-                    Device_states_get_thread_state(dstates, 0, conn->sender_id);
-                if (!Device_thread_state_has_mixed_audio(src_ts))
-                    continue;
-
-                const Work_buffer* src_buf = Device_thread_state_get_mixed_buffer(
-                        src_ts, DEVICE_PORT_TYPE_SEND, conn->send_port);
-                rassert(src_buf != NULL);
-
-                Work_buffer_mix(target_buf, src_buf, buf_start, buf_stop);
-            }
-
-            Device_thread_state_mark_mixed_audio(target_ts);
-        }
-    }
-
-    return;
-}
-#endif
 
 
 static Mixed_signal_task_info* Mixed_signal_create_or_get_task_info(
@@ -554,16 +450,6 @@ static bool Mixed_signal_plan_build_from_node(
         }
 
         cur_depth = au_conns_depth + 2; // incl. audio unit interface bounds
-
-        /*
-        task_info = Mixed_signal_create_or_get_task_info(
-                plan,
-                Device_get_id(node_device),
-                level_index + cur_depth,
-                &is_new_task_info);
-        if (task_info == NULL)
-            return false;
-        // */
     }
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
@@ -757,9 +643,6 @@ bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
 
     del_AAtree(plan->build_task_infos);
     plan->build_task_infos = NULL;
-
-    //for (int i = 0; i < plan->level_count; ++i)
-    //    rassert(Etable_get(plan->levels, i) != NULL);
 
     for (int li = plan->level_count - 1; li >= 0; --li)
     {
