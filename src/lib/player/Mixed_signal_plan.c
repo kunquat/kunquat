@@ -1,0 +1,928 @@
+
+
+/*
+ * Author: Tomi Jylhä-Ollila, Finland 2017
+ *
+ * This file is part of Kunquat.
+ *
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
+ *
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
+ */
+
+
+#include <containers/AAtree.h>
+#include <containers/Etable.h>
+#include <containers/Vector.h>
+#include <debug/assert.h>
+#include <init/Connections.h>
+#include <init/Device_node.h>
+#include <init/devices/Audio_unit.h>
+#include <init/devices/Device.h>
+#include <init/devices/Device_impl.h>
+#include <kunquat/limits.h>
+#include <mathnum/common.h>
+#include <memory.h>
+#include <player/Device_states.h>
+#include <player/devices/Device_state.h>
+#include <player/devices/Device_thread_state.h>
+#include <player/Mixed_signal_plan.h>
+#include <player/Mixed_signal_plan_build.h>
+#include <player/Work_buffer.h>
+#include <threads/Mutex.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+
+#define MAX_TASKS_PER_LEVEL 1024
+#define MAX_LEVELS 1024
+
+
+struct Mixed_signal_plan
+{
+    bool is_finalised;
+    int level_count;
+    Etable* levels;
+    AAtree* build_task_infos;
+
+    Device_states* dstates;
+
+    int iter_level_index;
+    int iter_task_index;
+
+    Mutex iter_lock;
+};
+
+
+typedef struct Level
+{
+    int task_count;
+    Etable* tasks;
+} Level;
+
+
+typedef struct Mixed_signal_connection
+{
+    Work_buffer* recv_buf;
+    const Work_buffer* send_buf;
+    /*
+    int recv_port;
+    int send_port;
+    uint32_t sender_id;
+    // */
+} Mixed_signal_connection;
+
+
+/*
+#define MIXED_SIGNAL_CONNECTION_AUTO(rport, dev_id, sport)  \
+    (&(Mixed_signal_connection){                            \
+        .recv_port = (rport),                               \
+        .send_port = (sport),                               \
+        .sender_id = (dev_id),                              \
+    })
+// */
+
+#define MIXED_SIGNAL_CONNECTION_AUTO(rb, sb) \
+    (&(Mixed_signal_connection){ .recv_buf = (rb), .send_buf = (sb) })
+
+
+struct Mixed_signal_task_info
+{
+    bool is_input_required;
+    int level_index;
+    uint32_t device_id;
+    Vector* conns;
+};
+
+
+#define MIXED_SIGNAL_TASK_INFO_KEY(dev_id)  \
+    (&(Mixed_signal_task_info){             \
+        .is_input_required = true,          \
+        .level_index = -1,                  \
+        .device_id = (dev_id),              \
+        .conns = NULL,                      \
+    })
+
+
+void del_Mixed_signal_task_info(Mixed_signal_task_info* task_info)
+{
+    if (task_info == NULL)
+        return;
+
+    // NOTE: We don't own the Device states referenced
+    del_Vector(task_info->conns);
+    memory_free(task_info);
+
+    return;
+}
+
+
+Mixed_signal_task_info* new_Mixed_signal_task_info(uint32_t device_id, int level_index)
+{
+    rassert(level_index >= 0);
+    rassert(level_index < MAX_LEVELS);
+
+    Mixed_signal_task_info* task_info = memory_alloc_item(Mixed_signal_task_info);
+    if (task_info == NULL)
+        return NULL;
+
+    task_info->is_input_required = true;
+    task_info->level_index = level_index;
+    task_info->device_id = device_id;
+    task_info->conns = NULL;
+
+    task_info->conns = new_Vector(sizeof(Mixed_signal_connection));
+    if (task_info->conns == NULL)
+    {
+        del_Mixed_signal_task_info(task_info);
+        return NULL;
+    }
+
+    return task_info;
+}
+
+
+static bool Mixed_signal_task_info_is_empty(const Mixed_signal_task_info* task_info)
+{
+    rassert(task_info != NULL);
+    return (task_info->is_input_required && (Vector_size(task_info->conns) == 0));
+}
+
+
+static bool Mixed_signal_task_info_add_input(
+        Mixed_signal_task_info* task_info,
+        Work_buffer* recv_buf,
+        const Work_buffer* send_buf)
+        /*
+        int recv_port,
+        uint32_t sender_id,
+        int send_port)
+        // */
+{
+    rassert(task_info != NULL);
+    rassert(recv_buf != NULL);
+    rassert(send_buf != NULL);
+    /*
+    rassert(recv_port >= 0);
+    rassert(recv_port < KQT_DEVICE_PORTS_MAX);
+    rassert(send_port >= 0);
+    rassert(send_port < KQT_DEVICE_PORTS_MAX);
+    // */
+
+    Mixed_signal_connection* conn = MIXED_SIGNAL_CONNECTION_AUTO(recv_buf, send_buf);
+        //MIXED_SIGNAL_CONNECTION_AUTO(recv_port, sender_id, send_port);
+
+    // TODO: audio unit bypass
+
+    return Vector_append(task_info->conns, conn);
+}
+
+
+static void Mixed_signal_task_info_execute(
+        const Mixed_signal_task_info* task_info,
+        Device_states* dstates,
+        Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        double tempo)
+{
+    rassert(task_info != NULL);
+    rassert(dstates != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= buf_start);
+    rassert(tempo > 0);
+
+    Device_thread_state* target_ts =
+        Device_states_get_thread_state(dstates, 0, task_info->device_id);
+
+    // Copy signals from input device states
+    for (int i = 0; i < Vector_size(task_info->conns); ++i)
+    {
+        const Mixed_signal_connection* conn = Vector_get_ref(task_info->conns, i);
+        /*
+        Device_thread_state* src_ts =
+            Device_states_get_thread_state(dstates, 0, conn->sender_id);
+
+        Work_buffer* target_buf = Device_thread_state_get_mixed_buffer(
+                target_ts, DEVICE_PORT_TYPE_RECV, conn->recv_port);
+        rassert(target_buf != NULL);
+
+        Work_buffer* src_buf = Device_thread_state_get_mixed_buffer(
+                src_ts, DEVICE_PORT_TYPE_SEND, conn->send_port);
+        rassert(src_buf != NULL);
+        // */
+
+        /*
+        fprintf(stdout, "####################### Mix %p -> %p, %.2f\n",
+                (const void*)conn->send_buf,
+                (void*)conn->recv_buf,
+                Work_buffer_get_contents(conn->send_buf)[buf_start]);
+        fflush(stdout);
+        // */
+
+        Work_buffer_mix(conn->recv_buf, conn->send_buf, buf_start, buf_stop);
+    }
+
+    // Process current device state
+    Device_state* target_dstate = Device_states_get_state(dstates, task_info->device_id);
+    //fprintf(stdout, "Render mixed [%d, %d]\n", (int)buf_start, (int)buf_stop);
+    //fflush(stdout);
+    Device_state_render_mixed(target_dstate, target_ts, wbs, buf_start, buf_stop, tempo);
+
+    return;
+}
+
+
+static int Mixed_signal_task_info_cmp(
+        const Mixed_signal_task_info* ti1, const Mixed_signal_task_info* ti2)
+{
+    rassert(ti1 != NULL);
+    rassert(ti2 != NULL);
+
+    if (ti1->device_id < ti2->device_id)
+        return -1;
+    else if (ti1->device_id > ti2->device_id)
+        return 1;
+    return 0;
+}
+
+
+static void del_Level(Level* level)
+{
+    if (level == NULL)
+        return;
+
+    del_Etable(level->tasks);
+    memory_free(level);
+
+    return;
+}
+
+
+static Level* new_Level(void)
+{
+    Level* level = memory_alloc_item(Level);
+    if (level == NULL)
+        return NULL;
+
+    level->task_count = 0;
+    level->tasks = NULL;
+
+    level->tasks =
+        new_Etable(MAX_TASKS_PER_LEVEL, (void(*)(void*))del_Mixed_signal_task_info);
+    if (level->tasks == NULL)
+    {
+        del_Level(level);
+        return NULL;
+    }
+
+    return level;
+}
+
+
+static bool Level_add_task_info(Level* level, Mixed_signal_task_info* task_info)
+{
+    rassert(level != NULL);
+    rassert(task_info != NULL);
+
+    rassert(level->task_count < MAX_TASKS_PER_LEVEL);
+
+    if (!Etable_set(level->tasks, level->task_count, task_info))
+        return false;
+
+    ++level->task_count;
+
+    return true;
+}
+
+
+#if 0
+static void Level_mix_send_buffers(
+        Level* level, Device_states* dstates, int32_t buf_start, int32_t buf_stop)
+{
+    rassert(level != NULL);
+    rassert(dstates != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= buf_start);
+
+    const int thread_count = Device_states_get_thread_count(dstates);
+    if (thread_count <= 1)
+        return;
+
+    // TODO: See if we should parallelise this
+
+    for (int ti = 0; ti < level->task_count; ++ti)
+    {
+        Mixed_signal_task_info* task_info = Etable_get(level->tasks, ti);
+        rassert(task_info != NULL);
+
+        Device_thread_state* target_ts =
+            Device_states_get_thread_state(dstates, 0, task_info->device_id);
+
+        if (!Device_thread_state_has_mixed_audio(target_ts))
+        {
+            for (int ci = 0; ci < Vector_size(task_info->conns); ++ci)
+            {
+                const Mixed_signal_connection* conn =
+                    Vector_get_ref(task_info->conns, ci);
+
+                const Work_buffer* target_buf = Device_thread_state_get_mixed_buffer(
+                        target_ts, DEVICE_PORT_TYPE_RECV, conn->recv_port);
+                rassert(target_buf != NULL);
+
+                const Device_thread_state* src_ts =
+                    Device_states_get_thread_state(dstates, 0, conn->sender_id);
+                if (!Device_thread_state_has_mixed_audio(src_ts))
+                    continue;
+
+                const Work_buffer* src_buf = Device_thread_state_get_mixed_buffer(
+                        src_ts, DEVICE_PORT_TYPE_SEND, conn->send_port);
+                rassert(src_buf != NULL);
+
+                Work_buffer_mix(target_buf, src_buf, buf_start, buf_stop);
+            }
+
+            Device_thread_state_mark_mixed_audio(target_ts);
+        }
+    }
+
+    return;
+}
+#endif
+
+
+static Mixed_signal_task_info* Mixed_signal_create_or_get_task_info(
+        Mixed_signal_plan* plan, uint32_t device_id, int level_index, bool* is_new)
+{
+    rassert(plan != NULL);
+    rassert(!plan->is_finalised);
+    rassert(level_index >= 0);
+    rassert(level_index < MAX_LEVELS);
+    rassert(is_new != NULL);
+
+    const Mixed_signal_task_info* key = MIXED_SIGNAL_TASK_INFO_KEY(device_id);
+    Mixed_signal_task_info* task_info = AAtree_get_exact(plan->build_task_infos, key);
+    if (task_info != NULL)
+    {
+        task_info->level_index = max(task_info->level_index, level_index);
+        *is_new = false;
+        return task_info;
+    }
+
+    task_info = new_Mixed_signal_task_info(device_id, level_index);
+    if ((task_info == NULL) || !AAtree_ins(plan->build_task_infos, task_info))
+    {
+        del_Mixed_signal_task_info(task_info);
+        return NULL;
+    }
+
+    *is_new = true;
+    return task_info;
+}
+
+
+static bool Mixed_signal_task_info_add_au_interface(
+        Mixed_signal_task_info* task_info,
+        Device_thread_state* target_ts,
+        Device_thread_state* source_ts)
+{
+    rassert(task_info != NULL);
+    rassert(target_ts != NULL);
+    rassert(source_ts != NULL);
+
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Work_buffer* out_buf =
+            Device_thread_state_get_mixed_buffer(target_ts, DEVICE_PORT_TYPE_SEND, port);
+
+        if (out_buf != NULL)
+        {
+            Device_thread_state_mark_input_port_connected(source_ts, port);
+
+            const Work_buffer* in_buf = Device_thread_state_get_mixed_buffer(
+                    source_ts, DEVICE_PORT_TYPE_RECV, port);
+
+            if (in_buf != NULL)
+            {
+                fprintf(stdout, "interface %p -> %p", (const void*)in_buf, (void*)out_buf);
+                if (!Mixed_signal_task_info_add_input(task_info, out_buf, in_buf))
+                    return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+
+static void DEBUG_indent_level(int level_index)
+{
+    for (int i = 0; i < level_index; ++i)
+        fprintf(stdout, " ");
+}
+
+
+static bool Mixed_signal_plan_build_from_node(
+        Mixed_signal_plan* plan,
+        Device_states* dstates,
+        const Device_node* node,
+        int level_index)
+{
+    rassert(plan != NULL);
+    rassert(!plan->is_finalised);
+    rassert(dstates != NULL);
+    rassert(node != NULL);
+    rassert(level_index >= 0);
+
+    const Device* node_device = Device_node_get_device(node);
+    if ((node_device == NULL) || !Device_is_existent(node_device))
+        return true;
+
+    {
+        DEBUG_indent_level(level_index);
+        fprintf(stdout, "Level %d: device %d\n", level_index, (int)Device_get_id(node_device));
+    }
+
+    bool is_new_task_info = false;
+
+    Mixed_signal_task_info* task_info = Mixed_signal_create_or_get_task_info(
+            plan, Device_get_id(node_device), level_index, &is_new_task_info);
+    if (task_info == NULL)
+        return false;
+
+    if (Device_node_get_type(node) == DEVICE_NODE_TYPE_PROCESSOR)
+    {
+        // Make sure we include mixed signal devices that don't require input signals
+        if ((node_device->dimpl != NULL) &&
+                (Device_impl_get_proc_type(node_device->dimpl) == Proc_type_stream))
+            task_info->is_input_required = false;
+    }
+
+    Device_thread_state* recv_ts =
+        Device_states_get_thread_state(dstates, 0, Device_get_id(node_device));
+    Device_port_type recv_port_type = DEVICE_PORT_TYPE_RECV;
+
+    // Get depth of connections in the current device
+    int cur_depth = 1;
+    if (Device_node_get_type(node) == DEVICE_NODE_TYPE_AU)
+    {
+        const Audio_unit* au = (const Audio_unit*)node_device;
+        const Connections* au_conns = Audio_unit_get_connections(au);
+        if (au_conns == NULL)
+            return true;
+
+        const int au_conns_depth = Connections_get_depth(au_conns);
+
+        const Device_node* au_master = Connections_get_master(au_conns);
+        rassert(au_master != NULL);
+
+        // Build in audio unit level
+        const Device* in_iface = Audio_unit_get_input_interface(au);
+        const Device* out_iface = Audio_unit_get_output_interface(au);
+
+        Device_thread_state* in_iface_ts =
+            Device_states_get_thread_state(dstates, 0, Device_get_id(in_iface));
+        Device_thread_state* out_iface_ts =
+            Device_states_get_thread_state(dstates, 0, Device_get_id(out_iface));
+
+        // TODO: handle audio unit bypass case
+
+        {
+            DEBUG_indent_level(level_index);
+            fprintf(stdout, "Entering audio unit %d, conns depth %d\n",
+                    Device_get_id(node_device), au_conns_depth);
+
+            DEBUG_indent_level(level_index);
+            fprintf(stdout, "output ");
+        }
+
+        // Output interface
+        if (is_new_task_info && !Mixed_signal_task_info_add_au_interface(
+                    task_info, recv_ts, out_iface_ts))
+            return false;
+
+        {
+            fprintf(stdout, "\n");
+        }
+
+        // Audio unit graph
+        if (!Mixed_signal_plan_build_from_node(
+                    plan, dstates, au_master, level_index + 1))
+            return false;
+
+        {
+            DEBUG_indent_level(level_index + 1 + au_conns_depth);
+            fprintf(stdout, "Level %d: input ", level_index + 1 + au_conns_depth);
+        }
+
+        // Input interface
+        {
+            bool is_new_au_task_info = false;
+
+            Mixed_signal_task_info* in_task_info = Mixed_signal_create_or_get_task_info(
+                    plan,
+                    Device_get_id(in_iface),
+                    level_index + au_conns_depth,
+                    &is_new_au_task_info);
+            if (in_task_info == NULL)
+                return false;
+
+            // NOTE: is_new_task_info is correct here, as the input interface
+            //       has been touched by the recursive call above
+            fprintf(stdout, "(%s) ", is_new_task_info ? "new" : "old");
+            if (is_new_task_info && !Mixed_signal_task_info_add_au_interface(
+                        in_task_info, in_iface_ts, recv_ts))
+                return false;
+
+            task_info = in_task_info;
+            recv_ts = in_iface_ts;
+            recv_port_type = DEVICE_PORT_TYPE_SEND;
+        }
+
+        {
+            fprintf(stdout, "\n");
+        }
+
+        {
+            DEBUG_indent_level(level_index);
+            fprintf(stdout, "Leaving audio unit\n");
+        }
+
+        cur_depth = au_conns_depth + 2; // incl. audio unit interface bounds
+
+        /*
+        task_info = Mixed_signal_create_or_get_task_info(
+                plan,
+                Device_get_id(node_device),
+                level_index + cur_depth,
+                &is_new_task_info);
+        if (task_info == NULL)
+            return false;
+        // */
+    }
+
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        const Connection* edge = Device_node_get_received(node, port);
+
+        if (edge != NULL)
+            Device_thread_state_mark_input_port_connected(recv_ts, port);
+
+        while (edge != NULL)
+        {
+            const Device* send_device = Device_node_get_device(edge->node);
+            if ((send_device == NULL) || !Device_is_existent(send_device))
+            {
+                edge = edge->next;
+                continue;
+            }
+
+            if (!Mixed_signal_plan_build_from_node(
+                        plan, dstates, edge->node, level_index + cur_depth))
+                return false;
+
+            // Find Work buffers
+            Device_thread_state* send_ts =
+                Device_states_get_thread_state(dstates, 0, Device_get_id(send_device));
+
+            const Work_buffer* send_buf = Device_thread_state_get_mixed_buffer(
+                    send_ts, DEVICE_PORT_TYPE_SEND, edge->port);
+            Work_buffer* recv_buf = Device_thread_state_get_mixed_buffer(
+                    recv_ts, recv_port_type, port);
+
+            {
+                DEBUG_indent_level(level_index + cur_depth);
+                if (Device_node_get_type(node) == DEVICE_NODE_TYPE_AU)
+                    fprintf(stdout, "(au) ");
+                fprintf(stdout, "%p -> %p (%p %d)\n",
+                        (const void*)send_buf, (void*)recv_buf,
+                        (void*)recv_ts, port);
+            }
+
+            if ((send_buf != NULL) && (recv_buf != NULL))
+            {
+                if (is_new_task_info &&
+                        !Mixed_signal_task_info_add_input(task_info, recv_buf, send_buf))
+                    return false;
+            }
+
+            edge = edge->next;
+        }
+    }
+
+    return true;
+}
+
+
+static bool Mixed_signal_plan_build(
+        Mixed_signal_plan* plan,
+        Device_states* dstates,
+        const Connections* conns)
+{
+    rassert(plan != NULL);
+    rassert(dstates != NULL);
+    rassert(conns != NULL);
+
+    const Device_node* master = Connections_get_master(conns);
+    rassert(master != NULL);
+
+    Device_states_reset_node_states(dstates);
+
+    fprintf(stdout, "Build new plan\n");
+
+    return (Mixed_signal_plan_build_from_node(plan, dstates, master, 0) &&
+            Mixed_signal_plan_finalise(plan));
+}
+
+
+Mixed_signal_plan* new_Mixed_signal_plan(
+    Device_states* dstates, const Connections* conns)
+{
+    rassert(dstates != NULL);
+
+    Mixed_signal_plan* plan = memory_alloc_item(Mixed_signal_plan);
+    if (plan == NULL)
+        return NULL;
+
+    // Sanitise fields
+    plan->is_finalised = false;
+    plan->level_count = 0;
+    plan->levels = NULL;
+    plan->build_task_infos = NULL;
+    plan->dstates = dstates;
+    plan->iter_level_index = -1;
+    plan->iter_task_index = 0;
+    plan->iter_lock = *MUTEX_AUTO;
+
+    // Initialise
+    plan->levels = new_Etable(MAX_LEVELS, (void(*)(void*))del_Level);
+    plan->build_task_infos = new_AAtree(
+            (AAtree_item_cmp*)Mixed_signal_task_info_cmp,
+            (AAtree_item_destroy*)del_Mixed_signal_task_info);
+    if ((plan->levels == NULL) ||
+            (plan->build_task_infos == NULL) ||
+            !Mixed_signal_plan_build(plan, dstates, conns))
+    {
+        del_Mixed_signal_plan(plan);
+        return NULL;
+    }
+
+#ifdef ENABLE_THREADS
+    Mutex_init(&plan->iter_lock);
+#endif
+
+    return plan;
+}
+
+
+bool Mixed_signal_plan_try_increase_level(
+        Mixed_signal_plan* plan, uint32_t device_id, int new_level_index)
+{
+    rassert(plan != NULL);
+    rassert(!plan->is_finalised);
+    rassert(new_level_index >= 0);
+
+    Mixed_signal_task_info* task_info =
+        AAtree_get_exact(plan->build_task_infos, MIXED_SIGNAL_TASK_INFO_KEY(device_id));
+    if (task_info == NULL)
+        return false;
+
+    if (task_info->level_index < new_level_index)
+        task_info->level_index = new_level_index;
+
+    return true;
+}
+
+
+bool Mixed_signal_plan_add_task(
+        Mixed_signal_plan* plan, Mixed_signal_task_info* task_info)
+{
+    rassert(plan != NULL);
+    rassert(!plan->is_finalised);
+    rassert(task_info != NULL);
+
+    // Add task_info to plan->build_task_infos
+    rassert(!AAtree_contains(plan->build_task_infos, task_info));
+    return AAtree_ins(plan->build_task_infos, task_info);
+}
+
+
+bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
+{
+    rassert(plan != NULL);
+    rassert(!plan->is_finalised);
+
+    // Move task info contexts from plan->build_task_infos to plan->levels
+    AAiter* iter = AAiter_init(AAITER_AUTO, plan->build_task_infos);
+    const Mixed_signal_task_info* key = MIXED_SIGNAL_TASK_INFO_KEY(0);
+    Mixed_signal_task_info* task_info = AAiter_get_at_least(iter, key);
+    while (task_info != NULL)
+    {
+        if (Mixed_signal_task_info_is_empty(task_info))
+        {
+            AAtree_remove(plan->build_task_infos, task_info);
+            del_Mixed_signal_task_info(task_info);
+        }
+        else
+        {
+            Level* level = Etable_get(plan->levels, task_info->level_index);
+            if (level == NULL)
+            {
+                level = new_Level();
+                if ((level == NULL) ||
+                        !Etable_set(plan->levels, task_info->level_index, level))
+                {
+                    del_Level(level);
+                    return false;
+                }
+
+                plan->level_count = max(plan->level_count, task_info->level_index + 1);
+            }
+
+            if (!Level_add_task_info(level, task_info))
+                return false;
+
+            AAtree_remove(plan->build_task_infos, task_info);
+        }
+
+        // Reinitialise iterator as it is no longer valid
+        AAiter_init(iter, plan->build_task_infos);
+        task_info = AAiter_get_at_least(iter, key);
+    }
+
+    del_AAtree(plan->build_task_infos);
+    plan->build_task_infos = NULL;
+
+    //for (int i = 0; i < plan->level_count; ++i)
+    //    rassert(Etable_get(plan->levels, i) != NULL);
+
+    for (int li = plan->level_count - 1; li >= 0; --li)
+    {
+        const Level* level = Etable_get(plan->levels, li);
+        if (level == NULL)
+            continue;
+
+        fprintf(stdout, "Level %d:\n", li);
+        for (int ti = 0; ti < level->task_count; ++ti)
+        {
+            const Mixed_signal_task_info* tinfo = Etable_get(level->tasks, ti);
+            rassert(tinfo != NULL);
+
+            fprintf(stdout, " Task %d:\n", ti);
+            for (int i = 0; i < Vector_size(tinfo->conns); ++i)
+            {
+                const Mixed_signal_connection* conn = Vector_get_ref(tinfo->conns, i);
+                fprintf(stdout, "  ####################### %p -> %p\n",
+                        (const void*)conn->send_buf,
+                        (void*)conn->recv_buf);
+            }
+        }
+
+        fflush(stdout);
+    }
+
+    plan->is_finalised = true;
+
+    Mixed_signal_plan_reset(plan);
+
+    return true;
+}
+
+
+int Mixed_signal_plan_get_level_count(const Mixed_signal_plan* plan)
+{
+    rassert(plan != NULL);
+    return plan->level_count;
+}
+
+
+void Mixed_signal_plan_reset(Mixed_signal_plan* plan)
+{
+    rassert(plan != NULL);
+
+    plan->iter_level_index = plan->iter_level_index - 1;
+    plan->iter_task_index = 0;
+
+    return;
+}
+
+
+#ifdef ENABLE_THREADS
+bool Mixed_signal_plan_execute_next_task(
+        Mixed_signal_plan* plan,
+        int level_index,
+        Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        double tempo)
+{
+    rassert(plan != NULL);
+    rassert(level_index >= 0);
+    rassert(level_index < plan->level_count);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= buf_start);
+    rassert(tempo > 0);
+
+    Mutex_lock(&plan->iter_lock);
+
+    if (plan->iter_level_index < 0)
+    {
+        Mutex_unlock(&plan->iter_lock);
+        return false;
+    }
+
+    if (level_index < plan->iter_level_index)
+    {
+        // Move iteration to the next level
+        rassert(level_index + 1 == plan->iter_level_index);
+        plan->iter_level_index = level_index;
+        plan->iter_task_index = 0;
+    }
+
+    const Level* level = Etable_get(plan->levels, plan->iter_level_index);
+    if (level == NULL)
+    {
+        // TODO: figure out how to get past this case without extra syncing
+        Mutex_unlock(&plan->iter_lock);
+        return false;
+    }
+
+    if (plan->iter_task_index >= level->task_count)
+    {
+        Mutex_unlock(&plan->iter_lock);
+        return false;
+    }
+
+    const Mixed_signal_task_info* task_info =
+        Etable_get(level->tasks, plan->iter_task_index);
+    rassert(task_info != NULL);
+
+    ++plan->iter_task_index;
+    const bool any_tasks_left_this_level = (plan->iter_task_index < level->task_count);
+
+    // Iterators are now updated for the next caller
+    Mutex_unlock(&plan->iter_lock);
+
+    Mixed_signal_task_info_execute(
+            task_info, plan->dstates, wbs, buf_start, buf_stop, tempo);
+
+    return any_tasks_left_this_level;
+}
+#endif
+
+
+void Mixed_signal_plan_execute_all_tasks(
+        Mixed_signal_plan* plan,
+        Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        double tempo)
+{
+    rassert(plan != NULL);
+    rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop > buf_start);
+    rassert(tempo > 0);
+
+    for (int level_index = plan->level_count - 1; level_index >= 0; --level_index)
+    {
+        const Level* level = Etable_get(plan->levels, level_index);
+        //fprintf(stdout, "level %d %sfound\n", level_index, (level == NULL) ? "not " : "");
+        if (level == NULL)
+            continue;
+
+        for (int task_index = 0; task_index < level->task_count; ++task_index)
+        {
+            const Mixed_signal_task_info* task_info =
+                Etable_get(level->tasks, task_index);
+            rassert(task_info != NULL);
+
+            Mixed_signal_task_info_execute(
+                    task_info, plan->dstates, wbs, buf_start, buf_stop, tempo);
+        }
+    }
+
+    return;
+}
+
+
+void del_Mixed_signal_plan(Mixed_signal_plan* plan)
+{
+    if (plan == NULL)
+        return;
+
+    Mutex_deinit(&plan->iter_lock);
+
+    del_AAtree(plan->build_task_infos);
+    del_Etable(plan->levels);
+    memory_free(plan);
+
+    return;
+}
+
+
