@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2017
  *
  * This file is part of Kunquat.
  *
@@ -33,6 +33,7 @@ typedef struct Envelope Envelope;
 typedef struct Etable Etable;
 typedef struct Linear_controls Linear_controls;
 typedef struct Master_params Master_params;
+typedef struct Mixed_signal_plan Mixed_signal_plan;
 typedef struct Module Module;
 typedef struct Param_proc_filter Param_proc_filter;
 typedef struct Proc_state Proc_state;
