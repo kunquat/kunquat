@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -79,6 +79,16 @@ bool Connections_check_connections(
  * \return   The master node if one exists, otherwise \c NULL.
  */
 const Device_node* Connections_get_master(const Connections* graph);
+
+
+/**
+ * Get the maximum number of Devices connected in chain inside the Connections.
+ *
+ * \param graph   The Connections -- must not be \c NULL.
+ *
+ * \return   The maximum number of Devices in a single connection chain.
+ */
+int Connections_get_depth(const Connections* graph);
 
 
 /**

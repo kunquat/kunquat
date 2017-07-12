@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -329,6 +329,41 @@ bool Device_node_cycle_in_path(Device_node* node)
 
     node->cycle_test_state = DEVICE_NODE_STATE_VISITED;
     return false;
+}
+
+
+int Device_node_get_subgraph_depth(const Device_node* node)
+{
+    rassert(node != NULL);
+
+    const Device* node_device = Device_node_get_device(node);
+    if ((node_device == NULL) || !Device_is_existent(node_device))
+        return 0;
+
+    int cur_depth = 1;
+    if (node->type == DEVICE_NODE_TYPE_AU)
+    {
+        const Connections* au_conns =
+            Audio_unit_get_connections((const Audio_unit*)node_device);
+        if (au_conns != NULL)
+            cur_depth = Connections_get_depth(au_conns) + 2; // incl. interfaces
+    }
+
+    int max_sub_level = 0;
+
+    for (int i = 0; i < KQT_DEVICE_PORTS_MAX; ++i)
+    {
+        Connection* edge = node->receive[i];
+        while (edge != NULL)
+        {
+            const int cur_level = Device_node_get_subgraph_depth(edge->node);
+            max_sub_level = max(max_sub_level, cur_level);
+
+            edge = edge->next;
+        }
+    }
+
+    return cur_depth + max_sub_level;
 }
 
 

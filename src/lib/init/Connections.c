@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -278,6 +278,18 @@ static bool Connections_is_cyclic(const Connections* graph)
     }
 
     return false;
+}
+
+
+int Connections_get_depth(const Connections* graph)
+{
+    rassert(graph != NULL);
+    rassert(!Connections_is_cyclic(graph));
+
+    const Device_node* master = AAtree_get_exact(graph->nodes, "");
+    rassert(master != NULL);
+
+    return Device_node_get_subgraph_depth(master);
 }
 
 
