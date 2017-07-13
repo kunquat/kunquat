@@ -24,6 +24,7 @@
 #include <Pat_inst_ref.h>
 #include <player/devices/Device_thread_state.h>
 #include <player/devices/Voice_state.h>
+#include <player/Mixed_signal_plan.h>
 #include <player/Player_private.h>
 #include <player/Player_seq.h>
 #include <player/Position.h>
@@ -45,7 +46,7 @@
 
 
 #ifdef ENABLE_THREADS
-static void* voice_group_thread_func(void* arg);
+static void* render_thread_func(void* arg);
 #endif
 
 
@@ -136,6 +137,8 @@ Player* new_Player(
     player->start_cond = *CONDITION_AUTO;
     player->vgroups_start_barrier = *BARRIER_AUTO;
     player->vgroups_finished_barrier = *BARRIER_AUTO;
+    player->mixed_start_barrier = *BARRIER_AUTO;
+    player->mixed_level_finished_barrier = *BARRIER_AUTO;
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
         player->threads[i] = *THREAD_AUTO;
     player->ok_to_start = false;
@@ -147,6 +150,7 @@ Player* new_Player(
     player->estate = NULL;
     player->event_buffer = NULL;
     player->voices = NULL;
+    player->mixed_signal_plan = NULL;
     Master_params_preinit(&player->master_params);
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         player->channels[i] = NULL;
@@ -343,8 +347,7 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
 
     // (De)allocate Work buffers of Device states as needed
     if (!Device_states_set_thread_count(player->device_states, new_count) ||
-            !Device_states_prepare(
-                player->device_states, Module_get_connections(player->module)))
+            !Player_prepare_mixing(player))
     {
         Error_set(
                 error,
@@ -375,6 +378,8 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
     // Deinitialise old barriers
     Barrier_deinit(&player->vgroups_start_barrier);
     Barrier_deinit(&player->vgroups_finished_barrier);
+    Barrier_deinit(&player->mixed_start_barrier);
+    Barrier_deinit(&player->mixed_level_finished_barrier);
 
     // Create new barriers
     if (threads_needed > 0)
@@ -382,7 +387,9 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
         const int count = threads_needed + 1;
 
         if (!Barrier_init(&player->vgroups_start_barrier, count, error) ||
-                !Barrier_init(&player->vgroups_finished_barrier, count, error))
+                !Barrier_init(&player->vgroups_finished_barrier, count, error) ||
+                !Barrier_init(&player->mixed_start_barrier, count, error) ||
+                !Barrier_init(&player->mixed_level_finished_barrier, count, error))
             return false;
     }
 
@@ -396,7 +403,7 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
     {
         if (!Thread_init(
                     &player->threads[i],
-                    voice_group_thread_func,
+                    render_thread_func,
                     &player->thread_params[i],
                     error))
         {
@@ -471,6 +478,28 @@ bool Player_reserve_voice_work_buffer_space(Player* player, int32_t size)
     rassert(size <= VOICE_WORK_BUFFER_SIZE_MAX);
 
     return Voice_pool_reserve_work_buffers(player->voices, size);
+}
+
+
+bool Player_prepare_mixing(Player* player)
+{
+    rassert(player != NULL);
+
+    const Connections* conns = Module_get_connections(player->module);
+    if (conns == NULL)
+        return true;
+
+    del_Mixed_signal_plan(player->mixed_signal_plan);
+    player->mixed_signal_plan = NULL;
+
+    if (!Device_states_prepare(player->device_states, conns))
+        return false;
+
+    player->mixed_signal_plan = new_Mixed_signal_plan(player->device_states, conns);
+    if (player->mixed_signal_plan == NULL)
+        return false;
+
+    return true;
 }
 
 
@@ -911,7 +940,38 @@ static int Player_process_voice_groups_synced(
 }
 
 
-static void* voice_group_thread_func(void* arg)
+static void Player_execute_mixed_signal_tasks_synced(
+        Player* player,
+        Player_thread_params* tparams,
+        int32_t render_start,
+        int32_t render_stop)
+{
+    rassert(player != NULL);
+    rassert(tparams != NULL);
+    rassert(render_start >= 0);
+    rassert(render_stop > render_start);
+
+    const int level_count = Mixed_signal_plan_get_level_count(player->mixed_signal_plan);
+
+    for (int level_index = level_count - 1; level_index >= 0; --level_index)
+    {
+        while (Mixed_signal_plan_execute_next_task(
+                player->mixed_signal_plan,
+                level_index,
+                tparams->work_buffers,
+                render_start,
+                render_stop,
+                player->master_params.tempo))
+            ;
+
+        Barrier_wait(&player->mixed_level_finished_barrier);
+    }
+
+    return;
+}
+
+
+static void* render_thread_func(void* arg)
 {
     rassert(arg != NULL);
 
@@ -943,8 +1003,14 @@ static void* voice_group_thread_func(void* arg)
         params->active_voices = Player_process_voice_groups_synced(
                 player, params, player->render_start, player->render_stop);
 
-        // Wait to indicate that we have finished
+        // Wait to indicate that we have finished processing voice groups
         Barrier_wait(&player->vgroups_finished_barrier);
+
+        // Wait for our signal to start mixed signal processing
+        Barrier_wait(&player->mixed_start_barrier);
+
+        Player_execute_mixed_signal_tasks_synced(
+                player, params, player->render_start, player->render_stop);
     }
 
     return NULL;
@@ -1021,6 +1087,59 @@ static void Player_process_voices(
 
     player->master_params.active_voices =
         max(player->master_params.active_voices, active_voice_count);
+
+    return;
+}
+
+
+static void Player_process_mixed_signals(
+        Player* player, int32_t render_start, int32_t frame_count)
+{
+    rassert(player != NULL);
+    rassert(render_start >= 0);
+    rassert(frame_count >= 0);
+
+    if (frame_count == 0)
+        return;
+
+    rassert(player->mixed_signal_plan != NULL);
+#ifdef ENABLE_THREADS
+    if (player->thread_count > 1)
+    {
+        player->render_start = render_start;
+        player->render_stop = render_start + frame_count;
+
+        // Synchronise with all threads to start mixed task execution
+        Barrier_wait(&player->mixed_start_barrier);
+
+        if (frame_count > 0)
+        {
+            const int level_count =
+                Mixed_signal_plan_get_level_count(player->mixed_signal_plan);
+            for (int level_i = level_count - 1; level_i >= 0; --level_i)
+            {
+                // Wait for each level to be finished
+                Barrier_wait(&player->mixed_level_finished_barrier);
+            }
+
+            Mixed_signal_plan_reset(player->mixed_signal_plan);
+        }
+    }
+    else
+#endif
+    {
+        if (frame_count > 0)
+        {
+            Mixed_signal_plan_execute_all_tasks(
+                    player->mixed_signal_plan,
+                    player->thread_params[0].work_buffers,
+                    render_start,
+                    render_start + frame_count,
+                    player->master_params.tempo);
+        }
+    }
+
+    return;
 }
 
 
@@ -1348,9 +1467,12 @@ void Player_play(Player* player, int32_t nframes)
 
         // Process signals in the connection graph
         {
+            Player_process_mixed_signals(player, rendered, to_be_rendered);
+
             const int32_t buf_start = rendered;
             const int32_t buf_stop = rendered + to_be_rendered;
 
+#if 0
             Device_states_process_mixed_signals(
                     player->device_states,
                     true, // hack_reset
@@ -1360,6 +1482,7 @@ void Player_play(Player* player, int32_t nframes)
                     buf_stop,
                     player->audio_rate,
                     player->master_params.tempo);
+#endif
 
             Player_apply_master_volume(player, buf_start, buf_stop);
 
@@ -1636,6 +1759,8 @@ void del_Player(Player* player)
 
     Barrier_deinit(&player->vgroups_start_barrier);
     Barrier_deinit(&player->vgroups_finished_barrier);
+    Barrier_deinit(&player->mixed_start_barrier);
+    Barrier_deinit(&player->mixed_level_finished_barrier);
 
     del_Event_handler(player->event_handler);
     del_Voice_pool(player->voices);

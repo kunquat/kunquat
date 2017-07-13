@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2017
  *
  * This file is part of Kunquat.
  *
@@ -51,6 +51,7 @@ static bool Au_state_init(
 }
 
 
+#if 0
 static void mix_interface_connection(
         Device_thread_state* out_ts,
         Device_thread_state* in_ts,
@@ -73,8 +74,10 @@ static void mix_interface_connection(
 
     return;
 }
+#endif
 
 
+#if 0
 static void Au_state_render_mixed(
         Device_state* dstate,
         Device_thread_state* au_ts,
@@ -130,6 +133,7 @@ static void Au_state_render_mixed(
 
     return;
 }
+#endif
 
 
 Device_state* new_Au_state(
@@ -149,7 +153,7 @@ Device_state* new_Au_state(
         return NULL;
     }
 
-    au_state->parent.render_mixed = Au_state_render_mixed;
+    //au_state->parent.render_mixed = Au_state_render_mixed;
 
     return &au_state->parent;
 }

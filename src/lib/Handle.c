@@ -251,18 +251,10 @@ static bool Handle_update_connections(Handle* handle)
 {
     rassert(handle != NULL);
 
-    Module* module = Handle_get_module(handle);
-    const Connections* conns = Module_get_connections(module);
-
-    if (conns == NULL)
-        return true;
-
-    Device_states* dstates = Player_get_device_states(handle->player);
-
-    if (!Device_states_prepare(dstates, conns))
+    if (!Player_prepare_mixing(handle->player))
     {
         Handle_set_error(handle, ERROR_MEMORY,
-                "Couldn't allocate memory for connections");
+                "Couldn't allocate memory for mixing states");
         return false;
     }
 

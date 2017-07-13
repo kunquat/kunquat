@@ -706,7 +706,7 @@ void Mixed_signal_plan_reset(Mixed_signal_plan* plan)
 {
     rassert(plan != NULL);
 
-    plan->iter_level_index = plan->iter_level_index - 1;
+    plan->iter_level_index = plan->level_count - 1;
     plan->iter_task_index = 0;
 
     return;
