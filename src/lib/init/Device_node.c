@@ -45,6 +45,7 @@ struct Device_node
     Device_node_type type;
     int index;
     //Device* device;
+    int last_receive_port;
     Connection* iter;
     Connection* receive[KQT_DEVICE_PORTS_MAX];
     Connection* send[KQT_DEVICE_PORTS_MAX];
@@ -100,6 +101,7 @@ Device_node* new_Device_node(const char* name, Au_table* au_table, const Device*
     node->master = master;
     //node->device = NULL;
     node->name[KQT_DEVICE_NODE_NAME_MAX - 1] = '\0';
+    node->last_receive_port = -1;
     node->iter = NULL;
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -235,6 +237,13 @@ const Device* Device_node_get_device(const Device_node* node)
 }
 
 
+int Device_node_get_last_receive_port(const Device_node* node)
+{
+    rassert(node != NULL);
+    return node->last_receive_port;
+}
+
+
 const Connection* Device_node_get_received(const Device_node* node, int port)
 {
     rassert(node != NULL);
@@ -286,6 +295,7 @@ bool Device_node_connect(
     receive_edge->port = send_port;
     receive_edge->next = receiver->receive[rec_port];
     receiver->receive[rec_port] = receive_edge;
+    receiver->last_receive_port = max(receiver->last_receive_port, rec_port);
 
     send_edge->node = receiver;
     send_edge->port = rec_port;

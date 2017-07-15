@@ -115,6 +115,17 @@ const Device* Device_node_get_device(const Device_node* node);
 
 
 /**
+ * Get the last receive port number with a defined connection.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ *
+ * \return   The last receive port number, or \c -1 if \a node has no receive
+ *           connections.
+ */
+int Device_node_get_last_receive_port(const Device_node* node);
+
+
+/**
  * Get received connections to a port of a Device node.
  *
  * \param node   The Device node -- must not be \c NULL.
