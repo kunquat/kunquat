@@ -25,6 +25,7 @@
 #include <mathnum/common.h>
 #include <memory.h>
 #include <player/Device_states.h>
+#include <player/devices/Au_state.h>
 #include <player/devices/Device_state.h>
 #include <player/devices/Device_thread_state.h>
 #include <player/Mixed_signal_plan.h>
@@ -81,6 +82,8 @@ typedef struct Mixed_signal_task_info
     int level_index;
     uint32_t device_id;
     Vector* conns;
+    uint32_t container_id;
+    Vector* bypass_conns;
 } Mixed_signal_task_info;
 
 
@@ -90,6 +93,8 @@ typedef struct Mixed_signal_task_info
         .level_index = -1,                  \
         .device_id = (dev_id),              \
         .conns = NULL,                      \
+        .container_id = 0,                  \
+        .bypass_conns = NULL,               \
     })
 
 
@@ -99,6 +104,7 @@ static void del_Mixed_signal_task_info(Mixed_signal_task_info* task_info)
         return;
 
     // NOTE: We don't own the Device states referenced
+    del_Vector(task_info->bypass_conns);
     del_Vector(task_info->conns);
     memory_free(task_info);
 
@@ -120,6 +126,8 @@ static Mixed_signal_task_info* new_Mixed_signal_task_info(
     task_info->level_index = level_index;
     task_info->device_id = device_id;
     task_info->conns = NULL;
+    task_info->container_id = 0;
+    task_info->bypass_conns = NULL;
 
     task_info->conns = new_Vector(sizeof(Mixed_signal_connection));
     if (task_info->conns == NULL)
@@ -150,9 +158,24 @@ static bool Mixed_signal_task_info_add_input(
 
     Mixed_signal_connection* conn = MIXED_SIGNAL_CONNECTION_AUTO(recv_buf, send_buf);
 
-    // TODO: audio unit bypass
-
     return Vector_append(task_info->conns, conn);
+}
+
+
+static bool Mixed_signal_task_info_add_bypass_input(
+        Mixed_signal_task_info* task_info,
+        Work_buffer* recv_buf,
+        const Work_buffer* send_buf)
+{
+    rassert(task_info != NULL);
+    rassert(recv_buf != NULL);
+    rassert(send_buf != NULL);
+
+    rassert(task_info->bypass_conns != NULL);
+
+    Mixed_signal_connection* conn = MIXED_SIGNAL_CONNECTION_AUTO(recv_buf, send_buf);
+
+    return Vector_append(task_info->bypass_conns, conn);
 }
 
 
@@ -171,8 +194,33 @@ static void Mixed_signal_task_info_execute(
     rassert(buf_stop >= buf_start);
     rassert(tempo > 0);
 
-    Device_thread_state* target_ts =
-        Device_states_get_thread_state(dstates, 0, task_info->device_id);
+    if (task_info->container_id != 0)
+    {
+        // Check bypass condition
+        const Au_state* container_au_state =
+            (const Au_state*)Device_states_get_state(dstates, task_info->container_id);
+        if (container_au_state->bypass)
+        {
+            //fprintf(stdout, "bypass at level %d\n", task_info->level_index);
+            if (task_info->bypass_conns != NULL)
+            {
+                for (int i = 0; i < Vector_size(task_info->bypass_conns); ++i)
+                {
+                    const Mixed_signal_connection* conn =
+                        Vector_get_ref(task_info->bypass_conns, i);
+                    /*
+                    fprintf(stdout, "mix bypass %p -> %p\n",
+                            (const void*)conn->send_buf,
+                            (const void*)conn->recv_buf);
+                    // */
+                    Work_buffer_mix(conn->recv_buf, conn->send_buf, buf_start, buf_stop);
+                }
+            }
+            //fflush(stdout);
+
+            return;
+        }
+    }
 
     // Copy signals between buffers
     for (int i = 0; i < Vector_size(task_info->conns); ++i)
@@ -182,6 +230,8 @@ static void Mixed_signal_task_info_execute(
     }
 
     // Process current device state
+    Device_thread_state* target_ts =
+        Device_states_get_thread_state(dstates, 0, task_info->device_id);
     Device_state* target_dstate = Device_states_get_state(dstates, task_info->device_id);
     Device_state_render_mixed(target_dstate, target_ts, wbs, buf_start, buf_stop, tempo);
 
@@ -329,7 +379,8 @@ static bool Mixed_signal_plan_build_from_node(
         Mixed_signal_plan* plan,
         Device_states* dstates,
         const Device_node* node,
-        int level_index)
+        int level_index,
+        uint32_t container_id)
 {
     rassert(plan != NULL);
     rassert(!plan->is_finalised);
@@ -341,6 +392,8 @@ static bool Mixed_signal_plan_build_from_node(
     if ((node_device == NULL) || !Device_is_existent(node_device))
         return true;
 
+    const uint32_t node_device_id = Device_get_id(node_device);
+
 #if 0
     {
         DEBUG_indent_level(level_index);
@@ -351,9 +404,12 @@ static bool Mixed_signal_plan_build_from_node(
     bool is_new_task_info = false;
 
     Mixed_signal_task_info* task_info = Mixed_signal_create_or_get_task_info(
-            plan, Device_get_id(node_device), level_index, &is_new_task_info);
+            plan, node_device_id, level_index, &is_new_task_info);
     if (task_info == NULL)
         return false;
+
+    if (is_new_task_info)
+        task_info->container_id = container_id;
 
     if (Device_node_get_type(node) == DEVICE_NODE_TYPE_PROCESSOR)
     {
@@ -364,7 +420,7 @@ static bool Mixed_signal_plan_build_from_node(
     }
 
     Device_thread_state* recv_ts =
-        Device_states_get_thread_state(dstates, 0, Device_get_id(node_device));
+        Device_states_get_thread_state(dstates, 0, node_device_id);
     Device_port_type recv_port_type = DEVICE_PORT_TYPE_RECV;
 
     // Get depth of connections in the current device
@@ -375,6 +431,9 @@ static bool Mixed_signal_plan_build_from_node(
         const Connections* au_conns = Audio_unit_get_connections(au);
         if (au_conns == NULL)
             return true;
+
+        const uint32_t sub_container_id =
+            (container_id != 0) ? container_id : node_device_id;
 
         const int au_conns_depth = Connections_get_depth(au_conns);
 
@@ -408,6 +467,8 @@ static bool Mixed_signal_plan_build_from_node(
                     task_info, recv_ts, out_iface_ts))
             return false;
 
+        task_info->container_id = sub_container_id;
+
 #if 0
         {
             fprintf(stdout, "\n");
@@ -416,7 +477,7 @@ static bool Mixed_signal_plan_build_from_node(
 
         // Audio unit graph
         if (!Mixed_signal_plan_build_from_node(
-                    plan, dstates, au_master, level_index + 1))
+                    plan, dstates, au_master, level_index + 1, sub_container_id))
             return false;
 
 #if 0
@@ -444,6 +505,35 @@ static bool Mixed_signal_plan_build_from_node(
             if (is_new_task_info && !Mixed_signal_task_info_add_au_interface(
                         in_task_info, in_iface_ts, recv_ts))
                 return false;
+
+            in_task_info->container_id = container_id;
+
+            if (is_new_task_info && (container_id == 0))
+            {
+                // Set up bypass connections
+                task_info->bypass_conns = new_Vector(sizeof(Mixed_signal_connection));
+                if (task_info->bypass_conns == NULL)
+                    return false;
+
+                for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+                {
+                    Work_buffer* out_buf = Device_thread_state_get_mixed_buffer(
+                            recv_ts, DEVICE_PORT_TYPE_SEND, port);
+
+                    if (out_buf != NULL)
+                    {
+                        const Work_buffer* in_buf = Device_thread_state_get_mixed_buffer(
+                                in_iface_ts, DEVICE_PORT_TYPE_SEND, port);
+
+                        if (in_buf != NULL)
+                        {
+                            if (!Mixed_signal_task_info_add_bypass_input(
+                                        task_info, out_buf, in_buf))
+                                return false;
+                        }
+                    }
+                }
+            }
 
             task_info = in_task_info;
             recv_ts = in_iface_ts;
@@ -481,7 +571,11 @@ static bool Mixed_signal_plan_build_from_node(
             }
 
             if (!Mixed_signal_plan_build_from_node(
-                        plan, dstates, edge->node, level_index + cur_depth))
+                        plan,
+                        dstates,
+                        edge->node,
+                        level_index + cur_depth,
+                        container_id))
                 return false;
 
             // Find Work buffers
@@ -578,7 +672,10 @@ static bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
             const Mixed_signal_task_info* tinfo = Etable_get(level->tasks, ti);
             rassert(tinfo != NULL);
 
-            fprintf(stdout, " Task %d:\n", ti);
+            fprintf(stdout, " Task %d", ti);
+            if (tinfo->container_id != 0)
+                fprintf(stdout, " (au %d)", (int)tinfo->container_id);
+            fprintf(stdout, ":\n");
             for (int i = 0; i < Vector_size(tinfo->conns); ++i)
             {
                 const Mixed_signal_connection* conn = Vector_get_ref(tinfo->conns, i);
@@ -616,7 +713,7 @@ static bool Mixed_signal_plan_build(
 
     //fprintf(stdout, "Build new plan\n");
 
-    return (Mixed_signal_plan_build_from_node(plan, dstates, master, 0) &&
+    return (Mixed_signal_plan_build_from_node(plan, dstates, master, 0, 0) &&
             Mixed_signal_plan_finalise(plan));
 }
 
