@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -41,7 +41,7 @@ static void del_Entry(Entry* entry)
 {
     rassert(entry != NULL);
 
-    memory_free(entry->filter);
+    del_Param_proc_filter(entry->filter);
     memory_free(entry);
 
     return;
