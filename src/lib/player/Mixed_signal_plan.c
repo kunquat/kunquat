@@ -392,6 +392,14 @@ static bool Mixed_signal_plan_build_from_node(
     if ((node_device == NULL) || !Device_is_existent(node_device))
         return true;
 
+    if (Device_node_get_type(node) == DEVICE_NODE_TYPE_PROCESSOR)
+    {
+        // TODO: This would probably be a good place to mix down
+        //       all the outputs of individual threads during voice processing
+        if (!Device_get_mixed_signals(node_device))
+            return true;
+    }
+
     const uint32_t node_device_id = Device_get_id(node_device);
 
 #if 0
@@ -448,8 +456,6 @@ static bool Mixed_signal_plan_build_from_node(
             Device_states_get_thread_state(dstates, 0, Device_get_id(in_iface));
         Device_thread_state* out_iface_ts =
             Device_states_get_thread_state(dstates, 0, Device_get_id(out_iface));
-
-        // TODO: handle audio unit bypass case
 
 #if 0
         {
