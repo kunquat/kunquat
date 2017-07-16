@@ -665,6 +665,29 @@ static bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
     del_AAtree(plan->build_task_infos);
     plan->build_task_infos = NULL;
 
+    // Remove empty levels
+    int read_pos = 0;
+    int write_pos = 0;
+    while (read_pos < plan->level_count)
+    {
+        Level* level = Etable_get(plan->levels, read_pos);
+        if (level != NULL)
+        {
+            if (write_pos < read_pos)
+            {
+                rassert(Etable_pop(plan->levels, write_pos) == NULL);
+                Etable_pop(plan->levels, read_pos);
+                Etable_set(plan->levels, write_pos, level);
+            }
+
+            ++write_pos;
+        }
+
+        ++read_pos;
+    }
+
+    plan->level_count = write_pos;
+
 #if 0
     for (int li = plan->level_count - 1; li >= 0; --li)
     {

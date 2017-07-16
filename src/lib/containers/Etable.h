@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -75,7 +75,19 @@ bool Etable_set(Etable* table, int index, void* el);
  *
  * \return   The element if found, otherwise \c NULL.
  */
-void* Etable_get(Etable* table, int index);
+void* Etable_get(const Etable* table, int index);
+
+
+/**
+ * Remove and return an element from the Etable.
+ *
+ * \param table   The Etable -- must not be \c NULL.
+ * \param index   The target index -- must be >= \c 0 and less than
+ *                the table size.
+ *
+ * \return   The element at \a index, or \c NULL.
+ */
+void* Etable_pop(Etable* table, int index);
 
 
 /**

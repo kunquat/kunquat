@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -105,7 +105,7 @@ bool Etable_set(Etable* table, int index, void* el)
 }
 
 
-void* Etable_get(Etable* table, int index)
+void* Etable_get(const Etable* table, int index)
 {
     rassert(table != NULL);
     rassert(index >= 0);
@@ -115,6 +115,22 @@ void* Etable_get(Etable* table, int index)
         return NULL;
 
     return table->els[index];
+}
+
+
+void* Etable_pop(Etable* table, int index)
+{
+    rassert(table != NULL);
+    rassert(index >= 0);
+    rassert(index < table->size);
+
+    if (index >= table->res)
+        return NULL;
+
+    void* elem = table->els[index];
+    table->els[index] = NULL;
+
+    return elem;
 }
 
 
