@@ -485,12 +485,12 @@ bool Player_prepare_mixing(Player* player)
 {
     rassert(player != NULL);
 
+    del_Mixed_signal_plan(player->mixed_signal_plan);
+    player->mixed_signal_plan = NULL;
+
     const Connections* conns = Module_get_connections(player->module);
     if (conns == NULL)
         return true;
-
-    del_Mixed_signal_plan(player->mixed_signal_plan);
-    player->mixed_signal_plan = NULL;
 
     if (!Device_states_prepare(player->device_states, conns))
         return false;
@@ -1763,6 +1763,7 @@ void del_Player(Player* player)
     Barrier_deinit(&player->mixed_level_finished_barrier);
 
     del_Event_handler(player->event_handler);
+    del_Mixed_signal_plan(player->mixed_signal_plan);
     del_Voice_pool(player->voices);
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         del_Channel(player->channels[i]);
