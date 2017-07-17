@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -238,6 +238,18 @@ void Device_thread_state_clear_mixed_buffers(
 
 
 Work_buffer* Device_thread_state_get_mixed_buffer(
+        const Device_thread_state* ts, Device_port_type type, int port)
+{
+    rassert(ts != NULL);
+    rassert(type < DEVICE_PORT_TYPES);
+    rassert(port >= 0);
+    rassert(port < KQT_DEVICE_PORTS_MAX);
+
+    return Etable_get(ts->buffers[DEVICE_BUFFER_MIXED][type], port);
+}
+
+
+Work_buffer* Device_thread_state_get_connected_mixed_buffer(
         const Device_thread_state* ts, Device_port_type type, int port)
 {
     rassert(ts != NULL);

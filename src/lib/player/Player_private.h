@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2017
  *
  * This file is part of Kunquat.
  *
@@ -64,6 +64,8 @@ struct Player
     Condition start_cond;
     Barrier vgroups_start_barrier;
     Barrier vgroups_finished_barrier;
+    Barrier mixed_start_barrier;
+    Barrier mixed_level_finished_barrier;
     Thread threads[KQT_THREADS_MAX];
     bool ok_to_start;
     bool stop_threads;
@@ -74,6 +76,7 @@ struct Player
     Env_state*     estate;
     Event_buffer*  event_buffer;
     Voice_pool*    voices;
+    Mixed_signal_plan* mixed_signal_plan;
     Master_params  master_params;
     Channel*       channels[KQT_CHANNELS_MAX];
     Event_handler* event_handler;

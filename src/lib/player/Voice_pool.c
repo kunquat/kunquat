@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -342,9 +342,11 @@ Voice_group* Voice_pool_get_next_group_synced(Voice_pool* pool, Voice_group* vgr
     Voice_group_init(vgroup, pool->voices, pool->group_iter_offset, pool->size);
     pool->group_iter_offset += Voice_group_get_size(vgroup);
 
+    const bool is_group_empty = (Voice_group_get_size(vgroup) == 0);
+
     Mutex_unlock(&pool->group_iter_lock);
 
-    if (Voice_group_get_size(vgroup) == 0)
+    if (is_group_empty)
         return NULL;
 
     return vgroup;

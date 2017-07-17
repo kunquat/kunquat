@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -115,6 +115,17 @@ const Device* Device_node_get_device(const Device_node* node);
 
 
 /**
+ * Get the last receive port number with a defined connection.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ *
+ * \return   The last receive port number, or \c -1 if \a node has no receive
+ *           connections.
+ */
+int Device_node_get_last_receive_port(const Device_node* node);
+
+
+/**
  * Get received connections to a port of a Device node.
  *
  * \param node   The Device node -- must not be \c NULL.
@@ -202,6 +213,18 @@ void Device_node_reset_cycle_test_state(Device_node* node);
  * \return   \c true if a cycle was found, otherwise \c false.
  */
 bool Device_node_cycle_in_path(Device_node* node);
+
+
+/**
+ * Get the maximum number of Device nodes connected in chain from the Device node.
+ *
+ * The depth includes any subgraphs of contained Audio units.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ *
+ * \return   The maximum number of Device nodes in a single connection chain.
+ */
+int Device_node_get_subgraph_depth(const Device_node* node);
 
 
 /**

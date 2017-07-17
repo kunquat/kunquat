@@ -132,7 +132,8 @@ static void reset_subgraph(
 
     Device_thread_state_set_node_state(node_ts, DEVICE_NODE_STATE_REACHED);
 
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    const int last_port = Device_node_get_last_receive_port(node);
+    for (int port = 0; port <= last_port; ++port)
     {
         const Connection* edge = Device_node_get_received(node, port);
 
@@ -214,7 +215,8 @@ static int32_t process_voice_group(
 
     int32_t keep_alive_stop = buf_start;
 
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    const int last_port = Device_node_get_last_receive_port(node);
+    for (int port = 0; port <= last_port; ++port)
     {
         const Connection* edge = Device_node_get_received(node, port);
 
@@ -377,7 +379,8 @@ static void mix_voice_signals(
         }
     }
 
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    const int last_port = Device_node_get_last_receive_port(node);
+    for (int port = 0; port <= last_port; ++port)
     {
         const Connection* edge = Device_node_get_received(node, port);
 

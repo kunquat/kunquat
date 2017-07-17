@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -148,6 +148,19 @@ void Device_thread_state_clear_mixed_buffers(
  * \return   The Work buffer if one exists, otherwise \c NULL.
  */
 Work_buffer* Device_thread_state_get_mixed_buffer(
+        const Device_thread_state* ts, Device_port_type type, int port);
+
+
+/**
+ * Return a connected mixed audio buffer of the Device thread state.
+ *
+ * \param ts     The Device thread state -- must not be \c NULL.
+ * \param type   The port type -- must be valid.
+ * \param port   The port number -- must be >= \c 0 and < \c KQT_DEVICE_PORTS_MAX.
+ *
+ * \return   The connected Work buffer if one exists, otherwise \c NULL.
+ */
+Work_buffer* Device_thread_state_get_connected_mixed_buffer(
         const Device_thread_state* ts, Device_port_type type, int port);
 
 

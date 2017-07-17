@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2017
  *
  * This file is part of Kunquat.
  *
@@ -128,6 +128,16 @@ int32_t Player_get_voice_work_buffer_size(const Player* player);
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Player_reserve_voice_work_buffer_space(Player* player, int32_t size);
+
+
+/**
+ * Prepare signal mixing in the Player.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Player_prepare_mixing(Player* player);
 
 
 /**

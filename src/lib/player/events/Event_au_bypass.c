@@ -43,17 +43,6 @@ bool Event_au_bypass_on_process(
 
     au_state->bypass = true;
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
-    {
-        const Processor* proc = Audio_unit_get_proc(au, i);
-        if ((proc != NULL) && Device_is_existent((const Device*)proc))
-        {
-            Proc_state* proc_state = (Proc_state*)Device_states_get_state(
-                    dstates, Device_get_id((const Device*)proc));
-            Proc_state_clear_history(proc_state);
-        }
-    }
-
     return true;
 }
 
@@ -74,6 +63,20 @@ bool Event_au_bypass_off_process(
     rassert(channel != NULL);
     rassert(dstates != NULL);
     rassert(value != NULL);
+
+    if (au_state->bypass)
+    {
+        for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+        {
+            const Processor* proc = Audio_unit_get_proc(au, i);
+            if ((proc != NULL) && Device_is_existent((const Device*)proc))
+            {
+                Proc_state* proc_state = (Proc_state*)Device_states_get_state(
+                        dstates, Device_get_id((const Device*)proc));
+                Proc_state_clear_history(proc_state);
+            }
+        }
+    }
 
     au_state->bypass = false;
 
