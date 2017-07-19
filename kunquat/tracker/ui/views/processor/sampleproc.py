@@ -1127,9 +1127,10 @@ class Samples(QSplitter, ProcessorUpdater):
             sample_params = utils.get_proc_params(
                     self._ui_model, self._au_id, self._proc_id)
             sample_id = sample_params.get_selected_sample_id()
-            sample_num = int(sample_id.split('_')[1], 16)
-            sample_num_param = str(sample_num)
-            control_manager.set_test_processor_param(self._proc_id, sample_num_param)
+            if sample_id != None:
+                sample_num = int(sample_id.split('_')[1], 16)
+                sample_num_param = str(sample_num)
+                control_manager.set_test_processor_param(self._proc_id, sample_num_param)
         if not self._keyboard_mapper.process_typewriter_button_event(event):
             event.ignore()
         control_manager.set_test_processor_param(self._proc_id, None)
