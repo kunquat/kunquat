@@ -11,8 +11,17 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtSvg import *
+from PyQt5.QtWidgets import *
+
+from PyQt5.QtCore import pyqtSignal as Signal
+
+'''
 from PySide.QtCore import *
 from PySide.QtGui import *
 from PySide.QtSvg import *
+'''
 
 
