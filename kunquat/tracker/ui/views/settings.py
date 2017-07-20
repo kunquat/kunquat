@@ -1165,7 +1165,6 @@ class Colours(QTreeView, Updater):
 
         header = self.header()
         header.setStretchLastSection(False)
-        header.setResizeMode(0, QHeaderView.Stretch)
         self.setHeaderHidden(True)
 
     def _on_setup(self):
