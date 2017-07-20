@@ -139,7 +139,7 @@ class Directory(QWidget, Updater):
     def _change_dir_browse(self):
         cfg = config.get_config()
         cur_dir = cfg.get_value(self._conf_key) or os.getcwd()
-        new_dir = QFileDialog.getExistingDirectory(dir=cur_dir)
+        new_dir = QFileDialog.getExistingDirectory(None, '', cur_dir)
         if new_dir:
             self._change_dir_text(new_dir)
 

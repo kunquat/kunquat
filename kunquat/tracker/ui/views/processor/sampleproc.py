@@ -1188,10 +1188,11 @@ class SampleListToolBar(QToolBar, ProcessorUpdater):
         free_count = len(sample_ids)
 
         sample_paths, _ = QFileDialog.getOpenFileNames(
-                caption='Import samples ({} free slot{})'.format(
+                None,
+                'Import samples ({} free slot{})'.format(
                     free_count, '' if free_count == 1 else 's'),
-                dir=config.get_config().get_value('dir_samples') or '',
-                filter=';;'.join(filters))
+                config.get_config().get_value('dir_samples') or '',
+                ';;'.join(filters))
         if sample_paths:
             # Make sure we've got enough space
             if len(sample_paths) > free_count:

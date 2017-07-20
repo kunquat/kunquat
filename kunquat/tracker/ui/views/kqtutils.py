@@ -43,7 +43,7 @@ def get_kqt_file_path(types):
     default_dir = config.get_config().get_value(def_dir_conf_key) or ''
 
     file_path, _ = QFileDialog.getOpenFileName(
-            caption=caption, dir=default_dir, filter=';;'.join(filters))
+            None, caption, default_dir, ';;'.join(filters))
     if file_path:
         return file_path
     return None
