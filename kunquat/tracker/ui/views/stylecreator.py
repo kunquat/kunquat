@@ -14,8 +14,7 @@
 import os.path
 import re
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 
 class StyleCreator():

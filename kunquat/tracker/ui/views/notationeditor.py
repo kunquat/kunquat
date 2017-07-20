@@ -13,8 +13,7 @@
 
 import math
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from .headerline import HeaderLine
 from .kqtcombobox import KqtComboBox

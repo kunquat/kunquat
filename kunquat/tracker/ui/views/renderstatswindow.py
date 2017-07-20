@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from .renderstats import RenderStats
 from .updater import Updater

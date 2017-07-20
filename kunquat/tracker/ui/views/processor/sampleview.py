@@ -16,8 +16,7 @@ import math
 import time
 from itertools import chain, islice
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 
 DEFAULT_CONFIG = {

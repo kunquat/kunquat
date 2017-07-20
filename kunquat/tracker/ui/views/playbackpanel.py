@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 import kunquat.tracker.cmdline as cmdline
 from .playbackposition import PlaybackPosition

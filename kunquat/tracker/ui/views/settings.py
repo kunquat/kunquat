@@ -15,8 +15,7 @@ import math
 import os
 import string
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.config as config

@@ -13,8 +13,7 @@
 
 from itertools import chain
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from .aukeyboardmapper import AudioUnitKeyboardMapper

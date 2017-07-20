@@ -13,8 +13,7 @@
 
 import os.path
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 import kunquat.tracker.config as config
 

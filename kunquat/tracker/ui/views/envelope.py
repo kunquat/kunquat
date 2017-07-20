@@ -15,8 +15,7 @@ from itertools import count, islice
 import math
 import time
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from .axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
 from .utils import lerp_val

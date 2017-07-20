@@ -13,8 +13,7 @@
 
 import re
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.kunquat.limits import *
 from .kqtcombobox import KqtComboBox

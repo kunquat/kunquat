@@ -15,8 +15,7 @@ import os
 import sys
 import traceback
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.errorbase import *
 

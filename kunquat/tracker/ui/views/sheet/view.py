@@ -16,8 +16,7 @@ from itertools import count, islice
 import math
 import time
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 import kunquat.kunquat.events as events
 from kunquat.kunquat.limits import *

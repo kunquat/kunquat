@@ -15,8 +15,7 @@ import cProfile
 import pstats
 from io import StringIO
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from .kqtcombobox import KqtComboBox
 

@@ -12,15 +12,14 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
-
 import os
 import re
 import sys
 import time
 import json
 from collections import deque
+
+from kunquat.tracker.ui.qt import *
 
 import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.config as config

@@ -13,8 +13,7 @@
 
 from itertools import islice, zip_longest
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 import kunquat.tracker.ui.model.tstamp as tstamp
 from .config import *
