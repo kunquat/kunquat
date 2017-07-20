@@ -51,7 +51,7 @@ class NameEditor(QLineEdit, Updater):
         self.register_action('signal_song', self._update_name)
         self.register_action('signal_order_list', self._update_name)
 
-        QObject.connect(self, SIGNAL('textEdited(const QString&)'), self._change_name)
+        self.textEdited.connect(self._change_name)
 
         self._update_name()
 
@@ -95,7 +95,7 @@ class TempoEditor(QDoubleSpinBox, Updater):
         self.register_action('signal_song', self._update_tempo)
         self.register_action('signal_order_list', self._update_tempo)
 
-        QObject.connect(self, SIGNAL('valueChanged(double)'), self._change_tempo)
+        self.valueChanged.connect(self._change_tempo)
 
         self._update_tempo()
 

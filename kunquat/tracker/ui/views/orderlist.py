@@ -328,10 +328,7 @@ class Orderlist(QWidget, Updater):
                     index = self._album_tree_model.get_song_index(track_num)
                     self._album_tree.setCurrentIndex(index)
 
-        QObject.connect(
-            self._album_tree.selectionModel(),
-            SIGNAL('currentChanged(const QModelIndex&, const QModelIndex&)'),
-            self._change_selection)
+        self._album_tree.selectionModel().currentChanged.connect(self._change_selection)
 
     def get_selected_object(self):
         selection_model = self._album_tree.selectionModel()

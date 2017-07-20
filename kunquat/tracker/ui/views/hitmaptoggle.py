@@ -29,7 +29,7 @@ class HitMapToggle(QCheckBox):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
-        QObject.connect(self, SIGNAL('stateChanged(int)'), self._set_hit_map_active)
+        self.stateChanged.connect(self._set_hit_map_active)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)

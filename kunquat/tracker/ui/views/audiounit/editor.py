@@ -142,8 +142,7 @@ class TestExpression(KqtComboBox, AudioUnitUpdater):
         self.register_action(
                 'signal_expr_list_{}'.format(self._au_id), self._update_expression_list)
 
-        QObject.connect(
-                self, SIGNAL('currentIndexChanged(int)'), self._change_expression)
+        self.currentIndexChanged.connect(self._change_expression)
 
         if self._index == 1:
             # Apply instrument default as the initial note expression

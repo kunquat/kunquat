@@ -531,8 +531,8 @@ class NoteMapEntry(QWidget, ProcessorUpdater):
         self.register_action(self._get_selection_signal_type(), self._update_all)
         self.register_action(self._get_move_signal_type(), self._update_all)
 
-        QObject.connect(self._pitch, SIGNAL('valueChanged(double)'), self._move)
-        QObject.connect(self._force, SIGNAL('valueChanged(double)'), self._move)
+        self._pitch.valueChanged.connect(self._move)
+        self._force.valueChanged.connect(self._move)
 
         self._update_all()
 
@@ -670,7 +670,7 @@ class RandomEntryAdder(QPushButton, ProcessorUpdater):
         self._get_update_signal_type = cb_info['get_random_list_signal_type']
 
     def _on_setup(self):
-        QObject.connect(self, SIGNAL('clicked()'), self._add_entry)
+        self.clicked.connect(self._add_entry)
 
     def _add_entry(self):
         point = self._get_selected_map_point()
@@ -727,22 +727,10 @@ class RandomEntryEditor(QWidget, ProcessorUpdater):
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
         self._remove_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
 
-        QObject.connect(
-                self._sample_selector,
-                SIGNAL('currentIndexChanged(int)'),
-                self._change_sample)
-
-        QObject.connect(
-                self._pitch_shift,
-                SIGNAL('valueChanged(double)'),
-                self._change_pitch_shift)
-
-        QObject.connect(
-                self._volume_shift,
-                SIGNAL('valueChanged(double)'),
-                self._change_volume_shift)
-
-        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_entry)
+        self._sample_selector.currentIndexChanged.connect(self._change_sample)
+        self._pitch_shift.valueChanged.connect(self._change_pitch_shift)
+        self._volume_shift.valueChanged.connect(self._change_volume_shift)
+        self._remove_button.clicked.connect(self._remove_entry)
 
         self._update_all()
 
@@ -1010,7 +998,7 @@ class HitMapEntry(QWidget, ProcessorUpdater):
         self.register_action(self._get_move_signal_type(), self._update_all)
         self.register_action(self._get_hit_selection_signal_type(), self._update_all)
 
-        QObject.connect(self._force, SIGNAL('valueChanged(double)'), self._move)
+        self._force.valueChanged.connect(self._move)
 
         self._update_all()
 
@@ -1155,8 +1143,8 @@ class SampleListToolBar(QToolBar, ProcessorUpdater):
         self.register_action(self._get_list_signal_type(), self._update_enabled)
         self.register_action(self._get_selection_signal_type(), self._update_enabled)
 
-        QObject.connect(self._import_button, SIGNAL('clicked()'), self._import_samples)
-        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_sample)
+        self._import_button.clicked.connect(self._import_samples)
+        self._remove_button.clicked.connect(self._remove_sample)
 
         self._update_enabled()
 
@@ -1281,7 +1269,7 @@ class ImportErrorDialog(QDialog):
         self._button_layout.addWidget(self._ok_button)
         self._button_layout.addStretch(1)
 
-        QObject.connect(self._ok_button, SIGNAL('clicked()'), self.close)
+        self._ok_button.clicked.connect(self.close)
 
 
 class SampleListModel(QAbstractListModel, ProcessorUpdater):
@@ -1351,12 +1339,7 @@ class SampleListView(QListView, ProcessorUpdater):
 
     def setModel(self, model):
         super().setModel(model)
-
-        selection_model = self.selectionModel()
-        QObject.connect(
-            selection_model,
-            SIGNAL('currentChanged(const QModelIndex&, const QModelIndex&)'),
-            self._select_sample)
+        self.selectionModel().currentChanged.connect(self._select_sample)
 
     def keyPressEvent(self, event):
         if self._keyboard_mapper.is_handled_key(event):
@@ -1489,33 +1472,16 @@ class SampleEditor(QWidget, ProcessorUpdater):
         self.register_action(self._get_loop_signal_type(), self._update_loop)
         self.register_action('signal_style_changed', self._update_style)
 
-        QObject.connect(self._name, SIGNAL('editingFinished()'), self._change_name)
-        QObject.connect(self._freq, SIGNAL('valueChanged(double)'), self._change_freq)
-
-        QObject.connect(self._resample, SIGNAL('clicked()'), self._convert_freq)
-
-        QObject.connect(
-                self._loop_mode,
-                SIGNAL('currentIndexChanged(int)'),
-                self._change_loop_mode)
-
-        QObject.connect(
-                self._loop_start, SIGNAL('valueChanged(int)'), self._change_loop_start)
-        QObject.connect(
-                self._loop_end, SIGNAL('valueChanged(int)'), self._change_loop_end)
-
+        self._name.editingFinished.connect(self._change_name)
+        self._freq.valueChanged.connect(self._change_freq)
+        self._resample.clicked.connect(self._convert_freq)
+        self._loop_mode.currentIndexChanged.connect(self._change_loop_mode)
+        self._loop_start.valueChanged.connect(self._change_loop_start)
+        self._loop_end.valueChanged.connect(self._change_loop_end)
         self._sample_view.set_icon_bank(self._ui_model.get_icon_bank())
-        QObject.connect(
-                self._sample_view,
-                SIGNAL('loopStartChanged(int)'),
-                self._change_loop_start)
-        QObject.connect(
-                self._sample_view,
-                SIGNAL('loopStopChanged(int)'),
-                self._change_loop_end)
-
-        QObject.connect(
-                self._format_change, SIGNAL('clicked()'), self._change_format)
+        self._sample_view.loopStartChanged.connect(self._change_loop_start)
+        self._sample_view.loopStopChanged.connect(self._change_loop_end)
+        self._format_change.clicked.connect(self._change_format)
 
         self._update_style()
         self._update_all()
@@ -1776,10 +1742,10 @@ class ResampleEditor(QDialog):
         v.addLayout(bl)
         self.setLayout(v)
 
-        QObject.connect(self._freq, SIGNAL('valueChanged(int)'), self._update_enabled)
+        self._freq.valueChanged.connect(self._update_enabled)
 
-        QObject.connect(self._cancel_button, SIGNAL('clicked()'), self.close)
-        QObject.connect(self._resample_button, SIGNAL('clicked()'), self._resample)
+        self._cancel_button.clicked.connect(self.close)
+        self._resample_button.clicked.connect(self._resample)
 
         self._update_enabled()
 
@@ -1848,11 +1814,10 @@ class SampleFormatEditor(QDialog):
         v.addLayout(bl)
         self.setLayout(v)
 
-        QObject.connect(
-                self._format, SIGNAL('currentIndexChanged(int)'), self._change_format)
+        self._format.currentIndexChanged.connect(self._change_format)
 
-        QObject.connect(self._cancel_button, SIGNAL('clicked()'), self.close)
-        QObject.connect(self._convert_button, SIGNAL('clicked()'), self._convert)
+        self._cancel_button.clicked.connect(self.close)
+        self._convert_button.clicked.connect(self._convert)
 
         self._update_enabled()
 

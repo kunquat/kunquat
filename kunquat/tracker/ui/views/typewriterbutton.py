@@ -115,8 +115,8 @@ class TypewriterButton(QPushButton):
         self.setFocusPolicy(Qt.NoFocus)
 
         self.setEnabled(False)
-        QObject.connect(self, SIGNAL('pressed()'), self._press)
-        QObject.connect(self, SIGNAL('released()'), self._release)
+        self.pressed.connect(self._press)
+        self.released.connect(self._release)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model

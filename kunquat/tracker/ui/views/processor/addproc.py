@@ -56,10 +56,8 @@ class AddProc(QWidget, ProcessorUpdater):
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_simple_params)
 
-        QObject.connect(
-                self._ramp_attack, SIGNAL('stateChanged(int)'), self._change_ramp_attack)
-        QObject.connect(
-                self._rand_phase, SIGNAL('stateChanged(int)'), self._change_rand_phase)
+        self._ramp_attack.stateChanged.connect(self._change_ramp_attack)
+        self._rand_phase.stateChanged.connect(self._change_rand_phase)
 
         self._update_simple_params()
 
@@ -170,7 +168,7 @@ class ToneAdder(QPushButton, ProcessorUpdater):
         super().__init__('Add tone')
 
     def _on_setup(self):
-        QObject.connect(self, SIGNAL('clicked()'), self._add_tone)
+        self.clicked.connect(self._add_tone)
 
     def _get_update_signal_type(self):
         return ''.join(('signal_proc_add_tone_', self._au_id, self._proc_id))
@@ -209,7 +207,7 @@ class ToneEditor(QWidget, ProcessorUpdater):
         self.setLayout(h)
 
     def _on_setup(self):
-        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._removed)
+        self._remove_button.clicked.connect(self._removed)
 
     def _get_update_signal_type(self):
         return ''.join(('signal_proc_add_tone_', self._au_id, self._proc_id))
@@ -243,7 +241,7 @@ class TonePitchSpin(QWidget, ProcessorUpdater):
         self.register_action('signal_au', self._update_value)
         self.register_action(self._get_update_signal_type(), self._update_value)
         self._update_value()
-        QObject.connect(self._spin, SIGNAL('valueChanged(double)'), self._value_changed)
+        self._spin.valueChanged.connect(self._value_changed)
 
     def _get_update_signal_type(self):
         return ''.join(('signal_proc_add_tone_', self._au_id, self._proc_id))

@@ -46,7 +46,7 @@ class InputControls(QWidget, Updater):
         self.add_to_updaters(self._full_controls, self._compact_controls)
         self.register_action('signal_input_control_layout', self._show_controls)
 
-        QObject.connect(self._switch_button, SIGNAL('clicked()'), self._switch_controls)
+        self._switch_button.clicked.connect(self._switch_controls)
 
         self._show_controls()
 

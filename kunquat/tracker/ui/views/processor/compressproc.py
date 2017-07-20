@@ -142,7 +142,7 @@ class CompressConfig(QWidget, ProcessorUpdater):
     def _on_setup(self):
         self.add_to_updaters(self._threshold, self._ratio, self._range)
         self.register_action(self._get_update_signal_type(), self._update_enabled)
-        QObject.connect(self._enabled, SIGNAL('stateChanged(int)'), self._change_enabled)
+        self._enabled.stateChanged.connect(self._change_enabled)
 
         self._update_enabled()
 

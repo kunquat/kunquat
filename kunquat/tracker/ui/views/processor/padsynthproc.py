@@ -81,10 +81,8 @@ class PlaybackParams(QWidget, ProcessorUpdater):
         self.register_action('signal_au', self._update_all)
         self.register_action(self._get_update_signal_type(), self._update_all)
 
-        QObject.connect(
-                self._ramp_attack, SIGNAL('stateChanged(int)'), self._toggle_ramp_attack)
-        QObject.connect(
-                self._stereo, SIGNAL('stateChanged(int)'), self._toggle_stereo)
+        self._ramp_attack.stateChanged.connect(self._toggle_ramp_attack)
+        self._stereo.stateChanged.connect(self._toggle_stereo)
 
         self._update_all()
 
@@ -134,7 +132,7 @@ class ApplyButton(QPushButton, ProcessorUpdater):
         self.register_action(self._get_update_signal_type(), self._update_status)
         self.register_action('signal_style_changed', self._update_style)
 
-        QObject.connect(self, SIGNAL('clicked()'), self._apply_params)
+        self.clicked.connect(self._apply_params)
 
         self._style_sheet = QApplication.instance().styleSheet()
         self._update_status()
@@ -210,15 +208,9 @@ class SampleConfigEditor(QWidget, ProcessorUpdater):
         for sample_length in self._get_params().get_allowed_sample_lengths():
             self._sample_size.addItem(str(sample_length), userData=sample_length)
 
-        QObject.connect(
-                self._sample_size,
-                SIGNAL('currentIndexChanged(int)'),
-                self._change_sample_size)
+        self._sample_size.currentIndexChanged.connect(self._change_sample_size)
 
-        QObject.connect(
-                self._sample_count,
-                SIGNAL('valueChanged(int)'),
-                self._change_sample_count)
+        self._sample_count.valueChanged.connect(self._change_sample_count)
 
         self._update_sample_params()
 
@@ -415,7 +407,7 @@ class HarmonicScaleAdder(QPushButton, ProcessorUpdater):
         self.setText('Add harmonic scale')
 
     def _on_setup(self):
-        QObject.connect(self, SIGNAL('clicked()'), self._add_harmonic)
+        self.clicked.connect(self._add_harmonic)
 
     def _get_update_signal_type(self):
         return 'signal_padsynth_{}'.format(self._proc_id)
@@ -460,12 +452,8 @@ class HarmonicScaleEditor(QWidget, ProcessorUpdater):
         icon_bank = self._ui_model.get_icon_bank()
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
 
-        QObject.connect(
-                self._pitch_factor,
-                SIGNAL('valueChanged(double)'),
-                self._change_pitch_factor)
-
-        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_harmonic)
+        self._pitch_factor.valueChanged.connect(self._change_pitch_factor)
+        self._remove_button.clicked.connect(self._remove_harmonic)
 
         self.update_index(self._index)
 

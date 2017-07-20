@@ -164,15 +164,11 @@ class OrderlistToolBar(QToolBar):
 
         self._update_buttons_enabled(None)
 
-        QObject.connect(self._new_pat_button, SIGNAL('clicked()'), self._pattern_added)
-        QObject.connect(
-                self._remove_pat_button, SIGNAL('clicked()'), self._pattern_removed)
-        QObject.connect(
-                self._reuse_pat_button, SIGNAL('clicked()'), self._pattern_reused)
-        QObject.connect(
-                self._new_song_button, SIGNAL('clicked()'), self._song_added)
-        QObject.connect(
-                self._remove_song_button, SIGNAL('clicked()'), self._song_removed)
+        self._new_pat_button.clicked.connect(self._pattern_added)
+        self._remove_pat_button.clicked.connect(self._pattern_removed)
+        self._reuse_pat_button.clicked.connect(self._pattern_reused)
+        self._new_song_button.clicked.connect(self._song_added)
+        self._remove_song_button.clicked.connect(self._song_removed)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)

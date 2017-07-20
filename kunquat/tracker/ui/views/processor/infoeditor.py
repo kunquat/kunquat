@@ -50,7 +50,7 @@ class Name(QWidget, ProcessorUpdater):
     def _on_setup(self):
         self.register_action('signal_controls', self._update_name)
         self._update_name()
-        QObject.connect(self._edit, SIGNAL('textEdited(QString)'), self._text_edited)
+        self._edit.textEdited.connect(self._text_edited)
 
     def _update_name(self):
         old_block = self._edit.blockSignals(True)
@@ -85,7 +85,7 @@ class Message(QTextEdit, ProcessorUpdater):
 
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_message)
-        QObject.connect(self, SIGNAL('textChanged()'), self._change_message)
+        self.textChanged.connect(self._change_message)
         self._update_message()
 
     def _update_message(self):

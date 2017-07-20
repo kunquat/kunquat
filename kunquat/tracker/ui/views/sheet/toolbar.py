@@ -127,7 +127,7 @@ class FollowPlaybackButton(QPushButton, Updater):
         icon_path = icon_bank.get_icon_path('follow_playback')
         self.setIcon(QIcon(icon_path))
 
-        QObject.connect(self, SIGNAL('clicked()'), self._toggle_playback_following)
+        self.clicked.connect(self._toggle_playback_following)
 
         self._update_playback_following()
 
@@ -183,7 +183,7 @@ class EditButton(QPushButton, Updater):
         icon = QIcon(icon_path)
         self.setIcon(icon)
 
-        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+        self.clicked.connect(self._clicked)
 
     def _update_state(self):
         old_block = self.blockSignals(True)
@@ -221,7 +221,7 @@ class ReplaceButton(QPushButton, Updater):
         icon = QIcon(icon_path)
         self.setIcon(icon)
 
-        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+        self.clicked.connect(self._clicked)
 
     def _update_state(self):
         old_block = self.blockSignals(True)
@@ -258,7 +258,7 @@ class RestButton(QPushButton, Updater):
         icon = QIcon(icon_path)
         self.setIcon(icon)
 
-        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+        self.clicked.connect(self._clicked)
 
     def _update_enabled(self):
         if (not self._sheet_manager.is_editing_enabled() or
@@ -302,7 +302,7 @@ class DelSelectionButton(QPushButton, Updater):
         self.setIcon(icon)
 
         self._update_enabled()
-        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+        self.clicked.connect(self._clicked)
 
     def _update_enabled(self):
         if not self._sheet_manager.is_editing_enabled():
@@ -349,7 +349,7 @@ class UndoButton(QPushButton, Updater):
         icon_path = icon_bank.get_icon_path('undo')
         self.setIcon(QIcon(icon_path))
 
-        QObject.connect(self, SIGNAL('clicked()'), self._undo)
+        self.clicked.connect(self._undo)
 
         self._update_enabled()
 
@@ -386,7 +386,7 @@ class RedoButton(QPushButton, Updater):
         icon_path = icon_bank.get_icon_path('redo')
         self.setIcon(QIcon(icon_path))
 
-        QObject.connect(self, SIGNAL('clicked()'), self._redo)
+        self.clicked.connect(self._redo)
 
         self._update_enabled()
 
@@ -433,7 +433,7 @@ class CutOrCopyButton(QPushButton, Updater):
         icon_path = icon_bank.get_icon_path(self._button_type)
         self.setIcon(QIcon(icon_path))
 
-        QObject.connect(self, SIGNAL('clicked()'), self._cut_or_copy)
+        self.clicked.connect(self._cut_or_copy)
 
         self._update_enabled()
 
@@ -492,9 +492,9 @@ class PasteButton(QPushButton, Updater):
         self.setIcon(QIcon(icon_path))
 
         clipboard = QApplication.clipboard()
-        QObject.connect(clipboard, SIGNAL('dataChanged()'), self._update_enabled_full)
+        clipboard.dataChanged.connect(self._update_enabled_full)
 
-        QObject.connect(self, SIGNAL('clicked()'), self._paste)
+        self.clicked.connect(self._paste)
 
         self._update_enabled_full()
 
@@ -535,7 +535,7 @@ class ConvertTriggerButton(QPushButton, Updater):
         icon_path = icon_bank.get_icon_path('convert_trigger')
         self.setIcon(QIcon(icon_path))
 
-        QObject.connect(self, SIGNAL('clicked()'), self._convert_trigger)
+        self.clicked.connect(self._convert_trigger)
 
         self._update_enabled()
 
@@ -582,7 +582,7 @@ class ZoomButton(QPushButton, Updater):
         self.setIcon(icon)
 
         self._update_enabled()
-        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+        self.clicked.connect(self._clicked)
 
     def _update_enabled(self):
         zoom = self._sheet_manager.get_zoom()
@@ -651,7 +651,7 @@ class GridToggle(QCheckBox, Updater):
     def _on_setup(self):
         self.register_action('signal_grid', self._update_state)
 
-        QObject.connect(self, SIGNAL('clicked()'), self._set_grid_enabled)
+        self.clicked.connect(self._set_grid_enabled)
 
         self._update_state()
 
@@ -680,7 +680,7 @@ class GridEditorButton(QPushButton, Updater):
     def _on_setup(self):
         self.register_action('signal_grid', self._update_enabled)
 
-        QObject.connect(self, SIGNAL('clicked()'), self._open_grid_editor)
+        self.clicked.connect(self._open_grid_editor)
 
         self._update_enabled()
 
@@ -706,8 +706,7 @@ class GridSelector(KqtComboBox, Updater):
         self.register_action('signal_selection', self._update_selection)
         self.register_action('signal_grid', self._update_selection)
 
-        QObject.connect(
-                self, SIGNAL('activated(int)'), self._change_grid_pattern)
+        self.activated.connect(self._change_grid_pattern)
 
     def _update_list(self):
         self._update_grid_pattern_names()
@@ -881,10 +880,8 @@ class LengthEditor(QWidget, Updater):
 
         self._update_value()
 
-        QObject.connect(
-                self._spinbox, SIGNAL('valueChanged(double)'), self._change_length)
-        QObject.connect(
-                self._spinbox, SIGNAL('editingFinished()'), self._change_length_final)
+        self._spinbox.valueChanged.connect(self._change_length)
+        self._spinbox.editingFinished.connect(self._change_length_final)
 
     def _get_pattern(self):
         module = self._ui_model.get_module()

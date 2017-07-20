@@ -506,7 +506,7 @@ class ProgressWindow(QWidget):
 
         self._show_timer = QTimer()
         self._show_timer.setSingleShot(True)
-        QObject.connect(self._show_timer, SIGNAL('timeout()'), self.show)
+        self._show_timer.timeout.connect(self.show)
 
         self.hide()
 
@@ -568,7 +568,7 @@ class ImportErrorDialog(QDialog):
         self._button_layout.addWidget(ok_button)
         self._button_layout.addStretch(1)
 
-        QObject.connect(ok_button, SIGNAL('clicked()'), self.close)
+        ok_button.clicked.connect(self.close)
 
     def closeEvent(self, event):
         self._on_close()

@@ -40,7 +40,7 @@ class OctaveButton(QPushButton):
         layout.addWidget(led)
         layout.setAlignment(Qt.AlignCenter)
 
-        QObject.connect(self, SIGNAL('clicked()'), self._select_octave)
+        self.clicked.connect(self._select_octave)
 
     def _select_octave(self):
         self._typewriter_manager.set_octave(self._octave_id)

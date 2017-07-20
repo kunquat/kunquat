@@ -117,9 +117,8 @@ class Directory(QWidget, Updater):
     def _on_setup(self):
         self.register_action('signal_settings_dir', self._update_dir)
 
-        QObject.connect(
-                self._text, SIGNAL('textEdited(const QString&)'), self._change_dir_text)
-        QObject.connect(self._browse, SIGNAL('clicked()'), self._change_dir_browse)
+        self._text.textEdited.connect(self._change_dir_text)
+        self._browse.clicked.connect(self._change_dir_browse)
 
         self._update_dir()
 
@@ -176,7 +175,7 @@ class StyleToggle(QCheckBox, Updater):
 
     def _on_setup(self):
         self.register_action('signal_style_changed', self._update_enabled)
-        QObject.connect(self, SIGNAL('stateChanged(int)'), self._change_enabled)
+        self.stateChanged.connect(self._change_enabled)
         self._update_enabled()
 
     def _update_enabled(self):
@@ -201,7 +200,7 @@ class StyleSlider(NumberSlider, Updater):
     def __init__(self, param, min_val, max_val, desc=''):
         super().__init__(2, min_val, max_val, title=desc, width_txt='-0.00')
         self._param = param
-        QObject.connect(self, SIGNAL('numberChanged(float)'), self._change_param)
+        self.numberChanged.connect(self._change_param)
 
     def _on_setup(self):
         self.register_action('signal_style_changed', self._update_param)
@@ -506,7 +505,7 @@ class ColourButton(QPushButton):
         self.setFixedSize(QSize(48, 16))
         self.setAutoFillBackground(True)
 
-        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+        self.clicked.connect(self._clicked)
 
     def get_key(self):
         return self._key
@@ -516,13 +515,13 @@ class ColourButton(QPushButton):
         self.setStyleSheet(style)
 
     def _clicked(self):
-        QObject.emit(self, SIGNAL('colourSelected(QString)'), self._key)
+        self.colourSelected.emit(self._key)
 
 
 class ColourSelector(QWidget):
 
-    colourChanged = Signal('colourChanged()')
-    colourSelected = Signal('colourSelected()')
+    colourChanged = Signal(name='colourChanged')
+    colourSelected = Signal(name='colourSelected')
 
     _STATE_IDLE = 'idle'
     _STATE_EDITING_HUE = 'editing_hue'
@@ -570,7 +569,7 @@ class ColourSelector(QWidget):
         if self._colour != colour:
             self._sv_triangle = None
             self._colour = colour
-            QObject.emit(self, SIGNAL('colourChanged()'))
+            self.colourChanged.emit()
             self.update()
 
     def _get_rel_coords(self, event):
@@ -761,7 +760,7 @@ class ColourSelector(QWidget):
 
     def mouseReleaseEvent(self, event):
         self._state = self._STATE_IDLE
-        QObject.emit(self, SIGNAL('colourSelected()'))
+        self.colourSelected.emit()
 
     def _get_marker_colour(self, colour):
         intensity = colour.red() * 0.212 + colour.green() * 0.715 + colour.blue() * 0.072
@@ -1028,7 +1027,7 @@ class ColourComparison(QWidget):
 
 class ColourEditor(QWidget):
 
-    colourModified = Signal(str, str, 'colourModified')
+    colourModified = Signal(str, str, name='colourModified')
 
     def __init__(self):
         super().__init__()
@@ -1089,17 +1088,14 @@ class ColourEditor(QWidget):
         v.addLayout(bl)
         self.setLayout(v)
 
-        QObject.connect(self._selector, SIGNAL('colourChanged()'), self._change_colour)
-        QObject.connect(self._selector, SIGNAL('colourSelected()'), self._select_colour)
+        self._selector.colourChanged.connect(self._change_colour)
+        self._selector.colourSelected.connect(self._select_colour)
 
-        QObject.connect(
-                self._code_editor,
-                SIGNAL('textEdited(const QString&)'),
-                self._change_code)
+        self._code_editor.textEdited.connect(self._change_code)
 
-        QObject.connect(self._revert_button, SIGNAL('clicked()'), self._revert)
+        self._revert_button.clicked.connect(self._revert)
 
-        QObject.connect(self._accept_button, SIGNAL('clicked()'), self.hide)
+        self._accept_button.clicked.connect(self.hide)
 
     def set_colour(self, key, colour):
         self._key = key
@@ -1143,18 +1139,16 @@ class ColourEditor(QWidget):
         colour = self._selector.get_colour()
         self._update_colour(colour)
         text = utils.get_str_from_colour(colour)
-        QObject.emit(self, SIGNAL('colourModified(QString, QString)'), self._key, text)
+        self.colourModified.emit(self._key, text)
 
     def _change_code(self, text):
         if self._code_editor.hasAcceptableInput():
             self._update_colour(utils.get_colour_from_str(text))
-            QObject.emit(
-                    self, SIGNAL('colourModified(QString, QString)'), self._key, text)
+            self.colourModified.emit(self._key, text)
 
     def _revert(self):
         orig_code = utils.get_str_from_colour(self._orig_colour)
-        QObject.emit(
-                self, SIGNAL('colourModified(QString, QString)'), self._key, orig_code)
+        self.colourModified.emit(self._key, orig_code)
         self.hide()
 
     def sizeHint(self):
@@ -1186,10 +1180,7 @@ class Colours(QTreeView, Updater):
             if isinstance(node, ColourModel):
                 key = node.get_key()
                 button = ColourButton(key)
-                QObject.connect(
-                        button,
-                        SIGNAL('colourSelected(QString)'),
-                        self._open_colour_editor)
+                button.colourSelected.connect(self._open_colour_editor)
                 self.setIndexWidget(index, button)
 
         self.expandAll()
@@ -1197,10 +1188,7 @@ class Colours(QTreeView, Updater):
         self.resizeColumnToContents(0)
         self.setColumnWidth(1, 48)
 
-        QObject.connect(
-                self._colour_editor,
-                SIGNAL('colourModified(QString, QString)'),
-                self._update_colour)
+        self._colour_editor.colourModified.connect(self._update_colour)
 
         self._update_all()
 

@@ -141,6 +141,6 @@ class OutOfIDsErrorDialog(QDialog):
         self._button_layout.addWidget(ok_button)
         self._button_layout.addStretch(1)
 
-        QObject.connect(ok_button, SIGNAL('clicked()'), self.close)
+        ok_button.clicked.connect(self.close)
 
 

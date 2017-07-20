@@ -57,9 +57,7 @@ class EventListModel(QAbstractTableModel):
         else:
             self._log = log
 
-        QObject.emit(
-                self,
-                SIGNAL('dataChanged(QModelIndex, QModelIndex)'),
+        self.dataChanged.emit(
                 self.index(0, 0),
                 self.index(len(self._log) - 1, len(self.HEADERS) - 1))
 
@@ -105,14 +103,8 @@ class EventTable(QTableView):
         self._focusbottom = True
 
         vscrollbar = self.verticalScrollBar()
-        QObject.connect(
-                vscrollbar,
-                SIGNAL('rangeChanged(int, int)'),
-                self._on_rangeChanged)
-        QObject.connect(
-                vscrollbar,
-                SIGNAL('valueChanged(int)'),
-                self._on_valueChanged)
+        vscrollbar.rangeChanged.connect(self._on_rangeChanged)
+        vscrollbar.valueChanged.connect(self._on_valueChanged)
 
     def setModel(self, model):
         super().setModel(model)
@@ -142,7 +134,7 @@ class EventFilterButton(QCheckBox):
         self._updater = None
         self._context = context
 
-        QObject.connect(self, SIGNAL('clicked(bool)'), self._on_clicked)
+        self.clicked.connect(self._on_clicked)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model

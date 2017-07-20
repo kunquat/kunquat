@@ -133,8 +133,8 @@ class LoadHistoryContainer(QWidget):
         h.addWidget(self._load_history)
         self.setLayout(h)
 
-        QObject.connect(self._zoom_in_button, SIGNAL('clicked()'), self._zoom_in)
-        QObject.connect(self._zoom_out_button, SIGNAL('clicked()'), self._zoom_out)
+        self._zoom_in_button.clicked.connect(self._zoom_in)
+        self._zoom_out_button.clicked.connect(self._zoom_out)
 
         self._update_step_width()
 

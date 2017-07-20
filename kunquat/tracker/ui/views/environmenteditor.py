@@ -134,7 +134,7 @@ class VarNameEditor(QLineEdit, Updater):
         self._var_name = None
 
     def _on_setup(self):
-        QObject.connect(self, SIGNAL('editingFinished()'), self._change_name)
+        self.editingFinished.connect(self._change_name)
 
     def set_var_name(self, name):
         self._var_name = name
@@ -187,7 +187,7 @@ class VarTypeEditor(KqtComboBox, Updater):
             type_name = var_type_names[t]
             self.addItem(type_name)
 
-        QObject.connect(self, SIGNAL('currentIndexChanged(int)'), self._change_type)
+        self.currentIndexChanged.connect(self._change_type)
 
     def set_var_name(self, name):
         self._var_name = name
@@ -239,22 +239,10 @@ class VarValueEditor(QWidget, Updater):
             s.addWidget(self._editors[t])
         self.setLayout(s)
 
-        QObject.connect(
-                self._editors[bool],
-                SIGNAL('stateChanged(int)'),
-                self._change_bool_value)
-        QObject.connect(
-                self._editors[int],
-                SIGNAL('editingFinished()'),
-                self._change_int_value)
-        QObject.connect(
-                self._editors[float],
-                SIGNAL('editingFinished()'),
-                self._change_float_value)
-        QObject.connect(
-                self._editors[tstamp.Tstamp],
-                SIGNAL('editingFinished()'),
-                self._change_tstamp_value)
+        self._editors[bool].stateChanged.connect(self._change_bool_value)
+        self._editors[int].editingFinished.connect(self._change_int_value)
+        self._editors[float].editingFinished.connect(self._change_float_value)
+        self._editors[tstamp.Tstamp].editingFinished.connect(self._change_tstamp_value)
 
     def set_var_name(self, name):
         self._var_name = name
@@ -323,7 +311,7 @@ class VarRemoveButton(QPushButton, Updater):
         icon_bank = self._ui_model.get_icon_bank()
         self.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
 
-        QObject.connect(self, SIGNAL('clicked()'), self._remove)
+        self.clicked.connect(self._remove)
 
     def set_var_name(self, name):
         self._var_name = name
@@ -357,12 +345,9 @@ class VariableAdder(QWidget, Updater):
 
         self._update_used_names()
 
-        QObject.connect(
-                self._var_name, SIGNAL('textChanged(QString)'), self._text_changed)
-        QObject.connect(
-                self._var_name, SIGNAL('returnPressed()'), self._add_new_var)
-        QObject.connect(
-                self._var_add_button, SIGNAL('clicked()'), self._add_new_var)
+        self._var_name.textChanged.connect(self._text_changed)
+        self._var_name.returnPressed.connect(self._add_new_var)
+        self._var_add_button.clicked.connect(self._add_new_var)
 
     def _get_used_names(self):
         module = self._ui_model.get_module()

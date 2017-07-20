@@ -55,7 +55,7 @@ class GainCompProc(QWidget, ProcessorUpdater):
         self._asym_mapping.configure_max_node_count()
         self._sym_mapping.configure_max_node_count()
 
-        QObject.connect(self._sym_toggle, SIGNAL('stateChanged(int)'), self._change_sym)
+        self._sym_toggle.stateChanged.connect(self._change_sym)
 
         self._update_sym()
 

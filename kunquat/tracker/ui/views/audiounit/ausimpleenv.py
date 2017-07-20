@@ -42,13 +42,8 @@ class AudioUnitSimpleEnvelope(QWidget, AudioUnitUpdater):
 
         self._envelope.set_icon_bank(self._ui_model.get_icon_bank())
 
-        QObject.connect(
-                self._enabled_toggle,
-                SIGNAL('stateChanged(int)'),
-                self._enabled_changed)
-        QObject.connect(
-                self._envelope.get_envelope_view(),
-                SIGNAL('envelopeChanged()'),
+        self._enabled_toggle.stateChanged.connect(self._enabled_changed)
+        self._envelope.get_envelope_view().envelopeChanged.connect(
                 self._envelope_changed)
 
         self._update_envelope()

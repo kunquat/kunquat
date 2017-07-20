@@ -168,7 +168,7 @@ class Ruler(QWidget, Updater):
     def _set_pattern_heights(self):
         self._heights = utils.get_pat_heights(self._lengths, self._px_per_beat)
         self._start_heights = utils.get_pat_start_heights(self._heights)
-        QObject.emit(self, SIGNAL('heightChanged()'))
+        self.heightChanged.emit()
 
     def set_px_offset(self, offset):
         changed = offset != self._px_offset

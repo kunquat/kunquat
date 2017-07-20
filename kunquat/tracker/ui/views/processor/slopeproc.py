@@ -49,7 +49,7 @@ class AbsoluteToggle(QCheckBox, ProcessorUpdater):
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_absolute)
 
-        QObject.connect(self, SIGNAL('stateChanged(int)'), self._change_absolute)
+        self.stateChanged.connect(self._change_absolute)
 
         self._update_absolute()
 

@@ -53,21 +53,12 @@ class RangeMapProc(QWidget, ProcessorUpdater):
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_all)
 
-        QObject.connect(
-                self._from_min, SIGNAL('valueChanged(double)'), self._set_from_min)
-        QObject.connect(
-                self._from_max, SIGNAL('valueChanged(double)'), self._set_from_max)
-        QObject.connect(self._min_to, SIGNAL('valueChanged(double)'), self._set_min_to)
-        QObject.connect(self._max_to, SIGNAL('valueChanged(double)'), self._set_max_to)
-
-        QObject.connect(
-                self._clamp_dest_min,
-                SIGNAL('stateChanged(int)'),
-                self._set_clamp_dest_min)
-        QObject.connect(
-                self._clamp_dest_max,
-                SIGNAL('stateChanged(int)'),
-                self._set_clamp_dest_max)
+        self._from_min.valueChanged.connect(self._set_from_min)
+        self._from_max.valueChanged.connect(self._set_from_max)
+        self._min_to.valueChanged.connect(self._set_min_to)
+        self._max_to.valueChanged.connect(self._set_max_to)
+        self._clamp_dest_min.stateChanged.connect(self._set_clamp_dest_min)
+        self._clamp_dest_max.stateChanged.connect(self._set_clamp_dest_max)
 
         self._update_all()
 

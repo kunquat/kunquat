@@ -166,7 +166,7 @@ class HitBankButton(QPushButton):
         self.setCheckable(True)
         self.setText(str(self._index)) # TODO: maybe something more descriptive?
 
-        QObject.connect(self, SIGNAL('clicked()'), self._select_bank)
+        self.clicked.connect(self._select_bank)
 
     def set_pressed(self, pressed):
         old_block = self.blockSignals(True)
@@ -210,7 +210,7 @@ class HitButton(QPushButton):
 
         self._update_text()
 
-        QObject.connect(self, SIGNAL('clicked()'), self._select_hit)
+        self.clicked.connect(self._select_hit)
 
     def _update_text(self):
         index = self._index_base + self._index_offset

@@ -177,8 +177,7 @@ class Connections(QAbstractScrollArea):
 
     def set_ui_model(self, ui_model):
         self.viewport().set_ui_model(ui_model)
-        QObject.connect(
-                self.viewport(), SIGNAL('positionsChanged()'), self._update_scrollbars)
+        self.viewport().positionsChanged.connect(self._update_scrollbars)
         self._update_scrollbars()
 
     def unregister_updaters(self):
@@ -298,10 +297,8 @@ class ConnectionsView(QWidget):
         self._pressed_dev_id = None
 
         self._edge_menu = EdgeMenu(self)
-        QObject.connect(
-                self._edge_menu, SIGNAL('aboutToHide()'), self._edge_menu_closing)
-        QObject.connect(
-                self._edge_menu, SIGNAL('triggered(QAction*)'), self._remove_edge)
+        self._edge_menu.aboutToHide.connect(self._edge_menu_closing)
+        self._edge_menu.triggered.connect(self._remove_edge)
 
         self._config = None
 
@@ -717,7 +714,7 @@ class ConnectionsView(QWidget):
                             if dev_id in excluded else 'hilight_selected')
 
         # Update finished
-        QObject.emit(self, SIGNAL('positionsChanged()'))
+        self.positionsChanged.emit()
         self.update()
 
     def _split_path(self, path):
@@ -1402,8 +1399,8 @@ class RemoveDeviceConfirmDialog(ConfirmDialog):
         b.addWidget(self._cancel_button)
         b.addWidget(self._remove_button)
 
-        QObject.connect(self._cancel_button, SIGNAL('clicked()'), self.close)
-        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._perform_action)
+        self._cancel_button.clicked.connect(self.close)
+        self._remove_button.clicked.connect(self._perform_action)
 
     def _perform_action(self):
         self._action_on_confirm()

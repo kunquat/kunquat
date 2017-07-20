@@ -76,7 +76,7 @@ class NameEditor(QLineEdit, AudioUnitUpdater):
             self._update_contents()
 
     def _on_setup(self):
-        QObject.connect(self, SIGNAL('editingFinished()'), self._change_name_handler)
+        self.editingFinished.connect(self._change_name_handler)
         self._update_contents()
 
     def set_used_names(self, used_names):
@@ -118,7 +118,7 @@ class RemoveButton(QPushButton, AudioUnitUpdater):
         icon_bank = self._ui_model.get_icon_bank()
         self.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
 
-        QObject.connect(self, SIGNAL('clicked()'), self._remove)
+        self.clicked.connect(self._remove)
 
     # Protected interface
 
@@ -202,7 +202,7 @@ class StreamAdder(QPushButton, AudioUnitUpdater):
         self.setText('Add new stream')
 
     def _on_setup(self):
-        QObject.connect(self, SIGNAL('clicked()'), self._add_new_entry)
+        self.clicked.connect(self._add_new_entry)
 
     def _add_new_entry(self):
         module = self._ui_model.get_module()
@@ -279,8 +279,7 @@ class StreamTargetProcEditor(KqtComboBox, AudioUnitUpdater):
         self.register_action(
                 'signal_connections_{}'.format(self._au_id), self._update_contents)
         self.register_action('signal_controls', self._update_contents)
-        QObject.connect(
-                self, SIGNAL('currentIndexChanged(int)'), self._change_target_proc_id)
+        self.currentIndexChanged.connect(self._change_target_proc_id)
         self._update_contents()
 
     def _update_contents(self):
@@ -472,7 +471,7 @@ class ControlVariableEditor(QWidget, AudioUnitUpdater):
             self._update_contents()
 
     def _on_setup(self):
-        QObject.connect(self._expander, SIGNAL('clicked(bool)'), self._toggle_expand)
+        self._expander.clicked.connect(self._toggle_expand)
         self._update_contents()
 
     def set_used_names(self, used_names):
@@ -586,7 +585,7 @@ class ControlVariableTypeEditor(KqtComboBox, AudioUnitUpdater):
             type_name = var_type_names[t]
             self.addItem(type_name)
 
-        QObject.connect(self, SIGNAL('currentIndexChanged(int)'), self._change_type)
+        self.currentIndexChanged.connect(self._change_type)
 
         self._update_contents()
 
@@ -655,34 +654,19 @@ class ControlVariableValueEditor(QWidget):
 
         if var_type == bool:
             self._editor = QCheckBox()
-            QObject.connect(
-                    self._editor,
-                    SIGNAL('stateChanged(int)'),
-                    self._change_bool_value)
-
+            self._editor.stateChanged.connect(self._change_bool_value)
         elif var_type == int:
             self._editor = QLineEdit()
             self._editor.setValidator(IntValidator())
-            QObject.connect(
-                    self._editor,
-                    SIGNAL('editingFinished()'),
-                    self._change_int_value)
-
+            self._editor.editingFinished.connect(self._change_int_value)
         elif var_type == float:
             self._editor = QLineEdit()
             self._editor.setValidator(FloatValidator())
-            QObject.connect(
-                    self._editor,
-                    SIGNAL('editingFinished()'),
-                    self._change_float_value)
-
+            self._editor.editingFinished.connect(self._change_float_value)
         elif var_type == tstamp.Tstamp:
             self._editor = QLineEdit()
             self._editor.setValidator(FloatValidator())
-            QObject.connect(
-                    self._editor,
-                    SIGNAL('editingFinished()'),
-                    self._change_tstamp_value)
+            self._editor.editingFinished.connect(self._change_tstamp_value)
         else:
             assert False
         '''
@@ -783,7 +767,7 @@ class ControlVariableAdder(QPushButton, AudioUnitUpdater):
         self.setText('Add new variable')
 
     def _on_setup(self):
-        QObject.connect(self, SIGNAL('clicked()'), self._add_new_entry)
+        self.clicked.connect(self._add_new_entry)
 
     def _add_new_entry(self):
         module = self._ui_model.get_module()
@@ -985,8 +969,7 @@ class BindTargetDeviceSelector(KqtComboBox, AudioUnitUpdater):
         self.register_action(
                 'signal_connections_{}'.format(self._au_id), self._update_contents)
         self.register_action('signal_controls', self._update_contents)
-        QObject.connect(
-                self, SIGNAL('currentIndexChanged(int)'), self._change_target_dev_id)
+        self.currentIndexChanged.connect(self._change_target_dev_id)
         self._update_contents()
 
     def _get_internal_dev_ids(self):
@@ -1126,7 +1109,7 @@ class BindTargetVariableTypeEditor(KqtComboBox, AudioUnitUpdater):
             type_name = var_type_names[t]
             self.addItem(type_name)
 
-        QObject.connect(self, SIGNAL('currentIndexChanged(int)'), self._change_type)
+        self.currentIndexChanged.connect(self._change_type)
 
         self._update_contents()
 
@@ -1201,10 +1184,7 @@ class BindTargetExpressionEditor(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
-        QObject.connect(
-                self._editor,
-                SIGNAL('textChanged(QString)'),
-                self._change_expression)
+        self._editor.textChanged.connect(self._change_expression)
 
         self._update_expression()
 
@@ -1267,7 +1247,7 @@ class BindTargetAdder(QPushButton, AudioUnitUpdater):
         self._context = context
 
     def _on_setup(self):
-        QObject.connect(self, SIGNAL('clicked()'), self._add_new_entry)
+        self.clicked.connect(self._add_new_entry)
 
     def _add_new_entry(self):
         module = self._ui_model.get_module()

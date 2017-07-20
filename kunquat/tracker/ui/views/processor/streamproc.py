@@ -70,12 +70,9 @@ class InitStateEditor(QWidget, ProcessorUpdater):
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_state)
 
-        QObject.connect(
-                self._init_val, SIGNAL('valueChanged(double)'), self._set_init_value)
-        QObject.connect(
-                self._osc_speed, SIGNAL('valueChanged(double)'), self._set_osc_speed)
-        QObject.connect(
-                self._osc_depth, SIGNAL('valueChanged(double)'), self._set_osc_depth)
+        self._init_val.valueChanged.connect(self._set_init_value)
+        self._osc_speed.valueChanged.connect(self._set_osc_speed)
+        self._osc_depth.valueChanged.connect(self._set_osc_depth)
 
         self._update_state()
 

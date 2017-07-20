@@ -86,9 +86,9 @@ class ExitUnsavedConfirmDialog(ConfirmDialog):
 
         self._cancel_button.setFocus(Qt.PopupFocusReason)
 
-        QObject.connect(self._save_button, SIGNAL('clicked()'), self._perform_save)
-        QObject.connect(self._discard_button, SIGNAL('clicked()'), self._perform_discard)
-        QObject.connect(self._cancel_button, SIGNAL('clicked()'), self.close)
+        self._save_button.clicked.connect(self._perform_save)
+        self._discard_button.clicked.connect(self._perform_discard)
+        self._cancel_button.clicked.connect(self.close)
 
     def _perform_save(self):
         self._action_save()

@@ -120,7 +120,7 @@ class RampReleaseToggle(QCheckBox, ProcessorUpdater):
                 'signal_force_release_envelope_{}'.format(self._proc_id),
                 self._update_state)
 
-        QObject.connect(self, SIGNAL('stateChanged(int)'), self._state_changed)
+        self.stateChanged.connect(self._state_changed)
 
         self._update_state()
 

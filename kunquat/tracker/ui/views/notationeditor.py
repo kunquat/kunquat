@@ -106,8 +106,8 @@ class NotationListToolBar(QToolBar, Updater):
         self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
 
-        QObject.connect(self._add_button, SIGNAL('clicked()'), self._add_notation)
-        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_notation)
+        self._add_button.clicked.connect(self._add_notation)
+        self._remove_button.clicked.connect(self._remove_notation)
 
         self._update_enabled()
 
@@ -239,10 +239,7 @@ class NotationListView(QListView, Updater):
             selection_model.select(
                     model.get_index(selected_notation_id), QItemSelectionModel.Select)
 
-        QObject.connect(
-                selection_model,
-                SIGNAL('currentChanged(const QModelIndex&, const QModelIndex&)'),
-                self._select_entry)
+        selection_model.currentChanged.connect(self._select_entry)
 
 
 class Notations(QWidget, Updater):
@@ -301,9 +298,8 @@ class TuningTableListToolBar(QToolBar, Updater):
         self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
 
-        QObject.connect(self._add_button, SIGNAL('clicked()'), self._add_tuning_table)
-        QObject.connect(
-                self._remove_button, SIGNAL('clicked()'), self._remove_tuning_table)
+        self._add_button.clicked.connect(self._add_tuning_table)
+        self._remove_button.clicked.connect(self._remove_tuning_table)
 
         self._update_enabled()
 
@@ -455,10 +451,7 @@ class TuningTableListView(QTableView, Updater):
             selection_model.select(
                     model.get_index(selected_table_id), QItemSelectionModel.Select)
 
-        QObject.connect(
-                selection_model,
-                SIGNAL('currentChanged(const QModelIndex&, const QModelIndex&)'),
-                self._select_entry)
+        selection_model.currentChanged.connect(self._select_entry)
 
 
 class TuningTables(QWidget, Updater):
@@ -487,7 +480,7 @@ class TuningTables(QWidget, Updater):
         self.register_action('signal_tuning_tables', self._update_model)
         self.register_action('signal_tuning_table_selection', self._update_selection)
 
-        QObject.connect(self._edit_button, SIGNAL('clicked()'), self._open_editor)
+        self._edit_button.clicked.connect(self._open_editor)
 
         self._update_model()
         self._update_selection()
@@ -545,9 +538,8 @@ class Template(QWidget, Updater):
         self.register_action('signal_notation_template_notes', self._update_enabled)
         self.register_action('signal_tuning_tables', self._update_enabled)
 
-        QObject.connect(self._create_button, SIGNAL('clicked()'), self._create)
-        QObject.connect(
-                self._create_tt_button, SIGNAL('clicked()'), self._create_tuning_table)
+        self._create_button.clicked.connect(self._create)
+        self._create_tt_button.clicked.connect(self._create_tuning_table)
 
         self._update_enabled()
 
@@ -629,9 +621,8 @@ class CentrePitch(QWidget, Updater):
         self.register_action('signal_notation_editor_selection', self._update_all)
         self.register_action('signal_notation_template_centre_pitch', self._update_all)
 
-        QObject.connect(self._value, SIGNAL('valueChanged(double)'), self._change_centre)
-        QObject.connect(
-                self._units, SIGNAL('currentIndexChanged(int)'), self._change_units)
+        self._value.valueChanged.connect(self._change_centre)
+        self._units.currentIndexChanged.connect(self._change_units)
 
         self._update_all()
 
@@ -754,7 +745,7 @@ class OctaveRatio(QWidget, Updater):
         self.register_action('signal_notation_editor_selection', self._update_all)
         self.register_action('signal_notation_template_octave_ratio', self._update_all)
 
-        QObject.connect(self._ratio, SIGNAL('editingFinished()'), self._change_ratio)
+        self._ratio.editingFinished.connect(self._change_ratio)
 
         self._update_all()
 
@@ -816,9 +807,9 @@ class TemplateOctaves(QWidget, Updater):
         self.register_action('signal_notation_editor_selection', self._update_all)
         self.register_action('signal_notation_template_octaves', self._update_all)
 
-        QObject.connect(self._lowest, SIGNAL('valueChanged(int)'), self._change_lowest)
-        QObject.connect(self._centre, SIGNAL('valueChanged(int)'), self._change_centre)
-        QObject.connect(self._highest, SIGNAL('valueChanged(int)'), self._change_highest)
+        self._lowest.valueChanged.connect(self._change_lowest)
+        self._centre.valueChanged.connect(self._change_centre)
+        self._highest.valueChanged.connect(self._change_highest)
 
         self._update_all()
 
@@ -913,8 +904,8 @@ class TemplateNotesToolBar(QToolBar, Updater):
         self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
 
-        QObject.connect(self._add_button, SIGNAL('clicked()'), self._add_note)
-        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_note)
+        self._add_button.clicked.connect(self._add_note)
+        self._remove_button.clicked.connect(self._remove_note)
 
         self._update_enabled()
 
@@ -1098,10 +1089,7 @@ class TemplateNoteTableView(QTableView, Updater):
             selection_model.select(
                     model.get_index(row, column), QItemSelectionModel.Select)
 
-        QObject.connect(
-                selection_model,
-                SIGNAL('currentChanged(const QModelIndex&, const QModelIndex&)'),
-                self._select_entry)
+        selection_model.currentChanged.connect(self._select_entry)
 
 
 class TemplateNotes(QWidget, Updater):
@@ -1168,10 +1156,9 @@ class OctaveListToolBar(QToolBar, Updater):
         self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
 
-        QObject.connect(self._add_button, SIGNAL('clicked()'), self._add_octave)
-        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_octave)
-        QObject.connect(
-                self._set_base_button, SIGNAL('clicked()'), self._set_base_octave)
+        self._add_button.clicked.connect(self._add_octave)
+        self._remove_button.clicked.connect(self._remove_octave)
+        self._set_base_button.clicked.connect(self._set_base_octave)
 
         self._update_enabled()
 
@@ -1323,10 +1310,7 @@ class OctaveListView(QListView, Updater):
             selection_model.select(
                     model.get_index(selected_octave_id), QItemSelectionModel.Select)
 
-        QObject.connect(
-                selection_model,
-                SIGNAL('currentChanged(const QModelIndex&, const QModelIndex&)'),
-                self._select_entry)
+        selection_model.currentChanged.connect(self._select_entry)
 
 
 class Octaves(QWidget, Updater):
@@ -1399,8 +1383,8 @@ class NoteListToolBar(QToolBar, Updater):
         self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
 
-        QObject.connect(self._add_button, SIGNAL('clicked()'), self._add_note)
-        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_note)
+        self._add_button.clicked.connect(self._add_note)
+        self._remove_button.clicked.connect(self._remove_note)
 
         self._update_enabled()
 
@@ -1505,10 +1489,7 @@ class NoteListView(QListView, Updater):
             selection_model.select(
                     model.get_index(selected_note_index), QItemSelectionModel.Select)
 
-        QObject.connect(
-                selection_model,
-                SIGNAL('currentChanged(const QModelIndex&, const QModelIndex&)'),
-                self._select_entry)
+        selection_model.currentChanged.connect(self._select_entry)
 
 
 class Notes(QWidget, Updater):
@@ -1584,9 +1565,8 @@ class Note(QWidget, Updater):
         self.register_action('signal_notation_editor_notes', self._update_all)
         self.register_action('signal_notation_editor_note_selection', self._update_all)
 
-        QObject.connect(self._cents, SIGNAL('valueChanged(double)'), self._change_cents)
-        QObject.connect(
-                self._name, SIGNAL('textChanged(const QString&)'), self._change_name)
+        self._cents.valueChanged.connect(self._change_cents)
+        self._name.textChanged.connect(self._change_name)
 
         self._update_all()
 
@@ -1687,7 +1667,7 @@ class KeyCount(QWidget, Updater):
         self.register_action('signal_notation_editor_octaves', self._update_all)
         self.register_action('signal_notation_editor_octave_selection', self._update_all)
 
-        QObject.connect(self._count, SIGNAL('valueChanged(int)'), self._change_key_count)
+        self._count.valueChanged.connect(self._change_key_count)
 
         self._update_all()
 
@@ -1728,7 +1708,7 @@ class KeyButton(QPushButton, Updater):
         self.setCheckable(True)
 
     def _on_setup(self):
-        QObject.connect(self, SIGNAL('clicked()'), self._select_key)
+        self.clicked.connect(self._select_key)
 
     def set_pressed(self, pressed):
         old_block = self.blockSignals(True)
@@ -1845,8 +1825,8 @@ class KeyEditor(QWidget, Updater):
         self.register_action('signal_notation_editor_key_selection', self._update_all)
         self.register_action('signal_notation_editor_key', self._update_all)
 
-        QObject.connect(self._enabled, SIGNAL('stateChanged(int)'), self._set_enabled)
-        QObject.connect(self._cents, SIGNAL('valueChanged(double)'), self._set_cents)
+        self._enabled.stateChanged.connect(self._set_enabled)
+        self._cents.valueChanged.connect(self._set_cents)
 
         self._update_all()
 
@@ -1927,7 +1907,7 @@ class KeyNoteSelector(KqtComboBox, Updater):
                 'signal_notation_editor_key_selection', self._update_selection)
         self.register_action('signal_notation_editor_key', self._update_selection)
 
-        QObject.connect(self, SIGNAL('activated(int)'), self._select_note)
+        self.activated.connect(self._select_note)
 
         self._update_notes()
 

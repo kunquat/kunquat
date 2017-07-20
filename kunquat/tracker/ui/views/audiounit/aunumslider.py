@@ -25,7 +25,7 @@ class AuNumSlider(NumberSlider, AudioUnitUpdater):
     def _on_setup(self):
         self.register_action('signal_au', self._update_value)
         self.register_action(self._get_update_signal_type(), self._update_value)
-        QObject.connect(self, SIGNAL('numberChanged(float)'), self._value_changed)
+        self.numberChanged.connect(self._value_changed)
         self._update_value()
 
     # Protected interface
