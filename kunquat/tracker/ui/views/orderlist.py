@@ -180,7 +180,7 @@ class AlbumTreeModel(QAbstractItemModel, Updater):
         items = [self._get_item(index) for index in index_list]
         serialised = json.dumps(items)
         mimedata = QMimeData()
-        mimedata.setData('application/json', serialised)
+        mimedata.setData('application/json', bytes(serialised, encoding='utf-8'))
         return mimedata
 
     def dropMimeData(self, mimedata, action, row, col, parent):
@@ -190,7 +190,7 @@ class AlbumTreeModel(QAbstractItemModel, Updater):
             return False
 
         data = mimedata.data('application/json')
-        items = json.loads(str(data))
+        items = json.loads(str(data, encoding='utf-8'))
         assert len(items) == 1
         item = items[0]
 
