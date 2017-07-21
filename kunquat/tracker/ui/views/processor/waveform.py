@@ -79,14 +79,18 @@ class Waveform(QWidget):
 
         # Draw the centre line
         centre_y = self.height() / 2
-        painter.setPen(self._config['centre_line_colour'])
+        pen = QPen(self._config['centre_line_colour'])
+        pen.setCosmetic(True)
+        painter.setPen(pen)
         painter.drawLine(0, centre_y, self.width() - 1, centre_y)
 
         # Draw the waveform
         painter.setTransform(QTransform().translate(0, 0.5).scale(
             self.width() / float(sample_count), -(self.height() - 1) / 2.0).translate(
                 0, -1))
-        painter.setPen(self._config['waveform_colour'])
+        pen = QPen(self._config['waveform_colour'])
+        pen.setCosmetic(True)
+        painter.setPen(pen)
         painter.setRenderHint(QPainter.Antialiasing)
 
         assert self._path != None

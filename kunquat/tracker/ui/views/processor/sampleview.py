@@ -597,18 +597,24 @@ class Shape():
 
         for i, shape in enumerate(self._shapes):
             # Centre line
-            painter.setPen(config['centre_line_colour'])
+            pen = QPen(config['centre_line_colour'])
+            pen.setCosmetic(True)
+            painter.setPen(pen)
             painter.drawLine(QPointF(0, 0), QPointF(self._centre_line_length, 0))
 
             if isinstance(shape, QPolygonF):
                 # Filled blob
-                painter.setPen(config['zoomed_out_colour'])
+                pen = QPen(config['zoomed_out_colour'])
+                pen.setCosmetic(True)
+                painter.setPen(pen)
                 painter.setBrush(config['zoomed_out_colour'])
                 painter.drawPolygon(shape)
 
             elif isinstance(shape, QPainterPath):
                 # Line that connects the samples
-                painter.setPen(config['interp_colour'])
+                pen = QPen(config['interp_colour'])
+                pen.setCosmetic(True)
+                painter.setPen(pen)
                 painter.setBrush(Qt.NoBrush)
                 painter.drawPath(shape)
 
