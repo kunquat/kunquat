@@ -21,8 +21,8 @@ from .axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
 from .utils import lerp_val
 
 
-_font = QFont(QFont().defaultFamily(), 9)
-_font.setWeight(QFont.Bold)
+_font = QFont(QFont().defaultFamily(), 9, QFont.Bold)
+_font.setStretch(85)
 
 
 AXIS_CONFIG = {
