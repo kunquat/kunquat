@@ -24,11 +24,12 @@ from .linesegment import LineSegment
 from . import utils
 
 
-_title_font = QFont(QFont().defaultFamily(), 10)
-_title_font.setWeight(QFont.Bold)
+_title_font = QFont(QFont().defaultFamily(), 10, QFont.Bold)
+_title_font.setStretch(90)
 
-_port_font = QFont(QFont().defaultFamily(), 8)
-_port_font.setWeight(QFont.Bold)
+_port_font = QFont(QFont().defaultFamily(), 8, QFont.Bold)
+_port_font.setPointSizeF(7.5)
+_port_font.setStretch(90)
 
 
 DEFAULT_CONFIG = {
