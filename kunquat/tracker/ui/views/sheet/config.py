@@ -14,6 +14,11 @@
 from kunquat.tracker.ui.qt import *
 
 
+_HEADER_FONT = QFont(QFont().defaultFamily(), 11, QFont.Bold)
+_HEADER_FONT.setPointSizeF(10.5)
+_HEADER_FONT.setStretch(85)
+
+
 DEFAULT_CONFIG = {
     'ruler': {
         'bg_colour'         : QColor(0x11, 0x22, 0x55),
@@ -32,7 +37,7 @@ DEFAULT_CONFIG = {
         'bg_colour'    : QColor(0x22, 0x44, 0x22),
         'fg_colour'    : QColor(0xcc, 0xee, 0xaa),
         'border_colour': QColor(0x55, 0x77, 0x55),
-        'font'         : QFont(QFont().defaultFamily(), 11, QFont.Bold),
+        'font'         : _HEADER_FONT,
         'padding_x'    : 2,
     },
     'col_width'         : 12, # unit is em

@@ -122,7 +122,7 @@ class ColumnHeader(QWidget):
         self._config = config
 
         fm = QFontMetrics(self._config['header']['font'], self)
-        self._text_height = fm.boundingRect('Ág').height()
+        self._text_height = fm.boundingRect('Ág').height() + 1
         self._baseline_offset = fm.tightBoundingRect('Á').height()
 
     def set_width(self, width):
@@ -154,6 +154,7 @@ class ColumnHeader(QWidget):
             text = str(self._num)
 
         rect = fm.tightBoundingRect(text)
+        rect.setRight(rect.right() + 1)
         rect.setHeight(self._text_height)
         self._pixmap = QPixmap(rect.size())
 
