@@ -1021,7 +1021,9 @@ class EnvelopeView(QWidget):
             #t = et * QTransform().translate(0, ph - 1).scale(pw - 1, -ph + 1)
             pp.setTransform(t)
 
-            pp.setPen(QColor(self._config['line_colour']))
+            pen = QPen(self._config['line_colour'])
+            pen.setCosmetic(True)
+            pp.setPen(pen)
             pp.setRenderHint(QPainter.Antialiasing)
             pp.drawPath(self._curve_path)
 
