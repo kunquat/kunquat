@@ -85,8 +85,8 @@ class RandomListMap(QWidget, ProcessorUpdater):
         'remove_dist_min'          : 200,
     }
 
-    _FONT = QFont(QFont().defaultFamily(), 9)
-    _FONT.setWeight(QFont.Bold)
+    _FONT = QFont(QFont().defaultFamily(), 9, QFont.Bold)
+    _FONT.setStretch(85)
 
     _AXIS_CONFIG = {
         'axis_x': {
