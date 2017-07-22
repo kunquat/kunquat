@@ -161,8 +161,8 @@ class LoadHistoryContainer(QWidget):
         self._update_step_width()
 
 
-_font = QFont(QFont().defaultFamily(), 9)
-_font.setWeight(QFont.Bold)
+_font = QFont(QFont().defaultFamily(), 9, QFont.Bold)
+_font.setStretch(85)
 
 
 AXIS_CONFIG = {
