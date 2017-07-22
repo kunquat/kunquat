@@ -481,6 +481,8 @@ class LoadHistory(QWidget, Updater):
             pen.setCosmetic(True)
             pen.setWidthF(self._config['line_thickness'])
 
+            img_painter.save()
+            img_painter.translate(0, 1.5)
             pen.setColor(self._config['max_line_colour'])
             img_painter.setPen(pen)
             offset_y = padding + strike_offset
@@ -490,6 +492,7 @@ class LoadHistory(QWidget, Updater):
             img_painter.setPen(pen)
             offset_y = padding + text_height + padding + strike_offset
             img_painter.drawLine(0, offset_y, line_length, offset_y)
+            img_painter.restore()
 
             # Texts
             img_painter.translate(line_length + padding, 0)
