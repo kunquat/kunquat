@@ -1090,11 +1090,11 @@ class Samples(QSplitter, ProcessorUpdater):
         self.add_to_updaters(
                 self._sample_list, self._sample_editor, self._keyboard_mapper)
 
-        h = QHBoxLayout()
-        h.setSpacing(4)
-        h.addWidget(self._sample_list, 1)
-        h.addWidget(self._sample_editor, 2)
-        self.setLayout(h)
+        self.addWidget(self._sample_list)
+        self.addWidget(self._sample_editor)
+
+        self.setStretchFactor(0, 1)
+        self.setStretchFactor(1, 2)
 
     def keyPressEvent(self, event):
         module = self._ui_model.get_module()
