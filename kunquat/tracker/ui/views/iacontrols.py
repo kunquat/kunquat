@@ -13,8 +13,7 @@
 
 import string
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 import kunquat.tracker.ui.model.tstamp as tstamp
 from .editorlist import EditorList
@@ -49,7 +48,7 @@ class InfiniteToggle(QCheckBox, Updater):
 
     def _on_setup(self):
         self.register_action('infinite_mode', self._update_inf_setting)
-        QObject.connect(self, SIGNAL('stateChanged(int)'), self._toggle_infinite_mode)
+        self.stateChanged.connect(self._toggle_infinite_mode)
         self._update_inf_setting()
 
     def _update_inf_setting(self):
@@ -161,22 +160,10 @@ class RuntimeVarValueEditor(QWidget, Updater):
             s.addWidget(self._editors[t])
         self.setLayout(s)
 
-        QObject.connect(
-                self._editors[bool],
-                SIGNAL('stateChanged(int)'),
-                self._change_bool_value)
-        QObject.connect(
-                self._editors[int],
-                SIGNAL('editingFinished()'),
-                self._change_int_value)
-        QObject.connect(
-                self._editors[float],
-                SIGNAL('editingFinished()'),
-                self._change_float_value)
-        QObject.connect(
-                self._editors[tstamp.Tstamp],
-                SIGNAL('editingFinished()'),
-                self._change_tstamp_value)
+        self._editors[bool].stateChanged.connect(self._change_bool_value)
+        self._editors[int].editingFinished.connect(self._change_int_value)
+        self._editors[float].editingFinished.connect(self._change_float_value)
+        self._editors[tstamp.Tstamp].editingFinished.connect(self._change_tstamp_value)
 
     def set_var_name(self, name):
         self._var_name = name

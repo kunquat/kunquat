@@ -99,6 +99,7 @@ QScrollBar::sub-line:pressed
 /* Base style for sunken containers */
 
 QCheckBox::indicator,
+QProgressBar,
 QRadioButton::indicator,
 QSlider::groove:horizontal
 {
@@ -322,6 +323,19 @@ QHeaderView::section:vertical
 QLabel
 {
     background-color: transparent;
+}
+
+QProgressBar
+{
+    background-color: <scrollbar_bg_colour>;
+    color: <fg_colour>;
+    text-align: center;
+}
+
+QProgressBar::chunk
+{
+    background-color: <text_selected_bg_colour>;
+    color: <text_selected_fg_colour>;
 }
 
 QAbstractScrollArea

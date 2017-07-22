@@ -13,8 +13,7 @@
 
 import math
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 
 class AbstractAxisRenderer():
@@ -270,6 +269,7 @@ class HorizontalAxisRenderer(AbstractAxisRenderer):
             rect = QRectF(
                     px_centre - width / 2.0, marker_width - 1,
                     width, self._num_space.height())
+            rect.translate(0, 1)
             painter.drawText(rect, text, text_option)
 
         zero_x = (self._axis_y_offset_x + self._config['axis_y']['width'] -
@@ -355,6 +355,7 @@ class VerticalAxisRenderer(AbstractAxisRenderer):
                     px_y - self._num_space.height() / 2,
                     self._config['axis_y']['width'] - marker_width - 2,
                     self._num_space.height())
+            rect.translate(0, 1)
             painter.drawText(rect, text, text_option)
 
         zero_y = self._axis_length - self._axis_x_offset_y + self._padding - 1

@@ -12,8 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from .kqtcombobox import KqtComboBox
 
@@ -45,10 +44,7 @@ class NotationSelect(QWidget):
         self._notation_manager = ui_model.get_notation_manager()
         self._typewriter_manager = ui_model.get_typewriter_manager()
 
-        QObject.connect(
-                self._notations,
-                SIGNAL("currentIndexChanged(int)"),
-                self._select_notation)
+        self._notations.currentIndexChanged.connect(self._select_notation)
 
         self._update_enabled()
         self._update_notations()

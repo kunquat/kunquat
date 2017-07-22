@@ -15,15 +15,14 @@ from itertools import count, islice
 import math
 import time
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from .axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
 from .utils import lerp_val
 
 
-_font = QFont(QFont().defaultFamily(), 9)
-_font.setWeight(QFont.Bold)
+_font = QFont(QFont().defaultFamily(), 9, QFont.Bold)
+_font.setStretch(85)
 
 
 AXIS_CONFIG = {
@@ -134,11 +133,9 @@ class Envelope(QWidget):
         h.addWidget(self._area)
         self.setLayout(h)
 
-        QObject.connect(self._zoom_in_x_button, SIGNAL('clicked()'), self._zoom_in_x)
-        QObject.connect(self._zoom_out_x_button, SIGNAL('clicked()'), self._zoom_out_x)
-        QObject.connect(
-                self._area.get_envelope_view(),
-                SIGNAL('visRangeNormChanged()'),
+        self._zoom_in_x_button.clicked.connect(self._zoom_in_x)
+        self._zoom_out_x_button.clicked.connect(self._zoom_out_x)
+        self._area.get_envelope_view().visRangeNormChanged.connect(
                 self._update_zoom_buttons_enabled)
 
     def set_icon_bank(self, icon_bank):
@@ -188,10 +185,7 @@ class EnvelopeArea(QAbstractScrollArea):
         self.setViewport(EnvelopeView(init_config))
         self.viewport().setFocusProxy(None)
 
-        QObject.connect(
-                self.viewport(),
-                SIGNAL('visRangeNormChanged()'),
-                self._update_scrollbars)
+        self.viewport().visRangeNormChanged.connect(self._update_scrollbars)
 
     def get_envelope_view(self):
         return self.viewport()
@@ -432,7 +426,7 @@ class EnvelopeView(QWidget):
                     self.set_y_range(min_y, max_y)
 
                 if ranges_changed:
-                    QObject.emit(self, SIGNAL('visRangeNormChanged()'))
+                    self.visRangeNormChanged.emit()
                     self._flush_vis()
 
             if (self._moving_node_vis and
@@ -494,7 +488,7 @@ class EnvelopeView(QWidget):
 
         self._vis_range_x = new_vis_min_x, new_vis_max_x
 
-        QObject.emit(self, SIGNAL('visRangeNormChanged()'))
+        self.visRangeNormChanged.emit()
 
         self._flush_vis()
 
@@ -527,7 +521,7 @@ class EnvelopeView(QWidget):
         self._vis_range_x = self._get_zoom_out_range(
                 self._vis_range_x, self._full_vis_range_x)
 
-        QObject.emit(self, SIGNAL('visRangeNormChanged()'))
+        self.visRangeNormChanged.emit()
 
         self._flush_vis()
         self.update()
@@ -536,7 +530,7 @@ class EnvelopeView(QWidget):
         self._vis_range_y = self._get_zoom_out_range(
                 self._vis_range_y, self._full_vis_range_y)
 
-        QObject.emit(self, SIGNAL('visRangeNormChanged()'))
+        self.visRangeNormChanged.emit()
 
         self._flush_vis()
         self.update()
@@ -765,7 +759,7 @@ class EnvelopeView(QWidget):
                     if new_loop_markers != self._loop_markers:
                         self._loop_markers_changed = new_loop_markers
 
-                    QObject.emit(self, SIGNAL('envelopeChanged()'))
+                    self.envelopeChanged.emit()
 
                     self._state = STATE_IDLE
                     self._focused_node = None
@@ -832,7 +826,7 @@ class EnvelopeView(QWidget):
                     self._nodes[:self._moving_index] +
                     [new_coords] +
                     self._nodes[self._moving_index + 1:])
-            QObject.emit(self, SIGNAL('envelopeChanged()'))
+            self.envelopeChanged.emit()
 
             self._focused_node = new_coords
 
@@ -878,7 +872,7 @@ class EnvelopeView(QWidget):
 
             if new_loop_markers != self._loop_markers:
                 self._loop_markers_changed = new_loop_markers
-                QObject.emit(self, SIGNAL('envelopeChanged()'))
+                self.envelopeChanged.emit()
 
         elif self._state == STATE_IDLE:
             focused_node = self._find_focused_node(vt, pointer_vis)
@@ -970,7 +964,7 @@ class EnvelopeView(QWidget):
                 if new_loop_markers != self._loop_markers:
                     self._loop_markers_changed = new_loop_markers
 
-                QObject.emit(self, SIGNAL('envelopeChanged()'))
+                self.envelopeChanged.emit()
 
                 self._state = STATE_WAITING
                 self._set_focused_node(new_node)
@@ -1027,7 +1021,9 @@ class EnvelopeView(QWidget):
             #t = et * QTransform().translate(0, ph - 1).scale(pw - 1, -ph + 1)
             pp.setTransform(t)
 
-            pp.setPen(QColor(self._config['line_colour']))
+            pen = QPen(self._config['line_colour'])
+            pen.setCosmetic(True)
+            pp.setPen(pen)
             pp.setRenderHint(QPainter.Antialiasing)
             pp.drawPath(self._curve_path)
 

@@ -16,8 +16,7 @@ from itertools import count, islice
 import math
 import time
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 import kunquat.kunquat.events as events
 from kunquat.kunquat.limits import *
@@ -67,7 +66,7 @@ class FieldEdit(QLineEdit):
 
         self._finished_callback = None
 
-        QObject.connect(self, SIGNAL('editingFinished()'), self._finished)
+        self.editingFinished.connect(self._finished)
 
     def _finished(self):
         assert self._finished_callback
@@ -178,10 +177,7 @@ class View(QWidget):
         for cr in self._col_rends:
             cr.set_ui_model(ui_model)
 
-        QObject.connect(
-                self, SIGNAL('checkFixFocus()'),
-                self._check_fix_focus,
-                Qt.QueuedConnection)
+        self.checkFixFocus.connect(self._check_fix_focus, Qt.QueuedConnection)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
@@ -297,9 +293,7 @@ class View(QWidget):
                     (0 <= edit_col_num - self._first_col < max_visible_cols)):
                 self._follow_edit_cursor()
             else:
-                signal = SIGNAL('followCursor(QString, int)')
-                QObject.emit(
-                        self, signal, str(self._edit_px_offset), self._edit_first_col)
+                self.followCursor.emit(str(self._edit_px_offset), self._edit_first_col)
 
     def _rearrange_patterns(self):
         self._pinsts = utils.get_all_pattern_instances(self._ui_model)
@@ -375,7 +369,7 @@ class View(QWidget):
         for cr in self._col_rends:
             cr.set_pattern_heights(self._heights, self._start_heights)
 
-        QObject.emit(self, SIGNAL('heightChanged()'))
+        self.heightChanged.emit()
 
     def get_total_height(self):
         return sum(self._heights)
@@ -409,8 +403,7 @@ class View(QWidget):
             # Adjust vertical position so that edit cursor maintains its height
             new_cursor_offset = self._get_row_offset(location, absolute=True) or 0
             new_px_offset = new_cursor_offset - orig_relative_offset
-            signal = SIGNAL('followCursor(QString, int)')
-            QObject.emit(self, signal, str(new_px_offset), self._first_col)
+            self.followCursor.emit(str(new_px_offset), self._first_col)
 
     def set_column_width(self, col_width):
         if self._col_width != col_width:
@@ -448,8 +441,7 @@ class View(QWidget):
             max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
             new_first_col = utils.clamp_start_col(new_first_col, max_visible_cols)
 
-            signal = SIGNAL('followCursor(QString, int)')
-            QObject.emit(self, signal, str(self._px_offset), new_first_col)
+            self.followCursor.emit(str(self._px_offset), new_first_col)
 
     def _get_col_offset(self, col_num):
         max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
@@ -605,8 +597,7 @@ class View(QWidget):
             new_y_offset = new_y_offset + (y_offset - max_y_offset)
 
         if is_view_scrolling_required:
-            signal = SIGNAL('followCursor(QString, int)')
-            QObject.emit(self, signal, str(new_y_offset), new_first_col)
+            self.followCursor.emit(str(new_y_offset), new_first_col)
         else:
             self.update()
 
@@ -1595,12 +1586,12 @@ class View(QWidget):
                 max_visible_cols = utils.get_max_visible_cols(
                         self.width(), self._col_width)
                 first_col = utils.clamp_start_col(self._first_col + 1, max_visible_cols)
-                QObject.emit(self, SIGNAL('followPlaybackColumn(int)'), first_col)
+                self.followPlaybackColumn.emit(first_col)
                 return True
             elif event.key() == Qt.Key_Backtab:
                 event.accept()
                 first_col = max(0, self._first_col - 1)
-                QObject.emit(self, SIGNAL('followPlaybackColumn(int)'), first_col)
+                self.followPlaybackColumn.emit(first_col)
                 return True
 
         def handle_move_up():
@@ -2087,7 +2078,7 @@ class View(QWidget):
         if (self._force_focus_on_enable and
                 event.type() == QEvent.EnabledChange and
                 self.isEnabled()):
-            QObject.emit(self, SIGNAL('checkFixFocus()'))
+            self.checkFixFocus.emit()
         event.ignore()
 
     def mousePressEvent(self, event):

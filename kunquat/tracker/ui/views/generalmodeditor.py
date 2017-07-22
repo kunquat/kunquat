@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from .numberslider import NumberSlider
 from .updater import Updater
@@ -90,7 +89,7 @@ class Title(QLineEdit, Updater):
     def _on_setup(self):
         self.register_action('signal_title', self._update_title)
 
-        QObject.connect(self, SIGNAL('textEdited(const QString&)'), self._change_title)
+        self.textEdited.connect(self._change_title)
 
         self._update_title()
 
@@ -250,7 +249,7 @@ class Message(QTextEdit, Updater):
 
     def _on_setup(self):
         self.register_action('signal_module_message', self._update_message)
-        QObject.connect(self, SIGNAL('textChanged()'), self._change_message)
+        self.textChanged.connect(self._change_message)
         self._update_message()
 
     def _update_message(self):
@@ -281,7 +280,7 @@ class MixingVolume(QDoubleSpinBox, Updater):
     def _on_setup(self):
         self.register_action('signal_mixing_volume', self._update_mixing_volume)
 
-        QObject.connect(self, SIGNAL('valueChanged(double)'), self._change_mixing_volume)
+        self.valueChanged.connect(self._change_mixing_volume)
 
         self._update_mixing_volume()
 
@@ -307,7 +306,7 @@ class ForceShift(NumberSlider, Updater):
     def _on_setup(self):
         self.register_action('signal_force_shift', self._update_shift)
 
-        QObject.connect(self, SIGNAL('numberChanged(float)'), self._change_shift)
+        self.numberChanged.connect(self._change_shift)
 
         self._update_shift()
 
@@ -329,7 +328,7 @@ class DCBlocker(QCheckBox, Updater):
     def _on_setup(self):
         self.register_action('signal_dc_blocker', self._update_enabled)
 
-        QObject.connect(self, SIGNAL('stateChanged(int)'), self._change_enabled)
+        self.stateChanged.connect(self._change_enabled)
 
         self._update_enabled()
 
@@ -366,9 +365,8 @@ class RandomSeed(QWidget, Updater):
     def _on_setup(self):
         self.register_action('signal_random_seed', self._update_all)
 
-        QObject.connect(self._seed, SIGNAL('valueChanged()'), self._change_random_seed)
-        QObject.connect(
-                self._auto_update, SIGNAL('stateChanged(int)'), self._change_auto_update)
+        self._seed.valueChanged.connect(self._change_random_seed)
+        self._auto_update.stateChanged.connect(self._change_auto_update)
 
         self._update_all()
 
@@ -410,8 +408,7 @@ class UInt63SpinBox(QAbstractSpinBox):
 
         line_edit = self.lineEdit()
         line_edit.setText(str(self._value))
-        QObject.connect(
-                line_edit, SIGNAL('textChanged(const QString&)'), self._change_value)
+        line_edit.textChanged.connect(self._change_value)
 
     def set_value(self, value):
         old_block = self.blockSignals(True)
@@ -430,7 +427,7 @@ class UInt63SpinBox(QAbstractSpinBox):
             return
 
         self.set_value(value)
-        QObject.emit(self, SIGNAL('valueChanged()'))
+        self.valueChanged.emit()
 
     def stepEnabled(self):
         if self.wrapping():
@@ -460,7 +457,7 @@ class UInt63SpinBox(QAbstractSpinBox):
         line_edit.setText(str(self._value))
         line_edit.blockSignals(old_block)
 
-        QObject.emit(self, SIGNAL('valueChanged()'))
+        self.valueChanged.emit()
         self.update()
 
     def text(self):

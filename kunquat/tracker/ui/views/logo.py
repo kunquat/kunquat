@@ -12,9 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
-from PySide.QtSvg import QSvgRenderer
+from kunquat.tracker.ui.qt import *
 
 from .updater import Updater
 

@@ -15,8 +15,6 @@ from itertools import repeat
 from multiprocessing import Lock, Process, Queue
 from queue import Empty
 
-from PySide.QtCore import *
-
 from kunquat.tracker.ui.uilauncher import create_ui_launcher
 
 

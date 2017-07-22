@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from .hitmaptoggle import HitMapToggle
 from .notationselect import NotationSelect
@@ -47,7 +46,7 @@ class InputControls(QWidget, Updater):
         self.add_to_updaters(self._full_controls, self._compact_controls)
         self.register_action('signal_input_control_layout', self._show_controls)
 
-        QObject.connect(self._switch_button, SIGNAL('clicked()'), self._switch_controls)
+        self._switch_button.clicked.connect(self._switch_controls)
 
         self._show_controls()
 

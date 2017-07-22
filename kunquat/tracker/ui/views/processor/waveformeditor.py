@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
@@ -59,10 +58,7 @@ class WaveformEditor(QWidget, ProcessorUpdater):
         self._update_style()
         self._update_all()
 
-        QObject.connect(
-                self._base_func_selector,
-                SIGNAL('currentIndexChanged(int)'),
-                self._base_func_selected)
+        self._base_func_selector.currentIndexChanged.connect(self._base_func_selected)
 
     def _update_style(self):
         style_manager = self._ui_model.get_style_manager()
@@ -191,7 +187,7 @@ class WarpAdder(QPushButton, ProcessorUpdater):
         self.setText(self._add_text)
 
     def _on_setup(self):
-        QObject.connect(self, SIGNAL('clicked()'), self._add_warp)
+        self.clicked.connect(self._add_warp)
 
     def _add_warp(self):
         base_wave = self._get_base_wave()
@@ -261,14 +257,11 @@ class WarpEditor(QWidget, ProcessorUpdater):
 
         self._update_all()
 
-        QObject.connect(self._down_button, SIGNAL('clicked()'), self._moved_down)
-        QObject.connect(self._up_button, SIGNAL('clicked()'), self._moved_up)
-        QObject.connect(
-                self._func_selector,
-                SIGNAL('currentIndexChanged(int)'),
-                self._func_selected)
-        QObject.connect(self._slider, SIGNAL('valueChanged(int)'), self._slider_adjusted)
-        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._removed)
+        self._down_button.clicked.connect(self._moved_down)
+        self._up_button.clicked.connect(self._moved_up)
+        self._func_selector.currentIndexChanged.connect(self._func_selected)
+        self._slider.valueChanged.connect(self._slider_adjusted)
+        self._remove_button.clicked.connect(self._removed)
 
     def _update_all(self):
         base_wave = self._get_base_wave()

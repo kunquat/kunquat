@@ -15,8 +15,7 @@ import os
 import sys
 import traceback
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.errorbase import *
 
@@ -70,8 +69,8 @@ class ErrorDialog(QDialog):
         v.addItem(h)
         self.setLayout(v)
 
-        QObject.connect(self, SIGNAL('exceptionReceived(QString)'), self._show_dialog)
-        QObject.connect(self._closebutton, SIGNAL('clicked()'), self.close)
+        self.exceptionReceived.connect(self._show_dialog)
+        self._closebutton.clicked.connect(self.close)
 
         sys.excepthook = self._excepthook
 
@@ -93,7 +92,7 @@ class ErrorDialog(QDialog):
         log_error(eclass, einst, trace)
         details = get_error_details(eclass, einst, trace)
 
-        QObject.emit(self, SIGNAL('exceptionReceived(QString)'), details)
+        self.exceptionReceived.emit(details)
 
     def _show_dialog(self, details):
         details = str(details)

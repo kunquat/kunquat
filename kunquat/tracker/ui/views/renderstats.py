@@ -14,8 +14,7 @@
 
 import time
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from .axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
 from .profilecontrol import ProfileControl
@@ -134,8 +133,8 @@ class LoadHistoryContainer(QWidget):
         h.addWidget(self._load_history)
         self.setLayout(h)
 
-        QObject.connect(self._zoom_in_button, SIGNAL('clicked()'), self._zoom_in)
-        QObject.connect(self._zoom_out_button, SIGNAL('clicked()'), self._zoom_out)
+        self._zoom_in_button.clicked.connect(self._zoom_in)
+        self._zoom_out_button.clicked.connect(self._zoom_out)
 
         self._update_step_width()
 
@@ -162,8 +161,8 @@ class LoadHistoryContainer(QWidget):
         self._update_step_width()
 
 
-_font = QFont(QFont().defaultFamily(), 9)
-_font.setWeight(QFont.Bold)
+_font = QFont(QFont().defaultFamily(), 9, QFont.Bold)
+_font.setStretch(85)
 
 
 AXIS_CONFIG = {
@@ -482,6 +481,8 @@ class LoadHistory(QWidget, Updater):
             pen.setCosmetic(True)
             pen.setWidthF(self._config['line_thickness'])
 
+            img_painter.save()
+            img_painter.translate(0, 1.5)
             pen.setColor(self._config['max_line_colour'])
             img_painter.setPen(pen)
             offset_y = padding + strike_offset
@@ -491,6 +492,7 @@ class LoadHistory(QWidget, Updater):
             img_painter.setPen(pen)
             offset_y = padding + text_height + padding + strike_offset
             img_painter.drawLine(0, offset_y, line_length, offset_y)
+            img_painter.restore()
 
             # Texts
             img_painter.translate(line_length + padding, 0)

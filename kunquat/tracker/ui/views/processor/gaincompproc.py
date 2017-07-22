@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.envelope import Envelope
 from .procsimpleenv import ProcessorSimpleEnvelope
@@ -56,7 +55,7 @@ class GainCompProc(QWidget, ProcessorUpdater):
         self._asym_mapping.configure_max_node_count()
         self._sym_mapping.configure_max_node_count()
 
-        QObject.connect(self._sym_toggle, SIGNAL('stateChanged(int)'), self._change_sym)
+        self._sym_toggle.stateChanged.connect(self._change_sym)
 
         self._update_sym()
 

@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 
 class NumberSlider(QWidget):
@@ -53,7 +52,7 @@ class NumberSlider(QWidget):
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
 
-        QObject.connect(self._slider, SIGNAL('valueChanged(int)'), self._number_changed)
+        self._slider.valueChanged.connect(self._number_changed)
 
         self.set_number(min_val)
 
@@ -77,7 +76,7 @@ class NumberSlider(QWidget):
 
     def _number_changed(self, int_val):
         val = int_val / float(self._scale)
-        QObject.emit(self, SIGNAL('numberChanged(float)'), val)
+        self.numberChanged.emit(val)
 
     def sizeHint(self):
         return self._slider.sizeHint()

@@ -12,8 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 
 class TWLight(QWidget):
@@ -116,8 +115,8 @@ class TypewriterButton(QPushButton):
         self.setFocusPolicy(Qt.NoFocus)
 
         self.setEnabled(False)
-        QObject.connect(self, SIGNAL('pressed()'), self._press)
-        QObject.connect(self, SIGNAL('released()'), self._release)
+        self.pressed.connect(self._press)
+        self.released.connect(self._release)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model

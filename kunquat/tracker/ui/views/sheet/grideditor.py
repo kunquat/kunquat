@@ -14,8 +14,7 @@
 import math
 import time
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.model.gridpattern import STYLE_COUNT
@@ -122,10 +121,8 @@ class GridListView(QListView, Updater):
         self.setSelectionMode(QAbstractItemView.SingleSelection)
 
     def _on_setup(self):
-        for signal_type in ('clicked', 'activated'):
-            signal = '{}(const QModelIndex&)'.format(signal_type)
-            QObject.connect(
-                    self, SIGNAL(signal), self._select_grid_pattern)
+        self.clicked.connect(self._select_grid_pattern)
+        self.activated.connect(self._select_grid_pattern)
 
     def _select_grid_pattern(self, index):
         item = self.model().get_item(index)
@@ -187,9 +184,8 @@ class GridListToolBar(QToolBar, Updater):
         self.register_action('signal_grid_pattern_list', self._update_all)
         self.register_action('signal_grid_pattern_selection', self._update_all)
 
-        QObject.connect(self._new_button, SIGNAL('clicked()'), self._add_grid_pattern)
-        QObject.connect(
-                self._remove_button, SIGNAL('clicked()'), self._remove_grid_pattern)
+        self._new_button.clicked.connect(self._add_grid_pattern)
+        self._remove_button.clicked.connect(self._remove_grid_pattern)
 
         self._update_all()
 
@@ -296,8 +292,7 @@ class GridArea(QAbstractScrollArea, Updater):
 
         self.add_to_updaters(self._ruler, self.viewport())
 
-        QObject.connect(
-                self.viewport(), SIGNAL('followCursor(QString)'), self._follow_cursor)
+        self.viewport().followCursor.connect(self._follow_cursor)
 
         self._update_selected_grid_pattern()
 
@@ -485,7 +480,7 @@ class GridView(QWidget, Updater):
             # Adjust vertical position so that edit cursor maintains its height
             new_cursor_offset = utils.get_px_from_tstamp(selected_line_ts, px_per_beat)
             new_px_offset = new_cursor_offset - orig_relative_offset
-            QObject.emit(self, SIGNAL('followCursor(QString)'), str(new_px_offset))
+            self.followCursor.emit(str(new_px_offset))
 
     def get_total_height(self):
         grid_manager = self._ui_model.get_grid_manager()
@@ -525,7 +520,7 @@ class GridView(QWidget, Updater):
             new_px_offset = self._px_offset + (cursor_rel_y - max_y_offset)
 
         if is_scrolling_required:
-            QObject.emit(self, SIGNAL('followCursor(QString)'), str(new_px_offset))
+            self.followCursor.emit(str(new_px_offset))
 
         self.update()
 
@@ -749,24 +744,12 @@ class GeneralEditor(QWidget, Updater):
 
         self._update_config()
 
-        QObject.connect(
-                self._name, SIGNAL('textEdited(QString)'), self._change_name)
+        self._name.textEdited.connect(self._change_name)
+        self._length.valueChanged.connect(self._change_length)
+        self._spacing_style.currentIndexChanged.connect(self._select_spacing_style)
+        self._spacing_value.valueChanged.connect(self._change_spacing)
 
-        QObject.connect(
-                self._length, SIGNAL('valueChanged(double)'), self._change_length)
-
-        QObject.connect(
-                self._spacing_style,
-                SIGNAL('currentIndexChanged(int)'),
-                self._select_spacing_style)
-
-        QObject.connect(
-                self._spacing_value,
-                SIGNAL('valueChanged(double)'),
-                self._change_spacing)
-
-        QObject.connect(
-                self._offset, SIGNAL('valueChanged(double)'), self._change_offset)
+        self._offset.valueChanged.connect(self._change_offset)
 
         self._update_all()
 
@@ -914,18 +897,10 @@ class SubdivEditor(QWidget, Updater):
 
         self._update_config()
 
-        QObject.connect(
-                self._subdiv_count, SIGNAL('valueChanged(int)'), self._change_count)
-
-        QObject.connect(
-                self._subdiv_line_style,
-                SIGNAL('currentIndexChanged(int)'),
-                self._change_line_style)
-
-        QObject.connect(
-                self._subdiv_warp, SIGNAL('numberChanged(float)'), self._change_warp)
-
-        QObject.connect(self._subdiv_apply, SIGNAL('clicked()'), self._apply_subdivision)
+        self._subdiv_count.valueChanged.connect(self._change_count)
+        self._subdiv_line_style.currentIndexChanged.connect(self._change_line_style)
+        self._subdiv_warp.numberChanged.connect(self._change_warp)
+        self._subdiv_apply.clicked.connect(self._apply_subdivision)
 
         self._update_all()
 
@@ -1031,12 +1006,8 @@ class LineEditor(QWidget, Updater):
 
         self._update_config()
 
-        QObject.connect(
-                self._line_style,
-                SIGNAL('currentIndexChanged(int)'),
-                self._change_line_style)
-        QObject.connect(
-                self._remove_button, SIGNAL('clicked()'), self._remove_selected_line)
+        self._line_style.currentIndexChanged.connect(self._change_line_style)
+        self._remove_button.clicked.connect(self._remove_selected_line)
 
         self._update_all()
 

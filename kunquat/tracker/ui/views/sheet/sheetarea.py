@@ -14,8 +14,7 @@
 import math
 import time
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
@@ -125,18 +124,9 @@ class SheetArea(QAbstractScrollArea, Updater):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
-        QObject.connect(
-                self.viewport(),
-                SIGNAL('heightChanged()'),
-                self._update_scrollbars)
-        QObject.connect(
-                self.viewport(),
-                SIGNAL('followCursor(QString, int)'),
-                self._follow_cursor)
-        QObject.connect(
-                self.viewport(),
-                SIGNAL('followPlaybackColumn(int)'),
-                self._follow_playback_column)
+        self.viewport().heightChanged.connect(self._update_scrollbars)
+        self.viewport().followCursor.connect(self._follow_cursor)
+        self.viewport().followPlaybackColumn.connect(self._follow_playback_column)
 
     def _on_setup(self):
         self.register_action('signal_sheet_zoom', self._update_zoom)

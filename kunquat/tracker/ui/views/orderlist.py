@@ -14,8 +14,7 @@
 
 import json
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.model.patterninstance import PatternInstance
 from kunquat.tracker.ui.model.song import Song
@@ -181,7 +180,7 @@ class AlbumTreeModel(QAbstractItemModel, Updater):
         items = [self._get_item(index) for index in index_list]
         serialised = json.dumps(items)
         mimedata = QMimeData()
-        mimedata.setData('application/json', serialised)
+        mimedata.setData('application/json', bytes(serialised, encoding='utf-8'))
         return mimedata
 
     def dropMimeData(self, mimedata, action, row, col, parent):
@@ -191,7 +190,7 @@ class AlbumTreeModel(QAbstractItemModel, Updater):
             return False
 
         data = mimedata.data('application/json')
-        items = json.loads(str(data))
+        items = json.loads(str(data, encoding='utf-8'))
         assert len(items) == 1
         item = items[0]
 
@@ -329,10 +328,7 @@ class Orderlist(QWidget, Updater):
                     index = self._album_tree_model.get_song_index(track_num)
                     self._album_tree.setCurrentIndex(index)
 
-        QObject.connect(
-            self._album_tree.selectionModel(),
-            SIGNAL('currentChanged(const QModelIndex&, const QModelIndex&)'),
-            self._change_selection)
+        self._album_tree.selectionModel().currentChanged.connect(self._change_selection)
 
     def get_selected_object(self):
         selection_model = self._album_tree.selectionModel()

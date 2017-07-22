@@ -15,8 +15,7 @@ import cProfile
 import pstats
 from io import StringIO
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from .kqtcombobox import KqtComboBox
 
@@ -48,15 +47,11 @@ class ProfileControl(QDialog):
         self._sort_selector = KqtComboBox()
         for sort in sorted(self.SORTS.keys()):
             self._sort_selector.addItem(sort)
-        QObject.connect(
-                self._sort_selector,
-                SIGNAL('currentIndexChanged(QString)'),
-                self._update_sort)
+        self._sort_selector.currentIndexChanged.connect(self._update_sort)
 
         self._toggle = QPushButton()
         self._toggle.setText('Start profiling')
-        QObject.connect(
-                self._toggle, SIGNAL('clicked()'), self._toggle_profiling)
+        self._toggle.clicked.connect(self._toggle_profiling)
 
         self._details = QTextEdit()
         self._details.setAcceptRichText(False)

@@ -13,8 +13,7 @@
 
 import re
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.kunquat.limits import *
 from .kqtcombobox import KqtComboBox
@@ -82,26 +81,12 @@ class TuningTableEditor(QWidget, Updater):
         self.register_action('signal_tuning_tables', self._update_name)
         self.register_action(self._get_update_signal_type(), self._update_params)
 
-        QObject.connect(
-                self._name, SIGNAL('textChanged(const QString&)'), self._change_name)
-        QObject.connect(
-                self._ref_pitch, SIGNAL('valueChanged(double)'), self._change_ref_pitch)
-        QObject.connect(
-                self._pitch_offset,
-                SIGNAL('valueChanged(double)'),
-                self._change_pitch_offset)
-        QObject.connect(
-                self._octave_width,
-                SIGNAL('editingFinished()'),
-                self._change_octave_width)
-        QObject.connect(
-                self._centre_octave,
-                SIGNAL('valueChanged(int)'),
-                self._change_centre_octave)
-        QObject.connect(
-                self._tuning_centre,
-                SIGNAL('currentIndexChanged(int)'),
-                self._change_tuning_centre)
+        self._name.textChanged.connect(self._change_name)
+        self._ref_pitch.valueChanged.connect(self._change_ref_pitch)
+        self._pitch_offset.valueChanged.connect(self._change_pitch_offset)
+        self._octave_width.editingFinished.connect(self._change_octave_width)
+        self._centre_octave.valueChanged.connect(self._change_centre_octave)
+        self._tuning_centre.currentIndexChanged.connect(self._change_tuning_centre)
 
         self._update_name()
         self._update_params()
@@ -237,8 +222,8 @@ class NotesToolBar(QToolBar, Updater):
         self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
 
-        QObject.connect(self._add_button, SIGNAL('clicked()'), self._add_note)
-        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_note)
+        self._add_button.clicked.connect(self._add_note)
+        self._remove_button.clicked.connect(self._remove_note)
 
         self._update_enabled()
 
@@ -439,10 +424,7 @@ class NoteTableView(QTableView, Updater):
             selection_model.select(
                     model.get_index(row, column), QItemSelectionModel.Select)
 
-        QObject.connect(
-                selection_model,
-                SIGNAL('currentChanged(const QModelIndex&, const QModelIndex&)'),
-                self._select_entry)
+        selection_model.currentChanged.connect(self._select_entry)
 
 
 class Notes(QWidget, Updater):

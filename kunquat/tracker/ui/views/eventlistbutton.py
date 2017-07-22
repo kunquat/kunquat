@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from . import utils
 
@@ -37,7 +36,7 @@ class EventLight(QWidget):
         self._light_norm = 0
 
         self._refresh_timer = QTimer()
-        QObject.connect(self._refresh_timer, SIGNAL('timeout()'), self._update_vis)
+        self._refresh_timer.timeout.connect(self._update_vis)
         self._refresh_timer.start(self._config['delta'] * 1000)
 
     def set_config(self, config):
@@ -90,7 +89,7 @@ class EventListButton(QToolButton):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
-        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+        self.clicked.connect(self._clicked)
 
         self._update_style()
 

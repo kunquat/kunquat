@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
@@ -59,7 +58,7 @@ class MaxDelay(QDoubleSpinBox, ProcessorUpdater):
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_value)
         self._update_value()
-        QObject.connect(self, SIGNAL('valueChanged(double)'), self._value_changed)
+        self.valueChanged.connect(self._value_changed)
 
     def _get_update_signal_type(self):
         return '_'.join(('signal_proc_delay', self._proc_id))

@@ -13,8 +13,7 @@
 
 from itertools import chain
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from .aukeyboardmapper import AudioUnitKeyboardMapper
@@ -143,8 +142,7 @@ class TestExpression(KqtComboBox, AudioUnitUpdater):
         self.register_action(
                 'signal_expr_list_{}'.format(self._au_id), self._update_expression_list)
 
-        QObject.connect(
-                self, SIGNAL('currentIndexChanged(int)'), self._change_expression)
+        self.currentIndexChanged.connect(self._change_expression)
 
         if self._index == 1:
             # Apply instrument default as the initial note expression

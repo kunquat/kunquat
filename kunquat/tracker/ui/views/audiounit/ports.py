@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
@@ -157,7 +156,7 @@ class PortAdder(QPushButton, AudioUnitUpdater):
         self._get_free_port_id = get_free_port_id
 
     def _on_setup(self):
-        QObject.connect(self, SIGNAL('clicked()'), self._add_port)
+        self.clicked.connect(self._add_port)
 
     def _get_update_signal_type(self):
         return 'signal_au_ports_{}'.format(self._au_id)
@@ -209,12 +208,8 @@ class PortEditor(QWidget, AudioUnitUpdater):
 
         self.register_action(self._get_update_signal_type(), self._update_all)
 
-        QObject.connect(
-                self._name_editor,
-                SIGNAL('textChanged(const QString&)'),
-                self._change_name)
-
-        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove)
+        self._name_editor.textChanged.connect(self._change_name)
+        self._remove_button.clicked.connect(self._remove)
 
         self._update_all()
 

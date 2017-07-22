@@ -13,8 +13,7 @@
 
 import math
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.kunquat.limits import *
 from kunquat.tracker.ui.views.headerline import HeaderLine
@@ -120,7 +119,7 @@ class HitEnabled(QCheckBox, AudioUnitUpdater):
     def _on_setup(self):
         self.register_action(
                 _get_update_signal_type(self._au_id), self._update_existence)
-        QObject.connect(self, SIGNAL('stateChanged(int)'), self._change_existence)
+        self.stateChanged.connect(self._change_existence)
 
         self._update_existence()
 
@@ -156,7 +155,7 @@ class HitName(QWidget, AudioUnitUpdater):
 
     def _on_setup(self):
         self.register_action(_get_update_signal_type(self._au_id), self._update_name)
-        QObject.connect(self._edit, SIGNAL('textEdited(QString)'), self._change_name)
+        self._edit.textEdited.connect(self._change_name)
 
         self._update_name()
 

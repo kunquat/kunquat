@@ -12,9 +12,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
-
 import os
 import re
 import sys
@@ -22,12 +19,13 @@ import time
 import json
 from collections import deque
 
+from kunquat.tracker.ui.qt import *
+
 import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.config as config
-from kunquat.tracker.ui.model.uimodel import create_ui_model
-from kunquat.tracker.ui.errordialog import ErrorDialog
-from kunquat.tracker.ui.views.rootview import RootView
 from kunquat.tracker.ui.controller.controller import create_controller
+from kunquat.tracker.ui.model.uimodel import create_ui_model
+# NOTE: Qt view modules must be imported after creating a QApplication; see run_ui
 
 
 class UiLauncher():
@@ -125,11 +123,15 @@ class UiLauncher():
 
     def run_ui(self):
         app = QApplication(sys.argv)
+
+        from kunquat.tracker.ui.errordialog import ErrorDialog
+        from kunquat.tracker.ui.views.rootview import RootView
+
         error_dialog = ErrorDialog()
         root_view = RootView()
 
         update_timer = QTimer()
-        QObject.connect(update_timer, SIGNAL('timeout()'), self.update)
+        update_timer.timeout.connect(self.update)
         update_timer.start(1000 * self.UI_DELTA)
 
         root_view.set_ui_model(self._ui_model)
@@ -137,7 +139,7 @@ class UiLauncher():
 
         self._task_timer = QTimer()
         self._task_timer.setSingleShot(True)
-        QObject.connect(self._task_timer, SIGNAL('timeout()'), self._execute_tasks)
+        self._task_timer.timeout.connect(self._execute_tasks)
 
         if not self._show:
             visibility_manager = self._ui_model.get_visibility_manager()

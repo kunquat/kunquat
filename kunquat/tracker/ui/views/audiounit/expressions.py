@@ -13,8 +13,7 @@
 
 from itertools import chain
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.kunquat.limits import *
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
@@ -62,10 +61,7 @@ class DefaultNoteExpr(QWidget, AudioUnitUpdater):
         self.register_action(
                 self._get_default_update_signal_type(), self._update_contents)
 
-        QObject.connect(
-                self._expr_names,
-                SIGNAL('currentIndexChanged(int)'),
-                self._change_expression)
+        self._expr_names.currentIndexChanged.connect(self._change_expression)
 
         self._update_contents()
 
@@ -124,9 +120,8 @@ class ExpressionListToolBar(QToolBar, AudioUnitUpdater):
         self.register_action(
                 self._get_selection_update_signal_type(), self._update_buttons)
 
-        QObject.connect(self._new_button, SIGNAL('clicked()'), self._add_expression)
-        QObject.connect(
-                self._remove_button, SIGNAL('clicked()'), self._remove_expression)
+        self._new_button.clicked.connect(self._add_expression)
+        self._remove_button.clicked.connect(self._remove_expression)
 
         self._update_buttons()
 
@@ -214,10 +209,8 @@ class ExpressionListView(QListView, AudioUnitUpdater):
         self.setSelectionMode(QAbstractItemView.SingleSelection)
 
     def _on_setup(self):
-        for signal_type in ('clicked', 'activated'):
-            signal = '{}(const QModelIndex&)'.format(signal_type)
-            QObject.connect(
-                    self, SIGNAL(signal), self._select_expression)
+        self.clicked.connect(self._select_expression)
+        self.activated.connect(self._select_expression)
 
     def _get_selection_update_signal_type(self):
         return 'signal_expr_selection_{}'.format(self._au_id)
@@ -282,8 +275,7 @@ class ExpressionName(QWidget, AudioUnitUpdater):
                 self._get_list_update_signal_type(), self._update_used_names)
         self.register_action(self._get_selection_update_signal_type(), self._update_name)
 
-        QObject.connect(
-                self._name_editor, SIGNAL('editingFinished()'), self._change_name)
+        self._name_editor.editingFinished.connect(self._change_name)
 
         self._update_name()
 

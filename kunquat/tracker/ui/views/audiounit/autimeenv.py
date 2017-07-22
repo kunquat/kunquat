@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.headerline import HeaderLine
@@ -60,23 +59,12 @@ class AudioUnitTimeEnvelope(QWidget, AudioUnitUpdater):
         self._envelope.set_icon_bank(self._ui_model.get_icon_bank())
 
         if self._allow_toggle_enabled():
-            QObject.connect(
-                    self._enabled_toggle,
-                    SIGNAL('stateChanged(int)'),
-                    self._enabled_changed)
+            self._enabled_toggle.stateChanged.connect(self._enabled_changed)
         if self._allow_loop():
-            QObject.connect(
-                    self._loop_toggle,
-                    SIGNAL('stateChanged(int)'),
-                    self._loop_enabled_changed)
+            self._loop_toggle.stateChanged.connect(self._loop_enabled_changed)
         if self._allow_release_toggle():
-            QObject.connect(
-                    self._release_toggle,
-                    SIGNAL('stateChanged(int)'),
-                    self._release_changed)
-        QObject.connect(
-                self._envelope.get_envelope_view(),
-                SIGNAL('envelopeChanged()'),
+            self._release_toggle.stateChanged.connect(self._release_changed)
+        self._envelope.get_envelope_view().envelopeChanged.connect(
                 self._envelope_changed)
 
         self._update_envelope()

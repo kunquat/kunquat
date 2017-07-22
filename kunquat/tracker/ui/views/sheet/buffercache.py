@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -14,7 +14,7 @@
 from collections import MutableMapping
 from itertools import count
 
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 
 class BufferCache(MutableMapping):

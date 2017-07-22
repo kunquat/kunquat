@@ -12,8 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.kunquat.limits import *
 from .eventlistbutton import EventListButton
@@ -118,11 +117,11 @@ class FileButton(QToolButton, Updater):
 
         self._exit_helper.set_ui_model(self._ui_model)
 
-        QObject.connect(self._new_action, SIGNAL('triggered()'), self._new)
-        QObject.connect(self._open_action, SIGNAL('triggered()'), self._open)
-        QObject.connect(self._save_action, SIGNAL('triggered()'), self._save)
-        QObject.connect(self._save_as_action, SIGNAL('triggered()'), self._save_as)
-        QObject.connect(self._quit_action, SIGNAL('triggered()'), self._quit)
+        self._new_action.triggered.connect(self._new)
+        self._open_action.triggered.connect(self._open)
+        self._save_action.triggered.connect(self._save)
+        self._save_as_action.triggered.connect(self._save_as)
+        self._quit_action.triggered.connect(self._quit)
 
     def _set_module_loaded(self):
         self._module_loaded = True
@@ -159,7 +158,7 @@ class WindowOpenerButton(QToolButton, Updater):
         self.setText(text)
 
     def _on_setup(self):
-        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+        self.clicked.connect(self._clicked)
 
     def _clicked(self):
         visibility_manager = self._ui_model.get_visibility_manager()
@@ -311,7 +310,7 @@ class RenderStatsButton(QToolButton):
         self._updater.register_updater(self._perform_updates)
         self._stat_manager = ui_model.get_stat_manager()
 
-        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+        self.clicked.connect(self._clicked)
 
         self._update_style()
 

@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.headerline import HeaderLine
@@ -61,10 +60,7 @@ class EnvgenProc(QWidget, ProcessorUpdater):
                 self._global_adjust, self._range, self._triggers, self._time_env)
         self.register_action(self._get_update_signal_type(), self._update_linear_force)
 
-        QObject.connect(
-                self._linear_force,
-                SIGNAL('stateChanged(int)'),
-                self._change_linear_force)
+        self._linear_force.stateChanged.connect(self._change_linear_force)
 
         self._update_linear_force()
 
@@ -150,18 +146,10 @@ class RangeEditor(QWidget, ProcessorUpdater):
         self.register_action(
                 self._get_linear_force_signal_type(), self._update_force_type)
 
-        QObject.connect(
-                self._min_editor, SIGNAL('valueChanged(double)'), self._set_range_min)
-        QObject.connect(
-                self._min_var_editor,
-                SIGNAL('valueChanged(double)'),
-                self._set_range_min_var)
-        QObject.connect(
-                self._max_editor, SIGNAL('valueChanged(double)'), self._set_range_max)
-        QObject.connect(
-                self._max_var_editor,
-                SIGNAL('valueChanged(double)'),
-                self._set_range_max_var)
+        self._min_editor.valueChanged.connect(self._set_range_min)
+        self._min_var_editor.valueChanged.connect(self._set_range_min_var)
+        self._max_editor.valueChanged.connect(self._set_range_max)
+        self._max_var_editor.valueChanged.connect(self._set_range_max_var)
 
         self._update_range_params()
         self._update_force_type()
@@ -262,18 +250,10 @@ class Triggers(QWidget, ProcessorUpdater):
         self.add_to_updaters(self._impulse_floor_bounds, self._impulse_ceil_bounds)
         self.register_action(self._get_update_signal_type(), self._update_all)
 
-        QObject.connect(
-                self._immediate, SIGNAL('stateChanged(int)'), self._change_immediate)
-        QObject.connect(
-                self._release, SIGNAL('stateChanged(int)'), self._change_release)
-        QObject.connect(
-                self._impulse_floor,
-                SIGNAL('stateChanged(int)'),
-                self._change_impulse_floor)
-        QObject.connect(
-                self._impulse_ceil,
-                SIGNAL('stateChanged(int)'),
-                self._change_impulse_ceil)
+        self._immediate.stateChanged.connect(self._change_immediate)
+        self._release.stateChanged.connect(self._change_release)
+        self._impulse_floor.stateChanged.connect(self._change_impulse_floor)
+        self._impulse_ceil.stateChanged.connect(self._change_impulse_ceil)
 
         self._update_all()
 
@@ -344,10 +324,8 @@ class TriggerImpulseBounds(QWidget, ProcessorUpdater):
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_all)
 
-        QObject.connect(
-                self._start_value, SIGNAL('valueChanged(double)'), self._change_start)
-        QObject.connect(
-                self._stop_value, SIGNAL('valueChanged(double)'), self._change_stop)
+        self._start_value.valueChanged.connect(self._change_start)
+        self._stop_value.valueChanged.connect(self._change_stop)
 
         self._update_all()
 

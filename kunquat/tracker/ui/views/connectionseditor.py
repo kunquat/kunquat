@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.kunquat.limits import *
 from .connections import Connections
@@ -101,16 +100,10 @@ class ConnectionsToolBar(QToolBar):
         # Instrument or processor adder
         if self._au_id == None:
             self.addWidget(self._add_ins_button)
-            QObject.connect(
-                    self._add_ins_button,
-                    SIGNAL('clicked()'),
-                    self._add_instrument)
+            self._add_ins_button.clicked.connect(self._add_instrument)
         else:
             self.addWidget(self._add_proc_button)
-            QObject.connect(
-                    self._add_proc_button.menu(),
-                    SIGNAL('triggered(QAction*)'),
-                    self._add_processor)
+            self._add_proc_button.menu().triggered.connect(self._add_processor)
 
         # Effect adder if allowed
         is_effect_allowed = (self._au_id == None)
@@ -120,10 +113,7 @@ class ConnectionsToolBar(QToolBar):
             is_effect_allowed = au.is_instrument()
         if is_effect_allowed:
             self.addWidget(self._add_effect_button)
-            QObject.connect(
-                    self._add_effect_button,
-                    SIGNAL('clicked()'),
-                    self._add_effect)
+            self._add_effect_button.clicked.connect(self._add_effect)
 
         # Import button if allowed
         is_import_allowed = is_effect_allowed
@@ -134,10 +124,7 @@ class ConnectionsToolBar(QToolBar):
                 text = 'Import effect'
             self._import_button.setText(text)
             self.addWidget(self._import_button)
-            QObject.connect(
-                    self._import_button,
-                    SIGNAL('clicked()'),
-                    self._import_au)
+            self._import_button.clicked.connect(self._import_au)
 
         if self._au_id != None:
             module = self._ui_model.get_module()
@@ -168,7 +155,7 @@ class ConnectionsToolBar(QToolBar):
 
             # Export
             self.addWidget(self._export_button)
-            QObject.connect(self._export_button, SIGNAL('clicked()'), self._export_au)
+            self._export_button.clicked.connect(self._export_au)
 
     def unregister_updaters(self):
         if self._au_id != None:
@@ -288,7 +275,7 @@ class EditingToggle(QPushButton):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
-        QObject.connect(self, SIGNAL('clicked()'), self._change_enabled)
+        self.clicked.connect(self._change_enabled)
 
         self._style_creator.set_ui_model(ui_model)
 
@@ -419,7 +406,7 @@ class HitSelector(KqtComboBox):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
-        QObject.connect(self, SIGNAL('currentIndexChanged(int)'), self._change_hit)
+        self.currentIndexChanged.connect(self._change_hit)
 
         self._update_hit_list()
 
@@ -486,8 +473,7 @@ class ExpressionSelector(KqtComboBox):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
-        QObject.connect(
-                self, SIGNAL('currentIndexChanged(int)'), self._change_expression)
+        self.currentIndexChanged.connect(self._change_expression)
 
         self._update_expression_list()
 

@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 import kunquat.kunquat.events as events
 from kunquat.kunquat.limits import *
@@ -74,8 +73,8 @@ class BindListToolBar(QToolBar, Updater):
     def _on_setup(self):
         self.register_action('signal_bind', self._update_enabled)
 
-        QObject.connect(self._add_button, SIGNAL('clicked()'), self._add_binding)
-        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove_binding)
+        self._add_button.clicked.connect(self._add_binding)
+        self._remove_button.clicked.connect(self._remove_binding)
 
         self._update_enabled()
 
@@ -166,10 +165,7 @@ class BindListView(QListView, Updater):
             selection_model.select(
                     model.get_index(selected_index), QItemSelectionModel.Select)
 
-        QObject.connect(
-                selection_model,
-                SIGNAL('currentChanged(const QModelIndex&, const QModelIndex&)'),
-                self._select_entry)
+        selection_model.currentChanged.connect(self._select_entry)
 
 
 class BindList(QWidget, Updater):
@@ -256,8 +252,7 @@ class SourceEventSelector(QWidget, Updater):
     def _on_setup(self):
         self.register_action('signal_bind', self._update_event)
 
-        QObject.connect(
-                self._selector, SIGNAL('currentIndexChanged(int)'), self._change_event)
+        self._selector.currentIndexChanged.connect(self._change_event)
 
         self._update_event()
 
@@ -352,7 +347,7 @@ class ConstraintAdder(QPushButton, Updater):
         self.setText('Add constraint')
 
     def _on_setup(self):
-        QObject.connect(self, SIGNAL('clicked()'), self._add_constraint)
+        self.clicked.connect(self._add_constraint)
 
     def _add_constraint(self):
         bindings = self._ui_model.get_module().get_bindings()
@@ -390,13 +385,11 @@ class ConstraintEditor(QWidget, Updater):
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
         self._remove_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
 
-        QObject.connect(
-                self._event, SIGNAL('currentIndexChanged(int)'), self._change_event)
+        self._event.currentIndexChanged.connect(self._change_event)
 
-        QObject.connect(
-                self._expression, SIGNAL('editingFinished()'), self._change_expression)
+        self._expression.editingFinished.connect(self._change_expression)
 
-        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove)
+        self._remove_button.clicked.connect(self._remove)
 
         self._update_all()
 
@@ -510,7 +503,7 @@ class TargetAdder(QPushButton, Updater):
         self.setText('Add event target')
 
     def _on_setup(self):
-        QObject.connect(self, SIGNAL('clicked()'), self._add_target)
+        self.clicked.connect(self._add_target)
 
     def _add_target(self):
         bindings = self._ui_model.get_module().get_bindings()
@@ -553,16 +546,10 @@ class TargetEditor(QWidget, Updater):
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
         self._remove_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
 
-        QObject.connect(
-                self._ch_offset, SIGNAL('valueChanged(int)'), self._change_ch_offset)
-
-        QObject.connect(
-                self._event, SIGNAL('currentIndexChanged(int)'), self._change_event)
-
-        QObject.connect(
-                self._expression, SIGNAL('editingFinished()'), self._change_expression)
-
-        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove)
+        self._ch_offset.valueChanged.connect(self._change_ch_offset)
+        self._event.currentIndexChanged.connect(self._change_event)
+        self._expression.editingFinished.connect(self._change_expression)
+        self._remove_button.clicked.connect(self._remove)
 
         self._update_all()
 

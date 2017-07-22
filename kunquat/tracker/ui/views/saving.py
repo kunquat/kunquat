@@ -13,8 +13,7 @@
 
 import os.path
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 import kunquat.tracker.config as config
 
@@ -34,9 +33,10 @@ def try_save_module(ui_model, save_as=False):
 def get_module_save_path():
     default_dir = config.get_config().get_value('dir_modules') or ''
     module_path, _ = QFileDialog.getSaveFileName(
-            caption='Save Kunquat composition',
-            dir=default_dir,
-            filter='Kunquat compositions (*.kqt)')
+            None,
+            'Save Kunquat composition',
+            default_dir,
+            'Kunquat compositions (*.kqt)')
     if not module_path:
         return None
 
@@ -58,9 +58,10 @@ def get_instrument_save_path(au_name):
             suggested_name = suggested_base_name + '.kqti'
             suggested_path = os.path.join(default_dir, suggested_name)
     au_path, _ = QFileDialog.getSaveFileName(
-            caption='Save Kunquat instrument',
-            dir=suggested_path,
-            filter='Kunquat instruments (*.kqti)')
+            None,
+            'Save Kunquat instrument',
+            suggested_path,
+            'Kunquat instruments (*.kqti)')
     if not au_path:
         return None
 
@@ -78,9 +79,10 @@ def get_effect_save_path(au_name):
             suggested_name = suggested_base_name + '.kqte'
             suggested_path = os.path.join(default_dir, suggested_name)
     au_path, _ = QFileDialog.getSaveFileName(
-            caption='Save Kunquat effect',
-            dir=suggested_path,
-            filter='Kunquat effects (*.kqte)')
+            None,
+            'Save Kunquat effect',
+            suggested_path,
+            'Kunquat effects (*.kqte)')
     if not au_path:
         return None
 

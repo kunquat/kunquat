@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from .procnumslider import ProcNumSlider
 from .processorupdater import ProcessorUpdater
@@ -68,8 +67,8 @@ class FilterType(QWidget, ProcessorUpdater):
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_type)
 
-        QObject.connect(self._lowpass, SIGNAL('clicked()'), self._set_lowpass)
-        QObject.connect(self._highpass, SIGNAL('clicked()'), self._set_highpass)
+        self._lowpass.clicked.connect(self._set_lowpass)
+        self._highpass.clicked.connect(self._set_highpass)
 
         self._update_type()
 

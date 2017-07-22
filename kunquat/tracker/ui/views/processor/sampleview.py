@@ -16,8 +16,7 @@ import math
 import time
 from itertools import chain, islice
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 
 DEFAULT_CONFIG = {
@@ -56,12 +55,9 @@ class SampleView(QWidget):
         v.addWidget(self._area)
         self.setLayout(v)
 
-        QObject.connect(self._toolbar, SIGNAL('zoomIn()'), self._area.zoom_in)
-        QObject.connect(self._toolbar, SIGNAL('zoomOut()'), self._area.zoom_out)
-        QObject.connect(
-                self._area,
-                SIGNAL('rangeChanged(int, int)'),
-                self._toolbar.set_view_range)
+        self._toolbar.zoomIn.connect(self._area.zoom_in)
+        self._toolbar.zoomOut.connect(self._area.zoom_out)
+        self._area.rangeChanged.connect(self._toolbar.set_view_range)
 
     def set_config(self, config):
         self._area.set_config(config)
@@ -77,10 +73,10 @@ class SampleView(QWidget):
         self._area.set_loop_range(loop_range)
 
     def _on_loop_start_changed(self, lstart):
-        QObject.emit(self, SIGNAL('loopStartChanged(int)'), lstart)
+        self.loopStartChanged.emit(lstart)
 
     def _on_loop_stop_changed(self, lstop):
-        QObject.emit(self, SIGNAL('loopStopChanged(int)'), lstop)
+        self.loopStopChanged.emit(lstop)
 
 
 class SampleViewToolBar(QToolBar):
@@ -104,8 +100,8 @@ class SampleViewToolBar(QToolBar):
         self.addWidget(self._zoom_in)
         self.addWidget(self._zoom_out)
 
-        QObject.connect(self._zoom_in, SIGNAL('clicked()'), self._signal_zoom_in)
-        QObject.connect(self._zoom_out, SIGNAL('clicked()'), self._signal_zoom_out)
+        self._zoom_in.clicked.connect(self._signal_zoom_in)
+        self._zoom_out.clicked.connect(self._signal_zoom_out)
 
         self._update_buttons()
 
@@ -123,10 +119,10 @@ class SampleViewToolBar(QToolBar):
         self._update_buttons()
 
     def _signal_zoom_in(self):
-        QObject.emit(self, SIGNAL('zoomIn()'))
+        self.zoomIn.emit()
 
     def _signal_zoom_out(self):
-        QObject.emit(self, SIGNAL('zoomOut()'))
+        self.zoomOut.emit()
 
     def _update_buttons(self):
         if self._sample_length == 0:
@@ -222,7 +218,7 @@ class SampleViewArea(QAbstractScrollArea):
         scrollbar.setRange(0, length - width)
         scrollbar.setValue(start)
 
-        QObject.emit(self, SIGNAL('rangeChanged(int, int)'), start, stop)
+        self.rangeChanged.emit(start, stop)
 
     def paintEvent(self, event):
         self.viewport().paintEvent(event)
@@ -283,8 +279,7 @@ class SampleViewCanvas(QWidget):
 
         self.setMouseTracking(True)
 
-        QObject.connect(
-                self, SIGNAL('refresh()'), self._refresh, type=Qt.QueuedConnection)
+        self.refresh.connect(self._refresh, type=Qt.QueuedConnection)
 
     def set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
@@ -485,7 +480,7 @@ class SampleViewCanvas(QWidget):
 
         # Schedule another update if we didn't get all the required image data yet
         if refresh_required:
-            QObject.emit(self, SIGNAL('refresh()'))
+            self.refresh.emit()
 
     def _has_valid_loop_range(self):
         if not self._loop_range:
@@ -602,18 +597,24 @@ class Shape():
 
         for i, shape in enumerate(self._shapes):
             # Centre line
-            painter.setPen(config['centre_line_colour'])
+            pen = QPen(config['centre_line_colour'])
+            pen.setCosmetic(True)
+            painter.setPen(pen)
             painter.drawLine(QPointF(0, 0), QPointF(self._centre_line_length, 0))
 
             if isinstance(shape, QPolygonF):
                 # Filled blob
-                painter.setPen(config['zoomed_out_colour'])
+                pen = QPen(config['zoomed_out_colour'])
+                pen.setCosmetic(True)
+                painter.setPen(pen)
                 painter.setBrush(config['zoomed_out_colour'])
                 painter.drawPolygon(shape)
 
             elif isinstance(shape, QPainterPath):
                 # Line that connects the samples
-                painter.setPen(config['interp_colour'])
+                pen = QPen(config['interp_colour'])
+                pen.setCosmetic(True)
+                painter.setPen(pen)
                 painter.setBrush(Qt.NoBrush)
                 painter.drawPath(shape)
 

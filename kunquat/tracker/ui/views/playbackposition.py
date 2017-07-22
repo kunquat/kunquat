@@ -15,8 +15,7 @@ from itertools import count
 import math
 import time
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
@@ -25,17 +24,17 @@ from . import utils
 
 class PlaybackPosition(QWidget):
 
-    _NUM_FONT = QFont(QFont().defaultFamily(), 16)
-    _NUM_FONT.setWeight(QFont.Bold)
+    _NUM_FONT = QFont(QFont().defaultFamily(), 16, QFont.Bold)
+    _NUM_FONT.setStretch(85)
 
-    _SUB_FONT = QFont(QFont().defaultFamily(), 8)
-    _SUB_FONT.setWeight(QFont.Bold)
+    _SUB_FONT = QFont(QFont().defaultFamily(), 8, QFont.Bold)
+    _SUB_FONT.setStretch(85)
 
-    _REM_FONT = QFont(QFont().defaultFamily(), 12)
-    _REM_FONT.setWeight(QFont.Bold)
+    _REM_FONT = QFont(QFont().defaultFamily(), 12, QFont.Bold)
+    _REM_FONT.setStretch(85)
 
-    _TITLE_FONT = QFont(QFont().defaultFamily(), 5)
-    _TITLE_FONT.setWeight(QFont.Bold)
+    _TITLE_FONT = QFont(QFont().defaultFamily(), 5, QFont.Bold)
+    _TITLE_FONT.setStretch(85)
 
     _DEFAULT_CONFIG = {
         'padding_x'      : 9,
@@ -149,7 +148,7 @@ class PlaybackPosition(QWidget):
 
             chars = '.-0123456789'
 
-            normal_width = max(fm.tightBoundingRect(c).width() for c in chars)
+            normal_width = max(fm.tightBoundingRect(c).width() + 1 for c in chars)
             height = fm.boundingRect('0').height()
 
             text_option = QTextOption(Qt.AlignCenter)
@@ -179,6 +178,7 @@ class PlaybackPosition(QWidget):
         for title in ('track', 'system', 'pattern', 'row'):
             vis_text = title.upper()
             rect = fm.tightBoundingRect(vis_text)
+            rect.setRight(rect.right() + 1)
 
             pixmap = QPixmap(rect.width(), rect.height())
             pixmap.fill(self._config['bg_colour'])
@@ -207,7 +207,7 @@ class PlaybackPosition(QWidget):
             self._config['icon_width'],
             spacing * 2,
             track_width,
-            spacing,
+            spacing * 2,
             system_width,
             0,
             pat_width,

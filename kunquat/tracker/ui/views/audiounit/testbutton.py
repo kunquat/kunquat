@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from .audiounitupdater import AudioUnitUpdater
 
@@ -30,8 +29,8 @@ class TestButton(QPushButton, AudioUnitUpdater):
     def _on_setup(self):
         self._control_manager = self._ui_model.get_control_manager()
         self._typewriter_manager = self._ui_model.get_typewriter_manager()
-        QObject.connect(self, SIGNAL('pressed()'), self._pressed)
-        QObject.connect(self, SIGNAL('released()'), self._released)
+        self.pressed.connect(self._pressed)
+        self.released.connect(self._released)
 
     def _pressed(self):
         module = self._ui_model.get_module()

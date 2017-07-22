@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
@@ -72,10 +71,7 @@ class Editor(QWidget, ProcessorUpdater):
         self.layout().addWidget(tabs)
 
         # Test output toggle
-        QObject.connect(
-                self._test_output,
-                SIGNAL('stateChanged(int)'),
-                self._change_test_output_state)
+        self._test_output.stateChanged.connect(self._change_test_output_state)
         self._update_test_toggle()
 
     def _is_processor_testable(self):
@@ -156,10 +152,7 @@ class Signals(QWidget, ProcessorUpdater):
 
         self._update_settings()
 
-        QObject.connect(
-                self._signal_type,
-                SIGNAL('currentIndexChanged(int)'),
-                self._signal_type_changed)
+        self._signal_type.currentIndexChanged.connect(self._signal_type_changed)
 
     def _get_update_signal_type(self):
         return '_'.join(('signal_proc_signals', self._proc_id))

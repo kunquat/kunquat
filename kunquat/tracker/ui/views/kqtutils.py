@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.config as config
@@ -44,7 +43,7 @@ def get_kqt_file_path(types):
     default_dir = config.get_config().get_value(def_dir_conf_key) or ''
 
     file_path, _ = QFileDialog.getOpenFileName(
-            caption=caption, dir=default_dir, filter=';;'.join(filters))
+            None, caption, default_dir, ';;'.join(filters))
     if file_path:
         return file_path
     return None
@@ -142,6 +141,6 @@ class OutOfIDsErrorDialog(QDialog):
         self._button_layout.addWidget(ok_button)
         self._button_layout.addStretch(1)
 
-        QObject.connect(ok_button, SIGNAL('clicked()'), self.close)
+        ok_button.clicked.connect(self.close)
 
 

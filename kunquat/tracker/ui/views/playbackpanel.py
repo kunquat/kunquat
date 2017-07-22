@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 import kunquat.tracker.cmdline as cmdline
 from .playbackposition import PlaybackPosition
@@ -70,7 +69,7 @@ class PlayButton(QToolButton, Updater):
         icon_path = icon_bank.get_icon_path('play')
         icon = QIcon(icon_path)
         self.setIcon(icon)
-        QObject.connect(self, SIGNAL('clicked()'), self._ui_model.play)
+        self.clicked.connect(self._ui_model.play)
 
 
 class PlayPatternButton(QToolButton, Updater):
@@ -86,7 +85,7 @@ class PlayPatternButton(QToolButton, Updater):
         icon_path = icon_bank.get_icon_path('play_pattern')
         icon = QIcon(icon_path)
         self.setIcon(icon)
-        QObject.connect(self, SIGNAL('clicked()'), self._ui_model.play_pattern)
+        self.clicked.connect(self._ui_model.play_pattern)
 
 
 class PlayFromCursorButton(QToolButton, Updater):
@@ -102,7 +101,7 @@ class PlayFromCursorButton(QToolButton, Updater):
         icon_path = icon_bank.get_icon_path('play_from_cursor')
         icon = QIcon(icon_path)
         self.setIcon(icon)
-        QObject.connect(self, SIGNAL('clicked()'), self._ui_model.play_from_cursor)
+        self.clicked.connect(self._ui_model.play_from_cursor)
 
 
 class RecordButton(QToolButton, Updater):
@@ -127,8 +126,7 @@ class RecordButton(QToolButton, Updater):
         icon = QIcon(icon_path)
         self.setIcon(icon)
 
-        QObject.connect(self, SIGNAL('clicked()'),
-                        self._clicked)
+        self.clicked.connect(self._clicked)
 
     def _update_checked(self):
         old_block = self.blockSignals(True)
@@ -163,7 +161,7 @@ class SilenceButton(QToolButton, Updater):
         icon = QIcon(icon_path)
         self.setIcon(icon)
 
-        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+        self.clicked.connect(self._clicked)
 
     def _clicked(self):
         self._playback_manager.stop_recording()
@@ -177,7 +175,7 @@ class InteractivityButton(QToolButton, Updater):
         self.setText('Interactivity')
 
     def _on_setup(self):
-        QObject.connect(self, SIGNAL('clicked()'), self._show_ia_window)
+        self.clicked.connect(self._show_ia_window)
 
     def _show_ia_window(self):
         visibility_manager = self._ui_model.get_visibility_manager()

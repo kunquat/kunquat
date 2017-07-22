@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 from kunquat.kunquat.limits import *
 from .editorlist import EditorList
@@ -107,13 +106,8 @@ class ChDefaults(QWidget, Updater):
 
         self._module = self._ui_model.get_module()
 
-        QObject.connect(
-                self._au_selector,
-                SIGNAL('currentIndexChanged(int)'),
-                self._select_audio_unit)
-
-        QObject.connect(
-                self._init_expr, SIGNAL('editingFinished()'), self._change_init_expr)
+        self._au_selector.currentIndexChanged.connect(self._select_audio_unit)
+        self._init_expr.editingFinished.connect(self._change_init_expr)
 
         self._update_all()
 

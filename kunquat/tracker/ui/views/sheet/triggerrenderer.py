@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from kunquat.tracker.ui.qt import *
 
 import kunquat.kunquat.events as events
 from .config import *
@@ -154,7 +153,7 @@ class TriggerRenderer():
             painter.fillRect(
                     QRect(0, 0, self._total_width - 1, height - 1),
                     evtype_bg_colour)
-        painter.setPen(evtype_fg_colour)
+        painter.setPen(evtype_fg_colour or self._config['bg_colour'])
 
         # Draw fields
         for i, field in enumerate(self._fields):
