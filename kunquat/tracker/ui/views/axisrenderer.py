@@ -269,6 +269,7 @@ class HorizontalAxisRenderer(AbstractAxisRenderer):
             rect = QRectF(
                     px_centre - width / 2.0, marker_width - 1,
                     width, self._num_space.height())
+            rect.translate(0, 1)
             painter.drawText(rect, text, text_option)
 
         zero_x = (self._axis_y_offset_x + self._config['axis_y']['width'] -
