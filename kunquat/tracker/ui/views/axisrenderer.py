@@ -355,6 +355,7 @@ class VerticalAxisRenderer(AbstractAxisRenderer):
                     px_y - self._num_space.height() / 2,
                     self._config['axis_y']['width'] - marker_width - 2,
                     self._num_space.height())
+            rect.translate(0, 1)
             painter.drawText(rect, text, text_option)
 
         zero_y = self._axis_length - self._axis_x_offset_y + self._padding - 1
