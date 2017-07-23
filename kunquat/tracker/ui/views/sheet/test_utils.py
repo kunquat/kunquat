@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -14,13 +14,21 @@
 from itertools import islice, zip_longest
 import unittest
 
+from kunquat.tracker.ui.qt import *
+
 import kunquat.tracker.ui.model.tstamp as tstamp
-from . import utils
 
 
 class TestUtils(unittest.TestCase):
 
+    def setUp(self):
+        self._dummy_app = QApplication([])
+
+    def tearDown(self):
+        self._dummy_app = None
+
     def test_px_from_tstamp_from_px_is_identity(self):
+        from . import utils
         for px_per_beat in range(1, 600):
             for px_offset in range(2 * px_per_beat):
                 def_ts = utils.get_tstamp_from_px(px_offset, px_per_beat)
@@ -28,6 +36,7 @@ class TestUtils(unittest.TestCase):
                 self.assertEqual(px_offset, new_px_offset)
 
     def test_beat_is_divided_optimally(self):
+        from . import utils
         for px_per_beat in range(1, 300):
             offsets = [utils.get_tstamp_from_px(offset, px_per_beat)
                     for offset in range(px_per_beat)]
