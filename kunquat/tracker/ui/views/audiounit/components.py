@@ -140,7 +140,7 @@ class Streams(QWidget, AudioUnitUpdater):
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Streams'))
+        v.addWidget(HeaderLine('Event stream interfaces'))
         v.addWidget(self._stream_list)
         self.setLayout(v)
 
@@ -199,7 +199,7 @@ class StreamAdder(QPushButton, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self.setText('Add new stream')
+        self.setText('Add new event stream interface')
 
     def _on_setup(self):
         self.clicked.connect(self._add_new_entry)
