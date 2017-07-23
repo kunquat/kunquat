@@ -49,7 +49,7 @@ class MainWindow(Updater, SaverWindow):
                 'signal_save_module_finished',
                 self._exit_helper.notify_save_module_finished)
         self.register_action('signal_module', self._update_title)
-        self.register_action('signal_title', self._update_title)
+        self.register_action('signal_change', self._update_title)
 
         self._update_icon()
         self._update_title()
