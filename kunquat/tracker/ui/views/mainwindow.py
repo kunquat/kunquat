@@ -17,9 +17,10 @@ from kunquat.tracker.ui.qt import *
 from .exiting import ExitHelper
 from .mainview import MainView
 from .saverwindow import SaverWindow
+from .updater import Updater
 
 
-class MainWindow(SaverWindow):
+class MainWindow(Updater, SaverWindow):
 
     def __init__(self):
         super().__init__()
@@ -30,6 +31,9 @@ class MainWindow(SaverWindow):
         self._exit_helper = ExitHelper()
 
         self._main_view = MainView()
+
+        self.add_to_updaters(self._main_view)
+
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._main_view)
@@ -37,27 +41,20 @@ class MainWindow(SaverWindow):
 
         self.hide()
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._main_view.set_ui_model(ui_model)
-        self.update_icon()
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._exit_helper.set_ui_model(ui_model)
+    def _on_setup(self):
+        self._exit_helper.set_ui_model(self._ui_model)
 
-    def update_icon(self):
+        self.register_action(
+                'signal_save_module_finished',
+                self._exit_helper.notify_save_module_finished)
+
+        self._update_icon()
+
+    def _update_icon(self):
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_kunquat_logo_path()
         icon = QIcon(icon_path)
         self.setWindowIcon(icon)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-        self._main_view.unregister_updaters()
-
-    def _perform_updates(self, signals):
-        if 'signal_save_module_finished' in signals:
-            self._exit_helper.notify_save_module_finished()
 
     def closeEvent(self, event):
         event.ignore()
