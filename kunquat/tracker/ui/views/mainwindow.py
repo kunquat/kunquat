@@ -14,6 +14,7 @@
 
 from kunquat.tracker.ui.qt import *
 
+from kunquat.tracker.version import KUNQUAT_VERSION
 from .exiting import ExitHelper
 from .mainview import MainView
 from .saverwindow import SaverWindow
@@ -47,14 +48,31 @@ class MainWindow(Updater, SaverWindow):
         self.register_action(
                 'signal_save_module_finished',
                 self._exit_helper.notify_save_module_finished)
+        self.register_action('signal_module', self._update_title)
+        self.register_action('signal_title', self._update_title)
 
         self._update_icon()
+        self._update_title()
 
     def _update_icon(self):
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_kunquat_logo_path()
         icon = QIcon(icon_path)
         self.setWindowIcon(icon)
+
+    def _update_title(self):
+        tracker_str = 'Kunquat Tracker'
+        if KUNQUAT_VERSION:
+            tracker_str += ' {}'.format(KUNQUAT_VERSION)
+
+        module = self._ui_model.get_module()
+        name = module.get_name()
+        title_str = name or 'Untitled'
+        if module.is_modified():
+            title_str = '*' + title_str
+
+        window_title_str = '{} – {}'.format(title_str, tracker_str)
+        self.setWindowTitle(window_title_str)
 
     def closeEvent(self, event):
         event.ignore()
