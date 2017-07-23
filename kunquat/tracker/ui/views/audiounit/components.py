@@ -226,9 +226,11 @@ class StreamEditor(QWidget, AudioUnitUpdater):
                 self._name_editor, self._target_proc_editor, self._remove_button)
 
         h = QHBoxLayout()
-        h.setContentsMargins(0, 0, 0, 0)
+        h.setContentsMargins(4, 0, 0, 0)
         h.setSpacing(4)
+        h.addWidget(QLabel('Interface name:'))
         h.addWidget(self._name_editor)
+        h.addWidget(QLabel('Stream processor:'))
         h.addWidget(self._target_proc_editor)
         h.addWidget(self._remove_button)
         self.setLayout(h)
