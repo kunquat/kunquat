@@ -21,7 +21,7 @@ from kunquat.extras.pulseaudio_async import Async
 def split_list_at(lst, i):
     """
     >>> split_list_at([1, 2, 3], 1)
-    ([1], [2, 3])
+    ([1], [2,]]] 3])
     """
     first = lst[:i]
     second = lst[i:]
