@@ -524,6 +524,24 @@ int kqt_Handle_validate(kqt_Handle handle)
         }
     }
 
+    // Validate event stream interfaces of audio units
+    {
+        Au_table* au_table = Module_get_au_table(h->module);
+        for (int au_index = 0; au_index < KQT_AUDIO_UNITS_MAX; ++au_index)
+        {
+            const Audio_unit* au = Au_table_get(au_table, au_index);
+            if ((au != NULL) && Device_is_existent((const Device*)au))
+            {
+                char error_msg[128 + KQT_VAR_NAME_MAX] = "";
+                set_invalid_if(
+                        !Audio_unit_validate_streams(au, error_msg),
+                        "Error in stream interfaces of audio unit au_%02x: %s",
+                        au_index,
+                        error_msg);
+            }
+        }
+    }
+
     // Data is OK
     h->data_is_validated = true;
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -25,6 +25,7 @@
 #include <init/devices/Device_impl.h>
 #include <init/devices/Param_proc_filter.h>
 #include <init/devices/Proc_table.h>
+#include <init/devices/Proc_type.h>
 #include <init/devices/Processor.h>
 #include <mathnum/common.h>
 #include <mathnum/Random.h>
@@ -345,6 +346,52 @@ const Au_streams* Audio_unit_get_streams(const Audio_unit* au)
 {
     rassert(au != NULL);
     return au->streams;
+}
+
+
+bool Audio_unit_validate_streams(
+        const Audio_unit* au, char error_msg[128 + KQT_VAR_NAME_MAX])
+{
+    rassert(au != NULL);
+    rassert(error_msg != NULL);
+
+    error_msg[0] = '\0';
+
+    const Au_streams* streams = Audio_unit_get_streams(au);
+    if (streams == NULL)
+        return true;
+
+    Stream_target_dev_iter* iter =
+        Stream_target_dev_iter_init(STREAM_TARGET_DEV_ITER_AUTO, streams);
+
+    const char* name = Stream_target_dev_iter_get_next(iter);
+    while (name != NULL)
+    {
+        const int proc_index = Au_streams_get_target_proc_index(streams, name);
+        rassert(proc_index >= 0);
+
+        const Processor* proc = Audio_unit_get_proc(au, proc_index);
+        if ((proc == NULL) || !Device_is_existent((const Device*)proc))
+        {
+            sprintf(error_msg,
+                    "Target of event stream interface `%s` not found in audio unit",
+                    name);
+            return false;
+        }
+
+        const Device_impl* dimpl = ((const Device*)proc)->dimpl;
+        if ((dimpl == NULL) || (dimpl->proc_type != Proc_type_stream))
+        {
+            sprintf(error_msg,
+                    "Target of event stream interface `%s` is not a stream processor",
+                    name);
+            return false;
+        }
+
+        name = Stream_target_dev_iter_get_next(iter);
+    }
+
+    return true;
 }
 
 
