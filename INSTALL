@@ -22,4 +22,5 @@ export PYTHONPATH=`python3 -c "import os, sys; print(os.path.expanduser('~/kunqu
 ~/kunquat/bin/kunquat-player
 ~/kunquat/bin/kunquat-export
 
-You could also perhaps get the tracker running if you managed to get PySide working.
+Follow https://github.com/kunquat/kunquat/issues/698 for the ongoing effort of
+making the tracker itself work under macOS.
