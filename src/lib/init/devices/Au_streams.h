@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -23,21 +23,6 @@
 #include <stdlib.h>
 
 
-typedef enum
-{
-    STREAM_TARGET_DEV_NONE,
-    STREAM_TARGET_DEV_AU,
-    STREAM_TARGET_DEV_PROC,
-} Stream_target_dev_type;
-
-
-typedef struct Stream_target_dev_info
-{
-    Stream_target_dev_type type;
-    int target_dev_index;
-} Stream_target_dev_info;
-
-
 typedef struct Stream_target_dev_iter
 {
     AAiter iter;
@@ -45,8 +30,7 @@ typedef struct Stream_target_dev_iter
 } Stream_target_dev_iter;
 
 
-#define STREAM_TARGET_DEV_ITER_AUTO \
-    (&(Stream_target_dev_iter){ { .tree = NULL }, NULL })
+#define STREAM_TARGET_DEV_ITER_AUTO (&(Stream_target_dev_iter){ *AAITER_AUTO, NULL })
 
 
 /**
