@@ -33,6 +33,9 @@ def _get_rebuild_signal_type(au_id):
 def _get_stream_update_signal_type(au_id):
     return 'signal_au_streams_{}'.format(au_id)
 
+def _get_conns_update_signal_type(au_id):
+    return 'signal_connections_{}'.format(au_id)
+
 
 class Components(QSplitter, AudioUnitUpdater):
 
@@ -155,6 +158,8 @@ class StreamList(EditorList, AudioUnitUpdater):
     def _on_setup(self):
         self.register_action(
                 _get_stream_update_signal_type(self._au_id), self._update_stream_names)
+        self.register_action(
+                _get_conns_update_signal_type(self._au_id), self._update_stream_names)
         self._update_stream_names()
 
     def _on_teardown(self):
@@ -202,7 +207,16 @@ class StreamAdder(QPushButton, AudioUnitUpdater):
         self.setText('Add new event stream interface')
 
     def _on_setup(self):
+        self.register_action(
+                _get_conns_update_signal_type(self._au_id), self._update_enabled)
         self.clicked.connect(self._add_new_entry)
+
+        self._update_enabled()
+
+    def _update_enabled(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        self.setEnabled(len(au.get_stream_processor_ids()) > 0)
 
     def _add_new_entry(self):
         module = self._ui_model.get_module()
@@ -292,13 +306,15 @@ class StreamTargetProcEditor(KqtComboBox, AudioUnitUpdater):
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
+        if stream_name not in au.get_stream_names():
+            return # We are being removed
 
         target_proc_num = au.get_stream_target_processor(stream_name)
 
         old_block = self.blockSignals(True)
 
         items = []
-        for proc_id in au.get_processor_ids():
+        for proc_id in au.get_stream_processor_ids():
             proc = au.get_processor(proc_id)
             if proc.get_existence():
                 name = proc.get_name() or '-'
