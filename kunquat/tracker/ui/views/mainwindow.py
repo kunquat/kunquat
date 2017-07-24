@@ -14,12 +14,14 @@
 
 from kunquat.tracker.ui.qt import *
 
+from kunquat.tracker.version import KUNQUAT_VERSION
 from .exiting import ExitHelper
 from .mainview import MainView
 from .saverwindow import SaverWindow
+from .updater import Updater
 
 
-class MainWindow(SaverWindow):
+class MainWindow(Updater, SaverWindow):
 
     def __init__(self):
         super().__init__()
@@ -30,6 +32,9 @@ class MainWindow(SaverWindow):
         self._exit_helper = ExitHelper()
 
         self._main_view = MainView()
+
+        self.add_to_updaters(self._main_view)
+
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._main_view)
@@ -37,27 +42,37 @@ class MainWindow(SaverWindow):
 
         self.hide()
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._main_view.set_ui_model(ui_model)
-        self.update_icon()
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._exit_helper.set_ui_model(ui_model)
+    def _on_setup(self):
+        self._exit_helper.set_ui_model(self._ui_model)
 
-    def update_icon(self):
+        self.register_action(
+                'signal_save_module_finished',
+                self._exit_helper.notify_save_module_finished)
+        self.register_action('signal_module', self._update_title)
+        self.register_action('signal_change', self._update_title)
+
+        self._update_icon()
+        self._update_title()
+
+    def _update_icon(self):
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_kunquat_logo_path()
         icon = QIcon(icon_path)
         self.setWindowIcon(icon)
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-        self._main_view.unregister_updaters()
+    def _update_title(self):
+        tracker_str = 'Kunquat Tracker'
+        if KUNQUAT_VERSION:
+            tracker_str += ' {}'.format(KUNQUAT_VERSION)
 
-    def _perform_updates(self, signals):
-        if 'signal_save_module_finished' in signals:
-            self._exit_helper.notify_save_module_finished()
+        module = self._ui_model.get_module()
+        name = module.get_name()
+        title_str = name or 'Untitled'
+        if module.is_modified():
+            title_str = '*' + title_str
+
+        window_title_str = '{} – {}'.format(title_str, tracker_str)
+        self.setWindowTitle(window_title_str)
 
     def closeEvent(self, event):
         event.ignore()
