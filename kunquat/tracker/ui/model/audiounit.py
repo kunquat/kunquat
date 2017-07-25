@@ -401,6 +401,15 @@ class AudioUnit():
             if key.startswith(start):
                 transaction[key] = None
 
+        id_parts = dev_id.split('/')
+        if id_parts[1].startswith('proc_'):
+            # Remove event stream interfaces pointing at the device
+            removed_proc_num = int(id_parts[1].split('_')[1], 16)
+            stream_list = self._get_stream_list()
+            new_stream_list = [
+                    [name, num] for name, num in stream_list if num != removed_proc_num]
+            transaction[self._get_key('p_streams.json')] = new_stream_list
+
         self._store.put(transaction)
 
     def remove_audio_unit(self, au_id):
@@ -695,11 +704,20 @@ class AudioUnit():
         unique_name = min(names)
         return unique_name
 
+    def get_stream_processor_ids(self):
+        proc_ids = self.get_processor_ids()
+        stream_proc_ids = set(pid for pid in proc_ids
+                if self.get_processor(pid).get_type() == 'stream')
+        return stream_proc_ids
+
     def add_stream(self):
+        stream_proc_ids = self.get_stream_processor_ids()
+        assert len(stream_proc_ids) > 0
+
         stream_list = self._get_stream_list()
         stream_name = self._get_unique_stream_name(stream_list)
 
-        min_proc_id = min(self.get_processor_ids())
+        min_proc_id = min(stream_proc_ids)
         min_proc_num = int(min_proc_id.split('_')[-1], 16)
         new_entry = [stream_name, min_proc_num]
 

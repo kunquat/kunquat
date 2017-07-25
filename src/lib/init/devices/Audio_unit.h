@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -207,6 +207,18 @@ void Audio_unit_set_streams(Audio_unit* au, Au_streams* au_streams);
  * \return   The Audio unit streams, or \c NULL if \a au does not have any.
  */
 const Au_streams* Audio_unit_get_streams(const Audio_unit* au);
+
+
+/**
+ * Validate the stream map of the Audio unit.
+ *
+ * \param au          The Audio unit -- must not be \c NULL.
+ * \param error_msg   Target location for error message -- must not be \c NULL.
+ *
+ * \return   \c true if \a au has a valid or no stream map, otherwise \c false.
+ */
+bool Audio_unit_validate_streams(
+        const Audio_unit* au, char error_msg[128 + KQT_VAR_NAME_MAX]);
 
 
 /**
