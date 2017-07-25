@@ -649,6 +649,7 @@ class GridToggle(QCheckBox, Updater):
         self.setText('Grid')
 
     def _on_setup(self):
+        self.register_action('signal_module', self._update_state)
         self.register_action('signal_grid', self._update_state)
 
         self.clicked.connect(self._set_grid_enabled)
@@ -678,6 +679,7 @@ class GridEditorButton(QPushButton, Updater):
         self.setText('Edit grids')
 
     def _on_setup(self):
+        self.register_action('signal_module', self._update_enabled)
         self.register_action('signal_grid', self._update_enabled)
 
         self.clicked.connect(self._open_grid_editor)
