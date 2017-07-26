@@ -173,6 +173,10 @@ class Controller():
         self._store.put(values, transaction_notifier=notifier)
         self._store.clear_modified_flag()
 
+        sheet_manager = self._ui_model.get_sheet_manager()
+        if not sheet_manager.is_grid_default_enabled():
+            sheet_manager.set_grid_enabled(False)
+
         self._updater.signal_update('signal_controls')
 
         self._reset_expressions()

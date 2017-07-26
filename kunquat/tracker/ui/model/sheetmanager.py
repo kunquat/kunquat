@@ -728,9 +728,14 @@ class SheetManager():
 
     def set_grid_enabled(self, enabled):
         self._session.set_grid_enabled(enabled)
+        value = None if enabled else False
+        self._store.put({ 'i_grid_enabled.json': value }, mark_modified=False)
 
     def is_grid_enabled(self):
         return self._session.is_grid_enabled()
+
+    def is_grid_default_enabled(self):
+        return self._store.get('i_grid_enabled.json', True)
 
     def get_grid(self):
         grid = Grid()
