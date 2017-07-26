@@ -25,6 +25,7 @@ def load_tests(loader, tests, ignore):
     return tests
 
 
+@unittest.skip('Causes tests to hang in Travis')
 class TestPulseaudio(TestAbstractDriver, unittest.TestCase):
 
     def setUp(self):
