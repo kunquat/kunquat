@@ -1,15 +1,30 @@
-dist: trusty
 language: python
-python:
-  - "3.6"
+
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      python: 3.6
+    - os: osx
+      osx_image: xcode8.3
+      language: generic  # https://github.com/travis-ci/travis-ci/issues/2312
+
+
 before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get install -y build-essential libwavpack-dev libpulse-dev check libsndfile1-dev libsamplerate0-dev pulseaudio xvfb
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  sudo apt-get -qq update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  brew update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  sudo apt-get install -y xvfb build-essential check libpulse-dev libsamplerate0-dev libsndfile1-dev libwavpack-dev; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  brew install check pulseaudio libsamplerate libsndfile wavpack; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  brew install python3; alias pip=pip3; fi  # https://github.com/travis-ci/travis-ci/issues/2312
   - ./get_build_support.sh
   - gcc --version
   - clang --version
+  - python3 --version
+  - pip3 --version
 install:
-  - pip install pylint flake8 pyqt5
+  - pip3 install pylint flake8 pyqt5
 script:
-  - xvfb-run ./make.py --enable-long-tests
-  - xvfb-run ./make.py --enable-long-tests --cc=clang
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  xvfb-run ./make.py --enable-long-tests; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  ./make.py --disable-threads --disable-tests; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  xvfb-run ./make.py --enable-long-tests --cc=clang; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  ./make.py --disable-threads --disable-tests --cc=clang; fi
