@@ -21,6 +21,13 @@ from kunquat.tracker.ui.uilauncher import create_ui_launcher
 
 HALT = None
 
+def portable_qsize(queue):
+    FALLBACK_QSIZE = 2 ** 14
+    try:
+        return queue.qsize()
+    except NotImplementedError:
+        return FALLBACK_QSIZE
+
 
 class CommandQueue():
 
@@ -37,7 +44,8 @@ class CommandQueue():
                 'notify_kunquat_exception', 'notify_libkunquat_error')
 
     def update(self):
-        in_count = self._in.qsize()
+        in_count = portable_qsize(self._in)
+
         with self._state_lock:
             if self._state == self._STATE_FLUSHING:
                 get_counter = repeat(True)
@@ -55,7 +63,6 @@ class CommandQueue():
                 # Make sure we won't block the UI before the terminating command is sent
                 with self._state_lock:
                     self._state = self._STATE_FLUSHING
-
             self._out.put(command_data)
 
     def put(self, command, *args):
@@ -73,7 +80,7 @@ class CommandQueue():
         return command_data
 
     def get_command_count(self):
-        return self._out.qsize()
+        return portable_qsize(self._out)
 
 
 class UiProcess(Process):
