@@ -14,6 +14,7 @@
 
 import os
 import signal
+import multiprocessing
 
 from . import cmdline
 from . import config
@@ -56,6 +57,7 @@ def main():
     t.main()
 
 if __name__ == '__main__':
+    multiprocessing.set_start_method('spawn')
     main()
 
 
