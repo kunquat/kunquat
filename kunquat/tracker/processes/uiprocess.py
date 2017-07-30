@@ -12,9 +12,10 @@
 #
 
 from itertools import repeat
-from multiprocessing import Lock, Process, Queue
+from multiprocessing import Lock, Process, Queue, get_start_method
 from queue import Empty
 
+import kunquat.tracker.cmdline as cmdline
 from kunquat.tracker.ui.uilauncher import create_ui_launcher
 
 
@@ -176,6 +177,10 @@ class UiProcess(Process):
                 getattr(self._controller, command)(*args)
 
     def run(self):
+        if get_start_method() != 'fork':
+            # We haven't received the parsed arguments from the main process
+            cmdline.parse_arguments()
+
         # Create the UI inside the correct process
         self._ui_launcher = create_ui_launcher()
         self._ui_launcher.set_audio_engine(self._audio_engine)
