@@ -767,6 +767,7 @@ class RandomEntryEditor(QWidget, ProcessorUpdater):
                 cur_index = i
         self._sample_selector.set_items(items)
         self._sample_selector.setCurrentIndex(cur_index)
+        self._sample_selector.model().sort(0)
         self._sample_selector.blockSignals(old_block)
 
         if (point != None) and (point in self._get_map_points()):
