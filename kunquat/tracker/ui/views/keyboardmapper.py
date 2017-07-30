@@ -11,25 +11,45 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import sys
+import itertools
+
 from kunquat.tracker.ui.qt import *
 
 from .updater import Updater
 
 
 # TODO: Define alternatives for different environments if/when needed
-_TYPEWRITER_MAP = {}
 
-_TYPEWRITER_MAP.update(dict((11 + x, (0, x)) for x in range(9)))
-_TYPEWRITER_MAP.update(dict((24 + x, (1, x)) for x in range(10)))
-_TYPEWRITER_MAP.update(dict((39 + x, (2, x)) for x in range(7)))
-_TYPEWRITER_MAP.update(dict((52 + x, (3, x)) for x in range(7)))
+def _generate_scancode_map():
+    yield from ((11 + x, (0, x)) for x in range(9))
+    yield from ((24 + x, (1, x)) for x in range(10))
+    yield from ((39 + x, (2, x)) for x in range(7))
+    yield from ((52 + x, (3, x)) for x in range(7))
+
+_TYPEWRITER_SCANCODE_MAP = dict(_generate_scancode_map())
+
+def _generate_keycode_map():
+    # pylint: disable=line-too-long
+    key_layout = [
+        [Qt.Key_2, Qt.Key_3, Qt.Key_4, Qt.Key_5, Qt.Key_6, Qt.Key_7, Qt.Key_8, Qt.Key_9, Qt.Key_0],
+        [Qt.Key_Q, Qt.Key_W, Qt.Key_E, Qt.Key_R, Qt.Key_T, Qt.Key_Y, Qt.Key_U, Qt.Key_I, Qt.Key_O, Qt.Key_P],
+        [Qt.Key_S, Qt.Key_D, Qt.Key_F, Qt.Key_G, Qt.Key_H, Qt.Key_J, Qt.Key_K],
+        [Qt.Key_Z, Qt.Key_X, Qt.Key_C, Qt.Key_V, Qt.Key_B, Qt.Key_N, Qt.Key_M],
+    ]
+    # pylint: enable=line-too-long
+    for row_index, row in zip(itertools.count(), key_layout):
+        for column_index, key in zip(itertools.count(), row):
+            yield (key, (row_index, column_index))
+
+_TYPEWRITER_KEYCODE_MAP = dict(_generate_keycode_map())
 
 
 class KeyboardMapper(Updater):
 
     def __init__(self):
         self._typewriter_manager = None
-        self._typewriter_map = _TYPEWRITER_MAP
+
         super().__init__()
 
     def _on_setup(self):
@@ -37,8 +57,7 @@ class KeyboardMapper(Updater):
 
     def process_typewriter_button_event(self, event):
         # Note playback
-        scancode = event.nativeScanCode()
-        button = self.get_typewriter_button_model(scancode)
+        button = self.get_typewriter_button_model(event)
         if button and event.modifiers() == Qt.NoModifier:
             if event.isAutoRepeat():
                 return True
@@ -70,9 +89,17 @@ class KeyboardMapper(Updater):
 
         return False
 
-    def get_typewriter_button_model(self, scancode):
+    def get_typewriter_button_model(self, event):
+
+        if sys.platform.startswith('darwin'):
+            typewriter_map = _TYPEWRITER_KEYCODE_MAP
+            code = event.key()
+        else:
+            typewriter_map = _TYPEWRITER_SCANCODE_MAP
+            code = event.nativeScanCode()
+
         try:
-            row, index = self._typewriter_map[scancode]
+            row, index = typewriter_map[code]
         except KeyError:
             return None
 
