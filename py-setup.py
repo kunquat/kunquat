@@ -8,7 +8,7 @@ import sys
 
 
 req_version_major = 3
-req_version_minor = 3
+req_version_minor = 4
 
 if (sys.version_info[0], sys.version_info[1]) < (req_version_major, req_version_minor):
     print('Error: Kunquat Python modules require Python {}.{} or later.'.format(

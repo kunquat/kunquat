@@ -14,10 +14,11 @@
 import sys
 import time
 import traceback
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, get_start_method
 from queue import Empty
 
 from kunquat.kunquat.kunquat import KunquatError, set_assert_hook, set_segfault_hook
+import kunquat.tracker.cmdline as cmdline
 from kunquat.tracker.audio.audioengine import create_audio_engine
 
 
@@ -106,6 +107,10 @@ class AudioProcess(Process):
         sys.exit(1)
 
     def run(self):
+        if get_start_method() != 'fork':
+            # We haven't received the parsed arguments from the main process
+            cmdline.parse_arguments()
+
         # Create the audio engine inside the correct process
         self._audio_engine = create_audio_engine()
         self._audio_engine.set_ui_engine(self._ui_engine)
