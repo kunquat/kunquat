@@ -9,7 +9,7 @@ from kunquat.tracker.tracker import main
 
 if __name__ == '__main__':
     if sys.platform.startswith('darwin'):
-        multiprocessing.set_start_method('forkserver')
+        multiprocessing.set_start_method('spawn')
     main()
 
 
