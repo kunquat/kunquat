@@ -218,6 +218,8 @@ class Authors(QTableView, Updater):
                     self._model.get_index(selected), QItemSelectionModel.SelectCurrent)
 
         # Remove excess height
+        self.resizeColumnsToContents()
+
         row_height = self.rowHeight(0)
         opt = QStyleOption()
         opt.initFrom(self)
@@ -225,8 +227,6 @@ class Authors(QTableView, Updater):
                 QStyle.CT_LineEdit, opt, QSize(1, row_height), self).expandedTo(
                         QApplication.globalStrut())
         self.setFixedHeight(size.height())
-
-        self.resizeColumnsToContents()
 
     def keyPressEvent(self, event):
         if self.state() != QAbstractItemView.EditingState:
