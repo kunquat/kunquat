@@ -114,45 +114,29 @@ class Editor(QWidget, ProcessorUpdater):
             event.ignore()
 
 
-class HeaderFrame(QWidget):
-
-    def __init__(self, header_text, contents):
-        super().__init__()
-
-        v = QVBoxLayout()
-        v.setContentsMargins(0, 0, 0, 0)
-        v.setSpacing(5)
-        v.addWidget(HeaderLine(header_text), 0, Qt.AlignTop)
-        v.addWidget(contents, 1, Qt.AlignTop)
-        self.setLayout(v)
-
-
 class Signals(QWidget, ProcessorUpdater):
-
-    _SIGNAL_INFO = [
-        ('voice', 'Voice signals'),
-        ('mixed', 'Mixed signals'),
-    ]
 
     def __init__(self):
         super().__init__()
-        self._signal_type = KqtComboBox()
-        for info in self._SIGNAL_INFO:
-            _, text = info
-            self._signal_type.addItem(text)
+        self._voice_signals = QRadioButton('Voice signals')
+        self._mixed_signals = QRadioButton('Mixed signals')
 
-        v = QHBoxLayout()
+        v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
-        v.addWidget(HeaderFrame('Signal type', self._signal_type))
+        v.addWidget(HeaderLine('Signal type'))
+        v.addWidget(self._voice_signals)
+        v.addWidget(self._mixed_signals)
+        v.addStretch(1)
         self.setLayout(v)
 
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_settings)
         self.register_action(self._get_connections_signal_type(), self._update_settings)
 
-        self._update_settings()
+        self._voice_signals.clicked.connect(self._set_voice_signals)
+        self._mixed_signals.clicked.connect(self._set_mixed_signals)
 
-        self._signal_type.currentIndexChanged.connect(self._signal_type_changed)
+        self._update_settings()
 
     def _get_update_signal_type(self):
         return '_'.join(('signal_proc_signals', self._proc_id))
@@ -173,24 +157,27 @@ class Signals(QWidget, ProcessorUpdater):
         signal_type = proc.get_signal_type()
 
         # Update signal type selector
-        old_block = self._signal_type.blockSignals(True)
-        type_names = [info[0] for info in self._SIGNAL_INFO]
-        index = type_names.index(signal_type)
-        assert 0 <= index < len(self._SIGNAL_INFO)
-        self._signal_type.setCurrentIndex(index)
-        self._signal_type.blockSignals(old_block)
+        signal_types = { 'voice': self._voice_signals, 'mixed': self._mixed_signals }
+        widget = signal_types[signal_type]
+        old_block = widget.blockSignals(True)
+        widget.setChecked(True)
+        widget.blockSignals(old_block)
 
-    def _signal_type_changed(self, index):
+    def _set_signals_type(self, signals_type):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         proc = au.get_processor(self._proc_id)
 
-        new_signal_type = self._SIGNAL_INFO[index][0]
-
         update_signals = [
             self._get_update_signal_type(), self._get_connections_signal_type()]
 
-        proc.set_signal_type(new_signal_type)
+        proc.set_signal_type(signals_type)
         self._updater.signal_update(*update_signals)
+
+    def _set_voice_signals(self):
+        self._set_signals_type('voice')
+
+    def _set_mixed_signals(self):
+        self._set_signals_type('mixed')
 
 
