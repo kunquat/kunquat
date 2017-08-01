@@ -57,7 +57,7 @@ class KeyboardMapper(Updater):
 
     def process_typewriter_button_event(self, event):
         # Note playback
-        button = self.get_typewriter_button_model(event)
+        button = self._get_typewriter_button_model(event)
         if button and event.modifiers() == Qt.NoModifier:
             if event.isAutoRepeat():
                 return True
@@ -89,8 +89,7 @@ class KeyboardMapper(Updater):
 
         return False
 
-    def get_typewriter_button_model(self, event):
-
+    def _get_typewriter_button_model(self, event):
         if sys.platform.startswith('darwin'):
             typewriter_map = _TYPEWRITER_KEYCODE_MAP
             code = event.key()
@@ -116,8 +115,7 @@ class KeyboardMapper(Updater):
         return (event.key() == Qt.Key_H) and (event.modifiers() == Qt.ControlModifier)
 
     def is_handled_key(self, event):
-        scancode = event.nativeScanCode()
-        button = self.get_typewriter_button_model(scancode)
+        button = self._get_typewriter_button_model(event)
         return (bool(button) or
                 self.is_octave_up(event) or
                 self.is_octave_down(event) or
