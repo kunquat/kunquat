@@ -38,7 +38,7 @@ else:
     sys.argv.remove('--disable-player')
 
 if '--disable-tracker' not in sys.argv:
-    req_list.append('PyQt4')
+    req_list.append('PyQt5')
 
     mod_dirs = (dirpath for (dirpath, _, _) in
             os.walk(os.path.join('kunquat', 'tracker')))
