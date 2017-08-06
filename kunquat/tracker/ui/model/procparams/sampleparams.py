@@ -375,7 +375,7 @@ class SampleParams(ProcParams):
                     max_abs = max(max_abs, abs(item))
 
             norm_mult = from_max / max_abs
-            if (norm_mult >= 1.01) or (norm_mult <= 0.99):
+            if (norm_mult >= 1.01) or (norm_mult <= 0.99999):
                 mult *= norm_mult
 
                 # Adjust sample volume levels in note and hit maps
