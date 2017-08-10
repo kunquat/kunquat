@@ -25,11 +25,11 @@ from . import utils
 
 
 _title_font = QFont(QFont().defaultFamily(), 10, QFont.Bold)
-_title_font.setStretch(90)
+utils.set_glyph_rel_width(_title_font, QWidget, '8', 0.9)
 
 _port_font = QFont(QFont().defaultFamily(), 8, QFont.Bold)
+utils.set_glyph_rel_width(_port_font, QWidget, '8', 0.75)
 _port_font.setPointSizeF(7.5)
-_port_font.setStretch(90)
 
 
 DEFAULT_CONFIG = {

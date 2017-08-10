@@ -18,11 +18,11 @@ import time
 from kunquat.tracker.ui.qt import *
 
 from .axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
-from .utils import lerp_val
+from .utils import lerp_val, set_glyph_rel_width
 
 
 _font = QFont(QFont().defaultFamily(), 9, QFont.Bold)
-_font.setStretch(85)
+set_glyph_rel_width(_font, QWidget, '8', 0.78)
 
 
 AXIS_CONFIG = {

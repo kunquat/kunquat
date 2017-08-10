@@ -25,16 +25,16 @@ from . import utils
 class PlaybackPosition(QWidget):
 
     _NUM_FONT = QFont(QFont().defaultFamily(), 16, QFont.Bold)
-    _NUM_FONT.setStretch(85)
+    utils.set_glyph_rel_width(_NUM_FONT, QWidget, '8', 0.6875)
 
     _SUB_FONT = QFont(QFont().defaultFamily(), 8, QFont.Bold)
-    _SUB_FONT.setStretch(85)
+    utils.set_glyph_rel_width(_SUB_FONT, QWidget, '8', 0.75)
 
     _REM_FONT = QFont(QFont().defaultFamily(), 12, QFont.Bold)
-    _REM_FONT.setStretch(85)
+    utils.set_glyph_rel_width(_REM_FONT, QWidget, '8', 0.8)
 
     _TITLE_FONT = QFont(QFont().defaultFamily(), 5, QFont.Bold)
-    _TITLE_FONT.setStretch(85)
+    utils.set_glyph_rel_width(_TITLE_FONT, QWidget, 'N', 1)
 
     _DEFAULT_CONFIG = {
         'padding_x'      : 9,

@@ -43,4 +43,14 @@ def get_str_from_colour(colour):
     assert len(s) == 7
     return s
 
+def get_glyph_rel_width(font, widget_cls, ch):
+    fm = QFontMetricsF(font, widget_cls())
+    rect = fm.tightBoundingRect(ch)
+    return rect.width() / rect.height()
+
+def set_glyph_rel_width(font, widget_cls, ch, rel_width):
+    cur_rel_width = get_glyph_rel_width(font, widget_cls, ch)
+    stretch = int(round(100 * rel_width / cur_rel_width))
+    font.setStretch(stretch)
+
 

@@ -22,7 +22,7 @@ from kunquat.tracker.ui.views.audiounit.hitselector import HitSelector
 from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
-from kunquat.tracker.ui.views.utils import lerp_val
+from kunquat.tracker.ui.views.utils import lerp_val, set_glyph_rel_width
 from .prockeyboardmapper import ProcessorKeyboardMapper
 from .sampleview import SampleView
 from .processorupdater import ProcessorUpdater
@@ -86,7 +86,7 @@ class RandomListMap(QWidget, ProcessorUpdater):
     }
 
     _FONT = QFont(QFont().defaultFamily(), 9, QFont.Bold)
-    _FONT.setStretch(85)
+    set_glyph_rel_width(_FONT, QWidget, '8', 0.75)
 
     _AXIS_CONFIG = {
         'axis_x': {
