@@ -22,7 +22,7 @@ from .utils import lerp_val, set_glyph_rel_width
 
 
 _font = QFont(QFont().defaultFamily(), 9, QFont.Bold)
-set_glyph_rel_width(_font, QWidget, '8', 0.78)
+set_glyph_rel_width(_font, QWidget, '23456789' * 8, 50)
 
 
 AXIS_CONFIG = {

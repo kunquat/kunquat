@@ -163,7 +163,7 @@ class LoadHistoryContainer(QWidget):
 
 
 _font = QFont(QFont().defaultFamily(), 9, QFont.Bold)
-utils.set_glyph_rel_width(_font, QWidget, '8', 0.78)
+utils.set_glyph_rel_width(_font, QWidget, 'PeakAverage', 6.0)
 
 
 AXIS_CONFIG = {

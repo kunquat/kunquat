@@ -86,7 +86,7 @@ class RandomListMap(QWidget, ProcessorUpdater):
     }
 
     _FONT = QFont(QFont().defaultFamily(), 9, QFont.Bold)
-    set_glyph_rel_width(_FONT, QWidget, '8', 0.75)
+    set_glyph_rel_width(_FONT, QWidget, '23456789' * 8, 50)
 
     _AXIS_CONFIG = {
         'axis_x': {

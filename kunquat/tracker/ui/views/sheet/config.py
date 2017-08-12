@@ -11,13 +11,15 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import string
+
 from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.utils import set_glyph_rel_width
 
 
 _HEADER_FONT = QFont(QFont().defaultFamily(), 11, QFont.Bold)
-set_glyph_rel_width(_HEADER_FONT, QWidget, '8', 0.7)
+set_glyph_rel_width(_HEADER_FONT, QWidget, string.ascii_lowercase, 14.79)
 _HEADER_FONT.setPointSizeF(10.5)
 
 

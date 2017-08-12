@@ -13,6 +13,7 @@
 
 from collections import defaultdict
 import math
+import string
 import time
 
 from kunquat.tracker.ui.qt import *
@@ -25,10 +26,10 @@ from . import utils
 
 
 _title_font = QFont(QFont().defaultFamily(), 10, QFont.Bold)
-utils.set_glyph_rel_width(_title_font, QWidget, '8', 0.9)
+utils.set_glyph_rel_width(_title_font, QWidget, string.ascii_lowercase, 15.92)
 
 _port_font = QFont(QFont().defaultFamily(), 8, QFont.Bold)
-utils.set_glyph_rel_width(_port_font, QWidget, '8', 0.75)
+utils.set_glyph_rel_width(_port_font, QWidget, string.ascii_lowercase, 15.92)
 _port_font.setPointSizeF(7.5)
 
 
