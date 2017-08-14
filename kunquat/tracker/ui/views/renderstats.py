@@ -19,6 +19,7 @@ from kunquat.tracker.ui.qt import *
 from .axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
 from .profilecontrol import ProfileControl
 from .updater import Updater
+from . import utils
 
 
 class RenderStats(QWidget):
@@ -162,7 +163,7 @@ class LoadHistoryContainer(QWidget):
 
 
 _font = QFont(QFont().defaultFamily(), 9, QFont.Bold)
-_font.setStretch(85)
+utils.set_glyph_rel_width(_font, QWidget, 'PeakAverage', 6.0)
 
 
 AXIS_CONFIG = {

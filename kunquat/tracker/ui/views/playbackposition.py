@@ -22,19 +22,22 @@ import kunquat.tracker.ui.model.tstamp as tstamp
 from . import utils
 
 
+_REF_NUM_STR = '23456789' * 8
+
+
 class PlaybackPosition(QWidget):
 
     _NUM_FONT = QFont(QFont().defaultFamily(), 16, QFont.Bold)
-    _NUM_FONT.setStretch(85)
+    utils.set_glyph_rel_width(_NUM_FONT, QWidget, _REF_NUM_STR, 51.875)
 
     _SUB_FONT = QFont(QFont().defaultFamily(), 8, QFont.Bold)
-    _SUB_FONT.setStretch(85)
+    utils.set_glyph_rel_width(_SUB_FONT, QWidget, _REF_NUM_STR, 56)
 
     _REM_FONT = QFont(QFont().defaultFamily(), 12, QFont.Bold)
-    _REM_FONT.setStretch(85)
+    utils.set_glyph_rel_width(_REM_FONT, QWidget, _REF_NUM_STR, 53.25)
 
     _TITLE_FONT = QFont(QFont().defaultFamily(), 5, QFont.Bold)
-    _TITLE_FONT.setStretch(85)
+    utils.set_glyph_rel_width(_TITLE_FONT, QWidget, 'TRACKSYSTEMPATTERNROW', 20.4)
 
     _DEFAULT_CONFIG = {
         'padding_x'      : 9,
