@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -301,6 +301,32 @@ long long kqt_Handle_get_position(kqt_Handle handle)
     check_data_is_validated(h, 0);
 
     return Player_get_nanoseconds(h->player);
+}
+
+
+int kqt_Handle_set_channel_mute(kqt_Handle handle, int channel, int mute)
+{
+    check_handle(handle, 0);
+
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_data_is_validated(h, 0);
+
+    if (channel < 0 || channel >= KQT_COLUMNS_MAX)
+    {
+        Handle_set_error(h, ERROR_ARGUMENT, "Invalid channel number: %d", channel);
+        return 0;
+    }
+
+    if (mute != 0 && mute != 1)
+    {
+        Handle_set_error(h, ERROR_ARGUMENT, "Invalid mute state: %d", mute);
+        return 0;
+    }
+
+    Player_set_channel_mute(h->player, channel, mute);
+
+    return 1;
 }
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -54,6 +54,7 @@ static bool Channel_init(Channel* ch, int num, Env_state* estate, const Module* 
 
     ch->event_cache = NULL;
     ch->num = num;
+    ch->mute = false;
 
     Channel_reset(ch);
 
@@ -219,6 +220,21 @@ void Channel_apply_defaults(Channel* ch, const Channel_defaults* ch_defaults)
     rassert(success);
 
     return;
+}
+
+
+void Channel_set_muted(Channel* ch, bool muted)
+{
+    rassert(ch != NULL);
+    ch->mute = muted;
+    return;
+}
+
+
+bool Channel_is_muted(const Channel* ch)
+{
+    rassert(ch != NULL);
+    return ch->mute;
 }
 
 

@@ -330,6 +330,15 @@ int32_t Voice_group_render(
 }
 
 
+int Voice_group_get_ch_num(const Voice_group* vg)
+{
+    rassert(vg != NULL);
+    rassert(vg->size > 0);
+
+    return Voice_get_ch_num(vg->voices[0]);
+}
+
+
 static void mix_voice_signals(
         const Device_node* node,
         Voice_group* vgroup,

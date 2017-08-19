@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -55,6 +55,7 @@ struct Channel
     uint64_t fg_id[KQT_PROCESSORS_MAX]; ///< Voice reservation IDs.
     int fg_count;
 
+    bool mute;
     bool use_test_output;
     int test_proc_index;
     char test_proc_param[KQT_VAR_NAME_MAX];
@@ -169,6 +170,25 @@ void Channel_reset(Channel* ch);
  * \param ch_defaults   The Channel defaults -- must not be \c NULL.
  */
 void Channel_apply_defaults(Channel* ch, const Channel_defaults* ch_defaults);
+
+
+/**
+ * Set the mute status of the Channel.
+ *
+ * \param ch      The Channel -- must not be \c NULL.
+ * \param muted   \c true if \a ch is to be muted, otherwise \c false.
+ */
+void Channel_set_muted(Channel* ch, bool muted);
+
+
+/**
+ * Get the mute status of the Channel.
+ *
+ * \param ch   The Channel -- must not be \c NULL.
+ *
+ * \return   \c true if \a ch is muted, otherwise \c false.
+ */
+bool Channel_is_muted(const Channel* ch);
 
 
 /**

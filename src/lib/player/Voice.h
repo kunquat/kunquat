@@ -46,6 +46,7 @@ typedef struct Voice
 {
     uint64_t id;             ///< An identification number for this initialisation.
     uint64_t group_id;       ///< The ID of the group this Voice currently belogns to.
+    int ch_num;              ///< The last Channel that initialised this Voice.
     bool updated;            ///< Used to cut Voices that are not updated.
     Voice_prio prio;         ///< Current priority of the Voice.
     bool use_test_output;
@@ -117,6 +118,16 @@ uint64_t Voice_get_group_id(const Voice* voice);
 
 
 /**
+ * Get the Channel number associated with the Voice.
+ *
+ * \param voice   The Voice -- must not be \c NULL.
+ *
+ * \return   The Channel number, or \c -1 if \a voice is not in use.
+ */
+int Voice_get_ch_num(const Voice* voice);
+
+
+/**
  * Get the Processor associated with the Voice.
  *
  * \param voice   The Voice -- must not be \c NULL.
@@ -142,6 +153,8 @@ void Voice_set_work_buffer(Voice* voice, Work_buffer* wb);
  * \param proc         The Processor used -- must not be \c NULL.
  * \param group_id     The ID of the group this Voice belongs to. This is used
  *                     to identify which Voices are connected.
+ * \param ch_num       The Channel number associated with this initialisation
+ *                     -- must be >= \c 0 and < \c KQT_CHANNELS_MAX.
  * \param proc_state   The Processor state -- must not be \c NULL.
  * \param seed         The random seed.
  */
@@ -149,6 +162,7 @@ void Voice_init(
         Voice* voice,
         const Processor* proc,
         uint64_t group_id,
+        int ch_num,
         const Proc_state* proc_state,
         uint64_t seed);
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2017
  *
  * This file is part of Kunquat.
  *
@@ -62,6 +62,7 @@ void reserve_voice(
             voice,
             Audio_unit_get_proc(au, proc_num),
             group_id,
+            ch->num,
             proc_state,
             rand_seed);
 

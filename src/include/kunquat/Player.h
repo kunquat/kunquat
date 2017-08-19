@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -253,11 +253,23 @@ long long kqt_Handle_get_position(kqt_Handle handle);
 
 
 /**
+ * Set channel mute.
+ *
+ * \param handle    The Handle -- should be valid.
+ * \param channel   The channel -- should be >= \c 0 and < \c KQT_CHANNELS_MAX.
+ * \param mute      \c 1 to mute \a channel, \c 0 to unmute.
+ *
+ * \return   \c 1 if mute setting was successfully applied, otherwise \c 0.
+ */
+int kqt_Handle_set_channel_mute(kqt_Handle handle, int channel, int mute);
+
+
+/**
  * Fire an event.
  *
  * \param handle    The Handle -- should be valid.
  * \param channel   The channel where the event takes place -- should be
- *                  >= \c 0 and < \c KQT_COLUMNS_MAX.
+ *                  >= \c 0 and < \c KQT_CHANNELS_MAX.
  * \param event     The event description in JSON format -- should not be
  *                  \c NULL. The description is a pair (list with two
  *                  elements) with the event name as the first element and its

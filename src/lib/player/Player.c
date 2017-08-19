@@ -853,7 +853,11 @@ static int Player_process_voice_group(
 
         test_output_stop = process_stop;
 
-        if (!use_test_output)
+        const int ch_num = Voice_group_get_ch_num(vgroup);
+        const bool is_muted =
+            (ch_num >= 0) ? Channel_is_muted(player->channels[ch_num]) : false;
+
+        if (!is_muted && !use_test_output)
             Voice_group_mix(
                     vgroup,
                     player->device_states,
@@ -1624,6 +1628,18 @@ bool Player_has_stopped(const Player* player)
 {
     rassert(player != NULL);
     return (player->master_params.playback_state == PLAYBACK_STOPPED);
+}
+
+
+void Player_set_channel_mute(Player* player, int ch, bool mute)
+{
+    rassert(player != NULL);
+    rassert(ch >= 0);
+    rassert(ch < KQT_CHANNELS_MAX);
+
+    Channel_set_muted(player->channels[ch], mute);
+
+    return;
 }
 
 
