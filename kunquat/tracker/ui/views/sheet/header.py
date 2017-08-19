@@ -128,13 +128,16 @@ class ColumnHeader(QWidget):
 
         self._ui_model = None
 
+        self._menu = ColumnMenu(self)
+
         self.setMouseTracking(True)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._menu.set_ui_model(ui_model)
 
     def unregister_updaters(self):
-        pass
+        self._menu.unregister_updaters()
 
     def set_config(self, config):
         self._config = config
@@ -148,6 +151,8 @@ class ColumnHeader(QWidget):
 
     def set_column(self, num, module):
         self._num = num
+
+        self._menu.set_column(self._num)
 
         self._au_name = None
         chd = module.get_channel_defaults()
@@ -186,6 +191,10 @@ class ColumnHeader(QWidget):
         self.update()
 
     def mousePressEvent(self, event):
+        if event.buttons() == Qt.RightButton:
+            self._menu.popup(self.mapToGlobal(QPoint(event.x(), event.y())))
+            return
+
         if event.buttons() != Qt.LeftButton:
             return
 
@@ -197,6 +206,8 @@ class ColumnHeader(QWidget):
             solo = playback_manager.get_channel_solo(self._num)
             mute = playback_manager.get_channel_mute(self._num)
             playback_manager.set_channel_mute(self._num, not mute and not solo)
+
+        self._menu.update_actions()
 
         updater = self._ui_model.get_updater()
         updater.signal_update('signal_channel_mute')
@@ -235,5 +246,50 @@ class ColumnHeader(QWidget):
     def minimumSizeHint(self):
         fm = QFontMetrics(self._config['header']['font'], self)
         return QSize(10, self._text_height)
+
+
+class ColumnMenu(QMenu):
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self._num = None
+        self._ui_model = None
+        self._updater = None
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = self._ui_model.get_updater()
+
+    def set_column(self, num):
+        assert self._ui_model
+        self._num = num
+        self.update_actions()
+
+    def unregister_updaters(self):
+        pass
+
+    def update_actions(self):
+        self.clear()
+
+        playback_manager = self._ui_model.get_playback_manager()
+
+        self.addAction(
+                'Unmute' if playback_manager.get_channel_mute(self._num) else 'Mute',
+                self._mute_action)
+        self.addAction(
+                'Unsolo' if playback_manager.get_channel_solo(self._num) else 'Solo',
+                self._solo_action)
+
+    def _mute_action(self):
+        playback_manager = self._ui_model.get_playback_manager()
+        mute = playback_manager.get_channel_mute(self._num)
+        playback_manager.set_channel_mute(self._num, not mute)
+        self._updater.signal_update('signal_channel_mute')
+
+    def _solo_action(self):
+        playback_manager = self._ui_model.get_playback_manager()
+        solo = playback_manager.get_channel_solo(self._num)
+        playback_manager.set_channel_solo(self._num, not solo)
+        self._updater.signal_update('signal_channel_mute')
 
 
