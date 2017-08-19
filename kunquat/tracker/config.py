@@ -141,6 +141,7 @@ class Config():
                 'sheet_header_bg_colour',
                 'sheet_header_fg_colour',
                 'sheet_header_border_colour',
+                'sheet_header_solo_colour',
                 'sheet_ruler_bg_colour',
                 'sheet_ruler_fg_colour',
                 'sheet_playback_cursor_colour',

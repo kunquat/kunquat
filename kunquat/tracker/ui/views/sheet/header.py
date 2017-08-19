@@ -190,13 +190,16 @@ class ColumnHeader(QWidget):
             return
 
         playback_manager = self._ui_model.get_playback_manager()
-        mute = playback_manager.get_channel_mute(self._num)
-        playback_manager.set_channel_mute(self._num, not mute)
+        if event.modifiers() == Qt.ShiftModifier:
+            solo = playback_manager.get_channel_solo(self._num)
+            playback_manager.set_channel_solo(self._num, not solo)
+        else:
+            solo = playback_manager.get_channel_solo(self._num)
+            mute = playback_manager.get_channel_mute(self._num)
+            playback_manager.set_channel_mute(self._num, not mute and not solo)
 
         updater = self._ui_model.get_updater()
         updater.signal_update('signal_channel_mute')
-
-        self.update()
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -214,9 +217,12 @@ class ColumnHeader(QWidget):
         painter.setPen(self._config['header']['border_colour'])
         painter.drawLine(self.width() - 1, 0, self.width() - 1, self.height() - 1)
 
-        # Apply mute shade
+        # Apply solo/mute shade
         playback_manager = self._ui_model.get_playback_manager()
-        if playback_manager.get_channel_mute(self._num):
+        if playback_manager.get_channel_solo(self._num):
+            solo_shade = self._config['header']['solo_colour']
+            painter.fillRect(0, 0, self.width(), self.height(), solo_shade)
+        elif not playback_manager.is_channel_active(self._num):
             mute_shade = QColor(self._config['canvas_bg_colour'])
             mute_shade.setAlpha(0x7f)
             painter.fillRect(0, 0, self.width(), self.height(), mute_shade)

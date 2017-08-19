@@ -41,6 +41,7 @@ DEFAULT_CONFIG = {
         'bg_colour'    : QColor(0x22, 0x44, 0x22),
         'fg_colour'    : QColor(0xcc, 0xee, 0xaa),
         'border_colour': QColor(0x55, 0x77, 0x55),
+        'solo_colour'  : QColor(0x77, 0xee, 0x66, 0x7f),
         'font'         : _HEADER_FONT,
         'padding_x'    : 2,
     },
@@ -151,6 +152,9 @@ def get_config_with_custom_style(style_manager):
             style_manager.get_style_param('sheet_header_fg_colour'))
     config['header']['border_colour'] = _get_colour(
             style_manager.get_style_param('sheet_header_border_colour'))
+    solo_colour = _get_colour(style_manager.get_style_param('sheet_header_solo_colour'))
+    solo_colour.setAlpha(0x7f)
+    config['header']['solo_colour'] = solo_colour
 
     # Triggers
     config['trigger']['default_colour'] = _get_colour(
