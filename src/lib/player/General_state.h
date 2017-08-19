@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -33,7 +33,7 @@ typedef struct Cond_level
 } Cond_level;
 
 
-typedef struct General_state
+struct General_state
 {
     bool global;
     bool pause;
@@ -49,7 +49,7 @@ typedef struct General_state
     Active_names* active_names;
 
     const Module* module;
-} General_state;
+};
 
 
 /**

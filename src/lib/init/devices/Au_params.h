@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -16,14 +16,16 @@
 #define KQT_AU_PARAMS_H
 
 
+#include <decl.h>
+
 #include <stdint.h>
 #include <stdlib.h>
 
 
-typedef struct Au_params
+struct Au_params
 {
     uint32_t device_id;
-} Au_params;
+};
 
 
 /**
