@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2010-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2010-2017
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -285,6 +285,17 @@ class Kunquat():
         cbuf_right = _kunquat.kqt_Handle_get_audio(self._handle, 1)
         return cbuf_left[:frames_available], cbuf_right[:frames_available]
 
+    def set_channel_mute(self, channel, mute):
+        '''Set channel mute.
+
+        Arguments:
+        channel -- The channel whose mute status is to be updated.  The
+                   channel number is >= 0 and < 64.
+        mute -- True to mute the channel, False to unmute.
+
+        '''
+        _kunquat.kqt_Handle_set_channel_mute(self._handle, channel, int(mute))
+
     def fire_event(self, channel, event):
         """Fire an event.
 
@@ -559,6 +570,10 @@ _kunquat.kqt_Handle_set_position.errcheck = _error_check
 _kunquat.kqt_Handle_get_position.argtypes = [kqt_Handle]
 _kunquat.kqt_Handle_get_position.restype = ctypes.c_longlong
 _kunquat.kqt_Handle_get_position.errcheck = _error_check
+
+_kunquat.kqt_Handle_set_channel_mute.argtypes = [kqt_Handle, ctypes.c_int, ctypes.c_int]
+_kunquat.kqt_Handle_set_channel_mute.restype = ctypes.c_int
+_kunquat.kqt_Handle_set_channel_mute.errcheck = _error_check
 
 _kunquat.kqt_Handle_fire_event.argtypes = [kqt_Handle,
                                      ctypes.c_int,
