@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <init/devices/Proc_type.h>
 #include <init/Module.h>
+#include <player/Channel.h>
 #include <player/devices/Voice_state.h>
 #include <player/devices/processors/Force_state.h>
 #include <player/events/Event_common.h>

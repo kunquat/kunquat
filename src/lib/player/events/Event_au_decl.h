@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2017
  *
  * This file is part of Kunquat.
  *
@@ -16,27 +16,13 @@
 #define KQT_EVENT_AU_DECL_H
 
 
-#include <init/devices/Au_params.h>
-#include <init/devices/Audio_unit.h>
-#include <player/Channel.h>
-#include <player/devices/Au_state.h>
-#include <player/Master_params.h>
-#include <Value.h>
-
-#include <stdbool.h>
+#include <player/events/Event_interfaces.h>
 
 
 // Process function declarations
 
 #define EVENT_AU_DEF(name, type_suffix, arg_type, validator) \
-    bool Event_au_##type_suffix##_process(                   \
-            const Audio_unit* au,                            \
-            const Au_params* au_params,                      \
-            Au_state* au_state,                              \
-            Master_params* master_params,                    \
-            Channel* channel,                                \
-            Device_states* dstates,                          \
-            const Value* value);
+    Event_au_interface Event_au_##type_suffix##_process;
 #include <player/events/Event_au_types.h>
 
 

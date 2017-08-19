@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -15,6 +15,7 @@
 #include <player/events/Event_au_decl.h>
 
 #include <debug/assert.h>
+#include <player/devices/Au_state.h>
 #include <player/events/Event_common.h>
 #include <Value.h>
 

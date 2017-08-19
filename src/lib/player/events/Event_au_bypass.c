@@ -15,6 +15,7 @@
 #include <player/events/Event_au_decl.h>
 
 #include <debug/assert.h>
+#include <init/devices/Audio_unit.h>
 #include <init/devices/Processor.h>
 #include <player/devices/Proc_state.h>
 #include <player/events/Event_common.h>

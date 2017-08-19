@@ -19,6 +19,7 @@
 #include <init/Tuning_table.h>
 #include <kunquat/limits.h>
 #include <player/events/Event_common.h>
+#include <player/Master_params.h>
 #include <player/Tuning_state.h>
 #include <Value.h>
 

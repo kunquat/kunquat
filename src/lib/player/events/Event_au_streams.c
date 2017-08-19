@@ -15,10 +15,12 @@
 #include <player/events/Event_au_decl.h>
 
 #include <init/devices/Au_streams.h>
+#include <init/devices/Audio_unit.h>
 #include <init/devices/Device.h>
 #include <init/devices/Device_impl.h>
 #include <init/devices/Proc_type.h>
 #include <debug/assert.h>
+#include <player/Channel.h>
 #include <player/devices/processors/Stream_state.h>
 #include <player/events/set_active_name.h>
 #include <string/var_name.h>

@@ -16,10 +16,12 @@
 
 #include <debug/assert.h>
 #include <init/devices/Proc_type.h>
+#include <player/Channel.h>
 #include <player/devices/processors/Pitch_state.h>
 #include <player/devices/Voice_state.h>
 #include <player/events/Event_common.h>
 #include <player/Voice.h>
+#include <player/Voice_pool.h>
 #include <Value.h>
 
 #include <math.h>

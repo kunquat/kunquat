@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -15,6 +15,7 @@
 #include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
+#include <player/Channel.h>
 #include <player/events/Event_common.h>
 #include <player/events/set_active_name.h>
 #include <Value.h>
