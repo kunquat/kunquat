@@ -140,7 +140,7 @@ class SheetArea(QAbstractScrollArea, Updater):
         # Child widgets
         self.add_to_updaters(self._ruler, self.viewport())
 
-        self._header.set_module(self._ui_model.get_module())
+        self._header.set_ui_model(self._ui_model)
 
         self._update_config()
 

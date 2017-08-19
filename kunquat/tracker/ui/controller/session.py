@@ -33,6 +33,7 @@ class Session():
         self._audio_levels = (0, 0)
         self._max_audio_levels = [0, 0]
         self._infinite_mode = False
+        self._channel_mutes = {}
         self._playback_track = None
         self._selected_control_id = 0
         self._is_hit_keymap_active = False
@@ -206,6 +207,12 @@ class Session():
 
     def get_infinite_mode(self):
         return self._infinite_mode
+
+    def set_channel_mute(self, channel, mute):
+        self._channel_mutes[channel] = mute
+
+    def get_channel_mute(self, channel):
+        return self._channel_mutes.get(channel, False)
 
     def set_playback_track(self, track_num):
         self._playback_track = track_num

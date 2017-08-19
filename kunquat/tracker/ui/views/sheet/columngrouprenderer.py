@@ -201,6 +201,9 @@ class ColumnGroupRenderer():
 
         active_pattern_index = self._get_active_pattern_index()
 
+        playback_manager = self._ui_model.get_playback_manager()
+        ch_is_active = playback_manager.is_channel_active(self._num)
+
         for pi in range(first_index, len(self._heights)):
             if self._start_heights[pi] > self._px_offset + height:
                 break
@@ -211,7 +214,8 @@ class ColumnGroupRenderer():
             cur_offset = max(0, -rel_start_height)
 
             # Choose cache based on whether this pattern contains the edit cursor
-            if pi == active_pattern_index:
+            # and whether the channel is active
+            if pi == active_pattern_index and ch_is_active:
                 cache = self._caches[pi].get_active_cache()
             else:
                 cache = self._caches[pi].get_inactive_cache()

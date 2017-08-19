@@ -171,6 +171,9 @@ class AudioEngine():
     def tfire_event(self, channel, event):
         self._fire_event(channel, event, CONTEXT_TFIRE)
 
+    def set_channel_mute(self, channel, mute):
+        self._rendering_engine.set_channel_mute(channel, mute)
+
     def set_data(self, transaction_id, transaction):
         # This method should never be called directly. Feeding data to the
         # audio engine needs to be done through the store to keep module state

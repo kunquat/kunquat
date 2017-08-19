@@ -48,6 +48,16 @@ class PlaybackManager():
     def get_infinite_mode(self):
         return self._controller.get_infinite_mode()
 
+    def set_channel_mute(self, channel, mute):
+        self._controller.set_channel_mute(channel, mute)
+        self._session.set_channel_mute(channel, mute)
+
+    def get_channel_mute(self, channel):
+        return self._session.get_channel_mute(channel)
+
+    def is_channel_active(self, channel):
+        return not self.get_channel_mute(channel)
+
     def set_playback_cursor_following(self, enabled):
         get_config().set_value('follow_playback_cursor', enabled)
 

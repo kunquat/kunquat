@@ -29,18 +29,24 @@ class Header(QWidget):
 
         self._width = 0
 
-        self._module = None
+        self._ui_model = None
 
         self._headers = []
 
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+
+    def unregister_updaters(self):
+        for header in self._headers:
+            header.unregister_updaters()
+
     def set_config(self, config):
+        assert self._ui_model
         self._config = config
         for header in self._headers:
             header.set_config(self._config)
+            header.set_ui_model(self._ui_model)
         self._update_contents()
-
-    def set_module(self, module):
-        self._module = module
 
     def set_column_width(self, width):
         self._col_width = width
@@ -72,6 +78,7 @@ class Header(QWidget):
 
         for i in range(len(self._headers), visible_cols):
             header = ColumnHeader()
+            header.set_ui_model(self._ui_model)
             header.set_config(self._config)
             header.setParent(self)
             header.show()
@@ -88,9 +95,10 @@ class Header(QWidget):
         self._resize_layout(max_visible_cols)
 
         # Update headers
+        module = self._ui_model.get_module()
         for i, header in enumerate(self._headers):
             header.set_width(self._col_width)
-            header.set_column(self._first_col + i, self._module)
+            header.set_column(self._first_col + i, module)
             header.move(i * self._col_width, 0)
             header.setFixedWidth(self._col_width)
 
@@ -117,6 +125,16 @@ class ColumnHeader(QWidget):
 
         self._text_height = 0
         self._baseline_offset = 0
+
+        self._ui_model = None
+
+        self.setMouseTracking(True)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+
+    def unregister_updaters(self):
+        pass
 
     def set_config(self, config):
         self._config = config
@@ -167,6 +185,19 @@ class ColumnHeader(QWidget):
 
         self.update()
 
+    def mousePressEvent(self, event):
+        if event.buttons() != Qt.LeftButton:
+            return
+
+        playback_manager = self._ui_model.get_playback_manager()
+        mute = playback_manager.get_channel_mute(self._num)
+        playback_manager.set_channel_mute(self._num, not mute)
+
+        updater = self._ui_model.get_updater()
+        updater.signal_update('signal_channel_mute')
+
+        self.update()
+
     def paintEvent(self, event):
         painter = QPainter(self)
 
@@ -182,6 +213,13 @@ class ColumnHeader(QWidget):
         # Border
         painter.setPen(self._config['header']['border_colour'])
         painter.drawLine(self.width() - 1, 0, self.width() - 1, self.height() - 1)
+
+        # Apply mute shade
+        playback_manager = self._ui_model.get_playback_manager()
+        if playback_manager.get_channel_mute(self._num):
+            mute_shade = QColor(self._config['canvas_bg_colour'])
+            mute_shade.setAlpha(0x7f)
+            painter.fillRect(0, 0, self.width(), self.height(), mute_shade)
 
         # Grey out if disabled
         if not self.isEnabled():

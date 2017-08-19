@@ -493,6 +493,9 @@ class Controller():
     def get_infinite_mode(self):
         return self._session.get_infinite_mode()
 
+    def set_channel_mute(self, channel, mute):
+        self._audio_engine.set_channel_mute(channel, mute)
+
     def start_tracked_note(self, channel_number, control_id, event_type, param):
         assert event_type in (EVENT_NOTE_ON, EVENT_HIT)
 

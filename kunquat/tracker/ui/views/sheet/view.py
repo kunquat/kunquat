@@ -204,6 +204,8 @@ class View(QWidget):
             self.update()
         if 'signal_replace_mode' in signals:
             self.update()
+        if 'signal_channel_mute' in signals:
+            self.update()
         if ('signal_grid' in signals) or ('signal_grid_pattern_modified' in signals):
             self._update_grid()
             self.update()
