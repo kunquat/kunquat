@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <player/Channel.h>
+#include <player/events/Event_params.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -24,32 +25,36 @@
 
 
 bool Event_control_set_test_processor_process(
-        General_state* global_state, Channel* channel, const Value* value)
+        General_state* global_state, Channel* channel, const Event_params* params)
 {
     rassert(global_state != NULL);
     rassert(channel != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_INT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_INT);
 
-    rassert(value->value.int_type >= 0);
-    rassert(value->value.int_type < KQT_PROCESSORS_MAX);
+    rassert(params->arg->value.int_type >= 0);
+    rassert(params->arg->value.int_type < KQT_PROCESSORS_MAX);
 
     channel->use_test_output = true;
-    channel->test_proc_index = (int)value->value.int_type;
+    channel->test_proc_index = (int)params->arg->value.int_type;
 
     return true;
 }
 
 
 bool Event_control_set_test_processor_param_process(
-        General_state* global_state, Channel* channel, const Value* value)
+        General_state* global_state, Channel* channel, const Event_params* params)
 {
     rassert(global_state != NULL);
     rassert(channel != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_STRING);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_STRING);
 
-    strncpy(channel->test_proc_param, value->value.string_type, KQT_VAR_NAME_MAX - 1);
+    strncpy(channel->test_proc_param,
+            params->arg->value.string_type,
+            KQT_VAR_NAME_MAX - 1);
     channel->test_proc_param[KQT_VAR_NAME_MAX - 1] = '\0';
 
     return true;

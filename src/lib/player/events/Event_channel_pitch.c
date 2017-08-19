@@ -23,6 +23,7 @@
 #include <player/devices/processors/Pitch_state.h>
 #include <player/devices/Voice_state.h>
 #include <player/events/Event_common.h>
+#include <player/events/Event_params.h>
 #include <player/Master_params.h>
 #include <player/Tuning_state.h>
 #include <player/Voice.h>
@@ -38,15 +39,16 @@ bool Event_channel_slide_pitch_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
-    double pitch = value->value.float_type;
+    double pitch = params->arg->value.float_type;
 
     // Retune pitch parameter if a retuner is active
     {
@@ -88,15 +90,16 @@ bool Event_channel_slide_pitch_length_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_TSTAMP);
 
-    Tstamp_copy(&ch->pitch_slide_length, &value->value.Tstamp_type);
+    Tstamp_copy(&ch->pitch_slide_length, &params->arg->value.Tstamp_type);
 
     Slider_set_length(&ch->pitch_controls.slider, &ch->pitch_slide_length);
 
@@ -117,15 +120,16 @@ bool Event_channel_vibrato_speed_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
-    ch->vibrato_speed = value->value.float_type;
+    ch->vibrato_speed = params->arg->value.float_type;
 
     LFO_set_speed(&ch->pitch_controls.vibrato, ch->vibrato_speed);
     if (ch->vibrato_depth > 0)
@@ -151,15 +155,16 @@ bool Event_channel_vibrato_depth_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
-    const double actual_depth = value->value.float_type * 5; // unit is 5 cents
+    const double actual_depth = params->arg->value.float_type * 5; // unit is 5 cents
     ch->vibrato_depth = actual_depth;
 
     if (ch->vibrato_speed > 0)
@@ -186,15 +191,16 @@ bool Event_channel_vibrato_speed_slide_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_TSTAMP);
 
-    Tstamp_copy(&ch->vibrato_speed_slide, &value->value.Tstamp_type);
+    Tstamp_copy(&ch->vibrato_speed_slide, &params->arg->value.Tstamp_type);
 
     LFO_set_speed_slide(&ch->pitch_controls.vibrato, &ch->vibrato_speed_slide);
 
@@ -215,15 +221,16 @@ bool Event_channel_vibrato_depth_slide_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_TSTAMP);
 
-    Tstamp_copy(&ch->vibrato_depth_slide, &value->value.Tstamp_type);
+    Tstamp_copy(&ch->vibrato_depth_slide, &params->arg->value.Tstamp_type);
 
     LFO_set_depth_slide(&ch->pitch_controls.vibrato, &ch->vibrato_depth_slide);
 
@@ -244,12 +251,12 @@ bool Event_channel_carry_pitch_on_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    ignore(value);
+    ignore(params);
 
     ch->carry_pitch = true;
 
@@ -261,12 +268,12 @@ bool Event_channel_carry_pitch_off_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    ignore(value);
+    ignore(params);
 
     ch->carry_pitch = false;
 

@@ -21,6 +21,7 @@
 #include <player/Channel.h>
 #include <player/devices/Voice_state.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,7 +33,8 @@ void reserve_voice(
         uint64_t group_id,
         const Proc_state* proc_state,
         int proc_num,
-        uint64_t rand_seed)
+        uint64_t rand_seed,
+        bool is_external)
 {
     rassert(ch != NULL);
     rassert(ch->audio_rate > 0);
@@ -62,7 +64,7 @@ void reserve_voice(
             voice,
             Audio_unit_get_proc(au, proc_num),
             group_id,
-            ch->num,
+            is_external ? -1 : ch->num,
             proc_state,
             rand_seed);
 

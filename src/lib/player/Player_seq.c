@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2017
  *
  * This file is part of Kunquat.
  *
@@ -123,11 +123,17 @@ static void Player_process_expr_event(
         int ch_num,
         const char* trigger_desc,
         const Value* meta,
-        bool skip);
+        bool skip,
+        bool external);
 
 
 void Player_process_event(
-        Player* player, int ch_num, const char* event_name, const Value* arg, bool skip)
+        Player* player,
+        int ch_num,
+        const char* event_name,
+        const Value* arg,
+        bool skip,
+        bool external)
 {
     rassert(player != NULL);
     rassert(implies(!skip, !Event_buffer_is_full(player->event_buffer)));
@@ -142,7 +148,8 @@ void Player_process_event(
 
     if (!Event_is_query(type) &&
             !Event_is_auto(type) &&
-            !Event_handler_trigger(player->event_handler, ch_num, event_name, arg))
+            !Event_handler_trigger(
+                player->event_handler, ch_num, event_name, arg, external))
     {
         // FIXME: add a proper way of reporting event errors
         fprintf(stderr, "`%s` not fired\n", event_name);
@@ -177,7 +184,8 @@ void Player_process_event(
                     (ch_num + bound->ch_offset + KQT_CHANNELS_MAX) % KQT_CHANNELS_MAX,
                     bound->desc,
                     arg,
-                    skip);
+                    skip,
+                    external);
 
             bound = bound->next;
         }
@@ -186,17 +194,17 @@ void Player_process_event(
     // Handle query events
     if (!skip && Event_is_query(type))
     {
-#define try_process(name, value)                                         \
-        if (true)                                                        \
-        {                                                                \
-            if (Event_buffer_is_full(player->event_buffer))              \
-            {                                                            \
-                Event_buffer_start_skipping(player->event_buffer);       \
-                return;                                                  \
-            }                                                            \
-            else                                                         \
-                Player_process_event(player, ch_num, name, value, skip); \
-        }                                                                \
+#define try_process(name, value)                                                   \
+        if (true)                                                                  \
+        {                                                                          \
+            if (Event_buffer_is_full(player->event_buffer))                        \
+            {                                                                      \
+                Event_buffer_start_skipping(player->event_buffer);                 \
+                return;                                                            \
+            }                                                                      \
+            else                                                                   \
+                Player_process_event(player, ch_num, name, value, skip, external); \
+        }                                                                          \
         else ignore(0)
 
         switch (type)
@@ -272,7 +280,8 @@ static void Player_process_expr_event(
         int ch_num,
         const char* trigger_desc,
         const Value* meta,
-        bool skip)
+        bool skip,
+        bool external)
 {
     rassert(player != NULL);
     rassert(implies(!skip, !Event_buffer_is_full(player->event_buffer)));
@@ -327,7 +336,7 @@ static void Player_process_expr_event(
     }
 
     if (!Event_is_control(type) || player->master_params.is_infinite)
-        Player_process_event(player, ch_num, event_name, arg, skip);
+        Player_process_event(player, ch_num, event_name, arg, skip, external);
 
     if (Event_buffer_is_full(player->event_buffer))
         return;
@@ -600,12 +609,15 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                                 return;
                             }
 
+                            const bool external = false;
+
                             Player_process_expr_event(
                                     player,
                                     i,
                                     Trigger_get_desc(trl->trigger),
                                     NULL, // no meta value
-                                    skip);
+                                    skip,
+                                    external);
 
                             // Break if started event skipping
                             if (Event_buffer_is_skipping(player->event_buffer))

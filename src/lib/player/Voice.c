@@ -136,7 +136,7 @@ void Voice_init(
     rassert(voice != NULL);
     rassert(proc != NULL);
     rassert(proc_state != NULL);
-    rassert(ch_num >= 0);
+    rassert(ch_num >= -1);
     rassert(ch_num < KQT_CHANNELS_MAX);
 
     voice->prio = VOICE_PRIO_NEW;

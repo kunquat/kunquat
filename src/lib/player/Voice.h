@@ -154,7 +154,8 @@ void Voice_set_work_buffer(Voice* voice, Work_buffer* wb);
  * \param group_id     The ID of the group this Voice belongs to. This is used
  *                     to identify which Voices are connected.
  * \param ch_num       The Channel number associated with this initialisation
- *                     -- must be >= \c 0 and < \c KQT_CHANNELS_MAX.
+ *                     -- must be >= \c 0 and < \c KQT_CHANNELS_MAX, or \c -1
+ *                     which indicates indeterminate Channel.
  * \param proc_state   The Processor state -- must not be \c NULL.
  * \param seed         The random seed.
  */

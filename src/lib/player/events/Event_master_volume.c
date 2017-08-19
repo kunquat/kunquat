@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <player/events/Event_common.h>
+#include <player/events/Event_params.h>
 #include <player/Master_params.h>
 #include <Value.h>
 
@@ -25,13 +26,14 @@
 
 
 bool Event_master_set_volume_process(
-        Master_params* master_params, const Value* value)
+        Master_params* master_params, const Event_params* params)
 {
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
-    master_params->volume = exp2(value->value.float_type / 6);
+    master_params->volume = exp2(params->arg->value.float_type / 6);
     Slider_break(&master_params->volume_slider);
 
     return true;
@@ -39,13 +41,14 @@ bool Event_master_set_volume_process(
 
 
 bool Event_master_slide_volume_process(
-        Master_params* master_params, const Value* value)
+        Master_params* master_params, const Event_params* params)
 {
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
-    const double target = exp2(value->value.float_type / 6);
+    const double target = exp2(params->arg->value.float_type / 6);
 
     if (Slider_in_progress(&master_params->volume_slider))
         Slider_change_target(&master_params->volume_slider, target);
@@ -57,13 +60,14 @@ bool Event_master_slide_volume_process(
 
 
 bool Event_master_slide_volume_length_process(
-        Master_params* master_params, const Value* value)
+        Master_params* master_params, const Event_params* params)
 {
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_TSTAMP);
 
-    Slider_set_length(&master_params->volume_slider, &value->value.Tstamp_type);
+    Slider_set_length(&master_params->volume_slider, &params->arg->value.Tstamp_type);
 
     return true;
 }

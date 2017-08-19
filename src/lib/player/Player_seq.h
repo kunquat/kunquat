@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2017
  *
  * This file is part of Kunquat.
  *
@@ -35,7 +35,12 @@ void Player_reset_channels(Player* player);
 
 
 void Player_process_event(
-        Player* player, int ch_num, const char* event_name, const Value* arg, bool skip);
+        Player* player,
+        int ch_num,
+        const char* event_name,
+        const Value* arg,
+        bool skip,
+        bool external);
 
 
 bool Player_check_perform_goto(Player* player);

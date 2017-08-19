@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2017
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <player/Channel.h>
 #include <player/events/Event_common.h>
+#include <player/events/Event_params.h>
 #include <player/General_state.h>
 #include <player/Master_params.h>
 #include <Value.h>
@@ -29,11 +30,11 @@
 
 
 bool Event_control_goto_process(
-        General_state* global_state, Channel* channel, const Value* value)
+        General_state* global_state, Channel* channel, const Event_params* params)
 {
     rassert(global_state != NULL);
     rassert(channel != NULL);
-    ignore(value);
+    ignore(params);
 
     Master_params* master_params = (Master_params*)global_state;
 
@@ -53,30 +54,32 @@ bool Event_control_goto_process(
 
 
 bool Event_control_set_goto_row_process(
-        General_state* global_state, Channel* channel, const Value* value)
+        General_state* global_state, Channel* channel, const Event_params* params)
 {
     rassert(global_state != NULL);
     rassert(channel != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_TSTAMP);
 
     Master_params* master_params = (Master_params*)global_state;
-    Tstamp_copy(&master_params->goto_target_row, &value->value.Tstamp_type);
+    Tstamp_copy(&master_params->goto_target_row, &params->arg->value.Tstamp_type);
 
     return true;
 }
 
 
 bool Event_control_set_goto_pat_inst_process(
-        General_state* global_state, Channel* channel, const Value* value)
+        General_state* global_state, Channel* channel, const Event_params* params)
 {
     rassert(global_state != NULL);
     rassert(channel != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_PAT_INST_REF);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_PAT_INST_REF);
 
     Master_params* master_params = (Master_params*)global_state;
-    master_params->goto_target_piref = value->value.Pat_inst_ref_type;
+    master_params->goto_target_piref = params->arg->value.Pat_inst_ref_type;
 
     return true;
 }

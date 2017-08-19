@@ -18,6 +18,7 @@
 #include <kunquat/limits.h>
 #include <player/Channel.h>
 #include <player/events/Event_common.h>
+#include <player/events/Event_params.h>
 #include <Value.h>
 
 #include <stdbool.h>
@@ -28,15 +29,16 @@ bool Event_channel_set_au_input_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_INT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_INT);
 
-    ch->au_input = (int)value->value.int_type;
+    ch->au_input = (int)params->arg->value.int_type;
 
     return true;
 }

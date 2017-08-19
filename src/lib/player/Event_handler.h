@@ -120,17 +120,22 @@ bool Event_handler_set_au_process(
 /**
  * Trigger an event.
  *
- * \param eh       The Event handler -- must not be \c NULL.
- * \param ch_num   The channel number -- must be >= \c 0 and
- *                 < \c KQT_CHANNELS_MAX.
- * \param name     The event name -- must be a valid name.
- * \param arg      The event argument -- must not be \c NULL.
+ * \param eh         The Event handler -- must not be \c NULL.
+ * \param ch_num     The channel number -- must be >= \c 0 and
+ *                   < \c KQT_CHANNELS_MAX.
+ * \param name       The event name -- must be a valid name.
+ * \param arg        The event argument -- must not be \c NULL.
+ * \param external   \c true if event is externally fired, otherwise \c false.
  *
  * \return   \c true if the Event was triggered successfully, otherwise
  *           \c false.
  */
 bool Event_handler_trigger(
-        Event_handler* eh, int ch_num, const char* name, const Value* arg);
+        Event_handler* eh,
+        int ch_num,
+        const char* name,
+        const Value* arg,
+        bool external);
 
 
 /**

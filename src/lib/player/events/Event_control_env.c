@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2017
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 #include <player/Channel.h>
 #include <player/Event_type.h>
 #include <player/events/Event_common.h>
+#include <player/events/Event_params.h>
 #include <player/events/set_active_name.h>
 #include <player/General_state.h>
 #include <Value.h>
@@ -30,23 +31,25 @@
 
 
 bool Event_control_env_set_var_name_process(
-        General_state* global_state, Channel* channel, const Value* value)
+        General_state* global_state, Channel* channel, const Event_params* params)
 {
     rassert(global_state != NULL);
     rassert(channel != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_STRING);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_STRING);
 
-    return set_active_name(&channel->parent, ACTIVE_CAT_ENV, value);
+    return set_active_name(&channel->parent, ACTIVE_CAT_ENV, params->arg);
 }
 
 
 bool Event_control_env_set_var_process(
-        General_state* global_state, Channel* channel, const Value* value)
+        General_state* global_state, Channel* channel, const Event_params* params)
 {
     rassert(global_state != NULL);
     rassert(channel != NULL);
-    rassert(value != NULL);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
 
     Env_var* var = Env_state_get_var(
             global_state->estate,
@@ -55,7 +58,7 @@ bool Event_control_env_set_var_process(
         return false;
 
     Value* converted = VALUE_AUTO;
-    if (!Value_convert(converted, value, Env_var_get_type(var)))
+    if (!Value_convert(converted, params->arg, Env_var_get_type(var)))
         return false;
 
     Env_var_set_value(var, converted);

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2017
  *
  * This file is part of Kunquat.
  *
@@ -26,14 +26,16 @@
 /**
  * Reserve a Voice for a processor in an Audio unit.
  *
- * \param ch           The Channel -- must not be \c NULL.
- * \param au           The Audio unit -- must not be \c NULL.
- * \param group_id     The Voice group id.
- * \param proc_state   The processor state -- must not be \c NULL.
- * \param proc_num     The number of the Processor -- must be >= \c 0 and
- *                     < \c KQT_PROCESSORS_MAX.
- * \param rand_seed    The random seed passed to the Voice (NOTE: should be
- *                     the same for every Voice with the same group!)
+ * \param ch            The Channel -- must not be \c NULL.
+ * \param au            The Audio unit -- must not be \c NULL.
+ * \param group_id      The Voice group id.
+ * \param proc_state    The processor state -- must not be \c NULL.
+ * \param proc_num      The number of the Processor -- must be >= \c 0 and
+ *                      < \c KQT_PROCESSORS_MAX.
+ * \param rand_seed     The random seed passed to the Voice (NOTE: should be
+ *                      the same for every Voice with the same group!)
+ * \param is_external   \c true if the note or hit originates from an
+ *                      external event, otherwise \c false.
  */
 void reserve_voice(
         Channel* ch,
@@ -41,7 +43,8 @@ void reserve_voice(
         uint64_t group_id,
         const Proc_state* proc_state,
         int proc_num,
-        uint64_t rand_seed);
+        uint64_t rand_seed,
+        bool is_external);
 
 
 #endif // KQT_NOTE_SETUP_H

@@ -30,6 +30,7 @@
 #include <player/events/Event_control_decl.h>
 #include <player/events/Event_general_decl.h>
 #include <player/events/Event_master_decl.h>
+#include <player/events/Event_params.h>
 #include <player/General_state.h>
 #include <string/common.h>
 #include <string/Streader.h>
@@ -188,7 +189,7 @@ bool Event_handler_set_au_process(
 
 
 static bool Event_handler_handle(
-        Event_handler* eh, int index, Event_type type, const Value* value)
+        Event_handler* eh, int index, Event_type type, const Value* value, bool external)
 {
     rassert(eh != NULL);
     rassert(index >= 0);
@@ -196,6 +197,10 @@ static bool Event_handler_handle(
     rassert(Event_is_valid(type));
     rassert(eh->channels[index]->audio_rate > 0);
     rassert(eh->channels[index]->tempo > 0);
+
+    Event_params* params = EVENT_PARAMS_AUTO;
+    params->external = external;
+    params->arg = value;
 
     if (Event_is_channel(type))
     {
@@ -206,7 +211,7 @@ static bool Event_handler_handle(
                 eh->channels[index],
                 eh->device_states,
                 eh->master_params,
-                value);
+                params);
     }
     else if (Event_is_au(type))
     {
@@ -230,24 +235,24 @@ static bool Event_handler_handle(
                 eh->master_params,
                 eh->channels[index],
                 eh->device_states,
-                value);
+                params);
     }
     else if (Event_is_master(type))
     {
         if (eh->master_process[type] == NULL)
             return false;
 
-        return eh->master_process[type](eh->master_params, value);
+        return eh->master_process[type](eh->master_params, params);
     }
     else if (Event_is_control(type))
     {
         return eh->control_process[type](
-                (General_state*)eh->master_params, eh->channels[index], value);
+                (General_state*)eh->master_params, eh->channels[index], params);
     }
     else if (Event_is_general(type))
     {
         General_state* gstate = (General_state*)eh->channels[index];
-        return eh->general_process[type](gstate, value);
+        return eh->general_process[type](gstate, params);
     }
 
     return false;
@@ -255,7 +260,7 @@ static bool Event_handler_handle(
 
 
 bool Event_handler_trigger(
-        Event_handler* eh, int ch_num, const char* name, const Value* arg)
+        Event_handler* eh, int ch_num, const char* name, const Value* arg, bool external)
 {
     rassert(eh != NULL);
     rassert(ch_num >= 0);
@@ -279,7 +284,7 @@ bool Event_handler_trigger(
     rassert(eh->channels[ch_num]->audio_rate > 0);
     rassert(eh->channels[ch_num]->tempo > 0);
 
-    return Event_handler_handle(eh, ch_num, type, arg);
+    return Event_handler_handle(eh, ch_num, type, arg, external);
 }
 
 

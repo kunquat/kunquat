@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2017
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <player/events/Event_common.h>
+#include <player/events/Event_params.h>
 #include <player/General_state.h>
 #include <Value.h>
 
@@ -23,11 +24,13 @@
 #include <stdlib.h>
 
 
-bool Event_general_comment_process(General_state* gstate, const Value* value)
+bool Event_general_comment_process(General_state* gstate, const Event_params* params)
 {
     rassert(gstate != NULL);
-    rassert(value != NULL);
-    return value->type == VALUE_TYPE_STRING;
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+
+    return params->arg->type == VALUE_TYPE_STRING;
 }
 
 

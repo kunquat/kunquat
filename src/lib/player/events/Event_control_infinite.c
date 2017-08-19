@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2017
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 #include <player/Channel.h>
 #include <player/Event_type.h>
 #include <player/events/Event_common.h>
+#include <player/events/Event_params.h>
 #include <player/General_state.h>
 #include <player/Master_params.h>
 #include <Value.h>
@@ -27,11 +28,11 @@
 
 
 bool Event_control_infinite_on_process(
-        General_state* global_state, Channel* channel, const Value* value)
+        General_state* global_state, Channel* channel, const Event_params* params)
 {
     rassert(global_state != NULL);
     rassert(channel != NULL);
-    ignore(value);
+    ignore(params);
 
     Master_params* master_params = (Master_params*)global_state;
     master_params->is_infinite = true;
@@ -41,11 +42,11 @@ bool Event_control_infinite_on_process(
 
 
 bool Event_control_infinite_off_process(
-        General_state* global_state, Channel* channel, const Value* value)
+        General_state* global_state, Channel* channel, const Event_params* params)
 {
     rassert(global_state != NULL);
     rassert(channel != NULL);
-    ignore(value);
+    ignore(params);
 
     Master_params* master_params = (Master_params*)global_state;
     master_params->is_infinite = false;

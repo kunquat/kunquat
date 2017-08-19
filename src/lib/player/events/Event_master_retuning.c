@@ -19,6 +19,7 @@
 #include <init/Tuning_table.h>
 #include <kunquat/limits.h>
 #include <player/events/Event_common.h>
+#include <player/events/Event_params.h>
 #include <player/Master_params.h>
 #include <player/Tuning_state.h>
 #include <Value.h>
@@ -55,13 +56,15 @@ static void get_tuning_info(
 }
 
 
-bool Event_master_set_retuner_process(Master_params* master_params, const Value* value)
+bool Event_master_set_retuner_process(
+        Master_params* master_params, const Event_params* params)
 {
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_INT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_INT);
 
-    master_params->cur_tuning_state = (int)value->value.int_type;
+    master_params->cur_tuning_state = (int)params->arg->value.int_type;
 
     Tuning_state* state = NULL;
     const Tuning_table* table = NULL;
@@ -77,11 +80,12 @@ bool Event_master_set_retuner_process(Master_params* master_params, const Value*
 
 
 bool Event_master_set_retuner_fixed_pitch_process(
-        Master_params* master_params, const Value* value)
+        Master_params* master_params, const Event_params* params)
 {
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
     Tuning_state* state = NULL;
     const Tuning_table* table = NULL;
@@ -89,18 +93,19 @@ bool Event_master_set_retuner_fixed_pitch_process(
     if (state == NULL)
         return true;
 
-    Tuning_state_set_fixed_pitch(state, table, value->value.float_type);
+    Tuning_state_set_fixed_pitch(state, table, params->arg->value.float_type);
 
     return true;
 }
 
 
 bool Event_master_set_retuner_tuning_centre_process(
-        Master_params* master_params, const Value* value)
+        Master_params* master_params, const Event_params* params)
 {
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
     Tuning_state* state = NULL;
     const Tuning_table* table = NULL;
@@ -108,18 +113,19 @@ bool Event_master_set_retuner_tuning_centre_process(
     if (state == NULL)
         return true;
 
-    Tuning_state_retune(state, table, value->value.float_type);
+    Tuning_state_retune(state, table, params->arg->value.float_type);
 
     return true;
 }
 
 
 bool Event_master_set_retuner_pitch_offset_process(
-        Master_params* master_params, const Value* value)
+        Master_params* master_params, const Event_params* params)
 {
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
     Tuning_state* state = NULL;
     const Tuning_table* table = NULL;
@@ -127,20 +133,21 @@ bool Event_master_set_retuner_pitch_offset_process(
     if (state == NULL)
         return true;
 
-    Tuning_state_set_global_offset(state, value->value.float_type);
+    Tuning_state_set_global_offset(state, params->arg->value.float_type);
 
     return true;
 }
 
 
 bool Event_master_mimic_retuner_process(
-        Master_params* master_params, const Value* value)
+        Master_params* master_params, const Event_params* params)
 {
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_INT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_INT);
 
-    const int source_index = (int)value->value.int_type;
+    const int source_index = (int)params->arg->value.int_type;
     if (source_index < 0 || source_index >= KQT_TUNING_TABLES_MAX)
         return true;
 
@@ -158,10 +165,10 @@ bool Event_master_mimic_retuner_process(
 
 
 bool Event_master_reset_retuner_process(
-        Master_params* master_params, const Value* value)
+        Master_params* master_params, const Event_params* params)
 {
     rassert(master_params != NULL);
-    ignore(value);
+    ignore(params);
 
     Tuning_state* state = NULL;
     const Tuning_table* table = NULL;

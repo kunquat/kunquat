@@ -28,16 +28,16 @@ typedef bool Event_au_interface(
         Master_params*,
         Channel*,
         Device_states*,
-        const Value*);
+        const Event_params*);
 
 typedef bool Event_channel_interface(
-        Channel*, Device_states*, const Master_params*, const Value*);
+        Channel*, Device_states*, const Master_params*, const Event_params*);
 
-typedef bool Event_control_interface(General_state*, Channel*, const Value*);
+typedef bool Event_control_interface(General_state*, Channel*, const Event_params*);
 
-typedef bool Event_general_interface(General_state*, const Value*);
+typedef bool Event_general_interface(General_state*, const Event_params*);
 
-typedef bool Event_master_interface(Master_params*, const Value*);
+typedef bool Event_master_interface(Master_params*, const Event_params*);
 
 
 #endif // KQT_EVENT_INTERFACES_H

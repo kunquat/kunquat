@@ -1164,12 +1164,15 @@ static bool Player_update_receive(Player* player)
         }
         else
         {
+            const bool skip = false;
+            const bool external = false;
             Player_process_event(
                     player,
                     player->susp_event_ch,
                     player->susp_event_name,
                     &player->susp_event_value,
-                    false);
+                    skip,
+                    external);
 
             // Check and perform goto if needed
             Player_check_perform_goto(player);
@@ -1729,7 +1732,9 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
         return false;
 
     // Fire
-    Player_process_event(player, ch, event_name, value, false);
+    const bool skip = false;
+    const bool external = true;
+    Player_process_event(player, ch, event_name, value, skip, external);
 
     // Check and perform goto if needed
     Player_check_perform_goto(player);
