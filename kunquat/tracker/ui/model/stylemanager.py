@@ -71,7 +71,7 @@ class StyleManager():
         'sheet_area_selection_colour'       : '#8ac',
         'sheet_canvas_bg_colour'            : '#111',
         'sheet_column_bg_colour'            : '#000',
-        'sheet_column_border_colour'        : '#555',
+        'sheet_column_border_colour'        : '#222',
         'sheet_cursor_view_line_colour'     : '#def',
         'sheet_cursor_edit_line_colour'     : '#f84',
         'sheet_grid_level_1_colour'         : '#aaa',

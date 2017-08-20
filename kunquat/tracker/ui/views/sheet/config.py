@@ -51,7 +51,7 @@ DEFAULT_CONFIG = {
     'inactive_dim'      : 0.6,
     'canvas_bg_colour'  : QColor(0x11, 0x11, 0x11),
     'bg_colour'         : QColor(0, 0, 0),
-    'border_colour'     : QColor(0x55, 0x55, 0x55),
+    'border_colour'     : QColor(0x22, 0x22, 0x22),
     'border_contrast'   : 0.25,
     'border_width'      : 1, # px per side -> effective border width is double
     'font'              : QFont(QFont().defaultFamily(), 12),
