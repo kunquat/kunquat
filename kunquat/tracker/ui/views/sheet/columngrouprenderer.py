@@ -195,7 +195,8 @@ class ColumnGroupRenderer():
         # FIXME: contains some copypasta from Ruler.paintEvent
 
         overlap = None
-        max_tr_width = self._width - 1
+        border_width = self._config['border_width']
+        max_tr_width = self._width - border_width * 2
 
         rel_end_height = 0 # empty song
 
@@ -247,7 +248,7 @@ class ColumnGroupRenderer():
                         src_rect.setHeight(src_rect.height() - tr_overlap)
 
                 full_width = min(max_tr_width, src_rect.width())
-                offset_x = 0
+                offset_x = border_width
                 for image in images:
                     if offset_x >= full_width:
                         break
@@ -287,7 +288,7 @@ class ColumnGroupRenderer():
                 # Last pattern and blank do not share pixel rows
                 src_rect.setY(src_rect.y() + 1)
                 full_width = min(max_tr_width, src_rect.width())
-                offset_x = 0
+                offset_x = border_width
                 for image in images:
                     if offset_x >= full_width:
                         break
@@ -565,8 +566,11 @@ class ColumnCache():
         assert pat_index != None
 
         # Background
+        border_width = self._config['border_width']
         painter.setBackground(self._get_final_colour(self._config['bg_colour']))
-        painter.eraseRect(QRect(0, 0, self._width - 1, ColumnCache.PIXMAP_HEIGHT))
+        painter.eraseRect(QRect(
+            border_width, 0,
+            self._width - border_width * 2, ColumnCache.PIXMAP_HEIGHT))
 
         # Start and stop timestamps
         start_px = index * ColumnCache.PIXMAP_HEIGHT
@@ -601,7 +605,7 @@ class ColumnCache():
                 line_y_offset = ts_to_y_offset(line_ts)
 
                 line_pixmap = self._gl_cache.get_line_pixmap(line_style)
-                painter.drawPixmap(QPoint(0, line_y_offset), line_pixmap)
+                painter.drawPixmap(QPoint(border_width, line_y_offset), line_pixmap)
 
         # Trigger rows
         painter.save()
@@ -613,9 +617,9 @@ class ColumnCache():
                 next_y_offset = ts_to_y_offset(next_ts)
                 tr_height = min(max(1, next_y_offset - y_offset), tr_height)
 
-            x_offset = 0
+            x_offset = border_width
             for image in images:
-                if x_offset >= self._width:
+                if x_offset >= self._width - border_width * 2:
                     break
 
                 painter.setClipRegion(
@@ -624,11 +628,24 @@ class ColumnCache():
                 x_offset += image.width()
         painter.restore()
 
-        # Border
+        # Borders
+        border_colour = self._get_final_colour(self._config['border_colour'])
         painter.setPen(self._get_final_colour(self._config['border_colour']))
-        painter.drawLine(
-                QPoint(self._width - 1, 0),
-                QPoint(self._width - 1, ColumnCache.PIXMAP_HEIGHT))
+        if border_width > 1:
+            painter.fillRect(
+                    QRect(QPoint(0, 0), QSize(border_width, ColumnCache.PIXMAP_HEIGHT)),
+                    border_colour)
+            painter.fillRect(
+                    QRect(QPoint(self._width - border_width, 0),
+                        QSize(border_width, ColumnCache.PIXMAP_HEIGHT)),
+                    border_colour)
+        else:
+            painter.setPen(border_colour)
+            painter.drawLine(
+                    QPoint(0, 0), QPoint(0, ColumnCache.PIXMAP_HEIGHT))
+            painter.drawLine(
+                    QPoint(self._width - 1, 0),
+                    QPoint(self._width - 1, ColumnCache.PIXMAP_HEIGHT))
 
         # Testing
         """

@@ -52,6 +52,7 @@ DEFAULT_CONFIG = {
     'canvas_bg_colour'  : QColor(0x11, 0x11, 0x11),
     'bg_colour'         : QColor(0, 0, 0),
     'border_colour'     : QColor(0x55, 0x55, 0x55),
+    'border_width'      : 1, # px per side -> effective border width is double
     'font'              : QFont(QFont().defaultFamily(), 12),
     'disabled_colour'   : QColor(0x88, 0x88, 0x88, 0x7f),
     'play_cursor_colour': QColor(0x66, 0xee, 0x66),
