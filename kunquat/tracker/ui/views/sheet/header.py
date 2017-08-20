@@ -214,6 +214,14 @@ class ColumnHeader(QWidget):
         updater = self._ui_model.get_updater()
         updater.signal_update('signal_channel_mute')
 
+    def _get_border_colours(self):
+        style_manager = self._ui_model.get_style_manager()
+        param = 'sheet_header_bg_colour'
+        contrast = self._config['border_contrast']
+        light = QColor(style_manager.get_adjusted_colour(param, contrast))
+        dark = QColor(style_manager.get_adjusted_colour(param, -contrast))
+        return light, dark
+
     def paintEvent(self, event):
         painter = QPainter(self)
 
@@ -230,18 +238,19 @@ class ColumnHeader(QWidget):
         painter.drawPixmap(x_offset, 1, self._pixmap)
 
         # Border
-        border_colour = self._config['header']['border_colour']
+        border_light, border_dark = self._get_border_colours()
         if border_width > 1:
             painter.fillRect(
                     QRect(QPoint(0, 0), QSize(border_width, self.height() - 1)),
-                    border_colour)
+                    border_light)
             painter.fillRect(
                     QRect(QPoint(self.width() - border_width, 0),
                         QSize(border_width, self.height() - 1)),
-                    border_colour)
+                    border_dark)
         else:
-            painter.setPen(border_colour)
+            painter.setPen(border_light)
             painter.drawLine(0, 0, 0, self.height() - 1)
+            painter.setPen(border_dark)
             painter.drawLine(self.width() - 1, 0, self.width() - 1, self.height() - 1)
 
         # Apply solo/mute shade

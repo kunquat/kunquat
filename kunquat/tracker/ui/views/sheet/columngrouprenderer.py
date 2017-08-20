@@ -555,6 +555,16 @@ class ColumnCache():
             return utils.scale_colour(colour, self._config['inactive_dim'])
         return colour
 
+    def _get_border_colours(self):
+        style_manager = self._ui_model.get_style_manager()
+        param = 'sheet_column_border_colour'
+        contrast = self._config['border_contrast']
+        light = self._get_final_colour(
+                QColor(style_manager.get_adjusted_colour(param, contrast)))
+        dark = self._get_final_colour(
+                QColor(style_manager.get_adjusted_colour(param, -contrast)))
+        return light, dark
+
     def _create_pixmap(self, index, grid):
         pixmap = QPixmap(self._width, ColumnCache.PIXMAP_HEIGHT)
 
@@ -629,20 +639,20 @@ class ColumnCache():
         painter.restore()
 
         # Borders
-        border_colour = self._get_final_colour(self._config['border_colour'])
-        painter.setPen(self._get_final_colour(self._config['border_colour']))
+        border_light, border_dark = self._get_border_colours()
         if border_width > 1:
             painter.fillRect(
                     QRect(QPoint(0, 0), QSize(border_width, ColumnCache.PIXMAP_HEIGHT)),
-                    border_colour)
+                    border_light)
             painter.fillRect(
                     QRect(QPoint(self._width - border_width, 0),
                         QSize(border_width, ColumnCache.PIXMAP_HEIGHT)),
-                    border_colour)
+                    border_dark)
         else:
-            painter.setPen(border_colour)
+            painter.setPen(border_light)
             painter.drawLine(
                     QPoint(0, 0), QPoint(0, ColumnCache.PIXMAP_HEIGHT))
+            painter.setPen(border_dark)
             painter.drawLine(
                     QPoint(self._width - 1, 0),
                     QPoint(self._width - 1, ColumnCache.PIXMAP_HEIGHT))

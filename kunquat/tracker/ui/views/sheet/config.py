@@ -52,6 +52,7 @@ DEFAULT_CONFIG = {
     'canvas_bg_colour'  : QColor(0x11, 0x11, 0x11),
     'bg_colour'         : QColor(0, 0, 0),
     'border_colour'     : QColor(0x55, 0x55, 0x55),
+    'border_contrast'   : 0.25,
     'border_width'      : 1, # px per side -> effective border width is double
     'font'              : QFont(QFont().defaultFamily(), 12),
     'disabled_colour'   : QColor(0x88, 0x88, 0x88, 0x7f),
@@ -129,6 +130,8 @@ def get_config_with_custom_style(style_manager):
             style_manager.get_style_param('bg_colour'))
     disabled_colour.setAlpha(0x7f)
     config['disabled_colour'] = disabled_colour
+
+    config['border_contrast'] = style_manager.get_style_param('border_contrast')
 
     # Columns
     config['bg_colour'] = _get_colour(
