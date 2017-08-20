@@ -336,6 +336,7 @@ _COLOUR_DESCS = [
     ('sheet_area_selection_colour',     'Sheet area selection'),
     ('sheet_canvas_bg_colour',          'Sheet canvas background'),
     ('sheet_column_bg_colour',          'Sheet column background'),
+    ('sheet_column_border_colour',      'Sheet column border'),
     ('sheet_cursor_view_line_colour',   'Sheet navigating cursor line'),
     ('sheet_cursor_edit_line_colour',   'Sheet editing cursor line'),
     ('sheet_grid_level_1_colour',       'Sheet grid level 1'),
