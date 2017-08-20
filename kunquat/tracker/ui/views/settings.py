@@ -344,7 +344,6 @@ _COLOUR_DESCS = [
     ('sheet_grid_level_3_colour',       'Sheet grid level 3'),
     ('sheet_header_bg_colour',          'Sheet header background'),
     ('sheet_header_fg_colour',          'Sheet header text'),
-    ('sheet_header_border_colour',      'Sheet header border'),
     ('sheet_header_solo_colour',        'Sheet header solo'),
     ('sheet_playback_cursor_colour',    'Sheet playback cursor'),
     ('sheet_ruler_bg_colour',           'Sheet ruler background'),

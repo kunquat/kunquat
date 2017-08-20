@@ -79,7 +79,6 @@ class StyleManager():
         'sheet_grid_level_3_colour'         : '#444',
         'sheet_header_bg_colour'            : '#242',
         'sheet_header_fg_colour'            : '#cea',
-        'sheet_header_border_colour'        : '#575',
         'sheet_header_solo_colour'          : '#7e6',
         'sheet_ruler_bg_colour'             : '#125',
         'sheet_ruler_fg_colour'             : '#acf',

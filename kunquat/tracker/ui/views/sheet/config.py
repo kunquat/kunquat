@@ -154,8 +154,6 @@ def get_config_with_custom_style(style_manager):
             style_manager.get_style_param('sheet_header_bg_colour'))
     config['header']['fg_colour'] = _get_colour(
             style_manager.get_style_param('sheet_header_fg_colour'))
-    config['header']['border_colour'] = _get_colour(
-            style_manager.get_style_param('sheet_header_border_colour'))
     solo_colour = _get_colour(style_manager.get_style_param('sheet_header_solo_colour'))
     solo_colour.setAlpha(0x7f)
     config['header']['solo_colour'] = solo_colour
