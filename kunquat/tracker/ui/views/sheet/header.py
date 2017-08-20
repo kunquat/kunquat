@@ -169,10 +169,12 @@ class ColumnHeader(QWidget):
     def _update_pixmap(self):
         fm = QFontMetrics(self._config['header']['font'], self)
 
+        max_width = self._width - self._config['border_width'] * 2
+
         assert self._num != None
         if self._au_name:
             full_text = '{}: {}'.format(self._num, self._au_name)
-            text = fm.elidedText(full_text, Qt.ElideRight, self._width)
+            text = fm.elidedText(full_text, Qt.ElideRight, max_width)
         else:
             text = str(self._num)
 
@@ -215,18 +217,32 @@ class ColumnHeader(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
 
+        border_width = self._config['border_width']
+
         # Background
         painter.setBackground(self._config['header']['bg_colour'])
         painter.eraseRect(0, 0, self.width(), self.height())
 
-        # Number
-        num_width = self._pixmap.width()
-        x_offset = (self.width() - num_width) // 2
+        # Text
+        text_width = self._pixmap.width()
+        max_width = self.width() - border_width * 2
+        x_offset = border_width + (max_width - text_width) // 2
         painter.drawPixmap(x_offset, 1, self._pixmap)
 
         # Border
-        painter.setPen(self._config['header']['border_colour'])
-        painter.drawLine(self.width() - 1, 0, self.width() - 1, self.height() - 1)
+        border_colour = self._config['header']['border_colour']
+        if border_width > 1:
+            painter.fillRect(
+                    QRect(QPoint(0, 0), QSize(border_width, self.height() - 1)),
+                    border_colour)
+            painter.fillRect(
+                    QRect(QPoint(self.width() - border_width, 0),
+                        QSize(border_width, self.height() - 1)),
+                    border_colour)
+        else:
+            painter.setPen(border_colour)
+            painter.drawLine(0, 0, 0, self.height() - 1)
+            painter.drawLine(self.width() - 1, 0, self.width() - 1, self.height() - 1)
 
         # Apply solo/mute shade
         playback_manager = self._ui_model.get_playback_manager()
