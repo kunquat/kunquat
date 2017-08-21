@@ -134,13 +134,14 @@ class SheetArea(QAbstractScrollArea, Updater):
         self.register_action('signal_style_changed', self._update_config)
         self.register_action('signal_controls', self._update_header)
         self.register_action('signal_ch_defaults', self._update_header)
+        self.register_action('signal_channel_mute', self._update_header)
 
         self._sheet_manager = self._ui_model.get_sheet_manager()
 
         # Child widgets
         self.add_to_updaters(self._ruler, self.viewport())
 
-        self._header.set_module(self._ui_model.get_module())
+        self._header.set_ui_model(self._ui_model)
 
         self._update_config()
 

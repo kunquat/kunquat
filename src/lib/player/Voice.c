@@ -35,6 +35,7 @@ Voice* new_Voice(void)
 
     voice->id = 0;
     voice->group_id = 0;
+    voice->ch_num = -1;
     voice->updated = false;
     voice->prio = VOICE_PRIO_INACTIVE;
     voice->use_test_output = false;
@@ -102,6 +103,13 @@ uint64_t Voice_get_group_id(const Voice* voice)
 }
 
 
+int Voice_get_ch_num(const Voice* voice)
+{
+    rassert(voice != NULL);
+    return voice->ch_num;
+}
+
+
 const Processor* Voice_get_proc(const Voice* voice)
 {
     rassert(voice != NULL);
@@ -121,16 +129,20 @@ void Voice_init(
         Voice* voice,
         const Processor* proc,
         uint64_t group_id,
+        int ch_num,
         const Proc_state* proc_state,
         uint64_t seed)
 {
     rassert(voice != NULL);
     rassert(proc != NULL);
     rassert(proc_state != NULL);
+    rassert(ch_num >= -1);
+    rassert(ch_num < KQT_CHANNELS_MAX);
 
     voice->prio = VOICE_PRIO_NEW;
     voice->proc = proc;
     voice->group_id = group_id;
+    voice->ch_num = ch_num;
     voice->use_test_output = false;
     voice->test_proc_index = -1;
     Random_set_seed(&voice->rand_p, seed);
@@ -196,6 +208,7 @@ void Voice_reset(Voice* voice)
 
     voice->id = 0;
     voice->group_id = 0;
+    voice->ch_num = -1;
     voice->prio = VOICE_PRIO_INACTIVE;
     Voice_state_clear(voice->state);
     voice->proc = NULL;

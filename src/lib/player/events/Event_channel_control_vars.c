@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,9 @@
 
 #include <debug/assert.h>
 #include <init/Module.h>
+#include <player/Channel.h>
+#include <player/Channel_cv_state.h>
+#include <player/events/Event_params.h>
 #include <player/events/set_active_name.h>
 #include <Value.h>
 
@@ -92,15 +95,16 @@ bool Event_channel_set_cv_name_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_STRING);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_STRING);
 
-    return set_active_name(&ch->parent, ACTIVE_CAT_CONTROL_VAR, value);
+    return set_active_name(&ch->parent, ACTIVE_CAT_CONTROL_VAR, params->arg);
 }
 
 
@@ -108,15 +112,16 @@ bool Event_channel_set_cv_value_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(Value_type_is_realtime(value->type));
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(Value_type_is_realtime(params->arg->type));
 
-    set_cv_value_generic(ch, dstates, value);
+    set_cv_value_generic(ch, dstates, params->arg);
 
     return true;
 }
@@ -126,12 +131,12 @@ bool Event_channel_carry_cv_on_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    ignore(value);
+    ignore(params);
 
     set_cv_carry(ch, dstates, true);
 
@@ -143,12 +148,12 @@ bool Event_channel_carry_cv_off_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    ignore(value);
+    ignore(params);
 
     set_cv_carry(ch, dstates, false);
 

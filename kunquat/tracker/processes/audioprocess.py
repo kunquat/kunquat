@@ -71,6 +71,9 @@ class AudioProcess(Process):
     def tfire_event(self, channel, event):
         self._q.put('tfire_event', channel, event)
 
+    def set_channel_mute(self, channel, mute):
+        self._q.put('set_channel_mute', channel, mute)
+
     def set_data(self, transaction_id, transaction):
         self._q.put('set_data', transaction_id, transaction)
 

@@ -12,6 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from kunquat.kunquat.limits import *
 from kunquat.tracker.config import get_config
 from .channel import Channel
 from . import tstamp
@@ -47,6 +48,34 @@ class PlaybackManager():
 
     def get_infinite_mode(self):
         return self._controller.get_infinite_mode()
+
+    def _update_enabled_channels(self):
+        if self._session.any_channel_solo():
+            mute_channel = lambda ch: self._session.get_channel_state(ch) != 'solo'
+        else:
+            mute_channel = lambda ch: self._session.get_channel_state(ch) == 'mute'
+
+        for ch in range(CHANNELS_MAX):
+            self._controller.set_channel_mute(ch, mute_channel(ch))
+
+    def set_channel_mute(self, channel, mute):
+        self._session.set_channel_state(channel, 'mute' if mute else None)
+        self._update_enabled_channels()
+
+    def set_channel_solo(self, channel, solo):
+        self._session.set_channel_state(channel, 'solo' if solo else None)
+        self._update_enabled_channels()
+
+    def get_channel_mute(self, channel):
+        return self._session.get_channel_state(channel) == 'mute'
+
+    def get_channel_solo(self, channel):
+        return self._session.get_channel_state(channel) == 'solo'
+
+    def is_channel_active(self, channel):
+        if self._session.any_channel_solo():
+            return self._session.get_channel_state(channel) == 'solo'
+        return self._session.get_channel_state(channel) != 'mute'
 
     def set_playback_cursor_following(self, enabled):
         get_config().set_value('follow_playback_cursor', enabled)

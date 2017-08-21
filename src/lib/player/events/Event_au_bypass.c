@@ -15,9 +15,11 @@
 #include <player/events/Event_au_decl.h>
 
 #include <debug/assert.h>
+#include <init/devices/Audio_unit.h>
 #include <init/devices/Processor.h>
 #include <player/devices/Proc_state.h>
 #include <player/events/Event_common.h>
+#include <player/events/Event_params.h>
 #include <Value.h>
 
 #include <stdbool.h>
@@ -31,7 +33,7 @@ bool Event_au_bypass_on_process(
         Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(au != NULL);
     rassert(au_params != NULL);
@@ -39,7 +41,7 @@ bool Event_au_bypass_on_process(
     rassert(master_params != NULL);
     rassert(channel != NULL);
     rassert(dstates != NULL);
-    rassert(value != NULL);
+    rassert(params != NULL);
 
     au_state->bypass = true;
 
@@ -54,7 +56,7 @@ bool Event_au_bypass_off_process(
         Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(au != NULL);
     rassert(au_params != NULL);
@@ -62,7 +64,7 @@ bool Event_au_bypass_off_process(
     rassert(master_params != NULL);
     rassert(channel != NULL);
     rassert(dstates != NULL);
-    rassert(value != NULL);
+    rassert(params != NULL);
 
     if (au_state->bypass)
     {

@@ -204,6 +204,8 @@ class View(QWidget):
             self.update()
         if 'signal_replace_mode' in signals:
             self.update()
+        if 'signal_channel_mute' in signals:
+            self.update()
         if ('signal_grid' in signals) or ('signal_grid_pattern_modified' in signals):
             self._update_grid()
             self.update()
@@ -508,10 +510,13 @@ class View(QWidget):
 
                 trigger_padding = self._config['trigger']['padding']
 
+                border_width = self._config['border_width']
+                vis_width = self._col_width - border_width * 2
+
                 # Upper bound for row offset
                 hollow_rect = self._get_hollow_replace_cursor_rect()
                 trail_width = hollow_rect.width() + trigger_padding
-                tail_offset = max(0, row_width + trail_width - self._col_width)
+                tail_offset = max(0, row_width + trail_width - vis_width)
 
                 max_offset = min(tail_offset, init_trigger_row_width)
 
@@ -528,7 +533,7 @@ class View(QWidget):
                 else:
                     trigger_width = trail_width
                 min_offset = max(0,
-                        init_trigger_row_width - self._col_width + trigger_width)
+                        init_trigger_row_width - vis_width + trigger_width)
 
                 # Final offset
                 self._trow_px_offset = min(max(
@@ -612,6 +617,8 @@ class View(QWidget):
         row_ts = location.get_row_ts()
         trigger_index = location.get_trigger_index()
 
+        border_width = self._config['border_width']
+
         # Get pixel offsets
         x_offset = self._get_col_offset(selected_col)
         if not 0 <= x_offset < self.width():
@@ -632,11 +639,11 @@ class View(QWidget):
                     tfm = QTransform().translate(col_x_offset, y_offset)
                     painter.setTransform(tfm)
                     painter.drawLine(
-                            QPoint(0, 0),
-                            QPoint(self._col_width - 2, 0))
+                            QPoint(border_width, 0),
+                            QPoint(self._col_width - border_width - 1, 0))
 
         # Set up paint device for the actual cursor
-        tfm = QTransform().translate(x_offset, y_offset)
+        tfm = QTransform().translate(x_offset + border_width, y_offset)
         painter.setTransform(tfm)
 
         # Draw the horizontal line
@@ -646,7 +653,7 @@ class View(QWidget):
         painter.setPen(line_colour)
         painter.drawLine(
                 QPoint(0, 0),
-                QPoint(self._col_width - 2, 0))
+                QPoint(self._col_width - border_width * 2 - 1, 0))
 
         # Get trigger row at cursor
         column = self._sheet_manager.get_column_at_location(location)
@@ -695,13 +702,15 @@ class View(QWidget):
     def _draw_trigger_row_with_edit_cursor(self, painter, triggers, trigger_index):
         painter.save()
 
-        painter.setClipRect(QRect(
-            QPoint(0, 0), QPoint(self._col_width - 2, self._config['tr_height'])))
+        border_width = self._config['border_width']
+        vis_width = self._col_width - border_width * 2
+
+        painter.setClipRect(
+                QRect(QPoint(0, 0), QPoint(vis_width - 1, self._config['tr_height'])))
 
         # Hide underlying column contents
         painter.fillRect(
-                QRect(QPoint(0, 1),
-                    QPoint(self._col_width, self._config['tr_height'] - 1)),
+                QRect(QPoint(0, 1), QPoint(vis_width, self._config['tr_height'] - 1)),
                 self._config['bg_colour'])
 
         notation = self._notation_manager.get_selected_notation()
@@ -775,11 +784,15 @@ class View(QWidget):
         assert start_y != None
         assert stop_y != None
 
+        border_width = self._config['border_width']
+
         area_col_start = max(first_area_col, draw_col_start)
         area_col_stop = min(last_area_col + 1, draw_col_stop)
         x_offset = self._get_col_offset(area_col_start)
         painter.setTransform(QTransform().translate(x_offset, 0))
-        rect = QRect(QPoint(0, start_y), QPoint(self._col_width - 2, stop_y))
+        rect = QRect(
+                QPoint(border_width, start_y),
+                QPoint(self._col_width - border_width - 1, stop_y))
 
         painter.setPen(self._config['area_selection']['border_colour'])
         top_left = rect.topLeft()
@@ -1138,6 +1151,8 @@ class View(QWidget):
         if not column.has_trigger(row_ts, 0):
             return -1
 
+        vis_x_offset = x_offset - self._config['border_width']
+
         trigger_count = column.get_trigger_count_at_row(row_ts)
         triggers = (column.get_trigger(row_ts, i)
                 for i in range(trigger_count))
@@ -1152,15 +1167,15 @@ class View(QWidget):
         for width in widths:
             prev_init_width = init_width
             init_width += width
-            if init_width >= x_offset:
+            if init_width >= vis_x_offset:
                 if not self._sheet_manager.get_replace_mode():
-                    if (init_width - x_offset) < (x_offset - prev_init_width):
+                    if (init_width - vis_x_offset) < (vis_x_offset - prev_init_width):
                         trigger_index += 1
                 break
             trigger_index += 1
         else:
             hollow_rect = self._get_hollow_replace_cursor_rect()
-            dist_from_last = x_offset - init_width
+            dist_from_last = vis_x_offset - init_width
             trigger_padding = self._config['trigger']['padding']
             if dist_from_last > hollow_rect.width() + trigger_padding:
                 return -1

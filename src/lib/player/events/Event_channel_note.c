@@ -30,6 +30,7 @@
 #include <player/devices/processors/Stream_state.h>
 #include <player/devices/Voice_state.h>
 #include <player/events/Event_common.h>
+#include <player/events/Event_params.h>
 #include <player/events/note_setup.h>
 #include <player/events/stream_utils.h>
 #include <player/Master_params.h>
@@ -113,15 +114,16 @@ bool Event_channel_note_on_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(ch->audio_rate > 0);
     rassert(ch->tempo > 0);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
     // Move the old Voices to the background
     Event_channel_note_off_process(ch, dstates, master_params, NULL);
@@ -139,7 +141,7 @@ bool Event_channel_note_on_process(
 
     const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
 
-    double pitch_param = value->value.float_type;
+    double pitch_param = params->arg->value.float_type;
 
     // Retune pitch parameter if a retuner is active
     {
@@ -204,7 +206,8 @@ bool Event_channel_note_on_process(
             is_voice_rand_seed_set = true;
         }
 
-        reserve_voice(ch, au, new_group_id, proc_state, i, voice_rand_seed);
+        reserve_voice(
+                ch, au, new_group_id, proc_state, i, voice_rand_seed, params->external);
 
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
@@ -238,15 +241,16 @@ bool Event_channel_hit_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(ch->audio_rate > 0);
     rassert(ch->tempo > 0);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_INT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_INT);
 
     // Move the old Voices to the background
     Event_channel_note_off_process(ch, dstates, master_params, NULL);
@@ -269,7 +273,7 @@ bool Event_channel_hit_process(
     if (Audio_unit_get_type(au) != AU_TYPE_INSTRUMENT)
         return true;
 
-    const int hit_index = (int)value->value.int_type;
+    const int hit_index = (int)params->arg->value.int_type;
 
     if (!Audio_unit_get_hit_existence(au, hit_index))
         return true;
@@ -297,7 +301,8 @@ bool Event_channel_hit_process(
             is_voice_rand_seed_set = true;
         }
 
-        reserve_voice(ch, au, new_group_id, proc_state, i, voice_rand_seed);
+        reserve_voice(
+                ch, au, new_group_id, proc_state, i, voice_rand_seed, params->external);
 
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
@@ -329,12 +334,12 @@ bool Event_channel_note_off_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    ignore(value);
+    ignore(params);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {

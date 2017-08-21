@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -15,7 +15,10 @@
 #include <player/events/Event_au_decl.h>
 
 #include <debug/assert.h>
+#include <player/Channel.h>
+#include <player/events/Event_params.h>
 #include <player/events/set_active_name.h>
+#include <player/Master_params.h>
 #include <Value.h>
 
 #include <stdbool.h>
@@ -29,7 +32,7 @@ bool Event_au_set_cv_value_process(
         Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(au != NULL);
     rassert(au_params != NULL);
@@ -37,7 +40,7 @@ bool Event_au_set_cv_value_process(
     rassert(master_params != NULL);
     rassert(channel != NULL);
     rassert(dstates != NULL);
-    rassert(value != NULL);
+    rassert(params != NULL);
 
     const char* var_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR);
@@ -53,7 +56,7 @@ bool Event_au_set_cv_value_process(
             &master_params->random,
             NULL,
             var_name,
-            value);
+            params->arg);
 
     return true;
 }

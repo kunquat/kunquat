@@ -15,11 +15,14 @@
 #include <player/events/Event_au_decl.h>
 
 #include <init/devices/Au_streams.h>
+#include <init/devices/Audio_unit.h>
 #include <init/devices/Device.h>
 #include <init/devices/Device_impl.h>
 #include <init/devices/Proc_type.h>
 #include <debug/assert.h>
+#include <player/Channel.h>
 #include <player/devices/processors/Stream_state.h>
+#include <player/events/Event_params.h>
 #include <player/events/set_active_name.h>
 #include <string/var_name.h>
 #include <Value.h>
@@ -63,7 +66,7 @@ bool Event_au_set_stream_value_process(
         Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(au != NULL);
     rassert(au_params != NULL);
@@ -71,8 +74,9 @@ bool Event_au_set_stream_value_process(
     rassert(master_params != NULL);
     rassert(channel != NULL);
     rassert(dstates != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -84,7 +88,7 @@ bool Event_au_set_stream_value_process(
     if (dstate == NULL)
         return true;
 
-    Stream_pstate_set_value(dstate, value->value.float_type);
+    Stream_pstate_set_value(dstate, params->arg->value.float_type);
 
     return true;
 }
@@ -97,7 +101,7 @@ bool Event_au_slide_stream_target_process(
         Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(au != NULL);
     rassert(au_params != NULL);
@@ -105,8 +109,9 @@ bool Event_au_slide_stream_target_process(
     rassert(master_params != NULL);
     rassert(channel != NULL);
     rassert(dstates != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -118,7 +123,7 @@ bool Event_au_slide_stream_target_process(
     if (dstate == NULL)
         return true;
 
-    Stream_pstate_slide_target(dstate, value->value.float_type);
+    Stream_pstate_slide_target(dstate, params->arg->value.float_type);
 
     return true;
 }
@@ -131,7 +136,7 @@ bool Event_au_slide_stream_length_process(
         Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(au != NULL);
     rassert(au_params != NULL);
@@ -139,8 +144,9 @@ bool Event_au_slide_stream_length_process(
     rassert(master_params != NULL);
     rassert(channel != NULL);
     rassert(dstates != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_TSTAMP);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -152,7 +158,7 @@ bool Event_au_slide_stream_length_process(
     if (dstate == NULL)
         return true;
 
-    Stream_pstate_slide_length(dstate, &value->value.Tstamp_type);
+    Stream_pstate_slide_length(dstate, &params->arg->value.Tstamp_type);
 
     return true;
 }
@@ -165,7 +171,7 @@ bool Event_au_stream_osc_speed_process(
         Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(au != NULL);
     rassert(au_params != NULL);
@@ -173,8 +179,9 @@ bool Event_au_stream_osc_speed_process(
     rassert(master_params != NULL);
     rassert(channel != NULL);
     rassert(dstates != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -186,7 +193,7 @@ bool Event_au_stream_osc_speed_process(
     if (dstate == NULL)
         return true;
 
-    Stream_pstate_set_osc_speed(dstate, value->value.float_type);
+    Stream_pstate_set_osc_speed(dstate, params->arg->value.float_type);
 
     return true;
 }
@@ -199,7 +206,7 @@ bool Event_au_stream_osc_depth_process(
         Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(au != NULL);
     rassert(au_params != NULL);
@@ -207,8 +214,9 @@ bool Event_au_stream_osc_depth_process(
     rassert(master_params != NULL);
     rassert(channel != NULL);
     rassert(dstates != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -220,7 +228,7 @@ bool Event_au_stream_osc_depth_process(
     if (dstate == NULL)
         return true;
 
-    Stream_pstate_set_osc_depth(dstate, value->value.float_type);
+    Stream_pstate_set_osc_depth(dstate, params->arg->value.float_type);
 
     return true;
 }
@@ -233,7 +241,7 @@ bool Event_au_stream_osc_speed_slide_process(
         Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(au != NULL);
     rassert(au_params != NULL);
@@ -241,8 +249,9 @@ bool Event_au_stream_osc_speed_slide_process(
     rassert(master_params != NULL);
     rassert(channel != NULL);
     rassert(dstates != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_TSTAMP);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -254,7 +263,7 @@ bool Event_au_stream_osc_speed_slide_process(
     if (dstate == NULL)
         return true;
 
-    Stream_pstate_set_osc_speed_slide(dstate, &value->value.Tstamp_type);
+    Stream_pstate_set_osc_speed_slide(dstate, &params->arg->value.Tstamp_type);
 
     return true;
 }
@@ -267,7 +276,7 @@ bool Event_au_stream_osc_depth_slide_process(
         Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(au != NULL);
     rassert(au_params != NULL);
@@ -275,8 +284,9 @@ bool Event_au_stream_osc_depth_slide_process(
     rassert(master_params != NULL);
     rassert(channel != NULL);
     rassert(dstates != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_TSTAMP);
 
     const char* stream_name =
         Active_names_get(channel->parent.active_names, ACTIVE_CAT_STREAM);
@@ -288,7 +298,7 @@ bool Event_au_stream_osc_depth_slide_process(
     if (dstate == NULL)
         return true;
 
-    Stream_pstate_set_osc_depth_slide(dstate, &value->value.Tstamp_type);
+    Stream_pstate_set_osc_depth_slide(dstate, &params->arg->value.Tstamp_type);
 
     return true;
 }

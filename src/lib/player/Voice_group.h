@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -123,6 +123,16 @@ int32_t Voice_group_render(
         int32_t buf_stop,
         int32_t audio_rate,
         double tempo);
+
+
+/**
+ * Get the Channel number associated with the Voice group.
+ *
+ * \param vg   The Voice group -- must not be \c NULL.
+ *
+ * \return   The Channel number.
+ */
+int Voice_group_get_ch_num(const Voice_group* vg);
 
 
 /**

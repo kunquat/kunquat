@@ -41,6 +41,7 @@ DEFAULT_CONFIG = {
         'bg_colour'    : QColor(0x22, 0x44, 0x22),
         'fg_colour'    : QColor(0xcc, 0xee, 0xaa),
         'border_colour': QColor(0x55, 0x77, 0x55),
+        'solo_colour'  : QColor(0x77, 0xee, 0x66, 0x7f),
         'font'         : _HEADER_FONT,
         'padding_x'    : 2,
     },
@@ -50,7 +51,9 @@ DEFAULT_CONFIG = {
     'inactive_dim'      : 0.6,
     'canvas_bg_colour'  : QColor(0x11, 0x11, 0x11),
     'bg_colour'         : QColor(0, 0, 0),
-    'border_colour'     : QColor(0x55, 0x55, 0x55),
+    'border_colour'     : QColor(0x22, 0x22, 0x22),
+    'border_contrast'   : 0.25,
+    'border_width'      : 1, # px per side -> effective border width is double
     'font'              : QFont(QFont().defaultFamily(), 12),
     'disabled_colour'   : QColor(0x88, 0x88, 0x88, 0x7f),
     'play_cursor_colour': QColor(0x66, 0xee, 0x66),
@@ -128,6 +131,8 @@ def get_config_with_custom_style(style_manager):
     disabled_colour.setAlpha(0x7f)
     config['disabled_colour'] = disabled_colour
 
+    config['border_contrast'] = style_manager.get_style_param('border_contrast')
+
     # Columns
     config['bg_colour'] = _get_colour(
             style_manager.get_style_param('sheet_column_bg_colour'))
@@ -149,8 +154,9 @@ def get_config_with_custom_style(style_manager):
             style_manager.get_style_param('sheet_header_bg_colour'))
     config['header']['fg_colour'] = _get_colour(
             style_manager.get_style_param('sheet_header_fg_colour'))
-    config['header']['border_colour'] = _get_colour(
-            style_manager.get_style_param('sheet_header_border_colour'))
+    solo_colour = _get_colour(style_manager.get_style_param('sheet_header_solo_colour'))
+    solo_colour.setAlpha(0x7f)
+    config['header']['solo_colour'] = solo_colour
 
     # Triggers
     config['trigger']['default_colour'] = _get_colour(

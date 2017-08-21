@@ -853,7 +853,11 @@ static int Player_process_voice_group(
 
         test_output_stop = process_stop;
 
-        if (!use_test_output)
+        const int ch_num = Voice_group_get_ch_num(vgroup);
+        const bool is_muted =
+            (ch_num >= 0) ? Channel_is_muted(player->channels[ch_num]) : false;
+
+        if (!is_muted && !use_test_output)
             Voice_group_mix(
                     vgroup,
                     player->device_states,
@@ -1160,12 +1164,15 @@ static bool Player_update_receive(Player* player)
         }
         else
         {
+            const bool skip = false;
+            const bool external = false;
             Player_process_event(
                     player,
                     player->susp_event_ch,
                     player->susp_event_name,
                     &player->susp_event_value,
-                    false);
+                    skip,
+                    external);
 
             // Check and perform goto if needed
             Player_check_perform_goto(player);
@@ -1627,6 +1634,18 @@ bool Player_has_stopped(const Player* player)
 }
 
 
+void Player_set_channel_mute(Player* player, int ch, bool mute)
+{
+    rassert(player != NULL);
+    rassert(ch >= 0);
+    rassert(ch < KQT_CHANNELS_MAX);
+
+    Channel_set_muted(player->channels[ch], mute);
+
+    return;
+}
+
+
 bool Player_fire(Player* player, int ch, Streader* event_reader)
 {
     rassert(player != NULL);
@@ -1713,7 +1732,9 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
         return false;
 
     // Fire
-    Player_process_event(player, ch, event_name, value, false);
+    const bool skip = false;
+    const bool external = true;
+    Player_process_event(player, ch, event_name, value, skip, external);
 
     // Check and perform goto if needed
     Player_check_perform_goto(player);

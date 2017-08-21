@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2017
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <init/Env_var.h>
 #include <player/events/Event_common.h>
+#include <player/events/Event_params.h>
 #include <player/General_state.h>
 #include <Value.h>
 
@@ -28,27 +29,28 @@
 #include <string.h>
 
 
-bool Event_general_cond_process(General_state* gstate, const Value* value)
+bool Event_general_cond_process(General_state* gstate, const Event_params* params)
 {
     rassert(gstate != NULL);
-    rassert(value != NULL);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
 
-    if (value->type != VALUE_TYPE_BOOL)
+    if (params->arg->type != VALUE_TYPE_BOOL)
         return false;
 
     if (gstate->cond_level_index >= COND_LEVELS_MAX - 1)
         return true;
 
     gstate->cond_levels[gstate->cond_level_index + 1].evaluated_cond =
-            value->value.bool_type;
+            params->arg->value.bool_type;
     return true;
 }
 
 
-bool Event_general_if_process(General_state* gstate, const Value* value)
+bool Event_general_if_process(General_state* gstate, const Event_params* params)
 {
     rassert(gstate != NULL);
-    ignore(value);
+    ignore(params);
 
     ++gstate->cond_level_index;
     rassert(gstate->cond_level_index >= 0);
@@ -67,10 +69,10 @@ bool Event_general_if_process(General_state* gstate, const Value* value)
 }
 
 
-bool Event_general_else_process(General_state* gstate, const Value* value)
+bool Event_general_else_process(General_state* gstate, const Event_params* params)
 {
     rassert(gstate != NULL);
-    ignore(value);
+    ignore(params);
 
     ++gstate->cond_level_index;
     rassert(gstate->cond_level_index >= 0);
@@ -87,10 +89,10 @@ bool Event_general_else_process(General_state* gstate, const Value* value)
 }
 
 
-bool Event_general_end_if_process(General_state* gstate, const Value* value)
+bool Event_general_end_if_process(General_state* gstate, const Event_params* params)
 {
     rassert(gstate != NULL);
-    ignore(value);
+    ignore(params);
 
     if (gstate->cond_level_index >= 0)
         --gstate->cond_level_index;

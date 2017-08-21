@@ -2,7 +2,7 @@
 # coding=utf-8
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2012-2016
+# Author: Tomi Jylhä-Ollila, Finland 2012-2017
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@
 import itertools as it
 import os.path
 import queue
+import re
 import shlex
 import subprocess
 import sys
@@ -58,8 +59,12 @@ def show_beat(q, test_name, bar_width, area_width):
     print(' ' * line_len, end='\r')
 
 
-def strip_valgrind(output):
-    lines = (line for line in output.splitlines() if not line.startswith('=='))
+def strip_success_valgrind(output):
+    lines = [line for line in output.splitlines()]
+    vg_lines = (line for line in lines if line.startswith('=='))
+    contains_address = re.compile('.*0x[0-9A-F]+:.*')
+    if not any(bool(contains_address.match(vl)) for vl in vg_lines):
+        lines = (line for line in lines if not line.startswith('=='))
     return '\n'.join(lines)
 
 
@@ -77,7 +82,7 @@ def run_test(program):
     except subprocess.CalledProcessError as e:
         q.put('done')
         beater.join()
-        print(strip_valgrind(str(e.output, encoding='utf-8')))
+        print(strip_success_valgrind(str(e.output, encoding='utf-8')))
         sys.exit(e.returncode)
     finally:
         q.put('done')
@@ -89,7 +94,7 @@ def run_test(program):
         print(output)
         sys.exit(2)
     else:
-        print(strip_valgrind(output))
+        print(strip_success_valgrind(output))
 
 
 if __name__ == '__main__':

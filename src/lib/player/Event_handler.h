@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 #include <player/devices/Au_state.h>
 #include <player/Event_names.h>
 #include <player/Event_type.h>
+#include <player/events/Event_interfaces.h>
 #include <player/General_state.h>
 #include <player/Master_params.h>
 #include <Value.h>
@@ -61,9 +62,7 @@ const Event_names* Event_handler_get_names(const Event_handler* eh);
  * \param eh   The Event handler -- must not be \c NULL.
  */
 bool Event_handler_set_control_process(
-        Event_handler* eh,
-        Event_type type,
-        bool (*control_process)(General_state*, Channel* channel, const Value*));
+        Event_handler* eh, Event_type type, Event_control_interface* control_process);
 
 
 /**
@@ -76,9 +75,7 @@ bool Event_handler_set_control_process(
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Event_handler_set_general_process(
-        Event_handler* eh,
-        Event_type type,
-        bool (*general_process)(General_state*, const Value*));
+        Event_handler* eh, Event_type type, Event_general_interface* general_process);
 
 
 /**
@@ -91,10 +88,7 @@ bool Event_handler_set_general_process(
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Event_handler_set_ch_process(
-        Event_handler* eh,
-        Event_type type,
-        bool (*ch_process)(
-            Channel*, Device_states*, const Master_params*, const Value*));
+        Event_handler* eh, Event_type type, Event_channel_interface* ch_process);
 
 
 /**
@@ -107,9 +101,7 @@ bool Event_handler_set_ch_process(
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Event_handler_set_master_process(
-        Event_handler* eh,
-        Event_type type,
-        bool (*master_process)(Master_params*, const Value*));
+        Event_handler* eh, Event_type type, Event_master_interface* master_process);
 
 
 /**
@@ -122,32 +114,28 @@ bool Event_handler_set_master_process(
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Event_handler_set_au_process(
-        Event_handler* eh,
-        Event_type type,
-        bool (*au_process)(
-            const Audio_unit*,
-            const Au_params*,
-            Au_state*,
-            Master_params*,
-            Channel*,
-            Device_states*,
-            const Value*));
+        Event_handler* eh, Event_type type, Event_au_interface* au_process);
 
 
 /**
  * Trigger an event.
  *
- * \param eh       The Event handler -- must not be \c NULL.
- * \param ch_num   The channel number -- must be >= \c 0 and
- *                 < \c KQT_CHANNELS_MAX.
- * \param name     The event name -- must be a valid name.
- * \param arg      The event argument -- must not be \c NULL.
+ * \param eh         The Event handler -- must not be \c NULL.
+ * \param ch_num     The channel number -- must be >= \c 0 and
+ *                   < \c KQT_CHANNELS_MAX.
+ * \param name       The event name -- must be a valid name.
+ * \param arg        The event argument -- must not be \c NULL.
+ * \param external   \c true if event is externally fired, otherwise \c false.
  *
  * \return   \c true if the Event was triggered successfully, otherwise
  *           \c false.
  */
 bool Event_handler_trigger(
-        Event_handler* eh, int ch_num, const char* name, const Value* arg);
+        Event_handler* eh,
+        int ch_num,
+        const char* name,
+        const Value* arg,
+        bool external);
 
 
 /**

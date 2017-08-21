@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <player/Channel.h>
 #include <player/events/Event_common.h>
+#include <player/events/Event_params.h>
 #include <player/General_state.h>
 #include <Value.h>
 
@@ -25,11 +26,11 @@
 
 
 bool Event_control_pause_process(
-        General_state* global_state, Channel* channel, const Value* value)
+        General_state* global_state, Channel* channel, const Event_params* params)
 {
     rassert(global_state != NULL);
     rassert(channel != NULL);
-    ignore(value);
+    ignore(params);
 
     global_state->pause = true;
     return true;
@@ -37,11 +38,11 @@ bool Event_control_pause_process(
 
 
 bool Event_control_resume_process(
-        General_state* global_state, Channel* channel, const Value* value)
+        General_state* global_state, Channel* channel, const Event_params* params)
 {
     rassert(global_state != NULL);
     rassert(channel != NULL);
-    ignore(value);
+    ignore(params);
 
     global_state->pause = false;
     return true;

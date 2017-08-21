@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,8 @@
 #include <kunquat/limits.h>
 #include <mathnum/Tstamp.h>
 #include <player/events/Event_common.h>
+#include <player/events/Event_params.h>
+#include <player/Master_params.h>
 #include <Value.h>
 
 #include <stdbool.h>
@@ -25,14 +27,15 @@
 
 
 bool Event_master_set_tempo_process(
-        Master_params* master_params, const Value* value)
+        Master_params* master_params, const Event_params* params)
 {
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
     master_params->tempo_settings_changed = true;
-    master_params->tempo = value->value.float_type;
+    master_params->tempo = params->arg->value.float_type;
     master_params->tempo_slide = 0;
 
     return true;
@@ -56,17 +59,18 @@ static void set_tempo_slide_update(Master_params* master_params)
 
 
 bool Event_master_slide_tempo_process(
-        Master_params* master_params, const Value* value)
+        Master_params* master_params, const Event_params* params)
 {
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
     master_params->tempo_settings_changed = true;
 
     Tstamp_init(&master_params->tempo_slide_slice_left);
     Tstamp_copy(&master_params->tempo_slide_left, &master_params->tempo_slide_length);
-    master_params->tempo_slide_target = value->value.float_type;
+    master_params->tempo_slide_target = params->arg->value.float_type;
 
     set_tempo_slide_update(master_params);
 
@@ -85,15 +89,16 @@ bool Event_master_slide_tempo_process(
 
 
 bool Event_master_slide_tempo_length_process(
-        Master_params* master_params, const Value* value)
+        Master_params* master_params, const Event_params* params)
 {
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_TSTAMP);
 
     master_params->tempo_settings_changed = true;
 
-    Tstamp_copy(&master_params->tempo_slide_length, &value->value.Tstamp_type);
+    Tstamp_copy(&master_params->tempo_slide_length, &params->arg->value.Tstamp_type);
 
     if (master_params->tempo_slide != 0)
     {

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -19,6 +19,7 @@
 #include <player/Channel.h>
 #include <player/Event_type.h>
 #include <player/events/Event_common.h>
+#include <player/events/Event_params.h>
 #include <player/Master_params.h>
 #include <Value.h>
 
@@ -27,12 +28,13 @@
 
 
 bool Event_control_play_pattern_process(
-        General_state* global_state, Channel* channel, const Value* value)
+        General_state* global_state, Channel* channel, const Event_params* params)
 {
     rassert(global_state != NULL);
     rassert(channel != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_PAT_INST_REF);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_PAT_INST_REF);
 
     Master_params* master_params = (Master_params*)global_state;
     master_params->playback_state = PLAYBACK_PATTERN;
@@ -41,7 +43,7 @@ bool Event_control_play_pattern_process(
     master_params->cur_pos.track = -1;
     master_params->cur_pos.system = -1;
     Tstamp_set(&master_params->cur_pos.pat_pos, 0, 0);
-    master_params->cur_pos.piref = value->value.Pat_inst_ref_type;
+    master_params->cur_pos.piref = params->arg->value.Pat_inst_ref_type;
 
     // Reset parameters to make sure we start at the new location immediately
     master_params->parent.pause = false;

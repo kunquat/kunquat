@@ -195,11 +195,15 @@ class ColumnGroupRenderer():
         # FIXME: contains some copypasta from Ruler.paintEvent
 
         overlap = None
-        max_tr_width = self._width - 1
+        border_width = self._config['border_width']
+        max_tr_width = self._width - border_width * 2
 
         rel_end_height = 0 # empty song
 
         active_pattern_index = self._get_active_pattern_index()
+
+        playback_manager = self._ui_model.get_playback_manager()
+        ch_is_active = playback_manager.is_channel_active(self._num)
 
         for pi in range(first_index, len(self._heights)):
             if self._start_heights[pi] > self._px_offset + height:
@@ -211,7 +215,8 @@ class ColumnGroupRenderer():
             cur_offset = max(0, -rel_start_height)
 
             # Choose cache based on whether this pattern contains the edit cursor
-            if pi == active_pattern_index:
+            # and whether the channel is active
+            if pi == active_pattern_index and ch_is_active:
                 cache = self._caches[pi].get_active_cache()
             else:
                 cache = self._caches[pi].get_inactive_cache()
@@ -243,7 +248,7 @@ class ColumnGroupRenderer():
                         src_rect.setHeight(src_rect.height() - tr_overlap)
 
                 full_width = min(max_tr_width, src_rect.width())
-                offset_x = 0
+                offset_x = border_width
                 for image in images:
                     if offset_x >= full_width:
                         break
@@ -283,7 +288,7 @@ class ColumnGroupRenderer():
                 # Last pattern and blank do not share pixel rows
                 src_rect.setY(src_rect.y() + 1)
                 full_width = min(max_tr_width, src_rect.width())
-                offset_x = 0
+                offset_x = border_width
                 for image in images:
                     if offset_x >= full_width:
                         break
@@ -550,6 +555,16 @@ class ColumnCache():
             return utils.scale_colour(colour, self._config['inactive_dim'])
         return colour
 
+    def _get_border_colours(self):
+        style_manager = self._ui_model.get_style_manager()
+        param = 'sheet_column_border_colour'
+        contrast = self._config['border_contrast']
+        light = self._get_final_colour(
+                QColor(style_manager.get_adjusted_colour(param, contrast)))
+        dark = self._get_final_colour(
+                QColor(style_manager.get_adjusted_colour(param, -contrast)))
+        return light, dark
+
     def _create_pixmap(self, index, grid):
         pixmap = QPixmap(self._width, ColumnCache.PIXMAP_HEIGHT)
 
@@ -561,8 +576,11 @@ class ColumnCache():
         assert pat_index != None
 
         # Background
+        border_width = self._config['border_width']
         painter.setBackground(self._get_final_colour(self._config['bg_colour']))
-        painter.eraseRect(QRect(0, 0, self._width - 1, ColumnCache.PIXMAP_HEIGHT))
+        painter.eraseRect(QRect(
+            border_width, 0,
+            self._width - border_width * 2, ColumnCache.PIXMAP_HEIGHT))
 
         # Start and stop timestamps
         start_px = index * ColumnCache.PIXMAP_HEIGHT
@@ -597,7 +615,7 @@ class ColumnCache():
                 line_y_offset = ts_to_y_offset(line_ts)
 
                 line_pixmap = self._gl_cache.get_line_pixmap(line_style)
-                painter.drawPixmap(QPoint(0, line_y_offset), line_pixmap)
+                painter.drawPixmap(QPoint(border_width, line_y_offset), line_pixmap)
 
         # Trigger rows
         painter.save()
@@ -609,9 +627,9 @@ class ColumnCache():
                 next_y_offset = ts_to_y_offset(next_ts)
                 tr_height = min(max(1, next_y_offset - y_offset), tr_height)
 
-            x_offset = 0
+            x_offset = border_width
             for image in images:
-                if x_offset >= self._width:
+                if x_offset >= self._width - border_width * 2:
                     break
 
                 painter.setClipRegion(
@@ -620,11 +638,24 @@ class ColumnCache():
                 x_offset += image.width()
         painter.restore()
 
-        # Border
-        painter.setPen(self._get_final_colour(self._config['border_colour']))
-        painter.drawLine(
-                QPoint(self._width - 1, 0),
-                QPoint(self._width - 1, ColumnCache.PIXMAP_HEIGHT))
+        # Borders
+        border_light, border_dark = self._get_border_colours()
+        if border_width > 1:
+            painter.fillRect(
+                    QRect(QPoint(0, 0), QSize(border_width, ColumnCache.PIXMAP_HEIGHT)),
+                    border_light)
+            painter.fillRect(
+                    QRect(QPoint(self._width - border_width, 0),
+                        QSize(border_width, ColumnCache.PIXMAP_HEIGHT)),
+                    border_dark)
+        else:
+            painter.setPen(border_light)
+            painter.drawLine(
+                    QPoint(0, 0), QPoint(0, ColumnCache.PIXMAP_HEIGHT))
+            painter.setPen(border_dark)
+            painter.drawLine(
+                    QPoint(self._width - 1, 0),
+                    QPoint(self._width - 1, ColumnCache.PIXMAP_HEIGHT))
 
         # Testing
         """

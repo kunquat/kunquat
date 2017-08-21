@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -15,7 +15,9 @@
 #include <player/events/Event_au_decl.h>
 
 #include <debug/assert.h>
+#include <player/devices/Au_state.h>
 #include <player/events/Event_common.h>
+#include <player/events/Event_params.h>
 #include <Value.h>
 
 #include <stdbool.h>
@@ -29,7 +31,7 @@ bool Event_au_set_sustain_process(
         Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(au != NULL);
     rassert(au_params != NULL);
@@ -37,10 +39,11 @@ bool Event_au_set_sustain_process(
     rassert(master_params != NULL);
     rassert(channel != NULL);
     rassert(dstates != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
-    au_state->sustain = value->value.float_type;
+    au_state->sustain = params->arg->value.float_type;
 
     return true;
 }

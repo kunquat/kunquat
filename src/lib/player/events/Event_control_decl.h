@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2017
  *
  * This file is part of Kunquat.
  *
@@ -16,17 +16,13 @@
 #define KQT_EVENT_CONTROL_DECL_H
 
 
-#include <player/General_state.h>
-#include <Value.h>
-
-#include <stdbool.h>
+#include <player/events/Event_interfaces.h>
 
 
 // Process function declarations
 
-#define EVENT_CONTROL_DEF(name, type_suffix, arg_type, validator)               \
-    bool Event_control_##type_suffix##_process(                                 \
-            General_state* global_state, Channel* channel, const Value* value);
+#define EVENT_CONTROL_DEF(name, type_suffix, arg_type, validator) \
+    Event_control_interface Event_control_##type_suffix##_process;
 #include <player/events/Event_control_types.h>
 
 

@@ -17,9 +17,11 @@
 #include <debug/assert.h>
 #include <init/devices/Proc_type.h>
 #include <init/Module.h>
+#include <player/Channel.h>
 #include <player/devices/Voice_state.h>
 #include <player/devices/processors/Force_state.h>
 #include <player/events/Event_common.h>
+#include <player/events/Event_params.h>
 #include <player/Force_controls.h>
 #include <player/Master_params.h>
 #include <player/Voice.h>
@@ -43,17 +45,18 @@ bool Event_channel_set_force_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
     const double force_shift = master_params->parent.module->force_shift;
 
-    const double force = value->value.float_type + force_shift;
+    const double force = params->arg->value.float_type + force_shift;
 
     ch->force_controls.force = force;
     Slider_break(&ch->force_controls.slider);
@@ -79,17 +82,18 @@ bool Event_channel_slide_force_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
     const double force_shift = master_params->parent.module->force_shift;
 
-    const double slide_target = value->value.float_type + force_shift;
+    const double slide_target = params->arg->value.float_type + force_shift;
     const double start_force =
         isfinite(ch->force_controls.force) ? ch->force_controls.force : slide_target;
 
@@ -121,15 +125,16 @@ bool Event_channel_slide_force_length_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_TSTAMP);
 
-    Tstamp_copy(&ch->force_slide_length, &value->value.Tstamp_type);
+    Tstamp_copy(&ch->force_slide_length, &params->arg->value.Tstamp_type);
 
     Slider_set_length(&ch->force_controls.slider, &ch->force_slide_length);
 
@@ -151,15 +156,16 @@ bool Event_channel_tremolo_speed_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
-    ch->tremolo_speed = value->value.float_type;
+    ch->tremolo_speed = params->arg->value.float_type;
 
     LFO_set_speed(&ch->force_controls.tremolo, ch->tremolo_speed);
 
@@ -176,7 +182,7 @@ bool Event_channel_tremolo_speed_process(
         Force_controls* fc = get_force_controls(vs);
         if (fc != NULL)
         {
-            LFO_set_speed(&fc->tremolo, value->value.float_type);
+            LFO_set_speed(&fc->tremolo, params->arg->value.float_type);
 
             if (ch->tremolo_depth > 0)
                 LFO_set_depth(&fc->tremolo, ch->tremolo_depth);
@@ -193,15 +199,16 @@ bool Event_channel_tremolo_depth_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_FLOAT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
-    const double actual_depth = value->value.float_type;
+    const double actual_depth = params->arg->value.float_type;
     ch->tremolo_depth = actual_depth;
 
     if (ch->tremolo_speed > 0)
@@ -234,17 +241,18 @@ bool Event_channel_tremolo_speed_slide_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_TSTAMP);
 
-    Tstamp_copy(&ch->tremolo_speed_slide, &value->value.Tstamp_type);
+    Tstamp_copy(&ch->tremolo_speed_slide, &params->arg->value.Tstamp_type);
 
-    LFO_set_speed_slide(&ch->force_controls.tremolo, &value->value.Tstamp_type);
+    LFO_set_speed_slide(&ch->force_controls.tremolo, &params->arg->value.Tstamp_type);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -253,7 +261,7 @@ bool Event_channel_tremolo_speed_slide_process(
 
         Force_controls* fc = get_force_controls(vs);
         if (fc != NULL)
-            LFO_set_speed_slide(&fc->tremolo, &value->value.Tstamp_type);
+            LFO_set_speed_slide(&fc->tremolo, &params->arg->value.Tstamp_type);
     }
 
     return true;
@@ -264,17 +272,18 @@ bool Event_channel_tremolo_depth_slide_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_TSTAMP);
 
-    Tstamp_copy(&ch->tremolo_depth_slide, &value->value.Tstamp_type);
+    Tstamp_copy(&ch->tremolo_depth_slide, &params->arg->value.Tstamp_type);
 
-    LFO_set_depth_slide(&ch->force_controls.tremolo, &value->value.Tstamp_type);
+    LFO_set_depth_slide(&ch->force_controls.tremolo, &params->arg->value.Tstamp_type);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -283,7 +292,7 @@ bool Event_channel_tremolo_depth_slide_process(
 
         Force_controls* fc = get_force_controls(vs);
         if (fc != NULL)
-            LFO_set_depth_slide(&fc->tremolo, &value->value.Tstamp_type);
+            LFO_set_depth_slide(&fc->tremolo, &params->arg->value.Tstamp_type);
     }
 
     return true;
@@ -294,12 +303,12 @@ bool Event_channel_carry_force_on_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    ignore(value);
+    ignore(params);
 
     ch->carry_force = true;
 
@@ -311,12 +320,12 @@ bool Event_channel_carry_force_off_process(
         Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
-        const Value* value)
+        const Event_params* params)
 {
     rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
-    ignore(value);
+    ignore(params);
 
     ch->carry_force = false;
 

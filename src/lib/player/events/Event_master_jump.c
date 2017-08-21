@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,8 @@
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <player/events/Event_common.h>
+#include <player/events/Event_params.h>
+#include <player/Master_params.h>
 #include <Value.h>
 
 #include <limits.h>
@@ -26,48 +28,51 @@
 
 
 bool Event_master_set_jump_counter_process(
-        Master_params* master_params, const Value* value)
+        Master_params* master_params, const Event_params* params)
 {
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_INT);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_INT);
 
-    master_params->jump_counter = (int16_t)value->value.int_type;
+    master_params->jump_counter = (int16_t)params->arg->value.int_type;
 
     return true;
 }
 
 
 bool Event_master_set_jump_row_process(
-        Master_params* master_params, const Value* value)
+        Master_params* master_params, const Event_params* params)
 {
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_TSTAMP);
 
-    Tstamp_copy(&master_params->jump_target_row, &value->value.Tstamp_type);
+    Tstamp_copy(&master_params->jump_target_row, &params->arg->value.Tstamp_type);
 
     return true;
 }
 
 
 bool Event_master_set_jump_pat_inst_process(
-        Master_params* master_params, const Value* value)
+        Master_params* master_params, const Event_params* params)
 {
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_PAT_INST_REF);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_PAT_INST_REF);
 
-    master_params->jump_target_piref = value->value.Pat_inst_ref_type;
+    master_params->jump_target_piref = params->arg->value.Pat_inst_ref_type;
 
     return true;
 }
 
 
-bool Event_master_jump_process(Master_params* master_params, const Value* value)
+bool Event_master_jump_process(Master_params* master_params, const Event_params* params)
 {
     rassert(master_params != NULL);
-    ignore(value);
+    ignore(params);
 
     if (master_params->jump_counter <= 0)
         return true;

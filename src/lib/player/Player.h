@@ -331,6 +331,17 @@ bool Player_has_stopped(const Player* player);
 
 
 /**
+ * Set channel mute setting in the Player.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ * \param ch       The channel number -- must be >= \c 0 and
+ *                 < \c KQT_CHANNELS_MAX.
+ * \param mute     \c true if \a ch is to be muted, otherwise \c false.
+ */
+void Player_set_channel_mute(Player* player, int ch, bool mute);
+
+
+/**
  * Fire an event.
  *
  * \param player         The Player -- must not be \c NULL.

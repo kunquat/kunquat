@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,8 @@
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <player/events/Event_common.h>
+#include <player/events/Event_params.h>
+#include <player/Master_params.h>
 #include <Value.h>
 
 #include <limits.h>
@@ -25,13 +27,15 @@
 
 
 bool Event_master_pattern_delay_process(
-        Master_params* master_params, const Value* value)
+        Master_params* master_params, const Event_params* params)
 {
     rassert(master_params != NULL);
-    rassert(value != NULL);
-    rassert(value->type == VALUE_TYPE_TSTAMP);
+    rassert(params != NULL);
+    rassert(params->arg != NULL);
+    rassert(params->arg->type == VALUE_TYPE_TSTAMP);
 
-    Tstamp_copy(&master_params->delay_left, &value->value.Tstamp_type);
+    Tstamp_copy(&master_params->delay_left, &params->arg->value.Tstamp_type);
+
     return true;
 }
 
