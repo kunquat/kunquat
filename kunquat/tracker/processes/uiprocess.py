@@ -151,6 +151,12 @@ class UiProcess(Process):
     def update_playback_cursor(self, row):
         self._q.put('update_playback_cursor', row)
 
+    def update_active_voice_count(self, voice_count):
+        self._q.put('update_active_voice_count', voice_count)
+
+    def update_active_vgroup_count(self, vgroup_count):
+        self._q.put('update_active_vgroup_count', vgroup_count)
+
     def update_event_log_with(self, channel_number, event_type, event_value, context):
         self._q.put('update_event_log_with', channel_number, event_type, event_value, context)
 

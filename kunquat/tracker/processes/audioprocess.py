@@ -71,6 +71,9 @@ class AudioProcess(Process):
     def tfire_event(self, channel, event):
         self._q.put('tfire_event', channel, event)
 
+    def request_voice_info(self):
+        self._q.put('request_voice_info')
+
     def set_channel_mute(self, channel, mute):
         self._q.put('set_channel_mute', channel, mute)
 
