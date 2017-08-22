@@ -61,6 +61,7 @@ static void Player_thread_params_init(
     tp->player = player;
     tp->thread_id = thread_id;
     tp->active_voices = 0;
+    tp->active_vgroups = 0;
     tp->work_buffers = NULL;
     for (int i = 0; i < TEST_VOICE_OUTPUTS_MAX; ++i)
         tp->test_voice_outputs[i] = NULL;
@@ -810,18 +811,29 @@ int64_t Player_get_nanoseconds(const Player* player)
 }
 
 
-static int Player_process_voice_group(
+typedef struct Render_stats
+{
+    int voice_count;
+    int vgroup_count;
+} Render_stats;
+
+#define RENDER_STATS_AUTO (&(Render_stats){ .voice_count = 0, .vgroup_count = 0 })
+
+
+static void Player_process_voice_group(
         Player* player,
         Player_thread_params* tparams,
         Voice_group* vgroup,
         int32_t render_start,
-        int32_t render_stop)
+        int32_t render_stop,
+        Render_stats* stats)
 {
     rassert(player != NULL);
     rassert(tparams != NULL);
     rassert(vgroup != NULL);
     rassert(render_start >= 0);
     rassert(render_stop >= render_start);
+    rassert(stats != NULL);
 
     // Find the connections that contain the processors
     const Voice* first_voice = Voice_group_get_voice(vgroup, 0);
@@ -835,8 +847,6 @@ static int Player_process_voice_group(
 
     const bool use_test_output = Voice_is_using_test_output(first_voice);
     int32_t test_output_stop = render_stop;
-
-    int active_voice_count = 0;
 
     if (conns != NULL)
     {
@@ -871,7 +881,10 @@ static int Player_process_voice_group(
         else
             Voice_group_deactivate_unreachable(vgroup);
 
-        active_voice_count += Voice_group_get_active_count(vgroup);
+        const int active_voice_count = Voice_group_get_active_count(vgroup);
+        stats->voice_count += active_voice_count;
+        if (active_voice_count > 0)
+            ++stats->vgroup_count;
     }
     else
     {
@@ -911,12 +924,12 @@ static int Player_process_voice_group(
         }
     }
 
-    return active_voice_count;
+    return;
 }
 
 
 #ifdef ENABLE_THREADS
-static int Player_process_voice_groups_synced(
+static void Player_process_voice_groups_synced(
         Player* player,
         Player_thread_params* tparams,
         int32_t render_start,
@@ -929,18 +942,21 @@ static int Player_process_voice_groups_synced(
 
     Voice_group* vgroup = VOICE_GROUP_AUTO;
 
-    int active_voices = 0;
+    Render_stats* stats = RENDER_STATS_AUTO;
 
     Voice_group* vg = Voice_pool_get_next_group_synced(player->voices, vgroup);
     while (vg != NULL)
     {
-        active_voices +=
-            Player_process_voice_group(player, tparams, vg, render_start, render_stop);
+        Player_process_voice_group(
+                player, tparams, vg, render_start, render_stop, stats);
 
         vg = Voice_pool_get_next_group_synced(player->voices, vgroup);
     }
 
-    return active_voices;
+    tparams->active_voices = stats->voice_count;
+    tparams->active_vgroups = stats->vgroup_count;
+
+    return;
 }
 
 
@@ -1004,7 +1020,7 @@ static void* render_thread_func(void* arg)
         if (player->stop_threads)
             break;
 
-        params->active_voices = Player_process_voice_groups_synced(
+        Player_process_voice_groups_synced(
                 player, params, player->render_start, player->render_stop);
 
         // Wait to indicate that we have finished processing voice groups
@@ -1051,6 +1067,7 @@ static void Player_process_voices(
     // Process active Voice groups
     const int32_t render_stop = render_start + frame_count;
     int active_voice_count = 0;
+    int active_vgroup_count = 0;
 
     Voice_pool_start_group_iteration(player->voices);
 
@@ -1069,20 +1086,33 @@ static void Player_process_voices(
 
         // Calculate active voices
         for (int i = 0; i < player->thread_count; ++i)
+        {
             active_voice_count += player->thread_params[i].active_voices;
+            active_vgroup_count += player->thread_params[i].active_vgroups;
+        }
     }
     else
 #endif
     {
         // Process all voice groups in a single thread
+        Render_stats* stats = RENDER_STATS_AUTO;
+
         Voice_group* vg = Voice_pool_get_next_group(player->voices);
         while (vg != NULL)
         {
-            active_voice_count += Player_process_voice_group(
-                    player, &player->thread_params[0], vg, render_start, render_stop);
+            Player_process_voice_group(
+                    player,
+                    &player->thread_params[0],
+                    vg,
+                    render_start,
+                    render_stop,
+                    stats);
 
             vg = Voice_pool_get_next_group(player->voices);
         }
+
+        active_voice_count = stats->voice_count;
+        active_vgroup_count = stats->vgroup_count;
     }
 
     if (player->thread_count > 1)
@@ -1091,6 +1121,8 @@ static void Player_process_voices(
 
     player->master_params.active_voices =
         max(player->master_params.active_voices, active_voice_count);
+    player->master_params.active_vgroups =
+        max(player->master_params.active_vgroups, active_vgroup_count);
 
     return;
 }

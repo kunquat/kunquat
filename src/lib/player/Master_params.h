@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2017
  *
  * This file is part of Kunquat.
  *
@@ -99,6 +99,7 @@ struct Master_params
 
     // Statistics
     int active_voices;
+    int active_vgroups;
 };
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -65,6 +65,7 @@ typedef enum
     Event_auto_location_pattern,
     Event_auto_location_row,
     Event_auto_voice_count,
+    Event_auto_vgroup_count,
     Event_auto_actual_force,
 
     Event_auto_STOP,

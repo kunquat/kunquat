@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2017
  *
  * This file is part of Kunquat.
  *
@@ -85,6 +85,7 @@ static void Master_params_clear(Master_params* params)
     }
 
     params->active_voices = 0;
+    params->active_vgroups = 0;
 
     return;
 }
