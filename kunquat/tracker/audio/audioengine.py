@@ -58,6 +58,7 @@ class AudioEngine():
         self._silence = ([0] * self._nframes, [0] * self._nframes)
         self._render_speed = 0
         self._post_actions = deque()
+        self._send_voice_info = False
 
         self._sine = gen_sine(48000)
 
@@ -104,6 +105,12 @@ class AudioEngine():
         elif event_type == 'Arow':
             row = event_value
             self._ui_engine.update_playback_cursor(row)
+        elif event_type == 'Avoices':
+            voice_count = event_value
+            self._ui_engine.update_active_voice_count(voice_count)
+        elif event_type == 'Avgroups':
+            vgroup_count = event_value
+            self._ui_engine.update_active_vgroup_count(vgroup_count)
         elif event_type == 'c.evn':
             var_name = event_value
             self._ui_engine.update_active_var_name(channel_number, var_name)
@@ -171,6 +178,9 @@ class AudioEngine():
     def tfire_event(self, channel, event):
         self._fire_event(channel, event, CONTEXT_TFIRE)
 
+    def request_voice_info(self):
+        self._send_voice_info = True
+
     def set_channel_mute(self, channel, mute):
         self._rendering_engine.set_channel_mute(channel, mute)
 
@@ -224,6 +234,9 @@ class AudioEngine():
                 self._ui_engine.update_render_load(ratio)
 
             self._ui_engine.update_audio_levels(self._audio_levels)
+            if self._send_voice_info:
+                self.tfire_event(0, ('qvoices', None))
+                self._send_voice_info = False
 
     def produce_sound(self):
         self._generate_audio(self._nframes)

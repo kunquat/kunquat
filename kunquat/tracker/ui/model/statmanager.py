@@ -42,6 +42,12 @@ class StatManager():
     def get_render_load_peaks(self):
         return self._session.get_render_load_peaks()
 
+    def get_voice_count_info(self):
+        return self._session.get_voice_count_info()
+
+    def get_vgroup_count_info(self):
+        return self._session.get_vgroup_count_info()
+
     def get_ui_load(self):
         return self._session.get_ui_load()
 

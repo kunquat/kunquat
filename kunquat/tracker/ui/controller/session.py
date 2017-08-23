@@ -32,6 +32,10 @@ class Session():
         self._progress_position = 0
         self._audio_levels = (0, 0)
         self._max_audio_levels = [0, 0]
+        self._active_voice_count = 0
+        self._active_vgroup_count = 0
+        self._max_active_voice_count = 0
+        self._max_active_vgroup_count = 0
         self._infinite_mode = False
         self._channel_states = {}
         self._playback_track = None
@@ -201,6 +205,26 @@ class Session():
 
     def reset_max_audio_levels(self):
         self._max_audio_levels = [0, 0]
+
+    def set_active_voice_count(self, voice_count):
+        self._active_voice_count = voice_count
+        self._max_active_voice_count = max(self._max_active_voice_count, voice_count)
+
+    def set_active_vgroup_count(self, vgroup_count):
+        self._active_vgroup_count = vgroup_count
+        self._max_active_vgroup_count = max(self._max_active_vgroup_count, vgroup_count)
+
+    def get_voice_count_info(self):
+        return self._active_voice_count, self._max_active_voice_count
+
+    def get_vgroup_count_info(self):
+        return self._active_vgroup_count, self._max_active_vgroup_count
+
+    def reset_voice_stats(self):
+        self._active_voice_count = 0
+        self._active_vgroup_count = 0
+        self._max_active_voice_count = 0
+        self._max_active_vgroup_count = 0
 
     def set_infinite_mode(self, enabled):
         self._infinite_mode = enabled

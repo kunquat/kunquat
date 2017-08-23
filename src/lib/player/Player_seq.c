@@ -245,7 +245,13 @@ void Player_process_event(
                 voices->value.int_type = player->master_params.active_voices;
                 try_process("Avoices", voices);
 
+                Value* vgroups = VALUE_AUTO;
+                vgroups->type = VALUE_TYPE_INT;
+                vgroups->value.int_type = player->master_params.active_vgroups;
+                try_process("Avgroups", vgroups);
+
                 player->master_params.active_voices = 0;
+                player->master_params.active_vgroups = 0;
             }
             break;
 

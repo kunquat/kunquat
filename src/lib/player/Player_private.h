@@ -45,6 +45,7 @@ typedef struct Player_thread_params
     Player* player;
     int thread_id; // NOTE: This is the ID used by the rendering code
     int active_voices;
+    int active_vgroups;
     Work_buffers* work_buffers;
     Work_buffer* test_voice_outputs[TEST_VOICE_OUTPUTS_MAX];
 } Player_thread_params;

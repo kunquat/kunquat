@@ -29,6 +29,10 @@ class RenderStats(QWidget):
         self._ui_model = None
         self._stat_manager = None
 
+        self._voice_info = QLabel()
+        self._voice_info.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
+        self._vgroup_info = QLabel()
+        self._vgroup_info.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
         self._render_load_history = RenderLoadHistory()
         self._ui_load_history = UILoadHistory()
         self._output_speed = QLabel()
@@ -43,10 +47,19 @@ class RenderStats(QWidget):
 
         self.setFocusPolicy(Qt.StrongFocus)
 
+        vl = QGridLayout()
+        vl.setVerticalSpacing(2)
+        vl.addWidget(QLabel('Active notes:'), 0, 0, Qt.AlignLeft)
+        vl.addWidget(self._vgroup_info, 0, 1)
+        vl.addWidget(QLabel('Active voices:'), 1, 0, Qt.AlignLeft)
+        vl.addWidget(self._voice_info, 1, 1)
+
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(2)
-        v.addWidget(QLabel('Audio rendering load:'))
+        v.addLayout(vl)
+        v.addSpacing(4)
+        v.addWidget(QLabel('Audio load:'))
         v.addWidget(self._render_load_container)
         v.addSpacing(4)
         v.addWidget(QLabel('UI load:'))
@@ -62,7 +75,7 @@ class RenderStats(QWidget):
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         updater = ui_model.get_updater()
-        updater.register_updater(self.perform_updates)
+        updater.register_updater(self._perform_updates)
         self._stat_manager = ui_model.get_stat_manager()
         self._render_load_history.set_ui_model(ui_model)
         self._ui_load_history.set_ui_model(ui_model)
@@ -75,7 +88,7 @@ class RenderStats(QWidget):
         self._ui_load_history.unregister_updaters()
         self._render_load_history.unregister_updaters()
         updater = self._ui_model.get_updater()
-        updater.unregister_updater(self.perform_updates)
+        updater.unregister_updater(self._perform_updates)
 
     def update_output_speed(self):
         output_speed = self._stat_manager.get_output_speed()
@@ -97,11 +110,18 @@ class RenderStats(QWidget):
         text = 'ui load: {} %'.format(int(ui_load * 100))
         self._ui_load.setText(text)
 
-    def perform_updates(self, signals):
+    def _perform_updates(self, signals):
+        active_voices, max_active_voices = self._stat_manager.get_voice_count_info()
+        self._voice_info.setText('{} ({})'.format(active_voices, max_active_voices))
+
+        active_vgroups, max_active_vgroups = self._stat_manager.get_vgroup_count_info()
+        self._vgroup_info.setText('{} ({})'.format(active_vgroups, max_active_vgroups))
+        '''
         self.update_output_speed()
         self.update_render_speed()
         self.update_render_load()
         self.update_ui_load()
+        '''
 
     def keyPressEvent(self, event):
         modifiers = event.modifiers()

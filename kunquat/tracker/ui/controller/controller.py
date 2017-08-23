@@ -406,6 +406,7 @@ class Controller():
 
     def _play(self):
         self._session.reset_max_audio_levels()
+        self._session.reset_voice_stats()
         self._reset_expressions()
         self._reset_runtime_env()
 
@@ -423,6 +424,7 @@ class Controller():
 
     def _play_pattern(self, pattern_instance):
         self._session.reset_max_audio_levels()
+        self._session.reset_voice_stats()
         self._reset_expressions()
         self._reset_runtime_env()
 
@@ -445,6 +447,7 @@ class Controller():
 
     def _play_from_cursor(self, pattern_instance, row_ts):
         self._session.reset_max_audio_levels()
+        self._session.reset_voice_stats()
         self._reset_expressions()
         self._reset_runtime_env()
 
@@ -474,6 +477,7 @@ class Controller():
 
     def _silence(self):
         self._session.reset_max_audio_levels()
+        self._session.reset_voice_stats()
         self._reset_runtime_env()
         self._reset_expressions()
 
@@ -652,6 +656,7 @@ class Controller():
     def send_queries(self):
         location_feedback_event = ('qlocation', None)
         self._audio_engine.tfire_event(0, location_feedback_event)
+        self._audio_engine.request_voice_info()
 
     def update_pending_playback_cursor_track(self, track):
         self._session.set_pending_playback_cursor_track(track)
@@ -676,6 +681,12 @@ class Controller():
         row_ts = tstamp.Tstamp(*row)
         new_location = TriggerPosition(track, system, col_num, row_ts, 0)
         selection.set_location(new_location)
+
+    def update_active_voice_count(self, voice_count):
+        self._session.set_active_voice_count(voice_count)
+
+    def update_active_vgroup_count(self, vgroup_count):
+        self._session.set_active_vgroup_count(vgroup_count)
 
     def update_event_log_with(self, channel_number, event_type, event_value, context):
         self._session.log_event(channel_number, event_type, event_value, context)

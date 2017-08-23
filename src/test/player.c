@@ -1283,7 +1283,8 @@ START_TEST(Query_voice_count_with_silence)
     kqt_Handle_fire_event(handle, 0, "[\"qvoices\", null]");
 
     const char* events = kqt_Handle_receive_events(handle);
-    const char* expected = "[[0, [\"qvoices\", null]], [0, [\"Avoices\", 0]]]";
+    const char* expected =
+        "[[0, [\"qvoices\", null]], [0, [\"Avoices\", 0]], [0, [\"Avgroups\", 0]]]";
 
     fail_if(strcmp(events, expected) != 0,
             "Received event list %s instead of %s", events, expected);
@@ -1302,7 +1303,8 @@ START_TEST(Query_voice_count_with_note)
     kqt_Handle_fire_event(handle, 0, "[\"qvoices\", null]");
 
     const char* events2 = kqt_Handle_receive_events(handle);
-    const char* expected2 = "[[0, [\"qvoices\", null]], [0, [\"Avoices\", 2]]]";
+    const char* expected2 =
+        "[[0, [\"qvoices\", null]], [0, [\"Avoices\", 2]], [0, [\"Avgroups\", 1]]]";
 
     fail_if(strcmp(events2, expected2) != 0,
             "Received event list %s instead of %s", events2, expected2);
@@ -1311,7 +1313,8 @@ START_TEST(Query_voice_count_with_note)
     kqt_Handle_fire_event(handle, 0, "[\"qvoices\", null]");
 
     const char* events1 = kqt_Handle_receive_events(handle);
-    const char* expected1 = "[[0, [\"qvoices\", null]], [0, [\"Avoices\", 0]]]";
+    const char* expected1 =
+        "[[0, [\"qvoices\", null]], [0, [\"Avoices\", 0]], [0, [\"Avgroups\", 0]]]";
 
     fail_if(strcmp(events1, expected1) != 0,
             "Received event list %s instead of %s", events1, expected1);
