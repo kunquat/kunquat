@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -16,13 +16,12 @@
 #define KQT_KS_STATE_H
 
 
-#include <player/devices/Proc_state.h>
 #include <player/devices/Voice_state.h>
 
 
 Voice_state_get_size_func Ks_vstate_get_size;
-
 Voice_state_init_func Ks_vstate_init;
+Voice_state_render_voice_func Ks_vstate_render_voice;
 
 
 #endif // KQT_KS_STATE_H

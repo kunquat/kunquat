@@ -16,31 +16,22 @@
 #define KQT_FILTER_STATE_H
 
 
-#include <decl.h>
+#include <init/devices/Device_impl.h>
 #include <player/devices/Device_state.h>
-#include <player/devices/Proc_state.h>
 #include <player/devices/Voice_state.h>
-#include <string/key_pattern.h>
 
 #include <stdint.h>
 
 
-Device_state* new_Filter_pstate(
-        const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
+Device_state_create_func new_Filter_pstate;
 
-bool Filter_pstate_set_type(
-        Device_state* dstate, const Key_indices indices, int64_t type);
-
-bool Filter_pstate_set_cutoff(
-        Device_state* dstate, const Key_indices indices, double value);
-
-bool Filter_pstate_set_resonance(
-        Device_state* dstate, const Key_indices indices, double value);
-
+Set_state_int_func Filter_pstate_set_type;
+Set_state_float_func Filter_pstate_set_cutoff;
+Set_state_float_func Filter_pstate_set_resonance;
 
 Voice_state_get_size_func Filter_vstate_get_size;
-
-void Filter_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
+Voice_state_init_func Filter_vstate_init;
+Voice_state_render_voice_func Filter_vstate_render_voice;
 
 
 #endif // KQT_FILTER_STATE_H

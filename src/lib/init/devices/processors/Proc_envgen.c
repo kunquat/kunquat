@@ -87,6 +87,7 @@ Device_impl* new_Proc_envgen(void)
 
     envgen->parent.get_vstate_size = Envgen_vstate_get_size;
     envgen->parent.init_vstate = Envgen_vstate_init;
+    envgen->parent.render_voice = Envgen_vstate_render_voice;
 
 #define REG_KEY(type, name, keyp, def_value) \
     REGISTER_SET_FIXED_STATE(envgen, type, name, keyp, def_value)

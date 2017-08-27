@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -23,8 +23,8 @@
 Device_state_create_func new_Compress_pstate;
 
 Voice_state_get_size_func Compress_vstate_get_size;
-
 Voice_state_init_func Compress_vstate_init;
+Voice_state_render_voice_func Compress_vstate_render_voice;
 
 
 #endif // KQT_COMPRESS_STATE_H

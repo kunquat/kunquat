@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -107,6 +107,7 @@ Device_impl* new_Proc_compress(void)
     compress->parent.create_pstate = new_Compress_pstate;
     compress->parent.get_vstate_size = Compress_vstate_get_size;
     compress->parent.init_vstate = Compress_vstate_init;
+    compress->parent.render_voice = Compress_vstate_render_voice;
 
     return &compress->parent;
 }

@@ -50,6 +50,7 @@ Device_impl* new_Proc_gaincomp(void)
 
     gc->parent.create_pstate = new_Gaincomp_pstate;
     gc->parent.init_vstate = Gaincomp_vstate_init;
+    gc->parent.render_voice = Gaincomp_vstate_render_voice;
 
     gc->is_map_enabled = false;
     gc->map = NULL;

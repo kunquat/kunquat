@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -16,18 +16,12 @@
 #define KQT_ADD_STATE_H
 
 
-#include <decl.h>
-#include <player/devices/Device_state.h>
-#include <player/devices/Proc_state.h>
 #include <player/devices/Voice_state.h>
-#include <string/key_pattern.h>
-
-#include <stdbool.h>
 
 
 Voice_state_get_size_func Add_vstate_get_size;
-
-void Add_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
+Voice_state_init_func Add_vstate_init;
+Voice_state_render_voice_func Add_vstate_render_voice;
 
 
 #endif // KQT_ADD_STATE_H

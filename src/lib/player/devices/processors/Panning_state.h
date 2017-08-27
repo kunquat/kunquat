@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -16,24 +16,17 @@
 #define KQT_PANNING_STATE_H
 
 
-#include <decl.h>
-#include <player/devices/Proc_state.h>
+#include <init/devices/Device_impl.h>
+#include <player/devices/Device_state.h>
 #include <player/devices/Voice_state.h>
-#include <string/key_pattern.h>
-
-#include <stdint.h>
 
 
-Device_state* new_Panning_pstate(
-        const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
-
-bool Panning_pstate_set_panning(
-        Device_state* dstate, const Key_indices indices, double value);
-
+Device_state_create_func new_Panning_pstate;
+Set_state_float_func Panning_pstate_set_panning;
 
 Voice_state_get_size_func Panning_vstate_get_size;
-
-void Panning_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
+Voice_state_init_func Panning_vstate_init;
+Voice_state_render_voice_func Panning_vstate_render_voice;
 
 
 #endif // KQT_PANNING_STATE_H

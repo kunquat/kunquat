@@ -157,7 +157,7 @@ static bool is_final_zero(const Work_buffer* in_wb, int32_t buf_start)
 }
 
 
-static int32_t Ringmod_vstate_render_voice(
+int32_t Ringmod_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
         const Device_thread_state* proc_ts,
@@ -243,8 +243,6 @@ void Ringmod_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
-
-    vstate->render_voice = Ringmod_vstate_render_voice;
 
     return;
 }

@@ -71,6 +71,7 @@ Device_impl* new_Proc_force(void)
 
     force->parent.get_vstate_size = Force_vstate_get_size;
     force->parent.init_vstate = Force_vstate_init;
+    force->parent.render_voice = Force_vstate_render_voice;
 
     // Add default release envelope
     {

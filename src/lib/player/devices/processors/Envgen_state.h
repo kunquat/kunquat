@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -16,13 +16,12 @@
 #define KQT_ENVGEN_STATE_H
 
 
-#include <player/devices/Proc_state.h>
 #include <player/devices/Voice_state.h>
 
 
 Voice_state_get_size_func Envgen_vstate_get_size;
-
-void Envgen_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
+Voice_state_init_func Envgen_vstate_init;
+Voice_state_render_voice_func Envgen_vstate_render_voice;
 
 
 #endif // KQT_ENVGEN_STATE_H

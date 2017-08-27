@@ -71,8 +71,6 @@ struct Voice_state
     Random* rand_s;                ///< Signal random source.
     Work_buffer* wb;
 
-    Voice_state_render_voice_func* render_voice;
-
     bool expr_filters_applied;
     char ch_expr_name[KQT_VAR_NAME_MAX];
     char note_expr_name[KQT_VAR_NAME_MAX];
@@ -130,7 +128,8 @@ Voice_state* Voice_state_clear(Voice_state* state);
 /**
  * Render voice signal with the Voice state.
  *
- * \param vstate       The Voice state -- must not be \c NULL.
+ * \param vstate       The Voice state, or \c NULL if the associated processor
+ *                     has a stateless voice processing function.
  * \param proc_state   The Processor state -- must not be \c NULL.
  * \param proc_ts      The Device thread state -- must not be \c NULL.
  * \param au_state     The Audio unit state -- must not be \c NULL.

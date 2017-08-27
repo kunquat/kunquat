@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -76,6 +76,7 @@ Device_impl* new_Proc_rangemap(void)
 
     rangemap->parent.create_pstate = new_Rangemap_pstate;
     rangemap->parent.init_vstate = Rangemap_vstate_init;
+    rangemap->parent.render_voice = Rangemap_vstate_render_voice;
 
     return &rangemap->parent;
 }

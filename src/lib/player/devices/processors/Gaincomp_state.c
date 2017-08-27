@@ -158,7 +158,7 @@ Device_state* new_Gaincomp_pstate(
 }
 
 
-static int32_t Gaincomp_vstate_render_voice(
+int32_t Gaincomp_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
         const Device_thread_state* proc_ts,
@@ -217,8 +217,6 @@ void Gaincomp_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
-
-    vstate->render_voice = Gaincomp_vstate_render_voice;
 
     return;
 }

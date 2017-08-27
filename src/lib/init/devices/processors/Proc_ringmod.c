@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -42,6 +42,7 @@ Device_impl* new_Proc_ringmod(void)
 
     ringmod->parent.create_pstate = new_Ringmod_pstate;
     ringmod->parent.init_vstate = Ringmod_vstate_init;
+    ringmod->parent.render_voice = Ringmod_vstate_render_voice;
 
     return &ringmod->parent;
 }

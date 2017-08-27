@@ -64,6 +64,7 @@ Device_impl* new_Proc_slope(void)
     slope->parent.create_pstate = new_Slope_pstate;
     slope->parent.get_vstate_size = Slope_vstate_get_size;
     slope->parent.init_vstate = Slope_vstate_init;
+    slope->parent.render_voice = Slope_vstate_render_voice;
 
     return &slope->parent;
 }

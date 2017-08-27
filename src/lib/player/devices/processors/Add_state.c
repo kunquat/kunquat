@@ -71,7 +71,7 @@ static const int ADD_WORK_BUFFER_MOD_L = WORK_BUFFER_IMPL_3;
 //static const int ADD_WORK_BUFFER_MOD_R = WORK_BUFFER_IMPL_4;
 
 
-static int32_t Add_vstate_render_voice(
+int32_t Add_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
         const Device_thread_state* proc_ts,
@@ -285,8 +285,6 @@ void Add_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
-
-    vstate->render_voice = Add_vstate_render_voice;
 
     Proc_add* add = (Proc_add*)proc_state->parent.device->dimpl;
     Add_vstate* add_state = (Add_vstate*)vstate;

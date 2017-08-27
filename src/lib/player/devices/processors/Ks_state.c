@@ -264,7 +264,7 @@ static const int KS_WB_FIXED_EXCITATION  = WORK_BUFFER_IMPL_3;
 static const int KS_WB_FIXED_DAMP        = WORK_BUFFER_IMPL_4;
 
 
-static int32_t Ks_vstate_render_voice(
+int32_t Ks_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
         const Device_thread_state* proc_ts,
@@ -477,8 +477,6 @@ void Ks_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
-
-    vstate->render_voice = Ks_vstate_render_voice;
 
     Ks_vstate* ks_vstate = (Ks_vstate*)vstate;
 

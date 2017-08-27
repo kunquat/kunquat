@@ -78,6 +78,7 @@ struct Device_impl
     Voice_state_get_size_func* get_vstate_size;
     Device_impl_get_voice_wb_size_func* get_voice_wb_size;
     Voice_state_init_func* init_vstate;
+    Voice_state_render_voice_func* render_voice;
     Device_impl_destroy_func* destroy;
 };
 

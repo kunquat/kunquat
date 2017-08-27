@@ -46,6 +46,7 @@ Device_impl* new_Proc_filter(void)
     filter->parent.create_pstate = new_Filter_pstate;
     filter->parent.get_vstate_size = Filter_vstate_get_size;
     filter->parent.init_vstate = Filter_vstate_init;
+    filter->parent.render_voice = Filter_vstate_render_voice;
 
     filter->type = FILTER_TYPE_LOWPASS;
     filter->cutoff = FILTER_DEFAULT_CUTOFF;

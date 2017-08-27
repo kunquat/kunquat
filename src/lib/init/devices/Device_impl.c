@@ -110,6 +110,7 @@ bool Device_impl_init(Device_impl* dimpl, Device_impl_destroy_func* destroy)
     dimpl->get_vstate_size = NULL;
     dimpl->get_voice_wb_size = NULL;
     dimpl->init_vstate = NULL;
+    dimpl->render_voice = NULL;
     dimpl->destroy = destroy;
 
     dimpl->set_cbs = NULL;
