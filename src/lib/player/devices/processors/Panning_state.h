@@ -25,7 +25,6 @@ Device_state_create_func new_Panning_pstate;
 Set_state_float_func Panning_pstate_set_panning;
 
 Voice_state_get_size_func Panning_vstate_get_size;
-Voice_state_init_func Panning_vstate_init;
 Voice_state_render_voice_func Panning_vstate_render_voice;
 
 

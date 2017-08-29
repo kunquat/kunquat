@@ -206,16 +206,9 @@ Device_state* new_Panning_pstate(
 }
 
 
-typedef struct Panning_vstate
-{
-    Voice_state parent;
-    double def_panning;
-} Panning_vstate;
-
-
 int32_t Panning_vstate_get_size(void)
 {
-    return sizeof(Panning_vstate);
+    return 0;
 }
 
 
@@ -229,7 +222,7 @@ int32_t Panning_vstate_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    rassert(vstate != NULL);
+    rassert(vstate == NULL);
     rassert(proc_state != NULL);
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
@@ -239,7 +232,8 @@ int32_t Panning_vstate_render_voice(
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
-    Panning_vstate* pvstate = (Panning_vstate*)vstate;
+    const Device_state* dstate = (const Device_state*)proc_state;
+    const Proc_panning* panning = (const Proc_panning*)dstate->device->dimpl;
 
     // Get panning values
     const float* pan_values = Device_thread_state_get_voice_buffer_contents(
@@ -250,22 +244,17 @@ int32_t Panning_vstate_render_voice(
     Proc_state_get_voice_audio_in_buffers(
             proc_ts, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_buffers);
     if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
-    {
-        vstate->active = false;
         return buf_start;
-    }
 
     // Get output
     float* out_buffers[2] = { NULL };
     Proc_state_get_voice_audio_out_buffers(
             proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
 
-    const Device_state* dstate = (const Device_state*)proc_state;
-
     apply_panning(
             wbs,
             pan_values,
-            (float)pvstate->def_panning,
+            (float)panning->panning,
             in_buffers,
             out_buffers,
             buf_start,
@@ -273,22 +262,6 @@ int32_t Panning_vstate_render_voice(
             dstate->audio_rate);
 
     return buf_stop;
-}
-
-
-void Panning_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
-{
-    rassert(vstate != NULL);
-    rassert(proc_state != NULL);
-
-    Panning_vstate* pvstate = (Panning_vstate*)vstate;
-
-    const Device_state* dstate = (const Device_state*)proc_state;
-    const Proc_panning* panning = (const Proc_panning*)dstate->device->dimpl;
-
-    pvstate->def_panning = panning->panning;
-
-    return;
 }
 
 
