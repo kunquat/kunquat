@@ -340,6 +340,32 @@ void Device_thread_state_mark_mixed_audio(Device_thread_state* ts)
 }
 
 
+void Device_thread_state_mix_voice_signals(
+        Device_thread_state* ts, int32_t buf_start, int32_t buf_stop)
+{
+    rassert(ts != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= buf_start);
+
+    for (int32_t port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Work_buffer* mixed_buffer =
+            Device_thread_state_get_mixed_buffer(ts, DEVICE_PORT_TYPE_SEND, port);
+        if (mixed_buffer == NULL)
+            continue;
+
+        const Work_buffer* voice_buffer =
+            Device_thread_state_get_voice_buffer(ts, DEVICE_PORT_TYPE_SEND, port);
+        rassert(voice_buffer != NULL);
+
+        Work_buffer_mix(mixed_buffer, voice_buffer, buf_start, buf_stop);
+        Device_thread_state_mark_mixed_audio(ts);
+    }
+
+    return;
+}
+
+
 bool Device_thread_state_has_mixed_audio(const Device_thread_state* ts)
 {
     rassert(ts != NULL);

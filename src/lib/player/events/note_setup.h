@@ -36,8 +36,11 @@
  *                      the same for every Voice with the same group!)
  * \param is_external   \c true if the note or hit originates from an
  *                      external event, otherwise \c false.
+ *
+ * \return   \c true if a Voice was allocated, otherwise \c false (this implies
+ *           that the associated Processor uses stateless voice rendering).
  */
-void reserve_voice(
+bool reserve_voice(
         Channel* ch,
         const Audio_unit* au,
         uint64_t group_id,

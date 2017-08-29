@@ -220,7 +220,9 @@ void Voice_reset(Voice* voice);
 /**
  * Render the Voice.
  *
- * \param voice        The Voice -- must not be \c NULL.
+ * \param voice        The Voice, or \c NULL if the associated Processor uses
+ *                     stateless Voice rendering.
+ * \param proc_id      The Processor ID -- must be valid.
  * \param dstates      The Device states -- must not be \c NULL.
  * \param thread_id    The ID of the thread accessing the Device state
  *                     -- must be a valid ID currently in use.
@@ -236,6 +238,7 @@ void Voice_reset(Voice* voice);
  */
 int32_t Voice_render(
         Voice* voice,
+        uint32_t proc_id,
         Device_states* dstates,
         int thread_id,
         const Work_buffers* wbs,

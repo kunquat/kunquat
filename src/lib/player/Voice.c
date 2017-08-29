@@ -221,6 +221,7 @@ void Voice_reset(Voice* voice)
 
 int32_t Voice_render(
         Voice* voice,
+        uint32_t proc_id,
         Device_states* dstates,
         int thread_id,
         const Work_buffers* wbs,
@@ -228,8 +229,8 @@ int32_t Voice_render(
         int32_t buf_stop,
         double tempo)
 {
-    rassert(voice != NULL);
-    rassert(voice->proc != NULL);
+    rassert(implies(voice != NULL, voice->proc != NULL));
+    rassert(proc_id > 0);
     rassert(dstates != NULL);
     rassert(thread_id >= 0);
     rassert(thread_id < KQT_THREADS_MAX);
@@ -237,35 +238,44 @@ int32_t Voice_render(
     rassert(buf_start >= 0);
     rassert(buf_stop >= buf_start);
 
-    if (voice->prio == VOICE_PRIO_INACTIVE)
+    if ((voice != NULL) && (voice->prio == VOICE_PRIO_INACTIVE))
         return buf_start;
 
-    const uint32_t proc_id = Device_get_id((const Device*)voice->proc);
-
     Proc_state* pstate = (Proc_state*)Device_states_get_state(dstates, proc_id);
+    const Processor* proc = (const Processor*)pstate->parent.device;
     Device_thread_state* proc_ts =
         Device_states_get_thread_state(dstates, thread_id, proc_id);
     const Au_state* au_state = (const Au_state*)Device_states_get_state(
-            dstates, voice->proc->au_params->device_id);
+            dstates, Processor_get_au_params(proc)->device_id);
 
-    voice->state->keep_alive_stop = 0;
+    Voice_state* vstate = (voice != NULL) ? voice->state : NULL;
+
+    if (vstate != NULL)
+        vstate->keep_alive_stop = 0;
 
     const int32_t process_stop = Voice_state_render_voice(
-            voice->state, pstate, proc_ts, au_state, wbs, buf_start, buf_stop, tempo);
+            vstate, pstate, proc_ts, au_state, wbs, buf_start, buf_stop, tempo);
     ignore(process_stop); // TODO: not sure if we have any use for this
 
-    voice->updated = true;
+    int32_t keep_alive_stop = 0;
 
-    if (!voice->state->active)
+    if (voice != NULL)
     {
-        Voice_reset(voice);
-        return buf_start;
+        voice->updated = true;
+
+        if (!voice->state->active)
+        {
+            Voice_reset(voice);
+            return buf_start;
+        }
+
+        if (!voice->state->note_on)
+            voice->prio = VOICE_PRIO_BG;
+
+        keep_alive_stop = voice->state->keep_alive_stop;
     }
 
-    if (!voice->state->note_on)
-        voice->prio = VOICE_PRIO_BG;
-
-    return clamp(voice->state->keep_alive_stop, buf_start, buf_stop);
+    return clamp(keep_alive_stop, buf_start, buf_stop);
 }
 
 

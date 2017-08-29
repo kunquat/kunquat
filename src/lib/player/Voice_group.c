@@ -18,6 +18,7 @@
 #include <init/Connections.h>
 #include <init/Device_node.h>
 #include <init/devices/Device.h>
+#include <init/devices/Device_impl.h>
 #include <mathnum/common.h>
 #include <player/devices/Device_thread_state.h>
 #include <player/Voice.h>
@@ -202,13 +203,18 @@ static int32_t process_voice_group(
 
         if (Processor_get_voice_signals((const Processor*)node_device))
         {
-            // Stop recursing if we don't have an active Voice
-            const uint32_t proc_id = Device_get_id(node_device);
-            Voice* voice = Voice_group_get_voice_by_proc(vgroup, proc_id);
-            if ((voice == NULL) || (!voice->state->active))
+            if ((node_device->dimpl->get_vstate_size == NULL) ||
+                    (node_device->dimpl->get_vstate_size() > 0))
             {
-                Device_thread_state_set_node_state(node_ts, DEVICE_NODE_STATE_VISITED);
-                return buf_start;
+                // Stop recursing if we don't have an active Voice
+                const uint32_t proc_id = Device_get_id(node_device);
+                Voice* voice = Voice_group_get_voice_by_proc(vgroup, proc_id);
+                if ((voice == NULL) || (!voice->state->active))
+                {
+                    Device_thread_state_set_node_state(
+                            node_ts, DEVICE_NODE_STATE_VISITED);
+                    return buf_start;
+                }
             }
         }
     }
@@ -269,14 +275,29 @@ static int32_t process_voice_group(
     {
         if (Processor_get_voice_signals((const Processor*)node_device))
         {
-            // Find the Voice that belongs to the current Processor
+            Voice* voice = NULL;
             const uint32_t proc_id = Device_get_id(node_device);
-            Voice* voice = Voice_group_get_voice_by_proc(vgroup, proc_id);
+            bool call_render = true;
 
-            if (voice != NULL)
+            if ((node_device->dimpl->get_vstate_size == NULL) ||
+                    (node_device->dimpl->get_vstate_size() > 0))
+            {
+                // Find the Voice that belongs to the current Processor
+                voice = Voice_group_get_voice_by_proc(vgroup, proc_id);
+                call_render = (voice != NULL);
+            }
+
+            if (call_render)
             {
                 const int32_t voice_keep_alive_stop = Voice_render(
-                        voice, dstates, thread_id, wbs, buf_start, buf_stop, tempo);
+                        voice,
+                        proc_id,
+                        dstates,
+                        thread_id,
+                        wbs,
+                        buf_start,
+                        buf_stop,
+                        tempo);
                 keep_alive_stop = max(keep_alive_stop, voice_keep_alive_stop);
             }
         }
@@ -375,12 +396,17 @@ static void mix_voice_signals(
         if (Processor_get_voice_signals((const Processor*)node_device))
         {
             // Mix Voice signals if we have any
-            const uint32_t proc_id = Device_get_id(node_device);
-            Proc_state* pstate = (Proc_state*)Device_states_get_state(dstates, proc_id);
-            Voice* voice = Voice_group_get_voice_by_proc(vgroup, proc_id);
-            if (voice != NULL)
-                Voice_state_mix_signals(
-                        voice->state, pstate, node_ts, buf_start, buf_stop);
+            bool call_mix = true;
+            if ((node_device->dimpl->get_vstate_size == NULL) ||
+                    (node_device->dimpl->get_vstate_size() > 0))
+            {
+                const uint32_t proc_id = Device_get_id(node_device);
+                Voice* voice = Voice_group_get_voice_by_proc(vgroup, proc_id);
+                call_mix = (voice != NULL);
+            }
+
+            if (call_mix)
+                Device_thread_state_mix_voice_signals(node_ts, buf_start, buf_stop);
 
             // Stop recursing as we don't depend on any mixed signals
             Device_thread_state_set_node_state(node_ts, DEVICE_NODE_STATE_VISITED);

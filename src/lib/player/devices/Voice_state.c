@@ -151,7 +151,7 @@ int32_t Voice_state_render_voice(
         return buf_start;
     }
 
-    if (!vstate->expr_filters_applied)
+    if ((vstate != NULL) && !vstate->expr_filters_applied)
     {
         // Stop processing if we are filtered out by current Audio unit expressions
         const Audio_unit* au = (const Audio_unit*)au_state->parent.device;
@@ -178,38 +178,6 @@ int32_t Voice_state_render_voice(
     rassert(impl_render_stop <= buf_stop);
 
     return impl_render_stop;
-}
-
-
-void Voice_state_mix_signals(
-        Voice_state* vstate,
-        Proc_state* proc_state,
-        Device_thread_state* proc_ts,
-        int32_t buf_start,
-        int32_t buf_stop)
-{
-    rassert(vstate != NULL);
-    rassert(proc_state != NULL);
-    rassert(proc_ts != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= buf_start);
-
-    for (int32_t port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-    {
-        Work_buffer* mixed_buffer =
-            Device_thread_state_get_mixed_buffer(proc_ts, DEVICE_PORT_TYPE_SEND, port);
-        if (mixed_buffer == NULL)
-            continue;
-
-        const Work_buffer* voice_buffer =
-            Device_thread_state_get_voice_buffer(proc_ts, DEVICE_PORT_TYPE_SEND, port);
-        rassert(voice_buffer != NULL);
-
-        Work_buffer_mix(mixed_buffer, voice_buffer, buf_start, buf_stop);
-        Device_thread_state_mark_mixed_audio(proc_ts);
-    }
-
-    return;
 }
 
 
