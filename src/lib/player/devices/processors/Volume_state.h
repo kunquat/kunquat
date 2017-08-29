@@ -25,7 +25,6 @@ Device_state_create_func new_Volume_pstate;
 Set_state_float_func Volume_pstate_set_volume;
 
 Voice_state_get_size_func Volume_vstate_get_size;
-Voice_state_init_func Volume_vstate_init;
 Voice_state_render_voice_func Volume_vstate_render_voice;
 
 

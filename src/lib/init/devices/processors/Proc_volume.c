@@ -52,7 +52,6 @@ Device_impl* new_Proc_volume(void)
 
     volume->parent.create_pstate = new_Volume_pstate;
     volume->parent.get_vstate_size = Volume_vstate_get_size;
-    volume->parent.init_vstate = Volume_vstate_init;
     volume->parent.render_voice = Volume_vstate_render_voice;
 
     // Register key handlers
