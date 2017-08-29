@@ -22,7 +22,7 @@
 
 Device_state_create_func new_Rangemap_pstate;
 
-Voice_state_init_func Rangemap_vstate_init;
+Voice_state_get_size_func Rangemap_vstate_get_size;
 Voice_state_render_voice_func Rangemap_vstate_render_voice;
 
 

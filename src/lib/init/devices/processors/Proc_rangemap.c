@@ -75,7 +75,7 @@ Device_impl* new_Proc_rangemap(void)
 #undef REG_KEY_BOOL
 
     rangemap->parent.create_pstate = new_Rangemap_pstate;
-    rangemap->parent.init_vstate = Rangemap_vstate_init;
+    rangemap->parent.get_vstate_size = Rangemap_vstate_get_size;
     rangemap->parent.render_voice = Rangemap_vstate_render_voice;
 
     return &rangemap->parent;

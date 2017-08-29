@@ -177,7 +177,7 @@ int32_t Rangemap_vstate_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    rassert(vstate != NULL);
+    rassert(vstate == NULL);
     rassert(proc_state != NULL);
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
@@ -226,12 +226,9 @@ int32_t Rangemap_vstate_render_voice(
 }
 
 
-void Rangemap_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
+int32_t Rangemap_vstate_get_size(void)
 {
-    rassert(vstate != NULL);
-    rassert(proc_state != NULL);
-
-    return;
+    return 0;
 }
 
 
