@@ -330,7 +330,7 @@ float* Device_thread_state_get_voice_buffer_contents(
 }
 
 
-void Device_thread_state_mark_mixed_audio(Device_thread_state* ts)
+static void Device_thread_state_mark_mixed_audio(Device_thread_state* ts)
 {
     rassert(ts != NULL);
 
