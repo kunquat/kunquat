@@ -22,7 +22,7 @@
 
 Device_state_create_func new_Ringmod_pstate;
 
-Voice_state_init_func Ringmod_vstate_init;
+Voice_state_get_size_func Ringmod_vstate_get_size;
 Voice_state_render_voice_func Ringmod_vstate_render_voice;
 
 

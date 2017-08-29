@@ -41,7 +41,7 @@ Device_impl* new_Proc_ringmod(void)
     }
 
     ringmod->parent.create_pstate = new_Ringmod_pstate;
-    ringmod->parent.init_vstate = Ringmod_vstate_init;
+    ringmod->parent.get_vstate_size = Ringmod_vstate_get_size;
     ringmod->parent.render_voice = Ringmod_vstate_render_voice;
 
     return &ringmod->parent;
