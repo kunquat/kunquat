@@ -22,7 +22,7 @@
 
 Device_state_create_func new_Gaincomp_pstate;
 
-Voice_state_init_func Gaincomp_vstate_init;
+Voice_state_get_size_func Gaincomp_vstate_get_size;
 Voice_state_render_voice_func Gaincomp_vstate_render_voice;
 
 
