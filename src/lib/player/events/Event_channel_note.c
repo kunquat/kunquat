@@ -206,8 +206,10 @@ bool Event_channel_note_on_process(
             is_voice_rand_seed_set = true;
         }
 
-        reserve_voice(
+        const bool voice_allocated = reserve_voice(
                 ch, au, new_group_id, proc_state, i, voice_rand_seed, params->external);
+        if (!voice_allocated)
+            continue;
 
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
@@ -301,8 +303,10 @@ bool Event_channel_hit_process(
             is_voice_rand_seed_set = true;
         }
 
-        reserve_voice(
+        const bool voice_allocated = reserve_voice(
                 ch, au, new_group_id, proc_state, i, voice_rand_seed, params->external);
+        if (!voice_allocated)
+            continue;
 
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;

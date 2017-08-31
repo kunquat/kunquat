@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -16,27 +16,17 @@
 #define KQT_STREAM_STATE_H
 
 
-#include <decl.h>
+#include <init/devices/Device_impl.h>
 #include <player/devices/Device_state.h>
-#include <player/devices/Proc_state.h>
 #include <player/devices/Voice_state.h>
 #include <player/Linear_controls.h>
-#include <string/key_pattern.h>
-
-#include <stdint.h>
 
 
-Device_state* new_Stream_pstate(
-        const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
+Device_state_create_func new_Stream_pstate;
 
-bool Stream_pstate_set_init_value(
-        Device_state* dstate, const Key_indices indices, double value);
-
-bool Stream_pstate_set_init_osc_speed(
-        Device_state* dstate, const Key_indices indices, double value);
-
-bool Stream_pstate_set_init_osc_depth(
-        Device_state* dstate, const Key_indices indices, double value);
+Set_state_float_func Stream_pstate_set_init_value;
+Set_state_float_func Stream_pstate_set_init_osc_speed;
+Set_state_float_func Stream_pstate_set_init_osc_depth;
 
 void Stream_pstate_set_value(Device_state* dstate, double value);
 void Stream_pstate_slide_target(Device_state* dstate, double value);
@@ -48,8 +38,8 @@ void Stream_pstate_set_osc_depth_slide(Device_state* dstate, const Tstamp* lengt
 
 
 Voice_state_get_size_func Stream_vstate_get_size;
-
-void Stream_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
+Voice_state_init_func Stream_vstate_init;
+Voice_state_render_voice_func Stream_vstate_render_voice;
 
 const Linear_controls* Stream_vstate_get_controls(const Voice_state* vstate);
 

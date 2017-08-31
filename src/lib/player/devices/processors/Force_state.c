@@ -71,7 +71,7 @@ static const int FORCE_WB_FIXED_ENV_STRETCH = WORK_BUFFER_IMPL_1;
 static const int FORCE_WB_FIXED_ENV_REL_STRETCH = WORK_BUFFER_IMPL_2;
 
 
-static int32_t Force_vstate_render_voice(
+int32_t Force_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
         const Device_thread_state* proc_ts,
@@ -362,8 +362,6 @@ void Force_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
-
-    vstate->render_voice = Force_vstate_render_voice;
 
     const Proc_force* force = (const Proc_force*)proc_state->parent.device->dimpl;
     Force_vstate* fvstate = (Force_vstate*)vstate;

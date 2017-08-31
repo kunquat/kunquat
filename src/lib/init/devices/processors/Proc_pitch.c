@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -40,6 +40,7 @@ Device_impl* new_Proc_pitch(void)
 
     pitch->parent.get_vstate_size = Pitch_vstate_get_size;
     pitch->parent.init_vstate = Pitch_vstate_init;
+    pitch->parent.render_voice = Pitch_vstate_render_voice;
 
     return &pitch->parent;
 }

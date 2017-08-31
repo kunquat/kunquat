@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -167,7 +167,7 @@ Device_state* new_Rangemap_pstate(
 }
 
 
-static int32_t Rangemap_vstate_render_voice(
+int32_t Rangemap_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
         const Device_thread_state* proc_ts,
@@ -177,7 +177,7 @@ static int32_t Rangemap_vstate_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    rassert(vstate != NULL);
+    rassert(vstate == NULL);
     rassert(proc_state != NULL);
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
@@ -226,14 +226,9 @@ static int32_t Rangemap_vstate_render_voice(
 }
 
 
-void Rangemap_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
+int32_t Rangemap_vstate_get_size(void)
 {
-    rassert(vstate != NULL);
-    rassert(proc_state != NULL);
-
-    vstate->render_voice = Rangemap_vstate_render_voice;
-
-    return;
+    return 0;
 }
 
 

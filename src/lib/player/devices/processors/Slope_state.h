@@ -24,6 +24,7 @@ Device_state_create_func new_Slope_pstate;
 
 Voice_state_get_size_func Slope_vstate_get_size;
 Voice_state_init_func Slope_vstate_init;
+Voice_state_render_voice_func Slope_vstate_render_voice;
 
 
 #endif // KQT_SLOPE_STATE_H

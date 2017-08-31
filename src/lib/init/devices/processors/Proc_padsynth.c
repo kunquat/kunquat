@@ -282,6 +282,7 @@ Device_impl* new_Proc_padsynth(void)
 
     padsynth->parent.get_vstate_size = Padsynth_vstate_get_size;
     padsynth->parent.init_vstate = Padsynth_vstate_init;
+    padsynth->parent.render_voice = Padsynth_vstate_render_voice;
 
     if (!(REGISTER_SET_FIXED_STATE(
                 padsynth, padsynth_params, params, "p_ps_params.json", NULL) &&

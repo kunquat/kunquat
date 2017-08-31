@@ -59,6 +59,7 @@ Device_impl* new_Proc_ks(void)
     ks->parent.get_voice_wb_size = Proc_ks_get_voice_wb_size;
     ks->parent.get_vstate_size = Ks_vstate_get_size;
     ks->parent.init_vstate = Ks_vstate_init;
+    ks->parent.render_voice = Ks_vstate_render_voice;
 
     return &ks->parent;
 }

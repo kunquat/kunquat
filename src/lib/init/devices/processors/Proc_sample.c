@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -44,6 +44,7 @@ Device_impl* new_Proc_sample(void)
 
     sample_p->parent.get_vstate_size = Sample_vstate_get_size;
     sample_p->parent.init_vstate = Sample_vstate_init;
+    sample_p->parent.render_voice = Sample_vstate_render_voice;
 
     return &sample_p->parent;
 }

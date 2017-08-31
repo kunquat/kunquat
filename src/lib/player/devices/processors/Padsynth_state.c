@@ -64,7 +64,7 @@ static const int PADSYNTH_WB_FIXED_PITCH = WORK_BUFFER_IMPL_1;
 static const int PADSYNTH_WB_FIXED_FORCE = WORK_BUFFER_IMPL_2;
 
 
-static int32_t Padsynth_vstate_render_voice(
+int32_t Padsynth_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
         const Device_thread_state* proc_ts,
@@ -207,8 +207,6 @@ void Padsynth_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
-
-    vstate->render_voice = Padsynth_vstate_render_voice;
 
     const Proc_padsynth* ps = (const Proc_padsynth*)proc_state->parent.device->dimpl;
     const int32_t sample_length = Padsynth_sample_map_get_sample_length(ps->sample_map);

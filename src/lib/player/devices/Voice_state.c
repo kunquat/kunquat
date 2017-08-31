@@ -54,8 +54,6 @@ Voice_state* Voice_state_init(
     state->rand_s = rand_s;
     state->wb = NULL;
 
-    state->render_voice = NULL;
-
     return state;
 }
 
@@ -127,7 +125,6 @@ int32_t Voice_state_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    rassert(vstate != NULL);
     rassert(proc_state != NULL);
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
@@ -136,14 +133,25 @@ int32_t Voice_state_render_voice(
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
-    const Processor* proc = (const Processor*)proc_state->parent.device;
-    if (!Processor_get_voice_signals(proc) || (vstate->render_voice == NULL))
+    const Device* device = proc_state->parent.device;
+    rassert(device != NULL);
+
+    const Device_impl* dimpl = device->dimpl;
+    rassert(dimpl != NULL);
+
+    const int32_t vstate_size = (dimpl->get_vstate_size != NULL)
+        ? dimpl->get_vstate_size() : (int32_t)sizeof(Voice_state);
+    rassert((vstate == NULL) == (vstate_size == 0));
+
+    const Processor* proc = (const Processor*)device;
+    if (!Processor_get_voice_signals(proc) || (dimpl->render_voice == NULL))
     {
-        vstate->active = false;
+        if (vstate != NULL)
+            vstate->active = false;
         return buf_start;
     }
 
-    if (!vstate->expr_filters_applied)
+    if ((vstate != NULL) && !vstate->expr_filters_applied)
     {
         // Stop processing if we are filtered out by current Audio unit expressions
         const Audio_unit* au = (const Audio_unit*)au_state->parent.device;
@@ -165,43 +173,11 @@ int32_t Voice_state_render_voice(
         return buf_start;
 
     // Call the implementation
-    const int32_t impl_render_stop = vstate->render_voice(
+    const int32_t impl_render_stop = dimpl->render_voice(
             vstate, proc_state, proc_ts, au_state, wbs, buf_start, buf_stop, tempo);
     rassert(impl_render_stop <= buf_stop);
 
     return impl_render_stop;
-}
-
-
-void Voice_state_mix_signals(
-        Voice_state* vstate,
-        Proc_state* proc_state,
-        Device_thread_state* proc_ts,
-        int32_t buf_start,
-        int32_t buf_stop)
-{
-    rassert(vstate != NULL);
-    rassert(proc_state != NULL);
-    rassert(proc_ts != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= buf_start);
-
-    for (int32_t port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-    {
-        Work_buffer* mixed_buffer =
-            Device_thread_state_get_mixed_buffer(proc_ts, DEVICE_PORT_TYPE_SEND, port);
-        if (mixed_buffer == NULL)
-            continue;
-
-        const Work_buffer* voice_buffer =
-            Device_thread_state_get_voice_buffer(proc_ts, DEVICE_PORT_TYPE_SEND, port);
-        rassert(voice_buffer != NULL);
-
-        Work_buffer_mix(mixed_buffer, voice_buffer, buf_start, buf_stop);
-        Device_thread_state_mark_mixed_audio(proc_ts);
-    }
-
-    return;
 }
 
 

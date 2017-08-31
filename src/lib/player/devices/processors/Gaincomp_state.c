@@ -158,7 +158,13 @@ Device_state* new_Gaincomp_pstate(
 }
 
 
-static int32_t Gaincomp_vstate_render_voice(
+int32_t Gaincomp_vstate_get_size(void)
+{
+    return 0;
+}
+
+
+int32_t Gaincomp_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
         const Device_thread_state* proc_ts,
@@ -168,7 +174,7 @@ static int32_t Gaincomp_vstate_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    rassert(vstate != NULL);
+    rassert(vstate == NULL);
     rassert(proc_state != NULL);
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
@@ -187,10 +193,7 @@ static int32_t Gaincomp_vstate_render_voice(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
     };
     if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
-    {
-        vstate->active = false;
         return buf_start;
-    }
 
     // Get output
     Work_buffer* out_buffers[] =
@@ -210,17 +213,6 @@ static int32_t Gaincomp_vstate_render_voice(
     }
 
     return buf_stop;
-}
-
-
-void Gaincomp_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
-{
-    rassert(vstate != NULL);
-    rassert(proc_state != NULL);
-
-    vstate->render_voice = Gaincomp_vstate_render_voice;
-
-    return;
 }
 
 

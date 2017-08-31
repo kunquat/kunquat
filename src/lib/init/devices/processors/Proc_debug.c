@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -42,6 +42,7 @@ Device_impl* new_Proc_debug(void)
     }
 
     debug->parent.init_vstate = Debug_vstate_init;
+    debug->parent.render_voice = Debug_vstate_render_voice;
 
     if (!REGISTER_SET_FIXED_STATE(
             debug, bool, single_pulse, "p_b_single_pulse.json", false))

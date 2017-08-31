@@ -229,11 +229,15 @@ float* Device_thread_state_get_voice_buffer_contents(
 
 
 /**
- * Mark Device thread state as containing mixed audio.
+ * Mix rendered Voice signals to mixed signal buffers.
  *
- * \param ts   The Device thread state -- must not be \c NULL.
+ * \param ts          The Device thread state -- must not be \c NULL.
+ * \param buf_start   The start index of mixing -- must be >= \c 0.
+ * \param buf_stop    The stop index of mixing -- must be less than or equal
+ *                    to the audio buffer size.
  */
-void Device_thread_state_mark_mixed_audio(Device_thread_state* ts);
+void Device_thread_state_mix_voice_signals(
+        Device_thread_state* ts, int32_t buf_start, int32_t buf_stop);
 
 
 /**

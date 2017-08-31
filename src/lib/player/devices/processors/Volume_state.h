@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -16,26 +16,16 @@
 #define KQT_VOLUME_STATE_H
 
 
-#include <decl.h>
+#include <init/devices/Device_impl.h>
 #include <player/devices/Device_state.h>
-#include <player/devices/Proc_state.h>
 #include <player/devices/Voice_state.h>
-#include <string/key_pattern.h>
-
-#include <stdbool.h>
-#include <stdint.h>
 
 
-Device_state* new_Volume_pstate(
-        const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
-
-bool Volume_pstate_set_volume(
-        Device_state* dstate, const Key_indices indices, double value);
-
+Device_state_create_func new_Volume_pstate;
+Set_state_float_func Volume_pstate_set_volume;
 
 Voice_state_get_size_func Volume_vstate_get_size;
-
-void Volume_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
+Voice_state_render_voice_func Volume_vstate_render_voice;
 
 
 #endif // KQT_VOLUME_STATE_H

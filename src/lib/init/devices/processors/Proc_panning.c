@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -45,7 +45,7 @@ Device_impl* new_Proc_panning(void)
 
     panning->parent.create_pstate = new_Panning_pstate;
     panning->parent.get_vstate_size = Panning_vstate_get_size;
-    panning->parent.init_vstate = Panning_vstate_init;
+    panning->parent.render_voice = Panning_vstate_render_voice;
 
     if (!REGISTER_SET_WITH_STATE_CB(
                 panning,

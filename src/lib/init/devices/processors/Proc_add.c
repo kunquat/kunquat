@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2017
  *
  * This file is part of Kunquat.
  *
@@ -64,6 +64,7 @@ Device_impl* new_Proc_add(void)
 
     add->parent.get_vstate_size = Add_vstate_get_size;
     add->parent.init_vstate = Add_vstate_init;
+    add->parent.render_voice = Add_vstate_render_voice;
 
 #define REG_KEY(type, name, keyp, def_value) \
     REGISTER_SET_FIXED_STATE(add, type, name, keyp, def_value)

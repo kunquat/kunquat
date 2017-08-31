@@ -178,19 +178,13 @@ Device_state* new_Volume_pstate(
 }
 
 
-typedef struct Volume_vstate
-{
-    Voice_state parent;
-} Volume_vstate;
-
-
 int32_t Volume_vstate_get_size(void)
 {
-    return sizeof(Volume_vstate);
+    return 0;
 }
 
 
-static int32_t Volume_vstate_render_voice(
+int32_t Volume_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
         const Device_thread_state* proc_ts,
@@ -200,7 +194,7 @@ static int32_t Volume_vstate_render_voice(
         int32_t buf_stop,
         double tempo)
 {
-    rassert(vstate != NULL);
+    rassert(vstate == NULL);
     rassert(proc_state != NULL);
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
@@ -219,7 +213,6 @@ static int32_t Volume_vstate_render_voice(
             (Work_buffer_get_contents(vol_wb)[buf_start] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
-        vstate->active = false;
         return buf_start;
     }
 
@@ -229,10 +222,7 @@ static int32_t Volume_vstate_render_voice(
             proc_ts, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_bufs);
 
     if ((in_bufs[0] == NULL) && (in_bufs[1] == NULL))
-    {
-        vstate->active = false;
         return buf_start;
-    }
 
     // Get output
     float* out_bufs[2] = { NULL };
@@ -250,17 +240,6 @@ static int32_t Volume_vstate_render_voice(
             buf_stop);
 
     return buf_stop;
-}
-
-
-void Volume_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
-{
-    rassert(vstate != NULL);
-    rassert(proc_state != NULL);
-
-    vstate->render_voice = Volume_vstate_render_voice;
-
-    return;
 }
 
 

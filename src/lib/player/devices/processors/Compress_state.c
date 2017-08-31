@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -361,7 +361,7 @@ int32_t Compress_vstate_get_size(void)
 }
 
 
-static int32_t Compress_vstate_render_voice(
+int32_t Compress_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
         const Device_thread_state* proc_ts,
@@ -438,8 +438,6 @@ void Compress_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
-
-    vstate->render_voice = Compress_vstate_render_voice;
 
     Compress_vstate* cvstate = (Compress_vstate*)vstate;
 

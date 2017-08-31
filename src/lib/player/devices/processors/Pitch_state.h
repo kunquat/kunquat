@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -24,8 +24,8 @@
 
 
 Voice_state_get_size_func Pitch_vstate_get_size;
-
-void Pitch_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
+Voice_state_init_func Pitch_vstate_init;
+Voice_state_render_voice_func Pitch_vstate_render_voice;
 
 void Pitch_vstate_set_controls(Voice_state* vstate, const Pitch_controls* controls);
 

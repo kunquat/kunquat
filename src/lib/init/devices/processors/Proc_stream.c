@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2017
  *
  * This file is part of Kunquat.
  *
@@ -51,6 +51,7 @@ Device_impl* new_Proc_stream(void)
     stream->parent.create_pstate = new_Stream_pstate;
     stream->parent.get_vstate_size = Stream_vstate_get_size;
     stream->parent.init_vstate = Stream_vstate_init;
+    stream->parent.render_voice = Stream_vstate_render_voice;
 
     // Register key handlers
 

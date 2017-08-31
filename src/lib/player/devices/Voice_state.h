@@ -71,8 +71,6 @@ struct Voice_state
     Random* rand_s;                ///< Signal random source.
     Work_buffer* wb;
 
-    Voice_state_render_voice_func* render_voice;
-
     bool expr_filters_applied;
     char ch_expr_name[KQT_VAR_NAME_MAX];
     char note_expr_name[KQT_VAR_NAME_MAX];
@@ -130,7 +128,8 @@ Voice_state* Voice_state_clear(Voice_state* state);
 /**
  * Render voice signal with the Voice state.
  *
- * \param vstate       The Voice state -- must not be \c NULL.
+ * \param vstate       The Voice state, or \c NULL if the associated processor
+ *                     has a stateless voice processing function.
  * \param proc_state   The Processor state -- must not be \c NULL.
  * \param proc_ts      The Device thread state -- must not be \c NULL.
  * \param au_state     The Audio unit state -- must not be \c NULL.
@@ -152,24 +151,6 @@ int32_t Voice_state_render_voice(
         int32_t buf_start,
         int32_t buf_stop,
         double tempo);
-
-
-/**
- * Mix rendered Voice signals to combined signal buffers.
- *
- * \param vstate         The Voice state -- must not be \c NULL.
- * \param proc_state     The Processor state -- must not be \c NULL.
- * \param proc_ts        The Device thread state -- must not be \c NULL.
- * \param buf_start      The start index of mixing -- must be >= \c 0.
- * \param buf_stop       The stop index of mixing -- must be less than or equal
- *                       to the audio buffer size.
- */
-void Voice_state_mix_signals(
-        Voice_state* vstate,
-        Proc_state* proc_state,
-        Device_thread_state* proc_ts,
-        int32_t buf_start,
-        int32_t buf_stop);
 
 
 /**

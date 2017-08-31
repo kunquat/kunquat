@@ -17,6 +17,8 @@
 #include <debug/assert.h>
 #include <init/devices/Au_expressions.h>
 #include <init/devices/Audio_unit.h>
+#include <init/devices/Device.h>
+#include <init/devices/Device_impl.h>
 #include <kunquat/limits.h>
 #include <player/Channel.h>
 #include <player/devices/Voice_state.h>
@@ -27,7 +29,7 @@
 #include <string.h>
 
 
-void reserve_voice(
+bool reserve_voice(
         Channel* ch,
         const Audio_unit* au,
         uint64_t group_id,
@@ -43,6 +45,14 @@ void reserve_voice(
     rassert(proc_state != NULL);
     rassert(proc_num >= 0);
     rassert(proc_num < KQT_PROCESSORS_MAX);
+
+    Voice_state_get_size_func* get_vstate_size =
+        proc_state->parent.device->dimpl->get_vstate_size;
+    if ((get_vstate_size != NULL) && (get_vstate_size() == 0))
+    {
+        ch->fg[proc_num] = NULL;
+        return false;
+    }
 
     ++ch->fg_count;
     ch->fg[proc_num] = Voice_pool_get_voice(ch->pool, NULL, 0);
@@ -90,7 +100,7 @@ void reserve_voice(
             strcpy(vstate->note_expr_name, Au_expressions_get_default_note_expr(ae));
     }
 
-    return;
+    return true;
 }
 
 

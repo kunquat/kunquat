@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2017
  *
  * This file is part of Kunquat.
  *
@@ -16,20 +16,15 @@
 #define KQT_NOISE_STATE_H
 
 
-#include <decl.h>
+#include <player/devices/Device_state.h>
 #include <player/devices/Voice_state.h>
 
-#include <stdint.h>
-#include <stdlib.h>
 
-
-Device_state* new_Noise_pstate(
-        const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
-
+Device_state_create_func new_Noise_pstate;
 
 Voice_state_get_size_func Noise_vstate_get_size;
-
-void Noise_vstate_init(Voice_state* vstate, const Proc_state* proc_state);
+Voice_state_init_func Noise_vstate_init;
+Voice_state_render_voice_func Noise_vstate_render_voice;
 
 
 #endif // KQT_NOISE_STATE_H

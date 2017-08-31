@@ -109,7 +109,7 @@ static void Envgen_state_set_cur_y_range(
 }
 
 
-static int32_t Envgen_vstate_render_voice(
+int32_t Envgen_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
         const Device_thread_state* proc_ts,
@@ -426,8 +426,6 @@ void Envgen_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 {
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
-
-    vstate->render_voice = Envgen_vstate_render_voice;
 
     const Device_state* dstate = (const Device_state*)proc_state;
     const Proc_envgen* egen = (const Proc_envgen*)dstate->device->dimpl;
