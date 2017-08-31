@@ -47,8 +47,8 @@ class AuWindow(AudioUnitUpdater, SaverWindow):
 
     def closeEvent(self, ev):
         ev.ignore()
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_audio_unit(self._au_id)
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        visibility_mgr.hide_audio_unit(self._au_id)
 
     def sizeHint(self):
         return QSize(1024, 768)

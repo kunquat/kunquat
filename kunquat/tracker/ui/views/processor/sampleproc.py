@@ -168,14 +168,14 @@ class RandomListMap(QWidget, ProcessorUpdater):
         self._axis_y_renderer.set_config(final_axis_config, self)
 
     def _update_style(self):
-        style_manager = self._ui_model.get_style_manager()
-        if not style_manager.is_custom_style_enabled():
+        style_mgr = self._ui_model.get_style_manager()
+        if not style_mgr.is_custom_style_enabled():
             self._set_configs({}, {})
             self.update()
             return
 
         def get_colour(param):
-            return QColor(style_manager.get_style_param(param))
+            return QColor(style_mgr.get_style_param(param))
 
         focus_colour = get_colour('sample_map_focus_colour')
         focus_axis_colour = QColor(focus_colour)
@@ -1103,13 +1103,13 @@ class Samples(QSplitter, ProcessorUpdater):
         if not control_id:
             return
 
-        control_manager = self._ui_model.get_control_manager()
+        control_mgr = self._ui_model.get_control_manager()
 
         au = module.get_audio_unit(self._au_id)
         proc = au.get_processor(self._proc_id)
 
         use_test_output = (proc.get_existence() and
-            control_manager.is_processor_testing_enabled(self._proc_id))
+            control_mgr.is_processor_testing_enabled(self._proc_id))
 
         if use_test_output:
             sample_params = utils.get_proc_params(
@@ -1118,10 +1118,10 @@ class Samples(QSplitter, ProcessorUpdater):
             if sample_id != None:
                 sample_num = int(sample_id.split('_')[1], 16)
                 sample_num_param = str(sample_num)
-                control_manager.set_test_processor_param(self._proc_id, sample_num_param)
+                control_mgr.set_test_processor_param(self._proc_id, sample_num_param)
         if not self._keyboard_mapper.process_typewriter_button_event(event):
             event.ignore()
-        control_manager.set_test_processor_param(self._proc_id, None)
+        control_mgr.set_test_processor_param(self._proc_id, None)
 
 
 class SampleListToolBar(QToolBar, ProcessorUpdater):
@@ -1519,13 +1519,13 @@ class SampleEditor(QWidget, ProcessorUpdater):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
     def _update_style(self):
-        style_manager = self._ui_model.get_style_manager()
-        if not style_manager.is_custom_style_enabled():
+        style_mgr = self._ui_model.get_style_manager()
+        if not style_mgr.is_custom_style_enabled():
             self._sample_view.set_config({})
             return
 
         def get_colour(name):
-            return QColor(style_manager.get_style_param(name))
+            return QColor(style_mgr.get_style_param(name))
 
         config = {
             'bg_colour': get_colour('waveform_bg_colour'),

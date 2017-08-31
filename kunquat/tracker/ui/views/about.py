@@ -88,17 +88,17 @@ class AboutMessage(QWidget):
         v.addStretch(1)
         self.setLayout(v)
 
-    def update_style(self, style_manager):
-        website_str = self._get_website_str(style_manager)
+    def update_style(self, style_mgr):
+        website_str = self._get_website_str(style_mgr)
         self._website.setText(website_str)
         self.update()
 
-    def _get_website_str(self, style_manager=None):
+    def _get_website_str(self, style_mgr=None):
         website_base = '<a{} href="http://kunquat.org/">http://kunquat.org/</a>'
         style = ''
 
-        if style_manager and style_manager.is_custom_style_enabled():
-            colour = style_manager.get_link_colour()
+        if style_mgr and style_mgr.is_custom_style_enabled():
+            colour = style_mgr.get_link_colour()
             style = ' style="color: {};"'.format(colour)
 
         return website_base.format(style)

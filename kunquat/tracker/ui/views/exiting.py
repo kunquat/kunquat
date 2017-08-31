@@ -29,8 +29,8 @@ class ExitHelper():
 
     def notify_save_module_finished(self):
         if self._quit_after_saving:
-            visibility_manager = self._ui_model.get_visibility_manager()
-            visibility_manager.hide_main_after_saving()
+            visibility_mgr = self._ui_model.get_visibility_manager()
+            visibility_mgr.hide_main_after_saving()
 
     def try_exit(self):
         module = self._ui_model.get_module()
@@ -41,8 +41,8 @@ class ExitHelper():
                     self._perform_discard_and_close)
             dialog.exec_()
         else:
-            visibility_manager = self._ui_model.get_visibility_manager()
-            visibility_manager.hide_main()
+            visibility_mgr = self._ui_model.get_visibility_manager()
+            visibility_mgr.hide_main()
 
     def _perform_save_and_close(self):
         module = self._ui_model.get_module()
@@ -58,8 +58,8 @@ class ExitHelper():
         module.start_save()
 
     def _perform_discard_and_close(self):
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_main()
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        visibility_mgr.hide_main()
 
 
 class ExitUnsavedConfirmDialog(ConfirmDialog):

@@ -64,8 +64,8 @@ class MainView(QWidget, Updater):
             if event.key() == Qt.Key_Comma:
                 self._ui_model.play_pattern()
             elif event.key() == Qt.Key_N:
-                process_manager = self._ui_model.get_process_manager()
-                process_manager.new_kunquat()
+                process_mgr = self._ui_model.get_process_manager()
+                process_mgr.new_kunquat()
             elif event.key() == Qt.Key_O:
                 try_open_kqt_module_or_au(self._ui_model)
             else:

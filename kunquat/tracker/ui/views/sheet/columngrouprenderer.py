@@ -159,10 +159,9 @@ class ColumnGroupRenderer():
         return sum(cache.get_memory_usage() for cache in self._caches)
 
     def _get_active_pattern_index(self):
-        playback_manager = self._ui_model.get_playback_manager()
+        playback_mgr = self._ui_model.get_playback_manager()
         active_pattern_index = None
-        if (playback_manager.follow_playback_cursor() and
-                not playback_manager.is_recording()):
+        if (playback_mgr.follow_playback_cursor() and not playback_mgr.is_recording()):
             location = utils.get_current_playback_pattern_location(self._ui_model)
             if location:
                 if location != ColumnGroupRenderer._playback_location:
@@ -202,8 +201,8 @@ class ColumnGroupRenderer():
 
         active_pattern_index = self._get_active_pattern_index()
 
-        playback_manager = self._ui_model.get_playback_manager()
-        ch_is_active = playback_manager.is_channel_active(self._num)
+        playback_mgr = self._ui_model.get_playback_manager()
+        ch_is_active = playback_mgr.is_channel_active(self._num)
 
         for pi in range(first_index, len(self._heights)):
             if self._start_heights[pi] > self._px_offset + height:
@@ -556,13 +555,13 @@ class ColumnCache():
         return colour
 
     def _get_border_colours(self):
-        style_manager = self._ui_model.get_style_manager()
+        style_mgr = self._ui_model.get_style_manager()
         param = 'sheet_column_border_colour'
         contrast = self._config['border_contrast']
         light = self._get_final_colour(
-                QColor(style_manager.get_adjusted_colour(param, contrast)))
+                QColor(style_mgr.get_adjusted_colour(param, contrast)))
         dark = self._get_final_colour(
-                QColor(style_manager.get_adjusted_colour(param, -contrast)))
+                QColor(style_mgr.get_adjusted_colour(param, -contrast)))
         return light, dark
 
     def _create_pixmap(self, index, grid):
@@ -599,8 +598,8 @@ class ColumnCache():
             return y_offset
 
         # Grid
-        sheet_manager = self._ui_model.get_sheet_manager()
-        if sheet_manager.is_grid_enabled():
+        sheet_mgr = self._ui_model.get_sheet_manager()
+        if sheet_mgr.is_grid_enabled():
             pinsts = utils.get_all_pattern_instances(self._ui_model)
             pinst = pinsts[pat_index]
 
@@ -682,7 +681,7 @@ class TRCache():
         self._trigger_cache = trigger_cache
         self._config = None
         self._ui_model = None
-        self._notation_manager = None
+        self._notation_mgr = None
         self._inactive = False
         self._rows = []
         self._images = {}
@@ -696,7 +695,7 @@ class TRCache():
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._notation_manager = ui_model.get_notation_manager()
+        self._notation_mgr = ui_model.get_notation_manager()
 
     def set_triggers(self, column):
         self._rows = self._build_trigger_rows(column)
@@ -763,7 +762,7 @@ class TRCache():
 
     def _create_row(self, triggers):
         force_shift = self._ui_model.get_module().get_force_shift()
-        notation = self._notation_manager.get_selected_notation()
+        notation = self._notation_mgr.get_selected_notation()
 
         rends = [TriggerRenderer(
             self._trigger_cache, self._config, t, notation, force_shift)

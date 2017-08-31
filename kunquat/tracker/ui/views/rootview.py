@@ -91,8 +91,8 @@ class RootView():
         self._updater.register_updater(self._perform_updates)
         self._module = self._ui_model.get_module()
 
-        style_manager = self._ui_model.get_style_manager()
-        style_manager.set_init_style_sheet(QApplication.instance().styleSheet())
+        style_mgr = self._ui_model.get_style_manager()
+        style_mgr.set_init_style_sheet(QApplication.instance().styleSheet())
         style_sheet = self._style_creator.get_updated_style_sheet()
         QApplication.instance().setStyleSheet(style_sheet)
 
@@ -101,8 +101,8 @@ class RootView():
         self._crash_dialog.update_link_colour(self._ui_model.get_style_manager())
 
     def show_main_window(self):
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.show_main()
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        visibility_mgr.show_main()
 
     def setup_module(self):
         module = self._ui_model.get_module()
@@ -116,15 +116,15 @@ class RootView():
             module.execute_create_sandbox(task_executor)
 
     def _perform_updates(self, signals):
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_update = visibility_manager.get_visible()
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        visibility_update = visibility_mgr.get_visible()
 
         opened = visibility_update - self._visible
         closed = self._visible - visibility_update
 
         for ui in opened:
             # Check settings for UI visibility
-            is_show_allowed = visibility_manager.is_show_allowed()
+            is_show_allowed = visibility_mgr.is_show_allowed()
 
             if ui == UI_MAIN:
                 if is_show_allowed:
@@ -216,7 +216,7 @@ class RootView():
 
         for ui in closed:
             if ui == UI_MAIN:
-                visibility_manager.hide_all()
+                visibility_mgr.hide_all()
                 self._main_window.hide()
             elif ui == UI_ABOUT:
                 self._about_window.unregister_updaters()
@@ -365,19 +365,19 @@ class RootView():
         assert not self._progress_window
         self._progress_window = ProgressWindow()
 
-        stat_manager = self._ui_model.get_stat_manager()
-        self._progress_window.set_description(stat_manager.get_progress_description())
-        self._progress_window.set_progress_norm(stat_manager.get_progress_norm())
+        stat_mgr = self._ui_model.get_stat_manager()
+        self._progress_window.set_description(stat_mgr.get_progress_description())
+        self._progress_window.set_progress_norm(stat_mgr.get_progress_norm())
 
-        visibility_manager = self._ui_model.get_visibility_manager()
-        if visibility_manager.is_show_allowed():
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        if visibility_mgr.is_show_allowed():
             self._progress_window.delayed_show()
 
     def _update_progress_window(self):
         assert self._progress_window
-        stat_manager = self._ui_model.get_stat_manager()
-        self._progress_window.set_description(stat_manager.get_progress_description())
-        self._progress_window.set_progress_norm(stat_manager.get_progress_norm())
+        stat_mgr = self._ui_model.get_stat_manager()
+        self._progress_window.set_description(stat_mgr.get_progress_description())
+        self._progress_window.set_progress_norm(stat_mgr.get_progress_norm())
 
     def _hide_progress_window(self):
         assert self._progress_window
@@ -438,8 +438,8 @@ class RootView():
             if self._load_error_dialog:
                 self._load_error_dialog.close()
                 self._load_error_dialog = None
-                visibility_manager = self._ui_model.get_visibility_manager()
-                visibility_manager.hide_all()
+                visibility_mgr = self._ui_model.get_visibility_manager()
+                visibility_mgr.hide_all()
 
         error_info = self._module.get_load_error_info()
         assert error_info

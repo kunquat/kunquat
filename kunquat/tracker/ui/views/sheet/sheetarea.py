@@ -136,7 +136,7 @@ class SheetArea(QAbstractScrollArea, Updater):
         self.register_action('signal_ch_defaults', self._update_header)
         self.register_action('signal_channel_mute', self._update_header)
 
-        self._sheet_manager = self._ui_model.get_sheet_manager()
+        self._sheet_mgr = self._ui_model.get_sheet_manager()
 
         # Child widgets
         self.add_to_updaters(self._ruler, self.viewport())
@@ -150,7 +150,7 @@ class SheetArea(QAbstractScrollArea, Updater):
         self._zoom_levels = utils.get_zoom_levels(
                 1, px_per_beat, tstamp.BEAT, self._config['zoom_factor'])
         self._default_zoom_index = self._zoom_levels.index(px_per_beat)
-        self._sheet_manager.set_zoom_range(
+        self._sheet_mgr.set_zoom_range(
                 -self._default_zoom_index,
                 len(self._zoom_levels) - self._default_zoom_index - 1)
 
@@ -160,7 +160,7 @@ class SheetArea(QAbstractScrollArea, Updater):
         em_range = list(range(3, 41))
         self._col_width_levels = [em_px * width for width in em_range]
         self._default_col_width_index = em_range.index(self._config['col_width'])
-        self._sheet_manager.set_column_width_range(
+        self._sheet_mgr.set_column_width_range(
                 -self._default_col_width_index,
                 len(self._col_width_levels) - self._default_col_width_index - 1)
 
@@ -169,8 +169,8 @@ class SheetArea(QAbstractScrollArea, Updater):
         self._set_column_width(self._col_width_levels[self._default_col_width_index])
 
     def _update_config(self):
-        style_manager = self._ui_model.get_style_manager()
-        config = get_config_with_custom_style(style_manager)
+        style_mgr = self._ui_model.get_style_manager()
+        config = get_config_with_custom_style(style_mgr)
         self._set_config(config)
 
     def _set_config(self, config):
@@ -230,7 +230,8 @@ class SheetArea(QAbstractScrollArea, Updater):
         vscrollbar.set_actual_range(0, self._total_height_px - vp_height)
 
         vp_width = self.viewport().width()
-        cur_col_width_index = self._sheet_manager.get_column_width() + self._default_col_width_index
+        cur_col_width_index = (
+                self._sheet_mgr.get_column_width() + self._default_col_width_index)
         max_visible_cols = vp_width // self._col_width_levels[cur_col_width_index]
         hscrollbar = self.horizontalScrollBar()
         hscrollbar.setPageStep(max_visible_cols)
@@ -266,12 +267,12 @@ class SheetArea(QAbstractScrollArea, Updater):
         self.viewport().update()
 
     def _update_zoom(self):
-        zoom_level = self._sheet_manager.get_zoom()
+        zoom_level = self._sheet_mgr.get_zoom()
         cur_zoom_index = zoom_level + self._default_zoom_index
         self._set_px_per_beat(self._zoom_levels[cur_zoom_index])
 
     def _update_column_width(self):
-        column_width_level = self._sheet_manager.get_column_width()
+        column_width_level = self._sheet_mgr.get_column_width()
         cur_col_width_index = column_width_level + self._default_col_width_index
         self._set_column_width(self._col_width_levels[cur_col_width_index])
 

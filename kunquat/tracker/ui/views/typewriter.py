@@ -25,21 +25,21 @@ class Typewriter(QFrame, Updater):
 
     def __init__(self):
         super().__init__()
-        self._typewriter_manager = None
+        self._typewriter_mgr = None
         self._keyboard_mapper = KeyboardMapper()
 
     def _on_setup(self):
         self.add_to_updaters(self._keyboard_mapper)
         self.register_action('signal_change', self._update_button_leds)
 
-        self._typewriter_manager = self._ui_model.get_typewriter_manager()
+        self._typewriter_mgr = self._ui_model.get_typewriter_manager()
         self.setLayout(self._get_layout())
 
     def _get_layout(self):
         rows = QVBoxLayout()
         rows.setContentsMargins(0, 0, 0, 0)
         rows.setSpacing(2)
-        for row_index in range(self._typewriter_manager.get_row_count()):
+        for row_index in range(self._typewriter_mgr.get_row_count()):
             rows.addLayout(self._get_row(row_index))
         return rows
 
@@ -47,10 +47,10 @@ class Typewriter(QFrame, Updater):
         row = QHBoxLayout()
         row.setSpacing(4)
 
-        pad_px = self._PAD * self._typewriter_manager.get_pad_factor_at_row(index)
+        pad_px = self._PAD * self._typewriter_mgr.get_pad_factor_at_row(index)
         row.addWidget(self._get_pad(pad_px))
 
-        for i in range(self._typewriter_manager.get_button_count_at_row(index)):
+        for i in range(self._typewriter_mgr.get_button_count_at_row(index)):
             button = TypewriterButton(index, i)
             self.add_to_updaters(button)
             row.addWidget(button)
@@ -67,7 +67,7 @@ class Typewriter(QFrame, Updater):
         if not self.isVisible():
             return
 
-        led_states = self._typewriter_manager.get_led_states()
+        led_states = self._typewriter_mgr.get_led_states()
         rows = self.layout()
         for ri in range(rows.count()):
             row = rows.itemAt(ri).layout()
@@ -80,14 +80,14 @@ class Typewriter(QFrame, Updater):
     def keyPressEvent(self, event):
         selection = self._ui_model.get_selection()
         location = selection.get_location()
-        sheet_manager = self._ui_model.get_sheet_manager()
-        control_id = sheet_manager.get_inferred_active_control_id_at_location(location)
+        sheet_mgr = self._ui_model.get_sheet_manager()
+        control_id = sheet_mgr.get_inferred_active_control_id_at_location(location)
 
-        control_manager = self._ui_model.get_control_manager()
-        control_manager.set_control_id_override(control_id)
+        control_mgr = self._ui_model.get_control_manager()
+        control_mgr.set_control_id_override(control_id)
         if not self._keyboard_mapper.process_typewriter_button_event(event):
             event.ignore()
-        control_manager.set_control_id_override(None)
+        control_mgr.set_control_id_override(None)
 
     def keyReleaseEvent(self, event):
         if not self._keyboard_mapper.process_typewriter_button_event(event):

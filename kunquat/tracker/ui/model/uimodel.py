@@ -91,21 +91,21 @@ class UiModel():
     """
 
     def __init__(self):
-        self._stat_manager = None
-        self._control_manager = None
-        self._keymap_manager = None
-        self._playback_manager = None
-        self._typewriter_manager = None
+        self._stat_mgr = None
+        self._control_mgr = None
+        self._keymap_mgr = None
+        self._playback_mgr = None
+        self._typewriter_mgr = None
         self._event_history = None
         self._module = None
-        self._visibility_manager = None
+        self._visibility_mgr = None
         self._selection = None
         self._sheet_history = None
-        self._sheet_manager = None
-        self._notation_manager = None
-        self._grid_manager = None
-        self._orderlist_manager = None
-        self._process_manager = None
+        self._sheet_mgr = None
+        self._notation_mgr = None
+        self._grid_mgr = None
+        self._orderlist_mgr = None
+        self._process_mgr = None
         self._icon_bank = None
         self._task_executor = None
 
@@ -115,59 +115,59 @@ class UiModel():
     def set_controller(self, controller):
         self._controller = controller
         self._module.set_controller(controller)
-        self._stat_manager.set_controller(self._controller)
-        self._control_manager.set_controller(self._controller)
-        self._keymap_manager.set_controller(self._controller)
-        self._playback_manager.set_controller(self._controller)
-        self._typewriter_manager.set_controller(self._controller)
-        self._visibility_manager.set_controller(self._controller)
+        self._stat_mgr.set_controller(self._controller)
+        self._control_mgr.set_controller(self._controller)
+        self._keymap_mgr.set_controller(self._controller)
+        self._playback_mgr.set_controller(self._controller)
+        self._typewriter_mgr.set_controller(self._controller)
+        self._visibility_mgr.set_controller(self._controller)
         self._event_history.set_controller(self._controller)
         self._selection.set_controller(self._controller)
         self._sheet_history.set_controller(self._controller)
-        self._sheet_manager.set_controller(self._controller)
-        self._notation_manager.set_controller(self._controller)
-        self._grid_manager.set_controller(self._controller)
-        self._orderlist_manager.set_controller(self._controller)
-        self._process_manager.set_controller(self._controller)
+        self._sheet_mgr.set_controller(self._controller)
+        self._notation_mgr.set_controller(self._controller)
+        self._grid_mgr.set_controller(self._controller)
+        self._orderlist_mgr.set_controller(self._controller)
+        self._process_mgr.set_controller(self._controller)
         self._icon_bank.set_controller(self._controller)
-        self._style_manager.set_controller(self._controller)
+        self._style_mgr.set_controller(self._controller)
 
     def get_updater(self):
         updater = self._controller.get_updater()
         return updater
 
-    def set_stat_manager(self, stat_manager):
-        self._stat_manager = stat_manager
+    def set_stat_manager(self, stat_mgr):
+        self._stat_mgr = stat_mgr
 
     def get_stat_manager(self):
-        return self._stat_manager
+        return self._stat_mgr
 
-    def set_control_manager(self, control_manager):
-        self._control_manager = control_manager
-        self._control_manager.set_ui_model(self)
+    def set_control_manager(self, control_mgr):
+        self._control_mgr = control_mgr
+        self._control_mgr.set_ui_model(self)
 
     def get_control_manager(self):
-        return self._control_manager
+        return self._control_mgr
 
-    def set_keymap_manager(self, keymap_manager):
-        self._keymap_manager = keymap_manager
-        self._keymap_manager.set_ui_model(self)
+    def set_keymap_manager(self, keymap_mgr):
+        self._keymap_mgr = keymap_mgr
+        self._keymap_mgr.set_ui_model(self)
 
     def get_keymap_manager(self):
-        return self._keymap_manager
+        return self._keymap_mgr
 
-    def set_playback_manager(self, playback_manager):
-        self._playback_manager = playback_manager
+    def set_playback_manager(self, playback_mgr):
+        self._playback_mgr = playback_mgr
 
     def get_playback_manager(self):
-        return self._playback_manager
+        return self._playback_mgr
 
-    def set_typewriter_manager(self, typewriter_manager):
-        self._typewriter_manager = typewriter_manager
-        self._typewriter_manager.set_ui_model(self)
+    def set_typewriter_manager(self, typewriter_mgr):
+        self._typewriter_mgr = typewriter_mgr
+        self._typewriter_mgr.set_ui_model(self)
 
     def get_typewriter_manager(self):
-        return self._typewriter_manager
+        return self._typewriter_mgr
 
     def set_event_history(self, event_history):
         self._event_history = event_history
@@ -182,11 +182,11 @@ class UiModel():
     def get_module(self):
         return self._module
 
-    def set_visibility_manager(self, visibility_manager):
-        self._visibility_manager = visibility_manager
+    def set_visibility_manager(self, visibility_mgr):
+        self._visibility_mgr = visibility_mgr
 
     def get_visibility_manager(self):
-        return self._visibility_manager
+        return self._visibility_mgr
 
     def set_selection(self, selection):
         self._selection = selection
@@ -202,38 +202,38 @@ class UiModel():
     def get_sheet_history(self):
         return self._sheet_history
 
-    def set_sheet_manager(self, sheet_manager):
-        self._sheet_manager = sheet_manager
-        self._sheet_manager.set_ui_model(self)
+    def set_sheet_manager(self, sheet_mgr):
+        self._sheet_mgr = sheet_mgr
+        self._sheet_mgr.set_ui_model(self)
 
     def get_sheet_manager(self):
-        return self._sheet_manager
+        return self._sheet_mgr
 
-    def set_notation_manager(self, notation_manager):
-        self._notation_manager = notation_manager
-        self._notation_manager.set_ui_model(self)
+    def set_notation_manager(self, notation_mgr):
+        self._notation_mgr = notation_mgr
+        self._notation_mgr.set_ui_model(self)
 
     def get_notation_manager(self):
-        return self._notation_manager
+        return self._notation_mgr
 
-    def set_grid_manager(self, grid_manager):
-        self._grid_manager = grid_manager
-        self._grid_manager.set_ui_model(self)
+    def set_grid_manager(self, grid_mgr):
+        self._grid_mgr = grid_mgr
+        self._grid_mgr.set_ui_model(self)
 
     def get_grid_manager(self):
-        return self._grid_manager
+        return self._grid_mgr
 
-    def set_orderlist_manager(self, orderlist_manager):
-        self._orderlist_manager = orderlist_manager
+    def set_orderlist_manager(self, orderlist_mgr):
+        self._orderlist_mgr = orderlist_mgr
 
     def get_orderlist_manager(self):
-        return self._orderlist_manager
+        return self._orderlist_mgr
 
-    def set_process_manager(self, process_manager):
-        self._process_manager = process_manager
+    def set_process_manager(self, process_mgr):
+        self._process_mgr = process_mgr
 
     def get_process_manager(self):
-        return self._process_manager
+        return self._process_mgr
 
     def set_icon_bank(self, icon_bank):
         self._icon_bank = icon_bank
@@ -241,12 +241,12 @@ class UiModel():
     def get_icon_bank(self):
         return self._icon_bank
 
-    def set_style_manager(self, style_manager):
-        self._style_manager = style_manager
-        self._style_manager.set_ui_model(self)
+    def set_style_manager(self, style_mgr):
+        self._style_mgr = style_mgr
+        self._style_mgr.set_ui_model(self)
 
     def get_style_manager(self):
-        return self._style_manager
+        return self._style_mgr
 
     def set_task_executor(self, task_executor):
         self._task_executor = task_executor
@@ -314,41 +314,41 @@ class UiModel():
 
 
 def create_ui_model():
-    stat_manager = StatManager()
-    control_manager = ControlManager()
-    keymap_manager = KeymapManager()
-    playback_manager = PlaybackManager()
-    typewriter_manager = TypewriterManager()
+    stat_mgr = StatManager()
+    control_mgr = ControlManager()
+    keymap_mgr = KeymapManager()
+    playback_mgr = PlaybackManager()
+    typewriter_mgr = TypewriterManager()
     event_history = EventHistory()
     module = Module()
-    visibility_manager = VisibilityManager()
+    visibility_mgr = VisibilityManager()
     selection = Selection()
     sheet_history = SheetHistory()
-    sheet_manager = SheetManager()
-    notation_manager = NotationManager()
-    grid_manager = GridManager()
-    orderlist_manager = OrderlistManager()
-    process_manager = ProcessManager()
+    sheet_mgr = SheetManager()
+    notation_mgr = NotationManager()
+    grid_mgr = GridManager()
+    orderlist_mgr = OrderlistManager()
+    process_mgr = ProcessManager()
     icon_bank = IconBank()
-    style_manager = StyleManager()
+    style_mgr = StyleManager()
     ui_model = UiModel()
-    ui_model.set_stat_manager(stat_manager)
-    ui_model.set_control_manager(control_manager)
-    ui_model.set_keymap_manager(keymap_manager)
-    ui_model.set_playback_manager(playback_manager)
-    ui_model.set_typewriter_manager(typewriter_manager)
+    ui_model.set_stat_manager(stat_mgr)
+    ui_model.set_control_manager(control_mgr)
+    ui_model.set_keymap_manager(keymap_mgr)
+    ui_model.set_playback_manager(playback_mgr)
+    ui_model.set_typewriter_manager(typewriter_mgr)
     ui_model.set_event_history(event_history)
     ui_model.set_module(module)
-    ui_model.set_visibility_manager(visibility_manager)
+    ui_model.set_visibility_manager(visibility_mgr)
     ui_model.set_selection(selection)
     ui_model.set_sheet_history(sheet_history)
-    ui_model.set_sheet_manager(sheet_manager)
-    ui_model.set_notation_manager(notation_manager)
-    ui_model.set_grid_manager(grid_manager)
-    ui_model.set_orderlist_manager(orderlist_manager)
-    ui_model.set_process_manager(process_manager)
+    ui_model.set_sheet_manager(sheet_mgr)
+    ui_model.set_notation_manager(notation_mgr)
+    ui_model.set_grid_manager(grid_mgr)
+    ui_model.set_orderlist_manager(orderlist_mgr)
+    ui_model.set_process_manager(process_mgr)
     ui_model.set_icon_bank(icon_bank)
-    ui_model.set_style_manager(style_manager)
+    ui_model.set_style_manager(style_mgr)
     return ui_model
 
 

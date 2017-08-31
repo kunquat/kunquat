@@ -142,8 +142,8 @@ class UiLauncher():
         self._task_timer.timeout.connect(self._execute_tasks)
 
         if not self._show:
-            visibility_manager = self._ui_model.get_visibility_manager()
-            visibility_manager.run_hidden()
+            visibility_mgr = self._ui_model.get_visibility_manager()
+            visibility_mgr.run_hidden()
 
         root_view.show_main_window()
         root_view.setup_module()
@@ -156,8 +156,8 @@ class UiLauncher():
         config.try_save()
 
     def halt_ui(self):
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_main()
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        visibility_mgr.hide_main()
 
 
 def create_ui_launcher():

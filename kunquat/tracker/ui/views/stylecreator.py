@@ -50,31 +50,31 @@ class StyleCreator():
         return tuple(c + add for c in colour)
 
     def get_updated_style_sheet(self):
-        style_manager = self._ui_model.get_style_manager()
+        style_mgr = self._ui_model.get_style_manager()
 
-        if not style_manager.is_custom_style_enabled():
-            return style_manager.get_init_style_sheet()
+        if not style_mgr.is_custom_style_enabled():
+            return style_mgr.get_init_style_sheet()
 
         icon_bank = self._ui_model.get_icon_bank()
 
         # Get colours from the configuration
-        contrast = style_manager.get_style_param('border_contrast')
+        contrast = style_mgr.get_style_param('border_contrast')
         grad = -0.07
-        button_brightness = style_manager.get_style_param('button_brightness')
-        button_down = style_manager.get_style_param('button_press_brightness')
+        button_brightness = style_mgr.get_style_param('button_brightness')
+        button_down = style_mgr.get_style_param('button_press_brightness')
         button_down2 = 1.5 * button_down
         tab_shade_top = -0.1
         tab_shade_bottom = -0.25
 
-        icons_dir = style_manager.get_icons_dir()
+        icons_dir = style_mgr.get_icons_dir()
         icons_path = '/'.join(os.path.split(icons_dir))
 
-        bg_colour_str = style_manager.get_style_param('bg_colour')
-        fg_colour_str = style_manager.get_style_param('fg_colour')
-        bg_sunken_colour_str = style_manager.get_style_param('bg_sunken_colour')
+        bg_colour_str = style_mgr.get_style_param('bg_colour')
+        fg_colour_str = style_mgr.get_style_param('fg_colour')
+        bg_sunken_colour_str = style_mgr.get_style_param('bg_sunken_colour')
 
         disabled_fg_colour = self._get_colour_from_str(
-                style_manager.get_style_param('disabled_fg_colour'))
+                style_mgr.get_style_param('disabled_fg_colour'))
 
         bg_colour = self._get_colour_from_str(bg_colour_str)
         fg_colour = self._get_colour_from_str(fg_colour_str)
@@ -88,9 +88,9 @@ class StyleCreator():
         button_down2_fg_colour = self._adjust_brightness(button_fg_colour, button_down2)
 
         ib_bg_colour = self._get_colour_from_str(
-                style_manager.get_style_param('important_button_bg_colour'))
+                style_mgr.get_style_param('important_button_bg_colour'))
         ib_fg_colour = self._get_colour_from_str(
-                style_manager.get_style_param('important_button_fg_colour'))
+                style_mgr.get_style_param('important_button_fg_colour'))
         ib_down_bg_colour = self._adjust_brightness(ib_bg_colour, button_down)
         ib_down_fg_colour = self._adjust_brightness(ib_fg_colour, button_down)
         ib_down2_bg_colour = self._adjust_brightness(ib_bg_colour, button_down2)
@@ -100,15 +100,15 @@ class StyleCreator():
         tab_shade_bottom_colour = self._adjust_brightness(bg_colour, tab_shade_bottom)
 
         text_bg_colour = self._get_colour_from_str(
-                style_manager.get_style_param('text_bg_colour'))
+                style_mgr.get_style_param('text_bg_colour'))
         text_fg_colour = self._get_colour_from_str(
-                style_manager.get_style_param('text_fg_colour'))
+                style_mgr.get_style_param('text_fg_colour'))
         text_selected_bg_colour = self._get_colour_from_str(
-                style_manager.get_style_param('text_selected_bg_colour'))
+                style_mgr.get_style_param('text_selected_bg_colour'))
         text_selected_fg_colour = self._get_colour_from_str(
-                style_manager.get_style_param('text_selected_fg_colour'))
+                style_mgr.get_style_param('text_selected_fg_colour'))
         text_disabled_fg_colour = self._get_colour_from_str(
-                style_manager.get_style_param('text_disabled_fg_colour'))
+                style_mgr.get_style_param('text_disabled_fg_colour'))
 
         def make_light(colour):
             return self._adjust_brightness(colour, contrast)
@@ -169,7 +169,7 @@ class StyleCreator():
             'text_disabled_fg_colour'     : text_disabled_fg_colour,
         }
 
-        template = style_manager.get_style_sheet_template()
+        template = style_mgr.get_style_sheet_template()
 
         replacements = {
                 '<' + k + '>': (self._get_str_from_colour(v) if type(v) == tuple else v)

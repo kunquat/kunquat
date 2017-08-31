@@ -97,8 +97,8 @@ DEFAULT_CONFIG = {
 }
 
 
-def get_config_with_custom_style(style_manager):
-    if not style_manager.is_custom_style_enabled():
+def get_config_with_custom_style(style_mgr):
+    if not style_mgr.is_custom_style_enabled():
         return {}
 
     config = {}
@@ -122,68 +122,66 @@ def get_config_with_custom_style(style_manager):
         colour = [int(c, 16) for c in cs]
         return QColor(colour[0], colour[1], colour[2])
 
-    canvas_bg_colour = _get_colour(
-            style_manager.get_style_param('sheet_canvas_bg_colour'))
+    canvas_bg_colour = _get_colour(style_mgr.get_style_param('sheet_canvas_bg_colour'))
     config['canvas_bg_colour'] = canvas_bg_colour
 
-    disabled_colour = _get_colour(
-            style_manager.get_style_param('bg_colour'))
+    disabled_colour = _get_colour(style_mgr.get_style_param('bg_colour'))
     disabled_colour.setAlpha(0x7f)
     config['disabled_colour'] = disabled_colour
 
-    config['border_contrast'] = style_manager.get_style_param('border_contrast')
+    config['border_contrast'] = style_mgr.get_style_param('border_contrast')
 
     # Columns
     config['bg_colour'] = _get_colour(
-            style_manager.get_style_param('sheet_column_bg_colour'))
+            style_mgr.get_style_param('sheet_column_bg_colour'))
     config['border_colour'] = _get_colour(
-            style_manager.get_style_param('sheet_column_border_colour'))
+            style_mgr.get_style_param('sheet_column_border_colour'))
 
     # Ruler
     config['ruler']['canvas_bg_colour'] = canvas_bg_colour
     config['ruler']['bg_colour'] = _get_colour(
-            style_manager.get_style_param('sheet_ruler_bg_colour'))
+            style_mgr.get_style_param('sheet_ruler_bg_colour'))
     config['ruler']['fg_colour'] = _get_colour(
-            style_manager.get_style_param('sheet_ruler_fg_colour'))
+            style_mgr.get_style_param('sheet_ruler_fg_colour'))
     config['ruler']['play_cursor_colour'] = _get_colour(
-            style_manager.get_style_param('sheet_playback_cursor_colour'))
+            style_mgr.get_style_param('sheet_playback_cursor_colour'))
     config['ruler']['disabled_colour'] = disabled_colour
 
     # Column headers
     config['header']['bg_colour'] = _get_colour(
-            style_manager.get_style_param('sheet_header_bg_colour'))
+            style_mgr.get_style_param('sheet_header_bg_colour'))
     config['header']['fg_colour'] = _get_colour(
-            style_manager.get_style_param('sheet_header_fg_colour'))
-    solo_colour = _get_colour(style_manager.get_style_param('sheet_header_solo_colour'))
+            style_mgr.get_style_param('sheet_header_fg_colour'))
+    solo_colour = _get_colour(style_mgr.get_style_param('sheet_header_solo_colour'))
     solo_colour.setAlpha(0x7f)
     config['header']['solo_colour'] = solo_colour
 
     # Triggers
     config['trigger']['default_colour'] = _get_colour(
-            style_manager.get_style_param('sheet_trigger_default_colour'))
+            style_mgr.get_style_param('sheet_trigger_default_colour'))
     config['trigger']['note_on_colour'] = _get_colour(
-            style_manager.get_style_param('sheet_trigger_note_on_colour'))
+            style_mgr.get_style_param('sheet_trigger_note_on_colour'))
     config['trigger']['hit_colour'] = _get_colour(
-            style_manager.get_style_param('sheet_trigger_hit_colour'))
+            style_mgr.get_style_param('sheet_trigger_hit_colour'))
     config['trigger']['note_off_colour'] = _get_colour(
-            style_manager.get_style_param('sheet_trigger_note_off_colour'))
+            style_mgr.get_style_param('sheet_trigger_note_off_colour'))
     config['trigger']['warning_bg_colour'] = _get_colour(
-            style_manager.get_style_param('sheet_trigger_warning_bg_colour'))
+            style_mgr.get_style_param('sheet_trigger_warning_bg_colour'))
     config['trigger']['warning_fg_colour'] = _get_colour(
-            style_manager.get_style_param('sheet_trigger_warning_fg_colour'))
+            style_mgr.get_style_param('sheet_trigger_warning_fg_colour'))
 
     # Cursor
     config['edit_cursor']['view_line_colour'] = _get_colour(
-            style_manager.get_style_param('sheet_cursor_view_line_colour'))
-    elc = _get_colour(style_manager.get_style_param('sheet_cursor_edit_line_colour'))
+            style_mgr.get_style_param('sheet_cursor_view_line_colour'))
+    elc = _get_colour(style_mgr.get_style_param('sheet_cursor_edit_line_colour'))
     config['edit_cursor']['edit_line_colour'] = elc
     guide_colour = QColor(elc.red(), elc.green(), elc.blue(), 0x7f)
     config['edit_cursor']['guide_colour'] = guide_colour
     config['play_cursor_colour'] = _get_colour(
-            style_manager.get_style_param('sheet_playback_cursor_colour'))
+            style_mgr.get_style_param('sheet_playback_cursor_colour'))
 
     # Area selection
-    asc = _get_colour(style_manager.get_style_param('sheet_area_selection_colour'))
+    asc = _get_colour(style_mgr.get_style_param('sheet_area_selection_colour'))
     as_fill_colour = QColor(asc.red(), asc.green(), asc.blue(), 0x7f)
     config['area_selection']['border_colour'] = asc
     config['area_selection']['fill_colour'] = as_fill_colour
@@ -193,9 +191,9 @@ def get_config_with_custom_style(style_manager):
     for i in range(9):
         grid_styles[i] = QPen(DEFAULT_CONFIG['grid']['styles'][i])
     grid_colours = [
-        _get_colour(style_manager.get_style_param('sheet_grid_level_1_colour')),
-        _get_colour(style_manager.get_style_param('sheet_grid_level_2_colour')),
-        _get_colour(style_manager.get_style_param('sheet_grid_level_3_colour')),
+        _get_colour(style_mgr.get_style_param('sheet_grid_level_1_colour')),
+        _get_colour(style_mgr.get_style_param('sheet_grid_level_2_colour')),
+        _get_colour(style_mgr.get_style_param('sheet_grid_level_3_colour')),
     ]
     for i in range(9):
         grid_styles[i].setColor(grid_colours[i // 3])

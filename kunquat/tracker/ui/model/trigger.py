@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -61,9 +61,8 @@ class Trigger():
         except ValueError:
             return name
 
-        sheet_manager = self._ui_model.get_sheet_manager()
-        control_id = sheet_manager.get_inferred_active_control_id_at_location(
-                self._location)
+        sheet_mgr = self._ui_model.get_sheet_manager()
+        control_id = sheet_mgr.get_inferred_active_control_id_at_location(self._location)
         module = self._ui_model.get_module()
         control = module.get_control(control_id)
         if control.get_existence():

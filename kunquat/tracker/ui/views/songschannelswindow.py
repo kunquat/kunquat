@@ -44,8 +44,8 @@ class SongsChannelsWindow(Updater, SaverWindow):
 
     def closeEvent(self, event):
         event.ignore()
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_songs_channels()
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        visibility_mgr.hide_songs_channels()
 
     def sizeHint(self):
         return QSize(1024, 600)

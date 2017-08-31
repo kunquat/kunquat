@@ -25,7 +25,7 @@ class OrderlistEditor(QWidget, Updater):
     def __init__(self):
         super().__init__()
         self._album = None
-        self._orderlist_manager = None
+        self._orderlist_mgr = None
         self._orderlist = Orderlist()
         self._toolbar = OrderlistToolBar(self._orderlist)
 
@@ -45,7 +45,7 @@ class OrderlistEditor(QWidget, Updater):
 
         module = self._ui_model.get_module()
         self._album = module.get_album()
-        self._orderlist_manager = self._ui_model.get_orderlist_manager()
+        self._orderlist_mgr = self._ui_model.get_orderlist_manager()
 
     def _acknowledge_update(self):
         self._waiting_for_update = False
@@ -57,8 +57,7 @@ class OrderlistEditor(QWidget, Updater):
             new_pattern_num = self._album.get_new_pattern_num()
             self._album.insert_pattern_instance(
                     track_num, system_num + offset, new_pattern_num, 0)
-            self._orderlist_manager.set_orderlist_selection(
-                    (track_num, system_num + offset))
+            self._orderlist_mgr.set_orderlist_selection((track_num, system_num + offset))
             self._updater.signal_update('signal_order_list')
             self._waiting_for_update = True
 
@@ -68,7 +67,7 @@ class OrderlistEditor(QWidget, Updater):
             track_num, system_num = self._album.get_pattern_instance_location(selection)
             song = self._album.get_song_by_track(track_num)
             self._album.remove_pattern_instance(track_num, system_num)
-            self._orderlist_manager.set_orderlist_selection(
+            self._orderlist_mgr.set_orderlist_selection(
                     (track_num, min(system_num, song.get_system_count() - 1)))
             self._updater.signal_update('signal_order_list')
             self._waiting_for_update = True
@@ -82,8 +81,7 @@ class OrderlistEditor(QWidget, Updater):
             if 0 <= new_system_num < song.get_system_count():
                 self._album.move_pattern_instance(
                         track_num, system_num, track_num, new_system_num)
-                self._orderlist_manager.set_orderlist_selection(
-                        (track_num, new_system_num))
+                self._orderlist_mgr.set_orderlist_selection((track_num, new_system_num))
                 self._updater.signal_update('signal_order_list')
                 self._waiting_for_update = True
 
@@ -118,7 +116,7 @@ class OrderlistToolBar(QToolBar):
         super().__init__()
         self._ui_model = None
         self._updater = None
-        self._orderlist_manager = None
+        self._orderlist_mgr = None
 
         self._orderlist = orderlist
         self._selection = None
@@ -149,7 +147,7 @@ class OrderlistToolBar(QToolBar):
         self._album = module.get_album()
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
-        self._orderlist_manager = ui_model.get_orderlist_manager()
+        self._orderlist_mgr = ui_model.get_orderlist_manager()
 
         icon_bank = ui_model.get_icon_bank()
         def set_icon(button, icon_name):
@@ -213,9 +211,8 @@ class OrderlistToolBar(QToolBar):
             return
 
         pattern_num = self._album.get_new_pattern_num()
-        self._album.insert_pattern_instance(
-                track_num, system_num, pattern_num, 0)
-        self._orderlist_manager.set_orderlist_selection((track_num, system_num))
+        self._album.insert_pattern_instance(track_num, system_num, pattern_num, 0)
+        self._orderlist_mgr.set_orderlist_selection((track_num, system_num))
         self._updater.signal_update('signal_order_list')
 
     def _pattern_removed(self):
@@ -224,7 +221,7 @@ class OrderlistToolBar(QToolBar):
             track_num, system_num = self._album.get_pattern_instance_location(selection)
             song = self._album.get_song_by_track(track_num)
             self._album.remove_pattern_instance(track_num, system_num)
-            self._orderlist_manager.set_orderlist_selection(
+            self._orderlist_mgr.set_orderlist_selection(
                     (track_num, min(system_num, song.get_system_count() - 1)))
             self._updater.signal_update('signal_order_list')
 
@@ -238,8 +235,7 @@ class OrderlistToolBar(QToolBar):
             instance_num = self._album.get_new_pattern_instance_num(pattern_num)
             self._album.insert_pattern_instance(
                     track_num, system_num + 1, pattern_num, instance_num)
-            self._orderlist_manager.set_orderlist_selection(
-                    (track_num, system_num + 1))
+            self._orderlist_mgr.set_orderlist_selection((track_num, system_num + 1))
             self._updater.signal_update('signal_order_list')
 
     def _song_added(self):

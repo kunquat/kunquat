@@ -200,14 +200,14 @@ class ColumnHeader(QWidget):
         if event.buttons() != Qt.LeftButton:
             return
 
-        playback_manager = self._ui_model.get_playback_manager()
+        playback_mgr = self._ui_model.get_playback_manager()
         if event.modifiers() == Qt.ShiftModifier:
-            solo = playback_manager.get_channel_solo(self._num)
-            playback_manager.set_channel_solo(self._num, not solo)
+            solo = playback_mgr.get_channel_solo(self._num)
+            playback_mgr.set_channel_solo(self._num, not solo)
         else:
-            solo = playback_manager.get_channel_solo(self._num)
-            mute = playback_manager.get_channel_mute(self._num)
-            playback_manager.set_channel_mute(self._num, not mute and not solo)
+            solo = playback_mgr.get_channel_solo(self._num)
+            mute = playback_mgr.get_channel_mute(self._num)
+            playback_mgr.set_channel_mute(self._num, not mute and not solo)
 
         self._menu.update_actions()
 
@@ -215,11 +215,11 @@ class ColumnHeader(QWidget):
         updater.signal_update('signal_channel_mute')
 
     def _get_border_colours(self):
-        style_manager = self._ui_model.get_style_manager()
+        style_mgr = self._ui_model.get_style_manager()
         param = 'sheet_header_bg_colour'
         contrast = self._config['border_contrast']
-        light = QColor(style_manager.get_adjusted_colour(param, contrast))
-        dark = QColor(style_manager.get_adjusted_colour(param, -contrast))
+        light = QColor(style_mgr.get_adjusted_colour(param, contrast))
+        dark = QColor(style_mgr.get_adjusted_colour(param, -contrast))
         return light, dark
 
     def paintEvent(self, event):
@@ -254,11 +254,11 @@ class ColumnHeader(QWidget):
             painter.drawLine(self.width() - 1, 0, self.width() - 1, self.height() - 1)
 
         # Apply solo/mute shade
-        playback_manager = self._ui_model.get_playback_manager()
-        if playback_manager.get_channel_solo(self._num):
+        playback_mgr = self._ui_model.get_playback_manager()
+        if playback_mgr.get_channel_solo(self._num):
             solo_shade = self._config['header']['solo_colour']
             painter.fillRect(0, 0, self.width(), self.height(), solo_shade)
-        elif not playback_manager.is_channel_active(self._num):
+        elif not playback_mgr.is_channel_active(self._num):
             mute_shade = QColor(self._config['canvas_bg_colour'])
             mute_shade.setAlpha(0x7f)
             painter.fillRect(0, 0, self.width(), self.height(), mute_shade)
@@ -296,25 +296,25 @@ class ColumnMenu(QMenu):
     def update_actions(self):
         self.clear()
 
-        playback_manager = self._ui_model.get_playback_manager()
+        playback_mgr = self._ui_model.get_playback_manager()
 
         self.addAction(
-                'Unmute' if playback_manager.get_channel_mute(self._num) else 'Mute',
+                'Unmute' if playback_mgr.get_channel_mute(self._num) else 'Mute',
                 self._mute_action)
         self.addAction(
-                'Unsolo' if playback_manager.get_channel_solo(self._num) else 'Solo',
+                'Unsolo' if playback_mgr.get_channel_solo(self._num) else 'Solo',
                 self._solo_action)
 
     def _mute_action(self):
-        playback_manager = self._ui_model.get_playback_manager()
-        mute = playback_manager.get_channel_mute(self._num)
-        playback_manager.set_channel_mute(self._num, not mute)
+        playback_mgr = self._ui_model.get_playback_manager()
+        mute = playback_mgr.get_channel_mute(self._num)
+        playback_mgr.set_channel_mute(self._num, not mute)
         self._updater.signal_update('signal_channel_mute')
 
     def _solo_action(self):
-        playback_manager = self._ui_model.get_playback_manager()
-        solo = playback_manager.get_channel_solo(self._num)
-        playback_manager.set_channel_solo(self._num, not solo)
+        playback_mgr = self._ui_model.get_playback_manager()
+        solo = playback_mgr.get_channel_solo(self._num)
+        playback_mgr.set_channel_solo(self._num, not solo)
         self._updater.signal_update('signal_channel_mute')
 
 

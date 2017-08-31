@@ -42,9 +42,9 @@ class HitSelector(QWidget):
         v.addWidget(self._hit_keyboard_layout)
         self.setLayout(v)
 
-    def create_layout(self, typewriter_manager):
+    def create_layout(self, typewriter_mgr):
         self._hit_bank_selector.create_layout()
-        self._hit_keyboard_layout.create_layout(typewriter_manager)
+        self._hit_keyboard_layout.create_layout(typewriter_mgr)
 
     def update_contents(self):
         self._hit_bank_selector.update_contents()
@@ -77,8 +77,8 @@ class HitKeyboardLayout(QWidget):
     def _get_row_index_offset_base(self, row_index):
         return sum(self._ROW_LENGTHS[row_index + 1:])
 
-    def create_layout(self, typewriter_manager):
-        assert typewriter_manager.get_row_count() >= 4
+    def create_layout(self, typewriter_mgr):
+        assert typewriter_mgr.get_row_count() >= 4
 
         assert sum(self._ROW_LENGTHS) == _BANK_SIZE
 
@@ -86,13 +86,13 @@ class HitKeyboardLayout(QWidget):
         rows.setContentsMargins(0, 0, 0, 0)
         rows.setSpacing(2)
         self.setLayout(rows)
-        for row_index in range(min(4, typewriter_manager.get_row_count())):
+        for row_index in range(min(4, typewriter_mgr.get_row_count())):
             row = QHBoxLayout()
             row.setContentsMargins(0, 0, 0, 0)
             row.setSpacing(4)
 
             # Initial padding
-            pad_px = self._PAD * typewriter_manager.get_pad_factor_at_row(row_index)
+            pad_px = self._PAD * typewriter_mgr.get_pad_factor_at_row(row_index)
             pad = QWidget()
             pad.setFixedWidth(pad_px)
             row.addWidget(pad)

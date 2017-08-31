@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2017
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -140,7 +140,7 @@ class NotationManager():
         del data[sub_id]
         self._set_custom_notation_data(data)
 
-        typewriter_manager = self._ui_model.get_typewriter_manager()
-        typewriter_manager.notify_notation_changed(notation_id)
+        typewriter_mgr = self._ui_model.get_typewriter_manager()
+        typewriter_mgr.notify_notation_changed(notation_id)
 
 

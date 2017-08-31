@@ -29,12 +29,12 @@ class AudioUnitKeyboardMapper(KeyboardMapper, AudioUnitUpdater):
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        control_manager = self._ui_model.get_control_manager()
+        control_mgr = self._ui_model.get_control_manager()
 
-        control_manager.set_control_id_override(control_id)
+        control_mgr.set_control_id_override(control_id)
         au.set_test_params_enabled(True)
         processed = super().process_typewriter_button_event(event)
-        control_manager.set_control_id_override(None)
+        control_mgr.set_control_id_override(None)
         au.set_test_params_enabled(False)
 
         return processed

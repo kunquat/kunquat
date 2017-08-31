@@ -55,15 +55,15 @@ def get_pattern_index_at_location(ui_model, track, system):
     return None
 
 def get_current_playback_pattern_location(ui_model):
-    playback_manager = ui_model.get_playback_manager()
+    playback_mgr = ui_model.get_playback_manager()
 
-    track_num, system_num, _ = playback_manager.get_playback_position()
+    track_num, system_num, _ = playback_mgr.get_playback_position()
     if track_num >= 0 and system_num >= 0:
         return track_num, system_num
 
     # Pattern playback mode
     location = None
-    cur_piref = playback_manager.get_playback_pattern()
+    cur_piref = playback_mgr.get_playback_pattern()
     if cur_piref:
         album = ui_model.get_module().get_album()
         if album.get_existence():
@@ -198,29 +198,29 @@ def scale_colour(colour, factor):
 
 # Clipboard access
 
-def copy_selected_area(sheet_manager):
-    area_type = sheet_manager.get_serialised_area_type()
-    area = sheet_manager.get_serialised_area()
+def copy_selected_area(sheet_mgr):
+    area_type = sheet_mgr.get_serialised_area_type()
+    area = sheet_mgr.get_serialised_area()
     clipboard = QApplication.clipboard()
     mimedata = QMimeData()
     mimedata.setData(area_type, bytes(area, encoding='utf-8'))
     clipboard.setMimeData(mimedata)
 
-def is_clipboard_area_valid(sheet_manager):
+def is_clipboard_area_valid(sheet_mgr):
     clipboard = QApplication.clipboard()
     mimedata = clipboard.mimeData()
-    area_type = sheet_manager.get_serialised_area_type()
+    area_type = sheet_mgr.get_serialised_area_type()
     if not mimedata.hasFormat(area_type):
         return False
     area_data = str(mimedata.data(area_type), encoding='utf-8')
-    return sheet_manager.is_area_data_valid(area_data)
+    return sheet_mgr.is_area_data_valid(area_data)
 
-def try_paste_area(sheet_manager):
+def try_paste_area(sheet_mgr):
     clipboard = QApplication.clipboard()
     mimedata = clipboard.mimeData()
-    area_type = sheet_manager.get_serialised_area_type()
+    area_type = sheet_mgr.get_serialised_area_type()
     if mimedata.hasFormat(area_type):
         area_data = str(mimedata.data(area_type), encoding='utf-8')
-        sheet_manager.try_paste_serialised_area(area_data)
+        sheet_mgr.try_paste_serialised_area(area_data)
 
 

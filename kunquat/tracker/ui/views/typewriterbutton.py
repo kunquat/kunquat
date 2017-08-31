@@ -95,8 +95,8 @@ class TypewriterButton(QPushButton):
         super().__init__()
         self._ui_model = None
         self._updater = None
-        self._control_manager = None
-        self._typewriter_manager = None
+        self._control_mgr = None
+        self._typewriter_mgr = None
 
         self._row = row
         self._index = index
@@ -122,10 +122,10 @@ class TypewriterButton(QPushButton):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
-        self._control_manager = ui_model.get_control_manager()
-        self._typewriter_manager = ui_model.get_typewriter_manager()
+        self._control_mgr = ui_model.get_control_manager()
+        self._typewriter_mgr = ui_model.get_typewriter_manager()
 
-        self._button_model = self._typewriter_manager.get_button_model(
+        self._button_model = self._typewriter_mgr.get_button_model(
                 self._row, self._index)
 
         self._update_style()
@@ -139,21 +139,21 @@ class TypewriterButton(QPushButton):
             self._update_properties()
 
         if not set(['signal_selection', 'signal_hits']).isdisjoint(signals):
-            keymap_manager = self._ui_model.get_keymap_manager()
-            if keymap_manager.is_hit_keymap_active():
+            keymap_mgr = self._ui_model.get_keymap_manager()
+            if keymap_mgr.is_hit_keymap_active():
                 self._update_properties()
 
         if 'signal_style_changed' in signals:
             self._update_style()
 
     def _update_style(self):
-        style_manager = self._ui_model.get_style_manager()
-        if not style_manager.is_custom_style_enabled():
+        style_mgr = self._ui_model.get_style_manager()
+        if not style_mgr.is_custom_style_enabled():
             self._led.set_default_colours()
         else:
             self._led.set_colours(
-                    style_manager.get_style_param('active_indicator_colour'),
-                    style_manager.get_style_param('bg_sunken_colour'))
+                    style_mgr.get_style_param('active_indicator_colour'),
+                    style_mgr.get_style_param('bg_sunken_colour'))
 
     def _update_properties(self):
         name = self._button_model.get_name()
@@ -167,13 +167,12 @@ class TypewriterButton(QPushButton):
     def _press(self):
         selection = self._ui_model.get_selection()
         location = selection.get_location()
-        sheet_manager = self._ui_model.get_sheet_manager()
-        control_id = sheet_manager.get_inferred_active_control_id_at_location(location)
+        sheet_mgr = self._ui_model.get_sheet_manager()
+        control_id = sheet_mgr.get_inferred_active_control_id_at_location(location)
 
-        control_manager = self._ui_model.get_control_manager()
-        control_manager.set_control_id_override(control_id)
+        self._control_mgr.set_control_id_override(control_id)
         self._button_model.start_tracked_note()
-        control_manager.set_control_id_override(None)
+        self._control_mgr.set_control_id_override(None)
 
     def _release(self):
         self._button_model.stop_tracked_note()

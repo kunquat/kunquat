@@ -108,8 +108,8 @@ class RecordButton(QToolButton, Updater):
 
     def __init__(self):
         super().__init__()
-        self._sheet_manager = None
-        self._playback_manager = None
+        self._sheet_mgr = None
+        self._playback_mgr = None
 
         self.setCheckable(True)
         self.setText('Record')
@@ -118,8 +118,8 @@ class RecordButton(QToolButton, Updater):
     def _on_setup(self):
         self.register_action('signal_record_mode', self._update_checked)
 
-        self._sheet_manager = self._ui_model.get_sheet_manager()
-        self._playback_manager = self._ui_model.get_playback_manager()
+        self._sheet_mgr = self._ui_model.get_sheet_manager()
+        self._playback_mgr = self._ui_model.get_playback_manager()
 
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('record')
@@ -130,16 +130,16 @@ class RecordButton(QToolButton, Updater):
 
     def _update_checked(self):
         old_block = self.blockSignals(True)
-        is_checked = self._playback_manager.is_recording()
+        is_checked = self._playback_mgr.is_recording()
         self.setChecked(is_checked)
         self.blockSignals(old_block)
 
     def _clicked(self):
-        if self._playback_manager.is_recording():
-            self._playback_manager.stop_recording()
+        if self._playback_mgr.is_recording():
+            self._playback_mgr.stop_recording()
         else:
-            self._playback_manager.start_recording()
-            self._sheet_manager.set_typewriter_connected(True)
+            self._playback_mgr.start_recording()
+            self._sheet_mgr.set_typewriter_connected(True)
             self._ui_model.play()
 
 
@@ -147,14 +147,14 @@ class SilenceButton(QToolButton, Updater):
 
     def __init__(self):
         super().__init__()
-        self._playback_manager = None
+        self._playback_mgr = None
 
         self.setText('Silence')
         self.setToolTip('Silence (Period)')
         self.setAutoRaise(True)
 
     def _on_setup(self):
-        self._playback_manager = self._ui_model.get_playback_manager()
+        self._playback_mgr = self._ui_model.get_playback_manager()
 
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('silence')
@@ -164,7 +164,7 @@ class SilenceButton(QToolButton, Updater):
         self.clicked.connect(self._clicked)
 
     def _clicked(self):
-        self._playback_manager.stop_recording()
+        self._playback_mgr.stop_recording()
         self._ui_model.silence()
 
 
@@ -178,7 +178,7 @@ class InteractivityButton(QToolButton, Updater):
         self.clicked.connect(self._show_ia_window)
 
     def _show_ia_window(self):
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.show_interactivity_controls()
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        visibility_mgr.show_interactivity_controls()
 
 

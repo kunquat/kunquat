@@ -135,8 +135,8 @@ class FileButton(QToolButton, Updater):
         self._exit_helper.notify_save_module_finished()
 
     def _new(self):
-        process_manager = self._ui_model.get_process_manager()
-        process_manager.new_kunquat()
+        process_mgr = self._ui_model.get_process_manager()
+        process_mgr.new_kunquat()
 
     def _open(self):
         try_open_kqt_module_or_au(self._ui_model)
@@ -161,12 +161,12 @@ class WindowOpenerButton(QToolButton, Updater):
         self.clicked.connect(self._clicked)
 
     def _clicked(self):
-        visibility_manager = self._ui_model.get_visibility_manager()
-        self._show_action(visibility_manager)
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        self._show_action(visibility_mgr)
 
     # Protected interface
 
-    def _show_action(self, visibility_manager):
+    def _show_action(self, visibility_mgr):
         raise NotImplementedError
 
 
@@ -175,8 +175,8 @@ class ConnectionsButton(WindowOpenerButton):
     def __init__(self):
         super().__init__('Connections')
 
-    def _show_action(self, visibility_manager):
-        visibility_manager.show_connections()
+    def _show_action(self, visibility_mgr):
+        visibility_mgr.show_connections()
 
 
 class SongsChannelsButton(WindowOpenerButton):
@@ -184,8 +184,8 @@ class SongsChannelsButton(WindowOpenerButton):
     def __init__(self):
         super().__init__('Songs && channels')
 
-    def _show_action(self, visibility_manager):
-        visibility_manager.show_songs_channels()
+    def _show_action(self, visibility_mgr):
+        visibility_mgr.show_songs_channels()
 
 
 class EnvBindButton(WindowOpenerButton):
@@ -193,8 +193,8 @@ class EnvBindButton(WindowOpenerButton):
     def __init__(self):
         super().__init__('Environment && bindings')
 
-    def _show_action(self, visibility_manager):
-        visibility_manager.show_env_and_bindings()
+    def _show_action(self, visibility_mgr):
+        visibility_mgr.show_env_and_bindings()
 
 
 class NotationButton(WindowOpenerButton):
@@ -202,8 +202,8 @@ class NotationButton(WindowOpenerButton):
     def __init__(self):
         super().__init__('Notations')
 
-    def _show_action(self, visibility_manager):
-        visibility_manager.show_notation_editor()
+    def _show_action(self, visibility_mgr):
+        visibility_mgr.show_notation_editor()
 
 
 class GeneralModButton(WindowOpenerButton):
@@ -211,8 +211,8 @@ class GeneralModButton(WindowOpenerButton):
     def __init__(self):
         super().__init__('General')
 
-    def _show_action(self, visibility_manager):
-        visibility_manager.show_general_module_settings()
+    def _show_action(self, visibility_mgr):
+        visibility_mgr.show_general_module_settings()
 
 
 class SettingsButton(WindowOpenerButton):
@@ -220,8 +220,8 @@ class SettingsButton(WindowOpenerButton):
     def __init__(self):
         super().__init__('Settings')
 
-    def _show_action(self, visibility_manager):
-        visibility_manager.show_settings()
+    def _show_action(self, visibility_mgr):
+        visibility_mgr.show_settings()
 
 
 class AboutButton(WindowOpenerButton):
@@ -229,8 +229,8 @@ class AboutButton(WindowOpenerButton):
     def __init__(self):
         super().__init__('About')
 
-    def _show_action(self, visibility_manager):
-        visibility_manager.show_about()
+    def _show_action(self, visibility_mgr):
+        visibility_mgr.show_about()
 
 
 _RENDER_LOAD_METER_CONFIG = {
@@ -294,7 +294,7 @@ class RenderStatsButton(QToolButton):
         super().__init__()
         self._ui_model = None
         self._updater = None
-        self._stat_manager = None
+        self._stat_mgr = None
 
         self._load_meter = RenderLoadMeter()
 
@@ -308,7 +308,7 @@ class RenderStatsButton(QToolButton):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
-        self._stat_manager = ui_model.get_stat_manager()
+        self._stat_mgr = ui_model.get_stat_manager()
 
         self.clicked.connect(self._clicked)
 
@@ -318,19 +318,19 @@ class RenderStatsButton(QToolButton):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        self._load_meter.set_load_norm(self._stat_manager.get_render_load())
+        self._load_meter.set_load_norm(self._stat_mgr.get_render_load())
 
         if 'signal_style_changed' in signals:
             self._update_style()
 
     def _update_style(self):
-        style_manager = self._ui_model.get_style_manager()
-        if not style_manager.is_custom_style_enabled():
+        style_mgr = self._ui_model.get_style_manager()
+        if not style_mgr.is_custom_style_enabled():
             self._load_meter.set_config({})
             return
 
         def get_colour(param):
-            return QColor(style_manager.get_style_param(param))
+            return QColor(style_mgr.get_style_param(param))
 
         config = {
             'bg_colour': get_colour('system_load_bg_colour'),
@@ -342,8 +342,8 @@ class RenderStatsButton(QToolButton):
         self._load_meter.set_config(config)
 
     def _clicked(self):
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.show_render_stats()
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        visibility_mgr.show_render_stats()
 
     def sizeHint(self):
         return self.layout().sizeHint()

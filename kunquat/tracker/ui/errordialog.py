@@ -74,11 +74,11 @@ class ErrorDialog(QDialog):
 
         sys.excepthook = self._excepthook
 
-    def update_link_colour(self, style_manager):
+    def update_link_colour(self, style_mgr):
         style = ''
 
-        if style_manager.is_custom_style_enabled():
-            colour = style_manager.get_link_colour()
+        if style_mgr.is_custom_style_enabled():
+            colour = style_mgr.get_link_colour()
             style = ' style="color: {};"'.format(colour)
 
         self._message.setText(MESSAGE_RICH_FMT.format(style))

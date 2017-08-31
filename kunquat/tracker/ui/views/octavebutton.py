@@ -21,8 +21,8 @@ class OctaveButton(QPushButton):
         super().__init__()
         self.setFocusPolicy(Qt.NoFocus)
         self._octave_id = octave_id
-        self._typewriter_manager = None
-        self._control_manager = None
+        self._typewriter_mgr = None
+        self._control_mgr = None
         self._updater = None
 
         self.setCheckable(True)
@@ -43,14 +43,14 @@ class OctaveButton(QPushButton):
         self.clicked.connect(self._select_octave)
 
     def _select_octave(self):
-        self._typewriter_manager.set_octave(self._octave_id)
+        self._typewriter_mgr.set_octave(self._octave_id)
 
     def set_ui_model(self, ui_model):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
-        self._control_manager = ui_model.get_control_manager()
-        self._typewriter_manager = ui_model.get_typewriter_manager()
-        self._button_model = self._typewriter_manager.get_octave_button_model(
+        self._control_mgr = ui_model.get_control_manager()
+        self._typewriter_mgr = ui_model.get_typewriter_manager()
+        self._button_model = self._typewriter_mgr.get_octave_button_model(
                 self._octave_id)
 
         self._update_name()

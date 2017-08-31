@@ -173,9 +173,9 @@ class Controller():
         self._store.put(values, transaction_notifier=notifier)
         self._store.clear_modified_flag()
 
-        sheet_manager = self._ui_model.get_sheet_manager()
-        if not sheet_manager.is_grid_default_enabled():
-            sheet_manager.set_grid_enabled(False)
+        sheet_mgr = self._ui_model.get_sheet_manager()
+        if not sheet_mgr.is_grid_default_enabled():
+            sheet_mgr.set_grid_enabled(False)
 
         self._updater.signal_update('signal_controls')
 
@@ -353,8 +353,8 @@ class Controller():
             if '/' not in au_id:
                 def on_finished():
                     signaller()
-                    visibility_manager = self._ui_model.get_visibility_manager()
-                    visibility_manager.show_connections()
+                    visibility_mgr = self._ui_model.get_visibility_manager()
+                    visibility_mgr.show_connections()
                 notifier = self._get_transaction_notifier(start_progress, on_finished)
             else:
                 notifier = self._get_transaction_notifier(start_progress, signaller)

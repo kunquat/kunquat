@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2016
+# Author: Tomi Jylhä-Ollila, Finland 2015-2017
 #
 # This file is part of Kunquat.
 #
@@ -74,8 +74,8 @@ class Grid():
         if gp_id in self._cached_grid_patterns:
             gp = self._cached_grid_patterns[gp_id]
         else:
-            grid_manager = self._ui_model.get_grid_manager()
-            gp = grid_manager.get_grid_pattern(gp_id)
+            grid_mgr = self._ui_model.get_grid_manager()
+            gp = grid_mgr.get_grid_pattern(gp_id)
             self._cached_grid_patterns[gp_id] = gp
 
         gp_length = gp.get_length()

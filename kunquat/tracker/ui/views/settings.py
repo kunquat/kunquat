@@ -179,8 +179,8 @@ class StyleToggle(QCheckBox, Updater):
         self._update_enabled()
 
     def _update_enabled(self):
-        style_manager = self._ui_model.get_style_manager()
-        enabled = style_manager.is_custom_style_enabled()
+        style_mgr = self._ui_model.get_style_manager()
+        enabled = style_mgr.is_custom_style_enabled()
 
         old_block = self.blockSignals(True)
         self.setCheckState(Qt.Checked if enabled else Qt.Unchecked)
@@ -189,8 +189,8 @@ class StyleToggle(QCheckBox, Updater):
     def _change_enabled(self, state):
         enabled = (state == Qt.Checked)
 
-        style_manager = self._ui_model.get_style_manager()
-        style_manager.set_custom_style_enabled(enabled)
+        style_mgr = self._ui_model.get_style_manager()
+        style_mgr.set_custom_style_enabled(enabled)
 
         self._updater.signal_update('signal_style_changed')
 
@@ -207,13 +207,13 @@ class StyleSlider(NumberSlider, Updater):
         self._update_param()
 
     def _update_param(self):
-        style_manager = self._ui_model.get_style_manager()
-        self.setEnabled(style_manager.is_custom_style_enabled())
-        self.set_number(style_manager.get_style_param(self._param))
+        style_mgr = self._ui_model.get_style_manager()
+        self.setEnabled(style_mgr.is_custom_style_enabled())
+        self.set_number(style_mgr.get_style_param(self._param))
 
     def _change_param(self, new_value):
-        style_manager = self._ui_model.get_style_manager()
-        style_manager.set_style_param(self._param, new_value)
+        style_mgr = self._ui_model.get_style_manager()
+        style_mgr.set_style_param(self._param, new_value)
         self._updater.signal_update('signal_style_changed')
 
 
@@ -380,7 +380,7 @@ class ColoursModel(QAbstractItemModel, Updater):
         self._make_colour_list()
 
     def _make_colour_list(self):
-        style_manager = self._ui_model.get_style_manager()
+        style_mgr = self._ui_model.get_style_manager()
 
         colours = []
 
@@ -397,7 +397,7 @@ class ColoursModel(QAbstractItemModel, Updater):
         }
 
         for k, _ in _COLOUR_DESCS:
-            colour = style_manager.get_style_param(k)
+            colour = style_mgr.get_style_param(k)
             for cat_prefix, cat_name in category_info.items():
                 if k.startswith(cat_prefix):
                     if cat_prefix not in categories:
@@ -1197,22 +1197,22 @@ class Colours(QTreeView, Updater):
         self._update_button_colours()
 
     def _update_enabled(self):
-        style_manager = self._ui_model.get_style_manager()
-        self.setEnabled(style_manager.is_custom_style_enabled())
+        style_mgr = self._ui_model.get_style_manager()
+        self.setEnabled(style_mgr.is_custom_style_enabled())
 
     def _update_button_colours(self):
-        style_manager = self._ui_model.get_style_manager()
+        style_mgr = self._ui_model.get_style_manager()
 
         for index in self._model.get_colour_indices():
             button = self.indexWidget(index)
             if button:
                 key = button.get_key()
-                colour = style_manager.get_style_param(key)
+                colour = style_mgr.get_style_param(key)
                 button.set_colour(colour)
 
     def _open_colour_editor(self, key):
-        style_manager = self._ui_model.get_style_manager()
-        cur_colour_str = style_manager.get_style_param(key)
+        style_mgr = self._ui_model.get_style_manager()
+        cur_colour_str = style_mgr.get_style_param(key)
         cur_colour = utils.get_colour_from_str(cur_colour_str)
         self._colour_editor.set_colour(key, cur_colour)
         self._colour_editor.show()
@@ -1220,8 +1220,8 @@ class Colours(QTreeView, Updater):
         self._colour_editor.raise_()
 
     def _update_colour(self, key, colour_code):
-        style_manager = self._ui_model.get_style_manager()
-        style_manager.set_style_param(key, colour_code)
+        style_mgr = self._ui_model.get_style_manager()
+        style_mgr.set_style_param(key, colour_code)
         self._updater.signal_update('signal_style_changed')
 
     def hideEvent(self, event):

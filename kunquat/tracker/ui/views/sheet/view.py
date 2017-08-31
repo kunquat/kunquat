@@ -116,10 +116,10 @@ class View(QWidget):
 
         self._ui_model = None
         self._updater = None
-        self._sheet_manager = None
-        self._notation_manager = None
-        self._visibility_manager = None
-        self._playback_manager = None
+        self._sheet_mgr = None
+        self._notation_mgr = None
+        self._visibility_mgr = None
+        self._playback_mgr = None
         self._keyboard_mapper = KeyboardMapper()
 
         self.setAutoFillBackground(False)
@@ -168,10 +168,10 @@ class View(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
-        self._sheet_manager = ui_model.get_sheet_manager()
-        self._notation_manager = ui_model.get_notation_manager()
-        self._visibility_manager = ui_model.get_visibility_manager()
-        self._playback_manager = ui_model.get_playback_manager()
+        self._sheet_mgr = ui_model.get_sheet_manager()
+        self._notation_mgr = ui_model.get_notation_manager()
+        self._visibility_mgr = ui_model.get_visibility_manager()
+        self._playback_mgr = ui_model.get_playback_manager()
 
         self._keyboard_mapper.set_ui_model(ui_model)
         for cr in self._col_rends:
@@ -252,7 +252,6 @@ class View(QWidget):
         self._update_playback_cursor()
 
     def _update_playback_cursor(self):
-        playback_manager = self._ui_model.get_playback_manager()
         was_playback_cursor_visible = self._is_playback_cursor_visible
 
         prev_offset = self._playback_cursor_offset
@@ -260,8 +259,8 @@ class View(QWidget):
         self._is_playback_cursor_visible = False
         self._playback_cursor_offset = None
 
-        if playback_manager.is_playback_active():
-            track_num, system_num, row_ts = playback_manager.get_playback_position()
+        if self._playback_mgr.is_playback_active():
+            track_num, system_num, row_ts = self._playback_mgr.get_playback_position()
             if track_num < 0 or system_num < 0:
                 ploc = utils.get_current_playback_pattern_location(self._ui_model)
                 if ploc:
@@ -270,7 +269,7 @@ class View(QWidget):
             self._playback_cursor_offset = self._get_row_offset(location, absolute=True)
 
         if self._playback_cursor_offset != None:
-            if playback_manager.follow_playback_cursor():
+            if self._playback_mgr.follow_playback_cursor():
                 self._is_playback_cursor_visible = True
                 self._follow_playback_cursor()
             elif 0 <= (self._playback_cursor_offset - self._px_offset) < self.height():
@@ -281,7 +280,7 @@ class View(QWidget):
         if (not self._is_playback_cursor_visible) and was_playback_cursor_visible:
             self.update()
 
-        self._was_playback_active = playback_manager.is_playback_active()
+        self._was_playback_active = self._playback_mgr.is_playback_active()
 
     def _handle_silence(self):
         if self._was_playback_active:
@@ -350,8 +349,7 @@ class View(QWidget):
     def set_first_column(self, first_col):
         if self._first_col != first_col:
             self._first_col = first_col
-            playback_manager = self._ui_model.get_playback_manager()
-            if not playback_manager.follow_playback_cursor():
+            if not self._playback_mgr.follow_playback_cursor():
                 self._edit_first_col = first_col
             self.update()
 
@@ -381,8 +379,7 @@ class View(QWidget):
             self._px_offset = offset
             for cr in self._col_rends:
                 cr.set_px_offset(self._px_offset)
-            playback_manager = self._ui_model.get_playback_manager()
-            if not playback_manager.follow_playback_cursor():
+            if not self._playback_mgr.follow_playback_cursor():
                 self._edit_px_offset = offset
             self.update()
 
@@ -421,9 +418,7 @@ class View(QWidget):
                 cr.set_width(self._col_width)
             self.update()
 
-            playback_manager = self._ui_model.get_playback_manager()
-
-            if playback_manager.follow_playback_cursor():
+            if self._playback_mgr.follow_playback_cursor():
                 new_first_col = self._first_col
             else:
                 # Adjust horizontal position so that edit cursor is visible
@@ -488,11 +483,11 @@ class View(QWidget):
         album = module.get_album()
 
         if album and album.get_track_count() > 0:
-            cur_column = self._sheet_manager.get_column_at_location(location)
+            cur_column = self._sheet_mgr.get_column_at_location(location)
 
             row_ts = location.get_row_ts()
             if row_ts in cur_column.get_trigger_row_positions():
-                notation = self._notation_manager.get_selected_notation()
+                notation = self._notation_mgr.get_selected_notation()
                 force_shift = module.get_force_shift()
 
                 # Get trigger row width information
@@ -544,8 +539,7 @@ class View(QWidget):
         selection_location = selection.get_location()
         col_num = self._first_col
 
-        playback_manager = self._ui_model.get_playback_manager()
-        track_num, system_num, row_ts = playback_manager.get_playback_position()
+        track_num, system_num, row_ts = self._playback_mgr.get_playback_position()
         if track_num < 0 or system_num < 0:
             ploc = utils.get_current_playback_pattern_location(self._ui_model)
             if ploc:
@@ -628,7 +622,7 @@ class View(QWidget):
             return
 
         # Draw guide extension line
-        if self._sheet_manager.is_editing_enabled():
+        if self._sheet_mgr.is_editing_enabled():
             painter.setPen(self._config['edit_cursor']['guide_colour'])
             visible_col_nums = range(
                 self._first_col,
@@ -648,7 +642,7 @@ class View(QWidget):
 
         # Draw the horizontal line
         line_colour = self._config['edit_cursor']['view_line_colour']
-        if self._sheet_manager.is_editing_enabled():
+        if self._sheet_mgr.is_editing_enabled():
             line_colour = self._config['edit_cursor']['edit_line_colour']
         painter.setPen(line_colour)
         painter.drawLine(
@@ -656,7 +650,7 @@ class View(QWidget):
                 QPoint(self._col_width - border_width * 2 - 1, 0))
 
         # Get trigger row at cursor
-        column = self._sheet_manager.get_column_at_location(location)
+        column = self._sheet_mgr.get_column_at_location(location)
 
         try:
             # Draw the trigger row
@@ -668,7 +662,7 @@ class View(QWidget):
 
         except KeyError:
             # No triggers, just draw a cursor
-            if self._sheet_manager.get_replace_mode():
+            if self._sheet_mgr.get_replace_mode():
                 self._draw_hollow_replace_cursor(
                         painter, self._config['trigger']['padding'], 0)
             else:
@@ -713,7 +707,7 @@ class View(QWidget):
                 QRect(QPoint(0, 1), QPoint(vis_width, self._config['tr_height'] - 1)),
                 self._config['bg_colour'])
 
-        notation = self._notation_manager.get_selected_notation()
+        notation = self._notation_mgr.get_selected_notation()
         force_shift = self._ui_model.get_module().get_force_shift()
         rends = [TriggerRenderer(
             self._trigger_cache, self._config, trigger, notation, force_shift)
@@ -728,7 +722,7 @@ class View(QWidget):
 
         for i, trigger, renderer in zip(range(len(triggers)), triggers, rends):
             # Identify selected field
-            if self._sheet_manager.get_replace_mode():
+            if self._sheet_mgr.get_replace_mode():
                 select_replace = (i == trigger_index)
             else:
                 if i == trigger_index:
@@ -744,7 +738,7 @@ class View(QWidget):
 
         if trigger_index >= len(triggers):
             # Draw cursor at the end of the row
-            if self._sheet_manager.get_replace_mode():
+            if self._sheet_mgr.get_replace_mode():
                 self._draw_hollow_replace_cursor(painter, 0, 0)
             else:
                 self._draw_hollow_insert_cursor(painter, 0, 0)
@@ -829,13 +823,13 @@ class View(QWidget):
         row_ts = location.get_row_ts()
         trigger_index = location.get_trigger_index()
 
-        cur_column = self._sheet_manager.get_column_at_location(location)
+        cur_column = self._sheet_mgr.get_column_at_location(location)
 
         if row_ts not in cur_column.get_trigger_row_positions():
             # No triggers
             return
 
-        notation = self._notation_manager.get_selected_notation()
+        notation = self._notation_mgr.get_selected_notation()
 
         if delta < 0:
             if trigger_index == 0:
@@ -876,7 +870,7 @@ class View(QWidget):
                 location.get_col_num(),
                 location.get_row_ts(),
                 index)
-        new_location = self._sheet_manager.get_clamped_location(test_location)
+        new_location = self._sheet_mgr.get_clamped_location(test_location)
 
         selection.set_location(new_location)
 
@@ -900,7 +894,7 @@ class View(QWidget):
         new_col_num = min(max(0, col_num + delta), COLUMNS_MAX - 1)
 
         test_location = TriggerPosition(track, system, new_col_num, row_ts, 0)
-        new_location = self._sheet_manager.get_clamped_location(test_location)
+        new_location = self._sheet_mgr.get_clamped_location(test_location)
         selection.set_location(new_location)
 
     def _move_edit_cursor_tstamp(self):
@@ -951,11 +945,11 @@ class View(QWidget):
                 location = TriggerPosition(
                         track, system, col_num, row_ts, trigger_index)
 
-        cur_column = self._sheet_manager.get_column_at_location(location)
-        is_grid_enabled = self._sheet_manager.is_grid_enabled()
+        cur_column = self._sheet_mgr.get_column_at_location(location)
+        is_grid_enabled = self._sheet_mgr.is_grid_enabled()
 
         if is_grid_enabled:
-            grid = self._sheet_manager.get_grid()
+            grid = self._sheet_mgr.get_grid()
             song = album.get_song_by_track(track)
             pinst = song.get_pattern_instance(system)
             tr_height_ts = utils.get_tstamp_from_px(
@@ -1074,8 +1068,8 @@ class View(QWidget):
 
         # Use grid pattern length as our step
         gp_id = cur_pattern.get_base_grid_pattern_id()
-        grid_manager = self._ui_model.get_grid_manager()
-        gp = grid_manager.get_grid_pattern(gp_id)
+        grid_mgr = self._ui_model.get_grid_manager()
+        gp = grid_mgr.get_grid_pattern(gp_id)
         page_step = gp.get_length()
 
         new_ts = row_ts + page_step * delta
@@ -1156,7 +1150,7 @@ class View(QWidget):
         trigger_count = column.get_trigger_count_at_row(row_ts)
         triggers = (column.get_trigger(row_ts, i)
                 for i in range(trigger_count))
-        notation = self._notation_manager.get_selected_notation()
+        notation = self._notation_mgr.get_selected_notation()
         force_shift = self._ui_model.get_module().get_force_shift()
         rends = (TriggerRenderer(
             self._trigger_cache, self._config, trigger, notation, force_shift)
@@ -1168,7 +1162,7 @@ class View(QWidget):
             prev_init_width = init_width
             init_width += width
             if init_width >= vis_x_offset:
-                if not self._sheet_manager.get_replace_mode():
+                if not self._sheet_mgr.get_replace_mode():
                     if (init_width - vis_x_offset) < (vis_x_offset - prev_init_width):
                         trigger_index += 1
                 break
@@ -1228,7 +1222,7 @@ class View(QWidget):
         # Get current selection info
         selection = self._ui_model.get_selection()
         cur_location = selection.get_location()
-        cur_column = self._sheet_manager.get_column_at_location(cur_location)
+        cur_column = self._sheet_mgr.get_column_at_location(cur_location)
 
         # Select a trigger if its description overlaps with the mouse cursor
         trigger_selected = False
@@ -1238,7 +1232,7 @@ class View(QWidget):
         while tr_pat_index >= 0:
             tr_location = TriggerPosition(
                     tr_track, tr_system, col_num, tstamp.Tstamp(0), 0)
-            column = self._sheet_manager.get_column_at_location(tr_location)
+            column = self._sheet_mgr.get_column_at_location(tr_location)
             if not column:
                 break
 
@@ -1326,9 +1320,8 @@ class View(QWidget):
                 tr_system = song.get_system_count() - 1
 
         # Make sure we snap to something if grid is enabled
-        sheet_manager = self._ui_model.get_sheet_manager()
-        if (not trigger_selected) and sheet_manager.is_grid_enabled():
-            grid = sheet_manager.get_grid()
+        if (not trigger_selected) and self._sheet_mgr.is_grid_enabled():
+            grid = self._sheet_mgr.get_grid()
             tr_height_ts = utils.get_tstamp_from_px(
                     self._config['tr_height'], self._px_per_beat)
 
@@ -1386,8 +1379,8 @@ class View(QWidget):
 
     def _handle_cursor_down_with_grid(self):
         # TODO: fix this mess
-        is_editing_grid_enabled = (self._sheet_manager.is_editing_enabled() and
-                self._sheet_manager.is_grid_enabled())
+        is_editing_grid_enabled = (self._sheet_mgr.is_editing_enabled() and
+                self._sheet_mgr.is_grid_enabled())
         if is_editing_grid_enabled:
             self._vertical_move_state.press_down()
             self._move_edit_cursor_tstamp()
@@ -1395,25 +1388,25 @@ class View(QWidget):
 
     def _add_rest(self):
         trigger = Trigger('n-', None)
-        self._sheet_manager.add_trigger(trigger)
+        self._sheet_mgr.add_trigger(trigger)
         self._handle_cursor_down_with_grid()
 
     def _try_delete_selection(self):
-        self._sheet_manager.try_remove_trigger()
+        self._sheet_mgr.try_remove_trigger()
 
     def _perform_delete(self):
-        if not self._sheet_manager.is_editing_enabled():
+        if not self._sheet_mgr.is_editing_enabled():
             return
 
         selection = self._ui_model.get_selection()
         if selection.has_area():
-            self._sheet_manager.try_remove_area()
+            self._sheet_mgr.try_remove_area()
         else:
             self._try_delete_selection()
             self._handle_cursor_down_with_grid()
 
     def _perform_backspace(self):
-        if not self._sheet_manager.is_editing_enabled():
+        if not self._sheet_mgr.is_editing_enabled():
             return
 
         module = self._ui_model.get_module()
@@ -1435,11 +1428,11 @@ class View(QWidget):
         x_offset = self._get_col_offset(location.get_col_num())
         y_offset = self._get_row_offset(location)
 
-        column = self._sheet_manager.get_column_at_location(location)
+        column = self._sheet_mgr.get_column_at_location(location)
         if not column:
             return None
         row_ts = location.get_row_ts()
-        notation = self._notation_manager.get_selected_notation()
+        notation = self._notation_mgr.get_selected_notation()
         force_shift = self._ui_model.get_module().get_force_shift()
 
         try:
@@ -1458,8 +1451,7 @@ class View(QWidget):
         return (x_offset, y_offset)
 
     def _start_trigger_type_entry(self):
-        if (not self._sheet_manager.is_editing_enabled() or
-                self._playback_manager.is_recording()):
+        if not self._sheet_mgr.is_editing_enabled() or self._playback_mgr.is_recording():
             return
 
         self._follow_edit_cursor()
@@ -1508,15 +1500,14 @@ class View(QWidget):
         is_immediate_arg_type = arg_type in (None, events.EVENT_ARG_PITCH)
 
         trigger = Trigger(text, arg)
-        self._sheet_manager.add_trigger(trigger, commit=is_immediate_arg_type)
+        self._sheet_mgr.add_trigger(trigger, commit=is_immediate_arg_type)
 
         if not is_immediate_arg_type:
             selection.set_location(orig_location)
             self._start_trigger_argument_entry(new=True)
 
     def _start_trigger_argument_entry(self, new=False):
-        if (not self._sheet_manager.is_editing_enabled() or
-                self._playback_manager.is_recording()):
+        if not self._sheet_mgr.is_editing_enabled() or self._playback_mgr.is_recording():
             return
 
         self._follow_edit_cursor()
@@ -1527,13 +1518,13 @@ class View(QWidget):
 
         x_offset, y_offset = coords
 
-        trigger = self._sheet_manager.get_selected_trigger()
+        trigger = self._sheet_mgr.get_selected_trigger()
         if trigger.get_argument_type() == None:
             return
 
         # Offset field edit so that trigger type remains visible
         if trigger.get_type() not in ('n+', 'h'):
-            notation = self._notation_manager.get_selected_notation()
+            notation = self._notation_mgr.get_selected_notation()
             force_shift = self._ui_model.get_module().get_force_shift()
             renderer = TriggerRenderer(
                     self._trigger_cache, self._config, trigger, notation, force_shift)
@@ -1559,12 +1550,12 @@ class View(QWidget):
     def _finish_trigger_argument_entry(self, text):
         self.setFocus()
 
-        trigger = self._sheet_manager.get_selected_trigger()
+        trigger = self._sheet_mgr.get_selected_trigger()
         new_trigger = Trigger(trigger.get_type(), text)
 
-        if not self._sheet_manager.get_replace_mode():
-            self._sheet_manager.try_remove_trigger()
-        self._sheet_manager.add_trigger(new_trigger)
+        if not self._sheet_mgr.get_replace_mode():
+            self._sheet_mgr.try_remove_trigger()
+        self._sheet_mgr.add_trigger(new_trigger)
 
     def event(self, event):
         if (event.type() == QEvent.KeyPress and
@@ -1580,9 +1571,9 @@ class View(QWidget):
         if note_pressed:
             return
 
-        playback_manager = self._ui_model.get_playback_manager()
-        allow_editing_operations = (not playback_manager.follow_playback_cursor() or
-                playback_manager.is_recording())
+        allow_editing_operations = (
+                not self._playback_mgr.follow_playback_cursor() or
+                self._playback_mgr.is_recording())
 
         if allow_editing_operations:
             if event.key() == Qt.Key_Tab:
@@ -1671,7 +1662,7 @@ class View(QWidget):
 
         def area_bounds_move_left():
             selection.try_set_area_start(orig_location)
-            if selection.has_rect_area() or not self._sheet_manager.is_at_trigger_row():
+            if selection.has_rect_area() or not self._sheet_mgr.is_at_trigger_row():
                 self._move_edit_cursor_column(-1)
             else:
                 self._horizontal_move_state.press_left()
@@ -1680,7 +1671,7 @@ class View(QWidget):
 
         def area_bounds_move_right():
             selection.try_set_area_start(orig_location)
-            if selection.has_rect_area() or not self._sheet_manager.is_at_trigger_row():
+            if selection.has_rect_area() or not self._sheet_mgr.is_at_trigger_row():
                 self._move_edit_cursor_column(1)
             else:
                 self._horizontal_move_state.press_right()
@@ -1762,18 +1753,18 @@ class View(QWidget):
 
         def area_copy():
             if selection.has_area():
-                utils.copy_selected_area(self._sheet_manager)
+                utils.copy_selected_area(self._sheet_mgr)
                 selection.clear_area()
                 self.update()
 
         def area_cut():
             if selection.has_area():
-                utils.copy_selected_area(self._sheet_manager)
-                self._sheet_manager.try_remove_area()
+                utils.copy_selected_area(self._sheet_mgr)
+                self._sheet_mgr.try_remove_area()
                 selection.clear_area()
 
         def area_paste():
-            utils.try_paste_area(self._sheet_manager)
+            utils.try_paste_area(self._sheet_mgr)
             selection.clear_area()
 
         def handle_rest():
@@ -1782,25 +1773,24 @@ class View(QWidget):
 
         def handle_typewriter_connection():
             if not event.isAutoRepeat():
-                connected = self._sheet_manager.get_typewriter_connected()
-                self._sheet_manager.set_typewriter_connected(not connected)
+                connected = self._sheet_mgr.get_typewriter_connected()
+                self._sheet_mgr.set_typewriter_connected(not connected)
 
         def handle_replace_mode():
             if not event.isAutoRepeat():
-                is_replace = self._sheet_manager.get_replace_mode()
-                self._sheet_manager.set_replace_mode(not is_replace)
+                is_replace = self._sheet_mgr.get_replace_mode()
+                self._sheet_mgr.set_replace_mode(not is_replace)
 
         def handle_field_edit():
-            if (self._sheet_manager.get_replace_mode() and
-                    self._sheet_manager.is_at_trigger()):
+            if self._sheet_mgr.get_replace_mode() and self._sheet_mgr.is_at_trigger():
                 self._start_trigger_argument_entry()
             else:
                 self._start_trigger_type_entry()
 
         def handle_convert_trigger():
-            if (self._sheet_manager.is_editing_enabled() and
-                    self._sheet_manager.is_at_convertible_set_or_slide_trigger()):
-                self._sheet_manager.convert_set_or_slide_trigger()
+            if (self._sheet_mgr.is_editing_enabled() and
+                    self._sheet_mgr.is_at_convertible_set_or_slide_trigger()):
+                self._sheet_mgr.convert_set_or_slide_trigger()
 
         def handle_undo():
             history = self._ui_model.get_sheet_history()
@@ -1815,22 +1805,22 @@ class View(QWidget):
             },
 
             int(Qt.ControlModifier): {
-                Qt.Key_Minus:   lambda: self._sheet_manager.set_zoom(
-                                    self._sheet_manager.get_zoom() - 1),
-                Qt.Key_Plus:    lambda: self._sheet_manager.set_zoom(
-                                    self._sheet_manager.get_zoom() + 1),
-                Qt.Key_0:       lambda: self._sheet_manager.set_zoom(0),
+                Qt.Key_Minus:   lambda: self._sheet_mgr.set_zoom(
+                                    self._sheet_mgr.get_zoom() - 1),
+                Qt.Key_Plus:    lambda: self._sheet_mgr.set_zoom(
+                                    self._sheet_mgr.get_zoom() + 1),
+                Qt.Key_0:       lambda: self._sheet_mgr.set_zoom(0),
             },
 
             int(Qt.ControlModifier | Qt.ShiftModifier): {
             },
 
             int(Qt.ControlModifier | Qt.AltModifier): {
-                Qt.Key_Minus:   lambda: self._sheet_manager.set_column_width(
-                                    self._sheet_manager.get_column_width() - 1),
-                Qt.Key_Plus:    lambda: self._sheet_manager.set_column_width(
-                                    self._sheet_manager.get_column_width() + 1),
-                Qt.Key_0:       lambda: self._sheet_manager.set_column_width(0),
+                Qt.Key_Minus:   lambda: self._sheet_mgr.set_column_width(
+                                    self._sheet_mgr.get_column_width() - 1),
+                Qt.Key_Plus:    lambda: self._sheet_mgr.set_column_width(
+                                    self._sheet_mgr.get_column_width() + 1),
+                Qt.Key_0:       lambda: self._sheet_mgr.set_column_width(0),
             },
 
             int(Qt.ShiftModifier): {
@@ -1859,8 +1849,7 @@ class View(QWidget):
 
                 Qt.Key_Space:   handle_typewriter_connection,
                 Qt.Key_Insert:  handle_replace_mode,
-                Qt.Key_Escape:  (lambda:
-                    self._sheet_manager.set_typewriter_connected(False)),
+                Qt.Key_Escape:  lambda: self._sheet_mgr.set_typewriter_connected(False),
 
                 Qt.Key_Return:  handle_field_edit,
             },
@@ -1921,10 +1910,10 @@ class View(QWidget):
             QWidget.keyPressEvent(self, event)
 
     def keyReleaseEvent(self, event):
-        was_chord_mode = self._sheet_manager.get_chord_mode()
+        was_chord_mode = self._sheet_mgr.get_chord_mode()
 
         if self._keyboard_mapper.process_typewriter_button_event(event):
-            is_chord_mode = self._sheet_manager.get_chord_mode()
+            is_chord_mode = self._sheet_mgr.get_chord_mode()
             if was_chord_mode and not is_chord_mode:
                 self._handle_cursor_down_with_grid()
             return
@@ -1980,8 +1969,7 @@ class View(QWidget):
         draw_col_stop = min(draw_col_stop, COLUMNS_MAX - self._first_col)
 
         # Get grid (moved here from ColumnGroupRenderer for cached data access)
-        sheet_manager = self._ui_model.get_sheet_manager()
-        grid = sheet_manager.get_grid()
+        grid = self._sheet_mgr.get_grid()
 
         # Draw columns
         pixmaps_created = 0
@@ -2023,7 +2011,7 @@ class View(QWidget):
                 painter.drawLine(QPoint(0, 0), QPoint(self._col_width - 2, 0))
 
         # Draw edit cursor
-        if self._sheet_manager.get_edit_mode():
+        if self._sheet_mgr.get_edit_mode():
             self._draw_edit_cursor(painter)
 
         # Draw selected area
@@ -2067,18 +2055,18 @@ class View(QWidget):
         #    triggers_rendered, '' if triggers_rendered == 1 else 's'))
 
     def focusInEvent(self, event):
-        self._sheet_manager.set_edit_mode(True)
+        self._sheet_mgr.set_edit_mode(True)
 
     def focusOutEvent(self, event):
         module = self._ui_model.get_module()
         allow_signals = (
-                self._visibility_manager.is_show_allowed() and
+                self._visibility_mgr.is_show_allowed() and
                 not module.is_saving() and
                 not module.is_importing_audio_unit())
 
         if allow_signals:
-            self._sheet_manager.set_edit_mode(False)
-            self._sheet_manager.set_chord_mode(False)
+            self._sheet_mgr.set_edit_mode(False)
+            self._sheet_mgr.set_chord_mode(False)
 
         if event.reason() == Qt.OtherFocusReason:
             # The user (hopefully) clicked the Save button while focused here
@@ -2149,7 +2137,7 @@ class View(QWidget):
                         new_location.get_row_ts(), self._px_per_beat)
                 y_dist = abs(new_y - area_start_y)
 
-                if (self._sheet_manager.is_grid_enabled() or
+                if (self._sheet_mgr.is_grid_enabled() or
                         self._mouse_selection_snapped_out or
                         area_start.get_col_num() != new_location.get_col_num() or
                         y_dist >= self._config['tr_height']):

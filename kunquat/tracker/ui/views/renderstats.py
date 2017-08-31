@@ -27,7 +27,7 @@ class RenderStats(QWidget):
     def __init__(self):
         super().__init__()
         self._ui_model = None
-        self._stat_manager = None
+        self._stat_mgr = None
 
         self._voice_info = QLabel()
         self._voice_info.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
@@ -76,7 +76,7 @@ class RenderStats(QWidget):
         self._ui_model = ui_model
         updater = ui_model.get_updater()
         updater.register_updater(self._perform_updates)
-        self._stat_manager = ui_model.get_stat_manager()
+        self._stat_mgr = ui_model.get_stat_manager()
         self._render_load_history.set_ui_model(ui_model)
         self._ui_load_history.set_ui_model(ui_model)
 
@@ -91,30 +91,30 @@ class RenderStats(QWidget):
         updater.unregister_updater(self._perform_updates)
 
     def update_output_speed(self):
-        output_speed = self._stat_manager.get_output_speed()
+        output_speed = self._stat_mgr.get_output_speed()
         text = 'output speed: {} fps'.format(int(output_speed))
         self._output_speed.setText(text)
 
     def update_render_speed(self):
-        output_speed = self._stat_manager.get_render_speed()
+        output_speed = self._stat_mgr.get_render_speed()
         text = 'render speed: {} fps'.format(int(output_speed))
         self._render_speed.setText(text)
 
     def update_render_load(self):
-        render_load = self._stat_manager.get_render_load()
+        render_load = self._stat_mgr.get_render_load()
         text = 'render load: {} %'.format(int(render_load * 100))
         self._render_load.setText(text)
 
     def update_ui_load(self):
-        ui_load = self._stat_manager.get_ui_load()
+        ui_load = self._stat_mgr.get_ui_load()
         text = 'ui load: {} %'.format(int(ui_load * 100))
         self._ui_load.setText(text)
 
     def _perform_updates(self, signals):
-        active_voices, max_active_voices = self._stat_manager.get_voice_count_info()
+        active_voices, max_active_voices = self._stat_mgr.get_voice_count_info()
         self._voice_info.setText('{} ({})'.format(active_voices, max_active_voices))
 
-        active_vgroups, max_active_vgroups = self._stat_manager.get_vgroup_count_info()
+        active_vgroups, max_active_vgroups = self._stat_mgr.get_vgroup_count_info()
         self._vgroup_info.setText('{} ({})'.format(active_vgroups, max_active_vgroups))
         '''
         self.update_output_speed()
@@ -266,14 +266,14 @@ class LoadHistory(QWidget, Updater):
         self.update()
 
     def _update_style(self):
-        style_manager = self._ui_model.get_style_manager()
-        if not style_manager.is_custom_style_enabled():
+        style_mgr = self._ui_model.get_style_manager()
+        if not style_mgr.is_custom_style_enabled():
             self._set_configs({}, {})
             self.update()
             return
 
         def get_colour(name):
-            return QColor(style_manager.get_style_param(name))
+            return QColor(style_mgr.get_style_param(name))
 
         # Note: using waveform colours to avoid additional clutter in the style config
         config = {
@@ -557,12 +557,12 @@ class RenderLoadHistory(LoadHistory):
         return 'signal_load_history'
 
     def _get_peaks(self):
-        stat_manager = self._ui_model.get_stat_manager()
-        return stat_manager.get_render_load_peaks()
+        stat_mgr = self._ui_model.get_stat_manager()
+        return stat_mgr.get_render_load_peaks()
 
     def _get_averages(self):
-        stat_manager = self._ui_model.get_stat_manager()
-        return stat_manager.get_render_load_averages()
+        stat_mgr = self._ui_model.get_stat_manager()
+        return stat_mgr.get_render_load_averages()
 
 
 class UILoadHistory(LoadHistory):
@@ -574,11 +574,11 @@ class UILoadHistory(LoadHistory):
         return 'signal_load_history'
 
     def _get_peaks(self):
-        stat_manager = self._ui_model.get_stat_manager()
-        return stat_manager.get_ui_load_peaks()
+        stat_mgr = self._ui_model.get_stat_manager()
+        return stat_mgr.get_ui_load_peaks()
 
     def _get_averages(self):
-        stat_manager = self._ui_model.get_stat_manager()
-        return stat_manager.get_ui_load_averages()
+        stat_mgr = self._ui_model.get_stat_manager()
+        return stat_mgr.get_ui_load_averages()
 
 

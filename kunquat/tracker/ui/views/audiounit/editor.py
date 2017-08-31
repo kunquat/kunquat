@@ -33,7 +33,7 @@ class Editor(QWidget, AudioUnitUpdater):
         super().__init__()
         self._ui_model = None
         self._au_id = None
-        self._control_manager = None
+        self._control_mgr = None
 
         self._test_panel = TestPanel()
         self._tabs = QTabWidget()
@@ -56,7 +56,7 @@ class Editor(QWidget, AudioUnitUpdater):
                 self._info_editor,
                 self._keyboard_mapper)
 
-        self._control_manager = self._ui_model.get_control_manager()
+        self._control_mgr = self._ui_model.get_control_manager()
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
