@@ -40,8 +40,8 @@ class ConnectionsWindow(Updater, SaverWindow):
 
     def closeEvent(self, event):
         event.ignore()
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_connections()
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        visibility_mgr.hide_connections()
 
     def sizeHint(self):
         return QSize(800, 600)

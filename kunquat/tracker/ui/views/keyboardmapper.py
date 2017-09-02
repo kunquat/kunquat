@@ -48,12 +48,12 @@ _TYPEWRITER_KEYCODE_MAP = dict(_generate_keycode_map())
 class KeyboardMapper(Updater):
 
     def __init__(self):
-        self._typewriter_manager = None
+        self._typewriter_mgr = None
 
         super().__init__()
 
     def _on_setup(self):
-        self._typewriter_manager = self._ui_model.get_typewriter_manager()
+        self._typewriter_mgr = self._ui_model.get_typewriter_manager()
 
     def process_typewriter_button_event(self, event):
         # Note playback
@@ -70,20 +70,20 @@ class KeyboardMapper(Updater):
         # Octave selection and hit keymap toggle
         if self.is_octave_down(event):
             if event.type() == QEvent.KeyPress:
-                cur_octave = self._typewriter_manager.get_octave()
-                self._typewriter_manager.set_octave(max(0, cur_octave - 1))
+                cur_octave = self._typewriter_mgr.get_octave()
+                self._typewriter_mgr.set_octave(max(0, cur_octave - 1))
             return True
         elif self.is_octave_up(event):
             if event.type() == QEvent.KeyPress:
-                cur_octave = self._typewriter_manager.get_octave()
-                octave_count = self._typewriter_manager.get_octave_count()
-                self._typewriter_manager.set_octave(min(octave_count - 1, cur_octave + 1))
+                cur_octave = self._typewriter_mgr.get_octave()
+                octave_count = self._typewriter_mgr.get_octave_count()
+                self._typewriter_mgr.set_octave(min(octave_count - 1, cur_octave + 1))
             return True
         elif self.is_hit_keymap_toggle(event):
             if event.type() == QEvent.KeyPress:
-                keymap_manager = self._ui_model.get_keymap_manager()
-                is_hit_keymap_active = keymap_manager.is_hit_keymap_active()
-                keymap_manager.set_hit_keymap_active(not is_hit_keymap_active)
+                keymap_mgr = self._ui_model.get_keymap_manager()
+                is_hit_keymap_active = keymap_mgr.is_hit_keymap_active()
+                keymap_mgr.set_hit_keymap_active(not is_hit_keymap_active)
                 self._updater.signal_update('signal_select_keymap')
             return True
 
@@ -102,7 +102,7 @@ class KeyboardMapper(Updater):
         except KeyError:
             return None
 
-        button = self._typewriter_manager.get_button_model(row, index)
+        button = self._typewriter_mgr.get_button_model(row, index)
         return button
 
     def is_octave_up(self, event):

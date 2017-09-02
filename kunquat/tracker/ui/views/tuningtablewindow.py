@@ -55,8 +55,8 @@ class TuningTableWindow(Updater, SaverWindow):
 
     def closeEvent(self, event):
         event.ignore()
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_tuning_table_editor(self._table_id)
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        visibility_mgr.hide_tuning_table_editor(self._table_id)
 
     def sizeHint(self):
         return QSize(480, 640)

@@ -52,17 +52,17 @@ class InfiniteToggle(QCheckBox, Updater):
         self._update_inf_setting()
 
     def _update_inf_setting(self):
-        playback_manager = self._ui_model.get_playback_manager()
+        playback_mgr = self._ui_model.get_playback_manager()
         old_block = self.blockSignals(True)
         self.setCheckState(
-                Qt.Checked if playback_manager.get_infinite_mode() else Qt.Unchecked)
+                Qt.Checked if playback_mgr.get_infinite_mode() else Qt.Unchecked)
         self.blockSignals(old_block)
 
     def _toggle_infinite_mode(self, new_state):
         enabled = (new_state == Qt.Checked)
 
-        playback_manager = self._ui_model.get_playback_manager()
-        playback_manager.set_infinite_mode(enabled)
+        playback_mgr = self._ui_model.get_playback_manager()
+        playback_mgr.set_infinite_mode(enabled)
 
         self._updater.signal_update('infinite_mode')
 
@@ -177,14 +177,14 @@ class RuntimeVarValueEditor(QWidget, Updater):
     def _set_var_value(self):
         module = self._ui_model.get_module()
         env = module.get_environment()
-        playback_manager = self._ui_model.get_playback_manager()
+        playback_mgr = self._ui_model.get_playback_manager()
 
         var_types = env.get_var_types()
         var_type = env.get_var_type(self._var_name)
         var_type_index = var_types.index(var_type)
         self.layout().setCurrentIndex(var_type_index)
 
-        runtime_var_value = playback_manager.get_runtime_var_value(self._var_name)
+        runtime_var_value = playback_mgr.get_runtime_var_value(self._var_name)
         if runtime_var_value == None:
             runtime_var_value = env.get_var_init_value(self._var_name)
 
@@ -205,26 +205,26 @@ class RuntimeVarValueEditor(QWidget, Updater):
     def _change_bool_value(self, new_state):
         enabled = (new_state == Qt.Checked)
 
-        playback_manager = self._ui_model.get_playback_manager()
-        playback_manager.set_runtime_var_value(self._var_name, enabled)
+        playback_mgr = self._ui_model.get_playback_manager()
+        playback_mgr.set_runtime_var_value(self._var_name, enabled)
 
     def _change_int_value(self):
         value = int(self._editors[int].text())
 
-        playback_manager = self._ui_model.get_playback_manager()
-        playback_manager.set_runtime_var_value(self._var_name, value)
+        playback_mgr = self._ui_model.get_playback_manager()
+        playback_mgr.set_runtime_var_value(self._var_name, value)
 
     def _change_float_value(self):
         value = float(self._editors[float].text())
 
-        playback_manager = self._ui_model.get_playback_manager()
-        playback_manager.set_runtime_var_value(self._var_name, value)
+        playback_mgr = self._ui_model.get_playback_manager()
+        playback_mgr.set_runtime_var_value(self._var_name, value)
 
     def _change_tstamp_value(self):
         value = tstamp.Tstamp(float(self._editors[tstamp.Tstamp].text()))
 
-        playback_manager = self._ui_model.get_playback_manager()
-        playback_manager.set_runtime_var_value(self._var_name, value)
+        playback_mgr = self._ui_model.get_playback_manager()
+        playback_mgr.set_runtime_var_value(self._var_name, value)
 
     def focusOutEvent(self, event):
         if self._update_flag:

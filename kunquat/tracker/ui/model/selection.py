@@ -35,11 +35,11 @@ class Selection():
         self._session.set_selected_location(trigger_position)
 
         # Select default control ID of the new location
-        sheet_manager = self._ui_model.get_sheet_manager()
-        control_id = sheet_manager.get_inferred_active_control_id_at_location(
+        sheet_mgr = self._ui_model.get_sheet_manager()
+        control_id = sheet_mgr.get_inferred_active_control_id_at_location(
                 self.get_location())
-        control_manager = self._ui_model.get_control_manager()
-        control_manager.set_selected_control_id(control_id)
+        control_mgr = self._ui_model.get_control_manager()
+        control_mgr.set_selected_control_id(control_id)
 
         self._updater.signal_update('signal_selection')
 

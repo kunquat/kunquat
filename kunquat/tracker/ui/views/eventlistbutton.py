@@ -97,8 +97,8 @@ class EventListButton(QToolButton):
         self._updater.unregister_updater(self._perform_updates)
 
     def _clicked(self):
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.show_event_log()
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        visibility_mgr.show_event_log()
 
     def _get_text(self, count):
         s = '' if count == 1 else 's'
@@ -117,12 +117,12 @@ class EventListButton(QToolButton):
             self._update_style()
 
     def _update_style(self):
-        style_manager = self._ui_model.get_style_manager()
-        if not style_manager.is_custom_style_enabled():
+        style_mgr = self._ui_model.get_style_manager()
+        if not style_mgr.is_custom_style_enabled():
             self._light.set_config({})
             return
 
-        active_colour = QColor(style_manager.get_style_param('active_indicator_colour'))
+        active_colour = QColor(style_mgr.get_style_param('active_indicator_colour'))
         inactive_colour = utils.lerp_colour(QColor(0, 0, 0), active_colour, 0.25)
 
         config = {

@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2014
-#          Tomi Jylhä-Ollila, Finland 2016
+#          Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -51,8 +51,8 @@ class KeymapManager():
         self._ui_model = ui_model
 
     def _get_keymap_ids(self):
-        notation_manager = self._ui_model.get_notation_manager()
-        keymap_ids = notation_manager.get_notation_ids()
+        notation_mgr = self._ui_model.get_notation_manager()
+        keymap_ids = notation_mgr.get_notation_ids()
         keymap_ids.append(HitKeymapID)
         return keymap_ids
 
@@ -74,8 +74,8 @@ class KeymapManager():
     def get_selected_keymap(self):
         if self.is_hit_keymap_active():
             return _hit_keymap
-        notation_manager = self._ui_model.get_notation_manager()
-        notation = notation_manager.get_selected_notation()
+        notation_mgr = self._ui_model.get_notation_manager()
+        notation = notation_mgr.get_selected_notation()
         return notation.get_keymap()
 
     def set_hit_keymap_active(self, active):
@@ -87,7 +87,7 @@ class KeymapManager():
         else:
             base_octave = keymap_data['base_octave']
 
-        typewriter_manager = self._ui_model.get_typewriter_manager()
-        typewriter_manager.set_octave(base_octave)
+        typewriter_mgr = self._ui_model.get_typewriter_manager()
+        typewriter_mgr.set_octave(base_octave)
 
 

@@ -55,8 +55,8 @@ class Notation():
         self._on_data_changed()
 
     def _on_data_changed(self):
-        typewriter_manager = self._ui_model.get_typewriter_manager()
-        typewriter_manager.notify_notation_changed((self._is_shared, self._id))
+        typewriter_mgr = self._ui_model.get_typewriter_manager()
+        typewriter_mgr.notify_notation_changed((self._is_shared, self._id))
 
     def get_name(self):
         return self._get_raw_data()['name']

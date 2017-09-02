@@ -33,8 +33,8 @@ class EventListWindow(QWidget, Updater):
 
     def closeEvent(self, event):
         event.ignore()
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_event_log()
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        visibility_mgr.hide_event_log()
 
     def sizeHint(self):
         return QSize(600, 768)

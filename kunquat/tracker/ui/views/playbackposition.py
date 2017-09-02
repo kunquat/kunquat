@@ -104,27 +104,27 @@ class PlaybackPosition(QWidget):
         self._updater.unregister_updater(self._perform_updates)
 
     def _update_style(self):
-        style_manager = self._ui_model.get_style_manager()
-        if not style_manager.is_custom_style_enabled():
+        style_mgr = self._ui_model.get_style_manager()
+        if not style_mgr.is_custom_style_enabled():
             self._set_config({})
             self.update()
             return
 
         config = {
             'bg_colour':
-                QColor(style_manager.get_style_param('position_bg_colour')),
+                QColor(style_mgr.get_style_param('position_bg_colour')),
             'fg_colour':
-                QColor(style_manager.get_style_param('position_fg_colour')),
+                QColor(style_mgr.get_style_param('position_fg_colour')),
             'stopped_colour':
-                QColor(style_manager.get_style_param('position_stopped_colour')),
+                QColor(style_mgr.get_style_param('position_stopped_colour')),
             'play_colour':
-                QColor(style_manager.get_style_param('position_play_colour')),
+                QColor(style_mgr.get_style_param('position_play_colour')),
             'record_colour':
-                QColor(style_manager.get_style_param('position_record_colour')),
+                QColor(style_mgr.get_style_param('position_record_colour')),
             'infinite_colour':
-                QColor(style_manager.get_style_param('position_infinite_colour')),
+                QColor(style_mgr.get_style_param('position_infinite_colour')),
             'title_colour':
-                QColor(style_manager.get_style_param('position_title_colour')),
+                QColor(style_mgr.get_style_param('position_title_colour')),
         }
         self._set_config(config)
         self.update()
@@ -233,10 +233,10 @@ class PlaybackPosition(QWidget):
         return max(min_width, scaled_max_width)
 
     def _get_current_state(self):
-        playback_manager = self._ui_model.get_playback_manager()
-        is_playing = playback_manager.is_playback_active()
-        is_infinite = playback_manager.get_infinite_mode()
-        is_recording = playback_manager.is_recording()
+        playback_mgr = self._ui_model.get_playback_manager()
+        is_playing = playback_mgr.is_playback_active()
+        is_infinite = playback_mgr.get_infinite_mode()
+        is_recording = playback_mgr.is_recording()
 
         playback_state = 'playing' if is_playing else 'stopped'
         if is_recording:
@@ -471,11 +471,11 @@ class PlaybackPosition(QWidget):
         pat_num = -1
         inst_num = -1
 
-        playback_manager = self._ui_model.get_playback_manager()
-        if playback_manager.is_playback_active():
-            track_num, system_num, row_ts = playback_manager.get_playback_position()
+        playback_mgr = self._ui_model.get_playback_manager()
+        if playback_mgr.is_playback_active():
+            track_num, system_num, row_ts = playback_mgr.get_playback_position()
 
-            pinst = playback_manager.get_playback_pattern()
+            pinst = playback_mgr.get_playback_pattern()
             album = self._ui_model.get_module().get_album()
             if pinst:
                 pat_num, inst_num = pinst

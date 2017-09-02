@@ -708,9 +708,8 @@ class SheetManager():
         return self._session.get_typewriter_connected()
 
     def allow_editing(self):
-        playback_manager = self._ui_model.get_playback_manager()
-        return (not playback_manager.follow_playback_cursor() or
-                    playback_manager.is_recording())
+        playback_mgr = self._ui_model.get_playback_manager()
+        return (not playback_mgr.follow_playback_cursor() or playback_mgr.is_recording())
 
     def is_editing_enabled(self):
         return (self.get_edit_mode() and

@@ -640,13 +640,13 @@ class ControlVariableValueEditor(QWidget):
         self._label = label
         self._editor = None
 
-        '''
+        """
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
         h.addWidget(QLabel(label))
         self.setLayout(h)
-        '''
+        """
 
     def set_au_id(self, au_id):
         self._au_id = au_id
@@ -687,12 +687,12 @@ class ControlVariableValueEditor(QWidget):
             self._editor.editingFinished.connect(self._change_tstamp_value)
         else:
             assert False
-        '''
+        """
         self._editor_layout = QStackedLayout()
         for t in var_types:
             self._editor_layout.addWidget(self._editors[t])
         self.layout().addLayout(self._editor_layout)
-        '''
+        """
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -742,9 +742,9 @@ class ControlVariableValueEditor(QWidget):
         var_type = au.get_control_var_type(self._context)
         var_types = au.get_control_var_types()
         var_type_index = var_types.index(var_type)
-        '''
+        """
         self._editor_layout.setCurrentIndex(var_type_index)
-        '''
+        """
 
         var_value = self._get_value(au)
 

@@ -35,8 +35,8 @@ class HitMapToggle(QCheckBox):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        keymap_manager = self._ui_model.get_keymap_manager()
-        is_active = keymap_manager.is_hit_keymap_active()
+        keymap_mgr = self._ui_model.get_keymap_manager()
+        is_active = keymap_mgr.is_hit_keymap_active()
         is_checked = (self.checkState() == Qt.Checked)
         if is_checked != is_active:
             old_block = self.blockSignals(True)
@@ -45,8 +45,8 @@ class HitMapToggle(QCheckBox):
 
     def _set_hit_map_active(self, state):
         active = (state == Qt.Checked)
-        keymap_manager = self._ui_model.get_keymap_manager()
-        keymap_manager.set_hit_keymap_active(active)
+        keymap_mgr = self._ui_model.get_keymap_manager()
+        keymap_mgr.set_hit_keymap_active(active)
         self._updater.signal_update('signal_select_keymap')
 
 

@@ -86,10 +86,10 @@ class GridListModel(QAbstractListModel, Updater):
         return None
 
     def _make_items(self):
-        grid_manager = self._ui_model.get_grid_manager()
+        grid_mgr = self._ui_model.get_grid_manager()
 
-        for gp_id in grid_manager.get_editable_grid_pattern_ids():
-            gp = grid_manager.get_grid_pattern(gp_id)
+        for gp_id in grid_mgr.get_editable_grid_pattern_ids():
+            gp = grid_mgr.get_grid_pattern(gp_id)
             gp_name = gp.get_name()
             self._items.append((gp_id, gp_name))
 
@@ -129,8 +129,8 @@ class GridListView(QListView, Updater):
         if item:
             gp_id, _ = item
 
-            grid_manager = self._ui_model.get_grid_manager()
-            grid_manager.select_grid_pattern(gp_id)
+            grid_mgr = self._ui_model.get_grid_manager()
+            grid_mgr.select_grid_pattern(gp_id)
 
             self._updater.signal_update('signal_grid_pattern_selection')
 
@@ -190,25 +190,25 @@ class GridListToolBar(QToolBar, Updater):
         self._update_all()
 
     def _update_all(self):
-        grid_manager = self._ui_model.get_grid_manager()
-        gp_count = len(grid_manager.get_editable_grid_pattern_ids())
-        selected_gp_id = grid_manager.get_selected_grid_pattern_id()
+        grid_mgr = self._ui_model.get_grid_manager()
+        gp_count = len(grid_mgr.get_editable_grid_pattern_ids())
+        selected_gp_id = grid_mgr.get_selected_grid_pattern_id()
         self._remove_button.setEnabled((gp_count > 0) and (selected_gp_id != None))
 
     def _add_grid_pattern(self):
-        grid_manager = self._ui_model.get_grid_manager()
-        grid_manager.add_grid_pattern()
+        grid_mgr = self._ui_model.get_grid_manager()
+        grid_mgr.add_grid_pattern()
         self._updater.signal_update('signal_grid_pattern_list')
 
     def _remove_grid_pattern(self):
-        grid_manager = self._ui_model.get_grid_manager()
+        grid_mgr = self._ui_model.get_grid_manager()
 
-        gp_id = grid_manager.get_selected_grid_pattern_id()
+        gp_id = grid_mgr.get_selected_grid_pattern_id()
         if gp_id == None:
             return
 
-        grid_manager.remove_grid_pattern(gp_id)
-        grid_manager.select_grid_pattern(None)
+        grid_mgr.remove_grid_pattern(gp_id)
+        grid_mgr.select_grid_pattern(None)
         self._updater.signal_update(
             'signal_grid_pattern_list',
             'signal_grid_pattern_modified',
@@ -277,14 +277,14 @@ class GridArea(QAbstractScrollArea, Updater):
 
         self._update_config()
 
-        grid_manager = self._ui_model.get_grid_manager()
+        grid_mgr = self._ui_model.get_grid_manager()
 
         # Default zoom level
         px_per_beat = self._config['trs_per_beat'] * self._config['tr_height']
         self._zoom_levels = utils.get_zoom_levels(
                 16, px_per_beat, 512, self._config['zoom_factor'])
         self._default_zoom_index = self._zoom_levels.index(px_per_beat)
-        grid_manager.set_zoom_range(
+        grid_mgr.set_zoom_range(
                 -self._default_zoom_index,
                 len(self._zoom_levels) - self._default_zoom_index - 1)
 
@@ -301,10 +301,10 @@ class GridArea(QAbstractScrollArea, Updater):
         self.update()
 
     def _update_config(self):
-        style_manager = self._ui_model.get_style_manager()
+        style_mgr = self._ui_model.get_style_manager()
 
         self._config = DEFAULT_CONFIG.copy()
-        config = get_config_with_custom_style(style_manager)
+        config = get_config_with_custom_style(style_mgr)
         self._config.update(config)
 
         for subcfg in ('ruler', 'header', 'edit_cursor', 'grid'):
@@ -336,9 +336,9 @@ class GridArea(QAbstractScrollArea, Updater):
         self.viewport().set_px_per_beat(px_per_beat)
 
     def _update_zoom(self):
-        grid_manager = self._ui_model.get_grid_manager()
+        grid_mgr = self._ui_model.get_grid_manager()
 
-        zoom_level = grid_manager.get_zoom()
+        zoom_level = grid_mgr.get_zoom()
         cur_zoom_index = zoom_level + self._default_zoom_index
         self._set_px_per_beat(self._zoom_levels[cur_zoom_index])
 
@@ -346,8 +346,8 @@ class GridArea(QAbstractScrollArea, Updater):
         self._ruler.update_grid_pattern()
 
     def _update_scrollbars(self):
-        grid_manager = self._ui_model.get_grid_manager()
-        gp_id = grid_manager.get_selected_grid_pattern_id()
+        grid_mgr = self._ui_model.get_grid_manager()
+        gp_id = grid_mgr.get_selected_grid_pattern_id()
         if gp_id == None:
             self.verticalScrollBar().setRange(0, 0)
             return
@@ -468,11 +468,11 @@ class GridView(QWidget, Updater):
                 return
 
             # Get old edit cursor offset
-            grid_manager = self._ui_model.get_grid_manager()
+            grid_mgr = self._ui_model.get_grid_manager()
             selected_line_ts = tstamp.Tstamp(0)
-            gp_id = grid_manager.get_selected_grid_pattern_id()
+            gp_id = grid_mgr.get_selected_grid_pattern_id()
             if gp_id != None:
-                gp = grid_manager.get_grid_pattern(gp_id)
+                gp = grid_mgr.get_grid_pattern(gp_id)
                 selected_line_ts = gp.get_selected_line() or tstamp.Tstamp(0)
             orig_relative_offset = utils.get_px_from_tstamp(
                     selected_line_ts, orig_px_per_beat) - orig_px_offset
@@ -483,11 +483,11 @@ class GridView(QWidget, Updater):
             self.followCursor.emit(str(new_px_offset))
 
     def get_total_height(self):
-        grid_manager = self._ui_model.get_grid_manager()
-        gp_id = grid_manager.get_selected_grid_pattern_id()
+        grid_mgr = self._ui_model.get_grid_manager()
+        gp_id = grid_mgr.get_selected_grid_pattern_id()
         if gp_id == None:
             return 0
-        gp = grid_manager.get_grid_pattern(gp_id)
+        gp = grid_mgr.get_grid_pattern(gp_id)
 
         gp_length = gp.get_length()
 
@@ -495,11 +495,11 @@ class GridView(QWidget, Updater):
                 self._config['tr_height'])
 
     def _follow_edit_cursor(self):
-        grid_manager = self._ui_model.get_grid_manager()
-        gp_id = grid_manager.get_selected_grid_pattern_id()
+        grid_mgr = self._ui_model.get_grid_manager()
+        gp_id = grid_mgr.get_selected_grid_pattern_id()
         if gp_id == None:
             return
-        gp = grid_manager.get_grid_pattern(gp_id)
+        gp = grid_mgr.get_grid_pattern(gp_id)
 
         selected_line_ts = gp.get_selected_line() or tstamp.Tstamp(0)
         cursor_abs_y = utils.get_px_from_tstamp(selected_line_ts, self._px_per_beat)
@@ -534,11 +534,11 @@ class GridView(QWidget, Updater):
         painter.eraseRect(QRect(0, 0, self._width, self.height()))
 
         # Get grid pattern info
-        grid_manager = self._ui_model.get_grid_manager()
-        gp_id = grid_manager.get_selected_grid_pattern_id()
+        grid_mgr = self._ui_model.get_grid_manager()
+        gp_id = grid_mgr.get_selected_grid_pattern_id()
         if gp_id == None:
             return
-        gp = grid_manager.get_grid_pattern(gp_id)
+        gp = grid_mgr.get_grid_pattern(gp_id)
 
         gp_length = gp.get_length()
         gp_lines = gp.get_lines()
@@ -597,11 +597,11 @@ class GridView(QWidget, Updater):
             return
 
         # Get grid pattern info
-        grid_manager = self._ui_model.get_grid_manager()
-        gp_id = grid_manager.get_selected_grid_pattern_id()
+        grid_mgr = self._ui_model.get_grid_manager()
+        gp_id = grid_mgr.get_selected_grid_pattern_id()
         if gp_id == None:
             return
-        gp = grid_manager.get_grid_pattern(gp_id)
+        gp = grid_mgr.get_grid_pattern(gp_id)
 
         gp_length = gp.get_length()
         gp_lines = gp.get_lines()
@@ -627,11 +627,11 @@ class GridView(QWidget, Updater):
 
     def keyPressEvent(self, event):
         # Get grid pattern info
-        grid_manager = self._ui_model.get_grid_manager()
-        gp_id = grid_manager.get_selected_grid_pattern_id()
+        grid_mgr = self._ui_model.get_grid_manager()
+        gp_id = grid_mgr.get_selected_grid_pattern_id()
         if gp_id == None:
             return
-        gp = grid_manager.get_grid_pattern(gp_id)
+        gp = grid_mgr.get_grid_pattern(gp_id)
 
         if event.modifiers() == Qt.NoModifier:
             if event.key() == Qt.Key_Up:
@@ -645,9 +645,9 @@ class GridView(QWidget, Updater):
             elif event.key() == Qt.Key_Insert:
                 selected_line_ts = gp.get_selected_line()
                 if selected_line_ts != None:
-                    part_count = grid_manager.get_grid_pattern_subdiv_part_count()
-                    warp_value = grid_manager.get_grid_pattern_subdiv_warp()
-                    line_style = grid_manager.get_grid_pattern_subdiv_line_style()
+                    part_count = grid_mgr.get_grid_pattern_subdiv_part_count()
+                    warp_value = grid_mgr.get_grid_pattern_subdiv_warp()
+                    line_style = grid_mgr.get_grid_pattern_subdiv_line_style()
 
                     gp.subdivide_interval(
                             selected_line_ts, part_count, warp_value, line_style)
@@ -670,13 +670,13 @@ class GridView(QWidget, Updater):
 
         elif event.modifiers() == Qt.ControlModifier:
             if event.key() == Qt.Key_Minus:
-                grid_manager.set_zoom(grid_manager.get_zoom() - 1)
+                grid_mgr.set_zoom(grid_mgr.get_zoom() - 1)
                 self._updater.signal_update('signal_grid_zoom')
             elif event.key() == Qt.Key_Plus:
-                grid_manager.set_zoom(grid_manager.get_zoom() + 1)
+                grid_mgr.set_zoom(grid_mgr.get_zoom() + 1)
                 self._updater.signal_update('signal_grid_zoom')
             elif event.key() == Qt.Key_0:
-                grid_manager.set_zoom(0)
+                grid_mgr.set_zoom(0)
                 self._updater.signal_update('signal_grid_zoom')
 
 
@@ -758,20 +758,20 @@ class GeneralEditor(QWidget, Updater):
         self.update()
 
     def _update_config(self):
-        style_manager = self._ui_model.get_style_manager()
+        style_mgr = self._ui_model.get_style_manager()
         config = DEFAULT_CONFIG.copy()
-        custom_config = get_config_with_custom_style(style_manager)
+        custom_config = get_config_with_custom_style(style_mgr)
         config.update(custom_config)
 
         self._spacing_style.set_config(config)
 
     def _get_selected_grid_pattern(self):
-        grid_manager = self._ui_model.get_grid_manager()
-        gp_id = grid_manager.get_selected_grid_pattern_id()
+        grid_mgr = self._ui_model.get_grid_manager()
+        gp_id = grid_mgr.get_selected_grid_pattern_id()
         if gp_id == None:
             return None
 
-        gp = grid_manager.get_grid_pattern(gp_id)
+        gp = grid_mgr.get_grid_pattern(gp_id)
         return gp
 
     def _update_all(self):
@@ -909,21 +909,21 @@ class SubdivEditor(QWidget, Updater):
         self.update()
 
     def _update_config(self):
-        style_manager = self._ui_model.get_style_manager()
+        style_mgr = self._ui_model.get_style_manager()
         config = DEFAULT_CONFIG.copy()
-        custom_config = get_config_with_custom_style(style_manager)
+        custom_config = get_config_with_custom_style(style_mgr)
         config.update(custom_config)
 
         self._subdiv_line_style.set_config(config)
 
     def _get_selected_line_ts(self):
-        grid_manager = self._ui_model.get_grid_manager()
-        gp_id = grid_manager.get_selected_grid_pattern_id()
+        grid_mgr = self._ui_model.get_grid_manager()
+        gp_id = grid_mgr.get_selected_grid_pattern_id()
         if gp_id == None:
             return None
 
         # Get line selection info
-        gp = grid_manager.get_grid_pattern(gp_id)
+        gp = grid_mgr.get_grid_pattern(gp_id)
         gp_lines = gp.get_lines()
         lines_dict = dict(gp_lines)
         selected_line_ts = gp.get_selected_line()
@@ -934,43 +934,43 @@ class SubdivEditor(QWidget, Updater):
         selected_line_ts = self._get_selected_line_ts()
         self.setEnabled(selected_line_ts != None)
 
-        grid_manager = self._ui_model.get_grid_manager()
+        grid_mgr = self._ui_model.get_grid_manager()
 
         old_block = self._subdiv_count.blockSignals(True)
-        self._subdiv_count.setValue(grid_manager.get_grid_pattern_subdiv_part_count())
+        self._subdiv_count.setValue(grid_mgr.get_grid_pattern_subdiv_part_count())
         self._subdiv_count.blockSignals(old_block)
 
         self._subdiv_line_style.select_line_style(
-                grid_manager.get_grid_pattern_subdiv_line_style())
-        self._subdiv_warp.set_number(grid_manager.get_grid_pattern_subdiv_warp())
+                grid_mgr.get_grid_pattern_subdiv_line_style())
+        self._subdiv_warp.set_number(grid_mgr.get_grid_pattern_subdiv_warp())
 
     def _change_count(self, new_count):
-        grid_manager = self._ui_model.get_grid_manager()
-        grid_manager.set_grid_pattern_subdiv_part_count(new_count)
+        grid_mgr = self._ui_model.get_grid_manager()
+        grid_mgr.set_grid_pattern_subdiv_part_count(new_count)
         self._updater.signal_update('signal_grid_pattern_subdiv')
 
     def _change_line_style(self, dummy):
         new_style = self._subdiv_line_style.get_current_line_style()
-        grid_manager = self._ui_model.get_grid_manager()
-        grid_manager.set_grid_pattern_subdiv_line_style(new_style)
+        grid_mgr = self._ui_model.get_grid_manager()
+        grid_mgr.set_grid_pattern_subdiv_line_style(new_style)
         self._updater.signal_update('signal_grid_pattern_subdiv')
 
     def _change_warp(self, new_warp):
-        grid_manager = self._ui_model.get_grid_manager()
-        grid_manager.set_grid_pattern_subdiv_warp(new_warp)
+        grid_mgr = self._ui_model.get_grid_manager()
+        grid_mgr.set_grid_pattern_subdiv_warp(new_warp)
         self._updater.signal_update('signal_grid_pattern_subdiv')
 
     def _apply_subdivision(self):
         selected_line_ts = self._get_selected_line_ts()
         assert selected_line_ts != None
 
-        grid_manager = self._ui_model.get_grid_manager()
-        gp_id = grid_manager.get_selected_grid_pattern_id()
-        gp = grid_manager.get_grid_pattern(gp_id)
+        grid_mgr = self._ui_model.get_grid_manager()
+        gp_id = grid_mgr.get_selected_grid_pattern_id()
+        gp = grid_mgr.get_grid_pattern(gp_id)
 
-        part_count = grid_manager.get_grid_pattern_subdiv_part_count()
-        warp_value = grid_manager.get_grid_pattern_subdiv_warp()
-        line_style = grid_manager.get_grid_pattern_subdiv_line_style()
+        part_count = grid_mgr.get_grid_pattern_subdiv_part_count()
+        warp_value = grid_mgr.get_grid_pattern_subdiv_warp()
+        line_style = grid_mgr.get_grid_pattern_subdiv_line_style()
 
         gp.subdivide_interval(selected_line_ts, part_count, warp_value, line_style)
         self._updater.signal_update('signal_grid_pattern_modified')
@@ -1012,20 +1012,20 @@ class LineEditor(QWidget, Updater):
         self._update_all()
 
     def _update_config(self):
-        style_manager = self._ui_model.get_style_manager()
+        style_mgr = self._ui_model.get_style_manager()
         config = DEFAULT_CONFIG.copy()
-        custom_config = get_config_with_custom_style(style_manager)
+        custom_config = get_config_with_custom_style(style_mgr)
         config.update(custom_config)
 
         self._line_style.set_config(config)
 
     def _get_grid_pattern(self):
-        grid_manager = self._ui_model.get_grid_manager()
-        gp_id = grid_manager.get_selected_grid_pattern_id()
+        grid_mgr = self._ui_model.get_grid_manager()
+        gp_id = grid_mgr.get_selected_grid_pattern_id()
         if gp_id == None:
             return None
 
-        return grid_manager.get_grid_pattern(gp_id)
+        return grid_mgr.get_grid_pattern(gp_id)
 
     def _update_all(self):
         gp = self._get_grid_pattern()

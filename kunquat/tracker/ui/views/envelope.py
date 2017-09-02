@@ -147,8 +147,8 @@ class Envelope(QWidget):
     def get_envelope_view(self):
         return self._area.get_envelope_view()
 
-    def update_style(self, style_manager):
-        self._area.update_style(style_manager)
+    def update_style(self, style_mgr):
+        self._area.update_style(style_mgr)
 
     def _zoom_in_x(self):
         self._area.get_envelope_view().zoom_in_x()
@@ -190,8 +190,8 @@ class EnvelopeArea(QAbstractScrollArea):
     def get_envelope_view(self):
         return self.viewport()
 
-    def update_style(self, style_manager):
-        self.viewport().update_style(style_manager)
+    def update_style(self, style_mgr):
+        self.viewport().update_style(style_mgr)
 
     def _update_scrollbars(self):
         if self._config['enable_zoom_x']:
@@ -551,14 +551,14 @@ class EnvelopeView(QWidget):
         vis_range_min, vis_range_max = self._vis_range_x
         return vis_range_max - vis_range_min
 
-    def update_style(self, style_manager):
-        if not style_manager.is_custom_style_enabled():
+    def update_style(self, style_mgr):
+        if not style_mgr.is_custom_style_enabled():
             self._set_configs({}, {})
             self.update()
             return
 
         def get_colour(name):
-            return QColor(style_manager.get_style_param(name))
+            return QColor(style_mgr.get_style_param(name))
 
         focused_colour = get_colour('envelope_focus_colour')
         focused_axis_colour = QColor(focused_colour)
@@ -1011,10 +1011,10 @@ class EnvelopeView(QWidget):
             pp = QPainter(self._curve_image)
 
             # Test
-            '''
+            """
             pp.setPen(QColor('#fff'))
             pp.drawRect(0, 0, pw - 1, ph - 1)
-            '''
+            """
 
             et = self._get_envelope_transform()
             t = et * QTransform().translate(0.5, -0.5 + ph).scale(pw - 1, -ph + 1)

@@ -58,9 +58,8 @@ class SheetHistory():
             self.commit()
 
     def _allow_sheet_changes(self):
-        playback_manager = self._ui_model.get_playback_manager()
-        return (not playback_manager.follow_playback_cursor() or
-                playback_manager.is_recording())
+        playback_mgr = self._ui_model.get_playback_manager()
+        return (not playback_mgr.follow_playback_cursor() or playback_mgr.is_recording())
 
     def undo(self):
         if not self._allow_sheet_changes():

@@ -30,7 +30,7 @@ class TypewriterManager():
         self._share = None
         self._updater = None
         self._ui_model = None
-        self._keymap_manager = None
+        self._keymap_mgr = None
 
         # Cached data
         self._current_map = None
@@ -48,7 +48,7 @@ class TypewriterManager():
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._keymap_manager = ui_model.get_keymap_manager()
+        self._keymap_mgr = ui_model.get_keymap_manager()
 
     def get_button_model(self, row, index):
         button_model = TypewriterButtonModel(row, index)
@@ -146,7 +146,7 @@ class TypewriterManager():
         return fitting_lower_octaves
 
     def _create_current_map(self, keymap):
-        keymap_id = self._keymap_manager.get_selected_keymap_id()
+        keymap_id = self._keymap_mgr.get_selected_keymap_id()
         if self._current_map_version == keymap_id:
             return
         self._current_map_version = keymap_id
@@ -163,7 +163,7 @@ class TypewriterManager():
 
     def _get_button_param(self, coords, get_pitch):
         (row, column) = coords
-        keymap_data = self._keymap_manager.get_selected_keymap()
+        keymap_data = self._keymap_mgr.get_selected_keymap()
         keymap = keymap_data['keymap']
         if keymap_data.get('is_hit_keymap', False) == get_pitch:
             return None
@@ -182,7 +182,7 @@ class TypewriterManager():
         return self._get_button_param(coords, get_pitch=False)
 
     def get_key_id(self, coords):
-        keymap_data = self._keymap_manager.get_selected_keymap()
+        keymap_data = self._keymap_mgr.get_selected_keymap()
         keymap = keymap_data['keymap']
         self._create_current_map(keymap)
         return self._get_key_id_from_current_map(coords)
@@ -200,14 +200,14 @@ class TypewriterManager():
         return key_ids[key_index]
 
     def get_pitches_by_octave(self, octave_id):
-        keymap_data = self._keymap_manager.get_selected_keymap()
+        keymap_data = self._keymap_mgr.get_selected_keymap()
         octaves = keymap_data['keymap']
         octave = octaves[octave_id]
         pitches = set(octave)
         return pitches
 
     def _get_pitch_key_info(self):
-        keymap_data = self._keymap_manager.get_selected_keymap()
+        keymap_data = self._keymap_mgr.get_selected_keymap()
         octaves = keymap_data['keymap']
         pitches = set()
         for octave_id, keymap_pitches in enumerate(octaves):
@@ -217,7 +217,7 @@ class TypewriterManager():
         return pitches
 
     def get_nearest_key_id(self, pitch):
-        keymap_id = self._keymap_manager.get_selected_keymap_id()
+        keymap_id = self._keymap_mgr.get_selected_keymap_id()
         if self._pitch_key_info_version != keymap_id:
             self._pitch_key_info_version = keymap_id
             self._pitch_key_info = sorted(self._get_pitch_key_info(), key=lambda x: x[0])
@@ -238,7 +238,7 @@ class TypewriterManager():
                 return key_id_b
 
     def get_octave_count(self):
-        keymap_data = self._keymap_manager.get_selected_keymap()
+        keymap_data = self._keymap_mgr.get_selected_keymap()
         keymap = keymap_data['keymap']
         octave_count = len(keymap)
         return octave_count
@@ -246,7 +246,7 @@ class TypewriterManager():
     def get_octave(self):
         selected = self._session.get_octave_id()
         if selected == None:
-            keymap_data = self._keymap_manager.get_selected_keymap()
+            keymap_data = self._keymap_mgr.get_selected_keymap()
             if keymap_data.get('is_hit_keymap', False):
                 base_octave = 0
             else:
@@ -260,12 +260,12 @@ class TypewriterManager():
         self._updater.signal_update('signal_octave')
 
     def get_led_states(self):
-        control_manager = self._ui_model.get_control_manager()
-        selected_control = control_manager.get_selected_control()
+        control_mgr = self._ui_model.get_control_manager()
+        selected_control = control_mgr.get_selected_control()
         if selected_control == None:
             return {}
 
-        keymap_data = self._keymap_manager.get_selected_keymap()
+        keymap_data = self._keymap_mgr.get_selected_keymap()
         keymap = keymap_data['keymap']
         self._create_current_map(keymap)
         is_hit_keymap = keymap_data.get('is_hit_keymap', False)
@@ -306,8 +306,8 @@ class TypewriterManager():
         return led_states
 
     def get_enabled_octave_leds(self):
-        control_manager = self._ui_model.get_control_manager()
-        selected_control = control_manager.get_selected_control()
+        control_mgr = self._ui_model.get_control_manager()
+        selected_control = control_mgr.get_selected_control()
         if selected_control == None:
             return set()
 

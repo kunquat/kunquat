@@ -51,9 +51,9 @@ class InputControls(QWidget, Updater):
         self._show_controls()
 
     def _show_controls(self):
-        visibility_manager = self._ui_model.get_visibility_manager()
+        visibility_mgr = self._ui_model.get_visibility_manager()
         icon_bank = self._ui_model.get_icon_bank()
-        view_mode = visibility_manager.get_input_control_view()
+        view_mode = visibility_mgr.get_input_control_view()
         if view_mode == 'full':
             self._controls.setCurrentIndex(0)
             icon_path = icon_bank.get_icon_path('input_compact')
@@ -68,10 +68,10 @@ class InputControls(QWidget, Updater):
             assert False
 
     def _switch_controls(self):
-        visibility_manager = self._ui_model.get_visibility_manager()
-        cur_view_mode = visibility_manager.get_input_control_view()
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        cur_view_mode = visibility_mgr.get_input_control_view()
         new_view_mode = 'compact' if cur_view_mode != 'compact' else 'full'
-        visibility_manager.set_input_control_view(new_view_mode)
+        visibility_mgr.set_input_control_view(new_view_mode)
         self._updater.signal_update('signal_input_control_layout')
 
 

@@ -39,8 +39,8 @@ class EnvBindWindow(Updater, SaverWindow):
 
     def closeEvent(self, event):
         event.ignore()
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_env_and_bindings()
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        visibility_mgr.hide_env_and_bindings()
 
     def sizeHint(self):
         return QSize(1024, 600)

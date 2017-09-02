@@ -87,7 +87,7 @@ class Ruler(QWidget, Updater):
         if self._is_grid_ruler:
             return
 
-        playback_manager = self._ui_model.get_playback_manager()
+        playback_mgr = self._ui_model.get_playback_manager()
         was_playback_cursor_visible = self._is_playback_cursor_visible
 
         prev_offset = self._playback_cursor_offset
@@ -95,8 +95,8 @@ class Ruler(QWidget, Updater):
         self._is_playback_cursor_visible = False
         self._playback_cursor_offset = None
 
-        if playback_manager.is_playback_active():
-            track_num, system_num, row_ts = playback_manager.get_playback_position()
+        if playback_mgr.is_playback_active():
+            track_num, system_num, row_ts = playback_mgr.get_playback_position()
             if track_num < 0 or system_num < 0:
                 ploc = utils.get_current_playback_pattern_location(self._ui_model)
                 if ploc:
@@ -136,10 +136,10 @@ class Ruler(QWidget, Updater):
 
         self._lengths = []
 
-        grid_manager = self._ui_model.get_grid_manager()
-        gp_id = grid_manager.get_selected_grid_pattern_id()
+        grid_mgr = self._ui_model.get_grid_manager()
+        gp_id = grid_mgr.get_selected_grid_pattern_id()
         if gp_id != None:
-            gp = grid_manager.get_grid_pattern(gp_id)
+            gp = grid_mgr.get_grid_pattern(gp_id)
             gp_length = gp.get_length()
             self._lengths = [gp_length]
 
@@ -201,9 +201,8 @@ class Ruler(QWidget, Updater):
         rel_end_height = 0 # empty song
 
         # Get pattern index that contains the active cursor
-        playback_manager = self._ui_model.get_playback_manager()
-        if (playback_manager.follow_playback_cursor() and
-                not playback_manager.is_recording()):
+        playback_mgr = self._ui_model.get_playback_manager()
+        if (playback_mgr.follow_playback_cursor() and not playback_mgr.is_recording()):
             active_pattern_index = utils.get_current_playback_pattern_index(
                     self._ui_model)
         else:

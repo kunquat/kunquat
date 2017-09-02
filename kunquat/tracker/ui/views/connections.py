@@ -409,44 +409,44 @@ class ConnectionsView(QWidget):
         self._ls_cache = {}
 
     def _update_style(self):
-        style_manager = self._ui_model.get_style_manager()
-        if not style_manager.is_custom_style_enabled():
+        style_mgr = self._ui_model.get_style_manager()
+        if not style_mgr.is_custom_style_enabled():
             self._set_config({})
             self.update()
             return
 
         def get_colour(name):
-            return QColor(style_manager.get_style_param(name))
+            return QColor(style_mgr.get_style_param(name))
 
-        border_contrast = style_manager.get_style_param('border_contrast')
-        button_brightness = style_manager.get_style_param('button_brightness')
-        press_brightness = style_manager.get_style_param('button_press_brightness')
+        border_contrast = style_mgr.get_style_param('border_contrast')
+        button_brightness = style_mgr.get_style_param('button_brightness')
+        press_brightness = style_mgr.get_style_param('button_press_brightness')
 
         def get_outset_colours(name):
-            return (QColor(style_manager.get_adjusted_colour(name, 0)),
-                    QColor(style_manager.get_adjusted_colour(name, border_contrast)),
-                    QColor(style_manager.get_adjusted_colour(name, -border_contrast)))
+            return (QColor(style_mgr.get_adjusted_colour(name, 0)),
+                    QColor(style_mgr.get_adjusted_colour(name, border_contrast)),
+                    QColor(style_mgr.get_adjusted_colour(name, -border_contrast)))
 
         def get_button_colours(name):
-            return (QColor(style_manager.get_adjusted_colour(name, button_brightness)),
-                    QColor(style_manager.get_adjusted_colour(
+            return (QColor(style_mgr.get_adjusted_colour(name, button_brightness)),
+                    QColor(style_mgr.get_adjusted_colour(
                         name, button_brightness + border_contrast)),
-                    QColor(style_manager.get_adjusted_colour(
+                    QColor(style_mgr.get_adjusted_colour(
                         name, button_brightness - border_contrast)))
 
         def get_down_colours(name):
             down_brightness = button_brightness + press_brightness
-            return (QColor(style_manager.get_adjusted_colour(name, down_brightness)),
-                    QColor(style_manager.get_adjusted_colour(
+            return (QColor(style_mgr.get_adjusted_colour(name, down_brightness)),
+                    QColor(style_mgr.get_adjusted_colour(
                         name, down_brightness + border_contrast)),
-                    QColor(style_manager.get_adjusted_colour(
+                    QColor(style_mgr.get_adjusted_colour(
                         name, down_brightness - border_contrast)))
 
         pv_hilight_selected = get_colour('conns_proc_voice_selected_colour')
         focus_colour = get_colour('conns_focus_colour')
         bg_colour = get_colour('conns_bg_colour')
 
-        focus_pressed_colour = QColor(style_manager.get_adjusted_colour(
+        focus_pressed_colour = QColor(style_mgr.get_adjusted_colour(
             'conns_focus_colour', press_brightness))
 
         pv_hilight_excluded = utils.lerp_colour(pv_hilight_selected, bg_colour, 0.5)
@@ -492,13 +492,13 @@ class ConnectionsView(QWidget):
 
         config = {
             'bg_colour':
-                QColor(style_manager.get_style_param('conns_bg_colour')),
+                QColor(style_mgr.get_style_param('conns_bg_colour')),
             'edge_colour':
-                QColor(style_manager.get_style_param('conns_edge_colour')),
+                QColor(style_mgr.get_style_param('conns_edge_colour')),
             'focused_edge_colour':
-                QColor(style_manager.get_style_param('conns_focus_colour')),
+                QColor(style_mgr.get_style_param('conns_focus_colour')),
             'invalid_port_colour':
-                QColor(style_manager.get_style_param('conns_invalid_port_colour')),
+                QColor(style_mgr.get_style_param('conns_invalid_port_colour')),
 
             'devices': devices,
         }
@@ -1292,12 +1292,12 @@ class ConnectionsView(QWidget):
             assert False
 
     def _perform_button_click(self, button_info, shift_pressed):
-        visibility_manager = self._ui_model.get_visibility_manager()
+        visibility_mgr = self._ui_model.get_visibility_manager()
         dev_id = button_info['dev_id']
         icon_bank = self._ui_model.get_icon_bank()
         if dev_id.startswith('au'):
             if button_info['button_type'] == 'edit':
-                visibility_manager.show_audio_unit(self._get_full_id(dev_id))
+                visibility_mgr.show_audio_unit(self._get_full_id(dev_id))
             elif (button_info['button_type'] == 'remove'):
                 remove_action = lambda: self._remove_au(dev_id)
                 if shift_pressed:
@@ -1307,7 +1307,7 @@ class ConnectionsView(QWidget):
                     dialog.exec_()
         elif dev_id.startswith('proc'):
             if button_info['button_type'] == 'edit':
-                visibility_manager.show_processor(self._get_full_id(dev_id))
+                visibility_mgr.show_processor(self._get_full_id(dev_id))
             elif (button_info['button_type'] == 'remove'):
                 remove_action = lambda: self._remove_proc(dev_id)
                 if shift_pressed:
@@ -1319,8 +1319,8 @@ class ConnectionsView(QWidget):
     def _remove_au(self, dev_id):
         full_dev_id = self._get_full_id(dev_id)
 
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_audio_unit(full_dev_id)
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        visibility_mgr.hide_audio_unit(full_dev_id)
 
         connections = self._get_connections()
         connections.disconnect_device(full_dev_id)
@@ -1350,8 +1350,8 @@ class ConnectionsView(QWidget):
         full_dev_id = self._get_full_id(dev_id)
 
         assert self._au_id != None
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_processor(full_dev_id)
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        visibility_mgr.hide_processor(full_dev_id)
 
         connections = self._get_connections()
         connections.disconnect_device(full_dev_id)

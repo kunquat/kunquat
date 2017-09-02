@@ -23,8 +23,8 @@ class NotationSelect(QWidget):
         super().__init__()
         self._ui_model = None
         self._updater = None
-        self._notation_manager = None
-        self._typewriter_manager = None
+        self._notation_mgr = None
+        self._typewriter_mgr = None
         self._notation_catalogue = {}
 
         self._notations = KqtComboBox()
@@ -41,8 +41,8 @@ class NotationSelect(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
-        self._notation_manager = ui_model.get_notation_manager()
-        self._typewriter_manager = ui_model.get_typewriter_manager()
+        self._notation_mgr = ui_model.get_notation_manager()
+        self._typewriter_mgr = ui_model.get_typewriter_manager()
 
         self._notations.currentIndexChanged.connect(self._select_notation)
 
@@ -62,36 +62,36 @@ class NotationSelect(QWidget):
             self._update_enabled()
 
     def _select_notation(self, catalogue_index):
-        old_octave_id = self._typewriter_manager.get_octave()
+        old_octave_id = self._typewriter_mgr.get_octave()
 
         notation_id = self._notation_catalogue[catalogue_index]
-        self._notation_manager.set_selected_notation_id(notation_id)
+        self._notation_mgr.set_selected_notation_id(notation_id)
 
         signals = ['signal_notation']
 
-        notation = self._notation_manager.get_selected_notation()
+        notation = self._notation_mgr.get_selected_notation()
         new_octave_id = min(old_octave_id, notation.get_octave_count() - 1)
         if new_octave_id != old_octave_id:
-            self._typewriter_manager.set_octave(new_octave_id)
+            self._typewriter_mgr.set_octave(new_octave_id)
             signals.append('signal_octave')
 
         self._updater.signal_update(*signals)
 
     def _update_enabled(self):
-        keymap_manager = self._ui_model.get_keymap_manager()
-        self.setEnabled(not keymap_manager.is_hit_keymap_active())
+        keymap_mgr = self._ui_model.get_keymap_manager()
+        self.setEnabled(not keymap_mgr.is_hit_keymap_active())
 
     def _update_notation_texts(self):
         for i, notation_id in self._notation_catalogue.items():
-            notation = self._notation_manager.get_notation(notation_id)
+            notation = self._notation_mgr.get_notation(notation_id)
             notation_name = notation.get_name() or '-'
             self._notations.setItemText(i, notation_name)
 
     def _update_notations(self):
-        notation_ids = sorted(self._notation_manager.get_all_notation_ids())
+        notation_ids = sorted(self._notation_mgr.get_all_notation_ids())
         self._notation_catalogue = dict(enumerate(notation_ids))
 
-        selected_notation_id = self._notation_manager.get_selected_notation_id()
+        selected_notation_id = self._notation_mgr.get_selected_notation_id()
         try:
             selected_index = notation_ids.index(selected_notation_id)
         except ValueError:

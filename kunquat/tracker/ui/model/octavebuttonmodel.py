@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2017
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -18,8 +18,8 @@ class OctaveButtonModel():
         self._controller = None
         self._session = None
         self._ui_model = None
-        self._typewriter_manager = None
-        self._notation_manager = None
+        self._typewriter_mgr = None
+        self._notation_mgr = None
 
         self._octave_id = octave_id
 
@@ -29,23 +29,23 @@ class OctaveButtonModel():
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._typewriter_manager = ui_model.get_typewriter_manager()
-        self._notation_manager = ui_model.get_notation_manager()
+        self._typewriter_mgr = ui_model.get_typewriter_manager()
+        self._notation_mgr = ui_model.get_notation_manager()
 
     def get_name(self):
         if self._ui_model.get_keymap_manager().is_hit_keymap_active():
             return str(self._octave_id)
 
-        notation = self._notation_manager.get_selected_notation()
+        notation = self._notation_mgr.get_selected_notation()
         if self._octave_id >= notation.get_octave_count():
             return ''
         return notation.get_octave_name(self._octave_id)
 
     def select(self):
-        self._typewriter_manager.set_octave(self._octave_id)
+        self._typewriter_mgr.set_octave(self._octave_id)
 
     def is_selected(self):
-        selected_octave = self._typewriter_manager.get_octave()
+        selected_octave = self._typewriter_mgr.get_octave()
         return (self._octave_id == selected_octave)
 
 

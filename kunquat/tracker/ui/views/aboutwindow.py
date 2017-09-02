@@ -34,7 +34,7 @@ class AboutWindow(QWidget, Updater):
 
     def closeEvent(self, ev):
         ev.ignore()
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_about()
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        visibility_mgr.hide_about()
 
 

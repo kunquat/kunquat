@@ -34,8 +34,8 @@ class SettingsWindow(QWidget, Updater):
 
     def closeEvent(self, event):
         event.ignore()
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_settings()
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        visibility_mgr.hide_settings()
 
     def sizeHint(self):
         return QSize(800, 512)

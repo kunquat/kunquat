@@ -11,9 +11,9 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-'''A wrapper for accessing libsamplerate.
+"""A wrapper for accessing libsamplerate.
 
-'''
+"""
 
 import ctypes
 import ctypes.util
@@ -32,13 +32,13 @@ class SampleRate():
     _BUF_FRAME_COUNT = 4096
 
     def __init__(self, converter_type, channels):
-        '''Crate a new sample rate converter.
+        """Create a new sample rate converter.
 
         Arguments:
         converter_type -- The converter type.
         channels       -- Number of channels.
 
-        '''
+        """
         self._channels = channels
 
         error = ctypes.c_int(0)
@@ -69,13 +69,13 @@ class SampleRate():
         self._out_frame_count = 0
 
     def set_ratio(self, ratio, smooth=True):
-        '''Set sample rate conversion ratio.
+        """Set sample rate conversion ratio.
 
         Arguments:
         ratio  -- The conversion ratio.
         smooth -- Use smooth transition of conversion ratio.
 
-        '''
+        """
         if math.isnan(ratio) or math.isinf(ratio) or (ratio <= 0.0):
             raise ValueError('Invalid sample rate conversion ratio: {}'.format(ratio))
 
@@ -95,7 +95,7 @@ class SampleRate():
                     str(err_cstr, encoding='utf-8')))
 
     def add_input_data(self, *data, end_of_input=True):
-        '''Add input audio data to the sample rate converter.
+        """Add input audio data to the sample rate converter.
 
         Arguments:
         data         -- The input data, each channel as a separate argument.
@@ -103,7 +103,7 @@ class SampleRate():
                         error to call this function after a previous call
                         with this value set to True.
 
-        '''
+        """
         if not self._allow_input:
             raise SampleRateError(
                     'More input data provided after indicating end of input')
@@ -129,14 +129,14 @@ class SampleRate():
         return self._cur_est_frame_count + self._prev_est_frame_count
 
     def get_output_data(self):
-        '''Get converted audio data.
+        """Get converted audio data.
 
         Return value:
         A tuple containing audio data for each channel.  The returned
         audio data contains all converted data of fed input data so
         far.
 
-        '''
+        """
 
         frames_left = len(self._input_data[0])
 
@@ -239,9 +239,9 @@ class SampleRate():
         return tuple(output_data)
 
     def reset(self):
-        '''Reset the internal state of the sample rate converter.
+        """Reset the internal state of the sample rate converter.
 
-        '''
+        """
         error = _samplerate.src_reset(self._state)
         if error != 0:
             err_cstr = _samplerate.src_strerror(error)
@@ -260,9 +260,9 @@ class SampleRate():
 
 
 class SampleRateError(Exception):
-    '''Class for libsamplerate-related errors.
+    """Class for libsamplerate-related errors.
 
-    '''
+    """
 
 
 _SRC_STATE = ctypes.c_void_p

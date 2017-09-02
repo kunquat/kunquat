@@ -23,7 +23,7 @@ class OctaveSelector(QFrame, Updater):
     def __init__(self):
         super().__init__()
         self.setFocusPolicy(Qt.NoFocus)
-        self._typewriter_manager = None
+        self._typewriter_mgr = None
 
         self._title = QLabel('Octave:')
 
@@ -44,28 +44,28 @@ class OctaveSelector(QFrame, Updater):
         self.register_action('signal_notation', self._update_layout)
         self.register_action('signal_change', self._update_leds)
 
-        self._typewriter_manager = self._ui_model.get_typewriter_manager()
+        self._typewriter_mgr = self._ui_model.get_typewriter_manager()
         self._update_layout()
 
     def _update_leds(self):
         if not self.isVisible():
             return
 
-        octaves_enabled = self._typewriter_manager.get_enabled_octave_leds()
+        octaves_enabled = self._typewriter_mgr.get_enabled_octave_leds()
         for octave_id in range(self._button_layout.count()):
             button = self._button_layout.itemAt(octave_id).widget()
             button.update_led_state(octave_id in octaves_enabled)
 
     def _update_layout(self):
-        keymap_manager = self._ui_model.get_keymap_manager()
-        use_hit_keymap = keymap_manager.is_hit_keymap_active()
+        keymap_mgr = self._ui_model.get_keymap_manager()
+        use_hit_keymap = keymap_mgr.is_hit_keymap_active()
         if use_hit_keymap:
             self._title.setText('Hit bank:')
         else:
             self._title.setText('Octave:')
 
         old_button_count = self._button_layout.count()
-        new_button_count = self._typewriter_manager.get_octave_count()
+        new_button_count = self._typewriter_mgr.get_octave_count()
 
         # Create new widgets
         for i in range(old_button_count, new_button_count):

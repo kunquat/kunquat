@@ -18,17 +18,17 @@ from .processorupdater import ProcessorUpdater
 class ProcessorKeyboardMapper(AudioUnitKeyboardMapper, ProcessorUpdater):
 
     def process_typewriter_button_event(self, event):
-        control_manager = self._ui_model.get_control_manager()
+        control_mgr = self._ui_model.get_control_manager()
         control_id = self.get_control_id()
 
         use_test_output = ((control_id != None) and
                 self._is_processor_testable() and
-                control_manager.is_processor_testing_enabled(self._proc_id))
+                control_mgr.is_processor_testing_enabled(self._proc_id))
 
         if use_test_output:
-            control_manager.set_test_processor(control_id, self._proc_id)
+            control_mgr.set_test_processor(control_id, self._proc_id)
         processed = super().process_typewriter_button_event(event)
-        control_manager.set_test_processor(control_id, None)
+        control_mgr.set_test_processor(control_id, None)
 
         return processed
 

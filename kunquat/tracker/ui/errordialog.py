@@ -21,12 +21,12 @@ from kunquat.tracker.errorbase import *
 
 
 MESSAGE_RICH_FMT = \
-'''<h3>We are sorry, but Kunquat Tracker
+"""<h3>We are sorry, but Kunquat Tracker
 encountered an error and needs to close.</h3>
 <p>This is a programming error. If you would like to help us fix it,
 please submit an issue to Kunquat issue tracker at
 <a{} href="https://github.com/kunquat/kunquat/issues">https://github.com/kunquat/kunquat/issues</a>
-with the following information attached.</p>'''
+with the following information attached.</p>"""
 
 
 class ErrorDetails(QTextEdit):
@@ -74,11 +74,11 @@ class ErrorDialog(QDialog):
 
         sys.excepthook = self._excepthook
 
-    def update_link_colour(self, style_manager):
+    def update_link_colour(self, style_mgr):
         style = ''
 
-        if style_manager.is_custom_style_enabled():
-            colour = style_manager.get_link_colour()
+        if style_mgr.is_custom_style_enabled():
+            colour = style_mgr.get_link_colour()
             style = ' style="color: {};"'.format(colour)
 
         self._message.setText(MESSAGE_RICH_FMT.format(style))

@@ -89,18 +89,18 @@ class PeakMeter(QWidget):
         self._update_buffers()
 
     def _update_style(self):
-        style_manager = self._ui_model.get_style_manager()
-        if not style_manager.is_custom_style_enabled():
+        style_mgr = self._ui_model.get_style_manager()
+        if not style_mgr.is_custom_style_enabled():
             self._set_config({})
             self.update()
             return
 
         colours = {
-            'bg':   QColor(style_manager.get_style_param('peak_meter_bg_colour')),
-            'low':  QColor(style_manager.get_style_param('peak_meter_low_colour')),
-            'mid':  QColor(style_manager.get_style_param('peak_meter_mid_colour')),
-            'high': QColor(style_manager.get_style_param('peak_meter_high_colour')),
-            'clip': QColor(style_manager.get_style_param('peak_meter_clip_colour')),
+            'bg':   QColor(style_mgr.get_style_param('peak_meter_bg_colour')),
+            'low':  QColor(style_mgr.get_style_param('peak_meter_low_colour')),
+            'mid':  QColor(style_mgr.get_style_param('peak_meter_mid_colour')),
+            'high': QColor(style_mgr.get_style_param('peak_meter_high_colour')),
+            'clip': QColor(style_mgr.get_style_param('peak_meter_clip_colour')),
         }
 
         config = { 'colours': colours }
@@ -146,7 +146,7 @@ class PeakMeter(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
-        self._stat_manager = ui_model.get_stat_manager()
+        self._stat_mgr = ui_model.get_stat_manager()
 
         self._update_style()
 
@@ -160,7 +160,7 @@ class PeakMeter(QWidget):
             self._update_style()
 
     def _update_levels(self):
-        levels = self._stat_manager.get_audio_levels()
+        levels = self._stat_mgr.get_audio_levels()
         cur_time = time.time()
 
         for ch, level in enumerate(levels):
@@ -177,7 +177,7 @@ class PeakMeter(QWidget):
                 hold[0] = self._levels_dB[ch]
                 hold[1] = cur_time
 
-        max_levels = self._stat_manager.get_max_audio_levels()
+        max_levels = self._stat_mgr.get_max_audio_levels()
         self._max_levels_dB = [
                 (math.log(s, 2) * 6 if s > 0 else float('-inf')) for s in max_levels]
 

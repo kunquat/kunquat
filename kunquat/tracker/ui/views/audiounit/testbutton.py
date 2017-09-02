@@ -20,15 +20,15 @@ class TestButton(QPushButton, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._control_manager = None
-        self._typewriter_manager = None
+        self._control_mgr = None
+        self._typewriter_mgr = None
         self._button_model = None
 
         self.setText('Test')
 
     def _on_setup(self):
-        self._control_manager = self._ui_model.get_control_manager()
-        self._typewriter_manager = self._ui_model.get_typewriter_manager()
+        self._control_mgr = self._ui_model.get_control_manager()
+        self._typewriter_mgr = self._ui_model.get_typewriter_manager()
         self.pressed.connect(self._pressed)
         self.released.connect(self._released)
 
@@ -41,11 +41,11 @@ class TestButton(QPushButton, AudioUnitUpdater):
 
         au = module.get_audio_unit(self._au_id)
 
-        self._control_manager.set_control_id_override(control_id)
+        self._control_mgr.set_control_id_override(control_id)
         au.set_test_params_enabled(True)
-        self._button_model = self._typewriter_manager.get_random_button_model()
+        self._button_model = self._typewriter_mgr.get_random_button_model()
         self._button_model.start_tracked_note()
-        self._control_manager.set_control_id_override(None)
+        self._control_mgr.set_control_id_override(None)
         au.set_test_params_enabled(False)
 
     def _released(self):

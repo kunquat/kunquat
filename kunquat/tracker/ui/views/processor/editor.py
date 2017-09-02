@@ -25,7 +25,7 @@ class Editor(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
-        self._control_manager = None
+        self._control_mgr = None
         self._proc_editor = None
 
         self._signals = Signals()
@@ -50,7 +50,7 @@ class Editor(QWidget, ProcessorUpdater):
                 'signal_proc_signals_{}'.format(self._proc_id),
                 self._update_test_toggle)
 
-        self._control_manager = self._ui_model.get_control_manager()
+        self._control_mgr = self._ui_model.get_control_manager()
 
         # Get the processor type
         module = self._ui_model.get_module()
@@ -92,7 +92,7 @@ class Editor(QWidget, ProcessorUpdater):
         old_block = self._test_output.blockSignals(True)
         if self._is_processor_testable():
             self._test_output.setEnabled(True)
-            enabled = self._control_manager.is_processor_testing_enabled(self._proc_id)
+            enabled = self._control_mgr.is_processor_testing_enabled(self._proc_id)
             self._test_output.setCheckState(Qt.Checked if enabled else Qt.Unchecked)
         else:
             self._test_output.setCheckState(Qt.Unchecked)
@@ -101,7 +101,7 @@ class Editor(QWidget, ProcessorUpdater):
 
     def _change_test_output_state(self, state):
         enabled = (state == Qt.Checked)
-        self._control_manager.set_processor_testing_enabled(self._proc_id, enabled)
+        self._control_mgr.set_processor_testing_enabled(self._proc_id, enabled)
         self._updater.signal_update(
                 'signal_proc_test_output{}'.format(self._proc_id))
 

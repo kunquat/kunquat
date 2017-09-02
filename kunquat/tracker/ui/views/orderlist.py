@@ -268,7 +268,7 @@ class Orderlist(QWidget, Updater):
     def __init__(self):
         super().__init__()
         self._album = None
-        self._orderlist_manager = None
+        self._orderlist_mgr = None
         self._album_tree_model = None
 
         self._album_tree = AlbumTree()
@@ -287,7 +287,7 @@ class Orderlist(QWidget, Updater):
 
         module = self._ui_model.get_module()
         self._album = module.get_album()
-        self._orderlist_manager = self._ui_model.get_orderlist_manager()
+        self._orderlist_mgr = self._ui_model.get_orderlist_manager()
         self._update_model()
 
     def _update_model(self):
@@ -299,7 +299,7 @@ class Orderlist(QWidget, Updater):
         self._album_tree.expandAll()
 
         # Fix selection
-        selection = self._orderlist_manager.get_orderlist_selection()
+        selection = self._orderlist_mgr.get_orderlist_selection()
         if selection != None:
             if type(selection) == tuple:
                 track_num, system_num = selection
@@ -307,14 +307,14 @@ class Orderlist(QWidget, Updater):
                     system_num = 0
                     track_num = self._album.get_track_count() - 1
                 if track_num < 0:
-                    self._orderlist_manager.set_orderlist_selection(None)
+                    self._orderlist_mgr.set_orderlist_selection(None)
                 else:
                     song = self._album.get_song_by_track(track_num)
                     system_num = min(system_num, song.get_system_count() - 1)
                     if system_num < 0:
-                        self._orderlist_manager.set_orderlist_selection(None)
+                        self._orderlist_mgr.set_orderlist_selection(None)
                     else:
-                        self._orderlist_manager.set_orderlist_selection(
+                        self._orderlist_mgr.set_orderlist_selection(
                                 (track_num, system_num))
                         index = self._album_tree_model.get_pattern_index(
                                 track_num, system_num)
@@ -323,7 +323,7 @@ class Orderlist(QWidget, Updater):
                 track_num = selection
                 track_num = min(track_num, self._album.get_track_count() - 1)
                 if track_num < 0:
-                    self._orderlist_manager.set_orderlist_selection(None)
+                    self._orderlist_mgr.set_orderlist_selection(None)
                 else:
                     index = self._album_tree_model.get_song_index(track_num)
                     self._album_tree.setCurrentIndex(index)

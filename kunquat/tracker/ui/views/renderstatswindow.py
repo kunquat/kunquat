@@ -34,8 +34,8 @@ class RenderStatsWindow(QWidget, Updater):
 
     def closeEvent(self, event):
         event.ignore()
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_render_stats()
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        visibility_mgr.hide_render_stats()
 
     def sizeHint(self):
         return QSize(768, 480)

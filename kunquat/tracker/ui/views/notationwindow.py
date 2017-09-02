@@ -37,8 +37,8 @@ class NotationWindow(Updater, SaverWindow):
 
     def closeEvent(self, event):
         event.ignore()
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_notation_editor()
+        visibility_mgr = self._ui_model.get_visibility_manager()
+        visibility_mgr.hide_notation_editor()
 
     def sizeHint(self):
         return QSize(1280, 768)

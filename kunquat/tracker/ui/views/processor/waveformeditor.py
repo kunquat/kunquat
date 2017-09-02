@@ -61,13 +61,13 @@ class WaveformEditor(QWidget, ProcessorUpdater):
         self._base_func_selector.currentIndexChanged.connect(self._base_func_selected)
 
     def _update_style(self):
-        style_manager = self._ui_model.get_style_manager()
-        if not style_manager.is_custom_style_enabled():
+        style_mgr = self._ui_model.get_style_manager()
+        if not style_mgr.is_custom_style_enabled():
             self._waveform.set_config({})
             return
 
         def get_colour(name):
-            return QColor(style_manager.get_style_param(name))
+            return QColor(style_mgr.get_style_param(name))
 
         disabled_colour = QColor(get_colour('bg_colour'))
         disabled_colour.setAlpha(0x7f)
