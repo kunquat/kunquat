@@ -16,6 +16,29 @@ from collections import defaultdict, deque
 from itertools import count
 
 
+class _AuInfo():
+
+    def __init__(self):
+        self.expanded_vars = set()
+        self.conns_edit_mode = None
+        self.conns_hit_index = None
+        self.conns_expr_name = None
+        self.selected_expr = None
+        self.test_force = 0
+        self.test_expressions = {}
+        self.test_params_enabled = False
+        self.edit_selected_hit = (0, 0)
+
+
+class _ProcInfo():
+
+    def __init__(self):
+        self.selected_sample_id = None
+        self.selected_sample_note_map_point = None
+        self.selected_sample_hit_info = (0, 0)
+        self.selected_sample_hit_map_force = None
+
+
 class Session():
 
     def __init__(self):
@@ -137,20 +160,9 @@ class Session():
         self._runtime_env = {}
         self._selected_binding_index = None
 
-        # Audio unit editing
-        self._expanded_au_vars = {}
-        self._au_conns_edit_mode = {}
-        self._au_conns_hit_index = {}
-        self._au_conns_expr_name = {}
-        self._au_expressions = {}
-        self._au_test_forces = {}
-        self._au_test_expressions = {}
-        self._au_test_params_enabled = {}
-        self._edit_selected_hits = {}
-        self._selected_sample_ids = {}
-        self._selected_sample_note_map_points = {}
-        self._selected_sample_hit_info = {}
-        self._selected_sample_hit_map_force = {}
+        # Audio units and processors
+        self._aus = defaultdict(_AuInfo)
+        self._procs = defaultdict(_ProcInfo)
 
     def get_output_speed(self):
         return self._output_speed
@@ -673,15 +685,14 @@ class Session():
         return self._default_grid_pattern_id
 
     def set_au_var_expanded(self, au_id, var_name, expanded):
-        au_vars = self._expanded_au_vars.get(au_id, set())
+        au_info = self._aus[au_id]
         if expanded:
-            au_vars.add(var_name)
+            au_info.expanded_vars.add(var_name)
         else:
-            au_vars.discard(var_name)
-        self._expanded_au_vars[au_id] = au_vars
+            au_info.expanded_vars.discard(var_name)
 
     def is_au_var_expanded(self, au_id, var_name):
-        return (var_name in self._expanded_au_vars.get(au_id, set()))
+        return (var_name in self._aus[au_id].expanded_vars)
 
     def set_module_path(self, path):
         self._module_path = path
@@ -749,34 +760,34 @@ class Session():
         return self._au_export_info
 
     def set_au_connections_edit_mode(self, au_id, mode):
-        self._au_conns_edit_mode[au_id] = mode
+        self._aus[au_id].conns_edit_mode = mode
 
     def get_au_connections_edit_mode(self, au_id):
-        return self._au_conns_edit_mode.get(au_id, None)
+        return self._aus[au_id].conns_edit_mode
 
     def set_au_connections_hit_index(self, au_id, hit_index):
-        self._au_conns_hit_index[au_id] = hit_index
+        self._aus[au_id].conns_hit_index = hit_index
 
     def get_au_connections_hit_index(self, au_id):
-        return self._au_conns_hit_index.get(au_id, None)
+        return self._aus[au_id].conns_hit_index
 
     def set_edit_selected_hit_info(self, au_id, hit_base, hit_offset):
-        self._edit_selected_hits[au_id] = (hit_base, hit_offset)
+        self._aus[au_id].edit_selected_hit = (hit_base, hit_offset)
 
     def get_edit_selected_hit_info(self, au_id):
-        return self._edit_selected_hits.get(au_id, (0, 0))
+        return self._aus[au_id].edit_selected_hit
 
     def set_selected_expression(self, au_id, name):
-        self._au_expressions[au_id] = name
+        self._aus[au_id].selected_expr = name
 
     def get_selected_expression(self, au_id):
-        return self._au_expressions.get(au_id, None)
+        return self._aus[au_id].selected_expr
 
     def set_au_connections_expr_name(self, au_id, expr_name):
-        self._au_conns_expr_name[au_id] = expr_name
+        self._aus[au_id].conns_expr_name = expr_name
 
     def get_au_connections_expr_name(self, au_id):
-        return self._au_conns_expr_name.get(au_id, None)
+        return self._aus[au_id].conns_expr_name
 
     def set_active_ch_expression(self, ch, expr_name):
         self._channel_active_ch_expression[ch] = expr_name
@@ -792,45 +803,45 @@ class Session():
         self._channel_active_ch_expression = {}
 
     def set_au_test_force(self, au_id, force):
-        self._au_test_forces[au_id] = force
+        self._aus[au_id].test_force = force
 
     def get_au_test_force(self, au_id):
-        return self._au_test_forces.get(au_id, 0)
+        return self._aus[au_id].test_force
 
     def set_au_test_expression(self, au_id, index, expr_name):
-        self._au_test_expressions[(au_id, index)] = expr_name
+        self._aus[au_id].test_expressions[index] = expr_name
 
     def get_au_test_expression(self, au_id, index):
-        return self._au_test_expressions.get((au_id, index), '')
+        return self._aus[au_id].test_expressions.get(index, '')
 
     def set_au_test_params_enabled(self, au_id, enabled):
-        self._au_test_params_enabled[au_id] = enabled
+        self._aus[au_id].test_params_enabled = enabled
 
     def are_au_test_params_enabled(self, au_id):
-        return self._au_test_params_enabled.get(au_id)
+        return self._aus[au_id].test_params_enabled
 
     def set_selected_sample_id(self, proc_id, sample_id):
-        self._selected_sample_ids[proc_id] = sample_id
+        self._procs[proc_id].selected_sample_id = sample_id
 
     def get_selected_sample_id(self, proc_id):
-        return self._selected_sample_ids.get(proc_id, None)
+        return self._procs[proc_id].selected_sample_id
 
     def set_selected_sample_note_map_point(self, proc_id, point):
-        self._selected_sample_note_map_points[proc_id] = point
+        self._procs[proc_id].selected_sample_note_map_point = point
 
     def get_selected_sample_note_map_point(self, proc_id):
-        return self._selected_sample_note_map_points.get(proc_id, None)
+        return self._procs[proc_id].selected_sample_note_map_point
 
     def set_selected_sample_hit_info(self, proc_id, hit_info):
-        self._selected_sample_hit_info[proc_id] = hit_info
+        self._procs[proc_id].selected_sample_hit_info = hit_info
 
     def get_selected_sample_hit_info(self, proc_id):
-        return self._selected_sample_hit_info.get(proc_id, (0, 0))
+        return self._procs[proc_id].selected_sample_hit_info
 
     def set_selected_sample_hit_map_force(self, proc_id, force):
-        self._selected_sample_hit_map_force[proc_id] = force
+        self._procs[proc_id].selected_sample_hit_map_force = force
 
     def get_selected_sample_hit_map_force(self, proc_id):
-        return self._selected_sample_hit_map_force.get(proc_id, None)
+        return self._procs[proc_id].selected_sample_hit_map_force
 
 
