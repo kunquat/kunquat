@@ -517,10 +517,8 @@ _kunquat.kqt_Handle_validate.argtypes = [kqt_Handle]
 _kunquat.kqt_Handle_validate.restype = ctypes.c_int
 _kunquat.kqt_Handle_validate.errcheck = _error_check
 
-_kunquat.kqt_Handle_set_data.argtypes = [kqt_Handle,
-                                         ctypes.c_char_p,
-                                         ctypes.POINTER(ctypes.c_ubyte),
-                                         ctypes.c_long]
+_kunquat.kqt_Handle_set_data.argtypes = [
+        kqt_Handle, ctypes.c_char_p, ctypes.POINTER(ctypes.c_ubyte), ctypes.c_long]
 _kunquat.kqt_Handle_set_data.restype = ctypes.c_int
 _kunquat.kqt_Handle_set_data.errcheck = _error_check
 
@@ -562,9 +560,7 @@ _kunquat.kqt_Handle_get_audio_buffer_size.errcheck = _error_check
 _kunquat.kqt_Handle_get_duration.argtypes = [kqt_Handle, ctypes.c_int]
 _kunquat.kqt_Handle_get_duration.restype = ctypes.c_longlong
 _kunquat.kqt_Handle_get_duration.errcheck = _error_check
-_kunquat.kqt_Handle_set_position.argtypes = [kqt_Handle,
-                                             ctypes.c_int,
-                                             ctypes.c_longlong]
+_kunquat.kqt_Handle_set_position.argtypes = [kqt_Handle, ctypes.c_int, ctypes.c_longlong]
 _kunquat.kqt_Handle_set_position.restype = ctypes.c_int
 _kunquat.kqt_Handle_set_position.errcheck = _error_check
 _kunquat.kqt_Handle_get_position.argtypes = [kqt_Handle]
@@ -575,9 +571,7 @@ _kunquat.kqt_Handle_set_channel_mute.argtypes = [kqt_Handle, ctypes.c_int, ctype
 _kunquat.kqt_Handle_set_channel_mute.restype = ctypes.c_int
 _kunquat.kqt_Handle_set_channel_mute.errcheck = _error_check
 
-_kunquat.kqt_Handle_fire_event.argtypes = [kqt_Handle,
-                                     ctypes.c_int,
-                                     ctypes.c_char_p]
+_kunquat.kqt_Handle_fire_event.argtypes = [kqt_Handle, ctypes.c_int, ctypes.c_char_p]
 _kunquat.kqt_Handle_fire_event.restype = ctypes.c_int
 _kunquat.kqt_Handle_fire_event.errcheck = _error_check
 
