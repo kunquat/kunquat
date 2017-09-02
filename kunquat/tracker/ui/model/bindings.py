@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2017
 #
 # This file is part of Kunquat.
 #
@@ -16,11 +16,11 @@ from copy import deepcopy
 import kunquat.kunquat.events as events
 
 
-'''
+"""
 Format:
 bind = [bind_entry]
 bind_entry = [event_name, constraints, target_events]
-'''
+"""
 
 
 class _Node():
@@ -270,10 +270,10 @@ class Binding():
         return targets
 
 
-'''
+"""
 constraints = [constraint]
 constraint = [event_name, expr]
-'''
+"""
 
 class Constraints():
 
@@ -332,10 +332,10 @@ class Constraint():
         self._set_data(self._index, data)
 
 
-'''
+"""
 target_events = [target_event]
 target_event = [ch_offset, [event_name, maybe_expr]]
-'''
+"""
 
 class Targets():
 

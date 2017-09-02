@@ -1011,10 +1011,10 @@ class EnvelopeView(QWidget):
             pp = QPainter(self._curve_image)
 
             # Test
-            '''
+            """
             pp.setPen(QColor('#fff'))
             pp.drawRect(0, 0, pw - 1, ph - 1)
-            '''
+            """
 
             et = self._get_envelope_transform()
             t = et * QTransform().translate(0.5, -0.5 + ph).scale(pw - 1, -ph + 1)

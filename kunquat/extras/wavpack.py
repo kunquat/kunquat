@@ -71,7 +71,7 @@ class _WavPackRBase(_WavPackBase):
         return self._rate
 
     def read(self, frame_count=float('inf')):
-        '''Read audio data.
+        """Read audio data.
 
         Optional arguments:
         frame_count -- Maximum number of frames to be read.  If this
@@ -82,7 +82,7 @@ class _WavPackRBase(_WavPackBase):
         shorter than frame_count frames indicate that the end has
         been reached.
 
-        '''
+        """
         frames_left = frame_count
         if frames_left == float('inf'):
             frame_count = 65536
@@ -255,7 +255,7 @@ class _WavPackRBase(_WavPackBase):
 class WavPackR(_WavPackRBase):
 
     def __init__(self, fname, convert_to_float=True):
-        '''Create a new readable WavPack audio file.
+        """Create a new readable WavPack audio file.
 
         Arguments:
         fname -- Input file name.
@@ -265,7 +265,7 @@ class WavPackR(_WavPackRBase):
                             False, integer audio data will be scaled
                             to 32-bit integers.
 
-        '''
+        """
         super().__init__(open(fname, 'rb'), convert_to_float)
         self._prepare()
 
@@ -276,7 +276,7 @@ class WavPackR(_WavPackRBase):
 class WavPackRMem(_WavPackRBase):
 
     def __init__(self, data, convert_to_float=True):
-        '''Create a new readable WavPack stream from data in memory.
+        """Create a new readable WavPack stream from data in memory.
 
         Arguments:
         data -- Input data.
@@ -286,7 +286,7 @@ class WavPackRMem(_WavPackRBase):
                             False, integer audio data will be scaled
                             to 32-bit integers.
 
-        '''
+        """
         super().__init__(BytesIO(data), convert_to_float)
         self._prepare()
 
@@ -496,9 +496,9 @@ class WavPackWMem(_WavPackWBase):
 
 
 class WavPackError(Exception):
-    '''Class for WavPack-related errors.
+    """Class for WavPack-related errors.
 
-    '''
+    """
 
 
 _MODE_FLOAT     = 0x8

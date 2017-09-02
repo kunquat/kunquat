@@ -21,12 +21,12 @@ from kunquat.tracker.errorbase import *
 
 
 MESSAGE_RICH_FMT = \
-'''<h3>We are sorry, but Kunquat Tracker
+"""<h3>We are sorry, but Kunquat Tracker
 encountered an error and needs to close.</h3>
 <p>This is a programming error. If you would like to help us fix it,
 please submit an issue to Kunquat issue tracker at
 <a{} href="https://github.com/kunquat/kunquat/issues">https://github.com/kunquat/kunquat/issues</a>
-with the following information attached.</p>'''
+with the following information attached.</p>"""
 
 
 class ErrorDetails(QTextEdit):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2017
 #
 # This file is part of Kunquat.
 #
@@ -19,9 +19,9 @@ import warnings
 
 _ERROR_BRIEF = 'Kunquat Tracker encountered an error.'
 _SUBMIT_INFO = \
-'''Please submit an issue to Kunquat issue tracker at
+"""Please submit an issue to Kunquat issue tracker at
 https://github.com/kunquat/kunquat/issues with the following
-information attached.'''
+information attached."""
 
 
 def get_error_details(eclass, einst, trace):

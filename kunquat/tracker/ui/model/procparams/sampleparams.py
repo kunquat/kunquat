@@ -22,7 +22,7 @@ import os.path
 
 
 class SampleImportError(ValueError):
-    '''Error raised when sample importing fails.'''
+    """Error raised when sample importing fails."""
 
 
 class SampleParams(ProcParams):

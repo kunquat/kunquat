@@ -286,14 +286,14 @@ class Kunquat():
         return cbuf_left[:frames_available], cbuf_right[:frames_available]
 
     def set_channel_mute(self, channel, mute):
-        '''Set channel mute.
+        """Set channel mute.
 
         Arguments:
         channel -- The channel whose mute status is to be updated.  The
                    channel number is >= 0 and < 64.
         mute -- True to mute the channel, False to unmute.
 
-        '''
+        """
         _kunquat.kqt_Handle_set_channel_mute(self._handle, channel, int(mute))
 
     def fire_event(self, channel, event):

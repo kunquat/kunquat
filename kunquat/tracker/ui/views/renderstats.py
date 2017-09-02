@@ -64,12 +64,12 @@ class RenderStats(QWidget):
         v.addSpacing(4)
         v.addWidget(QLabel('UI load:'))
         v.addWidget(self._ui_load_container)
-        '''
+        """
         v.addWidget(self._output_speed)
         v.addWidget(self._render_speed)
         v.addWidget(self._render_load)
         v.addWidget(self._ui_load)
-        '''
+        """
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
@@ -116,12 +116,12 @@ class RenderStats(QWidget):
 
         active_vgroups, max_active_vgroups = self._stat_mgr.get_vgroup_count_info()
         self._vgroup_info.setText('{} ({})'.format(active_vgroups, max_active_vgroups))
-        '''
+        """
         self.update_output_speed()
         self.update_render_speed()
         self.update_render_load()
         self.update_ui_load()
-        '''
+        """
 
     def keyPressEvent(self, event):
         modifiers = event.modifiers()

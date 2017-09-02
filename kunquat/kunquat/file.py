@@ -11,9 +11,9 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-'''An interface for accessing Kunquat files.
+"""An interface for accessing Kunquat files.
 
-'''
+"""
 
 import json
 import zipfile
@@ -154,7 +154,7 @@ class _KqtArchiveFile():
 
 class KqtFile(_KqtArchiveFile):
 
-    '''A class for reading Kunquat module files.
+    """A class for reading Kunquat module files.
 
     Public methods:
     load_into_handle       -- Load file contents into a Kunquat instance.
@@ -163,10 +163,10 @@ class KqtFile(_KqtArchiveFile):
     get_loading_progress   -- Get normalised loading progress.
     get_stored_entries     -- Get entries stored in this object.
 
-    '''
+    """
 
     def __init__(self, path, keep_flags=KQT_KEEP_PLAYER_DATA):
-        '''Create a new instance for reading .kqt files.
+        """Create a new instance for reading .kqt files.
 
         Arguments:
         path -- The path of the .kqt file.
@@ -176,23 +176,23 @@ class KqtFile(_KqtArchiveFile):
                       this object for permanent read access. See
                       get_stored_entries() for more details.
 
-        '''
+        """
         super().__init__('kqtc00', path, keep_flags)
         self._path = path
         self._keep_flags = keep_flags
 
     def load_into_handle(self, handle):
-        '''Load the Kunquat module into the given Kunquat instance.
+        """Load the Kunquat module into the given Kunquat instance.
 
         Arguments:
         handle -- The Kunquat instance.
 
-        '''
+        """
         for _ in self.load_into_handle_steps(handle):
             pass
 
     def load_into_handle_steps(self, handle):
-        '''Load the Kunquat module into the given Kunquat instance.
+        """Load the Kunquat module into the given Kunquat instance.
 
         Arguments:
         handle -- The Kunquat instance.
@@ -201,14 +201,14 @@ class KqtFile(_KqtArchiveFile):
         A generator that yields after every step of the loading
         procedure.
 
-        '''
+        """
         for (k, v) in self.get_entries():
             handle.set_data(k, v)
             yield
         handle.validate()
 
     def get_entries(self):
-        '''Get contents of the Kunquat module file.
+        """Get contents of the Kunquat module file.
 
         This function is intended for editors and other software that
         need to modify Kunquat modules.  Most players should use
@@ -221,29 +221,29 @@ class KqtFile(_KqtArchiveFile):
         Exceptions:
         KunquatFileError -- File is not a valid Kunquat module file.
 
-        '''
+        """
         return super().get_entries()
 
     def get_loading_progress(self):
-        '''Get current loading progress.
+        """Get current loading progress.
 
         Return value:
         Current progress normalised to the range [0, 1].
 
-        '''
+        """
         return super().get_loading_progress()
 
     def get_stored_entries(self):
-        '''Get entries permanently stored in this object.
+        """Get entries permanently stored in this object.
 
         Return value:
         A dictionary view of all the stored entries.
 
-        '''
+        """
         return super().get_stored_entries()
 
 
 class KunquatFileError(KunquatError):
-    '''Error indicating that a Kunquat file is invalid.'''
+    """Error indicating that a Kunquat file is invalid."""
 
 

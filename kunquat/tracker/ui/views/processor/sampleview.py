@@ -462,14 +462,14 @@ class SampleViewCanvas(QWidget):
                     painter.translate(0, 1)
                     shape.draw_shape(painter, self._config)
 
-                    '''
+                    """
                     painter = QPainter(pixmap)
                     painter.setPen(QColor(0xff, 0xff, 0xff))
                     test_rect = src_rect.adjusted(0, 0, -1, -1)
                     painter.drawRect(test_rect)
 
                     painter.drawText(2, 14, '[{}, {})'.format(slice_start, slice_stop))
-                    '''
+                    """
 
                     pc[i] = pixmap
                 else:
