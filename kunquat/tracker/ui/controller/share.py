@@ -21,6 +21,51 @@ from .kqtifile import KqtiFile
 
 class Share():
 
+    _ICON_NAMES = [
+        'add',
+        'arrow_down_small',
+        'arrow_up_small',
+        'arrow_down_tiny',
+        'arrow_left_tiny',
+        'arrow_right_tiny',
+        'arrow_up_tiny',
+        'check_mark',
+        'col_expand',
+        'col_reset_width',
+        'col_shrink',
+        'convert_trigger',
+        'copy',
+        'cut',
+        'delete',
+        'delete_small',
+        'edit',
+        'error',
+        'follow_playback',
+        'input_compact',
+        'input_full',
+        'new_pattern',
+        'new_song',
+        'paste',
+        'play',
+        'play_from_cursor',
+        'play_pattern',
+        'record',
+        'redo',
+        'remove',
+        'remove_pattern',
+        'remove_song',
+        'replace',
+        'rest',
+        'reuse_pattern',
+        'silence',
+        'splitter_vertical',
+        'undo',
+        'warning',
+        'zoom_in',
+        'zoom_out',
+        'zoom_reset',
+    ]
+
     def __init__(self, path):
         self._path = path
         self._instruments_path = os.path.join(self._path, 'instruments')
@@ -213,51 +258,7 @@ class Share():
         return path
 
     def get_icon_path(self, icon_name):
-        valid_names = [
-                'add',
-                'arrow_down_small',
-                'arrow_up_small',
-                'arrow_down_tiny',
-                'arrow_left_tiny',
-                'arrow_right_tiny',
-                'arrow_up_tiny',
-                'check_mark',
-                'col_expand',
-                'col_reset_width',
-                'col_shrink',
-                'convert_trigger',
-                'copy',
-                'cut',
-                'delete',
-                'delete_small',
-                'edit',
-                'error',
-                'follow_playback',
-                'input_compact',
-                'input_full',
-                'new_pattern',
-                'new_song',
-                'paste',
-                'play',
-                'play_from_cursor',
-                'play_pattern',
-                'record',
-                'redo',
-                'remove',
-                'remove_pattern',
-                'remove_song',
-                'replace',
-                'rest',
-                'reuse_pattern',
-                'silence',
-                'splitter_vertical',
-                'undo',
-                'warning',
-                'zoom_in',
-                'zoom_out',
-                'zoom_reset',
-            ]
-        if not icon_name in valid_names:
+        if not icon_name in self._ICON_NAMES:
             raise ValueError('invalid icon name {}'.format(icon_name))
         icon_filename = '{}.png'.format(icon_name)
         icon_path = os.path.join(self._icons_path, icon_filename)
