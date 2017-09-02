@@ -19,6 +19,10 @@ from itertools import count
 class Session():
 
     def __init__(self):
+        # Visibility
+        self._visible = set()
+
+        # Stats
         self._output_speed = 0
         self._render_speed = 0
         self._render_load = 0
@@ -28,20 +32,31 @@ class Session():
         self._ui_load = 0
         self._ui_load_averages = deque([], 72000)
         self._ui_load_peaks = deque([], 72000)
-        self._progress_description = None
-        self._progress_position = 0
         self._audio_levels = (0, 0)
         self._max_audio_levels = [0, 0]
         self._active_voice_count = 0
         self._active_vgroup_count = 0
         self._max_active_voice_count = 0
         self._max_active_vgroup_count = 0
-        self._infinite_mode = False
-        self._channel_states = {}
-        self._playback_track = None
+
+        # Loading and saving
+        self._module_path = None
+        self._is_saving = False
+        self._module_load_error_info = None
+        self._au_import_info = None
+        self._au_import_error_info = None
+        self._au_export_info = None
+
+        # Task progress information
+        self._progress_description = None
+        self._progress_position = 0
+
+        # Audio unit control
         self._selected_control_id = 0
         self._is_hit_keymap_active = False
         self._selected_notation_id = (True, '12tetsharp')
+
+        # Notations and tunings
         self._notation_editor_selected_notation_id = None
         self._notation_editor_selected_octave_id = None
         self._notation_editor_selected_note_index = None
@@ -49,6 +64,8 @@ class Session():
         self._notation_editor_selected_template_note = None
         self._notation_editor_selected_tuning_table_id = None
         self._tuning_table_selected_notes = {}
+
+        # Instrument testing
         self._control_id_override = None
         self._enabled_test_processors = set()
         self._test_processors = {}
@@ -61,9 +78,12 @@ class Session():
         self._channel_active_ch_expression = {}
         self._channel_default_ch_expression = {}
         self._octave_id = None
-        self._visible = set()
+
+        # Events
         self._event_log = deque([], 1024)
         self._event_index = count()
+
+        # Sheet editing
         self._selected_location = None
         self._selected_area_start = None
         self._selected_area_stop = None
@@ -84,8 +104,8 @@ class Session():
         self._edit_mode_enabled = False
         self._typewriter_connected = False
         self._replace_mode_enabled = False
-        self._is_playback_active = False
-        self._record_mode_enabled = False
+
+        # Grids
         self._is_grid_enabled = True
         self._selected_grid_pattern_id = None
         self._selected_grid_pattern_line = None
@@ -96,22 +116,29 @@ class Session():
         self._gp_zoom_min = 0
         self._gp_zoom_max = 0
         self._default_grid_pattern_id = None
+
+        # Playback tracking
+        self._is_playback_active = False
+        self._record_mode_enabled = False
+        self._infinite_mode = False
+        self._channel_states = {}
+        self._playback_track = None
         self._pending_playback_cursor_track = 0
         self._pending_playback_cursor_system = 0
         self._playback_cursor_position = (0, 0, [0, 0])
         self._playback_pattern = None
+
+        # Order list
         self._orderlist_selection = None
         self._track_selection = 0
-        self._expanded_au_vars = {}
-        self._module_path = None
-        self._is_saving = False
+
+        # Environment and bindings
         self._active_var_names = {}
         self._runtime_env = {}
         self._selected_binding_index = None
-        self._module_load_error_info = None
-        self._au_import_info = None
-        self._au_import_error_info = None
-        self._au_export_info = None
+
+        # Audio unit editing
+        self._expanded_au_vars = {}
         self._au_conns_edit_mode = {}
         self._au_conns_hit_index = {}
         self._au_conns_expr_name = {}
