@@ -621,9 +621,6 @@ void Player_reset(Player* player, int track_num)
         player->master_params.cur_pos.track = track_num;
     }
 
-    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
-        Channel_set_random_seed(player->channels[i], player->module->random_seed);
-
     Player_update_sliders_and_lfos_audio_rate(player);
     Player_update_sliders_and_lfos_tempo(player);
 

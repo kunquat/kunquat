@@ -356,6 +356,9 @@ void Player_reset_channels(Player* player)
     // Reset channels
     const Channel_defaults_list* ch_defs = Module_get_ch_defaults_list(player->module);
 
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        Channel_set_random_seed(player->channels[i], player->module->random_seed);
+
     if (ch_defs != NULL)
     {
         for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
