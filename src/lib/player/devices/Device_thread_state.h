@@ -69,20 +69,6 @@ Device_thread_state* new_Device_thread_state(
 
 
 /**
- * Compare two Device thread states.
- *
- * \param ts1   The first state -- must not be \c NULL.
- * \param ts2   The second state -- must not be \c NULL.
- *
- * \return   An integer less than, equal to or greater than zero if \a ts1 is
- *           found, respectively, to be less than, equal to or greater than
- *           \a ts2.
- */
-int Device_thread_state_cmp(
-        const Device_thread_state* ts1, const Device_thread_state* ts2);
-
-
-/**
  * Set the node state of the Device state.
  *
  * \param ts           The Device thread state -- must not be \c NULL.

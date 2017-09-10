@@ -76,19 +76,6 @@ Device_state* new_Device_state_plain(
 }
 
 
-int Device_state_cmp(const Device_state* ds1, const Device_state* ds2)
-{
-    rassert(ds1 != NULL);
-    rassert(ds2 != NULL);
-
-    if (ds1->device_id < ds2->device_id)
-        return -1;
-    else if (ds1->device_id > ds2->device_id)
-        return 1;
-    return 0;
-}
-
-
 const Device* Device_state_get_device(const Device_state* ds)
 {
     rassert(ds != NULL);

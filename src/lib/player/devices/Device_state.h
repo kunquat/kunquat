@@ -105,19 +105,6 @@ Device_state* new_Device_state_plain(
 
 
 /**
- * Compare two Device states.
- *
- * \param ds1   The first state -- must not be \c NULL.
- * \param ds2   The second state -- must not be \c NULL.
- *
- * \return   An integer less than, equal to or greater than zero if \a ds1 is
- *           found, respectively, to be less than, equal to or greater than
- *           \a ds2.
- */
-int Device_state_cmp(const Device_state* ds1, const Device_state* ds2);
-
-
-/**
  * Get the Device associated with the Device state.
  *
  * \param ds   The Device state -- must not be \c NULL.

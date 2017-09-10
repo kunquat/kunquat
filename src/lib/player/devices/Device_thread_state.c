@@ -75,20 +75,6 @@ Device_thread_state* new_Device_thread_state(
 }
 
 
-int Device_thread_state_cmp(
-        const Device_thread_state* ts1, const Device_thread_state* ts2)
-{
-    rassert(ts1 != NULL);
-    rassert(ts2 != NULL);
-
-    if (ts1->device_id < ts2->device_id)
-        return -1;
-    else if (ts1->device_id > ts2->device_id)
-        return 1;
-    return 0;
-}
-
-
 void Device_thread_state_set_node_state(
         Device_thread_state* ts, Device_node_state node_state)
 {
