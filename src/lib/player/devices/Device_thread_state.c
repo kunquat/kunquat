@@ -347,7 +347,9 @@ void Device_thread_state_mix_voice_signals(
     rassert(buf_start >= 0);
     rassert(buf_stop >= buf_start);
 
-    for (int32_t port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    const Etable* mixed_bufs = ts->buffers[DEVICE_BUFFER_MIXED][DEVICE_PORT_TYPE_SEND];
+    const int cap = Etable_get_capacity(mixed_bufs);
+    for (int32_t port = 0; port < cap; ++port)
     {
         Work_buffer* mixed_buffer =
             Device_thread_state_get_mixed_buffer(ts, DEVICE_PORT_TYPE_SEND, port);
