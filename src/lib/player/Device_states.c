@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2017
  *
  * This file is part of Kunquat.
  *
@@ -14,7 +14,6 @@
 
 #include <player/Device_states.h>
 
-#include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <init/Connections.h>
 #include <init/devices/Audio_unit.h>
@@ -29,10 +28,73 @@
 #include <stdlib.h>
 
 
+#define ENTRY_TABLE_SIZE 256
+static_assert((ENTRY_TABLE_SIZE & (ENTRY_TABLE_SIZE - 1)) == 0,
+        "Device state entry table must have a size of 2^n");
+
+
+static uint32_t id_hash(uint32_t id)
+{
+    return id & (ENTRY_TABLE_SIZE - 1);
+}
+
+
+typedef struct Entry
+{
+    struct Entry* next;
+    Device_state* state;
+    Device_thread_state* thread_states[KQT_THREADS_MAX];
+} Entry;
+
+
+static void del_Entry(Entry* entry)
+{
+    if (entry == NULL)
+        return;
+
+    del_Device_state(entry->state);
+    for (int i = 0; i < KQT_THREADS_MAX; ++i)
+        del_Device_thread_state(entry->thread_states[i]);
+
+    return;
+}
+
+
+static Entry* new_Entry(Device_state* state, int thread_count)
+{
+    rassert(state != NULL);
+    rassert(thread_count >= 0);
+
+    Entry* entry = memory_alloc_item(Entry);
+    if (entry == NULL)
+        return NULL;
+
+    entry->next = NULL;
+    entry->state = state;
+    for (int i = 0; i < KQT_THREADS_MAX; ++i)
+        entry->thread_states[i] = NULL;
+
+    const uint32_t device_id = state->device_id;
+    const int32_t audio_buffer_size = state->audio_buffer_size;
+
+    for (int i = 0; i < thread_count; ++i)
+    {
+        entry->thread_states[i] = new_Device_thread_state(device_id, audio_buffer_size);
+        if (entry->thread_states[i] == NULL)
+        {
+            del_Entry(entry);
+            return NULL;
+        }
+    }
+
+    return entry;
+}
+
+
 struct Device_states
 {
-    AAtree* states;
-    AAtree* thread_states[KQT_THREADS_MAX];
+    int thread_count;
+    Entry* entries[ENTRY_TABLE_SIZE];
 };
 
 
@@ -42,6 +104,11 @@ Device_states* new_Device_states(void)
     if (states == NULL)
         return NULL;
 
+    states->thread_count = 0;
+    for (int i = 0; i < ENTRY_TABLE_SIZE; ++i)
+        states->entries[i] = NULL;
+
+    /*
     states->states = NULL;
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
         states->thread_states[i] = NULL;
@@ -59,6 +126,7 @@ Device_states* new_Device_states(void)
         del_Device_states(states);
         return NULL;
     }
+    // */
 
     return states;
 }
@@ -70,6 +138,41 @@ bool Device_states_set_thread_count(Device_states* states, int new_count)
     rassert(new_count >= 1);
     rassert(new_count <= KQT_THREADS_MAX);
 
+    for (int ei = 0; ei < ENTRY_TABLE_SIZE; ++ei)
+    {
+        Entry* entry = states->entries[ei];
+        while (entry != NULL)
+        {
+            rassert(entry->state != NULL);
+            const uint32_t device_id = entry->state->device_id;
+            const int32_t audio_buffer_size = entry->state->audio_buffer_size;
+
+            // Create new thread states
+            for (int ti = 0; ti < new_count; ++ti)
+            {
+                if (entry->thread_states[ti] == NULL)
+                {
+                    Device_thread_state* ts =
+                        new_Device_thread_state(device_id, audio_buffer_size);
+                    if (ts == NULL)
+                        return false;
+
+                    entry->thread_states[ti] = ts;
+                }
+            }
+
+            // Remove excess thread states
+            for (int ti = new_count; ti < KQT_THREADS_MAX; ++ti)
+            {
+                del_Device_thread_state(entry->thread_states[ti]);
+                entry->thread_states[ti] = NULL;
+            }
+
+            entry = entry->next;
+        }
+    }
+
+#if 0
     // Create new containers
     for (int i = 0; i < new_count; ++i)
     {
@@ -121,6 +224,9 @@ bool Device_states_set_thread_count(Device_states* states, int new_count)
         del_AAtree(states->thread_states[i]);
         states->thread_states[i] = NULL;
     }
+#endif
+
+    states->thread_count = new_count;
 
     return true;
 }
@@ -130,10 +236,25 @@ bool Device_states_add_state(Device_states* states, Device_state* state)
 {
     rassert(states != NULL);
     rassert(state != NULL);
-    rassert(!AAtree_contains(states->states, state));
+    //rassert(!AAtree_contains(states->states, state));
 
-    const int32_t audio_buffer_size = state->audio_buffer_size;
+    const uint32_t h = id_hash(state->device_id);
 
+    Entry** target = &states->entries[h];
+    while (*target != NULL)
+    {
+        rassert((*target)->state != NULL);
+        rassert((*target)->state->device_id != state->device_id);
+        target = &((*target)->next);
+    }
+
+    Entry* entry = new_Entry(state, states->thread_count);
+    if (entry == NULL)
+        return false;
+
+    *target = entry;
+
+#if 0
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
     {
         AAtree* thread_states = states->thread_states[i];
@@ -151,10 +272,33 @@ bool Device_states_add_state(Device_states* states, Device_state* state)
 
     if (!AAtree_ins(states->states, state))
         return false;
+#endif
 
     Device_state_reset(state);
 
     return true;
+}
+
+
+static Entry* get_entry(const Device_states* states, uint32_t id)
+{
+    rassert(states != NULL);
+    rassert(id > 0);
+
+    const uint32_t h = id_hash(id);
+
+    Entry* target = states->entries[h];
+    while (target != NULL)
+    {
+        rassert(target->state != NULL);
+        if (target->state->device_id == id)
+            return target;
+
+        target = target->next;
+    }
+
+    rassert(false);
+    return NULL;
 }
 
 
@@ -163,10 +307,14 @@ Device_state* Device_states_get_state(const Device_states* states, uint32_t id)
     rassert(states != NULL);
     rassert(id > 0);
 
+    return get_entry(states, id)->state;
+
+    /*
     const Device_state* key = DEVICE_STATE_KEY(id);
     rassert(AAtree_contains(states->states, key));
 
     return AAtree_get_exact(states->states, key);
+    // */
 }
 
 
@@ -175,6 +323,21 @@ void Device_states_remove_state(Device_states* states, uint32_t id)
     rassert(states != NULL);
     rassert(id > 0);
 
+    const uint32_t h = id_hash(id);
+
+    Entry** ref = &states->entries[h];
+    while (*ref != NULL)
+    {
+        rassert((*ref)->state != NULL);
+        if ((*ref)->state->device_id == id)
+        {
+            Entry* next = (*ref)->next;
+            del_Entry(*ref);
+            *ref = next;
+        }
+    }
+
+    /*
     const Device_state* key = DEVICE_STATE_KEY(id);
     del_Device_state(AAtree_remove(states->states, key));
 
@@ -186,6 +349,7 @@ void Device_states_remove_state(Device_states* states, uint32_t id)
         if (thread_states != NULL)
             del_Device_thread_state(AAtree_remove(thread_states, tkey));
     }
+    // */
 
     return;
 }
@@ -199,6 +363,13 @@ Device_thread_state* Device_states_get_thread_state(
     rassert(thread_id < KQT_THREADS_MAX);
     rassert(device_id > 0);
 
+    Entry* entry = get_entry(states, device_id);
+    rassert(entry != NULL);
+    rassert(entry->thread_states[thread_id] != NULL);
+
+    return entry->thread_states[thread_id];
+
+    /*
     AAtree* thread_states = states->thread_states[thread_id];
     rassert(thread_states != NULL);
 
@@ -207,6 +378,7 @@ Device_thread_state* Device_states_get_thread_state(
     rassert(ts != NULL);
 
     return ts;
+    // */
 }
 
 
@@ -225,13 +397,14 @@ static bool Device_states_add_audio_buffer(
 
     const bool add_voice_buffers = !Device_get_mixed_signals(dstate->device);
 
-    for (int i = 0; i < KQT_THREADS_MAX; ++i)
+    for (int ti = 0; ti < KQT_THREADS_MAX; ++ti)
     {
-        AAtree* thread_states = states->thread_states[i];
-        if (thread_states == NULL)
+        Entry* entry = get_entry(states, device_id);
+
+        Device_thread_state* ts = entry->thread_states[ti];
+        if (ts == NULL)
             continue;
 
-        Device_thread_state* ts = Device_states_get_thread_state(states, i, device_id);
         if (!Device_thread_state_add_mixed_buffer(ts, type, port))
             return false;
 
@@ -248,6 +421,20 @@ bool Device_states_set_audio_rate(Device_states* states, int32_t rate)
     rassert(states != NULL);
     rassert(rate > 0);
 
+    for (int ei = 0; ei < ENTRY_TABLE_SIZE; ++ei)
+    {
+        Entry* entry = states->entries[ei];
+        while (entry != NULL)
+        {
+            rassert(entry->state != NULL);
+            if (!Device_state_set_audio_rate(entry->state, rate))
+                return false;
+
+            entry = entry->next;
+        }
+    }
+
+    /*
     AAiter* iter = AAiter_init(AAITER_AUTO, states->states);
 
     Device_state* ds = AAiter_get_at_least(iter, DEVICE_STATE_KEY(0));
@@ -259,6 +446,7 @@ bool Device_states_set_audio_rate(Device_states* states, int32_t rate)
 
         ds = AAiter_get_next(iter);
     }
+    // */
 
     return true;
 }
@@ -269,6 +457,27 @@ bool Device_states_set_audio_buffer_size(Device_states* states, int32_t size)
     rassert(states != NULL);
     rassert(size >= 0);
 
+    for (int ei = 0; ei < ENTRY_TABLE_SIZE; ++ei)
+    {
+        Entry* entry = states->entries[ei];
+        while (entry != NULL)
+        {
+            rassert(entry->state != NULL);
+            if (!Device_state_set_audio_buffer_size(entry->state, size))
+                return false;
+
+            for (int ti = 0; ti < KQT_THREADS_MAX; ++ti)
+            {
+                Device_thread_state* ts = entry->thread_states[ti];
+                if ((ts != NULL) && !Device_thread_state_set_audio_buffer_size(ts, size))
+                    return false;
+            }
+
+            entry = entry->next;
+        }
+    }
+
+    /*
     {
         AAiter* iter = AAiter_init(AAITER_AUTO, states->states);
 
@@ -300,6 +509,7 @@ bool Device_states_set_audio_buffer_size(Device_states* states, int32_t size)
             ts = AAiter_get_next(iter);
         }
     }
+    // */
 
     return true;
 }
@@ -333,6 +543,20 @@ void Device_states_clear_audio_buffers(
 {
     rassert(states != NULL);
 
+    for (int ei = 0; ei < ENTRY_TABLE_SIZE; ++ei)
+    {
+        Entry* entry = states->entries[ei];
+        while (entry != NULL)
+        {
+            for (int ti = 0; ti < states->thread_count; ++ti)
+                Device_thread_state_clear_mixed_buffers(
+                        entry->thread_states[ti], start, stop);
+
+            entry = entry->next;
+        }
+    }
+
+    /*
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
     {
         AAtree* thread_states = states->thread_states[i];
@@ -349,6 +573,7 @@ void Device_states_clear_audio_buffers(
             ts = AAiter_get_next(iter);
         }
     }
+    // */
 
     return;
 }
@@ -360,6 +585,17 @@ void Device_states_set_tempo(Device_states* states, double tempo)
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
+    for (int ei = 0; ei < ENTRY_TABLE_SIZE; ++ei)
+    {
+        Entry* entry = states->entries[ei];
+        while (entry != NULL)
+        {
+            Device_state_set_tempo(entry->state, tempo);
+            entry = entry->next;
+        }
+    }
+
+    /*
     AAiter* iter = AAiter_init(AAITER_AUTO, states->states);
 
     Device_state* ds = AAiter_get_at_least(iter, DEVICE_STATE_KEY(0));
@@ -369,6 +605,7 @@ void Device_states_set_tempo(Device_states* states, double tempo)
         Device_state_set_tempo(ds, tempo);
         ds = AAiter_get_next(iter);
     }
+    // */
 
     return;
 }
@@ -537,6 +774,45 @@ void Device_states_mix_thread_states(
     rassert(buf_start >= 0);
     rassert(buf_stop >= 0);
 
+    if (dstates->thread_count <= 1)
+        return;
+
+    for (int ei = 0; ei < ENTRY_TABLE_SIZE; ++ei)
+    {
+        Entry* entry = dstates->entries[ei];
+        while (entry != NULL)
+        {
+            Device_thread_state* dest_state = entry->thread_states[0];
+            rassert(dest_state != NULL);
+
+            for (int ti = 1; ti < dstates->thread_count; ++ti)
+            {
+                const Device_thread_state* src_state = entry->thread_states[ti];
+                rassert(src_state != NULL);
+                if (Device_thread_state_has_mixed_audio(src_state))
+                {
+                    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+                    {
+                        Work_buffer* dest_buffer = Device_thread_state_get_mixed_buffer(
+                                dest_state, DEVICE_PORT_TYPE_SEND, port);
+                        if (dest_buffer == NULL)
+                            continue;
+
+                        const Work_buffer* src_buffer =
+                            Device_thread_state_get_mixed_buffer(
+                                    src_state, DEVICE_PORT_TYPE_SEND, port);
+                        rassert(src_buffer != NULL);
+
+                        Work_buffer_mix(dest_buffer, src_buffer, buf_start, buf_stop);
+                    }
+                }
+            }
+
+            entry = entry->next;
+        }
+    }
+
+    /*
     AAiter* iter = AAiter_init(AAITER_AUTO, dstates->thread_states[0]);
     Device_thread_state* dest_state =
         AAiter_get_at_least(iter, DEVICE_THREAD_STATE_KEY(0));
@@ -574,6 +850,7 @@ void Device_states_mix_thread_states(
 
         dest_state = AAiter_get_next(iter);
     }
+    // */
 
     return;
 }
@@ -725,6 +1002,17 @@ void Device_states_reset(Device_states* states)
 {
     rassert(states != NULL);
 
+    for (int ei = 0; ei < ENTRY_TABLE_SIZE; ++ei)
+    {
+        Entry* entry = states->entries[ei];
+        while (entry != NULL)
+        {
+            Device_state_reset(entry->state);
+            entry = entry->next;
+        }
+    }
+
+    /*
     AAiter* iter = AAiter_init(AAITER_AUTO, states->states);
 
     Device_state* ds = AAiter_get_at_least(iter, DEVICE_STATE_KEY(0));
@@ -734,6 +1022,7 @@ void Device_states_reset(Device_states* states)
         Device_state_reset(ds);
         ds = AAiter_get_next(iter);
     }
+    // */
 
     return;
 }
@@ -743,6 +1032,22 @@ void Device_states_reset_node_states(Device_states* states)
 {
     rassert(states != NULL);
 
+    for (int ei = 0; ei < ENTRY_TABLE_SIZE; ++ei)
+    {
+        Entry* entry = states->entries[ei];
+        while (entry != NULL)
+        {
+            for (int ti = 0; ti < states->thread_count; ++ti)
+            {
+                Device_thread_state* ts = entry->thread_states[ti];
+                Device_thread_state_set_node_state(ts, DEVICE_NODE_STATE_NEW);
+            }
+
+            entry = entry->next;
+        }
+    }
+
+    /*
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
     {
         AAtree* thread_states = states->thread_states[i];
@@ -759,6 +1064,7 @@ void Device_states_reset_node_states(Device_states* states)
             ts = AAiter_get_next(iter);
         }
     }
+    // */
 
     return;
 }
@@ -769,10 +1075,25 @@ void del_Device_states(Device_states* states)
     if (states == NULL)
         return;
 
+    for (int ei = 0; ei < ENTRY_TABLE_SIZE; ++ei)
+    {
+        Entry* entry = states->entries[ei];
+        while (entry != NULL)
+        {
+            Entry* next = entry->next;
+
+            del_Entry(entry);
+
+            entry = next;
+        }
+    }
+
+    /*
     del_AAtree(states->states);
 
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
         del_AAtree(states->thread_states[i]);
+    // */
 
     memory_free(states);
 
