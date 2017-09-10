@@ -56,6 +56,8 @@ static void del_Entry(Entry* entry)
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
         del_Device_thread_state(entry->thread_states[i]);
 
+    memory_free(entry);
+
     return;
 }
 
@@ -71,16 +73,16 @@ static Entry* new_Entry(Device_state* state, int thread_count)
 
     entry->next = NULL;
     entry->state = state;
-    for (int i = 0; i < KQT_THREADS_MAX; ++i)
-        entry->thread_states[i] = NULL;
+    for (int ti = 0; ti < KQT_THREADS_MAX; ++ti)
+        entry->thread_states[ti] = NULL;
 
     const uint32_t device_id = state->device_id;
     const int32_t audio_buffer_size = state->audio_buffer_size;
 
-    for (int i = 0; i < thread_count; ++i)
+    for (int ti = 0; ti < thread_count; ++ti)
     {
-        entry->thread_states[i] = new_Device_thread_state(device_id, audio_buffer_size);
-        if (entry->thread_states[i] == NULL)
+        entry->thread_states[ti] = new_Device_thread_state(device_id, audio_buffer_size);
+        if (entry->thread_states[ti] == NULL)
         {
             del_Entry(entry);
             return NULL;
@@ -240,19 +242,13 @@ bool Device_states_add_state(Device_states* states, Device_state* state)
 
     const uint32_t h = id_hash(state->device_id);
 
-    Entry** target = &states->entries[h];
-    while (*target != NULL)
-    {
-        rassert((*target)->state != NULL);
-        rassert((*target)->state->device_id != state->device_id);
-        target = &((*target)->next);
-    }
-
     Entry* entry = new_Entry(state, states->thread_count);
     if (entry == NULL)
         return false;
 
-    *target = entry;
+    Entry* tail = states->entries[h];
+    entry->next = tail;
+    states->entries[h] = entry;
 
 #if 0
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
@@ -326,15 +322,19 @@ void Device_states_remove_state(Device_states* states, uint32_t id)
     const uint32_t h = id_hash(id);
 
     Entry** ref = &states->entries[h];
-    while (*ref != NULL)
+    Entry* cur = states->entries[h];
+    while (cur != NULL)
     {
-        rassert((*ref)->state != NULL);
-        if ((*ref)->state->device_id == id)
+        rassert(cur->state != NULL);
+        if (cur->state->device_id == id)
         {
-            Entry* next = (*ref)->next;
-            del_Entry(*ref);
-            *ref = next;
+            *ref = cur->next;
+            del_Entry(cur);
+            break;
         }
+
+        ref = &cur->next;
+        cur = cur->next;
     }
 
     /*
