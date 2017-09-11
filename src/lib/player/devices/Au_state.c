@@ -51,91 +51,6 @@ static bool Au_state_init(
 }
 
 
-#if 0
-static void mix_interface_connection(
-        Device_thread_state* out_ts,
-        Device_thread_state* in_ts,
-        int32_t buf_start,
-        int32_t buf_stop)
-{
-    rassert(out_ts != NULL);
-    rassert(in_ts != NULL);
-
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-    {
-        Work_buffer* out =
-            Device_thread_state_get_mixed_buffer(out_ts, DEVICE_PORT_TYPE_SEND, port);
-        const Work_buffer* in =
-            Device_thread_state_get_mixed_buffer(in_ts, DEVICE_PORT_TYPE_RECV, port);
-
-        if ((out != NULL) && (in != NULL))
-            Work_buffer_mix(out, in, buf_start, buf_stop);
-    }
-
-    return;
-}
-#endif
-
-
-#if 0
-static void Au_state_render_mixed(
-        Device_state* dstate,
-        Device_thread_state* au_ts,
-        const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
-        double tempo)
-{
-    rassert(dstate != NULL);
-    rassert(au_ts != NULL);
-    rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(isfinite(tempo));
-    rassert(tempo > 0);
-
-    Au_state* au_state = (Au_state*)dstate;
-
-    const Audio_unit* au = (const Audio_unit*)dstate->device;
-    const Connections* connections = Audio_unit_get_connections(au);
-
-    if (au_state->bypass)
-    {
-        mix_interface_connection(au_ts, au_ts, buf_start, buf_stop);
-    }
-    else if (connections != NULL)
-    {
-        //Connections_clear_buffers(au->connections, dstates, buf_start, buf_stop);
-
-        Device_states* dstates = au_state->dstates;
-        rassert(dstates != NULL);
-
-        // Fill input interface buffers
-        Device_thread_state* in_iface_ts = Device_states_get_thread_state(
-                dstates, 0, Device_get_id(Audio_unit_get_input_interface(au)));
-        mix_interface_connection(in_iface_ts, au_ts, buf_start, buf_stop);
-
-        // Process audio unit graph
-        Device_states_process_mixed_signals(
-                au_state->dstates,
-                false, // hack_reset
-                connections,
-                wbs,
-                buf_start,
-                buf_stop,
-                ((Device_state*)au_state)->audio_rate,
-                tempo);
-
-        // Fill output interface buffers
-        Device_thread_state* out_iface_ts = Device_states_get_thread_state(
-                dstates, 0, Device_get_id(Audio_unit_get_output_interface(au)));
-        mix_interface_connection(au_ts, out_iface_ts, buf_start, buf_stop);
-    }
-
-    return;
-}
-#endif
-
-
 Device_state* new_Au_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
@@ -152,8 +67,6 @@ Device_state* new_Au_state(
         del_Device_state(&au_state->parent);
         return NULL;
     }
-
-    //au_state->parent.render_mixed = Au_state_render_mixed;
 
     return &au_state->parent;
 }

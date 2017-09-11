@@ -1508,18 +1508,6 @@ void Player_play(Player* player, int32_t nframes)
             const int32_t buf_start = rendered;
             const int32_t buf_stop = rendered + to_be_rendered;
 
-#if 0
-            Device_states_process_mixed_signals(
-                    player->device_states,
-                    true, // hack_reset
-                    connections,
-                    player->thread_params[0].work_buffers,
-                    buf_start,
-                    buf_stop,
-                    player->audio_rate,
-                    player->master_params.tempo);
-#endif
-
             Player_apply_master_volume(player, buf_start, buf_stop);
 
             Player_mix_test_voice_signals(player, buf_start, buf_stop);
