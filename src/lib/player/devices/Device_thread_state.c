@@ -75,20 +75,6 @@ Device_thread_state* new_Device_thread_state(
 }
 
 
-int Device_thread_state_cmp(
-        const Device_thread_state* ts1, const Device_thread_state* ts2)
-{
-    rassert(ts1 != NULL);
-    rassert(ts2 != NULL);
-
-    if (ts1->device_id < ts2->device_id)
-        return -1;
-    else if (ts1->device_id > ts2->device_id)
-        return 1;
-    return 0;
-}
-
-
 void Device_thread_state_set_node_state(
         Device_thread_state* ts, Device_node_state node_state)
 {
@@ -347,7 +333,9 @@ void Device_thread_state_mix_voice_signals(
     rassert(buf_start >= 0);
     rassert(buf_stop >= buf_start);
 
-    for (int32_t port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    const Etable* mixed_bufs = ts->buffers[DEVICE_BUFFER_MIXED][DEVICE_PORT_TYPE_SEND];
+    const int cap = Etable_get_capacity(mixed_bufs);
+    for (int32_t port = 0; port < cap; ++port)
     {
         Work_buffer* mixed_buffer =
             Device_thread_state_get_mixed_buffer(ts, DEVICE_PORT_TYPE_SEND, port);

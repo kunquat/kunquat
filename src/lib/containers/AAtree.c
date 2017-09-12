@@ -15,6 +15,7 @@
 #include <containers/AAtree.h>
 
 #include <debug/assert.h>
+#include <mathnum/common.h>
 #include <memory.h>
 
 #include <stdbool.h>
@@ -72,8 +73,8 @@ AAiter* AAiter_init(AAiter* iter, const AAtree* tree)
 
 static AAnode* new_AAnode(AAnode* nil, void* data)
 {
-    rassert(!(nil == NULL) || (data == NULL));
-    rassert(!(data == NULL) || (nil == NULL));
+    rassert(implies(nil == NULL, data == NULL));
+    rassert(implies(data == NULL, nil == NULL));
 
     AAnode* node = memory_alloc_item(AAnode);
     if (node == NULL)
@@ -263,7 +264,7 @@ void* AAiter_get_at_least(AAiter* iter, const void* key)
 
     while (cur->level > 0)
     {
-        rassert(cur->data != NULL);
+        dassert(cur->data != NULL);
         int diff = tree->cmp(key, cur->data);
         if (diff < 0)
         {

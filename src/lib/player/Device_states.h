@@ -161,31 +161,6 @@ void Device_states_mix_thread_states(
 
 
 /**
- * Process mixed signals in the Device states.
- *
- * \param dstates      The Device states -- must not be \c NULL.
- * \param hack_reset   Whether the Device states should be reset or not. TODO: fix this
- * \param conns        The Connections -- must not be \c NULL.
- * \param wbs          The Work buffers -- must not be \c NULL.
- * \param buf_start    The start index of the buffer area to be processed
- *                     -- must be less than the buffer size.
- * \param buf_stop     The stop index of the buffer area to be processed
- *                     -- must be less than or equal to the buffer size.
- * \param audio_rate   The audio rate -- must be > \c 0.
- * \param tempo        The tempo -- must be finite and > \c 0.
- */
-void Device_states_process_mixed_signals(
-        Device_states* dstates,
-        bool hack_reset,
-        const Connections* conns,
-        const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
-        int32_t audio_rate,
-        double tempo);
-
-
-/**
  * Reset the Device states.
  *
  * \param states   The Device states -- must not be \c NULL.
