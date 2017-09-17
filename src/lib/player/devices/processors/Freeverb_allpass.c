@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+
+#ifdef __SSE__
+#include <xmmintrin.h>
+#endif
 
 
 struct Freeverb_allpass
@@ -75,10 +79,16 @@ void Freeverb_allpass_process(
     rassert(buf_start >= 0);
     rassert(buf_stop > buf_start);
 
+#ifdef __SSE__
+    dassert(_MM_GET_FLUSH_ZERO_MODE() == _MM_FLUSH_ZERO_ON);
+#endif
+
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
         float bufout = allpass->buffer[allpass->buffer_pos];
+#ifndef __SSE__
         bufout = undenormalise(bufout);
+#endif
         allpass->buffer[allpass->buffer_pos] = buffer[i] + (bufout * allpass->feedback);
 
         buffer[i] = -buffer[i] + bufout;

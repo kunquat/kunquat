@@ -25,6 +25,10 @@
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/Work_buffers.h>
 
+#ifdef __SSE__
+#include <xmmintrin.h>
+#endif
+
 
 #define FREEVERB_COMBS 8
 #define FREEVERB_ALLPASSES 4
@@ -317,6 +321,11 @@ static void Freeverb_pstate_render_mixed(
         for (int32_t i = buf_start; i < buf_stop; ++i)
             comb_input[i] = (float)((ws[0][i] + ws[1][i]) * freeverb->gain);
 
+#ifdef __SSE__
+        const unsigned int old_ftoz = _MM_GET_FLUSH_ZERO_MODE();
+        _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+#endif
+
         for (int ch = 0; ch < 2; ++ch)
         {
             float* ws_buf = ws[ch];
@@ -337,6 +346,10 @@ static void Freeverb_pstate_render_mixed(
                 Freeverb_allpass_process(
                         fstate->allpasses[ch][allpass], ws_buf, buf_start, buf_stop);
         }
+
+#ifdef __SSE__
+        _MM_SET_FLUSH_ZERO_MODE(old_ftoz);
+#endif
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
