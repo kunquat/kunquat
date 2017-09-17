@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/processors/Proc_freeverb.h>
+#include <intrinsics.h>
 #include <mathnum/common.h>
 #include <mathnum/fast_exp2.h>
 #include <memory.h>
@@ -321,7 +322,7 @@ static void Freeverb_pstate_render_mixed(
         for (int32_t i = buf_start; i < buf_stop; ++i)
             comb_input[i] = (float)((ws[0][i] + ws[1][i]) * freeverb->gain);
 
-#ifdef __SSE__
+#ifdef KQT_SSE
         const unsigned int old_ftoz = _MM_GET_FLUSH_ZERO_MODE();
         _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
 #endif
@@ -347,7 +348,7 @@ static void Freeverb_pstate_render_mixed(
                         fstate->allpasses[ch][allpass], ws_buf, buf_start, buf_stop);
         }
 
-#ifdef __SSE__
+#ifdef KQT_SSE
         _MM_SET_FLUSH_ZERO_MODE(old_ftoz);
 #endif
 

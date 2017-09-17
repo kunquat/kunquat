@@ -15,16 +15,13 @@
 #include <player/devices/processors/Freeverb_allpass.h>
 
 #include <debug/assert.h>
+#include <intrinsics.h>
 #include <mathnum/common.h>
 #include <memory.h>
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-
-#ifdef __SSE__
-#include <xmmintrin.h>
-#endif
 
 
 struct Freeverb_allpass
@@ -79,14 +76,14 @@ void Freeverb_allpass_process(
     rassert(buf_start >= 0);
     rassert(buf_stop > buf_start);
 
-#ifdef __SSE__
+#ifdef KQT_SSE
     dassert(_MM_GET_FLUSH_ZERO_MODE() == _MM_FLUSH_ZERO_ON);
 #endif
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
         float bufout = allpass->buffer[allpass->buffer_pos];
-#ifndef __SSE__
+#ifndef KQT_SSE
         bufout = undenormalise(bufout);
 #endif
         allpass->buffer[allpass->buffer_pos] = buffer[i] + (bufout * allpass->feedback);
