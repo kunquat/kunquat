@@ -26,10 +26,6 @@
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/Work_buffers.h>
 
-#ifdef __SSE__
-#include <xmmintrin.h>
-#endif
-
 
 #define FREEVERB_COMBS 8
 #define FREEVERB_ALLPASSES 4
