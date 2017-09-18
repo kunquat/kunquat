@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -15,6 +15,7 @@
 #include <player/devices/processors/Freeverb_comb.h>
 
 #include <debug/assert.h>
+#include <intrinsics.h>
 #include <mathnum/common.h>
 #include <memory.h>
 
@@ -75,14 +76,22 @@ void Freeverb_comb_process(
     rassert(buf_start >= 0);
     rassert(buf_stop > buf_start);
 
+#ifdef KQT_SSE
+    dassert(_MM_GET_FLUSH_ZERO_MODE() == _MM_FLUSH_ZERO_ON);
+#endif
+
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
         float output = comb->buffer[comb->buffer_pos];
+#ifndef KQT_SSE
         output = undenormalise(output);
+#endif
         const float damp1 = damps[i];
         const float damp2 = 1 - damp1;
         comb->filter_store = (output * damp2) + (comb->filter_store * damp1);
+#ifndef KQT_SSE
         comb->filter_store = undenormalise(comb->filter_store);
+#endif
         comb->buffer[comb->buffer_pos] = in_buf[i] + (comb->filter_store * refls[i]);
 
         out_buf[i] += output;

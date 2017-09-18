@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2017
  *
  * This file is part of Kunquat.
  *
@@ -15,6 +15,7 @@
 #include <player/devices/processors/Freeverb_allpass.h>
 
 #include <debug/assert.h>
+#include <intrinsics.h>
 #include <mathnum/common.h>
 #include <memory.h>
 
@@ -75,10 +76,16 @@ void Freeverb_allpass_process(
     rassert(buf_start >= 0);
     rassert(buf_stop > buf_start);
 
+#ifdef KQT_SSE
+    dassert(_MM_GET_FLUSH_ZERO_MODE() == _MM_FLUSH_ZERO_ON);
+#endif
+
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
         float bufout = allpass->buffer[allpass->buffer_pos];
+#ifndef KQT_SSE
         bufout = undenormalise(bufout);
+#endif
         allpass->buffer[allpass->buffer_pos] = buffer[i] + (bufout * allpass->feedback);
 
         buffer[i] = -buffer[i] + bufout;
