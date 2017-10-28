@@ -208,7 +208,9 @@ void Voice_reset(Voice* voice)
 
     voice->id = 0;
     voice->group_id = 0;
-    voice->ch_num = -1;
+    // The voice may be part of an active group that needs the channel
+    // number information, so let's keep it
+    //voice->ch_num = -1;
     voice->prio = VOICE_PRIO_INACTIVE;
     Voice_state_clear(voice->state);
     voice->proc = NULL;

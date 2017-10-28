@@ -356,16 +356,7 @@ int Voice_group_get_ch_num(const Voice_group* vg)
     rassert(vg != NULL);
     rassert(vg->size > 0);
 
-    // Try to return a valid channel number
-    // (some voices in the group might have been reset)
-    for (int i = 0; i < vg->size; ++i)
-    {
-        const int ch_num = Voice_get_ch_num(vg->voices[i]);
-        if (ch_num >= 0)
-            return ch_num;
-    }
-
-    return -1;
+    return Voice_get_ch_num(vg->voices[0]);
 }
 
 
