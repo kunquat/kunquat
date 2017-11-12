@@ -106,7 +106,8 @@ class TypewriterButtonModel():
                         (event_type == 'h' and trigger.get_type() == 'h')):
                     new_trigger = Trigger(trigger.get_type(), str(param))
                     self._sheet_mgr.add_trigger(new_trigger)
-                elif trigger.get_type() == 'n-':
+                elif ((trigger.get_type() == 'n-') or
+                        all(t in ('n+', 'h') for t in (event_type, trigger.get_type()))):
                     new_trigger = Trigger(event_type, str(param))
                     self._sheet_mgr.add_trigger(new_trigger)
             else:
