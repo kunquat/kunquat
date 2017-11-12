@@ -186,7 +186,7 @@ class View(QWidget):
         if 'signal_notation' in signals:
             self._update_notation()
             self.update()
-        if 'signal_hits' in signals:
+        if ('signal_hits' in signals) or ('signal_ch_defaults' in signals):
             self._update_hit_names()
             self.update()
         if 'signal_module' in signals:
