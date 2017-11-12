@@ -46,6 +46,26 @@ class NotationManager():
             return some_id
         return selected_id
 
+    def _set_stored_notation_id(self, notation_id):
+        if notation_id != None:
+            assert type(notation_id) == tuple
+            assert type(notation_id[0]) == bool
+            assert type(notation_id[1]) in (int, str)
+        self._store.put({ 'i_selected_notation.json': notation_id }, mark_modified=False)
+
+    def get_stored_notation_id(self):
+        data = self._store.get('i_selected_notation.json', None)
+        if data == None:
+            return None
+
+        if not (type(data) == list and
+                len(data) == 2 and
+                type(data[0]) == bool and
+                type(data[1]) in (int, str)):
+            return None
+
+        return tuple(data)
+
     def get_notation(self, notation_id):
         notation = Notation(notation_id)
         notation.set_controller(self._controller)
@@ -79,6 +99,7 @@ class NotationManager():
         return self.get_shared_notation_ids() + self.get_custom_notation_ids()
 
     def set_selected_notation_id(self, notation_id):
+        self._set_stored_notation_id(notation_id)
         self._session.set_selected_notation_id(notation_id)
 
     def set_editor_selected_notation_id(self, notation_id):
@@ -135,6 +156,9 @@ class NotationManager():
     def remove_custom_notation(self, notation_id):
         is_shared, sub_id = notation_id
         assert not is_shared
+
+        if self.get_selected_notation_id() == notation_id:
+            self.set_selected_notation_id((True, '12tetsharp'))
 
         data = deepcopy(self._get_custom_notation_data())
         del data[sub_id]

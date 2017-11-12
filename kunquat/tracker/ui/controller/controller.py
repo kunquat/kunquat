@@ -177,6 +177,13 @@ class Controller():
         if not sheet_mgr.is_grid_default_enabled():
             sheet_mgr.set_grid_enabled(False)
 
+        notation_mgr = self._ui_model.get_notation_manager()
+        stored_notation_id = notation_mgr.get_stored_notation_id()
+        if stored_notation_id in notation_mgr.get_all_notation_ids():
+            notation_mgr.set_selected_notation_id(stored_notation_id)
+        else:
+            notation_mgr.set_selected_notation_id(None)
+
         self._updater.signal_update('signal_controls')
 
         self._reset_expressions()
