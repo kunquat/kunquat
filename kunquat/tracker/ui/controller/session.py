@@ -41,6 +41,8 @@ class _ProcInfo():
 
 class Session():
 
+    _DEFAULT_NOTATION_ID = (True, '12tetsharp')
+
     def __init__(self):
         # Visibility
         self._visible = set()
@@ -77,7 +79,7 @@ class Session():
         # Audio unit control
         self._selected_control_id = 0
         self._is_hit_keymap_active = False
-        self._selected_notation_id = (True, '12tetsharp')
+        self._selected_notation_id = self._DEFAULT_NOTATION_ID
 
         # Notations and tunings
         self._notation_editor_selected_notation_id = None
@@ -300,7 +302,7 @@ class Session():
         self._is_hit_keymap_active = active
 
     def get_selected_notation_id(self):
-        return self._selected_notation_id
+        return self._selected_notation_id or self._DEFAULT_NOTATION_ID
 
     def set_selected_notation_id(self, notation_id):
         self._selected_notation_id = notation_id
