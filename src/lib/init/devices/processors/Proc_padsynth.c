@@ -482,9 +482,12 @@ static void make_padsynth_sample(
         for (int32_t i = 0; i < sample_length; ++i)
             max_abs = max(max_abs, fabsf(buf[i]));
 
-        const float scale = 1.0f / max_abs;
-        for (int32_t i = 0; i < sample_length; ++i)
-            buf[i] *= scale;
+        if (max_abs > 0.0f)
+        {
+            const float scale = 1.0f / max_abs;
+            for (int32_t i = 0; i < sample_length; ++i)
+                buf[i] *= scale;
+        }
     }
 
     // Duplicate first frame (for interpolation code)
