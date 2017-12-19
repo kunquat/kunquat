@@ -29,7 +29,7 @@ class Song():
 
     def __eq__(self, other):
         if not isinstance(other, Song):
-            return
+            return False
         return (self._song_id == other._song_id)
 
     def set_controller(self, controller):
