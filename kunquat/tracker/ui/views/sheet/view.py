@@ -1097,15 +1097,29 @@ class View(QWidget):
                     new_system = new_song.get_system_count() - 1
 
             # Previous pattern
-            bar_offset = tstamp.Tstamp(row_ts.beats % 4, row_ts.rem)
             new_song = album.get_song_by_track(new_track)
             new_pattern = new_song.get_pattern_instance(new_system).get_pattern()
+
             new_pat_length = new_pattern.get_length()
-            if new_pat_length.rem == 0:
-                last_bar_start = (max(0, new_pat_length.beats - 1) // 4) * 4
-            else:
-                last_bar_start = (new_pat_length.beats // 4) * 4
-            new_ts = min(bar_offset + last_bar_start, new_pat_length)
+            pat_length_rems = new_pat_length.beats * tstamp.BEAT + new_pat_length.rem
+
+            new_gp_id = new_pattern.get_base_grid_pattern_id()
+            new_gp = grid_mgr.get_grid_pattern(new_gp_id)
+            new_page_step = new_gp.get_length()
+            new_page_step_rems = new_page_step.beats * tstamp.BEAT + new_page_step.rem
+
+            full_bar_count = pat_length_rems // new_page_step_rems
+            last_bar_start_rems = full_bar_count * new_page_step_rems
+            if last_bar_start_rems == pat_length_rems:
+                last_bar_start_rems = max(0, last_bar_start_rems - new_page_step_rems)
+            last_bar_start = tstamp.Tstamp(0, last_bar_start_rems)
+
+            cur_page_step_rems = page_step.beats * tstamp.BEAT + page_step.rem
+            row_ts_rems = row_ts.beats * tstamp.BEAT + row_ts.rem
+            bar_offset_rems = row_ts_rems % cur_page_step_rems
+
+            new_ts = last_bar_start + tstamp.Tstamp(0, bar_offset_rems)
+            new_ts = min(new_ts, new_pat_length)
 
             new_location = TriggerPosition(new_track, new_system, col_num, new_ts, 0)
             selection.set_location(new_location)
@@ -1131,7 +1145,10 @@ class View(QWidget):
             # Next pattern
             new_song = album.get_song_by_track(new_track)
             new_pattern = new_song.get_pattern_instance(new_system).get_pattern()
-            new_ts = tstamp.Tstamp(row_ts.beats % 4, row_ts.rem)
+            new_ts_rems = new_ts.beats * tstamp.BEAT + new_ts.rem
+            pat_length_rems = cur_pat_length.beats * tstamp.BEAT + cur_pat_length.rem
+            excess_rems = new_ts_rems - pat_length_rems
+            new_ts = tstamp.Tstamp(0, excess_rems)
             new_ts = min(new_ts, new_pattern.get_length())
 
             new_location = TriggerPosition(new_track, new_system, col_num, new_ts, 0)

@@ -488,6 +488,8 @@ class ColoursModel(QAbstractItemModel, Updater):
             else:
                 assert False
 
+        return None
+
     def flags(self, index):
         default_flags = super().flags(index)
         if not index.isValid():

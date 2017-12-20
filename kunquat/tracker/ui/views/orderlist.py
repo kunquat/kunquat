@@ -243,6 +243,8 @@ class AlbumTreeModel(QAbstractItemModel, Updater):
             self._updater.signal_update('signal_order_list')
             return True
 
+        return False
+
 
 class AlbumTree(QTreeView):
 
