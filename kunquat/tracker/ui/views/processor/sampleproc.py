@@ -20,6 +20,7 @@ import kunquat.tracker.config as config
 from kunquat.tracker.ui.model.procparams.sampleparams import SampleImportError
 from kunquat.tracker.ui.views.audiounit.hitselector import HitSelector
 from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
+from kunquat.tracker.ui.views.confirmdialog import ConfirmDialog
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.utils import lerp_val, set_glyph_rel_width
@@ -1472,6 +1473,7 @@ class SampleEditor(QWidget, ProcessorUpdater):
                 self._get_resample_signal_type(), self._update_after_resample)
         self.register_action(self._get_format_signal_type(), self._update_after_format)
         self.register_action(self._get_loop_signal_type(), self._update_loop)
+        self.register_action(self._get_cut_signal_type(), self._update_all)
         self.register_action('signal_style_changed', self._update_style)
 
         self._name.editingFinished.connect(self._change_name)
@@ -1483,6 +1485,7 @@ class SampleEditor(QWidget, ProcessorUpdater):
         self._sample_view.set_icon_bank(self._ui_model.get_icon_bank())
         self._sample_view.loopStartChanged.connect(self._change_loop_start)
         self._sample_view.loopStopChanged.connect(self._change_loop_end)
+        self._sample_view.postLoopCut.connect(self._post_loop_cut)
         self._format_change.clicked.connect(self._change_format)
 
         self._update_style()
@@ -1514,6 +1517,9 @@ class SampleEditor(QWidget, ProcessorUpdater):
 
     def _get_loop_signal_type(self):
         return 'signal_sample_loop_{}'.format(self._proc_id)
+
+    def _get_cut_signal_type(self):
+        return 'signal_sample_cut_{}'.format(self._proc_id)
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -1705,6 +1711,15 @@ class SampleEditor(QWidget, ProcessorUpdater):
         sample_params.set_sample_loop_end(sample_id, end)
         self._updater.signal_update(self._get_loop_signal_type())
 
+    def _post_loop_cut(self):
+        on_cut = lambda: self._updater.signal_update(self._get_cut_signal_type())
+        confirm_dialog = PostLoopCutConfirmDialog(
+                self._ui_model.get_icon_bank(),
+                self._get_sample_params(),
+                self._ui_model.get_task_executor(),
+                on_cut)
+        confirm_dialog.exec_()
+
 
 class ResampleEditor(QDialog):
 
@@ -1857,6 +1872,42 @@ class SampleFormatEditor(QDialog):
 
         task = self._sample_params.get_task_convert_sample_format(
                 sample_id, bits, is_float, normalise, self._on_convert)
+        self._task_executor(task)
+
+        self.close()
+
+
+class PostLoopCutConfirmDialog(ConfirmDialog):
+
+    def __init__(self, icon_bank, sample_params, task_executor, on_cut):
+        super().__init__(icon_bank)
+
+        self._set_message('Cut all sample data past loop end?')
+
+        self._sample_params = sample_params
+        self._task_executor = task_executor
+        self._on_cut = on_cut
+
+        self.setWindowTitle('Confirm sample cut')
+
+        self._cancel_button = QPushButton('No')
+        self._cut_button = QPushButton('Yes')
+
+        bl = self._get_button_layout()
+        bl.addWidget(self._cancel_button)
+        bl.addWidget(self._cut_button)
+
+        self._cancel_button.setFocus(Qt.PopupFocusReason)
+
+        self._cancel_button.clicked.connect(self.close)
+        self._cut_button.clicked.connect(self._cut)
+
+    def _cut(self):
+        sample_id = self._sample_params.get_selected_sample_id()
+
+        self.setEnabled(False)
+
+        task = self._sample_params.get_task_post_loop_cut(sample_id, self._on_cut)
         self._task_executor(task)
 
         self.close()

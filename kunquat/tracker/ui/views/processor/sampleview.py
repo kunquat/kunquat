@@ -40,6 +40,7 @@ class SampleView(QWidget):
 
     loopStartChanged = Signal(int, name='loopStartChanged')
     loopStopChanged = Signal(int, name='loopStopChanged')
+    postLoopCut = Signal(name='postLoopCut')
 
     def __init__(self):
         super().__init__()
@@ -57,6 +58,7 @@ class SampleView(QWidget):
 
         self._toolbar.zoomIn.connect(self._area.zoom_in)
         self._toolbar.zoomOut.connect(self._area.zoom_out)
+        self._toolbar.postLoopCut.connect(self._on_post_loop_cut)
         self._area.rangeChanged.connect(self._toolbar.set_view_range)
 
     def set_config(self, config):
@@ -70,6 +72,7 @@ class SampleView(QWidget):
         self._area.set_sample(length, get_sample_data)
 
     def set_loop_range(self, loop_range):
+        self._toolbar.set_loop_range(loop_range)
         self._area.set_loop_range(loop_range)
 
     def _on_loop_start_changed(self, lstart):
@@ -78,16 +81,21 @@ class SampleView(QWidget):
     def _on_loop_stop_changed(self, lstop):
         self.loopStopChanged.emit(lstop)
 
+    def _on_post_loop_cut(self):
+        self.postLoopCut.emit()
+
 
 class SampleViewToolBar(QToolBar):
 
     zoomIn = Signal(name='zoomIn')
     zoomOut = Signal(name='zoomOut')
+    postLoopCut = Signal(name='postLoopCut')
 
     def __init__(self):
         super().__init__()
         self._sample_length = 0
         self._range = [0, 0]
+        self._loop_range = None
 
         self._zoom_in = QToolButton()
         self._zoom_in.setText('Zoom In')
@@ -97,11 +105,18 @@ class SampleViewToolBar(QToolBar):
         self._zoom_out.setText('Zoom Out')
         self._zoom_out.setToolTip(self._zoom_out.text())
 
+        self._post_loop_cut = QToolButton()
+        self._post_loop_cut.setText('Post-loop cut')
+        self._post_loop_cut.setToolTip(self._post_loop_cut.text())
+
         self.addWidget(self._zoom_in)
         self.addWidget(self._zoom_out)
+        self.addSeparator()
+        self.addWidget(self._post_loop_cut)
 
         self._zoom_in.clicked.connect(self._signal_zoom_in)
         self._zoom_out.clicked.connect(self._signal_zoom_out)
+        self._post_loop_cut.clicked.connect(self._signal_post_loop_cut)
 
         self._update_buttons()
 
@@ -118,21 +133,32 @@ class SampleViewToolBar(QToolBar):
         self._range = [start, stop]
         self._update_buttons()
 
+    def set_loop_range(self, loop_range):
+        self._loop_range = list(loop_range) if loop_range else None
+        self._update_buttons()
+
     def _signal_zoom_in(self):
         self.zoomIn.emit()
 
     def _signal_zoom_out(self):
         self.zoomOut.emit()
 
+    def _signal_post_loop_cut(self):
+        self.postLoopCut.emit()
+
     def _update_buttons(self):
         if self._sample_length == 0:
             self._zoom_in.setEnabled(False)
             self._zoom_out.setEnabled(False)
+            self._post_loop_cut.setEnabled(False)
             return
 
         start, stop = self._range
         self._zoom_in.setEnabled(stop - start > 8)
         self._zoom_out.setEnabled((start != 0) or (stop != self._sample_length))
+
+        self._post_loop_cut.setEnabled(
+                bool(self._loop_range and (self._loop_range[1] < self._sample_length)))
 
 
 class SampleViewArea(QAbstractScrollArea):
