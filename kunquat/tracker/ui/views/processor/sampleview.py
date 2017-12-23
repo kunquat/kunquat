@@ -443,10 +443,14 @@ class SampleViewCanvas(QWidget):
 
         # Get range width covered by a single shape slice
         ref_fpp = self._get_ref_frames_per_px(frames_per_px)
-        pixmap_range_width = int(ref_fpp * self._REF_PIXMAP_WIDTH)
+        pixmap_width = self._REF_PIXMAP_WIDTH
+        pixmap_range_width = int(ref_fpp * pixmap_width)
+        if pixmap_range_width == 0:
+            pixmap_width = int(1 / ref_fpp)
+            pixmap_range_width = 1
 
-        src_rect = QRect(0, 0, self._REF_PIXMAP_WIDTH, height)
-        dest_rect_width = (ref_fpp / frames_per_px) * self._REF_PIXMAP_WIDTH
+        src_rect = QRect(0, 0, pixmap_width, height)
+        dest_rect_width = (ref_fpp / frames_per_px) * pixmap_width
 
         # Get pixmap indices
         start_i = start // pixmap_range_width
@@ -478,7 +482,7 @@ class SampleViewCanvas(QWidget):
                         ref_fpp, (slice_start, slice_stop))
 
                 if shape:
-                    pixmap = QPixmap(self._REF_PIXMAP_WIDTH, height)
+                    pixmap = QPixmap(pixmap_width, height)
                     pixmap.fill(self._config['bg_colour'])
 
                     painter = QPainter(pixmap)
