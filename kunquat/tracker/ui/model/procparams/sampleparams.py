@@ -439,6 +439,61 @@ class SampleParams(ProcParams):
 
         self._store.put(transaction, transaction_notifier=notifier)
 
+    def get_task_post_loop_cut(self, sample_id, on_complete):
+        # Get sample info
+        header = self._get_sample_header(sample_id)
+        assert header['loop_mode'] != 'off'
+        assert header['loop_end'] > 0
+        loop_end = header['loop_end']
+
+        cur_handle = self._get_sample_data_handle(sample_id, convert_to_float=False)
+        channels = cur_handle.get_channels()
+        sample_length = cur_handle.get_length()
+        use_float = cur_handle.is_float()
+        bits = cur_handle.get_bits()
+        assert loop_end < sample_length
+
+        msg_fmt = 'Cutting sample data past loop end...'
+        self._session.set_progress_description(msg_fmt)
+        self._session.set_progress_position(0)
+        self._updater.signal_update('signal_progress_start')
+        yield
+
+        # Copy sample data until loop end
+        new_handle = WavPackWMem(cur_handle.get_audio_rate(), channels, use_float, bits)
+        frames_left = loop_end
+        cur_data = cur_handle.read(min(frames_left, 4096))
+        while cur_data[0]:
+            self._session.set_progress_position(
+                    min(1, (loop_end - frames_left) / loop_end))
+            self._updater.signal_update('signal_progress_step')
+            yield
+
+            if (not use_float) and (bits < 32):
+                shift = 32 - bits
+                for ch_num, ch in enumerate(cur_data):
+                    for i in range(len(ch)):
+                        ch[i] >>= shift
+
+            new_handle.write(*cur_data)
+
+            frames_left -= len(cur_data[0])
+            cur_data = cur_handle.read(min(frames_left, 4096))
+
+        self._session.set_progress_position(1)
+
+        raw_data = new_handle.get_contents()
+        sample_data_key = self._get_full_sample_key(sample_id, 'p_sample.wv')
+
+        transaction = { sample_data_key: raw_data }
+
+        def notifier(progress):
+            if progress == 1:
+                self._updater.signal_update('signal_progress_finished')
+                on_complete()
+
+        self._store.put(transaction, transaction_notifier=notifier)
+
     def get_sample_loop_mode(self, sample_id):
         header = self._get_sample_header(sample_id) or {}
         return header.get('loop_mode', 'off')
