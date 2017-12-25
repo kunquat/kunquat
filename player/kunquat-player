@@ -556,11 +556,9 @@ class Status():
         self.right_hold = [Status.SILENCE, self.hold_limit]
 
     def dur_to_str(self, duration):
-        seconds = duration / 1000000000
-        seconds = seconds - 0.05
-        if seconds < 0:
-            seconds = 0
-        return '{:02d}:{:04.1f}'.format(int(seconds // 60), seconds % 60)
+        tenths = int(duration / 100000000)
+        seconds = tenths // 10
+        return '{:02d}:{:02d}.{:01d}'.format(seconds // 60, seconds % 60, tenths % 10)
 
     def get_status_line(self, handle, duration, bufs, mix_load, voice_count):
         components = []
