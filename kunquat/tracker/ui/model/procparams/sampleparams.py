@@ -463,8 +463,23 @@ class SampleParams(ProcParams):
         self._updater.signal_update('signal_progress_start')
         yield
 
+        # Set up progress update helper
+        step_count = 0
+        total_step_count = 4
+        if not use_float:
+            total_step_count = 5
+
+        def add_step():
+            nonlocal step_count
+            step_count += 1
+            self._session.set_progress_position(min(1, step_count / total_step_count))
+            self._updater.signal_update('signal_progress_step')
+            yield
+
         # Get all sample data
         orig_data = cur_handle.read()
+
+        yield from add_step()
 
         # Make copies of relevant sections
         init_length = loop_end - xfade_length
@@ -473,6 +488,8 @@ class SampleParams(ProcParams):
         fadein_data = [d[loop_start - xfade_length:loop_start] for d in orig_data]
         trail_data = [d[loop_start:] for d in orig_data]
         assert len(fadeout_data[0]) == len(fadein_data[0])
+
+        yield from add_step()
 
         # Create crossfaded section
         xfade_data = [[] for _ in orig_data]
@@ -484,6 +501,8 @@ class SampleParams(ProcParams):
                 diff = in_item - out_item
                 xfade_item = out_item + t * diff
                 xfade_data[ch].append(xfade_item)
+
+        yield from add_step()
 
         # Scale integer contents
         if not use_float:
@@ -504,13 +523,15 @@ class SampleParams(ProcParams):
                     shifted = int(xfade_ch[i]) >> shift
                     xfade_ch[i] = min(max(val_min, shifted), val_max)
 
+            yield from add_step()
+
         # Write new sections
         new_handle = WavPackWMem(cur_handle.get_audio_rate(), channels, use_float, bits)
         new_handle.write(*init_data)
         new_handle.write(*xfade_data)
         new_handle.write(*trail_data)
 
-        self._session.set_progress_position(1)
+        yield from add_step()
 
         raw_data = new_handle.get_contents()
         sample_data_key = self._get_full_sample_key(sample_id, 'p_sample.wv')
