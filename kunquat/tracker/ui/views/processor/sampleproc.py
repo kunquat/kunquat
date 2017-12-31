@@ -1422,6 +1422,8 @@ class SampleEditor(QWidget, ProcessorUpdater):
         for vis_mode, mode in loop_modes:
             self._loop_mode.addItem(vis_mode, mode)
 
+        self._loop_xfader = QPushButton('Create crossfade...')
+
         self._loop_start = QSpinBox()
         self._loop_start.setRange(0, 2**30)
         self._loop_end = QSpinBox()
@@ -1437,6 +1439,12 @@ class SampleEditor(QWidget, ProcessorUpdater):
         format_l.addWidget(self._format, 1)
         format_l.addWidget(self._format_change)
 
+        loop_mode_l = QHBoxLayout()
+        loop_mode_l.setContentsMargins(0, 0, 0, 0)
+        loop_mode_l.setSpacing(2)
+        loop_mode_l.addWidget(self._loop_mode, 1)
+        loop_mode_l.addWidget(self._loop_xfader)
+
         gl = QGridLayout()
         gl.setContentsMargins(0, 0, 0, 0)
         gl.setSpacing(2)
@@ -1445,7 +1453,7 @@ class SampleEditor(QWidget, ProcessorUpdater):
         gl.addWidget(QLabel('Middle frequency:'), 1, 0)
         gl.addLayout(freq_l, 1, 1)
         gl.addWidget(QLabel('Loop mode:'), 2, 0)
-        gl.addWidget(self._loop_mode, 2, 1)
+        gl.addLayout(loop_mode_l, 2, 1)
         gl.addWidget(QLabel('Loop start:'), 3, 0)
         gl.addWidget(self._loop_start, 3, 1)
         gl.addWidget(QLabel('Loop end:'), 4, 0)
@@ -1473,6 +1481,7 @@ class SampleEditor(QWidget, ProcessorUpdater):
                 self._get_resample_signal_type(), self._update_after_resample)
         self.register_action(self._get_format_signal_type(), self._update_after_format)
         self.register_action(self._get_loop_signal_type(), self._update_loop)
+        self.register_action(self._get_loop_xfade_signal_type(), self._update_all)
         self.register_action(self._get_cut_signal_type(), self._update_all)
         self.register_action('signal_style_changed', self._update_style)
 
@@ -1480,6 +1489,7 @@ class SampleEditor(QWidget, ProcessorUpdater):
         self._freq.valueChanged.connect(self._change_freq)
         self._resample.clicked.connect(self._convert_freq)
         self._loop_mode.currentIndexChanged.connect(self._change_loop_mode)
+        self._loop_xfader.clicked.connect(self._create_loop_xfade)
         self._loop_start.valueChanged.connect(self._change_loop_start)
         self._loop_end.valueChanged.connect(self._change_loop_end)
         self._sample_view.set_icon_bank(self._ui_model.get_icon_bank())
@@ -1517,6 +1527,9 @@ class SampleEditor(QWidget, ProcessorUpdater):
 
     def _get_loop_signal_type(self):
         return 'signal_sample_loop_{}'.format(self._proc_id)
+
+    def _get_loop_xfade_signal_type(self):
+        return 'signal_sample_loop_xfade_{}'.format(self._proc_id)
 
     def _get_cut_signal_type(self):
         return 'signal_sample_cut_{}'.format(self._proc_id)
@@ -1622,6 +1635,11 @@ class SampleEditor(QWidget, ProcessorUpdater):
             self._loop_mode.setCurrentIndex(loop_mode_index)
         self._loop_mode.blockSignals(old_block)
 
+        self._loop_xfader.setEnabled(
+                (new_loop_mode == 'uni') and
+                (new_loop_start > 0) and
+                (new_loop_end - new_loop_start >= 2))
+
         old_block = self._loop_start.blockSignals(True)
         self._loop_start.setMinimum(0)
         self._loop_start.setMaximum(max(0, sample_length - 1))
@@ -1698,6 +1716,13 @@ class SampleEditor(QWidget, ProcessorUpdater):
         sample_id = sample_params.get_selected_sample_id()
         sample_params.set_sample_loop_mode(sample_id, loop_mode)
         self._updater.signal_update(self._get_loop_signal_type())
+
+    def _create_loop_xfade(self):
+        on_xfade = lambda: self._updater.signal_update(
+                self._get_loop_xfade_signal_type())
+        xfader = LoopXFader(
+                self._get_sample_params(), self._ui_model.get_task_executor(), on_xfade)
+        xfader.exec_()
 
     def _change_loop_start(self, start):
         sample_params = self._get_sample_params()
@@ -1872,6 +1897,61 @@ class SampleFormatEditor(QDialog):
 
         task = self._sample_params.get_task_convert_sample_format(
                 sample_id, bits, is_float, normalise, self._on_convert)
+        self._task_executor(task)
+
+        self.close()
+
+
+class LoopXFader(QDialog):
+
+    def __init__(self, sample_params, task_executor, on_xfade):
+        super().__init__()
+        self._sample_params = sample_params
+        self._task_executor = task_executor
+        self._on_xfade = on_xfade
+
+        sample_id = sample_params.get_selected_sample_id()
+        loop_start = sample_params.get_sample_loop_start(sample_id)
+        loop_end = sample_params.get_sample_loop_end(sample_id)
+        loop_length = loop_end - loop_start
+        max_xfade_length = min(loop_start, loop_length)
+
+        self._xfade_length = QSpinBox()
+        self._xfade_length.setRange(1, max_xfade_length)
+        self._xfade_length.setValue(max_xfade_length)
+
+        xl = QHBoxLayout()
+        xl.setContentsMargins(0, 0, 0, 0)
+        xl.setSpacing(4)
+        xl.addWidget(QLabel('Crossfade length:'))
+        xl.addWidget(self._xfade_length, 1)
+
+        self._cancel_button = QPushButton('Cancel')
+        self._xfade_button = QPushButton('Create crossfade')
+
+        bl = QHBoxLayout()
+        bl.addWidget(self._cancel_button)
+        bl.addWidget(self._xfade_button)
+
+        v = QVBoxLayout()
+        v.setContentsMargins(4, 4, 4, 4)
+        v.setSpacing(4)
+        v.addLayout(xl)
+        v.addLayout(bl)
+        self.setLayout(v)
+
+        self._cancel_button.clicked.connect(self.close)
+        self._xfade_button.clicked.connect(self._xfade)
+
+    def _xfade(self):
+        sample_id = self._sample_params.get_selected_sample_id()
+
+        self.setEnabled(False)
+
+        xfade_length = self._xfade_length.value()
+
+        task = self._sample_params.get_task_create_xfade_loop_region(
+                sample_id, xfade_length, self._on_xfade)
         self._task_executor(task)
 
         self.close()

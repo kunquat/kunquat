@@ -439,6 +439,112 @@ class SampleParams(ProcParams):
 
         self._store.put(transaction, transaction_notifier=notifier)
 
+    def get_task_create_xfade_loop_region(self, sample_id, xfade_length, on_complete):
+        # Get sample info
+        header = self._get_sample_header(sample_id)
+        assert header['loop_mode'] == 'uni'
+        loop_start = header['loop_start']
+        loop_end = header['loop_end']
+        loop_length = loop_end - loop_start
+
+        assert xfade_length > 0
+        assert xfade_length <= loop_length
+        assert xfade_length <= loop_start
+
+        cur_handle = self._get_sample_data_handle(sample_id, convert_to_float=False)
+        channels = cur_handle.get_channels()
+        sample_length = cur_handle.get_length()
+        use_float = cur_handle.is_float()
+        bits = cur_handle.get_bits()
+
+        msg_fmt = 'Creating looping region...'
+        self._session.set_progress_description(msg_fmt)
+        self._session.set_progress_position(0)
+        self._updater.signal_update('signal_progress_start')
+        yield
+
+        # Set up progress update helper
+        step_count = 0
+        total_step_count = 4
+        if not use_float:
+            total_step_count = 5
+
+        def add_step():
+            nonlocal step_count
+            step_count += 1
+            self._session.set_progress_position(min(1, step_count / total_step_count))
+            self._updater.signal_update('signal_progress_step')
+            yield
+
+        # Get all sample data
+        orig_data = cur_handle.read()
+
+        yield from add_step()
+
+        # Make copies of relevant sections
+        init_length = loop_end - xfade_length
+        init_data = [d[:init_length] for d in orig_data]
+        fadeout_data = [d[init_length:loop_end] for d in orig_data]
+        fadein_data = [d[loop_start - xfade_length:loop_start] for d in orig_data]
+        trail_data = [d[loop_start:] for d in orig_data]
+        assert len(fadeout_data[0]) == len(fadein_data[0])
+
+        yield from add_step()
+
+        # Create crossfaded section
+        xfade_data = [[] for _ in orig_data]
+        for ch in range(channels):
+            fadein_ch = fadein_data[ch]
+            fadeout_ch = fadeout_data[ch]
+            for i, (in_item, out_item) in enumerate(zip(fadein_ch, fadeout_ch)):
+                t = i / xfade_length
+                diff = in_item - out_item
+                xfade_item = out_item + t * diff
+                xfade_data[ch].append(xfade_item)
+
+        yield from add_step()
+
+        # Scale integer contents
+        if not use_float:
+            shift = 32 - bits
+
+            if shift > 0:
+                for init_ch in init_data:
+                    for i in range(len(init_ch)):
+                        init_ch[i] >>= shift
+                for trail_ch in trail_data:
+                    for i in range(len(trail_ch)):
+                        trail_ch[i] >>= shift
+
+            val_max = 2**(bits - 1) - 1
+            val_min = -val_max - 1
+            for xfade_ch in xfade_data:
+                for i in range(len(xfade_ch)):
+                    shifted = int(xfade_ch[i]) >> shift
+                    xfade_ch[i] = min(max(val_min, shifted), val_max)
+
+            yield from add_step()
+
+        # Write new sections
+        new_handle = WavPackWMem(cur_handle.get_audio_rate(), channels, use_float, bits)
+        new_handle.write(*init_data)
+        new_handle.write(*xfade_data)
+        new_handle.write(*trail_data)
+
+        yield from add_step()
+
+        raw_data = new_handle.get_contents()
+        sample_data_key = self._get_full_sample_key(sample_id, 'p_sample.wv')
+
+        transaction = { sample_data_key: raw_data }
+
+        def notifier(progress):
+            if progress == 1:
+                self._updater.signal_update('signal_progress_finished')
+                on_complete()
+
+        self._store.put(transaction, transaction_notifier=notifier)
+
     def get_task_post_loop_cut(self, sample_id, on_complete):
         # Get sample info
         header = self._get_sample_header(sample_id)
