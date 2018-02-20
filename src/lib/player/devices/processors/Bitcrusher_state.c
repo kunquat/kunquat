@@ -86,10 +86,8 @@ enum
 };
 
 
-static const int BC_WB_FIXED_CUTOFF     = WORK_BUFFER_IMPL_1;
-static const int BC_WB_FIXED_RESOLUTION = WORK_BUFFER_IMPL_2;
-static const int BC_WB_HOLDS            = WORK_BUFFER_IMPL_3;
-static const int BC_WB_MULTS            = WORK_BUFFER_IMPL_4;
+static const int BC_WB_HOLDS = WORK_BUFFER_IMPL_1;
+static const int BC_WB_MULTS = WORK_BUFFER_IMPL_2;
 
 
 static void Bitcrusher_state_impl_render(
