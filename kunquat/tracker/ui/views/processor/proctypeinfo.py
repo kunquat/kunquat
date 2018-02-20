@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -12,6 +12,7 @@
 #
 
 from .addproc import AddProc
+from .bitcrusherproc import BitcrusherProc
 from .compressproc import CompressProc
 from .delayproc import DelayProc
 from .envgenproc import EnvgenProc
@@ -34,25 +35,26 @@ from .unsupportedproc import UnsupportedProc
 
 
 _proc_classes = {
-    'add':      AddProc,
-    'compress': CompressProc,
-    'delay':    DelayProc,
-    'envgen':   EnvgenProc,
-    'filter':   FilterProc,
-    'force':    ForceProc,
-    'freeverb': FreeverbProc,
-    'gaincomp': GainCompProc,
-    'ks':       KsProc,
-    'noise':    NoiseProc,
-    'padsynth': PadsynthProc,
-    'panning':  PanningProc,
-    'pitch':    PitchProc,
-    'rangemap': RangeMapProc,
-    'ringmod':  RingmodProc,
-    'sample':   SampleProc,
-    'slope':    SlopeProc,
-    'stream':   StreamProc,
-    'volume':   VolumeProc,
+    'add':          AddProc,
+    'bitcrusher':   BitcrusherProc,
+    'compress':     CompressProc,
+    'delay':        DelayProc,
+    'envgen':       EnvgenProc,
+    'filter':       FilterProc,
+    'force':        ForceProc,
+    'freeverb':     FreeverbProc,
+    'gaincomp':     GainCompProc,
+    'ks':           KsProc,
+    'noise':        NoiseProc,
+    'padsynth':     PadsynthProc,
+    'panning':      PanningProc,
+    'pitch':        PitchProc,
+    'rangemap':     RangeMapProc,
+    'ringmod':      RingmodProc,
+    'sample':       SampleProc,
+    'slope':        SlopeProc,
+    'stream':       StreamProc,
+    'volume':       VolumeProc,
 }
 
 
