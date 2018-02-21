@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -13,6 +13,7 @@
 
 from kunquat.kunquat.kunquat import get_default_value
 from .procparams.addparams import AddParams
+from .procparams.bitcrusherparams import BitcrusherParams
 from .procparams.compressparams import CompressParams
 from .procparams.delayparams import DelayParams
 from .procparams.envgenparams import EnvgenParams
@@ -34,25 +35,26 @@ from .procparams.volumeparams import VolumeParams
 
 
 _proc_classes = {
-    'add':      AddParams,
-    'compress': CompressParams,
-    'delay':    DelayParams,
-    'envgen':   EnvgenParams,
-    'filter':   FilterParams,
-    'force':    ForceParams,
-    'freeverb': FreeverbParams,
-    'gaincomp': GainCompParams,
-    'ks':       KsParams,
-    'noise':    NoiseParams,
-    'padsynth': PadsynthParams,
-    'panning':  PanningParams,
-    'pitch':    PitchParams,
-    'rangemap': RangeMapParams,
-    'ringmod':  RingmodParams,
-    'sample':   SampleParams,
-    'slope':    SlopeParams,
-    'stream':   StreamParams,
-    'volume':   VolumeParams,
+    'add':          AddParams,
+    'bitcrusher':   BitcrusherParams,
+    'compress':     CompressParams,
+    'delay':        DelayParams,
+    'envgen':       EnvgenParams,
+    'filter':       FilterParams,
+    'force':        ForceParams,
+    'freeverb':     FreeverbParams,
+    'gaincomp':     GainCompParams,
+    'ks':           KsParams,
+    'noise':        NoiseParams,
+    'padsynth':     PadsynthParams,
+    'panning':      PanningParams,
+    'pitch':        PitchParams,
+    'rangemap':     RangeMapParams,
+    'ringmod':      RingmodParams,
+    'sample':       SampleParams,
+    'slope':        SlopeParams,
+    'stream':       StreamParams,
+    'volume':       VolumeParams,
 }
 
 

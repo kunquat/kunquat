@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -69,6 +69,7 @@ typedef struct Filter_state_impl
 static void Filter_state_impl_init(Filter_state_impl* fimpl, const Proc_filter* filter)
 {
     rassert(fimpl != NULL);
+    rassert(filter != NULL);
 
     fimpl->anything_rendered = false;
 
