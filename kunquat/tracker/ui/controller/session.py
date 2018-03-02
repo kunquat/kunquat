@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2013-2017
+#          Tomi Jylhä-Ollila, Finland 2013-2018
 #
 # This file is part of Kunquat.
 #
@@ -20,6 +20,7 @@ class _AuInfo():
 
     def __init__(self):
         self.expanded_vars = set()
+        self.expanded_events = set()
         self.conns_edit_mode = None
         self.conns_hit_index = None
         self.conns_expr_name = None
@@ -695,6 +696,16 @@ class Session():
 
     def is_au_var_expanded(self, au_id, var_name):
         return (var_name in self._aus[au_id].expanded_vars)
+
+    def set_au_event_expanded(self, au_id, event_name, expanded):
+        au_info = self._aus[au_id]
+        if expanded:
+            au_info.expanded_events.add(event_name)
+        else:
+            au_info.expanded_events.discard(event_name)
+
+    def is_au_event_expanded(self, au_id, event_name):
+        return (event_name in self._aus[au_id].expanded_events)
 
     def set_module_path(self, path):
         self._module_path = path
