@@ -19,7 +19,6 @@ from itertools import count
 class _AuInfo():
 
     def __init__(self):
-        self.expanded_vars = set()
         self.expanded_events = set()
         self.conns_edit_mode = None
         self.conns_hit_index = None
@@ -686,16 +685,6 @@ class Session():
 
     def get_default_grid_pattern_id(self):
         return self._default_grid_pattern_id
-
-    def set_au_var_expanded(self, au_id, var_name, expanded):
-        au_info = self._aus[au_id]
-        if expanded:
-            au_info.expanded_vars.add(var_name)
-        else:
-            au_info.expanded_vars.discard(var_name)
-
-    def is_au_var_expanded(self, au_id, var_name):
-        return (var_name in self._aus[au_id].expanded_vars)
 
     def set_au_event_expanded(self, au_id, event_name, expanded):
         au_info = self._aus[au_id]
