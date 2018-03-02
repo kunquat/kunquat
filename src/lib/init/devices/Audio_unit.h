@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -188,6 +188,25 @@ int32_t Audio_unit_get_voice_wb_size(const Audio_unit* au, int32_t audio_rate);
  * \param au_control_vars   The Audio unit control variables, or \c NULL.
  */
 void Audio_unit_set_control_vars(Audio_unit* au, Au_control_vars* au_control_vars);
+
+
+/**
+ * Set event map of the Audio unit.
+ *
+ * \param au    The Audio unit -- must not be \c NULL.
+ * \param map   The Audio unit event map, or \c NULL.
+ */
+void Audio_unit_set_event_map(Audio_unit* au, Au_event_map* map);
+
+
+/**
+ * Get event map of the Audio unit.
+ *
+ * \param au   The Audio unit -- must not be \c NULL.
+ *
+ * \return   The Audio unit event map, or \c NULL if one does not exist.
+ */
+const Au_event_map* Audio_unit_get_event_map(const Audio_unit* au);
 
 
 /**

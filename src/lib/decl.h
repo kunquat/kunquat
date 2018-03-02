@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 #define KQT_DECL_H
 
 
+typedef struct Au_event_map Au_event_map;
 typedef struct Au_expressions Au_expressions;
 typedef struct Au_params Au_params;
 typedef struct Au_state Au_state;
