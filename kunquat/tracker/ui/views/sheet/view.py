@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2018
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -1503,6 +1503,7 @@ class View(QWidget):
             events.EVENT_ARG_PITCH          : '0',
             events.EVENT_ARG_REALTIME       : '0',
             events.EVENT_ARG_MAYBE_STRING   : None,
+            events.EVENT_ARG_MAYBE_REALTIME : None,
         }
 
         return ex[info['arg_type']]

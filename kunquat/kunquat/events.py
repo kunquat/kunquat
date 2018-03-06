@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -28,6 +28,7 @@ EVENT_ARG_PAT = 'pat'
 EVENT_ARG_PITCH = 'pitch'
 EVENT_ARG_REALTIME = 'realtime'
 EVENT_ARG_MAYBE_STRING = 'maybe_string'
+EVENT_ARG_MAYBE_REALTIME = 'maybe_realtime'
 
 
 """Event information indexed by event name."""
