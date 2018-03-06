@@ -17,6 +17,8 @@
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <decl.h>
+#include <expr.h>
+#include <mathnum/Random.h>
 #include <memory.h>
 #include <string/common.h>
 #include <string/device_event_name.h>
@@ -24,6 +26,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -37,16 +40,9 @@ struct Au_event_map
 #define DEVICE_EVENT_NAME_MAX 33
 
 
-typedef enum
+struct Au_event_bind_entry
 {
-    TARGET_DEV_AU,
-    TARGET_DEV_PROC
-} Target_dev_type;
-
-
-typedef struct Bind_entry
-{
-    Target_dev_type target_dev_type;
+    Au_event_target_dev_type target_dev_type;
     int target_dev_index;
 
     char target_event_name[DEVICE_EVENT_NAME_MAX];
@@ -54,11 +50,11 @@ typedef struct Bind_entry
     Value_type target_arg_type;
     char* expression;
 
-    struct Bind_entry* next;
-} Bind_entry;
+    struct Au_event_bind_entry* next;
+};
 
 
-static void del_Bind_entry(Bind_entry* entry)
+static void del_Bind_entry(Au_event_bind_entry* entry)
 {
     if (entry == NULL)
         return;
@@ -108,7 +104,7 @@ static const char* mem_error_str =
     "Could not allocate memory for audio unit event map";
 
 
-static Bind_entry* new_Bind_entry(Streader* sr)
+static Au_event_bind_entry* new_Bind_entry(Streader* sr)
 {
     rassert(sr != NULL);
 
@@ -128,18 +124,18 @@ static Bind_entry* new_Bind_entry(Streader* sr)
         return NULL;
 
     // Get target device information
-    Target_dev_type target_dev_type = TARGET_DEV_AU;
+    Au_event_target_dev_type target_dev_type = AU_EVENT_TARGET_DEV_AU;
     int target_dev_index = -1;
     {
         static const struct
         {
             const char* prefix;
-            Target_dev_type type;
+            Au_event_target_dev_type type;
         } target_dev_type_map[] =
         {
-            { "au_",    TARGET_DEV_AU },
-            { "proc_",  TARGET_DEV_PROC },
-            { NULL,     TARGET_DEV_AU }
+            { "au_",    AU_EVENT_TARGET_DEV_AU },
+            { "proc_",  AU_EVENT_TARGET_DEV_PROC },
+            { NULL,     AU_EVENT_TARGET_DEV_AU }
         };
 
         int i = 0;
@@ -233,7 +229,7 @@ static Bind_entry* new_Bind_entry(Streader* sr)
         expression[expr_length] = '\0';
     }
 
-    Bind_entry* bind_entry = memory_alloc_item(Bind_entry);
+    Au_event_bind_entry* bind_entry = memory_alloc_item(Au_event_bind_entry);
     if (bind_entry == NULL)
     {
         memory_free(expression);
@@ -257,8 +253,8 @@ typedef struct Event_entry
     char event_name[DEVICE_EVENT_NAME_MAX];
     Value_type event_arg_type;
 
-    Bind_entry* first_bind_entry;
-    Bind_entry* last_bind_entry;
+    Au_event_bind_entry* first_bind_entry;
+    Au_event_bind_entry* last_bind_entry;
 } Event_entry;
 
 
@@ -267,10 +263,10 @@ static void del_Event_entry(Event_entry* entry)
     if (entry == NULL)
         return;
 
-    Bind_entry* cur = entry->first_bind_entry;
+    Au_event_bind_entry* cur = entry->first_bind_entry;
     while (cur != NULL)
     {
-        Bind_entry* next = cur->next;
+        Au_event_bind_entry* next = cur->next;
         del_Bind_entry(cur);
         cur = next;
     }
@@ -290,7 +286,7 @@ static bool read_bind_targets(Streader* sr, int32_t index, void* userdata)
     rassert(event_entry != NULL);
 
     // Read and attach new bind entry
-    Bind_entry* bind_entry = new_Bind_entry(sr);
+    Au_event_bind_entry* bind_entry = new_Bind_entry(sr);
     if (bind_entry == NULL)
         return false;
 
@@ -373,6 +369,106 @@ static bool read_event_entry(Streader* sr, int32_t index, void* userdata)
     }
 
     return Streader_readf(sr, "%l]", read_bind_targets, entry);
+}
+
+
+static void fill_iter_result(Au_event_iter* iter)
+{
+    rassert(iter != NULL);
+    rassert(iter->bind_entry != NULL);
+
+    const Au_event_bind_entry* entry = iter->bind_entry;
+
+    iter->result.dev_type = entry->target_dev_type;
+    iter->result.dev_index = entry->target_dev_index;
+    iter->result.event_name = entry->target_event_name;
+
+    if (entry->target_arg_type != VALUE_TYPE_NONE)
+    {
+        Streader* sr = Streader_init(
+                STREADER_AUTO, entry->expression, (int64_t)strlen(entry->expression));
+        Value* meta = (iter->src_value.type != VALUE_TYPE_NONE) ? &iter->src_value : NULL;
+        Value* result = &iter->result.arg;
+        if (evaluate_expr(sr, NULL, meta, result, iter->rand))
+        {
+            if (!Value_convert(result, result, entry->target_arg_type))
+                result->type = VALUE_TYPE_NONE;
+        }
+        else
+        {
+            result->type = VALUE_TYPE_NONE;
+        }
+    }
+    else
+    {
+        iter->result.arg.type = VALUE_TYPE_NONE;
+    }
+
+    return;
+}
+
+
+Au_event_iter_result* Au_event_iter_init(
+        Au_event_iter* iter,
+        const Au_event_map* map,
+        const char* event_name,
+        const Value* arg,
+        Random* rand)
+{
+    rassert(iter != NULL);
+    rassert(map != NULL);
+    rassert(event_name != NULL);
+    rassert(arg != NULL);
+    rassert(rand != NULL);
+
+    const Event_entry* entry = AAtree_get_exact(map->tree, event_name);
+    if (entry == NULL)
+    {
+        iter->bind_entry = NULL;
+        return NULL;
+    }
+
+    // Check and convert arg if needed
+    if (entry->event_arg_type != VALUE_TYPE_NONE)
+    {
+        if (entry->event_arg_type != arg->type)
+        {
+            if (!Value_convert(&iter->src_value, arg, entry->event_arg_type))
+                return NULL;
+        }
+        else
+        {
+            Value_copy(&iter->src_value, arg);
+        }
+    }
+    else
+    {
+        iter->src_value.type = VALUE_TYPE_NONE;
+    }
+
+    iter->bind_entry = entry->first_bind_entry;
+    iter->rand = rand;
+
+    fill_iter_result(iter);
+
+    return &iter->result;
+}
+
+
+Au_event_iter_result* Au_event_iter_get_next(Au_event_iter* iter)
+{
+    rassert(iter != NULL);
+
+    if (iter->bind_entry == NULL)
+        return NULL;
+
+    iter->bind_entry = iter->bind_entry->next;
+    if (iter->bind_entry == NULL)
+        return NULL;
+
+    fill_iter_result(iter);
+
+    return &iter->result;
 }
 
 
