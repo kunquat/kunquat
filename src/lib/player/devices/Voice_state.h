@@ -60,6 +60,10 @@ typedef void Voice_state_set_cv_tstamp_func(
         Voice_state*, const Device_state*, const Key_indices, const Tstamp*);
 
 
+typedef void Voice_state_fire_event_func(
+        Voice_state*, const Device_state*, const char*, const Value*);
+
+
 struct Voice_state
 {
     Proc_type proc_type;
