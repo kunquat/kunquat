@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2018
  *
  * This file is part of Kunquat.
  *
@@ -91,6 +91,9 @@ const char* kqt_get_event_arg_type(const char* event_name)
 
                 case VALUE_TYPE_MAYBE_STRING:
                     return "maybe_string";
+
+                case VALUE_TYPE_MAYBE_REALTIME:
+                    return "maybe_realtime";
 
                 default:
                     rassert(false);
