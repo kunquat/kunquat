@@ -42,6 +42,7 @@ typedef struct Module Module;
 typedef struct Param_proc_filter Param_proc_filter;
 typedef struct Proc_state Proc_state;
 typedef struct Processor Processor;
+typedef struct Random Random;
 typedef struct Sample Sample;
 typedef struct Sample_params Sample_params;
 typedef struct Song Song;
