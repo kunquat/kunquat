@@ -77,20 +77,13 @@ Trigger* new_Trigger_from_string(Streader* sr, const Event_names* names)
     {
         Streader_read_null(sr);
     }
-    else if (field_type == VALUE_TYPE_MAYBE_STRING)
+    else if ((field_type == VALUE_TYPE_MAYBE_STRING) ||
+            (field_type == VALUE_TYPE_MAYBE_REALTIME))
     {
         if (!Streader_read_null(sr))
         {
             Streader_clear_error(sr);
             Streader_read_string(sr, 0, NULL);
-        }
-    }
-    else if (field_type == VALUE_TYPE_MAYBE_REALTIME)
-    {
-        if (!Streader_read_null(sr))
-        {
-            Streader_clear_error(sr);
-            Streader_read_finite_rt(sr, NULL);
         }
     }
     else
