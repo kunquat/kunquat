@@ -1569,6 +1569,9 @@ class View(QWidget):
         self.setFocus()
 
         trigger = self._sheet_mgr.get_selected_trigger()
+        maybe_types = (events.EVENT_ARG_MAYBE_STRING, events.EVENT_ARG_MAYBE_REALTIME)
+        if trigger.get_argument_type() in maybe_types and not text:
+            text = None
         new_trigger = Trigger(trigger.get_type(), text)
 
         if not self._sheet_mgr.get_replace_mode():
