@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -49,6 +49,7 @@ bool Device_state_init(
     ds->set_tempo = NULL;
     ds->reset = NULL;
     ds->render_mixed = NULL;
+    ds->fire_dev_event = NULL;
     ds->destroy = NULL;
 
     return true;
@@ -177,6 +178,20 @@ void Device_state_render_mixed(
 
     if (Device_get_mixed_signals(ds->device) && (ds->render_mixed != NULL))
         ds->render_mixed(ds, ts, wbs, buf_start, buf_stop, tempo);
+
+    return;
+}
+
+
+void Device_state_fire_event(
+        Device_state* ds, const char* event_name, const Value* event_arg)
+{
+    rassert(ds != NULL);
+    rassert(event_name != NULL);
+    rassert(event_arg != NULL);
+
+    if (ds->fire_dev_event != NULL)
+        ds->fire_dev_event(ds, event_name, event_arg);
 
     return;
 }

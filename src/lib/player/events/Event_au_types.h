@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -17,20 +17,22 @@
 #endif
 
 
-//           Name           Type suffix                 Arg type    Validator
-EVENT_AU_DEF("abp+",        bypass_on,                  NONE,       NULL)
-EVENT_AU_DEF("abp-",        bypass_off,                 NONE,       NULL)
-EVENT_AU_DEF("a.sus",       set_sustain,                FLOAT,      v_sustain)
+//           Name       Type suffix                 Arg type        Validator
+EVENT_AU_DEF("abp+",    bypass_on,                  NONE,           NULL)
+EVENT_AU_DEF("abp-",    bypass_off,                 NONE,           NULL)
+EVENT_AU_DEF("a.sus",   set_sustain,                FLOAT,          v_sustain)
 
-EVENT_AU_DEF("a.s",         set_stream_value,           FLOAT,      v_finite_float)
-EVENT_AU_DEF("a/s",         slide_stream_target,        FLOAT,      v_finite_float)
-EVENT_AU_DEF("a/=s",        slide_stream_length,        TSTAMP,     v_nonneg_ts)
-EVENT_AU_DEF("aos",         stream_osc_speed,           FLOAT,      v_nonneg_float)
-EVENT_AU_DEF("aod",         stream_osc_depth,           FLOAT,      v_nonneg_float)
-EVENT_AU_DEF("ao/=s",       stream_osc_speed_slide,     TSTAMP,     v_nonneg_ts)
-EVENT_AU_DEF("ao/=d",       stream_osc_depth_slide,     TSTAMP,     v_nonneg_ts)
+EVENT_AU_DEF("a.s",     set_stream_value,           FLOAT,          v_finite_float)
+EVENT_AU_DEF("a/s",     slide_stream_target,        FLOAT,          v_finite_float)
+EVENT_AU_DEF("a/=s",    slide_stream_length,        TSTAMP,         v_nonneg_ts)
+EVENT_AU_DEF("aos",     stream_osc_speed,           FLOAT,          v_nonneg_float)
+EVENT_AU_DEF("aod",     stream_osc_depth,           FLOAT,          v_nonneg_float)
+EVENT_AU_DEF("ao/=s",   stream_osc_speed_slide,     TSTAMP,         v_nonneg_ts)
+EVENT_AU_DEF("ao/=d",   stream_osc_depth_slide,     TSTAMP,         v_nonneg_ts)
 
-EVENT_AU_DEF("a.v",         set_cv_value,               REALTIME,   v_finite_rt)
+EVENT_AU_DEF("a.v",     set_cv_value,               REALTIME,       v_finite_rt)
+
+EVENT_AU_DEF("ad",      fire_device_event,          MAYBE_REALTIME, v_maybe_finite_rt)
 
 
 #undef EVENT_AU_DEF
