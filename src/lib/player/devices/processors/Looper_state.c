@@ -92,6 +92,10 @@ enum
 };
 
 
+static const int LOOPER_WB_TOTAL_OFFSETS = WORK_BUFFER_IMPL_1;
+//static const int LOOPER_WB_FIXED_SPEED = WORK_BUFFER_IMPL_2;
+
+
 static void Looper_pstate_render_mixed(
         Device_state* dstate,
         Device_thread_state* proc_ts,
@@ -126,9 +130,23 @@ static void Looper_pstate_render_mixed(
 
     const int32_t history_buf_size = Work_buffer_get_size(lpstate->bufs[0]);
     rassert(history_buf_size == Work_buffer_get_size(lpstate->bufs[1]));
-    //const int32_t delay_max = history_buf_size - 1;
+    const int32_t delay_max = history_buf_size - 1;
+
+    float* total_offsets =
+        Work_buffers_get_buffer_contents_mut(wbs, LOOPER_WB_TOTAL_OFFSETS);
 
     int32_t cur_lpstate_write_pos = lpstate->write_pos;
+
+    const int32_t audio_rate = dstate->audio_rate;
+
+    // Get total offsets
+    for (int32_t i = buf_start, chunk_offset = 0; i < buf_stop; ++i, ++chunk_offset)
+    {
+        const float cur_delay = 0; // TODO: get from speed input
+        double delay_frames = cur_delay * (double)audio_rate;
+        delay_frames = clamp(delay_frames, 0, delay_max);
+        total_offsets[i] = (float)(chunk_offset - delay_frames);
+    }
 
     for (int ch = 0; ch < 2; ++ch)
     {
@@ -146,7 +164,7 @@ static void Looper_pstate_render_mixed(
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
-            const float total_offset = 0; // TODO: calculate from speed
+            const float total_offset = total_offsets[i];
 
             // Get buffer positions
             const int32_t cur_pos = (int32_t)floor(total_offset);
@@ -230,6 +248,17 @@ static void Looper_pstate_render_mixed(
 }
 
 
+static void Looper_pstate_fire_event(
+        Device_state* dstate, const char* event_name, const Value* arg)
+{
+    rassert(dstate != NULL);
+    rassert(event_name != NULL);
+    rassert(arg != NULL);
+
+    // TODO: all the things
+}
+
+
 Device_state* new_Looper_pstate(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
@@ -253,6 +282,7 @@ Device_state* new_Looper_pstate(
     lpstate->parent.destroy = del_Looper_pstate;
     lpstate->parent.reset = Looper_pstate_reset;
     lpstate->parent.render_mixed = Looper_pstate_render_mixed;
+    ((Device_state*)lpstate)->fire_dev_event = Looper_pstate_fire_event;
 
     // Initialise
     const Proc_looper* looper = (const Proc_looper*)device->dimpl;
