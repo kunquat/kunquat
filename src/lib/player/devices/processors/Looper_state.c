@@ -282,7 +282,7 @@ Device_state* new_Looper_pstate(
     lpstate->parent.destroy = del_Looper_pstate;
     lpstate->parent.reset = Looper_pstate_reset;
     lpstate->parent.render_mixed = Looper_pstate_render_mixed;
-    ((Device_state*)lpstate)->fire_dev_event = Looper_pstate_fire_event;
+    lpstate->parent.fire_dev_event = Looper_pstate_fire_event;
 
     // Initialise
     const Proc_looper* looper = (const Proc_looper*)device->dimpl;

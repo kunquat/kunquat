@@ -184,14 +184,15 @@ void Device_state_render_mixed(
 
 
 void Device_state_fire_event(
-        Device_state* ds, const char* event_name, const Value* event_arg)
+        Device_state* ds, const char* event_name, const Value* event_arg, Random* rand)
 {
     rassert(ds != NULL);
     rassert(event_name != NULL);
     rassert(event_arg != NULL);
+    rassert(rand != NULL);
 
     if (ds->fire_dev_event != NULL)
-        ds->fire_dev_event(ds, event_name, event_arg);
+        ds->fire_dev_event(ds, event_name, event_arg, rand);
 
     return;
 }

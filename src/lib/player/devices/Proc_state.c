@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -43,6 +43,8 @@ static Device_state_reset_func Proc_state_reset;
 
 static Device_state_render_mixed_func Proc_state_render_mixed;
 
+static Device_state_fire_event_func Proc_state_fire_event;
+
 static Device_state_destroy_func del_Proc_state;
 
 
@@ -65,6 +67,7 @@ bool Proc_state_init(
     proc_state->render_mixed = NULL;
 
     proc_state->clear_history = NULL;
+    proc_state->fire_dev_event = NULL;
 
     if (!Device_state_init(&proc_state->parent, device, audio_rate, audio_buffer_size))
         return false;
@@ -74,6 +77,7 @@ bool Proc_state_init(
     proc_state->parent.set_tempo = Proc_state_set_tempo;
     proc_state->parent.reset = Proc_state_reset;
     proc_state->parent.render_mixed = Proc_state_render_mixed;
+    proc_state->parent.fire_dev_event = Proc_state_fire_event;
     proc_state->parent.destroy = del_Proc_state;
 
     return true;
@@ -219,6 +223,22 @@ static bool Proc_state_set_audio_buffer_size(Device_state* dstate, int32_t new_s
 static void Proc_state_deinit(Proc_state* proc_state)
 {
     rassert(proc_state != NULL);
+
+    return;
+}
+
+
+static void Proc_state_fire_event(
+        Device_state* dstate, const char* event_name, const Value* arg, Random* rand)
+{
+    rassert(dstate != NULL);
+    rassert(event_name != NULL);
+    rassert(arg != NULL);
+    rassert(rand != NULL);
+
+    Proc_state* proc_state = (Proc_state*)dstate;
+    if (proc_state->fire_dev_event != NULL)
+        proc_state->fire_dev_event(dstate, event_name, arg);
 
     return;
 }

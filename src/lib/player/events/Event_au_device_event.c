@@ -55,7 +55,7 @@ bool Event_au_fire_device_event_process(
         return true;
 
     // Get evaluated arguments for each target
-    Proc_table* procs = Audio_unit_get_procs(au);
+    const Proc_table* procs = Audio_unit_get_procs(au);
     Au_event_iter* iter = AU_EVENT_ITER_AUTO;
     Au_event_iter_result* result =
         Au_event_iter_init(iter, map, event_name, params->arg, &channel->rand);
@@ -76,7 +76,8 @@ bool Event_au_fire_device_event_process(
         {
             Device_state* dstate =
                 Device_states_get_state(dstates, Device_get_id(device));
-            Device_state_fire_event(dstate, result->event_name, &result->arg);
+            Device_state_fire_event(
+                    dstate, result->event_name, &result->arg, &channel->rand);
         }
 
         result = Au_event_iter_get_next(iter);
