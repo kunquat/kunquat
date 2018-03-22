@@ -74,7 +74,7 @@ bool Event_channel_fire_device_event_process(
         return true;
 
     // Get evaluated arguments for each target
-    Proc_table* procs = Audio_unit_get_procs(au);
+    const Proc_table* procs = Audio_unit_get_procs(au);
     Au_event_iter* iter = AU_EVENT_ITER_AUTO;
     Au_event_iter_result* result =
         Au_event_iter_init(iter, map, event_name, params->arg, &ch->rand);
