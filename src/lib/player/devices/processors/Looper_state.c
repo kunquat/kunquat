@@ -429,7 +429,8 @@ static void Looper_pstate_fire_event(
     else if (string_eq(event_name, "play"))
     {
         lpstate->mode = MODE_PLAY;
-        lpstate->read_pos = (float)lpstate->marker_start;
+        if (lpstate->read_pos >= (float)lpstate->marker_stop)
+            lpstate->read_pos = (float)lpstate->marker_start;
     }
     else if (string_eq(event_name, "stop"))
     {
