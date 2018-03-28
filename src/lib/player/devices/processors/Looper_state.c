@@ -535,7 +535,7 @@ static void Looper_pstate_render_mixed(
 
     if (lpstate->xfade_progress < 1)
     {
-        const float xfade_time = 0.001f;
+        const float xfade_time = 0.005f;
 
         const float xfade_step = 1.0f / (xfade_time * (float)dstate->audio_rate);
         const float xfade_left = 1 - lpstate->xfade_progress;
