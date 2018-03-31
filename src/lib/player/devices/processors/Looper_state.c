@@ -316,8 +316,11 @@ typedef struct Looper_pstate
     Proc_state parent;
 
     int main_context;
-    float xfade_progress;
     Mode_context contexts[2];
+
+    float xfade_progress;
+    bool is_prev_speed_const;
+    float prev_speed;
 
     // These values are relative to write_pos; positive values are invalid
     int32_t marker_start;
@@ -351,10 +354,13 @@ static void Looper_pstate_reset(Device_state* dstate)
     Looper_pstate* lpstate = (Looper_pstate*)dstate;
 
     lpstate->main_context = 0;
-    lpstate->xfade_progress = 1;
     for (int i = 0; i < 2; ++i)
         Mode_context_init(&lpstate->contexts[i]);
     lpstate->contexts[lpstate->main_context].mode = MODE_RECORD;
+
+    lpstate->xfade_progress = 1;
+    lpstate->is_prev_speed_const = true;
+    lpstate->prev_speed = 0;
 
     lpstate->marker_start = 1;
     lpstate->marker_stop = 1;
@@ -391,7 +397,7 @@ enum
 static const int LOOPER_WB_TOTAL_OFFSETS    = WORK_BUFFER_IMPL_1;
 static const int LOOPER_WB_FADING_OUT_L     = WORK_BUFFER_IMPL_2;
 static const int LOOPER_WB_FADING_OUT_R     = WORK_BUFFER_IMPL_3;
-static const int LOOPER_WB_FIXED_SPEED      = WORK_BUFFER_IMPL_4;
+static const int LOOPER_WB_TEMP_SPEED       = WORK_BUFFER_IMPL_4;
 
 
 static Mode_context* get_main_context(Looper_pstate* lpstate)
@@ -436,22 +442,21 @@ static void Looper_pstate_render_mixed(
 
     // Get speed input
     const float* speeds = NULL;
+    Work_buffer* speeds_wb = Device_thread_state_get_mixed_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SPEED);
+    if (speeds_wb == NULL)
     {
-        Work_buffer* speed_wb = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SPEED);
-        if (speed_wb == NULL)
-        {
-            speed_wb = Work_buffers_get_buffer_mut(wbs, LOOPER_WB_FIXED_SPEED);
-            float* fixed_speeds = Work_buffer_get_contents_mut(speed_wb);
-            for (int32_t i = buf_start; i < buf_stop; ++i)
-                fixed_speeds[i] = 1;
+        speeds_wb = Work_buffers_get_buffer_mut(wbs, LOOPER_WB_TEMP_SPEED);
+        float* fixed_speeds = Work_buffer_get_contents_mut(speeds_wb);
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            fixed_speeds[i] = 1;
+        Work_buffer_set_const_start(speeds_wb, buf_start);
 
-            speeds = fixed_speeds;
-        }
-        else
-        {
-            speeds = Work_buffer_get_contents(speed_wb);
-        }
+        speeds = fixed_speeds;
+    }
+    else
+    {
+        speeds = Work_buffer_get_contents(speeds_wb);
     }
     rassert(speeds != NULL);
 
@@ -506,6 +511,7 @@ static void Looper_pstate_render_mixed(
         }
     }
 
+    // Main state context updates
     Mode_context_update(
             main_context,
             total_offsets,
@@ -533,8 +539,15 @@ static void Looper_pstate_render_mixed(
                 buf_stop);
     }
 
+    // Store previous speed value to improve crossfading behaviour
+    const float prev_speed = lpstate->prev_speed;
+    const bool is_prev_speed_const = lpstate->is_prev_speed_const;
+    lpstate->prev_speed = speeds[buf_stop - 1];
+    lpstate->is_prev_speed_const = (Work_buffer_get_const_start(speeds_wb) < buf_stop);
+
     if (lpstate->xfade_progress < 1)
     {
+        // Process crossfade
         const float xfade_time = 0.005f;
 
         const float xfade_step = 1.0f / (xfade_time * (float)dstate->audio_rate);
@@ -558,10 +571,35 @@ static void Looper_pstate_render_mixed(
                     xfade_out[i] = 0;
             }
 
+            Work_buffer* xfade_speeds_wb =
+                Work_buffers_get_buffer_mut(wbs, LOOPER_WB_TEMP_SPEED);
+            const float* xfade_speeds = Work_buffer_get_contents(xfade_speeds_wb);
+            if (is_prev_speed_const)
+            {
+                // Use previous speed value and assume that further changes in
+                // speed are only meant for the main context
+                float* new_xfade_speeds = Work_buffer_get_contents_mut(xfade_speeds_wb);
+                for (int32_t i = buf_start; i < xfade_buf_stop; ++i)
+                    new_xfade_speeds[i] = prev_speed;
+
+                xfade_speeds = new_xfade_speeds;
+            }
+            else
+            {
+                // Limit the absolute speed to whatever previous speed was
+                float* used_speeds = Work_buffer_get_contents_mut(speeds_wb);
+                const float max_abs_speed = fabsf(prev_speed);
+                for (int32_t i = buf_start; i < xfade_buf_stop; ++i)
+                    used_speeds[i] =
+                        clamp(used_speeds[i], -max_abs_speed, max_abs_speed);
+
+                xfade_speeds = used_speeds;
+            }
+
             Mode_context_update(
                     fading_context,
                     total_offsets,
-                    speeds,
+                    xfade_speeds,
                     is_recording,
                     delay_max,
                     lpstate->marker_start,
@@ -615,179 +653,6 @@ static void Looper_pstate_render_mixed(
             lpstate->xfade_progress = 1;
             fading_context->mode = MODE_STOP;
         }
-    }
-
-#if 0
-    switch (lpstate->mode)
-    {
-        case MODE_RECORD:
-        {
-            enable_playback = true;
-
-            // Get total offsets
-            float cur_read_pos = lpstate->read_pos;
-
-            for (int32_t i = buf_start, chunk_offset = 0;
-                    i < buf_stop;
-                    ++i, ++chunk_offset)
-            {
-                cur_read_pos = clamp(cur_read_pos, (float)-delay_max, 0.0f);
-                total_offsets[i] = (float)chunk_offset + cur_read_pos;
-
-                const float speed = speeds[i];
-                cur_read_pos += speed - 1;
-            }
-
-            lpstate->read_pos = cur_read_pos;
-        }
-        break;
-
-        case MODE_PLAY:
-        {
-            // Clamp range markers for safety
-            lpstate->marker_start = max(lpstate->marker_start, -delay_max);
-            lpstate->marker_stop = max(lpstate->marker_stop, -delay_max);
-
-            enable_playback =
-                (lpstate->marker_start < lpstate->marker_stop) &&
-                (lpstate->marker_stop <= 0);
-
-            if (enable_playback)
-            {
-                float cur_read_pos = lpstate->read_pos;
-
-                const float marker_start = (float)lpstate->marker_start;
-                const float marker_stop = (float)lpstate->marker_stop;
-                const float loop_length = marker_stop - marker_start;
-
-                for (int32_t i = buf_start; i < buf_stop; ++i)
-                {
-                    if (cur_read_pos >= marker_stop)
-                    {
-                        const float excess = cur_read_pos - marker_stop;
-                        if (isfinite(excess))
-                            cur_read_pos = marker_start + fmodf(excess, loop_length);
-                        else
-                            cur_read_pos = marker_start;
-
-                        rassert(cur_read_pos < marker_stop);
-                    }
-                    else if (cur_read_pos < marker_start)
-                    {
-                        const float excess = marker_start - cur_read_pos;
-                        if (isfinite(excess))
-                        {
-                            cur_read_pos = marker_stop - fmodf(excess, loop_length);
-                            if (cur_read_pos == marker_stop)
-                                cur_read_pos = marker_start;
-                        }
-                        else
-                        {
-                            cur_read_pos = marker_start;
-                        }
-
-                        rassert(cur_read_pos < marker_stop);
-                    }
-
-                    total_offsets[i] = cur_read_pos;
-
-                    const float speed = speeds[i];
-                    cur_read_pos += speed;
-                }
-
-                lpstate->read_pos = cur_read_pos;
-            }
-        }
-        break;
-
-        case MODE_STOP:
-        {
-        }
-        break;
-
-        default:
-            rassert(false);
-    }
-#endif
-
-    if (enable_playback)
-    {
-#if 0
-        for (int ch = 0; ch < 2; ++ch)
-        {
-            float* in = in_data[ch];
-            float* out = out_data[ch];
-            if ((in == NULL) || (out == NULL))
-                continue;
-
-            const float* history = history_data[ch];
-            rassert(history != NULL);
-
-            for (int32_t i = buf_start; i < buf_stop; ++i)
-            {
-                const float total_offset = total_offsets[i];
-
-                // Get buffer positions
-                const int32_t cur_pos = (int32_t)floor(total_offset);
-                const double remainder = total_offset - (double)cur_pos;
-                rassert(cur_pos <= (int32_t)i);
-                rassert(implies(cur_pos == (int32_t)i, remainder == 0));
-                const int32_t next_pos = cur_pos + 1;
-
-                // Get audio frames
-                double cur_val = 0;
-                double next_val = 0;
-
-                if (cur_pos >= 0)
-                {
-                    rassert(lpstate->mode == MODE_RECORD);
-
-                    const int32_t in_cur_pos = buf_start + cur_pos;
-                    rassert(in_cur_pos < (int32_t)buf_stop);
-                    cur_val = in[in_cur_pos];
-
-                    const int32_t in_next_pos = min(buf_start + next_pos, i);
-                    rassert(in_next_pos < (int32_t)buf_stop);
-                    next_val = in[in_next_pos];
-                }
-                else
-                {
-                    const int32_t cur_history_buf_pos =
-                        (cur_lpstate_write_pos + cur_pos + history_buf_size) %
-                        history_buf_size;
-                    rassert(cur_history_buf_pos >= 0);
-
-                    cur_val = history[cur_history_buf_pos];
-
-                    if (next_pos < 0)
-                    {
-                        const int32_t next_history_buf_pos =
-                            (cur_lpstate_write_pos + next_pos + history_buf_size) %
-                            history_buf_size;
-                        rassert(next_history_buf_pos >= 0);
-
-                        next_val = history[next_history_buf_pos];
-                    }
-                    else
-                    {
-                        if (lpstate->mode == MODE_RECORD)
-                        {
-                            rassert(next_pos == 0);
-                            next_val = in[buf_start];
-                        }
-                        else
-                        {
-                            next_val =
-                                history[lpstate->write_pos + lpstate->marker_start];
-                        }
-                    }
-                }
-
-                // Create output frame
-                out[i] = (float)lerp(cur_val, next_val, remainder);
-            }
-        }
-#endif
     }
 
     if (is_recording)
@@ -924,10 +789,13 @@ Device_state* new_Looper_pstate(
 
     // Sanitise fields
     lpstate->main_context = 0;
-    lpstate->xfade_progress = 1;
     for (int i = 0; i < 2; ++i)
         Mode_context_init(&lpstate->contexts[i]);
     lpstate->contexts[lpstate->main_context].mode = MODE_RECORD;
+
+    lpstate->xfade_progress = 1;
+    lpstate->is_prev_speed_const = true;
+    lpstate->prev_speed = 0;
 
     lpstate->marker_start = 1;
     lpstate->marker_stop = 1;
