@@ -127,8 +127,6 @@ static void Mode_context_update(
             {
                 float cur_read_pos = context->read_pos;
 
-                static int frames_since_last_jump = 0;
-
                 for (int32_t i = buf_start; i < buf_stop; ++i)
                 {
                     if (cur_read_pos >= marker_stop)
@@ -143,7 +141,6 @@ static void Mode_context_update(
                     }
                     else if (cur_read_pos < marker_start)
                     {
-                        ++frames_since_last_jump;
                         const float excess = marker_start - cur_read_pos;
                         if (isfinite(excess))
                         {
@@ -158,8 +155,6 @@ static void Mode_context_update(
 
                         rassert(cur_read_pos < marker_stop);
                     }
-                    else
-                        ++frames_since_last_jump;
 
                     total_offsets[i] = cur_read_pos;
 
