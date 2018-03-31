@@ -219,7 +219,8 @@ static void Mode_context_render(
         int32_t init_marker_start,
         int32_t init_marker_stop,
         int32_t buf_start,
-        int32_t buf_stop)
+        int32_t buf_stop,
+        int32_t audio_rate)
 {
     rassert(context != NULL);
     rassert(out_bufs != NULL);
@@ -304,6 +305,70 @@ static void Mode_context_render(
 
             // Create output frame
             out[i] = (float)lerp(cur_val, next_val, remainder);
+        }
+    }
+
+    const float xfade_time = 0.005f;
+    if ((context->mode == MODE_PLAY) && (xfade_time > 0))
+    {
+        // Process playback crossfade
+        const float marker_start = (float)init_marker_start;
+        const float marker_stop = (float)init_marker_stop;
+        const float loop_length = marker_stop - marker_start;
+
+        float xfade_length = xfade_time * (float)audio_rate;
+        xfade_length = max(xfade_length, loop_length);
+
+        for (int ch = 0; ch < 2; ++ch)
+        {
+            const float* in = in_bufs[ch];
+            float* out = out_bufs[ch];
+            if ((in == NULL) || (out == NULL))
+                continue;
+
+            const float* history = history_bufs[ch];
+            rassert(history != NULL);
+
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+            {
+                const float total_offset = total_offsets[i];
+                const float dist_to_end = marker_stop - total_offset;
+                const float xfade_progress =
+                    (xfade_length - dist_to_end) / xfade_length;
+                if (xfade_progress <= 0)
+                    continue;
+
+                rassert(xfade_progress <= 1);
+
+                // Get fade-in buffer positions
+                const float fadein_total_offset = total_offset - loop_length;
+                rassert(fadein_total_offset < 0);
+                const int32_t fadein_cur_pos = (int32_t)floor(fadein_total_offset);
+                const float remainder = fadein_total_offset - (float)fadein_cur_pos;
+                rassert(fadein_cur_pos <= (int32_t)i);
+                rassert(implies(fadein_cur_pos == (int32_t)i, remainder == 0));
+                const int32_t fadein_next_pos = fadein_cur_pos + 1;
+                rassert(fadein_next_pos < 0);
+
+                // Get audio frames
+                const int32_t cur_history_buf_pos =
+                    (write_pos + fadein_cur_pos + history_buf_size) % history_buf_size;
+                rassert(cur_history_buf_pos >= 0);
+
+                const float fadein_cur_val = history[cur_history_buf_pos];
+
+                const int32_t next_history_buf_pos =
+                    (write_pos + fadein_next_pos + history_buf_size) %
+                    history_buf_size;
+                rassert(next_history_buf_pos >= 0);
+
+                const float fadein_next_val = history[next_history_buf_pos];
+
+                // Mix crossfading frame with existing output
+                const float fadein_val =
+                    lerp(fadein_cur_val, fadein_next_val, remainder);
+                out[i] = lerp(out[i], fadein_val, xfade_progress);
+            }
         }
     }
 
@@ -536,7 +601,8 @@ static void Looper_pstate_render_mixed(
                 lpstate->marker_start,
                 lpstate->marker_stop,
                 buf_start,
-                buf_stop);
+                buf_stop,
+                dstate->audio_rate);
     }
 
     // Store previous speed value to improve crossfading behaviour
@@ -618,7 +684,8 @@ static void Looper_pstate_render_mixed(
                     lpstate->marker_start,
                     lpstate->marker_stop,
                     buf_start,
-                    xfade_buf_stop);
+                    xfade_buf_stop,
+                    dstate->audio_rate);
 
             float xfade_progress = lpstate->xfade_progress;
 
