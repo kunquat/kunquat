@@ -589,7 +589,6 @@ static void Looper_pstate_render_mixed(
             buf_stop);
 
     if (enable_playback)
-    {
         Mode_context_render(
                 main_context,
                 out_data,
@@ -603,7 +602,6 @@ static void Looper_pstate_render_mixed(
                 buf_start,
                 buf_stop,
                 dstate->audio_rate);
-    }
 
     // Store previous speed value to improve crossfading behaviour
     const float prev_speed = lpstate->prev_speed;
@@ -673,19 +671,21 @@ static void Looper_pstate_render_mixed(
                     buf_start,
                     xfade_buf_stop);
 
-            Mode_context_render(
-                    fading_context,
-                    xfade_out_data,
-                    in_data,
-                    history_data,
-                    total_offsets,
-                    history_buf_size,
-                    cur_lpstate_write_pos,
-                    lpstate->marker_start,
-                    lpstate->marker_stop,
-                    buf_start,
-                    xfade_buf_stop,
-                    dstate->audio_rate);
+            if (Mode_context_is_playback_enabled(
+                        fading_context, lpstate->marker_start, lpstate->marker_stop))
+                Mode_context_render(
+                        fading_context,
+                        xfade_out_data,
+                        in_data,
+                        history_data,
+                        total_offsets,
+                        history_buf_size,
+                        cur_lpstate_write_pos,
+                        lpstate->marker_start,
+                        lpstate->marker_stop,
+                        buf_start,
+                        xfade_buf_stop,
+                        dstate->audio_rate);
 
             float xfade_progress = lpstate->xfade_progress;
 
