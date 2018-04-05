@@ -37,6 +37,7 @@ typedef enum
 {
     MODE_RECORD,
     MODE_PLAY,
+    MODE_MIX,
     MODE_STOP,
 } Mode;
 
@@ -44,9 +45,11 @@ typedef enum
 typedef struct Mode_context
 {
     Mode mode;
+    bool is_fading;
 
-    // This value is relative to write_pos; positive values are invalid
+    // These values are relative to head_pos; positive values are invalid
     float read_pos;
+    int32_t write_pos;
 } Mode_context;
 
 
@@ -55,7 +58,9 @@ static void Mode_context_init(Mode_context* context)
     rassert(context != NULL);
 
     context->mode = MODE_STOP;
+    context->is_fading = false;
     context->read_pos = 0;
+    context->write_pos = 0;
 
     return;
 }
@@ -65,7 +70,7 @@ static void Mode_context_update(
         Mode_context* context,
         float* total_offsets,
         const float* speeds,
-        bool is_recording,
+        bool is_head_pos_moving,
         int32_t delay_max,
         int32_t init_marker_start,
         int32_t init_marker_stop,
@@ -83,7 +88,7 @@ static void Mode_context_update(
     {
         case MODE_RECORD:
         {
-            rassert(is_recording);
+            rassert(is_head_pos_moving);
 
             // Get total offsets
             float cur_read_pos = context->read_pos;
@@ -100,6 +105,8 @@ static void Mode_context_update(
             }
 
             context->read_pos = cur_read_pos;
+
+            context->write_pos = 0;
         }
         break;
 
@@ -113,7 +120,7 @@ static void Mode_context_update(
             {
                 context->mode = MODE_STOP;
 
-                if ((context->read_pos <= 0) && is_recording)
+                if ((context->read_pos <= 0) && is_head_pos_moving)
                 {
                     const int32_t frame_count = (buf_stop - buf_start);
                     context->read_pos -= (float)frame_count;
@@ -162,7 +169,7 @@ static void Mode_context_update(
                     cur_read_pos += speed;
                 }
 
-                if (is_recording)
+                if (is_head_pos_moving)
                     cur_read_pos -= (float)(buf_stop - buf_start);
 
                 context->read_pos = cur_read_pos;
@@ -170,9 +177,119 @@ static void Mode_context_update(
         }
         break;
 
+        case MODE_MIX:
+        {
+            const float marker_start = (float)clamp(init_marker_start, -delay_max, 0);
+            const float marker_stop = (float)clamp(init_marker_stop, -delay_max, 0);
+
+            const float loop_length = marker_stop - marker_start;
+            if (loop_length <= 0)
+            {
+                context->mode = MODE_STOP;
+
+                if ((context->read_pos <= 0) && is_head_pos_moving)
+                {
+                    const int32_t frame_count = (buf_stop - buf_start);
+                    context->read_pos -= (float)frame_count;
+                    context->read_pos = max(context->read_pos, (float)-delay_max);
+                }
+
+                context->write_pos = (int32_t)context->read_pos;
+
+                return;
+            }
+
+            if (context->write_pos >= init_marker_stop)
+            {
+                const int32_t excess = context->write_pos - init_marker_stop + 1;
+                context->write_pos =
+                    init_marker_start +
+                    (excess % (init_marker_stop - init_marker_start));
+            }
+
+            if ((marker_start < marker_stop) && (marker_stop <= 0))
+            {
+                int32_t cur_write_pos = context->write_pos;
+                float cur_read_pos = context->read_pos;
+
+                for (int32_t i = buf_start; i < buf_stop; ++i)
+                {
+                    const int32_t next_write_pos_unwrapped = cur_write_pos + 1;
+
+                    if (cur_read_pos >= marker_stop)
+                    {
+                        const float excess = cur_read_pos - marker_stop;
+                        if (isfinite(excess))
+                            cur_read_pos = marker_start + fmodf(excess, loop_length);
+                        else
+                            cur_read_pos = marker_start;
+
+                        rassert(cur_read_pos < marker_stop);
+                    }
+                    else if (cur_read_pos < marker_start)
+                    {
+                        const float excess = marker_start - cur_read_pos;
+                        if (isfinite(excess))
+                        {
+                            cur_read_pos = marker_stop - fmodf(excess, loop_length);
+                            if (cur_read_pos == marker_stop)
+                                cur_read_pos = marker_start;
+                        }
+                        else
+                        {
+                            cur_read_pos = marker_start;
+                        }
+
+                        rassert(cur_read_pos < marker_stop);
+                    }
+
+                    total_offsets[i] = cur_read_pos;
+
+                    const float speed = speeds[i];
+
+                    // Prevent moving past write_pos
+                    {
+                        float next_read_pos = cur_read_pos + speed;
+                        float limit = (float)next_write_pos_unwrapped;
+
+                        if (speed > 1)
+                        {
+                            while (limit < cur_read_pos)
+                                limit += loop_length;
+
+                            next_read_pos = min(next_read_pos, limit);
+                        }
+                        else if (speed < 1)
+                        {
+                            while (limit >= cur_read_pos)
+                                limit -= loop_length;
+                            limit += 1;
+
+                            next_read_pos = max(next_read_pos, limit);
+                        }
+
+                        cur_read_pos = next_read_pos;
+                    }
+
+                    if (next_write_pos_unwrapped >= init_marker_stop)
+                        cur_write_pos = init_marker_start;
+                    else
+                        cur_write_pos = next_write_pos_unwrapped;
+                }
+
+                if (is_head_pos_moving)
+                    cur_read_pos -= (float)(buf_stop - buf_start);
+
+                context->read_pos = cur_read_pos;
+
+                // Note: context->write_pos is updated in Mode_context_render
+            }
+        }
+        break;
+
         case MODE_STOP:
         {
-            if ((context->read_pos <= 0) && is_recording)
+            if ((context->read_pos <= 0) && is_head_pos_moving)
             {
                 const int32_t frame_count = (buf_stop - buf_start);
                 context->read_pos -= (float)frame_count;
@@ -198,7 +315,7 @@ static bool Mode_context_is_playback_enabled(
 
     return
         (context->mode == MODE_RECORD) ||
-        (context->mode == MODE_PLAY &&
+        ((context->mode == MODE_PLAY || context->mode == MODE_MIX) &&
          (init_marker_start < init_marker_stop && init_marker_stop <= 0));
 }
 
@@ -209,8 +326,9 @@ static void Mode_context_render(
         float* in_bufs[2],
         float* history_bufs[2],
         const float* total_offsets,
+        bool is_head_pos_moving,
         int32_t history_buf_size,
-        int32_t write_pos,
+        int32_t head_pos,
         int32_t init_marker_start,
         int32_t init_marker_stop,
         int32_t buf_start,
@@ -226,12 +344,44 @@ static void Mode_context_render(
     rassert(buf_stop > buf_start);
 
     const bool enable_playback =
-        (context->mode == MODE_RECORD) ||
-        (context->mode == MODE_PLAY &&
-         (init_marker_start < init_marker_stop && init_marker_stop <= 0));
+        Mode_context_is_playback_enabled(context, init_marker_start, init_marker_stop);
 
     if (!enable_playback)
         return;
+
+    if (context->mode == MODE_MIX)
+    {
+        // Mix input into playback region
+        // TODO: handle crossfade
+        int32_t write_pos = context->write_pos;
+
+        for (int ch = 0; ch < 2; ++ch)
+        {
+            const float* in = in_bufs[ch];
+            if (in == NULL)
+                continue;
+
+            float* history = history_bufs[ch];
+            rassert(history != NULL);
+
+            write_pos = context->write_pos;
+
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+            {
+                const int32_t history_buf_pos =
+                    (head_pos + write_pos + history_buf_size) % history_buf_size;
+                history[history_buf_pos] += in[i];
+
+                ++write_pos;
+                if (write_pos >= init_marker_stop)
+                    write_pos = init_marker_start;
+            }
+        }
+
+        context->write_pos = write_pos;
+        if (is_head_pos_moving)
+            context->write_pos -= (buf_stop - buf_start);
+    }
 
     for (int ch = 0; ch < 2; ++ch)
     {
@@ -271,7 +421,7 @@ static void Mode_context_render(
             else
             {
                 const int32_t cur_history_buf_pos =
-                    (write_pos + cur_pos + history_buf_size) % history_buf_size;
+                    (head_pos + cur_pos + history_buf_size) % history_buf_size;
                 rassert(cur_history_buf_pos >= 0);
 
                 cur_val = history[cur_history_buf_pos];
@@ -279,7 +429,7 @@ static void Mode_context_render(
                 if (next_pos < 0)
                 {
                     const int32_t next_history_buf_pos =
-                        (write_pos + next_pos + history_buf_size) % history_buf_size;
+                        (head_pos + next_pos + history_buf_size) % history_buf_size;
                     rassert(next_history_buf_pos >= 0);
 
                     next_val = history[next_history_buf_pos];
@@ -293,7 +443,7 @@ static void Mode_context_render(
                     }
                     else
                     {
-                        next_val = history[write_pos + init_marker_start];
+                        next_val = history[head_pos + init_marker_start];
                     }
                 }
             }
@@ -304,7 +454,7 @@ static void Mode_context_render(
     }
 
     const float xfade_time = 0.005f;
-    if ((context->mode == MODE_PLAY) && (xfade_time > 0))
+    if ((context->mode == MODE_PLAY || context->mode == MODE_MIX) && (xfade_time > 0))
     {
         // Process playback crossfade
         const float marker_start = (float)init_marker_start;
@@ -312,7 +462,7 @@ static void Mode_context_render(
         const float loop_length = marker_stop - marker_start;
 
         float xfade_length = xfade_time * (float)audio_rate;
-        xfade_length = max(xfade_length, loop_length);
+        xfade_length = min(xfade_length, loop_length);
 
         for (int ch = 0; ch < 2; ++ch)
         {
@@ -347,13 +497,13 @@ static void Mode_context_render(
 
                 // Get audio frames
                 const int32_t cur_history_buf_pos =
-                    (write_pos + fadein_cur_pos + history_buf_size) % history_buf_size;
+                    (head_pos + fadein_cur_pos + history_buf_size) % history_buf_size;
                 rassert(cur_history_buf_pos >= 0);
 
                 const float fadein_cur_val = history[cur_history_buf_pos];
 
                 const int32_t next_history_buf_pos =
-                    (write_pos + fadein_next_pos + history_buf_size) %
+                    (head_pos + fadein_next_pos + history_buf_size) %
                     history_buf_size;
                 rassert(next_history_buf_pos >= 0);
 
@@ -382,11 +532,11 @@ typedef struct Looper_pstate
     bool is_prev_speed_const;
     float prev_speed;
 
-    // These values are relative to write_pos; positive values are invalid
+    // These values are relative to head_pos; positive values are invalid
     int32_t marker_start;
     int32_t marker_stop;
 
-    int32_t write_pos;
+    int32_t head_pos;
     Work_buffer* bufs[KQT_BUFFERS_MAX];
 } Looper_pstate;
 
@@ -424,7 +574,7 @@ static void Looper_pstate_reset(Device_state* dstate)
 
     lpstate->marker_start = 1;
     lpstate->marker_stop = 1;
-    lpstate->write_pos = 0;
+    lpstate->head_pos = 0;
 
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
@@ -533,12 +683,12 @@ static void Looper_pstate_render_mixed(
     float* total_offsets =
         Work_buffers_get_buffer_contents_mut(wbs, LOOPER_WB_TOTAL_OFFSETS);
 
-    int32_t cur_lpstate_write_pos = lpstate->write_pos;
+    int32_t cur_lpstate_head_pos = lpstate->head_pos;
 
     Mode_context* main_context = get_main_context(lpstate);
     Mode_context* fading_context = get_fading_context(lpstate);
 
-    const bool is_recording =
+    const bool is_head_pos_moving =
         (main_context->mode == MODE_RECORD) || (fading_context->mode == MODE_RECORD);
 
     bool enable_playback = false;
@@ -576,7 +726,7 @@ static void Looper_pstate_render_mixed(
             main_context,
             total_offsets,
             speeds,
-            is_recording,
+            is_head_pos_moving,
             delay_max,
             lpstate->marker_start,
             lpstate->marker_stop,
@@ -590,8 +740,9 @@ static void Looper_pstate_render_mixed(
                 in_data,
                 history_data,
                 total_offsets,
+                is_head_pos_moving,
                 history_buf_size,
-                cur_lpstate_write_pos,
+                cur_lpstate_head_pos,
                 lpstate->marker_start,
                 lpstate->marker_stop,
                 buf_start,
@@ -659,7 +810,7 @@ static void Looper_pstate_render_mixed(
                     fading_context,
                     total_offsets,
                     xfade_speeds,
-                    is_recording,
+                    is_head_pos_moving,
                     delay_max,
                     lpstate->marker_start,
                     lpstate->marker_stop,
@@ -674,8 +825,9 @@ static void Looper_pstate_render_mixed(
                         in_data,
                         history_data,
                         total_offsets,
+                        is_head_pos_moving,
                         history_buf_size,
-                        cur_lpstate_write_pos,
+                        cur_lpstate_head_pos,
                         lpstate->marker_start,
                         lpstate->marker_stop,
                         buf_start,
@@ -717,7 +869,7 @@ static void Looper_pstate_render_mixed(
         }
     }
 
-    if (is_recording)
+    if (is_head_pos_moving)
     {
         // Update the history buffers
         for (int ch = 0; ch < 2; ++ch)
@@ -729,22 +881,22 @@ static void Looper_pstate_render_mixed(
             float* history = history_data[ch];
             rassert(history != NULL);
 
-            cur_lpstate_write_pos = lpstate->write_pos;
+            cur_lpstate_head_pos = lpstate->head_pos;
 
             for (int32_t i = buf_start; i < buf_stop; ++i)
             {
-                history[cur_lpstate_write_pos] = in[i];
+                history[cur_lpstate_head_pos] = in[i];
 
-                ++cur_lpstate_write_pos;
-                if (cur_lpstate_write_pos >= history_buf_size)
+                ++cur_lpstate_head_pos;
+                if (cur_lpstate_head_pos >= history_buf_size)
                 {
-                    rassert(cur_lpstate_write_pos == history_buf_size);
-                    cur_lpstate_write_pos = 0;
+                    rassert(cur_lpstate_head_pos == history_buf_size);
+                    cur_lpstate_head_pos = 0;
                 }
             }
         }
 
-        lpstate->write_pos = cur_lpstate_write_pos;
+        lpstate->head_pos = cur_lpstate_head_pos;
 
         // Update range markers (for the next update)
         {
@@ -769,8 +921,12 @@ static void switch_context(Looper_pstate* lpstate)
     Mode_context* main_context = get_main_context(lpstate);
     Mode_context* fading_context = get_fading_context(lpstate);
 
+    Mode_context_init(main_context);
     main_context->mode = fading_context->mode;
     main_context->read_pos = fading_context->read_pos;
+    main_context->write_pos = fading_context->write_pos;
+
+    fading_context->is_fading = true;
 
     lpstate->xfade_progress = 0;
 
@@ -794,6 +950,7 @@ static void Looper_pstate_fire_event(
 
         main_context->mode = MODE_RECORD;
         main_context->read_pos = 0;
+        main_context->write_pos = 0;
     }
     else if (string_eq(event_name, "mark_start"))
     {
@@ -821,6 +978,16 @@ static void Looper_pstate_fire_event(
         main_context->mode = MODE_PLAY;
         if (main_context->read_pos >= (float)lpstate->marker_stop)
             main_context->read_pos = (float)lpstate->marker_start;
+    }
+    else if (string_eq(event_name, "mix"))
+    {
+        switch_context(lpstate);
+        Mode_context* main_context = get_main_context(lpstate);
+
+        main_context->mode = MODE_MIX;
+        if (main_context->read_pos >= (float)lpstate->marker_stop)
+            main_context->read_pos = (float)lpstate->marker_start;
+        main_context->write_pos = (int32_t)ceilf(main_context->read_pos);
     }
     else if (string_eq(event_name, "stop"))
     {
@@ -861,7 +1028,7 @@ Device_state* new_Looper_pstate(
 
     lpstate->marker_start = 1;
     lpstate->marker_stop = 1;
-    lpstate->write_pos = 0;
+    lpstate->head_pos = 0;
 
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
         lpstate->bufs[i] = NULL;
