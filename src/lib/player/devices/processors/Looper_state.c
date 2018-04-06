@@ -50,17 +50,22 @@ typedef struct Mode_context
     // These values are relative to head_pos; positive values are invalid
     float read_pos;
     int32_t write_pos;
+
+    const Proc_looper* looper;
 } Mode_context;
 
 
-static void Mode_context_init(Mode_context* context)
+static void Mode_context_init(Mode_context* context, const Proc_looper* looper)
 {
     rassert(context != NULL);
+    rassert(looper != NULL);
 
     context->mode = MODE_STOP;
     context->is_fading = false;
     context->read_pos = 0;
     context->write_pos = 0;
+
+    context->looper = looper;
 
     return;
 }
@@ -336,6 +341,7 @@ static void Mode_context_render(
         int32_t audio_rate)
 {
     rassert(context != NULL);
+    rassert(context->looper != NULL);
     rassert(out_bufs != NULL);
     rassert(in_bufs != NULL);
     rassert(history_bufs != NULL);
@@ -453,8 +459,13 @@ static void Mode_context_render(
         }
     }
 
-    const float xfade_time = 0.005f;
-    if ((context->mode == MODE_PLAY || context->mode == MODE_MIX) && (xfade_time > 0))
+    float xfade_time = 0;
+    if (context->mode == MODE_PLAY)
+        xfade_time = (float)context->looper->play_xfade_time;
+    else if (context->mode == MODE_MIX)
+        xfade_time = (float)context->looper->mix_xfade_time;
+
+    if (xfade_time > 0)
     {
         // Process playback crossfade
         const float marker_start = (float)init_marker_start;
@@ -562,10 +573,11 @@ static void Looper_pstate_reset(Device_state* dstate)
     rassert(dstate != NULL);
 
     Looper_pstate* lpstate = (Looper_pstate*)dstate;
+    const Proc_looper* looper = (const Proc_looper*)dstate->device->dimpl;
 
     lpstate->main_context = 0;
     for (int i = 0; i < 2; ++i)
-        Mode_context_init(&lpstate->contexts[i]);
+        Mode_context_init(&lpstate->contexts[i], looper);
     lpstate->contexts[lpstate->main_context].mode = MODE_RECORD;
 
     lpstate->xfade_progress = 1;
@@ -758,13 +770,18 @@ static void Looper_pstate_render_mixed(
     if (lpstate->xfade_progress < 1)
     {
         // Process crossfade
-        const float xfade_time = 0.005f;
+        const Proc_looper* looper = (Proc_looper*)dstate->device->dimpl;
+        const float xfade_time = (float)looper->state_xfade_time;
 
-        const float xfade_step = 1.0f / (xfade_time * (float)dstate->audio_rate);
-        const float xfade_left = 1 - lpstate->xfade_progress;
-        int32_t xfade_buf_stop =
-            buf_start + (int32_t)ceilf(xfade_left / xfade_step);
-        xfade_buf_stop = min(xfade_buf_stop, buf_stop);
+        int32_t xfade_buf_stop = buf_start;
+        float xfade_step = 0;
+        if (xfade_time > 0)
+        {
+            xfade_step = 1.0f / (xfade_time * (float)dstate->audio_rate);
+            const float xfade_left = 1 - lpstate->xfade_progress;
+            xfade_buf_stop = buf_start + (int32_t)ceilf(xfade_left / xfade_step);
+            xfade_buf_stop = min(xfade_buf_stop, buf_stop);
+        }
 
         if (xfade_buf_stop > buf_start)
         {
@@ -921,7 +938,7 @@ static void switch_context(Looper_pstate* lpstate)
     Mode_context* main_context = get_main_context(lpstate);
     Mode_context* fading_context = get_fading_context(lpstate);
 
-    Mode_context_init(main_context);
+    Mode_context_init(main_context, main_context->looper);
     main_context->mode = fading_context->mode;
     main_context->read_pos = fading_context->read_pos;
     main_context->write_pos = fading_context->write_pos;
@@ -1008,6 +1025,8 @@ Device_state* new_Looper_pstate(
     rassert(audio_rate > 0);
     rassert(audio_buffer_size >= 0);
 
+    const Proc_looper* looper = (const Proc_looper*)device->dimpl;
+
     Looper_pstate* lpstate = memory_alloc_item(Looper_pstate);
     if ((lpstate == NULL) ||
             !Proc_state_init(&lpstate->parent, device, audio_rate, audio_buffer_size))
@@ -1019,7 +1038,7 @@ Device_state* new_Looper_pstate(
     // Sanitise fields
     lpstate->main_context = 0;
     for (int i = 0; i < 2; ++i)
-        Mode_context_init(&lpstate->contexts[i]);
+        Mode_context_init(&lpstate->contexts[i], looper);
     lpstate->contexts[lpstate->main_context].mode = MODE_RECORD;
 
     lpstate->xfade_progress = 1;
@@ -1039,7 +1058,6 @@ Device_state* new_Looper_pstate(
     lpstate->parent.fire_dev_event = Looper_pstate_fire_event;
 
     // Initialise
-    const Proc_looper* looper = (const Proc_looper*)device->dimpl;
     const int32_t buf_size = (int32_t)(looper->max_rec_time * audio_rate + 1);
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {

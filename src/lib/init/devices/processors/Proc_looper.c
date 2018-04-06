@@ -26,6 +26,9 @@
 
 
 static Set_float_func   Proc_looper_set_max_rec_time;
+static Set_float_func   Proc_looper_set_state_xfade_time;
+static Set_float_func   Proc_looper_set_play_xfade_time;
+static Set_float_func   Proc_looper_set_mix_xfade_time;
 
 static void del_Proc_looper(Device_impl* dimpl);
 
@@ -46,13 +49,35 @@ Device_impl* new_Proc_looper(void)
 
     looper->max_rec_time = LOOPER_DEFAULT_MAX_REC_TIME;
 
+    looper->state_xfade_time = LOOPER_DEFAULT_STATE_XFADE_TIME;
+    looper->play_xfade_time = LOOPER_DEFAULT_PLAY_XFADE_TIME;
+    looper->mix_xfade_time = LOOPER_DEFAULT_MIX_XFADE_TIME;
+
     if (!(REGISTER_SET_WITH_STATE_CB(
                 looper,
                 float,
                 max_rec_time,
                 "p_f_max_rec_time.json",
                 LOOPER_DEFAULT_MAX_REC_TIME,
-                Looper_pstate_set_max_rec_time)
+                Looper_pstate_set_max_rec_time) &&
+            REGISTER_SET_FIXED_STATE(
+                looper,
+                float,
+                state_xfade_time,
+                "p_f_state_xfade_time.json",
+                LOOPER_DEFAULT_STATE_XFADE_TIME) &&
+            REGISTER_SET_FIXED_STATE(
+                looper,
+                float,
+                play_xfade_time,
+                "p_f_play_xfade_time.json",
+                LOOPER_DEFAULT_PLAY_XFADE_TIME) &&
+            REGISTER_SET_FIXED_STATE(
+                looper,
+                float,
+                mix_xfade_time,
+                "p_f_mix_xfade_time.json",
+                LOOPER_DEFAULT_MIX_XFADE_TIME)
         ))
     {
         del_Device_impl(&looper->parent);
@@ -75,6 +100,48 @@ static bool Proc_looper_set_max_rec_time(
         looper->max_rec_time = value;
     else
         looper->max_rec_time = LOOPER_DEFAULT_MAX_REC_TIME;
+
+    return true;
+}
+
+
+static bool Proc_looper_set_state_xfade_time(
+        Device_impl* dimpl, const Key_indices indices, double value)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+    rassert(isfinite(value));
+
+    Proc_looper* looper = (Proc_looper*)dimpl;
+    looper->state_xfade_time = (value >= 0) ? value : LOOPER_DEFAULT_STATE_XFADE_TIME;
+
+    return true;
+}
+
+
+static bool Proc_looper_set_play_xfade_time(
+        Device_impl* dimpl, const Key_indices indices, double value)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+    rassert(isfinite(value));
+
+    Proc_looper* looper = (Proc_looper*)dimpl;
+    looper->play_xfade_time = (value >= 0) ? value : LOOPER_DEFAULT_PLAY_XFADE_TIME;
+
+    return true;
+}
+
+
+static bool Proc_looper_set_mix_xfade_time(
+        Device_impl* dimpl, const Key_indices indices, double value)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+    rassert(isfinite(value));
+
+    Proc_looper* looper = (Proc_looper*)dimpl;
+    looper->mix_xfade_time = (value >= 0) ? value : LOOPER_DEFAULT_MIX_XFADE_TIME;
 
     return true;
 }
