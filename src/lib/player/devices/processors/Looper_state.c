@@ -459,13 +459,8 @@ static void Mode_context_render(
         }
     }
 
-    float xfade_time = 0;
-    if (context->mode == MODE_PLAY)
-        xfade_time = (float)context->looper->play_xfade_time;
-    else if (context->mode == MODE_MIX)
-        xfade_time = (float)context->looper->mix_xfade_time;
-
-    if (xfade_time > 0)
+    const float xfade_time = (float)context->looper->play_xfade_time;
+    if ((context->mode == MODE_PLAY) && (xfade_time > 0))
     {
         // Process playback crossfade
         const float marker_start = (float)init_marker_start;

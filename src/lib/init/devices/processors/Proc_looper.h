@@ -26,7 +26,6 @@
 
 #define LOOPER_DEFAULT_STATE_XFADE_TIME 0.005
 #define LOOPER_DEFAULT_PLAY_XFADE_TIME 0.005
-#define LOOPER_DEFAULT_MIX_XFADE_TIME 0
 
 
 typedef struct Proc_looper
@@ -37,7 +36,6 @@ typedef struct Proc_looper
 
     double state_xfade_time;
     double play_xfade_time;
-    double mix_xfade_time;
 } Proc_looper;
 
 
