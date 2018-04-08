@@ -21,6 +21,7 @@ from .forceproc import ForceProc
 from .freeverbproc import FreeverbProc
 from .gaincompproc import GainCompProc
 from .ksproc import KsProc
+from .looperproc import LooperProc
 from .noiseproc import NoiseProc
 from .padsynthproc import PadsynthProc
 from .panningproc import PanningProc
@@ -45,6 +46,7 @@ _proc_classes = {
     'freeverb':     FreeverbProc,
     'gaincomp':     GainCompProc,
     'ks':           KsProc,
+    'looper':       LooperProc,
     'noise':        NoiseProc,
     'padsynth':     PadsynthProc,
     'panning':      PanningProc,
