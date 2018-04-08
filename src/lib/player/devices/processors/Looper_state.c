@@ -33,6 +33,9 @@
 #include <stdlib.h>
 
 
+#define RANGES_MAX 16
+
+
 typedef enum
 {
     MODE_RECORD,
@@ -40,6 +43,46 @@ typedef enum
     MODE_MIX,
     MODE_STOP,
 } Mode;
+
+
+typedef struct Range
+{
+    // These values are relative to head_pos; positive values are invalid
+    int32_t start;
+    int32_t stop;
+} Range;
+
+
+static void Range_init(Range* range)
+{
+    rassert(range != NULL);
+
+    range->start = 1;
+    range->stop = 1;
+
+    return;
+}
+
+
+static void Range_update(Range* range, int32_t frame_count)
+{
+    rassert(range != NULL);
+    rassert(frame_count >= 0);
+
+    if (range->start <= 0)
+        range->start -= frame_count;
+    if (range->stop <= 0)
+        range->stop -= frame_count;
+
+    return;
+}
+
+
+static bool Range_is_valid(const Range* range)
+{
+    rassert(range != NULL);
+    return (range->start < range->stop && range->stop <= 0);
+}
 
 
 typedef struct Mode_context
@@ -50,8 +93,7 @@ typedef struct Mode_context
     // These values are relative to head_pos; positive values are invalid
     float read_pos;
     int32_t write_pos;
-    int32_t marker_start;
-    int32_t marker_stop;
+    Range range;
 
     const Proc_looper* looper;
 } Mode_context;
@@ -66,8 +108,7 @@ static void Mode_context_init(Mode_context* context, const Proc_looper* looper)
     context->is_fading = false;
     context->read_pos = 0;
     context->write_pos = 0;
-    context->marker_start = 1;
-    context->marker_stop = 1;
+    Range_init(&context->range);
 
     context->looper = looper;
 
@@ -119,9 +160,8 @@ static void Mode_context_update(
 
         case MODE_PLAY:
         {
-            const float marker_start =
-                (float)clamp(context->marker_start, -delay_max, 0);
-            const float marker_stop = (float)clamp(context->marker_stop, -delay_max, 0);
+            const float marker_start = (float)clamp(context->range.start, -delay_max, 0);
+            const float marker_stop = (float)clamp(context->range.stop, -delay_max, 0);
 
             const float loop_length = marker_stop - marker_start;
             if (loop_length <= 0)
@@ -187,9 +227,8 @@ static void Mode_context_update(
 
         case MODE_MIX:
         {
-            const float marker_start =
-                (float)clamp(context->marker_start, -delay_max, 0);
-            const float marker_stop = (float)clamp(context->marker_stop, -delay_max, 0);
+            const float marker_start = (float)clamp(context->range.start, -delay_max, 0);
+            const float marker_stop = (float)clamp(context->range.stop, -delay_max, 0);
 
             const float loop_length = marker_stop - marker_start;
             if (loop_length <= 0)
@@ -208,12 +247,12 @@ static void Mode_context_update(
                 return;
             }
 
-            if (context->write_pos >= context->marker_stop)
+            if (context->write_pos >= context->range.stop)
             {
-                const int32_t excess = context->write_pos - context->marker_stop + 1;
+                const int32_t excess = context->write_pos - context->range.stop + 1;
                 context->write_pos =
-                    context->marker_start +
-                    (excess % (context->marker_stop - context->marker_start));
+                    context->range.start +
+                    (excess % (context->range.stop - context->range.start));
             }
 
             if ((marker_start < marker_stop) && (marker_stop <= 0))
@@ -280,8 +319,8 @@ static void Mode_context_update(
                         cur_read_pos = next_read_pos;
                     }
 
-                    if (next_write_pos_unwrapped >= context->marker_stop)
-                        cur_write_pos = context->marker_start;
+                    if (next_write_pos_unwrapped >= context->range.stop)
+                        cur_write_pos = context->range.start;
                     else
                         cur_write_pos = next_write_pos_unwrapped;
                 }
@@ -322,7 +361,7 @@ static bool Mode_context_is_playback_enabled(const Mode_context* context)
     return
         (context->mode == MODE_RECORD) ||
         ((context->mode == MODE_PLAY || context->mode == MODE_MIX) &&
-         (context->marker_start < context->marker_stop && context->marker_stop <= 0));
+         Range_is_valid(&context->range));
 }
 
 
@@ -375,8 +414,8 @@ static void Mode_context_render(
                 history[history_buf_pos] += in[i];
 
                 ++write_pos;
-                if (write_pos >= context->marker_stop)
-                    write_pos = context->marker_start;
+                if (write_pos >= context->range.stop)
+                    write_pos = context->range.start;
             }
         }
 
@@ -445,7 +484,7 @@ static void Mode_context_render(
                     }
                     else
                     {
-                        next_val = history[head_pos + context->marker_start];
+                        next_val = history[head_pos + context->range.start];
                     }
                 }
             }
@@ -459,8 +498,8 @@ static void Mode_context_render(
     if ((context->mode == MODE_PLAY) && (xfade_time > 0))
     {
         // Process playback crossfade
-        const float marker_start = (float)context->marker_start;
-        const float marker_stop = (float)context->marker_stop;
+        const float marker_start = (float)context->range.start;
+        const float marker_stop = (float)context->range.stop;
         const float loop_length = marker_stop - marker_start;
 
         float xfade_length = xfade_time * (float)audio_rate;
@@ -534,9 +573,8 @@ typedef struct Looper_pstate
     bool is_prev_speed_const;
     float prev_speed;
 
-    // These values are relative to head_pos; positive values are invalid
-    int32_t marker_start;
-    int32_t marker_stop;
+    int last_range_index;
+    Range ranges[RANGES_MAX];
 
     int32_t head_pos;
     Work_buffer* bufs[KQT_BUFFERS_MAX];
@@ -575,8 +613,10 @@ static void Looper_pstate_reset(Device_state* dstate)
     lpstate->is_prev_speed_const = true;
     lpstate->prev_speed = 0;
 
-    lpstate->marker_start = 1;
-    lpstate->marker_stop = 1;
+    lpstate->last_range_index = 0;
+    for (int i = 0; i < RANGES_MAX; ++i)
+        Range_init(&lpstate->ranges[i]);
+
     lpstate->head_pos = 0;
 
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
@@ -624,17 +664,6 @@ static Mode_context* get_fading_context(Looper_pstate* lpstate)
 {
     rassert(lpstate != NULL);
     return &lpstate->contexts[1 - lpstate->main_context];
-}
-
-
-static void update_marker(int32_t* pos, int32_t frame_count)
-{
-    rassert(pos != NULL);
-
-    if (*pos <= 0)
-        *pos -= frame_count;
-
-    return;
 }
 
 
@@ -909,13 +938,11 @@ static void Looper_pstate_render_mixed(
         {
             const int32_t frame_count = buf_stop - buf_start;
 
-            update_marker(&lpstate->marker_start, frame_count);
-            update_marker(&lpstate->marker_stop, frame_count);
+            for (int i = 0; i < RANGES_MAX; ++i)
+                Range_update(&lpstate->ranges[i], frame_count);
 
-            update_marker(&main_context->marker_start, frame_count);
-            update_marker(&main_context->marker_stop, frame_count);
-            update_marker(&fading_context->marker_start, frame_count);
-            update_marker(&fading_context->marker_stop, frame_count);
+            Range_update(&main_context->range, frame_count);
+            Range_update(&fading_context->range, frame_count);
         }
     }
 
@@ -936,12 +963,28 @@ static void switch_context(Looper_pstate* lpstate)
     main_context->mode = fading_context->mode;
     main_context->read_pos = fading_context->read_pos;
     main_context->write_pos = fading_context->write_pos;
-    main_context->marker_start = fading_context->marker_start;
-    main_context->marker_stop = fading_context->marker_stop;
+    main_context->range = fading_context->range;
 
     fading_context->is_fading = true;
 
     lpstate->xfade_progress = 0;
+
+    return;
+}
+
+
+static void update_last_range_index(Looper_pstate* lpstate, const Value* arg)
+{
+    rassert(lpstate != NULL);
+    rassert(arg != NULL);
+
+    if (arg->type != VALUE_TYPE_INT)
+        return;
+
+    if (arg->value.int_type < 0 || arg->value.int_type >= RANGES_MAX)
+        return;
+
+    lpstate->last_range_index = (int)arg->value.int_type;
 
     return;
 }
@@ -967,12 +1010,18 @@ static void Looper_pstate_fire_event(
     }
     else if (string_eq(event_name, "mark_start"))
     {
-        lpstate->marker_start = 0;
-        lpstate->marker_stop = 1;
+        update_last_range_index(lpstate, arg);
+
+        Range* range = &lpstate->ranges[lpstate->last_range_index];
+        range->start = 0;
+        range->stop = 1;
     }
     else if (string_eq(event_name, "mark_stop"))
     {
-        lpstate->marker_stop = 0;
+        update_last_range_index(lpstate, arg);
+
+        Range* range = &lpstate->ranges[lpstate->last_range_index];
+        range->stop = 0;
     }
     else if (string_eq(event_name, "range_start"))
     {
@@ -988,22 +1037,24 @@ static void Looper_pstate_fire_event(
         switch_context(lpstate);
         Mode_context* main_context = get_main_context(lpstate);
 
+        update_last_range_index(lpstate, arg);
+
         main_context->mode = MODE_PLAY;
-        main_context->marker_start = lpstate->marker_start;
-        main_context->marker_stop = lpstate->marker_stop;
-        if (main_context->read_pos >= (float)main_context->marker_stop)
-            main_context->read_pos = (float)main_context->marker_start;
+        main_context->range = lpstate->ranges[lpstate->last_range_index];
+        if (main_context->read_pos >= (float)main_context->range.stop)
+            main_context->read_pos = (float)main_context->range.start;
     }
     else if (string_eq(event_name, "mix"))
     {
         switch_context(lpstate);
         Mode_context* main_context = get_main_context(lpstate);
 
+        update_last_range_index(lpstate, arg);
+
         main_context->mode = MODE_MIX;
-        main_context->marker_start = lpstate->marker_start;
-        main_context->marker_stop = lpstate->marker_stop;
-        if (main_context->read_pos >= (float)main_context->marker_stop)
-            main_context->read_pos = (float)main_context->marker_start;
+        main_context->range = lpstate->ranges[lpstate->last_range_index];
+        if (main_context->read_pos >= (float)main_context->range.stop)
+            main_context->read_pos = (float)main_context->range.start;
         main_context->write_pos = (int32_t)ceilf(main_context->read_pos);
     }
     else if (string_eq(event_name, "stop"))
@@ -1045,8 +1096,10 @@ Device_state* new_Looper_pstate(
     lpstate->is_prev_speed_const = true;
     lpstate->prev_speed = 0;
 
-    lpstate->marker_start = 1;
-    lpstate->marker_stop = 1;
+    lpstate->last_range_index = 0;
+    for (int i = 0; i < RANGES_MAX; ++i)
+        Range_init(&lpstate->ranges[i]);
+
     lpstate->head_pos = 0;
 
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
