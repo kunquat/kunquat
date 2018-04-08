@@ -42,6 +42,7 @@ typedef enum
     MODE_PLAY,
     MODE_MIX,
     MODE_STOP,
+    MODE_BYPASS,
 } Mode;
 
 
@@ -336,12 +337,23 @@ static void Mode_context_update(
         break;
 
         case MODE_STOP:
+        case MODE_BYPASS:
         {
-            if ((context->read_pos <= 0) && is_head_pos_moving)
+            if (is_head_pos_moving)
             {
                 const int32_t frame_count = (buf_stop - buf_start);
-                context->read_pos -= (float)frame_count;
-                context->read_pos = max(context->read_pos, (float)-delay_max);
+
+                if (context->read_pos <= 0)
+                {
+                    context->read_pos -= (float)frame_count;
+                    context->read_pos = max(context->read_pos, (float)-delay_max);
+                }
+
+                if (context->write_pos <= 0)
+                {
+                    context->write_pos -= frame_count;
+                    context->write_pos = max(context->write_pos, -delay_max);
+                }
             }
         }
         break;
@@ -360,6 +372,7 @@ static bool Mode_context_is_playback_enabled(const Mode_context* context)
 
     return
         (context->mode == MODE_RECORD) ||
+        (context->mode == MODE_BYPASS) ||
         ((context->mode == MODE_PLAY || context->mode == MODE_MIX) &&
          Range_is_valid(&context->range));
 }
@@ -389,6 +402,22 @@ static void Mode_context_render(
 
     if (!Mode_context_is_playback_enabled(context))
         return;
+
+    if (context->mode == MODE_BYPASS)
+    {
+        for (int ch = 0; ch < 2; ++ch)
+        {
+            const float* in = in_bufs[ch];
+            float* out = out_bufs[ch];
+            if ((in == NULL) || (out == NULL))
+                continue;
+
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+                out[i] = in[i];
+        }
+
+        return;
+    }
 
     if (context->mode == MODE_MIX)
     {
@@ -771,19 +800,18 @@ static void Looper_pstate_render_mixed(
             buf_start,
             buf_stop);
 
-    if (enable_playback)
-        Mode_context_render(
-                main_context,
-                out_data,
-                in_data,
-                history_data,
-                total_offsets,
-                is_head_pos_moving,
-                history_buf_size,
-                cur_lpstate_head_pos,
-                buf_start,
-                buf_stop,
-                dstate->audio_rate);
+    Mode_context_render(
+            main_context,
+            out_data,
+            in_data,
+            history_data,
+            total_offsets,
+            is_head_pos_moving,
+            history_buf_size,
+            cur_lpstate_head_pos,
+            buf_start,
+            buf_stop,
+            dstate->audio_rate);
 
     // Store previous speed value to improve crossfading behaviour
     const float prev_speed = lpstate->prev_speed;
@@ -856,19 +884,18 @@ static void Looper_pstate_render_mixed(
                     buf_start,
                     xfade_buf_stop);
 
-            if (Mode_context_is_playback_enabled(fading_context))
-                Mode_context_render(
-                        fading_context,
-                        xfade_out_data,
-                        in_data,
-                        history_data,
-                        total_offsets,
-                        is_head_pos_moving,
-                        history_buf_size,
-                        cur_lpstate_head_pos,
-                        buf_start,
-                        xfade_buf_stop,
-                        dstate->audio_rate);
+            Mode_context_render(
+                    fading_context,
+                    xfade_out_data,
+                    in_data,
+                    history_data,
+                    total_offsets,
+                    is_head_pos_moving,
+                    history_buf_size,
+                    cur_lpstate_head_pos,
+                    buf_start,
+                    xfade_buf_stop,
+                    dstate->audio_rate);
 
             float xfade_progress = lpstate->xfade_progress;
 
@@ -1063,6 +1090,13 @@ static void Looper_pstate_fire_event(
         Mode_context* main_context = get_main_context(lpstate);
 
         main_context->mode = MODE_STOP;
+    }
+    else if (string_eq(event_name, "bypass"))
+    {
+        switch_context(lpstate);
+        Mode_context* main_context = get_main_context(lpstate);
+
+        main_context->mode = MODE_BYPASS;
     }
 
     return;
