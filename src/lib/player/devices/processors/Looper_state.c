@@ -1050,15 +1050,6 @@ static void Looper_pstate_fire_event(
         Range* range = &lpstate->ranges[lpstate->last_range_index];
         range->stop = 0;
     }
-    else if (string_eq(event_name, "range_start"))
-    {
-        // TODO: Set normalised loop start position in the recorded area
-        // TODO: How should we handle updating during playback?
-    }
-    else if (string_eq(event_name, "range_stop"))
-    {
-        // TODO: Set normalised loop stop position in the recorded area
-    }
     else if (string_eq(event_name, "play"))
     {
         switch_context(lpstate);
