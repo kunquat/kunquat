@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -70,6 +70,9 @@ EVENT_CHANNEL_DEF(".vn",    set_cv_name,                STRING,         v_var_na
 EVENT_CHANNEL_DEF(".v",     set_cv_value,               REALTIME,       v_finite_rt)
 EVENT_CHANNEL_DEF("->v+",   carry_cv_on,                NONE,           NULL)
 EVENT_CHANNEL_DEF("->v-",   carry_cv_off,               NONE,           NULL)
+
+EVENT_CHANNEL_DEF(".dn",    set_device_event_name,      STRING,         v_dev_event_name)
+EVENT_CHANNEL_DEF("d",      fire_device_event,          MAYBE_REALTIME, v_maybe_finite_rt)
 
 
 #undef EVENT_CHANNEL_DEF

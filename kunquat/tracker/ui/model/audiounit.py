@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2017
+#          Tomi Jylhä-Ollila, Finland 2013-2018
 #
 # This file is part of Kunquat.
 #
@@ -439,237 +439,6 @@ class AudioUnit():
         key = self._get_key('m_message.json')
         self._store[key] = message or None
 
-    def _get_control_var_list(self):
-        key = self._get_key('p_control_vars.json')
-        ret = self._store.get(key, get_default_value(key))
-        return ret
-
-    def _get_control_var_dict(self):
-        var_list = self._get_control_var_list()
-        var_dict = {}
-        for entry in var_list:
-            type_name, var_name, init_value, ext, bindings = entry
-            var_dict[var_name] = (type_name, init_value, ext, bindings)
-        return var_dict
-
-    def _get_control_var_entry_index(self, var_list, var_name):
-        for i, entry in enumerate(var_list):
-            if entry[1] == var_name:
-                return i
-        raise ValueError('Variable name {} not in list'.format(var_name))
-
-    def _set_control_var_list(self, var_list):
-        key = self._get_key('p_control_vars.json')
-        self._store[key] = var_list
-
-    def _get_control_var_binding_list(self, var_name):
-        var_dict = self._get_control_var_dict()
-        var_entry = var_dict[var_name]
-        return var_entry[3]
-
-    def _get_control_var_binding_entry_index(
-            self, binding_list, target_dev_id, target_var_name):
-        for i, entry in enumerate(binding_list):
-            if (entry[0] == target_dev_id) and (entry[1] == target_var_name):
-                return i
-        raise ValueError('Binding target {} not in list'.format(target_var_name))
-
-    def _set_control_var_binding_list(self, var_name, binding_list):
-        var_list = self._get_control_var_list()
-        index = self._get_control_var_entry_index(var_list, var_name)
-        var_entry = var_list[index]
-
-        var_entry[4] = binding_list
-        var_list[index] = var_entry
-        self._set_control_var_list(var_list)
-
-    def _get_control_var_object_type(self, type_name):
-        type_map = {
-                'bool': bool,
-                'int': int,
-                'float': float,
-                'tstamp': tstamp.Tstamp,
-            }
-        return type_map[type_name]
-
-    def _get_control_var_format_type(self, obj_type):
-        type_map = {
-                bool: 'bool',
-                int: 'int',
-                float: 'float',
-                tstamp.Tstamp: 'tstamp',
-            }
-        return type_map[obj_type]
-
-    def get_control_var_names(self):
-        var_list = self._get_control_var_list()
-        return [var[1] for var in var_list]
-
-    def get_control_var_types(self):
-        return [bool, int, float, tstamp.Tstamp]
-
-    def get_control_var_binding_target_types(self):
-        return [bool, int, float, tstamp.Tstamp]
-
-    def _get_unique_control_var_name(self, var_list):
-        names = set('var{:02d}'.format(i) for i in range(1, 100))
-        for entry in var_list:
-            used_name = entry[1]
-            names.discard(used_name)
-        unique_name = min(names)
-        return unique_name
-
-    def add_control_var_bool(self):
-        var_list = self._get_control_var_list()
-        type_name = self._get_control_var_format_type(bool)
-        var_name = self._get_unique_control_var_name(var_list)
-        new_entry = [type_name, var_name, False, [], []]
-        var_list.append(new_entry)
-        self._set_control_var_list(var_list)
-
-    def remove_control_var(self, var_name):
-        var_list = self._get_control_var_list()
-        index = self._get_control_var_entry_index(var_list, var_name)
-        del var_list[index]
-
-        self._set_control_var_list(var_list)
-
-    def set_control_var_expanded(self, var_name, expanded):
-        self._session.set_au_var_expanded(self._au_id, var_name, expanded)
-
-    def is_control_var_expanded(self, var_name):
-        return self._session.is_au_var_expanded(self._au_id, var_name)
-
-    def get_control_var_type(self, var_name):
-        var_dict = self._get_control_var_dict()
-        var_entry = var_dict[var_name]
-        return self._get_control_var_object_type(var_entry[0])
-
-    def get_control_var_init_value(self, var_name):
-        var_dict = self._get_control_var_dict()
-        var_entry = var_dict[var_name]
-        var_type = self._get_control_var_object_type(var_entry[0])
-        return var_type(var_entry[1])
-
-    def change_control_var_name(self, var_name, new_name):
-        var_list = self._get_control_var_list()
-        index = self._get_control_var_entry_index(var_list, var_name)
-        var_list[index][1] = new_name
-
-        self._set_control_var_list(var_list)
-
-    def change_control_var_type(self, var_name, new_type):
-        new_type_name = self._get_control_var_format_type(new_type)
-
-        cons = new_type
-
-        var_list = self._get_control_var_list()
-        index = self._get_control_var_entry_index(var_list, var_name)
-        var_list[index][0] = new_type_name
-        var_list[index][2] = cons(0)
-
-        # Set default extended params as they are type-specific
-        if new_type in (bool, int, float, tstamp.Tstamp):
-            var_list[index][3] = []
-        else:
-            raise NotImplementedError
-
-        # Remove existing bindings as they are type-specific
-        var_list[index][4] = []
-
-        self._set_control_var_list(var_list)
-
-    def change_control_var_init_value(self, var_name, new_value):
-        var_list = self._get_control_var_list()
-        index = self._get_control_var_entry_index(var_list, var_name)
-        var_list[index][2] = new_value
-
-        var_type = self._get_control_var_object_type(var_list[index][0])
-
-        self._set_control_var_list(var_list)
-
-    def get_control_var_binding_targets(self, var_name):
-        assert var_name
-        binding_list = self._get_control_var_binding_list(var_name)
-        return [(entry[0], entry[1]) for entry in binding_list]
-
-    def _get_unique_binding_var_name(self, binding_list):
-        names = set('var{:02d}'.format(i) for i in range(1, 100))
-        for entry in binding_list:
-            used_name = entry[1]
-            names.discard(used_name)
-        unique_name = min(names)
-        return unique_name
-
-    def add_control_var_binding(
-            self, var_name, target_dev_id, target_var_type):
-        assert var_name
-        assert target_dev_id
-        binding_list = self._get_control_var_binding_list(var_name)
-        type_name = self._get_control_var_format_type(target_var_type)
-        target_var_name = self._get_unique_binding_var_name(binding_list)
-        binding_list.append([
-            target_dev_id, target_var_name, type_name, '$'])
-        self._set_control_var_binding_list(var_name, binding_list)
-
-    def remove_control_var_binding(self, var_name, target_dev_id, target_var_name):
-        binding_list = self._get_control_var_binding_list(var_name)
-        index = self._get_control_var_binding_entry_index(
-                binding_list, target_dev_id, target_var_name)
-        del binding_list[index]
-        self._set_control_var_binding_list(var_name, binding_list)
-
-    def get_control_var_binding_target_type(
-            self, var_name, target_dev_id, target_var_name):
-        binding_list = self._get_control_var_binding_list(var_name)
-        index = self._get_control_var_binding_entry_index(
-                binding_list, target_dev_id, target_var_name)
-        entry = binding_list[index]
-        return self._get_control_var_object_type(entry[2])
-
-    def get_control_var_binding_expression(
-            self, var_name, target_dev_id, target_var_name):
-        binding_list = self._get_control_var_binding_list(var_name)
-        index = self._get_control_var_binding_entry_index(
-                binding_list, target_dev_id, target_var_name)
-        entry = binding_list[index]
-        return entry[3]
-
-    def change_control_var_binding_target_dev(
-            self, var_name, target_dev_id, target_var_name, new_target_dev_id):
-        binding_list = self._get_control_var_binding_list(var_name)
-        index = self._get_control_var_binding_entry_index(
-                binding_list, target_dev_id, target_var_name)
-        binding_list[index][0] = new_target_dev_id
-        self._set_control_var_binding_list(var_name, binding_list)
-
-    def change_control_var_binding_target_name(
-            self, var_name, target_dev_id, target_var_name, new_target_name):
-        binding_list = self._get_control_var_binding_list(var_name)
-        index = self._get_control_var_binding_entry_index(
-                binding_list, target_dev_id, target_var_name)
-        binding_list[index][1] = new_target_name
-        self._set_control_var_binding_list(var_name, binding_list)
-
-    def change_control_var_binding_target_type(
-            self, var_name, target_dev_id, target_var_name, new_type):
-        new_type_name = self._get_control_var_format_type(new_type)
-
-        binding_list = self._get_control_var_binding_list(var_name)
-        index = self._get_control_var_binding_entry_index(
-                binding_list, target_dev_id, target_var_name)
-        binding_list[index][2] = new_type_name
-        self._set_control_var_binding_list(var_name, binding_list)
-
-    def change_control_var_binding_expression(
-            self, var_name, target_dev_id, target_var_name, expr):
-        binding_list = self._get_control_var_binding_list(var_name)
-        index = self._get_control_var_binding_entry_index(
-                binding_list, target_dev_id, target_var_name)
-        entry = binding_list[index]
-        entry[3] = expr
-        self._set_control_var_binding_list(var_name, binding_list)
-
     def _get_stream_list(self):
         key = self._get_key('p_streams.json')
         ret = self._store.get(key, get_default_value(key))
@@ -741,5 +510,207 @@ class AudioUnit():
         index = self._get_stream_entry_index(stream_name)
         del stream_list[index]
         self._set_stream_list(stream_list)
+
+    def _get_event_list(self):
+        key = self._get_key('p_events.json')
+        ret = self._store.get(key, get_default_value(key))
+        return ret
+
+    def _get_event_dict(self):
+        event_list = self._get_event_list()
+        event_dict = {}
+        for entry in event_list:
+            event_name, arg_type_name, bindings = entry
+            event_dict[event_name] = (arg_type_name, bindings)
+        return event_dict
+
+    def _get_event_entry_index(self, event_name):
+        event_list = self._get_event_list()
+        for i, entry in enumerate(event_list):
+            if entry[0] == event_name:
+                return i
+        raise ValueError('Event name {} not in list'.format(event_name))
+
+    def _set_event_list(self, event_list):
+        key = self._get_key('p_events.json')
+        self._store[key] = event_list
+
+    def _get_event_binding_list(self, event_name):
+        event_dict = self._get_event_dict()
+        entry = event_dict[event_name]
+        return entry[1]
+
+    def _get_event_binding_entry_index(
+            self, binding_list, target_dev_id, target_event_name):
+        for i, entry in enumerate(binding_list):
+            if (entry[0] == target_dev_id) and (entry[1] == target_event_name):
+                return i
+        raise ValueError('Binding target {} of {} not in list'.format(
+            target_event_name, target_dev_id))
+
+    def _set_event_binding_list(self, event_name, binding_list):
+        event_list = self._get_event_list()
+        index = self._get_event_entry_index(event_name)
+        entry = event_list[index]
+
+        entry[2] = binding_list
+        event_list[index] = entry
+        self._set_event_list(event_list)
+
+    def _get_event_arg_object_type(self, type_name):
+        type_map = {
+            'none': None,
+            'bool': bool,
+            'int': int,
+            'float': float,
+            'tstamp': tstamp.Tstamp,
+        }
+        return type_map[type_name]
+
+    def _get_event_arg_format_type(self, obj_type):
+        type_map = {
+            None: 'none',
+            bool: 'bool',
+            int: 'int',
+            float: 'float',
+            tstamp.Tstamp: 'tstamp',
+        }
+        return type_map[obj_type]
+
+    def get_event_names(self):
+        event_list = self._get_event_list()
+        return [entry[0] for entry in event_list]
+
+    def get_event_arg_types(self):
+        return [None, bool, int, float, tstamp.Tstamp]
+
+    def _get_unique_event_name(self):
+        names = set('event{:02d}'.format(i) for i in range(1, 100))
+        for entry in self._get_event_list():
+            used_name = entry[0]
+            names.discard(used_name)
+        unique_name = min(names)
+        return unique_name
+
+    def add_event(self):
+        event_list = self._get_event_list()
+        arg_type_name = self._get_event_arg_format_type(None)
+        event_name = self._get_unique_event_name()
+        new_entry = [event_name, arg_type_name, []]
+        event_list.append(new_entry)
+        self._set_event_list(event_list)
+
+    def remove_event(self, event_name):
+        event_list = self._get_event_list()
+        index = self._get_event_entry_index(event_name)
+        del event_list[index]
+
+        self._set_event_list(event_list)
+
+    def set_event_expanded(self, event_name, expanded):
+        self._session.set_au_event_expanded(self._au_id, event_name, expanded)
+
+    def is_event_expanded(self, event_name):
+        return self._session.is_au_event_expanded(self._au_id, event_name)
+
+    def get_event_arg_type(self, event_name):
+        event_dict = self._get_event_dict()
+        entry = event_dict[event_name]
+        return self._get_event_arg_object_type(entry[0])
+
+    def change_event_name(self, event_name, new_name):
+        event_list = self._get_event_list()
+        index = self._get_event_entry_index(event_name)
+        event_list[index][0] = new_name
+
+        self._set_event_list(event_list)
+
+    def change_event_arg_type(self, event_name, new_type):
+        new_type_name = self._get_event_arg_format_type(new_type)
+
+        event_list = self._get_event_list()
+        index = self._get_event_entry_index(event_name)
+        event_list[index][1] = new_type_name
+
+        self._set_event_list(event_list)
+
+    def get_event_binding_targets(self, event_name):
+        assert event_name
+        binding_list = self._get_event_binding_list(event_name)
+        return [(entry[0], entry[1]) for entry in binding_list]
+
+    def _get_unique_event_binding_event_name(self, binding_list):
+        names = set('event{:02d}'.format(i) for i in range(1, 100))
+        for entry in binding_list:
+            used_name = entry[1]
+            names.discard(used_name)
+        unique_name = min(names)
+        return unique_name
+
+    def add_event_binding(self, event_name, target_dev_id, target_arg_type):
+        assert event_name
+        assert target_dev_id
+        binding_list = self._get_event_binding_list(event_name)
+        type_name = self._get_event_arg_format_type(target_arg_type)
+        target_event_name = self._get_unique_event_binding_event_name(binding_list)
+        expr = '' if (target_arg_type == None) else '$'
+        binding_list.append([target_dev_id, target_event_name, type_name, expr])
+
+        self._set_event_binding_list(event_name, binding_list)
+
+    def remove_event_binding(self, event_name, target_dev_id, target_event_name):
+        binding_list = self._get_event_binding_list(event_name)
+        index = self._get_event_binding_entry_index(
+                binding_list, target_dev_id, target_event_name)
+        del binding_list[index]
+        self._set_event_binding_list(event_name, binding_list)
+
+    def get_event_binding_target_arg_type(
+            self, event_name, target_dev_id, target_event_name):
+        binding_list = self._get_event_binding_list(event_name)
+        index = self._get_event_binding_entry_index(
+                binding_list, target_dev_id, target_event_name)
+        entry = binding_list[index]
+        return self._get_event_arg_object_type(entry[2])
+
+    def get_event_binding_target_expression(
+            self, event_name, target_dev_id, target_event_name):
+        binding_list = self._get_event_binding_list(event_name)
+        index = self._get_event_binding_entry_index(
+                binding_list, target_dev_id, target_event_name)
+        entry = binding_list[index]
+        return entry[3]
+
+    def change_event_binding_target_dev(
+            self, event_name, target_dev_id, target_event_name, new_target_dev_id):
+        binding_list = self._get_event_binding_list(event_name)
+        index = self._get_event_binding_entry_index(
+                binding_list, target_dev_id, target_event_name)
+        binding_list[index][0] = new_target_dev_id
+        self._set_event_binding_list(event_name, binding_list)
+
+    def change_event_binding_target_event_name(
+            self, event_name, target_dev_id, target_event_name, new_target_event_name):
+        binding_list = self._get_event_binding_list(event_name)
+        index = self._get_event_binding_entry_index(
+                binding_list, target_dev_id, target_event_name)
+        binding_list[index][1] = new_target_event_name
+        self._set_event_binding_list(event_name, binding_list)
+
+    def change_event_binding_target_type(
+            self, event_name, target_dev_id, target_event_name, new_target_arg_type):
+        binding_list = self._get_event_binding_list(event_name)
+        index = self._get_event_binding_entry_index(
+                binding_list, target_dev_id, target_event_name)
+        binding_list[index][2] = self._get_event_arg_format_type(new_target_arg_type)
+        self._set_event_binding_list(event_name, binding_list)
+
+    def change_event_binding_target_expression(
+            self, event_name, target_dev_id, target_event_name, new_expr):
+        binding_list = self._get_event_binding_list(event_name)
+        index = self._get_event_binding_entry_index(
+                binding_list, target_dev_id, target_event_name)
+        binding_list[index][3] = new_expr
+        self._set_event_binding_list(event_name, binding_list)
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -58,6 +58,10 @@ typedef void Voice_state_set_cv_float_func(
         Voice_state*, const Device_state*, const Key_indices, double);
 typedef void Voice_state_set_cv_tstamp_func(
         Voice_state*, const Device_state*, const Key_indices, const Tstamp*);
+
+
+typedef void Voice_state_fire_event_func(
+        Voice_state*, const Device_state*, const char*, const Value*);
 
 
 struct Voice_state
@@ -156,10 +160,11 @@ int32_t Voice_state_render_voice(
 /**
  * Set request to keep the Voice state alive.
  *
- * \param stop   The buffer index at which it is OK to stop processing
- *               -- must be >= \c 0. Note that the Voice state may be kept
- *               alive longer and the associated Processor must provide data as
- *               long as the output may contain non-zero values.
+ * \param vstate   The Voice state -- must not be \c NULL.
+ * \param stop     The buffer index at which it is OK to stop processing
+ *                 -- must be >= \c 0. Note that the Voice state may be kept
+ *                 alive longer and the associated Processor must provide data
+ *                 as long as the output may contain non-zero values.
  */
 void Voice_state_set_keep_alive_stop(Voice_state* vstate, int32_t stop);
 

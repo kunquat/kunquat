@@ -334,7 +334,10 @@ static void Bitcrusher_pstate_render_mixed(
         double tempo)
 {
     rassert(dstate != NULL);
+    rassert(proc_ts != NULL);
     rassert(wbs != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop > buf_start);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
@@ -364,7 +367,6 @@ static void Bitcrusher_pstate_render_mixed(
         Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
     };
-
 
     Bitcrusher_state_impl_render(
             &bcpstate->state_impl,

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -79,6 +79,7 @@ struct Device_impl
     Device_impl_get_voice_wb_size_func* get_voice_wb_size;
     Voice_state_init_func* init_vstate;
     Voice_state_render_voice_func* render_voice;
+    Voice_state_fire_event_func* fire_voice_dev_event;
     Device_impl_destroy_func* destroy;
 };
 

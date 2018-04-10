@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2018
  *
  * This file is part of Kunquat.
  *
@@ -19,6 +19,7 @@
 #include <mathnum/common.h>
 #include <Pat_inst_ref.h>
 #include <string/common.h>
+#include <string/device_event_name.h>
 #include <string/var_name.h>
 #include <Value.h>
 
@@ -124,6 +125,17 @@ bool v_counter(const Value* value)
 }
 
 
+bool v_dev_event_name(const Value* value)
+{
+    rassert(value != NULL);
+
+    if (value->type != VALUE_TYPE_STRING)
+        return false;
+
+    return is_valid_device_event_name(value->value.string_type);
+}
+
+
 bool v_finite_float(const Value* value)
 {
     rassert(value != NULL);
@@ -198,6 +210,13 @@ bool v_key(const Value* value)
     }
 
     return true;
+}
+
+
+bool v_maybe_finite_rt(const Value* value)
+{
+    rassert(value != NULL);
+    return (value->type == VALUE_TYPE_NONE) || v_finite_rt(value);
 }
 
 

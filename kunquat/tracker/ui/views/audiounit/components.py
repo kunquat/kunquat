@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -10,6 +10,8 @@
 # To the extent possible under law, Kunquat Affirmers have waived all
 # copyright and related or neighboring rights to Kunquat.
 #
+
+import string
 
 from kunquat.tracker.ui.qt import *
 
@@ -24,11 +26,11 @@ from kunquat.tracker.ui.views.varvalidators import *
 from .audiounitupdater import AudioUnitUpdater
 
 
-def _get_update_signal_type(au_id):
-    return 'signal_au_control_vars_{}'.format(au_id)
+def _get_events_update_signal_type(au_id):
+    return 'signal_au_events_{}'.format(au_id)
 
-def _get_rebuild_signal_type(au_id):
-    return 'signal_au_control_vars_rebuild_{}'.format(au_id)
+def _get_events_rebuild_signal_type(au_id):
+    return 'signal_au_events_rebuild_{}'.format(au_id)
 
 def _get_stream_update_signal_type(au_id):
     return 'signal_au_streams_{}'.format(au_id)
@@ -44,15 +46,15 @@ class Components(QSplitter, AudioUnitUpdater):
 
         self._conns_editor = ConnectionsEditor()
         self._streams = Streams()
-        self._control_vars = ControlVariables()
+        self._event_map = EventMap()
 
-        self.add_to_updaters(self._conns_editor, self._streams, self._control_vars)
+        self.add_to_updaters(self._conns_editor, self._streams, self._event_map)
 
         cl = QHBoxLayout()
         cl.setContentsMargins(0, 0, 0, 0)
         cl.setSpacing(4)
         cl.addWidget(self._streams, 1)
-        #cl.addWidget(self._control_vars, 3)
+        cl.addWidget(self._event_map, 1)
 
         cw = QWidget()
         cw.setLayout(cl)
@@ -358,23 +360,23 @@ class StreamRemoveButton(RemoveButton):
         self._updater.signal_update(_get_stream_update_signal_type(self._au_id))
 
 
-class ControlVariables(QWidget, AudioUnitUpdater):
+class EventMap(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
 
-        self._var_list = ControlVariableList()
-        self.add_to_updaters(self._var_list)
+        self._event_list = EventList()
+        self.add_to_updaters(self._event_list)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Control variables'))
-        v.addWidget(self._var_list)
+        v.addWidget(HeaderLine('Event map'))
+        v.addWidget(self._event_list)
         self.setLayout(v)
 
 
-class ControlVariableList(EditorList):
+class EventList(EditorList):
 
     def __init__(self):
         super().__init__()
@@ -382,8 +384,8 @@ class ControlVariableList(EditorList):
         self._ui_model = None
         self._updater = None
 
-        self._var_names = None
-        self._var_names_set = None
+        self._event_names = None
+        self._event_names_set = None
 
     def set_au_id(self, au_id):
         self._au_id = au_id
@@ -393,71 +395,69 @@ class ControlVariableList(EditorList):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
-        self._update_var_names()
+        self._update_event_names()
 
     def unregister_updaters(self):
         self.disconnect_widgets()
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        force_rebuild = _get_rebuild_signal_type(self._au_id) in signals
-        if _get_update_signal_type(self._au_id) in signals:
-            self._update_var_names(force_rebuild)
+        force_rebuild = _get_events_rebuild_signal_type(self._au_id) in signals
+        if _get_events_update_signal_type(self._au_id) in signals:
+            self._update_event_names(force_rebuild)
 
-    def _update_var_names(self, force_rebuild=False):
+    def _update_event_names(self, force_rebuild=False):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        self._var_names = au.get_control_var_names()
-        self._var_names_set = set(self._var_names)
+        self._event_names = au.get_event_names()
+        self._event_names_set = set(self._event_names)
 
         self.update_list(force_rebuild)
 
     def _make_adder_widget(self):
-        adder = ControlVariableAdder()
+        adder = EventAdder()
         adder.set_au_id(self._au_id)
         adder.set_ui_model(self._ui_model)
         return adder
 
     def _get_updated_editor_count(self):
-        var_count = len(self._var_names)
-        return var_count
+        event_count = len(self._event_names)
+        return event_count
 
     def _make_editor_widget(self, index):
-        var_name = self._var_names[index]
+        event_name = self._event_names[index]
 
-        editor = ControlVariableEditor()
+        editor = EventEditor()
         editor.set_au_id(self._au_id)
-        editor.set_context(var_name)
+        editor.set_context(event_name)
         editor.set_ui_model(self._ui_model)
         return editor
 
     def _update_editor(self, index, editor):
-        var_name = self._var_names[index]
+        event_name = self._event_names[index]
 
-        editor.set_context(var_name)
-        editor.set_used_names(self._var_names_set)
+        editor.set_context(event_name)
+        editor.set_used_names(self._event_names_set)
 
     def _disconnect_widget(self, widget):
         widget.unregister_updaters()
 
 
-class ControlVariableEditor(QWidget, AudioUnitUpdater):
+class EventEditor(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
         self._context = None
 
-        self._expander = ControlVariableTypeExpander()
-        self._name_editor = ControlVariableNameEditor()
-        self._type_editor = ControlVariableTypeEditor()
-        self._init_value_editor = ControlVariableInitValueEditor()
-        self._remove_button = ControlVariableRemoveButton()
-        self._bindings = ControlVariableBindings()
+        self._expander = EventExpander()
+        self._name_editor = EventNameEditor()
+        self._arg_type_editor = EventArgTypeEditor()
+        self._remove_button = EventRemoveButton()
+        self._bindings = EventBindings()
 
         self.add_to_updaters(
                 self._name_editor,
-                self._type_editor,
-                self._init_value_editor,
+                self._arg_type_editor,
                 self._remove_button,
                 self._bindings)
 
@@ -465,8 +465,7 @@ class ControlVariableEditor(QWidget, AudioUnitUpdater):
         h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
         h.addWidget(self._name_editor)
-        h.addWidget(self._type_editor)
-        h.addWidget(self._init_value_editor)
+        h.addWidget(self._arg_type_editor)
         h.addWidget(self._remove_button)
 
         g = QGridLayout()
@@ -480,8 +479,7 @@ class ControlVariableEditor(QWidget, AudioUnitUpdater):
     def set_context(self, context):
         self._context = context
         self._name_editor.set_context(context)
-        self._type_editor.set_context(context)
-        self._init_value_editor.set_context(context)
+        self._arg_type_editor.set_context(context)
         self._remove_button.set_context(context)
         self._bindings.set_context(context)
 
@@ -496,32 +494,32 @@ class ControlVariableEditor(QWidget, AudioUnitUpdater):
         self._name_editor.set_used_names(used_names)
 
     def _update_contents(self):
-        var_name = self._context
+        event_name = self._context
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        is_expanded = au.is_control_var_expanded(var_name)
+        is_expanded = au.is_event_expanded(event_name)
 
         old_block = self._expander.blockSignals(True)
         self._expander.setChecked(is_expanded)
         self._expander.blockSignals(old_block)
 
     def _toggle_expand(self, expand):
-        var_name = self._context
+        event_name = self._context
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        au.set_control_var_expanded(var_name, expand)
+        au.set_event_expanded(event_name, expand)
 
         if expand:
             self._bindings.setVisible(True)
         else:
             self._updater.signal_update(
-                _get_update_signal_type(self._au_id),
-                _get_rebuild_signal_type(self._au_id))
+                    _get_events_update_signal_type(self._au_id),
+                    _get_events_rebuild_signal_type(self._au_id))
 
 
-class ControlVariableTypeExpander(QPushButton):
+class EventExpander(QPushButton):
 
     def __init__(self):
         super().__init__()
@@ -556,10 +554,35 @@ class ControlVariableTypeExpander(QPushButton):
                     QPoint(0, triangle_extent)]))
 
 
-class ControlVariableNameEditor(NameEditor):
+class EventNameValidator(QValidator):
+
+    def __init__(self, used_names):
+        super().__init__()
+        self._used_names = used_names
+
+    def _get_validation_status(self, text):
+        if not text:
+            return QValidator.Intermediate
+
+        allowed_chars = '_' + string.ascii_lowercase
+
+        if all(ch in allowed_chars for ch in text):
+            if text in self._used_names:
+                return QValidator.Intermediate
+            return QValidator.Acceptable
+
+        return QValidator.Invalid
+
+    def validate(self, contents, pos):
+        in_str = str(contents)
+        status = self._get_validation_status(in_str)
+        return (status, contents, pos)
+
+
+class EventNameEditor(NameEditor):
 
     def __init__(self):
-        super().__init__(VarNameValidator)
+        super().__init__(EventNameValidator)
 
     def _update_contents(self):
         old_block = self.blockSignals(True)
@@ -572,11 +595,11 @@ class ControlVariableNameEditor(NameEditor):
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        au.change_control_var_name(self._context, new_name)
-        self._updater.signal_update(_get_update_signal_type(self._au_id))
+        au.change_event_name(self._context, new_name)
+        self._updater.signal_update(_get_events_update_signal_type(self._au_id))
 
 
-class ControlVariableTypeEditor(KqtComboBox, AudioUnitUpdater):
+class EventArgTypeEditor(KqtComboBox, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -590,17 +613,18 @@ class ControlVariableTypeEditor(KqtComboBox, AudioUnitUpdater):
     def _on_setup(self):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        var_types = au.get_control_var_types()
+        arg_types = au.get_event_arg_types()
 
-        var_type_names = {
+        arg_type_names = {
+            None: 'None',
             bool: 'Boolean',
             int: 'Integer',
             float: 'Floating point',
             tstamp.Tstamp: 'Timestamp',
         }
 
-        for t in var_types:
-            type_name = var_type_names[t]
+        for t in arg_types:
+            type_name = arg_type_names[t]
             self.addItem(type_name)
 
         self.currentIndexChanged.connect(self._change_type)
@@ -610,179 +634,29 @@ class ControlVariableTypeEditor(KqtComboBox, AudioUnitUpdater):
     def _update_contents(self):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        var_types = au.get_control_var_types()
-        var_type = au.get_control_var_type(self._context)
-        var_type_index = var_types.index(var_type)
+        arg_types = au.get_event_arg_types()
+        arg_type = au.get_event_arg_type(self._context)
+        arg_type_index = arg_types.index(arg_type)
 
         old_block = self.blockSignals(True)
-        self.setCurrentIndex(var_type_index)
+        self.setCurrentIndex(arg_type_index)
         self.blockSignals(old_block)
 
     def _change_type(self, index):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        var_types = au.get_control_var_types()
-        au.change_control_var_type(self._context, var_types[index])
+        arg_types = au.get_event_arg_types()
+        au.change_event_arg_type(self._context, arg_types[index])
         self._updater.signal_update(
-            _get_update_signal_type(self._au_id),
-            _get_rebuild_signal_type(self._au_id))
+                _get_events_update_signal_type(self._au_id),
+                _get_events_rebuild_signal_type(self._au_id))
 
 
-class ControlVariableValueEditor(QWidget):
-
-    def __init__(self, label):
-        super().__init__()
-        self._au_id = None
-        self._context = None
-        self._ui_model = None
-        self._updater = None
-
-        self._label = label
-        self._editor = None
-
-        """
-        h = QHBoxLayout()
-        h.setContentsMargins(0, 0, 0, 0)
-        h.setSpacing(2)
-        h.addWidget(QLabel(label))
-        self.setLayout(h)
-        """
-
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_context(self, context):
-        self._context = context
-
-        if self._ui_model:
-            self._update_contents()
-
-    def set_ui_model(self, ui_model):
-        if not self._context:
-            return
-
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
-        var_name = self._context if type(self._context) != tuple else self._context[0]
-
-        module = self._ui_model.get_module()
-        au = module.get_audio_unit(self._au_id)
-        var_type = au.get_control_var_type(var_name)
-
-        if var_type == bool:
-            self._editor = QCheckBox()
-            self._editor.stateChanged.connect(self._change_bool_value)
-        elif var_type == int:
-            self._editor = QLineEdit()
-            self._editor.setValidator(IntValidator())
-            self._editor.editingFinished.connect(self._change_int_value)
-        elif var_type == float:
-            self._editor = QLineEdit()
-            self._editor.setValidator(FloatValidator())
-            self._editor.editingFinished.connect(self._change_float_value)
-        elif var_type == tstamp.Tstamp:
-            self._editor = QLineEdit()
-            self._editor.setValidator(FloatValidator())
-            self._editor.editingFinished.connect(self._change_tstamp_value)
-        else:
-            assert False
-        """
-        self._editor_layout = QStackedLayout()
-        for t in var_types:
-            self._editor_layout.addWidget(self._editors[t])
-        self.layout().addLayout(self._editor_layout)
-        """
-
-        h = QHBoxLayout()
-        h.setContentsMargins(0, 0, 0, 0)
-        h.setSpacing(2)
-        h.addWidget(QLabel(self._label))
-        h.addWidget(self._editor)
-        self.setLayout(h)
-
-        self._update_contents()
-
-    def unregister_updaters(self):
-        pass
-
-    def _change_value(self, new_value):
-        module = self._ui_model.get_module()
-        au = module.get_audio_unit(self._au_id)
-        self._set_value(au, new_value)
-        self._updater.signal_update(_get_update_signal_type(self._au_id))
-
-    def _change_bool_value(self, new_state):
-        new_value = (new_state == Qt.Checked)
-        self._change_value(new_value)
-
-    def _change_int_value(self):
-        new_str = self._editor.text()
-        new_value = int(new_str)
-        self._change_value(new_value)
-
-    def _change_float_value(self):
-        new_str = self._editor.text()
-        new_value = float(new_str)
-        self._change_value(new_value)
-
-    def _change_tstamp_value(self):
-        new_str = self._editor.text()
-        new_value = tstamp.Tstamp(float(new_str))
-        self._change_value(new_value)
-
-    # Protected interface
-
-    def _update_contents(self):
-        # TODO: this callback contains stuff that doesn't belong here, fix
-        module = self._ui_model.get_module()
-        au = module.get_audio_unit(self._au_id)
-
-        var_types = au.get_control_var_types()
-        var_type = au.get_control_var_type(self._context)
-        var_types = au.get_control_var_types()
-        var_type_index = var_types.index(var_type)
-        """
-        self._editor_layout.setCurrentIndex(var_type_index)
-        """
-
-        var_value = self._get_value(au)
-
-        old_block = self._editor.blockSignals(True)
-        if var_type == bool:
-            self._editor.setCheckState(Qt.Checked if var_value else Qt.Unchecked)
-        elif var_type in (int, float):
-            self._editor.setText(str(var_value))
-        elif var_type == tstamp.Tstamp:
-            self._editor.setText(str(float(var_value)))
-        else:
-            assert False
-        self._editor.blockSignals(old_block)
-
-    def _get_value(self, au):
-        raise NotImplementedError
-
-    def _set_value(self, au, new_value):
-        raise NotImplementedError
-
-
-class ControlVariableInitValueEditor(ControlVariableValueEditor):
-
-    def __init__(self):
-        super().__init__('Initial value:')
-
-    def _get_value(self, au):
-        return au.get_control_var_init_value(self._context)
-
-    def _set_value(self, au, new_value):
-        au.change_control_var_init_value(self._context, new_value)
-
-
-class ControlVariableAdder(QPushButton, AudioUnitUpdater):
+class EventAdder(QPushButton, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self.setText('Add new variable')
+        self.setText('Add new event')
 
     def _on_setup(self):
         self.clicked.connect(self._add_new_entry)
@@ -791,25 +665,25 @@ class ControlVariableAdder(QPushButton, AudioUnitUpdater):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
-        au.add_control_var_bool()
-        self._updater.signal_update(_get_update_signal_type(self._au_id))
+        au.add_event()
+        self._updater.signal_update(_get_events_update_signal_type(self._au_id))
 
 
-class ControlVariableRemoveButton(RemoveButton):
+class EventRemoveButton(RemoveButton):
 
     def __init__(self):
         super().__init__()
 
     def _remove(self):
-        var_name = self._context
+        event_name = self._context
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        au.remove_control_var(var_name)
-        self._updater.signal_update(_get_update_signal_type(self._au_id))
+        au.remove_event(event_name)
+        self._updater.signal_update(_get_events_update_signal_type(self._au_id))
 
 
-class ControlVariableBindings(QWidget):
+class EventBindings(QWidget):
 
     def __init__(self):
         super().__init__()
@@ -818,7 +692,7 @@ class ControlVariableBindings(QWidget):
         self._ui_model = None
         self._updater = None
 
-        self._adder = BindTargetAdder()
+        self._adder = EventBindTargetAdder()
 
         self.setVisible(False)
 
@@ -867,37 +741,37 @@ class ControlVariableBindings(QWidget):
             widget.unregister_updaters()
 
     def _update_contents(self):
-        var_name = self._context
+        event_name = self._context
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        self.setVisible(au.is_control_var_expanded(var_name))
+        self.setVisible(au.is_event_expanded(event_name))
 
-        binding_targets = au.get_control_var_binding_targets(var_name)
+        binding_targets = au.get_event_binding_targets(event_name)
 
         cur_binding_count = self.layout().count() - 1
 
         # Add missing editors
         layout = self.layout()
         for i in range(cur_binding_count, len(binding_targets)):
-            editor = BindTargetEditor()
+            editor = EventBindTargetEditor()
             editor.set_au_id(self._au_id)
             layout.insertWidget(i, editor)
 
-        self._get_adder().set_context(var_name)
+        self._get_adder().set_context(event_name)
 
         for target_info, editor in zip(binding_targets, self._get_editors()):
-            target_dev_id, target_var_name = target_info
-            context = (var_name, target_dev_id, target_var_name)
+            target_dev_id, target_event_name = target_info
+            context = (event_name, target_dev_id, target_event_name)
             editor.set_context(context)
             editor.set_ui_model(self._ui_model)
 
     def _perform_updates(self, signals):
-        if _get_update_signal_type(self._au_id) in signals:
+        if _get_events_update_signal_type(self._au_id) in signals:
             pass
 
 
-class BindTargetEditor(QWidget):
+class EventBindTargetEditor(QWidget):
 
     def __init__(self):
         super().__init__()
@@ -905,25 +779,27 @@ class BindTargetEditor(QWidget):
         self._context = None
         self._ui_model = None
 
-        self._target_dev_selector = BindTargetDeviceSelector()
-        self._name_editor = BindTargetNameEditor()
-        self._ext_editors = []
-        self._remove_button = BindTargetRemoveButton()
+        self._target_dev_selector = EventBindTargetDeviceSelector()
+        self._event_editor = EventBindTargetEventEditor()
+        self._type_editor = EventBindTargetArgTypeEditor()
+        self._expr_editor = EventBindTargetArgExpressionEditor()
+        self._remove_button = EventBindTargetRemoveButton()
 
     def set_au_id(self, au_id):
         self._au_id = au_id
         self._target_dev_selector.set_au_id(au_id)
-        self._name_editor.set_au_id(au_id)
+        self._event_editor.set_au_id(au_id)
+        self._type_editor.set_au_id(au_id)
+        self._expr_editor.set_au_id(au_id)
         self._remove_button.set_au_id(au_id)
 
     def set_context(self, context):
         self._context = context
         self._target_dev_selector.set_context(context)
-        self._name_editor.set_context(context)
+        self._event_editor.set_context(context)
+        self._type_editor.set_context(context)
+        self._expr_editor.set_context(context)
         self._remove_button.set_context(context)
-
-        for editor in self._ext_editors:
-            editor.set_context(context)
 
     def set_ui_model(self, ui_model):
         assert self._context
@@ -933,45 +809,39 @@ class BindTargetEditor(QWidget):
         self._ui_model = ui_model
 
         self._target_dev_selector.set_ui_model(ui_model)
-        self._name_editor.set_ui_model(ui_model)
+        self._event_editor.set_ui_model(ui_model)
+        self._type_editor.set_ui_model(ui_model)
+        self._expr_editor.set_ui_model(ui_model)
         self._remove_button.set_ui_model(ui_model)
 
-        var_name, target_dev_id, target_var_name = self._context
+        event_name, target_dev_id, target_event_name = self._context
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        var_type = au.get_control_var_type(var_name)
-
-        self._ext_editors = [
-                BindTargetVariableTypeEditor(), BindTargetExpressionEditor()]
-
-        for editor in self._ext_editors:
-            editor.set_au_id(self._au_id)
-            editor.set_context(self._context)
-            editor.set_ui_model(self._ui_model)
+        arg_type = au.get_event_arg_type(event_name)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
         h.addWidget(self._target_dev_selector)
-        h.addWidget(self._name_editor)
-        for editor in self._ext_editors:
-            h.addWidget(editor)
+        h.addWidget(self._event_editor)
+        h.addWidget(self._type_editor)
+        h.addWidget(self._expr_editor)
         h.addWidget(self._remove_button)
         self.setLayout(h)
 
     def unregister_updaters(self):
-        for editor in self._ext_editors:
-            editor.unregister_updaters()
         self._remove_button.unregister_updaters()
-        self._name_editor.unregister_updaters()
+        self._expr_editor.unregister_updaters()
+        self._type_editor.unregister_updaters()
+        self._event_editor.unregister_updaters()
         self._target_dev_selector.unregister_updaters()
 
     def set_used_names(self, used_names):
-        self._name_editor.set_used_names(used_names)
+        self._event_editor.set_used_names(used_names)
 
 
-class BindTargetDeviceSelector(KqtComboBox, AudioUnitUpdater):
+class EventBindTargetDeviceSelector(KqtComboBox, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -1047,60 +917,45 @@ class BindTargetDeviceSelector(KqtComboBox, AudioUnitUpdater):
 
         new_target_dev_id = self.itemData(index)
 
-        var_name, target_dev_id, target_var_name = self._context
+        event_name, target_dev_id, target_event_name = self._context
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        au.change_control_var_binding_target_dev(
-                var_name, target_dev_id, target_var_name, new_target_dev_id)
+        au.change_event_binding_target_dev(
+                event_name, target_dev_id, target_event_name, new_target_dev_id)
 
-        self._updater.signal_update(_get_update_signal_type(self._au_id))
-
-
-class BindTargetNameValidator(QValidator):
-
-    def __init__(self, used_names):
-        super().__init__()
-        self._used_names = used_names
-
-    def validate(self, contents, pos):
-        in_str = str(contents)
-        parts = in_str.split('/')
-        status = min(get_var_name_validation_status(part) for part in parts)
-        if (status == QValidator.Acceptable) and (in_str in self._used_names):
-            return (QValidator.Intermediate, contents, pos)
-        return (status, contents, pos)
+        self._updater.signal_update(_get_events_update_signal_type(self._au_id))
 
 
-class BindTargetNameEditor(NameEditor):
+class EventBindTargetEventEditor(NameEditor):
 
     def __init__(self):
-        super().__init__(BindTargetNameValidator)
+        super().__init__(EventNameValidator)
 
     def _change_name(self, new_name):
-        var_name, target_dev_id, target_var_name = self._context
+        event_name, target_dev_id, target_event_name = self._context
 
-        if new_name == target_var_name:
+        if new_name == target_event_name:
             return
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        au.change_control_var_binding_target_name(
-                var_name, target_dev_id, target_var_name, new_name)
-        self._updater.signal_update(_get_update_signal_type(self._au_id))
+        au.change_event_binding_target_event_name(
+                event_name, target_dev_id, target_event_name, new_name)
+        self._updater.signal_update(_get_events_update_signal_type(self._au_id))
 
     def _update_contents(self):
         if not self._context:
             return
 
-        target_name = self._context[2]
+        target_event_name = self._context[2]
 
         old_block = self.blockSignals(True)
-        self.setText(target_name)
+        self.setText(target_event_name)
         self.blockSignals(old_block)
 
 
-class BindTargetVariableTypeEditor(KqtComboBox, AudioUnitUpdater):
+class EventBindTargetArgTypeEditor(KqtComboBox, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -1114,17 +969,18 @@ class BindTargetVariableTypeEditor(KqtComboBox, AudioUnitUpdater):
     def _on_setup(self):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        var_types = au.get_control_var_binding_target_types()
+        arg_types = au.get_event_arg_types()
 
-        var_type_names = {
+        arg_type_names = {
+            None: 'None',
             bool: 'Boolean',
             int: 'Integer',
             float: 'Floating point',
             tstamp.Tstamp: 'Timestamp',
         }
 
-        for t in var_types:
-            type_name = var_type_names[t]
+        for t in arg_types:
+            type_name = arg_type_names[t]
             self.addItem(type_name)
 
         self.currentIndexChanged.connect(self._change_type)
@@ -1134,27 +990,27 @@ class BindTargetVariableTypeEditor(KqtComboBox, AudioUnitUpdater):
     def _update_contents(self):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        var_types = au.get_control_var_binding_target_types()
+        arg_types = au.get_event_arg_types()
 
-        var_name, target_dev_id, target_var_name = self._context
-        var_type = au.get_control_var_binding_target_type(
-                var_name, target_dev_id, target_var_name)
-        var_type_index = var_types.index(var_type)
+        event_name, target_dev_id, target_event_name = self._context
+        arg_type = au.get_event_binding_target_arg_type(
+                event_name, target_dev_id, target_event_name)
+        arg_type_index = arg_types.index(arg_type)
 
         old_block = self.blockSignals(True)
-        self.setCurrentIndex(var_type_index)
+        self.setCurrentIndex(arg_type_index)
         self.blockSignals(old_block)
 
     def _change_type(self, index):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        var_types = au.get_control_var_binding_target_types()
+        arg_types = au.get_event_arg_types()
 
-        var_name, target_dev_id, target_var_name = self._context
-        au.change_control_var_binding_target_type(
-                var_name, target_dev_id, target_var_name, var_types[index])
+        event_name, target_dev_id, target_event_name = self._context
+        au.change_event_binding_target_type(
+                event_name, target_dev_id, target_event_name, arg_types[index])
 
-        self._updater.signal_update(_get_update_signal_type(self._au_id))
+        self._updater.signal_update(_get_events_update_signal_type(self._au_id))
 
 
 class ExpressionValidator(QValidator):
@@ -1172,7 +1028,7 @@ class ExpressionValidator(QValidator):
         return (QValidator.Acceptable, contents, pos)
 
 
-class BindTargetExpressionEditor(QWidget):
+class EventBindTargetArgExpressionEditor(QWidget):
 
     def __init__(self):
         super().__init__()
@@ -1187,7 +1043,7 @@ class BindTargetExpressionEditor(QWidget):
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
-        h.addWidget(QLabel('Value expression:'))
+        h.addWidget(QLabel('Argument expression:'))
         h.addWidget(self._editor)
         self.setLayout(h)
 
@@ -1196,32 +1052,28 @@ class BindTargetExpressionEditor(QWidget):
 
     def set_context(self, context):
         self._context = context
+        if self._ui_model:
+            self._update_expression()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
 
         self._editor.textChanged.connect(self._change_expression)
 
         self._update_expression()
 
     def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if (_get_update_signal_type(self._au_id) in signals and
-                _get_update_signal_type(self._au_id) not in signals):
-            self._update_expression()
+        pass
 
     def _update_expression(self):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
-        var_name, target_dev_id, target_var_name = self._context
+        event_name, target_dev_id, target_event_name = self._context
 
-        expr = au.get_control_var_binding_expression(
-                var_name, target_dev_id, target_var_name)
+        expr = au.get_event_binding_target_expression(
+                event_name, target_dev_id, target_event_name)
 
         old_block = self._editor.blockSignals(True)
         if expr != self._editor.text():
@@ -1232,29 +1084,29 @@ class BindTargetExpressionEditor(QWidget):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
-        var_name, target_dev_id, target_var_name = self._context
+        event_name, target_dev_id, target_event_name = self._context
 
-        au.change_control_var_binding_expression(
-                var_name, target_dev_id, target_var_name, expr)
-        self._updater.signal_update(_get_update_signal_type(self._au_id))
+        au.change_event_binding_target_expression(
+                event_name, target_dev_id, target_event_name, expr)
+        self._updater.signal_update(_get_events_update_signal_type(self._au_id))
 
 
-class BindTargetRemoveButton(RemoveButton):
+class EventBindTargetRemoveButton(RemoveButton):
 
     def __init__(self):
         super().__init__()
 
     def _remove(self):
-        var_name, target_dev_id, target_var_name = self._context
+        event_name, target_dev_id, target_event_name = self._context
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        au.remove_control_var_binding(var_name, target_dev_id, target_var_name)
+        au.remove_event_binding(event_name, target_dev_id, target_event_name)
         self._updater.signal_update(
-            _get_update_signal_type(self._au_id),
-            _get_rebuild_signal_type(self._au_id))
+                _get_events_update_signal_type(self._au_id),
+                _get_events_rebuild_signal_type(self._au_id))
 
 
-class BindTargetAdder(QPushButton, AudioUnitUpdater):
+class EventBindTargetAdder(QPushButton, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -1271,8 +1123,8 @@ class BindTargetAdder(QPushButton, AudioUnitUpdater):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
-        var_name = self._context
-        var_type = au.get_control_var_type(var_name)
+        event_name = self._context
+        arg_type = au.get_event_arg_type(event_name)
 
         au_ids = au.get_au_ids()
         if au_ids:
@@ -1286,8 +1138,8 @@ class BindTargetAdder(QPushButton, AudioUnitUpdater):
 
         internal_dev_id = dev_id.split('/')[-1]
 
-        au.add_control_var_binding(var_name, internal_dev_id, var_type)
+        au.add_event_binding(event_name, internal_dev_id, arg_type)
 
-        self._updater.signal_update(_get_update_signal_type(self._au_id))
+        self._updater.signal_update(_get_events_update_signal_type(self._au_id))
 
 

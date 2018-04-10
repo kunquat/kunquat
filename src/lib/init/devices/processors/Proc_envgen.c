@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -88,6 +88,7 @@ Device_impl* new_Proc_envgen(void)
     envgen->parent.get_vstate_size = Envgen_vstate_get_size;
     envgen->parent.init_vstate = Envgen_vstate_init;
     envgen->parent.render_voice = Envgen_vstate_render_voice;
+    envgen->parent.fire_voice_dev_event = Envgen_vstate_fire_event;
 
 #define REG_KEY(type, name, keyp, def_value) \
     REGISTER_SET_FIXED_STATE(envgen, type, name, keyp, def_value)

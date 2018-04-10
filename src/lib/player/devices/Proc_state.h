@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -33,6 +33,8 @@ typedef void Proc_state_set_cv_float_func(Device_state*, const Key_indices, doub
 typedef void Proc_state_set_cv_tstamp_func(
         Device_state*, const Key_indices, const Tstamp*);
 
+typedef void Proc_state_fire_event_func(Device_state*, const char*, const Value*);
+
 
 struct Proc_state
 {
@@ -46,6 +48,7 @@ struct Proc_state
     Device_state_render_mixed_func* render_mixed;
 
     Proc_state_clear_history_func* clear_history;
+    Proc_state_fire_event_func* fire_dev_event;
 };
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -77,7 +77,8 @@ Trigger* new_Trigger_from_string(Streader* sr, const Event_names* names)
     {
         Streader_read_null(sr);
     }
-    else if (field_type == VALUE_TYPE_MAYBE_STRING)
+    else if ((field_type == VALUE_TYPE_MAYBE_STRING) ||
+            (field_type == VALUE_TYPE_MAYBE_REALTIME))
     {
         if (!Streader_read_null(sr))
         {

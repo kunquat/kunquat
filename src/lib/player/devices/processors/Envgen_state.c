@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -25,6 +25,8 @@
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/devices/Voice_state.h>
 #include <player/Work_buffers.h>
+#include <string/common.h>
+#include <Value.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -419,6 +421,38 @@ int32_t Envgen_vstate_render_voice(
     Work_buffer_set_const_start(out_wb, const_start);
 
     return buf_stop;
+}
+
+
+void Envgen_vstate_fire_event(
+        Voice_state* vstate,
+        const Device_state* dstate,
+        const char* event_name,
+        const Value* arg)
+{
+    rassert(vstate != NULL);
+    rassert(dstate != NULL);
+    rassert(event_name != NULL);
+    rassert(arg != NULL);
+
+    if ((arg->type == VALUE_TYPE_NONE) && string_eq(event_name, "trigger"))
+    {
+        const Proc_envgen* egen = (const Proc_envgen*)dstate->device->dimpl;
+
+        const bool is_time_env_enabled =
+            egen->is_time_env_enabled && (egen->time_env != NULL);
+
+        if (is_time_env_enabled)
+        {
+            Envgen_vstate* egen_state = (Envgen_vstate*)vstate;
+
+            Envgen_state_set_cur_y_range(egen_state, vstate->rand_p, egen);
+            Time_env_state_init(&egen_state->env_state);
+            egen_state->activated = true;
+        }
+    }
+
+    return;
 }
 
 

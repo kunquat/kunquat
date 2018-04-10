@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -42,6 +42,9 @@ typedef void Device_state_render_mixed_func(
         int32_t buf_stop,
         double tempo);
 
+typedef void Device_state_fire_event_func(
+        Device_state*, const char*, const Value*, Random*);
+
 typedef void Device_state_destroy_func(Device_state*);
 
 
@@ -63,6 +66,7 @@ struct Device_state
     Device_state_set_tempo_func* set_tempo;
     Device_state_reset_func* reset;
     Device_state_render_mixed_func* render_mixed;
+    Device_state_fire_event_func* fire_dev_event;
     Device_state_destroy_func* destroy;
 };
 
@@ -194,6 +198,18 @@ void Device_state_render_mixed(
         int32_t buf_start,
         int32_t buf_stop,
         double tempo);
+
+
+/**
+ * Fire a Device event.
+ *
+ * \param ds           The Device state -- must not be \c NULL.
+ * \param event_name   The event name -- must not be \c NULL.
+ * \param event_arg    The event argument -- must not be \c NULL.
+ * \param rand         The Random source -- must not be \c NULL.
+ */
+void Device_state_fire_event(
+        Device_state* ds, const char* event_name, const Value* event_arg, Random* rand);
 
 
 /**

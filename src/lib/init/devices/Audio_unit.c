@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 #include <init/Au_table.h>
 #include <init/Connections.h>
 #include <init/devices/Au_control_vars.h>
+#include <init/devices/Au_event_map.h>
 #include <init/devices/Au_expressions.h>
 #include <init/devices/Au_interface.h>
 #include <init/devices/Au_streams.h>
@@ -86,6 +87,7 @@ struct Audio_unit
     Au_table* au_table;
 
     Au_control_vars* control_vars;
+    Au_event_map* event_map;
     Au_streams* streams;
     Hit_info hits[KQT_HITS_MAX];
     Au_expressions* expressions;
@@ -126,6 +128,7 @@ Audio_unit* new_Audio_unit(void)
     au->procs = NULL;
     au->au_table = NULL;
     au->control_vars = NULL;
+    au->event_map = NULL;
     au->streams = NULL;
     for (int i = 0; i < KQT_HITS_MAX; ++i)
         Hit_info_init(&au->hits[i]);
@@ -328,6 +331,24 @@ void Audio_unit_set_control_vars(Audio_unit* au, Au_control_vars* au_control_var
     au->control_vars = au_control_vars;
 
     return;
+}
+
+
+void Audio_unit_set_event_map(Audio_unit* au, Au_event_map* map)
+{
+    rassert(au != NULL);
+
+    del_Au_event_map(au->event_map);
+    au->event_map = map;
+
+    return;
+}
+
+
+const Au_event_map* Audio_unit_get_event_map(const Audio_unit* au)
+{
+    rassert(au != NULL);
+    return au->event_map;
 }
 
 
@@ -638,6 +659,7 @@ void del_Audio_unit(Audio_unit* au)
         Hit_info_deinit(&au->hits[i]);
     del_Au_expressions(au->expressions);
     del_Au_streams(au->streams);
+    del_Au_event_map(au->event_map);
     del_Au_control_vars(au->control_vars);
     Device_deinit(&au->parent);
     memory_free(au);

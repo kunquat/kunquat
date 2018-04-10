@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2018
  *
  * This file is part of Kunquat.
  *
@@ -39,6 +39,7 @@ typedef enum
     // Identifiers used with type-generic events
     VALUE_TYPE_REALTIME = -2,
     VALUE_TYPE_MAYBE_STRING = -3,
+    VALUE_TYPE_MAYBE_REALTIME = -4,
 } Value_type;
 
 

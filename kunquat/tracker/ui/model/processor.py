@@ -22,6 +22,7 @@ from .procparams.forceparams import ForceParams
 from .procparams.freeverbparams import FreeverbParams
 from .procparams.gaincompparams import GainCompParams
 from .procparams.ksparams import KsParams
+from .procparams.looperparams import LooperParams
 from .procparams.noiseparams import NoiseParams
 from .procparams.padsynthparams import PadsynthParams
 from .procparams.panningparams import PanningParams
@@ -45,6 +46,7 @@ _proc_classes = {
     'freeverb':     FreeverbParams,
     'gaincomp':     GainCompParams,
     'ks':           KsParams,
+    'looper':       LooperParams,
     'noise':        NoiseParams,
     'padsynth':     PadsynthParams,
     'panning':      PanningParams,

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2018
  *
  * This file is part of Kunquat.
  *
@@ -61,6 +61,7 @@ MODULE_AU_KEYP(au_connections,          "au_XX/p_connections.json",             
 
 MODULE_AU_KEYP(au_streams,              "au_XX/p_streams.json",                 "[]")
 MODULE_AU_KEYP(au_control_vars,         "au_XX/p_control_vars.json",            "[]")
+MODULE_AU_KEYP(au_events,               "au_XX/p_events.json",                  "[]")
 MODULE_AU_KEYP(au_hit_manifest,         "au_XX/hit_XX/p_manifest.json",         "")
 MODULE_AU_KEYP(au_hit_proc_filter,      "au_XX/hit_XX/p_hit_proc_filter.json",  "[]")
 MODULE_AU_KEYP(au_expressions,          "au_XX/p_expressions.json",             "{}")

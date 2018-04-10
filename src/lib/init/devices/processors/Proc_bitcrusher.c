@@ -75,6 +75,7 @@ Device_impl* new_Proc_bitcrusher(void)
          ))
     {
         del_Device_impl(&bitcrusher->parent);
+        return NULL;
     }
 
     return &bitcrusher->parent;

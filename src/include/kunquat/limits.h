@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -186,6 +186,17 @@ extern "C" {
  */
 #define KQT_VAR_INIT_CHARS "abcdefghijklmnopqrstuvwxyz_"
 #define KQT_VAR_CHARS KQT_VAR_INIT_CHARS "0123456789"
+
+
+/**
+ * Maximum length of a device event name (including null terminator).
+ */
+#define KQT_DEVICE_EVENT_NAME_MAX 32
+
+/**
+ * Allowed characters in device event names.
+ */
+#define KQT_DEVICE_EVENT_CHARS "abcdefghijklmnopqrstuvwxyz_0123456789"
 
 
 #ifdef __cplusplus

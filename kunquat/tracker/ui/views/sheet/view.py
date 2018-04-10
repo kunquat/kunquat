@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2018
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -1503,6 +1503,7 @@ class View(QWidget):
             events.EVENT_ARG_PITCH          : '0',
             events.EVENT_ARG_REALTIME       : '0',
             events.EVENT_ARG_MAYBE_STRING   : None,
+            events.EVENT_ARG_MAYBE_REALTIME : None,
         }
 
         return ex[info['arg_type']]
@@ -1568,6 +1569,9 @@ class View(QWidget):
         self.setFocus()
 
         trigger = self._sheet_mgr.get_selected_trigger()
+        maybe_types = (events.EVENT_ARG_MAYBE_STRING, events.EVENT_ARG_MAYBE_REALTIME)
+        if trigger.get_argument_type() in maybe_types and not text:
+            text = None
         new_trigger = Trigger(trigger.get_type(), text)
 
         if not self._sheet_mgr.get_replace_mode():

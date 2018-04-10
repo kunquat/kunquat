@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -83,9 +83,25 @@ static bool process_expr(
     }
     else
     {
-        evaluate_expr(expr_reader, estate, meta, ret_value, random);
-
-        Streader_match_char(expr_reader, '"');
+        if (field_type == VALUE_TYPE_MAYBE_STRING ||
+                 field_type == VALUE_TYPE_MAYBE_REALTIME)
+        {
+            if (Streader_read_null(expr_reader))
+            {
+                ret_value->type = VALUE_TYPE_NONE;
+            }
+            else
+            {
+                Streader_clear_error(expr_reader);
+                evaluate_expr(expr_reader, estate, meta, ret_value, random);
+                Streader_match_char(expr_reader, '"');
+            }
+        }
+        else
+        {
+            evaluate_expr(expr_reader, estate, meta, ret_value, random);
+            Streader_match_char(expr_reader, '"');
+        }
 
         if (Streader_is_error_set(expr_reader))
             return false;
@@ -102,6 +118,15 @@ static bool process_expr(
         {
             if (ret_value->type != VALUE_TYPE_NONE &&
                     ret_value->type != VALUE_TYPE_STRING)
+            {
+                Streader_set_error(expr_reader, "Type mismatch");
+                return false;
+            }
+        }
+        else if (field_type == VALUE_TYPE_MAYBE_REALTIME)
+        {
+            if (ret_value->type != VALUE_TYPE_NONE &&
+                    !Value_type_is_realtime(ret_value->type))
             {
                 Streader_set_error(expr_reader, "Type mismatch");
                 return false;

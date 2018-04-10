@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,8 @@
 #define KQT_RANDOM_H
 
 
+#include <decl.h>
+
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -29,12 +31,12 @@
 /**
  * This is a portable pseudo-random generator.
  */
-typedef struct Random
+struct Random
 {
     char context[CONTEXT_LEN_MAX + 1];
     uint64_t seed;
     uint64_t state;
-} Random;
+};
 
 
 #define RANDOM_AUTO (&(Random){ .context = "", .seed = 0, .state = 0 })

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -111,6 +111,7 @@ bool Device_impl_init(Device_impl* dimpl, Device_impl_destroy_func* destroy)
     dimpl->get_voice_wb_size = NULL;
     dimpl->init_vstate = NULL;
     dimpl->render_voice = NULL;
+    dimpl->fire_voice_dev_event = NULL;
     dimpl->destroy = destroy;
 
     dimpl->set_cbs = NULL;

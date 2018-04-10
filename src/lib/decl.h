@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 #define KQT_DECL_H
 
 
+typedef struct Au_event_map Au_event_map;
 typedef struct Au_expressions Au_expressions;
 typedef struct Au_params Au_params;
 typedef struct Au_state Au_state;
@@ -41,6 +42,7 @@ typedef struct Module Module;
 typedef struct Param_proc_filter Param_proc_filter;
 typedef struct Proc_state Proc_state;
 typedef struct Processor Processor;
+typedef struct Random Random;
 typedef struct Sample Sample;
 typedef struct Sample_params Sample_params;
 typedef struct Song Song;
