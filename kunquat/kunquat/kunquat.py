@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2010-2017
+# Authors: Tomi Jylhä-Ollila, Finland 2010-2018
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -352,15 +352,24 @@ def get_event_info():
 
 
 def get_limit_info():
-    limit_names_raw = _kunquat.kqt_get_int_limit_names()
+    int_limit_names_raw = _kunquat.kqt_get_int_limit_names()
+    string_limit_names_raw = _kunquat.kqt_get_string_limit_names()
     limit_info = {}
 
     i = 0
-    while limit_names_raw[i]:
-        limit_name_raw = bytes(limit_names_raw[i])
-        limit_value = int(_kunquat.kqt_get_int_limit(limit_name_raw))
-        limit_name = str(limit_name_raw, encoding='utf-8')
-        limit_info[limit_name] = limit_value
+    while int_limit_names_raw[i]:
+        name_raw = bytes(int_limit_names_raw[i])
+        value = int(_kunquat.kqt_get_int_limit(name_raw))
+        name = str(name_raw, encoding='utf-8')
+        limit_info[name] = value
+        i += 1
+
+    i = 0
+    while string_limit_names_raw[i]:
+        name_raw = bytes(string_limit_names_raw[i])
+        value = str(_kunquat.kqt_get_string_limit(name_raw), encoding='utf-8')
+        name = str(name_raw, encoding='utf-8')
+        limit_info[name] = value
         i += 1
 
     return limit_info
@@ -588,6 +597,10 @@ _kunquat.kqt_get_int_limit_names.argtypes = []
 _kunquat.kqt_get_int_limit_names.restype = ctypes.POINTER(ctypes.c_char_p)
 _kunquat.kqt_get_int_limit.argtypes = [ctypes.c_char_p]
 _kunquat.kqt_get_int_limit.restype = ctypes.c_int64
+_kunquat.kqt_get_string_limit_names.argtypes = []
+_kunquat.kqt_get_string_limit_names.restype = ctypes.POINTER(ctypes.c_char_p)
+_kunquat.kqt_get_string_limit.argtypes = [ctypes.c_char_p]
+_kunquat.kqt_get_string_limit.restype = ctypes.c_char_p
 
 _kunquat.kqt_get_default_value.argtypes = [ctypes.c_char_p]
 _kunquat.kqt_get_default_value.restype = ctypes.c_char_p
