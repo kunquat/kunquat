@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 
 #include <decl.h>
 #include <init/Environment.h>
+#include <kunquat/limits.h>
 #include <player/Cgiter.h>
 #include <player/Channel.h>
 #include <player/Device_states.h>
@@ -95,7 +96,7 @@ struct Player
 
     // Suspended event processing state
     int   susp_event_ch;
-    char  susp_event_name[EVENT_NAME_MAX + 1];
+    char  susp_event_name[KQT_EVENT_NAME_MAX + 1];
     Value susp_event_value;
 };
 

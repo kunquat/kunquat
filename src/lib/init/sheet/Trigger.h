@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -22,6 +22,7 @@
 #include <player/Event_type.h>
 #include <string/Streader.h>
 
+#include <stdbool.h>
 #include <stdlib.h>
 
 
@@ -35,6 +36,20 @@ typedef struct Trigger
     Event_type type;    ///< The event type.
     char* desc;         ///< Trigger description in JSON format.
 } Trigger;
+
+
+/**
+ * Check for name specifier in the trigger description.
+ *
+ * \params sr   The Streader of the data -- must not be \c NULL.
+ *              NOTE: The function will modify the Streader, so the original
+ *              needs to be stored separately for \a new_Trigger_from_string
+ *              and \a new_Trigger_of_name_spec_from_string.
+ *
+ * \return   \c true if the trigger description contains a name specification
+ *           of the form :name, otherwise \c false.
+ */
+bool Trigger_data_contains_name_spec(Streader* sr);
 
 
 /**
@@ -53,11 +68,28 @@ Trigger* new_Trigger(Event_type type, Tstamp* pos);
  * Create a Trigger from a JSON string.
  *
  * \param sr      The Streader of the data -- must not be \c NULL.
+ *                NOTE: The function will modify the Streader, so the original
+ *                needs to be stored separately for
+ *                \a new_Trigger_of_name_spec_from_string.
  * \param names   The Event names -- must not be \c NULL.
  *
  * \return   The new Trigger if successful, otherwise \c NULL.
  */
 Trigger* new_Trigger_from_string(Streader* sr, const Event_names* names);
+
+
+/**
+ * Create a Trigger of name specification from a JSON string.
+ *
+ * \params sr     The Streader of the data -- must not be \c NULL and must be
+ *                checked with \a Trigger_data_contains_name_spec beforehand.
+ *                NOTE: The function will modify the Streader, so the original
+ *                needs to be stored separately for \a new_Trigger_from_string.
+ * \param names   The Event names -- must not be \c NULL.
+ *
+ * \return   The new Trigger if successful, otherwise \c NULL.
+ */
+Trigger* new_Trigger_of_name_spec_from_string(Streader* sr, const Event_names* names);
 
 
 /**

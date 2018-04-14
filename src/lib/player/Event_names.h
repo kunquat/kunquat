@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -24,9 +24,6 @@
 #include <stdlib.h>
 
 
-#define EVENT_NAME_MAX 12 // includes "
-
-
 typedef struct Event_names Event_names;
 
 
@@ -44,8 +41,8 @@ Event_names* new_Event_names(void);
  *
  * \param names   The Event name collection -- must not be \c NULL.
  * \param name    The Event name -- must not be \c NULL, empty string or
- *                longer than EVENT_NAME_MAX characters. Also, the name must
- *                not already exist in the collection.
+ *                longer than KQT_EVENT_NAME_MAX characters. Also, the name
+ *                must not already exist in the collection.
  * \param type    The Event type -- must be a valid supported type.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
@@ -97,6 +94,18 @@ Value_type Event_names_get_param_type(const Event_names* names, const char* name
  */
 Param_validator* Event_names_get_param_validator(
         const Event_names* names, const char* name);
+
+
+/**
+ * Retrieve a name setting event corresponding to the given event name.
+ *
+ * \param names   The Event name collection -- must not be \c NULL.
+ * \param name    The Event name -- must be a supported name.
+ *
+ * \return   The associated name setting event, or \c NULL if not applicable
+ *           with \a name.
+ */
+const char* Event_names_get_name_event(const Event_names* names, const char* name);
 
 
 /**

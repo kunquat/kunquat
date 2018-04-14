@@ -16,8 +16,12 @@
 #error "EVENT_CHANNEL_DEF(..) not defined"
 #endif
 
+#ifndef EVENT_CHANNEL_NS_DEF
+#define EVENT_CHANNEL_NS_DEF(n, t, a, v, ns) EVENT_CHANNEL_DEF(n, t, a, v)
+#endif
 
-//                Name      Type suffix                 Arg type        Validator
+
+//                Name      Type suffix                 Arg type        Validator       [Name setter]
 EVENT_CHANNEL_DEF(".a",     set_au_input,               INT,            v_au)
 
 EVENT_CHANNEL_DEF("n+",     note_on,                    FLOAT,          v_pitch)
@@ -50,16 +54,16 @@ EVENT_CHANNEL_DEF(".arps",  set_arpeggio_speed,         FLOAT,          v_arp_sp
 EVENT_CHANNEL_DEF("arp+",   arpeggio_on,                NONE,           NULL)
 EVENT_CHANNEL_DEF("arp-",   arpeggio_off,               NONE,           NULL)
 
-EVENT_CHANNEL_DEF(".sn",    set_stream_name,            STRING,         v_var_name)
-EVENT_CHANNEL_DEF(".s",     set_stream_value,           FLOAT,          v_finite_float)
-EVENT_CHANNEL_DEF("/s",     slide_stream_target,        FLOAT,          v_finite_float)
-EVENT_CHANNEL_DEF("/=s",    slide_stream_length,        TSTAMP,         v_nonneg_ts)
-EVENT_CHANNEL_DEF("os",     stream_osc_speed,           FLOAT,          v_nonneg_float)
-EVENT_CHANNEL_DEF("od",     stream_osc_depth,           FLOAT,          v_nonneg_float)
-EVENT_CHANNEL_DEF("o/=s",   stream_osc_speed_slide,     TSTAMP,         v_nonneg_ts)
-EVENT_CHANNEL_DEF("o/=d",   stream_osc_depth_slide,     TSTAMP,         v_nonneg_ts)
-EVENT_CHANNEL_DEF("->s+",   carry_stream_on,            NONE,           NULL)
-EVENT_CHANNEL_DEF("->s-",   carry_stream_off,           NONE,           NULL)
+EVENT_CHANNEL_NS_DEF(".sn", set_stream_name,            STRING,         v_var_name,     ".sn")
+EVENT_CHANNEL_NS_DEF(".s",  set_stream_value,           FLOAT,          v_finite_float, ".sn")
+EVENT_CHANNEL_NS_DEF("/s",  slide_stream_target,        FLOAT,          v_finite_float, ".sn")
+EVENT_CHANNEL_NS_DEF("/=s", slide_stream_length,        TSTAMP,         v_nonneg_ts,    ".sn")
+EVENT_CHANNEL_NS_DEF("os",  stream_osc_speed,           FLOAT,          v_nonneg_float, ".sn")
+EVENT_CHANNEL_NS_DEF("od",  stream_osc_depth,           FLOAT,          v_nonneg_float, ".sn")
+EVENT_CHANNEL_NS_DEF("o/=s", stream_osc_speed_slide,    TSTAMP,         v_nonneg_ts,    ".sn")
+EVENT_CHANNEL_NS_DEF("o/=d", stream_osc_depth_slide,    TSTAMP,         v_nonneg_ts,    ".sn")
+EVENT_CHANNEL_NS_DEF("->s+", carry_stream_on,           NONE,           NULL,           ".sn")
+EVENT_CHANNEL_NS_DEF("->s-", carry_stream_off,          NONE,           NULL,           ".sn")
 
 EVENT_CHANNEL_DEF(".xc",    set_ch_expression,          MAYBE_STRING,   v_maybe_var_name)
 EVENT_CHANNEL_DEF(".x",     set_note_expression,        MAYBE_STRING,   v_maybe_var_name)
@@ -72,9 +76,10 @@ EVENT_CHANNEL_DEF("->v+",   carry_cv_on,                NONE,           NULL)
 EVENT_CHANNEL_DEF("->v-",   carry_cv_off,               NONE,           NULL)
 
 EVENT_CHANNEL_DEF(".dn",    set_device_event_name,      STRING,         v_dev_event_name)
-EVENT_CHANNEL_DEF("d",      fire_device_event,          MAYBE_REALTIME, v_maybe_finite_rt)
+EVENT_CHANNEL_NS_DEF("d",   fire_device_event,          MAYBE_REALTIME, v_maybe_finite_rt, ".dn")
 
 
 #undef EVENT_CHANNEL_DEF
+#undef EVENT_CHANNEL_NS_DEF
 
 

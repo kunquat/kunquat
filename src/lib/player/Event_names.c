@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
+#include <kunquat/limits.h>
 #include <memory.h>
 #include <player/Event_type.h>
 #include <player/Param_validator.h>
@@ -28,10 +29,11 @@
 
 typedef struct Name_info
 {
-    char name[EVENT_NAME_MAX + 1];
+    char name[KQT_EVENT_NAME_MAX + 1];
     Event_type type;
     Value_type param_type;
     Param_validator* validator;
+    char name_setter[KQT_EVENT_NAME_MAX + 1];
 } Name_info;
 
 
@@ -48,10 +50,12 @@ static void del_Name_info(Name_info* ni)
 static Name_info event_specs[] =
 {
 #define EVENT_TYPE_DEF(name, category, type_suffix, arg_type, validator) \
-    { name, Event_##category##_##type_suffix, VALUE_TYPE_##arg_type, validator },
+    { name, Event_##category##_##type_suffix, VALUE_TYPE_##arg_type, validator, "" },
+#define EVENT_TYPE_NS_DEF(name, category, type_suffix, arg_type, validator, ns) \
+    { name, Event_##category##_##type_suffix, VALUE_TYPE_##arg_type, validator, ns },
 #include <player/Event_types.h>
 
-    { "", Event_NONE, VALUE_TYPE_NONE, NULL }
+    { "", Event_NONE, VALUE_TYPE_NONE, NULL, "" }
 };
 
 
@@ -83,7 +87,7 @@ Event_names* new_Event_names(void)
     for (int i = 0; event_specs[i].name[0] != '\0'; ++i)
     {
         rassert(strlen(event_specs[i].name) > 0);
-        rassert(strlen(event_specs[i].name) < EVENT_NAME_MAX);
+        rassert(strlen(event_specs[i].name) < KQT_EVENT_NAME_MAX);
         rassert(!AAtree_contains(names->names, event_specs[i].name));
 
         if (!AAtree_ins(names->names, &event_specs[i]))
@@ -163,6 +167,18 @@ Param_validator* Event_names_get_param_validator(
     rassert(info != NULL);
 
     return info->validator;
+}
+
+
+const char* Event_names_get_name_event(const Event_names* names, const char* name)
+{
+    rassert(names != NULL);
+    rassert(name != NULL);
+
+    const Name_info* info = AAtree_get_exact(names->names, name);
+    rassert(info != NULL);
+
+    return (info->name_setter[0] != '\0') ? info->name_setter : NULL;
 }
 
 
