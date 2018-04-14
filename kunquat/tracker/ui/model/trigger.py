@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -45,9 +45,12 @@ class Trigger():
     def get_argument(self):
         return self._argument
 
+    def get_event_type(self):
+        return self._type.split(':')[0]
+
     def get_argument_type(self):
         try:
-            return events.trigger_events_by_name[self._type]['arg_type']
+            return events.trigger_events_by_name[self.get_event_type()]['arg_type']
         except KeyError:
             return None
 
