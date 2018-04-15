@@ -48,7 +48,8 @@ class TriggerTypeValidator(QValidator):
                 return (QValidator.Invalid, contents, pos)
             elif len(parts) == 2:
                 name = parts[1]
-                if not all(ch in DEVICE_EVENT_CHARS for ch in name):
+                if ((not all(ch in DEVICE_EVENT_CHARS for ch in name)) or
+                        (len(name) > DEVICE_EVENT_NAME_MAX)):
                     return (QValidator.Invalid, contents, pos)
                 if (not name) or event_name not in events.trigger_events_with_name_spec:
                     return (QValidator.Intermediate, contents, pos)
