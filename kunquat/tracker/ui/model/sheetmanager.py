@@ -370,7 +370,7 @@ class SheetManager():
 
         trigger = cur_column.get_trigger(row_ts, index)
 
-        return trigger if trigger.get_type() in CONVERTIBLE_TRIGGERS else None
+        return trigger if trigger.get_event_type() in CONVERTIBLE_TRIGGERS else None
 
     def is_at_convertible_set_or_slide_trigger(self):
         return self._get_convertible_set_or_slide_trigger() != None
@@ -385,7 +385,11 @@ class SheetManager():
         row_ts = location.get_row_ts()
         index = location.get_trigger_index()
 
-        new_type = CONVERTIBLE_TRIGGERS[trigger.get_type()]
+        tr_type = trigger.get_type().split(':')
+        new_tr_type = list(tr_type)
+        new_tr_type[0] = CONVERTIBLE_TRIGGERS[tr_type[0]]
+
+        new_type = ':'.join(new_tr_type)
         new_trigger = Trigger(new_type, trigger.get_argument(), location)
 
         transaction = cur_column.get_edit_replace_or_insert_trigger(
