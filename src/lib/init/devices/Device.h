@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -31,30 +31,6 @@
 #include <stdio.h>
 
 
-typedef enum
-{
-    DEVICE_CONTROL_VAR_MODE_MIXED,
-    DEVICE_CONTROL_VAR_MODE_VOICE,
-} Device_control_var_mode;
-
-
-typedef void Device_set_control_var_generic_func(
-        const Device*,
-        Device_states*,
-        Device_control_var_mode,
-        Random*,
-        Channel*,
-        const char* var_name,
-        const Value* value);
-
-typedef void Device_init_control_vars_func(
-        const Device*,
-        Device_states*,
-        Device_control_var_mode,
-        Random*,
-        Channel*);
-
-
 struct Device
 {
     uint32_t id;
@@ -67,9 +43,6 @@ struct Device
     Device_impl* dimpl;
 
     Device_state_create_func* create_state;
-
-    Device_set_control_var_generic_func* set_control_var_generic;
-    Device_init_control_vars_func* init_control_vars;
 
     bool existence[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
 };
@@ -198,26 +171,6 @@ bool Device_get_mixed_signals(const Device* device);
 
 
 /**
- * Set function for setting control variables.
- *
- * \param device     The Device -- must not be \c NULL.
- * \param set_func   The generic Value setting function -- must not be \c NULL.
- */
-void Device_register_set_control_var_generic(
-        Device* device, Device_set_control_var_generic_func* set_func);
-
-
-/**
- * Set function for initialising control variables.
- *
- * \param device      The Device -- must not be \c NULL.
- * \param init_func   The initialisation function -- must not be \c NULL.
- */
-void Device_register_init_control_vars(
-        Device* device, Device_init_control_vars_func* init_func);
-
-
-/**
  * Set existence of a port in the Device.
  *
  * \param device   The Device -- must not be \c NULL.
@@ -286,48 +239,6 @@ bool Device_set_key(Device* device, const char* key, Streader* sr);
  * \return   \c true if successful, or \c false if a fatal error occurred.
  */
 bool Device_set_state_key(const Device* device, Device_states* dstates, const char* key);
-
-
-/**
- * Set new value of a Device control variable.
- *
- * \param device     The Device -- must not be \c NULL.
- * \param dstates    The Device states -- must not be \c NULL.
- * \param mode       The Device control variable mode.
- * \param random     The Random source -- must not be \c NULL.
- * \param channel    The Channel -- must not be \c NULL if
- *                   \a mode == \c DEVICE_CONTROL_VAR_MODE_VOICE.
- * \param var_name   The name of the control variable -- must not be \c NULL.
- * \param value      The new value -- must not be \c NULL and must have a
- *                   realtime type.
- */
-void Device_set_control_var_generic(
-        const Device* device,
-        Device_states* dstates,
-        Device_control_var_mode mode,
-        Random* random,
-        Channel* channel,
-        const char* var_name,
-        const Value* value);
-
-
-/**
- * Initialise all control variables of the Device.
- *
- * \param device    The Device -- must not be \c NULL.
- * \param dstates   The Device states -- must not be \c NULL.
- * \param mode      The Device control variable mode.
- * \param random    Global Random source -- must not be \c NULL if
- *                  \a mode == \c DEVICE_CONTROL_VAR_MODE_MIXED.
- * \param channel   The Channel -- must not be \c NULL if
- *                  \a mode == \c DEVICE_CONTROL_VAR_MODE_VOICE.
- */
-void Device_init_control_vars(
-        const Device* device,
-        Device_states* dstates,
-        Device_control_var_mode mode,
-        Random* random,
-        Channel* channel);
 
 
 /**

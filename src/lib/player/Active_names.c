@@ -46,9 +46,7 @@ bool Active_names_set(Active_names* names, Active_cat cat, const char* name)
     rassert(cat < ACTIVE_CAT_COUNT);
     rassert(name != NULL);
 
-    const size_t length_limit =
-        (cat == ACTIVE_CAT_CONTROL_VAR) ? KQT_KEY_LENGTH_MAX : KQT_VAR_NAME_MAX + 1;
-    if (strlen(name) >= length_limit)
+    if (strlen(name) > KQT_VAR_NAME_MAX)
         return false;
 
     strcpy(names->names[cat], name);

@@ -17,7 +17,6 @@
 #include <debug/assert.h>
 #include <init/Au_table.h>
 #include <init/Connections.h>
-#include <init/devices/Au_control_vars.h>
 #include <init/devices/Au_event_map.h>
 #include <init/devices/Au_expressions.h>
 #include <init/devices/Au_interface.h>
@@ -86,7 +85,6 @@ struct Audio_unit
     Proc_table* procs;
     Au_table* au_table;
 
-    Au_control_vars* control_vars;
     Au_event_map* event_map;
     Au_streams* streams;
     Hit_info hits[KQT_HITS_MAX];
@@ -94,24 +92,7 @@ struct Audio_unit
 };
 
 
-
 //static bool Audio_unit_sync(Device* device, Device_states* dstates);
-
-static void Audio_unit_set_control_var_generic(
-        const Device* device,
-        Device_states* dstates,
-        Device_control_var_mode mode,
-        Random* random,
-        Channel* channel,
-        const char* var_name,
-        const Value* value);
-
-static void Audio_unit_init_control_vars(
-        const Device* device,
-        Device_states* dstates,
-        Device_control_var_mode mode,
-        Random* random,
-        Channel* channel);
 
 
 Audio_unit* new_Audio_unit(void)
@@ -127,7 +108,6 @@ Audio_unit* new_Audio_unit(void)
     au->connections = NULL;
     au->procs = NULL;
     au->au_table = NULL;
-    au->control_vars = NULL;
     au->event_map = NULL;
     au->streams = NULL;
     for (int i = 0; i < KQT_HITS_MAX; ++i)
@@ -148,11 +128,6 @@ Audio_unit* new_Audio_unit(void)
 
     Device_set_state_creator(&au->parent, new_Au_state);
     Device_set_mixed_signals(&au->parent, true);
-
-    Device_register_set_control_var_generic(
-            &au->parent, Audio_unit_set_control_var_generic);
-
-    Device_register_init_control_vars(&au->parent, Audio_unit_init_control_vars);
 
     au->out_iface = new_Au_interface();
     au->in_iface = new_Au_interface();
@@ -323,17 +298,6 @@ int32_t Audio_unit_get_voice_wb_size(const Audio_unit* au, int32_t audio_rate)
 }
 
 
-void Audio_unit_set_control_vars(Audio_unit* au, Au_control_vars* au_control_vars)
-{
-    rassert(au != NULL);
-
-    del_Au_control_vars(au->control_vars);
-    au->control_vars = au_control_vars;
-
-    return;
-}
-
-
 void Audio_unit_set_event_map(Audio_unit* au, Au_event_map* map)
 {
     rassert(au != NULL);
@@ -479,171 +443,6 @@ const Au_expressions* Audio_unit_get_expressions(const Audio_unit* au)
 }
 
 
-static const Device* get_cv_target_device(
-        const Audio_unit* au,
-        const Au_control_binding_iter* iter,
-        Device_control_var_mode mode)
-{
-    rassert(au != NULL);
-    rassert(iter != NULL);
-
-    const Device* target_dev = NULL;
-    if ((mode == DEVICE_CONTROL_VAR_MODE_MIXED) &&
-            (iter->target_dev_type == TARGET_DEV_AU))
-        target_dev = (const Device*)Au_table_get(
-                au->au_table, iter->target_dev_index);
-    else if (iter->target_dev_type == TARGET_DEV_PROC)
-        target_dev = (const Device*)Proc_table_get_proc(
-                au->procs, iter->target_dev_index);
-
-    return target_dev;
-}
-
-
-static void Audio_unit_init_control_var_generic(
-        const Audio_unit* au,
-        Device_states* dstates,
-        Device_control_var_mode mode,
-        Random* random,
-        Channel* channel,
-        const char* var_name,
-        Value_type var_type)
-{
-    rassert(au != NULL);
-    rassert(dstates != NULL);
-    rassert(random != NULL);
-    rassert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
-    rassert(var_name != NULL);
-
-    bool carried = false;
-
-    if (mode == DEVICE_CONTROL_VAR_MODE_VOICE)
-    {
-        const Channel_cv_state* cvstate = Channel_get_cv_state(channel);
-        if (Channel_cv_state_is_carrying_enabled(cvstate, var_name))
-        {
-            const Value* carried_value =
-                Channel_cv_state_get_value(cvstate, var_name);
-            if (carried_value != NULL)
-            {
-                Value* converted = VALUE_AUTO;
-                if (Value_convert(converted, carried_value, var_type))
-                {
-                    Audio_unit_set_control_var_generic(
-                            &au->parent,
-                            dstates,
-                            mode,
-                            random,
-                            channel,
-                            var_name,
-                            converted);
-
-                    carried = true;
-                }
-            }
-        }
-    }
-
-    if (!carried)
-    {
-        const Value* init_value =
-            Au_control_vars_get_init_value(au->control_vars, var_name);
-
-        if (mode == DEVICE_CONTROL_VAR_MODE_VOICE)
-        {
-            Channel_cv_state* cvstate = Channel_get_cv_state_mut(channel);
-            const bool success =
-                Channel_cv_state_set_value(cvstate, var_name, init_value);
-            rassert(success);
-        }
-
-        Audio_unit_set_control_var_generic(
-                &au->parent, dstates, mode, random, channel, var_name, init_value);
-    }
-
-    return;
-}
-
-
-static void Audio_unit_init_control_vars(
-        const Device* device,
-        Device_states* dstates,
-        Device_control_var_mode mode,
-        Random* random,
-        Channel* channel)
-{
-    rassert(device != NULL);
-    rassert(dstates != NULL);
-    rassert(random != NULL);
-    rassert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
-
-    const Audio_unit* au = (const Audio_unit*)device;
-    if (au->control_vars == NULL)
-        return;
-
-    Au_control_var_iter* var_iter =
-        Au_control_var_iter_init(AU_CONTROL_VAR_ITER_AUTO, au->control_vars);
-    const char* var_name = NULL;
-    Value_type var_type = VALUE_TYPE_NONE;
-    Au_control_var_iter_get_next_var_info(var_iter, &var_name, &var_type);
-    while (var_name != NULL)
-    {
-        Audio_unit_init_control_var_generic(
-                au, dstates, mode, random, channel, var_name, var_type);
-
-        Au_control_var_iter_get_next_var_info(var_iter, &var_name, &var_type);
-    }
-
-    return;
-}
-
-
-static void Audio_unit_set_control_var_generic(
-        const Device* device,
-        Device_states* dstates,
-        Device_control_var_mode mode,
-        Random* random,
-        Channel* channel,
-        const char* var_name,
-        const Value* value)
-{
-    rassert(device != NULL);
-    rassert(dstates != NULL);
-    rassert(random != NULL);
-    rassert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
-    rassert(var_name != NULL);
-    rassert(value != NULL);
-
-    const Audio_unit* au = (const Audio_unit*)device;
-    if (au->control_vars == NULL)
-        return;
-
-    // Map our value to each bound target range and
-    // call control value setter for corresponding subdevice
-    Au_control_binding_iter* iter = AU_CONTROL_BINDING_ITER_AUTO;
-    bool has_entry = Au_control_binding_iter_init_set_generic(
-            iter, au->control_vars, random, var_name, value);
-    while (has_entry)
-    {
-        const Device* target_dev = get_cv_target_device(au, iter, mode);
-
-        if ((target_dev != NULL) && (iter->target_value.type != VALUE_TYPE_NONE))
-            Device_set_control_var_generic(
-                    target_dev,
-                    dstates,
-                    mode,
-                    random,
-                    channel,
-                    iter->target_var_name,
-                    &iter->target_value);
-
-        has_entry = Au_control_binding_iter_get_next_entry(iter);
-    }
-
-    return;
-}
-
-
 void del_Audio_unit(Audio_unit* au)
 {
     if (au == NULL)
@@ -660,7 +459,6 @@ void del_Audio_unit(Audio_unit* au)
     del_Au_expressions(au->expressions);
     del_Au_streams(au->streams);
     del_Au_event_map(au->event_map);
-    del_Au_control_vars(au->control_vars);
     Device_deinit(&au->parent);
     memory_free(au);
 

@@ -157,55 +157,6 @@ void Proc_state_clear_history(Proc_state* proc_state)
 }
 
 
-void Proc_state_cv_generic_set(
-        Device_state* dstate, const char* key, const Value* value)
-{
-    rassert(dstate != NULL);
-    rassert(key != NULL);
-    rassert(value != NULL);
-
-    const Device_impl* dimpl = dstate->device->dimpl;
-
-    Device_impl_proc_cv_callback* cb = DEVICE_IMPL_PROC_CV_CALLBACK_AUTO;
-    Device_impl_get_proc_cv_callback(dimpl, key, value->type, cb);
-
-    if (cb->type == VALUE_TYPE_NONE)
-        return;
-
-    switch (cb->type)
-    {
-        case VALUE_TYPE_BOOL:
-        {
-            cb->cb.set_bool(dstate, cb->indices, value->value.bool_type);
-        }
-        break;
-
-        case VALUE_TYPE_INT:
-        {
-            cb->cb.set_int(dstate, cb->indices, value->value.int_type);
-        }
-        break;
-
-        case VALUE_TYPE_FLOAT:
-        {
-            cb->cb.set_float(dstate, cb->indices, value->value.float_type);
-        }
-        break;
-
-        case VALUE_TYPE_TSTAMP:
-        {
-            cb->cb.set_tstamp(dstate, cb->indices, &value->value.Tstamp_type);
-        }
-        break;
-
-        default:
-            rassert(false);
-    }
-
-    return;
-}
-
-
 static bool Proc_state_set_audio_buffer_size(Device_state* dstate, int32_t new_size)
 {
     rassert(dstate != NULL);

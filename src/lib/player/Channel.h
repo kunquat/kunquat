@@ -22,7 +22,6 @@
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <mathnum/Tstamp.h>
-#include <player/Channel_cv_state.h>
 #include <player/Channel_stream_state.h>
 #include <player/Env_state.h>
 #include <player/Event_cache.h>
@@ -47,7 +46,6 @@ struct Channel
     int num;                       ///< Channel number.
     Random rand;                   ///< Random source for this channel.
     Event_cache* event_cache;
-    Channel_cv_state* cvstate;
     Channel_stream_state* csstate;
 
     Voice_pool* pool;              ///< All Voices.
@@ -229,26 +227,6 @@ double Channel_get_fg_force(const Channel* ch);
  * \param ch   The Channel -- must not be \c NULL.
  */
 void Channel_reset_test_output(Channel* ch);
-
-
-/**
- * Get control variable state of the Channel.
- *
- * \param ch   The Channel -- must not be \c NULL.
- *
- * \return   The control variable state of the Channel. This is never \c NULL.
- */
-const Channel_cv_state* Channel_get_cv_state(const Channel* ch);
-
-
-/**
- * Get mutable control variable state of the Channel.
- *
- * \param ch   The Channel -- must not be \c NULL.
- *
- * \return   The mutable control variable state of the Channel. This is never \c NULL.
- */
-Channel_cv_state* Channel_get_cv_state_mut(Channel* ch);
 
 
 /**

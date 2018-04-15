@@ -505,30 +505,6 @@ bool Player_prepare_mixing(Player* player)
 }
 
 
-bool Player_alloc_channel_cv_state(Player* player, const Au_control_vars* aucv)
-{
-    rassert(player != NULL);
-    rassert(aucv != NULL);
-
-    Au_control_var_iter* iter = Au_control_var_iter_init(AU_CONTROL_VAR_ITER_AUTO, aucv);
-    const char* var_name = NULL;
-    Value_type var_type = VALUE_TYPE_NONE;
-    Au_control_var_iter_get_next_var_info(iter, &var_name, &var_type);
-    while (var_name != NULL)
-    {
-        for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
-        {
-            if (!Channel_cv_state_add_entry(player->channels[i]->cvstate, var_name))
-                return false;
-        }
-
-        Au_control_var_iter_get_next_var_info(iter, &var_name, &var_type);
-    }
-
-    return true;
-}
-
-
 bool Player_alloc_channel_streams(Player* player, const Au_streams* streams)
 {
     rassert(player != NULL);
@@ -1391,22 +1367,6 @@ static void Player_init_final(Player* player)
     Master_params_set_starting_tempo(&player->master_params);
 
     Device_states_set_tempo(player->device_states, player->master_params.tempo);
-
-    // Init control variables
-    {
-        Au_table* aus = Module_get_au_table(player->module);
-        for (int i = 0; i < KQT_AUDIO_UNITS_MAX; ++i)
-        {
-            const Audio_unit* au = Au_table_get(aus, i);
-            if (au != NULL)
-                Device_init_control_vars(
-                        (const Device*)au,
-                        player->device_states,
-                        DEVICE_CONTROL_VAR_MODE_MIXED,
-                        &player->master_params.random,
-                        NULL);
-        }
-    }
 
     Player_reset_channels(player);
 

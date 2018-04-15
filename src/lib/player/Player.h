@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -17,7 +17,6 @@
 
 
 #include <Error.h>
-#include <init/devices/Au_control_vars.h>
 #include <init/devices/Au_streams.h>
 #include <init/Module.h>
 #include <kunquat/limits.h>
@@ -138,17 +137,6 @@ bool Player_reserve_voice_work_buffer_space(Player* player, int32_t size);
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Player_prepare_mixing(Player* player);
-
-
-/**
- * Allocate memory for Channel-specific control variables.
- *
- * \param player   The Player -- must not be \c NULL.
- * \param aucv     The Audio unit control variables -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Player_alloc_channel_cv_state(Player* player, const Au_control_vars* aucv);
 
 
 /**
