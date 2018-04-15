@@ -50,6 +50,8 @@ class TriggerTypeValidator(QValidator):
                 name = parts[1]
                 if not all(ch in DEVICE_EVENT_CHARS for ch in name):
                     return (QValidator.Invalid, contents, pos)
+                if (not name) or event_name not in events.trigger_events_with_name_spec:
+                    return (QValidator.Intermediate, contents, pos)
             return (QValidator.Acceptable, contents, pos)
         else:
             return (QValidator.Intermediate, contents, pos)
