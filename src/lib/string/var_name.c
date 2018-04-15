@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -26,7 +26,7 @@ static bool is_valid_var_name_with_length(const char* str, size_t length)
 {
     rassert(str != NULL);
 
-    return (0 < length) && (length < KQT_VAR_NAME_MAX) &&
+    return (0 < length) && (length <= KQT_VAR_NAME_MAX) &&
         (strspn(str, KQT_VAR_CHARS) == length) &&
         (strchr(KQT_VAR_INIT_CHARS, str[0]) != NULL);
 }

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -77,10 +77,10 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->ramp_attack = 0;
 
     state->expr_filters_applied = false;
-    memset(state->ch_expr_name, '\0', KQT_VAR_NAME_MAX);
-    memset(state->note_expr_name, '\0', KQT_VAR_NAME_MAX);
+    memset(state->ch_expr_name, '\0', KQT_VAR_NAME_MAX + 1);
+    memset(state->note_expr_name, '\0', KQT_VAR_NAME_MAX + 1);
 
-    memset(state->test_proc_param, '\0', KQT_VAR_NAME_MAX);
+    memset(state->test_proc_param, '\0', KQT_VAR_NAME_MAX + 1);
 
     state->hit_index = -1;
 

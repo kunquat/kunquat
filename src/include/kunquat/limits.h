@@ -183,7 +183,7 @@ extern "C" {
 
 
 /**
- * Maximum length of a variable name (including null terminator).
+ * Maximum length of a variable name (not including null terminator).
  */
 #define KQT_VAR_NAME_MAX 32
 
@@ -195,7 +195,7 @@ extern "C" {
 
 
 /**
- * Maximum length of a device event name (including null terminator).
+ * Maximum length of a device event name (not including null terminator).
  */
 #define KQT_DEVICE_EVENT_NAME_MAX 32
 

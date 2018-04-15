@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -31,7 +31,7 @@ Channel_defaults* Channel_defaults_init(Channel_defaults* chd)
     rassert(chd != NULL);
 
     chd->control_num = 0;
-    memset(chd->init_expr, '\0', KQT_VAR_NAME_MAX);
+    memset(chd->init_expr, '\0', KQT_VAR_NAME_MAX + 1);
 
     return chd;
 }
@@ -61,9 +61,9 @@ static bool read_ch_defaults_item(Streader* sr, const char* key, void* userdata)
     }
     else if (string_eq(key, "init_expr"))
     {
-        char init_expr[KQT_VAR_NAME_MAX + 1] = "";
+        char init_expr[KQT_VAR_NAME_MAX + 2] = "";
 
-        if (!Streader_read_string(sr, KQT_VAR_NAME_MAX + 1, init_expr))
+        if (!Streader_read_string(sr, KQT_VAR_NAME_MAX + 2, init_expr))
             return false;
         if ((init_expr[0] != '\0') && !is_valid_var_name(init_expr))
         {

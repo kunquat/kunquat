@@ -1715,7 +1715,7 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
 
         case VALUE_TYPE_STRING:
             Streader_read_string(
-                    event_reader, KQT_VAR_NAME_MAX, value->value.string_type);
+                    event_reader, KQT_VAR_NAME_MAX + 1, value->value.string_type);
             break;
 
         case VALUE_TYPE_PAT_INST_REF:
@@ -1737,7 +1737,7 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
                 value->type = VALUE_TYPE_STRING;
                 Streader_clear_error(event_reader);
                 Streader_read_string(
-                        event_reader, KQT_VAR_NAME_MAX, value->value.string_type);
+                        event_reader, KQT_VAR_NAME_MAX + 1, value->value.string_type);
             }
         }
         break;

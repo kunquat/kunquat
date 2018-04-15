@@ -76,10 +76,10 @@ struct Voice_state
     Work_buffer* wb;
 
     bool expr_filters_applied;
-    char ch_expr_name[KQT_VAR_NAME_MAX];
-    char note_expr_name[KQT_VAR_NAME_MAX];
+    char ch_expr_name[KQT_VAR_NAME_MAX + 1];
+    char note_expr_name[KQT_VAR_NAME_MAX + 1];
 
-    char test_proc_param[KQT_VAR_NAME_MAX];
+    char test_proc_param[KQT_VAR_NAME_MAX + 1];
 
     double ramp_attack;            ///< The current state of volume ramp during attack.
 

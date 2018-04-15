@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -61,7 +61,7 @@ typedef struct Bind_entry
     int target_dev_index;
 
     Value_type target_var_type;
-    char target_var_name[KQT_VAR_NAME_MAX];
+    char target_var_name[KQT_VAR_NAME_MAX + 1];
 
     // Type-specific settings
     union
@@ -102,7 +102,7 @@ typedef enum
 
 typedef struct Var_entry
 {
-    char name[KQT_VAR_NAME_MAX];
+    char name[KQT_VAR_NAME_MAX + 1];
     Var_entry_type type;
     Value init_value;
 
@@ -361,13 +361,13 @@ static Bind_entry* new_Bind_entry_common(Streader* sr)
     rassert(sr != NULL);
 
     char target_dev_name[16] = "";
-    char target_var_name[KQT_VAR_NAME_MAX + 1] = "";
+    char target_var_name[KQT_VAR_NAME_MAX + 2] = "";
 
     if (!Streader_readf(
                 sr,
                 "%s,%s,",
                 READF_STR(16, target_dev_name),
-                READF_STR(KQT_VAR_NAME_MAX, target_var_name)))
+                READF_STR(KQT_VAR_NAME_MAX + 2, target_var_name)))
         return NULL;
 
     // Parse target device name
@@ -514,13 +514,13 @@ static bool read_var_entry(Streader* sr, int32_t index, void* userdata)
 
     // Read type and name
     char type_name[16] = "";
-    char var_name[KQT_VAR_NAME_MAX + 1] = "";
+    char var_name[KQT_VAR_NAME_MAX + 2] = "";
 
     if (!Streader_readf(
                 sr,
                 "[%s,%s,",
                 READF_STR(16, type_name),
-                READF_STR(KQT_VAR_NAME_MAX + 1, var_name)))
+                READF_STR(KQT_VAR_NAME_MAX + 2, var_name)))
         return false;
 
     if (!is_valid_var_name(var_name))

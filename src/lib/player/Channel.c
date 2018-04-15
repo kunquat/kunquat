@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -166,7 +166,7 @@ void Channel_reset(Channel* ch)
 
     ch->use_test_output = false;
     ch->test_proc_index = -1;
-    memset(ch->test_proc_param, '\0', KQT_VAR_NAME_MAX);
+    memset(ch->test_proc_param, '\0', KQT_VAR_NAME_MAX + 1);
 
     ch->au_input = 0;
 
@@ -194,7 +194,7 @@ void Channel_reset(Channel* ch)
     ch->arpeggio_edit_pos = 1;
     ch->arpeggio_tones[0] = ch->arpeggio_tones[1] = NAN;
 
-    memset(ch->init_ch_expression, '\0', KQT_VAR_NAME_MAX);
+    memset(ch->init_ch_expression, '\0', KQT_VAR_NAME_MAX + 1);
     ch->carry_note_expression = false;
 
     Channel_cv_state_reset(ch->cvstate);
@@ -281,7 +281,7 @@ void Channel_reset_test_output(Channel* ch)
 
     ch->use_test_output = false;
     ch->test_proc_index = -1;
-    memset(ch->test_proc_param, '\0', KQT_VAR_NAME_MAX);
+    memset(ch->test_proc_param, '\0', KQT_VAR_NAME_MAX + 1);
 
     return;
 }

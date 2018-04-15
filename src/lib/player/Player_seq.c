@@ -337,7 +337,7 @@ static void Player_process_expr_event(
         if (Event_names_get_param_type(event_names, event_name) == VALUE_TYPE_STRING)
         {
             arg->type = VALUE_TYPE_STRING;
-            Streader_read_string(sr, KQT_VAR_NAME_MAX, arg->value.string_type);
+            Streader_read_string(sr, KQT_VAR_NAME_MAX + 1, arg->value.string_type);
         }
         else
         {

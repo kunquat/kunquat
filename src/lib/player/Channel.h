@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -58,7 +58,7 @@ struct Channel
     bool mute;
     bool use_test_output;
     int test_proc_index;
-    char test_proc_param[KQT_VAR_NAME_MAX];
+    char test_proc_param[KQT_VAR_NAME_MAX + 1];
 
     int32_t au_input;              ///< Currently active Audio unit input.
     Au_table* au_table;
@@ -89,7 +89,7 @@ struct Channel
     int arpeggio_edit_pos;
     double arpeggio_tones[KQT_ARPEGGIO_TONES_MAX];
 
-    char init_ch_expression[KQT_VAR_NAME_MAX];
+    char init_ch_expression[KQT_VAR_NAME_MAX + 1];
     bool carry_note_expression;
 };
 

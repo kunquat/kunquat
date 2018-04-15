@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2018
  *
  * This file is part of Kunquat.
  *
@@ -233,7 +233,7 @@ static bool evaluate_expr_(
 
     int orig_vsi = vsi;
     int orig_osi = osi;
-    char token[KQT_VAR_NAME_MAX + 4] = ""; // + 4 for delimiting \"s
+    char token[KQT_VAR_NAME_MAX + 1 + 4] = ""; // + 4 for delimiting \"s
     bool expect_operand = true;
     bool found_not = false;
     bool found_minus = false;
@@ -601,7 +601,7 @@ static bool Value_from_token(
         int i = 0;
         while (!string_has_prefix(&token[i], end_str))
         {
-            if (i >= KQT_VAR_NAME_MAX - 1)
+            if (i >= KQT_VAR_NAME_MAX)
             {
                 return false;
             }
@@ -765,7 +765,7 @@ static bool get_num_token(Streader* sr, char* result)
     rassert(end_pos >= start_pos);
 
     const int64_t len = end_pos - start_pos;
-    if (len >= KQT_VAR_NAME_MAX - 1)
+    if (len > KQT_VAR_NAME_MAX)
     {
         Streader_set_error(sr, "Exceeded maximum token length");
         return false;
@@ -794,7 +794,7 @@ static bool get_str_token(Streader* sr, char* result)
     int i = 1;
     while (!string_has_prefix(str, end_str))
     {
-        if (i >= KQT_VAR_NAME_MAX + 1) // + 1 includes compensation for \"
+        if (i > KQT_VAR_NAME_MAX + 1) // + 1 includes compensation for \"
         {
             Streader_set_error(sr, "Exceeded maximum token length");
             return false;
@@ -822,7 +822,7 @@ static bool get_var_token(Streader* sr, char* result)
     const char* str = &sr->str[sr->pos];
 
     const size_t len = strspn(str, KQT_VAR_CHARS);
-    if (len >= KQT_VAR_NAME_MAX)
+    if (len > KQT_VAR_NAME_MAX)
     {
         Streader_set_error(sr, "Exceeded maximum token length");
         return false;
@@ -848,7 +848,7 @@ static bool get_op_token(Streader* sr, char* result)
     const char* str = &sr->str[sr->pos];
 
     const size_t len = strspn(str, op_chars);
-    if (len >= KQT_VAR_NAME_MAX)
+    if (len > KQT_VAR_NAME_MAX)
     {
         Streader_set_error(sr, "Exceeded maximum token length");
         return false;
