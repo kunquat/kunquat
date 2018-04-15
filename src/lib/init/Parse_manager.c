@@ -18,7 +18,6 @@
 #include <Handle_private.h>
 #include <init/Bind.h>
 #include <init/Connections.h>
-#include <init/devices/Au_control_vars.h>
 #include <init/devices/Au_event_map.h>
 #include <init/devices/Au_expressions.h>
 #include <init/devices/Au_streams.h>
@@ -761,47 +760,6 @@ static bool read_any_au_connections(Reader_params* params, Au_table* au_table, i
 
         Audio_unit_set_connections(au, graph);
         params->handle->update_connections = true;
-    }
-
-    return true;
-}
-
-
-static bool read_any_au_control_vars(
-        Reader_params* params, Au_table* au_table, int level)
-{
-    rassert(params != NULL);
-
-    int32_t index = -1;
-    acquire_au_index(index, params, level);
-
-    Audio_unit* au = NULL;
-    acquire_au(au, params->handle, au_table, index);
-
-    if (Streader_has_data(params->sr))
-    {
-        Au_control_vars* au_control_vars = new_Au_control_vars(params->sr);
-        if (au_control_vars == NULL)
-        {
-            set_error(params);
-            return false;
-        }
-
-        Audio_unit_set_control_vars(au, au_control_vars);
-
-        if (level == 0)
-        {
-            if (!Player_alloc_channel_cv_state(params->handle->player, au_control_vars))
-            {
-                Handle_set_error(params->handle, ERROR_MEMORY,
-                        "Could not allocate memory for audio unit control variables");
-                return false;
-            }
-        }
-    }
-    else
-    {
-        Audio_unit_set_control_vars(au, NULL);
     }
 
     return true;

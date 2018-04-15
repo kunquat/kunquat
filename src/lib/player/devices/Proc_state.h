@@ -27,12 +27,6 @@
 
 typedef void Proc_state_clear_history_func(Proc_state*);
 
-typedef void Proc_state_set_cv_bool_func(Device_state*, const Key_indices, bool);
-typedef void Proc_state_set_cv_int_func(Device_state*, const Key_indices, int64_t);
-typedef void Proc_state_set_cv_float_func(Device_state*, const Key_indices, double);
-typedef void Proc_state_set_cv_tstamp_func(
-        Device_state*, const Key_indices, const Tstamp*);
-
 typedef void Proc_state_fire_event_func(Device_state*, const char*, const Value*);
 
 
@@ -75,17 +69,6 @@ bool Proc_state_init(
  * \param proc_state   The Processor state -- must not be \c NULL.
  */
 void Proc_state_clear_history(Proc_state* proc_state);
-
-
-/**
- * Set value of a control variable in the Processor state.
- *
- * \param dstate   The Processor state -- must not be \c NULL.
- * \param key      The key of the control variable -- must not be \c NULL.
- * \param value    The value to be set -- must not be \c NULL.
- */
-void Proc_state_cv_generic_set(
-        Device_state* dstate, const char* key, const Value* value);
 
 
 #endif // KQT_PROC_STATE_H

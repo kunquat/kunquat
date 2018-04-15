@@ -34,8 +34,6 @@ EVENT_AU_NS_DEF("aod",      stream_osc_depth,       FLOAT,          v_nonneg_flo
 EVENT_AU_NS_DEF("ao/=s",    stream_osc_speed_slide, TSTAMP,         v_nonneg_ts,    ".sn")
 EVENT_AU_NS_DEF("ao/=d",    stream_osc_depth_slide, TSTAMP,         v_nonneg_ts,    ".sn")
 
-EVENT_AU_DEF(   "a.v",      set_cv_value,           REALTIME,       v_finite_rt)
-
 EVENT_AU_NS_DEF("ad",       fire_device_event,      MAYBE_REALTIME, v_maybe_finite_rt, ".dn")
 
 

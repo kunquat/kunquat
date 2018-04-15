@@ -50,16 +50,6 @@ typedef int32_t Voice_state_render_voice_func(
         double tempo);
 
 
-typedef void Voice_state_set_cv_bool_func(
-        Voice_state*, const Device_state*, const Key_indices, bool);
-typedef void Voice_state_set_cv_int_func(
-        Voice_state*, const Device_state*, const Key_indices, int64_t);
-typedef void Voice_state_set_cv_float_func(
-        Voice_state*, const Device_state*, const Key_indices, double);
-typedef void Voice_state_set_cv_tstamp_func(
-        Voice_state*, const Device_state*, const Key_indices, const Tstamp*);
-
-
 typedef void Voice_state_fire_event_func(
         Voice_state*, const Device_state*, const char*, const Value*);
 
@@ -167,21 +157,6 @@ int32_t Voice_state_render_voice(
  *                 as long as the output may contain non-zero values.
  */
 void Voice_state_set_keep_alive_stop(Voice_state* vstate, int32_t stop);
-
-
-/**
- * Set value of a control variable in the Voice state.
- *
- * \param vstate   The Voice state -- must not be \c NULL.
- * \param dstate   The Device state -- must not be \c NULL.
- * \param key      The key of the control variable -- must not be \c NULL.
- * \param value    The value to be set -- must not be \c NULL.
- */
-void Voice_state_cv_generic_set(
-        Voice_state* vstate,
-        const Device_state* dstate,
-        const char* key,
-        const Value* value);
 
 
 #endif // KQT_VOICE_STATE_H

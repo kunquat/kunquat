@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -64,16 +64,6 @@ static Device_state* Processor_create_dstate(
 }
 
 
-static void Processor_set_control_var_generic(
-        const Device* device,
-        Device_states* dstates,
-        Device_control_var_mode mode,
-        Random* random,
-        Channel* channel,
-        const char* key,
-        const Value* value);
-
-
 Processor* new_Processor(int index, const Au_params* au_params)
 {
     rassert(index >= 0);
@@ -98,9 +88,6 @@ Processor* new_Processor(int index, const Au_params* au_params)
     proc->enable_signal_support = false;
 
     Device_set_state_creator(&proc->parent, Processor_create_dstate);
-
-    Device_register_set_control_var_generic(
-            &proc->parent, Processor_set_control_var_generic);
 
     return proc;
 }
@@ -142,40 +129,6 @@ const Au_params* Processor_get_au_params(const Processor* proc)
 {
     rassert(proc != NULL);
     return proc->au_params;
-}
-
-
-static void Processor_set_control_var_generic(
-        const Device* device,
-        Device_states* dstates,
-        Device_control_var_mode mode,
-        Random* random,
-        Channel* channel,
-        const char* key,
-        const Value* value)
-{
-    rassert(device != NULL);
-    rassert(dstates != NULL);
-    rassert(random != NULL);
-    rassert(key != NULL);
-    rassert(value != NULL);
-
-    Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
-
-    if (mode == DEVICE_CONTROL_VAR_MODE_MIXED)
-    {
-        Proc_state_cv_generic_set(dstate, key, value);
-    }
-    else
-    {
-        rassert(channel != NULL);
-        const Processor* proc = (const Processor*)device;
-        Voice* voice = Channel_get_fg_voice(channel, proc->index);
-        if (voice != NULL)
-            Voice_state_cv_generic_set(voice->state, dstate, key, value);
-    }
-
-    return;
 }
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -42,9 +42,6 @@ bool Device_init(Device* device, bool req_impl)
     device->dimpl = NULL;
 
     device->create_state = new_Device_state_plain;
-
-    device->set_control_var_generic = NULL;
-    device->init_control_vars = NULL;
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -152,30 +149,6 @@ bool Device_get_mixed_signals(const Device* device)
 {
     rassert(device != NULL);
     return device->enable_signal_support;
-}
-
-
-void Device_register_set_control_var_generic(
-        Device* device, Device_set_control_var_generic_func* set_func)
-{
-    rassert(device != NULL);
-    rassert(set_func != NULL);
-
-    device->set_control_var_generic = set_func;
-
-    return;
-}
-
-
-void Device_register_init_control_vars(
-        Device* device, Device_init_control_vars_func* init_func)
-{
-    rassert(device != NULL);
-    rassert(init_func != NULL);
-
-    device->init_control_vars = init_func;
-
-    return;
 }
 
 
@@ -297,50 +270,6 @@ bool Device_set_state_key(
     }
 
     return true;
-}
-
-
-void Device_set_control_var_generic(
-        const Device* device,
-        Device_states* dstates,
-        Device_control_var_mode mode,
-        Random* random,
-        Channel* channel,
-        const char* var_name,
-        const Value* value)
-{
-    rassert(device != NULL);
-    rassert(dstates != NULL);
-    rassert(random != NULL);
-    rassert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
-    rassert(var_name != NULL);
-    rassert(value != NULL);
-    rassert(Value_type_is_realtime(value->type));
-
-    if (device->set_control_var_generic != NULL)
-        device->set_control_var_generic(
-                device, dstates, mode, random, channel, var_name, value);
-
-    return;
-}
-
-
-void Device_init_control_vars(
-        const Device* device,
-        Device_states* dstates,
-        Device_control_var_mode mode,
-        Random* random,
-        Channel* channel)
-{
-    rassert(device != NULL);
-    rassert(dstates != NULL);
-    rassert(implies(mode == DEVICE_CONTROL_VAR_MODE_MIXED, random != NULL));
-    rassert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
-
-    if (device->init_control_vars != NULL)
-        device->init_control_vars(device, dstates, mode, random, channel);
-
-    return;
 }
 
 

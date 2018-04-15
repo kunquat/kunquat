@@ -70,7 +70,6 @@ struct Device_impl
 {
     const Device* device;
     AAtree* set_cbs;
-    AAtree* update_cv_cbs;
 
     Proc_type proc_type;
 
@@ -83,40 +82,6 @@ struct Device_impl
     Device_impl_destroy_func* destroy;
 };
 
-
-// Containers of callback functions for control variable types.
-
-typedef struct Device_impl_proc_cv_callback
-{
-    Value_type type;
-    Key_indices indices;
-    union
-    {
-        Proc_state_set_cv_bool_func* set_bool;
-        Proc_state_set_cv_int_func* set_int;
-        Proc_state_set_cv_float_func* set_float;
-        Proc_state_set_cv_tstamp_func* set_tstamp;
-    } cb;
-} Device_impl_proc_cv_callback;
-
-#define DEVICE_IMPL_PROC_CV_CALLBACK_AUTO \
-    (&(Device_impl_proc_cv_callback){ .type = VALUE_TYPE_NONE })
-
-typedef struct Device_impl_voice_cv_callback
-{
-    Value_type type;
-    Key_indices indices;
-    union
-    {
-        Voice_state_set_cv_bool_func* set_bool;
-        Voice_state_set_cv_int_func* set_int;
-        Voice_state_set_cv_float_func* set_float;
-        Voice_state_set_cv_tstamp_func* set_tstamp;
-    } cb;
-} Device_impl_voice_cv_callback;
-
-#define DEVICE_IMPL_VOICE_CV_CALLBACK_AUTO \
-    (&(Device_impl_voice_cv_callback){ .type = VALUE_TYPE_NONE })
 
 
 /**
@@ -447,74 +412,6 @@ bool Device_impl_register_set_padsynth_params(
 
 
 /**
- * Create a boolean control variable.
- *
- * \param dimpl        The Device implementation -- must not be \c NULL.
- * \param keyp         The key pattern -- must not be \c NULL.
- * \param pstate_set   The Processor state set function, or \c NULL.
- * \param vstate_set   The Voice state set function, or \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_impl_create_cv_bool(
-        Device_impl* dimpl,
-        const char* keyp,
-        Proc_state_set_cv_bool_func* pstate_set,
-        Voice_state_set_cv_bool_func* vstate_set);
-
-
-/**
- * Create an integer control variable.
- *
- * \param dimpl        The Device implementation -- must not be \c NULL.
- * \param keyp         The key pattern -- must not be \c NULL.
- * \param pstate_set   The Processor state set function, or \c NULL.
- * \param vstate_set   The Voice state set function, or \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_impl_create_cv_int(
-        Device_impl* dimpl,
-        const char* keyp,
-        Proc_state_set_cv_int_func* pstate_set,
-        Voice_state_set_cv_int_func* vstate_set);
-
-
-/**
- * Create a float control variable.
- *
- * \param dimpl        The Device implementation -- must not be \c NULL.
- * \param keyp         The key pattern -- must not be \c NULL.
- * \param pstate_set   The Processor state Linear controls set function, or \c NULL.
- * \param vstate_set   The Voice state Linear controls set function, or \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_impl_create_cv_float(
-        Device_impl* dimpl,
-        const char* keyp,
-        Proc_state_set_cv_float_func* pstate_set,
-        Voice_state_set_cv_float_func* vstate_set);
-
-
-/**
- * Create a tstamp control variable.
- *
- * \param dimpl        The Device implementation -- must not be \c NULL.
- * \param keyp         The key pattern -- must not be \c NULL.
- * \param pstate_set   The Processor state set function, or \c NULL.
- * \param vstate_set   The Voice state set function, or \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_impl_create_cv_tstamp(
-        Device_impl* dimpl,
-        const char* keyp,
-        Proc_state_set_cv_tstamp_func* pstate_set,
-        Voice_state_set_cv_tstamp_func* vstate_set);
-
-
-/**
  * Set a key in the Device implementation.
  *
  * The actual data is retrieved from device parameters.
@@ -538,38 +435,6 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key);
  */
 bool Device_impl_set_state_key(
         const Device_impl* dimpl, Device_state* dstate, const char* key);
-
-
-/**
- * Get a Processor control variable callback function.
- *
- * \param dimpl   The Device implementation -- must not be \c NULL.
- * \param key     The key of the control variable -- must not be \c NULL.
- * \param type    The control variable type.
- * \param cb      The destination address of the callback structure -- must
- *                not be \c NULL.
- */
-void Device_impl_get_proc_cv_callback(
-        const Device_impl* dimpl,
-        const char* key,
-        Value_type type,
-        Device_impl_proc_cv_callback* cb);
-
-
-/**
- * Get a Voice control variable callback function.
- *
- * \param dimpl   The Device implementation -- must not be \c NULL.
- * \param key     The key of the control variable -- must not be \c NULL.
- * \param type    The control variable type.
- * \param cb      The destination address of the callback structure -- must
- *                not be \c NULL.
- */
-void Device_impl_get_voice_cv_callback(
-        const Device_impl* dimpl,
-        const char* key,
-        Value_type type,
-        Device_impl_voice_cv_callback* cb);
 
 
 /**

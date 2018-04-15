@@ -17,7 +17,6 @@
 
 
 #include <decl.h>
-#include <init/devices/Au_control_vars.h>
 #include <init/devices/Au_params.h>
 #include <init/devices/param_types/Envelope.h>
 #include <init/devices/Proc_table.h>
@@ -179,15 +178,6 @@ const Device* Audio_unit_get_output_interface(const Audio_unit* au);
  * \return   The buffer size required.
  */
 int32_t Audio_unit_get_voice_wb_size(const Audio_unit* au, int32_t audio_rate);
-
-
-/**
- * Set the control variable mapping of the Audio unit.
- *
- * \param au                The Audio unit -- must not be \c NULL.
- * \param au_control_vars   The Audio unit control variables, or \c NULL.
- */
-void Audio_unit_set_control_vars(Audio_unit* au, Au_control_vars* au_control_vars);
 
 
 /**

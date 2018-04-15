@@ -19,7 +19,6 @@
 #include <init/sheet/Channel_defaults.h>
 #include <mathnum/Tstamp.h>
 #include <memory.h>
-#include <player/Channel_cv_state.h>
 #include <player/Channel_stream_state.h>
 
 #include <math.h>
@@ -38,13 +37,10 @@ static bool Channel_init(Channel* ch, int num, Env_state* estate, const Module* 
 
     General_state_preinit(&ch->parent);
 
-    ch->cvstate = new_Channel_cv_state();
     ch->csstate = new_Channel_stream_state();
-    if ((ch->cvstate == NULL) || (ch->csstate == NULL) ||
-            !General_state_init(&ch->parent, false, estate, module))
+    if ((ch->csstate == NULL) || !General_state_init(&ch->parent, false, estate, module))
     {
         del_Channel_stream_state(ch->csstate);
-        del_Channel_cv_state(ch->cvstate);
         return false;
     }
 
@@ -197,7 +193,6 @@ void Channel_reset(Channel* ch)
     memset(ch->init_ch_expression, '\0', KQT_VAR_NAME_MAX + 1);
     ch->carry_note_expression = false;
 
-    Channel_cv_state_reset(ch->cvstate);
     Channel_stream_state_reset(ch->csstate);
 
     Random_reset(&ch->rand);
@@ -287,20 +282,6 @@ void Channel_reset_test_output(Channel* ch)
 }
 
 
-const Channel_cv_state* Channel_get_cv_state(const Channel* ch)
-{
-    rassert(ch != NULL);
-    return ch->cvstate;
-}
-
-
-Channel_cv_state* Channel_get_cv_state_mut(Channel* ch)
-{
-    rassert(ch != NULL);
-    return ch->cvstate;
-}
-
-
 const Channel_stream_state* Channel_get_stream_state(const Channel* ch)
 {
     rassert(ch != NULL);
@@ -324,8 +305,6 @@ void Channel_deinit(Channel* ch)
     ch->event_cache = NULL;
     del_Channel_stream_state(ch->csstate);
     ch->csstate = NULL;
-    del_Channel_cv_state(ch->cvstate);
-    ch->cvstate = NULL;
     General_state_deinit(&ch->parent);
 
     return;

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -226,13 +226,6 @@ bool Event_channel_note_on_process(
 
     Channel_reset_test_output(ch);
 
-    Device_init_control_vars(
-            (const Device*)au,
-            dstates,
-            DEVICE_CONTROL_VAR_MODE_VOICE,
-            Channel_get_random_source(ch),
-            ch);
-
     init_streams(ch, au);
 
     return true;
@@ -320,13 +313,6 @@ bool Event_channel_hit_process(
     }
 
     Channel_reset_test_output(ch);
-
-    Device_init_control_vars(
-            (const Device*)au,
-            dstates,
-            DEVICE_CONTROL_VAR_MODE_VOICE,
-            Channel_get_random_source(ch),
-            ch);
 
     init_streams(ch, au);
 
