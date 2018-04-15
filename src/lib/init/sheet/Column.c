@@ -311,13 +311,10 @@ static bool read_trigger(Streader* sr, int32_t index, void* userdata)
 
     Read_trigger_data* rtdata = userdata;
 
-    Streader* test_sr = STREADER_AUTO;
-    *test_sr = *sr;
-    if (Trigger_data_contains_name_spec(test_sr))
+    if (Trigger_data_contains_name_spec(sr))
     {
-        *test_sr = *sr;
         Trigger* trigger =
-            new_Trigger_of_name_spec_from_string(test_sr, rtdata->event_names);
+            new_Trigger_of_name_spec_from_string(sr, rtdata->event_names);
         if (trigger == NULL || !Column_ins(rtdata->col, trigger))
         {
             del_Trigger(trigger);

@@ -32,12 +32,21 @@ bool Trigger_data_contains_name_spec(Streader* sr)
 {
     rassert(sr != NULL);
 
-    if (!Streader_readf(sr, "[%t,[", NULL))
+    Streader* test_sr = STREADER_AUTO;
+    *test_sr = *sr;
+
+    if (!Streader_readf(test_sr, "[%t,[", NULL))
+    {
+        sr->error = test_sr->error;
         return false;
+    }
 
     char type_str[KQT_TRIGGER_NAME_MAX + 2] = "";
-    if (!Streader_read_string(sr, KQT_TRIGGER_NAME_MAX + 2, type_str))
+    if (!Streader_read_string(test_sr, KQT_TRIGGER_NAME_MAX + 2, type_str))
+    {
+        sr->error = test_sr->error;
         return false;
+    }
 
     return (strchr(type_str, NAME_SPEC_SEP) != NULL);
 }
@@ -182,16 +191,25 @@ Trigger* new_Trigger_of_name_spec_from_string(Streader* sr, const Event_names* n
     if (Streader_is_error_set(sr))
         return NULL;
 
+    Streader* test_sr = STREADER_AUTO;
+    *test_sr = *sr;
+
     // Trigger position
     Tstamp* pos = TSTAMP_AUTO;
-    if (!Streader_readf(sr, "[%t,[", pos))
+    if (!Streader_readf(test_sr, "[%t,[", pos))
+    {
+        sr->error = test_sr->error;
         return NULL;
+    }
 
     // Event type
     char type_str[KQT_TRIGGER_NAME_MAX + 2] = "";
-    if (!(Streader_read_string(sr, KQT_TRIGGER_NAME_MAX + 2, type_str) &&
-                Streader_match_char(sr, ',')))
+    if (!(Streader_read_string(test_sr, KQT_TRIGGER_NAME_MAX + 2, type_str) &&
+                Streader_match_char(test_sr, ',')))
+    {
+        sr->error = test_sr->error;
         return NULL;
+    }
 
     // Separate name specifier
     char* sep_pos = strchr(type_str, NAME_SPEC_SEP);
@@ -204,7 +222,7 @@ Trigger* new_Trigger_of_name_spec_from_string(Streader* sr, const Event_names* n
         Streader_set_error(sr, "No name specifier followed by %c", NAME_SPEC_SEP);
         return NULL;
     }
-    else if (name_length > KQT_TRIGGER_NAME_MAX)
+    else if (name_length > KQT_DEVICE_EVENT_NAME_MAX)
     {
         Streader_set_error(sr, "Name specifier is too long");
         return NULL;
