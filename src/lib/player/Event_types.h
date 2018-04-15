@@ -31,5 +31,6 @@
 
 
 #undef EVENT_TYPE_DEF
+#undef EVENT_TYPE_NS_DEF
 
 
