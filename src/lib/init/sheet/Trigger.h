@@ -41,8 +41,8 @@ typedef struct Trigger
 /**
  * Check for name specifier in the trigger description.
  *
- * \params sr   The Streader of the data -- must not be \c NULL. The function
- *              does not modify the position of \a sr but may set an error.
+ * \param sr   The Streader of the data -- must not be \c NULL. The function
+ *             does not modify the position of \a sr but may set an error.
  *
  * \return   \c true if the trigger description contains a name specification
  *           of the form :name, otherwise \c false.
@@ -65,10 +65,10 @@ Trigger* new_Trigger(Event_type type, Tstamp* pos);
 /**
  * Create a Trigger of name specification from a JSON string.
  *
- * \params sr     The Streader of the data -- must not be \c NULL and must be
- *                checked with \a Trigger_data_contains_name_spec beforehand.
- *                The function does not modify the position of \a sr but may
- *                set an error.
+ * \param sr     The Streader of the data -- must not be \c NULL and must be
+ *               checked with \a Trigger_data_contains_name_spec beforehand.
+ *               The function does not modify the position of \a sr but may
+ *               set an error.
  * \param names   The Event names -- must not be \c NULL.
  *
  * \return   The new Trigger if successful, otherwise \c NULL.
