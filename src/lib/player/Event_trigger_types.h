@@ -24,6 +24,8 @@
 
 #define EVENT_CONTROL_DEF(name, type_suffix, arg_type, validator) \
     EVENT_TRIGGER_TYPE_DEF(name, control, type_suffix, arg_type, validator)
+#define EVENT_CONTROL_NS_DEF(name, type_suffix, arg_type, validator, ns) \
+    EVENT_TRIGGER_TYPE_NS_DEF(name, control, type_suffix, arg_type, validator, ns)
 #include <player/events/Event_control_types.h>
 
 #define EVENT_GENERAL_DEF(name, type_suffix, arg_type, validator) \
