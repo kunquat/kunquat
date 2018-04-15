@@ -30,6 +30,8 @@
 
 #define EVENT_GENERAL_DEF(name, type_suffix, arg_type, validator) \
     EVENT_TRIGGER_TYPE_DEF(name, general, type_suffix, arg_type, validator)
+#define EVENT_GENERAL_NS_DEF(name, type_suffix, arg_type, validator, ns) \
+    EVENT_TRIGGER_TYPE_NS_DEF(name, general, type_suffix, arg_type, validator, ns)
 #include <player/events/Event_general_types.h>
 
 #define EVENT_MASTER_DEF(name, type_suffix, arg_type, validator) \
