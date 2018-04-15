@@ -346,6 +346,10 @@ def get_event_info():
         arg_type = str(arg_type_raw, encoding='utf-8') if arg_type_raw else None
         event_name = str(event_name_raw, encoding='utf-8')
         event_info[event_name] = { 'name': event_name, 'arg_type': arg_type }
+        name_spec_raw = _kunquat.kqt_get_event_name_specifier(event_name_raw)
+        if name_spec_raw:
+            name_spec = str(name_spec_raw, encoding='utf-8')
+            event_info[event_name]['name_spec'] = name_spec
         i += 1
 
     return event_info
@@ -592,6 +596,8 @@ _kunquat.kqt_get_event_names.argtypes = []
 _kunquat.kqt_get_event_names.restype = ctypes.POINTER(ctypes.c_char_p)
 _kunquat.kqt_get_event_arg_type.argtypes = [ctypes.c_char_p]
 _kunquat.kqt_get_event_arg_type.restype = ctypes.c_char_p
+_kunquat.kqt_get_event_name_specifier.argtypes = [ctypes.c_char_p]
+_kunquat.kqt_get_event_name_specifier.restype = ctypes.c_char_p
 
 _kunquat.kqt_get_int_limit_names.argtypes = []
 _kunquat.kqt_get_int_limit_names.restype = ctypes.POINTER(ctypes.c_char_p)
