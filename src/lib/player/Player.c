@@ -19,6 +19,7 @@
 #include <init/devices/Au_params.h>
 #include <init/devices/Audio_unit.h>
 #include <init/sheet/Channel_defaults.h>
+#include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <Pat_inst_ref.h>
@@ -169,7 +170,7 @@ Player* new_Player(
     player->events_returned = false;
 
     player->susp_event_ch = -1;
-    memset(player->susp_event_name, '\0', EVENT_NAME_MAX + 1);
+    memset(player->susp_event_name, '\0', KQT_EVENT_NAME_MAX + 1);
     player->susp_event_value = *VALUE_AUTO;
 
     // Init fields
@@ -1679,7 +1680,7 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
 
     const Event_names* event_names = Event_handler_get_names(player->event_handler);
 
-    char event_name[EVENT_NAME_MAX + 1] = "";
+    char event_name[KQT_EVENT_NAME_MAX + 1] = "";
     Event_type type = Event_NONE;
 
     // Get event name
@@ -1714,7 +1715,7 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
 
         case VALUE_TYPE_STRING:
             Streader_read_string(
-                    event_reader, KQT_VAR_NAME_MAX, value->value.string_type);
+                    event_reader, KQT_VAR_NAME_MAX + 1, value->value.string_type);
             break;
 
         case VALUE_TYPE_PAT_INST_REF:
@@ -1736,7 +1737,7 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
                 value->type = VALUE_TYPE_STRING;
                 Streader_clear_error(event_reader);
                 Streader_read_string(
-                        event_reader, KQT_VAR_NAME_MAX, value->value.string_type);
+                        event_reader, KQT_VAR_NAME_MAX + 1, value->value.string_type);
             }
         }
         break;

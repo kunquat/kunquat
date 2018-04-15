@@ -27,7 +27,7 @@ bool is_valid_device_event_name(const char* str)
     rassert(str != NULL);
 
     const size_t length = strlen(str);
-    return (0 < length) && (length < KQT_DEVICE_EVENT_NAME_MAX) &&
+    return (0 < length) && (length <= KQT_DEVICE_EVENT_NAME_MAX) &&
         (strspn(str, KQT_DEVICE_EVENT_CHARS) == length);
 }
 

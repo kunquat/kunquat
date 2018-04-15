@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -29,7 +29,7 @@
 
 typedef struct Entry
 {
-    char name[KQT_VAR_NAME_MAX];
+    char name[KQT_VAR_NAME_MAX + 1];
     int proc_index;
 } Entry;
 
@@ -79,14 +79,14 @@ static bool read_stream_entry(Streader* sr, int32_t index, void* userdata)
     Au_streams* streams = userdata;
     rassert(streams != NULL);
 
-    char stream_name[KQT_VAR_NAME_MAX + 1] = "";
+    char stream_name[KQT_VAR_NAME_MAX + 2] = "";
     int64_t target_proc_index = -1;
 
     // Read stream name and target processor index
     if (!Streader_readf(
                 sr,
                 "[%s,%i]",
-                READF_STR(KQT_VAR_NAME_MAX + 1, stream_name),
+                READF_STR(KQT_VAR_NAME_MAX + 2, stream_name),
                 &target_proc_index))
         return false;
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -178,9 +178,9 @@ void Voice_set_test_processor_param(Voice* voice, const char* param)
 {
     rassert(voice != NULL);
     rassert(param != NULL);
-    rassert(strlen(param) < KQT_VAR_NAME_MAX);
+    rassert(strlen(param) <= KQT_VAR_NAME_MAX);
 
-    strncpy(voice->state->test_proc_param, param, KQT_VAR_NAME_MAX - 1);
+    strncpy(voice->state->test_proc_param, param, KQT_VAR_NAME_MAX);
 
     return;
 }

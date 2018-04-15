@@ -237,7 +237,7 @@ const Au_streams* Audio_unit_get_streams(const Audio_unit* au);
  * \return   \c true if \a au has a valid or no stream map, otherwise \c false.
  */
 bool Audio_unit_validate_streams(
-        const Audio_unit* au, char error_msg[128 + KQT_VAR_NAME_MAX]);
+        const Audio_unit* au, char error_msg[128 + KQT_VAR_NAME_MAX + 1]);
 
 
 /**

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -183,7 +183,7 @@ void Voice_set_test_processor(Voice* voice, int proc_index);
  *
  * \param voice   The Voice -- must not be \c NULL.
  * \param param   The test parameter -- must not be \c NULL and must contain
- *                less than \c KQT_VAR_NAME_MAX characters.
+ *                no more than \c KQT_VAR_NAME_MAX characters.
  */
 void Voice_set_test_processor_param(Voice* voice, const char* param);
 

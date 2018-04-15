@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -16,13 +16,24 @@
 
 #include <kunquat/limits.h>
 #include <string/common.h>
+#include <Value.h>
 
 #include <stdlib.h>
 
 
-static const char* limit_names[] =
+static const char* int_limit_names[] =
 {
 #define KQT_LIMIT_INT(name) #name,
+#define KQT_LIMIT_STRING(name)
+#include <limits_foreign_inc.h>
+    NULL
+};
+
+
+static const char* string_limit_names[] =
+{
+#define KQT_LIMIT_INT(name)
+#define KQT_LIMIT_STRING(name) #name,
 #include <limits_foreign_inc.h>
     NULL
 };
@@ -30,19 +41,32 @@ static const char* limit_names[] =
 
 const char** kqt_get_int_limit_names(void)
 {
-    return limit_names;
+    return int_limit_names;
+}
+
+
+const char** kqt_get_string_limit_names(void)
+{
+    return string_limit_names;
 }
 
 
 static const struct
 {
     const char* name;
-    const long long value;
+    Value_type type;
+    union
+    {
+        const long long int_type;
+        const char* string_type;
+    } value;
 } limit_names_to_values[] =
 {
-#define KQT_LIMIT_INT(name) { #name, KQT_##name },
+#define KQT_LIMIT_INT(name) { #name, VALUE_TYPE_INT, { .int_type = KQT_##name } },
+#define KQT_LIMIT_STRING(name) \
+    { #name, VALUE_TYPE_STRING, { .string_type = KQT_##name } },
 #include <limits_foreign_inc.h>
-    { NULL, 0 }
+    { NULL, VALUE_TYPE_NONE, { .int_type = 0 } }
 };
 
 
@@ -53,11 +77,28 @@ long long kqt_get_int_limit(const char* limit_name)
 
     for (int i = 0; limit_names_to_values[i].name != NULL; ++i)
     {
-        if (string_eq(limit_name, limit_names_to_values[i].name))
-            return limit_names_to_values[i].value;
+        if (string_eq(limit_name, limit_names_to_values[i].name) &&
+                (limit_names_to_values[i].type == VALUE_TYPE_INT))
+            return limit_names_to_values[i].value.int_type;
     }
 
     return 0;
+}
+
+
+const char* kqt_get_string_limit(const char* limit_name)
+{
+    if (limit_name == NULL)
+        return NULL;
+
+    for (int i = 0; limit_names_to_values[i].name != NULL; ++i)
+    {
+        if (string_eq(limit_name, limit_names_to_values[i].name) &&
+                (limit_names_to_values[i].type == VALUE_TYPE_STRING))
+            return limit_names_to_values[i].value.string_type;
+    }
+
+    return NULL;
 }
 
 

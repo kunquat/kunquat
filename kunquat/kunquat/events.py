@@ -40,3 +40,7 @@ trigger_events_by_name = dict(
         e for e in all_events_by_name.items() if not e[0].startswith('A'))
 
 
+trigger_events_with_name_spec = dict(
+        e for e in trigger_events_by_name.items() if 'name_spec' in e[1])
+
+

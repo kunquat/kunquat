@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2018
  *
  * This file is part of Kunquat.
  *
@@ -16,8 +16,13 @@
 #error "EVENT_TYPE_DEF(name, category, type_suffix, arg_type, validator) not defined"
 #endif
 
+#ifndef EVENT_TYPE_NS_DEF
+#define EVENT_TYPE_NS_DEF(n, c, t, a, v, ns) EVENT_TYPE_DEF(n, c, t, a, v)
+#endif
+
 
 #define EVENT_TRIGGER_TYPE_DEF EVENT_TYPE_DEF
+#define EVENT_TRIGGER_TYPE_NS_DEF EVENT_TYPE_NS_DEF
 #include <player/Event_trigger_types.h>
 
 #define EVENT_AUTO_DEF(name, type_suffix, arg_type, validator) \
@@ -26,5 +31,6 @@
 
 
 #undef EVENT_TYPE_DEF
+#undef EVENT_TYPE_NS_DEF
 
 

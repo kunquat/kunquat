@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2018
  *
  * This file is part of Kunquat.
  *
@@ -28,7 +28,7 @@
 
 struct Env_var
 {
-    char name[KQT_VAR_NAME_MAX];
+    char name[KQT_VAR_NAME_MAX + 1];
     Value value;
 };
 
@@ -59,13 +59,13 @@ Env_var* new_Env_var_from_string(Streader* sr)
         return NULL;
 
     char type_name[16] = "";
-    char name[KQT_VAR_NAME_MAX] = "";
+    char name[KQT_VAR_NAME_MAX + 2] = "";
 
     if (!Streader_readf(
                 sr,
                 "[%s,%s,",
                 READF_STR(16, type_name),
-                READF_STR(KQT_VAR_NAME_MAX, name)))
+                READF_STR(KQT_VAR_NAME_MAX + 2, name)))
         return NULL;
 
     if (!is_valid_var_name(name))

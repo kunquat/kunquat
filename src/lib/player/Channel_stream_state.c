@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -31,7 +31,7 @@
 
 typedef struct Entry
 {
-    char name[KQT_VAR_NAME_MAX];
+    char name[KQT_VAR_NAME_MAX + 1];
 
     Linear_controls controls;
     bool is_set;

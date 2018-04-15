@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2018
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,7 @@
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <expr.h>
+#include <kunquat/limits.h>
 #include <memory.h>
 #include <player/Event_cache.h>
 #include <player/Event_names.h>
@@ -37,7 +38,7 @@ struct Bind
 
 typedef struct Constraint
 {
-    char event_name[EVENT_NAME_MAX + 1];
+    char event_name[KQT_EVENT_NAME_MAX + 1];
     char* expr;
     struct Constraint* next;
 } Constraint;
@@ -84,7 +85,7 @@ typedef enum
 
 typedef struct Cblist
 {
-    char event_name[EVENT_NAME_MAX + 1];
+    char event_name[KQT_EVENT_NAME_MAX + 1];
     Source_state source_state;
     Cblist_item* first;
     Cblist_item* last;
@@ -123,8 +124,8 @@ static bool read_bind_entry(Streader* sr, int32_t index, void* userdata)
 
     bedata* bd = userdata;
 
-    char event_name[EVENT_NAME_MAX + 1] = "";
-    if (!Streader_readf(sr, "[%s,", READF_STR(EVENT_NAME_MAX + 1, event_name)))
+    char event_name[KQT_EVENT_NAME_MAX + 1] = "";
+    if (!Streader_readf(sr, "[%s,", READF_STR(KQT_EVENT_NAME_MAX + 1, event_name)))
         return false;
 
     Cblist* cblist = AAtree_get_exact(bd->map->cblists, event_name);
@@ -346,8 +347,8 @@ static bool Bind_dfs(const Bind* map, char* name)
         {
             Streader* sr = Streader_init(
                     STREADER_AUTO, event->desc, (int64_t)strlen(event->desc));
-            char next_name[EVENT_NAME_MAX + 1] = "";
-            Streader_readf(sr, "[%s", READF_STR(EVENT_NAME_MAX, next_name));
+            char next_name[KQT_EVENT_NAME_MAX + 1] = "";
+            Streader_readf(sr, "[%s", READF_STR(KQT_EVENT_NAME_MAX, next_name));
             rassert(!Streader_is_error_set(sr));
 
             if (Bind_dfs(map, next_name))
@@ -449,8 +450,8 @@ static Cblist* new_Cblist(char* event_name)
 
     list->source_state = SOURCE_STATE_NEW;
     list->first = list->last = NULL;
-    strncpy(list->event_name, event_name, EVENT_NAME_MAX);
-    list->event_name[EVENT_NAME_MAX] = '\0';
+    strncpy(list->event_name, event_name, KQT_EVENT_NAME_MAX);
+    list->event_name[KQT_EVENT_NAME_MAX] = '\0';
 
     return list;
 }
@@ -553,7 +554,7 @@ static Constraint* new_Constraint(Streader* sr)
     c->expr = NULL;
     c->next = NULL;
 
-    if (!Streader_readf(sr, "[%s,", READF_STR(EVENT_NAME_MAX + 1, c->event_name)))
+    if (!Streader_readf(sr, "[%s,", READF_STR(KQT_EVENT_NAME_MAX + 1, c->event_name)))
     {
         del_Constraint(c);
         return NULL;
@@ -666,8 +667,8 @@ static Target_event* new_Target_event(Streader* sr, const Event_names* names)
     Streader_skip_whitespace(sr);
     const char* const desc = Streader_get_remaining_data(sr);
 
-    char event_name[EVENT_NAME_MAX + 1] = "";
-    if (!Streader_readf(sr, "[%s,", READF_STR(EVENT_NAME_MAX + 1, event_name)))
+    char event_name[KQT_EVENT_NAME_MAX + 1] = "";
+    if (!Streader_readf(sr, "[%s,", READF_STR(KQT_EVENT_NAME_MAX + 1, event_name)))
     {
         del_Target_event(event);
         return NULL;

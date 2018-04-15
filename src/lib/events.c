@@ -50,6 +50,19 @@ static const struct
 };
 
 
+static const struct
+{
+    const char* name;
+    const char* name_spec;
+} name_to_name_spec[] =
+{
+#define EVENT_TYPE_DEF(name, c, t, a, v)
+#define EVENT_TYPE_NS_DEF(name, c, t, a, v, name_spec) { name, name_spec },
+#include <player/Event_types.h>
+    { NULL, NULL }
+};
+
+
 const char* kqt_get_event_arg_type(const char* event_name)
 {
     for (int i = 0; name_to_arg_type[i].name != NULL; ++i)
@@ -99,6 +112,18 @@ const char* kqt_get_event_arg_type(const char* event_name)
                     rassert(false);
             }
         }
+    }
+
+    return NULL;
+}
+
+
+const char* kqt_get_event_name_specifier(const char* event_name)
+{
+    for (int i = 0; name_to_name_spec[i].name != NULL; ++i)
+    {
+        if (string_eq(event_name, name_to_name_spec[i].name))
+            return name_to_name_spec[i].name_spec;
     }
 
     return NULL;

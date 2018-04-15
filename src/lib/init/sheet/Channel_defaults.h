@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -31,7 +31,7 @@
 typedef struct Channel_defaults
 {
     int control_num;
-    char init_expr[KQT_VAR_NAME_MAX];
+    char init_expr[KQT_VAR_NAME_MAX + 1];
 } Channel_defaults;
 
 

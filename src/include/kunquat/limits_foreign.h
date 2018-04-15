@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -34,14 +34,25 @@ extern "C" {
 
 
 /**
- * Return the names of all integer limits in libkunquat.
+ * Return the names of all integer limit constants in libkunquat.
  *
  * \return   An array of the constant names. The names match the ones
- *           defined in kunquat/limits.h, minus the KQT_ prefix.
+ *           defined in kunquat/limits.h, excluding the KQT_ prefix.
  *           \c NULL marks the end of the array. The names are not
  *           listed in any particular order.
  */
 const char** kqt_get_int_limit_names(void);
+
+
+/**
+ * Return the names of all string limit constants in libkunquat.
+ *
+ * \return   An array of the constant names. The names match the ones
+ *           defined in kunquat/limits.h, excluding the KQT_ prefix.
+ *           \c NULL marks the end of the array. The names are not
+ *           listed in any particular order.
+ */
+const char** kqt_get_string_limit_names(void);
 
 
 /**
@@ -56,6 +67,20 @@ const char** kqt_get_int_limit_names(void);
  * \return   The limit constant, or \c 0 if \a limit_name is not valid.
  */
 long long kqt_get_int_limit(const char* limit_name);
+
+
+/**
+ * Get string limit constant.
+ *
+ * Note: This function is not optimised for performance; however, it is
+ * safe to cache the returned information.
+ *
+ * \param limit_name   The name of the limit constant -- should be one
+ *                     of the names returned by \a kqt_get_string_limit_names.
+ *
+ * \return   The limit constant, or \c NULL if \a limit_name is not valid.
+ */
+const char* kqt_get_string_limit(const char* limit_name);
 
 
 /* \} */

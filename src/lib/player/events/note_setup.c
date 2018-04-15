@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2018
  *
  * This file is part of Kunquat.
  *
@@ -67,8 +67,8 @@ bool reserve_voice(
         Active_names_get(ch->parent.active_names, ACTIVE_CAT_CH_EXPRESSION);
     const char* note_expr =
         Active_names_get(ch->parent.active_names, ACTIVE_CAT_NOTE_EXPRESSION);
-    rassert(strlen(ch_expr) < KQT_VAR_NAME_MAX);
-    rassert(strlen(note_expr) < KQT_VAR_NAME_MAX);
+    rassert(strlen(ch_expr) <= KQT_VAR_NAME_MAX);
+    rassert(strlen(note_expr) <= KQT_VAR_NAME_MAX);
 
     Voice_init(
             voice,

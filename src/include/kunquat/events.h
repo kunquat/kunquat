@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2018
  *
  * This file is part of Kunquat.
  *
@@ -67,6 +67,17 @@ const char** kqt_get_event_names(void);
  *           \a event_name is not supported.
  */
 const char* kqt_get_event_arg_type(const char* event_name);
+
+
+/**
+ * Get event name specifier that matches given event name.
+ *
+ * \param event_name   The name of the event -- should be one of the
+ *                     names returned by \a kqt_get_event_names.
+ *
+ * \return   The event name specifier if one exists, otherwise \c NULL.
+ */
+const char* kqt_get_event_name_specifier(const char* event_name);
 
 
 /* \} */

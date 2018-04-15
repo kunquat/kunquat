@@ -37,15 +37,12 @@ struct Au_event_map
 };
 
 
-#define DEVICE_EVENT_NAME_MAX 33
-
-
 struct Au_event_bind_entry
 {
     Au_event_target_dev_type target_dev_type;
     int target_dev_index;
 
-    char target_event_name[DEVICE_EVENT_NAME_MAX];
+    char target_event_name[KQT_DEVICE_EVENT_NAME_MAX + 1];
 
     Value_type target_arg_type;
     char* expression;
@@ -112,14 +109,14 @@ static Au_event_bind_entry* new_Bind_entry(Streader* sr)
         return NULL;
 
     char target_dev_name[16] = "";
-    char target_event_name[KQT_DEVICE_EVENT_NAME_MAX] = "";
+    char target_event_name[KQT_DEVICE_EVENT_NAME_MAX + 2] = "";
     char target_event_arg_type_name[16] = "";
 
     if (!Streader_readf(
                 sr,
                 "[%s,%s,%s,",
                 READF_STR(16, target_dev_name),
-                READF_STR(KQT_DEVICE_EVENT_NAME_MAX, target_event_name),
+                READF_STR(KQT_DEVICE_EVENT_NAME_MAX + 2, target_event_name),
                 READF_STR(16, target_event_arg_type_name)))
         return NULL;
 
@@ -250,7 +247,7 @@ static Au_event_bind_entry* new_Bind_entry(Streader* sr)
 
 typedef struct Event_entry
 {
-    char event_name[DEVICE_EVENT_NAME_MAX];
+    char event_name[KQT_DEVICE_EVENT_NAME_MAX + 1];
     Value_type event_arg_type;
 
     Au_event_bind_entry* first_bind_entry;
@@ -315,14 +312,14 @@ static bool read_event_entry(Streader* sr, int32_t index, void* userdata)
     rassert(map != NULL);
 
     // Read event name and argument type
-    char event_name[KQT_DEVICE_EVENT_NAME_MAX + 1] = "";
+    char event_name[KQT_DEVICE_EVENT_NAME_MAX + 2] = "";
     char arg_type_name[16] = "";
     Value_type arg_type = VALUE_TYPE_NONE;
 
     if (!Streader_readf(
                 sr,
                 "[%s,%s,",
-                READF_STR(KQT_DEVICE_EVENT_NAME_MAX, event_name),
+                READF_STR(KQT_DEVICE_EVENT_NAME_MAX + 2, event_name),
                 READF_STR(16, arg_type_name)))
         return false;
 
@@ -331,7 +328,7 @@ static bool read_event_entry(Streader* sr, int32_t index, void* userdata)
         Streader_set_error(
                 sr,
                 "Invalid device event name %s"
-                " (device event names must be less than %d characters"
+                " (device event names must not be more than %d characters"
                 " and may only contain lower-case letters)",
                 event_name,
                 KQT_DEVICE_EVENT_NAME_MAX);

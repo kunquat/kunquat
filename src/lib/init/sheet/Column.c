@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -310,6 +310,17 @@ static bool read_trigger(Streader* sr, int32_t index, void* userdata)
     rassert(userdata != NULL);
 
     Read_trigger_data* rtdata = userdata;
+
+    if (Trigger_data_contains_name_spec(sr))
+    {
+        Trigger* trigger =
+            new_Trigger_of_name_spec_from_string(sr, rtdata->event_names);
+        if (trigger == NULL || !Column_ins(rtdata->col, trigger))
+        {
+            del_Trigger(trigger);
+            return false;
+        }
+    }
 
     Trigger* trigger = new_Trigger_from_string(sr, rtdata->event_names);
     if (trigger == NULL || !Column_ins(rtdata->col, trigger))

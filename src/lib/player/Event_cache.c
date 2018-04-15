@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2018
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
+#include <kunquat/limits.h>
 #include <memory.h>
 #include <player/Event_names.h>
 #include <player/Event_type.h>
@@ -34,7 +35,7 @@ struct Event_cache
 
 typedef struct Event_state
 {
-    char event_name[EVENT_NAME_MAX + 1];
+    char event_name[KQT_EVENT_NAME_MAX + 1];
     Value value;
 } Event_state;
 
@@ -142,7 +143,7 @@ void del_Event_cache(Event_cache* cache)
 static Event_state* new_Event_state(const char* event_name)
 {
     rassert(event_name != NULL);
-    rassert(strlen(event_name) <= EVENT_NAME_MAX);
+    rassert(strlen(event_name) <= KQT_EVENT_NAME_MAX);
 
     Event_state* es = memory_alloc_item(Event_state);
     if (es == NULL)

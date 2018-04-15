@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -54,8 +54,8 @@ bool Event_control_set_test_processor_param_process(
 
     strncpy(channel->test_proc_param,
             params->arg->value.string_type,
-            KQT_VAR_NAME_MAX - 1);
-    channel->test_proc_param[KQT_VAR_NAME_MAX - 1] = '\0';
+            KQT_VAR_NAME_MAX);
+    channel->test_proc_param[KQT_VAR_NAME_MAX] = '\0';
 
     return true;
 }

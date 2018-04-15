@@ -41,7 +41,7 @@ bool get_event_type_info(
         return false;
 
     // Read event name
-    if (!Streader_readf(desc_reader, "[%s,", READF_STR(EVENT_NAME_MAX, ret_name)))
+    if (!Streader_readf(desc_reader, "[%s,", READF_STR(KQT_EVENT_NAME_MAX, ret_name)))
         return false;
 
     // Check event type
@@ -325,7 +325,7 @@ static void Player_process_expr_event(
 
     const Event_names* event_names = Event_handler_get_names(player->event_handler);
 
-    char event_name[EVENT_NAME_MAX + 1] = "";
+    char event_name[KQT_EVENT_NAME_MAX + 1] = "";
     Event_type type = Event_NONE;
 
     get_event_type_info(sr, event_names, event_name, &type);
@@ -337,7 +337,7 @@ static void Player_process_expr_event(
         if (Event_names_get_param_type(event_names, event_name) == VALUE_TYPE_STRING)
         {
             arg->type = VALUE_TYPE_STRING;
-            Streader_read_string(sr, KQT_VAR_NAME_MAX, arg->value.string_type);
+            Streader_read_string(sr, KQT_VAR_NAME_MAX + 1, arg->value.string_type);
         }
         else
         {

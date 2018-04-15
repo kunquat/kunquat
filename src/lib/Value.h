@@ -52,7 +52,7 @@ struct Value
         int64_t int_type;
         double float_type;
         Tstamp Tstamp_type;
-        char string_type[KQT_VAR_NAME_MAX + 2]; // add 2 chars for quotes
+        char string_type[KQT_VAR_NAME_MAX + 1 + 2]; // add 2 chars for quotes
         Pat_inst_ref Pat_inst_ref_type;
     } value;
 };

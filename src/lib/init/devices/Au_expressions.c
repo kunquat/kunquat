@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -29,7 +29,7 @@
 
 typedef struct Entry
 {
-    char name[KQT_VAR_NAME_MAX];
+    char name[KQT_VAR_NAME_MAX + 1];
     Param_proc_filter* filter;
 } Entry;
 
@@ -51,7 +51,7 @@ static void del_Entry(Entry* entry)
 struct Au_expressions
 {
     AAtree* entries;
-    char default_note_expr[KQT_VAR_NAME_MAX];
+    char default_note_expr[KQT_VAR_NAME_MAX + 1];
 };
 
 
@@ -105,8 +105,8 @@ static bool read_expressions_def(Streader* sr, const char* key, void* userdata)
 
     if (string_eq(key, "default_note_expr"))
     {
-        char expr[KQT_VAR_NAME_MAX + 1] = "";
-        if (!Streader_read_string(sr, KQT_VAR_NAME_MAX + 1, expr))
+        char expr[KQT_VAR_NAME_MAX + 2] = "";
+        if (!Streader_read_string(sr, KQT_VAR_NAME_MAX + 2, expr))
             return false;
 
         if ((expr[0] != '\0') && !is_valid_var_name(expr))
@@ -150,7 +150,7 @@ Au_expressions* new_Au_expressions(Streader* sr)
         return NULL;
     }
 
-    memset(ae->default_note_expr, '\0', KQT_VAR_NAME_MAX);
+    memset(ae->default_note_expr, '\0', KQT_VAR_NAME_MAX + 1);
     ae->entries = new_AAtree(
             (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Entry);
     if (ae->entries == NULL)
@@ -196,7 +196,7 @@ const Param_proc_filter* Au_expressions_get_proc_filter(
     rassert(ae != NULL);
     rassert(name != NULL);
 
-    if (strlen(name) >= KQT_VAR_NAME_MAX)
+    if (strlen(name) > KQT_VAR_NAME_MAX)
         return NULL;
 
     Entry* key = ENTRY_AUTO;

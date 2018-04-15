@@ -177,7 +177,13 @@ extern "C" {
 
 
 /**
- * Maximum length of a variable name (including null terminator).
+ * Maximum length of an event name (not including null terminator).
+ */
+#define KQT_EVENT_NAME_MAX 12
+
+
+/**
+ * Maximum length of a variable name (not including null terminator).
  */
 #define KQT_VAR_NAME_MAX 32
 
@@ -189,7 +195,7 @@ extern "C" {
 
 
 /**
- * Maximum length of a device event name (including null terminator).
+ * Maximum length of a device event name (not including null terminator).
  */
 #define KQT_DEVICE_EVENT_NAME_MAX 32
 
@@ -197,6 +203,12 @@ extern "C" {
  * Allowed characters in device event names.
  */
 #define KQT_DEVICE_EVENT_CHARS "abcdefghijklmnopqrstuvwxyz_0123456789"
+
+
+/**
+ * Maximum length of a trigger name (including null terminator).
+ */
+#define KQT_TRIGGER_NAME_MAX (KQT_EVENT_NAME_MAX + 1 + KQT_DEVICE_EVENT_NAME_MAX)
 
 
 #ifdef __cplusplus

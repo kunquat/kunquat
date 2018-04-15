@@ -41,7 +41,18 @@ class TriggerTypeValidator(QValidator):
 
     def validate(self, contents, pos):
         in_str = str(contents)
-        if in_str in events.trigger_events_by_name:
+        parts = in_str.split(':')
+        event_name = parts[0]
+        if event_name in events.trigger_events_by_name:
+            if len(parts) > 2:
+                return (QValidator.Invalid, contents, pos)
+            elif len(parts) == 2:
+                name = parts[1]
+                if ((not all(ch in DEVICE_EVENT_CHARS for ch in name)) or
+                        (len(name) > DEVICE_EVENT_NAME_MAX)):
+                    return (QValidator.Invalid, contents, pos)
+                if (not name) or event_name not in events.trigger_events_with_name_spec:
+                    return (QValidator.Intermediate, contents, pos)
             return (QValidator.Acceptable, contents, pos)
         else:
             return (QValidator.Intermediate, contents, pos)
@@ -1485,7 +1496,8 @@ class View(QWidget):
         self._field_edit.show()
         self._field_edit.setFocus()
 
-    def _get_example_trigger_argument(self, event_name):
+    def _get_example_trigger_argument(self, trigger_type):
+        event_name = trigger_type.split(':')[0]
         info = events.trigger_events_by_name[event_name]
 
         # Special case: tempo values
@@ -1514,7 +1526,8 @@ class View(QWidget):
 
         self.setFocus()
         arg = self._get_example_trigger_argument(text)
-        arg_type = events.trigger_events_by_name[text]['arg_type']
+        event_name = text.split(':')[0]
+        arg_type = events.trigger_events_by_name[event_name]['arg_type']
         is_immediate_arg_type = arg_type in (None, events.EVENT_ARG_PITCH)
 
         trigger = Trigger(text, arg)

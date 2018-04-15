@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -14,7 +14,7 @@
 import json
 import types
 
-from kunquat.kunquat.events import trigger_events_by_name
+from kunquat.kunquat.events import trigger_events_by_name, trigger_events_with_name_spec
 from kunquat.kunquat.limits import *
 from .grid import Grid
 from .trigger import Trigger
@@ -370,7 +370,7 @@ class SheetManager():
 
         trigger = cur_column.get_trigger(row_ts, index)
 
-        return trigger if trigger.get_type() in CONVERTIBLE_TRIGGERS else None
+        return trigger if trigger.get_event_type() in CONVERTIBLE_TRIGGERS else None
 
     def is_at_convertible_set_or_slide_trigger(self):
         return self._get_convertible_set_or_slide_trigger() != None
@@ -385,7 +385,11 @@ class SheetManager():
         row_ts = location.get_row_ts()
         index = location.get_trigger_index()
 
-        new_type = CONVERTIBLE_TRIGGERS[trigger.get_type()]
+        tr_type = trigger.get_type().split(':')
+        new_tr_type = list(tr_type)
+        new_tr_type[0] = CONVERTIBLE_TRIGGERS[tr_type[0]]
+
+        new_type = ':'.join(new_tr_type)
         new_trigger = Trigger(new_type, trigger.get_argument(), location)
 
         transaction = cur_column.get_edit_replace_or_insert_trigger(
@@ -463,13 +467,29 @@ class SheetManager():
         if (type(unsafe_trigger) != list) or (len(unsafe_trigger) != 2):
             return False
         tr_type, tr_arg = unsafe_trigger
-        if ((type(tr_type) != str) or
-                (tr_type not in trigger_events_by_name)):
+        event_name = tr_type
+
+        if type(tr_type) != str:
             return False
+        type_parts = tr_type.split(':')
+        if len(type_parts) > 2:
+            return False
+        elif len(type_parts) == 2:
+            event_name, name_spec = type_parts
+            if event_name not in trigger_events_with_name_spec:
+                return False
+            if ((not name_spec) or
+                    (len(name_spec) > DEVICE_EVENT_NAME_MAX) or
+                    (not all(ch in DEVICE_EVENT_CHARS for ch in name_spec))):
+                return False
+        else:
+            if tr_type not in trigger_events_by_name:
+                return False
+
         if type(tr_arg) not in (str, type(None)):
             return False
         if ((type(tr_arg) == None) !=
-                (trigger_events_by_name[tr_type] == None)):
+                (trigger_events_by_name[event_name]['arg_type'] == None)):
             return False
 
         return True
