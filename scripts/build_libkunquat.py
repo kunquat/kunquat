@@ -18,6 +18,7 @@ from .build_lib import build_lib
 
 def build_libkunquat(builder, options, cc):
     lib_name = 'libkunquat'
+    version_major = 0
     include_dirs = [
         os.path.join('src', 'lib'),
         os.path.join('src', 'include'),
@@ -25,6 +26,14 @@ def build_libkunquat(builder, options, cc):
     src_dir = os.path.join('src', 'lib')
     out_dir = os.path.join('build', 'src', 'lib')
 
-    build_lib(builder, lib_name, include_dirs, src_dir, out_dir, options, cc)
+    build_lib(
+            builder,
+            lib_name,
+            version_major,
+            include_dirs,
+            src_dir,
+            out_dir,
+            options,
+            cc)
 
 

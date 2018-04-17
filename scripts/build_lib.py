@@ -20,7 +20,8 @@ import stat
 from . import command
 
 
-def build_lib(builder, lib_name, include_dirs, src_dir, out_dir, options, cc):
+def build_lib(
+        builder, lib_name, version_major, include_dirs, src_dir, out_dir, options, cc):
     build_dir = os.path.join('build', 'src')
     out_dir = os.path.join(build_dir, 'lib')
 
