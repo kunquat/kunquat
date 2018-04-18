@@ -30,6 +30,9 @@ enable_long_tests = False
 # run tests with memory debugging (requires valgrind, disables assert tests)
 enable_tests_mem_debug = False
 
+# run Python tests
+enable_python_tests = True
+
 # enable multithreading (requires with_pthread)
 enable_threads = True
 

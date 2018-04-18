@@ -221,7 +221,15 @@ def build():
         if options.enable_tests:
             test_libkunquat(builder, options, test_cc)
 
-            fabricate.run('env', 'LD_LIBRARY_PATH=build/src/lib', 'python3', '-m', 'unittest', 'discover', '-v')
+            if options.enable_python_tests:
+                fabricate.run(
+                        'env',
+                        'LD_LIBRARY_PATH=build/src/lib',
+                        'python3',
+                        '-m',
+                        'unittest',
+                        'discover',
+                        '-v')
 
         if options.enable_libkunquatfile:
             build_libkunquatfile(builder, options, libkunquatfile_cc)
