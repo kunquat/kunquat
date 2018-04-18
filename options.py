@@ -18,6 +18,9 @@ enable_libkunquat_dev = True
 # enable libkunquatfile (requires libzip)
 enable_libkunquatfile = True
 
+# install libkunquatfile development files
+enable_libkunquatfile_dev = True
+
 # install Python bindings (requires Python 3.1 or later)
 enable_python_bindings = True
 

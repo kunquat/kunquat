@@ -48,7 +48,7 @@ import scripts.configure as configure
 from scripts.build_libs import build_libkunquat, build_libkunquatfile
 from scripts.test_libkunquat import test_libkunquat
 from scripts.build_examples import build_examples
-from scripts.install_libkunquat import install_libkunquat
+from scripts.install_libs import install_libkunquat, install_libkunquatfile
 from scripts.install_examples import install_examples
 from scripts.install_share import install_share
 import options
@@ -258,6 +258,10 @@ def install():
     if options.enable_libkunquat:
         install_libkunquat(
                 install_builder, options.prefix, options.enable_libkunquat_dev)
+
+        if options.enable_libkunquatfile:
+            install_libkunquatfile(
+                    install_builder, options.prefix, options.enable_libkunquatfile_dev)
 
     if options.enable_examples:
         install_examples(install_builder, options.prefix)
