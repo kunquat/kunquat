@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -44,8 +44,8 @@ except ImportError:
 
 import scripts.command as command
 from scripts.cc import get_cc
-from scripts.configure import test_add_external_deps, test_add_test_deps
-from scripts.build_libkunquat import build_libkunquat
+import scripts.configure as configure
+from scripts.build_libs import build_libkunquat, build_libkunquatfile
 from scripts.test_libkunquat import test_libkunquat
 from scripts.build_examples import build_examples
 from scripts.install_libkunquat import install_libkunquat
@@ -198,16 +198,27 @@ def build():
                     file=sys.stderr)
             sys.exit(1)
 
-    test_add_external_deps(builder, options, cc)
-
-    test_cc = deepcopy(cc)
-    test_add_test_deps(builder, options, test_cc)
+    configure.test_add_common_external_deps(builder, options, cc)
 
     if options.enable_libkunquat:
-        build_libkunquat(builder, options, cc)
+        libkunquat_cc = deepcopy(cc)
+        configure.test_add_libkunquat_external_deps(builder, options, libkunquat_cc)
+
+        build_libkunquat(builder, options, libkunquat_cc)
+
         if options.enable_tests:
+            test_cc = deepcopy(libkunquat_cc)
+            configure.test_add_test_deps(builder, options, test_cc)
             test_libkunquat(builder, options, test_cc)
+
             fabricate.run('env', 'LD_LIBRARY_PATH=build/src/lib', 'python3', '-m', 'unittest', 'discover', '-v')
+
+        if options.enable_libkunquatfile:
+            libkunquatfile_cc = deepcopy(cc)
+            configure.test_add_libkunquatfile_external_deps(
+                    builder, options, libkunquatfile_cc)
+
+            build_libkunquatfile(builder, options, libkunquatfile_cc)
 
     if options.enable_examples:
         build_examples(builder)

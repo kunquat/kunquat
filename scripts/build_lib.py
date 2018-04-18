@@ -22,8 +22,6 @@ from . import command
 
 def build_lib(
         builder, lib_name, version_major, include_dirs, src_dir, out_dir, options, cc):
-    build_dir = os.path.join('build', 'src')
-    out_dir = os.path.join(build_dir, 'lib')
 
     def compile_lib_dir(out_dir, src_dir, echo_prefix_list):
         source_paths = glob.glob(os.path.join(src_dir, '*.c'))

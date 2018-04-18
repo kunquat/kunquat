@@ -15,6 +15,9 @@ enable_libkunquat = True
 # install libkunquat development files
 enable_libkunquat_dev = True
 
+# enable libkunquatfile (requires libzip)
+enable_libkunquatfile = True
+
 # install Python bindings (requires Python 3.1 or later)
 enable_python_bindings = True
 
@@ -50,6 +53,9 @@ with_sndfile = True
 
 # build with WavPack support
 with_wavpack = True
+
+# build with libzip support
+with_zip = True
 
 
 # select C compiler explicitly
