@@ -124,8 +124,13 @@ def test_add_test_deps(builder, options, cc):
 def test_add_libkunquatfile_external_deps(builder, options, cc):
     conf_errors = []
 
-    if not _test_add_lib_with_header(builder, cc, 'zip', 'zip.h'):
-        conf_errors.append('libzip was not found.')
+    if options.with_zip:
+        if not _test_add_lib_with_header(builder, cc, 'zip', 'zip.h'):
+            conf_errors.append('libzip was not found.')
+
+    if options.enable_libkunquatfile:
+        if not options.with_zip:
+            conf_errors.append('libkunquatfile was requested without libzip.')
 
     _check_conf_errors(conf_errors)
 
