@@ -745,10 +745,11 @@ void kqt_del_Handle(kqt_Handle handle)
 
 bool kqt_Handle_is_valid(kqt_Handle handle)
 {
+    if (handle <= 0)
+        return false;
+
     handle -= 1;
-    return (handle >= 0) &&
-        (handle < KQT_HANDLES_MAX) &&
-        (handles[handle] != NULL);
+    return (handle < KQT_HANDLES_MAX) && (handles[handle] != NULL);
 }
 
 
