@@ -44,9 +44,10 @@ typedef int kqt_Module;
 
 
 /**
- * Create a new Kunquat Handle from a Kunquat module.
+ * Create a new Kunquat Handle from a Kunquat module file.
  *
- * \param path   The path to an existing Kunquat module -- should be valid.
+ * \param path   The path to an existing Kunquat module file
+ *               -- should be valid.
  *
  * \return   The new Kunquat Handle if successful. Otherwise, \c 0 is returned
  *           and the Kunquat file error is set accordingly. Additionally, the
