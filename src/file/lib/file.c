@@ -34,14 +34,14 @@
 
 typedef struct Module
 {
-    char error[ERROR_LENGTH_MAX];
+    char error[ERROR_LENGTH_MAX + 1];
     kqt_Handle handle;
 } Module;
 
 #define MODULE_AUTO (&(Module){ .error = "", .handle = 0 })
 
 
-char null_error[ERROR_LENGTH_MAX] = "";
+char null_error[ERROR_LENGTH_MAX + 1] = "";
 
 
 static Module* modules[MODULES_MAX] = { NULL };
@@ -82,14 +82,14 @@ static void set_error_va_list(Module* module, const char* message, va_list args)
 {
     assert(message != NULL);
 
+    memset(null_error, 0, ERROR_LENGTH_MAX + 1);
+    vsnprintf(null_error, ERROR_LENGTH_MAX + 1, message, args);
+
     if (module != NULL)
     {
-        memset(module->error, 0, ERROR_LENGTH_MAX);
-        vsnprintf(module->error, ERROR_LENGTH_MAX, message, args);
+        memset(module->error, 0, ERROR_LENGTH_MAX + 1);
+        strncpy(module->error, null_error, ERROR_LENGTH_MAX);
     }
-
-    memset(null_error, 0, ERROR_LENGTH_MAX);
-    vsnprintf(null_error, ERROR_LENGTH_MAX, message, args);
 
     return;
 }
@@ -197,6 +197,8 @@ static bool Module_load(Module* module, const char* path)
                 (entry_path[strlen(header)] != '/' &&
                  entry_path[strlen(header)] != '\0'))
         {
+            fprintf(stderr, "path is %s\n", path);
+            fprintf(stderr, "entry_path is %s\n", entry_path);
             set_error(module, "The file %s contains an invalid data entry: %s",
                     path, entry_path);
             zip_discard(archive);
@@ -244,7 +246,9 @@ static bool Module_load(Module* module, const char* path)
 
             if (!kqt_Handle_set_data(module->handle, key, data, (long int)stat.size))
             {
-                set_error(module, "Could not set data"); // TODO: kunquat error
+                set_error(module,
+                        "Could not set data: %s",
+                        kqt_Handle_get_error_message(module->handle));
                 free(data);
                 zip_discard(archive);
                 return false;
@@ -258,7 +262,9 @@ static bool Module_load(Module* module, const char* path)
 
     if (!kqt_Handle_validate(module->handle))
     {
-        set_error(module, "Could not validate Kunquat file"); // TODO: kunquat error
+        set_error(module,
+                "Could not validate Kunquat file: %s",
+                kqt_Handle_get_error_message(module->handle));
         return false;
     }
 
