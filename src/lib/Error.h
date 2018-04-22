@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -40,11 +40,12 @@ typedef enum
 typedef struct Error
 {
     char desc[ERROR_LENGTH_MAX];
+    char message[ERROR_LENGTH_MAX];
     Error_type type;
 } Error;
 
 
-#define ERROR_AUTO (&(Error){ .desc = "", .type = ERROR_COUNT_ })
+#define ERROR_AUTO (&(Error){ .desc = "", .message = "", .type = ERROR_COUNT_ })
 
 
 /**
@@ -75,6 +76,16 @@ Error_type Error_get_type(const Error* error);
  * \return   The error description in JSON format, or an empty string.
  */
 const char* Error_get_desc(const Error* error);
+
+
+/**
+ * Get a human-readable error message.
+ *
+ * \param error   The Error -- must not be \c NULL.
+ *
+ * \return   The human-readable error message, or an empty string.
+ */
+const char* Error_get_message(const Error* error);
 
 
 /**

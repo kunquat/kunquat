@@ -1,4 +1,4 @@
-.TH kunquat\-handle 3 "2014\-04\-06" "" "Kunquat"
+.TH kunquat\-handle 3 "2018\-04\-22" "" "Kunquat"
 
 .SH NAME
 
@@ -15,6 +15,8 @@ Kunquat Handle interface
 .BI "int kqt_Handle_validate(kqt_Handle " handle );
 
 .BI "const char* kqt_Handle_get_error(kqt_Handle " handle );
+.br
+.BI "const char* kqt_Handle_get_error_message(kqt_Handle " handle );
 .br
 .BI "void kqt_Handle_clear_error(kqt_Handle " handle );
 
@@ -90,17 +92,23 @@ The Kunquat library could not get service from an external resource such as
 another library.
 
 .PP
-Error messages are JSON object strings that contain at least two keys: "type"
-and "message". The value of "type" is one of the categories above and the
-value of "message" is a human-readable description of the error.
+Error descriptions are JSON object strings that contain at least two keys:
+"type" and "message". The value of "type" is one of the categories above and
+the value of "message" is a human-readable description of the error.
 
 .IP "\fBconst char* kqt_Handle_get_error(kqt_Handle\fR \fIhandle\fR\fB);\fR"
-Return an error message describing the last error occurred when accessing
+Return an error description of the last error occurred when accessing
 \fIhandle\fR. The \fIhandle\fR argument may also be 0, in which case the
-function returns an error message about the last error occurred in using the
-Kunquat library in general. In particular, passing 0 as the argument is the
-only way to retrieve Handle creation error messages. The function will return
-the last error message, or an empty string if no error has occurred.
+function returns an error description about the last error occurred in using
+the Kunquat library in general. In particular, passing 0 as the argument is the
+only way to retrieve Handle creation error descriptions. The function will
+return the last error description, or an empty string if no error has occurred.
+
+.IP "\fBconst char* kqt_Handle_get_error_message(kqt_Handle\fR \fIhandle\fR\fB);\fR"
+Return the last human-readable error message from \fIhandle\fR. The message is
+also part of the error description returned by \fBkqt_Handle_get_error\fR. The
+function will return the last error message, or an empty string if no error has
+occurred.
 
 .IP "\fBvoid kqt_Handle_clear_error(kqt_Handle\fR \fIhandle\fR\fB);\fR"
 Clear error information in \fIhandle\fR. This is useful to do before calling

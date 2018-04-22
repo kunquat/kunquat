@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -92,6 +92,16 @@ bool Streader_is_error_set(const Streader* sr);
  * \return   The error description in JSON format, or an empty string.
  */
 const char* Streader_get_error_desc(const Streader* sr);
+
+
+/**
+ * Get a human-readable error message from the Streader.
+ *
+ * \param sr   The Streader -- must not be \c NULL.
+ *
+ * \return   The human-readable error message, or an empty string.
+ */
+const char* Streader_get_error_message(const Streader* sr);
 
 
 /**

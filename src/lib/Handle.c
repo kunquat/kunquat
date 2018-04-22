@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -37,7 +37,7 @@
 static Handle* handles[KQT_HANDLES_MAX] = { NULL };
 
 // For errors without an associated Kunquat Handle.
-static Error null_error = { "", ERROR_COUNT_ };
+static Error null_error = { "", "", ERROR_COUNT_ };
 
 
 static bool remove_handle(kqt_Handle handle);
