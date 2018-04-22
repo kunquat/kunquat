@@ -27,9 +27,8 @@ Kunquat Handle interface
 The \fBkqt_Handle\fR is an opaque data structure that represents a Kunquat
 composition in memory.
 A Kunquat composition file (usually
-with a file extension "kqt", possibly succeeded by an extension indicating
-compression format) is a single file suitable for distribution.
-Currently, the Kunquat library does not provide convenient access to these files.
+with a file extension "kqt") is a single file suitable for distribution.
+Convenient access to these files is provided by libkunquatfile.
 
 Operations on Kunquat Handles are generally \fInot\fR thread-safe. In
 particular, multiple threads must not create or destroy Kunquat Handles or
@@ -53,9 +52,9 @@ directory paths. Examples:
 
 .in +4n
 .nf
-p_composition.json
+p_connections.json
 pat_000/col_00/p_triggers.json
-ins_01/p_instrument.json
+au_01/p_manifest.json
 .fi
 .in
 
@@ -81,7 +80,7 @@ A Kunquat function was called with an inappropriate argument value. Usually,
 this indicates an error in the calling or the library code.
 
 .IP \fBFormatError\fR
-An input file or value to be stored was invalid.
+A value to be stored was invalid.
 
 .IP \fBMemoryError\fR
 Memory allocation failed. If this happens with a function that modifies
