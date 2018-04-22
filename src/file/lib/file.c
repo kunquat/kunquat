@@ -68,13 +68,29 @@ static Module* get_module(kqt_Module id)
 }
 
 
-const char* kqtfile_get_error(kqt_Module id)
+const char* kqt_Module_get_error(kqt_Module id)
 {
     if (!kqt_Module_is_valid(id))
         return null_error;
 
     Module* module = get_module(id);
     return module->error;
+}
+
+
+void kqt_Module_clear_error(kqt_Module id)
+{
+    if (!kqt_Module_is_valid(id))
+    {
+        memset(null_error, 0, ERROR_LENGTH_MAX + 1);
+        return;
+    }
+
+    Module* module = get_module(id);
+    assert(module != NULL);
+    memset(module->error, 0, ERROR_LENGTH_MAX + 1);
+
+    return;
 }
 
 

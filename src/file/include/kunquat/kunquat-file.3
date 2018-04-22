@@ -10,7 +10,9 @@ Kunquat file interface
 
 .BI "kqt_Handle kqtfile_load_module(const char* " path);
 
-.BI "const char* kqtfile_get_error(kqt_Module " module);
+.BI "const char* kqt_Module_get_error(kqt_Module " module);
+.br
+.BI "void kqt_Module_clear_error(kqt_Module " module);
 
 .SH "KUNQUAT MODULE"
 
@@ -27,13 +29,19 @@ occurred.
 
 .SH ERRORS
 
-.IP "\fBconst char* kqtfile_get_error(kqt_Module\fR \fImodule\fR\fB);\fR"
+.IP "\fBconst char* kqt_Module_get_error(kqt_Module\fR \fImodule\fR\fB);\fR"
 Return the last human-readable error message from the \fImodule\fR. The
 \fImodule\fR argument may also be 0, in which case the function returns an
 error message about the last error occurred in using the Kunquat file library
 in general. In particular, passing 0 as the argument is the only way to
 retrieve module creation errors. The function will return the last error
 message, or an empty string if no error has occurred.
+
+.IP "\fBvoid kqt_Module_clear_error(kqt_Module\fR \fImodule\fR\fB);\fR"
+Clear error information of \fImodule\fR. The \fImodule\fR may also be 0,
+in which case the generic error message is cleared. Note that this function
+does not clear a possible error associated with the Kunquat Handle of the
+module.
 
 .SH "SEE ALSO"
 

@@ -58,7 +58,7 @@ kqt_Handle kqtfile_load_module(const char* path);
 
 
 /**
- * Get human-readable error message from the Kunquat file interface.
+ * Get human-readable error message from the Kunquat module.
  *
  * \param module   The Kunquat module, or \c 0 if retrieving error information
  *                 that is not necessarily associated with an existing Kunquat
@@ -67,7 +67,19 @@ kqt_Handle kqtfile_load_module(const char* path);
  * \return   The latest error message. This is an empty string if no error has
  *           occurred.
  */
-const char* kqtfile_get_error(kqt_Module module);
+const char* kqt_Module_get_error(kqt_Module module);
+
+
+/**
+ * Clear error information of the Kunquat module.
+ *
+ * Note that this function does not clear a possible error associated with the
+ * Kunquat Handle of the module.
+ *
+ * \param module   The Kunquat module, or \c 0 for clearing the generic error
+ *                 message.
+ */
+void kqt_Module_clear_error(kqt_Module module);
 
 
 /* \} */
