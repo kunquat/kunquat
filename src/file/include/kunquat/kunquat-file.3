@@ -1,0 +1,42 @@
+.TH kunquat\-file 3 "2018\-04\-22" "" "Kunquat"
+
+.SH Name
+
+Kunquat file interface
+
+.SH SYNOPSIS
+
+.B #include <kunquat/File.h>
+
+.BI "kqt_Handle kqtfile_load_module(const char* " path);
+
+.BI "const char* kqtfile_get_error(kqt_Module " module);
+
+.SH "KUNQUAT MODULE"
+
+The \fBkqt_Module\fR is an opaque data structure that represents a Kunquat
+module in memory. A Kunquat module file (usually with a file extension
+"kqt") is a single composition file suitable for distribution.
+
+.SH "LOADING KUNQUAT MODULES"
+
+.IP "\fBkqt_Handle kqtfile_load_module(const char*\fR \fIpath\fR\fB);\fR"
+Create a new Kunquat Handle from a Kunquat module file located in \fIpath\fR.
+The function returns a new Kunquat Handle on success, or 0 if an error
+occurred.
+
+.SH ERRORS
+
+.IP "\fBconst char* kqtfile_get_error(kqt_Module\fR \fImodule\fR\fB);\fR"
+Return the last human-readable error message from the \fImodule\fR. The
+\fImodule\fR argument may also be 0, in which case the function returns an
+error message about the last error occurred in using the Kunquat file library
+in general. In particular, passing 0 as the argument is the only way to
+retrieve module creation errors. The function will return the last error
+message, or an empty string if no error has occurred.
+
+.SH "SEE ALSO"
+
+.BR kunquat-handle (3)
+
+
