@@ -215,6 +215,16 @@ const char* kqt_Handle_get_error(kqt_Handle handle)
 }
 
 
+const char* kqt_Handle_get_error_message(kqt_Handle handle)
+{
+    if (!kqt_Handle_is_valid(handle))
+        return Error_get_message(&null_error);
+
+    Handle* h = get_handle(handle);
+    return Error_get_message(&h->error);
+}
+
+
 void kqt_Handle_clear_error(kqt_Handle handle)
 {
     if (!kqt_Handle_is_valid(handle))
