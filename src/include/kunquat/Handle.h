@@ -146,7 +146,8 @@ const char* kqt_Handle_get_error_message(kqt_Handle handle);
  * Validation errors are not cleared from Handles as they are considered fatal
  * errors.
  *
- * \param handle   The Handle, or \c 0 for clearing the generic error message.
+ * \param handle   The Handle, or \c 0 for clearing the generic error
+ *                 description.
  */
 void kqt_Handle_clear_error(kqt_Handle handle);
 
