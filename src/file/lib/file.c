@@ -41,7 +41,7 @@ typedef struct Module
 #define MODULE_AUTO (&(Module){ .error = "", .handle = 0 })
 
 
-char null_error[ERROR_LENGTH_MAX + 1] = "";
+static char null_error[ERROR_LENGTH_MAX + 1] = "";
 
 
 static Module* modules[MODULES_MAX] = { NULL };
