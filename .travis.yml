@@ -13,8 +13,8 @@ matrix:
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  sudo apt-get -qq update; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  brew update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  sudo apt-get install -y xvfb build-essential check libpulse-dev libsamplerate0-dev libsndfile1-dev libwavpack-dev; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  brew install check pulseaudio libsamplerate libsndfile wavpack; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  sudo apt-get install -y xvfb build-essential check libpulse-dev libsamplerate0-dev libsndfile1-dev libwavpack-dev libzip-dev; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  brew install check pulseaudio libsamplerate libsndfile wavpack libzip; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  brew upgrade python; alias pip=pip3; fi  # https://github.com/travis-ci/travis-ci/issues/2312
   - ./get_build_support.sh
   - gcc --version
@@ -24,7 +24,7 @@ before_install:
 install:
   - pip3 install pylint flake8 pyqt5
 script:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  xvfb-run ./make.py --enable-long-tests; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  ./make.py --disable-threads --disable-tests; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  xvfb-run ./make.py --enable-long-tests --cc=clang; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  ./make.py --disable-threads --disable-tests --cc=clang; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  xvfb-run ./make.py --enable-long-tests --disable-libkunquatfile --disable-libkunquatfile-dev; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  ./make.py --disable-threads --disable-tests --disable-libkunquatfile --disable-libkunquatfile-dev; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  xvfb-run ./make.py --enable-long-tests --cc=clang --disable-libkunquatfile --disable-libkunquatfile-dev; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  ./make.py --disable-threads --disable-tests --cc=clang --disable-libkunquatfile --disable-libkunquatfile-dev; fi

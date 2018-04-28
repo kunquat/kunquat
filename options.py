@@ -15,6 +15,12 @@ enable_libkunquat = True
 # install libkunquat development files
 enable_libkunquat_dev = True
 
+# enable libkunquatfile (requires libzip)
+enable_libkunquatfile = True
+
+# install libkunquatfile development files
+enable_libkunquatfile_dev = True
+
 # install Python bindings (requires Python 3.1 or later)
 enable_python_bindings = True
 
@@ -26,6 +32,9 @@ enable_long_tests = False
 
 # run tests with memory debugging (requires valgrind, disables assert tests)
 enable_tests_mem_debug = False
+
+# run Python tests
+enable_python_tests = True
 
 # enable multithreading (requires with_pthread)
 enable_threads = True
@@ -50,6 +59,9 @@ with_sndfile = True
 
 # build with WavPack support
 with_wavpack = True
+
+# build with libzip support
+with_zip = True
 
 
 # select C compiler explicitly

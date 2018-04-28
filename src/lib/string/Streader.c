@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -53,6 +53,13 @@ const char* Streader_get_error_desc(const Streader* sr)
 {
     rassert(sr != NULL);
     return Error_get_desc(&sr->error);
+}
+
+
+const char* Streader_get_error_message(const Streader* sr)
+{
+    rassert(sr != NULL);
+    return Error_get_message(&sr->error);
 }
 
 

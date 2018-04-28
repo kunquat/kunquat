@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -94,10 +94,10 @@ int kqt_Handle_set_data(
 
 
 /**
- * Get an error message from the Kunquat Handle.
+ * Get error description from the Kunquat Handle.
  *
- * An error message is a JSON object string that contains at least two keys:
- * "type" and "message". The value of "type" is one of the following:
+ * An error description is a JSON object string that contains at least two
+ * keys: "type" and "message". The value of "type" is one of the following:
  *
  * \li "ArgumentError" -- a Kunquat function was called with an inappropriate
  *                        argument value.
@@ -106,7 +106,8 @@ int kqt_Handle_set_data(
  * \li "ResourceError" -- libkunquat couldn't get service from an external
  *                        resource.
  *
- * The value of "message" is a human-readable description of the error.
+ * The value of "message" is a human-readable description of the error. It can
+ * also be retrieved using the function \a kqt_Handle_get_error_message.
  *
  * kqt_Handle_get_error(\a handle) returns a JSON object describing the last
  * error occurred when processing \a handle.
@@ -120,10 +121,23 @@ int kqt_Handle_set_data(
  * \param handle   The Handle, or \c 0 if retrieving error information
  *                 that is not necessarily associated with a Kunquat Handle.
  *
- * \return   The last error message. This is an empty string if no error has
- *           occurred.
+ * \return   The last error description. This is an empty string if no error
+ *           has occurred.
  */
 const char* kqt_Handle_get_error(kqt_Handle handle);
+
+
+/**
+ * Get human-readable error message from the Kunquat Handle.
+ *
+ * \param handle   The Handle, or \c 0 if retrieving error information that is
+ *                 not necessarily associated with a Kunquat Handle.
+ *
+ * \return   The latest error message. This is an empty string if no error has
+ *           occurred. The same message is also contained in the JSON object
+ *           returned by \a kqt_Handle_get_error.
+ */
+const char* kqt_Handle_get_error_message(kqt_Handle handle);
 
 
 /**
@@ -132,7 +146,8 @@ const char* kqt_Handle_get_error(kqt_Handle handle);
  * Validation errors are not cleared from Handles as they are considered fatal
  * errors.
  *
- * \param handle   The Handle, or \c 0 for clearing the generic error message.
+ * \param handle   The Handle, or \c 0 for clearing the generic error
+ *                 description.
  */
 void kqt_Handle_clear_error(kqt_Handle handle);
 

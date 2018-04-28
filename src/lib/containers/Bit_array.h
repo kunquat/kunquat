@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -34,7 +34,7 @@ Bit_array* new_Bit_array(int64_t size);
 
 
 /**
- * Fills the Bit array with zero.
+ * Fill the Bit array with zero bits.
  *
  * \param ba   The Bit array -- must not be \c NULL.
  */

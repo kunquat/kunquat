@@ -1,4 +1,4 @@
-.TH kunquat\-handle 3 "2014\-04\-06" "" "Kunquat"
+.TH kunquat\-handle 3 "2018\-04\-22" "" "Kunquat"
 
 .SH NAME
 
@@ -16,6 +16,8 @@ Kunquat Handle interface
 
 .BI "const char* kqt_Handle_get_error(kqt_Handle " handle );
 .br
+.BI "const char* kqt_Handle_get_error_message(kqt_Handle " handle );
+.br
 .BI "void kqt_Handle_clear_error(kqt_Handle " handle );
 
 .BI "void kqt_del_Handle(kqt_Handle " handle );
@@ -25,9 +27,9 @@ Kunquat Handle interface
 The \fBkqt_Handle\fR is an opaque data structure that represents a Kunquat
 composition in memory.
 A Kunquat composition file (usually
-with a file extension "kqt", possibly succeeded by an extension indicating
-compression format) is a single file suitable for distribution.
-Currently, the Kunquat library does not provide convenient access to these files.
+with a file extension "kqt") is a single file suitable for distribution.
+Convenient access to these files is provided by libkunquatfile; see
+\fBkunquat-file\fR(3).
 
 Operations on Kunquat Handles are generally \fInot\fR thread-safe. In
 particular, multiple threads must not create or destroy Kunquat Handles or
@@ -51,9 +53,9 @@ directory paths. Examples:
 
 .in +4n
 .nf
-p_composition.json
+p_connections.json
 pat_000/col_00/p_triggers.json
-ins_01/p_instrument.json
+au_01/p_manifest.json
 .fi
 .in
 
@@ -79,7 +81,7 @@ A Kunquat function was called with an inappropriate argument value. Usually,
 this indicates an error in the calling or the library code.
 
 .IP \fBFormatError\fR
-An input file or value to be stored was invalid.
+A value to be stored was invalid.
 
 .IP \fBMemoryError\fR
 Memory allocation failed. If this happens with a function that modifies
@@ -90,17 +92,23 @@ The Kunquat library could not get service from an external resource such as
 another library.
 
 .PP
-Error messages are JSON object strings that contain at least two keys: "type"
-and "message". The value of "type" is one of the categories above and the
-value of "message" is a human-readable description of the error.
+Error descriptions are JSON object strings that contain at least two keys:
+"type" and "message". The value of "type" is one of the categories above and
+the value of "message" is a human-readable description of the error.
 
 .IP "\fBconst char* kqt_Handle_get_error(kqt_Handle\fR \fIhandle\fR\fB);\fR"
-Return an error message describing the last error occurred when accessing
+Return an error description of the last error occurred when accessing
 \fIhandle\fR. The \fIhandle\fR argument may also be 0, in which case the
-function returns an error message about the last error occurred in using the
-Kunquat library in general. In particular, passing 0 as the argument is the
-only way to retrieve Handle creation error messages. The function will return
-the last error message, or an empty string if no error has occurred.
+function returns an error description about the last error occurred in using
+the Kunquat library in general. In particular, passing 0 as the argument is the
+only way to retrieve Handle creation error descriptions. The function will
+return the last error description, or an empty string if no error has occurred.
+
+.IP "\fBconst char* kqt_Handle_get_error_message(kqt_Handle\fR \fIhandle\fR\fB);\fR"
+Return the last human-readable error message from \fIhandle\fR. The message is
+also part of the error description returned by \fBkqt_Handle_get_error\fR. The
+function will return the last error message, or an empty string if no error has
+occurred.
 
 .IP "\fBvoid kqt_Handle_clear_error(kqt_Handle\fR \fIhandle\fR\fB);\fR"
 Clear error information in \fIhandle\fR. This is useful to do before calling

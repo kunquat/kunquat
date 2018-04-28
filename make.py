@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -44,11 +44,11 @@ except ImportError:
 
 import scripts.command as command
 from scripts.cc import get_cc
-from scripts.configure import test_add_external_deps, test_add_test_deps
-from scripts.build_libkunquat import build_libkunquat
+import scripts.configure as configure
+from scripts.build_libs import build_libkunquat, build_libkunquatfile
 from scripts.test_libkunquat import test_libkunquat
 from scripts.build_examples import build_examples
-from scripts.install_libkunquat import install_libkunquat
+from scripts.install_libs import install_libkunquat, install_libkunquatfile
 from scripts.install_examples import install_examples
 from scripts.install_share import install_share
 import options
@@ -198,16 +198,41 @@ def build():
                     file=sys.stderr)
             sys.exit(1)
 
-    test_add_external_deps(builder, options, cc)
-
-    test_cc = deepcopy(cc)
-    test_add_test_deps(builder, options, test_cc)
+    # Check dependencies
+    configure.test_add_common_external_deps(builder, options, cc)
 
     if options.enable_libkunquat:
-        build_libkunquat(builder, options, cc)
+        libkunquat_cc = deepcopy(cc)
+        configure.test_add_libkunquat_external_deps(builder, options, libkunquat_cc)
+
+        if options.enable_tests:
+            test_cc = deepcopy(libkunquat_cc)
+            configure.test_add_test_deps(builder, options, test_cc)
+
+        if options.enable_libkunquatfile:
+            libkunquatfile_cc = deepcopy(cc)
+            configure.test_add_libkunquatfile_external_deps(
+                    builder, options, libkunquatfile_cc)
+
+    # Build libraries
+    if options.enable_libkunquat:
+        build_libkunquat(builder, options, libkunquat_cc)
+
         if options.enable_tests:
             test_libkunquat(builder, options, test_cc)
-            fabricate.run('env', 'LD_LIBRARY_PATH=build/src/lib', 'python3', '-m', 'unittest', 'discover', '-v')
+
+            if options.enable_python_tests:
+                fabricate.run(
+                        'env',
+                        'LD_LIBRARY_PATH=build/src/lib',
+                        'python3',
+                        '-m',
+                        'unittest',
+                        'discover',
+                        '-v')
+
+        if options.enable_libkunquatfile:
+            build_libkunquatfile(builder, options, libkunquatfile_cc)
 
     if options.enable_examples:
         build_examples(builder)
@@ -233,6 +258,10 @@ def install():
     if options.enable_libkunquat:
         install_libkunquat(
                 install_builder, options.prefix, options.enable_libkunquat_dev)
+
+        if options.enable_libkunquatfile:
+            install_libkunquatfile(
+                    install_builder, options.prefix, options.enable_libkunquatfile_dev)
 
     if options.enable_examples:
         install_examples(install_builder, options.prefix)

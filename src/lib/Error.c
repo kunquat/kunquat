@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 
@@ -51,6 +52,13 @@ const char* Error_get_desc(const Error* error)
 {
     rassert(error != NULL);
     return error->desc;
+}
+
+
+const char* Error_get_message(const Error* error)
+{
+    rassert(error != NULL);
+    return error->message;
 }
 
 
@@ -107,7 +115,7 @@ void Error_set_desc_va_list(
     rassert(func != NULL);
     rassert(message != NULL);
 
-    memset(error->desc, 0, ERROR_LENGTH_MAX);
+    Error_clear(error);
 
     strcpy(error->desc, "{ \"type\": \"");
     strcat(error->desc, error_codes[type]);
@@ -124,15 +132,14 @@ void Error_set_desc_va_list(
     strcat(error->desc, "\", ");
 
     strcat(error->desc, "\"message\": \"");
-    char message_str[ERROR_LENGTH_MAX] = "";
-    vsnprintf(message_str, ERROR_LENGTH_MAX, message, args);
+    vsnprintf(error->message, ERROR_LENGTH_MAX, message, args);
     size_t json_pos = strlen(error->desc);
 
     for (int i = 0;
-            json_pos < ERROR_LENGTH_MAX - 4 && message_str[i] != '\0';
+            json_pos < ERROR_LENGTH_MAX - 4 && error->message[i] != '\0';
             ++i, ++json_pos)
     {
-        char ch = message_str[i];
+        char ch = error->message[i];
         static const char named_controls[] = "\"\\\b\f\n\r\t";
         static const char* named_replace[] =
                 { "\\\"", "\\\\", "\\b", "\\f", "\\n", "\\r", "\\t" };
@@ -177,7 +184,10 @@ void Error_set_desc_va_list(
 void Error_clear(Error* error)
 {
     rassert(error != NULL);
+
     memset(error->desc, 0, ERROR_LENGTH_MAX);
+    memset(error->message, 0, ERROR_LENGTH_MAX);
+
     return;
 }
 

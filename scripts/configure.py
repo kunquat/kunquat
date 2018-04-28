@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -27,13 +27,30 @@ except ImportError:
 from . import command
 
 
-def test_add_external_deps(builder, options, cc):
+def _check_conf_errors(conf_errors):
+    if conf_errors:
+        print('\nCould not configure Kunquat due to the following error{}:\n'.format(
+            's' if len(conf_errors) != 1 else ''), file=sys.stderr)
+        print('\n'.join(conf_errors) + '\n', file=sys.stderr)
+        sys.exit(1)
+
+
+def test_add_common_external_deps(builder, options, cc):
     conf_errors = []
 
     if options.enable_debug:
         if _test_header(builder, cc, 'execinfo.h'):
             cc.add_define('HAS_EXECINFO')
             cc.set_dynamic_export(True)
+
+    if not _test_add_lib_with_header(builder, cc, 'm', 'math.h'):
+        conf_errors.append('Math library was not found.')
+
+    _check_conf_errors(conf_errors)
+
+
+def test_add_libkunquat_external_deps(builder, options, cc):
+    conf_errors = []
 
     if options.enable_threads:
         if options.with_pthread:
@@ -89,14 +106,7 @@ def test_add_external_deps(builder, options, cc):
         if not options.with_sndfile:
             conf_errors.append('kunquat-export was requested without libsndfile.')
 
-    if not _test_add_lib_with_header(builder, cc, 'm', 'math.h'):
-        conf_errors.append('Math library was not found.')
-
-    if conf_errors:
-        print('\nCould not configure Kunquat due to the following error{}:\n'.format(
-            's' if len(conf_errors) != 1 else ''), file=sys.stderr)
-        print('\n'.join(conf_errors) + '\n', file=sys.stderr)
-        sys.exit(1)
+    _check_conf_errors(conf_errors)
 
 
 def test_add_test_deps(builder, options, cc):
@@ -108,11 +118,21 @@ def test_add_test_deps(builder, options, cc):
                     'Building of libkunquat tests was requested'
                     ' but not all Check dependencies were found.')
 
-    if conf_errors:
-        print('\nCould not configure Kunquat due to the following error{}:\n'.format(
-            's' if len(conf_errors) != 1 else ''), file=sys.stderr)
-        print('\n'.join(conf_errors) + '\n', file=sys.stderr)
-        sys.exit(1)
+    _check_conf_errors(conf_errors)
+
+
+def test_add_libkunquatfile_external_deps(builder, options, cc):
+    conf_errors = []
+
+    if options.with_zip:
+        if not _test_add_lib_with_header(builder, cc, 'zip', 'zip.h'):
+            conf_errors.append('libzip was not found.')
+
+    if options.enable_libkunquatfile:
+        if not options.with_zip:
+            conf_errors.append('libkunquatfile was requested without libzip.')
+
+    _check_conf_errors(conf_errors)
 
 
 def _write_external_header_test(builder, out_base, header_name):

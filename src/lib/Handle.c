@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -37,7 +37,7 @@
 static Handle* handles[KQT_HANDLES_MAX] = { NULL };
 
 // For errors without an associated Kunquat Handle.
-static Error null_error = { "", ERROR_COUNT_ };
+static Error null_error = { "", "", ERROR_COUNT_ };
 
 
 static bool remove_handle(kqt_Handle handle);
@@ -212,6 +212,16 @@ const char* kqt_Handle_get_error(kqt_Handle handle)
 
     Handle* h = get_handle(handle);
     return Error_get_desc(&h->error);
+}
+
+
+const char* kqt_Handle_get_error_message(kqt_Handle handle)
+{
+    if (!kqt_Handle_is_valid(handle))
+        return Error_get_message(&null_error);
+
+    Handle* h = get_handle(handle);
+    return Error_get_message(&h->error);
 }
 
 
@@ -745,10 +755,11 @@ void kqt_del_Handle(kqt_Handle handle)
 
 bool kqt_Handle_is_valid(kqt_Handle handle)
 {
+    if (handle <= 0)
+        return false;
+
     handle -= 1;
-    return (handle >= 0) &&
-        (handle < KQT_HANDLES_MAX) &&
-        (handles[handle] != NULL);
+    return (handle < KQT_HANDLES_MAX) && (handles[handle] != NULL);
 }
 
 
