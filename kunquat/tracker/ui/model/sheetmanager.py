@@ -15,6 +15,7 @@ import json
 import types
 
 from kunquat.kunquat.events import trigger_events_by_name, trigger_events_with_name_spec
+from kunquat.kunquat.events import EVENT_ARG_MAYBE_STRING, EVENT_ARG_MAYBE_REALTIME
 from kunquat.kunquat.limits import *
 from .grid import Grid
 from .trigger import Trigger
@@ -488,8 +489,9 @@ class SheetManager():
 
         if type(tr_arg) not in (str, type(None)):
             return False
-        if ((type(tr_arg) == None) !=
-                (trigger_events_by_name[event_name]['arg_type'] == None)):
+        none_arg_types = (None, EVENT_ARG_MAYBE_STRING, EVENT_ARG_MAYBE_REALTIME)
+        if ((type(tr_arg) == type(None)) and
+                (trigger_events_by_name[event_name]['arg_type'] not in none_arg_types)):
             return False
 
         return True
