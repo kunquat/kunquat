@@ -488,7 +488,7 @@ class SheetManager():
 
         if type(tr_arg) not in (str, type(None)):
             return False
-        if ((type(tr_arg) == None) !=
+        if ((type(tr_arg) == type(None)) !=
                 (trigger_events_by_name[event_name]['arg_type'] == None)):
             return False
 
