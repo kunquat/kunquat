@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -24,6 +24,7 @@ from kunquat.tracker.ui.views.confirmdialog import ConfirmDialog
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.utils import lerp_val, set_glyph_rel_width
+from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
 from .prockeyboardmapper import ProcessorKeyboardMapper
 from .sampleview import SampleView
 from .processorupdater import ProcessorUpdater
@@ -501,11 +502,9 @@ class NoteMapEntry(QWidget, ProcessorUpdater):
         super().__init__()
         self.setEnabled(False)
 
-        self._pitch = QDoubleSpinBox()
-        self._pitch.setDecimals(0)
+        self._pitch = VarPrecSpinBox(step_decimals=0, max_decimals=2)
         self._pitch.setRange(-6000, 6000)
-        self._force = QDoubleSpinBox()
-        self._force.setDecimals(1)
+        self._force = VarPrecSpinBox(step_decimals=0, max_decimals=2)
         self._force.setRange(-36, 0)
 
         self._random_list = NoteRandomList()
@@ -696,12 +695,10 @@ class RandomEntryEditor(QWidget, ProcessorUpdater):
         self._sample_selector = KqtComboBox()
         self._sample_selector.setSizeAdjustPolicy(QComboBox.AdjustToContents)
 
-        self._pitch_shift = QDoubleSpinBox()
-        self._pitch_shift.setDecimals(0)
+        self._pitch_shift = VarPrecSpinBox(step_decimals=0, max_decimals=2)
         self._pitch_shift.setRange(-6000, 6000)
 
-        self._volume_shift = QDoubleSpinBox()
-        self._volume_shift.setDecimals(1)
+        self._volume_shift = VarPrecSpinBox(step_decimals=0, max_decimals=2)
         self._volume_shift.setRange(-64, 64)
 
         self._remove_button = QPushButton()
@@ -974,8 +971,7 @@ class HitMapEntry(QWidget, ProcessorUpdater):
         super().__init__()
         self.setEnabled(False)
 
-        self._force = QDoubleSpinBox()
-        self._force.setDecimals(1)
+        self._force = VarPrecSpinBox(step_decimals=0, max_decimals=2)
         self._force.setRange(-36, 0)
 
         self._random_list = HitRandomList()
@@ -1402,8 +1398,7 @@ class SampleEditor(QWidget, ProcessorUpdater):
 
         self._name = QLineEdit()
 
-        self._freq = QDoubleSpinBox()
-        self._freq.setDecimals(0)
+        self._freq = VarPrecSpinBox(step_decimals=0, max_decimals=2)
         self._freq.setRange(1, 2**32)
 
         self._resample = QPushButton('Resample...')

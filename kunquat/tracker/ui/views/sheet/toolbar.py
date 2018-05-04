@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -20,6 +20,7 @@ from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.updater import Updater
+from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
 from . import utils
 
 
@@ -859,10 +860,9 @@ class LengthEditor(QWidget, Updater):
         super().__init__()
         self._is_latest_committed = True
 
-        self._spinbox = QDoubleSpinBox()
+        self._spinbox = VarPrecSpinBox(step_decimals=0, max_decimals=5)
         self._spinbox.setMinimum(0)
         self._spinbox.setMaximum(1024)
-        self._spinbox.setDecimals(3)
 
         h = QHBoxLayout()
         h.setContentsMargins(5, 0, 5, 0)

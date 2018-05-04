@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@ from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.headerline import HeaderLine
+from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
 from .procnumslider import ProcNumSlider
 from .proctimeenv import ProcessorTimeEnvelope
 from .processorupdater import ProcessorUpdater
@@ -107,10 +108,10 @@ class RangeEditor(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
-        self._min_editor = QDoubleSpinBox()
-        self._max_editor = QDoubleSpinBox()
-        self._min_var_editor = QDoubleSpinBox()
-        self._max_var_editor = QDoubleSpinBox()
+        self._min_editor = VarPrecSpinBox(step_decimals=0, max_decimals=3)
+        self._max_editor = VarPrecSpinBox(step_decimals=0, max_decimals=3)
+        self._min_var_editor = VarPrecSpinBox(step_decimals=0, max_decimals=3)
+        self._max_var_editor = VarPrecSpinBox(step_decimals=0, max_decimals=3)
 
         for editor in (self._min_editor, self._max_editor):
             editor.setMinimum(-99999)
@@ -303,8 +304,8 @@ class TriggerImpulseBounds(QWidget, ProcessorUpdater):
     def __init__(self):
         super().__init__()
 
-        self._start_value = QDoubleSpinBox()
-        self._stop_value = QDoubleSpinBox()
+        self._start_value = VarPrecSpinBox(step_decimals=0, max_decimals=3)
+        self._stop_value = VarPrecSpinBox(step_decimals=0, max_decimals=3)
 
         self._start_value.setRange(-99999, 99999)
         self._stop_value.setRange(-99999, 99999)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -22,6 +22,7 @@ from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.numberslider import NumberSlider
 from kunquat.tracker.ui.views.updater import Updater
+from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
 from .config import *
 from .ruler import Ruler
 from . import utils
@@ -686,21 +687,18 @@ class GeneralEditor(QWidget, Updater):
         super().__init__()
         self._name = QLineEdit()
 
-        self._length = QDoubleSpinBox()
+        self._length = VarPrecSpinBox(step_decimals=0, max_decimals=5)
         self._length.setMinimum(1)
         self._length.setMaximum(32)
-        self._length.setDecimals(3)
 
         self._spacing_style = LineStyle(is_major_enabled=True)
-        self._spacing_value = QDoubleSpinBox()
-        self._spacing_value.setMinimum(0.001)
+        self._spacing_value = VarPrecSpinBox(step_decimals=1, max_decimals=2)
+        self._spacing_value.setMinimum(0.01)
         self._spacing_value.setMaximum(1.0)
-        self._spacing_value.setDecimals(3)
 
-        self._offset = QDoubleSpinBox()
+        self._offset = VarPrecSpinBox(step_decimals=1, max_decimals=5)
         self._offset.setMinimum(0)
         self._offset.setMaximum(32)
-        self._offset.setDecimals(3)
 
         nl = QHBoxLayout()
         nl.setContentsMargins(0, 0, 0, 0)

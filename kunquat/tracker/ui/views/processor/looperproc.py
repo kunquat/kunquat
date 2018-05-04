@@ -13,6 +13,7 @@
 
 from kunquat.tracker.ui.qt import *
 
+from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
 from .processorupdater import ProcessorUpdater
 from .procnumslider import ProcNumSlider
 from . import utils
@@ -54,11 +55,10 @@ class LooperProc(QWidget, ProcessorUpdater):
         self.setLayout(v)
 
 
-class MaxRecTime(QDoubleSpinBox, ProcessorUpdater):
+class MaxRecTime(VarPrecSpinBox, ProcessorUpdater):
 
     def __init__(self):
-        super().__init__()
-        self.setDecimals(4)
+        super().__init__(step_decimals=0, max_decimals=1)
         self.setMinimum(0.1)
         self.setMaximum(60)
         self.setValue(16)

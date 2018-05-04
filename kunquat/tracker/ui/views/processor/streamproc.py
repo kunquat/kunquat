@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -13,6 +13,7 @@
 
 from kunquat.tracker.ui.qt import *
 
+from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
 from .processorupdater import ProcessorUpdater
 
 
@@ -40,20 +41,17 @@ class InitStateEditor(QWidget, ProcessorUpdater):
     def __init__(self):
         super().__init__()
 
-        self._init_val = QDoubleSpinBox()
+        self._init_val = VarPrecSpinBox(step_decimals=0, max_decimals=6)
         self._init_val.setMinimum(-99999)
         self._init_val.setMaximum(99999)
-        self._init_val.setDecimals(5)
 
-        self._osc_speed = QDoubleSpinBox()
+        self._osc_speed = VarPrecSpinBox(step_decimals=0, max_decimals=6)
         self._osc_speed.setMinimum(0)
         self._osc_speed.setMaximum(1000)
-        self._osc_speed.setDecimals(5)
 
-        self._osc_depth = QDoubleSpinBox()
+        self._osc_depth = VarPrecSpinBox(step_decimals=0, max_decimals=6)
         self._osc_depth.setMinimum(0)
         self._osc_depth.setMaximum(99999)
-        self._osc_depth.setDecimals(5)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)

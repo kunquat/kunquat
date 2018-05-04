@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -20,6 +20,7 @@ from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.stylecreator import StyleCreator
+from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
 from . import utils
 from .procnumslider import ProcNumSlider
 from .processorupdater import ProcessorUpdater
@@ -426,9 +427,8 @@ class HarmonicScaleEditor(QWidget, ProcessorUpdater):
         super().__init__()
         self._index = index
 
-        self._pitch_factor = QDoubleSpinBox()
-        self._pitch_factor.setDecimals(3)
-        self._pitch_factor.setRange(0.001, 1024.0)
+        self._pitch_factor = VarPrecSpinBox(step_decimals=0, max_decimals=4)
+        self._pitch_factor.setRange(0.0001, 1024.0)
         self._pitch_factor.setValue(1)
 
         self._amplitude = AmplitudeEditor(index)

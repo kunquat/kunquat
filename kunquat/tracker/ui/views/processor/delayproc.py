@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@ from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
+from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
 from .procnumslider import ProcNumSlider
 from .processorupdater import ProcessorUpdater
 from . import utils
@@ -46,11 +47,10 @@ class DelayProc(QWidget, ProcessorUpdater):
         self.setLayout(v)
 
 
-class MaxDelay(QDoubleSpinBox, ProcessorUpdater):
+class MaxDelay(VarPrecSpinBox, ProcessorUpdater):
 
     def __init__(self):
-        super().__init__()
-        self.setDecimals(4)
+        super().__init__(step_decimals=1, max_decimals=3)
         self.setMinimum(0.001)
         self.setMaximum(60)
         self.setValue(1)
