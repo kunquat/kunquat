@@ -61,6 +61,12 @@ class VarPrecSpinBox(QAbstractSpinBox):
         self._min_value = min(self._min_value, self._max_value)
         self._clamp_value()
 
+    def setRange(self, minimum, maximum):
+        assert minimum <= maximum
+        self._min_value = self._to_internal(minimum)
+        self._max_value = self._to_internal(maximum)
+        self._clamp_value()
+
     def setDecimals(self, decimals):
         assert decimals >= 1
         if decimals == self._max_decimals:
