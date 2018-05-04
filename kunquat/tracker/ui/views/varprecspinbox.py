@@ -83,7 +83,9 @@ class VarPrecSpinBox(QAbstractSpinBox):
         old_block = self.blockSignals(True)
         self._value = self._to_internal(value)
         self._clamp_value()
-        self.lineEdit().setText(self.text())
+        new_text = self.text()
+        if new_text != self.lineEdit().text():
+            self.lineEdit().setText(new_text)
         self.blockSignals(old_block)
         self.update()
 
@@ -110,9 +112,12 @@ class VarPrecSpinBox(QAbstractSpinBox):
 
     def _minimise_string(self):
         line_edit = self.lineEdit()
-        old_block = line_edit.blockSignals(True)
-        line_edit.setText(self.text())
-        line_edit.blockSignals(old_block)
+        old_text = line_edit.text()
+        new_text = self.text()
+        if new_text != old_text:
+            old_block = line_edit.blockSignals(True)
+            line_edit.setText(self.text())
+            line_edit.blockSignals(old_block)
 
     def fixup(self, in_str):
         if not in_str:
