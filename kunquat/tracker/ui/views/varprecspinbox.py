@@ -121,7 +121,7 @@ class VarPrecSpinBox(QAbstractSpinBox):
 
     def fixup(self, in_str):
         if not in_str:
-            in_str = '0'
+            in_str = self.text()
         return super().fixup(in_str)
 
     def value(self):
