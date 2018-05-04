@@ -24,7 +24,4 @@ before_install:
 install:
   - pip3 install pylint flake8 pyqt5
 script:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  xvfb-run ./make.py --enable-long-tests --disable-libkunquatfile --disable-libkunquatfile-dev; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  ./make.py --disable-threads --disable-tests --disable-libkunquatfile --disable-libkunquatfile-dev; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  xvfb-run ./make.py --enable-long-tests --cc=clang --disable-libkunquatfile --disable-libkunquatfile-dev; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  ./make.py --disable-threads --disable-tests --cc=clang --disable-libkunquatfile --disable-libkunquatfile-dev; fi
+  - ./test_runner.sh
