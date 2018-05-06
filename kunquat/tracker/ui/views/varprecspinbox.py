@@ -208,7 +208,7 @@ class VarPrecSpinBox(QAbstractSpinBox):
         self.update()
 
     def validate(self, in_str, pos):
-        if not in_str:
+        if in_str in ('', '-'):
             return (QValidator.Intermediate, in_str, pos)
 
         try:
