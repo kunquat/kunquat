@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -18,6 +18,7 @@ from kunquat.tracker.ui.qt import *
 from .headerline import HeaderLine
 from .kqtcombobox import KqtComboBox
 from .updater import Updater
+from .varprecspinbox import VarPrecSpinBox
 
 
 class NotationEditor(QWidget, Updater):
@@ -598,8 +599,7 @@ class CentrePitch(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._value = QDoubleSpinBox()
-        self._value.setDecimals(2)
+        self._value = VarPrecSpinBox(step_decimals=0, max_decimals=2)
         self._value.setRange(-9999, 9999)
         self._value.setValue(0)
 
@@ -1539,8 +1539,7 @@ class Note(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._cents = QDoubleSpinBox()
-        self._cents.setDecimals(0)
+        self._cents = VarPrecSpinBox(step_decimals=0, max_decimals=2)
         self._cents.setRange(-9999, 9999)
 
         self._name = QLineEdit()
@@ -1792,8 +1791,7 @@ class KeyEditor(QWidget, Updater):
 
         self._cents_label = QLabel('Cents:')
 
-        self._cents = QDoubleSpinBox()
-        self._cents.setDecimals(0)
+        self._cents = VarPrecSpinBox(step_decimals=0, max_decimals=2)
         self._cents.setRange(-9999, 9999)
 
         self._note_selector_label = QLabel('Select note:')

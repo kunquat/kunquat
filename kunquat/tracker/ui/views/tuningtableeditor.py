@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -19,6 +19,7 @@ from kunquat.kunquat.limits import *
 from .kqtcombobox import KqtComboBox
 from .notationeditor import RatioValidator
 from .updater import Updater
+from .varprecspinbox import VarPrecSpinBox
 
 
 class TuningTableEditor(QWidget, Updater):
@@ -29,12 +30,10 @@ class TuningTableEditor(QWidget, Updater):
 
         self._name = QLineEdit()
 
-        self._ref_pitch = QDoubleSpinBox()
-        self._ref_pitch.setDecimals(2)
+        self._ref_pitch = VarPrecSpinBox(step_decimals=0, max_decimals=2)
         self._ref_pitch.setRange(-9999, 9999)
 
-        self._pitch_offset = QDoubleSpinBox()
-        self._pitch_offset.setDecimals(2)
+        self._pitch_offset = VarPrecSpinBox(step_decimals=0, max_decimals=2)
         self._pitch_offset.setRange(-9999, 9999)
 
         self._octave_width = QLineEdit()

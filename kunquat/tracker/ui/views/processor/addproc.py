@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@ from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
+from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
 from .procnumslider import ProcNumSlider
 from .processorupdater import ProcessorUpdater
 from .waveformeditor import WaveformEditor
@@ -225,9 +226,8 @@ class TonePitchSpin(QWidget, ProcessorUpdater):
         super().__init__()
         self._index = index
 
-        self._spin = QDoubleSpinBox()
-        self._spin.setDecimals(3)
-        self._spin.setMinimum(0.001)
+        self._spin = VarPrecSpinBox(step_decimals=0, max_decimals=6)
+        self._spin.setMinimum(0.000001)
         self._spin.setMaximum(1024.0)
         self._spin.setValue(1)
 

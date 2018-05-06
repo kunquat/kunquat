@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -16,6 +16,7 @@ from kunquat.tracker.ui.qt import *
 from kunquat.kunquat.limits import *
 from .headerline import HeaderLine
 from .updater import Updater
+from .varprecspinbox import VarPrecSpinBox
 
 
 class SongEditor(QWidget, Updater):
@@ -83,11 +84,10 @@ class NameEditor(QLineEdit, Updater):
         self._updater.signal_update('signal_song', 'signal_order_list')
 
 
-class TempoEditor(QDoubleSpinBox, Updater):
+class TempoEditor(VarPrecSpinBox, Updater):
 
     def __init__(self):
-        super().__init__()
-        self.setDecimals(1)
+        super().__init__(step_decimals=0, max_decimals=2)
         self.setMinimum(1)
         self.setMaximum(999)
 

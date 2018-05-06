@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -13,6 +13,7 @@
 
 from kunquat.tracker.ui.qt import *
 
+from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
 from . import utils
 from .processorupdater import ProcessorUpdater
 
@@ -110,10 +111,10 @@ class RangeMapProc(QWidget, ProcessorUpdater):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class RangeValue(QDoubleSpinBox):
+class RangeValue(VarPrecSpinBox):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(step_decimals=0, max_decimals=6)
         self.setRange(-99999, 99999)
 
     def set_value(self, value):
