@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -367,15 +367,21 @@ static double get_profile_bound(double bandwidth_i)
 static void make_padsynth_sample(
         Padsynth_sample_entry* entry,
         Random* random,
+        int context_index,
         double* freq_amp,
         double* freq_phase,
         FFT_worker* fw,
         const Padsynth_params* params)
 {
     rassert(entry != NULL);
+    rassert(random != NULL);
     rassert(freq_amp != NULL);
     rassert(freq_phase != NULL);
     rassert(fw != NULL);
+
+    char context_str[16] = "";
+    snprintf(context_str, 16, "PADsynth%d", context_index);
+    Random_init(random, context_str);
 
     int32_t sample_length = PADSYNTH_DEFAULT_SAMPLE_LENGTH;
     if (params != NULL)
@@ -561,19 +567,27 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
         Padsynth_sample_map_set_pitch_range(padsynth->sample_map, min_pitch, max_pitch);
     }
 
-    Random_reset(&padsynth->random);
-
     // Build samples
     if (params != NULL)
     {
         AAiter* iter = AAiter_init(AAITER_AUTO, padsynth->sample_map->map);
+
+        int context_index = 0;
 
         const Padsynth_sample_entry* key = PADSYNTH_SAMPLE_ENTRY_KEY(-INFINITY);
         Padsynth_sample_entry* entry = AAiter_get_at_least(iter, key);
         while (entry != NULL)
         {
             make_padsynth_sample(
-                    entry, &padsynth->random, freq_amp, freq_phase, fw, params);
+                    entry,
+                    &padsynth->random,
+                    context_index,
+                    freq_amp,
+                    freq_phase,
+                    fw,
+                    params);
+            ++context_index;
+
             entry = AAiter_get_next(iter);
         }
     }
@@ -584,7 +598,8 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
             AAtree_get_at_least(padsynth->sample_map->map, key);
         rassert(entry != NULL);
 
-        make_padsynth_sample(entry, &padsynth->random, freq_amp, freq_phase, fw, NULL);
+        make_padsynth_sample(
+                entry, &padsynth->random, 0, freq_amp, freq_phase, fw, NULL);
     }
 
     memory_free(freq_amp);
