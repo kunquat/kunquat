@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -15,6 +15,7 @@
 #include <init/devices/param_types/Padsynth_params.h>
 
 #include <containers/Vector.h>
+#include <init/devices/param_types/Envelope.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <string/common.h>
@@ -190,6 +191,60 @@ static bool read_param(Streader* sr, const char* key, void* userdata)
             return false;
         }
     }
+    else if (string_eq(key, "filter_env_enabled"))
+    {
+        if (!Streader_read_bool(sr, &pp->is_filter_env_enabled))
+            return false;
+    }
+    else if (string_eq(key, "filter_env"))
+    {
+        if (pp->filter_env != NULL)
+        {
+            Streader_set_error(
+                    sr, "Multiple filter envelope entries in PADsynth parameters");
+            return false;
+        }
+
+        const double freq_limit = PADSYNTH_DEFAULT_AUDIO_RATE / 2;
+
+        Envelope* env = new_Envelope(64, 0, freq_limit, 0, 0, 64, 0);
+        if (env == NULL)
+        {
+            Streader_set_memory_error(
+                    sr, "Could not allocate memory for PADsynth harmonics");
+            return false;
+        }
+
+        if (!Envelope_read(env, sr))
+        {
+            rassert(Streader_is_error_set(sr));
+            del_Envelope(env);
+            return false;
+        }
+
+        {
+            if (Envelope_get_node(env, 0)[0] != 0)
+            {
+                Streader_set_error(
+                        sr, "PADsynth filter envelope does not start at frequency 0");
+                del_Envelope(env);
+                return false;
+            }
+
+            const int node_count = Envelope_node_count(env);
+            if (Envelope_get_node(env, node_count - 1)[0] != freq_limit)
+            {
+                Streader_set_error(
+                        sr,
+                        "PADsynth filter envelope does not end at frequency %.0f",
+                        freq_limit);
+                del_Envelope(env);
+                return false;
+            }
+        }
+
+        pp->filter_env = env;
+    }
     else
     {
         Streader_set_error(
@@ -215,6 +270,9 @@ Padsynth_params* new_Padsynth_params(Streader* sr)
                 sr, "Could not allocate memory for PADsynth parameters");
         return NULL;
     }
+
+    pp->is_filter_env_enabled = false;
+    pp->filter_env = NULL;
 
     pp->harmonics = new_Vector(sizeof(Padsynth_harmonic));
     if (pp->harmonics == NULL)
@@ -270,6 +328,7 @@ void del_Padsynth_params(Padsynth_params* pp)
     if (pp == NULL)
         return;
 
+    del_Envelope(pp->filter_env);
     del_Vector(pp->harmonics);
     memory_free(pp);
 

@@ -441,6 +441,19 @@ static void make_padsynth_sample(
                 freq_amp[i] += harmonic_profile * harmonic->amplitude;
             }
         }
+
+        if (params->is_filter_env_enabled && (params->filter_env != NULL))
+        {
+            // Apply filter envelope
+            for (int i = 0; i < buf_length; ++i)
+            {
+                const double env_x = i * 24000.0 / (buf_length - 1);
+                const double mult = Envelope_get_value(params->filter_env, env_x);
+                rassert(isfinite(mult));
+
+                freq_amp[i] *= mult;
+            }
+        }
     }
     else
     {
