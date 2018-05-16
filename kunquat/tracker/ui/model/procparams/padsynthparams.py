@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -238,6 +238,9 @@ class PadsynthParams(ProcParams):
     _DEFAULT_BANDWIDTH_BASE = 1
     _DEFAULT_BANDWIDTH_SCALE = 1
 
+    _DEFAULT_RESONANCE_ENV = {
+            'nodes': [[0, 1], [_DEFAULT_AUDIO_RATE // 2, 1]], 'smooth': False }
+
     @staticmethod
     def get_default_signal_type():
         return 'voice'
@@ -264,6 +267,8 @@ class PadsynthParams(ProcParams):
             'bandwidth_base' : self._DEFAULT_BANDWIDTH_BASE,
             'bandwidth_scale': self._DEFAULT_BANDWIDTH_SCALE,
             'harmonics'      : [[1, 1]],
+            'res_env_enabled': False,
+            'res_env'        : self._DEFAULT_RESONANCE_ENV,
         }
         stored = self._get_value('p_ps_params.json', {})
         ret.update(stored)
@@ -397,6 +402,18 @@ class PadsynthParams(ProcParams):
         self._set_value('i_bandwidth_scale.json', scale)
         self._update_harmonics()
 
+    def get_resonance_envelope_enabled(self):
+        return self._get_value('i_res_env_enabled.json', False)
+
+    def set_resonance_envelope_enabled(self, enabled):
+        self._set_value('i_res_env_enabled.json', enabled)
+
+    def get_resonance_envelope(self):
+        return self._get_value('i_res_env.json', deepcopy(self._DEFAULT_RESONANCE_ENV))
+
+    def set_resonance_envelope(self, env):
+        self._set_value('i_res_env.json', env)
+
     def _get_config_params(self):
         return {
             'sample_length'  : self.get_sample_length(),
@@ -407,6 +424,8 @@ class PadsynthParams(ProcParams):
             'bandwidth_base' : self.get_bandwidth_base(),
             'bandwidth_scale': self.get_bandwidth_scale(),
             'harmonics'      : self._get_harmonics_data(),
+            'res_env_enabled': self.get_resonance_envelope_enabled(),
+            'res_env'        : self.get_resonance_envelope(),
         }
 
     def is_config_applied(self):

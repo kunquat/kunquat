@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 
 #include <decl.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -51,6 +52,9 @@ typedef struct Padsynth_params
     double bandwidth_base;
     double bandwidth_scale;
     Vector* harmonics;
+
+    bool is_res_env_enabled;
+    Envelope* res_env;
 } Padsynth_params;
 
 
