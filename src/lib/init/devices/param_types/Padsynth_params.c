@@ -191,17 +191,17 @@ static bool read_param(Streader* sr, const char* key, void* userdata)
             return false;
         }
     }
-    else if (string_eq(key, "filter_env_enabled"))
+    else if (string_eq(key, "res_env_enabled"))
     {
-        if (!Streader_read_bool(sr, &pp->is_filter_env_enabled))
+        if (!Streader_read_bool(sr, &pp->is_res_env_enabled))
             return false;
     }
-    else if (string_eq(key, "filter_env"))
+    else if (string_eq(key, "res_env"))
     {
-        if (pp->filter_env != NULL)
+        if (pp->res_env != NULL)
         {
             Streader_set_error(
-                    sr, "Multiple filter envelope entries in PADsynth parameters");
+                    sr, "Multiple resonance envelope entries in PADsynth parameters");
             return false;
         }
 
@@ -211,7 +211,7 @@ static bool read_param(Streader* sr, const char* key, void* userdata)
         if (env == NULL)
         {
             Streader_set_memory_error(
-                    sr, "Could not allocate memory for PADsynth harmonics");
+                    sr, "Could not allocate memory for PADsynth resonance envelope");
             return false;
         }
 
@@ -226,7 +226,7 @@ static bool read_param(Streader* sr, const char* key, void* userdata)
             if (Envelope_get_node(env, 0)[0] != 0)
             {
                 Streader_set_error(
-                        sr, "PADsynth filter envelope does not start at frequency 0");
+                        sr, "PADsynth resonance envelope does not start at frequency 0");
                 del_Envelope(env);
                 return false;
             }
@@ -236,14 +236,14 @@ static bool read_param(Streader* sr, const char* key, void* userdata)
             {
                 Streader_set_error(
                         sr,
-                        "PADsynth filter envelope does not end at frequency %.0f",
+                        "PADsynth resonance envelope does not end at frequency %.0f",
                         freq_limit);
                 del_Envelope(env);
                 return false;
             }
         }
 
-        pp->filter_env = env;
+        pp->res_env = env;
     }
     else
     {
@@ -271,8 +271,8 @@ Padsynth_params* new_Padsynth_params(Streader* sr)
         return NULL;
     }
 
-    pp->is_filter_env_enabled = false;
-    pp->filter_env = NULL;
+    pp->is_res_env_enabled = false;
+    pp->res_env = NULL;
 
     pp->harmonics = new_Vector(sizeof(Padsynth_harmonic));
     if (pp->harmonics == NULL)
@@ -328,7 +328,7 @@ void del_Padsynth_params(Padsynth_params* pp)
     if (pp == NULL)
         return;
 
-    del_Envelope(pp->filter_env);
+    del_Envelope(pp->res_env);
     del_Vector(pp->harmonics);
     memory_free(pp);
 

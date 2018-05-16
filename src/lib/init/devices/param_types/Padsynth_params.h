@@ -53,8 +53,8 @@ typedef struct Padsynth_params
     double bandwidth_scale;
     Vector* harmonics;
 
-    bool is_filter_env_enabled;
-    Envelope* filter_env;
+    bool is_res_env_enabled;
+    Envelope* res_env;
 } Padsynth_params;
 
 

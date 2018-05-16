@@ -44,7 +44,7 @@ class PadsynthProc(QWidget, ProcessorUpdater):
         self._bandwidth = BandwidthEditor()
         self._harmonics_base = HarmonicsBaseEditor()
         self._harmonic_scales = HarmonicScales()
-        self._filter_env = FilterEnvelope()
+        self._res_env = ResonanceEnvelope()
 
         self.add_to_updaters(
                 self._playback_params,
@@ -53,7 +53,7 @@ class PadsynthProc(QWidget, ProcessorUpdater):
                 self._bandwidth,
                 self._harmonics_base,
                 self._harmonic_scales,
-                self._filter_env)
+                self._res_env)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
@@ -64,7 +64,7 @@ class PadsynthProc(QWidget, ProcessorUpdater):
         v.addWidget(self._bandwidth)
         v.addWidget(self._harmonics_base)
         v.addWidget(self._harmonic_scales)
-        v.addWidget(self._filter_env)
+        v.addWidget(self._res_env)
         self.setLayout(v)
 
 
@@ -542,7 +542,7 @@ class HarmonicScales(QWidget, ProcessorUpdater):
         self.setLayout(v)
 
 
-class FilterEnvelope(ProcessorSimpleEnvelope):
+class ResonanceEnvelope(ProcessorSimpleEnvelope):
 
     def __init__(self):
         super().__init__()
@@ -551,7 +551,7 @@ class FilterEnvelope(ProcessorSimpleEnvelope):
         return 'signal_padsynth_{}'.format(self._proc_id)
 
     def _get_title(self):
-        return 'Filter envelope'
+        return 'Resonance envelope'
 
     def _get_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -569,15 +569,15 @@ class FilterEnvelope(ProcessorSimpleEnvelope):
         return envelope
 
     def _get_enabled(self):
-        return self._get_params().get_filter_envelope_enabled()
+        return self._get_params().get_resonance_envelope_enabled()
 
     def _set_enabled(self, enabled):
-        self._get_params().set_filter_envelope_enabled(enabled)
+        self._get_params().set_resonance_envelope_enabled(enabled)
 
     def _get_envelope_data(self):
-        return self._get_params().get_filter_envelope()
+        return self._get_params().get_resonance_envelope()
 
     def _set_envelope_data(self, envelope):
-        self._get_params().set_filter_envelope(envelope)
+        self._get_params().set_resonance_envelope(envelope)
 
 

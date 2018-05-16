@@ -442,13 +442,13 @@ static void make_padsynth_sample(
             }
         }
 
-        if (params->is_filter_env_enabled && (params->filter_env != NULL))
+        if (params->is_res_env_enabled && (params->res_env != NULL))
         {
-            // Apply filter envelope
+            // Apply resonance envelope
             for (int i = 0; i < buf_length; ++i)
             {
                 const double env_x = i * 24000.0 / (buf_length - 1);
-                const double mult = Envelope_get_value(params->filter_env, env_x);
+                const double mult = Envelope_get_value(params->res_env, env_x);
                 rassert(isfinite(mult));
 
                 freq_amp[i] *= mult;
