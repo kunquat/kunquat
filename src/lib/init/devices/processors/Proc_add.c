@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2018
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 #include <init/devices/processors/Proc_init_utils.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
+#include <mathnum/conversions.h>
 #include <mathnum/fft.h>
 #include <memory.h>
 #include <player/devices/Proc_state.h>
@@ -276,7 +277,7 @@ static bool Proc_add_set_tone_volume(
     Proc_add* add = (Proc_add*)dimpl;
 
     if (isfinite(value))
-        add->tones[ti].volume_factor = exp2(value / 6.0);
+        add->tones[ti].volume_factor = dB_to_scale(value);
     else
         add->tones[ti].volume_factor = (ti == 0) ? 1.0 : 0.0;
 
