@@ -43,7 +43,7 @@ class PadsynthProc(QWidget, ProcessorUpdater):
         self._sample_config = SampleConfigEditor()
         self._bandwidth = BandwidthEditor()
         self._harmonics_base = HarmonicsBaseEditor()
-        self._harmonic_scales = HarmonicScales()
+        self._harmonic_levels = HarmonicLevels()
         self._res_env = ResonanceEnvelope()
 
         self.add_to_updaters(
@@ -52,7 +52,7 @@ class PadsynthProc(QWidget, ProcessorUpdater):
                 self._sample_config,
                 self._bandwidth,
                 self._harmonics_base,
-                self._harmonic_scales,
+                self._harmonic_levels,
                 self._res_env)
 
         v = QVBoxLayout()
@@ -63,7 +63,7 @@ class PadsynthProc(QWidget, ProcessorUpdater):
         v.addWidget(self._sample_config)
         v.addWidget(self._bandwidth)
         v.addWidget(self._harmonics_base)
-        v.addWidget(self._harmonic_scales)
+        v.addWidget(self._harmonic_levels)
         v.addWidget(self._res_env)
         self.setLayout(v)
 
@@ -365,7 +365,7 @@ class HarmonicsBaseEditor(WaveformEditor):
         return base_wave
 
 
-class HarmonicScalesList(EditorList, ProcessorUpdater):
+class HarmonicLevelsList(EditorList, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
@@ -379,17 +379,17 @@ class HarmonicScalesList(EditorList, ProcessorUpdater):
         self.disconnect_widgets()
 
     def _make_adder_widget(self):
-        adder = HarmonicScaleAdder()
+        adder = HarmonicLevelAdder()
         self.add_to_updaters(adder)
         return adder
 
     def _get_updated_editor_count(self):
         params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
-        count = params.get_harmonic_scales().get_count()
+        count = params.get_harmonic_levels().get_count()
         return count
 
     def _make_editor_widget(self, index):
-        editor = HarmonicScaleEditor(index)
+        editor = HarmonicLevelEditor(index)
         self.add_to_updaters(editor)
         return editor
 
@@ -406,11 +406,11 @@ class HarmonicScalesList(EditorList, ProcessorUpdater):
         self.update_list()
 
 
-class HarmonicScaleAdder(QPushButton, ProcessorUpdater):
+class HarmonicLevelAdder(QPushButton, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
-        self.setText('Add harmonic scale')
+        self.setText('Add harmonic level')
 
     def _on_setup(self):
         self.clicked.connect(self._add_harmonic)
@@ -421,12 +421,12 @@ class HarmonicScaleAdder(QPushButton, ProcessorUpdater):
     def _add_harmonic(self):
         params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
-        scales = params.get_harmonic_scales()
-        scales.append_scale()
+        levels = params.get_harmonic_levels()
+        levels.append_level()
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class HarmonicScaleEditor(QWidget, ProcessorUpdater):
+class HarmonicLevelEditor(QWidget, ProcessorUpdater):
 
     def __init__(self, index):
         super().__init__()
@@ -436,7 +436,7 @@ class HarmonicScaleEditor(QWidget, ProcessorUpdater):
         self._pitch_factor.setRange(0.0001, 1024.0)
         self._pitch_factor.setValue(1)
 
-        self._amplitude = AmplitudeEditor(index)
+        self._level = LevelEditor(index)
 
         self._remove_button = QPushButton()
         self._remove_button.setStyleSheet('padding: 0 -2px;')
@@ -447,12 +447,12 @@ class HarmonicScaleEditor(QWidget, ProcessorUpdater):
         h.setSpacing(2)
         h.addWidget(QLabel('Pitch factor:'))
         h.addWidget(self._pitch_factor)
-        h.addWidget(self._amplitude)
+        h.addWidget(self._level)
         h.addWidget(self._remove_button)
         self.setLayout(h)
 
     def _on_setup(self):
-        self.add_to_updaters(self._amplitude)
+        self.add_to_updaters(self._level)
 
         icon_bank = self._ui_model.get_icon_bank()
         self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
@@ -468,76 +468,76 @@ class HarmonicScaleEditor(QWidget, ProcessorUpdater):
     def update_index(self, index):
         self._index = index
 
-        scales = self._get_params().get_harmonic_scales()
-        if self._index >= scales.get_count():
+        levels = self._get_params().get_harmonic_levels()
+        if self._index >= levels.get_count():
             return
 
-        scale = scales.get_scale(self._index)
+        level = levels.get_level(self._index)
 
         old_block = self._pitch_factor.blockSignals(True)
-        new_pitch_factor = scale.get_freq_mul()
+        new_pitch_factor = level.get_freq_mul()
         if new_pitch_factor != self._pitch_factor.value():
             self._pitch_factor.setValue(new_pitch_factor)
         self._pitch_factor.blockSignals(old_block)
 
-        self._remove_button.setEnabled(scales.get_count() > 1)
+        self._remove_button.setEnabled(levels.get_count() > 1)
 
     def _get_update_signal_type(self):
         return 'signal_padsynth_{}'.format(self._proc_id)
 
     def _change_pitch_factor(self, value):
-        scales = self._get_params().get_harmonic_scales()
-        if self._index >= scales.get_count():
+        levels = self._get_params().get_harmonic_levels()
+        if self._index >= levels.get_count():
             return
 
-        scale = scales.get_scale(self._index)
-        scale.set_freq_mul(value)
+        level = levels.get_level(self._index)
+        level.set_freq_mul(value)
         self._updater.signal_update(self._get_update_signal_type())
 
     def _remove_harmonic(self):
-        scales = self._get_params().get_harmonic_scales()
-        if self._index >= scales.get_count():
+        levels = self._get_params().get_harmonic_levels()
+        if self._index >= levels.get_count():
             return
 
-        scales.remove_scale(self._index)
+        levels.remove_level(self._index)
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class AmplitudeEditor(PadsynthParamSlider):
+class LevelEditor(PadsynthParamSlider):
 
     def __init__(self, index):
-        super().__init__(3, 0.0, 1.0, title='Amplitude:')
+        super().__init__(1, -64.0, 24.0, title='Level:')
         self._index = index
 
     def _update_value(self):
-        scales = self._get_params().get_harmonic_scales()
-        if self._index >= scales.get_count():
+        levels = self._get_params().get_harmonic_levels()
+        if self._index >= levels.get_count():
             return
 
-        scale = scales.get_scale(self._index)
-        self.set_number(scale.get_amplitude())
+        level = levels.get_level(self._index)
+        self.set_number(level.get_level())
 
-    def _value_changed(self, amplitude):
-        scales = self._get_params().get_harmonic_scales()
-        if self._index >= scales.get_count():
+    def _value_changed(self, dB):
+        levels = self._get_params().get_harmonic_levels()
+        if self._index >= levels.get_count():
             return
 
-        scale = scales.get_scale(self._index)
-        scale.set_amplitude(amplitude)
+        level = levels.get_level(self._index)
+        level.set_level(dB)
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class HarmonicScales(QWidget, ProcessorUpdater):
+class HarmonicLevels(QWidget, ProcessorUpdater):
 
     def __init__(self):
         super().__init__()
-        self._editor = HarmonicScalesList()
+        self._editor = HarmonicLevelsList()
         self.add_to_updaters(self._editor)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Harmonic scales'))
+        v.addWidget(HeaderLine('Harmonic levels'))
         v.addWidget(self._editor)
         self.setLayout(v)
 
