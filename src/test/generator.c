@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -27,23 +27,23 @@ static void setup_single_pulse_without_generator_manifest(void)
 {
     assert(handle != 0);
 
-    set_data("p_dc_blocker_enabled.json", "false");
+    set_data("p_dc_blocker_enabled.json", "[0, false]");
 
-    set_data("out_00/p_manifest.json", "{}");
+    set_data("out_00/p_manifest.json", "[0, {}]");
     set_data("p_connections.json",
-            "[ [\"au_00/out_00\", \"out_00\"] ]");
+            "[0, [ [\"au_00/out_00\", \"out_00\"] ]]");
 
-    set_data("p_control_map.json", "[ [0, 0] ]");
-    set_data("control_00/p_manifest.json", "{}");
+    set_data("p_control_map.json", "[0, [ [0, 0] ]]");
+    set_data("control_00/p_manifest.json", "[0, {}]");
 
-    set_data("au_00/p_manifest.json", "{ \"type\": \"instrument\" }");
-    set_data("au_00/out_00/p_manifest.json", "{}");
+    set_data("au_00/p_manifest.json", "[0, { \"type\": \"instrument\" }]");
+    set_data("au_00/out_00/p_manifest.json", "[0, {}]");
     set_data("au_00/p_connections.json",
-            "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
+            "[0, [ [\"proc_00/C/out_00\", \"out_00\"] ]]");
 
-    set_data("au_00/proc_00/p_signal_type.json", "\"voice\"");
-    set_data("au_00/proc_00/out_00/p_manifest.json", "{}");
-    set_data("au_00/proc_00/c/p_b_single_pulse.json", "true");
+    set_data("au_00/proc_00/p_signal_type.json", "[0, \"voice\"]");
+    set_data("au_00/proc_00/out_00/p_manifest.json", "[0, {}]");
+    set_data("au_00/proc_00/c/p_b_single_pulse.json", "[0, true]");
 
     return;
 }
@@ -77,7 +77,7 @@ START_TEST(Adding_manifest_enables_generator)
     pause();
 
     setup_single_pulse_without_generator_manifest();
-    set_data("au_00/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
+    set_data("au_00/proc_00/p_manifest.json", "[0, { \"type\": \"debug\" }]");
     validate();
     check_unexpected_error();
 

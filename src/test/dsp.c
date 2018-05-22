@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -24,22 +24,24 @@
 
 static void make_debug_instrument(void)
 {
-    set_data("p_dc_blocker_enabled.json", "false");
+    set_data("p_dc_blocker_enabled.json", "[0, false]");
 
-    set_data("au_02/proc_00/in_00/p_manifest.json", "{}");
-    set_data("au_02/proc_00/out_00/p_manifest.json", "{}");
-    set_data("au_02/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
-    set_data("au_02/proc_00/p_signal_type.json", "\"voice\"");
+    set_data("au_02/proc_00/in_00/p_manifest.json", "[0, {}]");
+    set_data("au_02/proc_00/out_00/p_manifest.json", "[0, {}]");
+    set_data("au_02/proc_00/p_manifest.json", "[0, { \"type\": \"debug\" }]");
+    set_data("au_02/proc_00/p_signal_type.json", "[0, \"voice\"]");
 
-    set_data("au_02/proc_01/out_00/p_manifest.json", "{}");
-    set_data("au_02/proc_01/p_manifest.json", "{ \"type\": \"pitch\" }");
-    set_data("au_02/proc_01/p_signal_type.json", "\"voice\"");
+    set_data("au_02/proc_01/out_00/p_manifest.json", "[0, {}]");
+    set_data("au_02/proc_01/p_manifest.json", "[0, { \"type\": \"pitch\" }]");
+    set_data("au_02/proc_01/p_signal_type.json", "[0, \"voice\"]");
 
-    set_data("au_02/p_manifest.json", "{ \"type\": \"instrument\" }");
-    set_data("au_02/out_00/p_manifest.json", "{}");
+    set_data("au_02/p_manifest.json", "[0, { \"type\": \"instrument\" }]");
+    set_data("au_02/out_00/p_manifest.json", "[0, {}]");
     set_data("au_02/p_connections.json",
+            "[0,"
             "[ [\"proc_00/C/out_00\", \"out_00\"]"
             ", [\"proc_01/C/out_00\", \"proc_00/C/in_00\"]"
+            "]"
             "]");
 
     return;
@@ -52,26 +54,30 @@ START_TEST(Trivial_delay_is_identity)
     set_mix_volume(0);
     pause();
 
-    set_data("au_03/proc_01/in_00/p_manifest.json", "{}");
-    set_data("au_03/proc_01/out_00/p_manifest.json", "{}");
-    set_data("au_03/proc_01/p_manifest.json", "{ \"type\": \"delay\" }");
-    set_data("au_03/proc_01/p_signal_type.json", "\"mixed\"");
+    set_data("au_03/proc_01/in_00/p_manifest.json", "[0, {}]");
+    set_data("au_03/proc_01/out_00/p_manifest.json", "[0, {}]");
+    set_data("au_03/proc_01/p_manifest.json", "[0, { \"type\": \"delay\" }]");
+    set_data("au_03/proc_01/p_signal_type.json", "[0, \"mixed\"]");
 
     set_data("au_03/p_connections.json",
+            "[0,"
             "[ [\"in_00\", \"proc_01/C/in_00\"], "
-            "  [\"proc_01/C/out_00\", \"out_00\"] ]");
-    set_data("au_03/in_00/p_manifest.json", "{}");
-    set_data("au_03/out_00/p_manifest.json", "{}");
-    set_data("au_03/p_manifest.json", "{ \"type\": \"effect\" }");
+            "  [\"proc_01/C/out_00\", \"out_00\"] ]"
+            "]");
+    set_data("au_03/in_00/p_manifest.json", "[0, {}]");
+    set_data("au_03/out_00/p_manifest.json", "[0, {}]");
+    set_data("au_03/p_manifest.json", "[0, { \"type\": \"effect\" }]");
 
     make_debug_instrument();
 
-    set_data("out_00/p_manifest.json", "{}");
+    set_data("out_00/p_manifest.json", "[0, {}]");
     set_data("p_connections.json",
+            "[0,"
             "[ [\"au_02/out_00\", \"au_03/in_00\"], "
-            "  [\"au_03/out_00\", \"out_00\"] ]");
-    set_data("p_control_map.json", "[ [0, 2] ]");
-    set_data("control_00/p_manifest.json", "{}");
+            "  [\"au_03/out_00\", \"out_00\"] ]"
+            "]");
+    set_data("p_control_map.json", "[0, [ [0, 2] ]]");
+    set_data("control_00/p_manifest.json", "[0, {}]");
 
     validate();
 

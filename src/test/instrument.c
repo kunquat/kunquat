@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -26,23 +26,23 @@ static void setup_single_pulse_without_instrument_manifest(void)
 {
     assert(handle != 0);
 
-    set_data("p_dc_blocker_enabled.json", "false");
+    set_data("p_dc_blocker_enabled.json", "[0, false]");
 
-    set_data("out_00/p_manifest.json", "{}");
+    set_data("out_00/p_manifest.json", "[0, {}]");
     set_data("p_connections.json",
-            "[ [\"au_00/out_00\", \"out_00\"] ]");
+            "[0, [ [\"au_00/out_00\", \"out_00\"] ]]");
 
-    set_data("au_00/out_00/p_manifest.json", "{}");
+    set_data("au_00/out_00/p_manifest.json", "[0, {}]");
     set_data("au_00/p_connections.json",
-            "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
+            "[0, [ [\"proc_00/C/out_00\", \"out_00\"] ]]");
 
-    set_data("p_control_map.json", "[ [0, 0] ]");
-    set_data("control_00/p_manifest.json", "{}");
+    set_data("p_control_map.json", "[0, [ [0, 0] ]]");
+    set_data("control_00/p_manifest.json", "[0, {}]");
 
-    set_data("au_00/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
-    set_data("au_00/proc_00/p_signal_type.json", "\"voice\"");
-    set_data("au_00/proc_00/out_00/p_manifest.json", "{}");
-    set_data("au_00/proc_00/c/p_b_single_pulse.json", "true");
+    set_data("au_00/proc_00/p_manifest.json", "[0, { \"type\": \"debug\" }]");
+    set_data("au_00/proc_00/p_signal_type.json", "[0, \"voice\"]");
+    set_data("au_00/proc_00/out_00/p_manifest.json", "[0, {}]");
+    set_data("au_00/proc_00/c/p_b_single_pulse.json", "[0, true]");
 
     check_unexpected_error();
 
@@ -78,7 +78,7 @@ START_TEST(Adding_manifest_enables_instrument)
     pause();
 
     setup_single_pulse_without_instrument_manifest();
-    set_data("au_00/p_manifest.json", "{ \"type\": \"instrument\" }");
+    set_data("au_00/p_manifest.json", "[0, { \"type\": \"instrument\" }]");
     validate();
     check_unexpected_error();
 
@@ -128,43 +128,46 @@ START_TEST(Input_map_maintains_indices)
     pause();
 
     // Set up two debug instruments
-    set_data("p_dc_blocker_enabled.json", "false");
+    set_data("p_dc_blocker_enabled.json", "[0, false]");
 
-    set_data("out_00/p_manifest.json", "{}");
+    set_data("out_00/p_manifest.json", "[0, {}]");
     set_data("p_connections.json",
+            "[0,"
             "[ [\"au_00/out_00\", \"out_00\"],"
-            "  [\"au_01/out_00\", \"out_00\"] ]");
-
-    set_data("p_control_map.json", "[[0, 0], [1, 1]]");
-    set_data("control_00/p_manifest.json", "{}");
-    set_data("control_01/p_manifest.json", "{}");
-
-    set_data("au_00/p_manifest.json", "{ \"type\": \"instrument\" }");
-    set_data("au_00/out_00/p_manifest.json", "{}");
-    set_data("au_00/p_connections.json",
-            "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
-
-    set_data("au_00/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
-    set_data("au_00/proc_00/p_signal_type.json", "\"voice\"");
-    set_data("au_00/proc_00/out_00/p_manifest.json", "{}");
-
-    set_data("au_00/proc_00/c/p_b_single_pulse.json", "true");
-
-    set_data("au_01/p_manifest.json", "{ \"type\": \"instrument\" }");
-    set_data("au_01/out_00/p_manifest.json", "{}");
-    set_data("au_01/p_connections.json",
-            "[ [\"proc_00/C/out_00\", \"out_00\"]"
-            ", [\"proc_01/C/out_00\", \"proc_00/C/in_00\"]"
+            "  [\"au_01/out_00\", \"out_00\"] ]"
             "]");
 
-    set_data("au_01/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
-    set_data("au_01/proc_00/p_signal_type.json", "\"voice\"");
-    set_data("au_01/proc_00/in_00/p_manifest.json", "{}");
-    set_data("au_01/proc_00/out_00/p_manifest.json", "{}");
+    set_data("p_control_map.json", "[0, [[0, 0], [1, 1]]]");
+    set_data("control_00/p_manifest.json", "[0, {}]");
+    set_data("control_01/p_manifest.json", "[0, {}]");
 
-    set_data("au_01/proc_01/p_manifest.json", "{ \"type\": \"pitch\" }");
-    set_data("au_01/proc_01/p_signal_type.json", "\"voice\"");
-    set_data("au_01/proc_01/out_00/p_manifest.json", "{}");
+    set_data("au_00/p_manifest.json", "[0, { \"type\": \"instrument\" }]");
+    set_data("au_00/out_00/p_manifest.json", "[0, {}]");
+    set_data("au_00/p_connections.json",
+            "[0, [ [\"proc_00/C/out_00\", \"out_00\"] ]]");
+
+    set_data("au_00/proc_00/p_manifest.json", "[0, { \"type\": \"debug\" }]");
+    set_data("au_00/proc_00/p_signal_type.json", "[0, \"voice\"]");
+    set_data("au_00/proc_00/out_00/p_manifest.json", "[0, {}]");
+
+    set_data("au_00/proc_00/c/p_b_single_pulse.json", "[0, true]");
+
+    set_data("au_01/p_manifest.json", "[0, { \"type\": \"instrument\" }]");
+    set_data("au_01/out_00/p_manifest.json", "[0, {}]");
+    set_data("au_01/p_connections.json",
+            "[0,"
+            "[ [\"proc_00/C/out_00\", \"out_00\"]"
+            ", [\"proc_01/C/out_00\", \"proc_00/C/in_00\"] ]"
+            "]");
+
+    set_data("au_01/proc_00/p_manifest.json", "[0, { \"type\": \"debug\" }]");
+    set_data("au_01/proc_00/p_signal_type.json", "[0, \"voice\"]");
+    set_data("au_01/proc_00/in_00/p_manifest.json", "[0, {}]");
+    set_data("au_01/proc_00/out_00/p_manifest.json", "[0, {}]");
+
+    set_data("au_01/proc_01/p_manifest.json", "[0, { \"type\": \"pitch\" }]");
+    set_data("au_01/proc_01/p_signal_type.json", "[0, \"voice\"]");
+    set_data("au_01/proc_01/out_00/p_manifest.json", "[0, {}]");
 
     validate();
     check_unexpected_error();
@@ -207,33 +210,37 @@ START_TEST(Add_and_remove_internal_effect_and_render)
     float actual_buf[buf_len] = { 0.0f };
 
     // Add silence
-    set_data("album/p_manifest.json", "{}");
-    set_data("album/p_tracks.json", "[0]");
-    set_data("song_00/p_manifest.json", "{}");
-    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
-    set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_length.json", "[16, 0]");
-    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("album/p_manifest.json", "[0, {}]");
+    set_data("album/p_tracks.json", "[0, [0]]");
+    set_data("song_00/p_manifest.json", "[0, {}]");
+    set_data("song_00/p_order_list.json", "[0, [ [0, 0] ]]");
+    set_data("pat_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/p_length.json", "[0, [16, 0]]");
+    set_data("pat_000/instance_000/p_manifest.json", "[0, {}]");
 
     // Add internal audio unit
-    set_data("au_00/au_00/p_manifest.json", "{ \"type\": \"effect\" }");
-    set_data("au_00/au_00/in_00/p_manifest.json", "{}");
-    set_data("au_00/au_00/out_00/p_manifest.json", "{}");
+    set_data("au_00/au_00/p_manifest.json", "[0, { \"type\": \"effect\" }]");
+    set_data("au_00/au_00/in_00/p_manifest.json", "[0, {}]");
+    set_data("au_00/au_00/out_00/p_manifest.json", "[0, {}]");
     set_data(
             "au_00/p_connections.json",
+            "[0,"
             "[ [\"proc_00/C/out_00\", \"out_00\"]"
             ", [\"proc_00/C/out_00\", \"au_00/in_00\"]"
-            ", [\"au_00/out_00\", \"out_00\"] ]");
+            ", [\"au_00/out_00\", \"out_00\"] ]"
+            "]");
 
     // Add processor inside the internal audio unit
-    set_data("au_00/au_00/proc_00/in_00/p_manifest.json", "{}");
-    set_data("au_00/au_00/proc_00/out_00/p_manifest.json", "{}");
-    set_data("au_00/au_00/proc_00/p_manifest.json", "{ \"type\": \"volume\" }");
-    set_data("au_00/au_00/proc_00/p_signal_type.json", "\"mixed\"");
+    set_data("au_00/au_00/proc_00/in_00/p_manifest.json", "[0, {}]");
+    set_data("au_00/au_00/proc_00/out_00/p_manifest.json", "[0, {}]");
+    set_data("au_00/au_00/proc_00/p_manifest.json", "[0, { \"type\": \"volume\" }]");
+    set_data("au_00/au_00/proc_00/p_signal_type.json", "[0, \"mixed\"]");
     set_data(
             "au_00/au_00/p_connections.json",
+            "[0,"
             "[ [\"in_00\", \"proc_00/C/in_00\"]"
-            ", [\"proc_00/C/out_00\", \"out_00\"] ]");
+            ", [\"proc_00/C/out_00\", \"out_00\"] ]"
+            "]");
 
     validate();
     check_unexpected_error();
@@ -242,7 +249,7 @@ START_TEST(Add_and_remove_internal_effect_and_render)
     mix_and_fill(actual_buf, buf_len);
 
     // Remove the internal audio unit
-    set_data("au_00/p_connections.json", "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
+    set_data("au_00/p_connections.json", "[0, [ [\"proc_00/C/out_00\", \"out_00\"] ]]");
     set_data("au_00/au_00/in_00/p_manifest.json", "");
     set_data("au_00/au_00/out_00/p_manifest.json", "");
     set_data("au_00/au_00/p_connections.json", "");
@@ -265,14 +272,16 @@ END_TEST
 START_TEST(Read_audio_unit_control_vars)
 {
     setup_single_pulse_without_instrument_manifest();
-    set_data("au_00/p_manifest.json", "{ \"type\": \"instrument\" }");
+    set_data("au_00/p_manifest.json", "[0, { \"type\": \"instrument\" }]");
     validate();
     check_unexpected_error();
 
     set_data(
             "au_00/p_control_vars.json",
+            "[0,"
             "[[\"float\", \"test\", 0.0, [0.0, 1.0],"
-                " [[\"proc_00\", \"target\", \"float\", 0.0, 1.0]]]]");
+                " [[\"proc_00\", \"target\", \"float\", 0.0, 1.0]]]]"
+            "]");
 }
 END_TEST
 

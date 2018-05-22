@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -64,13 +64,13 @@ bool string_contains_word(const char* haystack, const char* needle)
 
 static void set_silent_composition(void)
 {
-    set_data("album/p_manifest.json", "{}");
-    set_data("album/p_tracks.json", "[0]");
-    set_data("song_00/p_manifest.json", "{}");
-    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
-    set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_length.json", "[16, 0]");
-    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("album/p_manifest.json", "[0, {}]");
+    set_data("album/p_tracks.json", "[0, [0]]");
+    set_data("song_00/p_manifest.json", "[0, {}]");
+    set_data("song_00/p_order_list.json", "[0, [ [0, 0] ]]");
+    set_data("pat_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/p_length.json", "[0, [16, 0]]");
+    set_data("pat_000/instance_000/p_manifest.json", "[0, {}]");
 
     return;
 }
@@ -119,7 +119,7 @@ START_TEST(Validation_rejects_album_without_tracks)
     set_silent_composition();
     validate();
 
-    set_data("album/p_tracks.json", "[]");
+    set_data("album/p_tracks.json", "[0, []]");
 
     kqt_Handle_validate(handle);
 
@@ -133,7 +133,7 @@ START_TEST(Validation_rejects_empty_songs)
     set_silent_composition();
     validate();
 
-    set_data("song_00/p_order_list.json", "[]");
+    set_data("song_00/p_order_list.json", "[0, []]");
     set_data("pat_000/p_manifest.json", "");
 
     kqt_Handle_validate(handle);
@@ -207,19 +207,19 @@ START_TEST(Validation_rejects_orphan_songs)
     if (orphan_index == 0)
     {
         // Set another valid song
-        set_data("album/p_tracks.json", "[1]");
-        set_data("song_01/p_manifest.json", "{}");
-        set_data("song_01/p_order_list.json", "[ [0, 0] ]");
+        set_data("album/p_tracks.json", "[0, [1]]");
+        set_data("song_01/p_manifest.json", "[0, {}]");
+        set_data("song_01/p_order_list.json", "[0, [ [0, 0] ]]");
     }
 
     // Set orphan song
     char orphan_manifest[64] = "";
     snprintf(orphan_manifest, 64, "song_%02x/p_manifest.json", orphan_index);
-    set_data(orphan_manifest, "{}");
+    set_data(orphan_manifest, "[0, {}]");
 
     char orphan_order_list[64] = "";
     snprintf(orphan_order_list, 64, "song_%02x/p_order_list.json", orphan_index);
-    set_data(orphan_order_list, "[ [0, 0] ]");
+    set_data(orphan_order_list, "[0, [ [0, 0] ]]");
 
     kqt_Handle_validate(handle);
 
@@ -239,8 +239,8 @@ START_TEST(Validation_rejects_nonexistent_songs_in_album)
 
     const int missing_index = test_songs[_i];
 
-    char track_list[16] = "";
-    snprintf(track_list, 16, "[%d]", missing_index);
+    char track_list[32] = "";
+    snprintf(track_list, 32, "[0, [%d]]", missing_index);
     set_data("album/p_tracks.json", track_list);
 
     kqt_Handle_validate(handle);
@@ -261,10 +261,10 @@ START_TEST(Validation_rejects_patterns_without_instances)
     if (invalid_index == 0)
     {
         // Set another valid pattern
-        set_data("song_00/p_order_list.json", "[ [1, 0] ]");
-        set_data("pat_001/p_manifest.json", "{}");
-        set_data("pat_001/p_length.json", "[16, 0]");
-        set_data("pat_001/instance_000/p_manifest.json", "{}");
+        set_data("song_00/p_order_list.json", "[0, [ [1, 0] ]]");
+        set_data("pat_001/p_manifest.json", "[0, {}]");
+        set_data("pat_001/p_length.json", "[0, [16, 0]]");
+        set_data("pat_001/instance_000/p_manifest.json", "[0, {}]");
     }
 
     // Set a new pattern without instances
@@ -273,11 +273,11 @@ START_TEST(Validation_rejects_patterns_without_instances)
 
     char invalid_manifest[64] = "";
     snprintf(invalid_manifest, 64, "%s/p_manifest.json", invalid_prefix);
-    set_data(invalid_manifest, "{}");
+    set_data(invalid_manifest, "[0, {}]");
 
     char invalid_pattern[64] = "";
     snprintf(invalid_pattern, 64, "%s/p_length.json", invalid_prefix);
-    set_data(invalid_pattern, "[16, 0]");
+    set_data(invalid_pattern, "[0, [16, 0]]");
 
     char invalid_inst[64] = "";
     snprintf(invalid_inst, 64, "%s/instance_000/p_manifest.json", invalid_prefix);
@@ -301,15 +301,15 @@ START_TEST(Validation_rejects_orphan_pattern_instances)
     if (orphan_index == 0)
     {
         // Set another valid pattern instance
-        set_data("song_00/p_order_list.json", "[ [0, 1] ]");
-        set_data("pat_000/instance_001/p_manifest.json", "{}");
+        set_data("song_00/p_order_list.json", "[0, [ [0, 1] ]]");
+        set_data("pat_000/instance_001/p_manifest.json", "[0, {}]");
     }
 
     // Set a new pattern instance
     char orphan_manifest[64] = "";
     snprintf(orphan_manifest, 64, "pat_000/instance_%03x/p_manifest.json",
             orphan_index);
-    set_data(orphan_manifest, "{}");
+    set_data(orphan_manifest, "[0, {}]");
 
     kqt_Handle_validate(handle);
 
@@ -325,7 +325,7 @@ START_TEST(Validation_rejects_nonexistent_pattern_instances_in_songs)
     set_silent_composition();
     validate();
 
-    set_data("song_00/p_order_list.json", "[ [0, 0], [0, 1] ]");
+    set_data("song_00/p_order_list.json", "[0, [ [0, 0], [0, 1] ]]");
 
     kqt_Handle_validate(handle);
 
@@ -340,7 +340,7 @@ START_TEST(Validation_rejects_reused_pattern_instances_in_song)
     set_silent_composition();
     validate();
 
-    set_data("song_00/p_order_list.json", "[ [0, 0], [0, 0] ]");
+    set_data("song_00/p_order_list.json", "[0, [ [0, 0], [0, 0] ]]");
 
     kqt_Handle_validate(handle);
 
@@ -355,9 +355,9 @@ START_TEST(Validation_rejects_shared_pattern_instances_between_songs)
     set_silent_composition();
     validate();
 
-    set_data("album/p_tracks.json", "[0, 1]");
-    set_data("song_01/p_manifest.json", "{}");
-    set_data("song_01/p_order_list.json", "[ [0, 0] ]");
+    set_data("album/p_tracks.json", "[0, [0, 1]]");
+    set_data("song_01/p_manifest.json", "[0, {}]");
+    set_data("song_01/p_order_list.json", "[0, [ [0, 0] ]]");
 
     kqt_Handle_validate(handle);
 
@@ -369,7 +369,7 @@ END_TEST
 
 START_TEST(Validation_rejects_nonexistent_controls_used_in_control_map)
 {
-    set_data("p_control_map.json", "[ [0, 0] ]");
+    set_data("p_control_map.json", "[0, [ [0, 0] ]]");
 
     kqt_Handle_validate(handle);
 

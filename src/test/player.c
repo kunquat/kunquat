@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -201,13 +201,13 @@ START_TEST(Empty_pattern_contains_silence)
     set_audio_rate(mixing_rates[_i]);
     setup_debug_instrument();
 
-    set_data("album/p_manifest.json", "{}");
-    set_data("album/p_tracks.json", "[0]");
-    set_data("song_00/p_manifest.json", "{}");
-    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
-    set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_length.json", "[16, 0]");
-    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("album/p_manifest.json", "[0, {}]");
+    set_data("album/p_tracks.json", "[0, [0]]");
+    set_data("song_00/p_manifest.json", "[0, {}]");
+    set_data("song_00/p_order_list.json", "[0, [[0, 0]]]");
+    set_data("pat_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/p_length.json", "[0, [16, 0]]");
+    set_data("pat_000/instance_000/p_manifest.json", "[0, {}]");
 
     validate();
 
@@ -260,24 +260,24 @@ START_TEST(Note_on_at_pattern_end_is_handled)
     setup_debug_instrument();
     setup_debug_single_pulse();
 
-    set_data("album/p_manifest.json", "{}");
-    set_data("album/p_tracks.json", "[0]");
-    set_data("song_00/p_manifest.json", "{}");
-    set_data("song_00/p_order_list.json", "[ [0, 0], [1, 0] ]");
+    set_data("album/p_manifest.json", "[0, {}]");
+    set_data("album/p_tracks.json", "[0, [0]]");
+    set_data("song_00/p_manifest.json", "[0, {}]");
+    set_data("song_00/p_order_list.json", "[0, [[0, 0], [1, 0]]]");
 
     char pat0_length[128] = "";
-    snprintf(pat0_length, sizeof(pat0_length), "[%d, 0]", _i);
-    set_data("pat_000/p_manifest.json", "{}");
+    snprintf(pat0_length, sizeof(pat0_length), "[0, [%d, 0]]", _i);
+    set_data("pat_000/p_manifest.json", "[0, {}]");
     set_data("pat_000/p_length.json", pat0_length);
-    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("pat_000/instance_000/p_manifest.json", "[0, {}]");
 
     char col_def[128] = "";
-    snprintf(col_def, sizeof(col_def), "[ [[%d, 0], [\"n+\", \"0\"]] ]", _i);
+    snprintf(col_def, sizeof(col_def), "[0, [ [[%d, 0], [\"n+\", \"0\"]] ]]", _i);
     set_data("pat_000/col_00/p_triggers.json", col_def);
 
-    set_data("pat_001/p_manifest.json", "{}");
-    set_data("pat_001/p_length.json", "[8, 0]");
-    set_data("pat_001/instance_000/p_manifest.json", "{}");
+    set_data("pat_001/p_manifest.json", "[0, {}]");
+    set_data("pat_001/p_length.json", "[0, [8, 0]]");
+    set_data("pat_001/instance_000/p_manifest.json", "[0, {}]");
 
     validate();
 
@@ -299,24 +299,24 @@ START_TEST(Note_on_after_pattern_end_is_ignored)
     setup_debug_instrument();
     setup_debug_single_pulse();
 
-    set_data("album/p_manifest.json", "{}");
-    set_data("album/p_tracks.json", "[0]");
-    set_data("song_00/p_manifest.json", "{}");
-    set_data("song_00/p_order_list.json", "[ [0, 0], [1, 0] ]");
+    set_data("album/p_manifest.json", "[0, {}]");
+    set_data("album/p_tracks.json", "[0, [0]]");
+    set_data("song_00/p_manifest.json", "[0, {}]");
+    set_data("song_00/p_order_list.json", "[0, [ [0, 0], [1, 0] ]]");
 
     char pat0_length[128] = "";
-    snprintf(pat0_length, sizeof(pat0_length), "[%d, 0]", _i);
-    set_data("pat_000/p_manifest.json", "{}");
+    snprintf(pat0_length, sizeof(pat0_length), "[0, [%d, 0]]", _i);
+    set_data("pat_000/p_manifest.json", "[0, {}]");
     set_data("pat_000/p_length.json", pat0_length);
-    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("pat_000/instance_000/p_manifest.json", "[0, {}]");
 
     char col_def[128] = "";
-    snprintf(col_def, sizeof(col_def), "[ [[%d, 1], [\"n+\", \"0\"]] ]", _i);
+    snprintf(col_def, sizeof(col_def), "[0, [ [[%d, 1], [\"n+\", \"0\"]] ]]", _i);
     set_data("pat_000/col_00/p_triggers.json", col_def);
 
-    set_data("pat_001/p_manifest.json", "{}");
-    set_data("pat_001/p_length.json", "[8, 0]");
-    set_data("pat_001/instance_000/p_manifest.json", "{}");
+    set_data("pat_001/p_manifest.json", "[0, {}]");
+    set_data("pat_001/p_length.json", "[0, [8, 0]]");
+    set_data("pat_001/instance_000/p_manifest.json", "[0, {}]");
 
     validate();
 
@@ -337,22 +337,22 @@ START_TEST(Note_on_at_pattern_start_is_handled)
     setup_debug_instrument();
     setup_debug_single_pulse();
 
-    set_data("album/p_manifest.json", "{}");
-    set_data("album/p_tracks.json", "[0]");
-    set_data("song_00/p_manifest.json", "{}");
-    set_data("song_00/p_order_list.json", "[ [0, 0], [1, 0] ]");
+    set_data("album/p_manifest.json", "[0, {}]");
+    set_data("album/p_tracks.json", "[0, [0]]");
+    set_data("song_00/p_manifest.json", "[0, {}]");
+    set_data("song_00/p_order_list.json", "[0, [ [0, 0], [1, 0] ]]");
 
-    set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_length.json", "[4, 0]");
-    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("pat_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/p_length.json", "[0, [4, 0]]");
+    set_data("pat_000/instance_000/p_manifest.json", "[0, {}]");
     set_data("pat_000/col_00/p_triggers.json",
-            "[ [[0, 0], [\"n+\", \"0\"]] ]");
+            "[0, [ [[0, 0], [\"n+\", \"0\"]] ]]");
 
-    set_data("pat_001/p_manifest.json", "{}");
-    set_data("pat_001/p_length.json", "[8, 0]");
-    set_data("pat_001/instance_000/p_manifest.json", "{}");
+    set_data("pat_001/p_manifest.json", "[0, {}]");
+    set_data("pat_001/p_length.json", "[0, [8, 0]]");
+    set_data("pat_001/instance_000/p_manifest.json", "[0, {}]");
     set_data("pat_001/col_00/p_triggers.json",
-            "[ [[0, 0], [\"n+\", \"0\"]] ]");
+            "[0, [ [[0, 0], [\"n+\", \"0\"]] ]]");
 
     validate();
 
@@ -375,20 +375,20 @@ START_TEST(Pattern_playback_repeats_pattern)
     setup_debug_instrument();
     setup_debug_single_pulse();
 
-    set_data("album/p_manifest.json", "{}");
-    set_data("album/p_tracks.json", "[0]");
-    set_data("song_00/p_manifest.json", "{}");
-    set_data("song_00/p_order_list.json", "[ [1, 0], [0, 0], [1, 1] ]");
+    set_data("album/p_manifest.json", "[0, {}]");
+    set_data("album/p_tracks.json", "[0, [0]]");
+    set_data("song_00/p_manifest.json", "[0, {}]");
+    set_data("song_00/p_order_list.json", "[0, [ [1, 0], [0, 0], [1, 1] ]]");
 
-    set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_length.json", "[1, 0]");
-    set_data("pat_000/instance_000/p_manifest.json", "{}");
-    set_data("pat_000/col_00/p_triggers.json", "[ [[0, 0], [\"n+\", \"0\"]] ]");
+    set_data("pat_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/p_length.json", "[0, [1, 0]]");
+    set_data("pat_000/instance_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/col_00/p_triggers.json", "[0, [ [[0, 0], [\"n+\", \"0\"]] ]]");
 
-    set_data("pat_001/p_manifest.json", "{}");
-    set_data("pat_001/p_length.json", "[16, 0]");
-    set_data("pat_001/instance_000/p_manifest.json", "{}");
-    set_data("pat_001/instance_001/p_manifest.json", "{}");
+    set_data("pat_001/p_manifest.json", "[0, {}]");
+    set_data("pat_001/p_length.json", "[0, [16, 0]]");
+    set_data("pat_001/instance_000/p_manifest.json", "[0, {}]");
+    set_data("pat_001/instance_001/p_manifest.json", "[0, {}]");
 
     validate();
 
@@ -413,22 +413,22 @@ START_TEST(Pattern_playback_pauses_zero_length_pattern)
     setup_debug_instrument();
     setup_debug_single_pulse();
 
-    set_data("album/p_manifest.json", "{}");
-    set_data("album/p_tracks.json", "[0]");
-    set_data("song_00/p_manifest.json", "{}");
-    set_data("song_00/p_order_list.json", "[ [1, 0], [0, 0], [1, 1] ]");
+    set_data("album/p_manifest.json", "[0, {}]");
+    set_data("album/p_tracks.json", "[0, [0]]");
+    set_data("song_00/p_manifest.json", "[0, {}]");
+    set_data("song_00/p_order_list.json", "[0, [ [1, 0], [0, 0], [1, 1] ]]");
 
-    set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_length.json", "[0, 0]");
-    set_data("pat_000/instance_000/p_manifest.json", "{}");
-    set_data("pat_000/col_00/p_triggers.json", "[ [[0, 0], [\"n+\", \"0\"]] ]");
+    set_data("pat_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/p_length.json", "[0, [0, 0]]");
+    set_data("pat_000/instance_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/col_00/p_triggers.json", "[0, [ [[0, 0], [\"n+\", \"0\"]] ]]");
 
-    set_data("pat_001/p_manifest.json", "{}");
-    set_data("pat_001/p_length.json", "[16, 0]");
-    set_data("pat_001/instance_000/p_manifest.json", "{}");
-    set_data("pat_001/instance_001/p_manifest.json", "{}");
+    set_data("pat_001/p_manifest.json", "[0, {}]");
+    set_data("pat_001/p_length.json", "[0, [16, 0]]");
+    set_data("pat_001/instance_000/p_manifest.json", "[0, {}]");
+    set_data("pat_001/instance_001/p_manifest.json", "[0, {}]");
     set_data("pat_001/col_01/p_triggers.json",
-            "[ [[0, 0], [\"n+\", \"0\"]], [[1, 0], [\"n+\", \"0\"]] ]");
+            "[0, [ [[0, 0], [\"n+\", \"0\"]], [[1, 0], [\"n+\", \"0\"]] ]]");
 
     validate();
 
@@ -513,18 +513,18 @@ START_TEST(Initial_tempo_is_set_correctly)
 
     int tempos[] = { 30, 60, 120, 240, 0 }; // 0 is guard, shouldn't be used
 
-    set_data("album/p_manifest.json", "{}");
-    set_data("album/p_tracks.json", "[0]");
-    set_data("song_00/p_manifest.json", "{}");
-    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
+    set_data("album/p_manifest.json", "[0, {}]");
+    set_data("album/p_tracks.json", "[0, [0]]");
+    set_data("song_00/p_manifest.json", "[0, {}]");
+    set_data("song_00/p_order_list.json", "[0, [ [0, 0] ]]");
     char tempo_data[128] = "";
-    snprintf(tempo_data, sizeof(tempo_data), "%d", tempos[_i]);
+    snprintf(tempo_data, sizeof(tempo_data), "[0, %d]", tempos[_i]);
     set_data("song_00/p_tempo.json", tempo_data);
-    set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_length.json", "[4, 0]");
-    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("pat_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/p_length.json", "[0, [4, 0]]");
+    set_data("pat_000/instance_000/p_manifest.json", "[0, {}]");
     set_data("pat_000/col_00/p_triggers.json",
-            "[ [[0, 0], [\"n+\", \"0\"]], [[1, 0], [\"n+\", \"0\"]] ]");
+            "[0, [ [[0, 0], [\"n+\", \"0\"]], [[1, 0], [\"n+\", \"0\"]] ]]");
 
     validate();
 
@@ -546,14 +546,14 @@ START_TEST(Infinite_mode_loops_composition)
     setup_debug_instrument();
     setup_debug_single_pulse();
 
-    set_data("album/p_manifest.json", "{}");
-    set_data("album/p_tracks.json", "[0]");
-    set_data("song_00/p_manifest.json", "{}");
-    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
-    set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_length.json", "[2, 0]");
-    set_data("pat_000/instance_000/p_manifest.json", "{}");
-    set_data("pat_000/col_00/p_triggers.json", "[ [[0, 0], [\"n+\", \"0\"]] ]");
+    set_data("album/p_manifest.json", "[0, {}]");
+    set_data("album/p_tracks.json", "[0, [0]]");
+    set_data("song_00/p_manifest.json", "[0, {}]");
+    set_data("song_00/p_order_list.json", "[0, [ [0, 0] ]]");
+    set_data("pat_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/p_length.json", "[0, [2, 0]]");
+    set_data("pat_000/instance_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/col_00/p_triggers.json", "[0, [ [[0, 0], [\"n+\", \"0\"]] ]]");
 
     validate();
 
@@ -582,19 +582,21 @@ START_TEST(Skipping_moves_position_forwards)
     setup_debug_instrument();
     setup_debug_single_pulse();
 
-    set_data("album/p_manifest.json", "{}");
-    set_data("album/p_tracks.json", "[0]");
-    set_data("song_00/p_manifest.json", "{}");
-    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
-    set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_length.json", "[8, 0]");
-    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("album/p_manifest.json", "[0, {}]");
+    set_data("album/p_tracks.json", "[0, [0]]");
+    set_data("song_00/p_manifest.json", "[0, {}]");
+    set_data("song_00/p_order_list.json", "[0, [ [0, 0] ]]");
+    set_data("pat_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/p_length.json", "[0, [8, 0]]");
+    set_data("pat_000/instance_000/p_manifest.json", "[0, {}]");
     set_data("pat_000/col_00/p_triggers.json",
+            "[0,"
             "[ [[0, 0], [\"n+\", \"0\"]],"
             "  [[1, 0], [\"n+\", \"0\"]],"
             "  [[2, 0], [\"n+\", \"0\"]],"
             "  [[3, 0], [\"n+\", \"0\"]],"
-            "  [[4, 0], [\"n+\", \"0\"]] ]");
+            "  [[4, 0], [\"n+\", \"0\"]] ]"
+            "]");
 
     validate();
 
@@ -622,18 +624,21 @@ START_TEST(Pattern_delay_extends_gap_between_trigger_rows)
     setup_debug_instrument();
     setup_debug_single_pulse();
 
-    set_data("album/p_manifest.json", "{}");
-    set_data("album/p_tracks.json", "[0]");
-    set_data("song_00/p_manifest.json", "{}");
-    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
-    set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_length.json", "[4, 0]");
-    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("album/p_manifest.json", "[0, {}]");
+    set_data("album/p_tracks.json", "[0, [0]]");
+    set_data("song_00/p_manifest.json", "[0, {}]");
+    set_data("song_00/p_order_list.json", "[0, [ [0, 0] ]]");
+    set_data("pat_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/p_length.json", "[0, [4, 0]]");
+    set_data("pat_000/instance_000/p_manifest.json", "[0, {}]");
     char triggers[128] = "";
     snprintf(triggers, sizeof(triggers),
+            "[0,"
             "[ [[0, 0], [\"n+\", \"0\"]],"
             "  [[1, 0], [\"mpd\", \"%d\"]],"
-            "  [[2, 0], [\"n+\", \"0\"]] ]", _i * 2);
+            "  [[2, 0], [\"n+\", \"0\"]] ]"
+            "]",
+            _i * 2);
     set_data("pat_000/col_00/p_triggers.json", triggers);
 
     validate();
@@ -657,18 +662,21 @@ START_TEST(Pattern_delay_inserts_gap_between_adjacent_triggers)
     setup_debug_instrument();
     setup_debug_single_pulse();
 
-    set_data("album/p_manifest.json", "{}");
-    set_data("album/p_tracks.json", "[0]");
-    set_data("song_00/p_manifest.json", "{}");
-    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
-    set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_length.json", "[4, 0]");
-    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("album/p_manifest.json", "[0, {}]");
+    set_data("album/p_tracks.json", "[0, [0]]");
+    set_data("song_00/p_manifest.json", "[0, {}]");
+    set_data("song_00/p_order_list.json", "[0, [ [0, 0] ]]");
+    set_data("pat_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/p_length.json", "[0, [4, 0]]");
+    set_data("pat_000/instance_000/p_manifest.json", "[0, {}]");
     char triggers[128] = "";
     snprintf(triggers, sizeof(triggers),
+            "[0,"
             "[ [[0, 0], [\"n+\", \"0\"]],"
             "  [[0, 0], [\"mpd\", \"%d\"]],"
-            "  [[0, 0], [\"n+\", \"0\"]] ]", _i * 2);
+            "  [[0, 0], [\"n+\", \"0\"]] ]"
+            "]",
+            _i * 2);
     set_data("pat_000/col_00/p_triggers.json", triggers);
 
     validate();
@@ -694,19 +702,22 @@ START_TEST(Tempo_change_affects_playback_cursor)
 
     int tempos[] = { 30, 60, 120, 240, 0 }; // 0 is guard, shouldn't be used
 
-    set_data("album/p_manifest.json", "{}");
-    set_data("album/p_tracks.json", "[0]");
-    set_data("song_00/p_manifest.json", "{}");
-    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
-    set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_length.json", "[4, 0]");
-    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("album/p_manifest.json", "[0, {}]");
+    set_data("album/p_tracks.json", "[0, [0]]");
+    set_data("song_00/p_manifest.json", "[0, {}]");
+    set_data("song_00/p_order_list.json", "[0, [ [0, 0] ]]");
+    set_data("pat_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/p_length.json", "[0, [4, 0]]");
+    set_data("pat_000/instance_000/p_manifest.json", "[0, {}]");
     char triggers[256] = "";
     snprintf(triggers, sizeof(triggers),
+            "[0,"
             "[ [[0, 0], [\"n+\", \"0\"]],"
             "  [[1, 0], [\"n+\", \"0\"]],"
             "  [[1, 0], [\"m.t\", \"%d\"]],"
-            "  [[2, 0], [\"n+\", \"0\"]] ]", tempos[_i]);
+            "  [[2, 0], [\"n+\", \"0\"]] ]"
+            "]",
+            tempos[_i]);
     set_data("pat_000/col_00/p_triggers.json", triggers);
 
     validate();
@@ -735,21 +746,24 @@ START_TEST(Tempo_slide_affects_playback_cursor)
 
     int tempos[] = { 30, 60, 120, 240, 0 }; // 0 is guard, shouldn't be used
 
-    set_data("album/p_manifest.json", "{}");
-    set_data("album/p_tracks.json", "[0]");
-    set_data("song_00/p_manifest.json", "{}");
-    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
-    set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_length.json", "[4, 0]");
-    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("album/p_manifest.json", "[0, {}]");
+    set_data("album/p_tracks.json", "[0, [0]]");
+    set_data("song_00/p_manifest.json", "[0, {}]");
+    set_data("song_00/p_order_list.json", "[0, [ [0, 0] ]]");
+    set_data("pat_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/p_length.json", "[0, [4, 0]]");
+    set_data("pat_000/instance_000/p_manifest.json", "[0, {}]");
     char triggers[256] = "";
     snprintf(triggers, sizeof(triggers),
+            "[0,"
             "[ [[0, 0], [\"n+\", \"0\"]],"
             "  [[1, 0], [\"n+\", \"0\"]],"
             "  [[1, 0], [\"m/t\", \"%d\"]],"
             "  [[1, 0], [\"m/=t\", \"1\"]],"
             "  [[2, 0], [\"n+\", \"0\"]],"
-            "  [[3, 0], [\"n+\", \"0\"]] ]", tempos[_i]);
+            "  [[3, 0], [\"n+\", \"0\"]] ]"
+            "]",
+            tempos[_i]);
     set_data("pat_000/col_00/p_triggers.json", triggers);
 
     validate();
@@ -805,18 +819,21 @@ START_TEST(Jump_backwards_creates_a_loop)
     setup_debug_instrument();
     setup_debug_single_pulse();
 
-    set_data("album/p_manifest.json", "{}");
-    set_data("album/p_tracks.json", "[0]");
-    set_data("song_00/p_manifest.json", "{}");
-    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
-    set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_length.json", "[4, 0]");
-    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("album/p_manifest.json", "[0, {}]");
+    set_data("album/p_tracks.json", "[0, [0]]");
+    set_data("song_00/p_manifest.json", "[0, {}]");
+    set_data("song_00/p_order_list.json", "[0, [ [0, 0] ]]");
+    set_data("pat_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/p_length.json", "[0, [4, 0]]");
+    set_data("pat_000/instance_000/p_manifest.json", "[0, {}]");
     char triggers[256] = "";
     snprintf(triggers, sizeof(triggers),
+            "[0,"
             "[ [[0, 0], [\"n+\", \"0\"]],"
             "  [[2, 0], [\"m.jc\", \"%d\"]],"
-            "  [[2, 0], [\"mj\", null]] ]", _i);
+            "  [[2, 0], [\"mj\", null]] ]"
+            "]",
+            _i);
     set_data("pat_000/col_00/p_triggers.json", triggers);
 
     validate();
@@ -880,20 +897,20 @@ END_TEST
 void setup_many_triggers(int event_count)
 {
     // Set up pattern essentials
-    set_data("album/p_manifest.json", "{}");
-    set_data("album/p_tracks.json", "[0]");
-    set_data("song_00/p_manifest.json", "{}");
-    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
-    set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_length.json", "[4, 0]");
-    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("album/p_manifest.json", "[0, {}]");
+    set_data("album/p_tracks.json", "[0, [0]]");
+    set_data("song_00/p_manifest.json", "[0, {}]");
+    set_data("song_00/p_order_list.json", "[0, [ [0, 0] ]]");
+    set_data("pat_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/p_length.json", "[0, [4, 0]]");
+    set_data("pat_000/instance_000/p_manifest.json", "[0, {}]");
 
     // Add lots of simultaneous triggers
     char* triggers = malloc(sizeof(char) * 65536);
     fail_if(triggers == NULL, "Could not allocate memory for triggers");
 
     char* cur_pos = triggers;
-    cur_pos += sprintf(triggers, "[ [[0, 0], [\"n+\", \"0\"]]");
+    cur_pos += sprintf(triggers, "[0, [ [[0, 0], [\"n+\", \"0\"]]");
     for (int i = 1; i < event_count; ++i)
     {
         assert(cur_pos - triggers < 65000);
@@ -905,7 +922,7 @@ void setup_many_triggers(int event_count)
                 i);
     }
 
-    cur_pos += snprintf(cur_pos, (size_t)(65536 - (cur_pos - triggers)), " ]");
+    cur_pos += snprintf(cur_pos, (size_t)(65536 - (cur_pos - triggers)), " ] ]");
 
     set_data("pat_000/col_00/p_triggers.json", triggers);
     free(triggers);
@@ -1030,7 +1047,7 @@ void setup_complex_bind(int event_count)
     fail_if(bind == NULL, "Could not allocate memory for bind specification");
 
     char* cur_pos = bind;
-    cur_pos += sprintf(bind, "[[\"#\", [], [[0, [\"n+\", \"0\"]]");
+    cur_pos += sprintf(bind, "[0, [[\"#\", [], [[0, [\"n+\", \"0\"]]");
     for (int i = 1; i < event_count; ++i)
     {
         assert(cur_pos - bind < 65000);
@@ -1038,7 +1055,7 @@ void setup_complex_bind(int event_count)
                 ", [0, [\"n+\", \"%d\"]]", i);
     }
 
-    cur_pos += snprintf(cur_pos, (size_t)(65536 - (cur_pos - bind)), " ]]]");
+    cur_pos += snprintf(cur_pos, (size_t)(65536 - (cur_pos - bind)), " ]]] ]");
 
     set_data("p_bind.json", bind);
     free(bind);
@@ -1053,15 +1070,15 @@ void setup_complex_bind(int event_count)
 void setup_complex_bind_trigger(void)
 {
     // Set up pattern essentials
-    set_data("album/p_manifest.json", "{}");
-    set_data("album/p_tracks.json", "[0]");
-    set_data("song_00/p_manifest.json", "{}");
-    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
-    set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_length.json", "[4, 0]");
-    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("album/p_manifest.json", "[0, {}]");
+    set_data("album/p_tracks.json", "[0, [0]]");
+    set_data("song_00/p_manifest.json", "[0, {}]");
+    set_data("song_00/p_order_list.json", "[0, [ [0, 0] ]]");
+    set_data("pat_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/p_length.json", "[0, [4, 0]]");
+    set_data("pat_000/instance_000/p_manifest.json", "[0, {}]");
     set_data("pat_000/col_00/p_triggers.json",
-            "[ [[0, 0], [\"#\", \"\\\"\\\"\"]] ]");
+            "[0, [ [[0, 0], [\"#\", \"\\\"\\\"\"]] ] ]");
 
     validate();
 
@@ -1214,15 +1231,15 @@ END_TEST
 static void setup_query_patterns(void)
 {
     // Set up two empty pattern instances
-    set_data("album/p_manifest.json", "{}");
-    set_data("album/p_tracks.json", "[0]");
-    set_data("song_00/p_manifest.json", "{}");
-    set_data("song_00/p_order_list.json", "[ [0, 0], [0, 1] ]");
+    set_data("album/p_manifest.json", "[0, {}]");
+    set_data("album/p_tracks.json", "[0, [0]]");
+    set_data("song_00/p_manifest.json", "[0, {}]");
+    set_data("song_00/p_order_list.json", "[0, [ [0, 0], [0, 1] ]]");
 
-    set_data("pat_000/p_manifest.json", "{}");
-    set_data("pat_000/p_length.json", "[4, 0]");
-    set_data("pat_000/instance_000/p_manifest.json", "{}");
-    set_data("pat_000/instance_001/p_manifest.json", "{}");
+    set_data("pat_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/p_length.json", "[0, [4, 0]]");
+    set_data("pat_000/instance_000/p_manifest.json", "[0, {}]");
+    set_data("pat_000/instance_001/p_manifest.json", "[0, {}]");
 
     validate();
 
