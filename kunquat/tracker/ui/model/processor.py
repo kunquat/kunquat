@@ -66,6 +66,11 @@ class Processor():
     def get_params_class(format_name):
         return _proc_classes.get(format_name, None)
 
+    @staticmethod
+    def register_conversion_infos(data_converters):
+        for proc_cls in _proc_classes.values():
+            proc_cls.register_conversion_infos(data_converters)
+
     def __init__(self, au_id, proc_id):
         assert au_id
         assert proc_id

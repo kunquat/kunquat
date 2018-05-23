@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -21,6 +21,10 @@ class ProcParams():
     @staticmethod
     def get_port_info():
         return {}
+
+    @staticmethod
+    def register_conversion_infos(data_converters):
+        pass
 
     def __init__(self, proc_id, controller):
         self._key_prefix = '{}/'.format(proc_id)
