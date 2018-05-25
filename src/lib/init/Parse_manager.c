@@ -53,19 +53,21 @@ typedef struct Reader_params
 } Reader_params;
 
 
-#define MODULE_KEYP(name, keyp, def) static bool read_##name(Reader_params* params);
+#define MODULE_KEYP(name, keyp, version, def) \
+    static bool read_##name(Reader_params* params);
 #include <init/module_key_patterns.h>
 
 
 static const struct
 {
     const char* keyp;
+    int version;
     bool (*func)(Reader_params*);
 } keyp_to_func[] =
 {
-#define MODULE_KEYP(name, keyp, def) { keyp, read_##name, },
+#define MODULE_KEYP(name, keyp, version, def) { keyp, version, read_##name, },
 #include <init/module_key_patterns.h>
-    { NULL, NULL }
+    { NULL, 0, NULL }
 };
 
 
@@ -269,7 +271,24 @@ bool parse_data(Handle* handle, const char* key, const void* data, long length)
 
                 if (version < 0 || version > (int64_t)INT_MAX)
                 {
-                    Streader_set_error(params.sr, "Invalid version number: %d", version);
+                    Streader_set_error(
+                            params.sr,
+                            "Invalid version number of key %s: %lld",
+                            key,
+                            (long long)version);
+                    set_error(&params);
+                    return false;
+                }
+
+                if (version > keyp_to_func[i].version)
+                {
+                    Streader_set_error(
+                            params.sr,
+                            "Unsupported version number of key %s: %lld"
+                            " (latest supported version is %d)",
+                            key,
+                            (long long)version,
+                            keyp_to_func[i].version);
                     set_error(&params);
                     return false;
                 }
@@ -1410,8 +1429,8 @@ static bool read_any_proc_conf_key(
     MAKE_AU_EFFECT_READER(base_name) \
     MAKE_GLOBAL_AU_READER(base_name)
 
-#define MODULE_KEYP(name, keyp, def_val)
-#define MODULE_AU_KEYP(name, keyp, def_val) MAKE_AU_READERS(name)
+#define MODULE_KEYP(name, keyp, version, def_val)
+#define MODULE_AU_KEYP(name, keyp, version, def_val) MAKE_AU_READERS(name)
 #include <init/module_key_patterns.h>
 
 
