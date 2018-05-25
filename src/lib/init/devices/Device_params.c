@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -177,12 +177,14 @@ Device_params* new_Device_params(void)
 }
 
 
-bool Device_params_parse_value(Device_params* params, const char* key, Streader* sr)
+bool Device_params_parse_value(
+        Device_params* params, const char* key, int version, Streader* sr)
 {
     rassert(params != NULL);
     rassert(key != NULL);
     rassert(string_has_prefix(key, "i/") || string_has_prefix(key, "c/"));
     rassert(key_is_device_param(key));
+    rassert(version >= 0);
     rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
@@ -209,11 +211,11 @@ bool Device_params_parse_value(Device_params* params, const char* key, Streader*
     bool success = true;
     if (field != NULL)
     {
-        success = Device_field_change(field, sr);
+        success = Device_field_change(field, version, sr);
     }
     else
     {
-        field = new_Device_field_from_data(key, sr);
+        field = new_Device_field_from_data(key, version, sr);
         if (field == NULL)
             return false;
 

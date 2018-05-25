@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -145,9 +145,10 @@ Device_field* new_Device_field(const char* key, void* data)
 }
 
 
-Device_field* new_Device_field_from_data(const char* key, Streader* sr)
+Device_field* new_Device_field_from_data(const char* key, int version, Streader* sr)
 {
     rassert(key != NULL);
+    rassert(version >= 0);
     rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
@@ -161,7 +162,7 @@ Device_field* new_Device_field_from_data(const char* key, Streader* sr)
         return NULL;
     }
 
-    if (!Device_field_change(field, sr))
+    if (!Device_field_change(field, version, sr))
     {
         del_Device_field(field);
         return NULL;
@@ -178,10 +179,11 @@ const char* Device_field_get_key(const Device_field* field)
 }
 
 
-bool Device_field_change(Device_field* field, Streader* sr)
+bool Device_field_change(Device_field* field, int version, Streader* sr)
 {
     rassert(field != NULL);
     rassert(field->type != DEVICE_FIELD_NONE);
+    rassert(version >= 0);
     rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))

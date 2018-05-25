@@ -1330,7 +1330,7 @@ static bool read_any_proc_impl_conf_key(
         return false;
 
     // Update Device
-    if (!Device_set_key((Device*)proc, params->subkey, params->sr))
+    if (!Device_set_key((Device*)proc, params->subkey, params->version, params->sr))
     {
         set_error(params);
         return false;

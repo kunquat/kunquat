@@ -218,13 +218,14 @@ bool Device_sync_states(const Device* device, Device_states* dstates);
 /**
  * Set a key in the Device.
  *
- * \param device   The Device -- must not be \c NULL.
- * \param key      The key that changed -- must not be \c NULL.
- * \param sr       The Streader of the data -- must not be \c NULL.
+ * \param device    The Device -- must not be \c NULL.
+ * \param key       The key that changed -- must not be \c NULL.
+ * \param version   The data version -- must be >= \c 0.
+ * \param sr        The Streader of the data -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if a fatal error occurred.
  */
-bool Device_set_key(Device* device, const char* key, Streader* sr);
+bool Device_set_key(Device* device, const char* key, int version, Streader* sr);
 
 
 /**
