@@ -142,6 +142,7 @@ Audio_unit* new_Audio_unit(void)
         return NULL;
     }
 
+    // TODO: Make these existences match the outside interface
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Device_set_port_existence(
@@ -149,7 +150,7 @@ Audio_unit* new_Audio_unit(void)
         Device_set_port_existence(
                 &au->in_iface->parent, DEVICE_PORT_TYPE_SEND, port, true);
     }
-    for (int port = 0; port < KQT_BUFFERS_MAX; ++port)
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Device_set_port_existence(
                 &au->out_iface->parent, DEVICE_PORT_TYPE_RECV, port, true);
