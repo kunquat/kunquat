@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2012-2017
+# Author: Tomi Jylhä-Ollila, Finland 2012-2018
 #
 # This file is part of Kunquat.
 #
@@ -39,7 +39,15 @@ def load_kqt(path, audio_rate):
     f = KqtFile(path)
     f.load_into_handle(handle)
 
-    return handle, dict(f.get_stored_entries())
+    player_data = {}
+    for (key, value) in f.get_stored_entries():
+        stripped = value
+        if key.endswith('.json'):
+            if (type(value) == list) and (len(value) == 2):
+                _, stripped = value
+        player_data[key] = stripped
+
+    return handle, player_data
 
 
 def export(in_path, out_path, options):
