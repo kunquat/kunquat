@@ -29,7 +29,7 @@ from kunquat.tracker.ui.model.processor import Processor
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 import kunquat.tracker.ui.model.tstamp as tstamp
 
-from .dataconverters import DataConverters, VersionError
+from .dataconverters import DataConverters, VersionError, UnsupportedVersionError
 from .kqtivalidator import KqtiValidator
 from .store import Store
 from .session import Session
@@ -167,6 +167,14 @@ class Controller():
                         orig_key, ver_value)
                 values[key] = value
                 self._update_progress_step(kqtfile.get_loading_progress() * 0.5)
+
+        except UnsupportedVersionError as e:
+            message = e.get_message('module', kqtfile.try_get_editor_version())
+            self._session.set_module_load_error_info(module_path, message)
+            self._updater.signal_update(
+                    'signal_module_load_error', 'signal_progress_finished')
+            return
+
         except (KunquatFileError, VersionError) as e:
             self._session.set_module_load_error_info(module_path, e.args[0])
             self._updater.signal_update(
@@ -297,10 +305,11 @@ class Controller():
             if not is_sandbox:
                 self._updater.signal_update('signal_progress_finished')
             return
+
         contents = kqtifile.get_contents()
 
         # Validate contents
-        validator = KqtiValidator(contents)
+        validator = KqtiValidator(contents, self._data_converters)
         for _ in validator.get_validation_steps():
             if not is_sandbox:
                 self._update_progress_step((1 + validator.get_progress()) / 3)

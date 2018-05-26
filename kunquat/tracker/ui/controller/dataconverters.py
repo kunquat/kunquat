@@ -13,9 +13,38 @@
 
 import re
 
+from kunquat.tracker.version import KUNQUAT_VERSION
+
 
 class VersionError(ValueError):
     pass
+
+
+class UnsupportedVersionError(VersionError):
+
+    def get_message(self, data_kind, version_entry):
+        ver_string = None
+        if (type(version_entry) == list) and (len(version_entry) == 2):
+            _, maybe_ver_string = version_entry
+            if type(maybe_ver_string) == str:
+                ver_string = maybe_ver_string
+
+        msg = 'Could not load {} data due to version mismatch.'.format(data_kind)
+        if not (KUNQUAT_VERSION and ver_string):
+            msg += '\nThe data is probably created with a later version of Kunquat.'
+        else:
+            msg += '\nThe data is created with Kunquat version {}'.format(ver_string)
+            if ver_string > KUNQUAT_VERSION:
+                msg += ' (current version of Kunquat installed is {}).'.format(
+                        KUNQUAT_VERSION)
+            else:
+                msg += (', which should be compatible with the version'
+                    ' of Kunquat installed ({}).'
+                    ' Please report this issue.'.format(KUNQUAT_VERSION))
+
+        msg += '\n' + self.args[0]
+
+        return msg
 
 
 class ConversionInfo():
@@ -39,14 +68,19 @@ class ConversionInfo():
             return orig_key, orig_ver_data
 
         if not (isinstance(orig_ver_data, list) and len(orig_ver_data) == 2):
-            raise VersionError('Data to be converted is not valid versioned data')
+            raise VersionError(
+                    'Data to be converted is not valid versioned data, key "{}"'.format(
+                        orig_key))
 
         orig_version, orig_payload = orig_ver_data
         if not (isinstance(orig_version, int) and orig_version >= 0):
-            raise VersionError('Invalid data version number')
+            raise VersionError(
+                    'Invalid data version number of key "{}"'.format(orig_key))
 
         if orig_version > self.get_last_version():
-            raise VersionError('Unsupported data version: {}'.format(orig_version))
+            raise UnsupportedVersionError(
+                    'Unsupported data version of key "{}": {}'.format(
+                        orig_key, orig_version))
 
         if orig_version == self.get_last_version():
             return (orig_key, orig_payload)
