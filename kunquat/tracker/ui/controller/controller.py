@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2018
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -25,9 +25,11 @@ from kunquat.kunquat.file import KqtFile, KunquatFileError, KQT_KEEP_NONE
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
+from kunquat.tracker.ui.model.processor import Processor
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 import kunquat.tracker.ui.model.tstamp as tstamp
 
+from .dataconverters import DataConverters, VersionError, UnsupportedVersionError
 from .kqtivalidator import KqtiValidator
 from .store import Store
 from .session import Session
@@ -52,6 +54,7 @@ class Controller():
     def __init__(self):
         self._push_amount = None
         self._audio_levels = (0, 0)
+        self._data_converters = DataConverters()
         self._store = None
         self._session = None
         self._share = None
@@ -64,9 +67,11 @@ class Controller():
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        Processor.register_conversion_infos(self._data_converters)
 
     def set_store(self, store):
         self._store = store
+        self._store.set_data_converters(self._data_converters)
 
     def get_store(self):
         return self._store
@@ -157,10 +162,20 @@ class Controller():
         try:
             for i, entry in enumerate(kqtfile.get_entries()):
                 yield
-                key, value = entry
+                orig_key, ver_value = entry
+                key, value = self._data_converters.convert_key_and_data(
+                        orig_key, ver_value)
                 values[key] = value
                 self._update_progress_step(kqtfile.get_loading_progress() * 0.5)
-        except KunquatFileError as e:
+
+        except UnsupportedVersionError as e:
+            message = e.get_message('module', kqtfile.try_get_editor_version())
+            self._session.set_module_load_error_info(module_path, message)
+            self._updater.signal_update(
+                    'signal_module_load_error', 'signal_progress_finished')
+            return
+
+        except (KunquatFileError, VersionError) as e:
             self._session.set_module_load_error_info(module_path, e.args[0])
             self._updater.signal_update(
                     'signal_module_load_error', 'signal_progress_finished')
@@ -203,8 +218,9 @@ class Controller():
 
                 step_count = len(self._store.items()) + 1
 
-                for i, (key, value) in enumerate(self._store.items()):
+                for i, key in enumerate(self._store.keys()):
                     yield
+                    value = self._store.get_with_version(key)
                     path = '/'.join((prefix, key))
                     if key.endswith('.json'):
                         encoded = bytes(json.dumps(value), encoding='utf-8')
@@ -247,7 +263,7 @@ class Controller():
 
                 for i, key in enumerate(au_keys):
                     yield
-                    value = self._store[key]
+                    value = self._store.get_with_version(key)
                     path = '{}/{}'.format(prefix, key[len(au_prefix):])
                     if key.endswith('.json'):
                         encoded = bytes(json.dumps(value), encoding='utf-8')
@@ -289,10 +305,11 @@ class Controller():
             if not is_sandbox:
                 self._updater.signal_update('signal_progress_finished')
             return
+
         contents = kqtifile.get_contents()
 
         # Validate contents
-        validator = KqtiValidator(contents)
+        validator = KqtiValidator(contents, self._data_converters)
         for _ in validator.get_validation_steps():
             if not is_sandbox:
                 self._update_progress_step((1 + validator.get_progress()) / 3)
@@ -309,7 +326,8 @@ class Controller():
         transaction = {}
 
         # Add audio unit data to the transaction
-        for (key, value) in contents.items():
+        for (orig_key, ver_value) in contents.items():
+            key, value = self._data_converters.convert_key_and_data(orig_key, ver_value)
             dest_key = '{}/{}'.format(au_id, key)
             transaction[dest_key] = value
 

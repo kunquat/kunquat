@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2017
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2018
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -560,7 +560,12 @@ class ImportErrorDialog(QDialog):
         self.setLayout(v)
 
         # Dialog contents
-        error_msg = ('<p>{}</p> <p>{}</p>'.format(msg_fmt.format(path), details))
+        detail_lines = details.split('\n')
+        format_detail_lines = (
+                '<p style="margin-top: 0.2em; margin-bottom: 0.2em;">{}</p>'.format(d)
+                for d in detail_lines)
+        format_details = ' '.join(format_detail_lines)
+        error_msg = ('<p>{}</p> {}'.format(msg_fmt.format(path), format_details))
         self._message.setText(error_msg)
 
         ok_button = QPushButton('OK')

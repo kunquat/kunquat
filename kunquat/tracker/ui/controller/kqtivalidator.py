@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -12,13 +12,15 @@
 #
 
 from kunquat.kunquat.kunquat import Kunquat, KunquatFormatError
+from .dataconverters import VersionError, UnsupportedVersionError
 
 
 class KqtiValidator():
 
-    def __init__(self, contents):
+    def __init__(self, contents, data_converters):
         self._validator = Kunquat()
         self._contents = contents
+        self._data_converters = data_converters
         self._validation_error = None
         self._progress = 0
 
@@ -31,6 +33,17 @@ class KqtiValidator():
         for i, (au_key, value) in enumerate(self._contents.items()):
             yield
             key = '/'.join((target_prefix, au_key))
+
+            try:
+                self._data_converters.convert_key_and_data(key, value)
+            except UnsupportedVersionError as e:
+                version_data = self._contents.get('m_editor_version.json')
+                self._validation_error = e.get_message('audio unit', version_data)
+                break
+            except VersionError as e:
+                self._validation_error = e.args[0]
+                break
+
             self._validator.set_data(key, value)
             self._progress = i / step_count
 

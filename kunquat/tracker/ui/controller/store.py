@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2014-2017
+#          Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -21,6 +21,7 @@ class Store(MutableMapping):
     def __init__(self):
         self._content = dict()
         self._audio_engine = None
+        self._data_converters = None
         self._pending_validation = deque()
         self._transaction_ids = count()
         self._transaction_notifiers = {}
@@ -31,13 +32,20 @@ class Store(MutableMapping):
     def set_audio_engine(self, audio_engine):
         self._audio_engine = audio_engine
 
+    def set_data_converters(self, data_converters):
+        self._data_converters = data_converters
+
     def put(self, transaction, mark_modified=True, transaction_notifier=None):
         assert not self._is_saving
         transaction_id = next(self._transaction_ids)
         if transaction_notifier != None:
             self._transaction_notifiers[transaction_id] = transaction_notifier
-        self._audio_engine.set_data(transaction_id, transaction)
-        self._pending_validation.append((transaction_id, transaction))
+
+        ver_transaction = { k: self._data_converters.wrap_with_latest_version(k, v)
+                for (k, v) in transaction.items() }
+
+        self._audio_engine.set_data(transaction_id, ver_transaction)
+        self._pending_validation.append((transaction_id, ver_transaction))
         if mark_modified:
             self._is_modified = True
 
@@ -78,7 +86,7 @@ class Store(MutableMapping):
         assert transaction_id == validated_id
         return transaction
 
-    def __getitem__(self, key):
+    def get_with_version(self, key):
         # If the key has non-validated changes, return the most recent one
         for _, transaction in reversed(self._pending_validation):
             if key in transaction:
@@ -88,6 +96,9 @@ class Store(MutableMapping):
                 return transaction[key]
 
         return self._content[key]
+
+    def __getitem__(self, key):
+        return self._data_converters.strip_version(key, self.get_with_version(key))
 
     def __setitem__(self, key, value):
         transaction = {key: value}

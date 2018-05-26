@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2017
+#          Tomi Jylhä-Ollila, Finland 2013-2018
 #
 # This file is part of Kunquat.
 #
@@ -18,6 +18,7 @@ import re
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
 from kunquat.tracker.ui.controller.kqtifile import KqtiFile
+from kunquat.tracker.version import KUNQUAT_VERSION
 from .audiounit import AudioUnit
 from .bindings import Bindings
 from .channeldefaults import ChannelDefaults
@@ -49,6 +50,15 @@ class Module():
 
     def is_modified(self):
         return self._store.is_modified()
+
+    def get_editor_version(self):
+        return self._store.get('m_editor_version.json')
+
+    def set_editor_version(self):
+        self._store.put(
+                { 'm_editor_version.json': KUNQUAT_VERSION }, mark_modified=False)
+        for au in self.get_audio_units():
+            au.set_editor_version()
 
     def get_title(self):
         return self._store.get('m_title.json')
@@ -415,6 +425,9 @@ class Module():
     def start_save(self):
         assert not self.is_saving()
         assert not self.is_importing_audio_unit()
+
+        self.set_editor_version()
+
         self._session.set_saving(True)
         self._store.set_saving(True)
         self._store.clear_modified_flag()

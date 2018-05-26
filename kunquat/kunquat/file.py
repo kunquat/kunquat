@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2017
+# Author: Tomi Jylhä-Ollila, Finland 2017-2018
 #
 # This file is part of Kunquat.
 #
@@ -150,6 +150,24 @@ class _KqtArchiveFile():
 
     def get_stored_entries(self):
         return self._stored_entries.items()
+
+    def try_get_editor_version(self):
+        try:
+            with zipfile.ZipFile(self._path, mode='r') as zfile:
+                entries = [e for e in zfile.infolist() if not e.filename.endswith('/')]
+                if entries:
+                    first_key = entries[0].filename
+                    maybe_magic_id = first_key.split('/')[0]
+
+                    entry = zfile.getinfo(
+                            '{}/m_editor_version.json'.format(maybe_magic_id))
+                    value = zfile.read(entry)
+                    decoded = json.loads(str(value, encoding='utf-8'))
+                    return decoded
+        except (KeyError, OSError, ValueError, zipfile.BadZipFile):
+            pass
+
+        return None
 
 
 class KqtFile(_KqtArchiveFile):

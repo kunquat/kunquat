@@ -14,6 +14,7 @@
 
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
+from kunquat.tracker.version import KUNQUAT_VERSION
 from .connections import Connections
 from .hit import Hit
 from .processor import Processor
@@ -60,6 +61,18 @@ class AudioUnit():
         key = self._get_key('p_manifest.json')
         manifest = self._store.get(key, None)
         return (type(manifest) == dict)
+
+    def set_editor_version(self):
+        key = self._get_key('m_editor_version.json')
+        self._store.put({ key: KUNQUAT_VERSION }, mark_modified=False)
+
+        for au_id in self.get_au_ids():
+            au = self.get_audio_unit(au_id)
+            au.set_editor_version()
+
+    def get_editor_version(self):
+        key = self._get_key('m_editor_version.json')
+        self._store.get(key)
 
     def is_instrument(self):
         key = self._get_key('p_manifest.json')
@@ -372,6 +385,9 @@ class AudioUnit():
         module = self._ui_model.get_module()
         assert not module.is_saving()
         assert not module.is_importing_audio_unit()
+
+        self.set_editor_version()
+
         self._session.set_saving(True)
         self._store.set_saving(True)
         self._session.set_au_export_info((self._au_id, path))

@@ -228,17 +228,18 @@ bool Device_sync_states(const Device* device, Device_states* dstates)
 }
 
 
-bool Device_set_key(Device* device, const char* key, Streader* sr)
+bool Device_set_key(Device* device, const char* key, int version, Streader* sr)
 {
     rassert(device != NULL);
     rassert(key != NULL);
     rassert(string_has_prefix(key, "i/") || string_has_prefix(key, "c/"));
+    rassert(version >= 0);
     rassert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
 
-    if (!Device_params_parse_value(device->dparams, key, sr))
+    if (!Device_params_parse_value(device->dparams, key, version, sr))
         return false;
 
     if (device->dimpl != NULL && !Device_impl_set_key(device->dimpl, key + 2))

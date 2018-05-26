@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2010-2017
+# Authors: Tomi Jylhä-Ollila, Finland 2010-2018
 #          Toni Ruottu, Finland 2010
 #
 # This file is part of Kunquat.
@@ -142,7 +142,15 @@ def load_kqt(path, rate):
     f = KqtFile(path)
     f.load_into_handle(handle)
 
-    return handle, dict(f.get_stored_entries())
+    player_data = {}
+    for (key, value) in f.get_stored_entries():
+        stripped = value
+        if key.endswith('.json'):
+            if (type(value) == list) and (len(value) == 2):
+                _, stripped = value
+        player_data[key] = stripped
+
+    return handle, player_data
 
 
 def track_exists(keys, num):
