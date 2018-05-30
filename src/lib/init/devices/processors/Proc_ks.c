@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -37,7 +37,7 @@ Device_impl* new_Proc_ks(void)
     if (ks == NULL)
         return NULL;
 
-    ks->damp = 0;
+    ks->damp = KS_DEFAULT_DAMP;
 
     if (!Device_impl_init(&ks->parent, del_Proc_ks))
     {
@@ -48,7 +48,7 @@ Device_impl* new_Proc_ks(void)
 #define REG_KEY(type, name, keyp, def_value) \
     REGISTER_SET_FIXED_STATE(ks, type, name, keyp, def_value)
 
-    if (!(REG_KEY(float, damp, "p_f_damp.json", 0.0)))
+    if (!(REG_KEY(float, damp, "p_f_damp.json", KS_DEFAULT_DAMP)))
     {
         del_Device_impl(&ks->parent);
         return NULL;
@@ -73,10 +73,10 @@ static bool Proc_ks_set_damp(
 
     Proc_ks* ks = (Proc_ks*)dimpl;
 
-    if (value >= 0 && value <= 100)
+    if (value >= KS_MIN_DAMP && value <= KS_MAX_DAMP)
         ks->damp = value;
     else
-        ks->damp = 0;
+        ks->damp = KS_DEFAULT_DAMP;
 
     return true;
 }

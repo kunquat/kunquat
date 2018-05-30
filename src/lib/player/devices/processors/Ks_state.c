@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -160,8 +160,8 @@ static void Read_state_init(
         int32_t audio_rate)
 {
     rassert(rs != NULL);
-    rassert(damp >= 0);
-    rassert(damp <= 100);
+    rassert(damp >= KS_MIN_DAMP);
+    rassert(damp <= KS_MAX_DAMP);
     rassert(isfinite(pitch));
     rassert(write_pos >= 0);
     rassert(buf_len > 2);

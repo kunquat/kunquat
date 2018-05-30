@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -34,7 +34,7 @@ class KsParams(ProcParams):
         super().__init__(proc_id, controller)
 
     def get_damp(self):
-        return self._get_value('p_f_damp.json', 0.0)
+        return self._get_value('p_f_damp.json', 100.0)
 
     def set_damp(self, value):
         self._set_value('p_f_damp.json', value)
