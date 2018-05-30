@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -12,20 +12,20 @@
  */
 
 
-#ifndef KQT_RINGMOD_STATE_H
-#define KQT_RINGMOD_STATE_H
+#ifndef KQT_MULT_STATE_H
+#define KQT_MULT_STATE_H
 
 
 #include <player/devices/Device_state.h>
 #include <player/devices/Voice_state.h>
 
 
-Device_state_create_func new_Ringmod_pstate;
+Device_state_create_func new_Mult_pstate;
 
-Voice_state_get_size_func Ringmod_vstate_get_size;
-Voice_state_render_voice_func Ringmod_vstate_render_voice;
+Voice_state_get_size_func Mult_vstate_get_size;
+Voice_state_render_voice_func Mult_vstate_render_voice;
 
 
-#endif // KQT_RINGMOD_STATE_H
+#endif // KQT_MULT_STATE_H
 
 

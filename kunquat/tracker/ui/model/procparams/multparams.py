@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -14,7 +14,7 @@
 from .procparams import ProcParams
 
 
-class RingmodParams(ProcParams):
+class MultParams(ProcParams):
 
     @staticmethod
     def get_default_signal_type():
@@ -23,12 +23,12 @@ class RingmodParams(ProcParams):
     @staticmethod
     def get_port_info():
         return {
-            'in_00':  'audio1 L',
-            'in_01':  'audio1 R',
-            'in_02':  'audio2 L',
-            'in_03':  'audio2 R',
-            'out_00': 'audio L',
-            'out_01': 'audio R',
+            'in_00':  'sig1 L',
+            'in_01':  'sig1 R',
+            'in_02':  'sig2 L',
+            'in_03':  'sig2 R',
+            'out_00': 'sig L',
+            'out_01': 'sig R',
         }
 
     def __init__(self, proc_id, controller):
