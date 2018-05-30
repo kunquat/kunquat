@@ -23,12 +23,12 @@ from .procparams.freeverbparams import FreeverbParams
 from .procparams.gaincompparams import GainCompParams
 from .procparams.ksparams import KsParams
 from .procparams.looperparams import LooperParams
+from .procparams.multparams import MultParams
 from .procparams.noiseparams import NoiseParams
 from .procparams.padsynthparams import PadsynthParams
 from .procparams.panningparams import PanningParams
 from .procparams.pitchparams import PitchParams
 from .procparams.rangemapparams import RangeMapParams
-from .procparams.ringmodparams import RingmodParams
 from .procparams.sampleparams import SampleParams
 from .procparams.slopeparams import SlopeParams
 from .procparams.streamparams import StreamParams
@@ -47,12 +47,12 @@ _proc_classes = {
     'gaincomp':     GainCompParams,
     'ks':           KsParams,
     'looper':       LooperParams,
+    'mult':         MultParams,
     'noise':        NoiseParams,
     'padsynth':     PadsynthParams,
     'panning':      PanningParams,
     'pitch':        PitchParams,
     'rangemap':     RangeMapParams,
-    'ringmod':      RingmodParams,
     'sample':       SampleParams,
     'slope':        SlopeParams,
     'stream':       StreamParams,

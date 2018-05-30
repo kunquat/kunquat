@@ -22,12 +22,12 @@ from .freeverbproc import FreeverbProc
 from .gaincompproc import GainCompProc
 from .ksproc import KsProc
 from .looperproc import LooperProc
+from .multproc import MultProc
 from .noiseproc import NoiseProc
 from .padsynthproc import PadsynthProc
 from .panningproc import PanningProc
 from .pitchproc import PitchProc
 from .rangemapproc import RangeMapProc
-from .ringmodproc import RingmodProc
 from .sampleproc import SampleProc
 from .slopeproc import SlopeProc
 from .streamproc import StreamProc
@@ -47,12 +47,12 @@ _proc_classes = {
     'gaincomp':     GainCompProc,
     'ks':           KsProc,
     'looper':       LooperProc,
+    'mult':         MultProc,
     'noise':        NoiseProc,
     'padsynth':     PadsynthProc,
     'panning':      PanningProc,
     'pitch':        PitchProc,
     'rangemap':     RangeMapProc,
-    'ringmod':      RingmodProc,
     'sample':       SampleProc,
     'slope':        SlopeProc,
     'stream':       StreamProc,

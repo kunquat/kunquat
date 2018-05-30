@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -12,10 +12,10 @@
  */
 
 
-#include <player/devices/processors/Ringmod_state.h>
+#include <player/devices/processors/Mult_state.h>
 
 #include <debug/assert.h>
-#include <init/devices/processors/Proc_ringmod.h>
+#include <init/devices/processors/Proc_mult.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <player/devices/Device_thread_state.h>
@@ -29,20 +29,20 @@
 
 enum
 {
-    PORT_IN_AUDIO_1_L = 0,
-    PORT_IN_AUDIO_1_R,
-    PORT_IN_AUDIO_2_L,
-    PORT_IN_AUDIO_2_R,
+    PORT_IN_SIGNAL_1_L = 0,
+    PORT_IN_SIGNAL_1_R,
+    PORT_IN_SIGNAL_2_L,
+    PORT_IN_SIGNAL_2_R,
     PORT_IN_COUNT,
 
-    PORT_IN_AUDIO_1_STOP = PORT_IN_AUDIO_1_R + 1,
-    PORT_IN_AUDIO_2_STOP = PORT_IN_AUDIO_2_R + 1,
+    PORT_IN_SIGNAL_1_STOP = PORT_IN_SIGNAL_1_R + 1,
+    PORT_IN_SIGNAL_2_STOP = PORT_IN_SIGNAL_2_R + 1,
 };
 
 enum
 {
-    PORT_OUT_AUDIO_L = 0,
-    PORT_OUT_AUDIO_R,
+    PORT_OUT_SIGNAL_L = 0,
+    PORT_OUT_SIGNAL_R,
     PORT_OUT_COUNT
 };
 
@@ -86,7 +86,7 @@ static void multiply_signals(
 }
 
 
-static void Ringmod_pstate_render_mixed(
+static void Mult_pstate_render_mixed(
         Device_state* dstate,
         Device_thread_state* proc_ts,
         const Work_buffers* wbs,
@@ -104,23 +104,23 @@ static void Ringmod_pstate_render_mixed(
     Work_buffer* in1_buffers[2] =
     {
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_1_L),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_L),
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_1_R),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_R),
     };
 
     Work_buffer* in2_buffers[2] =
     {
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_2_L),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_L),
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_2_R),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_R),
     };
 
     // Get outputs
     float* out_buffers[2] = { NULL };
     Proc_state_get_mixed_audio_out_buffers(
-            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
+            proc_ts, PORT_OUT_SIGNAL_L, PORT_OUT_COUNT, out_buffers);
 
     // Multiply the signals
     multiply_signals(in1_buffers, in2_buffers, out_buffers, buf_start, buf_stop);
@@ -129,7 +129,7 @@ static void Ringmod_pstate_render_mixed(
 }
 
 
-Device_state* new_Ringmod_pstate(
+Device_state* new_Mult_pstate(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
     rassert(device != NULL);
@@ -141,13 +141,13 @@ Device_state* new_Ringmod_pstate(
     if (proc_state == NULL)
         return NULL;
 
-    proc_state->render_mixed = Ringmod_pstate_render_mixed;
+    proc_state->render_mixed = Mult_pstate_render_mixed;
 
     return (Device_state*)proc_state;
 }
 
 
-int32_t Ringmod_vstate_get_size(void)
+int32_t Mult_vstate_get_size(void)
 {
     return 0;
 }
@@ -163,7 +163,7 @@ static bool is_final_zero(const Work_buffer* in_wb, int32_t buf_start)
 }
 
 
-int32_t Ringmod_vstate_render_voice(
+int32_t Mult_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
         const Device_thread_state* proc_ts,
@@ -187,17 +187,17 @@ int32_t Ringmod_vstate_render_voice(
     Work_buffer* in1_buffers[2] =
     {
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_1_L),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_L),
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_1_R),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_R),
     };
 
     Work_buffer* in2_buffers[2] =
     {
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_2_L),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_L),
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_2_R),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_R),
     };
 
     const bool is_out1_final_zero = (is_final_zero(in1_buffers[0], buf_start) ||
@@ -212,14 +212,14 @@ int32_t Ringmod_vstate_render_voice(
     Work_buffer* out_wbs[2] =
     {
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_SIGNAL_L),
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_SIGNAL_R),
     };
 
     float* out_buffers[2] = { NULL };
     Proc_state_get_voice_audio_out_buffers(
-            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
+            proc_ts, PORT_OUT_SIGNAL_L, PORT_OUT_COUNT, out_buffers);
 
     // Multiply the signals
     multiply_signals(in1_buffers, in2_buffers, out_buffers, buf_start, buf_stop);

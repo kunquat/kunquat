@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef KQT_PROC_RINGMOD_H
-#define KQT_PROC_RINGMOD_H
+#ifndef KQT_PROC_MULT_H
+#define KQT_PROC_MULT_H
 
 
 #include <init/devices/Device_impl.h>
@@ -21,12 +21,12 @@
 #include <stdlib.h>
 
 
-typedef struct Proc_ringmod
+typedef struct Proc_mult
 {
     Device_impl parent;
-} Proc_ringmod;
+} Proc_mult;
 
 
-#endif // KQT_PROC_RINGMOD_H
+#endif // KQT_PROC_MULT_H
 
 
