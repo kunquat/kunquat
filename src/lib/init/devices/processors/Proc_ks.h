@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,11 @@
 
 
 #include <init/devices/Device_impl.h>
+
+
+#define KS_MIN_DAMP 0
+#define KS_MAX_DAMP 100
+#define KS_DEFAULT_DAMP 100
 
 
 typedef struct Proc_ks
