@@ -396,10 +396,9 @@ int32_t Ks_vstate_render_voice(
         if (!ks_vstate->is_xfading)
         {
             const int32_t const_pitch_start = Work_buffer_get_const_start(pitches_wb);
-            const float max_pitch_diff = (i < const_pitch_start) ? 4.0f : 0.001f;
+            const float max_pitch_diff = (i < const_pitch_start) ? 0.1f : 0.001f;
 
-            const int32_t const_damp_start = Work_buffer_get_const_start(damps_wb);
-            const float max_damp_diff = (i < const_damp_start) ? 1.0f : 0.001f;
+            const float max_damp_diff = 0.001f;
 
             Read_state* primary_rs =
                 &ks_vstate->read_states[ks_vstate->primary_read_state];
