@@ -102,6 +102,9 @@ class FieldEdit(QLineEdit):
         self.show()
         self.setFocus()
 
+    def is_editing(self):
+        return self.isVisible()
+
     def keyPressEvent(self, event):
         if super().keyPressEvent(event):
             return
@@ -1476,6 +1479,8 @@ class View(QWidget):
         except KeyError:
             pass
 
+        x_offset -= self._trow_px_offset
+
         return (x_offset, y_offset)
 
     def _start_trigger_type_entry(self):
@@ -2045,7 +2050,7 @@ class View(QWidget):
                 painter.drawLine(QPoint(0, 0), QPoint(self._col_width - 2, 0))
 
         # Draw edit cursor
-        if self._sheet_mgr.get_edit_mode():
+        if self._sheet_mgr.get_edit_mode() or self._field_edit.is_editing():
             self._draw_edit_cursor(painter)
 
         # Draw selected area
