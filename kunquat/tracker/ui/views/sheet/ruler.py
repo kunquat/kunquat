@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2017
+# Author: Tomi Jylhä-Ollila, Finland 2013-2018
 #
 # This file is part of Kunquat.
 #
@@ -34,6 +34,8 @@ class Ruler(QWidget, Updater):
 
         self._is_playback_cursor_visible = False
         self._playback_cursor_offset = None
+
+        self._playback_marker_offset = None
 
         self._pinsts = []
 
@@ -77,6 +79,7 @@ class Ruler(QWidget, Updater):
             self.register_action('signal_order_list', self._update_all_patterns)
             self.register_action('signal_pattern_length', self._update_all_patterns)
             self.register_action('signal_playback_cursor', self._update_playback_cursor)
+            self.register_action('signal_playback_marker', self._update_playback_marker)
 
         self.register_action('signal_selection', self.update)
 
@@ -130,6 +133,36 @@ class Ruler(QWidget, Updater):
 
         if (not self._is_playback_cursor_visible) and was_playback_cursor_visible:
             self.update()
+
+    def _update_playback_marker(self):
+        playback_mgr = self._ui_model.get_playback_manager()
+
+        self._playback_marker_offset = None
+
+        marker = playback_mgr.get_playback_marker()
+        if marker:
+            track_num, system_num, row_ts = marker
+
+            cur_pinst = None
+            try:
+                module = self._ui_model.get_module()
+                album = module.get_album()
+                song = album.get_song_by_track(track_num)
+                cur_pinst = song.get_pattern_instance(system_num)
+            except (IndexError, AttributeError):
+                pass
+
+            if cur_pinst != None:
+                for pinst, start_height in zip(self._pinsts, self._start_heights):
+                    if cur_pinst == pinst:
+                        start_px = start_height - self._px_offset
+                        location_from_start_px = (
+                                (row_ts.beats * tstamp.BEAT + row_ts.rem) *
+                                self._px_per_beat) // tstamp.BEAT
+                        self._playback_marker_offset = (
+                                location_from_start_px + start_px + self._px_offset)
+
+        self.update()
 
     def update_grid_pattern(self):
         assert self._is_grid_ruler
@@ -254,6 +287,11 @@ class Ruler(QWidget, Updater):
                             0, rel_end_height,
                             self._width, self.height() - rel_end_height)
                         )
+
+        if self._playback_marker_offset != None:
+            painter.setPen(QColor(0xff, 0, 0xff))
+            offset = self._playback_marker_offset - self._px_offset
+            painter.drawLine(0, offset, self._width, offset)
 
         if self._playback_cursor_offset != None:
             painter.setPen(self._config['play_cursor_colour'])

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2018
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -29,6 +29,7 @@ from .orderlistmanager import OrderlistManager
 from .processmanager import ProcessManager
 from .iconbank import IconBank
 from .stylemanager import StyleManager
+from .triggerposition import TriggerPosition
 
 
 class UiModel():
@@ -293,8 +294,14 @@ class UiModel():
                 (pinst.get_pattern_num(), pinst.get_instance_num()))
 
     def play_from_cursor(self):
-        selection = self.get_selection()
-        location = selection.get_location()
+        marker = self._controller.get_session().get_playback_marker()
+        if marker:
+            track_num, system_num, row_ts = marker
+            location = TriggerPosition(track_num, system_num, 0, row_ts, 0)
+        else:
+            selection = self.get_selection()
+            location = selection.get_location()
+
         if not location:
             return
 

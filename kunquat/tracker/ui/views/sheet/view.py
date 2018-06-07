@@ -1839,6 +1839,20 @@ class View(QWidget):
             history = self._ui_model.get_sheet_history()
             history.redo()
 
+        def handle_playback_marker():
+            cur_location = self._ui_model.get_selection().get_location()
+            cur_track = cur_location.get_track()
+            cur_system = cur_location.get_system()
+            cur_row_ts = cur_location.get_row_ts()
+
+            cur_marker = self._playback_mgr.get_playback_marker()
+            if (not cur_marker) or (cur_marker != (cur_track, cur_system, cur_row_ts)):
+                self._playback_mgr.set_playback_marker(cur_track, cur_system, cur_row_ts)
+            else:
+                self._playback_mgr.clear_playback_marker()
+
+            self._updater.signal_update('signal_playback_marker')
+
         keymap = {
             int(Qt.NoModifier): {
             },
@@ -1860,6 +1874,7 @@ class View(QWidget):
                 Qt.Key_Plus:    lambda: self._sheet_mgr.set_column_width(
                                     self._sheet_mgr.get_column_width() + 1),
                 Qt.Key_0:       lambda: self._sheet_mgr.set_column_width(0),
+                Qt.Key_Comma:   handle_playback_marker,
             },
 
             int(Qt.ShiftModifier): {
