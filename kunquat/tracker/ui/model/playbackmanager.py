@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2015-2017
+#          Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -42,6 +42,15 @@ class PlaybackManager():
     def get_playback_position(self):
         track_num, system_num, row_ts = self._session.get_playback_cursor_position()
         return track_num, system_num, tstamp.Tstamp(row_ts)
+
+    def set_playback_marker(self, track_num, system_num, row_ts):
+        self._session.set_playback_marker((track_num, system_num, row_ts))
+
+    def clear_playback_marker(self):
+        self._session.set_playback_marker(None)
+
+    def get_playback_marker(self):
+        return self._session.get_playback_marker()
 
     def set_infinite_mode(self, enabled):
         self._controller.set_infinite_mode(enabled)

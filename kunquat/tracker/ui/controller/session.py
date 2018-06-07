@@ -152,6 +152,7 @@ class Session():
         self._pending_playback_cursor_system = 0
         self._playback_cursor_position = (0, 0, [0, 0])
         self._playback_pattern = None
+        self._playback_marker_position = None
 
         # Order list
         self._orderlist_selection = None
@@ -617,6 +618,12 @@ class Session():
 
     def get_playback_cursor_position(self):
         return self._playback_cursor_position
+
+    def set_playback_marker(self, marker):
+        self._playback_marker_position = marker
+
+    def get_playback_marker(self):
+        return self._playback_marker_position
 
     def set_orderlist_selection(self, selection):
         self._orderlist_selection = selection
