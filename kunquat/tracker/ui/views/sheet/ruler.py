@@ -289,7 +289,7 @@ class Ruler(QWidget, Updater):
                         )
 
         if self._playback_marker_offset != None:
-            painter.setPen(QColor(0xff, 0, 0xff))
+            painter.setPen(self._config['play_marker_colour'])
             offset = self._playback_marker_offset - self._px_offset
             painter.drawLine(0, offset, self._width, offset)
 

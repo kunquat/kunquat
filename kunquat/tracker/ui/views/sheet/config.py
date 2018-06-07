@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2017
+# Author: Tomi Jylhä-Ollila, Finland 2013-2018
 #
 # This file is part of Kunquat.
 #
@@ -29,6 +29,7 @@ DEFAULT_CONFIG = {
         'fg_colour'         : QColor(0xaa, 0xcc, 0xff),
         'canvas_bg_colour'  : QColor(0x11, 0x11, 0x11),
         'play_cursor_colour': QColor(0x66, 0xee, 0x66),
+        'play_marker_colour': QColor(0xff, 0, 0xff),
         'disabled_colour'   : QColor(0x88, 0x88, 0x88, 0x7f),
         'font'              : QFont(QFont().defaultFamily(), 9),
         'line_min_dist'     : 3,
@@ -145,6 +146,8 @@ def get_config_with_custom_style(style_mgr):
             style_mgr.get_style_param('sheet_ruler_fg_colour'))
     config['ruler']['play_cursor_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_playback_cursor_colour'))
+    config['ruler']['play_marker_colour'] = _get_colour(
+            style_mgr.get_style_param('sheet_ruler_playback_marker_colour'))
     config['ruler']['disabled_colour'] = disabled_colour
 
     # Column headers

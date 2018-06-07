@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -348,6 +348,7 @@ _COLOUR_DESCS = [
     ('sheet_playback_cursor_colour',    'Sheet playback cursor'),
     ('sheet_ruler_bg_colour',           'Sheet ruler background'),
     ('sheet_ruler_fg_colour',           'Sheet ruler foreground'),
+    ('sheet_ruler_playback_marker_colour', 'Sheet playback marker'),
     ('sheet_trigger_default_colour',    'Default trigger'),
     ('sheet_trigger_note_on_colour',    'Note on trigger'),
     ('sheet_trigger_hit_colour',        'Hit trigger'),

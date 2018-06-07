@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -82,6 +82,7 @@ class StyleManager():
         'sheet_header_solo_colour'          : '#7e6',
         'sheet_ruler_bg_colour'             : '#125',
         'sheet_ruler_fg_colour'             : '#acf',
+        'sheet_ruler_playback_marker_colour': '#fe8',
         'sheet_playback_cursor_colour'      : '#6e6',
         'sheet_trigger_default_colour'      : '#cde',
         'sheet_trigger_note_on_colour'      : '#fdb',
