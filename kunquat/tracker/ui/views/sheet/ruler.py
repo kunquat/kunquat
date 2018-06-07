@@ -189,6 +189,9 @@ class Ruler(QWidget, Updater):
         self._px_per_beat = px_per_beat
         self._cache.set_px_per_beat(px_per_beat)
         self._inactive_cache.set_px_per_beat(px_per_beat)
+        if self._playback_marker_offset != None:
+            self._update_playback_marker()
+            self.update()
         if changed:
             self._set_pattern_heights()
             self._update_playback_cursor()
