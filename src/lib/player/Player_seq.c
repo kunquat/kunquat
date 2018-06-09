@@ -554,6 +554,16 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
         next_jump_trigger = next_jc->order;
     }
 
+    // Check the nearest upcoming trigger row of iterators that are otherwise skipped
+    for (int i = 0; i < player->master_params.cur_ch; ++i)
+    {
+        Cgiter* cgiter = &player->cgiters[i];
+
+        Tstamp* dist = Tstamp_copy(TSTAMP_AUTO, limit);
+        if (Cgiter_peek(cgiter, dist))
+            Tstamp_mina(limit, dist);
+    }
+
     // Process trigger rows at current position
     for (int i = player->master_params.cur_ch; i < KQT_CHANNELS_MAX; ++i)
     {
@@ -738,8 +748,8 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
 
         // See how much we can move forwards
         Tstamp* dist = Tstamp_copy(TSTAMP_AUTO, limit);
-        if (Cgiter_peek(cgiter, dist) && Tstamp_cmp(dist, limit) < 0)
-            Tstamp_copy(limit, dist);
+        if (Cgiter_peek(cgiter, dist))
+            Tstamp_mina(limit, dist);
     }
 
     // All trigger rows processed
