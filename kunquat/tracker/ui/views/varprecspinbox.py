@@ -207,17 +207,35 @@ class VarPrecSpinBox(QAbstractSpinBox):
         self.valueChanged.emit(self.value())
         self.update()
 
+    def _is_substring(self, test_str, ref_str):
+        lowest_index = 0
+        for test_ch in test_str:
+            found_index = ref_str.find(test_ch, lowest_index)
+            if found_index < 0:
+                return False
+            lowest_index = found_index + 1
+        return True
+
     def validate(self, in_str, pos):
-        if in_str in ('', '-'):
+        min_string = '{:.17f}'.format(
+                self._from_internal(self._min_value)).rstrip('0').rstrip('.')
+        max_string = '{:.17f}'.format(
+                self._from_internal(self._max_value)).rstrip('0').rstrip('.')
+        is_substring = (self._is_substring(in_str, min_string) or
+                self._is_substring(in_str, max_string))
+        maybe_intermediate = (
+                QValidator.Intermediate if is_substring else QValidator.Invalid)
+
+        if not in_str:
             return (QValidator.Intermediate, in_str, pos)
 
         try:
             value = self._str_to_internal(in_str)
         except ValueError:
-            return (QValidator.Invalid, in_str, pos)
+            return (maybe_intermediate, in_str, pos)
 
         if not (self._min_value <= value <= self._max_value):
-            return (QValidator.Invalid, in_str, pos)
+            return (maybe_intermediate, in_str, pos)
 
         return (QValidator.Acceptable, in_str, pos)
 
