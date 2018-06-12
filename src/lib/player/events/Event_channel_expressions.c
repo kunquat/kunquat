@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -15,10 +15,10 @@
 #include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
+#include <player/Active_names.h>
 #include <player/Channel.h>
 #include <player/events/Event_common.h>
 #include <player/events/Event_params.h>
-#include <player/events/set_active_name.h>
 #include <Value.h>
 
 #include <stdbool.h>
@@ -41,10 +41,11 @@ bool Event_channel_set_ch_expression_process(
     rassert(params->arg->type == VALUE_TYPE_NONE ||
             params->arg->type == VALUE_TYPE_STRING);
 
-    set_active_name(&channel->parent, ACTIVE_CAT_CH_EXPRESSION, params->arg);
     const char* expr = channel->init_ch_expression;
     if (params->arg->type == VALUE_TYPE_STRING)
         expr = params->arg->value.string_type;
+
+    Active_names_set(channel->parent.active_names, ACTIVE_CAT_CH_EXPRESSION, expr);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
