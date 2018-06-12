@@ -15,10 +15,10 @@
 #include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
+#include <player/Active_names.h>
 #include <player/Channel.h>
 #include <player/events/Event_common.h>
 #include <player/events/Event_params.h>
-#include <player/events/set_active_name.h>
 #include <Value.h>
 
 #include <stdbool.h>
