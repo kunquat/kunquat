@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -12,6 +12,7 @@
 #
 
 import kunquat.kunquat.events as events
+import kunquat.tracker.config as config
 from .trigger import Trigger
 from .triggerposition import TriggerPosition
 
@@ -96,8 +97,10 @@ class TypewriterButtonModel():
             self._session.activate_key_with_note(self._row, self._index, note)
 
         if self._sheet_mgr.is_editing_enabled():
-            self._sheet_mgr.set_chord_mode(True)
-            self._session.set_chord_note(event_type, param, True)
+            allow_chord_mode = config.get_config().get_value('chord_mode')
+            if allow_chord_mode:
+                self._sheet_mgr.set_chord_mode(True)
+                self._session.set_chord_note(event_type, param, True)
 
             if (self._sheet_mgr.get_replace_mode() and self._sheet_mgr.is_at_trigger()):
                 trigger = self._sheet_mgr.get_selected_trigger()

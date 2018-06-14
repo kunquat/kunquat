@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -48,23 +48,27 @@ _TYPEWRITER_KEYCODE_MAP = dict(_generate_keycode_map())
 class KeyboardMapper(Updater):
 
     def __init__(self):
+        self._sheet_mgr = None
         self._typewriter_mgr = None
 
         super().__init__()
 
     def _on_setup(self):
+        self._sheet_mgr = self._ui_model.get_sheet_manager()
         self._typewriter_mgr = self._ui_model.get_typewriter_manager()
 
     def process_typewriter_button_event(self, event):
         # Note playback
         button = self._get_typewriter_button_model(event)
         if button and event.modifiers() == Qt.NoModifier:
-            if event.isAutoRepeat():
+            if (not self._sheet_mgr.allow_note_autorepeat()) and event.isAutoRepeat():
                 return True
+
             if event.type() == QEvent.KeyPress:
                 button.start_tracked_note()
             elif event.type() == QEvent.KeyRelease:
                 button.stop_tracked_note()
+
             return True
 
         # Octave selection and hit keymap toggle

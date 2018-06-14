@@ -186,6 +186,7 @@ class Config():
         self._config = {
             'version'               : _Entry(v_version, self._VERSION),
             'input_control_view'    : _Entry(lambda x: x in ('full', 'compact'), 'full'),
+            'chord_mode'            : _Entry(lambda x: isinstance(x, bool), False),
             'dir_effects'           : _Entry(v_dir, None),
             'dir_instruments'       : _Entry(v_dir, None),
             'dir_modules'           : _Entry(v_dir, None),
