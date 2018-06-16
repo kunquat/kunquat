@@ -196,6 +196,11 @@ class SheetManager():
     def get_chord_mode(self):
         return self._session.get_chord_mode()
 
+    def allow_note_autorepeat(self):
+        return (self.is_editing_enabled() and
+                (not self.get_chord_mode()) and
+                self.is_grid_enabled())
+
     def is_at_trigger(self):
         selection = self._ui_model.get_selection()
         location = selection.get_location()

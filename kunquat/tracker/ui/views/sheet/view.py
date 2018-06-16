@@ -1608,6 +1608,8 @@ class View(QWidget):
 
         note_pressed = self._keyboard_mapper.process_typewriter_button_event(event)
         if note_pressed:
+            if self._sheet_mgr.allow_note_autorepeat():
+                self._handle_cursor_down_with_grid()
             return
 
         allow_editing_operations = (
@@ -1807,7 +1809,7 @@ class View(QWidget):
             selection.clear_area()
 
         def handle_rest():
-            if not event.isAutoRepeat():
+            if (not event.isAutoRepeat()) or self._sheet_mgr.allow_note_autorepeat():
                 self._add_rest()
 
         def handle_typewriter_connection():
