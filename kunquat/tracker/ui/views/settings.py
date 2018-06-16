@@ -35,6 +35,8 @@ class Settings(QWidget, Updater):
         self._samples = Samples()
         self._effects = Effects()
 
+        self._chord_mode = ChordMode()
+
         self._style_toggle = StyleToggle()
         self._border_contrast = BorderContrast()
         self._button_brightness = ButtonBrightness()
@@ -46,6 +48,7 @@ class Settings(QWidget, Updater):
                 self._instruments,
                 self._samples,
                 self._effects,
+                self._chord_mode,
                 self._style_toggle,
                 self._border_contrast,
                 self._button_brightness,
@@ -65,11 +68,21 @@ class Settings(QWidget, Updater):
         dgl.addWidget(QLabel('Effects:'), 3, 0)
         dgl.addWidget(self._effects, 3, 1)
 
+        uil = QGridLayout()
+        uil.setContentsMargins(0, 0, 0, 0)
+        uil.setHorizontalSpacing(4)
+        uil.setVerticalSpacing(2)
+        uil.setColumnStretch(2, 1)
+        uil.addWidget(QLabel('Chord editing mode:'), 0, 0)
+        uil.addWidget(self._chord_mode, 0, 1)
+
         dl = QVBoxLayout()
         dl.setContentsMargins(0, 0, 0, 0)
         dl.setSpacing(4)
         dl.addWidget(HeaderLine('Default directories'))
         dl.addLayout(dgl)
+        dl.addWidget(HeaderLine('User interface')) # TODO: find a better place
+        dl.addLayout(uil)
         dl.addStretch(1)
 
         bl = QGridLayout()
@@ -82,19 +95,19 @@ class Settings(QWidget, Updater):
         bl.addWidget(QLabel('Button press brightness:'), 2, 0)
         bl.addWidget(self._button_press_brightness, 2, 1)
 
-        uil = QVBoxLayout()
-        uil.setContentsMargins(0, 0, 0, 0)
-        uil.setSpacing(4)
-        uil.addWidget(HeaderLine('User interface'))
-        uil.addWidget(self._style_toggle)
-        uil.addLayout(bl)
-        uil.addWidget(self._colours)
+        ap = QVBoxLayout()
+        ap.setContentsMargins(0, 0, 0, 0)
+        ap.setSpacing(4)
+        ap.addWidget(HeaderLine('Appearance'))
+        ap.addWidget(self._style_toggle)
+        ap.addLayout(bl)
+        ap.addWidget(self._colours)
 
         h = QHBoxLayout()
         h.setContentsMargins(2, 2, 2, 2)
         h.setSpacing(8)
         h.addLayout(dl)
-        h.addLayout(uil)
+        h.addLayout(ap)
         self.setLayout(h)
 
 
@@ -166,6 +179,29 @@ class Effects(Directory):
 
     def __init__(self):
         super().__init__('dir_effects')
+
+
+class ChordMode(QCheckBox, Updater):
+
+    def __init__(self):
+        super().__init__()
+
+    def _on_setup(self):
+        self.register_action('signal_chord_mode_changed', self._update_enabled)
+        self.stateChanged.connect(self._change_enabled)
+        self._update_enabled()
+
+    def _update_enabled(self):
+        enabled = config.get_config().get_value('chord_mode')
+
+        old_block = self.blockSignals(True)
+        self.setCheckState(Qt.Checked if enabled else Qt.Unchecked)
+        self.blockSignals(old_block)
+
+    def _change_enabled(self, state):
+        enabled = (state == Qt.Checked)
+        config.get_config().set_value('chord_mode', enabled)
+        self._updater.signal_update('signal_chord_mode_changed')
 
 
 class StyleToggle(QCheckBox, Updater):
