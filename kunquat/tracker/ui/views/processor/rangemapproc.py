@@ -54,8 +54,8 @@ class RangeMapProc(QWidget, ProcessorUpdater):
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_all)
 
-        self._from_min.valueChanged.connect(self._set_from_min)
-        self._from_max.valueChanged.connect(self._set_from_max)
+        self._from_min.editingFinished.connect(self._set_from_min)
+        self._from_max.editingFinished.connect(self._set_from_max)
         self._min_to.valueChanged.connect(self._set_min_to)
         self._max_to.valueChanged.connect(self._set_max_to)
         self._clamp_dest_min.stateChanged.connect(self._set_clamp_dest_min)
@@ -80,15 +80,15 @@ class RangeMapProc(QWidget, ProcessorUpdater):
         self._clamp_dest_min.set_enabled(params.get_clamp_dest_min())
         self._clamp_dest_max.set_enabled(params.get_clamp_dest_max())
 
-    def _set_from_min(self, value):
+    def _set_from_min(self):
         params = self._get_range_map_params()
-        params.set_from_min(value)
+        params.set_from_min(self._from_min.value())
         params.set_from_max(max(params.get_from_min(), params.get_from_max()))
         self._updater.signal_update(self._get_update_signal_type())
 
-    def _set_from_max(self, value):
+    def _set_from_max(self):
         params = self._get_range_map_params()
-        params.set_from_max(value)
+        params.set_from_max(self._from_max.value())
         params.set_from_min(min(params.get_from_min(), params.get_from_max()))
         self._updater.signal_update(self._get_update_signal_type())
 

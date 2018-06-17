@@ -147,9 +147,9 @@ class RangeEditor(QWidget, ProcessorUpdater):
         self.register_action(
                 self._get_linear_force_signal_type(), self._update_force_type)
 
-        self._min_editor.valueChanged.connect(self._set_range_min)
+        self._min_editor.editingFinished.connect(self._set_range_min)
         self._min_var_editor.valueChanged.connect(self._set_range_min_var)
-        self._max_editor.valueChanged.connect(self._set_range_max)
+        self._max_editor.editingFinished.connect(self._set_range_max)
         self._max_var_editor.valueChanged.connect(self._set_range_max_var)
 
         self._update_range_params()
@@ -185,10 +185,10 @@ class RangeEditor(QWidget, ProcessorUpdater):
         for i in range(self._disableables.count()):
             self._disableables.itemAt(i).widget().setEnabled(not lf_enabled)
 
-    def _set_range_min(self, value):
+    def _set_range_min(self):
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         y_range = egen_params.get_y_range()
-        y_range[0] = value
+        y_range[0] = self._min_editor.value()
         y_range[1] = max(y_range)
         egen_params.set_y_range(y_range)
         self._updater.signal_update(self._get_update_signal_type())
@@ -198,10 +198,10 @@ class RangeEditor(QWidget, ProcessorUpdater):
         egen_params.set_y_range_min_var(value)
         self._updater.signal_update(self._get_update_signal_type())
 
-    def _set_range_max(self, value):
+    def _set_range_max(self):
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         y_range = egen_params.get_y_range()
-        y_range[1] = value
+        y_range[1] = self._max_editor.value()
         y_range[0] = min(y_range)
         egen_params.set_y_range(y_range)
         self._updater.signal_update(self._get_update_signal_type())
@@ -325,8 +325,8 @@ class TriggerImpulseBounds(QWidget, ProcessorUpdater):
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_all)
 
-        self._start_value.valueChanged.connect(self._change_start)
-        self._stop_value.valueChanged.connect(self._change_stop)
+        self._start_value.editingFinished.connect(self._change_start)
+        self._stop_value.editingFinished.connect(self._change_stop)
 
         self._update_all()
 
@@ -355,10 +355,10 @@ class TriggerImpulseBounds(QWidget, ProcessorUpdater):
     def _update_bounds(self):
         raise NotImplementedError
 
-    def _change_start(self, new_start):
+    def _change_start(self):
         raise NotImplementedError
 
-    def _change_stop(self, new_stop):
+    def _change_stop(self):
         raise NotImplementedError
 
 
@@ -375,18 +375,20 @@ class TriggerImpulseFloorBounds(TriggerImpulseBounds):
         egen_params = self._get_egen_params()
         self._try_update_bounds(egen_params.get_trig_impulse_floor_bounds())
 
-    def _change_start(self, new_start):
+    def _change_start(self):
         egen_params = self._get_egen_params()
         cur_bounds = egen_params.get_trig_impulse_floor_bounds()
 
+        new_start = self._start_value.value()
         new_stop = max(cur_bounds[1], new_start)
         egen_params.set_trig_impulse_floor_bounds([new_start, new_stop])
         self._updater.signal_update(self._get_update_signal_type())
 
-    def _change_stop(self, new_stop):
+    def _change_stop(self):
         egen_params = self._get_egen_params()
         cur_bounds = egen_params.get_trig_impulse_floor_bounds()
 
+        new_stop = self._stop_value.value()
         new_start = min(cur_bounds[0], new_stop)
         egen_params.set_trig_impulse_floor_bounds([new_start, new_stop])
         self._updater.signal_update(self._get_update_signal_type())
@@ -405,18 +407,20 @@ class TriggerImpulseCeilBounds(TriggerImpulseBounds):
         egen_params = self._get_egen_params()
         self._try_update_bounds(egen_params.get_trig_impulse_ceil_bounds())
 
-    def _change_start(self, new_start):
+    def _change_start(self):
         egen_params = self._get_egen_params()
         cur_bounds = egen_params.get_trig_impulse_ceil_bounds()
 
+        new_start = self._start_value.value()
         new_stop = min(cur_bounds[1], new_start)
         egen_params.set_trig_impulse_ceil_bounds([new_start, new_stop])
         self._updater.signal_update(self._get_update_signal_type())
 
-    def _change_stop(self, new_stop):
+    def _change_stop(self):
         egen_params = self._get_egen_params()
         cur_bounds = egen_params.get_trig_impulse_ceil_bounds()
 
+        new_stop = self._stop_value.value()
         new_start = max(cur_bounds[0], new_stop)
         egen_params.set_trig_impulse_ceil_bounds([new_start, new_stop])
         self._updater.signal_update(self._get_update_signal_type())
