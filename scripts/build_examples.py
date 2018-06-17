@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -23,13 +23,25 @@ def build_examples(builder):
 
     example_dir = os.path.join('examples')
 
-    packages = {
-        'kqtc00': 'example.kqt',
+    files = [
+        'Asturias.kqt',
+    ]
+
+    echo_prefix = '\n   Building example files\n\n'
+
+    for path in files:
+        src_path = os.path.join(example_dir, path)
+        dest_path = os.path.join(build_dir, path)
+        echo = echo_prefix + 'Copying {}'.format(path)
+        if command.copy(builder, src_path, dest_path, echo):
+            echo_prefix = ''
+
+    dirs = {
+        #'kqtc00': 'example.kqt',
         'kqti00': 'example_ins.kqti',
     }
 
-    echo_prefix = '\n   Building example files\n\n'
-    for src, dest in packages.items():
+    for src, dest in dirs.items():
         dest_path = os.path.join(build_dir, dest)
         echo = echo_prefix + 'Building {}'.format(dest)
 
