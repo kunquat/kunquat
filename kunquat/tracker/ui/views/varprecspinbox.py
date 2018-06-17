@@ -207,24 +207,73 @@ class VarPrecSpinBox(QAbstractSpinBox):
         self.valueChanged.emit(self.value())
         self.update()
 
-    def _is_substring(self, test_str, ref_str):
-        lowest_index = 0
-        for test_ch in test_str:
-            found_index = ref_str.find(test_ch, lowest_index)
-            if found_index < 0:
+    def _can_be_extended_to_valid(self, test_str):
+        if not test_str:
+            return True
+
+        if not all(c in (string.digits + '-.') for c in test_str):
+            return False
+        if '-' in test_str[1:]:
+            return False
+
+        test_is_negative = (test_str[0] == '-')
+        if test_is_negative and (self._min_value >= 0):
+            return False
+
+        def test_with_decimal_point(test_str):
+            if self._max_decimals == 0:
                 return False
-            lowest_index = found_index + 1
-        return True
+
+            parts = test_str.split('.')
+            if len(parts) > 2:
+                return False
+            whole_str, dec_str = parts
+            if len(dec_str) > self._max_decimals:
+                return False
+
+            # See if the extension(s) with smallest absolute value is acceptable
+            whole_abs_str = whole_str.lstrip('-')
+            whole_abs = int(whole_abs_str) if whole_abs_str else 0
+            dec_abs = int(dec_str) if dec_str else 0
+            min_result_abs = whole_abs * 10**self._max_decimals + dec_abs
+            test_value = -min_result_abs if test_is_negative else min_result_abs
+
+            def test_fixed_sign(test_value):
+                if test_value >= 0:
+                    if self._max_value < 0:
+                        return False
+                    bound = self._max_value
+                else:
+                    if self._min_value >= 0:
+                        return False
+                    bound = abs(self._min_value)
+                    test_value = abs(test_value)
+                return (test_value <= bound)
+
+            if not test_fixed_sign(test_value):
+                if test_is_negative:
+                    return False
+                elif not test_fixed_sign(-test_value):
+                    return False
+
+            return True
+
+        if '.' in test_str:
+            return test_with_decimal_point(test_str)
+
+        # No decimal point so place it as far left as possible
+        test_abs_str = test_str.lstrip('-')
+        split_point = max(0, len(test_abs_str) - self._max_decimals)
+        test_str = test_abs_str[:split_point] + '.' + test_abs_str[split_point:]
+        if test_is_negative:
+            test_str = '-' + test_str
+        return test_with_decimal_point(test_str)
 
     def validate(self, in_str, pos):
-        min_string = '{:.17f}'.format(
-                self._from_internal(self._min_value)).rstrip('0').rstrip('.')
-        max_string = '{:.17f}'.format(
-                self._from_internal(self._max_value)).rstrip('0').rstrip('.')
-        is_substring = (self._is_substring(in_str, min_string) or
-                self._is_substring(in_str, max_string))
         maybe_intermediate = (
-                QValidator.Intermediate if is_substring else QValidator.Invalid)
+                QValidator.Intermediate
+                if self._can_be_extended_to_valid(in_str)
+                else QValidator.Invalid)
 
         if not in_str:
             return (QValidator.Intermediate, in_str, pos)
