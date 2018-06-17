@@ -2,4 +2,5 @@
 .gitignore export-ignore
 .travis.yml export-ignore
 release.sh export-ignore
+test_runner.sh export-ignore
 
