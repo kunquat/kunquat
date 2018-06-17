@@ -147,9 +147,9 @@ class RangeEditor(QWidget, ProcessorUpdater):
         self.register_action(
                 self._get_linear_force_signal_type(), self._update_force_type)
 
-        self._min_editor.valueChanged.connect(self._set_range_min)
+        self._min_editor.editingFinished.connect(self._set_range_min)
         self._min_var_editor.valueChanged.connect(self._set_range_min_var)
-        self._max_editor.valueChanged.connect(self._set_range_max)
+        self._max_editor.editingFinished.connect(self._set_range_max)
         self._max_var_editor.valueChanged.connect(self._set_range_max_var)
 
         self._update_range_params()
@@ -185,10 +185,10 @@ class RangeEditor(QWidget, ProcessorUpdater):
         for i in range(self._disableables.count()):
             self._disableables.itemAt(i).widget().setEnabled(not lf_enabled)
 
-    def _set_range_min(self, value):
+    def _set_range_min(self):
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         y_range = egen_params.get_y_range()
-        y_range[0] = value
+        y_range[0] = self._min_editor.value()
         y_range[1] = max(y_range)
         egen_params.set_y_range(y_range)
         self._updater.signal_update(self._get_update_signal_type())
@@ -198,10 +198,10 @@ class RangeEditor(QWidget, ProcessorUpdater):
         egen_params.set_y_range_min_var(value)
         self._updater.signal_update(self._get_update_signal_type())
 
-    def _set_range_max(self, value):
+    def _set_range_max(self):
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         y_range = egen_params.get_y_range()
-        y_range[1] = value
+        y_range[1] = self._max_editor.value()
         y_range[0] = min(y_range)
         egen_params.set_y_range(y_range)
         self._updater.signal_update(self._get_update_signal_type())
