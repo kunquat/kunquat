@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -24,7 +24,8 @@ def install_examples(builder, install_prefix):
     build_dir = os.path.join('build', 'examples')
 
     names = [
-        'example.kqt',
+        'Asturias.kqt',
+        #'example.kqt',
         'example_ins.kqti',
     ]
 
