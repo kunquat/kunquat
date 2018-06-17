@@ -325,8 +325,8 @@ class TriggerImpulseBounds(QWidget, ProcessorUpdater):
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_all)
 
-        self._start_value.valueChanged.connect(self._change_start)
-        self._stop_value.valueChanged.connect(self._change_stop)
+        self._start_value.editingFinished.connect(self._change_start)
+        self._stop_value.editingFinished.connect(self._change_stop)
 
         self._update_all()
 
@@ -355,10 +355,10 @@ class TriggerImpulseBounds(QWidget, ProcessorUpdater):
     def _update_bounds(self):
         raise NotImplementedError
 
-    def _change_start(self, new_start):
+    def _change_start(self):
         raise NotImplementedError
 
-    def _change_stop(self, new_stop):
+    def _change_stop(self):
         raise NotImplementedError
 
 
@@ -375,18 +375,20 @@ class TriggerImpulseFloorBounds(TriggerImpulseBounds):
         egen_params = self._get_egen_params()
         self._try_update_bounds(egen_params.get_trig_impulse_floor_bounds())
 
-    def _change_start(self, new_start):
+    def _change_start(self):
         egen_params = self._get_egen_params()
         cur_bounds = egen_params.get_trig_impulse_floor_bounds()
 
+        new_start = self._start_value.value()
         new_stop = max(cur_bounds[1], new_start)
         egen_params.set_trig_impulse_floor_bounds([new_start, new_stop])
         self._updater.signal_update(self._get_update_signal_type())
 
-    def _change_stop(self, new_stop):
+    def _change_stop(self):
         egen_params = self._get_egen_params()
         cur_bounds = egen_params.get_trig_impulse_floor_bounds()
 
+        new_stop = self._stop_value.value()
         new_start = min(cur_bounds[0], new_stop)
         egen_params.set_trig_impulse_floor_bounds([new_start, new_stop])
         self._updater.signal_update(self._get_update_signal_type())
@@ -405,18 +407,20 @@ class TriggerImpulseCeilBounds(TriggerImpulseBounds):
         egen_params = self._get_egen_params()
         self._try_update_bounds(egen_params.get_trig_impulse_ceil_bounds())
 
-    def _change_start(self, new_start):
+    def _change_start(self):
         egen_params = self._get_egen_params()
         cur_bounds = egen_params.get_trig_impulse_ceil_bounds()
 
+        new_start = self._start_value.value()
         new_stop = min(cur_bounds[1], new_start)
         egen_params.set_trig_impulse_ceil_bounds([new_start, new_stop])
         self._updater.signal_update(self._get_update_signal_type())
 
-    def _change_stop(self, new_stop):
+    def _change_stop(self):
         egen_params = self._get_egen_params()
         cur_bounds = egen_params.get_trig_impulse_ceil_bounds()
 
+        new_stop = self._stop_value.value()
         new_start = max(cur_bounds[0], new_stop)
         egen_params.set_trig_impulse_ceil_bounds([new_start, new_stop])
         self._updater.signal_update(self._get_update_signal_type())
