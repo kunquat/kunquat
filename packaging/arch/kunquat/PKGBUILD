@@ -1,0 +1,54 @@
+pkgname=kunquat
+pkgver=0.9.1
+pkgrel=1
+pkgdesc='Kunquat is a music sequencer similar to tracker programs.'
+url='http://kunquat.org/'
+arch=('x86_64')
+license=('custom:CC0')
+depends=(
+  'python'
+  'python-pyqt5'
+  'libpulse'
+  'libsamplerate'
+  'libsndfile'
+  'libzip'
+  'wavpack'
+)
+makedepends=(
+  'check'
+  'flake8'
+  'python-pylint'
+)
+source=(
+  "$pkgname-$pkgver.tar.gz::https://github.com/kunquat/kunquat/archive/$pkgver.tar.gz"
+  "$pkgname-$pkgver-fabricate.py::https://raw.githubusercontent.com/SimonAlfie/fabricate/2bd38a581836e0bd7a3a5984de5b3354556fb42e/fabricate.py"
+)
+sha256sums=(
+  'f1e690769929998bc0dce2a13f913fe7df1fb011de5f0a5ef236bf510f9c3265' # Release package hash
+  'eb72f8904e62b1c85bfe69bdc3f6aba1a98581a5d83a5e674f9d7c522f172128'
+)
+
+prepare() {
+  mkdir -p "$pkgname-$pkgver/support"
+  cp "$pkgname-$pkgver-fabricate.py" "$pkgname-$pkgver/support/fabricate.py"
+  cd "$pkgname-$pkgver"
+}
+
+build() {
+  cd "$pkgname-$pkgver"
+  python make.py
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+
+  python make.py --prefix="$pkgdir/usr" install
+  PYTHONPATH=`python -c "import os, sys; print(os.path.expanduser('$pkgdir/lib/python{0}.{1}/site-packages'.format(*sys.version_info)))"`
+  LD_LIBRARY_PATH="$pkgdir/usr/lib"
+
+  # Install the CC0 license, since it is not included with the Arch standard
+  # licenses package. Additionally, the license contains names of contributors,
+  # so a canned license should not be used.
+  install -Dm644 COPYING "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
+
