@@ -1,16 +1,21 @@
 pkgname=kunquat
-pkgver=0.9.1
+pkgver=0.9.1.0.g9ca744cb
 pkgrel=1
 pkgdesc='Kunquat is a music sequencer similar to tracker programs.'
 url='http://kunquat.org/'
 arch=('x86_64')
 license=('custom:CC0')
+provides=('kunquat')
+conflicts=('kunquat')
 depends=(
+  'flac'
   'python'
   'python-pyqt5'
+  'libogg'
   'libpulse'
   'libsamplerate'
   'libsndfile'
+  'libvorbis'
   'libzip'
   'wavpack'
 )
