@@ -191,7 +191,7 @@ int serialise_float(char* dest, int size, double value)
         // Exponential notation
 
         // d1.d2d3...
-        strncat(result, &digits[0], 1);
+        result[strlen(result)] = digits[0];
 
         if (strlen(digits) > 1)
         {
@@ -209,7 +209,7 @@ int serialise_float(char* dest, int size, double value)
     {
         const int before_point = shift + 1;
         const int available = (int)strlen(digits);
-        strncat(result, digits, (size_t)min(before_point, available));
+        strncat(result, digits, (size_t)before_point);
 
         if (before_point >= available)
         {

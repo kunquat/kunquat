@@ -103,8 +103,7 @@ static void set_error_va_list(Module* module, const char* message, va_list args)
 
     if (module != NULL)
     {
-        memset(module->error, 0, ERROR_LENGTH_MAX + 1);
-        strncpy(module->error, null_error, ERROR_LENGTH_MAX);
+        strncpy(module->error, null_error, ERROR_LENGTH_MAX + 1);
     }
 
     return;

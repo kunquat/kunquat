@@ -380,7 +380,7 @@ static void make_padsynth_sample(
     rassert(fw != NULL);
 
     char context_str[16] = "";
-    snprintf(context_str, 16, "PADsynth%d", context_index);
+    snprintf(context_str, 16, "PADsynth%hd", (unsigned short)context_index);
     Random_init(random, context_str);
 
     int32_t sample_length = PADSYNTH_DEFAULT_SAMPLE_LENGTH;
