@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -65,7 +65,7 @@ def run_command(builder, *args, **kwargs):
     echo = kwargs.get('echo')
     if builder:
         (_, _, outputs_list) = builder.run(*args, echo=echo)
-        return bool(outputs_list)
+        return (outputs_list != None)
     else:
         subprocess.check_call(args)
         return True
