@@ -1,8 +1,9 @@
 
 
-The following copyright waiver applies to all source code files that
-are part of Kunquat, but not to any of the contents of the "support"
-subdirectory.
+The following copyright waiver applies to all source files that are
+part of Kunquat, but not the example composition file (with the .kqt
+suffix) under the "examples" subdirectory, or to any of the contents
+of the "support" subdirectory.
 
 CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
 
