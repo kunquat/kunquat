@@ -23,24 +23,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-try:
-    import support.fabricate as fabricate
-except ImportError:
-    msg = 'Fabricate was not found. Please run ./get_build_support.sh to retrieve it.'
-
-    # Check for unsafe build option
-    check_args = sys.argv
-    if '--' in check_args:
-        check_args = check_args[:check_args.index('--')]
-    if '--unsafe' in check_args:
-        try:
-            import support.fabricate_unverified as fabricate
-        except ImportError:
-            print(msg, file=sys.stderr)
-            sys.exit(1)
-    else:
-        print(msg, file=sys.stderr)
-        sys.exit(1)
+import support.fabricate as fabricate
 
 import scripts.command as command
 from scripts.cc import get_cc
@@ -122,11 +105,6 @@ with open(options_path) as f:
             full_desc = '{} (default: {})'.format(desc, value)
             option = Option(name, type=type_name, help=full_desc)
             cmdline_opts.append(option)
-
-unsafe_option = Option('--unsafe', action='store_false',
-        help='allow building with an unverified version of Fabricate (not recommended)')
-
-cmdline_opts.append(unsafe_option)
 
 
 def process_cmd_line():
