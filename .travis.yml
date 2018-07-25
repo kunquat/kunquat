@@ -16,7 +16,6 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  sudo apt-get install -y xvfb build-essential check libpulse-dev libsamplerate0-dev libsndfile1-dev libwavpack-dev libzip-dev; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  brew install check pulseaudio libsamplerate libsndfile wavpack libzip; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  brew upgrade python; alias pip=pip3; fi  # https://github.com/travis-ci/travis-ci/issues/2312
-  - ./get_build_support.sh
   - gcc --version
   - clang --version
   - python3 --version
