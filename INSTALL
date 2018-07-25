@@ -1,7 +1,6 @@
 On a relatively recent Ubuntu system you should be able to install and try out Kunquat by doing the following:
 
 sudo -k apt-get install build-essential check libpulse-dev libsamplerate0-dev libsndfile1-dev libwavpack-dev libzip-dev python3 python3-pyqt5 python3-pyqt5.qtsvg
-./get_build_support.sh
 ./make.py
 ./make.py --prefix=~/kunquat install
 export LD_LIBRARY_PATH=~/kunquat/lib
@@ -15,7 +14,6 @@ On MacOS Sierra you should be able to install and try out Kunquat by first insta
 
 brew install wget pkg-config check pulseaudio libsamplerate libsndfile libzip wavpack python3
 pip3 install pyqt5
-./get_build_support.sh
 ./make.py --disable-threads --disable-tests
 ./make.py --disable-threads --disable-tests --prefix=~/kunquat install
 export LD_LIBRARY_PATH=~/kunquat/lib

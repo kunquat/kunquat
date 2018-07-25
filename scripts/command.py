@@ -65,7 +65,7 @@ def run_command(builder, *args, **kwargs):
     echo = kwargs.get('echo')
     if builder:
         (_, _, outputs_list) = builder.run(*args, echo=echo)
-        return (outputs_list != None)
+        return bool(outputs_list)
     else:
         subprocess.check_call(args)
         return True

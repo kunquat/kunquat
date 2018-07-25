@@ -4,6 +4,5 @@ RUN apt-get install -y xvfb build-essential check libpulse-dev libsamplerate0-de
 RUN pip3 install pylint flake8 pyqt5
 COPY ./ /tmp/kunquat
 WORKDIR /tmp/kunquat
-RUN ./get_build_support.sh
 ENV TRAVIS_OS_NAME linux
 CMD ["./test_runner.sh"]
