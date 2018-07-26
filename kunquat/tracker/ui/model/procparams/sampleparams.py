@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -44,6 +44,7 @@ class SampleParams(ProcParams):
 
     def __init__(self, proc_id, controller):
         super().__init__(proc_id, controller)
+        self._data_converters = controller.get_data_converters()
 
     def _get_sample_id(self, sample_num):
         return 'smp_{:03x}'.format(sample_num)
@@ -102,7 +103,7 @@ class SampleParams(ProcParams):
             with open(path, 'rb') as f:
                 sample_data = f.read()
 
-            validator = WavPackValidator(sample_data)
+            validator = WavPackValidator(sample_data, self._data_converters)
             if not validator.is_data_valid():
                 raise SampleImportError('Could not import {}:\n{}'.format(
                     path, validator.get_validation_error()))
@@ -858,16 +859,17 @@ class RandomList():
 
 class WavPackValidator():
 
-    def __init__(self, sample_data):
+    def __init__(self, sample_data, data_converters):
         self._validator = Kunquat()
         self._sample_data = sample_data
+        self._data_converters = data_converters
         self._validation_error = None
 
     def is_data_valid(self):
         if self._validation_error:
             return False
 
-        transaction = {
+        transaction_unversioned = {
             'au_00/p_manifest.json'                   : {},
             'au_00/proc_00/p_manifest.json'           : { 'type': 'sample' },
             'au_00/proc_00/p_signal_type.json'        : 'voice',
@@ -875,6 +877,9 @@ class WavPackValidator():
                     'format': 'WavPack', 'freq' : 48000, },
             'au_00/proc_00/c/smp_000/p_sample.wv'     : self._sample_data,
         }
+
+        transaction = dict((k, self._data_converters.wrap_with_latest_version(k, d))
+                for k, d in transaction_unversioned.items())
 
         for key, value in transaction.items():
             self._validator.set_data(key, value)
