@@ -94,6 +94,9 @@ class Controller():
     def get_updater(self):
         return self._updater
 
+    def get_data_converters(self):
+        return self._data_converters
+
     def set_note_channel_mapper(self, note_channel_mapper):
         self._note_channel_mapper = note_channel_mapper
         self._note_channel_mapper.set_controller(self)
