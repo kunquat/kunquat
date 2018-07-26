@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -19,6 +19,8 @@ import ctypes
 import ctypes.util
 from io import BytesIO, SEEK_SET, SEEK_CUR, SEEK_END
 
+
+_HAS_LARGE_FILE_SUPPORT = False
 
 _EOF = -1
 
@@ -137,50 +139,81 @@ class _WavPackRBase(_WavPackBase):
         def read_bytes_cb(id_, data, bcount):
             return self._read_bytes(data, bcount)
         self._read_bytes_cb = _read_bytes(read_bytes_cb)
+        self._read_bytes_cb64 = _read_bytes64(read_bytes_cb)
 
         def get_pos_cb(id_):
             return self._get_pos()
         self._get_pos_cb = _get_pos(get_pos_cb)
+        self._get_pos_cb64 = _get_pos64(get_pos_cb)
 
         def set_pos_abs_cb(id_, pos):
             return self._set_pos_abs(pos)
         self._set_pos_abs_cb = _set_pos_abs(set_pos_abs_cb)
+        self._set_pos_abs_cb64 = _set_pos_abs64(set_pos_abs_cb)
 
         def set_pos_rel_cb(id_, delta, mode):
             return self._set_pos_rel(delta, mode)
         self._set_pos_rel_cb = _set_pos_rel(set_pos_rel_cb)
+        self._set_pos_rel_cb64 = _set_pos_rel64(set_pos_rel_cb)
 
         def push_back_byte_cb(id_, c):
             return self._push_back_byte(c)
         self._push_back_byte_cb = _push_back_byte(push_back_byte_cb)
+        self._push_back_byte_cb64 = _push_back_byte64(push_back_byte_cb)
 
         def get_length_cb(id_):
             return self._get_length()
         self._get_length_cb = _get_length(get_length_cb)
+        self._get_length_cb64 = _get_length64(get_length_cb)
 
         def can_seek_cb(id_):
             return self._can_seek()
         self._can_seek_cb = _can_seek(can_seek_cb)
+        self._can_seek_cb64 = _can_seek64(can_seek_cb)
 
         def write_bytes_cb(id_, data, bcount):
             return self._write_bytes(data, bcount)
         self._write_bytes_cb = _write_bytes(write_bytes_cb)
+        self._write_bytes_cb64 = _write_bytes64(write_bytes_cb)
 
-        self._reader = _WavpackStreamReader(
-            self._read_bytes_cb,
-            self._get_pos_cb,
-            self._set_pos_abs_cb,
-            self._set_pos_rel_cb,
-            self._push_back_byte_cb,
-            self._get_length_cb,
-            self._can_seek_cb,
-            self._write_bytes_cb)
+        def truncate_here_cb(id_):
+            return self._truncate_here()
+        self._truncate_here_cb64 = _truncate_here64(truncate_here_cb)
+
+        def close_cb(id_):
+            return self._close()
+        self._close_cb64 = _close64(close_cb)
 
         error_msg = (ctypes.c_char * 81)()
         flags = _OPEN_2CH_MAX | _OPEN_NORMALIZE
 
-        self._wpc = _wavpack.WavpackOpenFileInputEx(
-                self._reader, None, None, error_msg, flags, 0)
+        if _HAS_LARGE_FILE_SUPPORT:
+            self._reader = _WavpackStreamReader64(
+                self._read_bytes_cb64,
+                self._write_bytes_cb64,
+                self._get_pos_cb64,
+                self._set_pos_abs_cb64,
+                self._set_pos_rel_cb64,
+                self._push_back_byte_cb64,
+                self._get_length_cb64,
+                self._can_seek_cb64,
+                self._truncate_here_cb64,
+                self._close_cb64)
+            self._wpc = _wavpack.WavpackOpenFileInputEx64(
+                    self._reader, None, None, error_msg, flags, 0)
+        else:
+            self._reader = _WavpackStreamReader(
+                self._read_bytes_cb,
+                self._get_pos_cb,
+                self._set_pos_abs_cb,
+                self._set_pos_rel_cb,
+                self._push_back_byte_cb,
+                self._get_length_cb,
+                self._can_seek_cb,
+                self._write_bytes_cb)
+            self._wpc = _wavpack.WavpackOpenFileInputEx(
+                    self._reader, None, None, error_msg, flags, 0)
+
         if not self._wpc:
             error_str = str(error_msg, encoding='utf-8')
             raise WavPackError(
@@ -250,6 +283,13 @@ class _WavPackRBase(_WavPackBase):
 
     def _write_bytes(self, data, bcount):
         assert False
+
+    def _truncate_here(self):
+        self._f.truncate()
+        return 0
+
+    def _close(self):
+        return 0
 
 
 class WavPackR(_WavPackRBase):
@@ -565,6 +605,68 @@ class _WavpackStreamReader(ctypes.Structure):
         ('write_bytes', _write_bytes),
     ]
 
+_read_bytes64 = ctypes.CFUNCTYPE(
+        ctypes.c_int32,
+        ctypes.c_void_p, # id
+        ctypes.POINTER(ctypes.c_char), # data
+        ctypes.c_int32) # bcount
+
+_write_bytes64 = ctypes.CFUNCTYPE(
+        ctypes.c_int32,
+        ctypes.c_void_p, # id
+        ctypes.POINTER(ctypes.c_char), # data
+        ctypes.c_int32) # bcount
+
+_get_pos64 = ctypes.CFUNCTYPE(
+        ctypes.c_int64,
+        ctypes.c_void_p) # id
+
+_set_pos_abs64 = ctypes.CFUNCTYPE(
+        ctypes.c_int,
+        ctypes.c_void_p, # id
+        ctypes.c_int64) # pos
+
+_set_pos_rel64 = ctypes.CFUNCTYPE(
+        ctypes.c_int,
+        ctypes.c_void_p, # id
+        ctypes.c_int64, # delta
+        ctypes.c_int) # mode
+
+_push_back_byte64 = ctypes.CFUNCTYPE(
+        ctypes.c_int,
+        ctypes.c_void_p, # id
+        ctypes.c_int) # byte
+
+_get_length64 = ctypes.CFUNCTYPE(
+        ctypes.c_int64,
+        ctypes.c_void_p) # id
+
+_can_seek64 = ctypes.CFUNCTYPE(
+        ctypes.c_int,
+        ctypes.c_void_p) # id
+
+_truncate_here64 = ctypes.CFUNCTYPE(
+        ctypes.c_int,
+        ctypes.c_void_p) # id
+
+_close64 = ctypes.CFUNCTYPE(
+        ctypes.c_int,
+        ctypes.c_void_p) # id
+
+class _WavpackStreamReader64(ctypes.Structure):
+    _fields_ = [
+        ('read_bytes', _read_bytes64),
+        ('write_bytes', _write_bytes64),
+        ('get_pos', _get_pos64),
+        ('set_pos_abs', _set_pos_abs64),
+        ('set_pos_rel', _set_pos_rel64),
+        ('push_back_byte', _push_back_byte64),
+        ('get_length', _get_length64),
+        ('can_seek', _can_seek64),
+        ('truncate_here', _truncate_here64),
+        ('close', _close64),
+    ]
+
 
 _WavpackContext = ctypes.c_void_p
 
@@ -602,6 +704,20 @@ _wavpack = ctypes.CDLL(ctypes.util.find_library('wavpack'))
 
 _wavpack.WavpackGetErrorMessage.argtypes = [_WavpackContext]
 _wavpack.WavpackGetErrorMessage.restype = ctypes.c_char_p
+
+try:
+    _wavpack.WavpackOpenFileInputEx64.argtypes = [
+            ctypes.POINTER(_WavpackStreamReader64),
+            ctypes.c_void_p, # wv_id
+            ctypes.c_void_p, # wvc_id
+            ctypes.c_char_p, # error
+            ctypes.c_int, # flags
+            ctypes.c_int, # norm_offset
+        ]
+    _wavpack.WavpackOpenFileInputEx64.restype = _WavpackContext
+    _HAS_LARGE_FILE_SUPPORT = True
+except AttributeError:
+    pass
 
 _wavpack.WavpackOpenFileInputEx.argtypes = [
         ctypes.POINTER(_WavpackStreamReader),
