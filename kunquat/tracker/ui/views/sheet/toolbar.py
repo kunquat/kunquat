@@ -71,7 +71,7 @@ class Toolbar(QWidget, Updater):
                 self._length_editor)
 
         h = QHBoxLayout()
-        h.setContentsMargins(4, 0, 4, 4)
+        h.setContentsMargins(2, 0, 2, 2)
         h.setSpacing(2)
 
         h.addWidget(self._follow_playback_button)

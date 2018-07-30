@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2018
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -45,10 +45,10 @@ class MainView(QWidget, Updater):
         v.setSpacing(0)
         v.addWidget(self._portal)
         v.addWidget(self._playback_panel)
-        v.addSpacing(4)
+        v.addSpacing(2)
         v.addWidget(self._composition)
         v.addWidget(self._input_controls)
-        v.addSpacing(4)
+        v.addSpacing(2)
         v.addWidget(self._peak_meter)
         self.setLayout(v)
 

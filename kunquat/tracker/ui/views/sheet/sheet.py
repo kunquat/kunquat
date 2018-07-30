@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -28,7 +28,7 @@ class Sheet(QWidget, Updater):
         self.add_to_updaters(self._toolbar, self._sheet_area)
 
         v = QVBoxLayout()
-        v.setContentsMargins(0, 0, 0, 4)
+        v.setContentsMargins(0, 0, 0, 2)
         v.setSpacing(0)
         v.addWidget(self._toolbar)
         v.addWidget(self._sheet_area)
