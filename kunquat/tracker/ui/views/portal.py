@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2018
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -299,7 +299,7 @@ class RenderStatsButton(QToolButton):
         self._load_meter = RenderLoadMeter()
 
         h = QHBoxLayout()
-        h.setContentsMargins(6, 6, 6, 6)
+        h.setContentsMargins(6, 4, 6, 4)
         h.addWidget(self._load_meter, 0, Qt.AlignVCenter)
         h.addWidget(QLabel('System load'))
         self.setLayout(h)

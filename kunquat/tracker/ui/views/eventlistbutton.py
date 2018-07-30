@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -80,7 +80,7 @@ class EventListButton(QToolButton):
         self._text = QLabel(self._get_text(0))
 
         h = QHBoxLayout()
-        h.setContentsMargins(6, 6, 6, 6)
+        h.setContentsMargins(6, 4, 6, 4)
         h.addItem(light_layout)
         h.addWidget(self._text)
         self.setLayout(h)
