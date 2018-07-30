@@ -114,7 +114,8 @@ class RemoveButton(QPushButton, AudioUnitUpdater):
         super().__init__()
         self._context = None
         self.setToolTip('Remove')
-        self.setStyleSheet('padding: 0 -2px;')
+        #self.setStyleSheet('padding: 0 -2px;')
+        self.setIconSize(QSize(16, 16))
 
     def set_context(self, context):
         self._context = context

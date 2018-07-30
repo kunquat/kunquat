@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -367,7 +367,8 @@ class ConstraintEditor(QWidget, Updater):
         self._expression = QLineEdit()
 
         self._remove_button = QPushButton()
-        self._remove_button.setStyleSheet('padding: 0 -2px;')
+        #self._remove_button.setStyleSheet('padding: 0 -2px;')
+        self._remove_button.setIconSize(QSize(16, 16))
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -526,7 +527,8 @@ class TargetEditor(QWidget, Updater):
         self._expression = QLineEdit()
 
         self._remove_button = QPushButton()
-        self._remove_button.setStyleSheet('padding: 0 -2px;')
+        #self._remove_button.setStyleSheet('padding: 0 -2px;')
+        self._remove_button.setIconSize(QSize(16, 16))
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)

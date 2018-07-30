@@ -110,8 +110,8 @@ class SmallButton(QPushButton):
 
     def __init__(self, icon):
         super().__init__()
-        self.setStyleSheet('padding: 0 -2px;')
         self.setIcon(QIcon(icon))
+        self.setIconSize(QSize(16, 16))
 
 
 class ToneList(EditorList, ProcessorUpdater):

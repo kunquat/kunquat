@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -199,7 +199,8 @@ class SmallButton(QPushButton):
 
     def __init__(self):
         super().__init__()
-        self.setStyleSheet('padding: 0 -2px;')
+        #self.setStyleSheet('padding: 0 -2px;')
+        self.setIconSize(QSize(16, 16))
 
 
 class WarpEditor(QWidget, ProcessorUpdater):
