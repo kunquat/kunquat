@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -305,10 +305,9 @@ class VarRemoveButton(QPushButton, Updater):
 
         self.setToolTip('Remove')
 
-        self.setStyleSheet('padding: 0 -2px;')
-
     def _on_setup(self):
         icon_bank = self._ui_model.get_icon_bank()
+        self.setIconSize(QSize(16, 16))
         self.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
 
         self.clicked.connect(self._remove)
