@@ -71,7 +71,7 @@ class Toolbar(QWidget, Updater):
                 self._length_editor)
 
         h = QHBoxLayout()
-        h.setContentsMargins(4, 0, 4, 4)
+        h.setContentsMargins(2, 0, 2, 2)
         h.setSpacing(2)
 
         h.addWidget(self._follow_playback_button)
@@ -113,6 +113,9 @@ class Toolbar(QWidget, Updater):
         self.setLayout(h)
 
 
+_ICON_SIZE = QSize(24, 24)
+
+
 class FollowPlaybackButton(QPushButton, Updater):
 
     def __init__(self):
@@ -127,6 +130,7 @@ class FollowPlaybackButton(QPushButton, Updater):
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('follow_playback')
         self.setIcon(QIcon(icon_path))
+        self.setIconSize(_ICON_SIZE)
 
         self.clicked.connect(self._toggle_playback_following)
 
@@ -183,6 +187,7 @@ class EditButton(QPushButton, Updater):
         icon_path = icon_bank.get_icon_path('edit')
         icon = QIcon(icon_path)
         self.setIcon(icon)
+        self.setIconSize(_ICON_SIZE)
 
         self.clicked.connect(self._clicked)
 
@@ -221,6 +226,7 @@ class ReplaceButton(QPushButton, Updater):
         icon_path = icon_bank.get_icon_path('replace')
         icon = QIcon(icon_path)
         self.setIcon(icon)
+        self.setIconSize(_ICON_SIZE)
 
         self.clicked.connect(self._clicked)
 
@@ -258,6 +264,7 @@ class RestButton(QPushButton, Updater):
         icon_path = icon_bank.get_icon_path('rest')
         icon = QIcon(icon_path)
         self.setIcon(icon)
+        self.setIconSize(_ICON_SIZE)
 
         self.clicked.connect(self._clicked)
 
@@ -301,6 +308,7 @@ class DelSelectionButton(QPushButton, Updater):
         icon_path = icon_bank.get_icon_path('delete')
         icon = QIcon(icon_path)
         self.setIcon(icon)
+        self.setIconSize(_ICON_SIZE)
 
         self._update_enabled()
         self.clicked.connect(self._clicked)
@@ -349,6 +357,7 @@ class UndoButton(QPushButton, Updater):
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('undo')
         self.setIcon(QIcon(icon_path))
+        self.setIconSize(_ICON_SIZE)
 
         self.clicked.connect(self._undo)
 
@@ -386,6 +395,7 @@ class RedoButton(QPushButton, Updater):
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('redo')
         self.setIcon(QIcon(icon_path))
+        self.setIconSize(_ICON_SIZE)
 
         self.clicked.connect(self._redo)
 
@@ -433,6 +443,7 @@ class CutOrCopyButton(QPushButton, Updater):
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path(self._button_type)
         self.setIcon(QIcon(icon_path))
+        self.setIconSize(_ICON_SIZE)
 
         self.clicked.connect(self._cut_or_copy)
 
@@ -491,6 +502,7 @@ class PasteButton(QPushButton, Updater):
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('paste')
         self.setIcon(QIcon(icon_path))
+        self.setIconSize(_ICON_SIZE)
 
         clipboard = QApplication.clipboard()
         clipboard.dataChanged.connect(self._update_enabled_full)
@@ -535,6 +547,7 @@ class ConvertTriggerButton(QPushButton, Updater):
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('convert_trigger')
         self.setIcon(QIcon(icon_path))
+        self.setIconSize(_ICON_SIZE)
 
         self.clicked.connect(self._convert_trigger)
 
@@ -581,6 +594,7 @@ class ZoomButton(QPushButton, Updater):
 
         icon = self._get_icon(self._mode)
         self.setIcon(icon)
+        self.setIconSize(_ICON_SIZE)
 
         self._update_enabled()
         self.clicked.connect(self._clicked)

@@ -439,11 +439,12 @@ class HarmonicLevelEditor(QWidget, ProcessorUpdater):
         self._level = LevelEditor(index)
 
         self._remove_button = QPushButton()
-        self._remove_button.setStyleSheet('padding: 0 -2px;')
+        #self._remove_button.setStyleSheet('padding: 0 -2px;')
+        self._remove_button.setIconSize(QSize(16, 16))
         self._remove_button.setEnabled(self._index != 0)
 
         h = QHBoxLayout()
-        h.setContentsMargins(4, 0, 4, 0)
+        h.setContentsMargins(4, 0, 0, 0)
         h.setSpacing(2)
         h.addWidget(QLabel('Pitch factor:'))
         h.addWidget(self._pitch_factor)
