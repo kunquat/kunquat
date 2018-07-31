@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -270,27 +270,22 @@ class Message(QTextEdit, Updater):
         self._updater.signal_update('signal_module_message')
 
 
-class MixingVolume(QDoubleSpinBox, Updater):
+class MixingVolume(NumberSlider, Updater):
 
     def __init__(self):
-        super().__init__()
-        self.setDecimals(2)
-        self.setRange(-384, 18)
+        super().__init__(1, -60, 18)
 
     def _on_setup(self):
         self.register_action('signal_mixing_volume', self._update_mixing_volume)
 
-        self.valueChanged.connect(self._change_mixing_volume)
+        self.numberChanged.connect(self._change_mixing_volume)
 
         self._update_mixing_volume()
 
     def _update_mixing_volume(self):
         module = self._ui_model.get_module()
         mix_vol = module.get_mixing_volume()
-        if self.value() != mix_vol:
-            old_block = self.blockSignals(True)
-            self.setValue(mix_vol)
-            self.blockSignals(old_block)
+        self.set_number(mix_vol)
 
     def _change_mixing_volume(self, value):
         module = self._ui_model.get_module()
