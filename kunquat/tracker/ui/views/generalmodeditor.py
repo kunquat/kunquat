@@ -59,10 +59,8 @@ class GeneralModEditor(QWidget, Updater):
         gl.setContentsMargins(0, 0, 0, 0)
         gl.setHorizontalSpacing(4)
         gl.setVerticalSpacing(2)
-        gl.setColumnStretch(2, 1)
         gl.addWidget(QLabel('Mixing volume:'), 0, 0)
         gl.addWidget(self._mixing_volume, 0, 1)
-        gl.addWidget(QWidget(), 0, 2)
         gl.addWidget(QLabel('Note force shift:'), 1, 0)
         gl.addWidget(self._force_shift, 1, 1)
         gl.addWidget(QLabel('Block dc:'), 2, 0)
@@ -273,7 +271,7 @@ class Message(QTextEdit, Updater):
 class MixingVolume(NumberSlider, Updater):
 
     def __init__(self):
-        super().__init__(1, -60, 18)
+        super().__init__(1, -60, 18, width_txt='-60.0')
 
     def _on_setup(self):
         self.register_action('signal_mixing_volume', self._update_mixing_volume)
@@ -296,7 +294,7 @@ class MixingVolume(NumberSlider, Updater):
 class ForceShift(NumberSlider, Updater):
 
     def __init__(self):
-        super().__init__(0, -60, 0)
+        super().__init__(0, -60, 0, width_txt='-60.0')
 
     def _on_setup(self):
         self.register_action('signal_force_shift', self._update_shift)
@@ -355,6 +353,7 @@ class RandomSeed(QWidget, Updater):
         h.setSpacing(4)
         h.addWidget(self._seed)
         h.addWidget(self._auto_update)
+        h.addStretch()
         self.setLayout(h)
 
     def _on_setup(self):
