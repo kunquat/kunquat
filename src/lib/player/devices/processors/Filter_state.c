@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2018
  *
  * This file is part of Kunquat.
  *
@@ -19,11 +19,12 @@
 #include <init/devices/processors/Proc_filter.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
+#include <mathnum/conversions.h>
+#include <mathnum/fast_exp2.h>
+#include <mathnum/fast_sin.h>
 #include <memory.h>
 #include <player/devices/Device_thread_state.h>
 #include <player/devices/Proc_state.h>
-#include <player/devices/processors/Filter.h>
-#include <player/devices/processors/Proc_state_utils.h>
 #include <player/devices/Voice_state.h>
 #include <player/Work_buffers.h>
 
@@ -32,37 +33,16 @@
 #include <stdlib.h>
 
 
-#define FILTER_ORDER 2
-
-
-typedef struct Single_filter_state
+typedef struct Filter_ch_state
 {
-    Filter_type type;
-    double coeffs[FILTER_ORDER];
-    double mul;
-    double history1[KQT_BUFFERS_MAX][FILTER_ORDER];
-    double history2[KQT_BUFFERS_MAX][FILTER_ORDER];
-} Single_filter_state;
+    double s1;
+    double s2;
+} Filter_ch_state;
 
 
 typedef struct Filter_state_impl
 {
-    bool anything_rendered;
-
-    Filter_type applied_type;
-    double applied_cutoff;
-    double applied_resonance;
-    double true_cutoff;
-    double true_resonance;
-    double filter_xfade_pos;
-    double filter_xfade_update;
-    int filter_xfade_state_used;
-    int filter_state_used;
-    Single_filter_state sf_state[2];
-
-    Filter_type type;
-    double def_cutoff;
-    double def_resonance;
+    Filter_ch_state states[2];
 } Filter_state_impl;
 
 
@@ -71,44 +51,39 @@ static void Filter_state_impl_init(Filter_state_impl* fimpl, const Proc_filter* 
     rassert(fimpl != NULL);
     rassert(filter != NULL);
 
-    fimpl->anything_rendered = false;
-
-    fimpl->applied_type = filter->type;
-    fimpl->applied_cutoff = FILTER_DEFAULT_CUTOFF;
-    fimpl->applied_resonance = FILTER_DEFAULT_RESONANCE;
-    fimpl->true_cutoff = INFINITY;
-    fimpl->true_resonance = 0.5;
-    fimpl->filter_state_used = -1;
-    fimpl->filter_xfade_state_used = -1;
-    fimpl->filter_xfade_pos = 1;
-    fimpl->filter_xfade_update = 0;
-
-    // Hack: Make sure that interesting highpass cutoff values are applied
-    if (filter->type == FILTER_TYPE_HIGHPASS)
-        fimpl->applied_cutoff = -100.0;
-
-    for (int si = 0; si < 2; ++si)
+    for (int ch = 0; ch < 2; ++ch)
     {
-        fimpl->sf_state[si].type = filter->type;
-        fimpl->sf_state[si].mul = 0;
-
-        for (int i = 0; i < FILTER_ORDER; ++i)
-        {
-            fimpl->sf_state[si].coeffs[i] = 0;
-
-            for (int ch = 0; ch < KQT_BUFFERS_MAX; ++ch)
-            {
-                fimpl->sf_state[si].history1[ch][i] = 0;
-                fimpl->sf_state[si].history2[ch][i] = 0;
-            }
-        }
+        fimpl->states[ch].s1 = 0;
+        fimpl->states[ch].s2 = 0;
     }
 
-    fimpl->type = filter->type;
-    fimpl->def_cutoff = filter->cutoff;
-    fimpl->def_resonance = filter->resonance;
-
     return;
+}
+
+
+static float get_cutoff(double rel_freq)
+{
+    rassert(rel_freq > 0);
+    rassert(rel_freq < 0.25);
+    return (float)tan(2.0 * PI * rel_freq);
+}
+
+
+static float get_cutoff_fast(double rel_freq)
+{
+    rassert(rel_freq > 0);
+    rassert(rel_freq < 0.25);
+
+    const double scaled_freq = 2.0 * PI * rel_freq;
+
+    return (float)(fast_sin(scaled_freq) / fast_sin((PI * 0.5) + scaled_freq));
+}
+
+
+static float get_cutoff_ratio(double cutoff_param, int32_t audio_rate)
+{
+    const double cutoff_ratio = cents_to_Hz((cutoff_param - 24) * 100) / audio_rate;
+    return (float)clamp(cutoff_ratio, 0.0001, 0.2499);
 }
 
 
@@ -116,155 +91,11 @@ static const int CONTROL_WB_CUTOFF = WORK_BUFFER_IMPL_1;
 static const int CONTROL_WB_RESONANCE = WORK_BUFFER_IMPL_2;
 
 
-static void Filter_state_impl_apply_filter_settings(
-        Filter_state_impl* fimpl,
-        Work_buffer* in_buffers[2],
-        Work_buffer* out_buffers[2],
-        double xfade_start,
-        double xfade_step,
-        int32_t buf_start,
-        int32_t buf_stop)
-{
-    rassert(fimpl != NULL);
-    rassert(in_buffers != NULL);
-    rassert(out_buffers != NULL);
-
-    if ((fimpl->filter_state_used == -1) && (fimpl->filter_xfade_state_used == -1))
-    {
-        for (int ch = 0; ch < 2; ++ch)
-        {
-            if ((in_buffers[ch] != NULL) && (out_buffers[ch] != NULL))
-                Work_buffer_copy(out_buffers[ch], in_buffers[ch], buf_start, buf_stop);
-        }
-        return;
-    }
-
-    rassert(fimpl->filter_state_used != fimpl->filter_xfade_state_used);
-
-    // Get filter states used
-    Single_filter_state* in_fst = (fimpl->filter_state_used > -1) ?
-        &fimpl->sf_state[fimpl->filter_state_used] : NULL;
-    Single_filter_state* out_fst = (fimpl->filter_xfade_state_used > -1) ?
-        &fimpl->sf_state[fimpl->filter_xfade_state_used] : NULL;
-
-    const double xfade_start_clamped = min(xfade_start, 1);
-
-    for (int32_t ch = 0; ch < 2; ++ch)
-    {
-        double xfade = xfade_start_clamped;
-
-        if ((in_buffers[ch] == NULL) || (out_buffers[ch] == NULL))
-            continue;
-
-        const float* in_buf = Work_buffer_get_contents(in_buffers[ch]);
-        float* out_buf = Work_buffer_get_contents_mut(out_buffers[ch]);
-
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-        {
-            const float input = in_buf[i];
-            double result = input;
-
-            // Apply primary filter
-            if (in_fst != NULL)
-            {
-                if (in_fst->type == FILTER_TYPE_LOWPASS)
-                    result = nq_zero_filter(
-                            FILTER_ORDER, in_fst->history1[ch], input);
-                else
-                    result = dc_zero_filter(
-                            FILTER_ORDER, in_fst->history1[ch], input);
-
-                result = iir_filter_strict_cascade_even_order(
-                        FILTER_ORDER, in_fst->coeffs, in_fst->history2[ch], result);
-                result *= in_fst->mul;
-            }
-
-            // Apply secondary filter with crossfade
-            if (xfade < 1)
-            {
-                result *= xfade;
-
-                double fade_result = input;
-
-                if (out_fst != NULL)
-                {
-                    if (out_fst->type == FILTER_TYPE_LOWPASS)
-                        fade_result = nq_zero_filter(
-                                FILTER_ORDER, out_fst->history1[ch], input);
-                    else
-                        fade_result = dc_zero_filter(
-                                FILTER_ORDER, out_fst->history1[ch], input);
-
-                    fade_result = iir_filter_strict_cascade_even_order(
-                            FILTER_ORDER,
-                            out_fst->coeffs,
-                            out_fst->history2[ch],
-                            fade_result);
-                    fade_result *= out_fst->mul;
-                }
-
-                result += fade_result * (1 - xfade);
-
-                xfade += xfade_step;
-            }
-
-            out_buf[i] = (float)result;
-        }
-    }
-
-    return;
-}
-
-
-#define CUTOFF_INF_LIMIT 100.0
-#define CUTOFF_BIAS 81.37631656229591
-
-
-static double get_cutoff_freq(double param)
-{
-    rassert(!isnan(param));
-
-    if (param >= CUTOFF_INF_LIMIT)
-        return INFINITY;
-
-    param = max(-100, param);
-    return exp2((param + CUTOFF_BIAS) / 12.0);
-}
-
-
-static double get_resonance(double param)
-{
-    const double clamped_res = clamp(param, 0, 100);
-    const double resonance = pow(1.055, clamped_res) * 0.5;
-    return resonance;
-}
-
-
-#define FILTER_XFADE_SPEED_MIN 40.0
-#define FILTER_XFADE_SPEED_MAX 200.0
-
-
-static double get_xfade_step(double audio_rate, double true_cutoff, double resonance)
-{
-    rassert(audio_rate > 0);
-
-    if (true_cutoff >= audio_rate * 0.5)
-        return FILTER_XFADE_SPEED_MAX / audio_rate;
-
-    const double xfade_range = FILTER_XFADE_SPEED_MAX - FILTER_XFADE_SPEED_MIN;
-
-    const double clamped_res = clamp(resonance, 0, 100);
-    const double xfade_norm = clamped_res / 100;
-    const double xfade_speed = FILTER_XFADE_SPEED_MAX - xfade_norm * xfade_range;
-
-    return xfade_speed / audio_rate;
-}
-
-
 static void Filter_state_impl_apply_input_buffers(
         Filter_state_impl* fimpl,
-        const float* cutoff_buf,
-        const float* resonance_buf,
+        const Proc_filter* filter,
+        const Work_buffer* cutoff_wb,
+        const Work_buffer* resonance_wb,
         const Work_buffers* wbs,
         Work_buffer* in_buffers[2],
         Work_buffer* out_buffers[2],
@@ -280,161 +111,128 @@ static void Filter_state_impl_apply_input_buffers(
 
     float* cutoffs = Work_buffers_get_buffer_contents_mut(wbs, CONTROL_WB_CUTOFF);
 
-    if (cutoff_buf != NULL)
+    // Fill cutoff buffer
     {
-        // Get cutoff values from input
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            cutoffs[i] = cutoff_buf[i];
-    }
-    else
-    {
-        // Get our default cutoff
-        const float def_cutoff = (float)fimpl->def_cutoff;
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            cutoffs[i] = def_cutoff;
+        int32_t fast_cutoff_stop = buf_start;
+        float const_cutoff = NAN;
+
+        if (cutoff_wb != NULL)
+        {
+            const int32_t const_start = Work_buffer_get_const_start(cutoff_wb);
+            fast_cutoff_stop = clamp(const_start, buf_start, buf_stop);
+            const float* cutoff_buf = Work_buffer_get_contents(cutoff_wb);
+
+            // Get cutoff values from input
+            for (int32_t i = buf_start; i < fast_cutoff_stop; ++i)
+            {
+                const double cutoff_param = cutoff_buf[i];
+                const double cutoff_ratio =
+                    fast_cents_to_Hz((cutoff_param - 24) * 100) / audio_rate;
+                const double cutoff_ratio_clamped = clamp(cutoff_ratio, 0.0001, 0.2499);
+
+                cutoffs[i] = get_cutoff_fast(cutoff_ratio_clamped);
+            }
+
+            if (fast_cutoff_stop < buf_stop)
+            {
+                const double cutoff_ratio =
+                    get_cutoff_ratio(cutoff_buf[fast_cutoff_stop], audio_rate);
+                const_cutoff = get_cutoff(cutoff_ratio);
+            }
+        }
+        else
+        {
+            const double cutoff_ratio = get_cutoff_ratio(filter->cutoff, audio_rate);
+            const_cutoff = get_cutoff(cutoff_ratio);
+        }
+
+        for (int32_t i = fast_cutoff_stop; i < buf_stop; ++i)
+            cutoffs[i] = const_cutoff;
     }
 
     float* resonances = Work_buffers_get_buffer_contents_mut(wbs, CONTROL_WB_RESONANCE);
 
-    if (resonance_buf != NULL)
+    // Fill resonance buffer
     {
-        // Get resonance values from input
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            resonances[i] = resonance_buf[i];
-    }
-    else
-    {
-        // Get our default resonance
-        const float def_resonance = (float)fimpl->def_resonance;
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            resonances[i] = def_resonance;
-    }
+        // We are going to warp the normalised resonance with: (bias^res - 1) / (bias - 1)
+        const double res_bias_base = 50.0;
+        const double res_bias_base_log2 = log2(res_bias_base);
 
-    const double max_true_cutoff_change = 0.01;
-    const double max_resonance_change = 0.01;
+        int32_t fast_res_stop = buf_start;
+        float const_res = NAN;
 
-    fimpl->filter_xfade_update = get_xfade_step(
-            audio_rate, fimpl->true_cutoff, fimpl->applied_resonance);
-
-    const double nyquist = (double)audio_rate * 0.5;
-
-    int32_t apply_filter_start = buf_start;
-    int32_t apply_filter_stop = buf_stop;
-    double xfade_start = fimpl->filter_xfade_pos;
-
-    for (int32_t i = buf_start; i < buf_stop; ++i)
-    {
-        float cutoff = cutoffs[i];
-        const float resonance = resonances[i];
-
-        // TODO: apply force->filter envelope if applicable
-        /*
-        if (proc->au_params->env_force_filter_enabled &&
-                fimpl->filter_xfade_pos >= 1)
+        if (resonance_wb != NULL)
         {
-            double force = Cond_work_buffer_get_value(actual_forces, i);
-            if (force > 1)
-                force = 1;
+            const int32_t const_start = Work_buffer_get_const_start(resonance_wb);
+            fast_res_stop = clamp(const_start, buf_start, buf_stop);
+            const float* resonance_buf = Work_buffer_get_contents(resonance_wb);
 
-            double factor = Envelope_get_value(proc->au_params->env_force_filter, force);
-            rassert(isfinite(factor));
-            cutoff += (factor * 100) - 100;
-        }
-        // */
-
-        // Initialise new filter settings if needed
-        if (fimpl->filter_xfade_pos >= 1 &&
-                ((fimpl->applied_type != fimpl->type) ||
-                 (fabs(cutoff - fimpl->applied_cutoff) >
-                    max_true_cutoff_change) ||
-                 (fabs(resonance - fimpl->applied_resonance) >
-                    max_resonance_change)))
-        {
-            // Apply previous filter settings to the signal
-            apply_filter_stop = i;
-            Filter_state_impl_apply_filter_settings(
-                    fimpl,
-                    in_buffers,
-                    out_buffers,
-                    xfade_start,
-                    fimpl->filter_xfade_update,
-                    apply_filter_start,
-                    apply_filter_stop);
-
-            // Set up new range for next filter processing
-            apply_filter_start = i;
-            apply_filter_stop = buf_stop;
-
-            fimpl->filter_xfade_state_used = fimpl->filter_state_used;
-
-            // Only apply crossfade if we have rendered audio
-            if (fimpl->anything_rendered)
-                fimpl->filter_xfade_pos = 0;
-            else
-                fimpl->filter_xfade_pos = 1;
-
-            fimpl->applied_type = fimpl->type;
-
-            fimpl->applied_cutoff = cutoff;
-            fimpl->true_cutoff = get_cutoff_freq(fimpl->applied_cutoff);
-            if (fimpl->applied_type == FILTER_TYPE_HIGHPASS)
-                fimpl->true_cutoff = min(fimpl->true_cutoff, nyquist - 1.0);
-
-            fimpl->applied_resonance = resonance;
-            fimpl->true_resonance = get_resonance(fimpl->applied_resonance);
-
-            fimpl->filter_xfade_update = get_xfade_step(
-                    audio_rate, fimpl->true_cutoff, fimpl->applied_resonance);
-
-            if (fimpl->true_cutoff < nyquist)
+            // Get resonance values from input
+            for (int32_t i = buf_start; i < fast_res_stop; ++i)
             {
-                const int new_state = 1 - abs(fimpl->filter_state_used);
-                const double true_cutoff = max(fimpl->true_cutoff, 1);
-                const int bandform =
-                    (fimpl->applied_type == FILTER_TYPE_HIGHPASS) ? 1 : 0;
-                fimpl->sf_state[new_state].type = fimpl->applied_type;
-                two_pole_filter_create(
-                        true_cutoff / audio_rate,
-                        fimpl->true_resonance,
-                        bandform,
-                        fimpl->sf_state[new_state].coeffs,
-                        &fimpl->sf_state[new_state].mul);
-                for (int a = 0; a < KQT_BUFFERS_MAX; ++a)
-                {
-                    for (int k = 0; k < FILTER_ORDER; ++k)
-                    {
-                        fimpl->sf_state[new_state].history1[a][k] = 0;
-                        fimpl->sf_state[new_state].history2[a][k] = 0;
-                    }
-                }
-                fimpl->filter_state_used = new_state;
-                //fprintf(stderr, "created filter with cutoff %f\n", cutoff);
-            }
-            else
-            {
-                if (fimpl->filter_state_used == -1)
-                    fimpl->filter_xfade_pos = 1;
+                const double res_param = resonance_buf[i];
+                const double biased_res_exp =
+                    fast_exp2(res_bias_base_log2 * (100 - res_param) / 100.0);
+                const float biased_res =
+                    (float)((biased_res_exp - 1) * 2.0 / (res_bias_base - 1));
 
-                fimpl->filter_state_used = -1;
+                resonances[i] = biased_res;
             }
 
-            xfade_start = fimpl->filter_xfade_pos;
+            if (fast_res_stop < buf_stop)
+            {
+                const double biased_res_exp = exp2(
+                        res_bias_base_log2 *
+                        (100 - resonance_buf[fast_res_stop]) / 100.0);
+                const_res = (float)((biased_res_exp - 1) * 2.0 / (res_bias_base - 1));
+            }
+        }
+        else
+        {
+            // Get our default resonance
+            const double biased_res_exp =
+                exp2(res_bias_base_log2 * (100 - filter->resonance) / 100.0);
+            const_res = (float)((biased_res_exp - 1) * 2.0 / (res_bias_base - 1));
         }
 
-        fimpl->anything_rendered = true;
-
-        fimpl->filter_xfade_pos += fimpl->filter_xfade_update;
+        for (int32_t i = fast_res_stop; i < buf_stop; ++i)
+            resonances[i] = const_res;
     }
 
-    // Apply previous filter settings to the remaining signal
-    Filter_state_impl_apply_filter_settings(
-            fimpl,
-            in_buffers,
-            out_buffers,
-            xfade_start,
-            fimpl->filter_xfade_update,
-            apply_filter_start,
-            apply_filter_stop);
+    // Apply the filter
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        if ((in_buffers[ch] == NULL) || (out_buffers[ch] == NULL))
+            continue;
+
+        Filter_ch_state* state = &fimpl->states[ch];
+
+        const float* in_buf = Work_buffer_get_contents(in_buffers[ch]);
+        float* out_buf = Work_buffer_get_contents_mut(out_buffers[ch]);
+
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+        {
+            const double x = in_buf[i];
+            const double g = 0.5 * cutoffs[i];
+            const double k = resonances[i];
+
+            const double hp_sample =
+                (x - state->s1 * (k + g) - state->s2) / (1.0 + k * g + g * g);
+
+            const double input1 = g * hp_sample;
+            const double bp_sample = input1 + state->s1;
+            state->s1 = input1 + bp_sample;
+
+            const double input2 = g * bp_sample;
+            const double lp_sample = input2 + state->s2;
+            state->s2 = input2 + lp_sample;
+
+            if (filter->type == FILTER_TYPE_LOWPASS)
+                out_buf[i] = (float)lp_sample;
+            else
+                out_buf[i] = (float)hp_sample;
+        }
+    }
 
     return;
 }
@@ -494,9 +292,9 @@ static void Filter_pstate_render_mixed(
     Filter_pstate* fpstate = (Filter_pstate*)dstate;
 
     // Get parameter inputs
-    const float* cutoff_buf = Device_thread_state_get_mixed_buffer_contents_mut(
+    const Work_buffer* cutoff_wb = Device_thread_state_get_mixed_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_CUTOFF);
-    const float* resonance_buf = Device_thread_state_get_mixed_buffer_contents_mut(
+    const Work_buffer* resonance_wb = Device_thread_state_get_mixed_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_RESONANCE);
 
     // Get audio buffers
@@ -517,10 +315,13 @@ static void Filter_pstate_render_mixed(
                 proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
     };
 
+    const Proc_filter* filter = (const Proc_filter*)dstate->device->dimpl;
+
     Filter_state_impl_apply_input_buffers(
             &fpstate->state_impl,
-            cutoff_buf,
-            resonance_buf,
+            filter,
+            cutoff_wb,
+            resonance_wb,
             wbs,
             in_buffers,
             out_buffers,
@@ -539,10 +340,12 @@ bool Filter_pstate_set_type(
     rassert(indices != NULL);
     ignore(type);
 
+    /*
     const Proc_filter* filter = (const Proc_filter*)dstate->device->dimpl;
 
     Filter_pstate* fpstate = (Filter_pstate*)dstate;
     fpstate->state_impl.type = filter->type;
+    */
 
     return true;
 }
@@ -555,8 +358,10 @@ bool Filter_pstate_set_cutoff(
     rassert(indices != NULL);
     rassert(isfinite(value));
 
+    /*
     Filter_pstate* fpstate = (Filter_pstate*)dstate;
     fpstate->state_impl.def_cutoff = value;
+    */
 
     return true;
 }
@@ -569,8 +374,10 @@ bool Filter_pstate_set_resonance(
     rassert(indices != NULL);
     rassert(isfinite(value));
 
+    /*
     Filter_pstate* fpstate = (Filter_pstate*)dstate;
     fpstate->state_impl.def_resonance = value;
+    */
 
     return true;
 }
@@ -638,9 +445,9 @@ int32_t Filter_vstate_render_voice(
     Filter_vstate* fvstate = (Filter_vstate*)vstate;
 
     // Get parameter inputs
-    const float* cutoff_buf = Device_thread_state_get_voice_buffer_contents(
+    const Work_buffer* cutoff_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_CUTOFF);
-    const float* resonance_buf = Device_thread_state_get_voice_buffer_contents(
+    const Work_buffer* resonance_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_RESONANCE);
 
     // Get input
@@ -667,10 +474,13 @@ int32_t Filter_vstate_render_voice(
     };
 
     const Device_state* dstate = (const Device_state*)proc_state;
+    const Proc_filter* filter = (const Proc_filter*)dstate->device->dimpl;
+
     Filter_state_impl_apply_input_buffers(
             &fvstate->state_impl,
-            cutoff_buf,
-            resonance_buf,
+            filter,
+            cutoff_wb,
+            resonance_wb,
             wbs,
             in_buffers,
             out_buffers,
