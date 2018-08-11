@@ -71,8 +71,8 @@ static float get_cutoff(double rel_freq)
 
 static float get_cutoff_fast(double rel_freq)
 {
-    rassert(rel_freq > 0);
-    rassert(rel_freq < 0.25);
+    dassert(rel_freq > 0);
+    dassert(rel_freq < 0.25);
 
     const double scaled_freq = 2.0 * PI * rel_freq;
 
