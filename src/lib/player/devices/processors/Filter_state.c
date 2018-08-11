@@ -210,28 +210,33 @@ static void Filter_state_impl_apply_input_buffers(
         const float* in_buf = Work_buffer_get_contents(in_buffers[ch]);
         float* out_buf = Work_buffer_get_contents_mut(out_buffers[ch]);
 
+        double s1 = state->s1;
+        double s2 = state->s2;
+
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             const double x = in_buf[i];
             const double g = 0.5 * cutoffs[i];
             const double k = resonances[i];
 
-            const double hp_sample =
-                (x - state->s1 * (k + g) - state->s2) / (1.0 + k * g + g * g);
+            const double hp_sample = (x - s1 * (k + g) - s2) / (1.0 + k * g + g * g);
 
             const double input1 = g * hp_sample;
-            const double bp_sample = input1 + state->s1;
-            state->s1 = input1 + bp_sample;
+            const double bp_sample = input1 + s1;
+            s1 = input1 + bp_sample;
 
             const double input2 = g * bp_sample;
-            const double lp_sample = input2 + state->s2;
-            state->s2 = input2 + lp_sample;
+            const double lp_sample = input2 + s2;
+            s2 = input2 + lp_sample;
 
             if (filter->type == FILTER_TYPE_LOWPASS)
                 out_buf[i] = (float)lp_sample;
             else
                 out_buf[i] = (float)hp_sample;
         }
+
+        state->s1 = s1;
+        state->s2 = s2;
     }
 
     return;
