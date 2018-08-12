@@ -89,6 +89,7 @@ static float get_cutoff_ratio(double cutoff_param, int32_t audio_rate)
 
 static const int CONTROL_WB_CUTOFF = WORK_BUFFER_IMPL_1;
 static const int CONTROL_WB_RESONANCE = WORK_BUFFER_IMPL_2;
+static const int FILTER_WB_HP_MULT = WORK_BUFFER_IMPL_3;
 
 
 static void Filter_state_impl_apply_input_buffers(
@@ -110,6 +111,8 @@ static void Filter_state_impl_apply_input_buffers(
     rassert(audio_rate > 0);
 
     float* cutoffs = Work_buffers_get_buffer_contents_mut(wbs, CONTROL_WB_CUTOFF);
+
+    int32_t params_const_start = buf_start;
 
     // Fill cutoff buffer
     {
@@ -148,6 +151,8 @@ static void Filter_state_impl_apply_input_buffers(
 
         for (int32_t i = fast_cutoff_stop; i < buf_stop; ++i)
             cutoffs[i] = const_cutoff;
+
+        params_const_start = max(params_const_start, fast_cutoff_stop);
     }
 
     float* resonances = Work_buffers_get_buffer_contents_mut(wbs, CONTROL_WB_RESONANCE);
@@ -197,9 +202,29 @@ static void Filter_state_impl_apply_input_buffers(
 
         for (int32_t i = fast_res_stop; i < buf_stop; ++i)
             resonances[i] = const_res;
+
+        params_const_start = max(params_const_start, fast_res_stop);
     }
 
     // Apply the filter
+    float* hp_mults = Work_buffers_get_buffer_contents_mut(wbs, FILTER_WB_HP_MULT);
+    for (int32_t i = buf_start; i < params_const_start; ++i)
+    {
+        const double g = 0.5 * cutoffs[i];
+        const double k = resonances[i];
+
+        hp_mults[i] = (float)(1.0 / (1.0 + k * g + g * g));
+    }
+    if (params_const_start < buf_stop)
+    {
+        const double g = 0.5 * cutoffs[params_const_start];
+        const double k = resonances[params_const_start];
+        const float mult = (float)(1.0 / (1.0 + k * g + g * g));
+
+        for (int32_t i = params_const_start; i < buf_stop; ++i)
+            hp_mults[i] = mult;
+    }
+
     for (int ch = 0; ch < 2; ++ch)
     {
         if ((in_buffers[ch] == NULL) || (out_buffers[ch] == NULL))
@@ -219,7 +244,7 @@ static void Filter_state_impl_apply_input_buffers(
             const double g = 0.5 * cutoffs[i];
             const double k = resonances[i];
 
-            const double hp_sample = (x - s1 * (k + g) - s2) / (1.0 + k * g + g * g);
+            const double hp_sample = (x - s1 * (k + g) - s2) * hp_mults[i];
 
             const double input1 = g * hp_sample;
             const double bp_sample = input1 + s1;
