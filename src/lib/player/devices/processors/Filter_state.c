@@ -1,7 +1,8 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2018
+ * Authors: Tomi Jylhä-Ollila, Finland 2018
+ *          Sami Koistinen, Finland 2018
  *
  * This file is part of Kunquat.
  *
