@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -55,6 +55,7 @@ def test_libkunquat(builder, options, cc):
     # Define which tests depend on others
     deps = defaultdict(lambda: [], {
             'handle': ['streader', 'tstamp'],
+            'filter': ['fast_exp2', 'fast_sin'],
             'player': ['handle', 'streader', 'fast_sin', 'fast_exp2', 'fast_log2'],
             'memory': ['handle'],
             'fft': ['memory'],
