@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2017
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2018
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -62,6 +62,7 @@ class AboutMessage(QWidget):
 
         add_authors_list_str = '\n'.join((
             'Ossi Saresoja',
+            'Sami Koistinen',
             'Sami Ketola',
             ))
         add_authors_list = QLabel(add_authors_list_str)
