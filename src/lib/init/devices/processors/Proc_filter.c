@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -52,27 +52,24 @@ Device_impl* new_Proc_filter(void)
     filter->cutoff = FILTER_DEFAULT_CUTOFF;
     filter->resonance = FILTER_DEFAULT_RESONANCE;
 
-    if (!(REGISTER_SET_WITH_STATE_CB(
+    if (!(REGISTER_SET_FIXED_STATE(
                 filter,
                 int,
                 type,
                 "p_i_type.json",
-                FILTER_TYPE_LOWPASS,
-                Filter_pstate_set_type) &&
-            REGISTER_SET_WITH_STATE_CB(
+                FILTER_TYPE_LOWPASS) &&
+            REGISTER_SET_FIXED_STATE(
                 filter,
                 float,
                 cutoff,
                 "p_f_cutoff.json",
-                FILTER_DEFAULT_CUTOFF,
-                Filter_pstate_set_cutoff) &&
-            REGISTER_SET_WITH_STATE_CB(
+                FILTER_DEFAULT_CUTOFF) &&
+            REGISTER_SET_FIXED_STATE(
                 filter,
                 float,
                 resonance,
                 "p_f_resonance.json",
-                FILTER_DEFAULT_RESONANCE,
-                Filter_pstate_set_resonance)
+                FILTER_DEFAULT_RESONANCE)
         ))
     {
         del_Device_impl(&filter->parent);

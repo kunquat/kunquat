@@ -364,56 +364,6 @@ static void Filter_pstate_render_mixed(
 }
 
 
-bool Filter_pstate_set_type(
-        Device_state* dstate, const Key_indices indices, int64_t type)
-{
-    rassert(dstate != NULL);
-    rassert(indices != NULL);
-    ignore(type);
-
-    /*
-    const Proc_filter* filter = (const Proc_filter*)dstate->device->dimpl;
-
-    Filter_pstate* fpstate = (Filter_pstate*)dstate;
-    fpstate->state_impl.type = filter->type;
-    */
-
-    return true;
-}
-
-
-bool Filter_pstate_set_cutoff(
-        Device_state* dstate, const Key_indices indices, double value)
-{
-    rassert(dstate != NULL);
-    rassert(indices != NULL);
-    rassert(isfinite(value));
-
-    /*
-    Filter_pstate* fpstate = (Filter_pstate*)dstate;
-    fpstate->state_impl.def_cutoff = value;
-    */
-
-    return true;
-}
-
-
-bool Filter_pstate_set_resonance(
-        Device_state* dstate, const Key_indices indices, double value)
-{
-    rassert(dstate != NULL);
-    rassert(indices != NULL);
-    rassert(isfinite(value));
-
-    /*
-    Filter_pstate* fpstate = (Filter_pstate*)dstate;
-    fpstate->state_impl.def_resonance = value;
-    */
-
-    return true;
-}
-
-
 Device_state* new_Filter_pstate(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
