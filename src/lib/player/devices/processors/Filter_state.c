@@ -65,17 +65,17 @@ static void Filter_state_impl_init(Filter_state_impl* fimpl, const Proc_filter* 
 static float get_cutoff(double rel_freq)
 {
     rassert(rel_freq > 0);
-    rassert(rel_freq < 0.25);
-    return (float)tan(2.0 * PI * rel_freq);
+    rassert(rel_freq < 0.5);
+    return (float)tan(PI * rel_freq);
 }
 
 
 static float get_cutoff_fast(double rel_freq)
 {
     dassert(rel_freq > 0);
-    dassert(rel_freq < 0.25);
+    dassert(rel_freq < 0.5);
 
-    const double scaled_freq = 2.0 * PI * rel_freq;
+    const double scaled_freq = PI * rel_freq;
 
     return (float)(fast_sin(scaled_freq) / fast_sin((PI * 0.5) + scaled_freq));
 }
@@ -84,7 +84,7 @@ static float get_cutoff_fast(double rel_freq)
 static float get_cutoff_ratio(double cutoff_param, int32_t audio_rate)
 {
     const double cutoff_ratio = cents_to_Hz((cutoff_param - 24) * 100) / audio_rate;
-    return (float)clamp(cutoff_ratio, 0.0001, 0.2499);
+    return (float)clamp(cutoff_ratio, 0.0001, 0.4999);
 }
 
 
@@ -132,7 +132,7 @@ static void Filter_state_impl_apply_input_buffers(
                 const double cutoff_param = cutoff_buf[i];
                 const double cutoff_ratio =
                     fast_cents_to_Hz((cutoff_param - 24) * 100) / audio_rate;
-                const double cutoff_ratio_clamped = clamp(cutoff_ratio, 0.0001, 0.2499);
+                const double cutoff_ratio_clamped = clamp(cutoff_ratio, 0.0001, 0.4999);
 
                 cutoffs[i] = get_cutoff_fast(cutoff_ratio_clamped);
             }
@@ -211,14 +211,14 @@ static void Filter_state_impl_apply_input_buffers(
     float* hp_mults = Work_buffers_get_buffer_contents_mut(wbs, FILTER_WB_HP_MULT);
     for (int32_t i = buf_start; i < params_const_start; ++i)
     {
-        const double g = 0.5 * cutoffs[i];
+        const double g = cutoffs[i];
         const double k = resonances[i];
 
         hp_mults[i] = (float)(1.0 / (1.0 + k * g + g * g));
     }
     if (params_const_start < buf_stop)
     {
-        const double g = 0.5 * cutoffs[params_const_start];
+        const double g = cutoffs[params_const_start];
         const double k = resonances[params_const_start];
         const float mult = (float)(1.0 / (1.0 + k * g + g * g));
 
@@ -242,7 +242,7 @@ static void Filter_state_impl_apply_input_buffers(
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             const double x = in_buf[i];
-            const double g = 0.5 * cutoffs[i];
+            const double g = cutoffs[i];
             const double k = resonances[i];
 
             const double hp_sample = (x - s1 * (k + g) - s2) * hp_mults[i];
