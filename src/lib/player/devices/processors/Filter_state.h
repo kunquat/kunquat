@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -16,7 +16,6 @@
 #define KQT_FILTER_STATE_H
 
 
-#include <init/devices/Device_impl.h>
 #include <player/devices/Device_state.h>
 #include <player/devices/Voice_state.h>
 
@@ -24,10 +23,6 @@
 
 
 Device_state_create_func new_Filter_pstate;
-
-Set_state_int_func Filter_pstate_set_type;
-Set_state_float_func Filter_pstate_set_cutoff;
-Set_state_float_func Filter_pstate_set_resonance;
 
 Voice_state_get_size_func Filter_vstate_get_size;
 Voice_state_init_func Filter_vstate_init;
