@@ -980,6 +980,10 @@ class EnvelopeView(QWidget):
         self._set_focused_node(self._find_focused_node(vt, pointer_vis))
         self._set_focused_loop_marker(self._find_focused_loop_marker(vt, pointer_vis))
 
+        self._moving_index = None
+        self._moving_pointer_offset = QPointF(0, 0)
+        self._moving_node_vis = None
+
     def leaveEvent(self, event):
         self._set_focused_node(None)
 
