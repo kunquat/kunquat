@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -1320,7 +1320,7 @@ class ConnectionsView(QWidget):
         full_dev_id = self._get_full_id(dev_id)
 
         visibility_mgr = self._ui_model.get_visibility_manager()
-        visibility_mgr.hide_audio_unit(full_dev_id)
+        visibility_mgr.hide_audio_unit_and_processors(full_dev_id)
 
         connections = self._get_connections()
         connections.disconnect_device(full_dev_id)
