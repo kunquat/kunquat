@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -80,11 +80,11 @@ class ConnectionsToolBar(QToolBar):
 
         self._import_button = QToolButton()
 
-        self._hit_edit = HitEditingToggle()
-        self._hit_selector = HitSelector()
+        self._hit_edit = None
+        self._hit_selector = None
 
-        self._expr_edit = ExpressionEditingToggle()
-        self._expr_selector = ExpressionSelector()
+        self._expr_edit = None
+        self._expr_selector = None
 
         self._export_button = QToolButton()
         self._export_button.setText('Export')
@@ -134,10 +134,12 @@ class ConnectionsToolBar(QToolBar):
                 # Hit editing controls
                 self.addSeparator()
 
+                self._hit_edit = HitEditingToggle()
                 self._hit_edit.set_au_id(self._au_id)
                 self._hit_edit.set_ui_model(self._ui_model)
                 self.addWidget(self._hit_edit)
 
+                self._hit_selector = HitSelector()
                 self._hit_selector.set_au_id(self._au_id)
                 self._hit_selector.set_ui_model(self._ui_model)
                 self.addWidget(self._hit_selector)
@@ -145,10 +147,12 @@ class ConnectionsToolBar(QToolBar):
                 # Expression controls
                 self.addSeparator()
 
+                self._expr_edit = ExpressionEditingToggle()
                 self._expr_edit.set_au_id(self._au_id)
                 self._expr_edit.set_ui_model(self._ui_model)
                 self.addWidget(self._expr_edit)
 
+                self._expr_selector = ExpressionSelector()
                 self._expr_selector.set_au_id(self._au_id)
                 self._expr_selector.set_ui_model(self._ui_model)
                 self.addWidget(self._expr_selector)
@@ -158,15 +162,14 @@ class ConnectionsToolBar(QToolBar):
             self._export_button.clicked.connect(self._export_au)
 
     def unregister_updaters(self):
-        if self._au_id != None:
-            module = self._ui_model.get_module()
-            au = module.get_audio_unit(self._au_id)
-
-            if au.is_instrument():
-                self._expr_selector.unregister_updaters()
-                self._expr_edit.unregister_updaters()
-                self._hit_selector.unregister_updaters()
-                self._hit_edit.unregister_updaters()
+        if self._expr_selector != None:
+            self._expr_selector.unregister_updaters()
+        if self._expr_edit != None:
+            self._expr_edit.unregister_updaters()
+        if self._hit_selector != None:
+            self._hit_selector.unregister_updaters()
+        if self._hit_edit != None:
+            self._hit_edit.unregister_updaters()
 
     def _add_instrument(self):
         module = self._ui_model.get_module()
