@@ -102,17 +102,24 @@ class VisibilityManager():
         self._session.hide_ui((UI_AUDIO_UNIT, au_id))
         self._updater.signal_update()
 
-    def hide_audio_unit_and_processors(self, au_id):
+    def hide_audio_unit_and_subdevices(self, au_id):
         self._session.hide_ui((UI_AUDIO_UNIT, au_id))
 
-        proc_entries = set()
-        prefix = '{}/'.format(au_id)
         visible_entries = self._session.get_visible()
-        for entry in visible_entries:
-            if (isinstance(entry, tuple) and
-                    (entry[0] == UI_PROCESSOR) and
-                    entry[1].startswith(prefix)):
-                proc_entries.add(entry)
+
+        au_prefix = '{}/'.format(au_id)
+        au_entries = set(e for e in visible_entries
+                if isinstance(e, tuple) and
+                (e[0] == UI_AUDIO_UNIT) and
+                e[1].startswith(au_prefix))
+        for au_entry in au_entries:
+            self._session.hide_ui(au_entry)
+
+        proc_prefix = '{}/'.format(au_id)
+        proc_entries = set(e for e in visible_entries
+                if isinstance(e, tuple) and
+                (e[0] == UI_PROCESSOR) and
+                e[1].startswith(proc_prefix))
         for proc_entry in proc_entries:
             self._session.hide_ui(proc_entry)
 

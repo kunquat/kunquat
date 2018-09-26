@@ -1320,7 +1320,7 @@ class ConnectionsView(QWidget):
         full_dev_id = self._get_full_id(dev_id)
 
         visibility_mgr = self._ui_model.get_visibility_manager()
-        visibility_mgr.hide_audio_unit_and_processors(full_dev_id)
+        visibility_mgr.hide_audio_unit_and_subdevices(full_dev_id)
 
         connections = self._get_connections()
         connections.disconnect_device(full_dev_id)
