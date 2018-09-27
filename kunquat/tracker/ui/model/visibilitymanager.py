@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2017
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2018
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -100,6 +100,29 @@ class VisibilityManager():
 
     def hide_audio_unit(self, au_id):
         self._session.hide_ui((UI_AUDIO_UNIT, au_id))
+        self._updater.signal_update()
+
+    def hide_audio_unit_and_subdevices(self, au_id):
+        self._session.hide_ui((UI_AUDIO_UNIT, au_id))
+
+        visible_entries = self._session.get_visible()
+
+        au_prefix = '{}/'.format(au_id)
+        au_entries = set(e for e in visible_entries
+                if isinstance(e, tuple) and
+                (e[0] == UI_AUDIO_UNIT) and
+                e[1].startswith(au_prefix))
+        for au_entry in au_entries:
+            self._session.hide_ui(au_entry)
+
+        proc_prefix = '{}/'.format(au_id)
+        proc_entries = set(e for e in visible_entries
+                if isinstance(e, tuple) and
+                (e[0] == UI_PROCESSOR) and
+                e[1].startswith(proc_prefix))
+        for proc_entry in proc_entries:
+            self._session.hide_ui(proc_entry)
+
         self._updater.signal_update()
 
     def show_songs_channels(self):
