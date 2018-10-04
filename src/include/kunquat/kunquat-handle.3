@@ -1,4 +1,4 @@
-.TH kunquat\-handle 3 "2018\-04\-22" "" "Kunquat"
+.TH kunquat\-handle 3 "2018\-10\-04" "" "Kunquat"
 
 .SH NAME
 
@@ -9,6 +9,10 @@ Kunquat Handle interface
 .B #include <kunquat/Handle.h>
 
 .BI "kqt_Handle kqt_new_Handle(void);
+
+.BI "int kqt_Handle_set_thread_count(kqt_Handle " handle ", int " count );
+.br
+.BI "int kqt_Handle_get_thread_count(kqt_Handle " handle );
 
 .BI "int kqt_Handle_set_data(kqt_Handle " handle ", const char* " key ", const void* " data ", long " length );
 
@@ -42,6 +46,25 @@ Kunquat Handles from different threads in parallel should be safe.
 Create a new Kunquat Handle that contains an empty composition.
 The function returns the new Kunquat Handle on success, or 0 if
 an error occurred.
+
+.SH "MULTITHREADING SUPPORT"
+
+Certain operations on Kunquat Handles may benefit from utilising multiple
+threads of execution. In addition to audio rendering, these operations may
+include certain loading operations.
+
+.IP "\fBint kqt_Handle_set_thread_count(kqt_Handle\fR \fIhandle\fR\fB, int\fR \fIcount\fR\fB);\fR"
+Set the number of threads used by \fIhandle\fR to \fIcount\fR. The default
+number of threads used is 1. Using several threads may improve playback
+performance; however, the order in which different parts of the audio are mixed
+together is non-deterministic with more than one thread, resulting in small
+(but usually inaudible) differences in audio output. Note that if libkunquat is
+built without multithreading support, this function will succeed without
+changing the thread count. This function returns 1 on success, 0 on failure.
+
+.IP "\fBint kqt_Handle_get_thread_count(kqt_Handle\fR \fIhandle\fR\fB);\fR"
+Return the number of threads used by \fIhandle\fR, or 0 if \fIhandle\fR is
+invalid.
 
 .SH "DATA MODIFICATION"
 

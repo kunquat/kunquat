@@ -68,6 +68,34 @@ kqt_Handle kqt_new_Handle(void);
 
 
 /**
+ * Set the number of threads used by the Kunquat Handle.
+ *
+ * In addition to audio rendering, multiple threads may be used by certain
+ * loading operations.
+ *
+ * NOTE: If libkunquat is built without thread support, this function will have
+ *       no effect.
+ *
+ * \param handle   The Handle -- should be valid.
+ * \param count    The number of threads -- should be >= \c 1 and
+ *                 <= \c KQT_THREADS_MAX.
+ *
+ * \return   \c 1 if successful, otherwise \c 0.
+ */
+int kqt_Handle_set_thread_count(kqt_Handle handle, int count);
+
+
+/**
+ * Get the number of threads used by the Kunquat Handle.
+ *
+ * \param handle   The Handle -- should be valid.
+ *
+ * \return   The number of threads used.
+ */
+int kqt_Handle_get_thread_count(kqt_Handle handle);
+
+
+/**
  * Set data of the Kunquat Handle associated with the given key.
  *
  * After a successful call of this function, the handle is set as not
