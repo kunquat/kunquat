@@ -87,16 +87,6 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error);
 
 
 /**
- * Get the number of threads used by the Player for audio rendering.
- *
- * \param player   The Player -- must not be \c NULL.
- *
- * \return   The number of threads.
- */
-int Player_get_thread_count(const Player* player);
-
-
-/**
  * Reserve state space for internal voice pool.
  *
  * \param player   The Player -- must not be \c NULL.

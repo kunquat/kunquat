@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -47,6 +47,7 @@ typedef struct Handle
     Error error;
     Error validation_error;
     char position[POSITION_LENGTH];
+    int thread_count;
 
     Player* player;
     Player* length_counter;
