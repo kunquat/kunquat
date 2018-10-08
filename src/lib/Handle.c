@@ -606,6 +606,11 @@ int kqt_Handle_validate(kqt_Handle handle)
         }
     }
 
+    // Wait for and check background tasks
+    Background_loader_wait_idle(h->bkg_loader);
+    Error* bkg_error = Background_loader_get_first_error(h->bkg_loader);
+    set_invalid_if(bkg_error != NULL, bkg_error->message);
+
     // Data is OK
     h->data_is_validated = true;
 
