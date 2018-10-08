@@ -285,9 +285,11 @@ static void load_wavpack_data(Error* error, void* user_data)
 
     const int req_bytes = sample->bits / 8;
 
-    int32_t buf[256] = { 0 };
+#define WAVPACK_BUFFER_SIZE 256
+
+    int32_t buf[WAVPACK_BUFFER_SIZE] = { 0 };
     int64_t read = WavpackUnpackSamples(
-            cb_data->context, buf, (uint32_t)(256 / sample->channels));
+            cb_data->context, buf, (uint32_t)(WAVPACK_BUFFER_SIZE / sample->channels));
     int64_t written = 0;
     while (read > 0 && written < sample->len)
     {
@@ -324,8 +326,12 @@ static void load_wavpack_data(Error* error, void* user_data)
 
         written += read;
         read = WavpackUnpackSamples(
-                cb_data->context, buf, (uint32_t)(256 / sample->channels));
+                cb_data->context,
+                buf,
+                (uint32_t)(WAVPACK_BUFFER_SIZE / sample->channels));
     }
+
+#undef WAVPACK_BUFFER_SIZE
 
     del_Callback_data(cb_data);
 
