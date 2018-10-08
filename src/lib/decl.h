@@ -23,6 +23,7 @@ typedef struct Au_state Au_state;
 typedef struct Au_streams Au_streams;
 typedef struct Au_table Au_table;
 typedef struct Audio_unit Audio_unit;
+typedef struct Background_loader Background_loader;
 typedef struct Bit_array Bit_array;
 typedef struct Channel Channel;
 typedef struct Connections Connections;

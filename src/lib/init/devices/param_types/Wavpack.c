@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -15,6 +15,7 @@
 #include <init/devices/param_types/Wavpack.h>
 
 #include <debug/assert.h>
+#include <init/Background_loader.h>
 #include <init/devices/param_types/Sample.h>
 #include <mathnum/common.h>
 #include <memory.h>
@@ -27,10 +28,11 @@
 
 #ifndef WITH_WAVPACK
 
-bool Sample_parse_wavpack(Sample* sample, Streader* sr)
+bool Sample_parse_wavpack(Sample* sample, Streader* sr, Background_loader* bkg_loader)
 {
     rassert(sample != NULL);
     rassert(sr != NULL);
+    rassert(bkg_loader != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -204,6 +206,58 @@ static WavpackStreamReader reader_str =
 };
 
 
+typedef struct Callback_data
+{
+    int mode;
+    int channels;
+    int bits;
+    int bytes;
+    uint32_t len;
+
+    char err_str[80];
+    WavpackContext* context;
+    void* copied_data;
+    Sample* sample;
+    String_context sc;
+} Callback_data;
+
+
+static Callback_data* new_Callback_data(void)
+{
+    Callback_data* cb_data = memory_alloc_item(Callback_data);
+    if (cb_data == NULL)
+        return NULL;
+
+    cb_data->mode = 0;
+    cb_data->channels = 0;
+    cb_data->bits = 0;
+    cb_data->bytes = 0;
+    cb_data->len = 0;
+
+    memset(cb_data->err_str, 0, 80);
+    cb_data->context = NULL;
+    cb_data->copied_data = NULL;
+    cb_data->sample = NULL;
+
+    return cb_data;
+}
+
+
+static void del_Callback_data(Callback_data* cb_data)
+{
+    if (cb_data == NULL)
+        return;
+
+    if (cb_data->context != NULL)
+        WavpackCloseFile(cb_data->context);
+
+    memory_free(cb_data->copied_data);
+    memory_free(cb_data);
+
+    return;
+}
+
+
 #define read_wp_samples(type, sample, src, count, offset, lshift)       \
     if (true)                                                           \
     {                                                                   \
@@ -217,95 +271,23 @@ static WavpackStreamReader reader_str =
         }                                                               \
     } else ignore(0)
 
-bool Sample_parse_wavpack(Sample* sample, Streader* sr)
+static void load_wavpack_data(Error* error, void* user_data)
 {
-    rassert(sample != NULL);
-    rassert(sr != NULL);
+    rassert(error != NULL);
+    rassert(user_data != NULL);
 
-    if (Streader_is_error_set(sr))
-        return false;
+    Callback_data* cb_data = user_data;
+    rassert(cb_data->context != NULL);
+    rassert(cb_data->sample != NULL);
+    rassert(cb_data->sc.data != NULL);
 
-    const void* data = sr->str;
-    const int64_t length = sr->len;
-
-    String_context* sc =
-        &(String_context){ .data = data, .length = length, .pos = 0, .push_back = EOF };
-
-    char err_str[80] = "";
-    WavpackContext* context = WavpackOpenFileInputEx(
-            &reader_str, sc, NULL, err_str, OPEN_2CH_MAX | OPEN_NORMALIZE, 0);
-    if (context == NULL)
-    {
-        Streader_set_error(sr, err_str);
-        return false;
-    }
-
-    const int mode = WavpackGetMode(context);
-    const int channels = WavpackGetReducedChannels(context);
-//    uint32_t freq = WavpackGetSampleRate(context);
-    const int bits = WavpackGetBitsPerSample(context);
-    const int bytes = WavpackGetBytesPerSample(context);
-    const uint32_t len = WavpackGetNumSamples(context);
-//    uint32_t file_size = WavpackGetFileSize(context);
-
-    if (len == (uint32_t)-1)
-    {
-        WavpackCloseFile(context);
-        Streader_set_error(sr, "Couldn't determine WavPack file length");
-        return false;
-    }
-
-//    sample->params.format = SAMPLE_FORMAT_WAVPACK;
-    sample->len = len;
-    sample->channels = channels;
-//    sample->params.mid_freq = freq;
-//    Sample_set_loop(sample, SAMPLE_LOOP_OFF);
-//    Sample_set_loop_start(sample, 0);
-//    Sample_set_loop_end(sample, 0);
-
-    if (bits <= 8)
-        sample->bits = 8;
-    else if (bits <= 16)
-        sample->bits = 16;
-    else if (bits <= 24)
-        sample->bits = 32; // output values will be shifted
-    else
-        sample->bits = 32;
-
-    if ((mode & MODE_FLOAT))
-    {
-        sample->is_float = true;
-        sample->bits = 32;
-    }
+    Sample* sample = cb_data->sample;
 
     const int req_bytes = sample->bits / 8;
-    sample->data[0] = sample->data[1] = NULL;
-    void* nbuf_l = memory_alloc_items(char, sample->len * req_bytes);
-    if (nbuf_l == NULL)
-    {
-        WavpackCloseFile(context);
-        Streader_set_memory_error(sr, "Could not allocate memory for sample");
-        return false;
-    }
 
-    if (channels == 2)
-    {
-        void* nbuf_r = memory_alloc_items(char, sample->len * req_bytes);
-        if (nbuf_r == NULL)
-        {
-            memory_free(nbuf_l);
-            WavpackCloseFile(context);
-            Streader_set_memory_error(
-                    sr, "Could not allocate memory for sample");
-            return false;
-        }
-        sample->data[1] = nbuf_r;
-    }
-
-    sample->data[0] = nbuf_l;
     int32_t buf[256] = { 0 };
     int64_t read = WavpackUnpackSamples(
-            context, buf, (uint32_t)(256 / sample->channels));
+            cb_data->context, buf, (uint32_t)(256 / sample->channels));
     int64_t written = 0;
     while (read > 0 && written < sample->len)
     {
@@ -319,7 +301,7 @@ bool Sample_parse_wavpack(Sample* sample, Streader* sr)
         }
         else
         {
-            rassert(bytes == 4);
+            rassert(cb_data->bytes == 4);
 
             if (sample->is_float)
             {
@@ -335,30 +317,180 @@ bool Sample_parse_wavpack(Sample* sample, Streader* sr)
             }
             else
             {
-                const int shift = (bits == 24) ? 8 : 0;
+                const int shift = (cb_data->bits == 24) ? 8 : 0;
                 read_wp_samples(int32_t, sample, buf, read, written, shift);
             }
         }
 
         written += read;
-        read = WavpackUnpackSamples(context, buf, (uint32_t)(256 / sample->channels));
+        read = WavpackUnpackSamples(
+                cb_data->context, buf, (uint32_t)(256 / sample->channels));
     }
 
-    WavpackCloseFile(context);
+    del_Callback_data(cb_data);
+
     if (written < sample->len)
     {
-        Streader_set_error(sr, "Couldn't read all sample data");
+        Error_set_desc(
+                error,
+                ERROR_RESOURCE,
+                __FILE__,
+                __LINE__,
+                __func__,
+                "Couldn't read all sample data");
+
         memory_free(sample->data[0]);
         memory_free(sample->data[1]);
         sample->data[0] = sample->data[1] = NULL;
         sample->len = 0;
+
+        return;
+    }
+
+    return;
+}
+
+#undef read_wp_samples
+
+
+bool Sample_parse_wavpack(Sample* sample, Streader* sr, Background_loader* bkg_loader)
+{
+    rassert(sample != NULL);
+    rassert(sr != NULL);
+    rassert(bkg_loader != NULL);
+
+    if (Streader_is_error_set(sr))
         return false;
+
+    const void* data = sr->str;
+    const int64_t length = sr->len;
+
+    Callback_data* cb_data = new_Callback_data();
+    if (cb_data == NULL)
+    {
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for WavPack loader");
+        return false;
+    }
+
+    void* copied_data = NULL;
+
+    if (Background_loader_get_thread_count(bkg_loader) > 0)
+    {
+        // Try to copy the compressed data for background process
+        // (the original might get freed before we finish)
+        copied_data = memory_alloc_items(char, length);
+        if (copied_data != NULL)
+        {
+            memcpy(copied_data, data, (size_t)length);
+            cb_data->copied_data = copied_data;
+        }
+    }
+
+    cb_data->sc = (String_context)
+    {
+        .data = (copied_data != NULL) ? copied_data : data,
+        .length = length,
+        .pos = 0,
+        .push_back = EOF,
+    };
+
+    cb_data->context = WavpackOpenFileInputEx(
+            &reader_str,
+            &cb_data->sc,
+            NULL,
+            cb_data->err_str,
+            OPEN_2CH_MAX | OPEN_NORMALIZE,
+            0);
+    if (cb_data->context == NULL)
+    {
+        Streader_set_error(sr, cb_data->err_str);
+        del_Callback_data(cb_data);
+        return false;
+    }
+
+    cb_data->mode = WavpackGetMode(cb_data->context);
+    cb_data->channels = WavpackGetReducedChannels(cb_data->context);
+    cb_data->bits = WavpackGetBitsPerSample(cb_data->context);
+    cb_data->bytes = WavpackGetBytesPerSample(cb_data->context);
+    cb_data->len = WavpackGetNumSamples(cb_data->context);
+
+    if (cb_data->len == (uint32_t)-1)
+    {
+        del_Callback_data(cb_data);
+        Streader_set_error(sr, "Couldn't determine WavPack file length");
+        return false;
+    }
+
+//    sample->params.format = SAMPLE_FORMAT_WAVPACK;
+    sample->len = cb_data->len;
+    sample->channels = cb_data->channels;
+//    sample->params.mid_freq = freq;
+//    Sample_set_loop(sample, SAMPLE_LOOP_OFF);
+//    Sample_set_loop_start(sample, 0);
+//    Sample_set_loop_end(sample, 0);
+
+    if (cb_data->bits <= 8)
+        sample->bits = 8;
+    else if (cb_data->bits <= 16)
+        sample->bits = 16;
+    else if (cb_data->bits <= 24)
+        sample->bits = 32; // output values will be shifted
+    else
+        sample->bits = 32;
+
+    if ((cb_data->mode & MODE_FLOAT))
+    {
+        sample->is_float = true;
+        sample->bits = 32;
+    }
+
+    const int req_bytes = sample->bits / 8;
+    sample->data[0] = sample->data[1] = NULL;
+    void* nbuf_l = memory_alloc_items(char, sample->len * req_bytes);
+    if (nbuf_l == NULL)
+    {
+        del_Callback_data(cb_data);
+        Streader_set_memory_error(sr, "Could not allocate memory for sample");
+        return false;
+    }
+
+    if (cb_data->channels == 2)
+    {
+        void* nbuf_r = memory_alloc_items(char, sample->len * req_bytes);
+        if (nbuf_r == NULL)
+        {
+            memory_free(nbuf_l);
+            del_Callback_data(cb_data);
+
+            Streader_set_memory_error(
+                    sr, "Could not allocate memory for sample");
+            return false;
+        }
+        sample->data[1] = nbuf_r;
+    }
+
+    sample->data[0] = nbuf_l;
+
+    cb_data->sample = sample;
+
+    Background_loader_task* task =
+        MAKE_BACKGROUND_LOADER_TASK(load_wavpack_data, cb_data);
+
+    if (!Background_loader_add_task(bkg_loader, task))
+    {
+        Error* error = ERROR_AUTO;
+        load_wavpack_data(error, cb_data);
+
+        if (Error_is_set(error))
+        {
+            Error_copy(&sr->error, error);
+            return false;
+        }
     }
 
     return true;
 }
-
-#undef read_wp_samples
 
 
 #endif // WITH_WAVPACK

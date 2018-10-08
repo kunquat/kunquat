@@ -17,6 +17,7 @@
 
 
 #include <containers/AAtree.h>
+#include <decl.h>
 #include <init/devices/Device_field.h>
 #include <mathnum/Tstamp.h>
 #include <string/Streader.h>
@@ -203,16 +204,21 @@ Device_params* new_Device_params(void);
 /**
  * Parse a Device parameter value.
  *
- * \param params    The Device parameters -- must not be \c NULL.
- * \param key       The key -- must be a valid subkey with the i/ or c/ as
- *                  the first component.
- * \param version   The data version -- must be >= \c 0.
- * \param sr        The Streader of the data -- must not be \c NULL.
+ * \param params       The Device parameters -- must not be \c NULL.
+ * \param key          The key -- must be a valid subkey with the i/ or c/ as
+ *                     the first component.
+ * \param version      The data version -- must be >= \c 0.
+ * \param sr           The Streader of the data -- must not be \c NULL.
+ * \param bkg_loader   The Background loader -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
 bool Device_params_parse_value(
-        Device_params* params, const char* key, int version, Streader* sr);
+        Device_params* params,
+        const char* key,
+        int version,
+        Streader* sr,
+        Background_loader* bkg_loader);
 
 
 /**

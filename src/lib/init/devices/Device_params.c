@@ -16,6 +16,7 @@
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
+#include <decl.h>
 #include <init/devices/Device_field.h>
 #include <memory.h>
 #include <string/common.h>
@@ -178,7 +179,11 @@ Device_params* new_Device_params(void)
 
 
 bool Device_params_parse_value(
-        Device_params* params, const char* key, int version, Streader* sr)
+        Device_params* params,
+        const char* key,
+        int version,
+        Streader* sr,
+        Background_loader* bkg_loader)
 {
     rassert(params != NULL);
     rassert(key != NULL);
@@ -186,6 +191,7 @@ bool Device_params_parse_value(
     rassert(key_is_device_param(key));
     rassert(version >= 0);
     rassert(sr != NULL);
+    rassert(bkg_loader != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -211,11 +217,11 @@ bool Device_params_parse_value(
     bool success = true;
     if (field != NULL)
     {
-        success = Device_field_change(field, version, sr);
+        success = Device_field_change(field, version, sr, bkg_loader);
     }
     else
     {
-        field = new_Device_field_from_data(key, version, sr);
+        field = new_Device_field_from_data(key, version, sr, bkg_loader);
         if (field == NULL)
             return false;
 

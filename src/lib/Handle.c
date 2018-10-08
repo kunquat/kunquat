@@ -146,7 +146,8 @@ int kqt_Handle_set_thread_count(kqt_Handle handle, int count)
 #ifdef ENABLE_THREADS
     Error* error = ERROR_AUTO;
 
-    if (!Player_set_thread_count(h->player, count, error))
+    if (!Background_loader_set_thread_count(h->bkg_loader, count - 1, error) ||
+            !Player_set_thread_count(h->player, count, error))
     {
         Handle_set_error_from_Error(h, error);
         return 0;
@@ -221,6 +222,7 @@ bool Handle_init(Handle* handle)
     handle->data_is_validated = true;
     handle->update_connections = false;
     handle->module = NULL;
+    handle->bkg_loader = NULL;
     handle->error = *ERROR_AUTO;
     handle->validation_error = *ERROR_AUTO;
     memset(handle->position, '\0', POSITION_LENGTH);
@@ -232,7 +234,8 @@ bool Handle_init(Handle* handle)
 //    int voice_count = 256;
 
     handle->module = new_Module();
-    if (handle->module == NULL)
+    handle->bkg_loader = new_Background_loader();
+    if ((handle->module == NULL) || (handle->bkg_loader == NULL))
     {
         Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
         Handle_deinit(handle);
@@ -778,6 +781,7 @@ void Handle_deinit(Handle* handle)
     del_Player(handle->player);
     handle->player = NULL;
 
+    del_Background_loader(handle->bkg_loader);
     del_Module(handle->module);
     handle->module = NULL;
 

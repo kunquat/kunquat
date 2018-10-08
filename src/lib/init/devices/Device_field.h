@@ -16,6 +16,7 @@
 #define KQT_DEVICE_FIELD_H
 
 
+#include <decl.h>
 #include <init/devices/param_types/Envelope.h>
 #include <init/devices/param_types/Hit_map.h>
 #include <init/devices/param_types/Note_map.h>
@@ -81,13 +82,15 @@ Device_field* new_Device_field(const char* key, void* data);
 /**
  * Create a new Device field from data.
  *
- * \param key       The key of the field -- must be a valid Device field key.
- * \param version   The data version -- must be >= \c 0.
- * \param sr        The Streader of the data -- must not be \c NULL.
+ * \param key          The key of the field -- must be a valid Device field key.
+ * \param version      The data version -- must be >= \c 0.
+ * \param sr           The Streader of the data -- must not be \c NULL.
+ * \param bkg_loader   The Background loader -- must not be \c NULL.
  *
  * \return   The new Device field if successful, otherwise \c NULL.
  */
-Device_field* new_Device_field_from_data(const char* key, int version, Streader* sr);
+Device_field* new_Device_field_from_data(
+        const char* key, int version, Streader* sr, Background_loader* bkg_loader);
 
 
 /**
@@ -105,13 +108,15 @@ const char* Device_field_get_key(const Device_field* field);
  *
  * This is used for modifying _composition_ data (not playback data).
  *
- * \param field     The Device field -- must not be \c NULL.
- * \param version   The data version -- must be >= \c 0.
- * \param sr        The Streader of the data -- must not be \c NULL.
+ * \param field        The Device field -- must not be \c NULL.
+ * \param version      The data version -- must be >= \c 0.
+ * \param sr           The Streader of the data -- must not be \c NULL.
+ * \param bkg_loader   The Background loader -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Device_field_change(Device_field* field, int version, Streader* sr);
+bool Device_field_change(
+        Device_field* field, int version, Streader* sr, Background_loader* bkg_loader);
 
 
 /**
