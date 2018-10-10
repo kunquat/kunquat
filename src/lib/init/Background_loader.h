@@ -30,13 +30,11 @@ typedef struct Background_loader_task
 {
     Background_loader_callback* callback;
     void* user_data;
-    bool is_finished;
-    Error* error;
 } Background_loader_task;
 
 
-#define MAKE_BACKGROUND_LOADER_TASK(cb, ud) (&(Background_loader_task){ \
-        .callback = (cb), .user_data = (ud), .is_finished = false, .error = NULL })
+#define MAKE_BACKGROUND_LOADER_TASK(cb, ud) \
+    (&(Background_loader_task){ .callback = (cb), .user_data = (ud) })
 
 
 /**
@@ -51,8 +49,8 @@ Background_loader* new_Background_loader(void);
  * Set the number of background threads used by the Background loader.
  *
  * \param loader   The Background loader -- must not be \c NULL.
- * \param count    The number of threads -- must be >= \c 0. If \c 0, all calls
- *                 of \a Background_loader_execute_task will block until finished.
+ * \param count    The number of threads -- must be >= \c 0 and < \c KQT_THREADS_MAX.
+ *                 If \c 0, all calls of \a Background_loader_add_task will fail.
  * \param error    Destination for error information -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
@@ -99,7 +97,7 @@ void Background_loader_wait_idle(Background_loader* loader);
  * \return   The first Error that occurred, or \c NULL if everything has completed
  *           successfully.
  */
-Error* Background_loader_get_first_error(const Background_loader* loader);
+const Error* Background_loader_get_first_error(const Background_loader* loader);
 
 
 /**
