@@ -154,6 +154,7 @@ static bool Task_worker_start(Task_worker* worker, Error* error)
 }
 
 
+#ifdef ENABLE_THREADS
 static void Task_worker_join(Task_worker* worker)
 {
     rassert(worker != NULL);
@@ -163,6 +164,7 @@ static void Task_worker_join(Task_worker* worker)
 
     return;
 }
+#endif // ENABLE_THREADS
 
 
 struct Background_loader
@@ -383,6 +385,7 @@ void Background_loader_run_cleanups(Background_loader* loader)
 {
     rassert(loader != NULL);
 
+#ifdef ENABLE_THREADS
     Mutex_lock(&loader->loader_lock);
 
     for (int i = 0; i < QUEUE_SIZE; ++i)
@@ -401,6 +404,7 @@ void Background_loader_run_cleanups(Background_loader* loader)
     }
 
     Mutex_unlock(&loader->loader_lock);
+#endif // ENABLE_THREADS
 
     return;
 }
@@ -410,6 +414,7 @@ void Background_loader_wait_idle(Background_loader* loader)
 {
     rassert(loader != NULL);
 
+#ifdef ENABLE_THREADS
     // Let all tasks know that no more tasks are coming
     Mutex* signal_mutex = Condition_get_mutex(&loader->signal);
     Mutex_lock(signal_mutex);
@@ -425,6 +430,7 @@ void Background_loader_wait_idle(Background_loader* loader)
     }
 
     Background_loader_run_cleanups(loader);
+#endif // ENABLE_THREADS
 
     return;
 }
@@ -445,8 +451,10 @@ void Background_loader_reset(Background_loader* loader)
 {
     rassert(loader != NULL);
 
+#ifdef ENABLE_THREADS
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
         rassert(!Task_worker_is_running(&loader->workers[i]));
+#endif
 
     return;
 }
