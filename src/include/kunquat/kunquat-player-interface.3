@@ -1,4 +1,4 @@
-.TH kunquat\-player\-interface 3 "2018\-10\-04" "" "Kunquat"
+.TH kunquat\-player\-interface 3 "2018\-10\-11" "" "Kunquat"
 
 .SH NAME
 Kunquat player API
@@ -15,6 +15,10 @@ Kunquat player API
 .BI "long kqt_Handle_get_frames_available(kqt_Handle " handle );
 .br
 .BI "const float* kqt_Handle_get_audio(kqt_Handle " handle ", int " index );
+
+.BI "int kqt_Handle_set_player_thread_count(kqt_Handle " handle ", int " count );
+.br
+.BI "int kqt_Handle_get_player_thread_count(kqt_Handle " handle );
 
 .BI "int kqt_Handle_set_audio_rate(kqt_handle " handle ", long " rate );
 .br
@@ -83,6 +87,20 @@ where both output channels are stored in a single output buffer in the order
 audio interfaces do not support 32-bit floating point format. The Kunquat
 library does not support interleaving or audio data conversions, but these
 functions are usually easy to implement.
+
+.SH "MULTITHREADING SUPPORT"
+
+.IP "\fBint kqt_Handle_set_player_thread_count(kqt_Handle\fR \fIhandle\fR\fB, int\fR \fIcount\fR\fB);\fR"
+Set the number of threads used by \fIhandle\fR for audio rendering to
+\fIcount\fR. The default number of threads used is 1. Using several threads may
+improve playback performance; however, the order in which different parts of
+the audio are mixed together is non-deterministic with more than one thread,
+resulting in small (but usually inaudible) differences in audio output. Note
+that if libkunquat is built without multithreading support, this function will
+succeed without changing the thread count. This function returns 1 on success,
+0 on failure.
+
+.IP "\fBint kqt_Handle_get_player_thread_count(kqt_Handle\fR \fIhandle\fR\fB);\fR"
 
 .SH "AUDIO RATE"
 

@@ -49,7 +49,6 @@ typedef struct Handle
     Error error;
     Error validation_error;
     char position[POSITION_LENGTH];
-    int thread_count;
 
     Player* player;
     Player* length_counter;

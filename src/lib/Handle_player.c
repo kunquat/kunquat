@@ -75,6 +75,50 @@ long kqt_Handle_get_frames_available(kqt_Handle handle)
 }
 
 
+int kqt_Handle_set_player_thread_count(kqt_Handle handle, int count)
+{
+    check_handle(handle, 0);
+
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_data_is_validated(h, 0);
+
+    if (count < 1)
+    {
+        Handle_set_error(h, ERROR_ARGUMENT, "Thread count must be positive");
+        return 0;
+    }
+    if (count > KQT_THREADS_MAX)
+    {
+        Handle_set_error(
+                h, ERROR_ARGUMENT, "Thread count must not exceed %d", KQT_THREADS_MAX);
+        return 0;
+    }
+
+    Error* error = ERROR_AUTO;
+
+    if (!Player_set_thread_count(h->player, count, error))
+    {
+        Handle_set_error_from_Error(h, error);
+        return 0;
+    }
+
+    return 1;
+}
+
+
+int kqt_Handle_get_player_thread_count(kqt_Handle handle)
+{
+    check_handle(handle, 0);
+
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_data_is_validated(h, 0);
+
+    return Player_get_thread_count(h->player);
+}
+
+
 int kqt_Handle_set_audio_rate(kqt_Handle handle, long rate)
 {
     check_handle(handle, 0);

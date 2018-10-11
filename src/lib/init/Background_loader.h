@@ -57,11 +57,8 @@ Background_loader* new_Background_loader(void);
  * \param count    The number of threads -- must be >= \c 0 and <= \c KQT_THREADS_MAX.
  *                 If \c 0, all calls of \a Background_loader_add_task will fail.
  * \param error    Destination for error information -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Background_loader_set_thread_count(
-        Background_loader* loader, int count, Error* error);
+void Background_loader_set_thread_count(Background_loader* loader, int count);
 
 
 /**

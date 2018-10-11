@@ -138,7 +138,7 @@ def print_message(meta, first_line_length):
 
 def load_kqt(path, rate):
     handle = Kunquat(rate)
-    handle.thread_count = get_default_thread_count()
+    handle.set_loader_thread_count(get_default_thread_count())
 
     f = KqtFile(path)
     f.load_into_handle(handle)
@@ -183,7 +183,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
         return KeyHandler.RETURN
 
     # Prepare
-    handle.thread_count = options['threads']
+    handle.set_player_thread_count(options['threads'])
     handle.audio_buffer_size = options['buffer-size']
     handle.track = options['track']
     status = Status(options['rate'])

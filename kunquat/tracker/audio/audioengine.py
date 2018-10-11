@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2013-2017
+#          Tomi Jylhä-Ollila, Finland 2013-2018
 #
 # This file is part of Kunquat.
 #
@@ -248,7 +248,8 @@ class AudioEngine():
 def create_audio_engine():
     latency = cmdline.get_audio_latency() * 0.001
     rendering_engine = Kunquat(audio_rate=cmdline.get_audio_rate())
-    rendering_engine.thread_count = cmdline.get_thread_count()
+    rendering_engine.set_loader_thread_count(cmdline.get_default_thread_count())
+    rendering_engine.set_player_thread_count(cmdline.get_thread_count())
     audio_rate = rendering_engine.audio_rate
     chunk_size = max(1, int(latency * audio_rate * 0.5))
     audio_engine = AudioEngine(chunk_size)

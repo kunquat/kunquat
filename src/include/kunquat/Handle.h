@@ -68,10 +68,10 @@ kqt_Handle kqt_new_Handle(void);
 
 
 /**
- * Set the number of threads used by the Kunquat Handle.
+ * Set the number of threads used by the Kunquat Handle for loading operations.
  *
- * In addition to audio rendering, multiple threads may be used by certain
- * loading operations.
+ * NOTE: The resource allocations for loading threads may fail later, in which
+ *       case the actual number of threads may be less than requested.
  *
  * NOTE: If libkunquat is built without thread support, this function will have
  *       no effect.
@@ -82,17 +82,17 @@ kqt_Handle kqt_new_Handle(void);
  *
  * \return   \c 1 if successful, otherwise \c 0.
  */
-int kqt_Handle_set_thread_count(kqt_Handle handle, int count);
+int kqt_Handle_set_loader_thread_count(kqt_Handle handle, int count);
 
 
 /**
- * Get the number of threads used by the Kunquat Handle.
+ * Get the number of threads used by the Kunquat Handle for loading operations.
  *
  * \param handle   The Handle -- should be valid.
  *
  * \return   The number of threads used.
  */
-int kqt_Handle_get_thread_count(kqt_Handle handle);
+int kqt_Handle_get_loader_thread_count(kqt_Handle handle);
 
 
 /**

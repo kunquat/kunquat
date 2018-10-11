@@ -47,7 +47,7 @@ def get_default_thread_count():
 def load_kqt(path, audio_rate):
     handle = Kunquat(audio_rate)
 
-    handle.thread_count = get_default_thread_count()
+    handle.set_loader_thread_count(get_default_thread_count())
 
     f = KqtFile(path)
     f.load_into_handle(handle)
@@ -72,7 +72,7 @@ def export(in_path, out_path, options):
     except KunquatError as e:
         print('Couldn\'t load \'{}\': {}'.format(in_path, e))
         return
-    handle.thread_count = options['threads']
+    handle.set_player_thread_count(options['threads'])
     handle.track = options['track']
     duration = handle.get_duration(options['track'])
 

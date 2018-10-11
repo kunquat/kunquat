@@ -123,7 +123,7 @@ kqt_Handle kqt_new_Handle(void)
 }
 
 
-int kqt_Handle_set_thread_count(kqt_Handle handle, int count)
+int kqt_Handle_set_loader_thread_count(kqt_Handle handle, int count)
 {
     check_handle(handle, 0);
 
@@ -143,26 +143,13 @@ int kqt_Handle_set_thread_count(kqt_Handle handle, int count)
         return 0;
     }
 
-#ifdef ENABLE_THREADS
-    Error* error = ERROR_AUTO;
-
-    if (!Background_loader_set_thread_count(h->bkg_loader, count - 1, error) ||
-            !Player_set_thread_count(h->player, count, error))
-    {
-        Handle_set_error_from_Error(h, error);
-        return 0;
-    }
-
-    h->thread_count = count;
-#else
-    h->thread_count = 1;
-#endif
+    Background_loader_set_thread_count(h->bkg_loader, count - 1);
 
     return 1;
 }
 
 
-int kqt_Handle_get_thread_count(kqt_Handle handle)
+int kqt_Handle_get_loader_thread_count(kqt_Handle handle)
 {
     check_handle(handle, 0);
 
@@ -170,7 +157,7 @@ int kqt_Handle_get_thread_count(kqt_Handle handle)
     check_data_is_valid(h, 0);
     check_data_is_validated(h, 0);
 
-    return h->thread_count;
+    return Background_loader_get_thread_count(h->bkg_loader) + 1;
 }
 
 
@@ -228,7 +215,6 @@ bool Handle_init(Handle* handle)
     handle->error = *ERROR_AUTO;
     handle->validation_error = *ERROR_AUTO;
     memset(handle->position, '\0', POSITION_LENGTH);
-    handle->thread_count = 1;
     handle->player = NULL;
     handle->length_counter = NULL;
 

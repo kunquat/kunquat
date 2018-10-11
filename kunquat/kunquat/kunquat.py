@@ -185,20 +185,35 @@ class Kunquat():
         _kunquat.kqt_Handle_set_position(self._handle, track, value)
         self._nanoseconds = value
 
-    @property
-    def thread_count(self):
-        """Number of threads used for audio rendering."""
-        return _kunquat.kqt_Handle_get_thread_count(self._handle)
+    def get_loader_thread_count(self):
+        """Get the number of threads used for loading operations."""
+        return _kunquat.kqt_Handle_get_loader_thread_count(self._handle)
 
-    @thread_count.setter
-    def thread_count(self, value):
+    def set_loader_thread_count(self, value):
+        """Set the number of threads used for loading operations
+
+        Note that the resource allocations for loading threads may fail later,
+        in which case the actual number of threads may be less than requested.
+
+        Also note that this function has no effect if libkunquat is built
+        without multithreading support.
+
+        """
+        _kunquat.kqt_Handle_set_loader_thread_count(self._handle, value)
+
+    def get_player_thread_count(self):
+        """Get the number of threads used for audio rendering."""
+        return _kunquat.kqt_Handle_get_player_thread_count(self._handle)
+
+    def set_player_thread_count(self, value):
         """Set the number of threads used for audio rendering.
 
         Note that this function has no effect if libkunquat is built
         without multithreading support.
 
         """
-        _kunquat.kqt_Handle_set_thread_count(self._handle, value)
+        _kunquat.kqt_Handle_set_player_thread_count(self._handle, value)
+
 
     @property
     def audio_rate(self):
@@ -530,6 +545,13 @@ _kunquat.kqt_Handle_validate.argtypes = [kqt_Handle]
 _kunquat.kqt_Handle_validate.restype = ctypes.c_int
 _kunquat.kqt_Handle_validate.errcheck = _error_check
 
+_kunquat.kqt_Handle_set_loader_thread_count.argtypes = [kqt_Handle, ctypes.c_int]
+_kunquat.kqt_Handle_set_loader_thread_count.restype = ctypes.c_int
+_kunquat.kqt_Handle_set_loader_thread_count.errcheck = _error_check
+_kunquat.kqt_Handle_get_loader_thread_count.argtypes = [kqt_Handle]
+_kunquat.kqt_Handle_get_loader_thread_count.restype = ctypes.c_int
+_kunquat.kqt_Handle_get_loader_thread_count.errcheck = _error_check
+
 _kunquat.kqt_Handle_set_data.argtypes = [
         kqt_Handle, ctypes.c_char_p, ctypes.POINTER(ctypes.c_ubyte), ctypes.c_long]
 _kunquat.kqt_Handle_set_data.restype = ctypes.c_int
@@ -549,12 +571,12 @@ _kunquat.kqt_Handle_get_audio.argtypes = [kqt_Handle, ctypes.c_int]
 _kunquat.kqt_Handle_get_audio.restype = ctypes.POINTER(ctypes.c_float)
 _kunquat.kqt_Handle_get_audio.errcheck = _error_check
 
-_kunquat.kqt_Handle_set_thread_count.argtypes = [kqt_Handle, ctypes.c_int]
-_kunquat.kqt_Handle_set_thread_count.restype = ctypes.c_int
-_kunquat.kqt_Handle_set_thread_count.errcheck = _error_check
-_kunquat.kqt_Handle_get_thread_count.argtypes = [kqt_Handle]
-_kunquat.kqt_Handle_get_thread_count.restype = ctypes.c_int
-_kunquat.kqt_Handle_get_thread_count.errcheck = _error_check
+_kunquat.kqt_Handle_set_player_thread_count.argtypes = [kqt_Handle, ctypes.c_int]
+_kunquat.kqt_Handle_set_player_thread_count.restype = ctypes.c_int
+_kunquat.kqt_Handle_set_player_thread_count.errcheck = _error_check
+_kunquat.kqt_Handle_get_player_thread_count.argtypes = [kqt_Handle]
+_kunquat.kqt_Handle_get_player_thread_count.restype = ctypes.c_int
+_kunquat.kqt_Handle_get_player_thread_count.errcheck = _error_check
 
 _kunquat.kqt_Handle_set_audio_rate.argtypes = [kqt_Handle, ctypes.c_long]
 _kunquat.kqt_Handle_set_audio_rate.restype = ctypes.c_int

@@ -216,13 +216,11 @@ Background_loader* new_Background_loader(void)
 }
 
 
-bool Background_loader_set_thread_count(
-        Background_loader* loader, int count, Error* error)
+void Background_loader_set_thread_count(Background_loader* loader, int count)
 {
     rassert(loader != NULL);
     rassert(count >= 0);
     rassert(count <= KQT_THREADS_MAX);
-    rassert(error != NULL);
 
 #ifdef ENABLE_THREADS
     loader->thread_count = count;
@@ -230,7 +228,7 @@ bool Background_loader_set_thread_count(
     loader->thread_count = 0;
 #endif
 
-    return true;
+    return;
 }
 
 

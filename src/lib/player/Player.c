@@ -450,6 +450,13 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
 }
 
 
+int Player_get_thread_count(const Player* player)
+{
+    rassert(player != NULL);
+    return player->thread_count;
+}
+
+
 bool Player_reserve_voice_state_space(Player* player, int32_t size)
 {
     rassert(player != NULL);
