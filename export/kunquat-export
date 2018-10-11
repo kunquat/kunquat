@@ -17,6 +17,7 @@ import itertools as it
 import json
 import locale
 import math
+import multiprocessing
 import os.path
 import sys
 import time
@@ -33,8 +34,20 @@ AUTHORS = [ 'Tomi Jylhä-Ollila' ]
 ENABLE_UNICODE_OUTPUT = (locale.getpreferredencoding().lower() == 'utf-8')
 
 
+def get_default_thread_count():
+    try:
+        cpus = multiprocessing.cpu_count()
+    except NotImplementedError:
+        cpus = 1
+    if cpus <= 2:
+        return max(1, cpus)
+    return min(max(2, math.ceil(cpus / 2)), 32)
+
+
 def load_kqt(path, audio_rate):
     handle = Kunquat(audio_rate)
+
+    handle.thread_count = get_default_thread_count()
 
     f = KqtFile(path)
     f.load_into_handle(handle)
