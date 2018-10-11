@@ -982,10 +982,10 @@ static void* render_thread_func(void* arg)
         // Wait for our signal to start voice group processing
         Barrier_wait(&player->vgroups_start_barrier);
 
-        rassert(params->thread_id < player->thread_count);
-
         if (player->stop_threads)
             break;
+
+        rassert(params->thread_id < player->thread_count);
 
         Player_process_voice_groups_synced(
                 player, params, player->render_start, player->render_stop);
