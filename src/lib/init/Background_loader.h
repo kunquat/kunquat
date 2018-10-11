@@ -28,13 +28,14 @@ typedef void Background_loader_callback(Error* error, void* user_data);
 
 typedef struct Background_loader_task
 {
-    Background_loader_callback* callback;
+    Background_loader_callback* process;
+    Background_loader_callback* cleanup;
     void* user_data;
 } Background_loader_task;
 
 
-#define MAKE_BACKGROUND_LOADER_TASK(cb, ud) \
-    (&(Background_loader_task){ .callback = (cb), .user_data = (ud) })
+#define MAKE_BACKGROUND_LOADER_TASK(pr, cl, ud) (&(Background_loader_task){ \
+        .process = (pr), .cleanup = (cl), .user_data = (ud) })
 
 
 /**
@@ -98,6 +99,14 @@ void Background_loader_wait_idle(Background_loader* loader);
  *           successfully.
  */
 const Error* Background_loader_get_first_error(const Background_loader* loader);
+
+
+/**
+ * Run cleanup callbacks of finished tasks in the Background loader.
+ *
+ * \param loader   The Background loader -- must not be \c NULL.
+ */
+void Background_loader_run_cleanups(Background_loader* loader);
 
 
 /**

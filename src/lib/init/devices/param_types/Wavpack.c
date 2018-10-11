@@ -333,8 +333,6 @@ static void load_wavpack_data(Error* error, void* user_data)
 
 #undef WAVPACK_BUFFER_SIZE
 
-    del_Callback_data(cb_data);
-
     if (written < sample->len)
     {
         Error_set_desc(
@@ -344,19 +342,38 @@ static void load_wavpack_data(Error* error, void* user_data)
                 __LINE__,
                 __func__,
                 "Couldn't read all sample data");
-
-        memory_free(sample->data[0]);
-        memory_free(sample->data[1]);
-        sample->data[0] = sample->data[1] = NULL;
-        sample->len = 0;
-
-        return;
     }
 
     return;
 }
 
 #undef read_wp_samples
+
+
+static void cleanup_loader(Error* error, void* user_data)
+{
+    rassert(error != NULL);
+    rassert(user_data != NULL);
+
+    Callback_data* cb_data = user_data;
+    rassert(cb_data->context != NULL);
+    rassert(cb_data->sample != NULL);
+    rassert(cb_data->sc.data != NULL);
+
+    Sample* sample = cb_data->sample;
+
+    del_Callback_data(cb_data);
+
+    if (Error_is_set(error))
+    {
+        memory_free(sample->data[0]);
+        memory_free(sample->data[1]);
+        sample->data[0] = sample->data[1] = NULL;
+        sample->len = 0;
+    }
+
+    return;
+}
 
 
 bool Sample_parse_wavpack(Sample* sample, Streader* sr, Background_loader* bkg_loader)
@@ -481,12 +498,13 @@ bool Sample_parse_wavpack(Sample* sample, Streader* sr, Background_loader* bkg_l
     cb_data->sample = sample;
 
     Background_loader_task* task =
-        MAKE_BACKGROUND_LOADER_TASK(load_wavpack_data, cb_data);
+        MAKE_BACKGROUND_LOADER_TASK(load_wavpack_data, cleanup_loader, cb_data);
 
     if (!Background_loader_add_task(bkg_loader, task))
     {
         Error* error = ERROR_AUTO;
         load_wavpack_data(error, cb_data);
+        cleanup_loader(error, cb_data);
 
         if (Error_is_set(error))
         {

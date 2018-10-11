@@ -31,7 +31,7 @@
 
 
 #define BACKGROUND_LOADER_TASK_AUTO \
-    (&(Background_loader_task){ .callback = NULL, .user_data = NULL })
+    (&(Background_loader_task){ .process = NULL, .cleanup = NULL, .user_data = NULL })
 
 
 typedef enum
@@ -47,6 +47,7 @@ typedef enum
     TASK_INFO_READY_TO_START,
     TASK_INFO_IN_PROGRESS,
     TASK_INFO_FINISHED,
+    TASK_INFO_FAILED,
 } Task_info_state;
 
 
@@ -81,8 +82,7 @@ static void Background_loader_task_info_init(Background_loader_task_info* info)
 static bool Background_loader_task_info_is_free(const Background_loader_task_info* info)
 {
     rassert(info != NULL);
-    return (info->state == TASK_INFO_EMPTY) ||
-        ((info->state == TASK_INFO_FINISHED) && !Error_is_set(&info->error));
+    return (info->state == TASK_INFO_EMPTY);
 }
 
 
@@ -102,9 +102,9 @@ static void Task_worker_run_tasks(Task_worker* worker)
     while (task_info != NULL)
     {
         rassert(task_info->state == TASK_INFO_IN_PROGRESS);
-        rassert(task_info->task.callback != NULL);
+        rassert(task_info->task.process != NULL);
 
-        task_info->task.callback(&task_info->error, task_info->task.user_data);
+        task_info->task.process(&task_info->error, task_info->task.user_data);
 
         Background_loader_set_task_finished(worker->host, task_info);
 
@@ -259,7 +259,8 @@ bool Background_loader_add_task(Background_loader* loader, Background_loader_tas
 {
     rassert(loader != NULL);
     rassert(task != NULL);
-    rassert(task->callback != NULL);
+    rassert(task->process != NULL);
+    rassert(task->cleanup != NULL);
 
     if (loader->thread_count == 0)
         return false;
@@ -380,6 +381,33 @@ static Background_loader_task_info* Background_loader_fetch_task_info(
 }
 
 
+void Background_loader_run_cleanups(Background_loader* loader)
+{
+    rassert(loader != NULL);
+
+    Mutex_lock(&loader->loader_lock);
+
+    for (int i = 0; i < QUEUE_SIZE; ++i)
+    {
+        Background_loader_task_info* task_info = &loader->task_queue[i];
+        if (task_info->state == TASK_INFO_FINISHED)
+        {
+            rassert(task_info->task.cleanup != NULL);
+            task_info->task.cleanup(&task_info->error, task_info->task.user_data);
+
+            if (!Error_is_set(&task_info->error))
+                Background_loader_task_info_init(task_info);
+            else
+                task_info->state = TASK_INFO_FAILED;
+        }
+    }
+
+    Mutex_unlock(&loader->loader_lock);
+
+    return;
+}
+
+
 void Background_loader_wait_idle(Background_loader* loader)
 {
     rassert(loader != NULL);
@@ -397,6 +425,8 @@ void Background_loader_wait_idle(Background_loader* loader)
         if (Task_worker_is_running(&loader->workers[i]))
             Task_worker_join(&loader->workers[i]);
     }
+
+    Background_loader_run_cleanups(loader);
 
     return;
 }

@@ -208,6 +208,8 @@ int kqt_Handle_set_data(
     if (!parse_data(h, key, data, length))
         return 0;
 
+    Background_loader_run_cleanups(h->bkg_loader);
+
     h->data_is_validated = false;
 
     return 1;
