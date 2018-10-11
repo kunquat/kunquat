@@ -49,8 +49,12 @@ Background_loader* new_Background_loader(void);
 /**
  * Set the number of background threads used by the Background loader.
  *
+ * Note: This only affects the number of threads started from the current point
+ * onwards. Therefore, decreasing the thread count will only take effect after
+ * the next call of \a Background_loader_wait_idle.
+ *
  * \param loader   The Background loader -- must not be \c NULL.
- * \param count    The number of threads -- must be >= \c 0 and < \c KQT_THREADS_MAX.
+ * \param count    The number of threads -- must be >= \c 0 and <= \c KQT_THREADS_MAX.
  *                 If \c 0, all calls of \a Background_loader_add_task will fail.
  * \param error    Destination for error information -- must not be \c NULL.
  *

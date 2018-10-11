@@ -219,10 +219,8 @@ bool Background_loader_set_thread_count(
 {
     rassert(loader != NULL);
     rassert(count >= 0);
-    rassert(count < KQT_THREADS_MAX);
+    rassert(count <= KQT_THREADS_MAX);
     rassert(error != NULL);
-
-    // TODO: What if the user calls kqt_Handle_set_thread_count while loading?
 
 #ifdef ENABLE_THREADS
     loader->thread_count = count;
@@ -420,7 +418,7 @@ void Background_loader_wait_idle(Background_loader* loader)
     Mutex_unlock(signal_mutex);
 
     // Join all threads
-    for (int i = 0; i < loader->thread_count; ++i)
+    for (int i = 0; i < KQT_THREADS_MAX; ++i)
     {
         if (Task_worker_is_running(&loader->workers[i]))
             Task_worker_join(&loader->workers[i]);
@@ -447,7 +445,7 @@ void Background_loader_reset(Background_loader* loader)
 {
     rassert(loader != NULL);
 
-    for (int i = 0; i < loader->thread_count; ++i)
+    for (int i = 0; i < KQT_THREADS_MAX; ++i)
         rassert(!Task_worker_is_running(&loader->workers[i]));
 
     return;
