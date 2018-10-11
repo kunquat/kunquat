@@ -46,15 +46,17 @@ typedef int kqt_Module;
 /**
  * Create a new Kunquat Handle from a Kunquat module file.
  *
- * \param path   The path to an existing Kunquat module file
- *               -- should be valid.
+ * \param path           The path to an existing Kunquat module file
+ *                       -- should be valid.
+ * \param thread_count   The number of threads used for loading -- must be
+ *                       > \c 0 and <= \c KQT_THREADS_MAX.
  *
  * \return   The new Kunquat Handle if successful. Otherwise, \c 0 is returned
  *           and the Kunquat file error is set accordingly. Additionally, the
  *           generic Kunquat Handle error may be set if the file contents were
  *           invalid.
  */
-kqt_Handle kqtfile_load_module(const char* path);
+kqt_Handle kqtfile_load_module(const char* path, int thread_count);
 
 
 /**
