@@ -103,14 +103,6 @@ const Error* Background_loader_get_first_error(const Background_loader* loader);
 
 
 /**
- * Run cleanup callbacks of finished tasks in the Background loader.
- *
- * \param loader   The Background loader -- must not be \c NULL.
- */
-void Background_loader_run_cleanups(Background_loader* loader);
-
-
-/**
  * Reset the Background loader.
  *
  * \param loader   The Background loader -- must not be \c NULL and must not have

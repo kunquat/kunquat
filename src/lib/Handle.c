@@ -195,8 +195,6 @@ int kqt_Handle_set_data(
     if (!parse_data(h, key, data, length))
         return 0;
 
-    Background_loader_run_cleanups(h->bkg_loader);
-
     h->data_is_validated = false;
 
     return 1;
@@ -344,7 +342,15 @@ int kqt_Handle_validate(kqt_Handle handle)
     // Wait for and check background tasks
     Background_loader_wait_idle(h->bkg_loader);
     const Error* bkg_error = Background_loader_get_first_error(h->bkg_loader);
-    set_invalid_if(bkg_error != NULL, bkg_error->message);
+    if (bkg_error != NULL)
+    {
+        Error* bkg_error_copy = ERROR_AUTO;
+        Error_copy(bkg_error_copy, bkg_error);
+
+        Background_loader_reset(h->bkg_loader);
+
+        set_invalid_if(true, bkg_error_copy->message);
+    }
     Background_loader_reset(h->bkg_loader);
 
     // Check album

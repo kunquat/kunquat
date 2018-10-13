@@ -36,14 +36,16 @@
 
 typedef enum
 {
-    LOADER_STATE_WAITING,
+    LOADER_STATE_INIT,
     LOADER_STATE_IN_PROGRESS,
+    LOADER_STATE_WAITING,
 } Loader_state;
 
 
 typedef enum
 {
     TASK_INFO_EMPTY,
+    TASK_INFO_END_QUEUE,
     TASK_INFO_READY_TO_START,
     TASK_INFO_IN_PROGRESS,
     TASK_INFO_FINISHED,
@@ -51,23 +53,30 @@ typedef enum
 } Task_info_state;
 
 
-typedef struct Background_loader_task_info
+typedef struct Task_info
 {
     Background_loader_task task;
     Task_info_state state;
     Error error;
-} Background_loader_task_info;
+} Task_info;
 
 
-static Background_loader_task_info* Background_loader_fetch_task_info(
-        Background_loader* loader);
+#define TASK_INFO_AUTO (&(Task_info){           \
+        .task = *BACKGROUND_LOADER_TASK_AUTO,   \
+        .state = TASK_INFO_EMPTY,               \
+        .error = *ERROR_AUTO,                   \
+    })
 
 
-static void Background_loader_set_task_finished(
-        Background_loader* loader, Background_loader_task_info* task_info);
+static bool Background_loader_fetch_task_info(
+        Background_loader* loader, Task_info* dest_task_info);
 
 
-static void Background_loader_task_info_init(Background_loader_task_info* info)
+static void Background_loader_add_cleanup_task_info(
+        Background_loader* loader, Task_info* task_info);
+
+
+static void Task_info_init(Task_info* info)
 {
     rassert(info != NULL);
 
@@ -79,17 +88,11 @@ static void Background_loader_task_info_init(Background_loader_task_info* info)
 }
 
 
-static bool Background_loader_task_info_is_free(const Background_loader_task_info* info)
-{
-    rassert(info != NULL);
-    return (info->state == TASK_INFO_EMPTY);
-}
-
-
 typedef struct Task_worker
 {
     Thread thread;
     Background_loader* host;
+    Task_info task_info;
 } Task_worker;
 
 
@@ -97,18 +100,19 @@ static void Task_worker_run_tasks(Task_worker* worker)
 {
     rassert(worker != NULL);
 
-    Background_loader_task_info* task_info =
-        Background_loader_fetch_task_info(worker->host);
-    while (task_info != NULL)
+    bool task_found =
+        Background_loader_fetch_task_info(worker->host, &worker->task_info);
+    while (task_found)
     {
-        rassert(task_info->state == TASK_INFO_IN_PROGRESS);
-        rassert(task_info->task.process != NULL);
+        rassert(worker->task_info.state == TASK_INFO_IN_PROGRESS);
+        rassert(worker->task_info.task.process != NULL);
 
-        task_info->task.process(&task_info->error, task_info->task.user_data);
+        worker->task_info.task.process(
+                &worker->task_info.error, worker->task_info.task.user_data);
 
-        Background_loader_set_task_finished(worker->host, task_info);
+        Background_loader_add_cleanup_task_info(worker->host, &worker->task_info);
 
-        task_info = Background_loader_fetch_task_info(worker->host);
+        task_found = Background_loader_fetch_task_info(worker->host, &worker->task_info);
     }
 
     return;
@@ -126,6 +130,13 @@ static void* worker_thread(void* user_data)
 }
 
 
+static bool Task_worker_is_running(const Task_worker* worker)
+{
+    rassert(worker != NULL);
+    return Thread_is_initialised(&worker->thread);
+}
+
+
 static void Task_worker_init(Task_worker* worker, Background_loader* host)
 {
     rassert(worker != NULL);
@@ -133,15 +144,9 @@ static void Task_worker_init(Task_worker* worker, Background_loader* host)
 
     worker->thread = *THREAD_AUTO;
     worker->host = host;
+    Task_info_init(&worker->task_info);
 
     return;
-}
-
-
-static bool Task_worker_is_running(const Task_worker* worker)
-{
-    rassert(worker != NULL);
-    return Thread_is_initialised(&worker->thread);
 }
 
 
@@ -167,21 +172,153 @@ static void Task_worker_join(Task_worker* worker)
 #endif // ENABLE_THREADS
 
 
+static void Task_worker_deinit(Task_worker* worker)
+{
+    rassert(worker != NULL);
+    return;
+}
+
+
+typedef struct Task_queue
+{
+    Mutex lock;
+    int add_index;
+    int fetch_index;
+    Task_info tasks[QUEUE_SIZE];
+} Task_queue;
+
+
+static void Task_queue_init(Task_queue* queue)
+{
+    rassert(queue != NULL);
+
+    queue->lock = *MUTEX_AUTO;
+
+#ifdef ENABLE_THREADS
+    Mutex_init(&queue->lock);
+#endif
+
+    queue->add_index = 0;
+    queue->fetch_index = 0;
+
+    for (int i = 0; i < QUEUE_SIZE; ++i)
+        Task_info_init(&queue->tasks[i]);
+
+    return;
+}
+
+
+static bool Task_queue_add(Task_queue* queue, Task_info* task_info)
+{
+    rassert(queue != NULL);
+    rassert(task_info != NULL);
+
+    Mutex_lock(&queue->lock);
+
+    bool is_full =
+        (((queue->add_index + 1) % QUEUE_SIZE) == queue->fetch_index);
+
+    if (task_info->state != TASK_INFO_END_QUEUE)
+        is_full |= (((queue->add_index + 2) % QUEUE_SIZE) == queue->fetch_index);
+
+    if (is_full)
+    {
+        Mutex_unlock(&queue->lock);
+        return false;
+    }
+
+    queue->tasks[queue->add_index] = *task_info;
+    queue->add_index = (queue->add_index + 1) % QUEUE_SIZE;
+
+    Mutex_unlock(&queue->lock);
+
+    return true;
+}
+
+
+static void Task_queue_undo_add(Task_queue* queue)
+{
+    rassert(queue != NULL);
+
+    Mutex_lock(&queue->lock);
+
+    rassert(queue->fetch_index != queue->add_index);
+    queue->add_index = (queue->add_index + QUEUE_SIZE - 1) % QUEUE_SIZE;
+    Task_info_init(&queue->tasks[queue->add_index]);
+
+    Mutex_unlock(&queue->lock);
+
+    return;
+}
+
+
+static bool Task_queue_fetch(Task_queue* queue, Task_info* dest_task_info)
+{
+    rassert(queue != NULL);
+    rassert(dest_task_info != NULL);
+
+    Mutex_lock(&queue->lock);
+
+    const bool is_empty = (queue->fetch_index == queue->add_index);
+    if (is_empty)
+    {
+        Mutex_unlock(&queue->lock);
+        return false;
+    }
+
+    *dest_task_info = queue->tasks[queue->fetch_index];
+    if (dest_task_info->state != TASK_INFO_END_QUEUE)
+    {
+        Task_info_init(&queue->tasks[queue->fetch_index]);
+        queue->fetch_index = (queue->fetch_index + 1) % QUEUE_SIZE;
+    }
+
+    Mutex_unlock(&queue->lock);
+
+    return true;
+}
+
+
+static void Task_queue_reset(Task_queue* queue)
+{
+    rassert(queue != NULL);
+
+    queue->add_index = 0;
+    queue->fetch_index = 0;
+
+    for (int i = 0; i < QUEUE_SIZE; ++i)
+        Task_info_init(&queue->tasks[i]);
+
+    return;
+}
+
+
+static void Task_queue_deinit(Task_queue* queue)
+{
+    rassert(queue != NULL);
+
+#ifdef ENABLE_THREADS
+    Mutex_deinit(&queue->lock);
+#endif
+
+    return;
+}
+
+
 struct Background_loader
 {
     int thread_count;
     Task_worker workers[KQT_THREADS_MAX];
 
-    Error first_error;
+    int active_task_count;
 
-    Mutex loader_lock;
+    Error first_error;
 
     Condition signal;
     Loader_state state;
 
-    int add_index;
-    int fetch_index;
-    Background_loader_task_info task_queue[QUEUE_SIZE];
+    Task_queue work_queue;
+    Task_queue cleanup_queue;
 };
 
 
@@ -196,21 +333,19 @@ Background_loader* new_Background_loader(void)
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
         Task_worker_init(&loader->workers[i], loader);
 
+    loader->active_task_count = 0;
+
     loader->first_error = *ERROR_AUTO;
 
-    loader->loader_lock = *MUTEX_AUTO;
     loader->signal = *CONDITION_AUTO;
+    loader->state = LOADER_STATE_INIT;
 
 #ifdef ENABLE_THREADS
     Condition_init(&loader->signal);
-    Mutex_init(&loader->loader_lock);
 #endif
 
-    loader->add_index = 0;
-    loader->fetch_index = 0;
-
-    for (int i = 0; i < QUEUE_SIZE; ++i)
-        Background_loader_task_info_init(&loader->task_queue[i]);
+    Task_queue_init(&loader->work_queue);
+    Task_queue_init(&loader->cleanup_queue);
 
     return loader;
 }
@@ -239,15 +374,23 @@ int Background_loader_get_thread_count(const Background_loader* loader)
 }
 
 
-static void Background_loader_set_task_finished(
-        Background_loader* loader, Background_loader_task_info* task_info)
+static void Background_loader_run_cleanups(Background_loader* loader)
 {
     rassert(loader != NULL);
-    rassert(task_info != NULL);
 
-    Mutex_lock(&loader->loader_lock);
-    task_info->state = TASK_INFO_FINISHED;
-    Mutex_unlock(&loader->loader_lock);
+#ifdef ENABLE_THREADS
+    Task_info* task_info = TASK_INFO_AUTO;
+    while (Task_queue_fetch(&loader->cleanup_queue, task_info))
+    {
+        rassert(task_info->task.cleanup != NULL);
+        task_info->task.cleanup(&task_info->error, task_info->task.user_data);
+
+        if (Error_is_set(&task_info->error) && !Error_is_set(&loader->first_error))
+            Error_copy(&loader->first_error, &task_info->error);
+
+        --loader->active_task_count;
+    }
+#endif // ENABLE_THREADS
 
     return;
 }
@@ -263,30 +406,18 @@ bool Background_loader_add_task(Background_loader* loader, Background_loader_tas
     if (loader->thread_count == 0)
         return false;
 
-    // Get free task info
-    Background_loader_task_info* selected_task_info = NULL;
+    Background_loader_run_cleanups(loader);
+    if (loader->active_task_count + 2 >= QUEUE_SIZE)
+        return false;
 
-    Mutex_lock(&loader->loader_lock);
+    // Add new task info
+    Task_info* task_info = TASK_INFO_AUTO;
+    task_info->task = *task;
+    task_info->state = TASK_INFO_READY_TO_START;
+    task_info->error = *ERROR_AUTO;
 
-    for (int i = 0; i < QUEUE_SIZE; ++i)
-    {
-        const int test_index = (loader->add_index + i) % QUEUE_SIZE;
-        Background_loader_task_info* test_info = &loader->task_queue[test_index];
-
-        if (Background_loader_task_info_is_free(test_info))
-        {
-            loader->add_index = (test_index + 1) % QUEUE_SIZE;
-
-            selected_task_info = test_info;
-            selected_task_info->task = *task;
-            selected_task_info->state = TASK_INFO_READY_TO_START;
-            selected_task_info->error = *ERROR_AUTO;
-
-            break;
-        }
-    }
-
-    Mutex_unlock(&loader->loader_lock);
+    if (!Task_queue_add(&loader->work_queue, task_info))
+        return false;
 
     // Start workers if not running yet
     {
@@ -309,7 +440,7 @@ bool Background_loader_add_task(Background_loader* loader, Background_loader_tas
         if (!any_workers_running)
         {
             // Clear the task info as there are no workers that could run it
-            Background_loader_task_info_init(selected_task_info);
+            Task_queue_undo_add(&loader->work_queue);
             return false;
         }
     }
@@ -321,88 +452,59 @@ bool Background_loader_add_task(Background_loader* loader, Background_loader_tas
     Condition_broadcast(&loader->signal);
     Mutex_unlock(signal_mutex);
 
+    ++loader->active_task_count;
+
     return true;
 }
 
 
-static Background_loader_task_info* Background_loader_fetch_task_info(
-        Background_loader* loader)
+static bool Background_loader_fetch_task_info(
+        Background_loader* loader, Task_info* dest_task_info)
 {
     rassert(loader != NULL);
 
-    Background_loader_task_info* selected_task_info = NULL;
+    bool task_found = false;
     bool all_done = false;
 
-    while ((selected_task_info == NULL) && !all_done)
+    while (!task_found && !all_done)
     {
-        Mutex_lock(&loader->loader_lock);
-
-        for (int i = 0; i < QUEUE_SIZE; ++i)
+        if (Task_queue_fetch(&loader->work_queue, dest_task_info))
         {
-            const int test_index = (loader->fetch_index + i) % QUEUE_SIZE;
-            Background_loader_task_info* test_info = &loader->task_queue[test_index];
-
-            if (test_info->state == TASK_INFO_READY_TO_START)
+            if (dest_task_info->state == TASK_INFO_READY_TO_START)
             {
-                loader->fetch_index = (test_index + 1) % QUEUE_SIZE;
-
-                selected_task_info = test_info;
-                selected_task_info->state = TASK_INFO_IN_PROGRESS;
-                selected_task_info->error = *ERROR_AUTO;
-            }
-        }
-
-        if (selected_task_info == NULL)
-        {
-            if (loader->state == LOADER_STATE_WAITING)
-            {
-                all_done = true;
+                dest_task_info->state = TASK_INFO_IN_PROGRESS;
+                task_found = true;
             }
             else
             {
-                Mutex_unlock(&loader->loader_lock);
-
-                // Wait for another signal
-                Mutex* signal_mutex = Condition_get_mutex(&loader->signal);
-                Mutex_lock(signal_mutex);
-                Condition_wait(&loader->signal);
-                Mutex_unlock(signal_mutex);
-
-                continue;
+                rassert(dest_task_info->state == TASK_INFO_END_QUEUE);
+                all_done = true;
             }
         }
+        else
+        {
+            Mutex* signal_mutex = Condition_get_mutex(&loader->signal);
+            Mutex_lock(signal_mutex);
 
-        Mutex_unlock(&loader->loader_lock);
+            if (loader->state != LOADER_STATE_WAITING)
+                Condition_wait(&loader->signal);
+
+            Mutex_unlock(signal_mutex);
+        }
     }
 
-    return selected_task_info;
+    return task_found;
 }
 
 
-void Background_loader_run_cleanups(Background_loader* loader)
+static void Background_loader_add_cleanup_task_info(
+        Background_loader* loader, Task_info* task_info)
 {
     rassert(loader != NULL);
+    rassert(task_info != NULL);
 
-#ifdef ENABLE_THREADS
-    Mutex_lock(&loader->loader_lock);
-
-    for (int i = 0; i < QUEUE_SIZE; ++i)
-    {
-        Background_loader_task_info* task_info = &loader->task_queue[i];
-        if (task_info->state == TASK_INFO_FINISHED)
-        {
-            rassert(task_info->task.cleanup != NULL);
-            task_info->task.cleanup(&task_info->error, task_info->task.user_data);
-
-            if (!Error_is_set(&task_info->error))
-                Background_loader_task_info_init(task_info);
-            else
-                task_info->state = TASK_INFO_FAILED;
-        }
-    }
-
-    Mutex_unlock(&loader->loader_lock);
-#endif // ENABLE_THREADS
+    bool success = Task_queue_add(&loader->cleanup_queue, task_info);
+    rassert(success);
 
     return;
 }
@@ -413,7 +515,11 @@ void Background_loader_wait_idle(Background_loader* loader)
     rassert(loader != NULL);
 
 #ifdef ENABLE_THREADS
-    // Let all tasks know that no more tasks are coming
+    // Let all workers know that no more tasks are coming
+    Task_info* task_info = TASK_INFO_AUTO;
+    task_info->state = TASK_INFO_END_QUEUE;
+    Task_queue_add(&loader->work_queue, task_info);
+
     Mutex* signal_mutex = Condition_get_mutex(&loader->signal);
     Mutex_lock(signal_mutex);
     loader->state = LOADER_STATE_WAITING;
@@ -454,6 +560,12 @@ void Background_loader_reset(Background_loader* loader)
         rassert(!Task_worker_is_running(&loader->workers[i]));
 #endif
 
+    rassert(!(loader->active_task_count > 0));
+    rassert(!(loader->active_task_count < 0));
+
+    Task_queue_reset(&loader->work_queue);
+    Task_queue_reset(&loader->cleanup_queue);
+
     return;
 }
 
@@ -462,6 +574,12 @@ void del_Background_loader(Background_loader* loader)
 {
     if (loader == NULL)
         return;
+
+    for (int i = 0; i < KQT_THREADS_MAX; ++i)
+        Task_worker_deinit(&loader->workers[i]);
+
+    Task_queue_deinit(&loader->work_queue);
+    Task_queue_deinit(&loader->cleanup_queue);
 
     memory_free(loader);
 
