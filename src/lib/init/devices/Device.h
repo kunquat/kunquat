@@ -199,11 +199,12 @@ bool Device_get_port_existence(const Device* device, Device_port_type type, int 
 /**
  * Synchronise the Device.
  *
- * \param device   The Device -- must not be \c NULL.
+ * \param device       The Device -- must not be \c NULL.
+ * \param bkg_loader   The Background loader -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_sync(Device* device);
+bool Device_sync(Device* device, Background_loader* bkg_loader);
 
 
 /**

@@ -17,6 +17,7 @@
 #include <containers/AAtree.h>
 #include <containers/Vector.h>
 #include <debug/assert.h>
+#include <init/Background_loader.h>
 #include <init/devices/param_types/Padsynth_params.h>
 #include <init/devices/Proc_cons.h>
 #include <init/devices/processors/Proc_init_utils.h>
@@ -38,7 +39,10 @@ static Set_padsynth_params_func Proc_padsynth_set_params;
 static Set_bool_func            Proc_padsynth_set_ramp_attack;
 static Set_bool_func            Proc_padsynth_set_stereo;
 
-static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* params);
+static bool apply_padsynth(
+        Proc_padsynth* padsynth,
+        const Padsynth_params* params,
+        Background_loader* bkg_loader);
 
 static void del_Proc_padsynth(Device_impl* dimpl);
 
@@ -297,7 +301,7 @@ Device_impl* new_Proc_padsynth(void)
 
     Random_init(&padsynth->random, "PADsynth");
 
-    if (!apply_padsynth(padsynth, NULL))
+    if (!apply_padsynth(padsynth, NULL, NULL))
     {
         del_Device_impl(&padsynth->parent);
         return NULL;
@@ -308,14 +312,17 @@ Device_impl* new_Proc_padsynth(void)
 
 
 static bool Proc_padsynth_set_params(
-        Device_impl* dimpl, const Key_indices indices, const Padsynth_params* params)
+        Device_impl* dimpl,
+        const Key_indices indices,
+        const Padsynth_params* params,
+        Background_loader* bkg_loader)
 {
     rassert(dimpl != NULL);
     ignore(indices);
 
     Proc_padsynth* padsynth = (Proc_padsynth*)dimpl;
 
-    return apply_padsynth(padsynth, params);
+    return apply_padsynth(padsynth, params, bkg_loader);
 }
 
 
@@ -421,15 +428,19 @@ static Callback_data* new_Callback_data(const Padsynth_params* params)
 }
 
 
+static void cleanup_cb_data(Error* error, void* user_data)
+{
+    rassert(error != NULL);
+    rassert(user_data != NULL);
+
+    Callback_data* cb_data = user_data;
+    del_Callback_data(cb_data);
+
+    return;
+}
+
+
 static void make_padsynth_sample(Error* error, void* user_data)
-/*
-        Padsynth_sample_entry* entry,
-        int context_index,
-        double* freq_amp,
-        double* freq_phase,
-        FFT_worker* fw,
-        const Padsynth_params* params)
-        */
 {
     rassert(error != NULL);
     rassert(user_data != NULL);
@@ -583,7 +594,10 @@ static void make_padsynth_sample(Error* error, void* user_data)
 }
 
 
-static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* params)
+static bool apply_padsynth(
+        Proc_padsynth* padsynth,
+        const Padsynth_params* params,
+        Background_loader* bkg_loader)
 {
     rassert(padsynth != NULL);
 
@@ -620,7 +634,7 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
     if (cb_data_count == 0)
         return false;
 
-    //bool last_cb_data_is_direct = (cb_data_count < sample_count);
+    bool last_cb_data_is_direct = (cb_data_count < sample_count);
 
     // Allocate new sample map here so that we don't lose old data on allocation failure
     if (padsynth->sample_map == NULL ||
@@ -652,6 +666,8 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
     // Build samples
     if (params != NULL)
     {
+        rassert(bkg_loader != NULL);
+
         AAiter* iter = AAiter_init(AAITER_AUTO, padsynth->sample_map->map);
 
         int context_index = 0;
@@ -666,9 +682,25 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
             cb_data->entry = entry;
             cb_data->context_index = context_index;
 
-            Error* error = ERROR_AUTO;
-            make_padsynth_sample(error, cb_data);
-            rassert(!Error_is_set(error));
+            if (last_cb_data_is_direct && (context_index >= cb_data_count - 1))
+            {
+                Error* error = ERROR_AUTO;
+                make_padsynth_sample(error, cb_data);
+                rassert(!Error_is_set(error));
+            }
+            else
+            {
+                Background_loader_task* task = MAKE_BACKGROUND_LOADER_TASK(
+                        make_padsynth_sample, cleanup_cb_data, cb_data);
+
+                if (!Background_loader_add_task(bkg_loader, task))
+                {
+                    Error* error = ERROR_AUTO;
+                    make_padsynth_sample(error, cb_data);
+                    cleanup_cb_data(error, cb_data);
+                    rassert(!Error_is_set(error));
+                }
+            }
 
             ++context_index;
 
@@ -688,13 +720,21 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
         cb_data->entry = entry;
         cb_data->context_index = 0;
 
-        Error* error = ERROR_AUTO;
-        make_padsynth_sample(error, cb_data);
-        rassert(!Error_is_set(error));
+        rassert(!last_cb_data_is_direct);
+
+        Background_loader_task* task = MAKE_BACKGROUND_LOADER_TASK(
+                make_padsynth_sample, cleanup_cb_data, cb_data);
+        if ((bkg_loader == NULL) || !Background_loader_add_task(bkg_loader, task))
+        {
+            Error* error = ERROR_AUTO;
+            make_padsynth_sample(error, cb_data);
+            cleanup_cb_data(error, cb_data);
+            rassert(!Error_is_set(error));
+        }
     }
 
-    for (int i = 0; i < cb_data_count; ++i)
-        del_Callback_data(cb_datas[i]);
+    if (last_cb_data_is_direct)
+        del_Callback_data(cb_datas[cb_data_count - 1]);
 
     return true;
 }

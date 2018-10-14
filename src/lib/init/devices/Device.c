@@ -178,9 +178,10 @@ bool Device_get_port_existence(const Device* device, Device_port_type type, int 
 }
 
 
-bool Device_sync(Device* device)
+bool Device_sync(Device* device, Background_loader* bkg_loader)
 {
     rassert(device != NULL);
+    rassert(bkg_loader != NULL);
 
     // Set existing keys on dimpl
     if (device->dimpl != NULL)
@@ -191,7 +192,7 @@ bool Device_sync(Device* device)
         const char* key = Device_params_iter_get_next_key(iter);
         while (key != NULL)
         {
-            if (!Device_impl_set_key(device->dimpl, key))
+            if (!Device_impl_set_key(device->dimpl, key, bkg_loader))
                 return false;
 
             key = Device_params_iter_get_next_key(iter);
@@ -249,7 +250,8 @@ bool Device_set_key(
     if (!Device_params_parse_value(device->dparams, key, version, sr, bkg_loader))
         return false;
 
-    if (device->dimpl != NULL && !Device_impl_set_key(device->dimpl, key + 2))
+    if ((device->dimpl != NULL) &&
+            !Device_impl_set_key(device->dimpl, key + 2, bkg_loader))
     {
         Streader_set_memory_error(
                 sr, "Could not allocate memory for device key %s", key);
