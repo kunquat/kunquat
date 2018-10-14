@@ -33,10 +33,55 @@
 #define MODULES_MAX 256
 
 
+typedef struct Zip_state
+{
+    zip_t* archive;
+    zip_uint64_t entry_index;
+    zip_uint64_t entry_count;
+} Zip_state;
+
+
+#define ZIP_STATE_AUTO (&(Zip_state){ \
+        .archive = NULL, .entry_index = 0, .entry_count = 0 })
+
+
+static bool Zip_state_init(Zip_state* zstate, const char* path)
+{
+    assert(zstate != NULL);
+    assert(path != NULL);
+
+    int error = ZIP_ER_OK;
+    zstate->archive = zip_open(path, ZIP_RDONLY, &error);
+    if (zstate->archive == NULL)
+        return false;
+
+    zstate->entry_index = 0;
+    const zip_int64_t entry_count = zip_get_num_entries(zstate->archive, 0);
+    assert(entry_count >= 0);
+    zstate->entry_count = (zip_uint64_t)entry_count;
+
+    return true;
+}
+
+
+static void Zip_state_deinit(Zip_state* zstate)
+{
+    assert(zstate != NULL);
+
+    if (zstate->archive == NULL)
+        return;
+
+    zip_discard(zstate->archive);
+    zstate->archive = NULL;
+}
+
+
 typedef struct Module
 {
     char error[ERROR_LENGTH_MAX + 1];
     kqt_Handle handle;
+
+    Zip_state zip_state;
 } Module;
 
 #define MODULE_AUTO (&(Module){ .error = "", .handle = 0 })
@@ -124,6 +169,13 @@ static void set_error(Module* module, const char* message, ...)
 }
 
 
+static bool Module_is_error_set(const Module* module)
+{
+    assert(module != NULL);
+    return (module->error[0] != '\0');
+}
+
+
 static bool Module_init(Module* module)
 {
     assert(module != NULL);
@@ -142,6 +194,8 @@ static bool Module_init(Module* module)
         set_error(module, "Could not create a Kunquat Handle for module");
         return false;
     }
+
+    module->zip_state = *ZIP_STATE_AUTO;
 
     return true;
 }
@@ -172,17 +226,111 @@ static void Module_deinit(Module* module)
 }
 
 
-#define zip_fail_if(cond)                                   \
-    if (true)                                               \
-    {                                                       \
-        if ((cond))                                         \
-        {                                                   \
-            set_error(module, "%s", zip_strerror(archive)); \
-            zip_discard(archive);                           \
-            return false;                                   \
-        }                                                   \
-    }                                                       \
-    else (void)0
+static bool Module_is_reading(const Module* module)
+{
+    assert(module != NULL);
+    return (module->zip_state.archive != NULL) &&
+        (module->zip_state.entry_index < module->zip_state.entry_count);
+}
+
+
+static bool Module_load_step(Module* module)
+{
+    assert(module != NULL);
+    assert(module->handle != 0);
+    assert(module->zip_state.archive != NULL);
+
+    if (Module_is_error_set(module))
+        return false;
+
+    Zip_state* zstate = &module->zip_state;
+
+    if (zstate->entry_index >= zstate->entry_count)
+    {
+        assert(zstate->entry_index == zstate->entry_count);
+        return true;
+    }
+
+    int error = ZIP_ER_OK;
+
+    zip_stat_t stat;
+    error = zip_stat_index(zstate->archive, zstate->entry_index, 0, &stat);
+    if (error != ZIP_ER_OK)
+    {
+        set_error(module, "%s", zip_strerror(zstate->archive));
+        return false;
+    }
+
+    const char* entry_path = stat.name;
+    static const char* header = "kqtc00";
+
+    if (strlen(entry_path) < strlen(header) ||
+            strncmp(entry_path, header, strlen(header)) != 0 ||
+            (entry_path[strlen(header)] != '/' &&
+             entry_path[strlen(header)] != '\0'))
+    {
+        set_error(module, "The file contains an invalid data entry: `%s`", entry_path);
+        return false;
+    }
+
+    if (stat.size > (zip_uint64_t)LONG_MAX)
+    {
+        set_error(module, "Entry %s is too large (%lld bytes)",
+                entry_path, (long long)stat.size);
+        return false;
+    }
+
+    const char* key = strchr(entry_path, '/');
+    if (key != NULL && (strlen(key) > 0) && (key[strlen(key) - 1] != '/'))
+    {
+        ++key;
+
+        zip_file_t* f = zip_fopen_index(zstate->archive, zstate->entry_index, 0);
+        if (f == NULL)
+        {
+            set_error(module, "%s", zip_strerror(zstate->archive));
+            return false;
+        }
+
+        char* data = malloc(sizeof(char) * stat.size);
+        if (data == NULL)
+        {
+            set_error(module, "Could not allocate memory for module data");
+            zip_fclose(f);
+            return false;
+        }
+
+        const zip_int64_t read_count = zip_fread(f, data, stat.size);
+        if (read_count < (zip_int64_t)stat.size)
+        {
+            set_error(module,
+                    "Unexpected end of entry %s at %lld bytes"
+                    " (expected %lld bytes)",
+                    entry_path, (long long)read_count, (long long)stat.size);
+            free(data);
+            zip_fclose(f);
+            return false;
+        }
+
+        zip_fclose(f);
+
+        if (!kqt_Handle_set_data(module->handle, key, data, (long int)stat.size))
+        {
+            set_error(module,
+                    "Could not set data: %s",
+                    kqt_Handle_get_error_message(module->handle));
+            free(data);
+            return false;
+        }
+
+        free(data); // TODO: store data for read-only access if needed
+    }
+
+    ++zstate->entry_index;
+
+    return true;
+}
+
 
 static bool Module_load(Module* module, const char* path)
 {
@@ -190,91 +338,22 @@ static bool Module_load(Module* module, const char* path)
     assert(module->handle != 0);
     assert(path != NULL);
 
-    int error = ZIP_ER_OK;
-    zip_t* archive = zip_open(path, ZIP_RDONLY, &error);
-    if (archive == NULL)
+    if (!Zip_state_init(&module->zip_state, path))
     {
-        set_error(module, "Could not allocate memory for zip reader");
+        set_error(module, "Could not open `%s`", path);
         return false;
     }
 
-    const zip_int64_t entry_count = zip_get_num_entries(archive, 0);
-    for (zip_uint64_t i = 0; (zip_int64_t)i < entry_count; ++i)
+    while (Module_is_reading(module))
     {
-        zip_stat_t stat;
-        error = zip_stat_index(archive, i, 0, &stat);
-        zip_fail_if(error != ZIP_ER_OK);
-
-        const char* entry_path = stat.name;
-        static const char* header = "kqtc00";
-
-        if (strlen(entry_path) < strlen(header) ||
-                strncmp(entry_path, header, strlen(header)) != 0 ||
-                (entry_path[strlen(header)] != '/' &&
-                 entry_path[strlen(header)] != '\0'))
-        {
-            fprintf(stderr, "path is %s\n", path);
-            fprintf(stderr, "entry_path is %s\n", entry_path);
-            set_error(module, "The file %s contains an invalid data entry: %s",
-                    path, entry_path);
-            zip_discard(archive);
-            return false;
-        }
-
-        if (stat.size > (zip_uint64_t)LONG_MAX)
-        {
-            set_error(module, "Entry %s is too large (%lld bytes)",
-                    entry_path, (long long)stat.size);
-            zip_discard(archive);
-            return false;
-        }
-
-        const char* key = strchr(entry_path, '/');
-        if (key != NULL && (strlen(key) > 0) && (key[strlen(key) - 1] != '/'))
-        {
-            ++key;
-
-            zip_file_t* f = zip_fopen_index(archive, i, 0);
-            zip_fail_if(f == NULL);
-
-            char* data = malloc(sizeof(char) * stat.size);
-            if (data == NULL)
-            {
-                set_error(module, "Could not allocate memory for module data");
-                zip_fclose(f);
-                zip_discard(archive);
-                return false;
-            }
-
-            const zip_int64_t read_count = zip_fread(f, data, stat.size);
-            if (read_count < (zip_int64_t)stat.size)
-            {
-                set_error(module,
-                        "Unexpected end of entry %s at %lld bytes"
-                        " (expected %lld bytes)",
-                        entry_path, (long long)read_count, (long long)stat.size);
-                zip_fclose(f);
-                zip_discard(archive);
-                return false;
-            }
-
-            zip_fclose(f);
-
-            if (!kqt_Handle_set_data(module->handle, key, data, (long int)stat.size))
-            {
-                set_error(module,
-                        "Could not set data: %s",
-                        kqt_Handle_get_error_message(module->handle));
-                free(data);
-                zip_discard(archive);
-                return false;
-            }
-
-            free(data); // TODO: store data for read-only access if needed
-        }
+        if (!Module_load_step(module))
+            break;
     }
 
-    zip_discard(archive);
+    Zip_state_deinit(&module->zip_state);
+
+    if (Module_is_error_set(module))
+        return false;
 
     if (!kqt_Handle_validate(module->handle))
     {
@@ -286,8 +365,6 @@ static bool Module_load(Module* module, const char* path)
 
     return true;
 }
-
-#undef zip_fail_if
 
 
 kqt_Handle kqtfile_load_module(const char* path, int thread_count)
