@@ -352,18 +352,7 @@ static bool Module_load(Module* module, const char* path)
 
     Zip_state_deinit(&module->zip_state);
 
-    if (Module_is_error_set(module))
-        return false;
-
-    if (!kqt_Handle_validate(module->handle))
-    {
-        set_error(module,
-                "Could not validate Kunquat file: %s",
-                kqt_Handle_get_error_message(module->handle));
-        return false;
-    }
-
-    return true;
+    return !Module_is_error_set(module);
 }
 
 
@@ -402,6 +391,15 @@ kqt_Handle kqtfile_load_module(const char* path, int thread_count)
 
     kqt_Handle handle = Module_remove_handle(module);
     Module_deinit(module);
+
+    if (!kqt_Handle_validate(handle))
+    {
+        set_error(NULL,
+                "Could not validate Kunquat file: %s",
+                kqt_Handle_get_error_message(handle));
+        kqt_del_Handle(handle);
+        return false;
+    }
 
     return handle;
 }
