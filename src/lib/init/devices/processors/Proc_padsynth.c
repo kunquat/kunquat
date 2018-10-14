@@ -366,7 +366,6 @@ static double get_profile_bound(double bandwidth_i)
 
 static void make_padsynth_sample(
         Padsynth_sample_entry* entry,
-        Random* random,
         int context_index,
         double* freq_amp,
         double* freq_phase,
@@ -381,7 +380,7 @@ static void make_padsynth_sample(
 
     char context_str[16] = "";
     snprintf(context_str, 16, "PADsynth%hd", (unsigned short)context_index);
-    Random_init(random, context_str);
+    Random* random = Random_init(RANDOM_AUTO, context_str);
 
     int32_t sample_length = PADSYNTH_DEFAULT_SAMPLE_LENGTH;
     if (params != NULL)
@@ -591,14 +590,7 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
         Padsynth_sample_entry* entry = AAiter_get_at_least(iter, key);
         while (entry != NULL)
         {
-            make_padsynth_sample(
-                    entry,
-                    &padsynth->random,
-                    context_index,
-                    freq_amp,
-                    freq_phase,
-                    fw,
-                    params);
+            make_padsynth_sample(entry, context_index, freq_amp, freq_phase, fw, params);
             ++context_index;
 
             entry = AAiter_get_next(iter);
@@ -611,8 +603,7 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
             AAtree_get_at_least(padsynth->sample_map->map, key);
         rassert(entry != NULL);
 
-        make_padsynth_sample(
-                entry, &padsynth->random, 0, freq_amp, freq_phase, fw, NULL);
+        make_padsynth_sample(entry, 0, freq_amp, freq_phase, fw, NULL);
     }
 
     memory_free(freq_amp);
