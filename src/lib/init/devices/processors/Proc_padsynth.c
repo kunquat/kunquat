@@ -364,23 +364,90 @@ static double get_profile_bound(double bandwidth_i)
 }
 
 
-static void make_padsynth_sample(
+typedef struct Callback_data
+{
+    Padsynth_sample_entry* entry;
+    int context_index;
+    double* freq_amp;
+    double* freq_phase;
+    FFT_worker fw;
+    const Padsynth_params* params;
+} Callback_data;
+
+
+static void del_Callback_data(Callback_data* cb_data)
+{
+    if (cb_data == NULL)
+        return;
+
+    memory_free(cb_data->freq_amp);
+    memory_free(cb_data->freq_phase);
+    FFT_worker_deinit(&cb_data->fw);
+
+    memory_free(cb_data);
+
+    return;
+}
+
+
+static Callback_data* new_Callback_data(const Padsynth_params* params)
+{
+    Callback_data* cb_data = memory_alloc_item(Callback_data);
+    if (cb_data == NULL)
+        return NULL;
+
+    cb_data->entry = NULL;
+    cb_data->context_index = 0;
+    cb_data->freq_amp = NULL;
+    cb_data->freq_phase = NULL;
+    cb_data->params = params;
+
+    int32_t sample_length = PADSYNTH_DEFAULT_SAMPLE_LENGTH;
+    if (params != NULL)
+        sample_length = params->sample_length;
+
+    const int32_t buf_length = sample_length / 2;
+
+    cb_data->freq_amp = memory_alloc_items(double, buf_length);
+    cb_data->freq_phase = memory_alloc_items(double, buf_length);
+    FFT_worker* fw = FFT_worker_init(&cb_data->fw, sample_length);
+    if (cb_data->freq_amp == NULL || cb_data->freq_phase == NULL || fw == NULL)
+    {
+        del_Callback_data(cb_data);
+        return NULL;
+    }
+
+    return cb_data;
+}
+
+
+static void make_padsynth_sample(Error* error, void* user_data)
+/*
         Padsynth_sample_entry* entry,
         int context_index,
         double* freq_amp,
         double* freq_phase,
         FFT_worker* fw,
         const Padsynth_params* params)
+        */
 {
-    rassert(entry != NULL);
-    rassert(random != NULL);
-    rassert(freq_amp != NULL);
-    rassert(freq_phase != NULL);
-    rassert(fw != NULL);
+    rassert(error != NULL);
+    rassert(user_data != NULL);
+
+    Callback_data* cb_data = user_data;
+    rassert(cb_data->entry != NULL);
+    rassert(cb_data->context_index >= 0);
+    rassert(cb_data->context_index < PADSYNTH_MAX_SAMPLE_COUNT);
+    rassert(cb_data->freq_amp != NULL);
+    rassert(cb_data->freq_phase != NULL);
 
     char context_str[16] = "";
-    snprintf(context_str, 16, "PADsynth%hd", (unsigned short)context_index);
+    snprintf(context_str, 16, "PADsynth%hd", (unsigned short)cb_data->context_index);
     Random* random = Random_init(RANDOM_AUTO, context_str);
+
+    double* freq_amp = cb_data->freq_amp;
+    double* freq_phase = cb_data->freq_phase;
+    const Padsynth_params* params = cb_data->params;
 
     int32_t sample_length = PADSYNTH_DEFAULT_SAMPLE_LENGTH;
     if (params != NULL)
@@ -400,7 +467,7 @@ static void make_padsynth_sample(
         const double bandwidth_base = params->bandwidth_base;
         const double bandwidth_scale = params->bandwidth_scale;
 
-        const double freq = cents_to_Hz(entry->centre_pitch);
+        const double freq = cents_to_Hz(cb_data->entry->centre_pitch);
 
         const int32_t nyquist = params->audio_rate / 2;
 
@@ -479,7 +546,8 @@ static void make_padsynth_sample(
     }
 
     // Set up frequencies in half-complex representation
-    float* buf = Sample_get_buffer(entry->sample, 0);
+    float* buf = Sample_get_buffer(cb_data->entry->sample, 0);
+    rassert(buf != NULL);
 
     buf[0] = 0;
     buf[sample_length - 1] = 0;
@@ -492,7 +560,7 @@ static void make_padsynth_sample(
     }
 
     // Apply IFFT
-    FFT_worker_irfft(fw, buf, sample_length);
+    FFT_worker_irfft(&cb_data->fw, buf, sample_length);
 
     // Normalise
     {
@@ -537,19 +605,22 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
     if (fabs(min_pitch - max_pitch) < 1)
         sample_count = 1;
 
-    const int32_t buf_length = sample_length / 2;
+    Callback_data* cb_datas[PADSYNTH_MAX_SAMPLE_COUNT] = { NULL };
 
-    double* freq_amp = memory_alloc_items(double, buf_length);
-    double* freq_phase = memory_alloc_items(double, buf_length);
-    FFT_worker* fw = FFT_worker_init(FFT_WORKER_AUTO, sample_length);
-    if (freq_amp == NULL || freq_phase == NULL || fw == NULL)
+    int cb_data_count = 0;
+    for (int i = 0; i < sample_count; ++i)
     {
-        memory_free(freq_amp);
-        memory_free(freq_phase);
-        if (fw != NULL)
-            FFT_worker_deinit(fw);
-        return false;
+        cb_datas[i] = new_Callback_data(params);
+        if (cb_datas[i] == NULL)
+            break;
+
+        cb_data_count = i + 1;
     }
+
+    if (cb_data_count == 0)
+        return false;
+
+    //bool last_cb_data_is_direct = (cb_data_count < sample_count);
 
     // Allocate new sample map here so that we don't lose old data on allocation failure
     if (padsynth->sample_map == NULL ||
@@ -564,9 +635,8 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
                 centre_pitch);
         if (new_sm == NULL)
         {
-            memory_free(freq_amp);
-            memory_free(freq_phase);
-            FFT_worker_deinit(fw);
+            for (int i = 0; i < cb_data_count; ++i)
+                del_Callback_data(cb_datas[i]);
             return false;
         }
 
@@ -590,7 +660,16 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
         Padsynth_sample_entry* entry = AAiter_get_at_least(iter, key);
         while (entry != NULL)
         {
-            make_padsynth_sample(entry, context_index, freq_amp, freq_phase, fw, params);
+            Callback_data* cb_data = cb_datas[min(context_index, cb_data_count - 1)];
+            rassert(cb_data != NULL);
+
+            cb_data->entry = entry;
+            cb_data->context_index = context_index;
+
+            Error* error = ERROR_AUTO;
+            make_padsynth_sample(error, cb_data);
+            rassert(!Error_is_set(error));
+
             ++context_index;
 
             entry = AAiter_get_next(iter);
@@ -603,12 +682,19 @@ static bool apply_padsynth(Proc_padsynth* padsynth, const Padsynth_params* param
             AAtree_get_at_least(padsynth->sample_map->map, key);
         rassert(entry != NULL);
 
-        make_padsynth_sample(entry, 0, freq_amp, freq_phase, fw, NULL);
+        Callback_data* cb_data = cb_datas[0];
+        rassert(cb_data != NULL);
+
+        cb_data->entry = entry;
+        cb_data->context_index = 0;
+
+        Error* error = ERROR_AUTO;
+        make_padsynth_sample(error, cb_data);
+        rassert(!Error_is_set(error));
     }
 
-    memory_free(freq_amp);
-    memory_free(freq_phase);
-    FFT_worker_deinit(fw);
+    for (int i = 0; i < cb_data_count; ++i)
+        del_Callback_data(cb_datas[i]);
 
     return true;
 }
