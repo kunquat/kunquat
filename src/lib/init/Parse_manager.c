@@ -1253,7 +1253,7 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
     }
 
     // Sync the Processor
-    if (!Device_sync((Device*)proc))
+    if (!Device_sync((Device*)proc, params->handle->bkg_loader))
     {
         Handle_set_error(params->handle, ERROR_MEMORY,
                 "Couldn't allocate memory while syncing processor");

@@ -116,10 +116,12 @@ static bool read_param(Streader* sr, const char* key, void* userdata)
         if (!Streader_read_int(sr, &sample_count))
             return false;
 
-        if (!(0 < sample_count && sample_count <= 128))
+        if (!(0 < sample_count && sample_count <= PADSYNTH_MAX_SAMPLE_COUNT))
         {
             Streader_set_error(
-                    sr, "PADsynth sample count must be within range [1, 128]");
+                    sr,
+                    "PADsynth sample count must be within range [1, %d]",
+                    PADSYNTH_MAX_SAMPLE_COUNT);
             return false;
         }
 

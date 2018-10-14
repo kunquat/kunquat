@@ -334,11 +334,13 @@ bool Device_impl_register_set_padsynth_params(
 }
 
 
-bool Device_impl_set_key(Device_impl* dimpl, const char* key)
+bool Device_impl_set_key(
+        Device_impl* dimpl, const char* key, Background_loader* bkg_loader)
 {
     rassert(dimpl != NULL);
     rassert(dimpl->device != NULL);
     rassert(key != NULL);
+    rassert(bkg_loader != NULL);
 
     rassert(strlen(key) < KQT_KEY_LENGTH_MAX);
     char keyp[KQT_KEY_LENGTH_MAX] = "";
@@ -424,8 +426,13 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key)
                 break;
 
             case DEVICE_FIELD_PADSYNTH_PARAMS:
-                SET_FIELDP(padsynth_params, Padsynth_params);
-                break;
+            {
+                const Padsynth_params* val = Device_params_get_padsynth_params(
+                        dimpl->device->dparams, key);
+                return set_cb->cb.padsynth_params_type.set(
+                        dimpl, indices, val, bkg_loader);
+            }
+            break;
 
             default:
                 rassert(false);

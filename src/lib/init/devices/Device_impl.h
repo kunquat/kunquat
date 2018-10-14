@@ -54,8 +54,13 @@ SET_FUNC_TYPE(sample_params,    const Sample_params*);
 SET_FUNC_TYPE(note_map,         const Note_map*);
 SET_FUNC_TYPE(hit_map,          const Hit_map*);
 SET_FUNC_TYPE(num_list,         const Num_list*);
-SET_FUNC_TYPE(padsynth_params,  const Padsynth_params*);
+//SET_FUNC_TYPE(padsynth_params,  const Padsynth_params*);
 #undef SET_FUNC_TYPE
+
+typedef bool (Set_padsynth_params_func)(
+        Device_impl*, const Key_indices, const Padsynth_params*, Background_loader*);
+typedef bool (Set_state_padsynth_params_func)(
+        Device_state*, const Key_indices, const Padsynth_params*);
 
 
 typedef int32_t Device_impl_get_voice_wb_size_func(
@@ -416,12 +421,14 @@ bool Device_impl_register_set_padsynth_params(
  *
  * The actual data is retrieved from device parameters.
  *
- * \param dimpl   The Device implementation -- must not be \c NULL.
- * \param key     The key -- must be valid.
+ * \param dimpl        The Device implementation -- must not be \c NULL.
+ * \param key          The key -- must be valid.
+ * \param bkg_loader   The Background loader -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_impl_set_key(Device_impl* dimpl, const char* key);
+bool Device_impl_set_key(
+        Device_impl* dimpl, const char* key, Background_loader* bkg_loader);
 
 
 /**
