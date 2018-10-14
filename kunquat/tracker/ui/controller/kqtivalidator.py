@@ -12,6 +12,7 @@
 #
 
 from kunquat.kunquat.kunquat import Kunquat, KunquatFormatError
+import kunquat.tracker.cmdline as cmdline
 from .dataconverters import VersionError, UnsupportedVersionError
 
 
@@ -19,6 +20,7 @@ class KqtiValidator():
 
     def __init__(self, contents, data_converters):
         self._validator = Kunquat()
+        self._validator.set_loader_thread_count(cmdline.get_default_thread_count())
         self._contents = contents
         self._data_converters = data_converters
         self._validation_error = None

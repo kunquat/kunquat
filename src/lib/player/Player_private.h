@@ -70,6 +70,7 @@ struct Player
     Barrier mixed_level_finished_barrier;
     Thread threads[KQT_THREADS_MAX];
     bool ok_to_start;
+    bool early_exit_threads;
     bool stop_threads;
     int32_t render_start;
     int32_t render_stop;

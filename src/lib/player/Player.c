@@ -144,6 +144,7 @@ Player* new_Player(
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
         player->threads[i] = *THREAD_AUTO;
     player->ok_to_start = false;
+    player->early_exit_threads = false;
     player->stop_threads = false;
     player->render_start = 0;
     player->render_stop = 0;
@@ -413,7 +414,7 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
             // in the destructor would get messy
             Mutex* mutex = Condition_get_mutex(&player->start_cond);
             Mutex_lock(mutex);
-            player->stop_threads = true;
+            player->early_exit_threads = true;
             player->ok_to_start = true;
             Condition_broadcast(&player->start_cond);
             Mutex_unlock(mutex);
@@ -421,7 +422,7 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
             for (int k = i - 1; k >= 0; --k)
                 Thread_join(&player->threads[k]);
 
-            player->stop_threads = false;
+            player->early_exit_threads = false;
 
             player->thread_count = 1;
 
@@ -981,7 +982,7 @@ static void* render_thread_func(void* arg)
         Mutex_unlock(cond_mutex);
     }
 
-    if (player->stop_threads)
+    if (player->early_exit_threads)
         return NULL;
 
     while (true)
@@ -989,10 +990,10 @@ static void* render_thread_func(void* arg)
         // Wait for our signal to start voice group processing
         Barrier_wait(&player->vgroups_start_barrier);
 
-        rassert(params->thread_id < player->thread_count);
-
         if (player->stop_threads)
             break;
+
+        rassert(params->thread_id < player->thread_count);
 
         Player_process_voice_groups_synced(
                 player, params, player->render_start, player->render_stop);

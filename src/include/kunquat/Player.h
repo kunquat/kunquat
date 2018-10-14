@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -123,7 +123,7 @@ const float* kqt_Handle_get_audio(kqt_Handle handle, int index);
 
 
 /**
- * Set the number of threads used in audio rendering by the Kunquat Handle.
+ * Set the number of threads used by the Kunquat Handle for audio rendering.
  *
  * NOTE: If libkunquat is built without thread support, this function will have
  *       no effect.
@@ -134,17 +134,17 @@ const float* kqt_Handle_get_audio(kqt_Handle handle, int index);
  *
  * \return   \c 1 if successful, otherwise \c 0.
  */
-int kqt_Handle_set_thread_count(kqt_Handle handle, int count);
+int kqt_Handle_set_player_thread_count(kqt_Handle handle, int count);
 
 
 /**
- * Get the number of threads used in audio rendering by the Kunquat Handle.
+ * Get the number of threads used by the Kunquat Handle for audio rendering.
  *
  * \param handle   The Handle -- should be valid.
  *
  * \return   The number of threads used.
  */
-int kqt_Handle_get_thread_count(kqt_Handle handle);
+int kqt_Handle_get_player_thread_count(kqt_Handle handle);
 
 
 /**

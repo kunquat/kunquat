@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -19,6 +19,7 @@
 #include <kunquat/Handle.h>
 
 #include <Error.h>
+#include <init/Background_loader.h>
 #include <init/Module.h>
 #include <kunquat/Player.h>
 #include <player/Player.h>
@@ -44,6 +45,7 @@ typedef struct Handle
     bool data_is_validated;
     bool update_connections;
     Module* module;
+    Background_loader* bkg_loader;
     Error error;
     Error validation_error;
     char position[POSITION_LENGTH];

@@ -15,6 +15,7 @@
 #include <init/devices/Device_field.h>
 
 #include <debug/assert.h>
+#include <decl.h>
 #include <init/devices/param_types/Wav.h>
 #include <init/devices/param_types/Wavpack.h>
 #include <memory.h>
@@ -145,11 +146,13 @@ Device_field* new_Device_field(const char* key, void* data)
 }
 
 
-Device_field* new_Device_field_from_data(const char* key, int version, Streader* sr)
+Device_field* new_Device_field_from_data(
+        const char* key, int version, Streader* sr, Background_loader* bkg_loader)
 {
     rassert(key != NULL);
     rassert(version >= 0);
     rassert(sr != NULL);
+    rassert(bkg_loader != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -162,7 +165,7 @@ Device_field* new_Device_field_from_data(const char* key, int version, Streader*
         return NULL;
     }
 
-    if (!Device_field_change(field, version, sr))
+    if (!Device_field_change(field, version, sr, bkg_loader))
     {
         del_Device_field(field);
         return NULL;
@@ -199,12 +202,14 @@ static bool Device_field_verify_version_zero(
 }
 
 
-bool Device_field_change(Device_field* field, int version, Streader* sr)
+bool Device_field_change(
+        Device_field* field, int version, Streader* sr, Background_loader* bkg_loader)
 {
     rassert(field != NULL);
     rassert(field->type != DEVICE_FIELD_NONE);
     rassert(version >= 0);
     rassert(sr != NULL);
+    rassert(bkg_loader != NULL);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -289,7 +294,7 @@ bool Device_field_change(Device_field* field, int version, Streader* sr)
                 if (sample == NULL)
                     return false;
 
-                if (!Sample_parse_wavpack(sample, sr))
+                if (!Sample_parse_wavpack(sample, sr, bkg_loader))
                 {
                     del_Sample(sample);
                     return false;

@@ -15,6 +15,7 @@
 #include <kunquat/File.h>
 
 #include <kunquat/Handle.h>
+#include <kunquat/limits.h>
 
 #include <zip.h>
 
@@ -289,11 +290,22 @@ static bool Module_load(Module* module, const char* path)
 #undef zip_fail_if
 
 
-kqt_Handle kqtfile_load_module(const char* path)
+kqt_Handle kqtfile_load_module(const char* path, int thread_count)
 {
     if (path == NULL)
     {
         set_error(NULL, "path must not be NULL");
+        return 0;
+    }
+
+    if (thread_count < 1)
+    {
+        set_error(NULL, "thread_count must be positive");
+        return 0;
+    }
+    else if (thread_count > KQT_THREADS_MAX)
+    {
+        set_error(NULL, "thread_count must not be greater than %d", KQT_THREADS_MAX);
         return 0;
     }
 
@@ -302,6 +314,8 @@ kqt_Handle kqtfile_load_module(const char* path)
     {
         return 0;
     }
+
+    kqt_Handle_set_loader_thread_count(module->handle, thread_count);
 
     if (!Module_load(module, path))
     {

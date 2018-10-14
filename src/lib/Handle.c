@@ -123,6 +123,44 @@ kqt_Handle kqt_new_Handle(void)
 }
 
 
+int kqt_Handle_set_loader_thread_count(kqt_Handle handle, int count)
+{
+    check_handle(handle, 0);
+
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_data_is_validated(h, 0);
+
+    if (count < 1)
+    {
+        Handle_set_error(h, ERROR_ARGUMENT, "Thread count must be positive");
+        return 0;
+    }
+    if (count > KQT_THREADS_MAX)
+    {
+        Handle_set_error(
+                h, ERROR_ARGUMENT, "Thread count must not exceed %d", KQT_THREADS_MAX);
+        return 0;
+    }
+
+    Background_loader_set_thread_count(h->bkg_loader, count - 1);
+
+    return 1;
+}
+
+
+int kqt_Handle_get_loader_thread_count(kqt_Handle handle)
+{
+    check_handle(handle, 0);
+
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_data_is_validated(h, 0);
+
+    return Background_loader_get_thread_count(h->bkg_loader) + 1;
+}
+
+
 int kqt_Handle_set_data(
         kqt_Handle handle, const char* key, const void* data, long length)
 {
@@ -171,6 +209,7 @@ bool Handle_init(Handle* handle)
     handle->data_is_validated = true;
     handle->update_connections = false;
     handle->module = NULL;
+    handle->bkg_loader = NULL;
     handle->error = *ERROR_AUTO;
     handle->validation_error = *ERROR_AUTO;
     memset(handle->position, '\0', POSITION_LENGTH);
@@ -181,7 +220,8 @@ bool Handle_init(Handle* handle)
 //    int voice_count = 256;
 
     handle->module = new_Module();
-    if (handle->module == NULL)
+    handle->bkg_loader = new_Background_loader();
+    if ((handle->module == NULL) || (handle->bkg_loader == NULL))
     {
         Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
         Handle_deinit(handle);
@@ -298,6 +338,20 @@ int kqt_Handle_validate(kqt_Handle handle)
         h->data_is_valid = false;
         return 0;
     }
+
+    // Wait for and check background tasks
+    Background_loader_wait_idle(h->bkg_loader);
+    const Error* bkg_error = Background_loader_get_first_error(h->bkg_loader);
+    if (bkg_error != NULL)
+    {
+        Error* bkg_error_copy = ERROR_AUTO;
+        Error_copy(bkg_error_copy, bkg_error);
+
+        Background_loader_reset(h->bkg_loader);
+
+        set_invalid_if(true, bkg_error_copy->message);
+    }
+    Background_loader_reset(h->bkg_loader);
 
     // Check album
     if (h->module->album_is_existent)
@@ -727,6 +781,7 @@ void Handle_deinit(Handle* handle)
     del_Player(handle->player);
     handle->player = NULL;
 
+    del_Background_loader(handle->bkg_loader);
     del_Module(handle->module);
     handle->module = NULL;
 
