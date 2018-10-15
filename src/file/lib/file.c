@@ -45,10 +45,29 @@ typedef struct Zip_state
         .archive = NULL, .entry_index = 0, .entry_count = 0 })
 
 
+static void Zip_state_deinit(Zip_state* zstate)
+{
+    assert(zstate != NULL);
+
+    if (zstate->archive == NULL)
+        return;
+
+    zip_discard(zstate->archive);
+    zstate->archive = NULL;
+    zstate->entry_index = 0;
+    zstate->entry_count = 0;
+
+    return;
+}
+
+
 static bool Zip_state_init(Zip_state* zstate, const char* path)
 {
     assert(zstate != NULL);
     assert(path != NULL);
+
+    if (zstate->archive != NULL)
+        Zip_state_deinit(zstate);
 
     int error = ZIP_ER_OK;
     zstate->archive = zip_open(path, ZIP_RDONLY, &error);
@@ -64,18 +83,6 @@ static bool Zip_state_init(Zip_state* zstate, const char* path)
 }
 
 
-static void Zip_state_deinit(Zip_state* zstate)
-{
-    assert(zstate != NULL);
-
-    if (zstate->archive == NULL)
-        return;
-
-    zip_discard(zstate->archive);
-    zstate->archive = NULL;
-}
-
-
 typedef struct Module
 {
     char error[ERROR_LENGTH_MAX + 1];
@@ -84,7 +91,11 @@ typedef struct Module
     Zip_state zip_state;
 } Module;
 
-#define MODULE_AUTO (&(Module){ .error = "", .handle = 0 })
+#define MODULE_AUTO (&(Module){         \
+        .error = "",                    \
+        .handle = 0,                    \
+        .zip_state = *ZIP_STATE_AUTO,   \
+    })
 
 
 static char null_error[ERROR_LENGTH_MAX + 1] = "";
@@ -169,10 +180,59 @@ static void set_error(Module* module, const char* message, ...)
 }
 
 
-static bool Module_is_error_set(const Module* module)
+static kqt_Module add_module(Module* module)
 {
     assert(module != NULL);
-    return (module->error[0] != '\0');
+
+    for (int i = 0; i < MODULES_MAX; ++i)
+        assert(modules[i] != module);
+
+    static int next_try = 0;
+
+    for (int i = 0; i < MODULES_MAX; ++i)
+    {
+        const int try = (i + next_try) % MODULES_MAX;
+        if (modules[try] == NULL)
+        {
+            modules[try] = module;
+            next_try = try + 1;
+            return try + 1; // shift kqt_Module range to [1, MODULES_MAX]
+        }
+    }
+
+    set_error(NULL, "Maximum number of Kunquat Modules reached");
+    return 0;
+}
+
+
+static bool remove_module(kqt_Module module)
+{
+    assert(kqt_Module_is_valid(module));
+
+    const bool was_null = (modules[module - 1] == NULL);
+    modules[module - 1] = NULL;
+
+    return !was_null;
+}
+
+
+static bool Module_init_with_handle(Module* module, kqt_Handle handle)
+{
+    assert(module != NULL);
+    assert(handle != 0);
+
+    if (module->handle != 0)
+    {
+        set_error(module, "Cannot initialise a module more than once");
+        return false;
+    }
+
+    memset(module->error, 0, ERROR_LENGTH_MAX);
+    module->zip_state = *ZIP_STATE_AUTO;
+
+    module->handle = handle;
+
+    return true;
 }
 
 
@@ -186,18 +246,21 @@ static bool Module_init(Module* module)
         return false;
     }
 
-    memset(module->error, 0, ERROR_LENGTH_MAX);
-
-    module->handle = kqt_new_Handle();
-    if (module->handle == 0)
+    kqt_Handle handle = kqt_new_Handle();
+    if (handle == 0)
     {
         set_error(module, "Could not create a Kunquat Handle for module");
         return false;
     }
 
-    module->zip_state = *ZIP_STATE_AUTO;
+    return Module_init_with_handle(module, handle);
+}
 
-    return true;
+
+static bool Module_is_error_set(const Module* module)
+{
+    assert(module != NULL);
+    return (module->error[0] != '\0');
 }
 
 
@@ -212,25 +275,12 @@ static kqt_Handle Module_remove_handle(Module* module)
 }
 
 
-static void Module_deinit(Module* module)
-{
-    assert(module != NULL);
-
-    if (module->handle != 0)
-    {
-        kqt_del_Handle(module->handle);
-        module->handle = 0;
-    }
-
-    return;
-}
-
-
-static bool Module_is_reading(const Module* module)
+static bool Module_is_loading(const Module* module)
 {
     assert(module != NULL);
     return (module->zip_state.archive != NULL) &&
-        (module->zip_state.entry_index < module->zip_state.entry_count);
+        (module->zip_state.entry_index < module->zip_state.entry_count) &&
+        !Module_is_error_set(module);
 }
 
 
@@ -244,11 +294,12 @@ static bool Module_load_step(Module* module)
         return false;
 
     Zip_state* zstate = &module->zip_state;
+    assert(zstate->archive != NULL);
 
     if (zstate->entry_index >= zstate->entry_count)
     {
         assert(zstate->entry_index == zstate->entry_count);
-        return true;
+        return false;
     }
 
     int error = ZIP_ER_OK;
@@ -344,15 +395,164 @@ static bool Module_load(Module* module, const char* path)
         return false;
     }
 
-    while (Module_is_reading(module))
-    {
-        if (!Module_load_step(module))
-            break;
-    }
+    while (Module_is_loading(module))
+        Module_load_step(module);
 
     Zip_state_deinit(&module->zip_state);
 
     return !Module_is_error_set(module);
+}
+
+
+static void Module_deinit(Module* module)
+{
+    assert(module != NULL);
+
+    if (module->handle != 0)
+    {
+        kqt_del_Handle(module->handle);
+        module->handle = 0;
+    }
+
+    if (Module_is_loading(module))
+        Zip_state_deinit(&module->zip_state);
+
+    return;
+}
+
+
+kqt_Module kqt_new_Module_with_handle(kqt_Handle handle)
+{
+    Module* m = malloc(sizeof(Module));
+    if (m == NULL)
+    {
+        set_error(NULL, "Could not allocate memory for a new Kunquat Module");
+        return 0;
+    }
+
+    if (!Module_init_with_handle(m, handle))
+    {
+        free(m);
+        return 0;
+    }
+
+    kqt_Module module = add_module(m);
+    if (module == 0)
+    {
+        free(m);
+        return 0;
+    }
+
+    return module;
+}
+
+
+#define check_module(module, ret)                                       \
+    if (true)                                                           \
+    {                                                                   \
+        if (!kqt_Module_is_valid(module))                               \
+        {                                                               \
+            set_error(NULL, "Module is not valid: %d", (int)module);    \
+            return (ret);                                               \
+        }                                                               \
+    }                                                                   \
+    else (void)0
+
+
+#define check_module_void(module)                                       \
+    if (true)                                                           \
+    {                                                                   \
+        if (!kqt_Module_is_valid(module))                               \
+        {                                                               \
+            set_error(NULL, "Module is not valid: %d", (int)module);    \
+            return;                                                     \
+        }                                                               \
+    }                                                                   \
+    else (void)0
+
+
+void kqt_del_Module(kqt_Module module)
+{
+    check_module_void(module);
+
+    Module* m = get_module(module);
+
+    if (!remove_module(module))
+    {
+        set_error(NULL, "Invalid Kunquat Module: %d", module);
+        return;
+    }
+
+    m->handle = 0;
+    Module_deinit(m);
+    free(m);
+
+    return;
+}
+
+
+int kqt_Module_open_file(kqt_Module module, const char* path)
+{
+    check_module(module, 0);
+    Module* m = get_module(module);
+
+    if (path == NULL)
+    {
+        set_error(m, "path must not be NULL");
+        return 0;
+    }
+
+    if (!Zip_state_init(&m->zip_state, path))
+    {
+        set_error(m, "Could not open `%s`", path);
+        return 0;
+    }
+
+    return 1;
+}
+
+
+int kqt_Module_load_step(kqt_Module module)
+{
+    check_module(module, 0);
+    Module* m = get_module(module);
+
+    if (m->zip_state.archive == NULL)
+    {
+        set_error(m, "Module %d has no file open for reading", (int)module);
+        return 0;
+    }
+
+    return Module_load_step(m);
+}
+
+
+double kqt_Module_get_loading_progress(kqt_Module module)
+{
+    check_module(module, 0);
+    Module* m = get_module(module);
+
+    if (m->zip_state.archive == NULL)
+    {
+        set_error(m, "Module %d has no file open for reading", (int)module);
+        return 0;
+    }
+
+    if (m->zip_state.entry_count == 0)
+        return 1;
+
+    return ((double)m->zip_state.entry_index / (double)m->zip_state.entry_count);
+}
+
+
+void kqt_Module_close_file(kqt_Module module)
+{
+    check_module_void(module);
+    Module* m = get_module(module);
+
+    Zip_state_deinit(&m->zip_state);
+
+    return;
 }
 
 
