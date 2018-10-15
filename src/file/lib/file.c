@@ -24,6 +24,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -83,18 +84,232 @@ static bool Zip_state_init(Zip_state* zstate, const char* path)
 }
 
 
+typedef struct Vector
+{
+    size_t size;
+    size_t capacity;
+    size_t elem_size;
+    void (*destroy)(void* data);
+
+    void* data;
+} Vector;
+
+
+static void Vector_deinit(Vector* vector)
+{
+    assert(vector != NULL);
+
+    char* data_bytes = vector->data;
+
+    if ((data_bytes != NULL) && (vector->destroy != NULL))
+    {
+        for (size_t i = 0; i < vector->size; ++i)
+            vector->destroy(&data_bytes[vector->elem_size * i]);
+    }
+
+    free(vector->data);
+    vector->data = NULL;
+
+    vector->size = 0;
+    vector->capacity = 0;
+    vector->elem_size = 0;
+    vector->destroy = NULL;
+
+    return;
+}
+
+
+static bool Vector_inc_capacity(Vector* vector)
+{
+    assert(vector != NULL);
+
+    const size_t new_cap = (vector->capacity == 0) ? 4 : vector->capacity * 2;
+
+    void* new_data = realloc(vector->data, new_cap * vector->elem_size);
+    if (new_data == NULL)
+        return false;
+
+    vector->data = new_data;
+
+    char* data_bytes = vector->data;
+
+    const size_t cap_inc = new_cap - vector->capacity;
+    memset(data_bytes + (vector->capacity * vector->elem_size),
+            0,
+            cap_inc * vector->elem_size);
+
+    vector->capacity = new_cap;
+
+    return true;
+}
+
+
+static bool Vector_add(Vector* vector, const void* elem)
+{
+    assert(vector != NULL);
+    assert(elem != NULL);
+
+    if (vector->size >= vector->capacity)
+    {
+        assert(vector->size == vector->capacity);
+        if (!Vector_inc_capacity(vector))
+            return false;
+    }
+
+    char* data_bytes = vector->data;
+
+    memcpy(&data_bytes[vector->size * vector->elem_size], elem, vector->elem_size);
+    ++vector->size;
+
+    return true;
+}
+
+
+static long Vector_get_size(const Vector* vector)
+{
+    assert(vector != NULL);
+    return (long)vector->size;
+}
+
+
+static void* Vector_get_data(Vector* vector)
+{
+    assert(vector != NULL);
+    return vector->data;
+}
+
+
+static void Vector_init(Vector* vector, long elem_size, void (*destroy)(void*))
+{
+    assert(vector != NULL);
+    assert(elem_size > 0);
+
+    vector->size = 0;
+    vector->capacity = 0;
+    vector->elem_size = (size_t)elem_size;
+    vector->destroy = destroy;
+    vector->data = NULL;
+
+    return;
+}
+
+
+typedef struct Kept_entries
+{
+    Vector keys;
+    Vector sizes;
+    Vector values;
+} Kept_entries;
+
+
+static void Kept_entries_init(Kept_entries* entries)
+{
+    assert(entries != NULL);
+
+    Vector_init(&entries->keys, sizeof(char*), free);
+    Vector_init(&entries->sizes, sizeof(long), NULL);
+    Vector_init(&entries->values, sizeof(char*), free);
+
+    return;
+}
+
+
+static void Kept_entries_deinit(Kept_entries* entries)
+{
+    assert(entries != NULL);
+
+    Vector_deinit(&entries->keys);
+    Vector_deinit(&entries->sizes);
+    Vector_deinit(&entries->values);
+
+    return;
+}
+
+
+// NOTE: This function assumes ownership of value, thus it must not be freed
+//       after a successful call.
+static bool Kept_entries_add_entry(
+        Kept_entries* entries, const char* key, long size, char* value)
+{
+    assert(entries != NULL);
+    assert(key != NULL);
+    assert(size > 0);
+    assert(value != NULL);
+
+    const size_t key_length = strlen(key);
+    assert(key_length > 0);
+    char* copied_key = calloc(key_length + 1, sizeof(char));
+    if (copied_key == NULL)
+    {
+        Kept_entries_deinit(entries);
+        return false;
+    }
+    strcpy(copied_key, key);
+
+    if (!Vector_add(&entries->keys, &copied_key))
+    {
+        free(copied_key);
+        Kept_entries_deinit(entries);
+        return false;
+    }
+
+    if (!Vector_add(&entries->sizes, &size) || !Vector_add(&entries->values, &value))
+    {
+        Kept_entries_deinit(entries);
+        return false;
+    }
+
+    return true;
+}
+
+
+static long Kept_entries_get_entry_count(const Kept_entries* entries)
+{
+    assert(entries != NULL);
+    assert(Vector_get_size(&entries->keys) == Vector_get_size(&entries->sizes));
+    assert(Vector_get_size(&entries->keys) == Vector_get_size(&entries->values));
+
+    return Vector_get_size(&entries->keys);
+}
+
+
+static const char** Kept_entries_get_keys(Kept_entries* entries)
+{
+    assert(entries != NULL);
+    return (const char**)Vector_get_data(&entries->keys);
+}
+
+
+static const long* Kept_entries_get_sizes(Kept_entries* entries)
+{
+    assert(entries != NULL);
+    return (const long*)Vector_get_data(&entries->sizes);
+}
+
+
+static const char** Kept_entries_get_values(Kept_entries* entries)
+{
+    assert(entries != NULL);
+    return (const char**)Vector_get_data(&entries->values);
+}
+
+
 typedef struct Module
 {
     char error[ERROR_LENGTH_MAX + 1];
     kqt_Handle handle;
 
     Zip_state zip_state;
+
+    Kqtfile_keep_flags keep_flags;
+    Kept_entries kept_entries;
 } Module;
 
-#define MODULE_AUTO (&(Module){         \
-        .error = "",                    \
-        .handle = 0,                    \
-        .zip_state = *ZIP_STATE_AUTO,   \
+#define MODULE_AUTO (&(Module){             \
+        .error = "",                        \
+        .handle = 0,                        \
+        .zip_state = *ZIP_STATE_AUTO,       \
+        .keep_flags = KQTFILE_KEEP_NONE,    \
     })
 
 
@@ -230,6 +445,9 @@ static bool Module_init_with_handle(Module* module, kqt_Handle handle)
     memset(module->error, 0, ERROR_LENGTH_MAX);
     module->zip_state = *ZIP_STATE_AUTO;
 
+    module->keep_flags = KQTFILE_KEEP_NONE;
+    Kept_entries_init(&module->kept_entries);
+
     module->handle = handle;
 
     return true;
@@ -281,6 +499,43 @@ static bool Module_is_loading(const Module* module)
     return (module->zip_state.archive != NULL) &&
         (module->zip_state.entry_index < module->zip_state.entry_count) &&
         !Module_is_error_set(module);
+}
+
+
+static bool Module_should_keep_key(const Module* module, const char* key)
+{
+    assert(module != NULL);
+    assert(key != NULL);
+
+    if (module->keep_flags == KQTFILE_KEEP_NONE)
+        return false;
+
+    const char* last_pos = strrchr(key, '/');
+    if (last_pos != NULL)
+        ++last_pos;
+    else
+        last_pos = key;
+
+    if ((module->keep_flags & KQTFILE_KEEP_RENDER_DATA) != 0)
+    {
+        if (strncmp(last_pos, "p_", 2) == 0)
+            return true;
+    }
+
+    if ((module->keep_flags & KQTFILE_KEEP_PLAYER_DATA) != 0)
+    {
+        if ((strncmp(last_pos, "m_", 2) == 0) ||
+                (strcmp(key, "album/p_tracks.json") == 0))
+            return true;
+    }
+
+    if ((module->keep_flags & KQTFILE_KEEP_INTERFACE_DATA) != 0)
+    {
+        if (strncmp(last_pos, "i_", 2) == 0)
+            return true;
+    }
+
+    return false;
 }
 
 
@@ -374,7 +629,20 @@ static bool Module_load_step(Module* module)
             return false;
         }
 
-        free(data); // TODO: store data for read-only access if needed
+        if (Module_should_keep_key(module, key))
+        {
+            if (!Kept_entries_add_entry(
+                        &module->kept_entries, key, (long)stat.size, data))
+            {
+                set_error(module,
+                        "Could not allocate memory for key %s", key);
+                free(data);
+            }
+        }
+        else
+        {
+            free(data);
+        }
     }
 
     ++zstate->entry_index;
@@ -416,6 +684,8 @@ static void Module_deinit(Module* module)
 
     if (Module_is_loading(module))
         Zip_state_deinit(&module->zip_state);
+
+    Kept_entries_deinit(&module->kept_entries);
 
     return;
 }
@@ -491,6 +761,23 @@ void kqt_del_Module(kqt_Module module)
 }
 
 
+int kqt_Module_set_keep_flags(kqt_Module module, Kqtfile_keep_flags flags)
+{
+    check_module(module, 0);
+    Module* m = get_module(module);
+
+    if (flags > KQTFILE_KEEP_ALL_DATA)
+    {
+        set_error(m, "Flags must be a valid combination of Kqtfile_keep_flags");
+        return 0;
+    }
+
+    m->keep_flags = flags;
+
+    return 1;
+}
+
+
 int kqt_Module_open_file(kqt_Module module, const char* path)
 {
     check_module(module, 0);
@@ -553,6 +840,53 @@ void kqt_Module_close_file(kqt_Module module)
     Zip_state_deinit(&m->zip_state);
 
     return;
+}
+
+
+long kqt_Module_get_kept_entry_count(kqt_Module module)
+{
+    check_module(module, -1);
+    Module* m = get_module(module);
+
+    return Kept_entries_get_entry_count(&m->kept_entries);
+}
+
+
+const char** kqt_Module_get_kept_keys(kqt_Module module)
+{
+    check_module(module, NULL);
+    Module* m = get_module(module);
+
+    return Kept_entries_get_keys(&m->kept_entries);
+}
+
+
+const long* kqt_Module_get_kept_entry_sizes(kqt_Module module)
+{
+    check_module(module, NULL);
+    Module* m = get_module(module);
+
+    return Kept_entries_get_sizes(&m->kept_entries);
+}
+
+
+const char** kqt_Module_get_kept_entries(kqt_Module module)
+{
+    check_module(module, NULL);
+    Module* m = get_module(module);
+
+    return Kept_entries_get_values(&m->kept_entries);
+}
+
+
+int kqt_Module_free_kept_entries(kqt_Module module)
+{
+    check_module(module, 0);
+    Module* m = get_module(module);
+
+    Kept_entries_deinit(&m->kept_entries);
+
+    return 1;
 }
 
 

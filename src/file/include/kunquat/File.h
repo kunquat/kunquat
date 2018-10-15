@@ -44,6 +44,22 @@ typedef int kqt_Module;
 
 
 /**
+ * Flags to specify what data to keep in the Kunquat Module for direct access.
+ */
+typedef enum
+{
+    KQTFILE_KEEP_NONE           = 0,
+    KQTFILE_KEEP_RENDER_DATA    = 1 << 0,
+    KQTFILE_KEEP_PLAYER_DATA    = 1 << 1,
+    KQTFILE_KEEP_INTERFACE_DATA = 1 << 2,
+    KQTFILE_KEEP_ALL_DATA =
+        KQTFILE_KEEP_RENDER_DATA |
+        KQTFILE_KEEP_PLAYER_DATA |
+        KQTFILE_KEEP_INTERFACE_DATA,
+} Kqtfile_keep_flags;
+
+
+/**
  * Create a new Kunquat Handle from a Kunquat module file.
  *
  * This is a convenience function for most applications that do not need
@@ -99,6 +115,17 @@ void kqt_Module_clear_error(kqt_Module module);
 
 
 /**
+ * Tell Kunquat Module what data to keep for user access.
+ *
+ * \param module    The Kunquat Module -- should be valid.
+ * \param flags     The keep flags -- should be a valid combination of flags.
+ *
+ * \return   \c 1 if successful, \c 0 on failure.
+ */
+int kqt_Module_set_keep_flags(kqt_Module module, Kqtfile_keep_flags flags);
+
+
+/**
  * Open a Kunquat module file for reading.
  *
  * \param module   The Kunquat Module -- should be valid.
@@ -143,6 +170,60 @@ double kqt_Module_get_loading_progress(kqt_Module module);
  * \param module   The Kunquat Module -- should be valid.
  */
 void kqt_Module_close_file(kqt_Module module);
+
+
+/**
+ * Get the number of kept entries in the Kunquat Module.
+ *
+ * \param module   The Kunquat Module -- should be valid.
+ *
+ * \return   The number of entries if successful, otherwise \c -1.
+ */
+long kqt_Module_get_kept_entry_count(kqt_Module module);
+
+
+/**
+ * Get the keys of kept entries in the Kunquat Module.
+ *
+ * \param module   The Kunquat Module -- should be valid.
+ *
+ * \return   The keys of kept entries if successful, otherwise \c NULL.
+ */
+const char** kqt_Module_get_kept_keys(kqt_Module module);
+
+
+/**
+ * Get the value sizes of kept entries in the Kunquat Module.
+ *
+ * \param module   The Kunquat Module -- should be valid.
+ *
+ * \return   The value sizes of kept entries if successful, otherwise \c NULL.
+ *           The order of the sizes matches that of the keys returned by
+ *           \a kqt_Module_get_kept_keys.
+ */
+const long* kqt_Module_get_kept_entry_sizes(kqt_Module module);
+
+
+/**
+ * Get the values of kept entries in the Kunquat Module.
+ *
+ * \param module   The Kunquat Module -- should be valid.
+ *
+ * \return   The values of kept entries if successful, otherwise \c NULL. The
+ *           order of the entries matches that of the keys returned by
+ *           \a kqt_Module_get_kept_keys.
+ */
+const char** kqt_Module_get_kept_entries(kqt_Module module);
+
+
+/**
+ * Free the kept entries in the Kunquat Module.
+ *
+ * \param module   The Kunquat Module -- should be valid.
+ *
+ * \return   \c 1 if successful, or \c 0 if \a module is not valid.
+ */
+int kqt_Module_free_kept_entries(kqt_Module module);
 
 
 /**
