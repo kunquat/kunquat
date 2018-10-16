@@ -102,8 +102,15 @@ static void Vector_deinit(Vector* vector)
 
     if ((data_bytes != NULL) && (vector->destroy != NULL))
     {
+        assert(sizeof(char*) == vector->elem_size);
+
         for (size_t i = 0; i < vector->size; ++i)
-            vector->destroy(&data_bytes[vector->elem_size * i]);
+        {
+            char* p = NULL;
+            memcpy(&p, &data_bytes[vector->elem_size * i], vector->elem_size);
+
+            vector->destroy(p);
+        }
     }
 
     free(vector->data);
