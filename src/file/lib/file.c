@@ -50,10 +50,9 @@ static void Zip_state_deinit(Zip_state* zstate)
 {
     assert(zstate != NULL);
 
-    if (zstate->archive == NULL)
-        return;
+    if (zstate->archive != NULL)
+        zip_discard(zstate->archive);
 
-    zip_discard(zstate->archive);
     zstate->archive = NULL;
     zstate->entry_index = 0;
     zstate->entry_count = 0;
@@ -682,9 +681,7 @@ static void Module_deinit(Module* module)
         module->handle = 0;
     }
 
-    if (Module_is_loading(module))
-        Zip_state_deinit(&module->zip_state);
-
+    Zip_state_deinit(&module->zip_state);
     Kept_entries_deinit(&module->kept_entries);
 
     return;
@@ -699,6 +696,8 @@ kqt_Module kqt_new_Module_with_handle(kqt_Handle handle)
         set_error(NULL, "Could not allocate memory for a new Kunquat Module");
         return 0;
     }
+
+    *m = *MODULE_AUTO;
 
     if (!Module_init_with_handle(m, handle))
     {
