@@ -179,39 +179,39 @@ def build():
     # Check dependencies
     configure.test_add_common_external_deps(builder, options, cc)
 
+    # Build libkunquat
     if options.enable_libkunquat:
         libkunquat_cc = deepcopy(cc)
         configure.test_add_libkunquat_external_deps(builder, options, libkunquat_cc)
 
-        if options.enable_libkunquatfile:
-            libkunquatfile_cc = deepcopy(cc)
-            configure.test_add_libkunquatfile_external_deps(
-                    builder, options, libkunquatfile_cc)
-
-        if options.enable_tests:
-            test_cc = deepcopy(libkunquat_cc)
-            configure.test_add_test_deps(builder, options, test_cc)
-
-    # Build libraries
-    if options.enable_libkunquat:
         build_libkunquat(builder, options, libkunquat_cc)
 
-        if options.enable_libkunquatfile:
-            build_libkunquatfile(builder, options, libkunquatfile_cc)
+    # Build libkunquatfile
+    if options.enable_libkunquatfile:
+        libkunquatfile_cc = deepcopy(cc)
+        configure.test_add_libkunquatfile_external_deps(
+                builder, options, libkunquatfile_cc)
 
-        if options.enable_tests:
-            test_libkunquat(builder, options, test_cc)
+        build_libkunquatfile(builder, options, libkunquatfile_cc)
 
-            if options.enable_python_tests:
-                fabricate.run(
-                        'env',
-                        'LD_LIBRARY_PATH=build/src/lib',
-                        'python3',
-                        '-m',
-                        'unittest',
-                        'discover',
-                        '-v')
+    # Run tests
+    if options.enable_tests:
+        test_cc = deepcopy(cc)
+        configure.test_add_test_deps(builder, options, test_cc)
 
+        test_libkunquat(builder, options, test_cc)
+
+        if options.enable_python_tests:
+            fabricate.run(
+                    'env',
+                    'LD_LIBRARY_PATH=build/src/lib',
+                    'python3',
+                    '-m',
+                    'unittest',
+                    'discover',
+                    '-v')
+
+    # Build examples
     if options.enable_examples:
         build_examples(builder)
 
