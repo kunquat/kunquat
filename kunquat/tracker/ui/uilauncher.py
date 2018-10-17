@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2018
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -106,6 +106,7 @@ class UiLauncher():
         self._ui_loads.append(load)
 
     def _add_task(self, task):
+        assert (task != None)
         self._tasks.append(task)
         self._task_timer.start(0)
 
