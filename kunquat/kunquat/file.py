@@ -15,6 +15,7 @@
 
 """
 
+import ctypes
 import json
 import zipfile
 
@@ -22,12 +23,14 @@ from .kunquat import Kunquat, KunquatError
 
 
 # Flags that specify what data should be kept in memory for multiple retrievals
-KQT_KEEP_NONE           = 0
-KQT_KEEP_RENDER_DATA    = 1 << 0
-KQT_KEEP_PLAYER_DATA    = 1 << 1
-KQT_KEEP_INTERFACE_DATA = 1 << 2
-KQT_KEEP_ALL_DATA       = (
-        KQT_KEEP_RENDER_DATA | KQT_KEEP_PLAYER_DATA | KQT_KEEP_INTERFACE_DATA)
+KQTFILE_KEEP_NONE           = 0
+KQTFILE_KEEP_RENDER_DATA    = 1 << 0
+KQTFILE_KEEP_PLAYER_DATA    = 1 << 1
+KQTFILE_KEEP_INTERFACE_DATA = 1 << 2
+KQTFILE_KEEP_ALL_DATA       = (
+        KQTFILE_KEEP_RENDER_DATA |
+        KQTFILE_KEEP_PLAYER_DATA |
+        KQTFILE_KEEP_INTERFACE_DATA)
 
 
 def _get_file_type_desc(key_prefix):
@@ -38,6 +41,7 @@ def _get_file_type_desc(key_prefix):
     return kqt_prefixes.get(key_prefix)
 
 
+'''
 class _KqtArchiveFile():
 
     _KEEP_MAP = {
@@ -168,9 +172,10 @@ class _KqtArchiveFile():
             pass
 
         return None
+'''
 
 
-class KqtFile(_KqtArchiveFile):
+class KqtFile():
 
     """A class for reading Kunquat module files.
 
@@ -183,11 +188,12 @@ class KqtFile(_KqtArchiveFile):
 
     """
 
-    def __init__(self, path, keep_flags=KQT_KEEP_PLAYER_DATA):
+    def __init__(self, kqt, keep_flags=KQTFILE_KEEP_PLAYER_DATA):
         """Create a new instance for reading .kqt files.
 
         Arguments:
-        path -- The path of the .kqt file.
+        kqt -- The Kunquat instance associated with this KqtFile
+               instance.
 
         Optional arguments:
         keep_flags -- Flags that specify which entries to keep inside
@@ -195,52 +201,39 @@ class KqtFile(_KqtArchiveFile):
                       get_stored_entries() for more details.
 
         """
-        super().__init__('kqtc00', path, keep_flags)
+        self._kqt = kqt
+        self._module = _kqtfile.kqt_new_Module_with_handle(self._kqt.get_handle())
+        _kqtfile.kqt_Module_set_keep_flags(self._module, keep_flags)
+
+        self._path = None
+
+    def _open_file(self, path):
         self._path = path
-        self._keep_flags = keep_flags
+        _kqtfile.kqt_Module_open_file(self._module, bytes(path, encoding='utf-8'))
 
-    def load_into_handle(self, handle):
-        """Load the Kunquat module into the given Kunquat instance.
+    def _close_file(self):
+        _kqtfile.kqt_Module_close_file(self._module)
+        self._path = None
 
-        Arguments:
-        handle -- The Kunquat instance.
+    def load(self, path):
+        """Load the Kunquat module.
 
         """
-        for _ in self.load_into_handle_steps(handle):
+        for _ in self.load_steps(path):
             pass
 
-    def load_into_handle_steps(self, handle):
-        """Load the Kunquat module into the given Kunquat instance.
-
-        Arguments:
-        handle -- The Kunquat instance.
+    def load_steps(self, path):
+        """Load the Kunquat module in steps.
 
         Return value:
         A generator that yields after every step of the loading
         procedure.
 
         """
-        for (k, v) in self.get_entries():
-            handle.set_data(k, v)
+        self._open_file(path)
+        while _kqtfile.kqt_Module_load_step(self._module):
             yield
-        handle.validate()
-
-    def get_entries(self):
-        """Get contents of the Kunquat module file.
-
-        This function is intended for editors and other software that
-        need to modify Kunquat modules.  Most players should use
-        load_into_handle() or load_into_handle_steps() instead.
-
-        Return value:
-        A generator that yields 2-tuples of format (k, v) where k is
-        the key of the entry and v is the associated value.
-
-        Exceptions:
-        KunquatFileError -- File is not a valid Kunquat module file.
-
-        """
-        return super().get_entries()
+        self._close_file()
 
     def get_loading_progress(self):
         """Get current loading progress.
@@ -249,19 +242,111 @@ class KqtFile(_KqtArchiveFile):
         Current progress normalised to the range [0, 1].
 
         """
-        return super().get_loading_progress()
+        return _kqtfile.kqt_Module_get_loading_progress(self._module)
 
-    def get_stored_entries(self):
-        """Get entries permanently stored in this object.
+    def get_kept_entry_count(self):
+        """Get the number of kept entries in the Kunquat module file.
 
         Return value:
-        A dictionary view of all the stored entries.
+        The number of entries.
 
         """
-        return super().get_stored_entries()
+        return _kqtfile.kqt_Module_get_kept_entry_count(self._module)
+
+    def get_kept_entries(self):
+        """Get kept entries of the Kunquat module file.
+
+        Return value:
+        A generator that yields 2-tuples of format (k, v) where k is
+        the key of the entry and v is the associated value.
+
+        """
+        entry_count = _kqtfile.kqt_Module_get_kept_entry_count(self._module)
+        entry_keys = _kqtfile.kqt_Module_get_kept_keys(self._module)
+        entry_sizes = _kqtfile.kqt_Module_get_kept_entry_sizes(self._module)
+        entries = _kqtfile.kqt_Module_get_kept_entries(self._module)
+        for i in range(entry_count):
+            key = str(entry_keys[i], encoding='utf-8')
+            vdata = entries[i][:entry_sizes[i]]
+            value = bytes(vdata)
+            if key.endswith('.json'):
+                value = json.loads(str(value, encoding='utf-8'))
+            yield (key, value)
+
+    def try_get_editor_version(self):
+        try:
+            with zipfile.ZipFile(self._path, mode='r') as zfile:
+                entries = [e for e in zfile.infolist() if not e.filename.endswith('/')]
+                if entries:
+                    first_key = entries[0].filename
+                    maybe_magic_id = first_key.split('/')[0]
+
+                    entry = zfile.getinfo(
+                            '{}/m_editor_version.json'.format(maybe_magic_id))
+                    value = zfile.read(entry)
+                    decoded = json.loads(str(value, encoding='utf-8'))
+                    return decoded
+        except (KeyError, OSError, ValueError, zipfile.BadZipFile):
+            pass
+
+    def __del__(self):
+        _kqtfile.kqt_del_Module(self._module)
+        self._module = 0
 
 
 class KunquatFileError(KunquatError):
     """Error indicating that a Kunquat file is invalid."""
+
+
+_kqtfile = ctypes.CDLL('libkunquatfile.so')
+
+kqt_Handle = ctypes.c_int
+kqt_Module = ctypes.c_int
+
+_kqtfile.kqtfile_load_module.argtypes = [ctypes.c_char_p, ctypes.c_int]
+_kqtfile.kqtfile_load_module.restype = kqt_Handle
+
+_kqtfile.kqt_new_Module_with_handle.argtypes = [kqt_Handle]
+_kqtfile.kqt_new_Module_with_handle.restype = kqt_Module
+
+_kqtfile.kqt_Module_get_error.argtypes = [kqt_Module]
+_kqtfile.kqt_Module_get_error.restype = ctypes.c_char_p
+
+_kqtfile.kqt_Module_clear_error.argtypes = [kqt_Module]
+_kqtfile.kqt_Module_clear_error.restype = None
+
+_kqtfile.kqt_Module_set_keep_flags.argtypes = [kqt_Module, ctypes.c_int]
+_kqtfile.kqt_Module_set_keep_flags.restype = ctypes.c_int
+
+_kqtfile.kqt_Module_open_file.argtypes = [kqt_Module, ctypes.c_char_p]
+_kqtfile.kqt_Module_open_file.restype = ctypes.c_int
+
+_kqtfile.kqt_Module_load_step.argtypes = [kqt_Module]
+_kqtfile.kqt_Module_load_step.restype = ctypes.c_int
+
+_kqtfile.kqt_Module_get_loading_progress.argtypes = [kqt_Module]
+_kqtfile.kqt_Module_get_loading_progress.restype = ctypes.c_double
+
+_kqtfile.kqt_Module_close_file.argtypes = [kqt_Module]
+_kqtfile.kqt_Module_close_file.restype = None
+
+_kqtfile.kqt_Module_get_kept_entry_count.argtypes = [kqt_Module]
+_kqtfile.kqt_Module_get_kept_entry_count.restype = ctypes.c_long
+
+_kqtfile.kqt_Module_get_kept_keys.argtypes = [kqt_Module]
+_kqtfile.kqt_Module_get_kept_keys.restype = ctypes.POINTER(ctypes.c_char_p)
+
+_kqtfile.kqt_Module_get_kept_entry_sizes.argtypes = [kqt_Module]
+_kqtfile.kqt_Module_get_kept_entry_sizes.restype = ctypes.POINTER(ctypes.c_long)
+
+_kqtfile.kqt_Module_get_kept_entries.argtypes = [kqt_Module]
+_kqtfile.kqt_Module_get_kept_entries.restype = (
+        ctypes.POINTER(ctypes.POINTER(ctypes.c_ubyte)))
+
+_kqtfile.kqt_Module_free_kept_entries.argtypes = [kqt_Module]
+_kqtfile.kqt_Module_free_kept_entries.restype = ctypes.c_int
+
+_kqtfile.kqt_del_Module.argtypes = [kqt_Module]
+_kqtfile.kqt_del_Module.restype = None
 
 

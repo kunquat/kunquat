@@ -136,15 +136,22 @@ def print_message(meta, first_line_length):
                 first_line_length)
 
 
-def load_kqt(path, rate):
+def load_kqt(path, rate, quiet):
     handle = Kunquat(rate)
     handle.set_loader_thread_count(get_default_thread_count())
 
-    f = KqtFile(path)
-    f.load_into_handle(handle)
+    f = KqtFile(handle)
+    if quiet:
+        f.load(path)
+    else:
+        for _ in f.load_steps(path):
+            progress = f.get_loading_progress()
+            print('Loading ({:.0f}%)...'.format(progress * 100), end='\r')
+
+    handle.validate()
 
     player_data = {}
-    for (key, value) in f.get_stored_entries():
+    for (key, value) in f.get_kept_entries():
         stripped = value
         if key.endswith('.json'):
             if (type(value) == list) and (len(value) == 2):
@@ -174,7 +181,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
         sys.stderr.flush()
         return KeyHandler.RETURN
     try:
-        handle, meta = load_kqt(file_name, options['rate'])
+        handle, meta = load_kqt(file_name, options['rate'], options['quiet'])
     except IOError as e:
         print('Couldn\'t open \'{}\': {}'.format(file_name, e), end='')
         return KeyHandler.RETURN

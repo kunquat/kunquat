@@ -18,6 +18,7 @@ from collections import deque
 from itertools import islice
 
 from kunquat.kunquat.kunquat import Kunquat
+from kunquat.kunquat.file import KqtFile, KQTFILE_KEEP_ALL_DATA
 import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.ui.model.tstamp as tstamp
 
@@ -183,6 +184,25 @@ class AudioEngine():
 
     def set_channel_mute(self, channel, mute):
         self._rendering_engine.set_channel_mute(channel, mute)
+
+    def load_module(self, path):
+        f = KqtFile(self._rendering_engine, KQTFILE_KEEP_ALL_DATA)
+        for _ in f.load_steps(path):
+            progress = f.get_loading_progress()
+            self._ui_engine.update_import_progress(progress * 0.5)
+
+        entries = f.get_kept_entries()
+        entry_count = f.get_kept_entry_count()
+
+        for i, (key, value) in enumerate(entries):
+            self._ui_engine.add_imported_entry(key, value)
+            self._ui_engine.update_import_progress(0.5 + ((i + 1) / entry_count))
+
+        self._rendering_engine.validate()
+
+        self._ui_engine.notify_import_finished()
+
+        del f
 
     def set_data(self, transaction_id, transaction):
         # This method should never be called directly. Feeding data to the

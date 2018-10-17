@@ -49,6 +49,24 @@ class Store(MutableMapping):
         if mark_modified:
             self._is_modified = True
 
+    def put_raw(self, entries):
+        """Update store directly.
+
+        This function assumes that the data is already stored and
+        validated inside the Kunquat instance. Also, the transaction
+        values are expected to contain the version information.
+
+        """
+        # This function assumes that the data is already stored and validated
+        # in the Kunquat instance.
+        assert not self._is_saving
+        assert not self._pending_validation
+
+        self._content.update(entries)
+        for (key, value) in entries.items():
+            if value == None:
+                del self._content[key]
+
     def flush(self, callback):
         transaction_id = next(self._transaction_ids)
         self._audio_engine.set_data(transaction_id, None)

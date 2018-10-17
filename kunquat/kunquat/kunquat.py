@@ -344,6 +344,18 @@ class Kunquat():
             el = json.loads(str(raw_el_data, encoding='utf-8'))
         return all_events
 
+    def get_handle(self):
+        """Get the internal Kunquat Handle.
+
+        This function is provided for the Kunquat file module and is
+        not needed by normal applications.
+
+        Return value:
+        The Kunquat Handle associated with this Kunquat instance.
+
+        """
+        return self._handle
+
     def __del__(self):
         if self._handle:
             _kunquat.kqt_del_Handle(self._handle)
