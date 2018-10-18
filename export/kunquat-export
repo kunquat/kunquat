@@ -66,6 +66,8 @@ def load_kqt(path, audio_rate, quiet):
                 _, stripped = value
         player_data[key] = stripped
 
+    del f
+
     return handle, player_data
 
 
