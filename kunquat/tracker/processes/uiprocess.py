@@ -163,6 +163,9 @@ class UiProcess(Process):
     def add_imported_entry(self, key, value):
         self._q.put('add_imported_entry', key, value)
 
+    def notify_import_error(self, path, error):
+        self._q.put('notify_import_error', path, error)
+
     def notify_import_finished(self):
         self._q.put('notify_import_finished')
 

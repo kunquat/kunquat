@@ -17,7 +17,7 @@ import math
 from collections import deque
 from itertools import islice
 
-from kunquat.kunquat.kunquat import Kunquat
+from kunquat.kunquat.kunquat import Kunquat, KunquatError, KunquatFormatError
 from kunquat.kunquat.file import KqtFile, KQTFILE_KEEP_ALL_DATA
 import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.ui.model.tstamp as tstamp
@@ -62,6 +62,8 @@ class AudioEngine():
         self._send_voice_info = False
 
         self._sine = gen_sine(48000)
+
+        self._loading_failed = False
 
     def set_ui_engine(self, ui_engine):
         self._ui_engine = ui_engine
@@ -137,19 +139,24 @@ class AudioEngine():
         #data_mono = list(islice(self._sine, nframes))
         #audio_data = (data_mono, data_mono)
 
+        success = False
+
         # Try rendering until we get more audio data
-        attempt_count = 16
-        for _ in range(attempt_count):
-            self._rendering_engine.play(nframes)
-            audio_data = self._rendering_engine.get_audio()
-            event_data = self._rendering_engine.receive_events()
-            self._process_events(event_data, CONTEXT_MIX)
-            self._process_post_actions()
-            frame_count = len(audio_data[0])
-            if frame_count > 0:
-                self._push_amount = frame_count
-                break
-        else:
+        if not self._loading_failed:
+            attempt_count = 16
+            for _ in range(attempt_count):
+                self._rendering_engine.play(nframes)
+                audio_data = self._rendering_engine.get_audio()
+                event_data = self._rendering_engine.receive_events()
+                self._process_events(event_data, CONTEXT_MIX)
+                self._process_post_actions()
+                frame_count = len(audio_data[0])
+                if frame_count > 0:
+                    success = True
+                    self._push_amount = frame_count
+                    break
+
+        if not success:
             # We are not getting more audio, possibly due to heavy event spamming
             audio_data = self._silence
             self._push_amount = 0
@@ -169,6 +176,8 @@ class AudioEngine():
         self._audio_output.put_audio(audio_data)
 
     def _fire_event(self, channel, event, context):
+        if self._loading_failed:
+            return
         self._rendering_engine.fire_event(channel, event)
         event_data = self._rendering_engine.receive_events()
         self._process_events(event_data, context)
@@ -186,19 +195,29 @@ class AudioEngine():
         self._rendering_engine.set_channel_mute(channel, mute)
 
     def load_module(self, path):
-        f = KqtFile(self._rendering_engine, KQTFILE_KEEP_ALL_DATA)
-        for _ in f.load_steps(path):
-            progress = f.get_loading_progress()
-            self._ui_engine.update_import_progress(progress * 0.5)
+        try:
+            f = KqtFile(self._rendering_engine, KQTFILE_KEEP_ALL_DATA)
+            for _ in f.load_steps(path):
+                progress = f.get_loading_progress()
+                self._ui_engine.update_import_progress(progress * 0.5)
 
-        entries = f.get_kept_entries()
-        entry_count = f.get_kept_entry_count()
+            entries = f.get_kept_entries()
+            entry_count = f.get_kept_entry_count()
+
+        except KunquatError as e:
+            self._ui_engine.notify_import_error(path, e)
+            return
+
+        try:
+            self._rendering_engine.validate()
+        except KunquatFormatError as e:
+            self._loading_failed = True
+            self._ui_engine.notify_import_error(path, e)
+            return
 
         for i, (key, value) in enumerate(entries):
             self._ui_engine.add_imported_entry(key, value)
             self._ui_engine.update_import_progress(0.5 + ((i + 1) / entry_count))
-
-        self._rendering_engine.validate()
 
         self._ui_engine.notify_import_finished()
 

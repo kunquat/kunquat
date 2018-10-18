@@ -750,6 +750,11 @@ class Controller():
 
         self._store.put_raw(entries)
 
+    def notify_import_error(self, path, error):
+        self._session.set_module_load_error_info(path, str(error))
+        self._updater.signal_update(
+                'signal_module_load_error', 'signal_progress_finished')
+
     def notify_import_finished(self):
         self._store.clear_modified_flag()
 
