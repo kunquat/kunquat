@@ -203,6 +203,9 @@ class KqtFile():
         """
         self._kqt = kqt
         self._module = _kqtfile.kqt_new_Module_with_handle(self._kqt.get_handle())
+        if not self._module:
+            error_str = str(_kqtfile.kqt_Module_get_error(0), encoding='utf-8')
+            raise KunquatFileError(error_str)
         _kqtfile.kqt_Module_set_keep_flags(self._module, keep_flags)
 
         self._path = None
@@ -290,8 +293,19 @@ class KqtFile():
             pass
 
     def __del__(self):
-        _kqtfile.kqt_del_Module(self._module)
+        if self._module:
+            _kqtfile.kqt_del_Module(self._module)
         self._module = 0
+
+
+def _error_check(result, func, arguments):
+    module = arguments[0]
+    error_str_raw = _kqtfile.kqt_Module_get_error(module)
+    if not error_str_raw:
+        return result
+    _kqtfile.kqt_Module_clear_error(module)
+    error_str = str(error_str_raw, encoding='utf-8')
+    raise KunquatFileError(error_str)
 
 
 class KunquatFileError(KunquatError):
@@ -317,34 +331,44 @@ _kqtfile.kqt_Module_clear_error.restype = None
 
 _kqtfile.kqt_Module_set_keep_flags.argtypes = [kqt_Module, ctypes.c_int]
 _kqtfile.kqt_Module_set_keep_flags.restype = ctypes.c_int
+_kqtfile.kqt_Module_set_keep_flags.errcheck = _error_check
 
 _kqtfile.kqt_Module_open_file.argtypes = [kqt_Module, ctypes.c_char_p]
 _kqtfile.kqt_Module_open_file.restype = ctypes.c_int
+_kqtfile.kqt_Module_open_file.errcheck = _error_check
 
 _kqtfile.kqt_Module_load_step.argtypes = [kqt_Module]
 _kqtfile.kqt_Module_load_step.restype = ctypes.c_int
+_kqtfile.kqt_Module_load_step.errcheck = _error_check
 
 _kqtfile.kqt_Module_get_loading_progress.argtypes = [kqt_Module]
 _kqtfile.kqt_Module_get_loading_progress.restype = ctypes.c_double
+_kqtfile.kqt_Module_get_loading_progress.errcheck = _error_check
 
 _kqtfile.kqt_Module_close_file.argtypes = [kqt_Module]
 _kqtfile.kqt_Module_close_file.restype = None
+_kqtfile.kqt_Module_close_file.errcheck = _error_check
 
 _kqtfile.kqt_Module_get_kept_entry_count.argtypes = [kqt_Module]
 _kqtfile.kqt_Module_get_kept_entry_count.restype = ctypes.c_long
+_kqtfile.kqt_Module_get_kept_entry_count.errcheck = _error_check
 
 _kqtfile.kqt_Module_get_kept_keys.argtypes = [kqt_Module]
 _kqtfile.kqt_Module_get_kept_keys.restype = ctypes.POINTER(ctypes.c_char_p)
+_kqtfile.kqt_Module_get_kept_keys.errcheck = _error_check
 
 _kqtfile.kqt_Module_get_kept_entry_sizes.argtypes = [kqt_Module]
 _kqtfile.kqt_Module_get_kept_entry_sizes.restype = ctypes.POINTER(ctypes.c_long)
+_kqtfile.kqt_Module_get_kept_entry_sizes.errcheck = _error_check
 
 _kqtfile.kqt_Module_get_kept_entries.argtypes = [kqt_Module]
 _kqtfile.kqt_Module_get_kept_entries.restype = (
         ctypes.POINTER(ctypes.POINTER(ctypes.c_ubyte)))
+_kqtfile.kqt_Module_get_kept_entries.errcheck = _error_check
 
 _kqtfile.kqt_Module_free_kept_entries.argtypes = [kqt_Module]
 _kqtfile.kqt_Module_free_kept_entries.restype = ctypes.c_int
+_kqtfile.kqt_Module_free_kept_entries.errcheck = _error_check
 
 _kqtfile.kqt_del_Module.argtypes = [kqt_Module]
 _kqtfile.kqt_del_Module.restype = None
