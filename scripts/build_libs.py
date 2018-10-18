@@ -48,6 +48,8 @@ def build_libkunquatfile(builder, options, cc):
     src_dir = os.path.join('src', 'file', 'lib')
     out_dir = os.path.join('build', 'src', 'file', 'lib')
 
+    cc.add_lib_dir(os.path.join('build', 'src', 'lib'))
+
     build_lib(
             builder,
             lib_name,

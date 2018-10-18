@@ -21,7 +21,7 @@ from io import BytesIO
 import os.path
 import zipfile
 
-from kunquat.kunquat.file import KqtFile, KunquatFileError, KQT_KEEP_NONE
+from kunquat.kunquat.file import KqtFile, KunquatFileError, KQTFILE_KEEP_ALL_DATA
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
@@ -61,6 +61,7 @@ class Controller():
         self._updater = None
         self._note_channel_mapper = None
         self._audio_engine = None
+        self._rendering_engine = None
         self._ui_model = None
         self._ch_expr_counter = [-1] * CHANNELS_MAX
         self._format_error_handler = None
@@ -105,6 +106,9 @@ class Controller():
         self._audio_engine = audio_engine
         self._store.set_audio_engine(audio_engine)
 
+    def set_rendering_engine(self, rendering_engine):
+        self._rendering_engine = rendering_engine
+
     def _remove_prefix(self, path, prefix):
         preparts = prefix.split('/')
         keyparts = path.split('/')
@@ -128,15 +132,6 @@ class Controller():
         }
         self._store.put(transaction)
 
-    def _set_module_load_transaction_error_handler(self, module_path):
-        def _on_error(e):
-            desc = e.args[0]
-            self._session.set_module_load_error_info(module_path, desc['message'])
-            self._updater.signal_update(
-                    'signal_module_load_error', 'signal_progress_finished')
-
-        self._format_error_handler = _on_error
-
     def _get_transaction_notifier(self, start_progress, on_finished):
         def on_transaction_progress_update(progress):
             left = 1 - start_progress
@@ -155,56 +150,13 @@ class Controller():
         self._updater.signal_update('signal_progress_step')
 
     def get_task_load_module(self, module_path):
-        values = dict()
-
-        kqtfile = KqtFile(module_path, KQT_KEEP_NONE)
         self._session.set_progress_description('Loading {}...'.format(module_path))
         self._session.set_progress_position(0)
         self._updater.signal_update('signal_progress_start')
 
-        try:
-            for i, entry in enumerate(kqtfile.get_entries()):
-                yield
-                orig_key, ver_value = entry
-                key, value = self._data_converters.convert_key_and_data(
-                        orig_key, ver_value)
-                values[key] = value
-                self._update_progress_step(kqtfile.get_loading_progress() * 0.5)
+        self._audio_engine.load_module(module_path)
 
-        except UnsupportedVersionError as e:
-            message = e.get_message('module', kqtfile.try_get_editor_version())
-            self._session.set_module_load_error_info(module_path, message)
-            self._updater.signal_update(
-                    'signal_module_load_error', 'signal_progress_finished')
-            return
-
-        except (KunquatFileError, VersionError) as e:
-            self._session.set_module_load_error_info(module_path, e.args[0])
-            self._updater.signal_update(
-                    'signal_module_load_error', 'signal_progress_finished')
-            return
-
-        self._set_module_load_transaction_error_handler(module_path)
-
-        notifier = self._get_transaction_notifier(0.5,
-                lambda: self._updater.signal_update('signal_module'))
-        self._store.put(values, transaction_notifier=notifier)
-        self._store.clear_modified_flag()
-
-        sheet_mgr = self._ui_model.get_sheet_manager()
-        if not sheet_mgr.is_grid_default_enabled():
-            sheet_mgr.set_grid_enabled(False)
-
-        notation_mgr = self._ui_model.get_notation_manager()
-        stored_notation_id = notation_mgr.get_stored_notation_id()
-        if stored_notation_id in notation_mgr.get_all_notation_ids():
-            notation_mgr.set_selected_notation_id(stored_notation_id)
-        else:
-            notation_mgr.set_selected_notation_id(None)
-
-        self._updater.signal_update('signal_controls')
-
-        self._reset_expressions()
+        yield
 
     def get_task_save_module(self, module_path):
         assert module_path
@@ -719,6 +671,44 @@ class Controller():
     def update_event_log_with(self, channel_number, event_type, event_value, context):
         self._session.log_event(channel_number, event_type, event_value, context)
         self._updater.signal_update()
+
+    def update_import_progress(self, progress):
+        self._update_progress_step(progress)
+
+    def add_imported_entry(self, orig_key, orig_value):
+        orig_entries = { orig_key: orig_value }
+        entries = {}
+        for (orig_key, orig_value) in orig_entries.items():
+            key, value = self._data_converters.convert_key_and_data(
+                    orig_key, orig_value)
+            ver_value = self._data_converters.wrap_with_latest_version(key, value)
+            entries[key] = ver_value
+
+        self._store.put_raw(entries)
+
+    def notify_import_error(self, path, error):
+        self._session.set_module_load_error_info(path, str(error))
+        self._updater.signal_update(
+                'signal_module_load_error', 'signal_progress_finished')
+
+    def notify_import_finished(self):
+        self._store.clear_modified_flag()
+
+        sheet_mgr = self._ui_model.get_sheet_manager()
+        if not sheet_mgr.is_grid_default_enabled():
+            sheet_mgr.set_grid_enabled(False)
+
+        notation_mgr = self._ui_model.get_notation_manager()
+        stored_notation_id = notation_mgr.get_stored_notation_id()
+        if stored_notation_id in notation_mgr.get_all_notation_ids():
+            notation_mgr.set_selected_notation_id(stored_notation_id)
+        else:
+            notation_mgr.set_selected_notation_id(None)
+
+        self._reset_expressions()
+
+        self._updater.signal_update(
+                'signal_controls', 'signal_module', 'signal_progress_finished')
 
     def update_transaction_progress(self, transaction_id, progress):
         self._store.update_transaction_progress(transaction_id, progress)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -64,6 +64,9 @@ class AudioProcess(Process):
         self._ui_engine = ui_engine
 
     # Audio engine access interface
+
+    def load_module(self, path):
+        self._q.put('load_module', path)
 
     def fire_event(self, channel, event):
         self._q.put('fire_event', channel, event)

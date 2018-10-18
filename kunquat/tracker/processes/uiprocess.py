@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -109,9 +109,6 @@ class UiProcess(Process):
     def update_selected_driver(self, driver_class):
         self._q.put('update_selected_driver', driver_class)
 
-    def update_import_progress(self, position, steps):
-        self._q.put('update_import_progress', position, steps)
-
     def update_output_speed(self, fps):
         self._q.put('update_output_speed', fps)
 
@@ -159,6 +156,18 @@ class UiProcess(Process):
 
     def update_event_log_with(self, channel_number, event_type, event_value, context):
         self._q.put('update_event_log_with', channel_number, event_type, event_value, context)
+
+    def update_import_progress(self, progress):
+        self._q.put('update_import_progress', progress)
+
+    def add_imported_entry(self, key, value):
+        self._q.put('add_imported_entry', key, value)
+
+    def notify_import_error(self, path, error):
+        self._q.put('notify_import_error', path, error)
+
+    def notify_import_finished(self):
+        self._q.put('notify_import_finished')
 
     def update_transaction_progress(self, transaction_id, progress):
         self._q.put('update_transaction_progress', transaction_id, progress)

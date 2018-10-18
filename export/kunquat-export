@@ -44,28 +44,42 @@ def get_default_thread_count():
     return min(max(2, math.ceil(cpus / 2)), 32)
 
 
-def load_kqt(path, audio_rate):
+def load_kqt(path, audio_rate, quiet):
     handle = Kunquat(audio_rate)
-
     handle.set_loader_thread_count(get_default_thread_count())
 
-    f = KqtFile(path)
-    f.load_into_handle(handle)
+    f = KqtFile(handle)
+    if quiet:
+        f.load(path)
+    else:
+        max_length = 0
+        for _ in f.load_steps(path):
+            progress = f.get_loading_progress()
+            loading_str = 'Loading {} ({:.0f}%)...'.format(path, progress * 100)
+            max_length = max(max_length, len(loading_str))
+            print(loading_str, end='\r')
+
+    handle.validate()
+
+    if not quiet:
+        print(' ' * max_length, end='\r')
 
     player_data = {}
-    for (key, value) in f.get_stored_entries():
+    for (key, value) in f.get_kept_entries():
         stripped = value
         if key.endswith('.json'):
             if (type(value) == list) and (len(value) == 2):
                 _, stripped = value
         player_data[key] = stripped
 
+    del f
+
     return handle, player_data
 
 
 def export(in_path, out_path, options):
     try:
-        handle, _ = load_kqt(in_path, options['rate'])
+        handle, _ = load_kqt(in_path, options['rate'], options['quiet'])
     except IOError as e:
         print('Couldn\'t open \'{}\': {}'.format(in_path, e))
         return

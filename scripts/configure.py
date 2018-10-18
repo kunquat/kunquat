@@ -51,6 +51,7 @@ def test_add_libkunquat_external_deps(builder, options, cc):
         if options.with_pthread:
             if _test_header(builder, cc, 'pthread.h'):
                 cc.add_compile_flag('-pthread')
+                cc.add_link_flag('-pthread')
                 cc.add_define('_XOPEN_SOURCE', 700)
                 cc.add_define('WITH_PTHREAD')
             else:
@@ -119,11 +120,23 @@ def test_add_test_deps(builder, options, cc):
 def test_add_libkunquatfile_external_deps(builder, options, cc):
     conf_errors = []
 
+    if options.enable_libkunquat:
+        if not _test_add_lib_with_header(
+                builder,
+                cc,
+                'kunquat',
+                'kunquat/Handle.h',
+                [os.path.join('src', 'include')],
+                [os.path.join('build', 'src', 'lib')]):
+            conf_errors.append('libkunquat was not found.')
+
     if options.with_zip:
         if not _test_add_lib_with_header(builder, cc, 'zip', 'zip.h'):
             conf_errors.append('libzip was not found.')
 
     if options.enable_libkunquatfile:
+        if not options.enable_libkunquat:
+            conf_errors.append('libkunquatfile was requested without libkunquat.')
         if not options.with_zip:
             conf_errors.append('libkunquatfile was requested without libzip.')
 
@@ -140,11 +153,18 @@ def _get_fresh_cc(from_cc):
     return cons()
 
 
-def _build_external_lib_test(builder, cc, out_base, lib_name):
+def _build_external_lib_test(
+        builder, cc, out_base, lib_name, include_dirs=[], lib_dirs=[]):
     in_path = out_base + '.c'
     out_path = out_base
     temp_cc = _get_fresh_cc(cc)
     temp_cc.add_lib(lib_name)
+
+    for inc_dir in include_dirs:
+        temp_cc.add_include_dir(inc_dir)
+    for lib_dir in lib_dirs:
+        temp_cc.add_lib_dir(lib_dir)
+
     return temp_cc.build_exe(builder, in_path, out_path, echo='')
 
 
@@ -155,7 +175,8 @@ def _compile_external_header_test(builder, cc, out_base):
     return temp_cc.compile(builder, in_path, out_path, echo='')
 
 
-def _test_add_lib_with_header(builder, cc, lib_name, header_name):
+def _test_add_lib_with_header(
+        builder, cc, lib_name, header_name, include_dirs=[], lib_dirs=[]):
     out_dir = 'conf_tests'
     command.make_dirs(builder, out_dir, echo='')
 
@@ -163,7 +184,8 @@ def _test_add_lib_with_header(builder, cc, lib_name, header_name):
     out_base = os.path.join(out_dir, lib_name)
     _write_external_header_test(builder, out_base, header_name)
     try:
-        was_run = _build_external_lib_test(builder, cc, out_base, lib_name)
+        was_run = _build_external_lib_test(
+                builder, cc, out_base, lib_name, include_dirs, lib_dirs)
     except fabricate.ExecutionError:
         return False
     print('{}ok'.format('' if was_run else '(cached) '))
