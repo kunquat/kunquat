@@ -52,11 +52,17 @@ def load_kqt(path, audio_rate, quiet):
     if quiet:
         f.load(path)
     else:
+        max_length = 0
         for _ in f.load_steps(path):
             progress = f.get_loading_progress()
-            print('Loading ({:.0f}%)...'.format(progress * 100), end='\r')
+            loading_str = 'Loading {} ({:.0f}%)...'.format(path, progress * 100)
+            max_length = max(max_length, len(loading_str))
+            print(loading_str, end='\r')
 
     handle.validate()
+
+    if not quiet:
+        print(' ' * max_length, end='\r')
 
     player_data = {}
     for (key, value) in f.get_kept_entries():
