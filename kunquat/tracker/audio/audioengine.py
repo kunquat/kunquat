@@ -63,7 +63,7 @@ class AudioEngine():
 
         self._sine = gen_sine(48000)
 
-        self._loading_failed = False
+        self._is_handle_ready = True
 
     def set_ui_engine(self, ui_engine):
         self._ui_engine = ui_engine
@@ -142,7 +142,7 @@ class AudioEngine():
         success = False
 
         # Try rendering until we get more audio data
-        if not self._loading_failed:
+        if self._is_handle_ready:
             attempt_count = 16
             for _ in range(attempt_count):
                 self._rendering_engine.play(nframes)
@@ -176,7 +176,7 @@ class AudioEngine():
         self._audio_output.put_audio(audio_data)
 
     def _fire_event(self, channel, event, context):
-        if self._loading_failed:
+        if not self._is_handle_ready:
             return
         self._rendering_engine.fire_event(channel, event)
         event_data = self._rendering_engine.receive_events()
@@ -195,6 +195,8 @@ class AudioEngine():
         self._rendering_engine.set_channel_mute(channel, mute)
 
     def load_module(self, path):
+        self._is_handle_ready = False
+
         try:
             f = KqtFile(self._rendering_engine, KQTFILE_KEEP_ALL_DATA)
             for _ in f.load_steps(path):
@@ -211,7 +213,6 @@ class AudioEngine():
         try:
             self._rendering_engine.validate()
         except KunquatFormatError as e:
-            self._loading_failed = True
             self._ui_engine.notify_import_error(path, e)
             return
 
@@ -220,6 +221,8 @@ class AudioEngine():
             self._ui_engine.update_import_progress(0.5 + ((i + 1) / entry_count))
 
         self._ui_engine.notify_import_finished()
+
+        self._is_handle_ready = True
 
         del f
 
