@@ -51,6 +51,7 @@ def test_add_libkunquat_external_deps(builder, options, cc):
         if options.with_pthread:
             if _test_header(builder, cc, 'pthread.h'):
                 cc.add_compile_flag('-pthread')
+                cc.add_link_flag('-pthread')
                 cc.add_define('_XOPEN_SOURCE', 700)
                 cc.add_define('WITH_PTHREAD')
             else:
