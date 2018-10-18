@@ -132,15 +132,6 @@ class Controller():
         }
         self._store.put(transaction)
 
-    def _set_module_load_transaction_error_handler(self, module_path):
-        def _on_error(e):
-            desc = e.args[0]
-            self._session.set_module_load_error_info(module_path, desc['message'])
-            self._updater.signal_update(
-                    'signal_module_load_error', 'signal_progress_finished')
-
-        self._format_error_handler = _on_error
-
     def _get_transaction_notifier(self, start_progress, on_finished):
         def on_transaction_progress_update(progress):
             left = 1 - start_progress
@@ -166,61 +157,6 @@ class Controller():
         self._audio_engine.load_module(module_path)
 
         yield
-
-        '''
-        kqtfile = KqtFile(module_path, KQT_KEEP_NONE)
-        self._session.set_progress_description('Loading {}...'.format(module_path))
-        self._session.set_progress_position(0)
-        self._updater.signal_update('signal_progress_start')
-
-        try:
-            for i, entry in enumerate(kqtfile.get_entries()):
-                yield
-                orig_key, ver_value = entry
-                key, value = self._data_converters.convert_key_and_data(
-                        orig_key, ver_value)
-                values[key] = value
-                self._update_progress_step(kqtfile.get_loading_progress() * 0.5)
-
-        except UnsupportedVersionError as e:
-            message = e.get_message('module', kqtfile.try_get_editor_version())
-            self._session.set_module_load_error_info(module_path, message)
-            self._updater.signal_update(
-                    'signal_module_load_error', 'signal_progress_finished')
-            return
-
-        except (KunquatFileError, VersionError) as e:
-            self._session.set_module_load_error_info(module_path, e.args[0])
-            self._updater.signal_update(
-                    'signal_module_load_error', 'signal_progress_finished')
-            return
-
-        self._set_module_load_transaction_error_handler(module_path)
-
-        notifier = self._get_transaction_notifier(0.5,
-                lambda: self._updater.signal_update('signal_module'))
-        '''
-
-        '''
-        self._store.put_raw(entries)
-        self._store.clear_modified_flag()
-
-        sheet_mgr = self._ui_model.get_sheet_manager()
-        if not sheet_mgr.is_grid_default_enabled():
-            sheet_mgr.set_grid_enabled(False)
-
-        notation_mgr = self._ui_model.get_notation_manager()
-        stored_notation_id = notation_mgr.get_stored_notation_id()
-        if stored_notation_id in notation_mgr.get_all_notation_ids():
-            notation_mgr.set_selected_notation_id(stored_notation_id)
-        else:
-            notation_mgr.set_selected_notation_id(None)
-
-        self._reset_expressions()
-
-        self._updater.signal_update(
-                'signal_controls', 'signal_module', 'signal_progress_finished')
-        '''
 
     def get_task_save_module(self, module_path):
         assert module_path
