@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -16,6 +16,7 @@ from kunquat.tracker.ui.qt import *
 from .generalmodeditor import GeneralModEditor
 from .saverwindow import SaverWindow
 from .updater import Updater
+from .utils import get_abs_window_size
 
 
 class GeneralModWindow(Updater, SaverWindow):
@@ -39,6 +40,6 @@ class GeneralModWindow(Updater, SaverWindow):
         visibility_mgr.hide_general_module_settings()
 
     def sizeHint(self):
-        return QSize(960, 768)
+        return get_abs_window_size(0.6, 0.7)
 
 

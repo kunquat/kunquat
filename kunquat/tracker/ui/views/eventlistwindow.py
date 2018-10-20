@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2017
+# Author: Tomi Jylhä-Ollila, Finland 2017-2018
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@ from kunquat.tracker.ui.qt import *
 
 from .eventlist import EventList
 from .updater import Updater
+from .utils import get_abs_window_size
 
 
 class EventListWindow(QWidget, Updater):
@@ -37,6 +38,6 @@ class EventListWindow(QWidget, Updater):
         visibility_mgr.hide_event_log()
 
     def sizeHint(self):
-        return QSize(600, 768)
+        return get_abs_window_size(0.3, 0.7)
 
 

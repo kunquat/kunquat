@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -16,6 +16,7 @@ from kunquat.tracker.ui.qt import *
 from .audiounit.editor import Editor
 from .audiounit.audiounitupdater import AudioUnitUpdater
 from .saverwindow import SaverWindow
+from .utils import get_abs_window_size
 
 
 class AuWindow(AudioUnitUpdater, SaverWindow):
@@ -51,6 +52,6 @@ class AuWindow(AudioUnitUpdater, SaverWindow):
         visibility_mgr.hide_audio_unit(self._au_id)
 
     def sizeHint(self):
-        return QSize(1024, 768)
+        return get_abs_window_size(0.6, 0.7)
 
 

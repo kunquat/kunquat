@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@ from kunquat.tracker.ui.qt import *
 
 from .renderstats import RenderStats
 from .updater import Updater
+from .utils import get_abs_window_size
 
 
 class RenderStatsWindow(QWidget, Updater):
@@ -38,6 +39,6 @@ class RenderStatsWindow(QWidget, Updater):
         visibility_mgr.hide_render_stats()
 
     def sizeHint(self):
-        return QSize(768, 480)
+        return get_abs_window_size(0.4, 0.5)
 
 

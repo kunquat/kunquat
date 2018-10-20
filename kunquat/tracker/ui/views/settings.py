@@ -23,6 +23,7 @@ from .headerline import HeaderLine
 from .numberslider import NumberSlider
 from . import utils
 from .updater import Updater
+from .utils import get_abs_window_size
 
 
 class Settings(QWidget, Updater):
@@ -1016,7 +1017,7 @@ class ColourSelector(QWidget):
         return self._sv_triangle
 
     def minimumSizeHint(self):
-        return QSize(192, 192)
+        return get_abs_window_size(0.15, 0.25)
 
 
 class ColourCodeValidator(QValidator):

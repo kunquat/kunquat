@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -17,6 +17,7 @@ from .bindeditor import BindEditor
 from .environmenteditor import EnvironmentEditor
 from .saverwindow import SaverWindow
 from .updater import Updater
+from .utils import get_abs_window_size
 
 
 class EnvBindWindow(Updater, SaverWindow):
@@ -43,6 +44,6 @@ class EnvBindWindow(Updater, SaverWindow):
         visibility_mgr.hide_env_and_bindings()
 
     def sizeHint(self):
-        return QSize(1024, 600)
+        return get_abs_window_size(0.5, 0.7)
 
 

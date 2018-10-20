@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@ from kunquat.tracker.ui.qt import *
 
 from .settings import Settings
 from .updater import Updater
+from .utils import get_abs_window_size
 
 
 class SettingsWindow(QWidget, Updater):
@@ -38,6 +39,6 @@ class SettingsWindow(QWidget, Updater):
         visibility_mgr.hide_settings()
 
     def sizeHint(self):
-        return QSize(800, 512)
+        return get_abs_window_size(0.5, 0.7)
 
 

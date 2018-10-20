@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -13,6 +13,12 @@
 
 from kunquat.tracker.ui.qt import *
 
+
+def get_abs_window_size(width_norm, height_norm):
+    screen_rect = QApplication.desktop().screenGeometry()
+    return QSize(
+            int(screen_rect.width() * width_norm),
+            int(screen_rect.height() * height_norm))
 
 def lerp_val(v1, v2, t):
     assert 0 <= t <= 1, 'lerp value {} is not within valid range [0, 1]'.format(t)

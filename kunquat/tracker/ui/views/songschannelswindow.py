@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2014
-#          Tomi Jylhä-Ollila, Finland 2015-2017
+#          Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -19,6 +19,7 @@ from .orderlisteditor import OrderlistEditor
 from .saverwindow import SaverWindow
 from .songeditor import SongEditor
 from .updater import Updater
+from .utils import get_abs_window_size
 
 
 class SongsChannelsWindow(Updater, SaverWindow):
@@ -48,6 +49,6 @@ class SongsChannelsWindow(Updater, SaverWindow):
         visibility_mgr.hide_songs_channels()
 
     def sizeHint(self):
-        return QSize(1024, 600)
+        return get_abs_window_size(0.5, 0.7)
 
 
