@@ -16,7 +16,7 @@ import re
 
 from kunquat.tracker.ui.qt import *
 
-from .utils import get_default_font
+from .utils import get_default_font_info
 
 
 class StyleCreator():
@@ -60,11 +60,7 @@ class StyleCreator():
         icon_bank = self._ui_model.get_icon_bank()
 
         # Get font settings
-        default_font = get_default_font()
-        def_font_size = (
-                style_mgr.get_style_param('def_font_size') or default_font.pointSize())
-        def_font_family = (
-                style_mgr.get_style_param('def_font_family') or default_font.family())
+        def_font_family, def_font_size = get_default_font_info(style_mgr)
 
         # Get colours from the configuration
         contrast = style_mgr.get_style_param('border_contrast')

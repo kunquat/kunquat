@@ -27,6 +27,12 @@ def get_default_font():
     size = 9 if (dpi == 96) else 7
     return QFont(QFont().defaultFamily(), size)
 
+def get_default_font_info(style_mgr):
+    df = get_default_font()
+    def_font_family = style_mgr.get_style_param('def_font_family') or df.family()
+    def_font_size = style_mgr.get_style_param('def_font_size') or df.pointSize()
+    return (def_font_family, def_font_size)
+
 def lerp_val(v1, v2, t):
     assert 0 <= t <= 1, 'lerp value {} is not within valid range [0, 1]'.format(t)
     return v1 + (v2 - v1) * t
