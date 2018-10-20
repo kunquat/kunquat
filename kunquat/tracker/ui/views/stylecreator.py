@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -56,6 +56,11 @@ class StyleCreator():
             return style_mgr.get_init_style_sheet()
 
         icon_bank = self._ui_model.get_icon_bank()
+
+        # Get font settings
+        def_font_size = style_mgr.get_style_param('def_font_size')
+        def_font_family = (
+                style_mgr.get_style_param('def_font_family') or QFont().defaultFamily())
 
         # Get colours from the configuration
         contrast = style_mgr.get_style_param('border_contrast')
@@ -172,8 +177,12 @@ class StyleCreator():
         template = style_mgr.get_style_sheet_template()
 
         replacements = {
+            '<def_font_size>': '{}pt'.format(def_font_size),
+            '<def_font_family>': def_font_family,
+        }
+        replacements.update({
                 '<' + k + '>': (self._get_str_from_colour(v) if type(v) == tuple else v)
-                for (k, v) in colours.items() }
+                for (k, v) in colours.items() })
         regexp = re.compile('|'.join(re.escape(k) for k in replacements.keys()))
         style_sheet = regexp.sub(lambda match: replacements[match.group(0)], template)
 

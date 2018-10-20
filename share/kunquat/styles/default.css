@@ -13,6 +13,8 @@ QWidget
 {
     background-color: <bg_colour>;
     color: <fg_colour>;
+    font-size: <def_font_size>;
+    font-family: <def_font_family>;
 }
 
 QWidget:disabled

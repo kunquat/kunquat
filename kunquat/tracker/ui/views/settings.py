@@ -39,6 +39,7 @@ class Settings(QWidget, Updater):
         self._chord_mode = ChordMode()
 
         self._style_toggle = StyleToggle()
+        self._font = FontButton()
         self._border_contrast = BorderContrast()
         self._button_brightness = ButtonBrightness()
         self._button_press_brightness = ButtonPressBrightness()
@@ -51,6 +52,7 @@ class Settings(QWidget, Updater):
                 self._effects,
                 self._chord_mode,
                 self._style_toggle,
+                self._font,
                 self._border_contrast,
                 self._button_brightness,
                 self._button_press_brightness,
@@ -89,12 +91,14 @@ class Settings(QWidget, Updater):
         bl = QGridLayout()
         bl.setContentsMargins(0, 0, 0, 0)
         bl.setSpacing(2)
-        bl.addWidget(QLabel('Border contrast:'), 0, 0)
-        bl.addWidget(self._border_contrast, 0, 1)
-        bl.addWidget(QLabel('Button brightness:'), 1, 0)
-        bl.addWidget(self._button_brightness, 1, 1)
-        bl.addWidget(QLabel('Button press brightness:'), 2, 0)
-        bl.addWidget(self._button_press_brightness, 2, 1)
+        bl.addWidget(QLabel('Default font:'), 0, 0)
+        bl.addWidget(self._font, 0, 1)
+        bl.addWidget(QLabel('Border contrast:'), 1, 0)
+        bl.addWidget(self._border_contrast, 1, 1)
+        bl.addWidget(QLabel('Button brightness:'), 2, 0)
+        bl.addWidget(self._button_brightness, 2, 1)
+        bl.addWidget(QLabel('Button press brightness:'), 3, 0)
+        bl.addWidget(self._button_press_brightness, 3, 1)
 
         ap = QVBoxLayout()
         ap.setContentsMargins(0, 0, 0, 0)
@@ -229,6 +233,40 @@ class StyleToggle(QCheckBox, Updater):
         style_mgr = self._ui_model.get_style_manager()
         style_mgr.set_custom_style_enabled(enabled)
 
+        self._updater.signal_update('signal_style_changed')
+
+
+class FontButton(QPushButton, Updater):
+
+    def __init__(self):
+        super().__init__()
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_desc)
+        self._update_desc()
+        self.clicked.connect(self._change_desc)
+
+    def _get_font(self):
+        style_mgr = self._ui_model.get_style_manager()
+        font_family = (style_mgr.get_style_param('def_font_family') or
+                QFont().defaultFamily())
+        font_size = style_mgr.get_style_param('def_font_size')
+        return (font_family, font_size)
+
+    def _update_desc(self):
+        self.setText('{} {}'.format(*self._get_font()))
+
+    def _change_desc(self):
+        font, selected = QFontDialog.getFont(
+                QFont(*self._get_font()), self, 'Select default font')
+        if not selected:
+            return
+
+        font_family = font.family()
+        font_size = font.pointSize()
+        style_mgr = self._ui_model.get_style_manager()
+        style_mgr.set_style_param('def_font_family', font_family)
+        style_mgr.set_style_param('def_font_size', font_size)
         self._updater.signal_update('signal_style_changed')
 
 
