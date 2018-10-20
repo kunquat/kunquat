@@ -20,6 +20,13 @@ def get_abs_window_size(width_norm, height_norm):
             int(screen_rect.width() * width_norm),
             int(screen_rect.height() * height_norm))
 
+def get_default_font():
+    screen = QApplication.primaryScreen()
+    dpi = screen.physicalDotsPerInch()
+    # 96 DPI is probably just the default setting that does not reflect reality
+    size = 9 if (dpi == 96) else 7
+    return QFont(QFont().defaultFamily(), size)
+
 def lerp_val(v1, v2, t):
     assert 0 <= t <= 1, 'lerp value {} is not within valid range [0, 1]'.format(t)
     return v1 + (v2 - v1) * t

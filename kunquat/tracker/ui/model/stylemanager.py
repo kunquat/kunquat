@@ -17,7 +17,7 @@ import kunquat.tracker.config as config
 class StyleManager():
 
     _STYLE_DEFAULTS = {
-        'def_font_size'                     : 7,
+        'def_font_size'                     : 0,
         'def_font_family'                   : '',
         'border_contrast'                   : 0.25,
         'button_brightness'                 : 0.10,
