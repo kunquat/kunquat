@@ -113,11 +113,13 @@ class StyleManager():
     def __init__(self):
         self._controller = None
         self._ui_model = None
+        self._session = None
         self._share = None
         self._init_ss = None
 
     def set_controller(self, controller):
         self._controller = controller
+        self._session = controller.get_session()
         self._share = controller.get_share()
 
     def set_ui_model(self, ui_model):
@@ -159,6 +161,13 @@ class StyleManager():
                     config_style[k] = self._STYLE_DEFAULTS[k]
 
         self._set_config_style(config_style)
+
+    def set_reference_font_height(self, height):
+        self._session.set_reference_font_height(height)
+
+    def get_scaled_size(self, size_norm, min_size=1):
+        ref_height = self._session.get_reference_font_height()
+        return max(min_size, int(round(size_norm * ref_height)))
 
     def get_adjusted_colour(self, param, brightness):
         orig_colour = self._get_colour_from_str(self.get_style_param(param))

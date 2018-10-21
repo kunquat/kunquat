@@ -33,12 +33,12 @@ QSlider::handle:horizontal,
 QTabWidget::pane,
 QToolBar
 {
-    border: 1px solid;
+    border: <border_thin_width> solid;
     border-top-color: <bg_colour_light>;
     border-left-color: <bg_colour_light>;
     border-right-color: <bg_colour_dark>;
     border-bottom-color: <bg_colour_dark>;
-    border-radius: 2px;
+    border-radius: <border_thin_radius>;
 }
 
 /* Base styles for button container widgets */
@@ -57,12 +57,12 @@ QAbstractSpinBox::down-button,
 QScrollBar::add-line,
 QScrollBar::sub-line
 {
-    border: 1px solid;
+    border: <border_thin_width> solid;
     border-top-color: <button_bg_colour_light>;
     border-left-color: <button_bg_colour_light>;
     border-right-color: <button_bg_colour_dark>;
     border-bottom-color: <button_bg_colour_dark>;
-    border-radius: 2px;
+    border-radius: <border_thin_radius>;
     padding: 2px;
     background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
         stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
@@ -105,12 +105,12 @@ QProgressBar,
 QRadioButton::indicator,
 QSlider::groove:horizontal
 {
-    border: 1px solid;
+    border: <border_thin_width> solid;
     border-top-color: <bg_colour_dark>;
     border-left-color: <bg_colour_dark>;
     border-right-color: <bg_colour_light>;
     border-bottom-color: <bg_colour_light>;
-    border-radius: 2px;
+    border-radius: <border_thin_radius>;
 }
 
 QAbstractSpinBox,
@@ -120,12 +120,12 @@ QTableView,
 QTextEdit,
 QTreeView
 {
-    border: 2px solid;
+    border: <border_thick_width> solid;
     border-top-color: <bg_colour_dark>;
     border-left-color: <bg_colour_dark>;
     border-right-color: <bg_colour_light>;
     border-bottom-color: <bg_colour_light>;
-    border-radius: 3px;
+    border-radius: <border_thick_radius>;
     selection-background-color: <text_selected_bg_colour>;
     selection-color: <text_selected_fg_colour>;
 }
@@ -342,12 +342,12 @@ QProgressBar::chunk
 
 QAbstractScrollArea
 {
-    border: 1px solid;
+    border: <border_thin_width> solid;
     border-top-color: <bg_colour_dark>;
     border-left-color: <bg_colour_dark>;
     border-right-color: <bg_colour_light>;
     border-bottom-color: <bg_colour_light>;
-    border-radius: 1px;
+    border-radius: <border_thin_radius>;
 }
 
 QAbstractScrollArea::corner
@@ -411,9 +411,9 @@ QScrollBar::add-line, QScrollBar::sub-line
 QScrollBar::add-line:horizontal
 {
     border-top-left-radius: 0;
-    border-top-right-radius: 2px;
+    border-top-right-radius: <border_thin_radius>;
     border-bottom-left-radius: 0;
-    border-bottom-right-radius: 2px;
+    border-bottom-right-radius: <border_thin_radius>;
     subcontrol-position: right;
     subcontrol-origin: margin;
 }
@@ -422,17 +422,17 @@ QScrollBar::add-line:vertical
 {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
-    border-bottom-left-radius: 2px;
-    border-bottom-right-radius: 2px;
+    border-bottom-left-radius: <border_thin_radius>;
+    border-bottom-right-radius: <border_thin_radius>;
     subcontrol-position: bottom;
     subcontrol-origin: margin;
 }
 
 QScrollBar::sub-line:horizontal
 {
-    border-top-left-radius: 2px;
+    border-top-left-radius: <border_thin_radius>;
     border-top-right-radius: 0;
-    border-bottom-left-radius: 2px;
+    border-bottom-left-radius: <border_thin_radius>;
     border-bottom-right-radius: 0;
     subcontrol-position: left;
     subcontrol-origin: margin;
@@ -440,8 +440,8 @@ QScrollBar::sub-line:horizontal
 
 QScrollBar::sub-line:vertical
 {
-    border-top-left-radius: 2px;
-    border-top-right-radius: 2px;
+    border-top-left-radius: <border_thin_radius>;
+    border-top-right-radius: <border_thin_radius>;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     subcontrol-position: top;
@@ -510,12 +510,12 @@ QTabWidget::tab-bar
 
 QTabBar::tab
 {
-    border: 1px solid;
+    border: <border_thin_width> solid;
     border-top-color: <bg_colour_light>;
     border-left-color: <bg_colour_light>;
     border-right-color: <bg_colour_dark>;
-    border-top-left-radius: 3px;
-    border-top-right-radius: 3px;
+    border-top-left-radius: <border_thick_radius>;
+    border-top-right-radius: <border_thick_radius>;
     border-bottom: none;
     min-width: 2em;
     margin: 0;
@@ -569,7 +569,7 @@ QToolBar
 QToolBar::separator
 {
     margin: 2px 4px;
-    border: 1px solid;
+    border: <border_thin_width> solid;
     border-top-color: <bg_colour_dark>;
     border-left-color: <bg_colour_dark>;
     border-right-color: <bg_colour_light>;
