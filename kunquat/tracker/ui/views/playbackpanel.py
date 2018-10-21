@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -56,7 +56,23 @@ class PlaybackPanel(QToolBar, Updater):
         super().addWidget(widget)
 
 
-class PlayButton(QToolButton, Updater):
+class IconButton(QToolButton, Updater):
+
+    def __init__(self):
+        super().__init__()
+
+    def _on_setup(self):
+        super()._on_setup()
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        size = style_mgr.get_scaled_size(3.4)
+        self.setFixedSize(QSize(size, size))
+
+
+class PlayButton(IconButton):
 
     def __init__(self):
         super().__init__()
@@ -65,6 +81,7 @@ class PlayButton(QToolButton, Updater):
         self.setAutoRaise(True)
 
     def _on_setup(self):
+        super()._on_setup()
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('play')
         icon = QIcon(icon_path)
@@ -72,7 +89,7 @@ class PlayButton(QToolButton, Updater):
         self.clicked.connect(self._ui_model.play)
 
 
-class PlayPatternButton(QToolButton, Updater):
+class PlayPatternButton(IconButton):
 
     def __init__(self):
         super().__init__()
@@ -81,6 +98,7 @@ class PlayPatternButton(QToolButton, Updater):
         self.setAutoRaise(True)
 
     def _on_setup(self):
+        super()._on_setup()
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('play_pattern')
         icon = QIcon(icon_path)
@@ -88,7 +106,7 @@ class PlayPatternButton(QToolButton, Updater):
         self.clicked.connect(self._ui_model.play_pattern)
 
 
-class PlayFromCursorButton(QToolButton, Updater):
+class PlayFromCursorButton(IconButton):
 
     def __init__(self):
         super().__init__()
@@ -97,6 +115,7 @@ class PlayFromCursorButton(QToolButton, Updater):
         self.setAutoRaise(True)
 
     def _on_setup(self):
+        super()._on_setup()
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('play_from_cursor')
         icon = QIcon(icon_path)
@@ -104,7 +123,7 @@ class PlayFromCursorButton(QToolButton, Updater):
         self.clicked.connect(self._ui_model.play_from_cursor)
 
 
-class RecordButton(QToolButton, Updater):
+class RecordButton(IconButton):
 
     def __init__(self):
         super().__init__()
@@ -116,6 +135,7 @@ class RecordButton(QToolButton, Updater):
         self.setAutoRaise(True)
 
     def _on_setup(self):
+        super()._on_setup()
         self.register_action('signal_record_mode', self._update_checked)
 
         self._sheet_mgr = self._ui_model.get_sheet_manager()
@@ -143,7 +163,7 @@ class RecordButton(QToolButton, Updater):
             self._ui_model.play()
 
 
-class SilenceButton(QToolButton, Updater):
+class SilenceButton(IconButton):
 
     def __init__(self):
         super().__init__()
@@ -154,6 +174,7 @@ class SilenceButton(QToolButton, Updater):
         self.setAutoRaise(True)
 
     def _on_setup(self):
+        super()._on_setup()
         self._playback_mgr = self._ui_model.get_playback_manager()
 
         icon_bank = self._ui_model.get_icon_bank()
