@@ -141,7 +141,7 @@ QTreeView
 QCheckBox,
 QRadioButton
 {
-    spacing: 5px;
+    spacing: <radio_check_spacing>;
 }
 
 QCheckBox::indicator,
@@ -149,8 +149,8 @@ QRadioButton::indicator
 {
     margin: 0;
     padding: 0;
-    width: 12px;
-    height: 12px;
+    width: <radio_check_size>;
+    height: <radio_check_size>;
     background-color: <text_bg_colour>;
 }
 
@@ -161,7 +161,7 @@ QCheckBox::indicator:checked
 
 QRadioButton::indicator
 {
-    border-radius: 7px;
+    border-radius: <radio_border_radius>;
 }
 
 QRadioButton::indicator:checked
@@ -173,7 +173,7 @@ QComboBox::drop-down
 {
     subcontrol-origin: margin;
     subcontrol-position: top right;
-    width: 12px;
+    width: <combobox_button_size>;
     margin: 0;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
@@ -203,8 +203,8 @@ QComboBox QAbstractItemView::item
 
 QDialog QPushButton
 {
-    padding: 4px;
-    min-width: 100px;
+    padding: <medium_padding>;
+    min-width: <dialog_button_width>;
 }
 
 QPushButton:checked:pressed,
@@ -264,7 +264,7 @@ QPushButton#Important:checked:pressed
 
 QLineEdit, QAbstractSpinBox
 {
-    margin: 1px;
+    margin: <tiny_padding>;
     padding: 0;
     background-color: <text_bg_colour>;
     color: <text_fg_colour>;
@@ -282,7 +282,7 @@ QMenu::item
 
 QAbstractSpinBox
 {
-    padding-right: 16px;
+    padding-right: <tiny_arrow_button_size>;
     border-right-color: <text_bg_colour>;
 }
 
@@ -291,7 +291,7 @@ QAbstractSpinBox::up-button:pressed,
 QAbstractSpinBox::down-button,
 QAbstractSpinBox::down-button:pressed
 {
-    width: 16px;
+    width: <tiny_arrow_button_size>;
     padding: 0;
 }
 
@@ -371,14 +371,14 @@ QScrollBar
 
 QScrollBar:horizontal
 {
-    margin: 0 4px 0 4px;
-    height: 14px;
+    margin: 0 <scrollbar_margin> 0 <scrollbar_margin>;
+    height: <scrollbar_size>;
 }
 
 QScrollBar:vertical
 {
-    margin: 4px 0 4px 0;
-    width: 14px;
+    margin: <scrollbar_margin> 0 <scrollbar_margin> 0;
+    width: <scrollbar_size>;
 }
 
 QScrollBar::add-page, QScrollBar::sub-page
@@ -396,22 +396,22 @@ QScrollBar::handle
 
 QScrollBar::handle:horizontal
 {
-    margin: 0 10px 0 10px;
-    min-width: 20px;
+    margin: 0 <tiny_arrow_button_size> 0 <tiny_arrow_button_size>;
+    min-width: <scrollbar_size>;
 }
 
 QScrollBar::handle:vertical
 {
-    margin: 10px 0 10px 0;
-    min-height: 20px;
+    margin: <tiny_arrow_button_size> 0 <tiny_arrow_button_size> 0;
+    min-height: <scrollbar_size>;
 }
 
 QScrollBar::add-line, QScrollBar::sub-line
 {
     margin: 0;
     padding: 0;
-    width: 12px;
-    height: 12px;
+    width: <tiny_arrow_button_size>;
+    height: <tiny_arrow_button_size>;
 }
 
 QScrollBar::add-line:horizontal
@@ -460,8 +460,8 @@ QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal
     margin: 0;
     border: none;
     padding: 0;
-    width: 12px;
-    height: 12px;
+    width: <tiny_arrow_button_size>;
+    height: <tiny_arrow_button_size>;
 }
 
 QScrollBar::up-arrow:vertical
@@ -487,13 +487,13 @@ QScrollBar::right-arrow:horizontal
 QSlider::groove:horizontal
 {
     background-color: <scrollbar_bg_colour>;
-    height: 12px;
+    height: <slider_thickness>;
 }
 
 QSlider::handle:horizontal
 {
     margin: 0;
-    width: 32px;
+    width: <slider_handle_size>;
     background-color: <bg_colour>;
 }
 
@@ -511,7 +511,7 @@ QSplitter::handle:vertical
 
 QTabWidget::tab-bar
 {
-    left: 3px;
+    left: <tab_bar_margin>;
 }
 
 QTabBar::tab
@@ -525,7 +525,7 @@ QTabBar::tab
     border-bottom: none;
     min-width: 2em;
     margin: 0;
-    padding: <small_padding> 10px <small_padding> 10px;
+    padding: <small_padding> <large_padding> <small_padding> <large_padding>;
 }
 
 QTabBar::tab:selected
@@ -534,7 +534,7 @@ QTabBar::tab:selected
 
 QTabBar::tab:!selected
 {
-    margin-top: 3px;
+    margin-top: <medium_padding>;
     border-top-color: <tab_shade_top_colour_light>;
     border-left-color: <tab_shade_top_colour_light>;
     border-right-color: <tab_shade_top_colour_dark>;
@@ -574,7 +574,7 @@ QToolBar
 
 QToolBar::separator
 {
-    margin: 2px 4px;
+    margin: <small_padding> <medium_padding>;
     border: <border_thin_width> solid;
     border-top-color: <bg_colour_dark>;
     border-left-color: <bg_colour_dark>;
