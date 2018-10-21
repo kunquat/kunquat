@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -111,6 +111,15 @@ class PlaybackPosition(QWidget):
             return
 
         config = {
+            'padding_x' : style_mgr.get_scaled_size(1),
+            'padding_y' : 0,
+            'spacing'   : style_mgr.get_scaled_size(0.2),
+            'icon_width': style_mgr.get_scaled_size(1.4),
+            'num_font'  : utils.get_scaled_font(style_mgr, 1.6, QFont.Bold),
+            'sub_font'  : utils.get_scaled_font(style_mgr, 0.9, QFont.Bold),
+            'rem_font'  : utils.get_scaled_font(style_mgr, 1.2, QFont.Bold),
+            'title_font': utils.get_scaled_font(style_mgr, 0.5, QFont.Bold),
+
             'bg_colour':
                 QColor(style_mgr.get_style_param('position_bg_colour')),
             'fg_colour':
@@ -448,6 +457,8 @@ class PlaybackPosition(QWidget):
     def paintEvent(self, event):
         start = time.time()
 
+        style_mgr = self._ui_model.get_style_manager()
+
         painter = QPainter(self)
         painter.setBackground(self._config['bg_colour'])
         painter.eraseRect(0, 0, self.width(), self.height())
@@ -501,7 +512,8 @@ class PlaybackPosition(QWidget):
                 'num_font')
 
         painter.setClipping(False)
-        painter.drawPixmap(0, title_y, self._titles['track'])
+        painter.drawPixmap(
+                style_mgr.get_scaled_size(0.1, 0), title_y, self._titles['track'])
 
         # System number
         shift_x()
@@ -513,7 +525,8 @@ class PlaybackPosition(QWidget):
                 'num_font')
 
         painter.setClipping(False)
-        painter.drawPixmap(2, title_y, self._titles['system'])
+        painter.drawPixmap(
+                style_mgr.get_scaled_size(0.3, 0), title_y, self._titles['system'])
 
         # Pattern instance
         shift_x()
@@ -564,7 +577,8 @@ class PlaybackPosition(QWidget):
             painter.restore()
 
         painter.setClipping(False)
-        painter.drawPixmap(-19, title_y, self._titles['pattern'])
+        painter.drawPixmap(
+                -style_mgr.get_scaled_size(2.0, 0), title_y, self._titles['pattern'])
 
         # Timestamp
         beats, rem = row_ts
@@ -596,7 +610,8 @@ class PlaybackPosition(QWidget):
                 Qt.AlignLeft)
 
         painter.setClipping(False)
-        painter.drawPixmap(-10, title_y, self._titles['row'])
+        painter.drawPixmap(
+                -style_mgr.get_scaled_size(1.2, 0), title_y, self._titles['row'])
 
         end = time.time()
         elapsed = end - start

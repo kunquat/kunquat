@@ -28,6 +28,10 @@ class StyleCreator():
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
+        style_mgr = self._ui_model.get_style_manager()
+        def_font = get_default_font_info(style_mgr)
+        self._check_update_ref_font_height(def_font)
+
     def unregister_updaters(self):
         pass
 
