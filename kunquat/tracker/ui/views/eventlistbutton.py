@@ -122,11 +122,20 @@ class EventListButton(QToolButton):
             self._light.set_config({})
             return
 
+        margin = style_mgr.get_scaled_size(
+                style_mgr.get_style_param('small_padding') +
+                style_mgr.get_style_param('border_thin_width'))
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size(
+            style_mgr.get_style_param('medium_padding')))
+
         active_colour = QColor(style_mgr.get_style_param('active_indicator_colour'))
         inactive_colour = utils.lerp_colour(QColor(0, 0, 0), active_colour, 0.25)
 
         config = {
-            'colour_on': active_colour,
+            'width'     : style_mgr.get_scaled_size(1),
+            'height'    : style_mgr.get_scaled_size(1),
+            'colour_on' : active_colour,
             'colour_off': inactive_colour,
         }
 

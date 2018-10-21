@@ -43,6 +43,12 @@ QToolBar
 
 /* Base styles for button container widgets */
 
+QPushButton:flat,
+QToolButton
+{
+    padding: <small_padding>;
+}
+
 QComboBox,
 QComboBox::drop-down,
 QComboBox:!editable,
@@ -63,7 +69,7 @@ QScrollBar::sub-line
     border-right-color: <button_bg_colour_dark>;
     border-bottom-color: <button_bg_colour_dark>;
     border-radius: <border_thin_radius>;
-    padding: 2px;
+    padding: <small_padding>;
     background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
         stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
     color: <button_fg_colour>;
@@ -92,7 +98,7 @@ QScrollBar::sub-line:pressed
     border-left-color: <button_down_bg_colour_light>;
     border-right-color: <button_down_bg_colour_dark>;
     border-bottom-color: <button_down_bg_colour_dark>;
-    padding: 2px;
+    padding: <small_padding>;
     background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
         stop: 0.5 <button_down_bg_colour>, stop: 1 <button_down_bg_colour_grad>);
     color: <button_down_fg_colour>;
@@ -192,7 +198,7 @@ QComboBox QAbstractItemView
 
 QComboBox QAbstractItemView::item
 {
-    padding: 2px;
+    padding: <small_padding>;
 }
 
 QDialog QPushButton
@@ -271,7 +277,7 @@ QLineEdit:disabled, QAbstractSpinBox:disabled
 
 QMenu::item
 {
-    padding: 2px;
+    padding: <small_padding>;
 }
 
 QAbstractSpinBox
@@ -294,7 +300,7 @@ QAbstractSpinBox::up-button
     subcontrol-origin: border;
     subcontrol-position: top right;
     border-radius: 0;
-    border-top-right-radius: 2px;
+    border-top-right-radius: <border_thin_radius>;
     image: url(<icons_path>/arrow_up_tiny.png);
 }
 
@@ -303,7 +309,7 @@ QAbstractSpinBox::down-button
     subcontrol-origin: border;
     subcontrol-position: bottom right;
     border-radius: 0;
-    border-bottom-right-radius: 2px;
+    border-bottom-right-radius: <border_thin_radius>;
     image: url(<icons_path>/arrow_down_tiny.png);
 }
 
@@ -493,13 +499,13 @@ QSlider::handle:horizontal
 
 QSplitter::handle:horizontal
 {
-    padding: 1px;
+    padding: <tiny_padding>;
     image: url(<icons_path>/splitter_horizontal.png);
 }
 
 QSplitter::handle:vertical
 {
-    padding: 1px;
+    padding: <tiny_padding>;
     image: url(<icons_path>/splitter_vertical.png);
 }
 
@@ -519,7 +525,7 @@ QTabBar::tab
     border-bottom: none;
     min-width: 2em;
     margin: 0;
-    padding: 3px 10px 3px 10px;
+    padding: <small_padding> 10px <small_padding> 10px;
 }
 
 QTabBar::tab:selected

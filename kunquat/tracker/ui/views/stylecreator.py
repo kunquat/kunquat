@@ -85,14 +85,16 @@ class StyleCreator():
         def_font_family, def_font_size = def_font
 
         # Get pixel sizes
-        pixel_sizes_norm = {
-            'border_thin_width'     : 0.1,
-            'border_thin_radius'    : 0.2,
-            'border_thick_width'    : 0.2,
-            'border_thick_radius'   : 0.4,
-        }
-        pixel_sizes = ((k, style_mgr.get_scaled_size(v))
-                for (k, v) in pixel_sizes_norm.items())
+        pixel_size_params = [
+            'border_thick_radius',
+            'border_thick_width',
+            'border_thin_radius',
+            'border_thin_width',
+            'small_padding',
+            'tiny_padding',
+        ]
+        pixel_sizes = ((p, style_mgr.get_scaled_size(style_mgr.get_style_param(p)))
+            for p in pixel_size_params)
 
         # Get colours
         contrast = style_mgr.get_style_param('border_contrast')

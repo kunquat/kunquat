@@ -329,14 +329,23 @@ class RenderStatsButton(QToolButton):
             self._load_meter.set_config({})
             return
 
+        margin = style_mgr.get_scaled_size(
+                style_mgr.get_style_param('small_padding') +
+                style_mgr.get_style_param('border_thin_width'))
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size(
+            style_mgr.get_style_param('medium_padding')))
+
         def get_colour(param):
             return QColor(style_mgr.get_style_param(param))
 
         config = {
-            'bg_colour': get_colour('system_load_bg_colour'),
-            'colour_low': get_colour('system_load_low_colour'),
-            'colour_mid': get_colour('system_load_mid_colour'),
-            'colour_high': get_colour('system_load_high_colour'),
+            'width'         : style_mgr.get_scaled_size(1),
+            'height'        : style_mgr.get_scaled_size(1),
+            'bg_colour'     : get_colour('system_load_bg_colour'),
+            'colour_low'    : get_colour('system_load_low_colour'),
+            'colour_mid'    : get_colour('system_load_mid_colour'),
+            'colour_high'   : get_colour('system_load_high_colour'),
         }
 
         self._load_meter.set_config(config)

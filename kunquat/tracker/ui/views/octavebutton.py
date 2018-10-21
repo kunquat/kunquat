@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2013-2017
+#          Tomi Jylhä-Ollila, Finland 2013-2018
 #
 # This file is part of Kunquat.
 #
@@ -46,6 +46,7 @@ class OctaveButton(QPushButton):
         self._typewriter_mgr.set_octave(self._octave_id)
 
     def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._control_mgr = ui_model.get_control_manager()
@@ -55,6 +56,7 @@ class OctaveButton(QPushButton):
 
         self._update_name()
         self._update_pressed()
+        self._update_style()
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
@@ -77,6 +79,11 @@ class OctaveButton(QPushButton):
             self.setChecked(False)
         self.blockSignals(old_block)
 
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.setFixedWidth(style_mgr.get_scaled_size(5.6))
+        self._led.setFixedWidth(style_mgr.get_scaled_size(1))
+
     def _perform_updates(self, signals):
         name_update_signals = set(['signal_notation', 'signal_select_keymap'])
         if not signals.isdisjoint(name_update_signals):
@@ -84,5 +91,8 @@ class OctaveButton(QPushButton):
 
         if any(s in signals for s in ['signal_octave', 'signal_init']):
             self._update_pressed()
+
+        if 'signal_style_changed' in signals:
+            self._update_style()
 
 
