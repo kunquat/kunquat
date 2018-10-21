@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2017
+# Author: Tomi Jylhä-Ollila, Finland 2013-2018
 #
 # This file is part of Kunquat.
 #
@@ -145,29 +145,6 @@ class SheetArea(QAbstractScrollArea, Updater):
 
         self._update_config()
 
-        # Initialise zoom levels
-        px_per_beat = self._config['trs_per_beat'] * self._config['tr_height']
-        self._zoom_levels = utils.get_zoom_levels(
-                1, px_per_beat, tstamp.BEAT, self._config['zoom_factor'])
-        self._default_zoom_index = self._zoom_levels.index(px_per_beat)
-        self._sheet_mgr.set_zoom_range(
-                -self._default_zoom_index,
-                len(self._zoom_levels) - self._default_zoom_index - 1)
-
-        # Initialise column widths
-        fm = self._config['font_metrics']
-        em_px = int(math.ceil(fm.tightBoundingRect('m').width()))
-        em_range = list(range(3, 41))
-        self._col_width_levels = [em_px * width for width in em_range]
-        self._default_col_width_index = em_range.index(self._config['col_width'])
-        self._sheet_mgr.set_column_width_range(
-                -self._default_col_width_index,
-                len(self._col_width_levels) - self._default_col_width_index - 1)
-
-        # Apply default zoom level and column width
-        self._set_px_per_beat(self._zoom_levels[self._default_zoom_index])
-        self._set_column_width(self._col_width_levels[self._default_col_width_index])
-
     def _update_config(self):
         style_mgr = self._ui_model.get_style_manager()
         config = get_config_with_custom_style(style_mgr)
@@ -176,6 +153,29 @@ class SheetArea(QAbstractScrollArea, Updater):
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
         self._config.update(config)
+
+        fm = QFontMetrics(self._config['font'], self)
+        self._config['font_metrics'] = fm
+        self._config['tr_height'] = fm.tightBoundingRect('Ag').height() + 1
+
+        # Set zoom levels
+        px_per_beat = self._config['trs_per_beat'] * self._config['tr_height']
+        self._zoom_levels = utils.get_zoom_levels(
+                1, px_per_beat, tstamp.BEAT, self._config['zoom_factor'])
+        self._default_zoom_index = self._zoom_levels.index(px_per_beat)
+        self._sheet_mgr.set_zoom_range(
+                -self._default_zoom_index,
+                len(self._zoom_levels) - self._default_zoom_index - 1)
+
+        # Set column widths
+        fm = self._config['font_metrics']
+        em_px = int(math.ceil(fm.tightBoundingRect('m').width()))
+        em_range = list(range(3, 41))
+        self._col_width_levels = [em_px * width for width in em_range]
+        self._default_col_width_index = em_range.index(self._config['col_width'])
+        self._sheet_mgr.set_column_width_range(
+                -self._default_col_width_index,
+                len(self._col_width_levels) - self._default_col_width_index - 1)
 
         subcfgs = ('ruler', 'header', 'trigger', 'edit_cursor', 'area_selection', 'grid')
 
@@ -202,12 +202,11 @@ class SheetArea(QAbstractScrollArea, Updater):
         self._header.setFixedHeight(header_height)
         self._ruler.setFixedWidth(ruler_width)
 
-        fm = QFontMetrics(self._config['font'], self)
-        self._config['font_metrics'] = fm
-        self._config['tr_height'] = fm.tightBoundingRect('Ag').height() + 1
-
         self.viewport().set_config(self._config)
         self._header.set_total_width(self.viewport().width())
+
+        self._update_zoom()
+        self._update_column_width()
 
     def _set_px_per_beat(self, px_per_beat):
         self._ruler.set_px_per_beat(px_per_beat)

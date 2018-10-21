@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -156,6 +156,7 @@ class TriggerRenderer():
         painter.setPen(evtype_fg_colour or self._config['bg_colour'])
 
         # Draw fields
+        painter.setFont(self._config['font'])
         for i, field in enumerate(self._fields):
             painter.drawText(
                     QPoint(field['offset'], self._baseline_offset),

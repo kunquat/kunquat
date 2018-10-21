@@ -255,9 +255,9 @@ class FontButton(QPushButton, Updater):
         self.setText('{} {}'.format(*self._get_font()))
 
     def _change_desc(self):
-        font, selected = QFontDialog.getFont(
+        font, new_font_selected = QFontDialog.getFont(
                 QFont(*self._get_font()), self, 'Select default font')
-        if not selected:
+        if not new_font_selected:
             return
 
         font_family = font.family()
@@ -265,7 +265,10 @@ class FontButton(QPushButton, Updater):
         style_mgr = self._ui_model.get_style_manager()
         style_mgr.set_style_param('def_font_family', font_family)
         style_mgr.set_style_param('def_font_size', font_size)
-        self._updater.signal_update('signal_style_changed')
+        self._updater.signal_update(
+                'signal_style_changed',
+                'signal_sheet_zoom_range',
+                'signal_sheet_column_width')
 
 
 class StyleSlider(NumberSlider, Updater):

@@ -647,7 +647,8 @@ class ZoomButton(QPushButton, Updater):
                 new_zoom = self._sheet_mgr.get_zoom() + 1
             elif self._mode == 'out':
                 new_zoom = self._sheet_mgr.get_zoom() - 1
-            self._sheet_mgr.set_zoom(new_zoom)
+            if self._sheet_mgr.set_zoom(new_zoom):
+                self._updater.signal_update('signal_sheet_zoom')
         else:
             new_width = 0
             if self._mode == 'expand_w':

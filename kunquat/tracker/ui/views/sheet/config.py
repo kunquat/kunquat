@@ -15,7 +15,7 @@ import string
 
 from kunquat.tracker.ui.qt import *
 
-from kunquat.tracker.ui.views.utils import set_glyph_rel_width
+from kunquat.tracker.ui.views.utils import set_glyph_rel_width, get_default_font_info
 
 
 _HEADER_FONT = QFont(QFont().defaultFamily(), 11, QFont.Bold)
@@ -110,6 +110,13 @@ def get_config_with_custom_style(style_mgr):
     config['area_selection'] = {}
     config['grid'] = {}
 
+    ref_font_family, ref_font_size = get_default_font_info(style_mgr)
+
+    def _get_scaled_font(scale, *attrs):
+        scaled_font = QFont(ref_font_family, int(round(ref_font_size * scale)), *attrs)
+        scaled_font.setPointSizeF(ref_font_size * scale)
+        return scaled_font
+
     def _get_colour(s):
         if isinstance(s, QColor):
             return QColor(s)
@@ -122,6 +129,8 @@ def get_config_with_custom_style(style_mgr):
             assert False
         colour = [int(c, 16) for c in cs]
         return QColor(colour[0], colour[1], colour[2])
+
+    config['font'] = _get_scaled_font(1)
 
     canvas_bg_colour = _get_colour(style_mgr.get_style_param('sheet_canvas_bg_colour'))
     config['canvas_bg_colour'] = canvas_bg_colour
@@ -139,6 +148,7 @@ def get_config_with_custom_style(style_mgr):
             style_mgr.get_style_param('sheet_column_border_colour'))
 
     # Ruler
+    config['ruler']['font'] = _get_scaled_font(0.75)
     config['ruler']['canvas_bg_colour'] = canvas_bg_colour
     config['ruler']['bg_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_ruler_bg_colour'))
@@ -151,6 +161,7 @@ def get_config_with_custom_style(style_mgr):
     config['ruler']['disabled_colour'] = disabled_colour
 
     # Column headers
+    config['header']['font'] = _get_scaled_font(5 / 6, QFont.Bold)
     config['header']['bg_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_header_bg_colour'))
     config['header']['fg_colour'] = _get_colour(

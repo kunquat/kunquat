@@ -1841,6 +1841,14 @@ class View(QWidget):
             history = self._ui_model.get_sheet_history()
             history.redo()
 
+        def handle_zoom(new_zoom):
+            if self._sheet_mgr.set_zoom(new_zoom):
+                self._updater.signal_update('signal_sheet_zoom')
+
+        def handle_column_width(new_width):
+            if self._sheet_mgr.set_column_width(new_width):
+                self._updater.signal_update('signal_sheet_column_width')
+
         def handle_playback_marker():
             cur_location = self._ui_model.get_selection().get_location()
             cur_track = cur_location.get_track()
@@ -1860,22 +1868,20 @@ class View(QWidget):
             },
 
             int(Qt.ControlModifier): {
-                Qt.Key_Minus:   lambda: self._sheet_mgr.set_zoom(
-                                    self._sheet_mgr.get_zoom() - 1),
-                Qt.Key_Plus:    lambda: self._sheet_mgr.set_zoom(
-                                    self._sheet_mgr.get_zoom() + 1),
-                Qt.Key_0:       lambda: self._sheet_mgr.set_zoom(0),
+                Qt.Key_Minus:   lambda: handle_zoom(self._sheet_mgr.get_zoom() - 1),
+                Qt.Key_Plus:    lambda: handle_zoom(self._sheet_mgr.get_zoom() + 1),
+                Qt.Key_0:       lambda: handle_zoom(0),
             },
 
             int(Qt.ControlModifier | Qt.ShiftModifier): {
             },
 
             int(Qt.ControlModifier | Qt.AltModifier): {
-                Qt.Key_Minus:   lambda: self._sheet_mgr.set_column_width(
+                Qt.Key_Minus:   lambda: handle_column_width(
                                     self._sheet_mgr.get_column_width() - 1),
-                Qt.Key_Plus:    lambda: self._sheet_mgr.set_column_width(
+                Qt.Key_Plus:    lambda: handle_column_width(
                                     self._sheet_mgr.get_column_width() + 1),
-                Qt.Key_0:       lambda: self._sheet_mgr.set_column_width(0),
+                Qt.Key_0:       lambda: handle_column_width(0),
                 Qt.Key_Comma:   handle_playback_marker,
             },
 
