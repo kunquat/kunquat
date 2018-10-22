@@ -82,7 +82,6 @@ class IconButton(QToolButton, Updater):
 
     def __init__(self):
         super().__init__()
-        self._icon_path = None
         self._icon_image = None
 
         v = QVBoxLayout()
@@ -90,10 +89,12 @@ class IconButton(QToolButton, Updater):
 
     def _on_setup(self):
         super()._on_setup()
-        assert self._icon_path
+
+        icon_bank = self._ui_model.get_icon_bank()
+        icon_path = icon_bank.get_icon_path(self._get_icon_name())
 
         self._icon_image = QImage()
-        self._icon_image.load(self._icon_path)
+        self._icon_image.load(icon_path)
         self._icon_view = IconView(self._icon_image)
         self.layout().addWidget(self._icon_view)
 
@@ -109,6 +110,11 @@ class IconButton(QToolButton, Updater):
         self.layout().setContentsMargins(margin, margin, margin, margin)
         self.layout().addWidget(self._icon_view)
 
+    # Protected interface
+
+    def _get_icon_name(self):
+        raise NotImplementedError
+
 
 class PlayButton(IconButton):
 
@@ -118,10 +124,11 @@ class PlayButton(IconButton):
         self.setAutoRaise(True)
 
     def _on_setup(self):
-        icon_bank = self._ui_model.get_icon_bank()
-        self._icon_path = icon_bank.get_icon_path('play')
         super()._on_setup()
         self.clicked.connect(self._ui_model.play)
+
+    def _get_icon_name(self):
+        return 'play'
 
 
 class PlayPatternButton(IconButton):
@@ -132,10 +139,11 @@ class PlayPatternButton(IconButton):
         self.setAutoRaise(True)
 
     def _on_setup(self):
-        icon_bank = self._ui_model.get_icon_bank()
-        self._icon_path = icon_bank.get_icon_path('play_pattern')
         super()._on_setup()
         self.clicked.connect(self._ui_model.play_pattern)
+
+    def _get_icon_name(self):
+        return 'play_pattern'
 
 
 class PlayFromCursorButton(IconButton):
@@ -146,10 +154,11 @@ class PlayFromCursorButton(IconButton):
         self.setAutoRaise(True)
 
     def _on_setup(self):
-        icon_bank = self._ui_model.get_icon_bank()
-        self._icon_path = icon_bank.get_icon_path('play_from_cursor')
         super()._on_setup()
         self.clicked.connect(self._ui_model.play_from_cursor)
+
+    def _get_icon_name(self):
+        return 'play_from_cursor'
 
 
 class RecordButton(IconButton):
@@ -163,8 +172,6 @@ class RecordButton(IconButton):
         self.setAutoRaise(True)
 
     def _on_setup(self):
-        icon_bank = self._ui_model.get_icon_bank()
-        self._icon_path = icon_bank.get_icon_path('record')
         super()._on_setup()
         self.register_action('signal_record_mode', self._update_checked)
 
@@ -172,6 +179,9 @@ class RecordButton(IconButton):
         self._playback_mgr = self._ui_model.get_playback_manager()
 
         self.clicked.connect(self._clicked)
+
+    def _get_icon_name(self):
+        return 'record'
 
     def _update_checked(self):
         old_block = self.blockSignals(True)
@@ -198,12 +208,13 @@ class SilenceButton(IconButton):
         self.setAutoRaise(True)
 
     def _on_setup(self):
-        icon_bank = self._ui_model.get_icon_bank()
-        self._icon_path = icon_bank.get_icon_path('silence')
         super()._on_setup()
         self._playback_mgr = self._ui_model.get_playback_manager()
 
         self.clicked.connect(self._clicked)
+
+    def _get_icon_name(self):
+        return 'silence'
 
     def _clicked(self):
         self._playback_mgr.stop_recording()
