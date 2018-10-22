@@ -85,9 +85,18 @@ class IconButton(QToolButton, Updater):
         self._icon_path = None
         self._icon_image = None
 
+        v = QVBoxLayout()
+        self.setLayout(v)
+
     def _on_setup(self):
         super()._on_setup()
         assert self._icon_path
+
+        self._icon_image = QImage()
+        self._icon_image.load(self._icon_path)
+        self._icon_view = IconView(self._icon_image)
+        self.layout().addWidget(self._icon_view)
+
         self.register_action('signal_style_changed', self._update_style)
         self._update_style()
 
@@ -96,15 +105,9 @@ class IconButton(QToolButton, Updater):
         size = style_mgr.get_scaled_size(3.4)
         self.setFixedSize(QSize(size, size))
 
-        self._icon_image = QImage()
-        self._icon_image.load(self._icon_path)
-        view = IconView(self._icon_image)
-
-        v = QVBoxLayout()
         margin = style_mgr.get_scaled_size(0.62)
-        v.setContentsMargins(margin, margin, margin, margin)
-        v.addWidget(view)
-        self.setLayout(v)
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().addWidget(self._icon_view)
 
 
 class PlayButton(IconButton):
