@@ -20,6 +20,16 @@ def get_abs_window_size(width_norm, height_norm):
             int(screen_rect.width() * width_norm),
             int(screen_rect.height() * height_norm))
 
+def update_ref_font_height(font, style_mgr):
+    for w in QApplication.topLevelWidgets():
+        widget = w
+        break
+    else:
+        raise RuntimeError('Main window not found')
+
+    fm = QFontMetrics(QFont(*font), widget)
+    style_mgr.set_reference_font_height(fm.tightBoundingRect('E').height())
+
 def get_default_font():
     screen = QApplication.primaryScreen()
     dpi = screen.physicalDotsPerInch()

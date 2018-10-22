@@ -23,7 +23,7 @@ from .headerline import HeaderLine
 from .numberslider import NumberSlider
 from . import utils
 from .updater import Updater
-from .utils import get_abs_window_size, get_default_font_info
+from .utils import get_abs_window_size, get_default_font_info, update_ref_font_height
 
 
 class Settings(QWidget, Updater):
@@ -265,6 +265,8 @@ class FontButton(QPushButton, Updater):
         style_mgr = self._ui_model.get_style_manager()
         style_mgr.set_style_param('def_font_family', font_family)
         style_mgr.set_style_param('def_font_size', font_size)
+        update_ref_font_height((font_family, font_size), style_mgr)
+
         self._updater.signal_update(
                 'signal_style_changed',
                 'signal_sheet_zoom_range',

@@ -15,8 +15,7 @@ import os.path
 import re
 
 from kunquat.tracker.ui.qt import *
-from .mainwindow import MainWindow
-from .utils import get_default_font_info
+from .utils import update_ref_font_height, get_default_font_info
 
 
 class StyleCreator():
@@ -30,7 +29,7 @@ class StyleCreator():
 
         style_mgr = self._ui_model.get_style_manager()
         def_font = get_default_font_info(style_mgr)
-        self._check_update_ref_font_height(def_font)
+        update_ref_font_height(def_font, style_mgr)
 
     def unregister_updaters(self):
         pass
@@ -56,21 +55,6 @@ class StyleCreator():
     def _adjust_brightness(self, colour, add):
         return tuple(c + add for c in colour)
 
-    def _check_update_ref_font_height(self, font):
-        if font == self._ref_font:
-            return
-
-        for w in QApplication.topLevelWidgets():
-            if isinstance(w, MainWindow):
-                main_window = w
-                break
-        else:
-            raise RuntimeError('Main window not found')
-
-        fm = QFontMetrics(QFont(*font), main_window)
-        style_mgr = self._ui_model.get_style_manager()
-        style_mgr.set_reference_font_height(fm.tightBoundingRect('E').height())
-
     def get_updated_style_sheet(self):
         style_mgr = self._ui_model.get_style_manager()
 
@@ -80,9 +64,7 @@ class StyleCreator():
         icon_bank = self._ui_model.get_icon_bank()
 
         # Get font settings
-        def_font = get_default_font_info(style_mgr)
-        self._check_update_ref_font_height(def_font)
-        def_font_family, def_font_size = def_font
+        def_font_family, def_font_size = get_default_font_info(style_mgr)
 
         # Get pixel sizes
         pixel_size_params = [
