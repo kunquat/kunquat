@@ -684,10 +684,11 @@ class View(QWidget):
                         painter, self._config['trigger']['padding_x'], 0)
 
     def _get_hollow_replace_cursor_rect(self):
+        style_mgr = self._ui_model.get_style_manager()
         metrics = self._config['font_metrics']
         rect = metrics.tightBoundingRect('a') # Seems to produce an OK width
         rect.setTop(0)
-        rect.setBottom(self._config['tr_height'] - 3)
+        rect.setBottom(self._config['tr_height'] - style_mgr.get_scaled_size(0.2))
         return rect
 
     def _draw_hollow_replace_cursor(self, painter, x_offset, y_offset):
@@ -697,12 +698,18 @@ class View(QWidget):
         painter.drawRect(rect)
 
     def _draw_insert_cursor(self, painter, x_offset, y_offset):
-        rect = QRect(QPoint(0, 0), QPoint(2, self._config['tr_height'] - 2))
+        style_mgr = self._ui_model.get_style_manager()
+        width = style_mgr.get_scaled_size(0.2)
+        height = self._config['tr_height'] - style_mgr.get_scaled_size(0.15)
+        rect = QRect(QPoint(0, 0), QPoint(width, height))
         rect.translate(x_offset, y_offset)
         painter.fillRect(rect, self._config['trigger']['default_colour'])
 
     def _draw_hollow_insert_cursor(self, painter, x_offset, y_offset):
-        rect = QRect(QPoint(0, 0), QPoint(1, self._config['tr_height'] - 3))
+        style_mgr = self._ui_model.get_style_manager()
+        width = style_mgr.get_scaled_size(0.2)
+        height = self._config['tr_height'] - style_mgr.get_scaled_size(0.2)
+        rect = QRect(QPoint(0, 0), QPoint(width, height))
         rect.translate(x_offset, y_offset)
         painter.setPen(self._config['trigger']['default_colour'])
         painter.drawRect(rect)
