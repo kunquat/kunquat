@@ -90,7 +90,7 @@ class TriggerRenderer():
         image = QImage(
                 self._total_width,
                 self._config['tr_height'],
-                QImage.Format_ARGB32)
+                QImage.Format_ARGB32_Premultiplied)
         image.fill(0)
         painter = QPainter(image)
         painter.setCompositionMode(QPainter.CompositionMode_Plus)
