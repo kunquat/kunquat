@@ -145,6 +145,8 @@ class SheetArea(QAbstractScrollArea, Updater):
 
         self._update_config()
 
+        self._updater.signal_update('signal_sheet_zoom')
+
     def _update_config(self):
         style_mgr = self._ui_model.get_style_manager()
         config = get_config_with_custom_style(style_mgr)
