@@ -584,6 +584,17 @@ QToolBar::separator
     width: 0;
 }
 
+QFrame#HackSeparator
+{
+    border: <border_thin_width> solid;
+    border-top-color: <bg_colour_dark>;
+    border-left-color: <bg_colour_dark>;
+    border-right-color: <bg_colour_light>;
+    border-bottom-color: <bg_colour_light>;
+    padding: 0;
+    width: 0;
+}
+
 QTreeView::branch
 {
     background-color: transparent;
