@@ -139,6 +139,8 @@ def get_config_with_custom_style(style_mgr):
             style_mgr.get_style_param('sheet_column_bg_colour'))
     config['border_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_column_border_colour'))
+    config['border_width'] = style_mgr.get_scaled_size(
+            style_mgr.get_style_param('border_thin_width'))
 
     # Ruler
     config['ruler']['font'] = get_scaled_font(style_mgr, 0.75)
@@ -152,6 +154,10 @@ def get_config_with_custom_style(style_mgr):
     config['ruler']['play_marker_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_ruler_playback_marker_colour'))
     config['ruler']['disabled_colour'] = disabled_colour
+    config['ruler']['line_min_dist'] = style_mgr.get_scaled_size(0.3)
+    config['ruler']['line_len_short'] = style_mgr.get_scaled_size(0.3)
+    config['ruler']['line_len_long'] = style_mgr.get_scaled_size(0.6)
+    config['ruler']['num_min_dist'] = style_mgr.get_scaled_size(3.0)
 
     # Column headers
     config['header']['font'] = get_scaled_font(style_mgr, 5 / 6, QFont.Bold)
@@ -162,6 +168,7 @@ def get_config_with_custom_style(style_mgr):
     solo_colour = _get_colour(style_mgr.get_style_param('sheet_header_solo_colour'))
     solo_colour.setAlpha(0x7f)
     config['header']['solo_colour'] = solo_colour
+    config['header']['padding_x'] = style_mgr.get_scaled_size(0.2)
 
     # Triggers
     config['trigger']['default_colour'] = _get_colour(
@@ -176,6 +183,7 @@ def get_config_with_custom_style(style_mgr):
             style_mgr.get_style_param('sheet_trigger_warning_bg_colour'))
     config['trigger']['warning_fg_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_trigger_warning_fg_colour'))
+    config['trigger']['padding'] = style_mgr.get_scaled_size(0.3)
 
     # Cursor
     config['edit_cursor']['view_line_colour'] = _get_colour(
@@ -186,6 +194,7 @@ def get_config_with_custom_style(style_mgr):
     config['edit_cursor']['guide_colour'] = guide_colour
     config['play_cursor_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_playback_cursor_colour'))
+    config['edit_cursor']['min_snap_dist'] = style_mgr.get_scaled_size(10.0)
 
     # Area selection
     asc = _get_colour(style_mgr.get_style_param('sheet_area_selection_colour'))
@@ -205,6 +214,8 @@ def get_config_with_custom_style(style_mgr):
     for i in range(9):
         grid_styles[i].setColor(grid_colours[i // 3])
     grid_edit_cursor = DEFAULT_CONFIG['grid']['edit_cursor'].copy()
+    grid_edit_cursor['height'] = style_mgr.get_scaled_size(0.9)
+    grid_edit_cursor['width'] = style_mgr.get_scaled_size(1.1)
     grid_edit_cursor['colour'] = elc
     config['grid']['styles'] = grid_styles
     config['grid']['edit_cursor'] = grid_edit_cursor
