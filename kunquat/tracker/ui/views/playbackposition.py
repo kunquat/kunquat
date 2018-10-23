@@ -37,7 +37,6 @@ class PlaybackPosition(QWidget):
     utils.set_glyph_rel_width(_REM_FONT, QWidget, _REF_NUM_STR, 53.25)
 
     _TITLE_FONT = QFont(QFont().defaultFamily(), 5, QFont.Bold)
-    utils.set_glyph_rel_width(_TITLE_FONT, QWidget, 'TRACKSYSTEMPATTERNROW', 20.4)
 
     _DEFAULT_CONFIG = {
         'padding_x'      : 9,
@@ -110,15 +109,23 @@ class PlaybackPosition(QWidget):
             self.update()
             return
 
+        num_font = utils.get_scaled_font(style_mgr, 1.6, QFont.Bold)
+        utils.set_glyph_rel_width(num_font, QWidget, _REF_NUM_STR, 51.875)
+        sub_font = utils.get_scaled_font(style_mgr, 0.9, QFont.Bold)
+        utils.set_glyph_rel_width(sub_font, QWidget, _REF_NUM_STR, 56)
+        rem_font = utils.get_scaled_font(style_mgr, 1.2, QFont.Bold)
+        utils.set_glyph_rel_width(rem_font, QWidget, _REF_NUM_STR, 53.25)
+        title_font = utils.get_scaled_font(style_mgr, 0.5, QFont.Bold)
+
         config = {
             'padding_x' : style_mgr.get_scaled_size(1),
             'padding_y' : 0,
             'spacing'   : style_mgr.get_scaled_size(0.2),
             'icon_width': style_mgr.get_scaled_size(1.4),
-            'num_font'  : utils.get_scaled_font(style_mgr, 1.6, QFont.Bold),
-            'sub_font'  : utils.get_scaled_font(style_mgr, 0.9, QFont.Bold),
-            'rem_font'  : utils.get_scaled_font(style_mgr, 1.2, QFont.Bold),
-            'title_font': utils.get_scaled_font(style_mgr, 0.5, QFont.Bold),
+            'num_font'  : num_font,
+            'sub_font'  : sub_font,
+            'rem_font'  : rem_font,
+            'title_font': title_font,
 
             'bg_colour':
                 QColor(style_mgr.get_style_param('position_bg_colour')),
@@ -513,7 +520,7 @@ class PlaybackPosition(QWidget):
 
         painter.setClipping(False)
         painter.drawPixmap(
-                style_mgr.get_scaled_size(0.1, 0), title_y, self._titles['track'])
+                style_mgr.get_scaled_size(0, 0), title_y, self._titles['track'])
 
         # System number
         shift_x()
@@ -526,7 +533,7 @@ class PlaybackPosition(QWidget):
 
         painter.setClipping(False)
         painter.drawPixmap(
-                style_mgr.get_scaled_size(0.3, 0), title_y, self._titles['system'])
+                style_mgr.get_scaled_size(0.2, 0), title_y, self._titles['system'])
 
         # Pattern instance
         shift_x()
@@ -578,7 +585,7 @@ class PlaybackPosition(QWidget):
 
         painter.setClipping(False)
         painter.drawPixmap(
-                -style_mgr.get_scaled_size(2.0, 0), title_y, self._titles['pattern'])
+                -style_mgr.get_scaled_size(1.9, 0), title_y, self._titles['pattern'])
 
         # Timestamp
         beats, rem = row_ts
