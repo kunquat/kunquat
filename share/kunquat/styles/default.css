@@ -186,6 +186,7 @@ QComboBox:disabled
 
 QComboBox::down-arrow
 {
+    width: <combobox_arrow_size>;
     image: url(<icons_path>/arrow_down_tiny.png);
 }
 

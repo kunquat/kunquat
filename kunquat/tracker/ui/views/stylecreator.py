@@ -72,6 +72,7 @@ class StyleCreator():
             'border_thick_width',
             'border_thin_radius',
             'border_thin_width',
+            'combobox_arrow_size',
             'combobox_button_size',
             'dialog_button_width',
             'large_padding',

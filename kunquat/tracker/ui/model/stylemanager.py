@@ -27,6 +27,7 @@ class StyleManager():
         'border_thick_width'                : 0.2,
         'border_thin_radius'                : 0.2,
         'border_thin_width'                 : 0.1,
+        'combobox_arrow_size'               : 0.8,
         'combobox_button_size'              : 0.6,
         'dialog_button_width'               : 9.0,
         'large_padding'                     : 0.8,
