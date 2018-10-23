@@ -198,7 +198,7 @@ class TriggerRenderer():
         metrics = self._config['font_metrics']
         padding = self._config['trigger']['padding']
 
-        self._baseline_offset = metrics.tightBoundingRect('A').height()
+        self._baseline_offset = metrics.tightBoundingRect('A').height() + padding
 
         self._fields = []
 

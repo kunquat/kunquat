@@ -158,7 +158,8 @@ class SheetArea(QAbstractScrollArea, Updater):
 
         fm = QFontMetrics(self._config['font'], self)
         self._config['font_metrics'] = fm
-        self._config['tr_height'] = fm.tightBoundingRect('Ag').height() + 1
+        self._config['tr_height'] = (fm.tightBoundingRect('A').height() +
+                self._config['trigger']['padding'] * 2)
 
         # Set zoom levels
         px_per_beat = self._config['trs_per_beat'] * self._config['tr_height']
