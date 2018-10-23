@@ -53,6 +53,8 @@ DEFAULT_CONFIG = {
             'padding'            : 4,
             'button_width'       : 44,
             'button_padding'     : 2,
+            'hilight_border'     : 2,
+            'hilight_padding'    : 2,
             'instrument': {
                 'bg_colours'       : [QColor('#335'), QColor('#668'), QColor('#002')],
                 'fg_colour'        : QColor(0xdd, 0xee, 0xff),
@@ -452,9 +454,24 @@ class ConnectionsView(QWidget):
         pv_hilight_excluded = utils.lerp_colour(pv_hilight_selected, bg_colour, 0.5)
         pv_hilight_excluded_focused = utils.lerp_colour(focus_colour, bg_colour, 0.5)
 
+        title_font = utils.get_scaled_font(style_mgr, 0.9, QFont.Bold)
+        utils.set_glyph_rel_width(title_font, QWidget, string.ascii_lowercase, 15.92)
+        port_font = utils.get_scaled_font(style_mgr, 0.7, QFont.Bold)
+        utils.set_glyph_rel_width(port_font, QWidget, string.ascii_lowercase, 15.92)
+
         devices = {
-            'port_colour': get_colour('conns_port_colour'),
-            'focused_port_colour': focus_colour,
+            'width'                 : style_mgr.get_scaled_size(10.5),
+            'title_font'            : title_font,
+            'port_font'             : port_font,
+            'port_handle_size'      : style_mgr.get_scaled_size(0.55),
+            'port_focus_dist_max'   : style_mgr.get_scaled_size(0.55, 4),
+            'port_colour'           : get_colour('conns_port_colour'),
+            'focused_port_colour'   : focus_colour,
+            'padding'               : style_mgr.get_scaled_size_param('medium_padding'),
+            'button_width'          : style_mgr.get_scaled_size(4.5),
+            'button_padding'        : style_mgr.get_scaled_size_param('small_padding'),
+            'hilight_border'        : style_mgr.get_scaled_size(0.2),
+            'hilight_padding'       : style_mgr.get_scaled_size(0.2),
             'instrument': {
                 'bg_colours': get_outset_colours('conns_inst_bg_colour'),
                 'fg_colour': get_colour('conns_inst_fg_colour'),
@@ -499,6 +516,10 @@ class ConnectionsView(QWidget):
                 QColor(style_mgr.get_style_param('conns_focus_colour')),
             'invalid_port_colour':
                 QColor(style_mgr.get_style_param('conns_invalid_port_colour')),
+            'focused_edge_width'        : style_mgr.get_scaled_size(0.3),
+            'edge_focus_dist_max'       : style_mgr.get_scaled_size(0.6, 4),
+            'invalid_port_line_width'   : style_mgr.get_scaled_size(0.3),
+            'invalid_port_marker_size'  : style_mgr.get_scaled_size(1.2),
 
             'devices': devices,
         }
@@ -1625,11 +1646,11 @@ class Device():
         assert self._id.startswith('proc')
         painter.save()
 
-        extent = 4
+        extent = self._config['hilight_border'] + self._config['hilight_padding']
 
         colour = self._type_config[highlight_mode]
         pen = QPen(colour)
-        pen.setWidth(2)
+        pen.setWidth(self._config['hilight_border'])
         painter.setPen(pen)
         if 'excluded' in highlight_mode: # TODO: clean up
             painter.setBrush(QColor(0, 0, 0, 0x77))
