@@ -46,10 +46,20 @@ class InputControls(QWidget, Updater):
         self.add_to_updaters(
                 self._full_controls, self._compact_controls, self._switch_button)
         self.register_action('signal_input_control_layout', self._show_controls)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._switch_button.clicked.connect(self._switch_controls)
 
+        self._update_style()
         self._show_controls()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        layout = self.layout()
+        small_pad = style_mgr.get_scaled_size_param('small_padding')
+        medium_pad = style_mgr.get_scaled_size_param('medium_padding')
+        layout.setContentsMargins(medium_pad, small_pad, medium_pad, small_pad)
+        layout.setSpacing(medium_pad)
 
     def _show_controls(self):
         visibility_mgr = self._ui_model.get_visibility_manager()
@@ -107,5 +117,13 @@ class CompactControls(QWidget, Updater):
         h.addWidget(self._octave_selector)
         h.addStretch()
         self.setLayout(h)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('large_padding'))
 
 

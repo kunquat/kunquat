@@ -192,6 +192,10 @@ class StyleManager():
         ref_height = self._session.get_reference_font_height()
         return max(min_size, int(round(size_norm * ref_height)))
 
+    def get_scaled_size_param(self, size_param, min_size=1):
+        size_norm = self.get_style_param(size_param)
+        return self.get_scaled_size(size_norm, min_size)
+
     def get_adjusted_colour(self, param, brightness):
         orig_colour = self._get_colour_from_str(self.get_style_param(param))
         adjusted_colour = (c + brightness for c in orig_colour)
