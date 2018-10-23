@@ -48,32 +48,28 @@ class IconButton(QPushButton, Updater):
         super().__init__()
         self._size = size
         self._padding = padding
-        self._icon_image = None
 
         v = QVBoxLayout()
         self.setLayout(v)
 
     def _on_setup(self):
         super()._on_setup()
-
-        icon_bank = self._ui_model.get_icon_bank()
-        icon_path = icon_bank.get_icon_path(self._get_icon_name())
-
-        self._icon_image = QImage()
-        self._icon_image.load(icon_path)
-        self._icon_image = self._icon_image.convertToFormat(
-                QImage.Format_ARGB32_Premultiplied)
-        self._icon_view = _IconView(self, self._icon_image)
-        self.layout().addWidget(self._icon_view)
-
         self.register_action('signal_style_changed', self._update_style)
         self._update_style()
 
-    def setEnabled(self, enabled):
-        update_icon_view = (enabled != self.isEnabled())
-        super().setEnabled(enabled)
-        if update_icon_view:
-            self._icon_view.update()
+    def set_icon(self, icon_name):
+        icon_bank = self._ui_model.get_icon_bank()
+        icon_path = icon_bank.get_icon_path(icon_name)
+
+        icon_image = QImage()
+        icon_image.load(icon_path)
+        icon_image = icon_image.convertToFormat(QImage.Format_ARGB32_Premultiplied)
+        icon_view = _IconView(self, icon_image)
+
+        old_item = self.layout().takeAt(0)
+        if old_item and old_item.widget():
+            old_item.widget().deleteLater()
+        self.layout().addWidget(icon_view)
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
@@ -82,11 +78,6 @@ class IconButton(QPushButton, Updater):
 
         margin = style_mgr.get_scaled_size(self._padding)
         self.layout().setContentsMargins(margin, margin, margin, margin)
-        self.layout().addWidget(self._icon_view)
-
-    # Protected interface
-
-    def _get_icon_name(self):
-        raise NotImplementedError
+        self.update()
 
 

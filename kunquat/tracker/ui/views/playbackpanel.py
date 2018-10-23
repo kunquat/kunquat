@@ -70,10 +70,8 @@ class PlayButton(IconButton):
 
     def _on_setup(self):
         super()._on_setup()
+        self.set_icon('play')
         self.clicked.connect(self._ui_model.play)
-
-    def _get_icon_name(self):
-        return 'play'
 
 
 class PlayPatternButton(IconButton):
@@ -85,10 +83,8 @@ class PlayPatternButton(IconButton):
 
     def _on_setup(self):
         super()._on_setup()
+        self.set_icon('play_pattern')
         self.clicked.connect(self._ui_model.play_pattern)
-
-    def _get_icon_name(self):
-        return 'play_pattern'
 
 
 class PlayFromCursorButton(IconButton):
@@ -100,10 +96,8 @@ class PlayFromCursorButton(IconButton):
 
     def _on_setup(self):
         super()._on_setup()
+        self.set_icon('play_from_cursor')
         self.clicked.connect(self._ui_model.play_from_cursor)
-
-    def _get_icon_name(self):
-        return 'play_from_cursor'
 
 
 class RecordButton(IconButton):
@@ -118,15 +112,15 @@ class RecordButton(IconButton):
 
     def _on_setup(self):
         super()._on_setup()
+
+        self.set_icon('record')
+
         self.register_action('signal_record_mode', self._update_checked)
 
         self._sheet_mgr = self._ui_model.get_sheet_manager()
         self._playback_mgr = self._ui_model.get_playback_manager()
 
         self.clicked.connect(self._clicked)
-
-    def _get_icon_name(self):
-        return 'record'
 
     def _update_checked(self):
         old_block = self.blockSignals(True)
@@ -156,10 +150,9 @@ class SilenceButton(IconButton):
         super()._on_setup()
         self._playback_mgr = self._ui_model.get_playback_manager()
 
-        self.clicked.connect(self._clicked)
+        self.set_icon('silence')
 
-    def _get_icon_name(self):
-        return 'silence'
+        self.clicked.connect(self._clicked)
 
     def _clicked(self):
         self._playback_mgr.stop_recording()

@@ -129,12 +129,10 @@ class FollowPlaybackButton(IconButton):
 
     def _on_setup(self):
         super()._on_setup()
+        self.set_icon('follow_playback')
         self.register_action('signal_follow_playback', self._update_playback_following)
         self.clicked.connect(self._toggle_playback_following)
         self._update_playback_following()
-
-    def _get_icon_name(self):
-        return 'follow_playback'
 
     def _update_playback_following(self):
         playback_mgr = self._ui_model.get_playback_manager()
@@ -177,6 +175,8 @@ class EditButton(IconButton):
 
     def _on_setup(self):
         super()._on_setup()
+        self.set_icon('edit')
+
         self.register_action('signal_edit_mode', self._update_state)
         self.register_action('signal_play', self._update_state)
         self.register_action('signal_silence', self._update_state)
@@ -185,9 +185,6 @@ class EditButton(IconButton):
         self._sheet_mgr = self._ui_model.get_sheet_manager()
 
         self.clicked.connect(self._clicked)
-
-    def _get_icon_name(self):
-        return 'edit'
 
     def _update_state(self):
         old_block = self.blockSignals(True)
@@ -214,6 +211,8 @@ class ReplaceButton(IconButton):
 
     def _on_setup(self):
         super()._on_setup()
+        self.set_icon('replace')
+
         self.register_action('signal_replace_mode', self._update_state)
         self.register_action('signal_play', self._update_state)
         self.register_action('signal_silence', self._update_state)
@@ -222,9 +221,6 @@ class ReplaceButton(IconButton):
         self._sheet_mgr = self._ui_model.get_sheet_manager()
 
         self.clicked.connect(self._clicked)
-
-    def _get_icon_name(self):
-        return 'replace'
 
     def _update_state(self):
         old_block = self.blockSignals(True)
@@ -250,6 +246,8 @@ class RestButton(IconButton):
 
     def _on_setup(self):
         super()._on_setup()
+        self.set_icon('rest')
+
         self.register_action('signal_module', self._update_enabled)
         self.register_action('signal_edit_mode', self._update_enabled)
         self.register_action('signal_play', self._update_enabled)
@@ -258,9 +256,6 @@ class RestButton(IconButton):
         self._sheet_mgr = self._ui_model.get_sheet_manager()
 
         self.clicked.connect(self._clicked)
-
-    def _get_icon_name(self):
-        return 'rest'
 
     def _update_enabled(self):
         if (not self._sheet_mgr.is_editing_enabled() or
@@ -292,6 +287,8 @@ class DelSelectionButton(IconButton):
 
     def _on_setup(self):
         super()._on_setup()
+        self.set_icon('delete')
+
         self.register_action('signal_selection', self._update_enabled)
         self.register_action('signal_module', self._update_enabled)
         self.register_action('signal_column', self._update_enabled)
@@ -301,9 +298,6 @@ class DelSelectionButton(IconButton):
 
         self._update_enabled()
         self.clicked.connect(self._clicked)
-
-    def _get_icon_name(self):
-        return 'delete'
 
     def _update_enabled(self):
         if not self._sheet_mgr.is_editing_enabled():
@@ -337,6 +331,8 @@ class UndoButton(IconButton):
 
     def _on_setup(self):
         super()._on_setup()
+        self.set_icon('undo')
+
         self.register_action('signal_sheet_undo', self._update_enabled)
         self.register_action('signal_sheet_redo', self._update_enabled)
         self.register_action('signal_selection', self._update_enabled)
@@ -350,9 +346,6 @@ class UndoButton(IconButton):
         self.clicked.connect(self._undo)
 
         self._update_enabled()
-
-    def _get_icon_name(self):
-        return 'undo'
 
     def _update_enabled(self):
         playback_mgr = self._ui_model.get_playback_manager()
@@ -374,6 +367,8 @@ class RedoButton(IconButton):
 
     def _on_setup(self):
         super()._on_setup()
+        self.set_icon('redo')
+
         self.register_action('signal_sheet_undo', self._update_enabled)
         self.register_action('signal_sheet_redo', self._update_enabled)
         self.register_action('signal_selection', self._update_enabled)
@@ -387,9 +382,6 @@ class RedoButton(IconButton):
         self.clicked.connect(self._redo)
 
         self._update_enabled()
-
-    def _get_icon_name(self):
-        return 'redo'
 
     def _update_enabled(self):
         playback_mgr = self._ui_model.get_playback_manager()
@@ -424,6 +416,8 @@ class CutOrCopyButton(IconButton):
 
     def _on_setup(self):
         super()._on_setup()
+        self.set_icon(self._button_type)
+
         self.register_action('signal_selection', self._update_enabled)
         self.register_action('signal_edit_mode', self._update_enabled)
         self.register_action('signal_play', self._update_enabled)
@@ -434,9 +428,6 @@ class CutOrCopyButton(IconButton):
         self.clicked.connect(self._cut_or_copy)
 
         self._update_enabled()
-
-    def _get_icon_name(self):
-        return self._button_type
 
     def _update_enabled(self):
         selection = self._ui_model.get_selection()
@@ -482,6 +473,8 @@ class PasteButton(IconButton):
 
     def _on_setup(self):
         super()._on_setup()
+        self.set_icon('paste')
+
         self.register_action('signal_selection', self._update_enabled)
         self.register_action('signal_edit_mode', self._update_enabled)
         self.register_action('signal_play', self._update_enabled)
@@ -495,9 +488,6 @@ class PasteButton(IconButton):
         self.clicked.connect(self._paste)
 
         self._update_enabled_full()
-
-    def _get_icon_name(self):
-        return 'paste'
 
     def _update_enabled_full(self):
         self._has_valid_data = utils.is_clipboard_area_valid(self._sheet_mgr)
@@ -528,6 +518,8 @@ class ConvertTriggerButton(IconButton):
 
     def _on_setup(self):
         super()._on_setup()
+        self.set_icon('convert_trigger')
+
         self.register_action('signal_selection', self._update_enabled)
         self.register_action('signal_edit_mode', self._update_enabled)
         self.register_action('signal_play', self._update_enabled)
@@ -536,9 +528,6 @@ class ConvertTriggerButton(IconButton):
         self.clicked.connect(self._convert_trigger)
 
         self._update_enabled()
-
-    def _get_icon_name(self):
-        return 'convert_trigger'
 
     def _update_enabled(self):
         sheet_mgr = self._ui_model.get_sheet_manager()
@@ -574,6 +563,8 @@ class ZoomButton(IconButton):
 
     def _on_setup(self):
         super()._on_setup()
+        self.set_icon(ZoomButton.INFO[self._mode][1])
+
         self.register_action('signal_sheet_zoom', self._update_enabled)
         self.register_action('signal_sheet_zoom_range', self._update_enabled)
         self.register_action('signal_sheet_column_width', self._update_enabled)
@@ -582,9 +573,6 @@ class ZoomButton(IconButton):
 
         self._update_enabled()
         self.clicked.connect(self._clicked)
-
-    def _get_icon_name(self):
-        return ZoomButton.INFO[self._mode][1]
 
     def _update_enabled(self):
         zoom = self._sheet_mgr.get_zoom()
@@ -632,7 +620,8 @@ class ZoomButton(IconButton):
                 new_width = self._sheet_mgr.get_column_width() + 1
             elif self._mode == 'shrink_w':
                 new_width = self._sheet_mgr.get_column_width() - 1
-            self._sheet_mgr.set_column_width(new_width)
+            if self._sheet_mgr.set_column_width(new_width):
+                self._updater.signal_update('signal_sheet_column_width')
 
 
 class GridToggle(QCheckBox, Updater):
