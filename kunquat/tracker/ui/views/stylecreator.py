@@ -77,6 +77,7 @@ class StyleCreator():
             'dialog_button_width',
             'large_padding',
             'medium_padding',
+            'menu_arrow_size',
             'radio_border_radius',
             'radio_check_size',
             'radio_check_spacing',

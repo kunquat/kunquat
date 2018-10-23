@@ -32,6 +32,7 @@ class StyleManager():
         'dialog_button_width'               : 9.0,
         'large_padding'                     : 0.8,
         'medium_padding'                    : 0.4,
+        'menu_arrow_size'                   : 1.0,
         'radio_border_radius'               : 0.499,
         'radio_check_size'                  : 1.0,
         'radio_check_spacing'               : 0.5,

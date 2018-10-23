@@ -223,6 +223,7 @@ QToolButton:checked:pressed
 
 QPushButton::menu-indicator, QToolButton::menu-indicator
 {
+    width: <menu_arrow_size>;
     image: url(<icons_path>/arrow_down_tiny.png);
 }
 
