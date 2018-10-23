@@ -121,7 +121,7 @@ class PlaybackPosition(QWidget):
             'padding_x' : style_mgr.get_scaled_size(1),
             'padding_y' : 0,
             'spacing'   : style_mgr.get_scaled_size(0.2),
-            'icon_width': style_mgr.get_scaled_size(1.4),
+            'icon_width': style_mgr.get_scaled_size(1.6),
             'num_font'  : num_font,
             'sub_font'  : sub_font,
             'rem_font'  : rem_font,
