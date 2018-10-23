@@ -65,7 +65,8 @@ DEFAULT_CONFIG = {
         'note_off_colour'  : QColor(0xcc, 0x99, 0x66),
         'warning_bg_colour': QColor(0xee, 0x33, 0x11),
         'warning_fg_colour': QColor(0xff, 0xff, 0xcc),
-        'padding'          : 3,
+        'padding_x'        : 6,
+        'padding_y'        : 3,
     },
     'edit_cursor': {
         'view_line_colour': QColor(0xdd, 0xee, 0xff),
@@ -183,7 +184,8 @@ def get_config_with_custom_style(style_mgr):
             style_mgr.get_style_param('sheet_trigger_warning_bg_colour'))
     config['trigger']['warning_fg_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_trigger_warning_fg_colour'))
-    config['trigger']['padding'] = style_mgr.get_scaled_size(0.3)
+    config['trigger']['padding_x'] = style_mgr.get_scaled_size(0.5, 0)
+    config['trigger']['padding_y'] = style_mgr.get_scaled_size(0.3, 0)
 
     # Cursor
     config['edit_cursor']['view_line_colour'] = _get_colour(
