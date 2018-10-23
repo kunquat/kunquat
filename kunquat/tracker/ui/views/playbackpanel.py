@@ -14,6 +14,7 @@
 from kunquat.tracker.ui.qt import *
 
 import kunquat.tracker.cmdline as cmdline
+from .iconbutton import IconButton
 from .playbackposition import PlaybackPosition
 from .updater import Updater
 
@@ -56,72 +57,16 @@ class PlaybackPanel(QToolBar, Updater):
         super().addWidget(widget)
 
 
-class IconView(QWidget):
-
-    def __init__(self, image):
-        super().__init__()
-        self._image = image
-
-    def paintEvent(self, event):
-        if not self._image:
-            return
-
-        width = self.width()
-        height = self.height()
-
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.SmoothPixmapTransform)
-
-        img_rect = QRectF(0, 0, width, height)
-        painter.drawImage(img_rect, self._image)
-
-        painter.end()
-
-
-class IconButton(QToolButton, Updater):
-
-    def __init__(self):
-        super().__init__()
-        self._icon_image = None
-
-        v = QVBoxLayout()
-        self.setLayout(v)
-
-    def _on_setup(self):
-        super()._on_setup()
-
-        icon_bank = self._ui_model.get_icon_bank()
-        icon_path = icon_bank.get_icon_path(self._get_icon_name())
-
-        self._icon_image = QImage()
-        self._icon_image.load(icon_path)
-        self._icon_view = IconView(self._icon_image)
-        self.layout().addWidget(self._icon_view)
-
-        self.register_action('signal_style_changed', self._update_style)
-        self._update_style()
-
-    def _update_style(self):
-        style_mgr = self._ui_model.get_style_manager()
-        size = style_mgr.get_scaled_size(3.4)
-        self.setFixedSize(QSize(size, size))
-
-        margin = style_mgr.get_scaled_size(0.62)
-        self.layout().setContentsMargins(margin, margin, margin, margin)
-        self.layout().addWidget(self._icon_view)
-
-    # Protected interface
-
-    def _get_icon_name(self):
-        raise NotImplementedError
+_BUTTON_SIZE = 3.4
+_BUTTON_PADDING = 0.62
 
 
 class PlayButton(IconButton):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(_BUTTON_SIZE, _BUTTON_PADDING)
         self.setToolTip('Play (Comma)')
-        self.setAutoRaise(True)
+        self.setFlat(True)
 
     def _on_setup(self):
         super()._on_setup()
@@ -134,9 +79,9 @@ class PlayButton(IconButton):
 class PlayPatternButton(IconButton):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(_BUTTON_SIZE, _BUTTON_PADDING)
         self.setToolTip('Play Pattern (Ctrl + Comma)')
-        self.setAutoRaise(True)
+        self.setFlat(True)
 
     def _on_setup(self):
         super()._on_setup()
@@ -149,9 +94,9 @@ class PlayPatternButton(IconButton):
 class PlayFromCursorButton(IconButton):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(_BUTTON_SIZE, _BUTTON_PADDING)
         self.setToolTip('Play from Cursor (Alt + Comma)')
-        self.setAutoRaise(True)
+        self.setFlat(True)
 
     def _on_setup(self):
         super()._on_setup()
@@ -164,12 +109,12 @@ class PlayFromCursorButton(IconButton):
 class RecordButton(IconButton):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(_BUTTON_SIZE, _BUTTON_PADDING)
         self._sheet_mgr = None
         self._playback_mgr = None
 
         self.setCheckable(True)
-        self.setAutoRaise(True)
+        self.setFlat(True)
 
     def _on_setup(self):
         super()._on_setup()
@@ -201,11 +146,11 @@ class RecordButton(IconButton):
 class SilenceButton(IconButton):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(_BUTTON_SIZE, _BUTTON_PADDING)
         self._playback_mgr = None
 
         self.setToolTip('Silence (Period)')
-        self.setAutoRaise(True)
+        self.setFlat(True)
 
     def _on_setup(self):
         super()._on_setup()
