@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2014-2017
+#          Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -21,18 +21,23 @@ from .updater import Updater
 
 class Typewriter(QFrame, Updater):
 
-    _PAD = 35
-
     def __init__(self):
         super().__init__()
         self._typewriter_mgr = None
         self._keyboard_mapper = KeyboardMapper()
+        self._pad = 35
 
     def _on_setup(self):
         self.add_to_updaters(self._keyboard_mapper)
         self.register_action('signal_change', self._update_button_leds)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._typewriter_mgr = self._ui_model.get_typewriter_manager()
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._pad = style_mgr.get_scaled_size(2.9)
         self.setLayout(self._get_layout())
 
     def _get_layout(self):
@@ -47,7 +52,7 @@ class Typewriter(QFrame, Updater):
         row = QHBoxLayout()
         row.setSpacing(4)
 
-        pad_px = self._PAD * self._typewriter_mgr.get_pad_factor_at_row(index)
+        pad_px = self._pad * self._typewriter_mgr.get_pad_factor_at_row(index)
         row.addWidget(self._get_pad(pad_px))
 
         for i in range(self._typewriter_mgr.get_button_count_at_row(index)):
