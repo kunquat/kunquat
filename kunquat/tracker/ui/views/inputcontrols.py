@@ -14,6 +14,7 @@
 from kunquat.tracker.ui.qt import *
 
 from .hitmaptoggle import HitMapToggle
+from .iconbutton import IconButton
 from .notationselect import NotationSelect
 from .octaveselector import OctaveSelector
 from .typewriterpanel import TypewriterPanel
@@ -26,10 +27,8 @@ class InputControls(QWidget, Updater):
         super().__init__()
         self._full_controls = TypewriterPanel()
         self._compact_controls = CompactControls()
-        self._switch_button = QPushButton()
+        self._switch_button = IconButton(2.2, 0.5)
         self._switch_button.setFocusPolicy(Qt.NoFocus)
-        self._switch_button.setStyleSheet('QPushButton { margin: 0; padding: -2px; }')
-        self._switch_button.setIconSize(QSize(24, 24))
 
         self._controls = ControlLayout()
         self._controls.setContentsMargins(0, 0, 0, 0)
@@ -44,7 +43,8 @@ class InputControls(QWidget, Updater):
         self.setLayout(h)
 
     def _on_setup(self):
-        self.add_to_updaters(self._full_controls, self._compact_controls)
+        self.add_to_updaters(
+                self._full_controls, self._compact_controls, self._switch_button)
         self.register_action('signal_input_control_layout', self._show_controls)
 
         self._switch_button.clicked.connect(self._switch_controls)
@@ -57,13 +57,11 @@ class InputControls(QWidget, Updater):
         view_mode = visibility_mgr.get_input_control_view()
         if view_mode == 'full':
             self._controls.setCurrentIndex(0)
-            icon_path = icon_bank.get_icon_path('input_compact')
-            self._switch_button.setIcon(QIcon(icon_path))
+            self._switch_button.set_icon('input_compact')
             self._switch_button.setToolTip('Compact input view')
         elif view_mode == 'compact':
             self._controls.setCurrentIndex(1)
-            icon_path = icon_bank.get_icon_path('input_full')
-            self._switch_button.setIcon(QIcon(icon_path))
+            self._switch_button.set_icon('input_full')
             self._switch_button.setToolTip('Full input view')
         else:
             assert False
