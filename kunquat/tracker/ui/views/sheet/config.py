@@ -161,7 +161,9 @@ def get_config_with_custom_style(style_mgr):
     config['ruler']['num_min_dist'] = style_mgr.get_scaled_size(3.0)
 
     # Column headers
-    config['header']['font'] = get_scaled_font(style_mgr, 5 / 6, QFont.Bold)
+    header_font = get_scaled_font(style_mgr, 1, QFont.Bold)
+    set_glyph_rel_width(header_font, QWidget, string.ascii_lowercase, 14.79)
+    config['header']['font'] = header_font
     config['header']['bg_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_header_bg_colour'))
     config['header']['fg_colour'] = _get_colour(
