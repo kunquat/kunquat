@@ -50,6 +50,8 @@ DEFAULT_CONFIG = {
             'port_focus_dist_max': 5,
             'port_colour'        : QColor(0xee, 0xcc, 0xaa),
             'focused_port_colour': QColor(0xff, 0x77, 0x22),
+            'border_width'       : 1,
+            'border_radius'      : 2,
             'padding'            : 4,
             'button_width'       : 44,
             'button_padding'     : 2,
@@ -460,18 +462,20 @@ class ConnectionsView(QWidget):
         utils.set_glyph_rel_width(port_font, QWidget, string.ascii_lowercase, 15.92)
 
         devices = {
-            'width'                 : style_mgr.get_scaled_size(10.5),
-            'title_font'            : title_font,
-            'port_font'             : port_font,
-            'port_handle_size'      : style_mgr.get_scaled_size(0.55),
-            'port_focus_dist_max'   : style_mgr.get_scaled_size(0.55, 4),
-            'port_colour'           : get_colour('conns_port_colour'),
-            'focused_port_colour'   : focus_colour,
-            'padding'               : style_mgr.get_scaled_size_param('medium_padding'),
-            'button_width'          : style_mgr.get_scaled_size(4.5),
-            'button_padding'        : style_mgr.get_scaled_size_param('small_padding'),
-            'hilight_border'        : style_mgr.get_scaled_size(0.2),
-            'hilight_padding'       : style_mgr.get_scaled_size(0.2),
+            'width'              : style_mgr.get_scaled_size(10.5),
+            'title_font'         : title_font,
+            'port_font'          : port_font,
+            'port_handle_size'   : style_mgr.get_scaled_size(0.55),
+            'port_focus_dist_max': style_mgr.get_scaled_size(0.55, 4),
+            'port_colour'        : get_colour('conns_port_colour'),
+            'focused_port_colour': focus_colour,
+            'border_width'       : style_mgr.get_scaled_size_param('border_thin_width'),
+            'border_radius'      : style_mgr.get_scaled_size_param('border_thin_radius'),
+            'padding'            : style_mgr.get_scaled_size_param('medium_padding'),
+            'button_width'       : style_mgr.get_scaled_size(4.5),
+            'button_padding'     : style_mgr.get_scaled_size_param('small_padding'),
+            'hilight_border'     : style_mgr.get_scaled_size(0.2),
+            'hilight_padding'    : style_mgr.get_scaled_size(0.2),
             'instrument': {
                 'bg_colours': get_outset_colours('conns_inst_bg_colour'),
                 'fg_colour': get_colour('conns_inst_fg_colour'),
@@ -1487,8 +1491,9 @@ class Device():
         return self._port_names
 
     def draw_images(self):
+        margin = self._get_margin()
         self._bg = QImage(
-                self._config['width'],
+                self._config['width'] + margin * 2,
                 self._get_height(),
                 QImage.Format_ARGB32_Premultiplied)
         self._bg.fill(0)
@@ -1499,7 +1504,8 @@ class Device():
         self._draw_rounded_rect(
                 painter,
                 self._type_config['bg_colours'],
-                QRect(0, 0, self._bg.width(), self._bg.height()))
+                QRect(margin, margin,
+                    self._bg.width() - margin, self._bg.height() - margin))
 
         # Title
         painter.setPen(QColor(self._type_config['fg_colour']))
@@ -1515,7 +1521,7 @@ class Device():
         painter.drawText(
                 QRectF(0, pad, self._bg.width(), title_height), title, text_option)
 
-        # Ports
+        # Port texts
         painter.setFont(self._config['port_font'])
         text_option = QTextOption(Qt.AlignLeft | Qt.AlignVCenter)
         port_height = self._get_port_height()
@@ -1575,7 +1581,7 @@ class Device():
 
         port_offset = self._config['port_handle_size'] // 2
         padding = self._config['padding']
-        port_x = bg_offset_x - port_offset
+        port_x = bg_offset_x - port_offset + self._get_margin()
         port_y = bg_offset_y + padding + self._get_title_height() + padding + port_offset
 
         for _ in self._in_ports:
@@ -1588,7 +1594,7 @@ class Device():
 
         port_offset = self._config['port_handle_size'] // 2
         padding = self._config['padding']
-        port_x = bg_offset_x + self._bg.width() + port_offset - 1
+        port_x = bg_offset_x + self._bg.width() + port_offset - self._get_margin() - 1
         port_y = bg_offset_y + padding + self._get_title_height() + padding + port_offset
 
         for _ in self._out_ports:
@@ -1707,11 +1713,13 @@ class Device():
         right = rect.right() + 0.5
         bottom = rect.bottom() + 0.5
 
-        radius = 1.5
+        width = self._config['border_width']
+
+        radius = self._config['border_radius']
         diam = radius * 2
 
         # Dark shade
-        painter.setPen(QPen(QBrush(colours[2]), 1, cap=Qt.FlatCap))
+        painter.setPen(QPen(QBrush(colours[2]), width, cap=Qt.FlatCap))
         dark_path = QPainterPath()
         dark_path.arcMoveTo(QRectF(left, bottom - diam, diam, diam), 225)
         dark_path.arcTo(QRectF(left, bottom - diam, diam, diam), 225, 45)
@@ -1722,7 +1730,7 @@ class Device():
         painter.drawPath(dark_path)
 
         # Light shade
-        painter.setPen(QPen(QBrush(colours[1]), 1, cap=Qt.FlatCap))
+        painter.setPen(QPen(QBrush(colours[1]), width, cap=Qt.FlatCap))
         light_path = QPainterPath()
         light_path.arcMoveTo(QRectF(left, bottom - diam, diam, diam), 225)
         light_path.arcTo(QRectF(left, bottom - diam, diam, diam), 225, -45)
@@ -1833,6 +1841,14 @@ class Device():
         return ((self._id not in ('master', 'Iin')) and
                 (self._id.startswith('au') or self._id.startswith('proc')))
 
+    def _get_margin(self):
+        border_width = self._config['border_width']
+        margin = int(math.ceil(border_width / 2))
+        return margin
+
+    def _get_width(self):
+        return self._config['width'] + self._get_margin() * 2
+
     def _get_height(self):
         title_height = self._get_title_height()
         port_height = self._get_port_height()
@@ -1849,11 +1865,13 @@ class Device():
             edit_button_height = self._get_edit_button_height()
             total_height += edit_button_height + self._config['padding']
 
+        total_height += self._get_margin()
+
         return total_height
 
     def _get_title_height(self):
         fm = QFontMetrics(self._config['title_font'])
-        return fm.boundingRect('Ag').height()
+        return fm.boundingRect('Ag').height() + self._get_margin()
 
     def _get_port_height(self):
         fm = QFontMetrics(self._config['port_font'])
@@ -1864,8 +1882,8 @@ class Device():
 
     def _get_edit_button_rect(self):
         height = self._get_edit_button_height()
-        left = 4 #(self._config['width'] - self._config['button_width']) // 2
-        top = self._get_height() - height - self._config['padding']
+        left = self._get_margin() + self._config['padding']
+        top = self._get_height() - height - self._config['padding'] - self._get_margin()
         return QRect(
                 left, top,
                 self._config['button_width'] - 1, height - 1)
@@ -1874,11 +1892,12 @@ class Device():
         return self._get_title_height() + self._config['button_padding'] * 2
 
     def _get_remove_button_rect(self):
+        width = self._config['button_width']
         height = self._get_remove_button_height()
-        left = (self._config['width'] - self._config['button_width']) - 4
-        top = self._get_height() - height - self._config['padding']
-        return QRect(
-                left, top,
-                self._config['button_width'] - 1, height - 1)
+        margin = self._get_margin()
+        padding = self._config['padding']
+        left = (self._get_width() - width) - margin - padding
+        top = self._get_height() - height - padding - margin
+        return QRect(left, top, width - 1, height - 1)
 
 
