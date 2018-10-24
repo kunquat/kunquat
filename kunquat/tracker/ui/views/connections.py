@@ -424,6 +424,8 @@ class ConnectionsView(QWidget):
 
         self._ls_cache = {}
 
+        self._update_devices()
+
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
         if not style_mgr.is_custom_style_enabled():
