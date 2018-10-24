@@ -340,9 +340,15 @@ class ConnectionsView(QWidget):
                 area_rect = area_rect.united(dev_rect)
         return area_rect
 
+    def _get_scaled_centre(self):
+        style_mgr = self._ui_model.get_style_manager()
+        return tuple(style_mgr.get_scaled_size(c, float('-inf'))
+                for c in self._centre_pos)
+
     def get_visible_rect(self):
-        x_start = self._centre_pos[0] - self.width() // 2
-        y_start = self._centre_pos[1] - self.height() // 2
+        scaled_centre = self._get_scaled_centre()
+        x_start = scaled_centre[0] - self.width() // 2
+        y_start = scaled_centre[1] - self.height() // 2
         return QRect(x_start, y_start, self.width(), self.height())
 
     def _get_connections(self):
@@ -384,10 +390,16 @@ class ConnectionsView(QWidget):
         if not area_rect or visible_rect.contains(area_rect, True):
             return
 
+        style_mgr = self._ui_model.get_style_manager()
+        inv_scale = 1 / style_mgr.get_scaled_size(1)
+
         full_rect = area_rect.united(visible_rect)
-        new_centre_pos = (
+        new_centre_pos_px = (
                 full_rect.left() + self.width() // 2 + area_x,
                 full_rect.top() + self.height() // 2 + area_y)
+
+        new_centre_pos = (new_centre_pos_px[0] * inv_scale,
+                new_centre_pos_px[1] * inv_scale)
 
         self._change_layout_entry('centre_pos', new_centre_pos)
 
@@ -660,14 +672,17 @@ class ConnectionsView(QWidget):
         self._visible_devices = new_devices
 
         # Make new devices
-        mid_offset = -200 if (self._au_id == None) else 0
+        style_mgr = self._ui_model.get_style_manager()
+        offset_x_abs = 18
+        offset_y_abs = 10
+        mid_offset = -offset_x_abs if (self._au_id == None) else 0
         default_pos_cfg = {
-                'au':       { 'index': 0, 'offset_x': mid_offset,   'offset_y': 120 },
-                'proc':     { 'index': 0, 'offset_x': mid_offset,   'offset_y': 120 },
-                'eff':      { 'index': 0, 'offset_x': 0,            'offset_y': 120 },
-                'master':   { 'index': 0, 'offset_x': 200,          'offset_y': 120 },
-                'Iin':      { 'index': 0, 'offset_x': -200,         'offset_y': 120 },
-            }
+            'au':    { 'index': 0, 'offset_x': mid_offset,   'offset_y': offset_y_abs },
+            'proc':  { 'index': 0, 'offset_x': mid_offset,   'offset_y': offset_y_abs },
+            'eff':   { 'index': 0, 'offset_x': 0,            'offset_y': offset_y_abs },
+            'master':{ 'index': 0, 'offset_x': offset_x_abs, 'offset_y': offset_y_abs },
+            'Iin':   { 'index': 0, 'offset_x': -offset_x_abs, 'offset_y': offset_y_abs },
+        }
 
         new_visible_devices = {}
 
@@ -710,7 +725,9 @@ class ConnectionsView(QWidget):
                 self._default_offsets[dev_id] = offset
 
             device = new_visible_devices[dev_id]
-            device.set_offset(offset)
+
+            offset_scaled = [style_mgr.get_scaled_size(o, float('-inf')) for o in offset]
+            device.set_offset(offset_scaled)
 
         self._visible_devices = new_visible_devices
 
@@ -765,9 +782,11 @@ class ConnectionsView(QWidget):
         painter.setBackground(self._config['bg_colour'])
         painter.eraseRect(0, 0, self.width(), self.height())
 
+        scaled_centre = self._get_scaled_centre()
+
         painter.translate(
-                self.width() // 2 - self._centre_pos[0],
-                self.height() // 2 - self._centre_pos[1])
+                self.width() // 2 - scaled_centre[0],
+                self.height() // 2 - scaled_centre[1])
 
         connections = self._get_connections()
         layout = connections.get_layout()
@@ -909,8 +928,9 @@ class ConnectionsView(QWidget):
         #print('Connections view updated in {:.2f} ms'.format(elapsed * 1000))
 
     def _get_area_pos(self, widget_x, widget_y):
-        return (widget_x - self.width() // 2 + self._centre_pos[0],
-                widget_y - self.height() // 2 + self._centre_pos[1])
+        scaled_centre = self._get_scaled_centre()
+        return (widget_x - (self.width() // 2) + scaled_centre[0],
+                widget_y - (self.height() // 2) + scaled_centre[1])
 
     def _edge_menu_closing(self):
         self._state = STATE_IDLE
@@ -984,6 +1004,8 @@ class ConnectionsView(QWidget):
         new_focused_button_info = {}
         new_focused_edge_info = {}
 
+        style_mgr = self._ui_model.get_style_manager()
+
         if self._state == STATE_IDLE:
             # Look for a focused part of a device
             on_device = False
@@ -1022,8 +1044,12 @@ class ConnectionsView(QWidget):
             else:
                 # Move focused device
                 area_x, area_y = area_pos
-                new_offset_x = area_x - self._focused_rel_pos[0]
-                new_offset_y = area_y - self._focused_rel_pos[1]
+                new_offset_x_px = area_x - self._focused_rel_pos[0]
+                new_offset_y_px = area_y - self._focused_rel_pos[1]
+
+                inv_scale = 1 / style_mgr.get_scaled_size(1)
+                new_offset_x = new_offset_x_px * inv_scale
+                new_offset_y = new_offset_y_px * inv_scale
 
                 focused_layout = { 'offset': (new_offset_x, new_offset_y) }
                 self._change_layout_entry(self._focused_id, focused_layout)
