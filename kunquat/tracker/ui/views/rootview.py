@@ -445,7 +445,7 @@ class RootView():
         error_info = self._module.get_load_error_info()
         assert error_info
         self._load_error_dialog = ModuleLoadErrorDialog(
-                self._ui_model.get_icon_bank(), error_info, on_close)
+                self._ui_model, error_info, on_close)
         self._load_error_dialog.setModal(True)
         self._load_error_dialog.show()
 
@@ -458,7 +458,7 @@ class RootView():
         error_info = self._module.get_reset_au_import_error_info()
         assert error_info
         self._au_import_error_dialog = AuImportErrorDialog(
-                self._ui_model.get_icon_bank(), error_info, on_close)
+                self._ui_model, error_info, on_close)
         self._au_import_error_dialog.setModal(True)
         self._au_import_error_dialog.show()
 
@@ -534,8 +534,10 @@ class ProgressWindow(QWidget):
 
 class ImportErrorDialog(QDialog):
 
-    def __init__(self, title, msg_fmt, icon_bank, error_info, on_close):
+    def __init__(self, ui_model, title, msg_fmt, error_info, on_close):
         super().__init__()
+        style_mgr = ui_model.get_style_manager()
+        icon_bank = ui_model.get_icon_bank()
 
         self.setWindowTitle(title)
 
@@ -543,16 +545,19 @@ class ImportErrorDialog(QDialog):
 
         path, details = error_info
 
-        error_img_path = icon_bank.get_icon_path('error')
+        error_img_orig = QPixmap(icon_bank.get_icon_path('error'))
+        error_img = error_img_orig.scaledToWidth(
+                style_mgr.get_scaled_size(7), Qt.SmoothTransformation)
         error_label = QLabel()
-        error_label.setPixmap(QPixmap(error_img_path))
+        error_label.setPixmap(error_img)
 
         self._message = QLabel()
         self._message.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
 
         h = QHBoxLayout()
-        h.setContentsMargins(8, 8, 8, 8)
-        h.setSpacing(16)
+        margin = style_mgr.get_scaled_size_param('large_padding')
+        h.setContentsMargins(margin, margin, margin, margin)
+        h.setSpacing(margin * 2)
         h.addWidget(error_label)
         h.addWidget(self._message)
 
@@ -586,22 +591,22 @@ class ImportErrorDialog(QDialog):
 
 class ModuleLoadErrorDialog(ImportErrorDialog):
 
-    def __init__(self, icon_bank, error_info, on_close):
+    def __init__(self, ui_model, error_info, on_close):
         super().__init__(
+                ui_model,
                 'Module loading failed',
                 'Could not load \'{}\' due to the following error:',
-                icon_bank,
                 error_info,
                 on_close)
 
 
 class AuImportErrorDialog(ImportErrorDialog):
 
-    def __init__(self, icon_bank, error_info, on_close):
+    def __init__(self, ui_model, error_info, on_close):
         super().__init__(
+                ui_model,
                 'Importing failed',
                 'Could not import \'{}\' due to the following error:',
-                icon_bank,
                 error_info,
                 on_close)
 
