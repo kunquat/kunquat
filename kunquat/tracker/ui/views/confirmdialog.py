@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -16,19 +16,25 @@ from kunquat.tracker.ui.qt import *
 
 class ConfirmDialog(QDialog):
 
-    def __init__(self, icon_bank):
+    def __init__(self, ui_model):
         super().__init__()
+        style_mgr = ui_model.get_style_manager()
+        icon_bank = ui_model.get_icon_bank()
 
-        warning_img_path = icon_bank.get_icon_path('warning')
+        warning_img_orig = QPixmap(icon_bank.get_icon_path('warning'))
+        warning_img = warning_img_orig.scaledToWidth(
+                style_mgr.get_scaled_size_param('dialog_icon_size'),
+                Qt.SmoothTransformation)
         warning_label = QLabel()
-        warning_label.setPixmap(QPixmap(warning_img_path))
+        warning_label.setPixmap(warning_img)
 
         self._message = QLabel()
         self._message.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
 
         h = QHBoxLayout()
-        h.setContentsMargins(8, 8, 8, 8)
-        h.setSpacing(16)
+        margin = style_mgr.get_scaled_size_param('large_padding')
+        h.setContentsMargins(margin, margin, margin, margin)
+        h.setSpacing(margin * 2)
         h.addWidget(warning_label)
         h.addWidget(self._message)
 

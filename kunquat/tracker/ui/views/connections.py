@@ -1347,7 +1347,6 @@ class ConnectionsView(QWidget):
     def _perform_button_click(self, button_info, shift_pressed):
         visibility_mgr = self._ui_model.get_visibility_manager()
         dev_id = button_info['dev_id']
-        icon_bank = self._ui_model.get_icon_bank()
         if dev_id.startswith('au'):
             if button_info['button_type'] == 'edit':
                 visibility_mgr.show_audio_unit(self._get_full_id(dev_id))
@@ -1356,7 +1355,7 @@ class ConnectionsView(QWidget):
                 if shift_pressed:
                     remove_action()
                 else:
-                    dialog = RemoveDeviceConfirmDialog(icon_bank, remove_action)
+                    dialog = RemoveDeviceConfirmDialog(self._ui_model, remove_action)
                     dialog.exec_()
         elif dev_id.startswith('proc'):
             if button_info['button_type'] == 'edit':
@@ -1366,7 +1365,7 @@ class ConnectionsView(QWidget):
                 if shift_pressed:
                     remove_action()
                 else:
-                    dialog = RemoveDeviceConfirmDialog(icon_bank, remove_action)
+                    dialog = RemoveDeviceConfirmDialog(self._ui_model, remove_action)
                     dialog.exec_()
 
     def _remove_au(self, dev_id):
@@ -1435,8 +1434,8 @@ class ConnectionsView(QWidget):
 
 class RemoveDeviceConfirmDialog(ConfirmDialog):
 
-    def __init__(self, icon_bank, action_on_confirm):
-        super().__init__(icon_bank)
+    def __init__(self, ui_model, action_on_confirm):
+        super().__init__(ui_model)
 
         self._action_on_confirm = action_on_confirm
 

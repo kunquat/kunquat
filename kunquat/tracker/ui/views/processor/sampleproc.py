@@ -1778,7 +1778,7 @@ class SampleEditor(QWidget, ProcessorUpdater):
     def _post_loop_cut(self):
         on_cut = lambda: self._updater.signal_update(self._get_cut_signal_type())
         confirm_dialog = PostLoopCutConfirmDialog(
-                self._ui_model.get_icon_bank(),
+                self._ui_model,
                 self._get_sample_params(),
                 self._ui_model.get_task_executor(),
                 on_cut)
@@ -1998,8 +1998,8 @@ class LoopXFader(QDialog):
 
 class PostLoopCutConfirmDialog(ConfirmDialog):
 
-    def __init__(self, icon_bank, sample_params, task_executor, on_cut):
-        super().__init__(icon_bank)
+    def __init__(self, ui_model, sample_params, task_executor, on_cut):
+        super().__init__(ui_model)
 
         self._set_message('Cut all sample data past loop end?')
 
