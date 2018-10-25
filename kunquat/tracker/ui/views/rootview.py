@@ -32,6 +32,7 @@ from .procwindow import ProcWindow
 from .sheet.grideditorwindow import GridEditorWindow
 from .iawindow import IAWindow
 from .renderstatswindow import RenderStatsWindow
+from . import utils
 
 
 class RootView():
@@ -363,7 +364,7 @@ class RootView():
 
     def _show_progress_window(self):
         assert not self._progress_window
-        self._progress_window = ProgressWindow()
+        self._progress_window = ProgressWindow(self._ui_model)
 
         stat_mgr = self._ui_model.get_stat_manager()
         self._progress_window.set_description(stat_mgr.get_progress_description())
@@ -484,9 +485,12 @@ class ProgressWindow(QWidget):
     _PROGRESS_STEP_COUNT = 10000
     _SHOW_DELAY = 0.2
 
-    def __init__(self):
+    def __init__(self, ui_model):
         super().__init__()
-        self.setMinimumWidth(512)
+        style_mgr = ui_model.get_style_manager()
+
+        width = utils.get_abs_window_size(0.3, 0.5).width()
+        self.setMinimumWidth(width)
         self.setWindowModality(Qt.ApplicationModal)
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Minimum)
@@ -498,8 +502,9 @@ class ProgressWindow(QWidget):
         self._progress.setMinimum(0)
 
         v = QVBoxLayout()
-        v.setContentsMargins(8, 8, 8, 8)
-        v.setSpacing(4)
+        margin = style_mgr.get_scaled_size_param('large_padding')
+        v.setContentsMargins(margin, margin, margin, margin)
+        v.setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
         v.addWidget(self._desc, Qt.AlignLeft)
         v.addWidget(self._progress)
         self.setLayout(v)
