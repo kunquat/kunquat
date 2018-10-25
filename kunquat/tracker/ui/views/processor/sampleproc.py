@@ -1537,7 +1537,7 @@ class SampleEditor(QWidget, ProcessorUpdater):
         self._loop_xfader.clicked.connect(self._create_loop_xfade)
         self._loop_start.valueChanged.connect(self._change_loop_start)
         self._loop_end.valueChanged.connect(self._change_loop_end)
-        self._sample_view.set_icon_bank(self._ui_model.get_icon_bank())
+        self._sample_view.set_ui_model(self._ui_model)
         self._sample_view.loopStartChanged.connect(self._change_loop_start)
         self._sample_view.loopStopChanged.connect(self._change_loop_end)
         self._sample_view.postLoopCut.connect(self._post_loop_cut)
@@ -1545,6 +1545,9 @@ class SampleEditor(QWidget, ProcessorUpdater):
 
         self._update_style()
         self._update_all()
+
+    def _on_teardown(self):
+        self._sample_view.unregister_updaters()
 
     def _get_list_update_signal_type(self):
         return 'signal_proc_sample_list_{}'.format(self._proc_id)

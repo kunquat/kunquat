@@ -44,10 +44,12 @@ class _IconView(QWidget):
 
 class IconButton(QPushButton, Updater):
 
-    def __init__(self, size, padding):
+    def __init__(self, flat=False):
         super().__init__()
-        self._size = size
-        self._padding = padding
+        self._size = None
+        self._padding = None
+
+        self.setFlat(flat)
 
         v = QVBoxLayout()
         self.setLayout(v)
@@ -55,7 +57,21 @@ class IconButton(QPushButton, Updater):
     def _on_setup(self):
         super()._on_setup()
         self.register_action('signal_style_changed', self._update_style)
+
+        style_mgr = self._ui_model.get_style_manager()
+        if not self._size:
+            self._size = style_mgr.get_style_param('tool_button_size')
+        if not self._padding:
+            self._padding = style_mgr.get_style_param('tool_button_padding')
+
         self._update_style()
+
+    def set_sizes(self, size, padding):
+        self._size = size
+        self._padding = padding
+
+        if self._ui_model:
+            self._update_style()
 
     def set_icon(self, icon_name):
         icon_bank = self._ui_model.get_icon_bank()

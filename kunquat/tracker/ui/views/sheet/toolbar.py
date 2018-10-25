@@ -114,7 +114,6 @@ class Toolbar(QWidget, Updater):
         self.setLayout(h)
 
 
-_ICON_SIZE = QSize(24, 24)
 _BUTTON_SIZE = 2.8
 _BUTTON_PADDING = 0.3
 
@@ -122,10 +121,12 @@ _BUTTON_PADDING = 0.3
 class FollowPlaybackButton(IconButton):
 
     def __init__(self):
-        super().__init__(_BUTTON_SIZE, _BUTTON_PADDING)
+        super().__init__()
         self.setCheckable(True)
         self.setFlat(True)
         self.setToolTip('Follow playback')
+
+        self.set_sizes(_BUTTON_SIZE, _BUTTON_PADDING)
 
     def _on_setup(self):
         super()._on_setup()
@@ -165,13 +166,15 @@ class FollowPlaybackButton(IconButton):
 class EditButton(IconButton):
 
     def __init__(self):
-        super().__init__(_BUTTON_SIZE, _BUTTON_PADDING)
+        super().__init__()
         self._sheet_mgr = None
 
         self.setCheckable(True)
         self.setFlat(True)
         #self.setText('Edit')
         self.setToolTip('Edit (Space)')
+
+        self.set_sizes(_BUTTON_SIZE, _BUTTON_PADDING)
 
     def _on_setup(self):
         super()._on_setup()
@@ -201,13 +204,15 @@ class EditButton(IconButton):
 class ReplaceButton(IconButton):
 
     def __init__(self):
-        super().__init__(_BUTTON_SIZE, _BUTTON_PADDING)
+        super().__init__()
         self._sheet_mgr = None
 
         self.setCheckable(True)
         self.setFlat(True)
         #self.setText('Replace')
         self.setToolTip('Replace (Insert)')
+
+        self.set_sizes(_BUTTON_SIZE, _BUTTON_PADDING)
 
     def _on_setup(self):
         super()._on_setup()
@@ -237,12 +242,14 @@ class ReplaceButton(IconButton):
 class RestButton(IconButton):
 
     def __init__(self):
-        super().__init__(_BUTTON_SIZE, _BUTTON_PADDING)
+        super().__init__()
         self._sheet_mgr = None
 
         self.setFlat(True)
         #self.setText('══')
         self.setToolTip('Add rest (1)')
+
+        self.set_sizes(_BUTTON_SIZE, _BUTTON_PADDING)
 
     def _on_setup(self):
         super()._on_setup()
@@ -278,12 +285,14 @@ class RestButton(IconButton):
 class DelSelectionButton(IconButton):
 
     def __init__(self):
-        super().__init__(_BUTTON_SIZE, _BUTTON_PADDING)
+        super().__init__()
         self._sheet_mgr = None
 
         self.setFlat(True)
         #self.setText('Del')
         self.setToolTip('Delete selection (Delete)')
+
+        self.set_sizes(_BUTTON_SIZE, _BUTTON_PADDING)
 
     def _on_setup(self):
         super()._on_setup()
@@ -324,10 +333,12 @@ class DelSelectionButton(IconButton):
 class UndoButton(IconButton):
 
     def __init__(self):
-        super().__init__(_BUTTON_SIZE, _BUTTON_PADDING)
+        super().__init__()
         self.setFlat(True)
         #self.setText('Undo')
         self.setToolTip('Undo (Ctrl + Z)')
+
+        self.set_sizes(_BUTTON_SIZE, _BUTTON_PADDING)
 
     def _on_setup(self):
         super()._on_setup()
@@ -360,10 +371,12 @@ class UndoButton(IconButton):
 class RedoButton(IconButton):
 
     def __init__(self):
-        super().__init__(_BUTTON_SIZE, _BUTTON_PADDING)
+        super().__init__()
         self.setFlat(True)
         #self.setText('Redo')
         self.setToolTip('Redo (Ctrl + Shift + Z)')
+
+        self.set_sizes(_BUTTON_SIZE, _BUTTON_PADDING)
 
     def _on_setup(self):
         super()._on_setup()
@@ -396,7 +409,7 @@ class RedoButton(IconButton):
 class CutOrCopyButton(IconButton):
 
     def __init__(self, button_type):
-        super().__init__(_BUTTON_SIZE, _BUTTON_PADDING)
+        super().__init__()
         self._sheet_mgr = None
 
         if button_type == 'cut':
@@ -413,6 +426,8 @@ class CutOrCopyButton(IconButton):
         self.setFlat(True)
         #self.setText(text)
         self.setToolTip('{} ({})'.format(text, shortcut))
+
+        self.set_sizes(_BUTTON_SIZE, _BUTTON_PADDING)
 
     def _on_setup(self):
         super()._on_setup()
@@ -462,12 +477,14 @@ class CopyButton(CutOrCopyButton):
 class PasteButton(IconButton):
 
     def __init__(self):
-        super().__init__(_BUTTON_SIZE, _BUTTON_PADDING)
+        super().__init__()
         self._sheet_mgr = None
 
         self.setFlat(True)
         #self.setText('Paste')
         self.setToolTip('Paste (Ctrl + V)')
+
+        self.set_sizes(_BUTTON_SIZE, _BUTTON_PADDING)
 
         self._has_valid_data = False
 
@@ -511,10 +528,12 @@ class PasteButton(IconButton):
 class ConvertTriggerButton(IconButton):
 
     def __init__(self):
-        super().__init__(_BUTTON_SIZE, _BUTTON_PADDING)
+        super().__init__()
         self.setFlat(True)
         #self.setText('Convert')
         self.setToolTip('Convert between set and slide trigger (/)')
+
+        self.set_sizes(_BUTTON_SIZE, _BUTTON_PADDING)
 
     def _on_setup(self):
         super()._on_setup()
@@ -553,13 +572,15 @@ class ZoomButton(IconButton):
         }
 
     def __init__(self, mode):
-        super().__init__(_BUTTON_SIZE, _BUTTON_PADDING)
+        super().__init__()
         self._sheet_mgr = None
 
         self._mode = mode
         self.setFlat(True)
         #self.setText(self._get_text(mode))
         self.setToolTip(self._get_tooltip(mode))
+
+        self.set_sizes(_BUTTON_SIZE, _BUTTON_PADDING)
 
     def _on_setup(self):
         super()._on_setup()

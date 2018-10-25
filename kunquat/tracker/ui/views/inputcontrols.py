@@ -27,7 +27,8 @@ class InputControls(QWidget, Updater):
         super().__init__()
         self._full_controls = TypewriterPanel()
         self._compact_controls = CompactControls()
-        self._switch_button = IconButton(2.2, 0.5)
+        self._switch_button = IconButton()
+        self._switch_button.set_sizes(2.2, 0.5)
         self._switch_button.setFocusPolicy(Qt.NoFocus)
 
         self._controls = ControlLayout()

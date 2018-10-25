@@ -45,6 +45,8 @@ class StyleManager():
         'tab_bar_margin'                    : 0.4,
         'tiny_arrow_button_size'            : 0.9,
         'tiny_padding'                      : 0.1,
+        'tool_button_size'                  : 3.4,
+        'tool_button_padding'               : 0.62,
         'typewriter_button_size'            : 5.6,
         'typewriter_padding'                : 2.9,
 

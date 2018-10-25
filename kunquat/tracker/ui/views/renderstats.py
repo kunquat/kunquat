@@ -122,10 +122,6 @@ class RenderStats(QWidget):
             self._profile_control.show()
 
 
-_BUTTON_SIZE = 3.4
-_BUTTON_PADDING = 0.62
-
-
 class LoadHistoryContainer(QWidget, Updater):
 
     def __init__(self, load_history):
@@ -135,9 +131,9 @@ class LoadHistoryContainer(QWidget, Updater):
         self._zoom_levels = [2**x for x in range(5)]
         self._zoom_level_index = self._zoom_levels.index(8)
 
-        self._zoom_in_button = IconButton(_BUTTON_SIZE, _BUTTON_PADDING)
+        self._zoom_in_button = IconButton()
         self._zoom_in_button.setFlat(True)
-        self._zoom_out_button = IconButton(_BUTTON_SIZE, _BUTTON_PADDING)
+        self._zoom_out_button = IconButton()
         self._zoom_out_button.setFlat(True)
 
         self.add_to_updaters(

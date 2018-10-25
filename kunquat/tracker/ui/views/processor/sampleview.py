@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -17,6 +17,8 @@ import time
 from itertools import chain, islice
 
 from kunquat.tracker.ui.qt import *
+
+from kunquat.tracker.ui.views.iconbutton import IconButton
 
 
 DEFAULT_CONFIG = {
@@ -64,8 +66,11 @@ class SampleView(QWidget):
     def set_config(self, config):
         self._area.set_config(config)
 
-    def set_icon_bank(self, icon_bank):
-        self._toolbar.set_icon_bank(icon_bank)
+    def set_ui_model(self, ui_model):
+        self._toolbar.set_ui_model(ui_model)
+
+    def unregister_updaters(self):
+        self._toolbar.unregister_updaters()
 
     def set_sample(self, length, get_sample_data):
         self._toolbar.set_sample_length(length)
@@ -97,12 +102,12 @@ class SampleViewToolBar(QToolBar):
         self._range = [0, 0]
         self._loop_range = None
 
-        self._zoom_in = QToolButton()
-        self._zoom_in.setText('Zoom In')
+        self._zoom_in = IconButton(flat=True)
+        #self._zoom_in.setText('Zoom In')
         self._zoom_in.setToolTip(self._zoom_in.text())
 
-        self._zoom_out = QToolButton()
-        self._zoom_out.setText('Zoom Out')
+        self._zoom_out = IconButton(flat=True)
+        #self._zoom_out.setText('Zoom Out')
         self._zoom_out.setToolTip(self._zoom_out.text())
 
         self._post_loop_cut = QToolButton()
@@ -120,9 +125,15 @@ class SampleViewToolBar(QToolBar):
 
         self._update_buttons()
 
-    def set_icon_bank(self, icon_bank):
-        self._zoom_in.setIcon(QIcon(icon_bank.get_icon_path('zoom_in')))
-        self._zoom_out.setIcon(QIcon(icon_bank.get_icon_path('zoom_out')))
+    def set_ui_model(self, ui_model):
+        self._zoom_in.set_ui_model(ui_model)
+        self._zoom_out.set_ui_model(ui_model)
+        self._zoom_in.set_icon('zoom_in')
+        self._zoom_out.set_icon('zoom_out')
+
+    def unregister_updaters(self):
+        self._zoom_in.unregister_updaters()
+        self._zoom_out.unregister_updaters()
 
     def set_sample_length(self, sample_length):
         self._sample_length = sample_length
