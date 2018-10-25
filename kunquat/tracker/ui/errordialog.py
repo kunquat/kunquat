@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -16,6 +16,7 @@ import sys
 import traceback
 
 from kunquat.tracker.ui.qt import *
+from kunquat.tracker.ui.views.utils import get_abs_window_size, get_scaled_font
 
 from kunquat.tracker.errorbase import *
 
@@ -44,6 +45,9 @@ class ErrorDetails(QTextEdit):
         self._details = details
         self.setPlainText(details)
 
+    def update_style(self, style_mgr):
+        self.setMinimumHeight(style_mgr.get_scaled_size(25))
+
     def get_details(self):
         return self._details
 
@@ -61,6 +65,8 @@ class ErrorDialog(QDialog):
         self._details = ErrorDetails()
         self._closebutton = QPushButton('Exit Kunquat')
 
+        self._size_hint = QSize(768, 512)
+
         v = QVBoxLayout()
         v.addWidget(self._message)
         v.addWidget(self._details)
@@ -74,7 +80,11 @@ class ErrorDialog(QDialog):
 
         sys.excepthook = self._excepthook
 
-    def update_link_colour(self, style_mgr):
+    def update_style(self, style_mgr):
+        self._size_hint = get_abs_window_size(0.5, 0.5)
+
+        self._details.update_style(style_mgr)
+
         style = ''
 
         if style_mgr.is_custom_style_enabled():
@@ -101,6 +111,6 @@ class ErrorDialog(QDialog):
         os.abort()
 
     def sizeHint(self):
-        return QSize(768, 512)
+        return self._size_hint
 
 
