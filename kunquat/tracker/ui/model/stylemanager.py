@@ -45,6 +45,8 @@ class StyleManager():
         'tab_bar_margin'                    : 0.4,
         'tiny_arrow_button_size'            : 0.9,
         'tiny_padding'                      : 0.1,
+        'typewriter_button_size'            : 5.6,
+        'typewriter_padding'                : 2.9,
 
         'bg_colour'                         : '#4c474e',
         'fg_colour'                         : '#dbdbdb',

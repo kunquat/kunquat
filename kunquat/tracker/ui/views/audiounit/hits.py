@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -48,6 +48,14 @@ class Hits(QWidget, AudioUnitUpdater):
         au = module.get_audio_unit(self._au_id)
         if au.is_instrument():
             self.add_to_updaters(self._hit_selector, self._hit_editor)
+            self.register_action('signal_style_changed', self._update_style)
+            self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
 
 class AuHitSelector(HitSelector, AudioUnitUpdater):
@@ -59,6 +67,9 @@ class AuHitSelector(HitSelector, AudioUnitUpdater):
         self.register_action(self._get_update_signal_type(), self.update_contents)
         self.create_layout(self._ui_model.get_typewriter_manager())
         self.update_contents()
+
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
 
     def _get_update_signal_type(self):
         return _get_update_signal_type(self._au_id)
@@ -80,6 +91,9 @@ class AuHitSelector(HitSelector, AudioUnitUpdater):
         au = module.get_audio_unit(self._au_id)
         hit = au.get_hit(index)
         return hit.get_name()
+
+    def _update_style(self):
+        self.update_style(self._ui_model.get_style_manager())
 
 
 class HitEditor(QWidget, AudioUnitUpdater):

@@ -37,17 +37,17 @@ class Typewriter(QFrame, Updater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
-        self._pad = style_mgr.get_scaled_size(2.9)
+        self._pad = style_mgr.get_scaled_size_param('typewriter_padding')
 
         if not self.layout():
             self.setLayout(self._get_layout())
 
         rows = self.layout()
-        rows.setSpacing(style_mgr.get_scaled_size(0.2))
+        rows.setSpacing(style_mgr.get_scaled_size_param('small_padding'))
         for row_index in range(rows.count()):
             row = rows.itemAt(row_index).layout()
             assert row
-            row.setSpacing(style_mgr.get_scaled_size(0.4))
+            row.setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
             pad = row.itemAt(0).widget()
             assert pad
             pad_px = self._pad * self._typewriter_mgr.get_pad_factor_at_row(row_index)

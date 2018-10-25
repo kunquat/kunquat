@@ -916,6 +916,9 @@ class SampleHitSelector(HitSelector, ProcessorUpdater):
         self.create_layout(self._ui_model.get_typewriter_manager())
         self.update_contents()
 
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
     def _get_update_signal_type(self):
         return 'signal_sample_hit_map_hit_selection_{}'.format(self._proc_id)
 
@@ -939,6 +942,9 @@ class SampleHitSelector(HitSelector, ProcessorUpdater):
         au = module.get_audio_unit(self._au_id)
         hit = au.get_hit(index)
         return hit.get_name()
+
+    def _update_style(self):
+        self.update_style(self._ui_model.get_style_manager())
 
 
 class HitMap(RandomListMap):

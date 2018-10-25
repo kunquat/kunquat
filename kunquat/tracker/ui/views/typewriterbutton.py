@@ -157,7 +157,7 @@ class TypewriterButton(QPushButton):
         if not style_mgr.is_custom_style_enabled():
             self._led.set_default_colours()
         else:
-            size = style_mgr.get_scaled_size(5.6)
+            size = style_mgr.get_scaled_size_param('typewriter_button_size')
             self.setFixedSize(QSize(size, size))
             self._led.set_size(
                     QSize(style_mgr.get_scaled_size(3), style_mgr.get_scaled_size(1)))

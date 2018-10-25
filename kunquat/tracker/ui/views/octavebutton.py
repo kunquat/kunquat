@@ -81,7 +81,7 @@ class OctaveButton(QPushButton):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
-        self.setFixedWidth(style_mgr.get_scaled_size(5.6))
+        self.setFixedWidth(style_mgr.get_scaled_size_param('typewriter_button_size'))
         self._led.setFixedWidth(style_mgr.get_scaled_size(1))
 
     def _perform_updates(self, signals):
