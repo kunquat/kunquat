@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2018
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -12,11 +12,13 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from copy import deepcopy
 import time
 
 from kunquat.tracker.ui.qt import *
 
 from .axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
+from .iconbutton import IconButton
 from .profilecontrol import ProfileControl
 from .updater import Updater
 from . import utils
@@ -33,43 +35,45 @@ class RenderStats(QWidget):
         self._voice_info.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
         self._vgroup_info = QLabel()
         self._vgroup_info.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
-        self._render_load_history = RenderLoadHistory()
-        self._ui_load_history = UILoadHistory()
         self._output_speed = QLabel()
         self._render_speed = QLabel()
         self._render_load = QLabel()
         self._ui_load = QLabel()
 
-        self._render_load_container = LoadHistoryContainer(self._render_load_history)
-        self._ui_load_container = LoadHistoryContainer(self._ui_load_history)
+        self._render_load_container = LoadHistoryContainer(RenderLoadHistory())
+        self._ui_load_container = LoadHistoryContainer(UILoadHistory())
 
         self._profile_control = ProfileControl()
 
         self.setFocusPolicy(Qt.StrongFocus)
 
-        vl = QGridLayout()
-        vl.setVerticalSpacing(2)
-        vl.addWidget(QLabel('Active notes:'), 0, 0, Qt.AlignLeft)
-        vl.addWidget(self._vgroup_info, 0, 1)
-        vl.addWidget(QLabel('Active voices:'), 1, 0, Qt.AlignLeft)
-        vl.addWidget(self._voice_info, 1, 1)
+        self._voice_layout = QGridLayout()
+        self._voice_layout.setContentsMargins(0, 0, 0, 0)
+        self._voice_layout.setVerticalSpacing(2)
+        self._voice_layout.addWidget(QLabel('Active notes:'), 0, 0, Qt.AlignLeft)
+        self._voice_layout.addWidget(self._vgroup_info, 0, 1)
+        self._voice_layout.addWidget(QLabel('Active voices:'), 1, 0, Qt.AlignLeft)
+        self._voice_layout.addWidget(self._voice_info, 1, 1)
+
+        self._audio_load_layout = QVBoxLayout()
+        self._audio_load_layout.setContentsMargins(0, 0, 0, 0)
+        self._audio_load_layout.setSpacing(2)
+        self._audio_load_layout.addWidget(QLabel('Audio load:'))
+        self._audio_load_layout.addWidget(self._render_load_container)
+
+        self._ui_load_layout = QVBoxLayout()
+        self._ui_load_layout.setContentsMargins(0, 0, 0, 0)
+        self._ui_load_layout.setSpacing(2)
+        self._ui_load_layout.addWidget(QLabel('UI load:'))
+        self._ui_load_layout.addWidget(self._ui_load_container)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
-        v.setSpacing(2)
-        v.addLayout(vl)
-        v.addSpacing(4)
-        v.addWidget(QLabel('Audio load:'))
-        v.addWidget(self._render_load_container)
-        v.addSpacing(4)
-        v.addWidget(QLabel('UI load:'))
-        v.addWidget(self._ui_load_container)
-        """
-        v.addWidget(self._output_speed)
-        v.addWidget(self._render_speed)
-        v.addWidget(self._render_load)
-        v.addWidget(self._ui_load)
-        """
+        v.setSpacing(4)
+        v.addLayout(self._voice_layout)
+        v.addLayout(self._audio_load_layout)
+        v.addLayout(self._ui_load_layout)
+
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
@@ -77,38 +81,29 @@ class RenderStats(QWidget):
         updater = ui_model.get_updater()
         updater.register_updater(self._perform_updates)
         self._stat_mgr = ui_model.get_stat_manager()
-        self._render_load_history.set_ui_model(ui_model)
-        self._ui_load_history.set_ui_model(ui_model)
+        self._render_load_container.set_ui_model(ui_model)
+        self._ui_load_container.set_ui_model(ui_model)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._render_load_container.set_icon_bank(icon_bank)
-        self._ui_load_container.set_icon_bank(icon_bank)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        self._voice_layout.setVerticalSpacing(
+                style_mgr.get_scaled_size_param('small_padding'))
+        self._audio_load_layout.setSpacing(
+                style_mgr.get_scaled_size_param('small_padding'))
+        self._ui_load_layout.setSpacing(style_mgr.get_scaled_size_param('small_padding'))
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def unregister_updaters(self):
-        self._ui_load_history.unregister_updaters()
-        self._render_load_history.unregister_updaters()
+        self._ui_load_container.unregister_updaters()
+        self._render_load_container.unregister_updaters()
         updater = self._ui_model.get_updater()
         updater.unregister_updater(self._perform_updates)
-
-    def update_output_speed(self):
-        output_speed = self._stat_mgr.get_output_speed()
-        text = 'output speed: {} fps'.format(int(output_speed))
-        self._output_speed.setText(text)
-
-    def update_render_speed(self):
-        output_speed = self._stat_mgr.get_render_speed()
-        text = 'render speed: {} fps'.format(int(output_speed))
-        self._render_speed.setText(text)
-
-    def update_render_load(self):
-        render_load = self._stat_mgr.get_render_load()
-        text = 'render load: {} %'.format(int(render_load * 100))
-        self._render_load.setText(text)
-
-    def update_ui_load(self):
-        ui_load = self._stat_mgr.get_ui_load()
-        text = 'ui load: {} %'.format(int(ui_load * 100))
-        self._ui_load.setText(text)
 
     def _perform_updates(self, signals):
         active_voices, max_active_voices = self._stat_mgr.get_voice_count_info()
@@ -116,12 +111,9 @@ class RenderStats(QWidget):
 
         active_vgroups, max_active_vgroups = self._stat_mgr.get_vgroup_count_info()
         self._vgroup_info.setText('{} ({})'.format(active_vgroups, max_active_vgroups))
-        """
-        self.update_output_speed()
-        self.update_render_speed()
-        self.update_render_load()
-        self.update_ui_load()
-        """
+
+        if 'signal_style_changed' in signals:
+            self._update_style()
 
     def keyPressEvent(self, event):
         modifiers = event.modifiers()
@@ -130,7 +122,11 @@ class RenderStats(QWidget):
             self._profile_control.show()
 
 
-class LoadHistoryContainer(QWidget):
+_BUTTON_SIZE = 3.4
+_BUTTON_PADDING = 0.62
+
+
+class LoadHistoryContainer(QWidget, Updater):
 
     def __init__(self, load_history):
         super().__init__()
@@ -139,8 +135,13 @@ class LoadHistoryContainer(QWidget):
         self._zoom_levels = [2**x for x in range(5)]
         self._zoom_level_index = self._zoom_levels.index(8)
 
-        self._zoom_in_button = QToolButton()
-        self._zoom_out_button = QToolButton()
+        self._zoom_in_button = IconButton(_BUTTON_SIZE, _BUTTON_PADDING)
+        self._zoom_in_button.setFlat(True)
+        self._zoom_out_button = IconButton(_BUTTON_SIZE, _BUTTON_PADDING)
+        self._zoom_out_button.setFlat(True)
+
+        self.add_to_updaters(
+                self._load_history, self._zoom_in_button, self._zoom_out_button)
 
         self._toolbar = QToolBar()
         self._toolbar.setOrientation(Qt.Vertical)
@@ -159,9 +160,9 @@ class LoadHistoryContainer(QWidget):
 
         self._update_step_width()
 
-    def set_icon_bank(self, icon_bank):
-        self._zoom_in_button.setIcon(QIcon(icon_bank.get_icon_path('zoom_in')))
-        self._zoom_out_button.setIcon(QIcon(icon_bank.get_icon_path('zoom_out')))
+    def _on_setup(self):
+        self._zoom_in_button.set_icon('zoom_in')
+        self._zoom_out_button.set_icon('zoom_out')
 
     def _update_enabled_buttons(self):
         self._zoom_in_button.setEnabled(
@@ -275,17 +276,41 @@ class LoadHistory(QWidget, Updater):
         def get_colour(name):
             return QColor(style_mgr.get_style_param(name))
 
+        font = utils.get_scaled_font(style_mgr, 0.8, QFont.Bold)
+        utils.set_glyph_rel_width(font, QWidget, '23456789' * 8, 50)
+
         # Note: using waveform colours to avoid additional clutter in the style config
         config = {
-            'bg_colour': get_colour('waveform_bg_colour'),
-            'max_line_colour': get_colour('waveform_single_item_colour'),
-            'avg_line_colour': get_colour('waveform_interpolated_colour'),
+            'padding'           : style_mgr.get_scaled_size_param('medium_padding'),
+            'bg_colour'         : get_colour('waveform_bg_colour'),
+            'max_line_colour'   : get_colour('waveform_single_item_colour'),
+            'avg_line_colour'   : get_colour('waveform_interpolated_colour'),
+            'line_thickness'    : style_mgr.get_scaled_size(0.1),
+            'legend_margin'     : style_mgr.get_scaled_size_param('large_padding'),
+            'legend_padding'    : style_mgr.get_scaled_size_param('medium_padding'),
+            'legend_line_length': style_mgr.get_scaled_size(4),
+            'legend_font'       : font,
             'legend_text_colour': get_colour('envelope_axis_label_colour'),
         }
 
         axis_config = {
-            'label_colour': get_colour('envelope_axis_label_colour'),
-            'line_colour': get_colour('envelope_axis_line_colour'),
+            'axis_x': {
+                'height'            : style_mgr.get_scaled_size(2),
+                'marker_min_dist'   : style_mgr.get_scaled_size(0.3),
+                'marker_min_width'  : style_mgr.get_scaled_size(0.3),
+                'marker_max_width'  : style_mgr.get_scaled_size(0.6),
+                'label_min_dist'    : style_mgr.get_scaled_size(6),
+            },
+            'axis_y': {
+                'width'             : style_mgr.get_scaled_size(5),
+                'marker_min_dist'   : style_mgr.get_scaled_size(0.3),
+                'marker_min_width'  : style_mgr.get_scaled_size(0.3),
+                'marker_max_width'  : style_mgr.get_scaled_size(0.6),
+                'label_min_dist'    : style_mgr.get_scaled_size(4),
+            },
+            'label_font'    : font,
+            'label_colour'  : get_colour('envelope_axis_label_colour'),
+            'line_colour'   : get_colour('envelope_axis_line_colour'),
         }
 
         self._set_configs(config, axis_config)
@@ -295,8 +320,17 @@ class LoadHistory(QWidget, Updater):
         self._config = UI_LOAD_HISTORY_CONFIG.copy()
         self._config.update(config)
 
-        self._axis_config = AXIS_CONFIG.copy()
+        def_font = AXIS_CONFIG.pop('label_font', None)
+        self._axis_config = deepcopy(AXIS_CONFIG)
+        self._axis_config['label_font'] = def_font
+        AXIS_CONFIG['label_font'] = def_font
+
+        axis_x = axis_config.pop('axis_x', {})
+        axis_y = axis_config.pop('axis_y', {})
+
         self._axis_config.update(axis_config)
+        self._axis_config['axis_x'].update(axis_x)
+        self._axis_config['axis_y'].update(axis_y)
         self._axis_x_renderer.set_config(self._axis_config, self)
         self._axis_y_renderer.set_config(self._axis_config, self)
 
@@ -518,6 +552,7 @@ class LoadHistory(QWidget, Updater):
             # Texts
             img_painter.translate(line_length + padding, 0)
             img_painter.setPen(self._config['legend_text_colour'])
+            img_painter.setFont(self._config['legend_font'])
             offset_y = padding + baseline_offset
             img_painter.drawText(QPoint(0, offset_y), peaks_text)
             offset_y = padding + text_height + padding + baseline_offset
