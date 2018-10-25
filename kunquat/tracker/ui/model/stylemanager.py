@@ -30,6 +30,7 @@ class StyleManager():
         'combobox_arrow_size'               : 0.8,
         'combobox_button_size'              : 0.6,
         'dialog_button_width'               : 9.0,
+        'dialog_icon_size'                  : 7.0,
         'large_padding'                     : 0.8,
         'medium_padding'                    : 0.4,
         'menu_arrow_size'                   : 1.0,

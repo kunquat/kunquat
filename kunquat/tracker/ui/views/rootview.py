@@ -547,7 +547,8 @@ class ImportErrorDialog(QDialog):
 
         error_img_orig = QPixmap(icon_bank.get_icon_path('error'))
         error_img = error_img_orig.scaledToWidth(
-                style_mgr.get_scaled_size(7), Qt.SmoothTransformation)
+                style_mgr.get_scaled_size_param('dialog_icon_size'),
+                Qt.SmoothTransformation)
         error_label = QLabel()
         error_label.setPixmap(error_img)
 

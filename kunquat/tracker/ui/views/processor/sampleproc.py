@@ -1234,13 +1234,12 @@ class SampleListToolBar(QToolBar, ProcessorUpdater):
         if sample_paths:
             # Make sure we've got enough space
             if len(sample_paths) > free_count:
-                icon_bank = self._ui_model.get_icon_bank()
                 error_msg_lines = [
                         'Too many samples requested ({})'.format(len(sample_paths)),
                         'This processor has space for {} more sample{}'.format(
                             free_count, '' if free_count == 1 else 's')]
                 error_msg = '<p>{}</p>'.format('<br>'.join(error_msg_lines))
-                dialog = ImportErrorDialog(icon_bank, error_msg)
+                dialog = ImportErrorDialog(self._ui_model, error_msg)
                 dialog.exec_()
                 return
 
@@ -1253,10 +1252,9 @@ class SampleListToolBar(QToolBar, ProcessorUpdater):
                         self._get_hit_map_random_list_signal_type())
 
             def on_error(e):
-                icon_bank = self._ui_model.get_icon_bank()
                 error_msg_lines = str(e).split('\n')
                 error_msg = '<p>{}</p>'.format('<br>'.join(error_msg_lines))
-                dialog = ImportErrorDialog(icon_bank, error_msg)
+                dialog = ImportErrorDialog(self._ui_model, error_msg)
                 dialog.exec_()
 
             task = sample_params.get_task_import_samples(imports, on_complete, on_error)
@@ -1276,19 +1274,25 @@ class SampleListToolBar(QToolBar, ProcessorUpdater):
 
 class ImportErrorDialog(QDialog):
 
-    def __init__(self, icon_bank, error_msg):
+    def __init__(self, ui_model, error_msg):
         super().__init__()
+        style_mgr = ui_model.get_style_manager()
+        icon_bank = ui_model.get_icon_bank()
 
-        error_img_path = icon_bank.get_icon_path('error')
+        error_img_orig = QPixmap(icon_bank.get_icon_path('error'))
+        error_img = error_img_orig.scaledToWidth(
+                style_mgr.get_scaled_size_param('dialog_icon_size'),
+                Qt.SmoothTransformation)
         error_label = QLabel()
-        error_label.setPixmap(QPixmap(error_img_path))
+        error_label.setPixmap(error_img)
 
         self._message = QLabel()
         self._message.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
 
         h = QHBoxLayout()
-        h.setContentsMargins(8, 8, 8, 8)
-        h.setSpacing(16)
+        margin = style_mgr.get_scaled_size_param('large_padding')
+        h.setContentsMargins(margin, margin, margin, margin)
+        h.setSpacing(margin * 2)
         h.addWidget(error_label)
         h.addWidget(self._message)
 
