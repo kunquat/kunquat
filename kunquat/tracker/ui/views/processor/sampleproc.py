@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from copy import deepcopy
 import math
 import time
 
@@ -23,7 +24,7 @@ from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, Vertic
 from kunquat.tracker.ui.views.confirmdialog import ConfirmDialog
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
-from kunquat.tracker.ui.views.utils import lerp_val, set_glyph_rel_width
+from kunquat.tracker.ui.views.utils import lerp_val, set_glyph_rel_width, get_scaled_font
 from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
 from .prockeyboardmapper import ProcessorKeyboardMapper
 from .sampleview import SampleView
@@ -133,7 +134,8 @@ class RandomListMap(QWidget, ProcessorUpdater):
         self._is_start_snapping_active = False
         self._moving_pointer_offset = (0, 0)
 
-        self._config = None
+        self._config = {}
+        self._axis_config = {}
         self._set_configs({}, {})
 
         self.setAutoFillBackground(False)
@@ -159,13 +161,25 @@ class RandomListMap(QWidget, ProcessorUpdater):
         self._config = self._DEFAULT_CONFIG.copy()
         self._config.update(config)
 
+        axis_x = axis_config.pop('axis_x', {})
+        axis_y = axis_config.pop('axis_y', {})
+
+        def_font = self._AXIS_CONFIG.pop('label_font', None)
+        final_axis_config = deepcopy(self._AXIS_CONFIG)
+        self._AXIS_CONFIG['label_font'] = def_font
+        final_axis_config['label_font'] = def_font
+
+        final_axis_config.update(axis_config)
+        final_axis_config['axis_x'].update(axis_x)
+        final_axis_config['axis_y'].update(axis_y)
+
         if not self._has_pitch_axis():
             padding = self._config['padding']
-            x_axis_height = self._AXIS_CONFIG['axis_x']['height']
+            x_axis_height = final_axis_config['axis_x']['height']
             self.setFixedHeight(padding * 2 + x_axis_height)
 
-        final_axis_config = self._AXIS_CONFIG.copy()
-        final_axis_config.update(axis_config)
+        self._axis_config = final_axis_config
+
         self._axis_x_renderer.set_config(final_axis_config, self)
         self._axis_y_renderer.set_config(final_axis_config, self)
 
@@ -183,17 +197,42 @@ class RandomListMap(QWidget, ProcessorUpdater):
         focus_axis_colour = QColor(focus_colour)
         focus_axis_colour.setAlpha(0x7f)
 
+        font = get_scaled_font(style_mgr, 0.8, QFont.Bold)
+        set_glyph_rel_width(font, QWidget, '23456789' * 8, 50)
+
         config = {
-            'bg_colour': get_colour('sample_map_bg_colour'),
-            'point_colour': get_colour('sample_map_point_colour'),
-            'focused_point_colour': focus_colour,
-            'focused_point_axis_colour': focus_axis_colour,
-            'selected_highlight_colour': get_colour('sample_map_selected_colour'),
+            'padding'               : style_mgr.get_scaled_size_param('large_padding'),
+            'bg_colour'             : get_colour('sample_map_bg_colour'),
+            'point_colour'          : get_colour('sample_map_point_colour'),
+            'focused_point_colour'  : focus_colour,
+            'focused_point_axis_colour' : focus_axis_colour,
+            'point_size'                : style_mgr.get_scaled_size(0.7),
+            'point_size_focus_dist_max' : style_mgr.get_scaled_size(0.9),
+            'selected_highlight_colour' : get_colour('sample_map_selected_colour'),
+            'selected_highlight_size'   : style_mgr.get_scaled_size(1.1),
+            'selected_highlight_width'  : style_mgr.get_scaled_size(0.2),
+            'move_snap_dist'            : style_mgr.get_scaled_size(1.6),
+            'remove_dist_min'           : style_mgr.get_scaled_size(25),
         }
 
         axis_config = {
-            'label_colour': get_colour('sample_map_axis_label_colour'),
-            'line_colour': get_colour('sample_map_axis_line_colour'),
+            'axis_x': {
+                'height'            : style_mgr.get_scaled_size(2),
+                'marker_min_dist'   : style_mgr.get_scaled_size(0.3),
+                'marker_min_width'  : style_mgr.get_scaled_size(0.3),
+                'marker_max_width'  : style_mgr.get_scaled_size(0.6),
+                'label_min_dist'    : style_mgr.get_scaled_size(6),
+            },
+            'axis_y': {
+                'width'             : style_mgr.get_scaled_size(5),
+                'marker_min_dist'   : style_mgr.get_scaled_size(0.3),
+                'marker_min_width'  : style_mgr.get_scaled_size(0.3),
+                'marker_max_width'  : style_mgr.get_scaled_size(0.6),
+                'label_min_dist'    : style_mgr.get_scaled_size(4),
+            },
+            'label_font'    : font,
+            'label_colour'  : get_colour('sample_map_axis_label_colour'),
+            'line_colour'   : get_colour('sample_map_axis_line_colour'),
         }
 
         self._set_configs(config, axis_config)
@@ -350,9 +389,9 @@ class RandomListMap(QWidget, ProcessorUpdater):
         padding = self._config['padding']
 
         # Axes
-        axis_x_height = self._AXIS_CONFIG['axis_x']['height']
+        axis_x_height = self._axis_config['axis_x']['height']
         axis_x_top = self.height() - padding - axis_x_height
-        axis_y_width = self._AXIS_CONFIG['axis_y']['width']
+        axis_y_width = self._axis_config['axis_y']['width']
         axis_x_length = self.width() - axis_y_width - (padding * 2) + 1
         axis_y_length = self.height() - axis_x_height - (padding * 2) + 1
 
