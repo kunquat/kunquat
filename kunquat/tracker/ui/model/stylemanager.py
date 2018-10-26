@@ -17,12 +17,6 @@ import kunquat.tracker.config as config
 class StyleManager():
 
     _STYLE_DEFAULTS = {
-        'def_font_size'                     : 0,
-        'def_font_family'                   : '',
-        'border_contrast'                   : 0.25,
-        'button_brightness'                 : 0.10,
-        'button_press_brightness'           : -0.2,
-
         'border_thick_radius'               : 0.4,
         'border_thick_width'                : 0.2,
         'border_thin_radius'                : 0.2,
@@ -51,7 +45,9 @@ class StyleManager():
         'tool_button_padding'               : 0.62,
         'typewriter_button_size'            : 5.6,
         'typewriter_padding'                : 2.9,
+    }
 
+    _STYLE_COLOUR_DEFAULTS = {
         'bg_colour'                         : '#4c474e',
         'fg_colour'                         : '#dbdbdb',
         'bg_sunken_colour'                  : '#2b2238',
@@ -140,6 +136,17 @@ class StyleManager():
         'waveform_loop_marker_colour'       : '#dfd58e',
     }
 
+    _STYLE_CONFIG_DEFAULTS = {
+        'def_font_size'                     : 0,
+        'def_font_family'                   : '',
+        'border_contrast'                   : 0.25,
+        'button_brightness'                 : 0.10,
+        'button_press_brightness'           : -0.2,
+    }
+
+    _STYLE_CONFIG_DEFAULTS.update(_STYLE_COLOUR_DEFAULTS)
+    _STYLE_DEFAULTS.update(_STYLE_CONFIG_DEFAULTS)
+
     def __init__(self):
         self._controller = None
         self._ui_model = None
@@ -186,9 +193,9 @@ class StyleManager():
         config_style[key] = value
         if key.endswith('_colour'):
             # Make sure that all colours are stored if one is changed
-            for k in self._STYLE_DEFAULTS.keys():
+            for k in self._STYLE_COLOUR_DEFAULTS.keys():
                 if (k != key) and (k not in config_style):
-                    config_style[k] = self._STYLE_DEFAULTS[k]
+                    config_style[k] = self._STYLE_COLOUR_DEFAULTS[k]
 
         self._set_config_style(config_style)
 
