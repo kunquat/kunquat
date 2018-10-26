@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -23,17 +23,10 @@ from .kqtcombobox import KqtComboBox
 class ProfileControl(QDialog):
 
     SORTS = {
-            'Sort by cumulative time': 'cumtime',
-            'Sort by total time': 'tottime',
-            'Sort by number of calls': 'ncalls',
-            }
-
-    # Work around compatibility issues with older Pythons
-    SORT_HACKS = {
-            'cumtime': 2,
-            'tottime': 1,
-            'ncalls': 0,
-            }
+        'Sort by cumulative time': 'cumtime',
+        'Sort by total time': 'tottime',
+        'Sort by number of calls': 'ncalls',
+    }
 
     def __init__(self):
         super().__init__()
@@ -47,7 +40,7 @@ class ProfileControl(QDialog):
         self._sort_selector = KqtComboBox()
         for sort in sorted(self.SORTS.keys()):
             self._sort_selector.addItem(sort)
-        self._sort_selector.currentIndexChanged.connect(self._update_sort)
+        self._sort_selector.currentTextChanged.connect(self._update_sort)
 
         self._toggle = QPushButton()
         self._toggle.setText('Start profiling')
@@ -69,17 +62,17 @@ class ProfileControl(QDialog):
     def _set_profile_stats(self, profile):
         self._stats_output = StringIO()
         self._stats = pstats.Stats(profile, stream=self._stats_output)
-        self._stats.sort_stats(self.SORT_HACKS[self._sort_key])
+        self._stats.sort_stats(self._sort_key)
         self._stats.print_stats()
         data = self._stats_output.getvalue()
         self._details.setPlainText(data)
 
-    def _update_sort(self, key):
-        self._sort_key = self.SORTS[str(key)]
+    def _update_sort(self, text):
+        self._sort_key = self.SORTS[text]
         if self._stats:
             self._stats_output.seek(0)
             self._stats_output.truncate()
-            self._stats.sort_stats(self.SORT_HACKS[self._sort_key])
+            self._stats.sort_stats(self._sort_key)
             self._stats.print_stats()
             data = self._stats_output.getvalue()
             self._details.setPlainText(data)
