@@ -636,6 +636,15 @@ class ColourSelector(QWidget):
 
         self.setMouseTracking(True)
 
+    def update_style(self, style_mgr):
+        config = {
+            'hue_marker_thickness'  : style_mgr.get_scaled_size(0.2),
+            'sv_marker_radius'      : style_mgr.get_scaled_size(0.5),
+            'sv_marker_thickness'   : style_mgr.get_scaled_size(0.2),
+        }
+
+        self._config.update(config)
+
     def set_colour(self, colour):
         if self._colour.toRgb() != colour.toRgb():
             self._colour = colour
@@ -1179,6 +1188,9 @@ class ColourEditor(QWidget):
 
         self._accept_button.clicked.connect(self.hide)
 
+    def update_style(self, style_mgr):
+        self._selector.update_style(style_mgr)
+
     def set_colour(self, key, colour):
         self._key = key
         self._orig_colour = colour
@@ -1276,6 +1288,7 @@ class Colours(QTreeView, Updater):
     def _update_all(self):
         self._update_enabled()
         self._update_button_colours()
+        self._colour_editor.update_style(self._ui_model.get_style_manager())
 
     def _update_enabled(self):
         style_mgr = self._ui_model.get_style_manager()
