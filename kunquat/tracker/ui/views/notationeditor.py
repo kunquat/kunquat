@@ -240,7 +240,8 @@ class NotationListView(QListView, Updater):
             selection_model.select(
                     model.get_index(selected_notation_id), QItemSelectionModel.Select)
 
-        selection_model.currentChanged.connect(self._select_entry)
+        selection_model.currentChanged.connect(
+                self._select_entry, type=Qt.QueuedConnection)
 
 
 class Notations(QWidget, Updater):
@@ -1485,7 +1486,8 @@ class NoteListView(QListView, Updater):
             selection_model.select(
                     model.get_index(selected_note_index), QItemSelectionModel.Select)
 
-        selection_model.currentChanged.connect(self._select_entry)
+        selection_model.currentChanged.connect(
+                self._select_entry, type=Qt.QueuedConnection)
 
 
 class Notes(QWidget, Updater):

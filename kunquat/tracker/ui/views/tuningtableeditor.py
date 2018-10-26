@@ -423,7 +423,8 @@ class NoteTableView(QTableView, Updater):
             selection_model.select(
                     model.get_index(row, column), QItemSelectionModel.Select)
 
-        selection_model.currentChanged.connect(self._select_entry)
+        selection_model.currentChanged.connect(
+                self._select_entry, type=Qt.QueuedConnection)
 
 
 class Notes(QWidget, Updater):
