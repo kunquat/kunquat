@@ -16,6 +16,7 @@ import re
 from kunquat.tracker.ui.qt import *
 
 from kunquat.kunquat.limits import *
+from .iconbutton import IconButton
 from .kqtcombobox import KqtComboBox
 from .notationeditor import RatioValidator
 from .updater import Updater
@@ -197,18 +198,18 @@ class NotesToolBar(QToolBar, Updater):
         super().__init__()
         self._table_id = None
 
-        self._add_button = QToolButton()
-        self._add_button.setText('Add note')
+        self._add_button = IconButton(flat=True)
         self._add_button.setToolTip('Add note')
         self._add_button.setEnabled(True)
 
-        self._remove_button = QToolButton()
-        self._remove_button.setText('Remove note')
+        self._remove_button = IconButton(flat=True)
         self._remove_button.setToolTip('Remove note')
         self._remove_button.setEnabled(False)
 
         self.addWidget(self._add_button)
         self.addWidget(self._remove_button)
+
+        self.add_to_updaters(self._add_button, self._remove_button)
 
     def set_tuning_table_id(self, table_id):
         self._table_id = table_id
@@ -217,9 +218,8 @@ class NotesToolBar(QToolBar, Updater):
         self.register_action(self._get_update_signal_type(), self._update_enabled)
         self.register_action(self._get_selection_signal_type(), self._update_enabled)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
+        self._add_button.set_icon('add')
+        self._remove_button.set_icon('remove')
 
         self._add_button.clicked.connect(self._add_note)
         self._remove_button.clicked.connect(self._remove_note)
