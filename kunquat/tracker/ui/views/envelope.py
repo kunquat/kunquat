@@ -19,6 +19,7 @@ import time
 from kunquat.tracker.ui.qt import *
 
 from .axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
+from .iconbutton import IconButton
 from .utils import lerp_val, set_glyph_rel_width, get_scaled_font
 
 
@@ -109,10 +110,8 @@ class Envelope(QWidget):
     def __init__(self, init_config={}):
         super().__init__()
 
-        self._zoom_in_x_button = QToolButton()
-        self._zoom_in_x_button.setText('Zoom in')
-        self._zoom_out_x_button = QToolButton()
-        self._zoom_out_x_button.setText('Zoom out')
+        self._zoom_in_x_button = IconButton(flat=True)
+        self._zoom_out_x_button = IconButton(flat=True)
 
         self._toolbar = QToolBar()
         self._area = EnvelopeArea(init_config)
@@ -139,11 +138,18 @@ class Envelope(QWidget):
         self._area.get_envelope_view().visRangeNormChanged.connect(
                 self._update_zoom_buttons_enabled)
 
-    def set_icon_bank(self, icon_bank):
-        self._zoom_in_x_button.setIcon(QIcon(icon_bank.get_icon_path('zoom_in')))
-        self._zoom_out_x_button.setIcon(QIcon(icon_bank.get_icon_path('zoom_out')))
+    def set_ui_model(self, ui_model):
+        self._zoom_in_x_button.set_ui_model(ui_model)
+        self._zoom_out_x_button.set_ui_model(ui_model)
+
+        self._zoom_in_x_button.set_icon('zoom_in')
+        self._zoom_out_x_button.set_icon('zoom_out')
 
         self._update_zoom_buttons_enabled()
+
+    def unregister_updaters(self):
+        self._zoom_in_x_button.unregister_updaters()
+        self._zoom_out_x_button.unregister_updaters()
 
     def get_envelope_view(self):
         return self._area.get_envelope_view()

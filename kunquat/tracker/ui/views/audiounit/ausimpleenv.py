@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -40,7 +40,7 @@ class AudioUnitSimpleEnvelope(QWidget, AudioUnitUpdater):
         self.register_action(self._get_update_signal_type(), self._update_envelope)
         self.register_action('signal_style_changed', self._update_style)
 
-        self._envelope.set_icon_bank(self._ui_model.get_icon_bank())
+        self._envelope.set_ui_model(self._ui_model)
 
         self._enabled_toggle.stateChanged.connect(self._enabled_changed)
         self._envelope.get_envelope_view().envelopeChanged.connect(
@@ -48,6 +48,9 @@ class AudioUnitSimpleEnvelope(QWidget, AudioUnitUpdater):
 
         self._update_envelope()
         self._update_style()
+
+    def _on_teardown(self):
+        self._envelope.unregister_updaters()
 
     def _update_style(self):
         self._envelope.update_style(self._ui_model.get_style_manager())
