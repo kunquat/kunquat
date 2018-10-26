@@ -17,6 +17,7 @@ from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from .processorupdater import ProcessorUpdater
+from .prociconbutton import ProcessorIconButton
 from .waveform import Waveform
 
 
@@ -195,14 +196,6 @@ class WarpAdder(QPushButton, ProcessorUpdater):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class SmallButton(QPushButton):
-
-    def __init__(self):
-        super().__init__()
-        #self.setStyleSheet('padding: 0 -2px;')
-        self.setIconSize(QSize(16, 16))
-
-
 class WarpEditor(QWidget, ProcessorUpdater):
 
     _ARG_SCALE = 1000
@@ -214,13 +207,15 @@ class WarpEditor(QWidget, ProcessorUpdater):
         self._get_base_wave = get_base_wave
         self._get_update_signal_type = get_update_signal_type
 
-        self._down_button = SmallButton()
-        self._up_button = SmallButton()
+        self._down_button = ProcessorIconButton()
+        self._up_button = ProcessorIconButton()
         self._func_selector = KqtComboBox()
         self._slider = QSlider(Qt.Horizontal)
         self._slider.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
         self._value_display = QLabel()
-        self._remove_button = SmallButton()
+        self._remove_button = ProcessorIconButton()
+
+        self.add_to_updaters(self._down_button, self._up_button, self._remove_button)
 
         self._slider.setRange(-self._ARG_SCALE, self._ARG_SCALE)
 
@@ -246,10 +241,15 @@ class WarpEditor(QWidget, ProcessorUpdater):
         self.register_action('signal_au', self._update_all)
         self.register_action(self._get_update_signal_type(), self._update_all)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._down_button.setIcon(QIcon(icon_bank.get_icon_path('arrow_down_small')))
-        self._up_button.setIcon(QIcon(icon_bank.get_icon_path('arrow_up_small')))
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
+        self._down_button.set_icon('arrow_down_small')
+        self._up_button.set_icon('arrow_up_small')
+        self._remove_button.set_icon('delete_small')
+
+        style_mgr = self._ui_model.get_style_manager()
+        for button in (self._down_button, self._up_button, self._remove_button):
+            button.set_sizes(
+                    style_mgr.get_style_param('list_button_size'),
+                    style_mgr.get_style_param('list_button_padding'))
 
         base_wave = self._get_base_wave()
 
