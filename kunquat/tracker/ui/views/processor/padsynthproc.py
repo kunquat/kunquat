@@ -25,6 +25,7 @@ from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
 from . import utils
 from .procnumslider import ProcNumSlider
 from .processorupdater import ProcessorUpdater
+from .prociconbutton import ProcessorIconButton
 from .procsimpleenv import ProcessorSimpleEnvelope
 from .waveformeditor import WaveformEditor
 
@@ -438,10 +439,10 @@ class HarmonicLevelEditor(QWidget, ProcessorUpdater):
 
         self._level = LevelEditor(index)
 
-        self._remove_button = QPushButton()
-        #self._remove_button.setStyleSheet('padding: 0 -2px;')
-        self._remove_button.setIconSize(QSize(16, 16))
+        self._remove_button = ProcessorIconButton()
         self._remove_button.setEnabled(self._index != 0)
+
+        self.add_to_updaters(self._remove_button)
 
         h = QHBoxLayout()
         h.setContentsMargins(4, 0, 0, 0)
@@ -455,8 +456,12 @@ class HarmonicLevelEditor(QWidget, ProcessorUpdater):
     def _on_setup(self):
         self.add_to_updaters(self._level)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
+        self._remove_button.set_icon('delete_small')
+
+        style_mgr = self._ui_model.get_style_manager()
+        self._remove_button.set_sizes(
+                style_mgr.get_style_param('list_button_size'),
+                style_mgr.get_style_param('list_button_padding'))
 
         self._pitch_factor.valueChanged.connect(self._change_pitch_factor)
         self._remove_button.clicked.connect(self._remove_harmonic)
