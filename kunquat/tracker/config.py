@@ -181,7 +181,7 @@ class Config():
                 assert name.endswith('_colour')
                 style_config[name] = _Entry(v_colour, '#000')
 
-            is_valid = all(k not in style_config or style_config[k].accepts(v)
+            is_valid = all(k in style_config and style_config[k].accepts(v)
                     for (k, v) in x.items())
             return is_valid
 
