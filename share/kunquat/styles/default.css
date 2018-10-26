@@ -392,23 +392,25 @@ QScrollBar::add-page, QScrollBar::sub-page
 
 QScrollBar::handle
 {
+    margin: 0;
     padding: 0;
     background: <bg_colour>;
 }
 
 QScrollBar::handle:horizontal
 {
-    margin: 0 <tiny_arrow_button_size> 0 <tiny_arrow_button_size>;
     min-width: <scrollbar_size>;
 }
 
 QScrollBar::handle:vertical
 {
-    margin: <tiny_arrow_button_size> 0 <tiny_arrow_button_size> 0;
     min-height: <scrollbar_size>;
 }
 
-QScrollBar::add-line, QScrollBar::sub-line
+QScrollBar::add-line,
+QScrollBar::add-line:pressed,
+QScrollBar::sub-line,
+QScrollBar::sub-line:pressed
 {
     margin: 0;
     padding: 0;

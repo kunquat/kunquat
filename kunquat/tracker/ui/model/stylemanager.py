@@ -39,7 +39,7 @@ class StyleManager():
         'radio_border_radius'               : 0.499,
         'radio_check_size'                  : 1.0,
         'radio_check_spacing'               : 0.5,
-        'scrollbar_margin'                  : 0.25,
+        'scrollbar_margin'                  : 1.1,
         'scrollbar_size'                    : 1.2,
         'slider_handle_size'                : 3.0,
         'slider_thickness'                  : 1.0,
