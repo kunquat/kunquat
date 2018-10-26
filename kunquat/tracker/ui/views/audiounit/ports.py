@@ -15,6 +15,7 @@ from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
+from kunquat.tracker.ui.views.iconbutton import IconButton
 from .audiounitupdater import AudioUnitUpdater
 
 
@@ -181,6 +182,24 @@ class PortAdder(QPushButton, AudioUnitUpdater):
                 self._get_update_signal_type(), *self._get_connections_signals())
 
 
+class RemoveButton(IconButton):
+
+    def __init__(self):
+        super().__init__()
+        self.setToolTip('Remove')
+
+    def _on_setup(self):
+        super()._on_setup()
+        style_mgr = self._ui_model.get_style_manager()
+        self.set_icon('delete_small')
+        self.set_sizes(
+                style_mgr.get_style_param('list_button_size'),
+                style_mgr.get_style_param('list_button_padding'))
+
+    def set_au_id(self, au_id):
+        pass
+
+
 class PortEditor(QWidget, AudioUnitUpdater):
 
     def __init__(self, index, get_port_ids):
@@ -190,10 +209,9 @@ class PortEditor(QWidget, AudioUnitUpdater):
 
         self._name_editor = QLineEdit()
 
-        self._remove_button = QPushButton()
-        self._remove_button.setToolTip('Remove')
-        #self._remove_button.setStyleSheet('padding: 0 -2px;')
-        self._remove_button.setIconSize(QSize(16, 16))
+        self._remove_button = RemoveButton()
+
+        self.add_to_updaters(self._remove_button)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -203,10 +221,6 @@ class PortEditor(QWidget, AudioUnitUpdater):
         self.setLayout(h)
 
     def _on_setup(self):
-        icon_bank = self._ui_model.get_icon_bank()
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
-        self._remove_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
-
         self.register_action(self._get_update_signal_type(), self._update_all)
 
         self._name_editor.textChanged.connect(self._change_name)
