@@ -38,6 +38,7 @@ class StyleManager():
         'slider_handle_size'                : 3.0,
         'slider_thickness'                  : 1.0,
         'small_padding'                     : 0.2,
+        'splitter_width'                    : 0.4,
         'tab_bar_margin'                    : 0.4,
         'tiny_arrow_button_size'            : 0.9,
         'tiny_padding'                      : 0.1,

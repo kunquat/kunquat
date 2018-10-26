@@ -504,12 +504,14 @@ QSlider::handle:horizontal
 QSplitter::handle:horizontal
 {
     padding: <tiny_padding>;
+    width: <splitter_width>;
     image: url(<icons_path>/splitter_horizontal.png);
 }
 
 QSplitter::handle:vertical
 {
     padding: <tiny_padding>;
+    height: <splitter_width>;
     image: url(<icons_path>/splitter_vertical.png);
 }
 

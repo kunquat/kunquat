@@ -86,6 +86,7 @@ class StyleCreator():
             'slider_handle_size',
             'slider_thickness',
             'small_padding',
+            'splitter_width',
             'tab_bar_margin',
             'tiny_arrow_button_size',
             'tiny_padding',
