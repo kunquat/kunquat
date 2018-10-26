@@ -16,6 +16,7 @@ import math
 from kunquat.tracker.ui.qt import *
 
 from .headerline import HeaderLine
+from .iconbutton import IconButton
 from .kqtcombobox import KqtComboBox
 from .updater import Updater
 from .varprecspinbox import VarPrecSpinBox
@@ -86,26 +87,25 @@ class NotationListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
-        self._add_button = QToolButton()
-        self._add_button.setText('Add notation')
+        self._add_button = IconButton(flat=True)
         self._add_button.setToolTip('Add notation')
         self._add_button.setEnabled(True)
 
-        self._remove_button = QToolButton()
-        self._remove_button.setText('Remove notation')
+        self._remove_button = IconButton(flat=True)
         self._remove_button.setToolTip('Remove notation')
         self._remove_button.setEnabled(False)
 
         self.addWidget(self._add_button)
         self.addWidget(self._remove_button)
 
+        self.add_to_updaters(self._add_button, self._remove_button)
+
     def _on_setup(self):
         self.register_action('signal_notation_list', self._update_enabled)
         self.register_action('signal_notation_editor_selection', self._update_enabled)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
+        self._add_button.set_icon('add')
+        self._remove_button.set_icon('remove')
 
         self._add_button.clicked.connect(self._add_notation)
         self._remove_button.clicked.connect(self._remove_notation)
@@ -278,26 +278,25 @@ class TuningTableListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
-        self._add_button = QToolButton()
-        self._add_button.setText('Add tuning table')
+        self._add_button = IconButton(flat=True)
         self._add_button.setToolTip('Add tuning table')
         self._add_button.setEnabled(True)
 
-        self._remove_button = QToolButton()
-        self._remove_button.setText('Remove tuning table')
+        self._remove_button = IconButton(flat=True)
         self._remove_button.setToolTip('Remove tuning table')
         self._remove_button.setEnabled(False)
 
         self.addWidget(self._add_button)
         self.addWidget(self._remove_button)
 
+        self.add_to_updaters(self._add_button, self._remove_button)
+
     def _on_setup(self):
         self.register_action('signal_tuning_tables', self._update_enabled)
         self.register_action('signal_tuning_table_selection', self._update_enabled)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
+        self._add_button.set_icon('add')
+        self._remove_button.set_icon('remove')
 
         self._add_button.clicked.connect(self._add_tuning_table)
         self._remove_button.clicked.connect(self._remove_tuning_table)
@@ -880,18 +879,18 @@ class TemplateNotesToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
-        self._add_button = QToolButton()
-        self._add_button.setText('Add note')
+        self._add_button = IconButton(flat=True)
         self._add_button.setToolTip('Add note')
         self._add_button.setEnabled(True)
 
-        self._remove_button = QToolButton()
-        self._remove_button.setText('Remove note')
+        self._remove_button = IconButton(flat=True)
         self._remove_button.setToolTip('Remove note')
         self._remove_button.setEnabled(False)
 
         self.addWidget(self._add_button)
         self.addWidget(self._remove_button)
+
+        self.add_to_updaters(self._add_button, self._remove_button)
 
     def _on_setup(self):
         self.register_action('signal_notation_list', self._update_enabled)
@@ -900,9 +899,8 @@ class TemplateNotesToolBar(QToolBar, Updater):
                 'signal_notation_template_note_selection', self._update_enabled)
         self.register_action('signal_notation_template_notes', self._update_enabled)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
+        self._add_button.set_icon('add')
+        self._remove_button.set_icon('remove')
 
         self._add_button.clicked.connect(self._add_note)
         self._remove_button.clicked.connect(self._remove_note)
@@ -1128,13 +1126,11 @@ class OctaveListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
-        self._add_button = QToolButton()
-        self._add_button.setText('Add octave')
+        self._add_button = IconButton(flat=True)
         self._add_button.setToolTip('Add octave')
         self._add_button.setEnabled(True)
 
-        self._remove_button = QToolButton()
-        self._remove_button.setText('Remove octave')
+        self._remove_button = IconButton(flat=True)
         self._remove_button.setToolTip('Remove octave')
         self._remove_button.setEnabled(False)
 
@@ -1146,15 +1142,16 @@ class OctaveListToolBar(QToolBar, Updater):
         self.addWidget(self._remove_button)
         self.addWidget(self._set_base_button)
 
+        self.add_to_updaters(self._add_button, self._remove_button)
+
     def _on_setup(self):
         self.register_action('signal_notation_editor_selection', self._update_enabled)
         self.register_action('signal_notation_editor_octaves', self._update_enabled)
         self.register_action(
                 'signal_notation_editor_octave_selection', self._update_enabled)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
+        self._add_button.set_icon('add')
+        self._remove_button.set_icon('remove')
 
         self._add_button.clicked.connect(self._add_octave)
         self._remove_button.clicked.connect(self._remove_octave)
@@ -1360,18 +1357,18 @@ class NoteListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
-        self._add_button = QToolButton()
-        self._add_button.setText('Add note')
+        self._add_button = IconButton(flat=True)
         self._add_button.setToolTip('Add note')
         self._add_button.setEnabled(True)
 
-        self._remove_button = QToolButton()
-        self._remove_button.setText('Remove note')
+        self._remove_button = IconButton(flat=True)
         self._remove_button.setToolTip('Remove note')
         self._remove_button.setEnabled(False)
 
         self.addWidget(self._add_button)
         self.addWidget(self._remove_button)
+
+        self.add_to_updaters(self._add_button, self._remove_button)
 
     def _on_setup(self):
         self.register_action('signal_notation_editor_selection', self._update_enabled)
@@ -1379,9 +1376,8 @@ class NoteListToolBar(QToolBar, Updater):
         self.register_action(
                 'signal_notation_editor_note_selection', self._update_enabled)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
+        self._add_button.set_icon('add')
+        self._remove_button.set_icon('remove')
 
         self._add_button.clicked.connect(self._add_note)
         self._remove_button.clicked.connect(self._remove_note)
@@ -1758,6 +1754,9 @@ class KeySelector(QWidget, Updater):
         self.register_action('signal_notation_editor_key_selection', self._update_keys)
         self.register_action('signal_notation_editor_key', self._update_keys)
 
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
     def _update_keys(self):
         notation_mgr = self._ui_model.get_notation_manager()
         notation = notation_mgr.get_editor_selected_notation()
@@ -1780,6 +1779,26 @@ class KeySelector(QWidget, Updater):
             key.setText(text)
             key.setEnabled(bool(text))
             key.set_pressed(i == selected_index)
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        rows = self.layout()
+        rows.setSpacing(style_mgr.get_scaled_size_param('small_padding'))
+
+        button_spacing = style_mgr.get_scaled_size_param('medium_padding')
+
+        top_row = rows.itemAt(0).layout()
+        top_row.setSpacing(button_spacing)
+        padding = top_row.itemAt(0).spacerItem()
+        padding.changeSize(style_mgr.get_scaled_size_param('typewriter_padding'), 2)
+
+        bottom_row = rows.itemAt(1).layout()
+        bottom_row.setSpacing(button_spacing)
+
+        button_size = style_mgr.get_scaled_size_param('typewriter_button_size')
+        for button in self._keys:
+            button.setFixedSize(QSize(button_size, button_size))
 
 
 class KeyEditor(QWidget, Updater):
