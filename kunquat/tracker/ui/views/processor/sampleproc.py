@@ -26,9 +26,10 @@ from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.utils import lerp_val, set_glyph_rel_width, get_scaled_font
 from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
+from .processorupdater import ProcessorUpdater
+from .prociconbutton import ProcessorIconButton
 from .prockeyboardmapper import ProcessorKeyboardMapper
 from .sampleview import SampleView
-from .processorupdater import ProcessorUpdater
 from . import utils
 
 
@@ -740,9 +741,9 @@ class RandomEntryEditor(QWidget, ProcessorUpdater):
         self._volume_shift = VarPrecSpinBox(step_decimals=0, max_decimals=2)
         self._volume_shift.setRange(-64, 64)
 
-        self._remove_button = QPushButton()
-        #self._remove_button.setStyleSheet('padding: 0 -2px;')
-        self._remove_button.setIconSize(QSize(16, 16))
+        self._remove_button = ProcessorIconButton()
+
+        self.add_to_updaters(self._remove_button)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -761,9 +762,12 @@ class RandomEntryEditor(QWidget, ProcessorUpdater):
         for signal in self._get_update_signals():
             self.register_action(signal, self._update_all)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
-        self._remove_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
+        self._remove_button.set_icon('delete_small')
+
+        style_mgr = self._ui_model.get_style_manager()
+        self._remove_button.set_sizes(
+                style_mgr.get_style_param('list_button_size'),
+                style_mgr.get_style_param('list_button_padding'))
 
         self._sample_selector.currentIndexChanged.connect(self._change_sample)
         self._pitch_shift.valueChanged.connect(self._change_pitch_shift)
