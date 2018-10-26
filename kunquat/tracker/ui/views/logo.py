@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2014
-#          Tomi Jylhä-Ollila, Finland 2015-2017
+#          Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -22,6 +22,11 @@ class Logo(QWidget, Updater):
     def __init__(self):
         super().__init__()
         self.setFixedSize(200, 200)
+
+    def _on_setup(self):
+        style_mgr = self._ui_model.get_style_manager()
+        size = style_mgr.get_scaled_size(20, 20)
+        self.setFixedSize(size, size)
 
     def paintEvent(self, ev):
         if self._ui_model:
