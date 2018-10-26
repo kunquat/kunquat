@@ -18,6 +18,7 @@ from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
 from .procnumslider import ProcNumSlider
 from .processorupdater import ProcessorUpdater
+from .prociconbutton import ProcessorIconButton
 from .waveformeditor import WaveformEditor
 from . import utils
 
@@ -106,14 +107,6 @@ class AddWaveformEditor(WaveformEditor):
         return base_wave
 
 
-class SmallButton(QPushButton):
-
-    def __init__(self, icon):
-        super().__init__()
-        self.setIcon(QIcon(icon))
-        self.setIconSize(QSize(16, 16))
-
-
 class ToneList(EditorList, ProcessorUpdater):
 
     def __init__(self):
@@ -191,10 +184,13 @@ class ToneEditor(QWidget, ProcessorUpdater):
         self._pitch_spin = TonePitchSpin(index)
         self._volume_slider = ToneVolumeSlider(index)
         self._panning_slider = TonePanningSlider(index)
-        self._remove_button = SmallButton(icon_bank.get_icon_path('delete_small'))
+        self._remove_button = ProcessorIconButton()
 
         self.add_to_updaters(
-                self._pitch_spin, self._volume_slider, self._panning_slider)
+                self._pitch_spin,
+                self._volume_slider,
+                self._panning_slider,
+                self._remove_button)
 
         self._remove_button.setEnabled(self._index != 0)
 
@@ -208,6 +204,12 @@ class ToneEditor(QWidget, ProcessorUpdater):
         self.setLayout(h)
 
     def _on_setup(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._remove_button.set_icon('delete_small')
+        self._remove_button.set_sizes(
+                style_mgr.get_style_param('list_button_size'),
+                style_mgr.get_style_param('list_button_padding'))
+
         self._remove_button.clicked.connect(self._removed)
 
     def _get_update_signal_type(self):
