@@ -17,6 +17,7 @@ from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
 from .editorlist import EditorList
 from .headerline import HeaderLine
+from .iconbutton import IconButton
 from .kqtcombobox import KqtComboBox
 from .updater import Updater
 from .varnamevalidator import VarNameValidator
@@ -297,7 +298,7 @@ class VarValueEditor(QWidget, Updater):
         self._change_value(new_value)
 
 
-class VarRemoveButton(QPushButton, Updater):
+class VarRemoveButton(IconButton):
 
     def __init__(self):
         super().__init__()
@@ -306,9 +307,11 @@ class VarRemoveButton(QPushButton, Updater):
         self.setToolTip('Remove')
 
     def _on_setup(self):
-        icon_bank = self._ui_model.get_icon_bank()
-        self.setIconSize(QSize(16, 16))
-        self.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
+        self.set_icon('delete_small')
+
+        style_mgr = self._ui_model.get_style_manager()
+        self.set_sizes(style_mgr.get_style_param('list_button_size'),
+                style_mgr.get_style_param('list_button_padding'))
 
         self.clicked.connect(self._remove)
 

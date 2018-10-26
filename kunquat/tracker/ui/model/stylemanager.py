@@ -32,6 +32,8 @@ class StyleManager():
         'dialog_button_width'               : 9.0,
         'dialog_icon_size'                  : 7.0,
         'large_padding'                     : 0.8,
+        'list_button_size'                  : 2.0,
+        'list_button_padding'               : 0.2,
         'medium_padding'                    : 0.4,
         'menu_arrow_size'                   : 1.0,
         'radio_border_radius'               : 0.499,
