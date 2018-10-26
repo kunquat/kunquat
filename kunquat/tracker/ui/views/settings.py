@@ -563,7 +563,7 @@ class ColoursModel(QAbstractItemModel, Updater):
                             desc = desc[0].upper() + desc[1:]
                     return desc
                 elif column == 1:
-                    return node.get_colour()
+                    return '' # ColourButton takes care of display
             else:
                 assert False
 
@@ -595,6 +595,11 @@ class ColourButton(QPushButton):
     def set_colour(self, colour):
         style = 'QPushButton {{ background-color: {}; }}'.format(colour)
         self.setStyleSheet(style)
+
+    def update_style(self, style_mgr):
+        width = style_mgr.get_scaled_size(4.6)
+        height = style_mgr.get_scaled_size(1.5)
+        self.setFixedSize(QSize(width, height))
 
     def _clicked(self):
         self.colourSelected.emit(self._key)
@@ -1287,14 +1292,14 @@ class Colours(QTreeView, Updater):
 
     def _update_all(self):
         self._update_enabled()
-        self._update_button_colours()
+        self._update_buttons()
         self._colour_editor.update_style(self._ui_model.get_style_manager())
 
     def _update_enabled(self):
         style_mgr = self._ui_model.get_style_manager()
         self.setEnabled(style_mgr.is_custom_style_enabled())
 
-    def _update_button_colours(self):
+    def _update_buttons(self):
         style_mgr = self._ui_model.get_style_manager()
 
         for index in self._model.get_colour_indices():
@@ -1303,6 +1308,7 @@ class Colours(QTreeView, Updater):
                 key = button.get_key()
                 colour = style_mgr.get_style_param(key)
                 button.set_colour(colour)
+                button.update_style(style_mgr)
 
     def _open_colour_editor(self, key):
         style_mgr = self._ui_model.get_style_manager()
