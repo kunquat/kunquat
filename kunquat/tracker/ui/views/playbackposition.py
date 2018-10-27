@@ -190,23 +190,41 @@ class PlaybackPosition(QWidget):
                 self._glyph_sizes[(font_name, width_factor)] = (width - 1, height)
 
     def _draw_titles(self):
-        font = self._config['title_font']
+        # Render pixmaps at larger scale for more accurate width adjustment
+        scale_mult = 4
+
+        font = QFont(self._config['title_font'])
+        font.setPointSizeF(font.pointSizeF() * scale_mult)
+        utils.set_glyph_rel_width(font, QWidget, 'TRACKSYSTEMPATTERNROW', 20)
+
         fm = QFontMetrics(font, self)
         text_option = QTextOption(Qt.AlignLeft | Qt.AlignTop)
 
-        for title in ('track', 'system', 'pattern', 'row'):
-            vis_text = title.upper()
-            rect = fm.tightBoundingRect(vis_text)
-            rect.setRight(rect.right() + 1)
+        bounding_rects = {}
 
-            pixmap = QPixmap(rect.width(), rect.height())
+        titles = ('track', 'system', 'pattern', 'row')
+        for title in titles:
+            vis_text = title.upper()
+            bounding_rects[title] = fm.tightBoundingRect(vis_text)
+
+        max_height = max(r.height() for r in bounding_rects.values())
+        target_height = int(math.ceil(max_height / scale_mult)) + 2
+
+        for title in titles:
+            vis_text = title.upper()
+            rect = bounding_rects[title]
+
+            pixmap = QPixmap(
+                    rect.width() + scale_mult * 2, max_height + scale_mult * 2)
             pixmap.fill(self._config['bg_colour'])
             painter = QPainter(pixmap)
             painter.setFont(font)
             painter.setPen(self._config['title_colour'])
-            painter.drawText(0, rect.height(), vis_text)
+            painter.drawText(pixmap.rect(), Qt.AlignCenter, vis_text)
+            painter.end()
 
-            self._titles[title] = pixmap
+            self._titles[title] = pixmap.scaledToHeight(
+                    target_height, Qt.SmoothTransformation)
 
     def _set_dimensions(self):
         default_fm = QFontMetrics(self._config['num_font'], self)
