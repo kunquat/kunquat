@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -16,6 +16,7 @@ from kunquat.tracker.ui.qt import *
 from kunquat.tracker.ui.model.patterninstance import PatternInstance
 from kunquat.tracker.ui.model.song import Song
 from .headerline import HeaderLine
+from .iconbutton import IconButton
 from .orderlist import Orderlist
 from .updater import Updater
 
@@ -42,10 +43,17 @@ class OrderlistEditor(QWidget, Updater):
     def _on_setup(self):
         self.add_to_updaters(self._orderlist, self._toolbar)
         self.register_action('signal_order_list', self._acknowledge_update)
+        self.register_action('signal_style_changed', self._update_style)
 
         module = self._ui_model.get_module()
         self._album = module.get_album()
         self._orderlist_mgr = self._ui_model.get_orderlist_manager()
+
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _acknowledge_update(self):
         self._waiting_for_update = False
@@ -122,8 +130,7 @@ class OrderlistToolBar(QToolBar):
         self._selection = None
 
         def create_button(text):
-            button = QToolButton()
-            button.setText(text)
+            button = IconButton(flat=True)
             button.setToolTip(text)
             button.setEnabled(False)
             return button
@@ -149,16 +156,15 @@ class OrderlistToolBar(QToolBar):
         self._updater.register_updater(self._perform_updates)
         self._orderlist_mgr = ui_model.get_orderlist_manager()
 
-        icon_bank = ui_model.get_icon_bank()
-        def set_icon(button, icon_name):
-            icon_path = icon_bank.get_icon_path(icon_name)
-            button.setIcon(QIcon(icon_path))
+        def setup_button(button, icon_name):
+            button.set_ui_model(self._ui_model)
+            button.set_icon(icon_name)
 
-        set_icon(self._new_pat_button, 'new_pattern')
-        set_icon(self._remove_pat_button, 'remove_pattern')
-        set_icon(self._reuse_pat_button, 'reuse_pattern')
-        set_icon(self._new_song_button, 'new_song')
-        set_icon(self._remove_song_button, 'remove_song')
+        setup_button(self._new_pat_button, 'new_pattern')
+        setup_button(self._remove_pat_button, 'remove_pattern')
+        setup_button(self._reuse_pat_button, 'reuse_pattern')
+        setup_button(self._new_song_button, 'new_song')
+        setup_button(self._remove_song_button, 'remove_song')
 
         self._update_buttons_enabled(None)
 
@@ -170,6 +176,12 @@ class OrderlistToolBar(QToolBar):
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
+
+        self._remove_song_button.unregister_updaters()
+        self._new_song_button.unregister_updaters()
+        self._reuse_pat_button.unregister_updaters()
+        self._remove_pat_button.unregister_updaters()
+        self._new_pat_button.unregister_updaters()
 
     def _perform_updates(self, signals):
         selection = self._orderlist.get_selected_object()
