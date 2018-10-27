@@ -60,9 +60,8 @@ class PlaybackPanel(QToolBar, Updater):
 class PlayButton(IconButton):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(flat=True)
         self.setToolTip('Play (Comma)')
-        self.setFlat(True)
 
     def _on_setup(self):
         super()._on_setup()
@@ -73,9 +72,8 @@ class PlayButton(IconButton):
 class PlayPatternButton(IconButton):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(flat=True)
         self.setToolTip('Play Pattern (Ctrl + Comma)')
-        self.setFlat(True)
 
     def _on_setup(self):
         super()._on_setup()
@@ -86,9 +84,8 @@ class PlayPatternButton(IconButton):
 class PlayFromCursorButton(IconButton):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(flat=True)
         self.setToolTip('Play from Cursor (Alt + Comma)')
-        self.setFlat(True)
 
     def _on_setup(self):
         super()._on_setup()
@@ -99,12 +96,11 @@ class PlayFromCursorButton(IconButton):
 class RecordButton(IconButton):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(flat=True)
         self._sheet_mgr = None
         self._playback_mgr = None
 
         self.setCheckable(True)
-        self.setFlat(True)
 
     def _on_setup(self):
         super()._on_setup()
@@ -136,11 +132,10 @@ class RecordButton(IconButton):
 class SilenceButton(IconButton):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(flat=True)
         self._playback_mgr = None
 
         self.setToolTip('Silence (Period)')
-        self.setFlat(True)
 
     def _on_setup(self):
         super()._on_setup()

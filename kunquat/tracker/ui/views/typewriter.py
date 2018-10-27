@@ -54,16 +54,21 @@ class Typewriter(QFrame, Updater):
             pad.setFixedWidth(pad_px)
 
     def _get_layout(self):
+        style_mgr = self._ui_model.get_style_manager()
+
         rows = QVBoxLayout()
         rows.setContentsMargins(0, 0, 0, 0)
-        rows.setSpacing(2)
+        rows.setSpacing(style_mgr.get_scaled_size_param('small_padding'))
+
         for row_index in range(self._typewriter_mgr.get_row_count()):
             rows.addLayout(self._get_row(row_index))
         return rows
 
     def _get_row(self, index):
+        style_mgr = self._ui_model.get_style_manager()
+
         row = QHBoxLayout()
-        row.setSpacing(4)
+        row.setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
         pad_px = self._pad * self._typewriter_mgr.get_pad_factor_at_row(index)
         row.addWidget(self._get_pad(pad_px))

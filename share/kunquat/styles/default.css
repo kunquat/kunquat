@@ -9,11 +9,28 @@
  */
 
 
+/* An insane default to help catch implicit settings */
+*
+{
+    margin: 10px;
+    padding: 10px;
+    font-size: 60px;
+    font-style: italic;
+    font-weight: 900;
+    font-family: serif;
+}
+
+
 QWidget
 {
+    margin: 0;
+    padding: 0;
+
     background-color: <bg_colour>;
     color: <fg_colour>;
     font-size: <def_font_size>;
+    font-style: normal;
+    font-weight: normal;
     font-family: <def_font_family>;
 }
 
@@ -24,7 +41,6 @@ QWidget:disabled
 
 /* Base style for non-button container widgets */
 
-QComboBox QAbstractItemView,
 QHeaderView::section:horizontal,
 QHeaderView::section:vertical,
 QMenu,
@@ -33,12 +49,36 @@ QSlider::handle:horizontal,
 QTabWidget::pane,
 QToolBar
 {
+    margin: 0;
     border: <border_thin_width> solid;
     border-top-color: <bg_colour_light>;
     border-left-color: <bg_colour_light>;
     border-right-color: <bg_colour_dark>;
     border-bottom-color: <bg_colour_dark>;
     border-radius: <border_thin_radius>;
+    padding: <small_padding>;
+}
+
+QComboBox QAbstractItemView
+{
+    margin: 0;
+    border: <border_thin_width> solid;
+    border-top-color: <bg_colour_dark>;
+    border-left-color: <bg_colour_dark>;
+    border-right-color: <bg_colour_light>;
+    border-bottom-color: <bg_colour_light>;
+    border-radius: <border_thin_radius>;
+    padding: 0;
+}
+
+QToolTip
+{
+    margin: 0;
+    padding: <small_padding>;
+    font-size: <def_font_size>;
+    font-style: normal;
+    font-weight: normal;
+    font-family: <def_font_family>;
 }
 
 /* Base styles for button container widgets */
@@ -46,6 +86,7 @@ QToolBar
 QPushButton:flat,
 QToolButton
 {
+    margin: 0;
     padding: <small_padding>;
 }
 
@@ -332,6 +373,8 @@ QHeaderView::section:vertical
 
 QLabel
 {
+    margin: 0;
+    padding: <tiny_padding>;
     background-color: transparent;
 }
 

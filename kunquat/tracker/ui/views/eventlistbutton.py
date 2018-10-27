@@ -78,6 +78,7 @@ class EventListButton(QToolButton):
         light_layout = QWidgetItem(self._light)
         light_layout.setAlignment(Qt.AlignVCenter)
         self._text = QLabel(self._get_text(0))
+        self._text.setMargin(0)
 
         h = QHBoxLayout()
         h.setContentsMargins(6, 4, 6, 3)
@@ -122,12 +123,14 @@ class EventListButton(QToolButton):
             self._light.set_config({})
             return
 
+        left_margin = (style_mgr.get_scaled_size_param('medium_padding') +
+                style_mgr.get_scaled_size_param('border_thin_width'))
         margin = style_mgr.get_scaled_size(
                 style_mgr.get_style_param('small_padding') +
                 style_mgr.get_style_param('border_thin_width'))
-        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setContentsMargins(left_margin, margin, margin, margin)
         self.layout().setSpacing(style_mgr.get_scaled_size(
-            style_mgr.get_style_param('medium_padding')))
+            style_mgr.get_style_param('small_padding')))
 
         active_colour = QColor(style_mgr.get_style_param('active_indicator_colour'))
         inactive_colour = utils.lerp_colour(QColor(0, 0, 0), active_colour, 0.25)

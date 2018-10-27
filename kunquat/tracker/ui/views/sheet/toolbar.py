@@ -113,6 +113,24 @@ class Toolbar(QWidget, Updater):
 
         self.setLayout(h)
 
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        layout = self.layout()
+
+        margin = style_mgr.get_scaled_size_param('small_padding')
+        spacing = style_mgr.get_scaled_size_param('small_padding')
+        layout.setContentsMargins(margin, 0, margin, margin)
+        layout.setSpacing(spacing)
+
+        for i in range(layout.count()):
+            spacer = layout.itemAt(i).spacerItem()
+            if spacer:
+                spacer.changeSize(spacing, 2)
+
 
 _BUTTON_SIZE = 2.8
 _BUTTON_PADDING = 0.3
