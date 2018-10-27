@@ -633,6 +633,7 @@ QToolBar::separator
     width: 0;
 }
 
+QFrame#Header_line,
 QFrame#HackSeparator
 {
     border: <border_thin_width> solid;
