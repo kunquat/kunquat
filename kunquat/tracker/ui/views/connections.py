@@ -819,12 +819,9 @@ class ConnectionsView(QWidget):
             from_x, from_y = self._get_port_centre_from_path(from_path)
             to_x, to_y = self._get_port_centre_from_path(to_path)
             edge_width = self._config['focused_edge_width']
-            offset = edge_width // 2
-            from_x, from_y = from_x + offset, from_y + offset
-            to_x, to_y = to_x + offset, to_y + offset
 
             painter.save()
-            painter.translate(-0.5, -0.5)
+            painter.translate(0.5, 0.5)
             pen = QPen(self._config['focused_edge_colour'])
             pen.setWidth(edge_width)
             painter.setPen(pen)
