@@ -32,10 +32,12 @@ class OrderlistEditor(QWidget, Updater):
 
         self._waiting_for_update = False
 
+        self._header = HeaderLine('Order list')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Order list'))
+        v.addWidget(self._header)
         v.addWidget(self._toolbar)
         v.addWidget(self._orderlist)
         self.setLayout(v)
@@ -53,6 +55,7 @@ class OrderlistEditor(QWidget, Updater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
         self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _acknowledge_update(self):

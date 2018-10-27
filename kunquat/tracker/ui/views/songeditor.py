@@ -34,10 +34,12 @@ class SongEditor(QWidget, Updater):
         self._controls_layout.addWidget(QLabel('Initial tempo:'), 1, 0)
         self._controls_layout.addWidget(self._tempo_editor, 1, 1)
 
+        self._header = HeaderLine('Song')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Song'))
+        v.addWidget(self._header)
         v.addLayout(self._controls_layout)
         v.addStretch(1)
         self.setLayout(v)
@@ -48,6 +50,8 @@ class SongEditor(QWidget, Updater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+
+        self._header.update_style(style_mgr)
 
         spacing = style_mgr.get_scaled_size_param('small_padding')
         self._controls_layout.setSpacing(spacing)
