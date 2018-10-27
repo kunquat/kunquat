@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -29,12 +29,23 @@ class ChDefaultsEditor(QWidget, Updater):
         self._ch_defaults_list = ChDefaultsList()
         self.add_to_updaters(self._ch_defaults_list)
 
+        self._header = HeaderLine('Channel defaults')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Channel defaults'))
+        v.addWidget(self._header)
         v.addWidget(self._ch_defaults_list, 1000)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
 
 class ChDefaultsList(EditorList, Updater):
@@ -103,13 +114,19 @@ class ChDefaults(QWidget, Updater):
         self.register_action('signal_controls', self._update_all)
         self.register_action('signal_order_list', self._update_all)
         self.register_action(self._get_update_signal_type(), self._update_all)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._module = self._ui_model.get_module()
 
         self._au_selector.currentIndexChanged.connect(self._select_audio_unit)
         self._init_expr.editingFinished.connect(self._change_init_expr)
 
+        self._update_style()
         self._update_all()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _get_update_signal_type(self):
         return '_'.join(('signal_ch_defaults', str(self._ch_num)))
