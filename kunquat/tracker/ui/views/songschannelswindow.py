@@ -38,9 +38,9 @@ class SongsChannelsWindow(Updater, SaverWindow):
         h = QHBoxLayout()
         h.setContentsMargins(4, 4, 4, 4)
         h.setSpacing(4)
-        h.addWidget(self._orderlist_editor)
-        h.addWidget(self._song_editor)
-        h.addWidget(self._ch_defaults_editor)
+        h.addWidget(self._orderlist_editor, 1)
+        h.addWidget(self._song_editor, 1)
+        h.addWidget(self._ch_defaults_editor, 2)
         self.setLayout(h)
 
     def closeEvent(self, event):
