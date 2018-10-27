@@ -471,7 +471,7 @@ class ConnectionsView(QWidget):
         pv_hilight_excluded_focused = utils.lerp_colour(focus_colour, bg_colour, 0.5)
 
         title_font = utils.get_scaled_font(style_mgr, 0.9, QFont.Bold)
-        utils.set_glyph_rel_width(title_font, QWidget, string.ascii_lowercase, 15.92)
+        utils.set_glyph_rel_width(title_font, QWidget, string.ascii_lowercase, 14)
         port_font = utils.get_scaled_font(style_mgr, 0.7, QFont.Bold)
 
         devices = {
