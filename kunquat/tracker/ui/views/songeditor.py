@@ -28,19 +28,30 @@ class SongEditor(QWidget, Updater):
 
         self.add_to_updaters(self._name, self._tempo_editor)
 
-        gl = QGridLayout()
-        gl.addWidget(QLabel('Name:'), 0, 0)
-        gl.addWidget(self._name, 0, 1)
-        gl.addWidget(QLabel('Initial tempo:'), 1, 0)
-        gl.addWidget(self._tempo_editor, 1, 1)
+        self._controls_layout = QGridLayout()
+        self._controls_layout.addWidget(QLabel('Name:'), 0, 0)
+        self._controls_layout.addWidget(self._name, 0, 1)
+        self._controls_layout.addWidget(QLabel('Initial tempo:'), 1, 0)
+        self._controls_layout.addWidget(self._tempo_editor, 1, 1)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Song'))
-        v.addLayout(gl)
+        v.addLayout(self._controls_layout)
         v.addStretch(1)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        spacing = style_mgr.get_scaled_size_param('small_padding')
+        self._controls_layout.setSpacing(spacing)
+        self.layout().setSpacing(spacing)
 
 
 class NameEditor(QLineEdit, Updater):
