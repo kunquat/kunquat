@@ -47,27 +47,49 @@ class GridEditor(QWidget, Updater):
                 self._subdiv_editor,
                 self._line_editor)
 
-        r = QVBoxLayout()
-        r.setContentsMargins(0, 0, 0, 0)
-        r.setSpacing(8)
-        r.addWidget(self._subdiv_editor)
-        r.addWidget(self._line_editor)
+        self._line_layout = QVBoxLayout()
+        self._line_layout.setContentsMargins(0, 0, 0, 0)
+        self._line_layout.setSpacing(8)
+        self._line_layout.addWidget(self._subdiv_editor)
+        self._line_layout.addWidget(self._line_editor)
 
-        el = QHBoxLayout()
-        el.setContentsMargins(0, 0, 0, 0)
-        el.setSpacing(4)
-        el.addWidget(self._grid_area)
-        el.addLayout(r)
+        self._details_layout = QHBoxLayout()
+        self._details_layout.setContentsMargins(0, 0, 0, 0)
+        self._details_layout.setSpacing(4)
+        self._details_layout.addWidget(self._grid_area)
+        self._details_layout.addLayout(self._line_layout)
+
+        self._header = HeaderLine('Grid editor')
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(self._grid_list, 1)
         v.addSpacing(2)
-        v.addWidget(HeaderLine('Grid editor'))
+        v.addWidget(self._header)
         v.addWidget(self._general_editor)
-        v.addLayout(el, 4)
+        v.addLayout(self._details_layout, 4)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        self._header.update_style(style_mgr)
+
+        self._line_layout.setSpacing(style_mgr.get_scaled_size_param('large_padding'))
+        self._details_layout.setSpacing(
+                style_mgr.get_scaled_size_param('medium_padding'))
+
+        layout = self.layout()
+        spacing = style_mgr.get_scaled_size_param('small_padding')
+        layout.setSpacing(spacing)
+        for i in range(layout.count()):
+            spacer = layout.itemAt(i).spacerItem()
+            if spacer:
+                spacer.changeSize(2, spacing)
 
 
 class GridListModel(QAbstractListModel, Updater):
@@ -317,7 +339,8 @@ class GridArea(QAbstractScrollArea, Updater):
 
         fm = QFontMetrics(self._config['font'], self)
         self._config['font_metrics'] = fm
-        self._config['tr_height'] = fm.tightBoundingRect('Ag').height() + 1
+        self._config['tr_height'] = (fm.tightBoundingRect('A').height() +
+                self._config['trigger']['padding_y'] * 2)
 
         self._header.set_config(self._config)
         self._ruler.set_config(self._config['ruler'])
@@ -727,7 +750,7 @@ class GeneralEditor(QWidget, Updater):
         ol.addWidget(self._offset, 1)
 
         v = QVBoxLayout()
-        v.setContentsMargins(4, 0, 4, 0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addLayout(nl)
         v.addLayout(ll)
@@ -761,7 +784,14 @@ class GeneralEditor(QWidget, Updater):
         custom_config = get_config_with_custom_style(style_mgr)
         config.update(custom_config)
 
-        self._spacing_style.set_config(config)
+        layout = self.layout()
+        spacing = style_mgr.get_scaled_size_param('small_padding')
+        for i in range(layout.count()):
+            sub_layout = layout.itemAt(i).layout()
+            if sub_layout:
+                sub_layout.setSpacing(spacing)
+
+        self._spacing_style.set_config(config, style_mgr)
 
     def _get_selected_grid_pattern(self):
         grid_mgr = self._ui_model.get_grid_manager()
@@ -866,23 +896,23 @@ class SubdivEditor(QWidget, Updater):
 
         self._subdiv_line_style.select_line_style(1)
 
-        sl = QGridLayout()
-        sl.setContentsMargins(0, 0, 0, 0)
-        sl.setSpacing(2)
-        sl.setColumnStretch(0, 0)
-        sl.setColumnStretch(1, 1)
-        sl.addWidget(QLabel('Parts:'), 0, 0)
-        sl.addWidget(self._subdiv_count, 0, 1)
-        sl.addWidget(QLabel('Style:'), 1, 0)
-        sl.addWidget(self._subdiv_line_style, 1, 1)
-        sl.addWidget(QLabel('Warp:'), 2, 0)
-        sl.addWidget(self._subdiv_warp, 2, 1)
+        self._controls_layout = QGridLayout()
+        self._controls_layout.setContentsMargins(0, 0, 0, 0)
+        self._controls_layout.setSpacing(2)
+        self._controls_layout.setColumnStretch(0, 0)
+        self._controls_layout.setColumnStretch(1, 1)
+        self._controls_layout.addWidget(QLabel('Parts:'), 0, 0)
+        self._controls_layout.addWidget(self._subdiv_count, 0, 1)
+        self._controls_layout.addWidget(QLabel('Style:'), 1, 0)
+        self._controls_layout.addWidget(self._subdiv_line_style, 1, 1)
+        self._controls_layout.addWidget(QLabel('Warp:'), 2, 0)
+        self._controls_layout.addWidget(self._subdiv_warp, 2, 1)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Create subdivision'), 0, Qt.AlignTop)
-        v.addLayout(sl, 0)
+        v.addLayout(self._controls_layout, 0)
         v.addWidget(self._subdiv_apply, 0)
         self.setLayout(v)
 
@@ -912,7 +942,11 @@ class SubdivEditor(QWidget, Updater):
         custom_config = get_config_with_custom_style(style_mgr)
         config.update(custom_config)
 
-        self._subdiv_line_style.set_config(config)
+        spacing = style_mgr.get_scaled_size_param('small_padding')
+        self._controls_layout.setSpacing(spacing)
+        self.layout().setSpacing(spacing)
+
+        self._subdiv_line_style.set_config(config, style_mgr)
 
     def _get_selected_line_ts(self):
         grid_mgr = self._ui_model.get_grid_manager()
@@ -981,17 +1015,17 @@ class LineEditor(QWidget, Updater):
         self._line_style = LineStyle()
         self._remove_button = QPushButton('Remove line (Delete)')
 
-        ls = QHBoxLayout()
-        ls.setContentsMargins(0, 0, 0, 0)
-        ls.setSpacing(2)
-        ls.addWidget(QLabel('Style:'), 0)
-        ls.addWidget(self._line_style, 1)
+        self._controls_layout = QHBoxLayout()
+        self._controls_layout.setContentsMargins(0, 0, 0, 0)
+        self._controls_layout.setSpacing(2)
+        self._controls_layout.addWidget(QLabel('Style:'), 0)
+        self._controls_layout.addWidget(self._line_style, 1)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
         v.addWidget(HeaderLine('Current line'), 0, Qt.AlignTop)
-        v.addLayout(ls, 0)
+        v.addLayout(self._controls_layout, 0)
         v.addWidget(self._remove_button, 0, Qt.AlignTop)
         v.addWidget(QWidget(), 1)
         self.setLayout(v)
@@ -1015,7 +1049,11 @@ class LineEditor(QWidget, Updater):
         custom_config = get_config_with_custom_style(style_mgr)
         config.update(custom_config)
 
-        self._line_style.set_config(config)
+        spacing = style_mgr.get_scaled_size_param('small_padding')
+        self._controls_layout.setSpacing(spacing)
+        self.layout().setSpacing(spacing)
+
+        self._line_style.set_config(config, style_mgr)
 
     def _get_grid_pattern(self):
         grid_mgr = self._ui_model.get_grid_manager()
@@ -1072,7 +1110,7 @@ class LineEditor(QWidget, Updater):
 
 class LineStyleDelegate(QItemDelegate):
 
-    def __init__(self, is_major_enabled):
+    def __init__(self, is_major_enabled, style_mgr):
         super().__init__()
         self._config = None
 
@@ -1085,6 +1123,8 @@ class LineStyleDelegate(QItemDelegate):
         self._pixmap_height = 0
         self._pixmap_horiz_margin = 0
 
+        self._style_mgr = style_mgr
+
     def set_config(self, config):
         self._config = config
 
@@ -1093,8 +1133,8 @@ class LineStyleDelegate(QItemDelegate):
         self._line_length = self._config['col_width'] * em_px
 
         # Pixmap style
-        h_margin = 10
-        v_margin = 8
+        h_margin = self._style_mgr.get_scaled_size_param('large_padding')
+        v_margin = self._style_mgr.get_scaled_size_param('large_padding')
         p_width = self._line_length + 2 * h_margin + 1
         p_height = 1 + 2 * v_margin
 
@@ -1215,16 +1255,16 @@ class LineStyle(KqtComboBox):
         self._is_major_displayed = True
         self._ls_delegate = None
 
-        self.set_config(DEFAULT_CONFIG)
+        #self.set_config(DEFAULT_CONFIG)
 
         for i in range(self._first_style, STYLE_COUNT):
             self.addItem(str(i), i)
 
-    def set_config(self, config):
+    def set_config(self, config, style_mgr):
         self._config = config
 
         is_major_enabled = (self._first_style == 0)
-        self._ls_delegate = LineStyleDelegate(is_major_enabled)
+        self._ls_delegate = LineStyleDelegate(is_major_enabled, style_mgr)
         self._ls_delegate.set_config(self._config)
 
         self.setItemDelegate(self._ls_delegate)
