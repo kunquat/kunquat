@@ -473,7 +473,6 @@ class ConnectionsView(QWidget):
         title_font = utils.get_scaled_font(style_mgr, 0.9, QFont.Bold)
         utils.set_glyph_rel_width(title_font, QWidget, string.ascii_lowercase, 15.92)
         port_font = utils.get_scaled_font(style_mgr, 0.7, QFont.Bold)
-        utils.set_glyph_rel_width(port_font, QWidget, string.ascii_lowercase, 15.92)
 
         devices = {
             'width'              : style_mgr.get_scaled_size(10.5),
@@ -1527,6 +1526,9 @@ class Device():
         painter = QPainter(self._bg)
         pad = self._config['padding']
 
+        text_scale_mult = 4
+        scaled_pad = text_scale_mult * pad
+
         # Background
         self._draw_rounded_rect(
                 painter,
@@ -1549,18 +1551,44 @@ class Device():
                 QRectF(0, pad, self._bg.width(), title_height), title, text_option)
 
         # Port texts
-        painter.setFont(self._config['port_font'])
-        text_option = QTextOption(Qt.AlignLeft | Qt.AlignVCenter)
+        port_font = QFont(self._config['port_font'])
+        port_font.setPointSizeF(port_font.pointSizeF() * text_scale_mult)
+        utils.set_glyph_rel_width(port_font, QWidget, string.ascii_lowercase, 14)
         port_height = self._get_port_height()
+
+        def get_port_text_image(port_str, text_option):
+            port_img = QImage(
+                    text_scale_mult * self._bg.width() // 2,
+                    text_scale_mult * port_height,
+                    QImage.Format_ARGB32_Premultiplied)
+            port_img.fill(0)
+
+            img_painter = QPainter(port_img)
+            img_painter.setPen(QColor(self._type_config['fg_colour']))
+            img_painter.setFont(port_font)
+            img_painter.drawText(
+                    QRectF(
+                        scaled_pad, 0,
+                        port_img.width() - scaled_pad * 2, port_img.height()),
+                    port_str,
+                    text_option)
+            img_painter.end()
+
+            return port_img.scaledToHeight(port_height, Qt.SmoothTransformation)
+
+        text_option = QTextOption(Qt.AlignLeft | Qt.AlignVCenter)
         port_y = self._get_title_height() + pad
 
         for port_id in self._in_ports:
             port_num = int(port_id.split('_')[1], 16)
             port_str = self._port_names.get(port_id, None) or str(port_num)
-            painter.drawText(
-                    QRectF(pad, port_y, self._bg.width() // 2, port_height),
-                    port_str,
-                    text_option)
+
+            port_img = get_port_text_image(port_str, text_option)
+            painter.drawImage(
+                    QPoint(0, port_y),
+                    port_img,
+                    port_img.rect())
+
             port_y += port_height
 
         text_option = QTextOption(Qt.AlignRight | Qt.AlignVCenter)
@@ -1568,14 +1596,13 @@ class Device():
         for port_id in self._out_ports:
             port_num = int(port_id.split('_')[1], 16)
             port_str = self._port_names.get(port_id, None) or str(port_num)
-            painter.drawText(
-                    QRectF(
-                        self._bg.width() // 2,
-                        port_y,
-                        self._bg.width() // 2 - pad,
-                        port_height),
-                    port_str,
-                    text_option)
+
+            port_img = get_port_text_image(port_str, text_option)
+            painter.drawImage(
+                    QPoint(self._bg.width() // 2, port_y),
+                    port_img,
+                    port_img.rect())
+
             port_y += port_height
 
         # Edit button
