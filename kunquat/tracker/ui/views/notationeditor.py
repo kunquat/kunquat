@@ -465,6 +465,8 @@ class TuningTableListView(QTableView, Updater):
         hheader.setStretchLastSection(True)
         hheader.hide()
 
+        self.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)
+
     def _on_setup(self):
         self.register_action('signal_style_changed', self._update_style)
         self._update_style()
@@ -472,6 +474,8 @@ class TuningTableListView(QTableView, Updater):
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
         self.setMinimumWidth(style_mgr.get_scaled_size(16))
+
+        self.verticalHeader().setDefaultSectionSize(style_mgr.get_scaled_size(2.5))
 
     def _select_entry(self, cur_index, prev_index):
         item = self.model().get_item(cur_index)
@@ -1147,12 +1151,17 @@ class TemplateNoteTableView(QTableView, Updater):
         header = self.horizontalHeader()
         header.setStretchLastSection(True)
 
+        self.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)
+
     def _on_setup(self):
         self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
         self.setMinimumWidth(style_mgr.get_scaled_size(16))
+
+        self.verticalHeader().setDefaultSectionSize(style_mgr.get_scaled_size(2.5))
 
     def _select_entry(self, cur_index, prev_index):
         if not cur_index.isValid():
