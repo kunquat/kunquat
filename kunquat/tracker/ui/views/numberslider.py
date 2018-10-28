@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -55,6 +55,9 @@ class NumberSlider(QWidget):
         self._slider.valueChanged.connect(self._number_changed)
 
         self.set_number(min_val)
+
+    def update_style(self, style_mgr):
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def set_number(self, num):
         old_block = self._slider.blockSignals(True)

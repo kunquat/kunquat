@@ -595,6 +595,12 @@ QTabBar::tab:!selected
 QTableView, QTreeView, QListView, QTextEdit
 {
     margin: 0;
+    border: <border_thick_width> solid;
+    border-top-color: <bg_colour_dark>;
+    border-left-color: <bg_colour_dark>;
+    border-right-color: <bg_colour_light>;
+    border-bottom-color: <bg_colour_light>;
+    border-radius: <border_thick_radius>;
     padding: 0;
     background-color: <text_bg_colour>;
     color: <text_fg_colour>;
