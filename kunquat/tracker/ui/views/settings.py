@@ -58,62 +58,82 @@ class Settings(QWidget, Updater):
                 self._button_press_brightness,
                 self._colours)
 
-        dgl = QGridLayout()
-        dgl.setContentsMargins(0, 0, 0, 0)
-        dgl.setHorizontalSpacing(4)
-        dgl.setVerticalSpacing(2)
-        dgl.addWidget(QLabel('Modules:'), 0, 0)
-        dgl.addWidget(self._modules, 0, 1)
-        dgl.addWidget(QLabel('Instruments:'), 1, 0)
-        dgl.addWidget(self._instruments, 1, 1)
-        dgl.addWidget(QLabel('Samples:'), 2, 0)
-        dgl.addWidget(self._samples, 2, 1)
-        dgl.addWidget(QLabel('Effects:'), 3, 0)
-        dgl.addWidget(self._effects, 3, 1)
+        self._dirs_layout = QGridLayout()
+        self._dirs_layout.setContentsMargins(0, 0, 0, 0)
+        self._dirs_layout.setHorizontalSpacing(4)
+        self._dirs_layout.setVerticalSpacing(2)
+        self._dirs_layout.addWidget(QLabel('Modules:'), 0, 0)
+        self._dirs_layout.addWidget(self._modules, 0, 1)
+        self._dirs_layout.addWidget(QLabel('Instruments:'), 1, 0)
+        self._dirs_layout.addWidget(self._instruments, 1, 1)
+        self._dirs_layout.addWidget(QLabel('Samples:'), 2, 0)
+        self._dirs_layout.addWidget(self._samples, 2, 1)
+        self._dirs_layout.addWidget(QLabel('Effects:'), 3, 0)
+        self._dirs_layout.addWidget(self._effects, 3, 1)
 
-        uil = QGridLayout()
-        uil.setContentsMargins(0, 0, 0, 0)
-        uil.setHorizontalSpacing(4)
-        uil.setVerticalSpacing(2)
-        uil.setColumnStretch(2, 1)
-        uil.addWidget(QLabel('Chord editing mode:'), 0, 0)
-        uil.addWidget(self._chord_mode, 0, 1)
+        self._ui_layout = QGridLayout()
+        self._ui_layout.setContentsMargins(0, 0, 0, 0)
+        self._ui_layout.setHorizontalSpacing(4)
+        self._ui_layout.setVerticalSpacing(2)
+        self._ui_layout.setColumnStretch(2, 1)
+        self._ui_layout.addWidget(QLabel('Chord editing mode:'), 0, 0)
+        self._ui_layout.addWidget(self._chord_mode, 0, 1)
 
-        dl = QVBoxLayout()
-        dl.setContentsMargins(0, 0, 0, 0)
-        dl.setSpacing(4)
-        dl.addWidget(HeaderLine('Default directories'))
-        dl.addLayout(dgl)
-        dl.addWidget(HeaderLine('User interface')) # TODO: find a better place
-        dl.addLayout(uil)
-        dl.addStretch(1)
+        self._behaviour_layout = QVBoxLayout()
+        self._behaviour_layout.setContentsMargins(0, 0, 0, 0)
+        self._behaviour_layout.setSpacing(4)
+        self._behaviour_layout.addWidget(HeaderLine('Default directories'))
+        self._behaviour_layout.addLayout(self._dirs_layout)
+        self._behaviour_layout.addWidget(HeaderLine('User interface')) # TODO: find a better place
+        self._behaviour_layout.addLayout(self._ui_layout)
+        self._behaviour_layout.addStretch(1)
 
-        bl = QGridLayout()
-        bl.setContentsMargins(0, 0, 0, 0)
-        bl.setSpacing(2)
-        bl.addWidget(QLabel('Default font:'), 0, 0)
-        bl.addWidget(self._font, 0, 1)
-        bl.addWidget(QLabel('Border contrast:'), 1, 0)
-        bl.addWidget(self._border_contrast, 1, 1)
-        bl.addWidget(QLabel('Button brightness:'), 2, 0)
-        bl.addWidget(self._button_brightness, 2, 1)
-        bl.addWidget(QLabel('Button press brightness:'), 3, 0)
-        bl.addWidget(self._button_press_brightness, 3, 1)
+        self._misc_style_layout = QGridLayout()
+        self._misc_style_layout.setContentsMargins(0, 0, 0, 0)
+        self._misc_style_layout.setSpacing(2)
+        self._misc_style_layout.addWidget(QLabel('Default font:'), 0, 0)
+        self._misc_style_layout.addWidget(self._font, 0, 1)
+        self._misc_style_layout.addWidget(QLabel('Border contrast:'), 1, 0)
+        self._misc_style_layout.addWidget(self._border_contrast, 1, 1)
+        self._misc_style_layout.addWidget(QLabel('Button brightness:'), 2, 0)
+        self._misc_style_layout.addWidget(self._button_brightness, 2, 1)
+        self._misc_style_layout.addWidget(QLabel('Button press brightness:'), 3, 0)
+        self._misc_style_layout.addWidget(self._button_press_brightness, 3, 1)
 
-        ap = QVBoxLayout()
-        ap.setContentsMargins(0, 0, 0, 0)
-        ap.setSpacing(4)
-        ap.addWidget(HeaderLine('Appearance'))
-        ap.addWidget(self._style_toggle)
-        ap.addLayout(bl)
-        ap.addWidget(self._colours)
+        self._appearance_layout = QVBoxLayout()
+        self._appearance_layout.setContentsMargins(0, 0, 0, 0)
+        self._appearance_layout.setSpacing(4)
+        self._appearance_layout.addWidget(HeaderLine('Appearance'))
+        self._appearance_layout.addWidget(self._style_toggle)
+        self._appearance_layout.addLayout(self._misc_style_layout)
+        self._appearance_layout.addWidget(self._colours)
 
         h = QHBoxLayout()
-        h.setContentsMargins(2, 2, 2, 2)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(8)
-        h.addLayout(dl)
-        h.addLayout(ap)
+        h.addLayout(self._behaviour_layout)
+        h.addLayout(self._appearance_layout)
         self.setLayout(h)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        spacing_x = style_mgr.get_scaled_size_param('medium_padding')
+        spacing_y = style_mgr.get_scaled_size_param('small_padding')
+
+        self._dirs_layout.setHorizontalSpacing(spacing_x)
+        self._dirs_layout.setVerticalSpacing(spacing_y)
+        self._ui_layout.setHorizontalSpacing(spacing_x)
+        self._ui_layout.setVerticalSpacing(spacing_y)
+        self._behaviour_layout.setSpacing(spacing_y)
+        self._misc_style_layout.setHorizontalSpacing(spacing_x)
+        self._misc_style_layout.setHorizontalSpacing(spacing_y)
+        self._appearance_layout.setSpacing(spacing_y)
+
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('large_padding'))
 
 
 class Directory(QWidget, Updater):
@@ -134,11 +154,17 @@ class Directory(QWidget, Updater):
 
     def _on_setup(self):
         self.register_action('signal_settings_dir', self._update_dir)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._text.textEdited.connect(self._change_dir_text)
         self._browse.clicked.connect(self._change_dir_browse)
 
+        self._update_style()
         self._update_dir()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_dir(self):
         cfg = config.get_config()
@@ -286,6 +312,7 @@ class StyleSlider(NumberSlider, Updater):
 
     def _update_param(self):
         style_mgr = self._ui_model.get_style_manager()
+        self.update_style(style_mgr)
         self.setEnabled(style_mgr.is_custom_style_enabled())
         self.set_number(style_mgr.get_style_param(self._param))
 
