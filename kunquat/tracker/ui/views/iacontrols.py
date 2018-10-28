@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -31,13 +31,29 @@ class IAControls(QWidget, Updater):
 
         self.add_to_updaters(self._inf_toggle, self._runtime_var_list)
 
+        self._header = HeaderLine('Runtime environment state')
+
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
         v.addWidget(self._inf_toggle)
-        v.addWidget(HeaderLine('Runtime environment state'))
+        v.addWidget(self._header)
         v.addWidget(self._runtime_var_list)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        self._header.update_style(style_mgr)
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        spacing = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(spacing)
 
 
 class InfiniteToggle(QCheckBox, Updater):
@@ -122,6 +138,14 @@ class RuntimeVarEditor(QWidget, Updater):
         h.addWidget(self._header, 2)
         h.addWidget(self._editor, 1)
         self.setLayout(h)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def update_name(self, name):
         self._name = name
