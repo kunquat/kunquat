@@ -616,6 +616,13 @@ QTableView
     gridline-color: <bg_colour_dark>;
 }
 
+QTableView::item
+{
+    border: 0;
+    padding-left: <medium_padding>;
+    padding-right: <medium_padding>;
+}
+
 QTableView QTableCornerButton::section
 {
     background-color: <bg_colour>;
