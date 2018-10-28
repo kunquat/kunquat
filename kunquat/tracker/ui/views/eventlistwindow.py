@@ -32,6 +32,17 @@ class EventListWindow(QWidget, Updater):
         v.addWidget(self._event_list)
         self.setLayout(v)
 
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        spacing = style_mgr.get_scaled_size_param('large_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(spacing)
+
     def closeEvent(self, event):
         event.ignore()
         visibility_mgr = self._ui_model.get_visibility_manager()
