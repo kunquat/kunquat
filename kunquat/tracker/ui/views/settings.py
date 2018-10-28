@@ -79,12 +79,15 @@ class Settings(QWidget, Updater):
         self._ui_layout.addWidget(QLabel('Chord editing mode:'), 0, 0)
         self._ui_layout.addWidget(self._chord_mode, 0, 1)
 
+        self._dir_header = HeaderLine('Default directories')
+        self._ui_header = HeaderLine('User interface')
+
         self._behaviour_layout = QVBoxLayout()
         self._behaviour_layout.setContentsMargins(0, 0, 0, 0)
         self._behaviour_layout.setSpacing(4)
-        self._behaviour_layout.addWidget(HeaderLine('Default directories'))
+        self._behaviour_layout.addWidget(self._dir_header)
         self._behaviour_layout.addLayout(self._dirs_layout)
-        self._behaviour_layout.addWidget(HeaderLine('User interface')) # TODO: find a better place
+        self._behaviour_layout.addWidget(self._ui_header)
         self._behaviour_layout.addLayout(self._ui_layout)
         self._behaviour_layout.addStretch(1)
 
@@ -100,10 +103,12 @@ class Settings(QWidget, Updater):
         self._misc_style_layout.addWidget(QLabel('Button press brightness:'), 3, 0)
         self._misc_style_layout.addWidget(self._button_press_brightness, 3, 1)
 
+        self._appearance_header = HeaderLine('Appearance')
+
         self._appearance_layout = QVBoxLayout()
         self._appearance_layout.setContentsMargins(0, 0, 0, 0)
         self._appearance_layout.setSpacing(4)
-        self._appearance_layout.addWidget(HeaderLine('Appearance'))
+        self._appearance_layout.addWidget(self._appearance_header)
         self._appearance_layout.addWidget(self._style_toggle)
         self._appearance_layout.addLayout(self._misc_style_layout)
         self._appearance_layout.addWidget(self._colours)
@@ -123,6 +128,10 @@ class Settings(QWidget, Updater):
         style_mgr = self._ui_model.get_style_manager()
         spacing_x = style_mgr.get_scaled_size_param('medium_padding')
         spacing_y = style_mgr.get_scaled_size_param('small_padding')
+
+        self._dir_header.update_style(style_mgr)
+        self._ui_header.update_style(style_mgr)
+        self._appearance_header.update_style(style_mgr)
 
         self._dirs_layout.setHorizontalSpacing(spacing_x)
         self._dirs_layout.setVerticalSpacing(spacing_y)
