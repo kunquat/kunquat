@@ -1128,6 +1128,9 @@ class ColourComparison(QWidget):
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.setAttribute(Qt.WA_NoSystemBackground)
 
+    def update_style(self, style_mgr):
+        self.setMinimumHeight(style_mgr.get_scaled_size(3))
+
     def set_original_colour(self, colour):
         self._orig_colour = colour
         self.update()
@@ -1143,9 +1146,6 @@ class ColourComparison(QWidget):
         painter = QPainter(self)
         painter.fillRect(0, 0, width // 2, height, self._orig_colour)
         painter.fillRect(width // 2, 0, width // 2, height, self._new_colour)
-
-    def minimumSizeHint(self):
-        return QSize(128, 32)
 
 
 class ColourEditor(QWidget):
@@ -1169,11 +1169,11 @@ class ColourEditor(QWidget):
         self._accept_button = QPushButton('Done')
 
         # Code editor layout
-        cl = QHBoxLayout()
-        cl.setContentsMargins(0, 0, 0, 0)
-        cl.setSpacing(2)
-        cl.addWidget(QLabel('Code:'))
-        cl.addWidget(self._code_editor, 1)
+        self._code_layout = QHBoxLayout()
+        self._code_layout.setContentsMargins(0, 0, 0, 0)
+        self._code_layout.setSpacing(2)
+        self._code_layout.addWidget(QLabel('Code:'))
+        self._code_layout.addWidget(self._code_editor, 1)
 
         # Colour comparison layout
         orig_label = QLabel('Original')
@@ -1183,32 +1183,32 @@ class ColourEditor(QWidget):
         new_label.setAlignment(Qt.AlignHCenter)
         new_label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
 
-        ctl = QHBoxLayout()
-        ctl.setContentsMargins(0, 0, 0, 0)
-        ctl.setSpacing(2)
-        ctl.addWidget(orig_label)
-        ctl.addWidget(new_label)
-        compl = QVBoxLayout()
-        compl.setContentsMargins(0, 0, 0, 0)
-        compl.setSpacing(2)
-        compl.addLayout(ctl)
-        compl.addWidget(self._comparison)
+        self._comp_label_layout = QHBoxLayout()
+        self._comp_label_layout.setContentsMargins(0, 0, 0, 0)
+        self._comp_label_layout.setSpacing(2)
+        self._comp_label_layout.addWidget(orig_label)
+        self._comp_label_layout.addWidget(new_label)
+        self._comp_layout = QVBoxLayout()
+        self._comp_layout.setContentsMargins(0, 0, 0, 0)
+        self._comp_layout.setSpacing(2)
+        self._comp_layout.addLayout(self._comp_label_layout)
+        self._comp_layout.addWidget(self._comparison)
 
         # Button layout
-        bl = QHBoxLayout()
-        bl.setContentsMargins(0, 0, 0, 0)
-        bl.setSpacing(2)
-        bl.addWidget(self._revert_button)
-        bl.addWidget(self._accept_button)
+        self._button_layout = QHBoxLayout()
+        self._button_layout.setContentsMargins(0, 0, 0, 0)
+        self._button_layout.setSpacing(2)
+        self._button_layout.addWidget(self._revert_button)
+        self._button_layout.addWidget(self._accept_button)
 
         # Top layout
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
         v.addWidget(self._selector)
-        v.addLayout(cl)
-        v.addLayout(compl)
-        v.addLayout(bl)
+        v.addLayout(self._code_layout)
+        v.addLayout(self._comp_layout)
+        v.addLayout(self._button_layout)
         self.setLayout(v)
 
         self._selector.colourChanged.connect(self._change_colour)
@@ -1222,6 +1222,18 @@ class ColourEditor(QWidget):
 
     def update_style(self, style_mgr):
         self._selector.update_style(style_mgr)
+        self._comparison.update_style(style_mgr)
+
+        spacing = style_mgr.get_scaled_size_param('small_padding')
+        self._code_layout.setSpacing(spacing)
+        self._comp_label_layout.setSpacing(spacing)
+        self._comp_layout.setSpacing(spacing)
+        self._button_layout.setSpacing(spacing)
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        top_spacing = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(top_spacing)
 
     def set_colour(self, key, colour):
         self._key = key
