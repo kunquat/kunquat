@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -25,8 +25,13 @@ class AuNumSlider(NumberSlider, AudioUnitUpdater):
     def _on_setup(self):
         self.register_action('signal_au', self._update_value)
         self.register_action(self._get_update_signal_type(), self._update_value)
+        self.register_action('signal_style_changed', self._update_style)
         self.numberChanged.connect(self._value_changed)
+        self._update_style()
         self._update_value()
+
+    def _update_style(self):
+        self.update_style(self._ui_model.get_style_manager())
 
     # Protected interface
 
