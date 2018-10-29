@@ -53,7 +53,9 @@ class AudioUnitSimpleEnvelope(QWidget, AudioUnitUpdater):
         self._envelope.unregister_updaters()
 
     def _update_style(self):
-        self._envelope.update_style(self._ui_model.get_style_manager())
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
+        self._envelope.update_style(style_mgr)
 
     def _update_envelope(self):
         old_block = self._enabled_toggle.blockSignals(True)
