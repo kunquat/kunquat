@@ -899,10 +899,19 @@ class LengthEditor(QWidget, Updater):
         self.register_action('signal_sheet_undo', self._update_value)
         self.register_action('signal_sheet_redo', self._update_value)
 
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
         self._update_value()
 
         self._spinbox.valueChanged.connect(self._change_length)
         self._spinbox.editingFinished.connect(self._change_length_final)
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        margin_x = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin_x, 0, margin_x, 0)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _get_pattern(self):
         module = self._ui_model.get_module()
