@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -42,6 +42,16 @@ class Expressions(QWidget, AudioUnitUpdater):
         v.addStretch(1)
         self.setLayout(v)
 
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
+
 
 class DefaultNoteExpr(QWidget, AudioUnitUpdater):
 
@@ -60,9 +70,11 @@ class DefaultNoteExpr(QWidget, AudioUnitUpdater):
         self.register_action(self._get_list_update_signal_type(), self._update_contents)
         self.register_action(
                 self._get_default_update_signal_type(), self._update_contents)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._expr_names.currentIndexChanged.connect(self._change_expression)
 
+        self._update_style()
         self._update_contents()
 
     def _get_list_update_signal_type(self):
@@ -75,6 +87,10 @@ class DefaultNoteExpr(QWidget, AudioUnitUpdater):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         return au
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_contents(self):
         au = self._get_audio_unit()
@@ -274,9 +290,11 @@ class ExpressionName(QWidget, AudioUnitUpdater):
         self.register_action(
                 self._get_list_update_signal_type(), self._update_used_names)
         self.register_action(self._get_selection_update_signal_type(), self._update_name)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._name_editor.editingFinished.connect(self._change_name)
 
+        self._update_style()
         self._update_name()
 
     def _get_list_update_signal_type(self):
@@ -289,6 +307,10 @@ class ExpressionName(QWidget, AudioUnitUpdater):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         return au
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_used_names(self):
         used_names = self._get_audio_unit().get_expression_names()
@@ -333,5 +355,13 @@ class ExpressionEditor(QWidget, AudioUnitUpdater):
         v.setSpacing(2)
         v.addWidget(self._name)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
 
