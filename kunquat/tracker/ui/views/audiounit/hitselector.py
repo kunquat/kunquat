@@ -51,6 +51,7 @@ class HitSelector(QWidget):
         self._hit_keyboard_layout.update_contents()
 
     def update_style(self, style_mgr):
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
         self._hit_bank_selector.update_style(style_mgr)
         self._hit_keyboard_layout.update_style(style_mgr)
 
@@ -131,6 +132,8 @@ class HitKeyboardLayout(QWidget):
 
     def update_style(self, style_mgr):
         layout = self.layout()
+        layout.setSpacing(style_mgr.get_scaled_size_param('small_padding'))
+
         for row_index in range(layout.count()):
             row_layout = layout.itemAt(row_index).layout()
             row_layout.setSpacing(style_mgr.get_scaled_size_param('medium_padding'))

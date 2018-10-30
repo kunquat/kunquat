@@ -115,6 +115,13 @@ class HitEditor(QWidget, AudioUnitUpdater):
     def _on_setup(self):
         self.add_to_updaters(self._enabled, self._name)
 
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
+
 
 def _get_current_hit(ui_model, au_id):
     module = ui_model.get_module()
@@ -171,7 +178,14 @@ class HitName(QWidget, AudioUnitUpdater):
         self.register_action(_get_update_signal_type(self._au_id), self._update_name)
         self._edit.textEdited.connect(self._change_name)
 
+        self.register_action('signal_style_changed', self._update_style)
+
+        self._update_style()
         self._update_name()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_name(self):
         hit = _get_current_hit(self._ui_model, self._au_id)
