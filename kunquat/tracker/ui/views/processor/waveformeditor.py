@@ -43,10 +43,12 @@ class WaveformEditor(QWidget, ProcessorUpdater):
         ed_layout.addLayout(pw_layout)
         ed_layout.addWidget(self._waveform)
 
+        self._header = HeaderLine('Waveshaping')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Waveshaping'))
+        v.addWidget(self._header)
         v.addLayout(ed_layout)
         self.setLayout(v)
 
@@ -66,6 +68,9 @@ class WaveformEditor(QWidget, ProcessorUpdater):
         if not style_mgr.is_custom_style_enabled():
             self._waveform.set_config({})
             return
+
+        self._header.update_style(style_mgr)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
         def get_colour(name):
             return QColor(style_mgr.get_style_param(name))
@@ -240,6 +245,7 @@ class WarpEditor(QWidget, ProcessorUpdater):
     def _on_setup(self):
         self.register_action('signal_au', self._update_all)
         self.register_action(self._get_update_signal_type(), self._update_all)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._down_button.set_icon('arrow_down_small')
         self._up_button.set_icon('arrow_up_small')
@@ -256,6 +262,7 @@ class WarpEditor(QWidget, ProcessorUpdater):
         func_names = base_wave.get_warp_func_names(self._warp_type)
         self._func_selector.set_items(name for name in func_names)
 
+        self._update_style()
         self._update_all()
 
         self._down_button.clicked.connect(self._moved_down)
@@ -263,6 +270,10 @@ class WarpEditor(QWidget, ProcessorUpdater):
         self._func_selector.currentIndexChanged.connect(self._func_selected)
         self._slider.valueChanged.connect(self._slider_adjusted)
         self._remove_button.clicked.connect(self._removed)
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_all(self):
         base_wave = self._get_base_wave()
