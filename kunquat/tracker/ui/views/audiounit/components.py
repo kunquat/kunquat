@@ -154,10 +154,12 @@ class Streams(QWidget, AudioUnitUpdater):
         self._stream_list = StreamList()
         self.add_to_updaters(self._stream_list)
 
+        self._header = HeaderLine('Event stream interfaces')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Event stream interfaces'))
+        v.addWidget(self._header)
         v.addWidget(self._stream_list)
         self.setLayout(v)
 
@@ -167,6 +169,7 @@ class Streams(QWidget, AudioUnitUpdater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
         self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
 
@@ -399,10 +402,12 @@ class EventMap(QWidget, AudioUnitUpdater):
         self._event_list = EventList()
         self.add_to_updaters(self._event_list)
 
+        self._header = HeaderLine('Event map')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Event map'))
+        v.addWidget(self._header)
         v.addWidget(self._event_list)
         self.setLayout(v)
 
@@ -412,6 +417,7 @@ class EventMap(QWidget, AudioUnitUpdater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
         self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
 

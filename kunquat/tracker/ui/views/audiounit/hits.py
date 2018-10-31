@@ -33,12 +33,15 @@ class Hits(QWidget, AudioUnitUpdater):
         self._hit_selector = AuHitSelector()
         self._hit_editor = HitEditor()
 
+        self._hits_header = HeaderLine('Hits')
+        self._properties_header = HeaderLine('Hit properties')
+
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
-        v.addWidget(HeaderLine('Hits'))
+        v.addWidget(self._hits_header)
         v.addWidget(self._hit_selector)
-        v.addWidget(HeaderLine('Hit properties'))
+        v.addWidget(self._properties_header)
         v.addWidget(self._hit_editor)
         v.addStretch(1)
         self.setLayout(v)
@@ -53,6 +56,8 @@ class Hits(QWidget, AudioUnitUpdater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+        self._hits_header.update_style(style_mgr)
+        self._properties_header.update_style(style_mgr)
         margin = style_mgr.get_scaled_size_param('medium_padding')
         self.layout().setContentsMargins(margin, margin, margin, margin)
         self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))

@@ -56,10 +56,12 @@ class PortsEditor(QWidget, AudioUnitUpdater):
 
         self.add_to_updaters(self._editor)
 
+        self._header = HeaderLine(self._get_title())
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine(self._get_title()))
+        v.addWidget(self._header)
         v.addWidget(self._editor)
         self.setLayout(v)
 
@@ -69,6 +71,7 @@ class PortsEditor(QWidget, AudioUnitUpdater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
         self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     # Port editor interface
