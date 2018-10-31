@@ -34,16 +34,32 @@ class DelayProc(QWidget, ProcessorUpdater):
 
         self.add_to_updaters(self._max_delay, self._init_delay)
 
-        gl = QGridLayout()
-        gl.addWidget(QLabel('Maximum delay:'), 0, 0)
-        gl.addWidget(self._max_delay, 0, 1)
-        gl.addWidget(QLabel('Initial delay:'), 1, 0)
-        gl.addWidget(self._init_delay, 1, 1)
+        self._controls_layout = QGridLayout()
+        self._controls_layout.setContentsMargins(0, 0, 0, 0)
+        self._controls_layout.addWidget(QLabel('Maximum delay:'), 0, 0)
+        self._controls_layout.addWidget(self._max_delay, 0, 1)
+        self._controls_layout.addWidget(QLabel('Initial delay:'), 1, 0)
+        self._controls_layout.addWidget(self._init_delay, 1, 1)
 
         v = QVBoxLayout()
-        v.addLayout(gl)
+        v.addLayout(self._controls_layout)
         v.addStretch(1)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        self._controls_layout.setHorizontalSpacing(
+                style_mgr.get_scaled_size_param('medium_padding'))
+        self._controls_layout.setVerticalSpacing(
+                style_mgr.get_scaled_size_param('small_padding'))
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
 
 
 class MaxDelay(VarPrecSpinBox, ProcessorUpdater):
