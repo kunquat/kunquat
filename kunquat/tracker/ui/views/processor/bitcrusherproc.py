@@ -33,21 +33,35 @@ class BitcrusherProc(QWidget, ProcessorUpdater):
 
         self.add_to_updaters(self._cutoff, self._resolution, self._res_ignore_min)
 
-        sliders = QGridLayout()
-        sliders.setContentsMargins(0, 0, 0, 0)
-        sliders.setVerticalSpacing(2)
-        sliders.addWidget(QLabel('Cutoff:'), 0, 0)
-        sliders.addWidget(self._cutoff, 0, 1)
-        sliders.addWidget(QLabel('Resolution:'), 1, 0)
-        sliders.addWidget(self._resolution, 1, 1)
-        sliders.addWidget(QLabel('Ignore resolution at minimum:'), 2, 0)
-        sliders.addWidget(self._res_ignore_min, 2, 1)
+        self._sliders_layout = QGridLayout()
+        self._sliders_layout.setContentsMargins(0, 0, 0, 0)
+        self._sliders_layout.setVerticalSpacing(2)
+        self._sliders_layout.addWidget(QLabel('Cutoff:'), 0, 0)
+        self._sliders_layout.addWidget(self._cutoff, 0, 1)
+        self._sliders_layout.addWidget(QLabel('Resolution:'), 1, 0)
+        self._sliders_layout.addWidget(self._resolution, 1, 1)
+        self._sliders_layout.addWidget(QLabel('Ignore resolution at minimum:'), 2, 0)
+        self._sliders_layout.addWidget(self._res_ignore_min, 2, 1)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
-        v.addLayout(sliders)
+        v.addLayout(self._sliders_layout)
         v.addStretch(1)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._sliders_layout.setHorizontalSpacing(
+                style_mgr.get_scaled_size_param('medium_padding'))
+        self._sliders_layout.setVerticalSpacing(
+                style_mgr.get_scaled_size_param('small_padding'))
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
 
 
 class BitcrusherSlider(ProcNumSlider):
