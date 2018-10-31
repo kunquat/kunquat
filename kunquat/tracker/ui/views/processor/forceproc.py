@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -41,22 +41,36 @@ class ForceProc(QWidget, ProcessorUpdater):
                 self._ramp_release,
                 self._force_release_envelope)
 
-        sliders = QGridLayout()
-        sliders.setContentsMargins(0, 0, 0, 0)
-        sliders.setSpacing(4)
-        sliders.addWidget(QLabel('Global force:'), 0, 0)
-        sliders.addWidget(self._global_force, 0, 1)
-        sliders.addWidget(QLabel('Force variation:'), 1, 0)
-        sliders.addWidget(self._force_variation, 1, 1)
+        self._sliders_layout = QGridLayout()
+        self._sliders_layout.setContentsMargins(0, 0, 0, 0)
+        self._sliders_layout.setVerticalSpacing(0)
+        self._sliders_layout.addWidget(QLabel('Global force:'), 0, 0)
+        self._sliders_layout.addWidget(self._global_force, 0, 1)
+        self._sliders_layout.addWidget(QLabel('Force variation:'), 1, 0)
+        self._sliders_layout.addWidget(self._force_variation, 1, 1)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
-        v.addLayout(sliders)
+        v.addLayout(self._sliders_layout)
         v.addWidget(self._force_envelope)
         v.addWidget(self._ramp_release)
         v.addWidget(self._force_release_envelope)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        self._sliders_layout.setHorizontalSpacing(
+                style_mgr.get_scaled_size_param('large_padding'))
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
 
 class ForceNumSlider(ProcNumSlider):
