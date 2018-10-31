@@ -13,6 +13,8 @@
 
 from kunquat.tracker.ui.qt import *
 
+from .utils import get_scaled_font
+
 
 class NumberSlider(QWidget):
 
@@ -23,6 +25,10 @@ class NumberSlider(QWidget):
 
         assert decimal_count >= 0
 
+        self._min_val = min_val
+        self._max_val = max_val
+        self._width_txt = width_txt
+
         self._decimal_count = decimal_count
         self._scale = 10**decimal_count
 
@@ -31,15 +37,6 @@ class NumberSlider(QWidget):
         self.set_range(min_val, max_val)
 
         self._value = QLabel()
-        fm = QFontMetrics(QFont())
-        if width_txt:
-            width = fm.boundingRect(width_txt).width()
-        else:
-            val_fmt = self._get_val_fmt()
-            width = max(fm.boundingRect(val_fmt.format(val)).width()
-                    for val in (min_val, max_val))
-        width += 10
-        self._value.setFixedWidth(width)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -57,6 +54,16 @@ class NumberSlider(QWidget):
         self.set_number(min_val)
 
     def update_style(self, style_mgr):
+        fm = QFontMetrics(get_scaled_font(style_mgr, 1))
+        if self._width_txt:
+            width = fm.boundingRect(self._width_txt).width()
+        else:
+            val_fmt = self._get_val_fmt()
+            width = max(fm.boundingRect(val_fmt.format(val)).width()
+                    for val in (self._min_val, self._max_val))
+        width += style_mgr.get_scaled_size(2)
+        self._value.setFixedWidth(width)
+
         self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def set_number(self, num):
@@ -69,6 +76,9 @@ class NumberSlider(QWidget):
         self._value.setText(val_fmt.format(num))
 
     def set_range(self, min_val, max_val):
+        self._min_val = min_val
+        self._max_val = max_val
+
         old_block = self._slider.blockSignals(True)
         self._slider.setMinimum(int(min_val * self._scale))
         self._slider.setMaximum(int(max_val * self._scale))
