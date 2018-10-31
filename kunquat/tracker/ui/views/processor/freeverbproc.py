@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -30,18 +30,34 @@ class FreeverbProc(QWidget, ProcessorUpdater):
 
         self.add_to_updaters(self._refl, self._damp)
 
-        sliders = QGridLayout()
-        sliders.addWidget(QLabel('Reflectivity'), 0, 0)
-        sliders.addWidget(self._refl, 0, 1)
-        sliders.addWidget(QLabel('Damp'), 1, 0)
-        sliders.addWidget(self._damp, 1, 1)
+        self._sliders_layout = QGridLayout()
+        self._sliders_layout.setContentsMargins(0, 0, 0, 0)
+        self._sliders_layout.setVerticalSpacing(0)
+        self._sliders_layout.addWidget(QLabel('Reflectivity:'), 0, 0)
+        self._sliders_layout.addWidget(self._refl, 0, 1)
+        self._sliders_layout.addWidget(QLabel('Damp:'), 1, 0)
+        self._sliders_layout.addWidget(self._damp, 1, 1)
 
         v = QVBoxLayout()
-        v.addLayout(sliders)
+        v.addLayout(self._sliders_layout)
         v.addStretch(1)
         self.setLayout(v)
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        self._sliders_layout.setHorizontalSpacing(
+                style_mgr.get_scaled_size_param('large_padding'))
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
 
 class FreeverbSlider(ProcNumSlider):
