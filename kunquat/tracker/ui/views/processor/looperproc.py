@@ -35,24 +35,38 @@ class LooperProc(QWidget, ProcessorUpdater):
         self.add_to_updaters(
                 self._max_rec_time, self._state_xfade_time, self._play_xfade_time)
 
-        gl = QGridLayout()
-        gl.setContentsMargins(0, 0, 0, 0)
-        gl.setVerticalSpacing(2)
-        gl.setColumnStretch(0, 0)
-        gl.setColumnStretch(1, 1)
-        gl.addWidget(QLabel('Maximum recording time:'), 0, 0)
-        gl.addWidget(self._max_rec_time, 0, 1)
-        gl.addWidget(QLabel('State crossfade time:'), 1, 0)
-        gl.addWidget(self._state_xfade_time, 1, 1)
-        gl.addWidget(QLabel('Playback crossfade time:'), 2, 0)
-        gl.addWidget(self._play_xfade_time, 2, 1)
+        self._sliders_layout = QGridLayout()
+        self._sliders_layout.setContentsMargins(0, 0, 0, 0)
+        self._sliders_layout.setVerticalSpacing(0)
+        self._sliders_layout.setColumnStretch(0, 0)
+        self._sliders_layout.setColumnStretch(1, 1)
+        self._sliders_layout.addWidget(QLabel('Maximum recording time:'), 0, 0)
+        self._sliders_layout.addWidget(self._max_rec_time, 0, 1)
+        self._sliders_layout.addWidget(QLabel('State crossfade time:'), 1, 0)
+        self._sliders_layout.addWidget(self._state_xfade_time, 1, 1)
+        self._sliders_layout.addWidget(QLabel('Playback crossfade time:'), 2, 0)
+        self._sliders_layout.addWidget(self._play_xfade_time, 2, 1)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
-        v.setSpacing(2)
-        v.addLayout(gl)
+        v.setSpacing(4)
+        v.addLayout(self._sliders_layout)
         v.addStretch(1)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        self._sliders_layout.setHorizontalSpacing(
+                style_mgr.get_scaled_size_param('large_padding'))
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
 
 class MaxRecTime(VarPrecSpinBox, ProcessorUpdater):
