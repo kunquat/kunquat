@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -34,6 +34,7 @@ class GainCompProc(QWidget, ProcessorUpdater):
         self.add_to_updaters(self._asym_mapping, self._sym_mapping)
 
         self._mappings = QStackedLayout()
+        self._mappings.setContentsMargins(0, 0, 0, 0)
         self._mappings.addWidget(self._asym_mapping)
         self._mappings.addWidget(self._sym_mapping)
 
@@ -51,12 +52,14 @@ class GainCompProc(QWidget, ProcessorUpdater):
 
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_sym)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._asym_mapping.configure_max_node_count()
         self._sym_mapping.configure_max_node_count()
 
         self._sym_toggle.stateChanged.connect(self._change_sym)
 
+        self._update_style()
         self._update_sym()
 
     def _get_gc_params(self):
@@ -65,6 +68,13 @@ class GainCompProc(QWidget, ProcessorUpdater):
         proc = au.get_processor(self._proc_id)
         gc_params = proc.get_type_params()
         return gc_params
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_sym(self):
         gc_params = self._get_gc_params()
