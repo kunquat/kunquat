@@ -908,10 +908,12 @@ class SubdivEditor(QWidget, Updater):
         self._controls_layout.addWidget(QLabel('Warp:'), 2, 0)
         self._controls_layout.addWidget(self._subdiv_warp, 2, 1)
 
+        self._header = HeaderLine('Create subdivision')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Create subdivision'), 0, Qt.AlignTop)
+        v.addWidget(self._header, 0, Qt.AlignTop)
         v.addLayout(self._controls_layout, 0)
         v.addWidget(self._subdiv_apply, 0)
         self.setLayout(v)
@@ -933,6 +935,7 @@ class SubdivEditor(QWidget, Updater):
         self._update_all()
 
     def _update_style(self):
+        self._header.update_style(self._ui_model.get_style_manager())
         self._update_config()
         self.update()
 
@@ -1021,10 +1024,12 @@ class LineEditor(QWidget, Updater):
         self._controls_layout.addWidget(QLabel('Style:'), 0)
         self._controls_layout.addWidget(self._line_style, 1)
 
+        self._header = HeaderLine('Current line')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Current line'), 0, Qt.AlignTop)
+        v.addWidget(self._header, 0, Qt.AlignTop)
         v.addLayout(self._controls_layout, 0)
         v.addWidget(self._remove_button, 0, Qt.AlignTop)
         v.addWidget(QWidget(), 1)
@@ -1045,6 +1050,7 @@ class LineEditor(QWidget, Updater):
 
     def _update_config(self):
         style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
         config = DEFAULT_CONFIG.copy()
         custom_config = get_config_with_custom_style(style_mgr)
         config.update(custom_config)
