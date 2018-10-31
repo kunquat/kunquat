@@ -14,7 +14,6 @@
 from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.editorlist import EditorList
-from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
 from .procnumslider import ProcNumSlider
 from .processorupdater import ProcessorUpdater

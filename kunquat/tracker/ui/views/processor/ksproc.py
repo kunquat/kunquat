@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -13,7 +13,6 @@
 
 from kunquat.tracker.ui.qt import *
 
-from kunquat.tracker.ui.views.headerline import HeaderLine
 from .procnumslider import ProcNumSlider
 from .processorupdater import ProcessorUpdater
 from . import utils

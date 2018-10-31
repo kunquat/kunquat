@@ -14,7 +14,6 @@
 from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.envelope import Envelope
-from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
 from .procnumslider import ProcNumSlider
 from .proctimeenv import ProcessorTimeEnvelope
