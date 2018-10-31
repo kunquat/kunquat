@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -38,19 +38,32 @@ class CompressProc(QWidget, ProcessorUpdater):
         self.add_to_updaters(
                 self._attack, self._release, self._upward_config, self._downward_config)
 
-        rl = QHBoxLayout()
-        rl.setContentsMargins(0, 0, 0, 0)
-        rl.setSpacing(10)
-        rl.addWidget(self._attack)
-        rl.addWidget(self._release)
+        self._common_layout = QHBoxLayout()
+        self._common_layout.setContentsMargins(0, 0, 0, 0)
+        self._common_layout.setSpacing(10)
+        self._common_layout.addWidget(self._attack)
+        self._common_layout.addWidget(self._release)
 
         v = QVBoxLayout()
         v.setSpacing(10)
-        v.addLayout(rl)
+        v.addLayout(self._common_layout)
         v.addWidget(self._upward_config)
         v.addWidget(self._downward_config)
         v.addStretch(1)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        self._common_layout.setSpacing(style_mgr.get_scaled_size_param('large_padding'))
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('large_padding'))
 
 
 class CompressSlider(ProcNumSlider):
@@ -112,19 +125,21 @@ class CompressConfig(QWidget, ProcessorUpdater):
         self._ratio = Ratio(self._mode)
         self._range = Range(self._mode)
 
-        pl = QHBoxLayout()
-        pl.setContentsMargins(0, 0, 0, 0)
-        pl.setSpacing(10)
-        pl.addWidget(self._enabled)
-        pl.addWidget(self._threshold)
-        pl.addWidget(self._ratio)
-        pl.addWidget(self._range)
+        self._params_layout = QHBoxLayout()
+        self._params_layout.setContentsMargins(0, 0, 0, 0)
+        self._params_layout.setSpacing(10)
+        self._params_layout.addWidget(self._enabled)
+        self._params_layout.addWidget(self._threshold)
+        self._params_layout.addWidget(self._ratio)
+        self._params_layout.addWidget(self._range)
+
+        self._header = HeaderLine('{} compression'.format(mode.capitalize()))
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(4)
-        v.addWidget(HeaderLine('{} compression'.format(mode.capitalize())))
-        v.addLayout(pl)
+        v.addWidget(self._header)
+        v.addLayout(self._params_layout)
         self.setLayout(v)
 
     def set_au_id(self, au_id):
@@ -144,6 +159,9 @@ class CompressConfig(QWidget, ProcessorUpdater):
         self.register_action(self._get_update_signal_type(), self._update_enabled)
         self._enabled.stateChanged.connect(self._change_enabled)
 
+        self.register_action('signal_style_changed', self._update_style)
+
+        self._update_style()
         self._update_enabled()
 
     def _get_update_signal_type(self):
@@ -151,6 +169,11 @@ class CompressConfig(QWidget, ProcessorUpdater):
 
     def _get_compress_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._params_layout.setSpacing(style_mgr.get_scaled_size_param('large_padding'))
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_enabled(self):
         params = self._get_compress_params()
