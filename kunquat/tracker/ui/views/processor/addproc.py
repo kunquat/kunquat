@@ -37,17 +37,17 @@ class AddProc(QWidget, ProcessorUpdater):
 
         self.add_to_updaters(self._base_waveform, self._base_tone_editor)
 
-        h = QHBoxLayout()
-        h.setContentsMargins(4, 4, 4, 4)
-        h.setSpacing(10)
-        h.addWidget(self._ramp_attack)
-        h.addWidget(self._rand_phase)
-        h.addStretch(1)
+        self._simple_params_layout = QHBoxLayout()
+        self._simple_params_layout.setContentsMargins(0, 0, 0, 0)
+        self._simple_params_layout.setSpacing(10)
+        self._simple_params_layout.addWidget(self._ramp_attack)
+        self._simple_params_layout.addWidget(self._rand_phase)
+        self._simple_params_layout.addStretch(1)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(10)
-        v.addLayout(h)
+        v.addLayout(self._simple_params_layout)
         v.addWidget(self._base_waveform)
         v.addWidget(self._base_tone_editor)
         self.setLayout(v)
@@ -56,14 +56,25 @@ class AddProc(QWidget, ProcessorUpdater):
 
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_simple_params)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._ramp_attack.stateChanged.connect(self._change_ramp_attack)
         self._rand_phase.stateChanged.connect(self._change_rand_phase)
 
+        self._update_style()
         self._update_simple_params()
 
     def _get_update_signal_type(self):
         return '_'.join(('signal_proc_add_simple_params', self._proc_id))
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._simple_params_layout.setSpacing(
+                style_mgr.get_scaled_size_param('large_padding'))
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('large_padding'))
 
     def _update_simple_params(self):
         add_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -209,7 +220,15 @@ class ToneEditor(QWidget, ProcessorUpdater):
                 style_mgr.get_style_param('list_button_size'),
                 style_mgr.get_style_param('list_button_padding'))
 
+        self.register_action('signal_style_changed', self._update_style)
+
         self._remove_button.clicked.connect(self._removed)
+
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _get_update_signal_type(self):
         return ''.join(('signal_proc_add_tone_', self._au_id, self._proc_id))
@@ -234,7 +253,7 @@ class TonePitchSpin(QWidget, ProcessorUpdater):
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
-        h.addWidget(QLabel('Pitch'))
+        h.addWidget(QLabel('Pitch:'))
         h.addWidget(self._spin)
         self.setLayout(h)
 
@@ -243,6 +262,13 @@ class TonePitchSpin(QWidget, ProcessorUpdater):
         self.register_action(self._get_update_signal_type(), self._update_value)
         self._update_value()
         self._spin.valueChanged.connect(self._value_changed)
+
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _get_update_signal_type(self):
         return ''.join(('signal_proc_add_tone_', self._au_id, self._proc_id))
@@ -269,7 +295,7 @@ class TonePitchSpin(QWidget, ProcessorUpdater):
 class ToneVolumeSlider(ProcNumSlider):
 
     def __init__(self, index):
-        super().__init__(1, -64.0, 24.0, title='Volume')
+        super().__init__(1, -64.0, 24.0, title='Volume:')
         self._index = index
         self.set_number(0)
 
@@ -294,7 +320,7 @@ class ToneVolumeSlider(ProcNumSlider):
 class TonePanningSlider(ProcNumSlider):
 
     def __init__(self, index):
-        super().__init__(3, -1.0, 1.0, title='Panning')
+        super().__init__(3, -1.0, 1.0, title='Panning:')
         self._index = index
         self.set_number(0)
 
