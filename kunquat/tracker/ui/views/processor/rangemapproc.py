@@ -33,19 +33,21 @@ class RangeMapProc(QWidget, ProcessorUpdater):
         self._clamp_dest_min = ClampToggle('Clamp to minimum destination')
         self._clamp_dest_max = ClampToggle('Clamp to maximum destination')
 
-        gl = QGridLayout()
-        gl.addWidget(QLabel('Source range minimum:'), 0, 0)
-        gl.addWidget(self._from_min, 0, 1)
-        gl.addWidget(QLabel('Source range maximum:'), 0, 2)
-        gl.addWidget(self._from_max, 0, 3)
-        gl.addWidget(QWidget(), 0, 4)
-        gl.addWidget(QLabel('Map minimum to:'), 1, 0)
-        gl.addWidget(self._min_to, 1, 1)
-        gl.addWidget(QLabel('Map maximum to:'), 1, 2)
-        gl.addWidget(self._max_to, 1, 3)
+        self._map_layout = QGridLayout()
+        self._map_layout.setContentsMargins(0, 0, 0, 0)
+        self._map_layout.setVerticalSpacing(0)
+        self._map_layout.addWidget(QLabel('Source range minimum:'), 0, 0)
+        self._map_layout.addWidget(self._from_min, 0, 1)
+        self._map_layout.addWidget(QLabel('Source range maximum:'), 0, 2)
+        self._map_layout.addWidget(self._from_max, 0, 3)
+        self._map_layout.addWidget(QWidget(), 0, 4)
+        self._map_layout.addWidget(QLabel('Map minimum to:'), 1, 0)
+        self._map_layout.addWidget(self._min_to, 1, 1)
+        self._map_layout.addWidget(QLabel('Map maximum to:'), 1, 2)
+        self._map_layout.addWidget(self._max_to, 1, 3)
 
         v = QVBoxLayout()
-        v.addLayout(gl)
+        v.addLayout(self._map_layout)
         v.addWidget(self._clamp_dest_min)
         v.addWidget(self._clamp_dest_max)
         v.addStretch(1)
@@ -53,6 +55,7 @@ class RangeMapProc(QWidget, ProcessorUpdater):
 
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_all)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._from_min.editingFinished.connect(self._set_from_min)
         self._from_max.editingFinished.connect(self._set_from_max)
@@ -61,6 +64,7 @@ class RangeMapProc(QWidget, ProcessorUpdater):
         self._clamp_dest_min.stateChanged.connect(self._set_clamp_dest_min)
         self._clamp_dest_max.stateChanged.connect(self._set_clamp_dest_max)
 
+        self._update_style()
         self._update_all()
 
     def _get_update_signal_type(self):
@@ -68,6 +72,16 @@ class RangeMapProc(QWidget, ProcessorUpdater):
 
     def _get_range_map_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        self._map_layout.setHorizontalSpacing(
+                style_mgr.get_scaled_size_param('large_padding'))
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_all(self):
         params = self._get_range_map_params()
