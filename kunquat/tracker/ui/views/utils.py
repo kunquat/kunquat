@@ -32,9 +32,9 @@ def update_ref_font_height(font, style_mgr):
 
 def get_default_font():
     screen = QApplication.primaryScreen()
-    dpi = screen.physicalDotsPerInch()
-    # 96 DPI is probably just the default setting that does not reflect reality
-    size = 9 if (dpi == 96) else 7
+    ldpi = screen.logicalDotsPerInch()
+    pdpi = screen.physicalDotsPerInch()
+    size = int(round(7 * pdpi / ldpi))
     return QFont(QFont().defaultFamily(), size)
 
 def get_default_font_info(style_mgr):
