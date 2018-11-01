@@ -108,7 +108,7 @@ class PeakMeter(QWidget):
             'thickness' : style_mgr.get_scaled_size(0.32),
             'padding'   : style_mgr.get_scaled_size(0.16),
             'clip_width': style_mgr.get_scaled_size(2.2),
-            'hold_width': style_mgr.get_scaled_size(0.6),
+            'hold_width': style_mgr.get_scaled_size(0.5),
         }
 
         self._set_config(config)
