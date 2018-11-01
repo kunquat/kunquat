@@ -34,7 +34,7 @@ def get_default_font():
     screen = QApplication.primaryScreen()
     ldpi = screen.logicalDotsPerInch()
     pdpi = screen.physicalDotsPerInch()
-    size = int(round(7 * pdpi / ldpi))
+    size = int(round(7.2 * pdpi / ldpi))
     return QFont(QFont().defaultFamily(), size)
 
 def get_default_font_info(style_mgr):
