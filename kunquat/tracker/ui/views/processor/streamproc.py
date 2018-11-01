@@ -35,6 +35,17 @@ class StreamProc(QWidget, ProcessorUpdater):
         v.addStretch(1)
         self.setLayout(v)
 
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
+
 
 class InitStateEditor(QWidget, ProcessorUpdater):
 
@@ -67,11 +78,13 @@ class InitStateEditor(QWidget, ProcessorUpdater):
 
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_state)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._init_val.valueChanged.connect(self._set_init_value)
         self._osc_speed.valueChanged.connect(self._set_osc_speed)
         self._osc_depth.valueChanged.connect(self._set_osc_depth)
 
+        self._update_style()
         self._update_state()
 
     def _get_update_signal_type(self):
@@ -83,6 +96,10 @@ class InitStateEditor(QWidget, ProcessorUpdater):
         proc = au.get_processor(self._proc_id)
         stream_params = proc.get_type_params()
         return stream_params
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('large_padding'))
 
     def _update_state(self):
         stream_params = self._get_stream_params()
