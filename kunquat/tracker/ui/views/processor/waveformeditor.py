@@ -65,9 +65,6 @@ class WaveformEditor(QWidget, ProcessorUpdater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
-        if not style_mgr.is_custom_style_enabled():
-            self._waveform.set_config({})
-            return
 
         self._header.update_style(style_mgr)
         self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))

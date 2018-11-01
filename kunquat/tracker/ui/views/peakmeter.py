@@ -90,10 +90,6 @@ class PeakMeter(QWidget):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
-        if not style_mgr.is_custom_style_enabled():
-            self._set_config({})
-            self.update()
-            return
 
         colours = {
             'bg':   QColor(style_mgr.get_style_param('peak_meter_bg_colour')),

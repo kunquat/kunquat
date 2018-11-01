@@ -175,15 +175,6 @@ class StyleManager():
     def get_icons_dir(self):
         return self._share.get_icons_dir()
 
-    def set_custom_style_enabled(self, enabled):
-        config_style = self._get_config_style()
-        config_style['enabled'] = enabled
-        self._set_config_style(config_style)
-
-    def is_custom_style_enabled(self):
-        config_style = self._get_config_style()
-        return config_style.get('enabled', True)
-
     def get_style_param(self, key):
         config_style = self._get_config_style()
         return config_style.get(key, self._STYLE_DEFAULTS[key])

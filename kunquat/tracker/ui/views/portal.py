@@ -328,9 +328,6 @@ class RenderStatsButton(QToolButton):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
-        if not style_mgr.is_custom_style_enabled():
-            self._load_meter.set_config({})
-            return
 
         left_margin = (style_mgr.get_scaled_size_param('medium_padding') +
                 style_mgr.get_scaled_size_param('border_thin_width'))

@@ -264,10 +264,6 @@ class LoadHistory(QWidget, Updater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
-        if not style_mgr.is_custom_style_enabled():
-            self._set_configs({}, {})
-            self.update()
-            return
 
         def get_colour(name):
             return QColor(style_mgr.get_style_param(name))

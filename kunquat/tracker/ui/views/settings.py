@@ -38,7 +38,6 @@ class Settings(QWidget, Updater):
 
         self._chord_mode = ChordMode()
 
-        self._style_toggle = StyleToggle()
         self._font = FontButton()
         self._border_contrast = BorderContrast()
         self._button_brightness = ButtonBrightness()
@@ -51,7 +50,6 @@ class Settings(QWidget, Updater):
                 self._samples,
                 self._effects,
                 self._chord_mode,
-                self._style_toggle,
                 self._font,
                 self._border_contrast,
                 self._button_brightness,
@@ -109,7 +107,6 @@ class Settings(QWidget, Updater):
         self._appearance_layout.setContentsMargins(0, 0, 0, 0)
         self._appearance_layout.setSpacing(4)
         self._appearance_layout.addWidget(self._appearance_header)
-        self._appearance_layout.addWidget(self._style_toggle)
         self._appearance_layout.addLayout(self._misc_style_layout)
         self._appearance_layout.addWidget(self._colours)
 
@@ -244,33 +241,6 @@ class ChordMode(QCheckBox, Updater):
         self._updater.signal_update('signal_chord_mode_changed')
 
 
-class StyleToggle(QCheckBox, Updater):
-
-    def __init__(self):
-        super().__init__('Enable custom style')
-
-    def _on_setup(self):
-        self.register_action('signal_style_changed', self._update_enabled)
-        self.stateChanged.connect(self._change_enabled)
-        self._update_enabled()
-
-    def _update_enabled(self):
-        style_mgr = self._ui_model.get_style_manager()
-        enabled = style_mgr.is_custom_style_enabled()
-
-        old_block = self.blockSignals(True)
-        self.setCheckState(Qt.Checked if enabled else Qt.Unchecked)
-        self.blockSignals(old_block)
-
-    def _change_enabled(self, state):
-        enabled = (state == Qt.Checked)
-
-        style_mgr = self._ui_model.get_style_manager()
-        style_mgr.set_custom_style_enabled(enabled)
-
-        self._updater.signal_update('signal_style_changed')
-
-
 class FontButton(QPushButton, Updater):
 
     def __init__(self):
@@ -322,7 +292,6 @@ class StyleSlider(NumberSlider, Updater):
     def _update_param(self):
         style_mgr = self._ui_model.get_style_manager()
         self.update_style(style_mgr)
-        self.setEnabled(style_mgr.is_custom_style_enabled())
         self.set_number(style_mgr.get_style_param(self._param))
 
     def _change_param(self, new_value):
@@ -1339,13 +1308,8 @@ class Colours(QTreeView, Updater):
         self._update_all()
 
     def _update_all(self):
-        self._update_enabled()
         self._update_buttons()
         self._colour_editor.update_style(self._ui_model.get_style_manager())
-
-    def _update_enabled(self):
-        style_mgr = self._ui_model.get_style_manager()
-        self.setEnabled(style_mgr.is_custom_style_enabled())
 
     def _update_buttons(self):
         style_mgr = self._ui_model.get_style_manager()

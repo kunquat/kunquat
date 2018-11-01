@@ -559,11 +559,6 @@ class EnvelopeView(QWidget):
         return vis_range_max - vis_range_min
 
     def update_style(self, style_mgr):
-        if not style_mgr.is_custom_style_enabled():
-            self._set_configs({}, {})
-            self.update()
-            return
-
         def get_colour(name):
             return QColor(style_mgr.get_style_param(name))
 

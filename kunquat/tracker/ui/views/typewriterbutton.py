@@ -154,16 +154,14 @@ class TypewriterButton(QPushButton):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
-        if not style_mgr.is_custom_style_enabled():
-            self._led.set_default_colours()
-        else:
-            size = style_mgr.get_scaled_size_param('typewriter_button_size')
-            self.setFixedSize(QSize(size, size))
-            self._led.set_size(
-                    QSize(style_mgr.get_scaled_size(3), style_mgr.get_scaled_size(1)))
-            self._led.set_colours(
-                    style_mgr.get_style_param('active_indicator_colour'),
-                    style_mgr.get_style_param('bg_sunken_colour'))
+
+        size = style_mgr.get_scaled_size_param('typewriter_button_size')
+        self.setFixedSize(QSize(size, size))
+        self._led.set_size(
+                QSize(style_mgr.get_scaled_size(3), style_mgr.get_scaled_size(1)))
+        self._led.set_colours(
+                style_mgr.get_style_param('active_indicator_colour'),
+                style_mgr.get_style_param('bg_sunken_colour'))
 
     def _update_properties(self):
         name = self._button_model.get_name()

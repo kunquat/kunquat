@@ -170,7 +170,6 @@ class Config():
             ]
 
             style_config = {
-                'enabled': _Entry(lambda x: isinstance(x, bool), False),
                 'def_font_size': _Entry(lambda x: 0 <= x <= 50, 0),
                 'def_font_family': _Entry(lambda x: isinstance(x, str), ''),
                 'border_contrast': _Entry(lambda x: 0 <= x <= 1, 0.3),

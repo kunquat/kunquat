@@ -96,7 +96,7 @@ class AboutMessage(QWidget):
         website_base = '<a{} href="http://kunquat.org/">http://kunquat.org/</a>'
         style = ''
 
-        if style_mgr and style_mgr.is_custom_style_enabled():
+        if style_mgr:
             colour = style_mgr.get_link_colour()
             style = ' style="color: {};"'.format(colour)
 

@@ -104,10 +104,6 @@ class PlaybackPosition(QWidget):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
-        if not style_mgr.is_custom_style_enabled():
-            self._set_config({})
-            self.update()
-            return
 
         num_font = utils.get_scaled_font(style_mgr, 1.6, QFont.Bold)
         utils.set_glyph_rel_width(num_font, QWidget, _REF_NUM_STR, 51.875)

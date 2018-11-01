@@ -85,11 +85,8 @@ class ErrorDialog(QDialog):
 
         self._details.update_style(style_mgr)
 
-        style = ''
-
-        if style_mgr.is_custom_style_enabled():
-            colour = style_mgr.get_link_colour()
-            style = ' style="color: {};"'.format(colour)
+        colour = style_mgr.get_link_colour()
+        style = ' style="color: {};"'.format(colour)
 
         self._message.setText(MESSAGE_RICH_FMT.format(style))
 

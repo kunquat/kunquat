@@ -100,9 +100,6 @@ DEFAULT_CONFIG = {
 
 
 def get_config_with_custom_style(style_mgr):
-    if not style_mgr.is_custom_style_enabled():
-        return {}
-
     config = {}
     config['ruler'] = {}
     config['header'] = {}

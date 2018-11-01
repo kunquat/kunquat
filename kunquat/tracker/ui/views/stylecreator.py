@@ -58,9 +58,6 @@ class StyleCreator():
     def get_updated_style_sheet(self):
         style_mgr = self._ui_model.get_style_manager()
 
-        if not style_mgr.is_custom_style_enabled():
-            return style_mgr.get_init_style_sheet()
-
         icon_bank = self._ui_model.get_icon_bank()
 
         # Get font settings
