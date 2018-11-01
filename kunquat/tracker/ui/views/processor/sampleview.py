@@ -31,6 +31,7 @@ DEFAULT_CONFIG = {
     'loop_line_colour'          : QColor(0x77, 0x99, 0xbb),
     'focused_loop_line_colour'  : QColor(0xff, 0xaa, 0x55),
     'loop_line_dash'            : [4, 4],
+    'loop_line_thickness'       : 1,
     'loop_handle_colour'        : QColor(0x88, 0xbb, 0xee),
     'focused_loop_handle_colour': QColor(0xff, 0xaa, 0x55),
     'loop_handle_size'          : 12,
@@ -103,12 +104,10 @@ class SampleViewToolBar(QToolBar):
         self._loop_range = None
 
         self._zoom_in = IconButton(flat=True)
-        #self._zoom_in.setText('Zoom In')
-        self._zoom_in.setToolTip(self._zoom_in.text())
+        self._zoom_in.setToolTip('Zoom In')
 
         self._zoom_out = IconButton(flat=True)
-        #self._zoom_out.setText('Zoom Out')
-        self._zoom_out.setToolTip(self._zoom_out.text())
+        self._zoom_out.setToolTip('Zoom Out')
 
         self._post_loop_cut = QToolButton()
         self._post_loop_cut.setText('Post-loop cut')
@@ -560,6 +559,7 @@ class SampleViewCanvas(QWidget):
                         else normal_colour)
 
             pen = QPen()
+            pen.setWidthF(self._config['loop_line_thickness'])
             pen.setDashPattern(self._config['loop_line_dash'])
 
             # Make sure we draw the focused line on top

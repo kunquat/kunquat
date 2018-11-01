@@ -1599,15 +1599,20 @@ class SampleEditor(QWidget, ProcessorUpdater):
             return QColor(style_mgr.get_style_param(name))
 
         config = {
-            'bg_colour': get_colour('waveform_bg_colour'),
-            'centre_line_colour': get_colour('waveform_centre_line_colour'),
-            'zoomed_out_colour': get_colour('waveform_zoomed_out_colour'),
-            'single_item_colour': get_colour('waveform_single_item_colour'),
-            'interp_colour': get_colour('waveform_interpolated_colour'),
-            'loop_line_colour': get_colour('waveform_loop_marker_colour'),
-            'focused_loop_line_colour': get_colour('waveform_focus_colour'),
-            'loop_handle_colour': get_colour('waveform_loop_marker_colour'),
+            'bg_colour'                 : get_colour('waveform_bg_colour'),
+            'centre_line_colour'        : get_colour('waveform_centre_line_colour'),
+            'zoomed_out_colour'         : get_colour('waveform_zoomed_out_colour'),
+            'single_item_colour'        : get_colour('waveform_single_item_colour'),
+            'interp_colour'             : get_colour('waveform_interpolated_colour'),
+            'max_node_size'             : style_mgr.get_scaled_size(0.55),
+            'loop_line_colour'          : get_colour('waveform_loop_marker_colour'),
+            'focused_loop_line_colour'  : get_colour('waveform_focus_colour'),
+            'loop_line_dash'            : [style_mgr.get_scaled_size(0.4)] * 2,
+            'loop_line_thickness'       : style_mgr.get_scaled_size(0.1),
+            'loop_handle_colour'        : get_colour('waveform_loop_marker_colour'),
             'focused_loop_handle_colour': get_colour('waveform_focus_colour'),
+            'loop_handle_size'          : style_mgr.get_scaled_size(1.3),
+            'loop_handle_focus_dist_max': style_mgr.get_scaled_size(1.5),
         }
 
         self._sample_view.set_config(config)
