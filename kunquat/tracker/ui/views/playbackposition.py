@@ -534,7 +534,7 @@ class PlaybackPosition(QWidget):
 
         painter.setClipping(False)
         painter.drawPixmap(
-                style_mgr.get_scaled_size(0, 0), title_y, self._titles['track'])
+                -style_mgr.get_scaled_size(0.2, 0), title_y, self._titles['track'])
 
         # System number
         shift_x()
