@@ -575,6 +575,8 @@ void del_Background_loader(Background_loader* loader)
     if (loader == NULL)
         return;
 
+    Background_loader_wait_idle(loader);
+
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
         Task_worker_deinit(&loader->workers[i]);
 
