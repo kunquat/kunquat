@@ -24,6 +24,10 @@ class Logo(QWidget, Updater):
         self.setFixedSize(200, 200)
 
     def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
         size = style_mgr.get_scaled_size(20, 20)
         self.setFixedSize(size, size)
