@@ -266,7 +266,7 @@ class FontButton(QPushButton, Updater):
             return
 
         font_family = font.family()
-        font_size = font.pointSize()
+        font_size = min(max(1, font.pointSize()), 50)
         style_mgr = self._ui_model.get_style_manager()
         style_mgr.set_style_param('def_font_family', font_family)
         style_mgr.set_style_param('def_font_size', font_size)
