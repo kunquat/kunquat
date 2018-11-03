@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <decl.h>
+#include <init/Background_loader.h>
 #include <init/devices/Device_impl.h>
 #include <mathnum/common.h>
 #include <string/common.h>
@@ -91,14 +92,29 @@ bool Device_is_existent(const Device* device)
 }
 
 
-void Device_set_impl(Device* device, Device_impl* dimpl)
+void Device_set_impl(Device* device, Device_impl* dimpl, Background_loader* bkg_loader)
 {
     rassert(device != NULL);
-    rassert(dimpl != NULL);
+    //rassert(dimpl != NULL);
+    rassert(bkg_loader != NULL);
 
-    del_Device_impl(device->dimpl);
+    if (device->dimpl != NULL)
+    {
+        // Background loader tasks may be accessing the old device->dimpl,
+        // so let's make sure we don't interfere with that
+        if (!Background_loader_add_delayed_task(
+                    bkg_loader,
+                    (Background_loader_delayed_callback*)del_Device_impl,
+                    device->dimpl))
+        {
+            Background_loader_wait_idle(bkg_loader);
+            del_Device_impl(device->dimpl);
+        }
+        device->dimpl = NULL;
+    }
 
-    Device_impl_set_device(dimpl, device);
+    if (dimpl != NULL)
+        Device_impl_set_device(dimpl, device);
     device->dimpl = dimpl;
 
     return;

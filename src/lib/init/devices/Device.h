@@ -107,10 +107,13 @@ bool Device_is_existent(const Device* device);
  *
  * A previously set Device implementation will be destroyed.
  *
- * \param device   The Device -- must not be \c NULL.
- * \param dimpl    The Device implementation, or \c NULL.
+ * \param device       The Device -- must not be \c NULL.
+ * \param dimpl        The Device implementation -- must not be \c NULL.
+ * \param bkg_loader   The Background loader -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
-void Device_set_impl(Device* device, Device_impl* dimpl);
+void Device_set_impl(Device* device, Device_impl* dimpl, Background_loader* bkg_loader);
 
 
 /**
