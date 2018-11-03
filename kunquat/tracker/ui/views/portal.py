@@ -298,10 +298,13 @@ class RenderStatsButton(QToolButton):
 
         self._load_meter = RenderLoadMeter()
 
+        label = QLabel('System load')
+        label.setMargin(0)
+
         h = QHBoxLayout()
         h.setContentsMargins(6, 4, 6, 3)
         h.addWidget(self._load_meter, 0, Qt.AlignVCenter)
-        h.addWidget(QLabel('System load'))
+        h.addWidget(label)
         self.setLayout(h)
 
     def set_ui_model(self, ui_model):
@@ -325,18 +328,25 @@ class RenderStatsButton(QToolButton):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
-        if not style_mgr.is_custom_style_enabled():
-            self._load_meter.set_config({})
-            return
+
+        left_margin = (style_mgr.get_scaled_size_param('medium_padding') +
+                style_mgr.get_scaled_size_param('border_thin_width'))
+        margin = (style_mgr.get_scaled_size_param('small_padding') +
+                style_mgr.get_scaled_size_param('border_thin_width'))
+        self.layout().setContentsMargins(left_margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size(
+            style_mgr.get_style_param('medium_padding')))
 
         def get_colour(param):
             return QColor(style_mgr.get_style_param(param))
 
         config = {
-            'bg_colour': get_colour('system_load_bg_colour'),
-            'colour_low': get_colour('system_load_low_colour'),
-            'colour_mid': get_colour('system_load_mid_colour'),
-            'colour_high': get_colour('system_load_high_colour'),
+            'width'         : style_mgr.get_scaled_size(1),
+            'height'        : style_mgr.get_scaled_size(1),
+            'bg_colour'     : get_colour('system_load_bg_colour'),
+            'colour_low'    : get_colour('system_load_low_colour'),
+            'colour_mid'    : get_colour('system_load_mid_colour'),
+            'colour_high'   : get_colour('system_load_high_colour'),
         }
 
         self._load_meter.set_config(config)

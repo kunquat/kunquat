@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -49,6 +49,7 @@ class Editor(QWidget, ProcessorUpdater):
         self.register_action(
                 'signal_proc_signals_{}'.format(self._proc_id),
                 self._update_test_toggle)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._control_mgr = self._ui_model.get_control_manager()
 
@@ -73,6 +74,14 @@ class Editor(QWidget, ProcessorUpdater):
         # Test output toggle
         self._test_output.stateChanged.connect(self._change_test_output_state)
         self._update_test_toggle()
+
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _is_processor_testable(self):
         module = self._ui_model.get_module()
@@ -121,9 +130,11 @@ class Signals(QWidget, ProcessorUpdater):
         self._voice_signals = QRadioButton('Voice signals')
         self._mixed_signals = QRadioButton('Mixed signals')
 
+        self._header = HeaderLine('Signal type')
+
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
-        v.addWidget(HeaderLine('Signal type'))
+        v.addWidget(self._header)
         v.addWidget(self._voice_signals)
         v.addWidget(self._mixed_signals)
         v.addStretch(1)
@@ -132,10 +143,12 @@ class Signals(QWidget, ProcessorUpdater):
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_settings)
         self.register_action(self._get_connections_signal_type(), self._update_settings)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._voice_signals.clicked.connect(self._set_voice_signals)
         self._mixed_signals.clicked.connect(self._set_mixed_signals)
 
+        self._update_style()
         self._update_settings()
 
     def _get_update_signal_type(self):
@@ -143,6 +156,12 @@ class Signals(QWidget, ProcessorUpdater):
 
     def _get_connections_signal_type(self):
         return '_'.join(('signal_connections', self._au_id))
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_settings(self):
         module = self._ui_model.get_module()

@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2014-2017
+#          Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -21,33 +21,56 @@ from .updater import Updater
 
 class Typewriter(QFrame, Updater):
 
-    _PAD = 35
-
     def __init__(self):
         super().__init__()
         self._typewriter_mgr = None
         self._keyboard_mapper = KeyboardMapper()
+        self._pad = 35
 
     def _on_setup(self):
         self.add_to_updaters(self._keyboard_mapper)
         self.register_action('signal_change', self._update_button_leds)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._typewriter_mgr = self._ui_model.get_typewriter_manager()
-        self.setLayout(self._get_layout())
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._pad = style_mgr.get_scaled_size_param('typewriter_padding')
+
+        if not self.layout():
+            self.setLayout(self._get_layout())
+
+        rows = self.layout()
+        rows.setSpacing(style_mgr.get_scaled_size_param('small_padding'))
+        for row_index in range(rows.count()):
+            row = rows.itemAt(row_index).layout()
+            assert row
+            row.setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
+            pad = row.itemAt(0).widget()
+            assert pad
+            pad_px = self._pad * self._typewriter_mgr.get_pad_factor_at_row(row_index)
+            pad.setFixedWidth(pad_px)
 
     def _get_layout(self):
+        style_mgr = self._ui_model.get_style_manager()
+
         rows = QVBoxLayout()
         rows.setContentsMargins(0, 0, 0, 0)
-        rows.setSpacing(2)
+        rows.setSpacing(style_mgr.get_scaled_size_param('small_padding'))
+
         for row_index in range(self._typewriter_mgr.get_row_count()):
             rows.addLayout(self._get_row(row_index))
         return rows
 
     def _get_row(self, index):
-        row = QHBoxLayout()
-        row.setSpacing(4)
+        style_mgr = self._ui_model.get_style_manager()
 
-        pad_px = self._PAD * self._typewriter_mgr.get_pad_factor_at_row(index)
+        row = QHBoxLayout()
+        row.setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
+
+        pad_px = self._pad * self._typewriter_mgr.get_pad_factor_at_row(index)
         row.addWidget(self._get_pad(pad_px))
 
         for i in range(self._typewriter_mgr.get_button_count_at_row(index)):

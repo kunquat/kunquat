@@ -683,16 +683,14 @@ class SheetManager():
     def set_zoom(self, zoom):
         old_zoom = self._session.get_sheet_zoom()
         self._session.set_sheet_zoom(zoom)
-        if self._session.get_sheet_zoom() != old_zoom:
-            self._updater.signal_update('signal_sheet_zoom')
+        changed = (self._session.get_sheet_zoom() != old_zoom)
+        return changed
 
     def set_zoom_range(self, minimum, maximum):
         old_zoom = self._session.get_sheet_zoom()
         self._session.set_sheet_zoom_range(minimum, maximum)
-        signals = ['signal_sheet_zoom_range']
-        if self._session.get_sheet_zoom() != old_zoom:
-            signals.append('signal_sheet_zoom')
-        self._updater.signal_update(*signals)
+        zoom_changed = (self._session.get_sheet_zoom() != old_zoom)
+        return zoom_changed
 
     def get_zoom(self):
         return self._session.get_sheet_zoom()
@@ -703,14 +701,14 @@ class SheetManager():
     def set_column_width(self, width):
         old_width = self._session.get_sheet_column_width()
         self._session.set_sheet_column_width(width)
-        if self._session.get_sheet_column_width() != old_width:
-            self._updater.signal_update('signal_sheet_column_width')
+        changed = (self._session.get_sheet_column_width() != old_width)
+        return changed
 
     def set_column_width_range(self, minimum, maximum):
         old_width = self._session.get_sheet_column_width()
         self._session.set_sheet_column_width_range(minimum, maximum)
-        if self._session.get_sheet_column_width() != old_width:
-            self._updater.signal_update('signal_sheet_column_width')
+        width_changed = (self._session.get_sheet_column_width() != old_width)
+        return width_changed
 
     def get_column_width(self):
         return self._session.get_sheet_column_width()

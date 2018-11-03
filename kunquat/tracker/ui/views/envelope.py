@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from copy import deepcopy
 from itertools import count, islice
 import math
 import time
@@ -18,7 +19,8 @@ import time
 from kunquat.tracker.ui.qt import *
 
 from .axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
-from .utils import lerp_val, set_glyph_rel_width
+from .iconbutton import IconButton
+from .utils import lerp_val, set_glyph_rel_width, get_scaled_font
 
 
 _font = QFont(QFont().defaultFamily(), 9, QFont.Bold)
@@ -108,10 +110,8 @@ class Envelope(QWidget):
     def __init__(self, init_config={}):
         super().__init__()
 
-        self._zoom_in_x_button = QToolButton()
-        self._zoom_in_x_button.setText('Zoom in')
-        self._zoom_out_x_button = QToolButton()
-        self._zoom_out_x_button.setText('Zoom out')
+        self._zoom_in_x_button = IconButton(flat=True)
+        self._zoom_out_x_button = IconButton(flat=True)
 
         self._toolbar = QToolBar()
         self._area = EnvelopeArea(init_config)
@@ -138,11 +138,18 @@ class Envelope(QWidget):
         self._area.get_envelope_view().visRangeNormChanged.connect(
                 self._update_zoom_buttons_enabled)
 
-    def set_icon_bank(self, icon_bank):
-        self._zoom_in_x_button.setIcon(QIcon(icon_bank.get_icon_path('zoom_in')))
-        self._zoom_out_x_button.setIcon(QIcon(icon_bank.get_icon_path('zoom_out')))
+    def set_ui_model(self, ui_model):
+        self._zoom_in_x_button.set_ui_model(ui_model)
+        self._zoom_out_x_button.set_ui_model(ui_model)
+
+        self._zoom_in_x_button.set_icon('zoom_in')
+        self._zoom_out_x_button.set_icon('zoom_out')
 
         self._update_zoom_buttons_enabled()
+
+    def unregister_updaters(self):
+        self._zoom_in_x_button.unregister_updaters()
+        self._zoom_out_x_button.unregister_updaters()
 
     def get_envelope_view(self):
         return self._area.get_envelope_view()
@@ -552,11 +559,6 @@ class EnvelopeView(QWidget):
         return vis_range_max - vis_range_min
 
     def update_style(self, style_mgr):
-        if not style_mgr.is_custom_style_enabled():
-            self._set_configs({}, {})
-            self.update()
-            return
-
         def get_colour(name):
             return QColor(style_mgr.get_style_param(name))
 
@@ -567,22 +569,47 @@ class EnvelopeView(QWidget):
         disabled_colour = QColor(get_colour('bg_colour'))
         disabled_colour.setAlpha(0x7f)
 
+        font = get_scaled_font(style_mgr, 0.8, QFont.Bold)
+        set_glyph_rel_width(font, QWidget, '23456789' * 8, 50)
+
         config = {
-            'bg_colour': get_colour('envelope_bg_colour'),
-            'line_colour': get_colour('envelope_curve_colour'),
-            'node_colour': get_colour('envelope_node_colour'),
-            'focused_node_colour': focused_colour,
-            'focused_node_axis_colour': focused_axis_colour,
-            'loop_line_colour': get_colour('envelope_loop_marker_colour'),
-            'focused_loop_line_colour': focused_colour,
-            'loop_handle_colour': get_colour('envelope_loop_marker_colour'),
+            'padding'                   : style_mgr.get_scaled_size(0.5),
+            'bg_colour'                 : get_colour('envelope_bg_colour'),
+            'line_colour'               : get_colour('envelope_curve_colour'),
+            'node_colour'               : get_colour('envelope_node_colour'),
+            'focused_node_colour'       : focused_colour,
+            'focused_node_axis_colour'  : focused_axis_colour,
+            'node_size'                 : style_mgr.get_scaled_size(0.55),
+            'node_focus_dist_max'       : style_mgr.get_scaled_size(0.55),
+            'node_remove_dist_min'      : style_mgr.get_scaled_size(25),
+            'loop_line_colour'          : get_colour('envelope_loop_marker_colour'),
+            'focused_loop_line_colour'  : focused_colour,
+            'loop_line_dash'            : [style_mgr.get_scaled_size(0.4)] * 2,
+            'loop_handle_colour'        : get_colour('envelope_loop_marker_colour'),
             'focused_loop_handle_colour': focused_colour,
-            'disabled_colour': disabled_colour,
+            'loop_handle_size'          : style_mgr.get_scaled_size(1.3),
+            'loop_handle_focus_dist_max': style_mgr.get_scaled_size(1.5),
+            'disabled_colour'           : disabled_colour,
         }
 
         axis_config = {
-            'label_colour': get_colour('envelope_axis_label_colour'),
-            'line_colour': get_colour('envelope_axis_line_colour'),
+            'axis_x': {
+                'height'            : style_mgr.get_scaled_size(2),
+                'marker_min_dist'   : style_mgr.get_scaled_size(0.3),
+                'marker_min_width'  : style_mgr.get_scaled_size(0.3),
+                'marker_max_width'  : style_mgr.get_scaled_size(0.6),
+                'label_min_dist'    : style_mgr.get_scaled_size(6),
+            },
+            'axis_y': {
+                'width'             : style_mgr.get_scaled_size(5),
+                'marker_min_dist'   : style_mgr.get_scaled_size(0.3),
+                'marker_min_width'  : style_mgr.get_scaled_size(0.3),
+                'marker_max_width'  : style_mgr.get_scaled_size(0.6),
+                'label_min_dist'    : style_mgr.get_scaled_size(4),
+            },
+            'label_font'    : font,
+            'label_colour'  : get_colour('envelope_axis_label_colour'),
+            'line_colour'   : get_colour('envelope_axis_line_colour'),
         }
 
         self._set_configs(config, axis_config)
@@ -593,8 +620,17 @@ class EnvelopeView(QWidget):
         self._config.update(self._init_config)
         self._config.update(config)
 
-        self._axis_config = AXIS_CONFIG.copy()
+        axis_x = axis_config.pop('axis_x', {})
+        axis_y = axis_config.pop('axis_y', {})
+
+        def_label_font = AXIS_CONFIG.pop('label_font', None)
+        self._axis_config = deepcopy(AXIS_CONFIG)
+        self._axis_config['label_font'] = def_label_font
+        AXIS_CONFIG['label_font'] = def_label_font
+
         self._axis_config.update(axis_config)
+        self._axis_config['axis_x'].update(axis_x)
+        self._axis_config['axis_y'].update(axis_y)
         self._axis_x_renderer.set_config(self._axis_config, self)
         self._axis_y_renderer.set_config(self._axis_config, self)
 

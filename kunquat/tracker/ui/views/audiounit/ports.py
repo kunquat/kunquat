@@ -15,6 +15,7 @@ from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
+from kunquat.tracker.ui.views.iconbutton import IconButton
 from .audiounitupdater import AudioUnitUpdater
 
 
@@ -35,6 +36,16 @@ class Ports(QWidget, AudioUnitUpdater):
         h.addWidget(self._output_ports)
         self.setLayout(h)
 
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
+
 
 class PortsEditor(QWidget, AudioUnitUpdater):
 
@@ -45,12 +56,23 @@ class PortsEditor(QWidget, AudioUnitUpdater):
 
         self.add_to_updaters(self._editor)
 
+        self._header = HeaderLine(self._get_title())
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine(self._get_title()))
+        v.addWidget(self._header)
         v.addWidget(self._editor)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     # Port editor interface
 
@@ -181,6 +203,24 @@ class PortAdder(QPushButton, AudioUnitUpdater):
                 self._get_update_signal_type(), *self._get_connections_signals())
 
 
+class RemoveButton(IconButton):
+
+    def __init__(self):
+        super().__init__()
+        self.setToolTip('Remove')
+
+    def _on_setup(self):
+        super()._on_setup()
+        style_mgr = self._ui_model.get_style_manager()
+        self.set_icon('delete_small')
+        self.set_sizes(
+                style_mgr.get_style_param('list_button_size'),
+                style_mgr.get_style_param('list_button_padding'))
+
+    def set_au_id(self, au_id):
+        pass
+
+
 class PortEditor(QWidget, AudioUnitUpdater):
 
     def __init__(self, index, get_port_ids):
@@ -190,10 +230,9 @@ class PortEditor(QWidget, AudioUnitUpdater):
 
         self._name_editor = QLineEdit()
 
-        self._remove_button = QPushButton()
-        self._remove_button.setToolTip('Remove')
-        #self._remove_button.setStyleSheet('padding: 0 -2px;')
-        self._remove_button.setIconSize(QSize(16, 16))
+        self._remove_button = RemoveButton()
+
+        self.add_to_updaters(self._remove_button)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -203,19 +242,21 @@ class PortEditor(QWidget, AudioUnitUpdater):
         self.setLayout(h)
 
     def _on_setup(self):
-        icon_bank = self._ui_model.get_icon_bank()
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
-        self._remove_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
-
         self.register_action(self._get_update_signal_type(), self._update_all)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._name_editor.textChanged.connect(self._change_name)
         self._remove_button.clicked.connect(self._remove)
 
+        self._update_style()
         self._update_all()
 
     def _get_update_signal_type(self):
         return 'signal_au_ports_{}'.format(self._au_id)
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_all(self):
         port_ids = self._get_port_ids()

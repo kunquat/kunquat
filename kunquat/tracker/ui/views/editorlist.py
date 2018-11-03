@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -64,7 +64,7 @@ class EditorList(QWidget):
             editor = layout.itemAt(i).widget()
             self._update_editor(i, editor)
 
-        self._area.do_width_hack()
+        self._area.do_size_hack()
 
     def disconnect_widgets(self):
         layout = self._area.widget().layout()
@@ -80,7 +80,7 @@ class EditorList(QWidget):
             self._area.widget().layout().addWidget(adder)
 
     def resizeEvent(self, event):
-        self._area.do_width_hack()
+        self._area.do_size_hack()
 
     # Callbacks
 
@@ -119,13 +119,14 @@ class EditorListArea(QScrollArea):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
-    def do_width_hack(self):
+    def do_size_hack(self):
         widget = self.widget()
         if widget:
             widget.setFixedWidth(self.width() - self.verticalScrollBar().width() - 5)
+            widget.setMaximumHeight(2)
 
     def resizeEvent(self, event):
-        self.do_width_hack()
+        self.do_size_hack()
         self.widget().updateGeometry()
 
 

@@ -17,6 +17,7 @@ from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
 from .editorlist import EditorList
 from .headerline import HeaderLine
+from .iconbutton import IconButton
 from .kqtcombobox import KqtComboBox
 from .updater import Updater
 from .varnamevalidator import VarNameValidator
@@ -31,12 +32,23 @@ class EnvironmentEditor(QWidget, Updater):
 
         self.add_to_updaters(self._vars)
 
+        self._header = HeaderLine('Initial environment state')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Initial environment state'))
+        v.addWidget(self._header)
         v.addWidget(self._vars)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
 
 class VariableList(EditorList, Updater):
@@ -110,6 +122,14 @@ class VariableEditor(QWidget, Updater):
         h.addWidget(self._value_editor)
         h.addWidget(self._remove_button)
         self.setLayout(h)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def set_var_name(self, name):
         self._var_name = name
@@ -297,7 +317,7 @@ class VarValueEditor(QWidget, Updater):
         self._change_value(new_value)
 
 
-class VarRemoveButton(QPushButton, Updater):
+class VarRemoveButton(IconButton):
 
     def __init__(self):
         super().__init__()
@@ -306,9 +326,12 @@ class VarRemoveButton(QPushButton, Updater):
         self.setToolTip('Remove')
 
     def _on_setup(self):
-        icon_bank = self._ui_model.get_icon_bank()
-        self.setIconSize(QSize(16, 16))
-        self.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
+        super()._on_setup()
+        self.set_icon('delete_small')
+
+        style_mgr = self._ui_model.get_style_manager()
+        self.set_sizes(style_mgr.get_style_param('list_button_size'),
+                style_mgr.get_style_param('list_button_padding'))
 
         self.clicked.connect(self._remove)
 
@@ -341,12 +364,18 @@ class VariableAdder(QWidget, Updater):
 
     def _on_setup(self):
         self.register_action('signal_environment', self._update_used_names)
+        self.register_action('signal_style_changed', self._update_style)
 
+        self._update_style()
         self._update_used_names()
 
         self._var_name.textChanged.connect(self._text_changed)
         self._var_name.returnPressed.connect(self._add_new_var)
         self._var_add_button.clicked.connect(self._add_new_var)
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _get_used_names(self):
         module = self._ui_model.get_module()

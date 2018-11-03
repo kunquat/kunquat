@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@ from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.saverwindow import SaverWindow
 from kunquat.tracker.ui.views.updater import Updater
+from kunquat.tracker.ui.views.utils import get_abs_window_size
 from .grideditor import GridEditor
 
 
@@ -40,6 +41,6 @@ class GridEditorWindow(Updater, SaverWindow):
         visibility_mgr.hide_grid_editor()
 
     def sizeHint(self):
-        return QSize(512, 768)
+        return get_abs_window_size(0.25, 0.6)
 
 

@@ -50,9 +50,13 @@ DEFAULT_CONFIG = {
             'port_focus_dist_max': 5,
             'port_colour'        : QColor(0xee, 0xcc, 0xaa),
             'focused_port_colour': QColor(0xff, 0x77, 0x22),
+            'border_width'       : 1,
+            'border_radius'      : 2,
             'padding'            : 4,
             'button_width'       : 44,
             'button_padding'     : 2,
+            'hilight_border'     : 2,
+            'hilight_padding'    : 2,
             'instrument': {
                 'bg_colours'       : [QColor('#335'), QColor('#668'), QColor('#002')],
                 'fg_colour'        : QColor(0xdd, 0xee, 0xff),
@@ -336,9 +340,15 @@ class ConnectionsView(QWidget):
                 area_rect = area_rect.united(dev_rect)
         return area_rect
 
+    def _get_scaled_centre(self):
+        style_mgr = self._ui_model.get_style_manager()
+        return tuple(style_mgr.get_scaled_size(c, float('-inf'))
+                for c in self._centre_pos)
+
     def get_visible_rect(self):
-        x_start = self._centre_pos[0] - self.width() // 2
-        y_start = self._centre_pos[1] - self.height() // 2
+        scaled_centre = self._get_scaled_centre()
+        x_start = scaled_centre[0] - self.width() // 2
+        y_start = scaled_centre[1] - self.height() // 2
         return QRect(x_start, y_start, self.width(), self.height())
 
     def _get_connections(self):
@@ -380,10 +390,16 @@ class ConnectionsView(QWidget):
         if not area_rect or visible_rect.contains(area_rect, True):
             return
 
+        style_mgr = self._ui_model.get_style_manager()
+        inv_scale = 1 / style_mgr.get_scaled_size(1)
+
         full_rect = area_rect.united(visible_rect)
-        new_centre_pos = (
+        new_centre_pos_px = (
                 full_rect.left() + self.width() // 2 + area_x,
                 full_rect.top() + self.height() // 2 + area_y)
+
+        new_centre_pos = (new_centre_pos_px[0] * inv_scale,
+                new_centre_pos_px[1] * inv_scale)
 
         self._change_layout_entry('centre_pos', new_centre_pos)
 
@@ -408,12 +424,10 @@ class ConnectionsView(QWidget):
 
         self._ls_cache = {}
 
+        self._update_devices()
+
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
-        if not style_mgr.is_custom_style_enabled():
-            self._set_config({})
-            self.update()
-            return
 
         def get_colour(name):
             return QColor(style_mgr.get_style_param(name))
@@ -452,9 +466,25 @@ class ConnectionsView(QWidget):
         pv_hilight_excluded = utils.lerp_colour(pv_hilight_selected, bg_colour, 0.5)
         pv_hilight_excluded_focused = utils.lerp_colour(focus_colour, bg_colour, 0.5)
 
+        title_font = utils.get_scaled_font(style_mgr, 0.9, QFont.Bold)
+        utils.set_glyph_rel_width(title_font, QWidget, string.ascii_lowercase, 14)
+        port_font = utils.get_scaled_font(style_mgr, 0.7, QFont.Bold)
+
         devices = {
-            'port_colour': get_colour('conns_port_colour'),
+            'width'              : style_mgr.get_scaled_size(10.5),
+            'title_font'         : title_font,
+            'port_font'          : port_font,
+            'port_handle_size'   : style_mgr.get_scaled_size(0.55),
+            'port_focus_dist_max': style_mgr.get_scaled_size(0.55, 4),
+            'port_colour'        : get_colour('conns_port_colour'),
             'focused_port_colour': focus_colour,
+            'border_width'       : style_mgr.get_scaled_size_param('border_thin_width'),
+            'border_radius'      : style_mgr.get_scaled_size_param('border_thin_radius'),
+            'padding'            : style_mgr.get_scaled_size_param('medium_padding'),
+            'button_width'       : style_mgr.get_scaled_size(4.5),
+            'button_padding'     : style_mgr.get_scaled_size_param('small_padding'),
+            'hilight_border'     : style_mgr.get_scaled_size(0.2),
+            'hilight_padding'    : style_mgr.get_scaled_size(0.2),
             'instrument': {
                 'bg_colours': get_outset_colours('conns_inst_bg_colour'),
                 'fg_colour': get_colour('conns_inst_fg_colour'),
@@ -499,6 +529,10 @@ class ConnectionsView(QWidget):
                 QColor(style_mgr.get_style_param('conns_focus_colour')),
             'invalid_port_colour':
                 QColor(style_mgr.get_style_param('conns_invalid_port_colour')),
+            'focused_edge_width'        : style_mgr.get_scaled_size(0.3),
+            'edge_focus_dist_max'       : style_mgr.get_scaled_size(0.6, 4),
+            'invalid_port_line_width'   : style_mgr.get_scaled_size(0.3),
+            'invalid_port_marker_size'  : style_mgr.get_scaled_size(1.2),
 
             'devices': devices,
         }
@@ -635,14 +669,17 @@ class ConnectionsView(QWidget):
         self._visible_devices = new_devices
 
         # Make new devices
-        mid_offset = -200 if (self._au_id == None) else 0
+        style_mgr = self._ui_model.get_style_manager()
+        offset_x_abs = 18
+        offset_y_abs = 10
+        mid_offset = -offset_x_abs if (self._au_id == None) else 0
         default_pos_cfg = {
-                'au':       { 'index': 0, 'offset_x': mid_offset,   'offset_y': 120 },
-                'proc':     { 'index': 0, 'offset_x': mid_offset,   'offset_y': 120 },
-                'eff':      { 'index': 0, 'offset_x': 0,            'offset_y': 120 },
-                'master':   { 'index': 0, 'offset_x': 200,          'offset_y': 120 },
-                'Iin':      { 'index': 0, 'offset_x': -200,         'offset_y': 120 },
-            }
+            'au':    { 'index': 0, 'offset_x': mid_offset,   'offset_y': offset_y_abs },
+            'proc':  { 'index': 0, 'offset_x': mid_offset,   'offset_y': offset_y_abs },
+            'eff':   { 'index': 0, 'offset_x': 0,            'offset_y': offset_y_abs },
+            'master':{ 'index': 0, 'offset_x': offset_x_abs, 'offset_y': offset_y_abs },
+            'Iin':   { 'index': 0, 'offset_x': -offset_x_abs, 'offset_y': offset_y_abs },
+        }
 
         new_visible_devices = {}
 
@@ -685,7 +722,9 @@ class ConnectionsView(QWidget):
                 self._default_offsets[dev_id] = offset
 
             device = new_visible_devices[dev_id]
-            device.set_offset(offset)
+
+            offset_scaled = [style_mgr.get_scaled_size(o, float('-inf')) for o in offset]
+            device.set_offset(offset_scaled)
 
         self._visible_devices = new_visible_devices
 
@@ -740,9 +779,11 @@ class ConnectionsView(QWidget):
         painter.setBackground(self._config['bg_colour'])
         painter.eraseRect(0, 0, self.width(), self.height())
 
+        scaled_centre = self._get_scaled_centre()
+
         painter.translate(
-                self.width() // 2 - self._centre_pos[0],
-                self.height() // 2 - self._centre_pos[1])
+                self.width() // 2 - scaled_centre[0],
+                self.height() // 2 - scaled_centre[1])
 
         connections = self._get_connections()
         layout = connections.get_layout()
@@ -774,12 +815,9 @@ class ConnectionsView(QWidget):
             from_x, from_y = self._get_port_centre_from_path(from_path)
             to_x, to_y = self._get_port_centre_from_path(to_path)
             edge_width = self._config['focused_edge_width']
-            offset = edge_width // 2
-            from_x, from_y = from_x + offset, from_y + offset
-            to_x, to_y = to_x + offset, to_y + offset
 
             painter.save()
-            painter.translate(-0.5, -0.5)
+            painter.translate(0.5, 0.5)
             pen = QPen(self._config['focused_edge_colour'])
             pen.setWidth(edge_width)
             painter.setPen(pen)
@@ -884,8 +922,9 @@ class ConnectionsView(QWidget):
         #print('Connections view updated in {:.2f} ms'.format(elapsed * 1000))
 
     def _get_area_pos(self, widget_x, widget_y):
-        return (widget_x - self.width() // 2 + self._centre_pos[0],
-                widget_y - self.height() // 2 + self._centre_pos[1])
+        scaled_centre = self._get_scaled_centre()
+        return (widget_x - (self.width() // 2) + scaled_centre[0],
+                widget_y - (self.height() // 2) + scaled_centre[1])
 
     def _edge_menu_closing(self):
         self._state = STATE_IDLE
@@ -959,6 +998,8 @@ class ConnectionsView(QWidget):
         new_focused_button_info = {}
         new_focused_edge_info = {}
 
+        style_mgr = self._ui_model.get_style_manager()
+
         if self._state == STATE_IDLE:
             # Look for a focused part of a device
             on_device = False
@@ -997,8 +1038,12 @@ class ConnectionsView(QWidget):
             else:
                 # Move focused device
                 area_x, area_y = area_pos
-                new_offset_x = area_x - self._focused_rel_pos[0]
-                new_offset_y = area_y - self._focused_rel_pos[1]
+                new_offset_x_px = area_x - self._focused_rel_pos[0]
+                new_offset_y_px = area_y - self._focused_rel_pos[1]
+
+                inv_scale = 1 / style_mgr.get_scaled_size(1)
+                new_offset_x = new_offset_x_px * inv_scale
+                new_offset_y = new_offset_y_px * inv_scale
 
                 focused_layout = { 'offset': (new_offset_x, new_offset_y) }
                 self._change_layout_entry(self._focused_id, focused_layout)
@@ -1294,7 +1339,6 @@ class ConnectionsView(QWidget):
     def _perform_button_click(self, button_info, shift_pressed):
         visibility_mgr = self._ui_model.get_visibility_manager()
         dev_id = button_info['dev_id']
-        icon_bank = self._ui_model.get_icon_bank()
         if dev_id.startswith('au'):
             if button_info['button_type'] == 'edit':
                 visibility_mgr.show_audio_unit(self._get_full_id(dev_id))
@@ -1303,7 +1347,7 @@ class ConnectionsView(QWidget):
                 if shift_pressed:
                     remove_action()
                 else:
-                    dialog = RemoveDeviceConfirmDialog(icon_bank, remove_action)
+                    dialog = RemoveDeviceConfirmDialog(self._ui_model, remove_action)
                     dialog.exec_()
         elif dev_id.startswith('proc'):
             if button_info['button_type'] == 'edit':
@@ -1313,7 +1357,7 @@ class ConnectionsView(QWidget):
                 if shift_pressed:
                     remove_action()
                 else:
-                    dialog = RemoveDeviceConfirmDialog(icon_bank, remove_action)
+                    dialog = RemoveDeviceConfirmDialog(self._ui_model, remove_action)
                     dialog.exec_()
 
     def _remove_au(self, dev_id):
@@ -1382,8 +1426,8 @@ class ConnectionsView(QWidget):
 
 class RemoveDeviceConfirmDialog(ConfirmDialog):
 
-    def __init__(self, icon_bank, action_on_confirm):
-        super().__init__(icon_bank)
+    def __init__(self, ui_model, action_on_confirm):
+        super().__init__(ui_model)
 
         self._action_on_confirm = action_on_confirm
 
@@ -1466,19 +1510,24 @@ class Device():
         return self._port_names
 
     def draw_images(self):
+        margin = self._get_margin()
         self._bg = QImage(
-                self._config['width'],
+                self._config['width'] + margin * 2,
                 self._get_height(),
                 QImage.Format_ARGB32_Premultiplied)
         self._bg.fill(0)
         painter = QPainter(self._bg)
         pad = self._config['padding']
 
+        text_scale_mult = 4
+        scaled_pad = text_scale_mult * pad
+
         # Background
         self._draw_rounded_rect(
                 painter,
                 self._type_config['bg_colours'],
-                QRect(0, 0, self._bg.width(), self._bg.height()))
+                QRect(margin, margin,
+                    self._bg.width() - margin, self._bg.height() - margin))
 
         # Title
         painter.setPen(QColor(self._type_config['fg_colour']))
@@ -1494,19 +1543,45 @@ class Device():
         painter.drawText(
                 QRectF(0, pad, self._bg.width(), title_height), title, text_option)
 
-        # Ports
-        painter.setFont(self._config['port_font'])
-        text_option = QTextOption(Qt.AlignLeft | Qt.AlignVCenter)
+        # Port texts
+        port_font = QFont(self._config['port_font'])
+        port_font.setPointSizeF(port_font.pointSizeF() * text_scale_mult)
+        utils.set_glyph_rel_width(port_font, QWidget, string.ascii_lowercase, 14)
         port_height = self._get_port_height()
+
+        def get_port_text_image(port_str, text_option):
+            port_img = QImage(
+                    text_scale_mult * self._bg.width() // 2,
+                    text_scale_mult * port_height,
+                    QImage.Format_ARGB32_Premultiplied)
+            port_img.fill(0)
+
+            img_painter = QPainter(port_img)
+            img_painter.setPen(QColor(self._type_config['fg_colour']))
+            img_painter.setFont(port_font)
+            img_painter.drawText(
+                    QRectF(
+                        scaled_pad, 0,
+                        port_img.width() - scaled_pad * 2, port_img.height()),
+                    port_str,
+                    text_option)
+            img_painter.end()
+
+            return port_img.scaledToHeight(port_height, Qt.SmoothTransformation)
+
+        text_option = QTextOption(Qt.AlignLeft | Qt.AlignVCenter)
         port_y = self._get_title_height() + pad
 
         for port_id in self._in_ports:
             port_num = int(port_id.split('_')[1], 16)
             port_str = self._port_names.get(port_id, None) or str(port_num)
-            painter.drawText(
-                    QRectF(pad, port_y, self._bg.width() // 2, port_height),
-                    port_str,
-                    text_option)
+
+            port_img = get_port_text_image(port_str, text_option)
+            painter.drawImage(
+                    QPoint(0, port_y),
+                    port_img,
+                    port_img.rect())
+
             port_y += port_height
 
         text_option = QTextOption(Qt.AlignRight | Qt.AlignVCenter)
@@ -1514,14 +1589,13 @@ class Device():
         for port_id in self._out_ports:
             port_num = int(port_id.split('_')[1], 16)
             port_str = self._port_names.get(port_id, None) or str(port_num)
-            painter.drawText(
-                    QRectF(
-                        self._bg.width() // 2,
-                        port_y,
-                        self._bg.width() // 2 - pad,
-                        port_height),
-                    port_str,
-                    text_option)
+
+            port_img = get_port_text_image(port_str, text_option)
+            painter.drawImage(
+                    QPoint(self._bg.width() // 2, port_y),
+                    port_img,
+                    port_img.rect())
+
             port_y += port_height
 
         # Edit button
@@ -1554,7 +1628,7 @@ class Device():
 
         port_offset = self._config['port_handle_size'] // 2
         padding = self._config['padding']
-        port_x = bg_offset_x - port_offset
+        port_x = bg_offset_x - port_offset + self._get_margin()
         port_y = bg_offset_y + padding + self._get_title_height() + padding + port_offset
 
         for _ in self._in_ports:
@@ -1567,7 +1641,7 @@ class Device():
 
         port_offset = self._config['port_handle_size'] // 2
         padding = self._config['padding']
-        port_x = bg_offset_x + self._bg.width() + port_offset - 1
+        port_x = bg_offset_x + self._bg.width() + port_offset - self._get_margin() - 1
         port_y = bg_offset_y + padding + self._get_title_height() + padding + port_offset
 
         for _ in self._out_ports:
@@ -1625,11 +1699,11 @@ class Device():
         assert self._id.startswith('proc')
         painter.save()
 
-        extent = 4
+        extent = self._config['hilight_border'] + self._config['hilight_padding']
 
         colour = self._type_config[highlight_mode]
         pen = QPen(colour)
-        pen.setWidth(2)
+        pen.setWidth(self._config['hilight_border'])
         painter.setPen(pen)
         if 'excluded' in highlight_mode: # TODO: clean up
             painter.setBrush(QColor(0, 0, 0, 0x77))
@@ -1686,11 +1760,13 @@ class Device():
         right = rect.right() + 0.5
         bottom = rect.bottom() + 0.5
 
-        radius = 1.5
+        width = self._config['border_width']
+
+        radius = self._config['border_radius']
         diam = radius * 2
 
         # Dark shade
-        painter.setPen(QPen(QBrush(colours[2]), 1, cap=Qt.FlatCap))
+        painter.setPen(QPen(QBrush(colours[2]), width, cap=Qt.FlatCap))
         dark_path = QPainterPath()
         dark_path.arcMoveTo(QRectF(left, bottom - diam, diam, diam), 225)
         dark_path.arcTo(QRectF(left, bottom - diam, diam, diam), 225, 45)
@@ -1701,7 +1777,7 @@ class Device():
         painter.drawPath(dark_path)
 
         # Light shade
-        painter.setPen(QPen(QBrush(colours[1]), 1, cap=Qt.FlatCap))
+        painter.setPen(QPen(QBrush(colours[1]), width, cap=Qt.FlatCap))
         light_path = QPainterPath()
         light_path.arcMoveTo(QRectF(left, bottom - diam, diam, diam), 225)
         light_path.arcTo(QRectF(left, bottom - diam, diam, diam), 225, -45)
@@ -1812,6 +1888,14 @@ class Device():
         return ((self._id not in ('master', 'Iin')) and
                 (self._id.startswith('au') or self._id.startswith('proc')))
 
+    def _get_margin(self):
+        border_width = self._config['border_width']
+        margin = int(math.ceil(border_width / 2))
+        return margin
+
+    def _get_width(self):
+        return self._config['width'] + self._get_margin() * 2
+
     def _get_height(self):
         title_height = self._get_title_height()
         port_height = self._get_port_height()
@@ -1828,11 +1912,13 @@ class Device():
             edit_button_height = self._get_edit_button_height()
             total_height += edit_button_height + self._config['padding']
 
+        total_height += self._get_margin()
+
         return total_height
 
     def _get_title_height(self):
         fm = QFontMetrics(self._config['title_font'])
-        return fm.boundingRect('Ag').height()
+        return fm.boundingRect('Ag').height() + self._get_margin()
 
     def _get_port_height(self):
         fm = QFontMetrics(self._config['port_font'])
@@ -1843,8 +1929,8 @@ class Device():
 
     def _get_edit_button_rect(self):
         height = self._get_edit_button_height()
-        left = 4 #(self._config['width'] - self._config['button_width']) // 2
-        top = self._get_height() - height - self._config['padding']
+        left = self._get_margin() + self._config['padding']
+        top = self._get_height() - height - self._config['padding'] - self._get_margin()
         return QRect(
                 left, top,
                 self._config['button_width'] - 1, height - 1)
@@ -1853,11 +1939,12 @@ class Device():
         return self._get_title_height() + self._config['button_padding'] * 2
 
     def _get_remove_button_rect(self):
+        width = self._config['button_width']
         height = self._get_remove_button_height()
-        left = (self._config['width'] - self._config['button_width']) - 4
-        top = self._get_height() - height - self._config['padding']
-        return QRect(
-                left, top,
-                self._config['button_width'] - 1, height - 1)
+        margin = self._get_margin()
+        padding = self._config['padding']
+        left = (self._get_width() - width) - margin - padding
+        top = self._get_height() - height - padding - margin
+        return QRect(left, top, width - 1, height - 1)
 
 

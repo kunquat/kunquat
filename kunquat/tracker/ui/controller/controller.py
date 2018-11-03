@@ -25,6 +25,7 @@ from kunquat.kunquat.file import KqtFile, KunquatFileError, KQTFILE_KEEP_ALL_DAT
 from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
+from kunquat.tracker.ui.model.connections import Connections
 from kunquat.tracker.ui.model.processor import Processor
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 import kunquat.tracker.ui.model.tstamp as tstamp
@@ -68,6 +69,8 @@ class Controller():
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+
+        Connections.register_conversion_infos(self._data_converters)
         Processor.register_conversion_infos(self._data_converters)
 
     def set_store(self, store):

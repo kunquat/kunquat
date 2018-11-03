@@ -16,6 +16,7 @@ import math
 from kunquat.tracker.ui.qt import *
 
 from .headerline import HeaderLine
+from .iconbutton import IconButton
 from .kqtcombobox import KqtComboBox
 from .updater import Updater
 from .varprecspinbox import VarPrecSpinBox
@@ -42,30 +43,30 @@ class NotationEditor(QWidget, Updater):
                 self._note,
                 self._keymap)
 
-        ll = QVBoxLayout()
-        ll.setContentsMargins(0, 0, 0, 0)
-        ll.setSpacing(2)
-        ll.addWidget(self._notations)
-        ll.addWidget(self._tuning_tables)
+        self._tables_layout = QVBoxLayout()
+        self._tables_layout.setContentsMargins(0, 0, 0, 0)
+        self._tables_layout.setSpacing(2)
+        self._tables_layout.addWidget(self._notations)
+        self._tables_layout.addWidget(self._tuning_tables)
 
-        nl = QVBoxLayout()
-        nl.setContentsMargins(0, 0, 0, 0)
-        nl.setSpacing(2)
-        nl.addWidget(self._notes)
-        nl.addWidget(self._note)
+        self._notes_layout = QVBoxLayout()
+        self._notes_layout.setContentsMargins(0, 0, 0, 0)
+        self._notes_layout.setSpacing(2)
+        self._notes_layout.addWidget(self._notes)
+        self._notes_layout.addWidget(self._note)
 
-        nlists = QHBoxLayout()
-        nlists.setContentsMargins(0, 0, 0, 0)
-        nlists.setSpacing(2)
-        nlists.addWidget(self._template)
-        nlists.addWidget(self._octaves)
-        nlists.addLayout(nl)
+        self._lists_layout = QHBoxLayout()
+        self._lists_layout.setContentsMargins(0, 0, 0, 0)
+        self._lists_layout.setSpacing(2)
+        self._lists_layout.addWidget(self._template)
+        self._lists_layout.addWidget(self._octaves)
+        self._lists_layout.addLayout(self._notes_layout)
 
-        el = QVBoxLayout()
-        el.setContentsMargins(0, 0, 0, 0)
-        el.setSpacing(2)
-        el.addLayout(nlists)
-        el.addWidget(self._keymap)
+        self._editor_layout = QVBoxLayout()
+        self._editor_layout.setContentsMargins(0, 0, 0, 0)
+        self._editor_layout.setSpacing(2)
+        self._editor_layout.addLayout(self._lists_layout)
+        self._editor_layout.addWidget(self._keymap)
 
         separator = QFrame()
         separator.setFrameShape(QFrame.VLine)
@@ -76,36 +77,50 @@ class NotationEditor(QWidget, Updater):
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(4)
-        h.addLayout(ll)
+        h.addLayout(self._tables_layout)
         h.addWidget(separator)
-        h.addLayout(el, 1)
+        h.addLayout(self._editor_layout, 1)
         self.setLayout(h)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        for layout in (self._tables_layout,
+                self._notes_layout,
+                self._lists_layout,
+                self._editor_layout):
+            layout.setSpacing(style_mgr.get_scaled_size_param('small_padding'))
+
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
 
 class NotationListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
-        self._add_button = QToolButton()
-        self._add_button.setText('Add notation')
+        self._add_button = IconButton(flat=True)
         self._add_button.setToolTip('Add notation')
         self._add_button.setEnabled(True)
 
-        self._remove_button = QToolButton()
-        self._remove_button.setText('Remove notation')
+        self._remove_button = IconButton(flat=True)
         self._remove_button.setToolTip('Remove notation')
         self._remove_button.setEnabled(False)
 
         self.addWidget(self._add_button)
         self.addWidget(self._remove_button)
 
+        self.add_to_updaters(self._add_button, self._remove_button)
+
     def _on_setup(self):
         self.register_action('signal_notation_list', self._update_enabled)
         self.register_action('signal_notation_editor_selection', self._update_enabled)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
+        self._add_button.set_icon('add')
+        self._remove_button.set_icon('remove')
 
         self._add_button.clicked.connect(self._add_notation)
         self._remove_button.clicked.connect(self._remove_notation)
@@ -217,6 +232,14 @@ class NotationListView(QListView, Updater):
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setMinimumWidth(100)
 
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.setMinimumWidth(style_mgr.get_scaled_size(16))
+
     def _select_entry(self, cur_index, prev_index):
         item = self.model().get_item(cur_index)
         if item:
@@ -240,7 +263,8 @@ class NotationListView(QListView, Updater):
             selection_model.select(
                     model.get_index(selected_notation_id), QItemSelectionModel.Select)
 
-        selection_model.currentChanged.connect(self._select_entry)
+        selection_model.currentChanged.connect(
+                self._select_entry, type=Qt.QueuedConnection)
 
 
 class Notations(QWidget, Updater):
@@ -252,10 +276,12 @@ class Notations(QWidget, Updater):
         self._list_model = None
         self._list_view = NotationListView()
 
+        self._header = HeaderLine('Custom notations')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Custom notations'))
+        v.addWidget(self._header)
         v.addWidget(self._toolbar)
         v.addWidget(self._list_view)
         self.setLayout(v)
@@ -263,8 +289,15 @@ class Notations(QWidget, Updater):
     def _on_setup(self):
         self.add_to_updaters(self._toolbar, self._list_view)
         self.register_action('signal_notation_list', self._update_model)
+        self.register_action('signal_style_changed', self._update_style)
 
+        self._update_style()
         self._update_model()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_model(self):
         if self._list_model:
@@ -278,26 +311,25 @@ class TuningTableListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
-        self._add_button = QToolButton()
-        self._add_button.setText('Add tuning table')
+        self._add_button = IconButton(flat=True)
         self._add_button.setToolTip('Add tuning table')
         self._add_button.setEnabled(True)
 
-        self._remove_button = QToolButton()
-        self._remove_button.setText('Remove tuning table')
+        self._remove_button = IconButton(flat=True)
         self._remove_button.setToolTip('Remove tuning table')
         self._remove_button.setEnabled(False)
 
         self.addWidget(self._add_button)
         self.addWidget(self._remove_button)
 
+        self.add_to_updaters(self._add_button, self._remove_button)
+
     def _on_setup(self):
         self.register_action('signal_tuning_tables', self._update_enabled)
         self.register_action('signal_tuning_table_selection', self._update_enabled)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
+        self._add_button.set_icon('add')
+        self._remove_button.set_icon('remove')
 
         self._add_button.clicked.connect(self._add_tuning_table)
         self._remove_button.clicked.connect(self._remove_tuning_table)
@@ -433,6 +465,18 @@ class TuningTableListView(QTableView, Updater):
         hheader.setStretchLastSection(True)
         hheader.hide()
 
+        self.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.setMinimumWidth(style_mgr.get_scaled_size(16))
+
+        self.verticalHeader().setDefaultSectionSize(style_mgr.get_scaled_size(2.5))
+
     def _select_entry(self, cur_index, prev_index):
         item = self.model().get_item(cur_index)
         if item:
@@ -467,10 +511,12 @@ class TuningTables(QWidget, Updater):
         self._edit_button = QPushButton('Edit tuning table')
         self._edit_button.setEnabled(False)
 
+        self._header = HeaderLine('Tuning tables')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Tuning tables'))
+        v.addWidget(self._header)
         v.addWidget(self._toolbar)
         v.addWidget(self._list_view)
         v.addWidget(self._edit_button)
@@ -480,11 +526,18 @@ class TuningTables(QWidget, Updater):
         self.add_to_updaters(self._toolbar, self._list_view)
         self.register_action('signal_tuning_tables', self._update_model)
         self.register_action('signal_tuning_table_selection', self._update_selection)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._edit_button.clicked.connect(self._open_editor)
 
+        self._update_style()
         self._update_model()
         self._update_selection()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_model(self):
         if self._list_model:
@@ -516,10 +569,12 @@ class Template(QWidget, Updater):
         self._create_button = QPushButton('Create notation and keymap')
         self._create_tt_button = QPushButton('Create tuning table')
 
+        self._header = HeaderLine('Template')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Template'))
+        v.addWidget(self._header)
         v.addWidget(self._centre_pitch)
         v.addWidget(self._octave_ratio)
         v.addWidget(self._octaves)
@@ -539,10 +594,18 @@ class Template(QWidget, Updater):
         self.register_action('signal_notation_template_notes', self._update_enabled)
         self.register_action('signal_tuning_tables', self._update_enabled)
 
+        self.register_action('signal_style_changed', self._update_style)
+
         self._create_button.clicked.connect(self._create)
         self._create_tt_button.clicked.connect(self._create_tuning_table)
 
+        self._update_style()
         self._update_enabled()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_enabled(self):
         notation_mgr = self._ui_model.get_notation_manager()
@@ -621,10 +684,17 @@ class CentrePitch(QWidget, Updater):
         self.register_action('signal_notation_editor_selection', self._update_all)
         self.register_action('signal_notation_template_centre_pitch', self._update_all)
 
+        self.register_action('signal_style_changed', self._update_style)
+
         self._value.valueChanged.connect(self._change_centre)
         self._units.currentIndexChanged.connect(self._change_units)
 
+        self._update_style()
         self._update_all()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_all(self):
         notation_mgr = self._ui_model.get_notation_manager()
@@ -745,9 +815,16 @@ class OctaveRatio(QWidget, Updater):
         self.register_action('signal_notation_editor_selection', self._update_all)
         self.register_action('signal_notation_template_octave_ratio', self._update_all)
 
+        self.register_action('signal_style_changed', self._update_style)
+
         self._ratio.editingFinished.connect(self._change_ratio)
 
+        self._update_style()
         self._update_all()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_all(self):
         notation_mgr = self._ui_model.get_notation_manager()
@@ -807,11 +884,18 @@ class TemplateOctaves(QWidget, Updater):
         self.register_action('signal_notation_editor_selection', self._update_all)
         self.register_action('signal_notation_template_octaves', self._update_all)
 
+        self.register_action('signal_style_changed', self._update_style)
+
         self._lowest.valueChanged.connect(self._change_lowest)
         self._centre.valueChanged.connect(self._change_centre)
         self._highest.valueChanged.connect(self._change_highest)
 
+        self._update_style()
         self._update_all()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_all(self):
         notation_mgr = self._ui_model.get_notation_manager()
@@ -880,18 +964,18 @@ class TemplateNotesToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
-        self._add_button = QToolButton()
-        self._add_button.setText('Add note')
+        self._add_button = IconButton(flat=True)
         self._add_button.setToolTip('Add note')
         self._add_button.setEnabled(True)
 
-        self._remove_button = QToolButton()
-        self._remove_button.setText('Remove note')
+        self._remove_button = IconButton(flat=True)
         self._remove_button.setToolTip('Remove note')
         self._remove_button.setEnabled(False)
 
         self.addWidget(self._add_button)
         self.addWidget(self._remove_button)
+
+        self.add_to_updaters(self._add_button, self._remove_button)
 
     def _on_setup(self):
         self.register_action('signal_notation_list', self._update_enabled)
@@ -900,9 +984,8 @@ class TemplateNotesToolBar(QToolBar, Updater):
                 'signal_notation_template_note_selection', self._update_enabled)
         self.register_action('signal_notation_template_notes', self._update_enabled)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
+        self._add_button.set_icon('add')
+        self._remove_button.set_icon('remove')
 
         self._add_button.clicked.connect(self._add_note)
         self._remove_button.clicked.connect(self._remove_note)
@@ -1068,6 +1151,18 @@ class TemplateNoteTableView(QTableView, Updater):
         header = self.horizontalHeader()
         header.setStretchLastSection(True)
 
+        self.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.setMinimumWidth(style_mgr.get_scaled_size(16))
+
+        self.verticalHeader().setDefaultSectionSize(style_mgr.get_scaled_size(2.5))
+
     def _select_entry(self, cur_index, prev_index):
         if not cur_index.isValid():
             return
@@ -1114,7 +1209,14 @@ class TemplateNotes(QWidget, Updater):
         self.register_action('signal_notation_editor_selection', self._update_model)
         self.register_action('signal_notation_template_notes', self._update_model)
 
+        self.register_action('signal_style_changed', self._update_style)
+
+        self._update_style()
         self._update_model()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_model(self):
         if self._table_model:
@@ -1128,13 +1230,11 @@ class OctaveListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
-        self._add_button = QToolButton()
-        self._add_button.setText('Add octave')
+        self._add_button = IconButton(flat=True)
         self._add_button.setToolTip('Add octave')
         self._add_button.setEnabled(True)
 
-        self._remove_button = QToolButton()
-        self._remove_button.setText('Remove octave')
+        self._remove_button = IconButton(flat=True)
         self._remove_button.setToolTip('Remove octave')
         self._remove_button.setEnabled(False)
 
@@ -1146,15 +1246,16 @@ class OctaveListToolBar(QToolBar, Updater):
         self.addWidget(self._remove_button)
         self.addWidget(self._set_base_button)
 
+        self.add_to_updaters(self._add_button, self._remove_button)
+
     def _on_setup(self):
         self.register_action('signal_notation_editor_selection', self._update_enabled)
         self.register_action('signal_notation_editor_octaves', self._update_enabled)
         self.register_action(
                 'signal_notation_editor_octave_selection', self._update_enabled)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
+        self._add_button.set_icon('add')
+        self._remove_button.set_icon('remove')
 
         self._add_button.clicked.connect(self._add_octave)
         self._remove_button.clicked.connect(self._remove_octave)
@@ -1291,6 +1392,14 @@ class OctaveListView(QListView, Updater):
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setMinimumWidth(100)
 
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.setMinimumWidth(style_mgr.get_scaled_size(16))
+
     def _select_entry(self, cur_index, prev_index):
         item = self.model().get_item(cur_index)
         if item != None:
@@ -1322,10 +1431,12 @@ class Octaves(QWidget, Updater):
         self._list_model = None
         self._list_view = OctaveListView()
 
+        self._header = HeaderLine('Octaves')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Octaves'))
+        v.addWidget(self._header)
         v.addWidget(self._toolbar)
         v.addWidget(self._list_view)
         self.setLayout(v)
@@ -1337,8 +1448,16 @@ class Octaves(QWidget, Updater):
         self.register_action(
                 'signal_notation_editor_octave_selection', self._update_enabled)
 
+        self.register_action('signal_style_changed', self._update_style)
+
+        self._update_style()
         self._update_model()
         self._update_enabled()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_all(self):
         self._update_model()
@@ -1360,18 +1479,18 @@ class NoteListToolBar(QToolBar, Updater):
 
     def __init__(self):
         super().__init__()
-        self._add_button = QToolButton()
-        self._add_button.setText('Add note')
+        self._add_button = IconButton(flat=True)
         self._add_button.setToolTip('Add note')
         self._add_button.setEnabled(True)
 
-        self._remove_button = QToolButton()
-        self._remove_button.setText('Remove note')
+        self._remove_button = IconButton(flat=True)
         self._remove_button.setToolTip('Remove note')
         self._remove_button.setEnabled(False)
 
         self.addWidget(self._add_button)
         self.addWidget(self._remove_button)
+
+        self.add_to_updaters(self._add_button, self._remove_button)
 
     def _on_setup(self):
         self.register_action('signal_notation_editor_selection', self._update_enabled)
@@ -1379,9 +1498,8 @@ class NoteListToolBar(QToolBar, Updater):
         self.register_action(
                 'signal_notation_editor_note_selection', self._update_enabled)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
+        self._add_button.set_icon('add')
+        self._remove_button.set_icon('remove')
 
         self._add_button.clicked.connect(self._add_note)
         self._remove_button.clicked.connect(self._remove_note)
@@ -1471,6 +1589,14 @@ class NoteListView(QListView, Updater):
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setMinimumWidth(100)
 
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.setMinimumWidth(style_mgr.get_scaled_size(16))
+
     def _select_entry(self, cur_index, prev_index):
         item = self.model().get_item(cur_index)
         if item != None:
@@ -1489,7 +1615,8 @@ class NoteListView(QListView, Updater):
             selection_model.select(
                     model.get_index(selected_note_index), QItemSelectionModel.Select)
 
-        selection_model.currentChanged.connect(self._select_entry)
+        selection_model.currentChanged.connect(
+                self._select_entry, type=Qt.QueuedConnection)
 
 
 class Notes(QWidget, Updater):
@@ -1501,10 +1628,12 @@ class Notes(QWidget, Updater):
         self._list_model = None
         self._list_view = NoteListView()
 
+        self._header = HeaderLine('Notes')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Notes'))
+        v.addWidget(self._header)
         v.addWidget(self._toolbar)
         v.addWidget(self._list_view)
         self.setLayout(v)
@@ -1516,8 +1645,16 @@ class Notes(QWidget, Updater):
         self.register_action(
                 'signal_notation_editor_note_selection', self._update_enabled)
 
+        self.register_action('signal_style_changed', self._update_style)
+
+        self._update_style()
         self._update_model()
         self._update_enabled()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_all(self):
         self._update_model()
@@ -1544,19 +1681,21 @@ class Note(QWidget, Updater):
 
         self._name = QLineEdit()
 
-        el = QHBoxLayout()
-        el.setContentsMargins(0, 0, 0, 0)
-        el.setSpacing(4)
-        el.addWidget(QLabel('Name:'))
-        el.addWidget(self._name)
-        el.addWidget(QLabel('Cents:'))
-        el.addWidget(self._cents)
+        self._editor_layout = QHBoxLayout()
+        self._editor_layout.setContentsMargins(0, 0, 0, 0)
+        self._editor_layout.setSpacing(4)
+        self._editor_layout.addWidget(QLabel('Name:'))
+        self._editor_layout.addWidget(self._name)
+        self._editor_layout.addWidget(QLabel('Cents:'))
+        self._editor_layout.addWidget(self._cents)
+
+        self._header = HeaderLine('Current note')
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Current note'))
-        v.addLayout(el)
+        v.addWidget(self._header)
+        v.addLayout(self._editor_layout)
         self.setLayout(v)
 
     def _on_setup(self):
@@ -1564,10 +1703,19 @@ class Note(QWidget, Updater):
         self.register_action('signal_notation_editor_notes', self._update_all)
         self.register_action('signal_notation_editor_note_selection', self._update_all)
 
+        self.register_action('signal_style_changed', self._update_style)
+
         self._cents.valueChanged.connect(self._change_cents)
         self._name.textChanged.connect(self._change_name)
 
+        self._update_style()
         self._update_all()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
+        self._editor_layout.setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_all(self):
         notation_mgr = self._ui_model.get_notation_manager()
@@ -1614,10 +1762,12 @@ class Keymap(QWidget, Updater):
         self._key_selector = KeySelector()
         self._key_editor = KeyEditor()
 
+        self._header = HeaderLine('Keymap')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Keymap'))
+        v.addWidget(self._header)
         v.addWidget(self._key_count)
         v.addWidget(self._key_selector)
         v.addWidget(self._key_editor)
@@ -1630,7 +1780,15 @@ class Keymap(QWidget, Updater):
         self.register_action(
                 'signal_notation_editor_octave_selection', self._update_enabled)
 
+        self.register_action('signal_style_changed', self._update_style)
+
+        self._update_style()
         self._update_enabled()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_enabled(self):
         notation_mgr = self._ui_model.get_notation_manager()
@@ -1666,9 +1824,16 @@ class KeyCount(QWidget, Updater):
         self.register_action('signal_notation_editor_octaves', self._update_all)
         self.register_action('signal_notation_editor_octave_selection', self._update_all)
 
+        self.register_action('signal_style_changed', self._update_style)
+
         self._count.valueChanged.connect(self._change_key_count)
 
+        self._update_style()
         self._update_all()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_all(self):
         notation_mgr = self._ui_model.get_notation_manager()
@@ -1758,6 +1923,9 @@ class KeySelector(QWidget, Updater):
         self.register_action('signal_notation_editor_key_selection', self._update_keys)
         self.register_action('signal_notation_editor_key', self._update_keys)
 
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
     def _update_keys(self):
         notation_mgr = self._ui_model.get_notation_manager()
         notation = notation_mgr.get_editor_selected_notation()
@@ -1781,6 +1949,26 @@ class KeySelector(QWidget, Updater):
             key.setEnabled(bool(text))
             key.set_pressed(i == selected_index)
 
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        rows = self.layout()
+        rows.setSpacing(style_mgr.get_scaled_size_param('small_padding'))
+
+        button_spacing = style_mgr.get_scaled_size_param('medium_padding')
+
+        top_row = rows.itemAt(0).layout()
+        top_row.setSpacing(button_spacing)
+        padding = top_row.itemAt(0).spacerItem()
+        padding.changeSize(style_mgr.get_scaled_size_param('typewriter_padding'), 2)
+
+        bottom_row = rows.itemAt(1).layout()
+        bottom_row.setSpacing(button_spacing)
+
+        button_size = style_mgr.get_scaled_size_param('typewriter_button_size')
+        for button in self._keys:
+            button.setFixedSize(QSize(button_size, button_size))
+
 
 class KeyEditor(QWidget, Updater):
 
@@ -1798,21 +1986,23 @@ class KeyEditor(QWidget, Updater):
 
         self._note_selector = KeyNoteSelector()
 
-        el = QHBoxLayout()
-        el.setContentsMargins(0, 0, 0, 0)
-        el.setSpacing(4)
-        el.addWidget(self._enabled)
-        el.addWidget(self._cents_label)
-        el.addWidget(self._cents)
-        el.addWidget(self._note_selector_label)
-        el.addWidget(self._note_selector)
-        el.addStretch(1)
+        self._editor_layout = QHBoxLayout()
+        self._editor_layout.setContentsMargins(0, 0, 0, 0)
+        self._editor_layout.setSpacing(4)
+        self._editor_layout.addWidget(self._enabled)
+        self._editor_layout.addWidget(self._cents_label)
+        self._editor_layout.addWidget(self._cents)
+        self._editor_layout.addWidget(self._note_selector_label)
+        self._editor_layout.addWidget(self._note_selector)
+        self._editor_layout.addStretch(1)
+
+        self._header = HeaderLine('Key')
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Key'))
-        v.addLayout(el)
+        v.addWidget(self._header)
+        v.addLayout(self._editor_layout)
         self.setLayout(v)
 
     def _on_setup(self):
@@ -1823,10 +2013,19 @@ class KeyEditor(QWidget, Updater):
         self.register_action('signal_notation_editor_key_selection', self._update_all)
         self.register_action('signal_notation_editor_key', self._update_all)
 
+        self.register_action('signal_style_changed', self._update_style)
+
         self._enabled.stateChanged.connect(self._set_enabled)
         self._cents.valueChanged.connect(self._set_cents)
 
+        self._update_style()
         self._update_all()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
+        self._editor_layout.setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_all(self):
         notation_mgr = self._ui_model.get_notation_manager()

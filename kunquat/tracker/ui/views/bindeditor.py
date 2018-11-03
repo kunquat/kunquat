@@ -17,6 +17,7 @@ import kunquat.kunquat.events as events
 from kunquat.kunquat.limits import *
 from .editorlist import EditorList
 from .headerline import HeaderLine
+from .iconbutton import IconButton
 from .kqtcombobox import KqtComboBox
 from .updater import Updater
 
@@ -30,10 +31,12 @@ class BindEditor(QWidget, Updater):
         self._constraints = Constraints()
         self._targets = Targets()
 
+        self._header = HeaderLine('Event bindings')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Event bindings'))
+        v.addWidget(self._header)
         v.addWidget(self._bind_list)
         v.addWidget(self._source_event)
         v.addWidget(self._constraints)
@@ -44,8 +47,15 @@ class BindEditor(QWidget, Updater):
         self.add_to_updaters(
                 self._bind_list, self._source_event, self._constraints, self._targets)
         self.register_action('signal_bind', self._update_editor_enabled)
+        self.register_action('signal_style_changed', self._update_style)
 
+        self._update_style()
         self._update_editor_enabled()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_editor_enabled(self):
         bindings = self._ui_model.get_module().get_bindings()
@@ -251,10 +261,16 @@ class SourceEventSelector(QWidget, Updater):
 
     def _on_setup(self):
         self.register_action('signal_bind', self._update_event)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._selector.currentIndexChanged.connect(self._change_event)
 
+        self._update_style()
         self._update_event()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_event(self):
         bindings = self._ui_model.get_module().get_bindings()
@@ -292,12 +308,23 @@ class Constraints(QWidget, Updater):
         self._cblist = ConstraintList()
         self.add_to_updaters(self._cblist)
 
+        self._header = HeaderLine('Binding constraints')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Binding constraints'))
+        v.addWidget(self._header)
         v.addWidget(self._cblist)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
 
 class ConstraintList(EditorList, Updater):
@@ -366,9 +393,9 @@ class ConstraintEditor(QWidget, Updater):
 
         self._expression = QLineEdit()
 
-        self._remove_button = QPushButton()
-        #self._remove_button.setStyleSheet('padding: 0 -2px;')
-        self._remove_button.setIconSize(QSize(16, 16))
+        self._remove_button = IconButton()
+
+        self.add_to_updaters(self._remove_button)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -381,10 +408,13 @@ class ConstraintEditor(QWidget, Updater):
 
     def _on_setup(self):
         self.register_action('signal_bind', self._update_all)
+        self.register_action('signal_style_changed', self._update_style)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
-        self._remove_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
+        style_mgr = self._ui_model.get_style_manager()
+
+        self._remove_button.set_icon('delete_small')
+        self._remove_button.set_sizes(style_mgr.get_style_param('list_button_size'),
+                style_mgr.get_style_param('list_button_padding'))
 
         self._event.currentIndexChanged.connect(self._change_event)
 
@@ -393,6 +423,10 @@ class ConstraintEditor(QWidget, Updater):
         self._remove_button.clicked.connect(self._remove)
 
         self._update_all()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_all(self):
         bindings = self._ui_model.get_module().get_bindings()
@@ -448,12 +482,23 @@ class Targets(QWidget, Updater):
         self._target_list = TargetList()
         self.add_to_updaters(self._target_list)
 
+        self._header = HeaderLine('Event targets')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Event targets'))
+        v.addWidget(self._header)
         v.addWidget(self._target_list)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
 
 class TargetList(EditorList, Updater):
@@ -526,9 +571,9 @@ class TargetEditor(QWidget, Updater):
 
         self._expression = QLineEdit()
 
-        self._remove_button = QPushButton()
-        #self._remove_button.setStyleSheet('padding: 0 -2px;')
-        self._remove_button.setIconSize(QSize(16, 16))
+        self._remove_button = IconButton()
+
+        self.add_to_updaters(self._remove_button)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -543,17 +588,25 @@ class TargetEditor(QWidget, Updater):
 
     def _on_setup(self):
         self.register_action('signal_bind', self._update_all)
+        self.register_action('signal_style_changed', self._update_style)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
-        self._remove_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
+        style_mgr = self._ui_model.get_style_manager()
+
+        self._remove_button.set_icon('delete_small')
+        self._remove_button.set_sizes(style_mgr.get_style_param('list_button_size'),
+                style_mgr.get_style_param('list_button_padding'))
 
         self._ch_offset.valueChanged.connect(self._change_ch_offset)
         self._event.currentIndexChanged.connect(self._change_event)
         self._expression.editingFinished.connect(self._change_expression)
         self._remove_button.clicked.connect(self._remove)
 
+        self._update_style()
         self._update_all()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_all(self):
         bindings = self._ui_model.get_module().get_bindings()

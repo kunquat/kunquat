@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -14,6 +14,7 @@
 from kunquat.tracker.ui.qt import *
 
 import kunquat.tracker.cmdline as cmdline
+from .iconbutton import IconButton
 from .playbackposition import PlaybackPosition
 from .updater import Updater
 
@@ -56,75 +57,60 @@ class PlaybackPanel(QToolBar, Updater):
         super().addWidget(widget)
 
 
-class PlayButton(QToolButton, Updater):
+class PlayButton(IconButton):
 
     def __init__(self):
-        super().__init__()
-        self.setText('Play')
+        super().__init__(flat=True)
         self.setToolTip('Play (Comma)')
-        self.setAutoRaise(True)
 
     def _on_setup(self):
-        icon_bank = self._ui_model.get_icon_bank()
-        icon_path = icon_bank.get_icon_path('play')
-        icon = QIcon(icon_path)
-        self.setIcon(icon)
+        super()._on_setup()
+        self.set_icon('play')
         self.clicked.connect(self._ui_model.play)
 
 
-class PlayPatternButton(QToolButton, Updater):
+class PlayPatternButton(IconButton):
 
     def __init__(self):
-        super().__init__()
-        self.setText('Play Pattern')
+        super().__init__(flat=True)
         self.setToolTip('Play Pattern (Ctrl + Comma)')
-        self.setAutoRaise(True)
 
     def _on_setup(self):
-        icon_bank = self._ui_model.get_icon_bank()
-        icon_path = icon_bank.get_icon_path('play_pattern')
-        icon = QIcon(icon_path)
-        self.setIcon(icon)
+        super()._on_setup()
+        self.set_icon('play_pattern')
         self.clicked.connect(self._ui_model.play_pattern)
 
 
-class PlayFromCursorButton(QToolButton, Updater):
+class PlayFromCursorButton(IconButton):
 
     def __init__(self):
-        super().__init__()
-        self.setText('Play from Cursor')
+        super().__init__(flat=True)
         self.setToolTip('Play from Cursor (Alt + Comma)')
-        self.setAutoRaise(True)
 
     def _on_setup(self):
-        icon_bank = self._ui_model.get_icon_bank()
-        icon_path = icon_bank.get_icon_path('play_from_cursor')
-        icon = QIcon(icon_path)
-        self.setIcon(icon)
+        super()._on_setup()
+        self.set_icon('play_from_cursor')
         self.clicked.connect(self._ui_model.play_from_cursor)
 
 
-class RecordButton(QToolButton, Updater):
+class RecordButton(IconButton):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(flat=True)
         self._sheet_mgr = None
         self._playback_mgr = None
 
         self.setCheckable(True)
-        self.setText('Record')
-        self.setAutoRaise(True)
 
     def _on_setup(self):
+        super()._on_setup()
+
+        self.set_icon('record')
+
         self.register_action('signal_record_mode', self._update_checked)
 
         self._sheet_mgr = self._ui_model.get_sheet_manager()
         self._playback_mgr = self._ui_model.get_playback_manager()
-
-        icon_bank = self._ui_model.get_icon_bank()
-        icon_path = icon_bank.get_icon_path('record')
-        icon = QIcon(icon_path)
-        self.setIcon(icon)
 
         self.clicked.connect(self._clicked)
 
@@ -143,23 +129,19 @@ class RecordButton(QToolButton, Updater):
             self._ui_model.play()
 
 
-class SilenceButton(QToolButton, Updater):
+class SilenceButton(IconButton):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(flat=True)
         self._playback_mgr = None
 
-        self.setText('Silence')
         self.setToolTip('Silence (Period)')
-        self.setAutoRaise(True)
 
     def _on_setup(self):
+        super()._on_setup()
         self._playback_mgr = self._ui_model.get_playback_manager()
 
-        icon_bank = self._ui_model.get_icon_bank()
-        icon_path = icon_bank.get_icon_path('silence')
-        icon = QIcon(icon_path)
-        self.setIcon(icon)
+        self.set_icon('silence')
 
         self.clicked.connect(self._clicked)
 

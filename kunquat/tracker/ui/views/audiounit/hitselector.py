@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -50,6 +50,11 @@ class HitSelector(QWidget):
         self._hit_bank_selector.update_contents()
         self._hit_keyboard_layout.update_contents()
 
+    def update_style(self, style_mgr):
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
+        self._hit_bank_selector.update_style(style_mgr)
+        self._hit_keyboard_layout.update_style(style_mgr)
+
     # Protected callbacks
 
     def _get_selected_hit_info(self):
@@ -59,6 +64,9 @@ class HitSelector(QWidget):
         raise NotImplementedError
 
     def _get_hit_name(self, index):
+        raise NotImplementedError
+
+    def _update_style(self, style_mgr):
         raise NotImplementedError
 
 
@@ -73,6 +81,7 @@ class HitKeyboardLayout(QWidget):
         self._cb_info = cb_info
         self._get_selected_hit_info = cb_info['get_hit_info']
         self._set_selected_hit_info = cb_info['set_hit_info']
+        self._pad_factors = []
 
     def _get_row_index_offset_base(self, row_index):
         return sum(self._ROW_LENGTHS[row_index + 1:])
@@ -92,7 +101,8 @@ class HitKeyboardLayout(QWidget):
             row.setSpacing(4)
 
             # Initial padding
-            pad_px = self._PAD * typewriter_mgr.get_pad_factor_at_row(row_index)
+            self._pad_factors.append(typewriter_mgr.get_pad_factor_at_row(row_index))
+            pad_px = self._PAD * self._pad_factors[row_index]
             pad = QWidget()
             pad.setFixedWidth(pad_px)
             row.addWidget(pad)
@@ -119,6 +129,23 @@ class HitKeyboardLayout(QWidget):
                 button.set_index_base(hit_base)
                 is_selected = (hit_offset == row_index_offset_base + button_index)
                 button.set_pressed(is_selected)
+
+    def update_style(self, style_mgr):
+        layout = self.layout()
+        layout.setSpacing(style_mgr.get_scaled_size_param('small_padding'))
+
+        for row_index in range(layout.count()):
+            row_layout = layout.itemAt(row_index).layout()
+            row_layout.setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
+
+            pad = row_layout.itemAt(0).widget()
+            pad.setFixedWidth(self._pad_factors[row_index] *
+                    style_mgr.get_scaled_size_param('typewriter_padding'))
+
+            button_size = style_mgr.get_scaled_size_param('typewriter_button_size')
+            for widget_index in range(1, row_layout.count() - 1):
+                button = row_layout.itemAt(widget_index).widget()
+                button.setFixedSize(QSize(button_size, button_size))
 
 
 class HitBankSelector(QWidget):
@@ -151,6 +178,14 @@ class HitBankSelector(QWidget):
             button = self.layout().itemAt(i).widget()
             button.set_pressed((button_index * _BANK_SIZE) == hit_base)
 
+    def update_style(self, style_mgr):
+        layout = self.layout()
+        layout.setSpacing(style_mgr.get_scaled_size_param('small_padding'))
+
+        for i in range(1, layout.count() - 1):
+            button = layout.itemAt(i).widget()
+            button.update_style(style_mgr)
+
 
 class HitBankButton(QPushButton):
 
@@ -162,7 +197,7 @@ class HitBankButton(QPushButton):
 
         self._index = index
 
-        self.setFixedSize(QSize(60, 30))
+        self.setFixedWidth(60)
         self.setCheckable(True)
         self.setText(str(self._index)) # TODO: maybe something more descriptive?
 
@@ -177,6 +212,9 @@ class HitBankButton(QPushButton):
         hit_base, hit_offset = self._get_selected_hit_info()
         hit_base = self._index * _BANK_SIZE
         self._set_selected_hit_info((hit_base, hit_offset))
+
+    def update_style(self, style_mgr):
+        self.setFixedWidth(style_mgr.get_scaled_size_param('typewriter_button_size'))
 
 
 class HitButton(QPushButton):

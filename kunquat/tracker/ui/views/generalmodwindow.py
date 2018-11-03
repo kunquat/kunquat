@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -16,6 +16,7 @@ from kunquat.tracker.ui.qt import *
 from .generalmodeditor import GeneralModEditor
 from .saverwindow import SaverWindow
 from .updater import Updater
+from .utils import get_abs_window_size
 
 
 class GeneralModWindow(Updater, SaverWindow):
@@ -33,12 +34,22 @@ class GeneralModWindow(Updater, SaverWindow):
         v.addWidget(self._editor)
         self.setLayout(v)
 
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
+
     def closeEvent(self, event):
         event.ignore()
         visibility_mgr = self._ui_model.get_visibility_manager()
         visibility_mgr.hide_general_module_settings()
 
     def sizeHint(self):
-        return QSize(960, 768)
+        return get_abs_window_size(0.6, 0.7)
 
 

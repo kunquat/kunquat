@@ -25,6 +25,7 @@ from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
 from . import utils
 from .procnumslider import ProcNumSlider
 from .processorupdater import ProcessorUpdater
+from .prociconbutton import ProcessorIconButton
 from .procsimpleenv import ProcessorSimpleEnvelope
 from .waveformeditor import WaveformEditor
 
@@ -67,6 +68,17 @@ class PadsynthProc(QWidget, ProcessorUpdater):
         v.addWidget(self._res_env)
         self.setLayout(v)
 
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
+
 
 class PlaybackParams(QWidget, ProcessorUpdater):
 
@@ -86,14 +98,20 @@ class PlaybackParams(QWidget, ProcessorUpdater):
     def _on_setup(self):
         self.register_action('signal_au', self._update_all)
         self.register_action(self._get_update_signal_type(), self._update_all)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._ramp_attack.stateChanged.connect(self._toggle_ramp_attack)
         self._stereo.stateChanged.connect(self._toggle_stereo)
 
+        self._update_style()
         self._update_all()
 
     def _get_update_signal_type(self):
         return 'signal_padsynth_rt_{}'.format(self._proc_id)
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_all(self):
         params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -210,6 +228,7 @@ class SampleConfigEditor(QWidget, ProcessorUpdater):
     def _on_setup(self):
         self.register_action('signal_au', self._update_sample_params)
         self.register_action(self._get_update_signal_type(), self._update_sample_params)
+        self.register_action('signal_style_changed', self._update_style)
 
         for sample_length in self._get_params().get_allowed_sample_lengths():
             self._sample_size.addItem(str(sample_length), userData=sample_length)
@@ -218,6 +237,7 @@ class SampleConfigEditor(QWidget, ProcessorUpdater):
 
         self._sample_count.valueChanged.connect(self._change_sample_count)
 
+        self._update_style()
         self._update_sample_params()
 
     def _get_update_signal_type(self):
@@ -225,6 +245,10 @@ class SampleConfigEditor(QWidget, ProcessorUpdater):
 
     def _get_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_sample_params(self):
         params = self._get_params()
@@ -320,6 +344,15 @@ class BandwidthEditor(QWidget, ProcessorUpdater):
         g.addWidget(QLabel('Bandwidth scale:'), 1, 0)
         g.addWidget(self._scale, 1, 1)
         self.setLayout(g)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setHorizontalSpacing(
+                style_mgr.get_scaled_size_param('small_padding'))
 
 
 class BandwidthBaseEditor(PadsynthParamSlider):
@@ -438,10 +471,10 @@ class HarmonicLevelEditor(QWidget, ProcessorUpdater):
 
         self._level = LevelEditor(index)
 
-        self._remove_button = QPushButton()
-        #self._remove_button.setStyleSheet('padding: 0 -2px;')
-        self._remove_button.setIconSize(QSize(16, 16))
+        self._remove_button = ProcessorIconButton()
         self._remove_button.setEnabled(self._index != 0)
+
+        self.add_to_updaters(self._remove_button)
 
         h = QHBoxLayout()
         h.setContentsMargins(4, 0, 0, 0)
@@ -455,16 +488,30 @@ class HarmonicLevelEditor(QWidget, ProcessorUpdater):
     def _on_setup(self):
         self.add_to_updaters(self._level)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
+        self.register_action('signal_style_changed', self._update_style)
+
+        self._remove_button.set_icon('delete_small')
+
+        style_mgr = self._ui_model.get_style_manager()
+        self._remove_button.set_sizes(
+                style_mgr.get_style_param('list_button_size'),
+                style_mgr.get_style_param('list_button_padding'))
 
         self._pitch_factor.valueChanged.connect(self._change_pitch_factor)
         self._remove_button.clicked.connect(self._remove_harmonic)
+
+        self._update_style()
 
         self.update_index(self._index)
 
     def _get_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setContentsMargins(
+                style_mgr.get_scaled_size_param('medium_padding'), 0, 0, 0)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def update_index(self, index):
         self._index = index
@@ -535,12 +582,25 @@ class HarmonicLevels(QWidget, ProcessorUpdater):
         self._editor = HarmonicLevelsList()
         self.add_to_updaters(self._editor)
 
+        self._header = HeaderLine('Harmonic levels')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Harmonic levels'))
+        v.addWidget(self._header)
         v.addWidget(self._editor)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        self._header.update_style(style_mgr)
+
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
 
 class ResonanceEnvelope(ProcessorSimpleEnvelope):

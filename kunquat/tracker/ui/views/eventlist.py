@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2017
+# Author: Tomi Jylhä-Ollila, Finland 2013-2018
 #
 # This file is part of Kunquat.
 #
@@ -106,6 +106,20 @@ class EventTable(QTableView):
         vscrollbar.rangeChanged.connect(self._on_rangeChanged)
         vscrollbar.valueChanged.connect(self._on_valueChanged)
 
+        self.horizontalHeader().setStretchLastSection(True)
+
+        self.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)
+
+    def update_style(self, style_mgr):
+        hh = self.horizontalHeader()
+        hh.resizeSection(0, style_mgr.get_scaled_size(6))
+        hh.resizeSection(1, style_mgr.get_scaled_size(4))
+        hh.resizeSection(2, style_mgr.get_scaled_size(8))
+        hh.resizeSection(3, style_mgr.get_scaled_size(20))
+
+        vh = self.verticalHeader()
+        vh.setDefaultSectionSize(style_mgr.get_scaled_size(2.5))
+
     def setModel(self, model):
         super().setModel(model)
 
@@ -114,7 +128,6 @@ class EventTable(QTableView):
         hh.resizeSection(1, 40)
         hh.resizeSection(2, 80)
         hh.resizeSection(3, 200)
-        hh.resizeSection(4, 100)
 
     def _on_rangeChanged(self, rmin, rmax):
         if self._focusbottom:
@@ -182,6 +195,17 @@ class EventFilterView(QWidget, Updater):
         h.addStretch()
         self.setLayout(h)
 
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        spacing = style_mgr.get_scaled_size_param('large_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(spacing)
+
 
 class EventList(QWidget, Updater):
 
@@ -201,5 +225,19 @@ class EventList(QWidget, Updater):
         v.addWidget(self._tableview)
         v.addWidget(self._filters)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        self._tableview.update_style(style_mgr)
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        spacing = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(spacing)
 
 

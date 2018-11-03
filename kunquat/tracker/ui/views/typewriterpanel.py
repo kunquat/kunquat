@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2018
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -37,19 +37,30 @@ class TypewriterPanel(QFrame, Updater):
                 self._octave_selector,
                 self._typewriter)
 
-        il = QHBoxLayout()
-        il.setContentsMargins(0, 0, 0, 0)
-        il.setSpacing(8)
-        il.addWidget(self._notation_select)
-        il.addWidget(self._hit_map_toggle)
-        il.addStretch(1)
+        self._top_layout = QHBoxLayout()
+        self._top_layout.setContentsMargins(0, 0, 0, 0)
+        self._top_layout.setSpacing(8)
+        self._top_layout.addWidget(self._notation_select)
+        self._top_layout.addWidget(self._hit_map_toggle)
+        self._top_layout.addStretch(1)
 
         v = QVBoxLayout()
-        v.setContentsMargins(4, 0, 4, 0)
+        v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(6)
-        v.addLayout(il)
+        v.addLayout(self._top_layout)
         v.addWidget(self._octave_selector)
         v.addWidget(self._typewriter)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        medium_pad = style_mgr.get_scaled_size_param('medium_padding')
+        large_pad = style_mgr.get_scaled_size_param('large_padding')
+        self._top_layout.setSpacing(large_pad)
+        self.layout().setSpacing(medium_pad)
 
 

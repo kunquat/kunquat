@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -16,6 +16,7 @@ from kunquat.tracker.ui.qt import *
 from .tuningtableeditor import TuningTableEditor
 from .saverwindow import SaverWindow
 from .updater import Updater
+from .utils import get_abs_window_size
 
 
 class TuningTableWindow(Updater, SaverWindow):
@@ -40,8 +41,15 @@ class TuningTableWindow(Updater, SaverWindow):
         assert self._table_id != None
         self.add_to_updaters(self._editor)
         self.register_action('signal_tuning_tables', self._update_title)
+        self.register_action('signal_style_changed', self._update_style)
 
+        self._update_style()
         self._update_title()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
 
     def _update_title(self):
         module = self._ui_model.get_module()
@@ -59,6 +67,6 @@ class TuningTableWindow(Updater, SaverWindow):
         visibility_mgr.hide_tuning_table_editor(self._table_id)
 
     def sizeHint(self):
-        return QSize(480, 640)
+        return get_abs_window_size(0.25, 0.7)
 
 

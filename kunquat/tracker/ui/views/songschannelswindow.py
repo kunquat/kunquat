@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2014
-#          Tomi Jylhä-Ollila, Finland 2015-2017
+#          Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -19,6 +19,7 @@ from .orderlisteditor import OrderlistEditor
 from .saverwindow import SaverWindow
 from .songeditor import SongEditor
 from .updater import Updater
+from .utils import get_abs_window_size
 
 
 class SongsChannelsWindow(Updater, SaverWindow):
@@ -37,10 +38,22 @@ class SongsChannelsWindow(Updater, SaverWindow):
         h = QHBoxLayout()
         h.setContentsMargins(4, 4, 4, 4)
         h.setSpacing(4)
-        h.addWidget(self._orderlist_editor)
-        h.addWidget(self._song_editor)
-        h.addWidget(self._ch_defaults_editor)
+        h.addWidget(self._orderlist_editor, 1)
+        h.addWidget(self._song_editor, 1)
+        h.addWidget(self._ch_defaults_editor, 2)
         self.setLayout(h)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        spacing = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(spacing)
 
     def closeEvent(self, event):
         event.ignore()
@@ -48,6 +61,6 @@ class SongsChannelsWindow(Updater, SaverWindow):
         visibility_mgr.hide_songs_channels()
 
     def sizeHint(self):
-        return QSize(1024, 600)
+        return get_abs_window_size(0.5, 0.7)
 
 

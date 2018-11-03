@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -32,17 +32,33 @@ class FilterProc(QWidget, ProcessorUpdater):
 
         self.add_to_updaters(self._filter_type, self._cutoff, self._resonance)
 
-        sliders = QGridLayout()
-        sliders.addWidget(QLabel('Cutoff'), 0, 0)
-        sliders.addWidget(self._cutoff, 0, 1)
-        sliders.addWidget(QLabel('Resonance'), 1, 0)
-        sliders.addWidget(self._resonance, 1, 1)
+        self._sliders_layout = QGridLayout()
+        self._sliders_layout.setContentsMargins(0, 0, 0, 0)
+        self._sliders_layout.setVerticalSpacing(0)
+        self._sliders_layout.addWidget(QLabel('Cutoff'), 0, 0)
+        self._sliders_layout.addWidget(self._cutoff, 0, 1)
+        self._sliders_layout.addWidget(QLabel('Resonance'), 1, 0)
+        self._sliders_layout.addWidget(self._resonance, 1, 1)
 
         v = QVBoxLayout()
         v.addWidget(self._filter_type)
-        v.addLayout(sliders)
+        v.addLayout(self._sliders_layout)
         v.addStretch(1)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        self._sliders_layout.setHorizontalSpacing(
+                style_mgr.get_scaled_size_param('medium_padding'))
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('large_padding'))
 
 
 class FilterType(QWidget, ProcessorUpdater):
@@ -66,10 +82,12 @@ class FilterType(QWidget, ProcessorUpdater):
 
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_type)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._lowpass.clicked.connect(self._set_lowpass)
         self._highpass.clicked.connect(self._set_highpass)
 
+        self._update_style()
         self._update_type()
 
     def _get_filter_params(self):
@@ -78,6 +96,10 @@ class FilterType(QWidget, ProcessorUpdater):
         proc = au.get_processor(self._proc_id)
         filter_params = proc.get_type_params()
         return filter_params
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_type(self):
         filter_params = self._get_filter_params()

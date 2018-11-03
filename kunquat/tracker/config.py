@@ -170,7 +170,8 @@ class Config():
             ]
 
             style_config = {
-                'enabled': _Entry(lambda x: isinstance(x, bool), False),
+                'def_font_size': _Entry(lambda x: 0 <= x <= 50, 0),
+                'def_font_family': _Entry(lambda x: isinstance(x, str), ''),
                 'border_contrast': _Entry(lambda x: 0 <= x <= 1, 0.3),
                 'button_brightness': _Entry(lambda x: -1 <= x <= 1, 0),
                 'button_press_brightness': _Entry(lambda x: -1 <= x <= 1, 0),
@@ -179,7 +180,7 @@ class Config():
                 assert name.endswith('_colour')
                 style_config[name] = _Entry(v_colour, '#000')
 
-            is_valid = all(k not in style_config or style_config[k].accepts(v)
+            is_valid = all(k in style_config and style_config[k].accepts(v)
                     for (k, v) in x.items())
             return is_valid
 

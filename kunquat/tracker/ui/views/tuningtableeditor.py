@@ -16,6 +16,7 @@ import re
 from kunquat.tracker.ui.qt import *
 
 from kunquat.kunquat.limits import *
+from .iconbutton import IconButton
 from .kqtcombobox import KqtComboBox
 from .notationeditor import RatioValidator
 from .updater import Updater
@@ -46,27 +47,27 @@ class TuningTableEditor(QWidget, Updater):
 
         self._notes = Notes()
 
-        gl = QGridLayout()
-        gl.setContentsMargins(0, 0, 0, 0)
-        gl.setHorizontalSpacing(4)
-        gl.setVerticalSpacing(2)
-        gl.addWidget(QLabel('Name:'), 0, 0)
-        gl.addWidget(self._name, 0, 1)
-        gl.addWidget(QLabel('Reference pitch:'), 1, 0)
-        gl.addWidget(self._ref_pitch, 1, 1)
-        gl.addWidget(QLabel('Global pitch offset:'), 2, 0)
-        gl.addWidget(self._pitch_offset, 2, 1)
-        gl.addWidget(QLabel('Octave width:'), 3, 0)
-        gl.addWidget(self._octave_width, 3, 1)
-        gl.addWidget(QLabel('Centre octave:'), 4, 0)
-        gl.addWidget(self._centre_octave, 4, 1)
-        gl.addWidget(QLabel('Tuning centre:'), 5, 0)
-        gl.addWidget(self._tuning_centre, 5, 1)
+        self._global_settings_layout = QGridLayout()
+        self._global_settings_layout.setContentsMargins(0, 0, 0, 0)
+        self._global_settings_layout.setHorizontalSpacing(4)
+        self._global_settings_layout.setVerticalSpacing(2)
+        self._global_settings_layout.addWidget(QLabel('Name:'), 0, 0)
+        self._global_settings_layout.addWidget(self._name, 0, 1)
+        self._global_settings_layout.addWidget(QLabel('Reference pitch:'), 1, 0)
+        self._global_settings_layout.addWidget(self._ref_pitch, 1, 1)
+        self._global_settings_layout.addWidget(QLabel('Global pitch offset:'), 2, 0)
+        self._global_settings_layout.addWidget(self._pitch_offset, 2, 1)
+        self._global_settings_layout.addWidget(QLabel('Octave width:'), 3, 0)
+        self._global_settings_layout.addWidget(self._octave_width, 3, 1)
+        self._global_settings_layout.addWidget(QLabel('Centre octave:'), 4, 0)
+        self._global_settings_layout.addWidget(self._centre_octave, 4, 1)
+        self._global_settings_layout.addWidget(QLabel('Tuning centre:'), 5, 0)
+        self._global_settings_layout.addWidget(self._tuning_centre, 5, 1)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addLayout(gl)
+        v.addLayout(self._global_settings_layout)
         v.addWidget(self._notes)
         self.setLayout(v)
 
@@ -79,6 +80,7 @@ class TuningTableEditor(QWidget, Updater):
         self.add_to_updaters(self._notes)
         self.register_action('signal_tuning_tables', self._update_name)
         self.register_action(self._get_update_signal_type(), self._update_params)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._name.textChanged.connect(self._change_name)
         self._ref_pitch.valueChanged.connect(self._change_ref_pitch)
@@ -87,8 +89,17 @@ class TuningTableEditor(QWidget, Updater):
         self._centre_octave.valueChanged.connect(self._change_centre_octave)
         self._tuning_centre.currentIndexChanged.connect(self._change_tuning_centre)
 
+        self._update_style()
         self._update_name()
         self._update_params()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        spacing_x = style_mgr.get_scaled_size_param('medium_padding')
+        spacing_y = style_mgr.get_scaled_size_param('small_padding')
+        self._global_settings_layout.setHorizontalSpacing(spacing_x)
+        self._global_settings_layout.setVerticalSpacing(spacing_y)
+        self.layout().setSpacing(spacing_y)
 
     def _get_update_signal_type(self):
         return 'signal_tuning_table_{}'.format(self._table_id)
@@ -197,18 +208,18 @@ class NotesToolBar(QToolBar, Updater):
         super().__init__()
         self._table_id = None
 
-        self._add_button = QToolButton()
-        self._add_button.setText('Add note')
+        self._add_button = IconButton(flat=True)
         self._add_button.setToolTip('Add note')
         self._add_button.setEnabled(True)
 
-        self._remove_button = QToolButton()
-        self._remove_button.setText('Remove note')
+        self._remove_button = IconButton(flat=True)
         self._remove_button.setToolTip('Remove note')
         self._remove_button.setEnabled(False)
 
         self.addWidget(self._add_button)
         self.addWidget(self._remove_button)
+
+        self.add_to_updaters(self._add_button, self._remove_button)
 
     def set_tuning_table_id(self, table_id):
         self._table_id = table_id
@@ -217,9 +228,8 @@ class NotesToolBar(QToolBar, Updater):
         self.register_action(self._get_update_signal_type(), self._update_enabled)
         self.register_action(self._get_selection_signal_type(), self._update_enabled)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._add_button.setIcon(QIcon(icon_bank.get_icon_path('add')))
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('remove')))
+        self._add_button.set_icon('add')
+        self._remove_button.set_icon('remove')
 
         self._add_button.clicked.connect(self._add_note)
         self._remove_button.clicked.connect(self._remove_note)
@@ -389,6 +399,16 @@ class NoteTableView(QTableView, Updater):
         header = self.horizontalHeader()
         header.setStretchLastSection(True)
 
+        self.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.verticalHeader().setDefaultSectionSize(style_mgr.get_scaled_size(2.5))
+
     def set_tuning_table_id(self, table_id):
         self._table_id = table_id
 
@@ -423,7 +443,8 @@ class NoteTableView(QTableView, Updater):
             selection_model.select(
                     model.get_index(row, column), QItemSelectionModel.Select)
 
-        selection_model.currentChanged.connect(self._select_entry)
+        selection_model.currentChanged.connect(
+                self._select_entry, type=Qt.QueuedConnection)
 
 
 class Notes(QWidget, Updater):
@@ -452,8 +473,14 @@ class Notes(QWidget, Updater):
     def _on_setup(self):
         self.add_to_updaters(self._toolbar, self._table_view)
         self.register_action(self._get_update_signal_type(), self._update_model)
+        self.register_action('signal_style_changed', self._update_style)
 
+        self._update_style()
         self._update_model()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _get_update_signal_type(self):
         return 'signal_tuning_table_{}'.format(self._table_id)

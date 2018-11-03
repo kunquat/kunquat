@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -76,6 +76,17 @@ class Editor(QWidget, AudioUnitUpdater):
         v.addWidget(self._tabs)
         self.setLayout(v)
 
+        self.register_action('signal_style_changed', self._update_style)
+
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        spacing = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(spacing)
+
     def keyPressEvent(self, event):
         if not self._keyboard_mapper.process_typewriter_button_event(event):
             event.ignore()
@@ -105,6 +116,14 @@ class TestPanel(QWidget, AudioUnitUpdater):
         h.addWidget(QLabel('Note expression:'))
         h.addWidget(self._expressions[1])
         self.setLayout(h)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
 
 class TestForce(AuNumSlider):

@@ -17,9 +17,38 @@ import kunquat.tracker.config as config
 class StyleManager():
 
     _STYLE_DEFAULTS = {
-        'border_contrast'                   : 0.25,
-        'button_brightness'                 : 0.10,
-        'button_press_brightness'           : -0.2,
+        'border_thick_radius'               : 0.4,
+        'border_thick_width'                : 0.2,
+        'border_thin_radius'                : 0.2,
+        'border_thin_width'                 : 0.1,
+        'combobox_arrow_size'               : 0.8,
+        'combobox_button_size'              : 0.6,
+        'dialog_button_width'               : 9.0,
+        'dialog_icon_size'                  : 7.0,
+        'large_padding'                     : 0.8,
+        'list_button_size'                  : 2.0,
+        'list_button_padding'               : 0.2,
+        'medium_padding'                    : 0.4,
+        'menu_arrow_size'                   : 1.0,
+        'radio_border_radius'               : 0.499,
+        'radio_check_size'                  : 1.0,
+        'radio_check_spacing'               : 0.5,
+        'scrollbar_margin'                  : 1.1,
+        'scrollbar_size'                    : 1.2,
+        'slider_handle_size'                : 3.0,
+        'slider_thickness'                  : 1.0,
+        'small_padding'                     : 0.2,
+        'splitter_width'                    : 0.4,
+        'tab_bar_margin'                    : 0.4,
+        'tiny_arrow_button_size'            : 0.9,
+        'tiny_padding'                      : 0.1,
+        'tool_button_size'                  : 3.4,
+        'tool_button_padding'               : 0.62,
+        'typewriter_button_size'            : 5.6,
+        'typewriter_padding'                : 2.9,
+    }
+
+    _STYLE_COLOUR_DEFAULTS = {
         'bg_colour'                         : '#4c474e',
         'fg_colour'                         : '#dbdbdb',
         'bg_sunken_colour'                  : '#2b2238',
@@ -108,14 +137,27 @@ class StyleManager():
         'waveform_loop_marker_colour'       : '#dfd58e',
     }
 
+    _STYLE_CONFIG_DEFAULTS = {
+        'def_font_size'                     : 0,
+        'def_font_family'                   : '',
+        'border_contrast'                   : 0.25,
+        'button_brightness'                 : 0.10,
+        'button_press_brightness'           : -0.2,
+    }
+
+    _STYLE_CONFIG_DEFAULTS.update(_STYLE_COLOUR_DEFAULTS)
+    _STYLE_DEFAULTS.update(_STYLE_CONFIG_DEFAULTS)
+
     def __init__(self):
         self._controller = None
         self._ui_model = None
+        self._session = None
         self._share = None
         self._init_ss = None
 
     def set_controller(self, controller):
         self._controller = controller
+        self._session = controller.get_session()
         self._share = controller.get_share()
 
     def set_ui_model(self, ui_model):
@@ -133,15 +175,6 @@ class StyleManager():
     def get_icons_dir(self):
         return self._share.get_icons_dir()
 
-    def set_custom_style_enabled(self, enabled):
-        config_style = self._get_config_style()
-        config_style['enabled'] = enabled
-        self._set_config_style(config_style)
-
-    def is_custom_style_enabled(self):
-        config_style = self._get_config_style()
-        return config_style.get('enabled', True)
-
     def get_style_param(self, key):
         config_style = self._get_config_style()
         return config_style.get(key, self._STYLE_DEFAULTS[key])
@@ -152,11 +185,22 @@ class StyleManager():
         config_style[key] = value
         if key.endswith('_colour'):
             # Make sure that all colours are stored if one is changed
-            for k in self._STYLE_DEFAULTS.keys():
+            for k in self._STYLE_COLOUR_DEFAULTS.keys():
                 if (k != key) and (k not in config_style):
-                    config_style[k] = self._STYLE_DEFAULTS[k]
+                    config_style[k] = self._STYLE_COLOUR_DEFAULTS[k]
 
         self._set_config_style(config_style)
+
+    def set_reference_font_height(self, height):
+        self._session.set_reference_font_height(height)
+
+    def get_scaled_size(self, size_norm, min_size=1):
+        ref_height = self._session.get_reference_font_height()
+        return max(min_size, int(round(size_norm * ref_height)))
+
+    def get_scaled_size_param(self, size_param, min_size=1):
+        size_norm = self.get_style_param(size_param)
+        return self.get_scaled_size(size_norm, min_size)
 
     def get_adjusted_colour(self, param, brightness):
         orig_colour = self._get_colour_from_str(self.get_style_param(param))

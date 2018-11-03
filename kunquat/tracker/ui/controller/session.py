@@ -167,6 +167,9 @@ class Session():
         self._aus = defaultdict(_AuInfo)
         self._procs = defaultdict(_ProcInfo)
 
+        # Appearance
+        self._ref_font_height = 0
+
     def get_output_speed(self):
         return self._output_speed
 
@@ -852,5 +855,13 @@ class Session():
 
     def get_selected_sample_hit_map_force(self, proc_id):
         return self._procs[proc_id].selected_sample_hit_map_force
+
+    def set_reference_font_height(self, height):
+        assert height > 0
+        self._ref_font_height = height
+
+    def get_reference_font_height(self):
+        assert self._ref_font_height > 0
+        return self._ref_font_height
 
 

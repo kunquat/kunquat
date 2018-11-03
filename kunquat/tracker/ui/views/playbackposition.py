@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -37,7 +37,6 @@ class PlaybackPosition(QWidget):
     utils.set_glyph_rel_width(_REM_FONT, QWidget, _REF_NUM_STR, 53.25)
 
     _TITLE_FONT = QFont(QFont().defaultFamily(), 5, QFont.Bold)
-    utils.set_glyph_rel_width(_TITLE_FONT, QWidget, 'TRACKSYSTEMPATTERNROW', 20.4)
 
     _DEFAULT_CONFIG = {
         'padding_x'      : 9,
@@ -105,12 +104,25 @@ class PlaybackPosition(QWidget):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
-        if not style_mgr.is_custom_style_enabled():
-            self._set_config({})
-            self.update()
-            return
+
+        num_font = utils.get_scaled_font(style_mgr, 1.6, QFont.Bold)
+        utils.set_glyph_rel_width(num_font, QWidget, _REF_NUM_STR, 51.875)
+        sub_font = utils.get_scaled_font(style_mgr, 0.9, QFont.Bold)
+        utils.set_glyph_rel_width(sub_font, QWidget, _REF_NUM_STR, 56)
+        rem_font = utils.get_scaled_font(style_mgr, 1.2, QFont.Bold)
+        utils.set_glyph_rel_width(rem_font, QWidget, _REF_NUM_STR, 53.25)
+        title_font = utils.get_scaled_font(style_mgr, 0.5, QFont.Bold)
 
         config = {
+            'padding_x' : style_mgr.get_scaled_size(1),
+            'padding_y' : 0,
+            'spacing'   : style_mgr.get_scaled_size(0.2),
+            'icon_width': style_mgr.get_scaled_size(1.6),
+            'num_font'  : num_font,
+            'sub_font'  : sub_font,
+            'rem_font'  : rem_font,
+            'title_font': title_font,
+
             'bg_colour':
                 QColor(style_mgr.get_style_param('position_bg_colour')),
             'fg_colour':
@@ -174,23 +186,41 @@ class PlaybackPosition(QWidget):
                 self._glyph_sizes[(font_name, width_factor)] = (width - 1, height)
 
     def _draw_titles(self):
-        font = self._config['title_font']
+        # Render pixmaps at larger scale for more accurate width adjustment
+        scale_mult = 4
+
+        font = QFont(self._config['title_font'])
+        font.setPointSizeF(font.pointSizeF() * scale_mult)
+        utils.set_glyph_rel_width(font, QWidget, 'TRACKSYSTEMPATTERNROW', 20)
+
         fm = QFontMetrics(font, self)
         text_option = QTextOption(Qt.AlignLeft | Qt.AlignTop)
 
-        for title in ('track', 'system', 'pattern', 'row'):
-            vis_text = title.upper()
-            rect = fm.tightBoundingRect(vis_text)
-            rect.setRight(rect.right() + 1)
+        bounding_rects = {}
 
-            pixmap = QPixmap(rect.width(), rect.height())
+        titles = ('track', 'system', 'pattern', 'row')
+        for title in titles:
+            vis_text = title.upper()
+            bounding_rects[title] = fm.tightBoundingRect(vis_text)
+
+        max_height = max(r.height() for r in bounding_rects.values())
+        target_height = int(math.ceil(max_height / scale_mult)) + 2
+
+        for title in titles:
+            vis_text = title.upper()
+            rect = bounding_rects[title]
+
+            pixmap = QPixmap(
+                    rect.width() + scale_mult * 2, max_height + scale_mult * 2)
             pixmap.fill(self._config['bg_colour'])
             painter = QPainter(pixmap)
             painter.setFont(font)
             painter.setPen(self._config['title_colour'])
-            painter.drawText(0, rect.height(), vis_text)
+            painter.drawText(pixmap.rect(), Qt.AlignCenter, vis_text)
+            painter.end()
 
-            self._titles[title] = pixmap
+            self._titles[title] = pixmap.scaledToHeight(
+                    target_height, Qt.SmoothTransformation)
 
     def _set_dimensions(self):
         default_fm = QFontMetrics(self._config['num_font'], self)
@@ -448,6 +478,8 @@ class PlaybackPosition(QWidget):
     def paintEvent(self, event):
         start = time.time()
 
+        style_mgr = self._ui_model.get_style_manager()
+
         painter = QPainter(self)
         painter.setBackground(self._config['bg_colour'])
         painter.eraseRect(0, 0, self.width(), self.height())
@@ -501,7 +533,8 @@ class PlaybackPosition(QWidget):
                 'num_font')
 
         painter.setClipping(False)
-        painter.drawPixmap(0, title_y, self._titles['track'])
+        painter.drawPixmap(
+                -style_mgr.get_scaled_size(0.2, 0), title_y, self._titles['track'])
 
         # System number
         shift_x()
@@ -513,7 +546,8 @@ class PlaybackPosition(QWidget):
                 'num_font')
 
         painter.setClipping(False)
-        painter.drawPixmap(2, title_y, self._titles['system'])
+        painter.drawPixmap(
+                style_mgr.get_scaled_size(0.2, 0), title_y, self._titles['system'])
 
         # Pattern instance
         shift_x()
@@ -564,7 +598,8 @@ class PlaybackPosition(QWidget):
             painter.restore()
 
         painter.setClipping(False)
-        painter.drawPixmap(-19, title_y, self._titles['pattern'])
+        painter.drawPixmap(
+                -style_mgr.get_scaled_size(1.9, 0), title_y, self._titles['pattern'])
 
         # Timestamp
         beats, rem = row_ts
@@ -596,7 +631,8 @@ class PlaybackPosition(QWidget):
                 Qt.AlignLeft)
 
         painter.setClipping(False)
-        painter.drawPixmap(-10, title_y, self._titles['row'])
+        painter.drawPixmap(
+                -style_mgr.get_scaled_size(1.2, 0), title_y, self._titles['row'])
 
         end = time.time()
         elapsed = end - start

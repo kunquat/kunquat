@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -15,15 +15,21 @@ import os.path
 import re
 
 from kunquat.tracker.ui.qt import *
+from .utils import update_ref_font_height, get_default_font_info
 
 
 class StyleCreator():
 
     def __init__(self):
         self._ui_model = None
+        self._ref_font = (None, None)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+
+        style_mgr = self._ui_model.get_style_manager()
+        def_font = get_default_font_info(style_mgr)
+        update_ref_font_height(def_font, style_mgr)
 
     def unregister_updaters(self):
         pass
@@ -52,12 +58,40 @@ class StyleCreator():
     def get_updated_style_sheet(self):
         style_mgr = self._ui_model.get_style_manager()
 
-        if not style_mgr.is_custom_style_enabled():
-            return style_mgr.get_init_style_sheet()
-
         icon_bank = self._ui_model.get_icon_bank()
 
-        # Get colours from the configuration
+        # Get font settings
+        def_font_family, def_font_size = get_default_font_info(style_mgr)
+
+        # Get pixel sizes
+        pixel_size_params = [
+            'border_thick_radius',
+            'border_thick_width',
+            'border_thin_radius',
+            'border_thin_width',
+            'combobox_arrow_size',
+            'combobox_button_size',
+            'dialog_button_width',
+            'large_padding',
+            'medium_padding',
+            'menu_arrow_size',
+            'radio_border_radius',
+            'radio_check_size',
+            'radio_check_spacing',
+            'scrollbar_margin',
+            'scrollbar_size',
+            'slider_handle_size',
+            'slider_thickness',
+            'small_padding',
+            'splitter_width',
+            'tab_bar_margin',
+            'tiny_arrow_button_size',
+            'tiny_padding',
+        ]
+        pixel_sizes = ((p, style_mgr.get_scaled_size(style_mgr.get_style_param(p)))
+            for p in pixel_size_params)
+
+        # Get colours
         contrast = style_mgr.get_style_param('border_contrast')
         grad = -0.07
         button_brightness = style_mgr.get_style_param('button_brightness')
@@ -169,11 +203,18 @@ class StyleCreator():
             'text_disabled_fg_colour'     : text_disabled_fg_colour,
         }
 
+        # Build style sheet
         template = style_mgr.get_style_sheet_template()
 
         replacements = {
-                '<' + k + '>': (self._get_str_from_colour(v) if type(v) == tuple else v)
-                for (k, v) in colours.items() }
+            '<def_font_size>': '{}pt'.format(def_font_size),
+            '<def_font_family>': def_font_family,
+        }
+        replacements.update({
+            '<' + k + '>': '{}px'.format(v) for (k, v) in pixel_sizes })
+        replacements.update({
+            '<' + k + '>': (self._get_str_from_colour(v) if type(v) == tuple else v)
+            for (k, v) in colours.items() })
         regexp = re.compile('|'.join(re.escape(k) for k in replacements.keys()))
         style_sheet = regexp.sub(lambda match: replacements[match.group(0)], template)
 

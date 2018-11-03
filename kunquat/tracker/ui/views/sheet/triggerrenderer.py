@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -90,7 +90,7 @@ class TriggerRenderer():
         image = QImage(
                 self._total_width,
                 self._config['tr_height'],
-                QImage.Format_ARGB32)
+                QImage.Format_ARGB32_Premultiplied)
         image.fill(0)
         painter = QPainter(image)
         painter.setCompositionMode(QPainter.CompositionMode_Plus)
@@ -156,6 +156,7 @@ class TriggerRenderer():
         painter.setPen(evtype_fg_colour or self._config['bg_colour'])
 
         # Draw fields
+        painter.setFont(self._config['font'])
         for i, field in enumerate(self._fields):
             painter.drawText(
                     QPoint(field['offset'], self._baseline_offset),
@@ -195,27 +196,28 @@ class TriggerRenderer():
         expr = self._trigger.get_argument()
 
         metrics = self._config['font_metrics']
-        padding = self._config['trigger']['padding']
+        padding_x = self._config['trigger']['padding_x']
+        padding_y = self._config['trigger']['padding_y']
 
-        self._baseline_offset = metrics.tightBoundingRect('A').height()
+        self._baseline_offset = metrics.tightBoundingRect('A').height() + padding_y
 
         self._fields = []
 
         # Get field bounds
         if evtype == 'n+':
             note_name = self._get_note_vis_name(expr)
-            note_field = self._make_field_data(padding, note_name)
+            note_field = self._make_field_data(padding_x, note_name)
             self._fields.append(note_field)
         elif evtype == 'h':
             hit_name = self._trigger.get_hit_name()
-            hit_field = self._make_field_data(padding, hit_name)
+            hit_field = self._make_field_data(padding_x, hit_name)
             self._fields.append(hit_field)
         elif evtype == 'n-':
             vis_text = '══'
-            note_off_field = self._make_field_data(padding, vis_text)
+            note_off_field = self._make_field_data(padding_x, vis_text)
             self._fields.append(note_off_field)
         else:
-            type_field = self._make_field_data(padding, evtype)
+            type_field = self._make_field_data(padding_x, evtype)
             self._fields.append(type_field)
 
             if expr != None:
@@ -225,12 +227,12 @@ class TriggerRenderer():
                     vis_text = expr
 
                 arg_field = self._make_field_data(
-                        type_field['offset'] + type_field['width'] + padding,
+                        type_field['offset'] + type_field['width'] + padding_x,
                         vis_text)
                 self._fields.append(arg_field)
 
         # Width
-        total_padding = padding * (len(self._fields) + 1)
+        total_padding = padding_x * (len(self._fields) + 1)
         self._total_width = sum(f['width'] for f in self._fields) + total_padding
 
 

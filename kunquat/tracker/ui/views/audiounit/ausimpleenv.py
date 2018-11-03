@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -21,7 +21,7 @@ class AudioUnitSimpleEnvelope(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        header = HeaderLine(self._get_title())
+        self._header = HeaderLine(self._get_title())
 
         self._enabled_toggle = QCheckBox('Enabled')
 
@@ -30,7 +30,7 @@ class AudioUnitSimpleEnvelope(QWidget, AudioUnitUpdater):
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(header)
+        v.addWidget(self._header)
         v.addWidget(self._enabled_toggle)
         v.addWidget(self._envelope)
         self.setLayout(v)
@@ -40,7 +40,7 @@ class AudioUnitSimpleEnvelope(QWidget, AudioUnitUpdater):
         self.register_action(self._get_update_signal_type(), self._update_envelope)
         self.register_action('signal_style_changed', self._update_style)
 
-        self._envelope.set_icon_bank(self._ui_model.get_icon_bank())
+        self._envelope.set_ui_model(self._ui_model)
 
         self._enabled_toggle.stateChanged.connect(self._enabled_changed)
         self._envelope.get_envelope_view().envelopeChanged.connect(
@@ -49,8 +49,14 @@ class AudioUnitSimpleEnvelope(QWidget, AudioUnitUpdater):
         self._update_envelope()
         self._update_style()
 
+    def _on_teardown(self):
+        self._envelope.unregister_updaters()
+
     def _update_style(self):
-        self._envelope.update_style(self._ui_model.get_style_manager())
+        style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
+        self._envelope.update_style(style_mgr)
 
     def _update_envelope(self):
         old_block = self._enabled_toggle.blockSignals(True)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -17,6 +17,7 @@ from .connectionseditor import ConnectionsEditor
 from .keyboardmapper import KeyboardMapper
 from .saverwindow import SaverWindow
 from .updater import Updater
+from .utils import get_abs_window_size
 
 
 class ConnectionsWindow(Updater, SaverWindow):
@@ -44,7 +45,7 @@ class ConnectionsWindow(Updater, SaverWindow):
         visibility_mgr.hide_connections()
 
     def sizeHint(self):
-        return QSize(800, 600)
+        return get_abs_window_size(0.6, 0.7)
 
     def keyPressEvent(self, event):
         if not self._keyboard_mapper.process_typewriter_button_event(event):

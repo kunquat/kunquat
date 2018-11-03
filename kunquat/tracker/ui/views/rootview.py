@@ -32,6 +32,7 @@ from .procwindow import ProcWindow
 from .sheet.grideditorwindow import GridEditorWindow
 from .iawindow import IAWindow
 from .renderstatswindow import RenderStatsWindow
+from . import utils
 
 
 class RootView():
@@ -98,7 +99,7 @@ class RootView():
 
     def set_crash_dialog(self, crash_dialog):
         self._crash_dialog = crash_dialog
-        self._crash_dialog.update_link_colour(self._ui_model.get_style_manager())
+        self._crash_dialog.update_style(self._ui_model.get_style_manager())
 
     def show_main_window(self):
         visibility_mgr = self._ui_model.get_visibility_manager()
@@ -355,7 +356,7 @@ class RootView():
             if 'signal_style_changed' in signals:
                 style_sheet = self._style_creator.get_updated_style_sheet()
                 QApplication.instance().setStyleSheet(style_sheet)
-                self._crash_dialog.update_link_colour(self._ui_model.get_style_manager())
+                self._crash_dialog.update_style(self._ui_model.get_style_manager())
         else:
             QApplication.quit()
 
@@ -363,7 +364,7 @@ class RootView():
 
     def _show_progress_window(self):
         assert not self._progress_window
-        self._progress_window = ProgressWindow()
+        self._progress_window = ProgressWindow(self._ui_model)
 
         stat_mgr = self._ui_model.get_stat_manager()
         self._progress_window.set_description(stat_mgr.get_progress_description())
@@ -444,7 +445,7 @@ class RootView():
         error_info = self._module.get_load_error_info()
         assert error_info
         self._load_error_dialog = ModuleLoadErrorDialog(
-                self._ui_model.get_icon_bank(), error_info, on_close)
+                self._ui_model, error_info, on_close)
         self._load_error_dialog.setModal(True)
         self._load_error_dialog.show()
 
@@ -457,7 +458,7 @@ class RootView():
         error_info = self._module.get_reset_au_import_error_info()
         assert error_info
         self._au_import_error_dialog = AuImportErrorDialog(
-                self._ui_model.get_icon_bank(), error_info, on_close)
+                self._ui_model, error_info, on_close)
         self._au_import_error_dialog.setModal(True)
         self._au_import_error_dialog.show()
 
@@ -484,9 +485,12 @@ class ProgressWindow(QWidget):
     _PROGRESS_STEP_COUNT = 10000
     _SHOW_DELAY = 0.2
 
-    def __init__(self):
+    def __init__(self, ui_model):
         super().__init__()
-        self.setMinimumWidth(512)
+        style_mgr = ui_model.get_style_manager()
+
+        width = utils.get_abs_window_size(0.3, 0.5).width()
+        self.setMinimumWidth(width)
         self.setWindowModality(Qt.ApplicationModal)
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Minimum)
@@ -498,8 +502,9 @@ class ProgressWindow(QWidget):
         self._progress.setMinimum(0)
 
         v = QVBoxLayout()
-        v.setContentsMargins(8, 8, 8, 8)
-        v.setSpacing(4)
+        margin = style_mgr.get_scaled_size_param('large_padding')
+        v.setContentsMargins(margin, margin, margin, margin)
+        v.setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
         v.addWidget(self._desc, Qt.AlignLeft)
         v.addWidget(self._progress)
         self.setLayout(v)
@@ -529,8 +534,10 @@ class ProgressWindow(QWidget):
 
 class ImportErrorDialog(QDialog):
 
-    def __init__(self, title, msg_fmt, icon_bank, error_info, on_close):
+    def __init__(self, ui_model, title, msg_fmt, error_info, on_close):
         super().__init__()
+        style_mgr = ui_model.get_style_manager()
+        icon_bank = ui_model.get_icon_bank()
 
         self.setWindowTitle(title)
 
@@ -538,16 +545,20 @@ class ImportErrorDialog(QDialog):
 
         path, details = error_info
 
-        error_img_path = icon_bank.get_icon_path('error')
+        error_img_orig = QPixmap(icon_bank.get_icon_path('error'))
+        error_img = error_img_orig.scaledToWidth(
+                style_mgr.get_scaled_size_param('dialog_icon_size'),
+                Qt.SmoothTransformation)
         error_label = QLabel()
-        error_label.setPixmap(QPixmap(error_img_path))
+        error_label.setPixmap(error_img)
 
         self._message = QLabel()
         self._message.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
 
         h = QHBoxLayout()
-        h.setContentsMargins(8, 8, 8, 8)
-        h.setSpacing(16)
+        margin = style_mgr.get_scaled_size_param('large_padding')
+        h.setContentsMargins(margin, margin, margin, margin)
+        h.setSpacing(margin * 2)
         h.addWidget(error_label)
         h.addWidget(self._message)
 
@@ -581,22 +592,22 @@ class ImportErrorDialog(QDialog):
 
 class ModuleLoadErrorDialog(ImportErrorDialog):
 
-    def __init__(self, icon_bank, error_info, on_close):
+    def __init__(self, ui_model, error_info, on_close):
         super().__init__(
+                ui_model,
                 'Module loading failed',
                 'Could not load \'{}\' due to the following error:',
-                icon_bank,
                 error_info,
                 on_close)
 
 
 class AuImportErrorDialog(ImportErrorDialog):
 
-    def __init__(self, icon_bank, error_info, on_close):
+    def __init__(self, ui_model, error_info, on_close):
         super().__init__(
+                ui_model,
                 'Importing failed',
                 'Could not import \'{}\' due to the following error:',
-                icon_bank,
                 error_info,
                 on_close)
 

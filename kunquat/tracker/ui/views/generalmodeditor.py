@@ -15,6 +15,7 @@ from kunquat.tracker.ui.qt import *
 
 from .numberslider import NumberSlider
 from .updater import Updater
+from .utils import get_default_font_info
 
 
 class GeneralModEditor(QWidget, Updater):
@@ -40,43 +41,59 @@ class GeneralModEditor(QWidget, Updater):
                 self._dc_blocker,
                 self._random_seed)
 
-        ml = QGridLayout()
-        ml.setContentsMargins(0, 0, 0, 0)
-        ml.setHorizontalSpacing(4)
-        ml.setVerticalSpacing(2)
-        ml.addWidget(QLabel('Title:'), 0, 0)
-        ml.addWidget(self._title, 0, 1)
-        ml.addWidget(QLabel('Authors:'), 1, 0)
-        ml.addWidget(self._authors, 1, 1)
+        self._meta_layout = QGridLayout()
+        self._meta_layout.setContentsMargins(0, 0, 0, 0)
+        self._meta_layout.setHorizontalSpacing(4)
+        self._meta_layout.setVerticalSpacing(2)
+        self._meta_layout.addWidget(QLabel('Title:'), 0, 0)
+        self._meta_layout.addWidget(self._title, 0, 1)
+        self._meta_layout.addWidget(QLabel('Authors:'), 1, 0)
+        self._meta_layout.addWidget(self._authors, 1, 1)
 
         separator = QFrame()
+        separator.setObjectName('HackSeparator')
         separator.setFrameShape(QFrame.HLine)
         separator.setFrameShadow(QFrame.Sunken)
         separator.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
         separator.setMinimumHeight(2)
 
-        gl = QGridLayout()
-        gl.setContentsMargins(0, 0, 0, 0)
-        gl.setHorizontalSpacing(4)
-        gl.setVerticalSpacing(2)
-        gl.addWidget(QLabel('Mixing volume:'), 0, 0)
-        gl.addWidget(self._mixing_volume, 0, 1)
-        gl.addWidget(QLabel('Note force shift:'), 1, 0)
-        gl.addWidget(self._force_shift, 1, 1)
-        gl.addWidget(QLabel('Block dc:'), 2, 0)
-        gl.addWidget(self._dc_blocker, 2, 1)
-        gl.addWidget(QLabel('Initial random seed:'), 3, 0)
-        gl.addWidget(self._random_seed, 3, 1)
+        self._global_settings_layout = QGridLayout()
+        self._global_settings_layout.setContentsMargins(0, 0, 0, 0)
+        self._global_settings_layout.setHorizontalSpacing(4)
+        self._global_settings_layout.setVerticalSpacing(2)
+        self._global_settings_layout.addWidget(QLabel('Mixing volume:'), 0, 0)
+        self._global_settings_layout.addWidget(self._mixing_volume, 0, 1)
+        self._global_settings_layout.addWidget(QLabel('Note force shift:'), 1, 0)
+        self._global_settings_layout.addWidget(self._force_shift, 1, 1)
+        self._global_settings_layout.addWidget(QLabel('Block dc:'), 2, 0)
+        self._global_settings_layout.addWidget(self._dc_blocker, 2, 1)
+        self._global_settings_layout.addWidget(QLabel('Initial random seed:'), 3, 0)
+        self._global_settings_layout.addWidget(self._random_seed, 3, 1)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(4)
-        v.addLayout(ml)
+        v.addLayout(self._meta_layout)
         v.addWidget(QLabel('Message:'))
         v.addWidget(self._message)
         v.addWidget(separator)
-        v.addLayout(gl)
+        v.addLayout(self._global_settings_layout)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        spacing_x = style_mgr.get_scaled_size_param('medium_padding')
+        spacing_y = style_mgr.get_scaled_size_param('small_padding')
+
+        self._meta_layout.setHorizontalSpacing(spacing_x)
+        self._meta_layout.setVerticalSpacing(spacing_y)
+        self._global_settings_layout.setHorizontalSpacing(spacing_x)
+        self._global_settings_layout.setVerticalSpacing(spacing_y)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
 
 class Title(QLineEdit, Updater):
@@ -183,6 +200,7 @@ class Authors(QTableView, Updater):
 
         self.horizontalHeader().hide()
         self.verticalHeader().hide()
+        self.verticalHeader().setDefaultSectionSize(10)
 
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -194,7 +212,13 @@ class Authors(QTableView, Updater):
 
     def _on_setup(self):
         self.register_action('signal_authors', self._update_model)
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
         self._update_model()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.verticalHeader().setDefaultSectionSize(style_mgr.get_scaled_size(2))
 
     def _update_model(self):
         selected = None
@@ -241,14 +265,16 @@ class Message(QTextEdit, Updater):
     def __init__(self):
         super().__init__()
         self.setAcceptRichText(False)
-        font = QFont('monospace', 10)
-        font.setStyleHint(QFont.TypeWriter)
-        self.document().setDefaultFont(font)
 
     def _on_setup(self):
         self.register_action('signal_module_message', self._update_message)
+        self.register_action('signal_style_changed', self._update_style)
         self.textChanged.connect(self._change_message)
+        self._update_style()
         self._update_message()
+
+    def _update_style(self):
+        self.setStyleSheet('QTextEdit { font-family: monospace; }')
 
     def _update_message(self):
         module = self._ui_model.get_module()
@@ -275,10 +301,15 @@ class MixingVolume(NumberSlider, Updater):
 
     def _on_setup(self):
         self.register_action('signal_mixing_volume', self._update_mixing_volume)
+        self.register_action('signal_style_changed', self._update_style)
 
         self.numberChanged.connect(self._change_mixing_volume)
 
+        self._update_style()
         self._update_mixing_volume()
+
+    def _update_style(self):
+        self.update_style(self._ui_model.get_style_manager())
 
     def _update_mixing_volume(self):
         module = self._ui_model.get_module()
@@ -298,10 +329,15 @@ class ForceShift(NumberSlider, Updater):
 
     def _on_setup(self):
         self.register_action('signal_force_shift', self._update_shift)
+        self.register_action('signal_style_change', self._update_style)
 
         self.numberChanged.connect(self._change_shift)
 
+        self._update_style()
         self._update_shift()
+
+    def _update_style(self):
+        self.update_style(self._ui_model.get_style_manager())
 
     def _update_shift(self):
         module = self._ui_model.get_module()
@@ -358,11 +394,17 @@ class RandomSeed(QWidget, Updater):
 
     def _on_setup(self):
         self.register_action('signal_random_seed', self._update_all)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._seed.valueChanged.connect(self._change_random_seed)
         self._auto_update.stateChanged.connect(self._change_auto_update)
 
+        self._update_style()
         self._update_all()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_all(self):
         module = self._ui_model.get_module()

@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2014-2017
+#          Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -79,7 +79,7 @@ class TypewriterManager():
         return self._ROW_LENGTHS[row]
 
     def get_pad_factor_at_row(self, row):
-        pads = [1, 0, 2, 1]
+        pads = [1, 0, 2.3, 1.3]
         return pads[row]
 
     def _octaves_to_rows(self, octaves):

@@ -15,7 +15,7 @@ import string
 
 from kunquat.tracker.ui.qt import *
 
-from kunquat.tracker.ui.views.utils import set_glyph_rel_width
+from kunquat.tracker.ui.views.utils import set_glyph_rel_width, get_scaled_font
 
 
 _HEADER_FONT = QFont(QFont().defaultFamily(), 11, QFont.Bold)
@@ -65,7 +65,8 @@ DEFAULT_CONFIG = {
         'note_off_colour'  : QColor(0xcc, 0x99, 0x66),
         'warning_bg_colour': QColor(0xee, 0x33, 0x11),
         'warning_fg_colour': QColor(0xff, 0xff, 0xcc),
-        'padding'          : 3,
+        'padding_x'        : 6,
+        'padding_y'        : 3,
     },
     'edit_cursor': {
         'view_line_colour': QColor(0xdd, 0xee, 0xff),
@@ -99,9 +100,6 @@ DEFAULT_CONFIG = {
 
 
 def get_config_with_custom_style(style_mgr):
-    if not style_mgr.is_custom_style_enabled():
-        return {}
-
     config = {}
     config['ruler'] = {}
     config['header'] = {}
@@ -123,6 +121,8 @@ def get_config_with_custom_style(style_mgr):
         colour = [int(c, 16) for c in cs]
         return QColor(colour[0], colour[1], colour[2])
 
+    config['font'] = get_scaled_font(style_mgr, 1)
+
     canvas_bg_colour = _get_colour(style_mgr.get_style_param('sheet_canvas_bg_colour'))
     config['canvas_bg_colour'] = canvas_bg_colour
 
@@ -137,8 +137,11 @@ def get_config_with_custom_style(style_mgr):
             style_mgr.get_style_param('sheet_column_bg_colour'))
     config['border_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_column_border_colour'))
+    config['border_width'] = style_mgr.get_scaled_size(
+            style_mgr.get_style_param('border_thin_width'))
 
     # Ruler
+    config['ruler']['font'] = get_scaled_font(style_mgr, 0.75)
     config['ruler']['canvas_bg_colour'] = canvas_bg_colour
     config['ruler']['bg_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_ruler_bg_colour'))
@@ -149,8 +152,15 @@ def get_config_with_custom_style(style_mgr):
     config['ruler']['play_marker_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_ruler_playback_marker_colour'))
     config['ruler']['disabled_colour'] = disabled_colour
+    config['ruler']['line_min_dist'] = style_mgr.get_scaled_size(0.3)
+    config['ruler']['line_len_short'] = style_mgr.get_scaled_size(0.3)
+    config['ruler']['line_len_long'] = style_mgr.get_scaled_size(0.6)
+    config['ruler']['num_min_dist'] = style_mgr.get_scaled_size(3.0)
 
     # Column headers
+    header_font = get_scaled_font(style_mgr, 1, QFont.Bold)
+    set_glyph_rel_width(header_font, QWidget, string.ascii_lowercase, 14.79)
+    config['header']['font'] = header_font
     config['header']['bg_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_header_bg_colour'))
     config['header']['fg_colour'] = _get_colour(
@@ -158,6 +168,7 @@ def get_config_with_custom_style(style_mgr):
     solo_colour = _get_colour(style_mgr.get_style_param('sheet_header_solo_colour'))
     solo_colour.setAlpha(0x7f)
     config['header']['solo_colour'] = solo_colour
+    config['header']['padding_x'] = style_mgr.get_scaled_size(0.2)
 
     # Triggers
     config['trigger']['default_colour'] = _get_colour(
@@ -172,6 +183,8 @@ def get_config_with_custom_style(style_mgr):
             style_mgr.get_style_param('sheet_trigger_warning_bg_colour'))
     config['trigger']['warning_fg_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_trigger_warning_fg_colour'))
+    config['trigger']['padding_x'] = style_mgr.get_scaled_size(0.5, 0)
+    config['trigger']['padding_y'] = style_mgr.get_scaled_size(0.3, 0)
 
     # Cursor
     config['edit_cursor']['view_line_colour'] = _get_colour(
@@ -182,6 +195,7 @@ def get_config_with_custom_style(style_mgr):
     config['edit_cursor']['guide_colour'] = guide_colour
     config['play_cursor_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_playback_cursor_colour'))
+    config['edit_cursor']['min_snap_dist'] = style_mgr.get_scaled_size(10.0)
 
     # Area selection
     asc = _get_colour(style_mgr.get_style_param('sheet_area_selection_colour'))
@@ -201,6 +215,8 @@ def get_config_with_custom_style(style_mgr):
     for i in range(9):
         grid_styles[i].setColor(grid_colours[i // 3])
     grid_edit_cursor = DEFAULT_CONFIG['grid']['edit_cursor'].copy()
+    grid_edit_cursor['height'] = style_mgr.get_scaled_size(0.9)
+    grid_edit_cursor['width'] = style_mgr.get_scaled_size(1.1)
     grid_edit_cursor['colour'] = elc
     config['grid']['styles'] = grid_styles
     config['grid']['edit_cursor'] = grid_edit_cursor

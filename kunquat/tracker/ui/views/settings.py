@@ -23,6 +23,7 @@ from .headerline import HeaderLine
 from .numberslider import NumberSlider
 from . import utils
 from .updater import Updater
+from .utils import get_abs_window_size, get_default_font_info, update_ref_font_height
 
 
 class Settings(QWidget, Updater):
@@ -37,7 +38,7 @@ class Settings(QWidget, Updater):
 
         self._chord_mode = ChordMode()
 
-        self._style_toggle = StyleToggle()
+        self._font = FontButton()
         self._border_contrast = BorderContrast()
         self._button_brightness = ButtonBrightness()
         self._button_press_brightness = ButtonPressBrightness()
@@ -49,66 +50,96 @@ class Settings(QWidget, Updater):
                 self._samples,
                 self._effects,
                 self._chord_mode,
-                self._style_toggle,
+                self._font,
                 self._border_contrast,
                 self._button_brightness,
                 self._button_press_brightness,
                 self._colours)
 
-        dgl = QGridLayout()
-        dgl.setContentsMargins(0, 0, 0, 0)
-        dgl.setHorizontalSpacing(4)
-        dgl.setVerticalSpacing(2)
-        dgl.addWidget(QLabel('Modules:'), 0, 0)
-        dgl.addWidget(self._modules, 0, 1)
-        dgl.addWidget(QLabel('Instruments:'), 1, 0)
-        dgl.addWidget(self._instruments, 1, 1)
-        dgl.addWidget(QLabel('Samples:'), 2, 0)
-        dgl.addWidget(self._samples, 2, 1)
-        dgl.addWidget(QLabel('Effects:'), 3, 0)
-        dgl.addWidget(self._effects, 3, 1)
+        self._dirs_layout = QGridLayout()
+        self._dirs_layout.setContentsMargins(0, 0, 0, 0)
+        self._dirs_layout.setHorizontalSpacing(4)
+        self._dirs_layout.setVerticalSpacing(2)
+        self._dirs_layout.addWidget(QLabel('Modules:'), 0, 0)
+        self._dirs_layout.addWidget(self._modules, 0, 1)
+        self._dirs_layout.addWidget(QLabel('Instruments:'), 1, 0)
+        self._dirs_layout.addWidget(self._instruments, 1, 1)
+        self._dirs_layout.addWidget(QLabel('Samples:'), 2, 0)
+        self._dirs_layout.addWidget(self._samples, 2, 1)
+        self._dirs_layout.addWidget(QLabel('Effects:'), 3, 0)
+        self._dirs_layout.addWidget(self._effects, 3, 1)
 
-        uil = QGridLayout()
-        uil.setContentsMargins(0, 0, 0, 0)
-        uil.setHorizontalSpacing(4)
-        uil.setVerticalSpacing(2)
-        uil.setColumnStretch(2, 1)
-        uil.addWidget(QLabel('Chord editing mode:'), 0, 0)
-        uil.addWidget(self._chord_mode, 0, 1)
+        self._ui_layout = QGridLayout()
+        self._ui_layout.setContentsMargins(0, 0, 0, 0)
+        self._ui_layout.setHorizontalSpacing(4)
+        self._ui_layout.setVerticalSpacing(2)
+        self._ui_layout.setColumnStretch(2, 1)
+        self._ui_layout.addWidget(QLabel('Chord editing mode:'), 0, 0)
+        self._ui_layout.addWidget(self._chord_mode, 0, 1)
 
-        dl = QVBoxLayout()
-        dl.setContentsMargins(0, 0, 0, 0)
-        dl.setSpacing(4)
-        dl.addWidget(HeaderLine('Default directories'))
-        dl.addLayout(dgl)
-        dl.addWidget(HeaderLine('User interface')) # TODO: find a better place
-        dl.addLayout(uil)
-        dl.addStretch(1)
+        self._dir_header = HeaderLine('Default directories')
+        self._ui_header = HeaderLine('User interface')
 
-        bl = QGridLayout()
-        bl.setContentsMargins(0, 0, 0, 0)
-        bl.setSpacing(2)
-        bl.addWidget(QLabel('Border contrast:'), 0, 0)
-        bl.addWidget(self._border_contrast, 0, 1)
-        bl.addWidget(QLabel('Button brightness:'), 1, 0)
-        bl.addWidget(self._button_brightness, 1, 1)
-        bl.addWidget(QLabel('Button press brightness:'), 2, 0)
-        bl.addWidget(self._button_press_brightness, 2, 1)
+        self._behaviour_layout = QVBoxLayout()
+        self._behaviour_layout.setContentsMargins(0, 0, 0, 0)
+        self._behaviour_layout.setSpacing(4)
+        self._behaviour_layout.addWidget(self._dir_header)
+        self._behaviour_layout.addLayout(self._dirs_layout)
+        self._behaviour_layout.addWidget(self._ui_header)
+        self._behaviour_layout.addLayout(self._ui_layout)
+        self._behaviour_layout.addStretch(1)
 
-        ap = QVBoxLayout()
-        ap.setContentsMargins(0, 0, 0, 0)
-        ap.setSpacing(4)
-        ap.addWidget(HeaderLine('Appearance'))
-        ap.addWidget(self._style_toggle)
-        ap.addLayout(bl)
-        ap.addWidget(self._colours)
+        self._misc_style_layout = QGridLayout()
+        self._misc_style_layout.setContentsMargins(0, 0, 0, 0)
+        self._misc_style_layout.setSpacing(2)
+        self._misc_style_layout.addWidget(QLabel('Default font:'), 0, 0)
+        self._misc_style_layout.addWidget(self._font, 0, 1)
+        self._misc_style_layout.addWidget(QLabel('Border contrast:'), 1, 0)
+        self._misc_style_layout.addWidget(self._border_contrast, 1, 1)
+        self._misc_style_layout.addWidget(QLabel('Button brightness:'), 2, 0)
+        self._misc_style_layout.addWidget(self._button_brightness, 2, 1)
+        self._misc_style_layout.addWidget(QLabel('Button press brightness:'), 3, 0)
+        self._misc_style_layout.addWidget(self._button_press_brightness, 3, 1)
+
+        self._appearance_header = HeaderLine('Appearance')
+
+        self._appearance_layout = QVBoxLayout()
+        self._appearance_layout.setContentsMargins(0, 0, 0, 0)
+        self._appearance_layout.setSpacing(4)
+        self._appearance_layout.addWidget(self._appearance_header)
+        self._appearance_layout.addLayout(self._misc_style_layout)
+        self._appearance_layout.addWidget(self._colours)
 
         h = QHBoxLayout()
-        h.setContentsMargins(2, 2, 2, 2)
+        h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(8)
-        h.addLayout(dl)
-        h.addLayout(ap)
+        h.addLayout(self._behaviour_layout)
+        h.addLayout(self._appearance_layout)
         self.setLayout(h)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        spacing_x = style_mgr.get_scaled_size_param('medium_padding')
+        spacing_y = style_mgr.get_scaled_size_param('small_padding')
+
+        self._dir_header.update_style(style_mgr)
+        self._ui_header.update_style(style_mgr)
+        self._appearance_header.update_style(style_mgr)
+
+        self._dirs_layout.setHorizontalSpacing(spacing_x)
+        self._dirs_layout.setVerticalSpacing(spacing_y)
+        self._ui_layout.setHorizontalSpacing(spacing_x)
+        self._ui_layout.setVerticalSpacing(spacing_y)
+        self._behaviour_layout.setSpacing(spacing_y)
+        self._misc_style_layout.setHorizontalSpacing(spacing_x)
+        self._misc_style_layout.setHorizontalSpacing(spacing_y)
+        self._appearance_layout.setSpacing(spacing_y)
+
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('large_padding'))
 
 
 class Directory(QWidget, Updater):
@@ -129,11 +160,17 @@ class Directory(QWidget, Updater):
 
     def _on_setup(self):
         self.register_action('signal_settings_dir', self._update_dir)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._text.textEdited.connect(self._change_dir_text)
         self._browse.clicked.connect(self._change_dir_browse)
 
+        self._update_style()
         self._update_dir()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_dir(self):
         cfg = config.get_config()
@@ -204,31 +241,41 @@ class ChordMode(QCheckBox, Updater):
         self._updater.signal_update('signal_chord_mode_changed')
 
 
-class StyleToggle(QCheckBox, Updater):
+class FontButton(QPushButton, Updater):
 
     def __init__(self):
-        super().__init__('Enable custom style')
+        super().__init__()
 
     def _on_setup(self):
-        self.register_action('signal_style_changed', self._update_enabled)
-        self.stateChanged.connect(self._change_enabled)
-        self._update_enabled()
+        self.register_action('signal_style_changed', self._update_desc)
+        self._update_desc()
+        self.clicked.connect(self._change_desc)
 
-    def _update_enabled(self):
+    def _get_font(self):
         style_mgr = self._ui_model.get_style_manager()
-        enabled = style_mgr.is_custom_style_enabled()
+        font_family, font_size = get_default_font_info(style_mgr)
+        return (font_family, font_size)
 
-        old_block = self.blockSignals(True)
-        self.setCheckState(Qt.Checked if enabled else Qt.Unchecked)
-        self.blockSignals(old_block)
+    def _update_desc(self):
+        self.setText('{} {}'.format(*self._get_font()))
 
-    def _change_enabled(self, state):
-        enabled = (state == Qt.Checked)
+    def _change_desc(self):
+        font, new_font_selected = QFontDialog.getFont(
+                QFont(*self._get_font()), self, 'Select default font')
+        if not new_font_selected:
+            return
 
+        font_family = font.family()
+        font_size = min(max(1, font.pointSize()), 50)
         style_mgr = self._ui_model.get_style_manager()
-        style_mgr.set_custom_style_enabled(enabled)
+        style_mgr.set_style_param('def_font_family', font_family)
+        style_mgr.set_style_param('def_font_size', font_size)
+        update_ref_font_height((font_family, font_size), style_mgr)
 
-        self._updater.signal_update('signal_style_changed')
+        self._updater.signal_update(
+                'signal_style_changed',
+                'signal_sheet_zoom_range',
+                'signal_sheet_column_width')
 
 
 class StyleSlider(NumberSlider, Updater):
@@ -244,7 +291,7 @@ class StyleSlider(NumberSlider, Updater):
 
     def _update_param(self):
         style_mgr = self._ui_model.get_style_manager()
-        self.setEnabled(style_mgr.is_custom_style_enabled())
+        self.update_style(style_mgr)
         self.set_number(style_mgr.get_style_param(self._param))
 
     def _change_param(self, new_value):
@@ -521,7 +568,7 @@ class ColoursModel(QAbstractItemModel, Updater):
                             desc = desc[0].upper() + desc[1:]
                     return desc
                 elif column == 1:
-                    return node.get_colour()
+                    return '' # ColourButton takes care of display
             else:
                 assert False
 
@@ -553,6 +600,11 @@ class ColourButton(QPushButton):
     def set_colour(self, colour):
         style = 'QPushButton {{ background-color: {}; }}'.format(colour)
         self.setStyleSheet(style)
+
+    def update_style(self, style_mgr):
+        width = style_mgr.get_scaled_size(4.6)
+        height = style_mgr.get_scaled_size(1.5)
+        self.setFixedSize(QSize(width, height))
 
     def _clicked(self):
         self.colourSelected.emit(self._key)
@@ -593,6 +645,15 @@ class ColourSelector(QWidget):
         self._state = self._STATE_IDLE
 
         self.setMouseTracking(True)
+
+    def update_style(self, style_mgr):
+        config = {
+            'hue_marker_thickness'  : style_mgr.get_scaled_size(0.2),
+            'sv_marker_radius'      : style_mgr.get_scaled_size(0.5),
+            'sv_marker_thickness'   : style_mgr.get_scaled_size(0.2),
+        }
+
+        self._config.update(config)
 
     def set_colour(self, colour):
         if self._colour.toRgb() != colour.toRgb():
@@ -1016,7 +1077,7 @@ class ColourSelector(QWidget):
         return self._sv_triangle
 
     def minimumSizeHint(self):
-        return QSize(192, 192)
+        return get_abs_window_size(0.15, 0.25)
 
 
 class ColourCodeValidator(QValidator):
@@ -1045,6 +1106,9 @@ class ColourComparison(QWidget):
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.setAttribute(Qt.WA_NoSystemBackground)
 
+    def update_style(self, style_mgr):
+        self.setMinimumHeight(style_mgr.get_scaled_size(3))
+
     def set_original_colour(self, colour):
         self._orig_colour = colour
         self.update()
@@ -1060,9 +1124,6 @@ class ColourComparison(QWidget):
         painter = QPainter(self)
         painter.fillRect(0, 0, width // 2, height, self._orig_colour)
         painter.fillRect(width // 2, 0, width // 2, height, self._new_colour)
-
-    def minimumSizeHint(self):
-        return QSize(128, 32)
 
 
 class ColourEditor(QWidget):
@@ -1086,11 +1147,11 @@ class ColourEditor(QWidget):
         self._accept_button = QPushButton('Done')
 
         # Code editor layout
-        cl = QHBoxLayout()
-        cl.setContentsMargins(0, 0, 0, 0)
-        cl.setSpacing(2)
-        cl.addWidget(QLabel('Code:'))
-        cl.addWidget(self._code_editor, 1)
+        self._code_layout = QHBoxLayout()
+        self._code_layout.setContentsMargins(0, 0, 0, 0)
+        self._code_layout.setSpacing(2)
+        self._code_layout.addWidget(QLabel('Code:'))
+        self._code_layout.addWidget(self._code_editor, 1)
 
         # Colour comparison layout
         orig_label = QLabel('Original')
@@ -1100,32 +1161,32 @@ class ColourEditor(QWidget):
         new_label.setAlignment(Qt.AlignHCenter)
         new_label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
 
-        ctl = QHBoxLayout()
-        ctl.setContentsMargins(0, 0, 0, 0)
-        ctl.setSpacing(2)
-        ctl.addWidget(orig_label)
-        ctl.addWidget(new_label)
-        compl = QVBoxLayout()
-        compl.setContentsMargins(0, 0, 0, 0)
-        compl.setSpacing(2)
-        compl.addLayout(ctl)
-        compl.addWidget(self._comparison)
+        self._comp_label_layout = QHBoxLayout()
+        self._comp_label_layout.setContentsMargins(0, 0, 0, 0)
+        self._comp_label_layout.setSpacing(2)
+        self._comp_label_layout.addWidget(orig_label)
+        self._comp_label_layout.addWidget(new_label)
+        self._comp_layout = QVBoxLayout()
+        self._comp_layout.setContentsMargins(0, 0, 0, 0)
+        self._comp_layout.setSpacing(2)
+        self._comp_layout.addLayout(self._comp_label_layout)
+        self._comp_layout.addWidget(self._comparison)
 
         # Button layout
-        bl = QHBoxLayout()
-        bl.setContentsMargins(0, 0, 0, 0)
-        bl.setSpacing(2)
-        bl.addWidget(self._revert_button)
-        bl.addWidget(self._accept_button)
+        self._button_layout = QHBoxLayout()
+        self._button_layout.setContentsMargins(0, 0, 0, 0)
+        self._button_layout.setSpacing(2)
+        self._button_layout.addWidget(self._revert_button)
+        self._button_layout.addWidget(self._accept_button)
 
         # Top layout
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
         v.addWidget(self._selector)
-        v.addLayout(cl)
-        v.addLayout(compl)
-        v.addLayout(bl)
+        v.addLayout(self._code_layout)
+        v.addLayout(self._comp_layout)
+        v.addLayout(self._button_layout)
         self.setLayout(v)
 
         self._selector.colourChanged.connect(self._change_colour)
@@ -1136,6 +1197,21 @@ class ColourEditor(QWidget):
         self._revert_button.clicked.connect(self._revert)
 
         self._accept_button.clicked.connect(self.hide)
+
+    def update_style(self, style_mgr):
+        self._selector.update_style(style_mgr)
+        self._comparison.update_style(style_mgr)
+
+        spacing = style_mgr.get_scaled_size_param('small_padding')
+        self._code_layout.setSpacing(spacing)
+        self._comp_label_layout.setSpacing(spacing)
+        self._comp_layout.setSpacing(spacing)
+        self._button_layout.setSpacing(spacing)
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        top_spacing = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(top_spacing)
 
     def set_colour(self, key, colour):
         self._key = key
@@ -1232,14 +1308,10 @@ class Colours(QTreeView, Updater):
         self._update_all()
 
     def _update_all(self):
-        self._update_enabled()
-        self._update_button_colours()
+        self._update_buttons()
+        self._colour_editor.update_style(self._ui_model.get_style_manager())
 
-    def _update_enabled(self):
-        style_mgr = self._ui_model.get_style_manager()
-        self.setEnabled(style_mgr.is_custom_style_enabled())
-
-    def _update_button_colours(self):
+    def _update_buttons(self):
         style_mgr = self._ui_model.get_style_manager()
 
         for index in self._model.get_colour_indices():
@@ -1248,6 +1320,7 @@ class Colours(QTreeView, Updater):
                 key = button.get_key()
                 colour = style_mgr.get_style_param(key)
                 button.set_colour(colour)
+                button.update_style(style_mgr)
 
     def _open_colour_editor(self, key):
         style_mgr = self._ui_model.get_style_manager()

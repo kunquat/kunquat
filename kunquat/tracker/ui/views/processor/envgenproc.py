@@ -14,7 +14,6 @@
 from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.envelope import Envelope
-from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
 from .procnumslider import ProcNumSlider
 from .proctimeenv import ProcessorTimeEnvelope
@@ -41,15 +40,16 @@ class EnvgenProc(QWidget, ProcessorUpdater):
         self._triggers = Triggers()
         self._time_env = EgenTimeEnv()
 
-        rl = QHBoxLayout()
-        rl.addWidget(self._linear_force)
-        rl.addWidget(self._range)
+        self._range_layout = QHBoxLayout()
+        self._range_layout.setContentsMargins(0, 0, 0, 0)
+        self._range_layout.addWidget(self._linear_force)
+        self._range_layout.addWidget(self._range)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
         v.addWidget(self._global_adjust)
-        v.addLayout(rl)
+        v.addLayout(self._range_layout)
         v.addWidget(self._triggers)
         v.addWidget(self._time_env)
         self.setLayout(v)
@@ -61,9 +61,21 @@ class EnvgenProc(QWidget, ProcessorUpdater):
                 self._global_adjust, self._range, self._triggers, self._time_env)
         self.register_action(self._get_update_signal_type(), self._update_linear_force)
 
+        self.register_action('signal_style_changed', self._update_style)
+
         self._linear_force.stateChanged.connect(self._change_linear_force)
 
+        self._update_style()
         self._update_linear_force()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        self._range_layout.setSpacing(style_mgr.get_scaled_size_param('large_padding'))
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _get_update_signal_type(self):
         return 'signal_egen_linear_force_{}'.format(self._proc_id)
@@ -146,12 +158,14 @@ class RangeEditor(QWidget, ProcessorUpdater):
         self.register_action(self._get_update_signal_type(), self._update_range_params)
         self.register_action(
                 self._get_linear_force_signal_type(), self._update_force_type)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._min_editor.editingFinished.connect(self._set_range_min)
         self._min_var_editor.valueChanged.connect(self._set_range_min_var)
         self._max_editor.editingFinished.connect(self._set_range_max)
         self._max_var_editor.valueChanged.connect(self._set_range_max_var)
 
+        self._update_style()
         self._update_range_params()
         self._update_force_type()
 
@@ -160,6 +174,15 @@ class RangeEditor(QWidget, ProcessorUpdater):
 
     def _get_linear_force_signal_type(self):
         return 'signal_egen_linear_force_{}'.format(self._proc_id)
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        self._disableables.setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
+
+        margin_x = style_mgr.get_scaled_size_param('large_padding')
+        self.layout().setContentsMargins(margin_x, 0, margin_x, 0)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_range_params(self):
         egen_params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -224,24 +247,24 @@ class Triggers(QWidget, ProcessorUpdater):
         self._impulse_ceil = QCheckBox('On signal ceiling,')
         self._impulse_ceil_bounds = TriggerImpulseCeilBounds()
 
-        gl = QGridLayout()
-        gl.setContentsMargins(12, 0, 0, 0)
-        gl.setVerticalSpacing(2)
-        gl.setHorizontalSpacing(8)
-        gl.setColumnStretch(2, 1)
-        gl.addWidget(self._immediate, 0, 0)
-        gl.addWidget(QWidget(), 0, 2)
-        gl.addWidget(self._release, 1, 0)
-        gl.addWidget(self._impulse_floor, 2, 0)
-        gl.addWidget(self._impulse_floor_bounds, 2, 1)
-        gl.addWidget(self._impulse_ceil, 3, 0)
-        gl.addWidget(self._impulse_ceil_bounds, 3, 1)
+        self._settings_layout = QGridLayout()
+        self._settings_layout.setContentsMargins(12, 0, 0, 0)
+        self._settings_layout.setVerticalSpacing(2)
+        self._settings_layout.setHorizontalSpacing(8)
+        self._settings_layout.setColumnStretch(2, 1)
+        self._settings_layout.addWidget(self._immediate, 0, 0)
+        self._settings_layout.addWidget(QWidget(), 0, 2)
+        self._settings_layout.addWidget(self._release, 1, 0)
+        self._settings_layout.addWidget(self._impulse_floor, 2, 0)
+        self._settings_layout.addWidget(self._impulse_floor_bounds, 2, 1)
+        self._settings_layout.addWidget(self._impulse_ceil, 3, 0)
+        self._settings_layout.addWidget(self._impulse_ceil_bounds, 3, 1)
 
         v = QVBoxLayout()
         v.setContentsMargins(2, 2, 2, 2)
         v.setSpacing(4)
         v.addWidget(QLabel('Trigger:'))
-        v.addLayout(gl)
+        v.addLayout(self._settings_layout)
         self.setLayout(v)
 
     def _get_update_signal_type(self):
@@ -250,16 +273,32 @@ class Triggers(QWidget, ProcessorUpdater):
     def _on_setup(self):
         self.add_to_updaters(self._impulse_floor_bounds, self._impulse_ceil_bounds)
         self.register_action(self._get_update_signal_type(), self._update_all)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._immediate.stateChanged.connect(self._change_immediate)
         self._release.stateChanged.connect(self._change_release)
         self._impulse_floor.stateChanged.connect(self._change_impulse_floor)
         self._impulse_ceil.stateChanged.connect(self._change_impulse_ceil)
 
+        self._update_style()
         self._update_all()
 
     def _get_egen_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        self._settings_layout.setContentsMargins(
+                style_mgr.get_scaled_size_param('large_padding'), 0, 0, 0)
+        self._settings_layout.setHorizontalSpacing(
+                style_mgr.get_scaled_size_param('large_padding'))
+        self._settings_layout.setVerticalSpacing(
+                style_mgr.get_scaled_size_param('small_padding'))
+
+        margin = style_mgr.get_scaled_size_param('small_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_all(self):
         egen_params = self._get_egen_params()
@@ -324,14 +363,20 @@ class TriggerImpulseBounds(QWidget, ProcessorUpdater):
 
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_all)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._start_value.editingFinished.connect(self._change_start)
         self._stop_value.editingFinished.connect(self._change_stop)
 
+        self._update_style()
         self._update_all()
 
     def _get_egen_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_all(self):
         self._update_enabled()

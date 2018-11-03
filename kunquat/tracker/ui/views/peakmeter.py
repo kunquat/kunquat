@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2017
+# Author: Tomi Jylhä-Ollila, Finland 2013-2018
 #
 # This file is part of Kunquat.
 #
@@ -90,10 +90,6 @@ class PeakMeter(QWidget):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
-        if not style_mgr.is_custom_style_enabled():
-            self._set_config({})
-            self.update()
-            return
 
         colours = {
             'bg':   QColor(style_mgr.get_style_param('peak_meter_bg_colour')),
@@ -103,7 +99,13 @@ class PeakMeter(QWidget):
             'clip': QColor(style_mgr.get_style_param('peak_meter_clip_colour')),
         }
 
-        config = { 'colours': colours }
+        config = {
+            'colours'   : colours,
+            'thickness' : style_mgr.get_scaled_size(0.32),
+            'padding'   : style_mgr.get_scaled_size(0.16),
+            'clip_width': style_mgr.get_scaled_size(2.2),
+            'hold_width': style_mgr.get_scaled_size(0.5),
+        }
 
         self._set_config(config)
         self.update()

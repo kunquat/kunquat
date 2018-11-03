@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -31,11 +31,22 @@ class VolumeProc(QWidget, ProcessorUpdater):
         self.add_to_updaters(self._volume)
 
         v = QVBoxLayout()
-        v.setSpacing(10)
+        v.setSpacing(2)
         v.addWidget(self._volume, 0, Qt.AlignTop)
         self.setLayout(v)
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
 
 class VolumeSlider(ProcNumSlider):

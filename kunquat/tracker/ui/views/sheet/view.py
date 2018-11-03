@@ -517,7 +517,7 @@ class View(QWidget):
                 init_trigger_row_width = self._get_init_trigger_row_width(
                         rends, trigger_index)
 
-                trigger_padding = self._config['trigger']['padding']
+                trigger_padding = self._config['trigger']['padding_x']
 
                 border_width = self._config['border_width']
                 vis_width = self._col_width - border_width * 2
@@ -678,16 +678,17 @@ class View(QWidget):
             # No triggers, just draw a cursor
             if self._sheet_mgr.get_replace_mode():
                 self._draw_hollow_replace_cursor(
-                        painter, self._config['trigger']['padding'], 0)
+                        painter, self._config['trigger']['padding_x'], 0)
             else:
                 self._draw_hollow_insert_cursor(
-                        painter, self._config['trigger']['padding'], 0)
+                        painter, self._config['trigger']['padding_x'], 0)
 
     def _get_hollow_replace_cursor_rect(self):
+        style_mgr = self._ui_model.get_style_manager()
         metrics = self._config['font_metrics']
         rect = metrics.tightBoundingRect('a') # Seems to produce an OK width
         rect.setTop(0)
-        rect.setBottom(self._config['tr_height'] - 3)
+        rect.setBottom(self._config['tr_height'] - style_mgr.get_scaled_size(0.2))
         return rect
 
     def _draw_hollow_replace_cursor(self, painter, x_offset, y_offset):
@@ -697,12 +698,18 @@ class View(QWidget):
         painter.drawRect(rect)
 
     def _draw_insert_cursor(self, painter, x_offset, y_offset):
-        rect = QRect(QPoint(0, 0), QPoint(2, self._config['tr_height'] - 2))
+        style_mgr = self._ui_model.get_style_manager()
+        width = style_mgr.get_scaled_size(0.2)
+        height = self._config['tr_height'] - style_mgr.get_scaled_size(0.15)
+        rect = QRect(QPoint(0, 0), QPoint(width, height))
         rect.translate(x_offset, y_offset)
         painter.fillRect(rect, self._config['trigger']['default_colour'])
 
     def _draw_hollow_insert_cursor(self, painter, x_offset, y_offset):
-        rect = QRect(QPoint(0, 0), QPoint(1, self._config['tr_height'] - 3))
+        style_mgr = self._ui_model.get_style_manager()
+        width = style_mgr.get_scaled_size(0.2)
+        height = self._config['tr_height'] - style_mgr.get_scaled_size(0.2)
+        rect = QRect(QPoint(0, 0), QPoint(width, height))
         rect.translate(x_offset, y_offset)
         painter.setPen(self._config['trigger']['default_colour'])
         painter.drawRect(rect)
@@ -1201,7 +1208,7 @@ class View(QWidget):
         else:
             hollow_rect = self._get_hollow_replace_cursor_rect()
             dist_from_last = vis_x_offset - init_width
-            trigger_padding = self._config['trigger']['padding']
+            trigger_padding = self._config['trigger']['padding_x']
             if dist_from_last > hollow_rect.width() + trigger_padding:
                 return -1
 
@@ -1841,6 +1848,14 @@ class View(QWidget):
             history = self._ui_model.get_sheet_history()
             history.redo()
 
+        def handle_zoom(new_zoom):
+            if self._sheet_mgr.set_zoom(new_zoom):
+                self._updater.signal_update('signal_sheet_zoom')
+
+        def handle_column_width(new_width):
+            if self._sheet_mgr.set_column_width(new_width):
+                self._updater.signal_update('signal_sheet_column_width')
+
         def handle_playback_marker():
             cur_location = self._ui_model.get_selection().get_location()
             cur_track = cur_location.get_track()
@@ -1860,22 +1875,20 @@ class View(QWidget):
             },
 
             int(Qt.ControlModifier): {
-                Qt.Key_Minus:   lambda: self._sheet_mgr.set_zoom(
-                                    self._sheet_mgr.get_zoom() - 1),
-                Qt.Key_Plus:    lambda: self._sheet_mgr.set_zoom(
-                                    self._sheet_mgr.get_zoom() + 1),
-                Qt.Key_0:       lambda: self._sheet_mgr.set_zoom(0),
+                Qt.Key_Minus:   lambda: handle_zoom(self._sheet_mgr.get_zoom() - 1),
+                Qt.Key_Plus:    lambda: handle_zoom(self._sheet_mgr.get_zoom() + 1),
+                Qt.Key_0:       lambda: handle_zoom(0),
             },
 
             int(Qt.ControlModifier | Qt.ShiftModifier): {
             },
 
             int(Qt.ControlModifier | Qt.AltModifier): {
-                Qt.Key_Minus:   lambda: self._sheet_mgr.set_column_width(
+                Qt.Key_Minus:   lambda: handle_column_width(
                                     self._sheet_mgr.get_column_width() - 1),
-                Qt.Key_Plus:    lambda: self._sheet_mgr.set_column_width(
+                Qt.Key_Plus:    lambda: handle_column_width(
                                     self._sheet_mgr.get_column_width() + 1),
-                Qt.Key_0:       lambda: self._sheet_mgr.set_column_width(0),
+                Qt.Key_0:       lambda: handle_column_width(0),
                 Qt.Key_Comma:   handle_playback_marker,
             },
 

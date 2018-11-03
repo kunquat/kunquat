@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -34,6 +34,16 @@ class InfoEditor(QWidget, ProcessorUpdater):
         v.addWidget(self._message)
         self.setLayout(v)
 
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
+
 
 class Name(QWidget, ProcessorUpdater):
 
@@ -49,8 +59,14 @@ class Name(QWidget, ProcessorUpdater):
 
     def _on_setup(self):
         self.register_action('signal_controls', self._update_name)
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
         self._update_name()
         self._edit.textEdited.connect(self._text_edited)
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_name(self):
         old_block = self._edit.blockSignals(True)
@@ -76,17 +92,19 @@ class Message(QTextEdit, ProcessorUpdater):
     def __init__(self):
         super().__init__()
         self.setAcceptRichText(False)
-        font = QFont('monospace', 10)
-        font.setStyleHint(QFont.TypeWriter)
-        self.document().setDefaultFont(font)
 
     def _get_update_signal_type(self):
         return 'signal_proc_message_{}'.format(self._proc_id)
 
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_message)
+        self.register_action('signal_style_changed', self._update_style)
         self.textChanged.connect(self._change_message)
+        self._update_style()
         self._update_message()
+
+    def _update_style(self):
+        self.setStyleSheet('QTextEdit { font-family: monospace; }')
 
     def _update_message(self):
         module = self._ui_model.get_module()

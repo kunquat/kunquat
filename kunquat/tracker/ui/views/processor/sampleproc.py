@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from copy import deepcopy
 import math
 import time
 
@@ -23,11 +24,12 @@ from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, Vertic
 from kunquat.tracker.ui.views.confirmdialog import ConfirmDialog
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
-from kunquat.tracker.ui.views.utils import lerp_val, set_glyph_rel_width
+from kunquat.tracker.ui.views.utils import lerp_val, set_glyph_rel_width, get_scaled_font
 from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
+from .processorupdater import ProcessorUpdater
+from .prociconbutton import ProcessorIconButton
 from .prockeyboardmapper import ProcessorKeyboardMapper
 from .sampleview import SampleView
-from .processorupdater import ProcessorUpdater
 from . import utils
 
 
@@ -68,6 +70,17 @@ class NoteMapEditor(QWidget, ProcessorUpdater):
         h.addWidget(self._note_map, 1)
         h.addWidget(self._note_map_entry, 2)
         self.setLayout(h)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
 
 class RandomListMap(QWidget, ProcessorUpdater):
@@ -133,7 +146,8 @@ class RandomListMap(QWidget, ProcessorUpdater):
         self._is_start_snapping_active = False
         self._moving_pointer_offset = (0, 0)
 
-        self._config = None
+        self._config = {}
+        self._axis_config = {}
         self._set_configs({}, {})
 
         self.setAutoFillBackground(False)
@@ -159,22 +173,30 @@ class RandomListMap(QWidget, ProcessorUpdater):
         self._config = self._DEFAULT_CONFIG.copy()
         self._config.update(config)
 
+        axis_x = axis_config.pop('axis_x', {})
+        axis_y = axis_config.pop('axis_y', {})
+
+        def_font = self._AXIS_CONFIG.pop('label_font', None)
+        final_axis_config = deepcopy(self._AXIS_CONFIG)
+        self._AXIS_CONFIG['label_font'] = def_font
+        final_axis_config['label_font'] = def_font
+
+        final_axis_config.update(axis_config)
+        final_axis_config['axis_x'].update(axis_x)
+        final_axis_config['axis_y'].update(axis_y)
+
         if not self._has_pitch_axis():
             padding = self._config['padding']
-            x_axis_height = self._AXIS_CONFIG['axis_x']['height']
+            x_axis_height = final_axis_config['axis_x']['height']
             self.setFixedHeight(padding * 2 + x_axis_height)
 
-        final_axis_config = self._AXIS_CONFIG.copy()
-        final_axis_config.update(axis_config)
+        self._axis_config = final_axis_config
+
         self._axis_x_renderer.set_config(final_axis_config, self)
         self._axis_y_renderer.set_config(final_axis_config, self)
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
-        if not style_mgr.is_custom_style_enabled():
-            self._set_configs({}, {})
-            self.update()
-            return
 
         def get_colour(param):
             return QColor(style_mgr.get_style_param(param))
@@ -183,17 +205,42 @@ class RandomListMap(QWidget, ProcessorUpdater):
         focus_axis_colour = QColor(focus_colour)
         focus_axis_colour.setAlpha(0x7f)
 
+        font = get_scaled_font(style_mgr, 0.8, QFont.Bold)
+        set_glyph_rel_width(font, QWidget, '23456789' * 8, 50)
+
         config = {
-            'bg_colour': get_colour('sample_map_bg_colour'),
-            'point_colour': get_colour('sample_map_point_colour'),
-            'focused_point_colour': focus_colour,
-            'focused_point_axis_colour': focus_axis_colour,
-            'selected_highlight_colour': get_colour('sample_map_selected_colour'),
+            'padding'               : style_mgr.get_scaled_size_param('large_padding'),
+            'bg_colour'             : get_colour('sample_map_bg_colour'),
+            'point_colour'          : get_colour('sample_map_point_colour'),
+            'focused_point_colour'  : focus_colour,
+            'focused_point_axis_colour' : focus_axis_colour,
+            'point_size'                : style_mgr.get_scaled_size(0.7),
+            'point_size_focus_dist_max' : style_mgr.get_scaled_size(0.9),
+            'selected_highlight_colour' : get_colour('sample_map_selected_colour'),
+            'selected_highlight_size'   : style_mgr.get_scaled_size(1.1),
+            'selected_highlight_width'  : style_mgr.get_scaled_size(0.2),
+            'move_snap_dist'            : style_mgr.get_scaled_size(1.6),
+            'remove_dist_min'           : style_mgr.get_scaled_size(25),
         }
 
         axis_config = {
-            'label_colour': get_colour('sample_map_axis_label_colour'),
-            'line_colour': get_colour('sample_map_axis_line_colour'),
+            'axis_x': {
+                'height'            : style_mgr.get_scaled_size(2),
+                'marker_min_dist'   : style_mgr.get_scaled_size(0.3),
+                'marker_min_width'  : style_mgr.get_scaled_size(0.3),
+                'marker_max_width'  : style_mgr.get_scaled_size(0.6),
+                'label_min_dist'    : style_mgr.get_scaled_size(6),
+            },
+            'axis_y': {
+                'width'             : style_mgr.get_scaled_size(5),
+                'marker_min_dist'   : style_mgr.get_scaled_size(0.3),
+                'marker_min_width'  : style_mgr.get_scaled_size(0.3),
+                'marker_max_width'  : style_mgr.get_scaled_size(0.6),
+                'label_min_dist'    : style_mgr.get_scaled_size(4),
+            },
+            'label_font'    : font,
+            'label_colour'  : get_colour('sample_map_axis_label_colour'),
+            'line_colour'   : get_colour('sample_map_axis_line_colour'),
         }
 
         self._set_configs(config, axis_config)
@@ -350,9 +397,9 @@ class RandomListMap(QWidget, ProcessorUpdater):
         padding = self._config['padding']
 
         # Axes
-        axis_x_height = self._AXIS_CONFIG['axis_x']['height']
+        axis_x_height = self._axis_config['axis_x']['height']
         axis_x_top = self.height() - padding - axis_x_height
-        axis_y_width = self._AXIS_CONFIG['axis_y']['width']
+        axis_y_width = self._axis_config['axis_y']['width']
         axis_x_length = self.width() - axis_y_width - (padding * 2) + 1
         axis_y_length = self.height() - axis_x_height - (padding * 2) + 1
 
@@ -511,29 +558,31 @@ class NoteMapEntry(QWidget, ProcessorUpdater):
 
         self.add_to_updaters(self._random_list)
 
-        h = QHBoxLayout()
-        h.setContentsMargins(0, 0, 0, 0)
-        h.setSpacing(2)
-        h.addWidget(TightLabel('Pitch:'))
-        h.addWidget(self._pitch)
-        h.addSpacing(2)
-        h.addWidget(TightLabel('Force:'))
-        h.addWidget(self._force)
+        self._params_layout = QHBoxLayout()
+        self._params_layout.setContentsMargins(0, 0, 0, 0)
+        self._params_layout.setSpacing(2)
+        self._params_layout.addWidget(TightLabel('Pitch:'))
+        self._params_layout.addWidget(self._pitch)
+        self._params_layout.addSpacing(2)
+        self._params_layout.addWidget(TightLabel('Force:'))
+        self._params_layout.addWidget(self._force)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addLayout(h)
+        v.addLayout(self._params_layout)
         v.addWidget(self._random_list)
         self.setLayout(v)
 
     def _on_setup(self):
         self.register_action(self._get_selection_signal_type(), self._update_all)
         self.register_action(self._get_move_signal_type(), self._update_all)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._pitch.valueChanged.connect(self._move)
         self._force.valueChanged.connect(self._move)
 
+        self._update_style()
         self._update_all()
 
     def _get_selection_signal_type(self):
@@ -544,6 +593,19 @@ class NoteMapEntry(QWidget, ProcessorUpdater):
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        spacing = style_mgr.get_scaled_size_param('small_padding')
+
+        self._params_layout.setSpacing(spacing)
+        for i in range(self._params_layout.count()):
+            spacer = self._params_layout.itemAt(i).spacerItem()
+            if spacer:
+                spacer.changeSize(spacing, 2)
+
+        self.layout().setSpacing(spacing)
 
     def _update_all(self):
         sample_params = self._get_sample_params()
@@ -701,9 +763,9 @@ class RandomEntryEditor(QWidget, ProcessorUpdater):
         self._volume_shift = VarPrecSpinBox(step_decimals=0, max_decimals=2)
         self._volume_shift.setRange(-64, 64)
 
-        self._remove_button = QPushButton()
-        #self._remove_button.setStyleSheet('padding: 0 -2px;')
-        self._remove_button.setIconSize(QSize(16, 16))
+        self._remove_button = ProcessorIconButton()
+
+        self.add_to_updaters(self._remove_button)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -722,19 +784,36 @@ class RandomEntryEditor(QWidget, ProcessorUpdater):
         for signal in self._get_update_signals():
             self.register_action(signal, self._update_all)
 
-        icon_bank = self._ui_model.get_icon_bank()
-        self._remove_button.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
-        self._remove_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
+        self.register_action('signal_style_changed', self._update_style)
+
+        self._remove_button.set_icon('delete_small')
+
+        style_mgr = self._ui_model.get_style_manager()
+        self._remove_button.set_sizes(
+                style_mgr.get_style_param('list_button_size'),
+                style_mgr.get_style_param('list_button_padding'))
 
         self._sample_selector.currentIndexChanged.connect(self._change_sample)
         self._pitch_shift.valueChanged.connect(self._change_pitch_shift)
         self._volume_shift.valueChanged.connect(self._change_volume_shift)
         self._remove_button.clicked.connect(self._remove_entry)
 
+        self._update_style()
         self._update_all()
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        spacing = style_mgr.get_scaled_size_param('small_padding')
+
+        self.layout().setSpacing(spacing)
+        for i in range(self.layout().count()):
+            spacer = self.layout().itemAt(i).spacerItem()
+            if spacer:
+                spacer.changeSize(spacing, 2)
 
     def _update_all(self):
         sample_params = self._get_sample_params()
@@ -864,6 +943,17 @@ class HitMapEditor(QWidget, ProcessorUpdater):
         v.addWidget(self._hit_map_entry)
         self.setLayout(v)
 
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
+
 
 class SampleHitSelector(HitSelector, ProcessorUpdater):
 
@@ -876,6 +966,9 @@ class SampleHitSelector(HitSelector, ProcessorUpdater):
 
         self.create_layout(self._ui_model.get_typewriter_manager())
         self.update_contents()
+
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
 
     def _get_update_signal_type(self):
         return 'signal_sample_hit_map_hit_selection_{}'.format(self._proc_id)
@@ -900,6 +993,9 @@ class SampleHitSelector(HitSelector, ProcessorUpdater):
         au = module.get_audio_unit(self._au_id)
         hit = au.get_hit(index)
         return hit.get_name()
+
+    def _update_style(self):
+        self.update_style(self._ui_model.get_style_manager())
 
 
 class HitMap(RandomListMap):
@@ -977,16 +1073,16 @@ class HitMapEntry(QWidget, ProcessorUpdater):
 
         self._random_list = HitRandomList()
 
-        h = QHBoxLayout()
-        h.setContentsMargins(0, 0, 0, 0)
-        h.setSpacing(2)
-        h.addWidget(TightLabel('Force:'))
-        h.addWidget(self._force)
+        self._params_layout = QHBoxLayout()
+        self._params_layout.setContentsMargins(0, 0, 0, 0)
+        self._params_layout.setSpacing(2)
+        self._params_layout.addWidget(TightLabel('Force:'))
+        self._params_layout.addWidget(self._force)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addLayout(h)
+        v.addLayout(self._params_layout)
         v.addWidget(self._random_list)
         self.setLayout(v)
 
@@ -996,9 +1092,11 @@ class HitMapEntry(QWidget, ProcessorUpdater):
         self.register_action(self._get_selection_signal_type(), self._update_all)
         self.register_action(self._get_move_signal_type(), self._update_all)
         self.register_action(self._get_hit_selection_signal_type(), self._update_all)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._force.valueChanged.connect(self._move)
 
+        self._update_style()
         self._update_all()
 
     def _get_selection_signal_type(self):
@@ -1012,6 +1110,13 @@ class HitMapEntry(QWidget, ProcessorUpdater):
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        spacing = style_mgr.get_scaled_size_param('small_padding')
+        self._params_layout.setSpacing(spacing)
+        self.layout().setSpacing(spacing)
 
     def _update_all(self):
         sample_params = self._get_sample_params()
@@ -1195,13 +1300,12 @@ class SampleListToolBar(QToolBar, ProcessorUpdater):
         if sample_paths:
             # Make sure we've got enough space
             if len(sample_paths) > free_count:
-                icon_bank = self._ui_model.get_icon_bank()
                 error_msg_lines = [
                         'Too many samples requested ({})'.format(len(sample_paths)),
                         'This processor has space for {} more sample{}'.format(
                             free_count, '' if free_count == 1 else 's')]
                 error_msg = '<p>{}</p>'.format('<br>'.join(error_msg_lines))
-                dialog = ImportErrorDialog(icon_bank, error_msg)
+                dialog = ImportErrorDialog(self._ui_model, error_msg)
                 dialog.exec_()
                 return
 
@@ -1214,10 +1318,9 @@ class SampleListToolBar(QToolBar, ProcessorUpdater):
                         self._get_hit_map_random_list_signal_type())
 
             def on_error(e):
-                icon_bank = self._ui_model.get_icon_bank()
                 error_msg_lines = str(e).split('\n')
                 error_msg = '<p>{}</p>'.format('<br>'.join(error_msg_lines))
-                dialog = ImportErrorDialog(icon_bank, error_msg)
+                dialog = ImportErrorDialog(self._ui_model, error_msg)
                 dialog.exec_()
 
             task = sample_params.get_task_import_samples(imports, on_complete, on_error)
@@ -1237,19 +1340,25 @@ class SampleListToolBar(QToolBar, ProcessorUpdater):
 
 class ImportErrorDialog(QDialog):
 
-    def __init__(self, icon_bank, error_msg):
+    def __init__(self, ui_model, error_msg):
         super().__init__()
+        style_mgr = ui_model.get_style_manager()
+        icon_bank = ui_model.get_icon_bank()
 
-        error_img_path = icon_bank.get_icon_path('error')
+        error_img_orig = QPixmap(icon_bank.get_icon_path('error'))
+        error_img = error_img_orig.scaledToWidth(
+                style_mgr.get_scaled_size_param('dialog_icon_size'),
+                Qt.SmoothTransformation)
         error_label = QLabel()
-        error_label.setPixmap(QPixmap(error_img_path))
+        error_label.setPixmap(error_img)
 
         self._message = QLabel()
         self._message.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
 
         h = QHBoxLayout()
-        h.setContentsMargins(8, 8, 8, 8)
-        h.setSpacing(16)
+        margin = style_mgr.get_scaled_size_param('large_padding')
+        h.setContentsMargins(margin, margin, margin, margin)
+        h.setSpacing(margin * 2)
         h.addWidget(error_label)
         h.addWidget(self._message)
 
@@ -1376,6 +1485,9 @@ class SampleList(QWidget, ProcessorUpdater):
         self.register_action(self._get_update_signal_type(), self._update_model)
         self.register_action(self._get_rename_signal_type(), self._update_model)
 
+        self.register_action('signal_style_changed', self._update_style)
+
+        self._update_style()
         self._update_model()
 
     def _get_update_signal_type(self):
@@ -1383,6 +1495,13 @@ class SampleList(QWidget, ProcessorUpdater):
 
     def _get_rename_signal_type(self):
         return 'signal_sample_rename_{}'.format(self._proc_id)
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        margin_right = style_mgr.get_scaled_size_param('small_padding')
+        self.layout().setContentsMargins(margin, margin, margin_right, margin)
 
     def _update_model(self):
         if self._list_model:
@@ -1404,11 +1523,11 @@ class SampleEditor(QWidget, ProcessorUpdater):
 
         self._resample = QPushButton('Resample...')
 
-        freq_l = QHBoxLayout()
-        freq_l.setContentsMargins(0, 0, 0, 0)
-        freq_l.setSpacing(2)
-        freq_l.addWidget(self._freq, 1)
-        freq_l.addWidget(self._resample)
+        self._freq_layout = QHBoxLayout()
+        self._freq_layout.setContentsMargins(0, 0, 0, 0)
+        self._freq_layout.setSpacing(2)
+        self._freq_layout.addWidget(self._freq, 1)
+        self._freq_layout.addWidget(self._resample)
 
         self._loop_mode = KqtComboBox()
         loop_modes = (
@@ -1429,42 +1548,42 @@ class SampleEditor(QWidget, ProcessorUpdater):
         self._format = QLabel('?')
         self._format_change = QPushButton('Change...')
 
-        format_l = QHBoxLayout()
-        format_l.setContentsMargins(0, 0, 0, 0)
-        format_l.setSpacing(2)
-        format_l.addWidget(self._format, 1)
-        format_l.addWidget(self._format_change)
+        self._format_layout = QHBoxLayout()
+        self._format_layout.setContentsMargins(0, 0, 0, 0)
+        self._format_layout.setSpacing(2)
+        self._format_layout.addWidget(self._format, 1)
+        self._format_layout.addWidget(self._format_change)
 
-        loop_mode_l = QHBoxLayout()
-        loop_mode_l.setContentsMargins(0, 0, 0, 0)
-        loop_mode_l.setSpacing(2)
-        loop_mode_l.addWidget(self._loop_mode, 1)
-        loop_mode_l.addWidget(self._loop_xfader)
+        self._loop_mode_layout = QHBoxLayout()
+        self._loop_mode_layout.setContentsMargins(0, 0, 0, 0)
+        self._loop_mode_layout.setSpacing(2)
+        self._loop_mode_layout.addWidget(self._loop_mode, 1)
+        self._loop_mode_layout.addWidget(self._loop_xfader)
 
-        gl = QGridLayout()
-        gl.setContentsMargins(0, 0, 0, 0)
-        gl.setSpacing(2)
-        gl.addWidget(QLabel('Name:'), 0, 0)
-        gl.addWidget(self._name, 0, 1)
-        gl.addWidget(QLabel('Middle frequency:'), 1, 0)
-        gl.addLayout(freq_l, 1, 1)
-        gl.addWidget(QLabel('Loop mode:'), 2, 0)
-        gl.addLayout(loop_mode_l, 2, 1)
-        gl.addWidget(QLabel('Loop start:'), 3, 0)
-        gl.addWidget(self._loop_start, 3, 1)
-        gl.addWidget(QLabel('Loop end:'), 4, 0)
-        gl.addWidget(self._loop_end, 4, 1)
-        gl.addWidget(QLabel('Length:'), 5, 0)
-        gl.addWidget(self._length, 5, 1)
-        gl.addWidget(QLabel('Format:'), 6, 0)
-        gl.addLayout(format_l, 6, 1)
+        self._params_layout = QGridLayout()
+        self._params_layout.setContentsMargins(0, 0, 0, 0)
+        self._params_layout.setSpacing(2)
+        self._params_layout.addWidget(QLabel('Name:'), 0, 0)
+        self._params_layout.addWidget(self._name, 0, 1)
+        self._params_layout.addWidget(QLabel('Middle frequency:'), 1, 0)
+        self._params_layout.addLayout(self._freq_layout, 1, 1)
+        self._params_layout.addWidget(QLabel('Loop mode:'), 2, 0)
+        self._params_layout.addLayout(self._loop_mode_layout, 2, 1)
+        self._params_layout.addWidget(QLabel('Loop start:'), 3, 0)
+        self._params_layout.addWidget(self._loop_start, 3, 1)
+        self._params_layout.addWidget(QLabel('Loop end:'), 4, 0)
+        self._params_layout.addWidget(self._loop_end, 4, 1)
+        self._params_layout.addWidget(QLabel('Length:'), 5, 0)
+        self._params_layout.addWidget(self._length, 5, 1)
+        self._params_layout.addWidget(QLabel('Format:'), 6, 0)
+        self._params_layout.addLayout(self._format_layout, 6, 1)
 
         self._sample_view = SampleView()
 
         v = QVBoxLayout()
         v.setContentsMargins(2, 4, 4, 4)
         v.setSpacing(0)
-        v.addLayout(gl)
+        v.addLayout(self._params_layout)
         v.addWidget(self._sample_view, 1)
         self.setLayout(v)
 
@@ -1488,7 +1607,7 @@ class SampleEditor(QWidget, ProcessorUpdater):
         self._loop_xfader.clicked.connect(self._create_loop_xfade)
         self._loop_start.valueChanged.connect(self._change_loop_start)
         self._loop_end.valueChanged.connect(self._change_loop_end)
-        self._sample_view.set_icon_bank(self._ui_model.get_icon_bank())
+        self._sample_view.set_ui_model(self._ui_model)
         self._sample_view.loopStartChanged.connect(self._change_loop_start)
         self._sample_view.loopStopChanged.connect(self._change_loop_end)
         self._sample_view.postLoopCut.connect(self._post_loop_cut)
@@ -1496,6 +1615,9 @@ class SampleEditor(QWidget, ProcessorUpdater):
 
         self._update_style()
         self._update_all()
+
+    def _on_teardown(self):
+        self._sample_view.unregister_updaters()
 
     def _get_list_update_signal_type(self):
         return 'signal_proc_sample_list_{}'.format(self._proc_id)
@@ -1535,23 +1657,38 @@ class SampleEditor(QWidget, ProcessorUpdater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
-        if not style_mgr.is_custom_style_enabled():
-            self._sample_view.set_config({})
-            return
+
+        spacing_x = style_mgr.get_scaled_size_param('large_padding')
+        spacing_y = style_mgr.get_scaled_size_param('small_padding')
+
+        for layout in (self._freq_layout, self._format_layout, self._loop_mode_layout):
+            layout.setSpacing(spacing_y)
+
+        self._params_layout.setHorizontalSpacing(spacing_x)
+        self._params_layout.setVerticalSpacing(spacing_y)
+
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        margin_left = style_mgr.get_scaled_size_param('small_padding')
+        self.layout().setContentsMargins(margin_left, margin, margin, margin)
 
         def get_colour(name):
             return QColor(style_mgr.get_style_param(name))
 
         config = {
-            'bg_colour': get_colour('waveform_bg_colour'),
-            'centre_line_colour': get_colour('waveform_centre_line_colour'),
-            'zoomed_out_colour': get_colour('waveform_zoomed_out_colour'),
-            'single_item_colour': get_colour('waveform_single_item_colour'),
-            'interp_colour': get_colour('waveform_interpolated_colour'),
-            'loop_line_colour': get_colour('waveform_loop_marker_colour'),
-            'focused_loop_line_colour': get_colour('waveform_focus_colour'),
-            'loop_handle_colour': get_colour('waveform_loop_marker_colour'),
+            'bg_colour'                 : get_colour('waveform_bg_colour'),
+            'centre_line_colour'        : get_colour('waveform_centre_line_colour'),
+            'zoomed_out_colour'         : get_colour('waveform_zoomed_out_colour'),
+            'single_item_colour'        : get_colour('waveform_single_item_colour'),
+            'interp_colour'             : get_colour('waveform_interpolated_colour'),
+            'max_node_size'             : style_mgr.get_scaled_size(0.55),
+            'loop_line_colour'          : get_colour('waveform_loop_marker_colour'),
+            'focused_loop_line_colour'  : get_colour('waveform_focus_colour'),
+            'loop_line_dash'            : [style_mgr.get_scaled_size(0.4)] * 2,
+            'loop_line_thickness'       : style_mgr.get_scaled_size(0.1),
+            'loop_handle_colour'        : get_colour('waveform_loop_marker_colour'),
             'focused_loop_handle_colour': get_colour('waveform_focus_colour'),
+            'loop_handle_size'          : style_mgr.get_scaled_size(1.3),
+            'loop_handle_focus_dist_max': style_mgr.get_scaled_size(1.5),
         }
 
         self._sample_view.set_config(config)
@@ -1692,18 +1829,16 @@ class SampleEditor(QWidget, ProcessorUpdater):
 
     def _convert_freq(self):
         sample_params = self._get_sample_params()
-        task_executor = self._ui_model.get_task_executor()
         on_resample = lambda: self._updater.signal_update(
                 self._get_resample_signal_type())
-        resample_editor = ResampleEditor(sample_params, task_executor, on_resample)
+        resample_editor = ResampleEditor(sample_params, self._ui_model, on_resample)
         resample_editor.exec_()
 
     def _change_format(self):
         sample_params = self._get_sample_params()
-        task_executor = self._ui_model.get_task_executor()
         on_convert = lambda: self._updater.signal_update(
                 self._get_format_signal_type())
-        format_editor = SampleFormatEditor(sample_params, task_executor, on_convert)
+        format_editor = SampleFormatEditor(sample_params, self._ui_model, on_convert)
         format_editor.exec_()
 
     def _change_loop_mode(self, item_index):
@@ -1716,8 +1851,7 @@ class SampleEditor(QWidget, ProcessorUpdater):
     def _create_loop_xfade(self):
         on_xfade = lambda: self._updater.signal_update(
                 self._get_loop_xfade_signal_type())
-        xfader = LoopXFader(
-                self._get_sample_params(), self._ui_model.get_task_executor(), on_xfade)
+        xfader = LoopXFader(self._get_sample_params(), self._ui_model, on_xfade)
         xfader.exec_()
 
     def _change_loop_start(self, start):
@@ -1735,20 +1869,21 @@ class SampleEditor(QWidget, ProcessorUpdater):
     def _post_loop_cut(self):
         on_cut = lambda: self._updater.signal_update(self._get_cut_signal_type())
         confirm_dialog = PostLoopCutConfirmDialog(
-                self._ui_model.get_icon_bank(),
-                self._get_sample_params(),
-                self._ui_model.get_task_executor(),
-                on_cut)
+                self._get_sample_params(), self._ui_model, on_cut)
         confirm_dialog.exec_()
 
 
 class ResampleEditor(QDialog):
 
-    def __init__(self, sample_params, task_executor, on_resample):
+    def __init__(self, sample_params, ui_model, on_resample):
         super().__init__()
         self._sample_params = sample_params
-        self._task_executor = task_executor
+        self._task_executor = ui_model.get_task_executor()
         self._on_resample = on_resample
+
+        style_mgr = ui_model.get_style_manager()
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        spacing = style_mgr.get_scaled_size_param('medium_padding')
 
         sample_id = self._sample_params.get_selected_sample_id()
         sample_freq = self._sample_params.get_sample_freq(sample_id)
@@ -1760,7 +1895,7 @@ class ResampleEditor(QDialog):
 
         sl = QHBoxLayout()
         sl.setContentsMargins(0, 0, 0, 0)
-        sl.setSpacing(4)
+        sl.setSpacing(spacing)
         sl.addWidget(QLabel('New frequency:'))
         sl.addWidget(self._freq, 1)
 
@@ -1769,13 +1904,13 @@ class ResampleEditor(QDialog):
 
         bl = QHBoxLayout()
         bl.setContentsMargins(0, 0, 0, 0)
-        bl.setSpacing(4)
+        bl.setSpacing(spacing)
         bl.addWidget(self._cancel_button)
         bl.addWidget(self._resample_button)
 
         v = QVBoxLayout()
-        v.setContentsMargins(4, 4, 4, 4)
-        v.setSpacing(4)
+        v.setContentsMargins(margin, margin, margin, margin)
+        v.setSpacing(spacing)
         v.addLayout(sl)
         v.addLayout(bl)
         self.setLayout(v)
@@ -1808,11 +1943,15 @@ class ResampleEditor(QDialog):
 
 class SampleFormatEditor(QDialog):
 
-    def __init__(self, sample_params, task_executor, on_convert):
+    def __init__(self, sample_params, ui_model, on_convert):
         super().__init__()
         self._sample_params = sample_params
-        self._task_executor = task_executor
+        self._task_executor = ui_model.get_task_executor()
         self._on_convert = on_convert
+
+        style_mgr = ui_model.get_style_manager()
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        spacing = style_mgr.get_scaled_size_param('medium_padding')
 
         sample_id = self._sample_params.get_selected_sample_id()
         sample_format = self._sample_params.get_sample_format(sample_id)
@@ -1830,7 +1969,7 @@ class SampleFormatEditor(QDialog):
 
         sl = QGridLayout()
         sl.setContentsMargins(0, 0, 0, 0)
-        sl.setSpacing(4)
+        sl.setSpacing(spacing)
         sl.addWidget(QLabel('Format:'), 0, 0)
         sl.addWidget(self._format, 0, 1)
         sl.addWidget(QLabel('Normalise:'), 1, 0)
@@ -1841,13 +1980,13 @@ class SampleFormatEditor(QDialog):
 
         bl = QHBoxLayout()
         bl.setContentsMargins(0, 0, 0, 0)
-        bl.setSpacing(4)
+        bl.setSpacing(spacing)
         bl.addWidget(self._cancel_button)
         bl.addWidget(self._convert_button)
 
         v = QVBoxLayout()
-        v.setContentsMargins(4, 4, 4, 4)
-        v.setSpacing(4)
+        v.setContentsMargins(margin, margin, margin, margin)
+        v.setSpacing(spacing)
         v.addLayout(sl)
         v.addLayout(bl)
         self.setLayout(v)
@@ -1900,11 +2039,15 @@ class SampleFormatEditor(QDialog):
 
 class LoopXFader(QDialog):
 
-    def __init__(self, sample_params, task_executor, on_xfade):
+    def __init__(self, sample_params, ui_model, on_xfade):
         super().__init__()
         self._sample_params = sample_params
-        self._task_executor = task_executor
+        self._task_executor = ui_model.get_task_executor()
         self._on_xfade = on_xfade
+
+        style_mgr = ui_model.get_style_manager()
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        spacing = style_mgr.get_scaled_size_param('medium_padding')
 
         sample_id = sample_params.get_selected_sample_id()
         loop_start = sample_params.get_sample_loop_start(sample_id)
@@ -1918,7 +2061,7 @@ class LoopXFader(QDialog):
 
         xl = QHBoxLayout()
         xl.setContentsMargins(0, 0, 0, 0)
-        xl.setSpacing(4)
+        xl.setSpacing(spacing)
         xl.addWidget(QLabel('Crossfade length:'))
         xl.addWidget(self._xfade_length, 1)
 
@@ -1926,12 +2069,14 @@ class LoopXFader(QDialog):
         self._xfade_button = QPushButton('Create crossfade')
 
         bl = QHBoxLayout()
+        bl.setContentsMargins(0, 0, 0, 0)
+        bl.setSpacing(spacing)
         bl.addWidget(self._cancel_button)
         bl.addWidget(self._xfade_button)
 
         v = QVBoxLayout()
-        v.setContentsMargins(4, 4, 4, 4)
-        v.setSpacing(4)
+        v.setContentsMargins(margin, margin, margin, margin)
+        v.setSpacing(spacing)
         v.addLayout(xl)
         v.addLayout(bl)
         self.setLayout(v)
@@ -1955,13 +2100,13 @@ class LoopXFader(QDialog):
 
 class PostLoopCutConfirmDialog(ConfirmDialog):
 
-    def __init__(self, icon_bank, sample_params, task_executor, on_cut):
-        super().__init__(icon_bank)
+    def __init__(self, sample_params, ui_model, on_cut):
+        super().__init__(ui_model)
 
         self._set_message('Cut all sample data past loop end?')
 
         self._sample_params = sample_params
-        self._task_executor = task_executor
+        self._task_executor = ui_model.get_task_executor()
         self._on_cut = on_cut
 
         self.setWindowTitle('Confirm sample cut')

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2017
+# Author: Tomi Jylhä-Ollila, Finland 2017-2018
 #
 # This file is part of Kunquat.
 #
@@ -36,7 +36,7 @@ class ExitHelper():
         module = self._ui_model.get_module()
         if module.is_modified():
             dialog = ExitUnsavedConfirmDialog(
-                    self._ui_model.get_icon_bank(),
+                    self._ui_model,
                     self._perform_save_and_close,
                     self._perform_discard_and_close)
             dialog.exec_()
@@ -64,8 +64,8 @@ class ExitHelper():
 
 class ExitUnsavedConfirmDialog(ConfirmDialog):
 
-    def __init__(self, icon_bank, action_save, action_discard):
-        super().__init__(icon_bank)
+    def __init__(self, ui_model, action_save, action_discard):
+        super().__init__(ui_model)
 
         self._action_save = action_save
         self._action_discard = action_discard

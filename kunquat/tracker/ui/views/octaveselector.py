@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2014-2017
+#          Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -57,12 +57,18 @@ class OctaveSelector(QFrame, Updater):
             button.update_led_state(octave_id in octaves_enabled)
 
     def _update_layout(self):
+        style_mgr = self._ui_model.get_style_manager()
         keymap_mgr = self._ui_model.get_keymap_manager()
+
         use_hit_keymap = keymap_mgr.is_hit_keymap_active()
         if use_hit_keymap:
             self._title.setText('Hit bank:')
         else:
             self._title.setText('Octave:')
+
+        spacing = style_mgr.get_scaled_size_param('medium_padding')
+        self._button_layout.setSpacing(spacing)
+        self.layout().setSpacing(spacing)
 
         old_button_count = self._button_layout.count()
         new_button_count = self._typewriter_mgr.get_octave_count()

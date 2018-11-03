@@ -20,6 +20,7 @@ import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.views.connectionseditor import ConnectionsEditor
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
+from kunquat.tracker.ui.views.iconbutton import IconButton
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.varnamevalidator import *
 from kunquat.tracker.ui.views.varvalidators import *
@@ -50,19 +51,28 @@ class Components(QSplitter, AudioUnitUpdater):
 
         self.add_to_updaters(self._conns_editor, self._streams, self._event_map)
 
-        cl = QHBoxLayout()
-        cl.setContentsMargins(0, 0, 0, 0)
-        cl.setSpacing(4)
-        cl.addWidget(self._streams, 1)
-        cl.addWidget(self._event_map, 1)
+        self._components_layout = QHBoxLayout()
+        self._components_layout.setContentsMargins(0, 0, 0, 0)
+        self._components_layout.setSpacing(4)
+        self._components_layout.addWidget(self._streams, 1)
+        self._components_layout.addWidget(self._event_map, 1)
 
         cw = QWidget()
-        cw.setLayout(cl)
+        cw.setLayout(self._components_layout)
 
         self.addWidget(self._conns_editor)
         self.addWidget(cw)
 
         self.setStretchFactor(0, 4)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        spacing = style_mgr.get_scaled_size_param('medium_padding')
+        self._components_layout.setSpacing(spacing)
 
 
 class NameEditor(QLineEdit, AudioUnitUpdater):
@@ -108,21 +118,22 @@ class NameEditor(QLineEdit, AudioUnitUpdater):
         raise NotImplementedError
 
 
-class RemoveButton(QPushButton, AudioUnitUpdater):
+class RemoveButton(IconButton, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
         self._context = None
         self.setToolTip('Remove')
-        #self.setStyleSheet('padding: 0 -2px;')
         self.setIconSize(QSize(16, 16))
 
     def set_context(self, context):
         self._context = context
 
     def _on_setup(self):
-        icon_bank = self._ui_model.get_icon_bank()
-        self.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
+        style_mgr = self._ui_model.get_style_manager()
+        self.set_sizes(style_mgr.get_style_param('list_button_size'),
+                style_mgr.get_style_param('list_button_padding'))
+        self.set_icon('delete_small')
 
         self.clicked.connect(self._remove)
 
@@ -143,12 +154,23 @@ class Streams(QWidget, AudioUnitUpdater):
         self._stream_list = StreamList()
         self.add_to_updaters(self._stream_list)
 
+        self._header = HeaderLine('Event stream interfaces')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Event stream interfaces'))
+        v.addWidget(self._header)
         v.addWidget(self._stream_list)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
 
 class StreamList(EditorList, AudioUnitUpdater):
@@ -251,6 +273,17 @@ class StreamEditor(QWidget, AudioUnitUpdater):
         h.addWidget(self._target_proc_editor)
         h.addWidget(self._remove_button)
         self.setLayout(h)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        spacing = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, 0, 0, 0)
+        self.layout().setSpacing(spacing)
 
     def set_context(self, context):
         self._context = context
@@ -369,12 +402,23 @@ class EventMap(QWidget, AudioUnitUpdater):
         self._event_list = EventList()
         self.add_to_updaters(self._event_list)
 
+        self._header = HeaderLine('Event map')
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Event map'))
+        v.addWidget(self._header)
         v.addWidget(self._event_list)
         self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
 
 class EventList(EditorList):
@@ -462,18 +506,18 @@ class EventEditor(QWidget, AudioUnitUpdater):
                 self._remove_button,
                 self._bindings)
 
-        h = QHBoxLayout()
-        h.setContentsMargins(0, 0, 0, 0)
-        h.setSpacing(4)
-        h.addWidget(self._name_editor)
-        h.addWidget(self._arg_type_editor)
-        h.addWidget(self._remove_button)
+        self._editor_layout = QHBoxLayout()
+        self._editor_layout.setContentsMargins(0, 0, 0, 0)
+        self._editor_layout.setSpacing(4)
+        self._editor_layout.addWidget(self._name_editor)
+        self._editor_layout.addWidget(self._arg_type_editor)
+        self._editor_layout.addWidget(self._remove_button)
 
         g = QGridLayout()
         g.setContentsMargins(0, 0, 0, 0)
         g.setSpacing(0)
         g.addWidget(self._expander, 0, 0)
-        g.addLayout(h, 0, 1)
+        g.addLayout(self._editor_layout, 0, 1)
         g.addWidget(self._bindings, 1, 1)
         self.setLayout(g)
 
@@ -490,6 +534,13 @@ class EventEditor(QWidget, AudioUnitUpdater):
     def _on_setup(self):
         self._expander.clicked.connect(self._toggle_expand)
         self._update_contents()
+
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._editor_layout.setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def set_used_names(self, used_names):
         self._name_editor.set_used_names(used_names)
@@ -703,6 +754,10 @@ class EventBindings(QWidget):
         v.addWidget(self._adder)
         self.setLayout(v)
 
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
+
     def _get_adder(self):
         layout = self.layout()
         return layout.itemAt(layout.count() - 1).widget()
@@ -735,6 +790,7 @@ class EventBindings(QWidget):
             widget.set_ui_model(ui_model)
 
         self._update_contents()
+        self._update_style()
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
@@ -770,6 +826,8 @@ class EventBindings(QWidget):
     def _perform_updates(self, signals):
         if _get_events_update_signal_type(self._au_id) in signals:
             pass
+        if 'signal_style_changed' in signals:
+            self._update_style()
 
 
 class EventBindTargetEditor(QWidget):
@@ -831,7 +889,21 @@ class EventBindTargetEditor(QWidget):
         h.addWidget(self._remove_button)
         self.setLayout(h)
 
+        updater = self._ui_model.get_updater()
+        updater.register_updater(self._perform_updates)
+
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
+
+    def _perform_updates(self, signals):
+        if 'signal_style_changed' in signals:
+            self._update_style()
+
     def unregister_updaters(self):
+        self._ui_model.get_updater().unregister_updater(self._perform_updates)
         self._remove_button.unregister_updaters()
         self._expr_editor.unregister_updaters()
         self._type_editor.unregister_updaters()
@@ -1060,12 +1132,24 @@ class EventBindTargetArgExpressionEditor(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
 
+        self._updater.register_updater(self._perform_updates)
+
         self._editor.textChanged.connect(self._change_expression)
 
         self._update_expression()
 
+        self._update_style()
+
     def unregister_updaters(self):
-        pass
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        if 'signal_style_changed' in signals:
+            self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_expression(self):
         module = self._ui_model.get_module()

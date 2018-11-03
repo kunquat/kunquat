@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2017
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2018
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -19,6 +19,7 @@ from .exiting import ExitHelper
 from .mainview import MainView
 from .saverwindow import SaverWindow
 from .updater import Updater
+from .utils import get_abs_window_size
 
 
 class MainWindow(Updater, SaverWindow):
@@ -79,6 +80,6 @@ class MainWindow(Updater, SaverWindow):
         self._exit_helper.try_exit()
 
     def sizeHint(self):
-        return QSize(1280, 768)
+        return get_abs_window_size(0.75, 0.75)
 
 

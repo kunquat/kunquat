@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -33,12 +33,15 @@ class Hits(QWidget, AudioUnitUpdater):
         self._hit_selector = AuHitSelector()
         self._hit_editor = HitEditor()
 
+        self._hits_header = HeaderLine('Hits')
+        self._properties_header = HeaderLine('Hit properties')
+
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
-        v.addWidget(HeaderLine('Hits'))
+        v.addWidget(self._hits_header)
         v.addWidget(self._hit_selector)
-        v.addWidget(HeaderLine('Hit properties'))
+        v.addWidget(self._properties_header)
         v.addWidget(self._hit_editor)
         v.addStretch(1)
         self.setLayout(v)
@@ -48,6 +51,16 @@ class Hits(QWidget, AudioUnitUpdater):
         au = module.get_audio_unit(self._au_id)
         if au.is_instrument():
             self.add_to_updaters(self._hit_selector, self._hit_editor)
+            self.register_action('signal_style_changed', self._update_style)
+            self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._hits_header.update_style(style_mgr)
+        self._properties_header.update_style(style_mgr)
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        self.layout().setContentsMargins(margin, margin, margin, margin)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
 
 class AuHitSelector(HitSelector, AudioUnitUpdater):
@@ -59,6 +72,9 @@ class AuHitSelector(HitSelector, AudioUnitUpdater):
         self.register_action(self._get_update_signal_type(), self.update_contents)
         self.create_layout(self._ui_model.get_typewriter_manager())
         self.update_contents()
+
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
 
     def _get_update_signal_type(self):
         return _get_update_signal_type(self._au_id)
@@ -81,6 +97,9 @@ class AuHitSelector(HitSelector, AudioUnitUpdater):
         hit = au.get_hit(index)
         return hit.get_name()
 
+    def _update_style(self):
+        self.update_style(self._ui_model.get_style_manager())
+
 
 class HitEditor(QWidget, AudioUnitUpdater):
 
@@ -100,6 +119,13 @@ class HitEditor(QWidget, AudioUnitUpdater):
 
     def _on_setup(self):
         self.add_to_updaters(self._enabled, self._name)
+
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
 
 def _get_current_hit(ui_model, au_id):
@@ -157,7 +183,14 @@ class HitName(QWidget, AudioUnitUpdater):
         self.register_action(_get_update_signal_type(self._au_id), self._update_name)
         self._edit.textEdited.connect(self._change_name)
 
+        self.register_action('signal_style_changed', self._update_style)
+
+        self._update_style()
         self._update_name()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_name(self):
         hit = _get_current_hit(self._ui_model, self._au_id)

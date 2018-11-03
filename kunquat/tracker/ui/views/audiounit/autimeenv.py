@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -13,7 +13,6 @@
 
 from kunquat.tracker.ui.qt import *
 
-from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.numberslider import NumberSlider
 from .audiounitupdater import AudioUnitUpdater
@@ -23,7 +22,7 @@ class AudioUnitTimeEnvelope(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        header = HeaderLine(self._get_title())
+        self._header = HeaderLine(self._get_title())
 
         if self._allow_toggle_enabled():
             self._enabled_toggle = QCheckBox('Enabled')
@@ -46,7 +45,7 @@ class AudioUnitTimeEnvelope(QWidget, AudioUnitUpdater):
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(2)
-        v.addWidget(header)
+        v.addWidget(self._header)
         v.addLayout(h)
         v.addWidget(self._envelope)
         self.setLayout(v)
@@ -56,7 +55,7 @@ class AudioUnitTimeEnvelope(QWidget, AudioUnitUpdater):
         self.register_action(self._get_update_signal_type(), self._update_envelope)
         self.register_action('signal_style_changed', self._update_style)
 
-        self._envelope.set_icon_bank(self._ui_model.get_icon_bank())
+        self._envelope.set_ui_model(self._ui_model)
 
         if self._allow_toggle_enabled():
             self._enabled_toggle.stateChanged.connect(self._enabled_changed)
@@ -70,8 +69,14 @@ class AudioUnitTimeEnvelope(QWidget, AudioUnitUpdater):
         self._update_envelope()
         self._update_style()
 
+    def _on_teardown(self):
+        self._envelope.unregister_updaters()
+
     def _update_style(self):
-        self._envelope.update_style(self._ui_model.get_style_manager())
+        style_mgr = self._ui_model.get_style_manager()
+        self._header.update_style(style_mgr)
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
+        self._envelope.update_style(style_mgr)
 
     def _update_envelope(self):
         is_enabled = True

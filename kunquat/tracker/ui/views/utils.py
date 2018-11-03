@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2017
+# Author: Tomi Jylhä-Ollila, Finland 2015-2018
 #
 # This file is part of Kunquat.
 #
@@ -13,6 +13,41 @@
 
 from kunquat.tracker.ui.qt import *
 
+
+def get_abs_window_size(width_norm, height_norm):
+    screen_rect = QApplication.desktop().screenGeometry()
+    return QSize(
+            int(screen_rect.width() * width_norm),
+            int(screen_rect.height() * height_norm))
+
+def update_ref_font_height(font, style_mgr):
+    for w in QApplication.topLevelWidgets():
+        widget = w
+        break
+    else:
+        raise RuntimeError('Main window not found')
+
+    fm = QFontMetrics(QFont(*font), widget)
+    style_mgr.set_reference_font_height(fm.tightBoundingRect('E').height())
+
+def get_default_font():
+    screen = QApplication.primaryScreen()
+    ldpi = screen.logicalDotsPerInch()
+    pdpi = screen.physicalDotsPerInch()
+    size = int(round(7.2 * pdpi / ldpi))
+    return QFont(QFont().defaultFamily(), size)
+
+def get_default_font_info(style_mgr):
+    df = get_default_font()
+    def_font_family = style_mgr.get_style_param('def_font_family') or df.family()
+    def_font_size = style_mgr.get_style_param('def_font_size') or df.pointSize()
+    return (def_font_family, def_font_size)
+
+def get_scaled_font(style_mgr, scale, *attrs):
+    ref_font_family, ref_font_size = get_default_font_info(style_mgr)
+    scaled_font = QFont(ref_font_family, int(round(ref_font_size * scale)), *attrs)
+    scaled_font.setPointSizeF(ref_font_size * scale)
+    return scaled_font
 
 def lerp_val(v1, v2, t):
     assert 0 <= t <= 1, 'lerp value {} is not within valid range [0, 1]'.format(t)

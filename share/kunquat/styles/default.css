@@ -9,10 +9,29 @@
  */
 
 
+/* An insane default to help catch implicit settings */
+*
+{
+    margin: 10px;
+    padding: 10px;
+    font-size: 60px;
+    font-style: italic;
+    font-weight: 900;
+    font-family: serif;
+}
+
+
 QWidget
 {
+    margin: 0;
+    padding: 0;
+
     background-color: <bg_colour>;
     color: <fg_colour>;
+    font-size: <def_font_size>;
+    font-style: normal;
+    font-weight: normal;
+    font-family: <def_font_family>;
 }
 
 QWidget:disabled
@@ -22,7 +41,6 @@ QWidget:disabled
 
 /* Base style for non-button container widgets */
 
-QComboBox QAbstractItemView,
 QHeaderView::section:horizontal,
 QHeaderView::section:vertical,
 QMenu,
@@ -31,15 +49,46 @@ QSlider::handle:horizontal,
 QTabWidget::pane,
 QToolBar
 {
-    border: 1px solid;
+    margin: 0;
+    border: <border_thin_width> solid;
     border-top-color: <bg_colour_light>;
     border-left-color: <bg_colour_light>;
     border-right-color: <bg_colour_dark>;
     border-bottom-color: <bg_colour_dark>;
-    border-radius: 2px;
+    border-radius: <border_thin_radius>;
+    padding: <small_padding>;
+}
+
+QComboBox QAbstractItemView
+{
+    margin: 0;
+    border: <border_thin_width> solid;
+    border-top-color: <bg_colour_dark>;
+    border-left-color: <bg_colour_dark>;
+    border-right-color: <bg_colour_light>;
+    border-bottom-color: <bg_colour_light>;
+    border-radius: <border_thin_radius>;
+    padding: 0;
+}
+
+QToolTip
+{
+    margin: 0;
+    padding: <small_padding>;
+    font-size: <def_font_size>;
+    font-style: normal;
+    font-weight: normal;
+    font-family: <def_font_family>;
 }
 
 /* Base styles for button container widgets */
+
+QPushButton:flat,
+QToolButton
+{
+    margin: 0;
+    padding: <small_padding>;
+}
 
 QComboBox,
 QComboBox::drop-down,
@@ -55,13 +104,13 @@ QAbstractSpinBox::down-button,
 QScrollBar::add-line,
 QScrollBar::sub-line
 {
-    border: 1px solid;
+    border: <border_thin_width> solid;
     border-top-color: <button_bg_colour_light>;
     border-left-color: <button_bg_colour_light>;
     border-right-color: <button_bg_colour_dark>;
     border-bottom-color: <button_bg_colour_dark>;
-    border-radius: 2px;
-    padding: 2px;
+    border-radius: <border_thin_radius>;
+    padding: <small_padding>;
     background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
         stop: 0.5 <button_bg_colour>, stop: 1 <button_bg_colour_grad>);
     color: <button_fg_colour>;
@@ -90,7 +139,7 @@ QScrollBar::sub-line:pressed
     border-left-color: <button_down_bg_colour_light>;
     border-right-color: <button_down_bg_colour_dark>;
     border-bottom-color: <button_down_bg_colour_dark>;
-    padding: 2px;
+    padding: <small_padding>;
     background-color: qlineargradient(x1: 0, y1: 0, x2: 0.1, y2: 1,
         stop: 0.5 <button_down_bg_colour>, stop: 1 <button_down_bg_colour_grad>);
     color: <button_down_fg_colour>;
@@ -103,12 +152,12 @@ QProgressBar,
 QRadioButton::indicator,
 QSlider::groove:horizontal
 {
-    border: 1px solid;
+    border: <border_thin_width> solid;
     border-top-color: <bg_colour_dark>;
     border-left-color: <bg_colour_dark>;
     border-right-color: <bg_colour_light>;
     border-bottom-color: <bg_colour_light>;
-    border-radius: 2px;
+    border-radius: <border_thin_radius>;
 }
 
 QAbstractSpinBox,
@@ -118,12 +167,12 @@ QTableView,
 QTextEdit,
 QTreeView
 {
-    border: 2px solid;
+    border: <border_thick_width> solid;
     border-top-color: <bg_colour_dark>;
     border-left-color: <bg_colour_dark>;
     border-right-color: <bg_colour_light>;
     border-bottom-color: <bg_colour_light>;
-    border-radius: 3px;
+    border-radius: <border_thick_radius>;
     selection-background-color: <text_selected_bg_colour>;
     selection-color: <text_selected_fg_colour>;
 }
@@ -133,7 +182,7 @@ QTreeView
 QCheckBox,
 QRadioButton
 {
-    spacing: 5px;
+    spacing: <radio_check_spacing>;
 }
 
 QCheckBox::indicator,
@@ -141,8 +190,8 @@ QRadioButton::indicator
 {
     margin: 0;
     padding: 0;
-    width: 12px;
-    height: 12px;
+    width: <radio_check_size>;
+    height: <radio_check_size>;
     background-color: <text_bg_colour>;
 }
 
@@ -153,7 +202,7 @@ QCheckBox::indicator:checked
 
 QRadioButton::indicator
 {
-    border-radius: 7px;
+    border-radius: <radio_border_radius>;
 }
 
 QRadioButton::indicator:checked
@@ -165,7 +214,7 @@ QComboBox::drop-down
 {
     subcontrol-origin: margin;
     subcontrol-position: top right;
-    width: 12px;
+    width: <combobox_button_size>;
     margin: 0;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
@@ -178,6 +227,7 @@ QComboBox:disabled
 
 QComboBox::down-arrow
 {
+    width: <combobox_arrow_size>;
     image: url(<icons_path>/arrow_down_tiny.png);
 }
 
@@ -190,13 +240,13 @@ QComboBox QAbstractItemView
 
 QComboBox QAbstractItemView::item
 {
-    padding: 2px;
+    padding: <small_padding>;
 }
 
 QDialog QPushButton
 {
-    padding: 4px;
-    min-width: 100px;
+    padding: <medium_padding>;
+    min-width: <dialog_button_width>;
 }
 
 QPushButton:checked:pressed,
@@ -214,6 +264,7 @@ QToolButton:checked:pressed
 
 QPushButton::menu-indicator, QToolButton::menu-indicator
 {
+    width: <menu_arrow_size>;
     image: url(<icons_path>/arrow_down_tiny.png);
 }
 
@@ -256,7 +307,7 @@ QPushButton#Important:checked:pressed
 
 QLineEdit, QAbstractSpinBox
 {
-    margin: 1px;
+    margin: <tiny_padding>;
     padding: 0;
     background-color: <text_bg_colour>;
     color: <text_fg_colour>;
@@ -269,12 +320,12 @@ QLineEdit:disabled, QAbstractSpinBox:disabled
 
 QMenu::item
 {
-    padding: 2px;
+    padding: <small_padding>;
 }
 
 QAbstractSpinBox
 {
-    padding-right: 16px;
+    padding-right: <tiny_arrow_button_size>;
     border-right-color: <text_bg_colour>;
 }
 
@@ -283,7 +334,7 @@ QAbstractSpinBox::up-button:pressed,
 QAbstractSpinBox::down-button,
 QAbstractSpinBox::down-button:pressed
 {
-    width: 16px;
+    width: <tiny_arrow_button_size>;
     padding: 0;
 }
 
@@ -292,7 +343,7 @@ QAbstractSpinBox::up-button
     subcontrol-origin: border;
     subcontrol-position: top right;
     border-radius: 0;
-    border-top-right-radius: 2px;
+    border-top-right-radius: <border_thin_radius>;
     image: url(<icons_path>/arrow_up_tiny.png);
 }
 
@@ -301,7 +352,7 @@ QAbstractSpinBox::down-button
     subcontrol-origin: border;
     subcontrol-position: bottom right;
     border-radius: 0;
-    border-bottom-right-radius: 2px;
+    border-bottom-right-radius: <border_thin_radius>;
     image: url(<icons_path>/arrow_down_tiny.png);
 }
 
@@ -322,6 +373,8 @@ QHeaderView::section:vertical
 
 QLabel
 {
+    margin: 0;
+    padding: <tiny_padding>;
     background-color: transparent;
 }
 
@@ -340,12 +393,12 @@ QProgressBar::chunk
 
 QAbstractScrollArea
 {
-    border: 1px solid;
+    border: <border_thin_width> solid;
     border-top-color: <bg_colour_dark>;
     border-left-color: <bg_colour_dark>;
     border-right-color: <bg_colour_light>;
     border-bottom-color: <bg_colour_light>;
-    border-radius: 1px;
+    border-radius: <border_thin_radius>;
 }
 
 QAbstractScrollArea::corner
@@ -363,14 +416,14 @@ QScrollBar
 
 QScrollBar:horizontal
 {
-    margin: 0 4px 0 4px;
-    height: 14px;
+    margin: 0 <scrollbar_margin> 0 <scrollbar_margin>;
+    height: <scrollbar_size>;
 }
 
 QScrollBar:vertical
 {
-    margin: 4px 0 4px 0;
-    width: 14px;
+    margin: <scrollbar_margin> 0 <scrollbar_margin> 0;
+    width: <scrollbar_size>;
 }
 
 QScrollBar::add-page, QScrollBar::sub-page
@@ -382,36 +435,38 @@ QScrollBar::add-page, QScrollBar::sub-page
 
 QScrollBar::handle
 {
+    margin: 0;
     padding: 0;
     background: <bg_colour>;
 }
 
 QScrollBar::handle:horizontal
 {
-    margin: 0 10px 0 10px;
-    min-width: 20px;
+    min-width: <scrollbar_size>;
 }
 
 QScrollBar::handle:vertical
 {
-    margin: 10px 0 10px 0;
-    min-height: 20px;
+    min-height: <scrollbar_size>;
 }
 
-QScrollBar::add-line, QScrollBar::sub-line
+QScrollBar::add-line,
+QScrollBar::add-line:pressed,
+QScrollBar::sub-line,
+QScrollBar::sub-line:pressed
 {
     margin: 0;
     padding: 0;
-    width: 12px;
-    height: 12px;
+    width: <tiny_arrow_button_size>;
+    height: <tiny_arrow_button_size>;
 }
 
 QScrollBar::add-line:horizontal
 {
     border-top-left-radius: 0;
-    border-top-right-radius: 2px;
+    border-top-right-radius: <border_thin_radius>;
     border-bottom-left-radius: 0;
-    border-bottom-right-radius: 2px;
+    border-bottom-right-radius: <border_thin_radius>;
     subcontrol-position: right;
     subcontrol-origin: margin;
 }
@@ -420,17 +475,17 @@ QScrollBar::add-line:vertical
 {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
-    border-bottom-left-radius: 2px;
-    border-bottom-right-radius: 2px;
+    border-bottom-left-radius: <border_thin_radius>;
+    border-bottom-right-radius: <border_thin_radius>;
     subcontrol-position: bottom;
     subcontrol-origin: margin;
 }
 
 QScrollBar::sub-line:horizontal
 {
-    border-top-left-radius: 2px;
+    border-top-left-radius: <border_thin_radius>;
     border-top-right-radius: 0;
-    border-bottom-left-radius: 2px;
+    border-bottom-left-radius: <border_thin_radius>;
     border-bottom-right-radius: 0;
     subcontrol-position: left;
     subcontrol-origin: margin;
@@ -438,8 +493,8 @@ QScrollBar::sub-line:horizontal
 
 QScrollBar::sub-line:vertical
 {
-    border-top-left-radius: 2px;
-    border-top-right-radius: 2px;
+    border-top-left-radius: <border_thin_radius>;
+    border-top-right-radius: <border_thin_radius>;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     subcontrol-position: top;
@@ -452,8 +507,8 @@ QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal
     margin: 0;
     border: none;
     padding: 0;
-    width: 12px;
-    height: 12px;
+    width: <tiny_arrow_button_size>;
+    height: <tiny_arrow_button_size>;
 }
 
 QScrollBar::up-arrow:vertical
@@ -479,45 +534,47 @@ QScrollBar::right-arrow:horizontal
 QSlider::groove:horizontal
 {
     background-color: <scrollbar_bg_colour>;
-    height: 12px;
+    height: <slider_thickness>;
 }
 
 QSlider::handle:horizontal
 {
     margin: 0;
-    width: 32px;
+    width: <slider_handle_size>;
     background-color: <bg_colour>;
 }
 
 QSplitter::handle:horizontal
 {
-    padding: 1px;
+    padding: <tiny_padding>;
+    width: <splitter_width>;
     image: url(<icons_path>/splitter_horizontal.png);
 }
 
 QSplitter::handle:vertical
 {
-    padding: 1px;
+    padding: <tiny_padding>;
+    height: <splitter_width>;
     image: url(<icons_path>/splitter_vertical.png);
 }
 
 QTabWidget::tab-bar
 {
-    left: 3px;
+    left: <tab_bar_margin>;
 }
 
 QTabBar::tab
 {
-    border: 1px solid;
+    border: <border_thin_width> solid;
     border-top-color: <bg_colour_light>;
     border-left-color: <bg_colour_light>;
     border-right-color: <bg_colour_dark>;
-    border-top-left-radius: 3px;
-    border-top-right-radius: 3px;
+    border-top-left-radius: <border_thick_radius>;
+    border-top-right-radius: <border_thick_radius>;
     border-bottom: none;
     min-width: 2em;
     margin: 0;
-    padding: 3px 10px 3px 10px;
+    padding: <small_padding> <large_padding> <small_padding> <large_padding>;
 }
 
 QTabBar::tab:selected
@@ -526,7 +583,7 @@ QTabBar::tab:selected
 
 QTabBar::tab:!selected
 {
-    margin-top: 3px;
+    margin-top: <medium_padding>;
     border-top-color: <tab_shade_top_colour_light>;
     border-left-color: <tab_shade_top_colour_light>;
     border-right-color: <tab_shade_top_colour_dark>;
@@ -538,6 +595,12 @@ QTabBar::tab:!selected
 QTableView, QTreeView, QListView, QTextEdit
 {
     margin: 0;
+    border: <border_thick_width> solid;
+    border-top-color: <bg_colour_dark>;
+    border-left-color: <bg_colour_dark>;
+    border-right-color: <bg_colour_light>;
+    border-bottom-color: <bg_colour_light>;
+    border-radius: <border_thick_radius>;
     padding: 0;
     background-color: <text_bg_colour>;
     color: <text_fg_colour>;
@@ -553,6 +616,13 @@ QTableView
     gridline-color: <bg_colour_dark>;
 }
 
+QTableView::item
+{
+    border: 0;
+    padding-left: <medium_padding>;
+    padding-right: <medium_padding>;
+}
+
 QTableView QTableCornerButton::section
 {
     background-color: <bg_colour>;
@@ -566,8 +636,20 @@ QToolBar
 
 QToolBar::separator
 {
-    margin: 2px 4px;
-    border: 1px solid;
+    margin: <small_padding> <medium_padding>;
+    border: <border_thin_width> solid;
+    border-top-color: <bg_colour_dark>;
+    border-left-color: <bg_colour_dark>;
+    border-right-color: <bg_colour_light>;
+    border-bottom-color: <bg_colour_light>;
+    padding: 0;
+    width: 0;
+}
+
+QFrame#Header_line,
+QFrame#HackSeparator
+{
+    border: <border_thin_width> solid;
     border-top-color: <bg_colour_dark>;
     border-left-color: <bg_colour_dark>;
     border-right-color: <bg_colour_light>;

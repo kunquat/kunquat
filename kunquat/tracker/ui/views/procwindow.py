@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -16,6 +16,7 @@ from kunquat.tracker.ui.qt import *
 from .processor.editor import Editor
 from .processor.processorupdater import ProcessorUpdater
 from .saverwindow import SaverWindow
+from .utils import get_abs_window_size
 
 
 class ProcWindow(ProcessorUpdater, SaverWindow):
@@ -60,6 +61,6 @@ class ProcWindow(ProcessorUpdater, SaverWindow):
         visibility_mgr.hide_processor(self._proc_id)
 
     def sizeHint(self):
-        return QSize(1024, 768)
+        return get_abs_window_size(0.6, 0.7)
 
 

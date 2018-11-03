@@ -34,6 +34,15 @@ class Sheet(QWidget, Updater):
         v.addWidget(self._sheet_area)
         self.setLayout(v)
 
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setContentsMargins(
+                0, 0, 0, style_mgr.get_scaled_size_param('small_padding'))
+
     def minimumSizeHint(self):
         return QSize(self._toolbar.minimumSizeHint().width(), 0)
 

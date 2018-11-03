@@ -25,18 +25,16 @@ class AboutMessage(QWidget):
     def __init__(self):
         super().__init__()
 
-        default_font = QFont()
-        default_family = default_font.defaultFamily()
-        default_size = default_font.pointSize()
-
-        program_name = QLabel('Kunquat Tracker')
-        program_name.setFont(QFont('DejaVu Sans', default_size + 9, QFont.DemiBold))
+        # Font sizes don't work correctly with QLabels :-(
+        program_name = QLabel('<h2>Kunquat Tracker</h2>')
+        program_name.setTextFormat(Qt.RichText)
 
         tracker_version_str = 'Unreleased tracker version'
         if KUNQUAT_VERSION:
             tracker_version_str = 'Tracker version: {}'.format(KUNQUAT_VERSION)
+        tracker_version_str = '<strong>' + tracker_version_str + '</strong>'
         tracker_version = QLabel(tracker_version_str)
-        tracker_version.setFont(QFont(default_family, default_size + 1, QFont.DemiBold))
+        tracker_version.setTextFormat(Qt.RichText)
 
         lib_version_str = 'Library version: {}'.format(get_version())
         lib_version = QLabel(lib_version_str)
@@ -48,8 +46,8 @@ class AboutMessage(QWidget):
         copyright_str = 'CC0 1.0 Universal'
         copyright = QLabel(copyright_str)
 
-        main_authors = QLabel('Main design and programming:')
-        main_authors.setFont(QFont(default_family, default_size, QFont.DemiBold))
+        main_authors = QLabel('<strong>Main design and programming:</strong>')
+        main_authors.setTextFormat(Qt.RichText)
 
         main_authors_list_str = '\n'.join((
             'Tomi Jylhä-Ollila',
@@ -57,8 +55,8 @@ class AboutMessage(QWidget):
             ))
         main_authors_list = QLabel(main_authors_list_str)
 
-        add_authors = QLabel('Additional contributors:')
-        add_authors.setFont(QFont(default_family, default_size, QFont.DemiBold))
+        add_authors = QLabel('<strong>Additional contributors:</strong>')
+        add_authors.setTextFormat(Qt.RichText)
 
         add_authors_list_str = '\n'.join((
             'Ossi Saresoja',
@@ -98,7 +96,7 @@ class AboutMessage(QWidget):
         website_base = '<a{} href="http://kunquat.org/">http://kunquat.org/</a>'
         style = ''
 
-        if style_mgr and style_mgr.is_custom_style_enabled():
+        if style_mgr:
             colour = style_mgr.get_link_colour()
             style = ' style="color: {};"'.format(colour)
 
