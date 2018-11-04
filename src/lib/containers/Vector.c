@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2018
  *
  * This file is part of Kunquat.
  *
@@ -101,6 +101,17 @@ bool Vector_append(Vector* v, const void* elem)
     ++v->size;
 
     return true;
+}
+
+
+void Vector_clear(Vector* v)
+{
+    rassert(v != NULL);
+
+    Vector_set_capacity(v, VECTOR_INIT_CAP);
+    v->size = 0;
+
+    return;
 }
 
 

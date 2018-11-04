@@ -25,6 +25,8 @@
 
 typedef void Background_loader_callback(Error* error, void* user_data);
 
+typedef void Background_loader_delayed_callback(void* user_data);
+
 
 typedef struct Background_loader_task
 {
@@ -80,6 +82,24 @@ int Background_loader_get_thread_count(const Background_loader* loader);
  *           otherwise \c false.
  */
 bool Background_loader_add_task(Background_loader* loader, Background_loader_task* task);
+
+
+/**
+ * Execute a delayed task after all loading tasks are finished.
+ *
+ * This is mostly intended for removal tasks that may interfere with background loading
+ * tasks.
+ *
+ * \param loader      The Background loader -- must not be \c NULL.
+ * \param callback    The callback function -- must not be \c NULL.
+ * \param user_data   The user data.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Background_loader_add_delayed_task(
+        Background_loader* loader,
+        Background_loader_delayed_callback* callback,
+        void* user_data);
 
 
 /**

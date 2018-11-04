@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2018
  *
  * This file is part of Kunquat.
  *
@@ -84,6 +84,17 @@ void* Vector_get_ref(const Vector* v, int64_t index);
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Vector_append(Vector* v, const void* elem);
+
+
+/**
+ * Clear the Vector.
+ *
+ * Note that this function might silently fail to shrink its internal memory block, in
+ * which case it will continue to use all the memory previously allocated.
+ *
+ * \param v   The Vector -- must not be \c NULL.
+ */
+void Vector_clear(Vector* v);
 
 
 /**

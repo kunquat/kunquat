@@ -1168,6 +1168,12 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
             // Remove Device state of the processor
             Device_states* dstates = Player_get_device_states(params->handle->player);
             Device_states_remove_state(dstates, Device_get_id((const Device*)proc));
+
+            // Background loader tasks may be accessing this device,
+            // so let's wait for them to finish
+            Device* device =
+                (Device*)Proc_table_get_proc_mut(proc_table, proc_index);
+            Device_set_impl(device, NULL, params->handle->bkg_loader);
         }
 
         Proc_table_set_existent(proc_table, proc_index, false);
@@ -1203,7 +1209,7 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
     }
 
     Device_impl_set_proc_type(proc_impl, d->type);
-    Device_set_impl((Device*)proc, proc_impl);
+    Device_set_impl((Device*)proc, proc_impl, params->handle->bkg_loader);
 
     // Remove old Processor Device state
     Device_states* dstates = Player_get_device_states(params->handle->player);

@@ -14,6 +14,7 @@
 
 #include <init/Background_loader.h>
 
+#include <containers/Vector.h>
 #include <debug/assert.h>
 #include <Error.h>
 #include <init/Background_loader.h>
@@ -66,6 +67,13 @@ typedef struct Task_info
         .state = TASK_INFO_EMPTY,               \
         .error = *ERROR_AUTO,                   \
     })
+
+
+typedef struct Final_cleanup_info
+{
+    Background_loader_delayed_callback* callback;
+    void* user_data;
+} Final_cleanup_info;
 
 
 static bool Background_loader_fetch_task_info(
@@ -319,6 +327,8 @@ struct Background_loader
 
     Task_queue work_queue;
     Task_queue cleanup_queue;
+
+    Vector* final_cleanups;
 };
 
 
@@ -327,6 +337,14 @@ Background_loader* new_Background_loader(void)
     Background_loader* loader = memory_alloc_item(Background_loader);
     if (loader == NULL)
         return NULL;
+
+    loader->final_cleanups = new_Vector(sizeof(Final_cleanup_info));
+    if (loader->final_cleanups == NULL)
+    {
+        // Note: del_Background_loader syncs so it is not safe here
+        memory_free(loader);
+        return NULL;
+    }
 
     loader->thread_count = 0;
 
@@ -458,6 +476,19 @@ bool Background_loader_add_task(Background_loader* loader, Background_loader_tas
 }
 
 
+bool Background_loader_add_delayed_task(
+        Background_loader* loader,
+        Background_loader_delayed_callback* callback,
+        void* user_data)
+{
+    rassert(loader != NULL);
+    rassert(callback != NULL);
+
+    Final_cleanup_info info = { .callback = callback, .user_data = user_data };
+    return Vector_append(loader->final_cleanups, &info);
+}
+
+
 static bool Background_loader_fetch_task_info(
         Background_loader* loader, Task_info* dest_task_info)
 {
@@ -534,6 +565,16 @@ void Background_loader_wait_idle(Background_loader* loader)
     }
 
     Background_loader_run_cleanups(loader);
+
+    // Final cleanups
+    const int64_t cleanup_count = Vector_size(loader->final_cleanups);
+    for (int i = 0; i < cleanup_count; ++i)
+    {
+        Final_cleanup_info* info = Vector_get_ref(loader->final_cleanups, i);
+        rassert(info->callback != NULL);
+        info->callback(info->user_data);
+    }
+    Vector_clear(loader->final_cleanups);
 #endif // ENABLE_THREADS
 
     return;
@@ -575,11 +616,15 @@ void del_Background_loader(Background_loader* loader)
     if (loader == NULL)
         return;
 
+    Background_loader_wait_idle(loader);
+
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
         Task_worker_deinit(&loader->workers[i]);
 
     Task_queue_deinit(&loader->work_queue);
     Task_queue_deinit(&loader->cleanup_queue);
+
+    del_Vector(loader->final_cleanups);
 
     memory_free(loader);
 
