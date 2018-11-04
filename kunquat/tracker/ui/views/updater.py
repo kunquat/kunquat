@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2017
+# Author: Tomi Jylhä-Ollila, Finland 2017-2018
 #
 # This file is part of Kunquat.
 #
@@ -22,7 +22,8 @@ class Updater():
         self._ui_model = None
         self._updater = None
 
-        self._signal_action_map = OrderedDict()
+        self._updater_setup_done = False
+        self._actions_to_be_sent = []
         self._updating_children = []
 
     def __getattr__(self, name):
@@ -30,9 +31,9 @@ class Updater():
         # multiple inheritance, hence our __init__ might not get called
         if name in ('_ui_model', '_updater'):
             return None
-        elif name == '_signal_action_map':
-            self._signal_action_map = OrderedDict()
-            return self._signal_action_map
+        elif name == '_actions_to_be_sent':
+            self._actions_to_be_sent = []
+            return self._actions_to_be_sent
         elif name == '_updating_children':
             self._updating_children = []
             return self._updating_children
@@ -52,9 +53,11 @@ class Updater():
         if self._updater:
             widget.unregister_updaters()
 
-    def register_action(self, signal, action):
-        assert signal not in self._signal_action_map
+    def _add_registered_actions(self):
+        self._updater.register_actions(self._actions_to_be_sent)
+        self._actions_to_be_sent = []
 
+    def register_action(self, signal, action):
         if type(action) == types.BuiltinMethodType:
             action_id = (id(action.__self__), id(action))
         elif type(action) == types.MethodType:
@@ -62,22 +65,24 @@ class Updater():
         else:
             assert False, 'Unexpected action type: {}'.format(type(action))
 
-        action_info = (action, action_id)
-        self._signal_action_map[signal] = action_info
-        if self._updater:
-            self._updater.register_updater(self._update)
+        action_info = (id(self), action, action_id)
+        self._actions_to_be_sent.append((signal, action_info))
+
+        if self._updater_setup_done:
+            self._add_registered_actions()
 
     def set_ui_model(self, ui_model):
         assert not self._ui_model
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
-        if self._signal_action_map:
-            self._updater.register_updater(self._update)
 
         for view in self._updating_children:
             view.set_ui_model(ui_model)
 
         self._on_setup()
+        self._updater_setup_done = True
+
+        self._add_registered_actions()
 
     def unregister_updaters(self):
         self._on_teardown()
@@ -85,16 +90,7 @@ class Updater():
         for view in reversed(self._updating_children):
             view.unregister_updaters()
 
-        if self._signal_action_map:
-            self._updater.unregister_updater(self._update)
-
-    def _update(self, signals):
-        called_action_ids = set()
-        for signal, action_info in self._signal_action_map.items():
-            action, action_id = action_info
-            if (signal in signals) and (action_id not in called_action_ids):
-                called_action_ids.add(action_id)
-                action()
+        self._updater.unregister_actions(id(self))
 
     # Protected callbacks
 
