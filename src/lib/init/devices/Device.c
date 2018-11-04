@@ -95,7 +95,6 @@ bool Device_is_existent(const Device* device)
 void Device_set_impl(Device* device, Device_impl* dimpl, Background_loader* bkg_loader)
 {
     rassert(device != NULL);
-    //rassert(dimpl != NULL);
     rassert(bkg_loader != NULL);
 
     if (device->dimpl != NULL)

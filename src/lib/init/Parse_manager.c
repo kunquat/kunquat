@@ -1171,7 +1171,9 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
 
             // Background loader tasks may be accessing this device,
             // so let's wait for them to finish
-            Background_loader_wait_idle(params->handle->bkg_loader);
+            Device* device =
+                (Device*)Proc_table_get_proc_mut(proc_table, proc_index);
+            Device_set_impl(device, NULL, params->handle->bkg_loader);
         }
 
         Proc_table_set_existent(proc_table, proc_index, false);
