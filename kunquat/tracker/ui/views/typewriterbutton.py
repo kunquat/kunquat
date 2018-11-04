@@ -14,6 +14,8 @@
 
 from kunquat.tracker.ui.qt import *
 
+from .updater import Updater
+
 
 class TWLight(QWidget):
 
@@ -95,7 +97,7 @@ class TWLed(QFrame):
         self._right.set_state(right_on + centre_on)
 
 
-class TypewriterButton(QPushButton):
+class TypewriterButton(QPushButton, Updater):
 
     def __init__(self, row, index):
         super().__init__()
@@ -124,33 +126,24 @@ class TypewriterButton(QPushButton):
         self.pressed.connect(self._press)
         self.released.connect(self._release)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._control_mgr = ui_model.get_control_manager()
-        self._typewriter_mgr = ui_model.get_typewriter_manager()
+    def _on_setup(self):
+        self._control_mgr = self._ui_model.get_control_manager()
+        self._typewriter_mgr = self._ui_model.get_typewriter_manager()
 
         self._button_model = self._typewriter_mgr.get_button_model(
                 self._row, self._index)
+
+        self.register_action('signal_octave', self._update_properties)
+        self.register_action('signal_notation', self._update_properties)
+        self.register_action('signal_selection', self._update_key_checked_properties)
+        self.register_action('signal_hits', self._update_key_checked_properties)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._update_style()
         self._update_properties()
 
     def update_led_state(self, led_state):
         self._led.set_leds(*led_state)
-
-    def _perform_updates(self, signals):
-        if any(s in signals for s in ['signal_octave', 'signal_notation']):
-            self._update_properties()
-
-        if not set(['signal_selection', 'signal_hits']).isdisjoint(signals):
-            keymap_mgr = self._ui_model.get_keymap_manager()
-            if keymap_mgr.is_hit_keymap_active():
-                self._update_properties()
-
-        if 'signal_style_changed' in signals:
-            self._update_style()
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
@@ -172,6 +165,11 @@ class TypewriterButton(QPushButton):
             self._notename.setText('')
             self.setEnabled(False)
 
+    def _update_key_checked_properties(self):
+        keymap_mgr = self._ui_model.get_keymap_manager()
+        if keymap_mgr.is_hit_keymap_active():
+            self._update_properties()
+
     def _press(self):
         selection = self._ui_model.get_selection()
         location = selection.get_location()
@@ -184,8 +182,5 @@ class TypewriterButton(QPushButton):
 
     def _release(self):
         self._button_model.stop_tracked_note()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
 
 
