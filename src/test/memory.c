@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -17,7 +17,9 @@
 
 #include <kunquat/Handle.h>
 #include <kunquat/testing.h>
+#include <memory.h>
 
+#include <stdint.h>
 #include <string.h>
 
 
@@ -76,6 +78,38 @@ END_TEST
 #endif // KQT_LONG_TESTS
 
 
+START_TEST(Aligned_alloc_returns_proper_base_address)
+{
+    uint8_t alignment = (uint8_t)_i;
+
+#define ALLOC_TEST_COUNT 4
+    void* blocks[ALLOC_TEST_COUNT] = { NULL };
+
+    for (int i = 0; i < ALLOC_TEST_COUNT; ++i)
+    {
+#define BLOCK_SIZE 16384
+        blocks[i] = memory_alloc_items_aligned(char, BLOCK_SIZE, alignment);
+        fail_if(blocks[i] == NULL, "Could not allocate aligned memory block");
+
+        const intptr_t addr = (intptr_t)blocks[i];
+        const intptr_t rem = addr % alignment;
+        fail_if(rem != 0, "Incorrect alignment: got address %p, expected alignment %d",
+                blocks[i], (int)alignment);
+
+        char* block = blocks[i];
+        for (int k = 0; k < BLOCK_SIZE; ++k)
+            block[k] = (char)(80 + (k % 16));
+#undef BLOCK_SIZE
+    }
+
+    for (int i = 0; i < ALLOC_TEST_COUNT; ++i)
+        memory_free_aligned(blocks[i]);
+
+#undef ALLOC_TEST_COUNT
+}
+END_TEST
+
+
 Suite* Memory_suite(void)
 {
     Suite* s = suite_create("Memory");
@@ -91,6 +125,8 @@ Suite* Memory_suite(void)
     tcase_set_timeout(tc_create, LONG_TIMEOUT);
     tcase_add_test(tc_create, Out_of_memory_at_handle_creation_fails_cleanly);
 #endif
+
+    tcase_add_loop_test(tc_create, Aligned_alloc_returns_proper_base_address, 2, 64);
 
     return s;
 }
