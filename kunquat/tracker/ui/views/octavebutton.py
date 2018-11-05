@@ -14,8 +14,10 @@
 
 from kunquat.tracker.ui.qt import *
 
+from .updater import Updater
 
-class OctaveButton(QPushButton):
+
+class OctaveButton(QPushButton, Updater):
 
     def __init__(self, octave_id):
         super().__init__()
@@ -45,21 +47,21 @@ class OctaveButton(QPushButton):
     def _select_octave(self):
         self._typewriter_mgr.set_octave(self._octave_id)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._control_mgr = ui_model.get_control_manager()
-        self._typewriter_mgr = ui_model.get_typewriter_manager()
+    def _on_setup(self):
+        self._control_mgr = self._ui_model.get_control_manager()
+        self._typewriter_mgr = self._ui_model.get_typewriter_manager()
         self._button_model = self._typewriter_mgr.get_octave_button_model(
                 self._octave_id)
+
+        self.register_action('signal_notation', self._update_name)
+        self.register_action('signal_select_keymap', self._update_name)
+        self.register_action('signal_octave', self._update_pressed)
+        self.register_action('signal_init', self._update_pressed)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._update_name()
         self._update_pressed()
         self._update_style()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
 
     def update_led_state(self, enabled):
         if enabled:
@@ -83,16 +85,5 @@ class OctaveButton(QPushButton):
         style_mgr = self._ui_model.get_style_manager()
         self.setFixedWidth(style_mgr.get_scaled_size_param('typewriter_button_size'))
         self._led.setFixedWidth(style_mgr.get_scaled_size(1.5))
-
-    def _perform_updates(self, signals):
-        name_update_signals = set(['signal_notation', 'signal_select_keymap'])
-        if not signals.isdisjoint(name_update_signals):
-            self._update_name()
-
-        if any(s in signals for s in ['signal_octave', 'signal_init']):
-            self._update_pressed()
-
-        if 'signal_style_changed' in signals:
-            self._update_style()
 
 
