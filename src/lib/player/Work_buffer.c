@@ -80,6 +80,7 @@ void Work_buffer_init_with_memory(
     rassert(raw_elem_count % sub_count == 0);
 
     buffer->size = (raw_elem_count / sub_count) - 2;
+    buffer->sub_count = sub_count;
     for (int i = 0; i < WORK_BUFFER_SUB_COUNT_MAX; ++i)
     {
         buffer->const_start[i] = 0;
