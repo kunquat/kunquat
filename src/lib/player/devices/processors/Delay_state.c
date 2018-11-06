@@ -80,7 +80,7 @@ static bool Delay_pstate_set_audio_rate(Device_state* dstate, int32_t audio_rate
         if (!Work_buffer_resize(buf, delay_buf_size))
             return false;
 
-        Work_buffer_clear(buf, 0, Work_buffer_get_size(buf));
+        Work_buffer_clear(buf, 0, 0, Work_buffer_get_size(buf));
     }
 
     dpstate->buf_pos = 0;
@@ -98,7 +98,7 @@ static void Delay_pstate_reset(Device_state* dstate)
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
         Work_buffer* buf = dpstate->bufs[i];
-        Work_buffer_clear(buf, 0, Work_buffer_get_size(buf));
+        Work_buffer_clear(buf, 0, 0, Work_buffer_get_size(buf));
     }
 
     dpstate->buf_pos = 0;
@@ -157,8 +157,8 @@ static void Delay_pstate_render_mixed(
 
     float* history_data[] =
     {
-        Work_buffer_get_contents_mut(dpstate->bufs[0]),
-        Work_buffer_get_contents_mut(dpstate->bufs[1]),
+        Work_buffer_get_contents_mut(dpstate->bufs[0], 0),
+        Work_buffer_get_contents_mut(dpstate->bufs[1], 0),
     };
 
     const int32_t delay_buf_size = Work_buffer_get_size(dpstate->bufs[0]);
@@ -306,7 +306,7 @@ static void Delay_pstate_clear_history(Proc_state* proc_state)
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
         Work_buffer* buf = dpstate->bufs[i];
-        Work_buffer_clear(buf, 0, Work_buffer_get_size(buf));
+        Work_buffer_clear(buf, 0, 0, Work_buffer_get_size(buf));
     }
 
     dpstate->buf_pos = 0;
@@ -348,7 +348,7 @@ Device_state* new_Delay_pstate(
 
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
-        dpstate->bufs[i] = new_Work_buffer(delay_buf_size);
+        dpstate->bufs[i] = new_Work_buffer(delay_buf_size, 1);
         if (dpstate->bufs[i] == NULL)
         {
             del_Device_state(&dpstate->parent.parent);
@@ -380,7 +380,7 @@ bool Delay_pstate_set_max_delay(
         if (!Work_buffer_resize(buf, delay_buf_size))
             return false;
 
-        Work_buffer_clear(buf, 0, Work_buffer_get_size(buf));
+        Work_buffer_clear(buf, 0, 0, Work_buffer_get_size(buf));
     }
 
     dpstate->buf_pos = 0;

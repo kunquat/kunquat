@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -87,7 +87,7 @@ int32_t Pitch_vstate_render_voice(
         vstate->active = false;
         return buf_start;
     }
-    float* out_buf = Work_buffer_get_contents_mut(out_wb);
+    float* out_buf = Work_buffer_get_contents_mut(out_wb, 0);
 
     Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
 
@@ -210,7 +210,7 @@ int32_t Pitch_vstate_render_voice(
     pvstate->pitch = out_buf[buf_stop - 1];
 
     // Mark constant region of the buffer
-    Work_buffer_set_const_start(out_wb, const_start);
+    Work_buffer_set_const_start(out_wb, 0, const_start);
 
     return buf_stop;
 }

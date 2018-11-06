@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -104,6 +104,7 @@ bool Voice_work_buffers_allocate_space(
     for (int i = 0; i < wbs->count; ++i)
         Work_buffer_init_with_memory(
                 &wbs->wbs[i],
+                1,
                 (float*)wbs->space + (i * actual_buf_size),
                 actual_buf_size);
 

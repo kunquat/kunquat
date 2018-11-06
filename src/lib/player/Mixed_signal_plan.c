@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2017
+ * Author: Tomi Jylhä-Ollila, Finland 2017-2018
  *
  * This file is part of Kunquat.
  *
@@ -213,7 +213,8 @@ static void Mixed_signal_task_info_execute(
                             (const void*)conn->send_buf,
                             (const void*)conn->recv_buf);
                     // */
-                    Work_buffer_mix(conn->recv_buf, conn->send_buf, buf_start, buf_stop);
+                    Work_buffer_mix(
+                            conn->recv_buf, 0, conn->send_buf, 0, buf_start, buf_stop);
                 }
             }
             //fflush(stdout);
@@ -226,7 +227,7 @@ static void Mixed_signal_task_info_execute(
     for (int i = 0; i < Vector_size(task_info->conns); ++i)
     {
         const Mixed_signal_connection* conn = Vector_get_ref(task_info->conns, i);
-        Work_buffer_mix(conn->recv_buf, conn->send_buf, buf_start, buf_stop);
+        Work_buffer_mix(conn->recv_buf, 0, conn->send_buf, 0, buf_start, buf_stop);
     }
 
     // Process current device state

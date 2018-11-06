@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -100,16 +100,16 @@ int32_t Add_vstate_render_voice(
     if (freqs_wb == NULL)
         freqs_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_PITCH);
     Proc_fill_freq_buffer(freqs_wb, pitches_wb, buf_start, buf_stop);
-    const float* freqs = Work_buffer_get_contents(freqs_wb);
+    const float* freqs = Work_buffer_get_contents(freqs_wb, 0);
 
     // Get volume scales
     Work_buffer* scales_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     Work_buffer* dBs_wb = scales_wb;
     if ((dBs_wb != NULL) &&
-            Work_buffer_is_final(dBs_wb) &&
-            (Work_buffer_get_const_start(dBs_wb) <= buf_start) &&
-            (Work_buffer_get_contents(dBs_wb)[buf_start] == -INFINITY))
+            Work_buffer_is_final(dBs_wb, 0) &&
+            (Work_buffer_get_const_start(dBs_wb, 0) <= buf_start) &&
+            (Work_buffer_get_contents(dBs_wb, 0)[buf_start] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
         vstate->active = false;
@@ -119,7 +119,7 @@ int32_t Add_vstate_render_voice(
     if (scales_wb == NULL)
         scales_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_FORCE);
     Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);
-    const float* scales = Work_buffer_get_contents(scales_wb);
+    const float* scales = Work_buffer_get_contents(scales_wb, 0);
 
     // Get output buffer for writing
     float* out_bufs[2] = { NULL };
@@ -141,7 +141,7 @@ int32_t Add_vstate_render_voice(
         {
             Work_buffer* zero_buf = Work_buffers_get_buffer_mut(
                     wbs, (Work_buffer_type)(ADD_WORK_BUFFER_MOD_L + ch));
-            Work_buffer_clear(zero_buf, buf_start, buf_stop);
+            Work_buffer_clear(zero_buf, 0, buf_start, buf_stop);
             mod_wbs[ch] = zero_buf;
         }
     }
@@ -177,7 +177,7 @@ int32_t Add_vstate_render_voice(
                 continue;
 
             const double panning_factor = 1 + pannings[ch];
-            const float* mod_values_ch = Work_buffer_get_contents(mod_wbs[ch]);
+            const float* mod_values_ch = Work_buffer_get_contents(mod_wbs[ch], 0);
 
             double phase = tone_state->phase[ch];
 
@@ -213,8 +213,8 @@ int32_t Add_vstate_render_voice(
 
                 // Get length of input compatible with current waveform resolution
                 const int32_t res_check_stop = min(res_slice_stop,
-                        max(Work_buffer_get_const_start(freqs_wb),
-                            Work_buffer_get_const_start(mod_wbs[ch])) + 1);
+                        max(Work_buffer_get_const_start(freqs_wb, 0),
+                            Work_buffer_get_const_start(mod_wbs[ch], 0)) + 1);
                 for (int32_t i = res_slice_start + 1; i < res_check_stop; ++i)
                 {
                     const float cur_mod_shift = mod_values_ch[i] - mod_values_ch[i - 1];

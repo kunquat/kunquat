@@ -16,6 +16,8 @@
 #define KQT_WORK_BUFFER_PRIVATE_H
 
 
+#include <player/Work_buffer.h>
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -23,8 +25,9 @@
 struct Work_buffer
 {
     int32_t size;
-    int32_t const_start;
-    bool is_final;
+    int sub_count;
+    int32_t const_start[WORK_BUFFER_SUB_COUNT_MAX];
+    bool is_final[WORK_BUFFER_SUB_COUNT_MAX]; // TODO: make more compact
     void* contents;
 };
 

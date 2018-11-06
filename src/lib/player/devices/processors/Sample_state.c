@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -117,16 +117,16 @@ static int32_t Sample_render(
     if (freqs_wb == NULL)
         freqs_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_PITCH);
     Proc_fill_freq_buffer(freqs_wb, pitches_wb, buf_start, buf_stop);
-    const float* freqs = Work_buffer_get_contents(freqs_wb);
+    const float* freqs = Work_buffer_get_contents(freqs_wb, 0);
 
     // Get force input
     Work_buffer* force_scales_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     Work_buffer* dBs_wb = force_scales_wb;
     if ((dBs_wb != NULL) &&
-            Work_buffer_is_final(dBs_wb) &&
-            (Work_buffer_get_const_start(dBs_wb) <= buf_start) &&
-            (Work_buffer_get_contents(dBs_wb)[buf_start] == -INFINITY))
+            Work_buffer_is_final(dBs_wb, 0) &&
+            (Work_buffer_get_const_start(dBs_wb, 0) <= buf_start) &&
+            (Work_buffer_get_contents(dBs_wb, 0)[buf_start] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
         vstate->active = false;
@@ -136,7 +136,7 @@ static int32_t Sample_render(
     if (force_scales_wb == NULL)
         force_scales_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_FORCE);
     Proc_fill_scale_buffer(force_scales_wb, dBs_wb, buf_start, buf_stop);
-    const float* force_scales = Work_buffer_get_contents(force_scales_wb);
+    const float* force_scales = Work_buffer_get_contents(force_scales_wb, 0);
 
     float* abufs[KQT_BUFFERS_MAX] = { out_buffers[0], out_buffers[1] };
     if ((sample->channels == 1) && (out_buffers[0] == NULL))

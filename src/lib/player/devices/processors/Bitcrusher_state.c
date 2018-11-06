@@ -120,18 +120,18 @@ static void Bitcrusher_state_impl_render(
         }
         else
         {
-            float* holds = Work_buffer_get_contents_mut(holds_wb);
+            float* holds = Work_buffer_get_contents_mut(holds_wb, 0);
             for (int32_t i = buf_start; i < buf_stop; ++i)
                 holds[i] = hold;
-            Work_buffer_set_const_start(holds_wb, buf_start);
+            Work_buffer_set_const_start(holds_wb, 0, buf_start);
         }
     }
     else
     {
-        const int32_t const_start = Work_buffer_get_const_start(cutoff_wb);
+        const int32_t const_start = Work_buffer_get_const_start(cutoff_wb, 0);
 
-        const float* cutoffs = Work_buffer_get_contents(cutoff_wb);
-        float* holds = Work_buffer_get_contents_mut(holds_wb);
+        const float* cutoffs = Work_buffer_get_contents(cutoff_wb, 0);
+        float* holds = Work_buffer_get_contents_mut(holds_wb, 0);
 
         for (int32_t i = buf_start; i < const_start; ++i)
             holds[i] = (float)get_hold_fast(cutoffs[i], audio_rate);
@@ -143,13 +143,13 @@ static void Bitcrusher_state_impl_render(
                 holds[i] = hold;
         }
 
-        Work_buffer_set_const_start(holds_wb, const_start);
+        Work_buffer_set_const_start(holds_wb, 0, const_start);
     }
 
     // Perform audio rate reduction
     if (holds_wb != NULL)
     {
-        const float* holds = Work_buffer_get_contents(holds_wb);
+        const float* holds = Work_buffer_get_contents(holds_wb, 0);
 
         for (int ch = 0; ch < 2; ++ch)
         {
@@ -158,8 +158,8 @@ static void Bitcrusher_state_impl_render(
             if ((in_wb == NULL) || (out_wb == NULL))
                 continue;
 
-            const float* in = Work_buffer_get_contents(in_wb);
-            float* out = Work_buffer_get_contents_mut(out_wb);
+            const float* in = Work_buffer_get_contents(in_wb, 0);
+            float* out = Work_buffer_get_contents_mut(out_wb, 0);
 
             double hold_timer = state->hold_timer[ch];
             float hold_value = state->hold_value[ch];
@@ -203,19 +203,19 @@ static void Bitcrusher_state_impl_render(
         {
             const float mult = (float)exp2(bc->resolution);
 
-            float* mults = Work_buffer_get_contents_mut(mults_wb);
+            float* mults = Work_buffer_get_contents_mut(mults_wb, 0);
             for (int32_t i = buf_start; i < buf_stop; ++i)
                 mults[i] = mult;
 
-            Work_buffer_set_const_start(mults_wb, buf_start);
+            Work_buffer_set_const_start(mults_wb, 0, buf_start);
         }
     }
     else
     {
-        const int32_t const_start = Work_buffer_get_const_start(resolution_wb);
+        const int32_t const_start = Work_buffer_get_const_start(resolution_wb, 0);
 
-        const float* res_buf = Work_buffer_get_contents(resolution_wb);
-        float* mults = Work_buffer_get_contents_mut(mults_wb);
+        const float* res_buf = Work_buffer_get_contents(resolution_wb, 0);
+        float* mults = Work_buffer_get_contents_mut(mults_wb, 0);
 
         for (int32_t i = buf_start; i < const_start; ++i)
             mults[i] = (float)fast_exp2(max(1, res_buf[i]));
@@ -227,7 +227,7 @@ static void Bitcrusher_state_impl_render(
                 mults[i] = mult;
         }
 
-        Work_buffer_set_const_start(mults_wb, const_start);
+        Work_buffer_set_const_start(mults_wb, 0, const_start);
     }
 
     // Perform resolution reduction
@@ -235,7 +235,7 @@ static void Bitcrusher_state_impl_render(
     {
         const float min_ignore_mult = (float)exp2(bc->res_ignore_min);
 
-        const float* mults = Work_buffer_get_contents(mults_wb);
+        const float* mults = Work_buffer_get_contents(mults_wb, 0);
 
         if (holds_wb == NULL)
         {
@@ -246,8 +246,8 @@ static void Bitcrusher_state_impl_render(
                 if ((in_wb == NULL) || (out_wb == NULL))
                     continue;
 
-                const float* in = Work_buffer_get_contents(in_wb);
-                float* out = Work_buffer_get_contents_mut(out_wb);
+                const float* in = Work_buffer_get_contents(in_wb, 0);
+                float* out = Work_buffer_get_contents_mut(out_wb, 0);
 
                 for (int32_t i = buf_start; i < buf_stop; ++i)
                 {
@@ -273,7 +273,7 @@ static void Bitcrusher_state_impl_render(
                 if (wb == NULL)
                     continue;
 
-                float* out = Work_buffer_get_contents_mut(wb);
+                float* out = Work_buffer_get_contents_mut(wb, 0);
 
                 for (int32_t i = buf_start; i < buf_stop; ++i)
                 {
@@ -299,7 +299,7 @@ static void Bitcrusher_state_impl_render(
             if ((in_wb == NULL) || (out_wb == NULL))
                 continue;
 
-            Work_buffer_copy(out_wb, in_wb, buf_start, buf_stop);
+            Work_buffer_copy(out_wb, 0, in_wb, 0, buf_start, buf_stop);
         }
     }
 

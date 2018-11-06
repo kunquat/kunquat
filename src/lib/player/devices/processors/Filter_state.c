@@ -122,9 +122,9 @@ static void Filter_state_impl_apply_input_buffers(
 
         if (cutoff_wb != NULL)
         {
-            const int32_t const_start = Work_buffer_get_const_start(cutoff_wb);
+            const int32_t const_start = Work_buffer_get_const_start(cutoff_wb, 0);
             fast_cutoff_stop = clamp(const_start, buf_start, buf_stop);
-            const float* cutoff_buf = Work_buffer_get_contents(cutoff_wb);
+            const float* cutoff_buf = Work_buffer_get_contents(cutoff_wb, 0);
 
             // Get cutoff values from input
             for (int32_t i = buf_start; i < fast_cutoff_stop; ++i)
@@ -169,9 +169,9 @@ static void Filter_state_impl_apply_input_buffers(
 
         if (resonance_wb != NULL)
         {
-            const int32_t const_start = Work_buffer_get_const_start(resonance_wb);
+            const int32_t const_start = Work_buffer_get_const_start(resonance_wb, 0);
             fast_res_stop = clamp(const_start, buf_start, buf_stop);
-            const float* resonance_buf = Work_buffer_get_contents(resonance_wb);
+            const float* resonance_buf = Work_buffer_get_contents(resonance_wb, 0);
 
             // Get resonance values from input
             for (int32_t i = buf_start; i < fast_res_stop; ++i)
@@ -233,8 +233,8 @@ static void Filter_state_impl_apply_input_buffers(
 
         Filter_ch_state* state = &fimpl->states[ch];
 
-        const float* in_buf = Work_buffer_get_contents(in_buffers[ch]);
-        float* out_buf = Work_buffer_get_contents_mut(out_buffers[ch]);
+        const float* in_buf = Work_buffer_get_contents(in_buffers[ch], 0);
+        float* out_buf = Work_buffer_get_contents_mut(out_buffers[ch], 0);
 
         double s1 = state->s1;
         double s2 = state->s2;

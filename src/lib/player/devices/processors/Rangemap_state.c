@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -75,8 +75,8 @@ static void apply_range(
     rassert(isfinite(add));
     rassert(min_val < max_val);
 
-    const float* in = Work_buffer_get_contents(in_wb);
-    float* out = Work_buffer_get_contents_mut(out_wb);
+    const float* in = Work_buffer_get_contents(in_wb, 0);
+    float* out = Work_buffer_get_contents_mut(out_wb, 0);
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
         out[i] = (mul * in[i]) + add;

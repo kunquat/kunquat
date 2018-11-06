@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2017
+ * Author: Tomi Jylhä-Ollila, Finland 2017-2018
  *
  * This file is part of Kunquat.
  *
@@ -34,15 +34,15 @@ static void clamp_buffer(Work_buffer* buffer, int32_t buf_start, int32_t buf_sto
     rassert(buf_start >= 0);
     rassert(buf_stop > buf_start);
 
-    const int32_t const_start = Work_buffer_get_const_start(buffer);
-    float* buf = Work_buffer_get_contents_mut(buffer);
+    const int32_t const_start = Work_buffer_get_const_start(buffer, 0);
+    float* buf = Work_buffer_get_contents_mut(buffer, 0);
 
     const float bound = 20000000000.0f;
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
         buf[i] = clamp(buf[i], -bound, bound);
 
-    Work_buffer_set_const_start(buffer, const_start);
+    Work_buffer_set_const_start(buffer, 0, const_start);
 
     return;
 }
@@ -68,8 +68,8 @@ static void process(
     rassert(inout_prev_value != NULL);
     rassert(inout_prev_slope != NULL);
 
-    const float* in = Work_buffer_get_contents(in_wb);
-    float* out = Work_buffer_get_contents_mut(out_wb);
+    const float* in = Work_buffer_get_contents(in_wb, 0);
+    float* out = Work_buffer_get_contents_mut(out_wb, 0);
 
     const double smoothing_factor = 0.1 / 12.0;
     const float smooth_lerp =
@@ -179,7 +179,7 @@ static void Slope_pstate_render_mixed(
     {
         Work_buffer* fixed_in_wb =
             Work_buffers_get_buffer_mut(wbs, SLOPE_WB_FIXED_INPUT);
-        Work_buffer_clear(fixed_in_wb, buf_start, buf_stop);
+        Work_buffer_clear(fixed_in_wb, 0, buf_start, buf_stop);
         in_wb = fixed_in_wb;
     }
     else
@@ -194,7 +194,7 @@ static void Slope_pstate_render_mixed(
 
     if (!spstate->anything_rendered)
     {
-        spstate->prev_value = Work_buffer_get_contents(in_wb)[buf_start];
+        spstate->prev_value = Work_buffer_get_contents(in_wb, 0)[buf_start];
         spstate->anything_rendered = true;
     }
 
@@ -303,7 +303,7 @@ int32_t Slope_vstate_render_voice(
     {
         Work_buffer* fixed_in_wb =
             Work_buffers_get_buffer_mut(wbs, SLOPE_WB_FIXED_INPUT);
-        Work_buffer_clear(fixed_in_wb, buf_start, buf_stop);
+        Work_buffer_clear(fixed_in_wb, 0, buf_start, buf_stop);
         in_wb = fixed_in_wb;
     }
     else
@@ -318,7 +318,7 @@ int32_t Slope_vstate_render_voice(
 
     if (!svstate->anything_rendered)
     {
-        svstate->prev_value = Work_buffer_get_contents(in_wb)[buf_start];
+        svstate->prev_value = Work_buffer_get_contents(in_wb, 0)[buf_start];
         svstate->anything_rendered = true;
     }
 

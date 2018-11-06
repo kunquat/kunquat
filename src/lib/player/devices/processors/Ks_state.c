@@ -306,19 +306,19 @@ int32_t Ks_vstate_render_voice(
     {
         Work_buffer* fixed_pitches_wb =
             Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_PITCH);
-        Work_buffer_clear(fixed_pitches_wb, buf_start, buf_stop);
+        Work_buffer_clear(fixed_pitches_wb, 0, buf_start, buf_stop);
         pitches_wb = fixed_pitches_wb;
     }
-    const float* pitches = Work_buffer_get_contents(pitches_wb);
+    const float* pitches = Work_buffer_get_contents(pitches_wb, 0);
 
     // Get volume scales
     Work_buffer* scales_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     Work_buffer* dBs_wb = scales_wb;
     if ((dBs_wb != NULL) &&
-            Work_buffer_is_final(dBs_wb) &&
-            (Work_buffer_get_const_start(dBs_wb) <= buf_start) &&
-            (Work_buffer_get_contents(dBs_wb)[buf_start] == -INFINITY))
+            Work_buffer_is_final(dBs_wb, 0) &&
+            (Work_buffer_get_const_start(dBs_wb, 0) <= buf_start) &&
+            (Work_buffer_get_contents(dBs_wb, 0)[buf_start] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
         vstate->active = false;
@@ -328,7 +328,7 @@ int32_t Ks_vstate_render_voice(
     if (scales_wb == NULL)
         scales_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_FORCE);
     Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);
-    const float* scales = Work_buffer_get_contents(scales_wb);
+    const float* scales = Work_buffer_get_contents(scales_wb, 0);
 
     // Get excitation signal
     Work_buffer* excit_wb = Device_thread_state_get_voice_buffer(
@@ -337,10 +337,10 @@ int32_t Ks_vstate_render_voice(
     {
         Work_buffer* fixed_excit_wb =
             Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_EXCITATION);
-        Work_buffer_clear(fixed_excit_wb, buf_start, buf_stop);
+        Work_buffer_clear(fixed_excit_wb, 0, buf_start, buf_stop);
         excit_wb = fixed_excit_wb;
     }
-    float* excits = Work_buffer_get_contents_mut(excit_wb);
+    float* excits = Work_buffer_get_contents_mut(excit_wb, 0);
 
     // Get damp signal
     const Work_buffer* damps_wb = Device_thread_state_get_voice_buffer(
@@ -348,16 +348,16 @@ int32_t Ks_vstate_render_voice(
     if (damps_wb == NULL)
     {
         Work_buffer* fixed_damps_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_DAMP);
-        float* damps = Work_buffer_get_contents_mut(fixed_damps_wb);
+        float* damps = Work_buffer_get_contents_mut(fixed_damps_wb, 0);
 
         const float fixed_damp = (float)ks->damp;
         for (int32_t i = buf_start; i < buf_stop; ++i)
             damps[i] = fixed_damp;
 
-        Work_buffer_set_const_start(fixed_damps_wb, buf_start);
+        Work_buffer_set_const_start(fixed_damps_wb, 0, buf_start);
         damps_wb = fixed_damps_wb;
     }
-    const float* damps = Work_buffer_get_contents(damps_wb);
+    const float* damps = Work_buffer_get_contents(damps_wb, 0);
 
     // Get delay buffer
     Work_buffer* delay_wb = ks_vstate->parent.wb;
@@ -381,7 +381,7 @@ int32_t Ks_vstate_render_voice(
     }
 
     int32_t write_pos = ks_vstate->write_pos;
-    float* delay_buf = Work_buffer_get_contents_mut(delay_wb);
+    float* delay_buf = Work_buffer_get_contents_mut(delay_wb, 0);
 
     const double xfade_speed = 1000.0;
     const double xfade_step = xfade_speed / audio_rate;
@@ -395,7 +395,7 @@ int32_t Ks_vstate_render_voice(
 
         if (!ks_vstate->is_xfading)
         {
-            const int32_t const_pitch_start = Work_buffer_get_const_start(pitches_wb);
+            const int32_t const_pitch_start = Work_buffer_get_const_start(pitches_wb, 0);
             const float max_pitch_diff = (i < const_pitch_start) ? 0.1f : 0.001f;
 
             const float max_damp_diff = 0.001f;
@@ -489,7 +489,7 @@ void Ks_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
     Work_buffer* delay_wb = ks_vstate->parent.wb;
     rassert(delay_wb != NULL);
-    Work_buffer_clear(delay_wb, 0, Work_buffer_get_size(delay_wb));
+    Work_buffer_clear(delay_wb, 0, 0, Work_buffer_get_size(delay_wb));
 
     return;
 }

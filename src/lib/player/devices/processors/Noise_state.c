@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -120,9 +120,9 @@ int32_t Noise_vstate_render_voice(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     Work_buffer* dBs_wb = scales_wb;
     if ((dBs_wb != NULL) &&
-            Work_buffer_is_final(dBs_wb) &&
-            (Work_buffer_get_const_start(dBs_wb) <= buf_start) &&
-            (Work_buffer_get_contents(dBs_wb)[buf_start] == -INFINITY))
+            Work_buffer_is_final(dBs_wb, 0) &&
+            (Work_buffer_get_const_start(dBs_wb, 0) <= buf_start) &&
+            (Work_buffer_get_contents(dBs_wb, 0)[buf_start] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
         vstate->active = false;
@@ -132,7 +132,7 @@ int32_t Noise_vstate_render_voice(
     if (scales_wb == NULL)
         scales_wb = Work_buffers_get_buffer_mut(wbs, NOISE_WB_FIXED_FORCE);
     Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);
-    const float* scales = Work_buffer_get_contents(scales_wb);
+    const float* scales = Work_buffer_get_contents(scales_wb, 0);
 
     Noise_pstate* noise_state = (Noise_pstate*)proc_state;
     Noise_vstate* noise_vstate = (Noise_vstate*)vstate;

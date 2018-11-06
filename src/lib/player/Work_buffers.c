@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -45,7 +45,7 @@ Work_buffers* new_Work_buffers(int32_t buf_size)
     // Allocate buffers
     for (int i = 0; i < WORK_BUFFER_COUNT_; ++i)
     {
-        buffers->buffers[i] = new_Work_buffer(buf_size);
+        buffers->buffers[i] = new_Work_buffer(buf_size, 1);
         if (buffers->buffers[i] == NULL)
         {
             del_Work_buffers(buffers);
@@ -99,7 +99,7 @@ const float* Work_buffers_get_buffer_contents(
     rassert(buffers != NULL);
     rassert(type < WORK_BUFFER_COUNT_);
 
-    return Work_buffer_get_contents(buffers->buffers[type]);
+    return Work_buffer_get_contents(buffers->buffers[type], 0);
 }
 
 
@@ -109,7 +109,7 @@ float* Work_buffers_get_buffer_contents_mut(
     rassert(buffers != NULL);
     rassert(type < WORK_BUFFER_COUNT_);
 
-    return Work_buffer_get_contents_mut(buffers->buffers[type]);
+    return Work_buffer_get_contents_mut(buffers->buffers[type], 0);
 }
 
 
@@ -119,7 +119,7 @@ int32_t* Work_buffers_get_buffer_contents_int_mut(
     rassert(buffers != NULL);
     rassert(type < WORK_BUFFER_COUNT_);
 
-    return Work_buffer_get_contents_int_mut(buffers->buffers[type]);
+    return Work_buffer_get_contents_int_mut(buffers->buffers[type], 0);
 }
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -574,7 +574,8 @@ void Device_states_mix_thread_states(
                                     src_state, DEVICE_PORT_TYPE_SEND, port);
                         rassert(src_buffer != NULL);
 
-                        Work_buffer_mix(dest_buffer, src_buffer, buf_start, buf_stop);
+                        Work_buffer_mix(
+                                dest_buffer, 0, src_buffer, 0, buf_start, buf_stop);
                     }
                 }
             }

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -264,7 +264,7 @@ static int32_t process_voice_group(
                         node_ts, DEVICE_PORT_TYPE_RECV, port);
 
                 if ((send_buf != NULL) && (recv_buf != NULL))
-                    Work_buffer_mix(recv_buf, send_buf, buf_start, buf_stop);
+                    Work_buffer_mix(recv_buf, 0, send_buf, 0, buf_start, buf_stop);
             }
 
             edge = edge->next;

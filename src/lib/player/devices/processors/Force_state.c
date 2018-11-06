@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -99,10 +99,10 @@ int32_t Force_vstate_render_voice(
     if (stretch_wb == NULL)
     {
         stretch_wb = Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_ENV_STRETCH);
-        float* stretches = Work_buffer_get_contents_mut(stretch_wb);
+        float* stretches = Work_buffer_get_contents_mut(stretch_wb, 0);
         for (int32_t i = buf_start; i < buf_stop; ++i)
             stretches[i] = 0;
-        Work_buffer_set_const_start(stretch_wb, buf_start);
+        Work_buffer_set_const_start(stretch_wb, 0, buf_start);
     }
     else
     {
@@ -115,10 +115,10 @@ int32_t Force_vstate_render_voice(
     {
         rel_stretch_wb =
             Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_ENV_REL_STRETCH);
-        float* stretches = Work_buffer_get_contents_mut(rel_stretch_wb);
+        float* stretches = Work_buffer_get_contents_mut(rel_stretch_wb, 0);
         for (int32_t i = buf_start; i < buf_stop; ++i)
             stretches[i] = 0;
-        Work_buffer_set_const_start(rel_stretch_wb, buf_start);
+        Work_buffer_set_const_start(rel_stretch_wb, 0, buf_start);
     }
     else
     {
@@ -133,7 +133,7 @@ int32_t Force_vstate_render_voice(
         vstate->active = false;
         return buf_start;
     }
-    float* out_buf = Work_buffer_get_contents_mut(out_wb);
+    float* out_buf = Work_buffer_get_contents_mut(out_wb, 0);
 
     Force_vstate* fvstate = (Force_vstate*)vstate;
     const Proc_force* force = (const Proc_force*)proc_state->parent.device->dimpl;
@@ -236,7 +236,7 @@ int32_t Force_vstate_render_voice(
 
         Work_buffer* wb_time_env =
             Work_buffers_get_buffer_mut(wbs, WORK_BUFFER_TIME_ENV);
-        float* time_env = Work_buffer_get_contents_mut(wb_time_env);
+        float* time_env = Work_buffer_get_contents_mut(wb_time_env, 0);
 
         // Convert envelope data to dB
         for (int32_t i = buf_start; i < env_force_stop; ++i)
@@ -297,7 +297,7 @@ int32_t Force_vstate_render_voice(
 
             Work_buffer* wb_time_env =
                 Work_buffers_get_buffer_mut(wbs, WORK_BUFFER_TIME_ENV);
-            float* time_env = Work_buffer_get_contents_mut(wb_time_env);
+            float* time_env = Work_buffer_get_contents_mut(wb_time_env, 0);
 
             // Convert envelope data to dB
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
@@ -349,8 +349,8 @@ int32_t Force_vstate_render_voice(
     }
 
     // Mark constant region of the buffer
-    Work_buffer_set_const_start(out_wb, const_start);
-    Work_buffer_set_final(out_wb, keep_alive_stop < buf_stop);
+    Work_buffer_set_const_start(out_wb, 0, const_start);
+    Work_buffer_set_final(out_wb, 0, keep_alive_stop < buf_stop);
 
     Voice_state_set_keep_alive_stop(vstate, keep_alive_stop);
 

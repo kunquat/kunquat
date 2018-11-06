@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -228,10 +228,10 @@ void Proc_fill_freq_buffer(
     {
         Proc_clamp_pitch_values(pitches, buf_start, buf_stop);
 
-        const int32_t const_start = Work_buffer_get_const_start(pitches);
-        float* freqs_data = Work_buffer_get_contents_mut(freqs);
+        const int32_t const_start = Work_buffer_get_const_start(pitches, 0);
+        float* freqs_data = Work_buffer_get_contents_mut(freqs, 0);
 
-        float* pitches_data = Work_buffer_get_contents_mut(pitches);
+        float* pitches_data = Work_buffer_get_contents_mut(pitches, 0);
 
         const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
 
@@ -248,16 +248,16 @@ void Proc_fill_freq_buffer(
                 freqs_data[i] = freq;
         }
 
-        Work_buffer_set_const_start(freqs, const_start);
+        Work_buffer_set_const_start(freqs, 0, const_start);
     }
     else
     {
-        float* freqs_data = Work_buffer_get_contents_mut(freqs);
+        float* freqs_data = Work_buffer_get_contents_mut(freqs, 0);
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
             freqs_data[i] = 440;
 
-        Work_buffer_set_const_start(freqs, buf_start);
+        Work_buffer_set_const_start(freqs, 0, buf_start);
     }
 
     return;
@@ -276,10 +276,10 @@ void Proc_fill_scale_buffer(
 
     if (dBs != NULL)
     {
-        const int32_t const_start = Work_buffer_get_const_start(dBs);
-        float* scales_data = Work_buffer_get_contents_mut(scales);
+        const int32_t const_start = Work_buffer_get_const_start(dBs, 0);
+        float* scales_data = Work_buffer_get_contents_mut(scales, 0);
 
-        float* dBs_data = Work_buffer_get_contents_mut(dBs);
+        float* dBs_data = Work_buffer_get_contents_mut(dBs, 0);
 
         const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
 
@@ -310,16 +310,16 @@ void Proc_fill_scale_buffer(
                 scales_data[i] = scale;
         }
 
-        Work_buffer_set_const_start(scales, const_start);
+        Work_buffer_set_const_start(scales, 0, const_start);
     }
     else
     {
-        float* scales_data = Work_buffer_get_contents_mut(scales);
+        float* scales_data = Work_buffer_get_contents_mut(scales, 0);
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
             scales_data[i] = 1;
 
-        Work_buffer_set_const_start(scales, buf_start);
+        Work_buffer_set_const_start(scales, 0, buf_start);
     }
 
     return;
@@ -332,12 +332,12 @@ void Proc_clamp_pitch_values(Work_buffer* pitches, int32_t buf_start, int32_t bu
     rassert(buf_start >= 0);
     rassert(buf_stop >= 0);
 
-    const int32_t const_start = Work_buffer_get_const_start(pitches);
+    const int32_t const_start = Work_buffer_get_const_start(pitches, 0);
     const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
 
     const float bound = 2000000.0f;
 
-    float* pitches_data = Work_buffer_get_contents_mut(pitches);
+    float* pitches_data = Work_buffer_get_contents_mut(pitches, 0);
 
     for (int32_t i = buf_start; i < fast_stop; ++i)
         pitches_data[i] = clamp(pitches_data[i], -bound, bound);
@@ -349,7 +349,7 @@ void Proc_clamp_pitch_values(Work_buffer* pitches, int32_t buf_start, int32_t bu
             pitches_data[i] = pitch;
     }
 
-    Work_buffer_set_const_start(pitches, const_start);
+    Work_buffer_set_const_start(pitches, 0, const_start);
 
     return;
 }
@@ -367,7 +367,7 @@ Cond_work_buffer* Cond_work_buffer_init(
     if (wb != NULL)
     {
         cwb->index_mask = ~(int32_t)0;
-        cwb->wb_contents = Work_buffer_get_contents(wb);
+        cwb->wb_contents = Work_buffer_get_contents(wb, 0);
     }
 
     return cwb;

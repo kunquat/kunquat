@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -43,8 +43,8 @@ static void distort(
 
     if (gc->is_map_enabled && (gc->map != NULL))
     {
-        const float* in_values = Work_buffer_get_contents(in_buffer);
-        float* out_values = Work_buffer_get_contents_mut(out_buffer);
+        const float* in_values = Work_buffer_get_contents(in_buffer, 0);
+        float* out_values = Work_buffer_get_contents_mut(out_buffer, 0);
 
         const double* first = Envelope_get_node(gc->map, 0);
         if (first[0] == -1)
@@ -74,7 +74,7 @@ static void distort(
     }
     else
     {
-        Work_buffer_copy(out_buffer, in_buffer, buf_start, buf_stop);
+        Work_buffer_copy(out_buffer, 0, in_buffer, 0, buf_start, buf_stop);
     }
 
     return;

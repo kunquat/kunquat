@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -135,7 +135,7 @@ static bool Device_thread_state_add_buffer(
     if (Etable_get(ts->buffers[buf_type][port_type], port) != NULL)
         return true;
 
-    Work_buffer* wb = new_Work_buffer(ts->audio_buffer_size);
+    Work_buffer* wb = new_Work_buffer(ts->audio_buffer_size, 1);
     if ((wb == NULL) || !Etable_set(ts->buffers[buf_type][port_type], port, wb))
     {
         del_Work_buffer(wb);
@@ -166,7 +166,7 @@ static void Device_thread_state_clear_buffers(
         {
             Work_buffer* buffer = Etable_get(bufs, port);
             if (buffer != NULL)
-                Work_buffer_clear(buffer, buf_start, buf_stop);
+                Work_buffer_clear(buffer, 0, buf_start, buf_stop);
         }
     }
 
@@ -259,7 +259,7 @@ float* Device_thread_state_get_mixed_buffer_contents_mut(
     if (wb == NULL)
         return NULL;
 
-    return Work_buffer_get_contents_mut(wb);
+    return Work_buffer_get_contents_mut(wb, 0);
 }
 
 
@@ -312,7 +312,7 @@ float* Device_thread_state_get_voice_buffer_contents(
     if (wb == NULL)
         return NULL;
 
-    return Work_buffer_get_contents_mut(wb);
+    return Work_buffer_get_contents_mut(wb, 0);
 }
 
 
@@ -346,7 +346,7 @@ void Device_thread_state_mix_voice_signals(
             Device_thread_state_get_voice_buffer(ts, DEVICE_PORT_TYPE_SEND, port);
         rassert(voice_buffer != NULL);
 
-        Work_buffer_mix(mixed_buffer, voice_buffer, buf_start, buf_stop);
+        Work_buffer_mix(mixed_buffer, 0, voice_buffer, 0, buf_start, buf_stop);
         Device_thread_state_mark_mixed_audio(ts);
     }
 

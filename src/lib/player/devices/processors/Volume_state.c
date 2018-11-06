@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -81,7 +81,7 @@ static void apply_volume(
     if (vol_wb != NULL)
     {
         Proc_fill_scale_buffer(vol_wb, vol_wb, buf_start, buf_stop);
-        const float* scales = Work_buffer_get_contents(vol_wb);
+        const float* scales = Work_buffer_get_contents(vol_wb, 0);
 
         for (int ch = 0; ch < buf_count; ++ch)
         {
@@ -208,9 +208,9 @@ int32_t Volume_vstate_render_voice(
     Work_buffer* vol_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     if ((vol_wb != NULL) &&
-            Work_buffer_is_final(vol_wb) &&
-            (Work_buffer_get_const_start(vol_wb) <= buf_start) &&
-            (Work_buffer_get_contents(vol_wb)[buf_start] == -INFINITY))
+            Work_buffer_is_final(vol_wb, 0) &&
+            (Work_buffer_get_const_start(vol_wb, 0) <= buf_start) &&
+            (Work_buffer_get_contents(vol_wb, 0)[buf_start] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
         return buf_start;

@@ -296,7 +296,7 @@ static bool Player_thread_params_create_buffers(
     for (int i = 0; i < TEST_VOICE_OUTPUTS_MAX; ++i)
     {
         rassert(tp->test_voice_outputs[i] == NULL);
-        tp->test_voice_outputs[i] = new_Work_buffer(audio_buffer_size);
+        tp->test_voice_outputs[i] = new_Work_buffer(audio_buffer_size, 1);
         if (tp->test_voice_outputs[i] == NULL)
         {
             Player_thread_params_deinit(tp);
@@ -894,7 +894,9 @@ static void Player_process_voice_group(
             for (int port = 0; port < TEST_VOICE_OUTPUTS_MAX; ++port)
                 Work_buffer_mix(
                         tparams->test_voice_outputs[port],
+                        0,
                         in_wbs[port],
+                        0,
                         render_start, test_output_stop);
         }
     }
@@ -1255,9 +1257,9 @@ static void Player_mix_test_voice_signals(
             if (wb == NULL)
                 continue;
 
-            const float first_val = Work_buffer_get_contents(wb)[buf_start];
-            if ((Work_buffer_get_const_start(wb) > buf_start) || (first_val != 0.0f))
-                Work_buffer_mix(master_wb, wb, buf_start, buf_stop);
+            const float first_val = Work_buffer_get_contents(wb, 0)[buf_start];
+            if ((Work_buffer_get_const_start(wb, 0) > buf_start) || (first_val != 0.0f))
+                Work_buffer_mix(master_wb, 0, wb, 0, buf_start, buf_stop);
         }
     }
 
@@ -1292,7 +1294,7 @@ static void Player_apply_dc_blocker(
             float feedforward = player->master_params.dc_block_state[port].feedforward;
             float feedback = player->master_params.dc_block_state[port].feedback;
 
-            float* buf = Work_buffer_get_contents_mut(buffer);
+            float* buf = Work_buffer_get_contents_mut(buffer, 0);
             for (int32_t i = buf_start; i < buf_stop; ++i)
             {
                 const float in = buf[i];
@@ -1351,7 +1353,7 @@ static void Player_apply_master_volume(
                 master_ts, DEVICE_PORT_TYPE_RECV, port);
         if (buffer != NULL)
         {
-            float* buf = Work_buffer_get_contents_mut(buffer);
+            float* buf = Work_buffer_get_contents_mut(buffer, 0);
             for (int32_t i = buf_start; i < buf_stop; ++i)
                 buf[i] *= volumes[i];
         }
@@ -1401,7 +1403,7 @@ void Player_play(Player* player, int32_t nframes)
         for (int i = 0; i < TEST_VOICE_OUTPUTS_MAX; ++i)
         {
             if (tp->test_voice_outputs[i] != NULL)
-                Work_buffer_clear(tp->test_voice_outputs[i], 0, nframes);
+                Work_buffer_clear(tp->test_voice_outputs[i], 0, 0, nframes);
         }
     }
 
@@ -1498,7 +1500,7 @@ void Player_play(Player* player, int32_t nframes)
             if (buffer != NULL)
             {
                 // Apply render volume
-                const float* buf = Work_buffer_get_contents(buffer);
+                const float* buf = Work_buffer_get_contents(buffer, 0);
 
                 const float mix_vol = (float)player->module->mix_vol;
                 for (int32_t i = 0; i < rendered; ++i)

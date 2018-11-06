@@ -68,8 +68,8 @@ static void multiply_signals(
 
         if ((in1_wb != NULL) && (in2_wb != NULL) && (out_values != NULL))
         {
-            float* in1_values = Work_buffer_get_contents_mut(in1_wb);
-            float* in2_values = Work_buffer_get_contents_mut(in2_wb);
+            float* in1_values = Work_buffer_get_contents_mut(in1_wb, 0);
+            float* in2_values = Work_buffer_get_contents_mut(in2_wb, 0);
 
             // Clamp inputs to finite range (so that we don't accidentally produce NaNs)
             for (int32_t i = buf_start; i < buf_stop; ++i)
@@ -157,9 +157,9 @@ static bool is_final_zero(const Work_buffer* in_wb, int32_t buf_start)
 {
     rassert(buf_start >= 0);
     return ((in_wb == NULL) ||
-            (Work_buffer_is_final(in_wb) &&
-             (Work_buffer_get_const_start(in_wb) <= buf_start) &&
-             (Work_buffer_get_contents(in_wb)[buf_start] == 0.0f)));
+            (Work_buffer_is_final(in_wb, 0) &&
+             (Work_buffer_get_const_start(in_wb, 0) <= buf_start) &&
+             (Work_buffer_get_contents(in_wb, 0)[buf_start] == 0.0f)));
 }
 
 
@@ -227,15 +227,15 @@ int32_t Mult_vstate_render_voice(
     if (is_out1_final_zero && (out_wbs[0] != NULL))
     {
         rassert(out_buffers[0][buf_start] == 0);
-        Work_buffer_set_const_start(out_wbs[0], buf_start);
-        Work_buffer_set_final(out_wbs[0], true);
+        Work_buffer_set_const_start(out_wbs[0], 0, buf_start);
+        Work_buffer_set_final(out_wbs[0], 0, true);
     }
 
     if (is_out2_final_zero && (out_wbs[1] != NULL))
     {
         rassert(out_buffers[1][buf_start] == 0);
-        Work_buffer_set_const_start(out_wbs[1], buf_start);
-        Work_buffer_set_final(out_wbs[1], true);
+        Work_buffer_set_const_start(out_wbs[1], 0, buf_start);
+        Work_buffer_set_final(out_wbs[1], 0, true);
     }
 
     return buf_stop;

@@ -140,10 +140,10 @@ int32_t Envgen_vstate_render_voice(
     if (stretch_wb == NULL)
     {
         stretch_wb = Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_STRETCH);
-        float* stretches = Work_buffer_get_contents_mut(stretch_wb);
+        float* stretches = Work_buffer_get_contents_mut(stretch_wb, 0);
         for (int32_t i = buf_start; i < buf_stop; ++i)
             stretches[i] = 0;
-        Work_buffer_set_const_start(stretch_wb, buf_start);
+        Work_buffer_set_const_start(stretch_wb, 0, buf_start);
     }
     else
     {
@@ -157,7 +157,7 @@ int32_t Envgen_vstate_render_voice(
     {
         Work_buffer* fixed_trigger_wb =
             Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_TRIGGER);
-        Work_buffer_clear(fixed_trigger_wb, buf_start, buf_stop);
+        Work_buffer_clear(fixed_trigger_wb, 0, buf_start, buf_stop);
         trigger_wb = fixed_trigger_wb;
     }
 
@@ -169,7 +169,7 @@ int32_t Envgen_vstate_render_voice(
         vstate->active = false;
         return buf_start;
     }
-    float* out_buffer = Work_buffer_get_contents_mut(out_wb);
+    float* out_buffer = Work_buffer_get_contents_mut(out_wb, 0);
 
     const bool is_time_env_enabled =
         egen->is_time_env_enabled && (egen->time_env != NULL);
@@ -194,7 +194,7 @@ int32_t Envgen_vstate_render_voice(
                 // Process floor trigger
                 if (egen->trig_impulse_floor)
                 {
-                    const float* trigger = Work_buffer_get_contents(trigger_wb);
+                    const float* trigger = Work_buffer_get_contents(trigger_wb, 0);
 
                     if (egen_state->trig_floor_active)
                     {
@@ -227,7 +227,7 @@ int32_t Envgen_vstate_render_voice(
                 // Process ceil trigger
                 if (egen->trig_impulse_ceil)
                 {
-                    const float* trigger = Work_buffer_get_contents(trigger_wb);
+                    const float* trigger = Work_buffer_get_contents(trigger_wb, 0);
 
                     if (egen_state->trig_ceil_active)
                     {
@@ -350,7 +350,7 @@ int32_t Envgen_vstate_render_voice(
                         !egen->trig_impulse_ceil &&
                         (!egen->trig_release || egen_state->was_released);
 
-                    Work_buffer_set_final(out_wb, is_final);
+                    Work_buffer_set_final(out_wb, 0, is_final);
                 }
 
                 const_start = env_stop;
@@ -414,11 +414,11 @@ int32_t Envgen_vstate_render_voice(
         for (int32_t i = buf_start; i < buf_stop; ++i)
             out_buffer[i] = value;
 
-        Work_buffer_set_final(out_wb, true);
+        Work_buffer_set_final(out_wb, 0, true);
     }
 
     // Mark constant region of the buffer
-    Work_buffer_set_const_start(out_wb, const_start);
+    Work_buffer_set_const_start(out_wb, 0, const_start);
 
     return buf_stop;
 }

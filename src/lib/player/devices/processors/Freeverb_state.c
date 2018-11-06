@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -243,10 +243,10 @@ static void Freeverb_pstate_render_mixed(
     }
     else
     {
-        const int32_t const_start = Work_buffer_get_const_start(damps_wb);
+        const int32_t const_start = Work_buffer_get_const_start(damps_wb, 0);
         const int32_t var_stop = clamp(const_start, buf_start, buf_stop);
 
-        damps = Work_buffer_get_contents_mut(damps_wb);
+        damps = Work_buffer_get_contents_mut(damps_wb, 0);
 
         for (int32_t i = buf_start; i < var_stop; ++i)
         {
@@ -290,25 +290,25 @@ static void Freeverb_pstate_render_mixed(
     // Get input data
     if ((in_wbs[0] != NULL) && (in_wbs[1] != NULL))
     {
-        Work_buffer_copy(workspace[0], in_wbs[0], buf_start, buf_stop);
-        Work_buffer_copy(workspace[1], in_wbs[1], buf_start, buf_stop);
+        Work_buffer_copy(workspace[0], 0, in_wbs[0], 0, buf_start, buf_stop);
+        Work_buffer_copy(workspace[1], 0, in_wbs[1], 0, buf_start, buf_stop);
     }
     else if ((in_wbs[0] == NULL) != (in_wbs[1] == NULL))
     {
         const Work_buffer* existing = (in_wbs[0] != NULL) ? in_wbs[0] : in_wbs[1];
-        Work_buffer_copy(workspace[0], existing, buf_start, buf_stop);
-        Work_buffer_copy(workspace[1], existing, buf_start, buf_stop);
+        Work_buffer_copy(workspace[0], 0, existing, 0, buf_start, buf_stop);
+        Work_buffer_copy(workspace[1], 0, existing, 0, buf_start, buf_stop);
     }
     else
     {
-        Work_buffer_clear(workspace[0], buf_start, buf_stop);
-        Work_buffer_clear(workspace[1], buf_start, buf_stop);
+        Work_buffer_clear(workspace[0], 0, buf_start, buf_stop);
+        Work_buffer_clear(workspace[1], 0, buf_start, buf_stop);
     }
 
     float* ws[] =
     {
-        Work_buffer_get_contents_mut(workspace[0]),
-        Work_buffer_get_contents_mut(workspace[1]),
+        Work_buffer_get_contents_mut(workspace[0], 0),
+        Work_buffer_get_contents_mut(workspace[1], 0),
     };
 
     // Apply reverb
@@ -359,7 +359,7 @@ static void Freeverb_pstate_render_mixed(
     for (int ch = 0; ch < 2; ++ch)
     {
         if (out_wbs[ch] != NULL)
-            Work_buffer_copy(out_wbs[ch], workspace[ch], buf_start, buf_stop);
+            Work_buffer_copy(out_wbs[ch], 0, workspace[ch], 0, buf_start, buf_stop);
     }
 
     return;

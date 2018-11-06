@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -84,8 +84,8 @@ static void Compress_states_update(
 
         float level = cstate->level;
 
-        float* levels = Work_buffer_get_contents_mut(level_wbs[ch]);
-        const float* in = Work_buffer_get_contents(in_wbs[ch]);
+        float* levels = Work_buffer_get_contents_mut(level_wbs[ch], 0);
+        const float* in = Work_buffer_get_contents(in_wbs[ch], 0);
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
@@ -116,10 +116,10 @@ static void Compress_states_update(
 
     const Work_buffer* applied_levels_wb =
         (in_wbs[0] == NULL) ? level_wbs[1] : level_wbs[0];
-    const float* applied_levels = Work_buffer_get_contents(applied_levels_wb);
+    const float* applied_levels = Work_buffer_get_contents(applied_levels_wb, 0);
 
-    Work_buffer_clear(gain_wb, buf_start, buf_stop);
-    float* gains = Work_buffer_get_contents_mut(gain_wb);
+    Work_buffer_clear(gain_wb, 0, buf_start, buf_stop);
+    float* gains = Work_buffer_get_contents_mut(gain_wb, 0);
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
         gains[i] = 1.0f;
@@ -183,15 +183,15 @@ static void write_audio(
     rassert(buf_start >= 0);
     rassert(buf_stop > buf_start);
 
-    const float* gains = Work_buffer_get_contents(gain_wb);
+    const float* gains = Work_buffer_get_contents(gain_wb, 0);
 
     for (int ch = 0; ch < 2; ++ch)
     {
         if (out_wbs[ch] == NULL || in_wbs[ch] == NULL)
             continue;
 
-        float* out = Work_buffer_get_contents_mut(out_wbs[ch]);
-        const float* in = Work_buffer_get_contents(in_wbs[ch]);
+        float* out = Work_buffer_get_contents_mut(out_wbs[ch], 0);
+        const float* in = Work_buffer_get_contents(in_wbs[ch], 0);
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
             out[i] = in[i] * gains[i];

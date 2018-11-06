@@ -651,7 +651,7 @@ static void Looper_pstate_reset(Device_state* dstate)
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
         Work_buffer* buf = lpstate->bufs[i];
-        Work_buffer_clear(buf, 0, Work_buffer_get_size(buf));
+        Work_buffer_clear(buf, 0, 0, Work_buffer_get_size(buf));
     }
 
     return;
@@ -729,23 +729,23 @@ static void Looper_pstate_render_mixed(
     if (speeds_wb == NULL)
     {
         speeds_wb = Work_buffers_get_buffer_mut(wbs, LOOPER_WB_TEMP_SPEED);
-        float* fixed_speeds = Work_buffer_get_contents_mut(speeds_wb);
+        float* fixed_speeds = Work_buffer_get_contents_mut(speeds_wb, 0);
         for (int32_t i = buf_start; i < buf_stop; ++i)
             fixed_speeds[i] = 1;
-        Work_buffer_set_const_start(speeds_wb, buf_start);
+        Work_buffer_set_const_start(speeds_wb, 0, buf_start);
 
         speeds = fixed_speeds;
     }
     else
     {
-        speeds = Work_buffer_get_contents(speeds_wb);
+        speeds = Work_buffer_get_contents(speeds_wb, 0);
     }
     rassert(speeds != NULL);
 
     float* history_data[] =
     {
-        Work_buffer_get_contents_mut(lpstate->bufs[0]),
-        Work_buffer_get_contents_mut(lpstate->bufs[1]),
+        Work_buffer_get_contents_mut(lpstate->bufs[0], 0),
+        Work_buffer_get_contents_mut(lpstate->bufs[1], 0),
     };
 
     const int32_t history_buf_size = Work_buffer_get_size(lpstate->bufs[0]);
@@ -817,7 +817,8 @@ static void Looper_pstate_render_mixed(
     const float prev_speed = lpstate->prev_speed;
     const bool is_prev_speed_const = lpstate->is_prev_speed_const;
     lpstate->prev_speed = speeds[buf_stop - 1];
-    lpstate->is_prev_speed_const = (Work_buffer_get_const_start(speeds_wb) < buf_stop);
+    lpstate->is_prev_speed_const =
+        (Work_buffer_get_const_start(speeds_wb, 0) < buf_stop);
 
     if (lpstate->xfade_progress < 1)
     {
@@ -852,12 +853,13 @@ static void Looper_pstate_render_mixed(
 
             Work_buffer* xfade_speeds_wb =
                 Work_buffers_get_buffer_mut(wbs, LOOPER_WB_TEMP_SPEED);
-            const float* xfade_speeds = Work_buffer_get_contents(xfade_speeds_wb);
+            const float* xfade_speeds = Work_buffer_get_contents(xfade_speeds_wb, 0);
             if (is_prev_speed_const)
             {
                 // Use previous speed value and assume that further changes in
                 // speed are only meant for the main context
-                float* new_xfade_speeds = Work_buffer_get_contents_mut(xfade_speeds_wb);
+                float* new_xfade_speeds =
+                    Work_buffer_get_contents_mut(xfade_speeds_wb, 0);
                 for (int32_t i = buf_start; i < xfade_buf_stop; ++i)
                     new_xfade_speeds[i] = prev_speed;
 
@@ -866,7 +868,7 @@ static void Looper_pstate_render_mixed(
             else
             {
                 // Limit the absolute speed to whatever previous speed was
-                float* used_speeds = Work_buffer_get_contents_mut(speeds_wb);
+                float* used_speeds = Work_buffer_get_contents_mut(speeds_wb, 0);
                 const float max_abs_speed = fabsf(prev_speed);
                 for (int32_t i = buf_start; i < xfade_buf_stop; ++i)
                     used_speeds[i] =
@@ -1139,7 +1141,7 @@ Device_state* new_Looper_pstate(
     const int32_t buf_size = (int32_t)(looper->max_rec_time * audio_rate + 1);
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
-        lpstate->bufs[i] = new_Work_buffer(buf_size);
+        lpstate->bufs[i] = new_Work_buffer(buf_size, 1);
         if (lpstate->bufs[i] == NULL)
         {
             del_Device_state(&lpstate->parent.parent);
