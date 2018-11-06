@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -24,7 +24,8 @@
 #include <stdlib.h>
 
 
-#define WORK_BUFFER_SIZE_MAX ((KQT_AUDIO_BUFFER_SIZE_MAX) + 2)
+#define WORK_BUFFER_ELEM_SIZE ((int)sizeof(float))
+#define WORK_BUFFER_SIZE_MAX ((INT32_MAX / WORK_BUFFER_ELEM_SIZE) - 3)
 
 
 /**
@@ -37,22 +38,6 @@
  *           failed.
  */
 Work_buffer* new_Work_buffer(int32_t size);
-
-
-/**
- * Create a new Work buffer with support for large sizes.
- *
- * Typical Work buffers are used for storing temporary audio data during a
- * single rendering call, and has safety checks adjusted accordingly. This
- * function creates a Work buffer that supports buffer sizes up to
- * INT32_MAX / 4 elements.
- *
- * \param size   The buffer size -- must be >= \c 0 and <= \c INT32_MAX / 4.
- *
- * \return   The new unbounded Work buffer if successful, or \c NULL if memory
- *           allocation failed.
- */
-Work_buffer* new_Work_buffer_unbounded(int32_t size);
 
 
 /**

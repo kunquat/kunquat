@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -25,7 +25,6 @@ struct Work_buffer
     int32_t size;
     int32_t const_start;
     bool is_final;
-    bool is_unbounded;
     void* contents;
 };
 

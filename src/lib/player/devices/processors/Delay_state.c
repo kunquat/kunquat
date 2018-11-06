@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -348,7 +348,7 @@ Device_state* new_Delay_pstate(
 
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
-        dpstate->bufs[i] = new_Work_buffer_unbounded(delay_buf_size);
+        dpstate->bufs[i] = new_Work_buffer(delay_buf_size);
         if (dpstate->bufs[i] == NULL)
         {
             del_Device_state(&dpstate->parent.parent);

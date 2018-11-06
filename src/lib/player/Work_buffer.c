@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -25,8 +25,6 @@
 #include <string.h>
 
 
-#define WORK_BUFFER_ELEM_SIZE ((int)sizeof(float))
-
 static_assert(sizeof(int32_t) <= WORK_BUFFER_ELEM_SIZE,
         "Work buffers must have space for enough 32-bit integers.");
 
@@ -44,7 +42,6 @@ Work_buffer* new_Work_buffer(int32_t size)
     buffer->size = size;
     buffer->const_start = 0;
     buffer->is_final = true;
-    buffer->is_unbounded = false;
     buffer->contents = NULL;
 
     if (buffer->size > 0)
@@ -64,26 +61,6 @@ Work_buffer* new_Work_buffer(int32_t size)
 }
 
 
-Work_buffer* new_Work_buffer_unbounded(int32_t size)
-{
-    rassert(size >= 0);
-    rassert(size <= INT32_MAX / WORK_BUFFER_ELEM_SIZE);
-
-    Work_buffer* buffer = new_Work_buffer(0);
-    if (buffer == NULL)
-        return NULL;
-
-    buffer->is_unbounded = true;
-    if (!Work_buffer_resize(buffer, size))
-    {
-        del_Work_buffer(buffer);
-        return NULL;
-    }
-
-    return buffer;
-}
-
-
 void Work_buffer_init_with_memory(
         Work_buffer* buffer, void* space, int32_t raw_elem_count)
 {
@@ -94,7 +71,6 @@ void Work_buffer_init_with_memory(
     buffer->size = raw_elem_count - 2;
     buffer->const_start = 0;
     buffer->is_final = true;
-    buffer->is_unbounded = false;
     buffer->contents = space;
 
     Work_buffer_clear(buffer, -1, Work_buffer_get_size(buffer) + 1);
@@ -107,10 +83,7 @@ bool Work_buffer_resize(Work_buffer* buffer, int32_t new_size)
 {
     rassert(buffer != NULL);
     rassert(new_size >= 0);
-
-    const int32_t max_size = buffer->is_unbounded
-        ? (INT32_MAX / WORK_BUFFER_ELEM_SIZE) : WORK_BUFFER_SIZE_MAX;
-    rassert(new_size <= max_size);
+    rassert(new_size <= WORK_BUFFER_SIZE_MAX);
 
     if (new_size == 0)
     {

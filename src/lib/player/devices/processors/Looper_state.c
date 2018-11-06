@@ -1139,7 +1139,7 @@ Device_state* new_Looper_pstate(
     const int32_t buf_size = (int32_t)(looper->max_rec_time * audio_rate + 1);
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
-        lpstate->bufs[i] = new_Work_buffer_unbounded(buf_size);
+        lpstate->bufs[i] = new_Work_buffer(buf_size);
         if (lpstate->bufs[i] == NULL)
         {
             del_Device_state(&lpstate->parent.parent);
