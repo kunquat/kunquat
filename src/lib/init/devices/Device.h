@@ -44,7 +44,8 @@ struct Device
 
     Device_state_create_func* create_state;
 
-    bool existence[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
+    Bit_array* existence[DEVICE_PORT_TYPES];
+    int last_existence_set[DEVICE_PORT_TYPES];
 };
 
 
@@ -197,6 +198,17 @@ void Device_set_port_existence(
  * \return   \c true if the port exists, otherwise \c false.
  */
 bool Device_get_port_existence(const Device* device, Device_port_type type, int port);
+
+
+/**
+ * Validate Device ports.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param error    The address of error information -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if ports are not valid.
+ */
+bool Device_validate_ports(const Device* device, Error* error);
 
 
 /**
