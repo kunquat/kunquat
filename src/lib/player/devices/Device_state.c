@@ -43,7 +43,6 @@ bool Device_state_init(
     ds->audio_rate = audio_rate;
     ds->audio_buffer_size = audio_buffer_size;
 
-    ds->add_buffer = NULL;
     ds->set_audio_rate = NULL;
     ds->set_audio_buffer_size = NULL;
     ds->set_tempo = NULL;
@@ -119,20 +118,6 @@ bool Device_state_set_audio_buffer_size(Device_state* ds, int32_t size)
         return false;
 
     ds->audio_buffer_size = size;
-    return true;
-}
-
-
-bool Device_state_add_audio_buffer(Device_state* ds, Device_port_type type, int port)
-{
-    rassert(ds != NULL);
-    rassert(type == DEVICE_PORT_TYPE_RECV || type == DEVICE_PORT_TYPE_SEND);
-    rassert(port >= 0);
-    rassert(port < KQT_DEVICE_PORTS_MAX);
-
-    if ((ds->add_buffer != NULL) && !ds->add_buffer(ds, type, port))
-        return false;
-
     return true;
 }
 

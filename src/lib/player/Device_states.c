@@ -265,8 +265,6 @@ static bool Device_states_add_audio_buffer(
     rassert(port < KQT_DEVICE_PORTS_MAX);
 
     Device_state* dstate = Device_states_get_state(states, device_id);
-    if (!Device_state_add_audio_buffer(dstate, type, port))
-        return false;
 
     const bool add_voice_buffers = !Device_get_mixed_signals(dstate->device);
 

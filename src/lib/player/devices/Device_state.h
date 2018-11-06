@@ -60,7 +60,6 @@ struct Device_state
     int32_t audio_buffer_size;
 
     // Protected interface
-    bool (*add_buffer)(struct Device_state*, Device_port_type, int port);
     Device_state_set_audio_rate_func* set_audio_rate;
     Device_state_set_audio_buffer_size_func* set_audio_buffer_size;
     Device_state_set_tempo_func* set_tempo;
@@ -148,19 +147,6 @@ int32_t Device_state_get_audio_rate(const Device_state* ds);
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_state_set_audio_buffer_size(Device_state* ds, int32_t size);
-
-
-/**
- * Add an audio buffer into the Device state.
- *
- * \param ds     The Device state -- must not be \c NULL.
- * \param type   The port type -- must be valid.
- * \param port   The port number -- must be >= \c 0 and
- *               < \c KQT_DEVICE_PORTS_MAX.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_state_add_audio_buffer(Device_state* ds, Device_port_type type, int port);
 
 
 /**
