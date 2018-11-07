@@ -82,6 +82,22 @@ bool Work_buffer_resize(Work_buffer* buffer, int32_t new_size);
 
 
 /**
+ * Set the number of interleaved areas in the Work buffer.
+ *
+ * Note that this function cannot be used to increase the initial number of
+ * interleaved areas in the buffer. Also note that changing the sub_count
+ * invalidates the contents of the buffer.
+ *
+ * \param buffer      The Work buffer -- must not be \c NULL.
+ * \param sub_count   The new number of interleaved areas in the Work buffer --
+ *                    must be >= \c 1, <= \c WORK_BUFFER_SUB_COUNT_MAX, a
+ *                    power of two and not greater than the initial sub_count
+ *                    of \a buffer.
+ */
+void Work_buffer_set_sub_count(Work_buffer* buffer, int sub_count);
+
+
+/**
  * Get the element stride of the Work buffer.
  *
  * \param buffer   The Work buffer -- must not be \c NULL.

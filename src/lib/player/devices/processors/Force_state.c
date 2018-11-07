@@ -98,7 +98,7 @@ int32_t Force_vstate_render_voice(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_ENV_STRETCH);
     if (stretch_wb == NULL)
     {
-        stretch_wb = Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_ENV_STRETCH);
+        stretch_wb = Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_ENV_STRETCH, 1);
         float* stretches = Work_buffer_get_contents_mut(stretch_wb, 0);
         for (int32_t i = buf_start; i < buf_stop; ++i)
             stretches[i] = 0;
@@ -114,7 +114,7 @@ int32_t Force_vstate_render_voice(
     if (rel_stretch_wb == NULL)
     {
         rel_stretch_wb =
-            Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_ENV_REL_STRETCH);
+            Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_ENV_REL_STRETCH, 1);
         float* stretches = Work_buffer_get_contents_mut(rel_stretch_wb, 0);
         for (int32_t i = buf_start; i < buf_stop; ++i)
             stretches[i] = 0;
@@ -235,7 +235,7 @@ int32_t Force_vstate_render_voice(
         const_start = max(const_start, env_force_stop);
 
         Work_buffer* wb_time_env =
-            Work_buffers_get_buffer_mut(wbs, WORK_BUFFER_TIME_ENV);
+            Work_buffers_get_buffer_mut(wbs, WORK_BUFFER_TIME_ENV, 1);
         float* time_env = Work_buffer_get_contents_mut(wb_time_env, 0);
 
         // Convert envelope data to dB
@@ -296,7 +296,7 @@ int32_t Force_vstate_render_voice(
                 new_buf_stop = env_force_rel_stop;
 
             Work_buffer* wb_time_env =
-                Work_buffers_get_buffer_mut(wbs, WORK_BUFFER_TIME_ENV);
+                Work_buffers_get_buffer_mut(wbs, WORK_BUFFER_TIME_ENV, 1);
             float* time_env = Work_buffer_get_contents_mut(wb_time_env, 0);
 
             // Convert envelope data to dB

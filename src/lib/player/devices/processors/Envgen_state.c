@@ -139,7 +139,7 @@ int32_t Envgen_vstate_render_voice(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_STRETCH);
     if (stretch_wb == NULL)
     {
-        stretch_wb = Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_STRETCH);
+        stretch_wb = Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_STRETCH, 1);
         float* stretches = Work_buffer_get_contents_mut(stretch_wb, 0);
         for (int32_t i = buf_start; i < buf_stop; ++i)
             stretches[i] = 0;
@@ -156,7 +156,7 @@ int32_t Envgen_vstate_render_voice(
     if (trigger_wb == NULL)
     {
         Work_buffer* fixed_trigger_wb =
-            Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_TRIGGER);
+            Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_TRIGGER, 1);
         Work_buffer_clear(fixed_trigger_wb, 0, buf_start, buf_stop);
         trigger_wb = fixed_trigger_wb;
     }

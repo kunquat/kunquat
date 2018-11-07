@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -63,48 +63,24 @@ bool Work_buffers_resize(Work_buffers* buffers, int32_t new_size);
 
 
 /**
- * Get a Work buffer.
- *
- * \param buffers   The Work buffers -- must not be \c NULL.
- * \param type      The Work buffer type -- must be valid.
- *
- * \return   The Work buffer. This is never \c NULL.
- */
-const Work_buffer* Work_buffers_get_buffer(
-        const Work_buffers* buffers, Work_buffer_type type);
-
-
-/**
  * Get a mutable Work buffer.
  *
- * \param buffers   The Work buffers -- must not be \c NULL.
- * \param type      The Work buffer type -- must be valid.
+ * \param buffers     The Work buffers -- must not be \c NULL.
+ * \param type        The Work buffer type -- must be valid.
+ * \param sub_count   The number of interleaved areas inside the buffer --
+ *                    must be >= \c 1, <= \c WORK_BUFFER_SUB_COUNT_MAX and a
+ *                    power of two.
  *
  * \return   The Work buffer. This is never \c NULL.
  */
 Work_buffer* Work_buffers_get_buffer_mut(
-        const Work_buffers* buffers, Work_buffer_type type);
-
-
-/**
- * Get contents of a Work buffer.
- *
- * This is a convenience function that uses \a Work_buffer_get_contents
- * directly.
- *
- * \param buffers   The Work buffers -- must not be \c NULL.
- * \param type      The Work buffer type -- must be valid.
- *
- * \return   The address of the internal buffer, with a valid index range of
- *           [-1, Work_buffer_get_size(\a buffer)]. For devices that receive
- *           the buffer from a caller, this function never returns \c NULL.
- */
-const float* Work_buffers_get_buffer_contents(
-        const Work_buffers* buffers, Work_buffer_type type);
+        const Work_buffers* buffers, Work_buffer_type type, int sub_count);
 
 
 /**
  * Get mutable contents of a Work buffer.
+ *
+ * TODO: Remove this function!
  *
  * This is a convenience function that uses \a Work_buffer_get_contents_mut
  * directly.

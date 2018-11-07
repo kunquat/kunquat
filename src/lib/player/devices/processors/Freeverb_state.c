@@ -283,8 +283,8 @@ static void Freeverb_pstate_render_mixed(
     // TODO: figure out a cleaner way of dealing with the buffers
     Work_buffer* workspace[] =
     {
-        Work_buffers_get_buffer_mut(wbs, FREEVERB_WB_LEFT),
-        Work_buffers_get_buffer_mut(wbs, FREEVERB_WB_RIGHT),
+        Work_buffers_get_buffer_mut(wbs, FREEVERB_WB_LEFT, 1),
+        Work_buffers_get_buffer_mut(wbs, FREEVERB_WB_RIGHT, 1),
     };
 
     // Get input data

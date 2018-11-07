@@ -305,7 +305,7 @@ int32_t Ks_vstate_render_voice(
     if (pitches_wb == NULL)
     {
         Work_buffer* fixed_pitches_wb =
-            Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_PITCH);
+            Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_PITCH, 1);
         Work_buffer_clear(fixed_pitches_wb, 0, buf_start, buf_stop);
         pitches_wb = fixed_pitches_wb;
     }
@@ -326,7 +326,7 @@ int32_t Ks_vstate_render_voice(
     }
 
     if (scales_wb == NULL)
-        scales_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_FORCE);
+        scales_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_FORCE, 1);
     Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);
     const float* scales = Work_buffer_get_contents(scales_wb, 0);
 
@@ -336,7 +336,7 @@ int32_t Ks_vstate_render_voice(
     if (excit_wb == NULL)
     {
         Work_buffer* fixed_excit_wb =
-            Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_EXCITATION);
+            Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_EXCITATION, 1);
         Work_buffer_clear(fixed_excit_wb, 0, buf_start, buf_stop);
         excit_wb = fixed_excit_wb;
     }
@@ -347,7 +347,8 @@ int32_t Ks_vstate_render_voice(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_DAMP);
     if (damps_wb == NULL)
     {
-        Work_buffer* fixed_damps_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_DAMP);
+        Work_buffer* fixed_damps_wb =
+            Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_DAMP, 1);
         float* damps = Work_buffer_get_contents_mut(fixed_damps_wb, 0);
 
         const float fixed_damp = (float)ks->damp;

@@ -115,7 +115,7 @@ static int32_t Sample_render(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
     Work_buffer* pitches_wb = freqs_wb;
     if (freqs_wb == NULL)
-        freqs_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_PITCH);
+        freqs_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_PITCH, 1);
     Proc_fill_freq_buffer(freqs_wb, pitches_wb, buf_start, buf_stop);
     const float* freqs = Work_buffer_get_contents(freqs_wb, 0);
 
@@ -134,7 +134,7 @@ static int32_t Sample_render(
     }
 
     if (force_scales_wb == NULL)
-        force_scales_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_FORCE);
+        force_scales_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_FORCE, 1);
     Proc_fill_scale_buffer(force_scales_wb, dBs_wb, buf_start, buf_stop);
     const float* force_scales = Work_buffer_get_contents(force_scales_wb, 0);
 

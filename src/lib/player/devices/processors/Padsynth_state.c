@@ -105,7 +105,7 @@ int32_t Padsynth_vstate_render_voice(
             ? Work_buffer_get_contents(pitches_wb, 0)[buf_start] : 0;
 
     if (freqs_wb == NULL)
-        freqs_wb = Work_buffers_get_buffer_mut(wbs, PADSYNTH_WB_FIXED_PITCH);
+        freqs_wb = Work_buffers_get_buffer_mut(wbs, PADSYNTH_WB_FIXED_PITCH, 1);
     Proc_fill_freq_buffer(freqs_wb, pitches_wb, buf_start, buf_stop);
     const float* freqs = Work_buffer_get_contents(freqs_wb, 0);
 
@@ -124,7 +124,7 @@ int32_t Padsynth_vstate_render_voice(
     }
 
     if (scales_wb == NULL)
-        scales_wb = Work_buffers_get_buffer_mut(wbs, PADSYNTH_WB_FIXED_FORCE);
+        scales_wb = Work_buffers_get_buffer_mut(wbs, PADSYNTH_WB_FIXED_FORCE, 1);
     Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);
     const float* scales = Work_buffer_get_contents(scales_wb, 0);
 

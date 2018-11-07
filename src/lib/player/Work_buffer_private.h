@@ -25,6 +25,7 @@
 struct Work_buffer
 {
     int32_t size;
+    int init_sub_count;
     int sub_count;
     int32_t const_start[WORK_BUFFER_SUB_COUNT_MAX];
     bool is_final[WORK_BUFFER_SUB_COUNT_MAX]; // TODO: make more compact

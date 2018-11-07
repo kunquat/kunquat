@@ -728,7 +728,7 @@ static void Looper_pstate_render_mixed(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SPEED);
     if (speeds_wb == NULL)
     {
-        speeds_wb = Work_buffers_get_buffer_mut(wbs, LOOPER_WB_TEMP_SPEED);
+        speeds_wb = Work_buffers_get_buffer_mut(wbs, LOOPER_WB_TEMP_SPEED, 1);
         float* fixed_speeds = Work_buffer_get_contents_mut(speeds_wb, 0);
         for (int32_t i = buf_start; i < buf_stop; ++i)
             fixed_speeds[i] = 1;
@@ -852,7 +852,7 @@ static void Looper_pstate_render_mixed(
             }
 
             Work_buffer* xfade_speeds_wb =
-                Work_buffers_get_buffer_mut(wbs, LOOPER_WB_TEMP_SPEED);
+                Work_buffers_get_buffer_mut(wbs, LOOPER_WB_TEMP_SPEED, 1);
             const float* xfade_speeds = Work_buffer_get_contents(xfade_speeds_wb, 0);
             if (is_prev_speed_const)
             {

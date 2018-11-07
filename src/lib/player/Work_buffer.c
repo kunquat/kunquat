@@ -43,6 +43,7 @@ Work_buffer* new_Work_buffer(int32_t size, int sub_count)
 
     // Sanitise fields
     buffer->size = size;
+    buffer->init_sub_count = sub_count;
     buffer->sub_count = sub_count;
     for (int i = 0; i < WORK_BUFFER_SUB_COUNT_MAX; ++i)
     {
@@ -80,6 +81,7 @@ void Work_buffer_init_with_memory(
     rassert(raw_elem_count % sub_count == 0);
 
     buffer->size = (raw_elem_count / sub_count) - 2;
+    buffer->init_sub_count = sub_count;
     buffer->sub_count = sub_count;
     for (int i = 0; i < WORK_BUFFER_SUB_COUNT_MAX; ++i)
     {
@@ -127,6 +129,27 @@ bool Work_buffer_resize(Work_buffer* buffer, int32_t new_size)
     }
 
     return true;
+}
+
+
+void Work_buffer_set_sub_count(Work_buffer* buffer, int sub_count)
+{
+    rassert(buffer != NULL);
+    rassert(sub_count >= 1);
+    rassert(sub_count <= buffer->init_sub_count);
+    rassert(is_p2(sub_count));
+
+    if (buffer->sub_count == sub_count)
+        return;
+
+    buffer->sub_count = sub_count;
+    for (int i = 0; i < sub_count; ++i)
+    {
+        buffer->const_start[i] = INT32_MAX;
+        buffer->is_final[i] = false;
+    }
+
+    return;
 }
 
 

@@ -110,7 +110,7 @@ static void Bitcrusher_state_impl_render(
     rassert(audio_rate > 0);
 
     // Get hold durations
-    Work_buffer* holds_wb = Work_buffers_get_buffer_mut(wbs, BC_WB_HOLDS);
+    Work_buffer* holds_wb = Work_buffers_get_buffer_mut(wbs, BC_WB_HOLDS, 1);
     if (cutoff_wb == NULL)
     {
         const float hold = (float)get_hold(bc->cutoff, audio_rate);
@@ -192,7 +192,7 @@ static void Bitcrusher_state_impl_render(
     }
 
     // Get resolution reduction multipliers
-    Work_buffer* mults_wb = Work_buffers_get_buffer_mut(wbs, BC_WB_MULTS);
+    Work_buffer* mults_wb = Work_buffers_get_buffer_mut(wbs, BC_WB_MULTS, 1);
     if (resolution_wb == NULL)
     {
         if (bc->resolution >= bc->res_ignore_min)

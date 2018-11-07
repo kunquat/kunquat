@@ -178,7 +178,7 @@ static void Slope_pstate_render_mixed(
     if (in_wb == NULL)
     {
         Work_buffer* fixed_in_wb =
-            Work_buffers_get_buffer_mut(wbs, SLOPE_WB_FIXED_INPUT);
+            Work_buffers_get_buffer_mut(wbs, SLOPE_WB_FIXED_INPUT, 1);
         Work_buffer_clear(fixed_in_wb, 0, buf_start, buf_stop);
         in_wb = fixed_in_wb;
     }
@@ -190,7 +190,7 @@ static void Slope_pstate_render_mixed(
     Work_buffer* out_wb = Device_thread_state_get_mixed_buffer(
             proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_SLOPE);
     if (out_wb == NULL)
-        out_wb = Work_buffers_get_buffer_mut(wbs, SLOPE_WB_DUMMY_OUTPUT);
+        out_wb = Work_buffers_get_buffer_mut(wbs, SLOPE_WB_DUMMY_OUTPUT, 1);
 
     if (!spstate->anything_rendered)
     {
@@ -302,7 +302,7 @@ int32_t Slope_vstate_render_voice(
     if (in_wb == NULL)
     {
         Work_buffer* fixed_in_wb =
-            Work_buffers_get_buffer_mut(wbs, SLOPE_WB_FIXED_INPUT);
+            Work_buffers_get_buffer_mut(wbs, SLOPE_WB_FIXED_INPUT, 1);
         Work_buffer_clear(fixed_in_wb, 0, buf_start, buf_stop);
         in_wb = fixed_in_wb;
     }
@@ -314,7 +314,7 @@ int32_t Slope_vstate_render_voice(
     Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_SLOPE);
     if (out_wb == NULL)
-        out_wb = Work_buffers_get_buffer_mut(wbs, SLOPE_WB_DUMMY_OUTPUT);
+        out_wb = Work_buffers_get_buffer_mut(wbs, SLOPE_WB_DUMMY_OUTPUT, 1);
 
     if (!svstate->anything_rendered)
     {

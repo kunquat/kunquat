@@ -15,6 +15,7 @@
 #include <player/Work_buffers.h>
 
 #include <debug/assert.h>
+#include <mathnum/common.h>
 #include <memory.h>
 #include <player/Work_buffer.h>
 
@@ -45,7 +46,7 @@ Work_buffers* new_Work_buffers(int32_t buf_size)
     // Allocate buffers
     for (int i = 0; i < WORK_BUFFER_COUNT_; ++i)
     {
-        buffers->buffers[i] = new_Work_buffer(buf_size, 1);
+        buffers->buffers[i] = new_Work_buffer(buf_size, WORK_BUFFER_SUB_COUNT_MAX);
         if (buffers->buffers[i] == NULL)
         {
             del_Work_buffers(buffers);
@@ -73,33 +74,19 @@ bool Work_buffers_resize(Work_buffers* buffers, int32_t new_size)
 }
 
 
-const Work_buffer* Work_buffers_get_buffer(
-        const Work_buffers* buffers, Work_buffer_type type)
-{
-    rassert(buffers != NULL);
-    rassert(type < WORK_BUFFER_COUNT_);
-
-    return buffers->buffers[type];
-}
-
-
 Work_buffer* Work_buffers_get_buffer_mut(
-        const Work_buffers* buffers, Work_buffer_type type)
+        const Work_buffers* buffers, Work_buffer_type type, int sub_count)
 {
     rassert(buffers != NULL);
     rassert(type < WORK_BUFFER_COUNT_);
+    rassert(sub_count >= 1);
+    rassert(sub_count <= WORK_BUFFER_SUB_COUNT_MAX);
+    rassert(is_p2(sub_count));
 
-    return buffers->buffers[type];
-}
+    Work_buffer* buffer = buffers->buffers[type];
+    Work_buffer_set_sub_count(buffer, sub_count);
 
-
-const float* Work_buffers_get_buffer_contents(
-        const Work_buffers* buffers, Work_buffer_type type)
-{
-    rassert(buffers != NULL);
-    rassert(type < WORK_BUFFER_COUNT_);
-
-    return Work_buffer_get_contents(buffers->buffers[type], 0);
+    return buffer;
 }
 
 
@@ -109,7 +96,9 @@ float* Work_buffers_get_buffer_contents_mut(
     rassert(buffers != NULL);
     rassert(type < WORK_BUFFER_COUNT_);
 
-    return Work_buffer_get_contents_mut(buffers->buffers[type], 0);
+    Work_buffer* buffer = Work_buffers_get_buffer_mut(buffers, type, 1);
+
+    return Work_buffer_get_contents_mut(buffer, 0);
 }
 
 

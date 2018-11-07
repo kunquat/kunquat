@@ -130,7 +130,7 @@ int32_t Noise_vstate_render_voice(
     }
 
     if (scales_wb == NULL)
-        scales_wb = Work_buffers_get_buffer_mut(wbs, NOISE_WB_FIXED_FORCE);
+        scales_wb = Work_buffers_get_buffer_mut(wbs, NOISE_WB_FIXED_FORCE, 1);
     Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);
     const float* scales = Work_buffer_get_contents(scales_wb, 0);
 

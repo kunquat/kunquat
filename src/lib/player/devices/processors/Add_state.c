@@ -98,7 +98,7 @@ int32_t Add_vstate_render_voice(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
     Work_buffer* pitches_wb = freqs_wb;
     if (freqs_wb == NULL)
-        freqs_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_PITCH);
+        freqs_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_PITCH, 1);
     Proc_fill_freq_buffer(freqs_wb, pitches_wb, buf_start, buf_stop);
     const float* freqs = Work_buffer_get_contents(freqs_wb, 0);
 
@@ -117,7 +117,7 @@ int32_t Add_vstate_render_voice(
     }
 
     if (scales_wb == NULL)
-        scales_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_FORCE);
+        scales_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_FORCE, 1);
     Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);
     const float* scales = Work_buffer_get_contents(scales_wb, 0);
 
@@ -140,7 +140,7 @@ int32_t Add_vstate_render_voice(
         if (mod_wbs[ch] == NULL)
         {
             Work_buffer* zero_buf = Work_buffers_get_buffer_mut(
-                    wbs, (Work_buffer_type)(ADD_WORK_BUFFER_MOD_L + ch));
+                    wbs, (Work_buffer_type)(ADD_WORK_BUFFER_MOD_L + ch), 1);
             Work_buffer_clear(zero_buf, 0, buf_start, buf_stop);
             mod_wbs[ch] = zero_buf;
         }

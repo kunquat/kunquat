@@ -293,15 +293,15 @@ static void Compress_pstate_render_mixed(
     // Get level buffers
     Work_buffer* level_wbs[2] =
     {
-        Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_LEVEL_L),
-        Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_LEVEL_R),
+        Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_LEVEL_L, 1),
+        Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_LEVEL_R, 1),
     };
 
     // Get gain buffer
     Work_buffer* gain_wb = Device_thread_state_get_mixed_buffer(
             proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_GAIN);
     if (gain_wb == NULL)
-        gain_wb = Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_GAIN);
+        gain_wb = Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_GAIN, 1);
 
     Compress_states_update(
             cpstate->cstates,
@@ -408,15 +408,15 @@ int32_t Compress_vstate_render_voice(
     // Get level buffers
     Work_buffer* level_wbs[2] =
     {
-        Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_LEVEL_L),
-        Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_LEVEL_R),
+        Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_LEVEL_L, 1),
+        Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_LEVEL_R, 1),
     };
 
     // Get gain buffer
     Work_buffer* gain_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_GAIN);
     if (gain_wb == NULL)
-        gain_wb = Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_GAIN);
+        gain_wb = Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_GAIN, 1);
 
     Compress_states_update(
             cvstate->cstates,
