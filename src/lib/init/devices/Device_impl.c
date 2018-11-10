@@ -18,6 +18,7 @@
 #include <init/devices/Device.h>
 #include <init/devices/Device_field.h>
 #include <init/devices/Device_params.h>
+#include <init/devices/port_type.h>
 #include <memory.h>
 #include <string/common.h>
 #include <string/key_pattern.h>
@@ -66,6 +67,7 @@ bool Device_impl_init(Device_impl* dimpl, Device_impl_destroy_func* destroy)
 
     dimpl->proc_type = Proc_type_COUNT;
 
+    dimpl->get_port_groups = NULL;
     dimpl->create_pstate = NULL;
     dimpl->get_vstate_size = NULL;
     dimpl->get_voice_wb_size = NULL;
@@ -113,6 +115,25 @@ void Device_impl_set_device(Device_impl* dimpl, const Device* device)
     rassert(device != NULL);
 
     dimpl->device = device;
+
+    return;
+}
+
+
+void Device_impl_get_port_groups(
+        const Device_impl* dimpl, Device_port_type type, Device_port_groups groups)
+{
+    rassert(dimpl != NULL);
+    rassert(type < DEVICE_PORT_TYPES);
+    rassert(groups != NULL);
+
+    if (dimpl->get_port_groups == NULL)
+    {
+        Device_port_groups_init(groups, 0);
+        return;
+    }
+
+    dimpl->get_port_groups(dimpl, type, groups);
 
     return;
 }
