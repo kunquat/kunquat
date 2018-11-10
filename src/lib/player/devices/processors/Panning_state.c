@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -144,8 +144,10 @@ static void Panning_pstate_render_mixed(
     Panning_pstate* ppstate = (Panning_pstate*)dstate;
 
     // Get panning values
-    const float* pan_values = Device_thread_state_get_mixed_buffer_contents_mut(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PANNING);
+    const Work_buffer* pan_wb = Device_thread_state_get_mixed_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PANNING, NULL);
+    const float* pan_values =
+        (pan_wb != NULL) ? Work_buffer_get_contents(pan_wb, 0) : NULL;
 
     // Get input
     float* in_buffers[2] = { NULL };
@@ -236,8 +238,10 @@ int32_t Panning_vstate_render_voice(
     const Proc_panning* panning = (const Proc_panning*)dstate->device->dimpl;
 
     // Get panning values
-    const float* pan_values = Device_thread_state_get_voice_buffer_contents(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PANNING);
+    const Work_buffer* pan_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PANNING, NULL);
+    const float* pan_values =
+        (pan_wb != NULL) ? Work_buffer_get_contents(pan_wb, 0) : NULL;
 
     // Get input
     float* in_buffers[2] = { NULL };

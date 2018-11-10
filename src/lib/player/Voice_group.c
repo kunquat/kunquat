@@ -257,14 +257,22 @@ static int32_t process_voice_group(
                 // Mix voice audio buffers
                 const Device_thread_state* send_ts = Device_states_get_thread_state(
                         dstates, thread_id, Device_get_id(send_device));
+                int send_sub_index = 0;
                 const Work_buffer* send_buf = Device_thread_state_get_voice_buffer(
-                        send_ts, DEVICE_PORT_TYPE_SEND, edge->port);
+                        send_ts, DEVICE_PORT_TYPE_SEND, edge->port, &send_sub_index);
 
+                int recv_sub_index = 0;
                 Work_buffer* recv_buf = Device_thread_state_get_voice_buffer(
-                        node_ts, DEVICE_PORT_TYPE_RECV, port);
+                        node_ts, DEVICE_PORT_TYPE_RECV, port, &recv_sub_index);
 
                 if ((send_buf != NULL) && (recv_buf != NULL))
-                    Work_buffer_mix(recv_buf, 0, send_buf, 0, buf_start, buf_stop);
+                    Work_buffer_mix(
+                            recv_buf,
+                            recv_sub_index,
+                            send_buf,
+                            send_sub_index,
+                            buf_start,
+                            buf_stop);
             }
 
             edge = edge->next;

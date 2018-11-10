@@ -346,26 +346,26 @@ static void Bitcrusher_pstate_render_mixed(
 
     // Get parameter inputs
     Work_buffer* cutoff_wb = Device_thread_state_get_mixed_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_CUTOFF);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_CUTOFF, NULL);
     Work_buffer* resolution_wb = Device_thread_state_get_mixed_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_RESOLUTION);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_RESOLUTION, NULL);
 
     // Get audio inputs
     Work_buffer* in_buffers[2] =
     {
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L, NULL),
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R, NULL),
     };
 
     // Get audio outputs
     Work_buffer* out_buffers[2] =
     {
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L, NULL),
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R, NULL),
     };
 
     Bitcrusher_state_impl_render(
@@ -446,17 +446,17 @@ int32_t Bitcrusher_vstate_render_voice(
 
     // Get parameter inputs
     Work_buffer* cutoff_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_CUTOFF);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_CUTOFF, NULL);
     Work_buffer* resolution_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_RESOLUTION);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_RESOLUTION, NULL);
 
     // Get audio inputs
     Work_buffer* in_buffers[2] =
     {
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L, NULL),
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R, NULL),
     };
     if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
     {
@@ -468,9 +468,9 @@ int32_t Bitcrusher_vstate_render_voice(
     Work_buffer* out_buffers[2] =
     {
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L, NULL),
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R, NULL),
     };
 
     Bitcrusher_state_impl_render(

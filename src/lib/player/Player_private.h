@@ -38,9 +38,6 @@
 #include <stdint.h>
 
 
-#define TEST_VOICE_OUTPUTS_MAX 2
-
-
 typedef struct Player_thread_params
 {
     Player* player;
@@ -48,7 +45,7 @@ typedef struct Player_thread_params
     int active_voices;
     int active_vgroups;
     Work_buffers* work_buffers;
-    Work_buffer* test_voice_outputs[TEST_VOICE_OUTPUTS_MAX];
+    Work_buffer* test_voice_output;
 } Player_thread_params;
 
 

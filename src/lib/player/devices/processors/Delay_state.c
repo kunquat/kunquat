@@ -169,8 +169,10 @@ static void Delay_pstate_render_mixed(
             wbs, DELAY_WORK_BUFFER_TOTAL_OFFSETS);
 
     // Get delay stream
-    float* delays = Device_thread_state_get_mixed_buffer_contents_mut(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_DELAY);
+    Work_buffer* delays_wb = Device_thread_state_get_mixed_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_DELAY, NULL);
+    float* delays =
+        (delays_wb != NULL) ? Work_buffer_get_contents_mut(delays_wb, 0) : NULL;
     if (delays == NULL)
     {
         delays =

@@ -98,6 +98,16 @@ void Work_buffer_set_sub_count(Work_buffer* buffer, int sub_count);
 
 
 /**
+ * Get the number of interleaved areas in the Work buffer.
+ *
+ * \param buffer   The Work buffer -- must not be \c NULL.
+ *
+ * \return   The number of interleaved areas.
+ */
+int Work_buffer_get_sub_count(const Work_buffer* buffer);
+
+
+/**
  * Get the element stride of the Work buffer.
  *
  * \param buffer   The Work buffer -- must not be \c NULL.
@@ -120,6 +130,18 @@ int Work_buffer_get_stride(const Work_buffer* buffer);
  */
 void Work_buffer_clear(
         Work_buffer* buffer, int sub_index, int32_t buf_start, int32_t buf_stop);
+
+
+/**
+ * Clear all areas of Work buffer with floating-point zeroes.
+ *
+ * \param buffer      The Work buffer -- must not be \c NULL.
+ * \param buf_start   The start index of the area to be cleared -- must be
+ *                    >= \c -1 and less than or equal to the buffer size.
+ * \param buf_stop    The stop index of the area to be cleared -- must be
+ *                    >= \c -1 and less than or equal to buffer size + \c 1.
+ */
+void Work_buffer_clear_all(Work_buffer* buffer, int32_t buf_start, int32_t buf_stop);
 
 
 /**
@@ -282,7 +304,7 @@ bool Work_buffer_is_final(const Work_buffer* buffer, int sub_index);
  * \param dest_sub_index   The index of the destination area -- must be >= \c 0
  *                         and < \a Work_buffer_get_stride(dest).
  * \param src              The input Work buffer -- must not be \c NULL and must
- *                         have the same size as \a buffer.
+ *                         have the same size as \a dest.
  * \param src_sub_index    The index of the destination area -- must be >= \c 0
  *                         and < \a Work_buffer_get_stride(src).
  * \param buf_start        The start index of the area to be mixed -- must be
@@ -295,6 +317,27 @@ void Work_buffer_mix(
         int dest_sub_index,
         const Work_buffer* src,
         int src_sub_index,
+        int32_t buf_start,
+        int32_t buf_stop);
+
+
+/**
+ * Mixes all subareas of a Work buffer into another as floating-point data.
+ *
+ * If the two buffers are the same Work buffer, this function does nothing.
+ *
+ * \param dest        The Work buffer that will contain the end result --
+ *                    must not be \c NULL.
+ * \param src         The input Work buffer -- must not be \c NULL and must
+ *                    have the same size and stride as \a dest.
+ * \param buf_start   The start index of the area to be mixed -- must be
+ *                    >= \c -1 and less than or equal to the buffer size.
+ * \param buf_stop    The stop index of the area to be mixed -- must be
+ *                    >= \c -1 and less than or equal to buffer size + \c 1.
+ */
+void Work_buffer_mix_all(
+        Work_buffer* dest,
+        const Work_buffer* src,
         int32_t buf_start,
         int32_t buf_stop);
 

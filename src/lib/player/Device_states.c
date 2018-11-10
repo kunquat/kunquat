@@ -76,12 +76,12 @@ static Entry* new_Entry(Device_state* state, int thread_count)
     for (int ti = 0; ti < KQT_THREADS_MAX; ++ti)
         entry->thread_states[ti] = NULL;
 
-    const uint32_t device_id = state->device_id;
+    const Device* device = state->device;
     const int32_t audio_buffer_size = state->audio_buffer_size;
 
     for (int ti = 0; ti < thread_count; ++ti)
     {
-        entry->thread_states[ti] = new_Device_thread_state(device_id, audio_buffer_size);
+        entry->thread_states[ti] = new_Device_thread_state(device, audio_buffer_size);
         if (entry->thread_states[ti] == NULL)
         {
             del_Entry(entry);
@@ -126,7 +126,7 @@ bool Device_states_set_thread_count(Device_states* states, int new_count)
         while (entry != NULL)
         {
             rassert(entry->state != NULL);
-            const uint32_t device_id = entry->state->device_id;
+            const Device* device = entry->state->device;
             const int32_t audio_buffer_size = entry->state->audio_buffer_size;
 
             // Create new thread states
@@ -135,7 +135,7 @@ bool Device_states_set_thread_count(Device_states* states, int new_count)
                 if (entry->thread_states[ti] == NULL)
                 {
                     Device_thread_state* ts =
-                        new_Device_thread_state(device_id, audio_buffer_size);
+                        new_Device_thread_state(device, audio_buffer_size);
                     if (ts == NULL)
                         return false;
 
@@ -558,24 +558,9 @@ void Device_states_mix_thread_states(
             {
                 const Device_thread_state* src_state = entry->thread_states[ti];
                 rassert(src_state != NULL);
-                if (Device_thread_state_has_mixed_audio(src_state))
-                {
-                    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-                    {
-                        Work_buffer* dest_buffer = Device_thread_state_get_mixed_buffer(
-                                dest_state, DEVICE_PORT_TYPE_SEND, port);
-                        if (dest_buffer == NULL)
-                            continue;
 
-                        const Work_buffer* src_buffer =
-                            Device_thread_state_get_mixed_buffer(
-                                    src_state, DEVICE_PORT_TYPE_SEND, port);
-                        rassert(src_buffer != NULL);
-
-                        Work_buffer_mix(
-                                dest_buffer, 0, src_buffer, 0, buf_start, buf_stop);
-                    }
-                }
+                Device_thread_state_combine_mixed_audio(
+                        dest_state, src_state, buf_start, buf_stop);
             }
 
             entry = entry->next;

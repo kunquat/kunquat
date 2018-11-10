@@ -69,11 +69,18 @@ typedef struct Mixed_signal_connection
 {
     Work_buffer* recv_buf;
     const Work_buffer* send_buf;
+    int recv_sub_index;
+    int send_sub_index;
 } Mixed_signal_connection;
 
 
-#define MIXED_SIGNAL_CONNECTION_AUTO(rb, sb) \
-    (&(Mixed_signal_connection){ .recv_buf = (rb), .send_buf = (sb) })
+#define MIXED_SIGNAL_CONNECTION_AUTO(rb, rsi, sb, ssi) \
+    (&(Mixed_signal_connection){    \
+        .recv_buf = (rb),           \
+        .send_buf = (sb),           \
+        .recv_sub_index = (rsi),    \
+        .send_sub_index = (ssi),    \
+    })
 
 
 typedef struct Mixed_signal_task_info
@@ -150,13 +157,20 @@ static bool Mixed_signal_task_info_is_empty(const Mixed_signal_task_info* task_i
 static bool Mixed_signal_task_info_add_input(
         Mixed_signal_task_info* task_info,
         Work_buffer* recv_buf,
-        const Work_buffer* send_buf)
+        int recv_sub_index,
+        const Work_buffer* send_buf,
+        int send_sub_index)
 {
     rassert(task_info != NULL);
     rassert(recv_buf != NULL);
+    rassert(recv_sub_index >= 0);
+    rassert(recv_sub_index < Work_buffer_get_sub_count(recv_buf));
     rassert(send_buf != NULL);
+    rassert(send_sub_index >= 0);
+    rassert(send_sub_index < Work_buffer_get_sub_count(send_buf));
 
-    Mixed_signal_connection* conn = MIXED_SIGNAL_CONNECTION_AUTO(recv_buf, send_buf);
+    Mixed_signal_connection* conn =
+        MIXED_SIGNAL_CONNECTION_AUTO(recv_buf, recv_sub_index, send_buf, send_sub_index);
 
     return Vector_append(task_info->conns, conn);
 }
@@ -165,15 +179,22 @@ static bool Mixed_signal_task_info_add_input(
 static bool Mixed_signal_task_info_add_bypass_input(
         Mixed_signal_task_info* task_info,
         Work_buffer* recv_buf,
-        const Work_buffer* send_buf)
+        int recv_sub_index,
+        const Work_buffer* send_buf,
+        int send_sub_index)
 {
     rassert(task_info != NULL);
     rassert(recv_buf != NULL);
+    rassert(recv_sub_index >= 0);
+    rassert(recv_sub_index < Work_buffer_get_sub_count(recv_buf));
     rassert(send_buf != NULL);
+    rassert(send_sub_index >= 0);
+    rassert(send_sub_index < Work_buffer_get_sub_count(send_buf));
 
     rassert(task_info->bypass_conns != NULL);
 
-    Mixed_signal_connection* conn = MIXED_SIGNAL_CONNECTION_AUTO(recv_buf, send_buf);
+    const Mixed_signal_connection* conn =
+        MIXED_SIGNAL_CONNECTION_AUTO(recv_buf, recv_sub_index, send_buf, send_sub_index);
 
     return Vector_append(task_info->bypass_conns, conn);
 }
@@ -214,7 +235,12 @@ static void Mixed_signal_task_info_execute(
                             (const void*)conn->recv_buf);
                     // */
                     Work_buffer_mix(
-                            conn->recv_buf, 0, conn->send_buf, 0, buf_start, buf_stop);
+                            conn->recv_buf,
+                            conn->recv_sub_index,
+                            conn->send_buf,
+                            conn->send_sub_index,
+                            buf_start,
+                            buf_stop);
                 }
             }
             //fflush(stdout);
@@ -227,7 +253,16 @@ static void Mixed_signal_task_info_execute(
     for (int i = 0; i < Vector_size(task_info->conns); ++i)
     {
         const Mixed_signal_connection* conn = Vector_get_ref(task_info->conns, i);
-        Work_buffer_mix(conn->recv_buf, 0, conn->send_buf, 0, buf_start, buf_stop);
+        //fprintf(stdout, "(%p,%d) -> (%p,%d)\n",
+        //        (const void*)conn->send_buf, conn->send_sub_index,
+        //        (const void*)conn->recv_buf, conn->recv_sub_index);
+        Work_buffer_mix(
+                conn->recv_buf,
+                conn->recv_sub_index,
+                conn->send_buf,
+                conn->send_sub_index,
+                buf_start,
+                buf_stop);
     }
 
     // Process current device state
@@ -344,20 +379,22 @@ static bool Mixed_signal_task_info_add_au_interface(
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        Work_buffer* out_buf =
-            Device_thread_state_get_mixed_buffer(target_ts, DEVICE_PORT_TYPE_SEND, port);
+        int out_sub_index = 0;
+        Work_buffer* out_buf = Device_thread_state_get_mixed_buffer(
+                target_ts, DEVICE_PORT_TYPE_SEND, port, &out_sub_index);
 
         if (out_buf != NULL)
         {
             Device_thread_state_mark_input_port_connected(source_ts, port);
 
+            int in_sub_index = 0;
             const Work_buffer* in_buf = Device_thread_state_get_mixed_buffer(
-                    source_ts, DEVICE_PORT_TYPE_RECV, port);
+                    source_ts, DEVICE_PORT_TYPE_RECV, port, &in_sub_index);
 
             if (in_buf != NULL)
             {
-                //fprintf(stdout, "interface %p -> %p", (const void*)in_buf, (void*)out_buf);
-                if (!Mixed_signal_task_info_add_input(task_info, out_buf, in_buf))
+                if (!Mixed_signal_task_info_add_input(
+                            task_info, out_buf, out_sub_index, in_buf, in_sub_index))
                     return false;
             }
         }
@@ -483,18 +520,24 @@ static bool Mixed_signal_plan_build_from_node(
 
                 for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
                 {
+                    int out_sub_index = 0;
                     Work_buffer* out_buf = Device_thread_state_get_mixed_buffer(
-                            recv_ts, DEVICE_PORT_TYPE_SEND, port);
+                            recv_ts, DEVICE_PORT_TYPE_SEND, port, &out_sub_index);
 
                     if (out_buf != NULL)
                     {
+                        int in_sub_index = 0;
                         const Work_buffer* in_buf = Device_thread_state_get_mixed_buffer(
-                                in_iface_ts, DEVICE_PORT_TYPE_SEND, port);
+                                in_iface_ts, DEVICE_PORT_TYPE_SEND, port, &in_sub_index);
 
                         if (in_buf != NULL)
                         {
                             if (!Mixed_signal_task_info_add_bypass_input(
-                                        task_info, out_buf, in_buf))
+                                        task_info,
+                                        out_buf,
+                                        out_sub_index,
+                                        in_buf,
+                                        in_sub_index))
                                 return false;
                         }
                     }
@@ -537,15 +580,21 @@ static bool Mixed_signal_plan_build_from_node(
             Device_thread_state* send_ts =
                 Device_states_get_thread_state(dstates, 0, Device_get_id(send_device));
 
+            int send_sub_index = 0;
             const Work_buffer* send_buf = Device_thread_state_get_mixed_buffer(
-                    send_ts, DEVICE_PORT_TYPE_SEND, edge->port);
+                    send_ts, DEVICE_PORT_TYPE_SEND, edge->port, &send_sub_index);
+            int recv_sub_index = 0;
             Work_buffer* recv_buf = Device_thread_state_get_mixed_buffer(
-                    recv_ts, recv_port_type, port);
+                    recv_ts, recv_port_type, port, &recv_sub_index);
 
             if ((send_buf != NULL) && (recv_buf != NULL))
             {
-                if (is_new_task_info &&
-                        !Mixed_signal_task_info_add_input(task_info, recv_buf, send_buf))
+                if (is_new_task_info && !Mixed_signal_task_info_add_input(
+                            task_info,
+                            recv_buf,
+                            recv_sub_index,
+                            send_buf,
+                            send_sub_index))
                     return false;
             }
 
@@ -613,7 +662,7 @@ static bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
         {
             if (write_pos < read_pos)
             {
-                rassert(Etable_pop(plan->levels, write_pos) == NULL);
+                rassert(Etable_get(plan->levels, write_pos) == NULL);
                 Etable_pop(plan->levels, read_pos);
                 Etable_set(plan->levels, write_pos, level);
             }

@@ -104,17 +104,17 @@ static void Mult_pstate_render_mixed(
     Work_buffer* in1_buffers[2] =
     {
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_L),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_L, NULL),
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_R),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_R, NULL),
     };
 
     Work_buffer* in2_buffers[2] =
     {
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_L),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_L, NULL),
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_R),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_R, NULL),
     };
 
     // Get outputs
@@ -187,17 +187,17 @@ int32_t Mult_vstate_render_voice(
     Work_buffer* in1_buffers[2] =
     {
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_L),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_L, NULL),
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_R),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_R, NULL),
     };
 
     Work_buffer* in2_buffers[2] =
     {
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_L),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_L, NULL),
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_R),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_R, NULL),
     };
 
     const bool is_out1_final_zero = (is_final_zero(in1_buffers[0], buf_start) ||
@@ -212,9 +212,9 @@ int32_t Mult_vstate_render_voice(
     Work_buffer* out_wbs[2] =
     {
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_SIGNAL_L),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_SIGNAL_L, NULL),
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_SIGNAL_R),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_SIGNAL_R, NULL),
     };
 
     float* out_buffers[2] = { NULL };

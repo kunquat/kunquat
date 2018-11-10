@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -37,6 +37,8 @@ typedef enum
 struct Device_thread_state
 {
     uint32_t device_id;
+    const Device* device;
+
     int32_t audio_buffer_size;
 
     Device_node_state node_state;
@@ -58,14 +60,14 @@ struct Device_thread_state
 /**
  * Create a new Device thread state.
  *
- * \param device_id           The Device ID.
+ * \param device              The Device -- must not be \c NULL.
  * \param audio_buffer_size   The audio buffer size -- must be >= \c 0.
  *
  * \return   The new Device thread state if successful, or \c NULL if memory
  *           allocation failed.
  */
 Device_thread_state* new_Device_thread_state(
-        uint32_t device_id, int32_t audio_buffer_size);
+        const Device* device, int32_t audio_buffer_size);
 
 
 /**
@@ -127,27 +129,31 @@ void Device_thread_state_clear_mixed_buffers(
 /**
  * Return a mixed audio buffer of the Device thread state.
  *
- * \param ts     The Device thread state -- must not be \c NULL.
- * \param type   The port type -- must be valid.
- * \param port   The port number -- must be >= \c 0 and < \c KQT_DEVICE_PORTS_MAX.
+ * \param ts          The Device thread state -- must not be \c NULL.
+ * \param type        The port type -- must be valid.
+ * \param port        The port number -- must be >= \c 0 and < \c KQT_DEVICE_PORTS_MAX.
+ * \param sub_index   Destination address where the used subarea index will be stored,
+ *                    or \c NULL if not needed.
  *
  * \return   The Work buffer if one exists, otherwise \c NULL.
  */
 Work_buffer* Device_thread_state_get_mixed_buffer(
-        const Device_thread_state* ts, Device_port_type type, int port);
+        const Device_thread_state* ts, Device_port_type type, int port, int* sub_index);
 
 
 /**
  * Return a connected mixed audio buffer of the Device thread state.
  *
- * \param ts     The Device thread state -- must not be \c NULL.
- * \param type   The port type -- must be valid.
- * \param port   The port number -- must be >= \c 0 and < \c KQT_DEVICE_PORTS_MAX.
+ * \param ts          The Device thread state -- must not be \c NULL.
+ * \param type        The port type -- must be valid.
+ * \param port        The port number -- must be >= \c 0 and < \c KQT_DEVICE_PORTS_MAX.
+ * \param sub_index   Destination address where the used subarea index will be stored,
+ *                    or \c NULL if not needed.
  *
  * \return   The connected Work buffer if one exists, otherwise \c NULL.
  */
 Work_buffer* Device_thread_state_get_connected_mixed_buffer(
-        const Device_thread_state* ts, Device_port_type type, int port);
+        const Device_thread_state* ts, Device_port_type type, int port, int* sub_index);
 
 
 /**
@@ -159,8 +165,8 @@ Work_buffer* Device_thread_state_get_connected_mixed_buffer(
  *
  * \return   The buffer contents, or \c NULL if the Work buffer does not exist.
  */
-float* Device_thread_state_get_mixed_buffer_contents_mut(
-        const Device_thread_state* ts, Device_port_type type, int port);
+//float* Device_thread_state_get_mixed_buffer_contents_mut(
+//        const Device_thread_state* ts, Device_port_type type, int port);
 
 
 /**
@@ -191,14 +197,16 @@ void Device_thread_state_clear_voice_buffers(
 /**
  * Return a voice audio buffer of the Device thread state.
  *
- * \param ts     The Device thread state -- must not be \c NULL.
- * \param type   The port type -- must be valid.
- * \param port   The port number -- must be >= \c 0 and < \c KQT_DEVICE_PORTS_MAX.
+ * \param ts          The Device thread state -- must not be \c NULL.
+ * \param type        The port type -- must be valid.
+ * \param port        The port number -- must be >= \c 0 and < \c KQT_DEVICE_PORTS_MAX.
+ * \param sub_index   Destination address where the used subarea index will be stored,
+ *                    or \c NULL if not needed.
  *
  * \return   The Work buffer if one exists, otherwise \c NULL.
  */
 Work_buffer* Device_thread_state_get_voice_buffer(
-        const Device_thread_state* ts, Device_port_type type, int port);
+        const Device_thread_state* ts, Device_port_type type, int port, int* sub_index);
 
 
 /**
@@ -210,8 +218,8 @@ Work_buffer* Device_thread_state_get_voice_buffer(
  *
  * \return   The buffer contents, or \c NULL if the Work buffer does not exist.
  */
-float* Device_thread_state_get_voice_buffer_contents(
-        const Device_thread_state* ts, Device_port_type type, int port);
+//float* Device_thread_state_get_voice_buffer_contents(
+//        const Device_thread_state* ts, Device_port_type type, int port);
 
 
 /**
@@ -234,6 +242,23 @@ void Device_thread_state_mix_voice_signals(
  * \return   \c true if \a ts contains mixed audio, otherwise \c false.
  */
 bool Device_thread_state_has_mixed_audio(const Device_thread_state* ts);
+
+
+/**
+ * Combine mixed audio of one Device thread state with another.
+ *
+ * \param dest_ts     The destination Device thread state -- must not be \c NULL.
+ * \param src_ts      The source Device thread state -- must not be \c NULL and
+ *                    must be associated with the same device as \a dest_ts.
+ * \param buf_start   The start index of mixing -- must be >= \c 0.
+ * \param buf_stop    The stop index of mixing -- must be less than or equal
+ *                    to the audio buffer size.
+ */
+void Device_thread_state_combine_mixed_audio(
+        Device_thread_state* dest_ts,
+        const Device_thread_state* src_ts,
+        int32_t buf_start,
+        int32_t buf_stop);
 
 
 /**

@@ -136,7 +136,7 @@ int32_t Envgen_vstate_render_voice(
 
     // Get time stretch input
     Work_buffer* stretch_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_STRETCH);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_STRETCH, NULL);
     if (stretch_wb == NULL)
     {
         stretch_wb = Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_STRETCH, 1);
@@ -152,7 +152,7 @@ int32_t Envgen_vstate_render_voice(
 
     // Get trigger signal input
     const Work_buffer* trigger_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_TRIGGER);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_TRIGGER, NULL);
     if (trigger_wb == NULL)
     {
         Work_buffer* fixed_trigger_wb =
@@ -163,7 +163,7 @@ int32_t Envgen_vstate_render_voice(
 
     // Get output buffer for writing
     Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_ENV);
+            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_ENV, NULL);
     if (out_wb == NULL)
     {
         vstate->active = false;

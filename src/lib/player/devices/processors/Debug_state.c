@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -44,7 +44,8 @@ int32_t Debug_vstate_render_voice(
     // Get pitches
     const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
             COND_WORK_BUFFER_AUTO,
-            Device_thread_state_get_voice_buffer(proc_ts, DEVICE_PORT_TYPE_RECV, 0),
+            Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, 0, NULL),
             0);
 
     // Get output buffers for writing

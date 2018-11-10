@@ -132,13 +132,13 @@ static void Rangemap_pstate_render_mixed(
     //       we don't need parameter input streams
     for (int port = 0; port < 2; ++port)
     {
-        Work_buffer* out_wb =
-            Device_thread_state_get_mixed_buffer(proc_ts, DEVICE_PORT_TYPE_SEND, port);
+        Work_buffer* out_wb = Device_thread_state_get_mixed_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, port, NULL);
         if (out_wb == NULL)
             continue;
 
         const Work_buffer* in_wb = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, port);
+                proc_ts, DEVICE_PORT_TYPE_RECV, port, NULL);
         if (in_wb == NULL)
             continue;
 
@@ -210,12 +210,12 @@ int32_t Rangemap_vstate_render_voice(
     for (int port = 0; port < 2; ++port)
     {
         Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, port);
+                proc_ts, DEVICE_PORT_TYPE_SEND, port, NULL);
         if (out_wb == NULL)
             continue;
 
         const Work_buffer* in_wb = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, port);
+                proc_ts, DEVICE_PORT_TYPE_RECV, port, NULL);
         if (in_wb == NULL)
             continue;
 

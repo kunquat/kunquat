@@ -725,7 +725,7 @@ static void Looper_pstate_render_mixed(
     // Get speed input
     const float* speeds = NULL;
     Work_buffer* speeds_wb = Device_thread_state_get_mixed_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SPEED);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SPEED, NULL);
     if (speeds_wb == NULL)
     {
         speeds_wb = Work_buffers_get_buffer_mut(wbs, LOOPER_WB_TEMP_SPEED, 1);

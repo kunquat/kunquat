@@ -276,18 +276,18 @@ static void Compress_pstate_render_mixed(
     const Work_buffer* in_wbs[2] =
     {
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L, NULL),
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R, NULL),
     };
 
     // Get audio output buffers
     Work_buffer* out_wbs[2] =
     {
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L, NULL),
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R, NULL),
     };
 
     // Get level buffers
@@ -299,7 +299,7 @@ static void Compress_pstate_render_mixed(
 
     // Get gain buffer
     Work_buffer* gain_wb = Device_thread_state_get_mixed_buffer(
-            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_GAIN);
+            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_GAIN, NULL);
     if (gain_wb == NULL)
         gain_wb = Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_GAIN, 1);
 
@@ -391,18 +391,18 @@ int32_t Compress_vstate_render_voice(
     const Work_buffer* in_wbs[2] =
     {
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L, NULL),
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R, NULL),
     };
 
     // Get audio output buffers
     Work_buffer* out_wbs[2] =
     {
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L, NULL),
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R, NULL),
     };
 
     // Get level buffers
@@ -414,7 +414,7 @@ int32_t Compress_vstate_render_voice(
 
     // Get gain buffer
     Work_buffer* gain_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_GAIN);
+            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_GAIN, NULL);
     if (gain_wb == NULL)
         gain_wb = Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_GAIN, 1);
 

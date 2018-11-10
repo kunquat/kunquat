@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -118,7 +118,7 @@ static void Stream_pstate_render_mixed(
 
     // Get output
     Work_buffer* out_wb = Device_thread_state_get_mixed_buffer(
-            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_STREAM);
+            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_STREAM, NULL);
 
     apply_controls(&spstate->controls, out_wb, buf_start, buf_stop, tempo);
 
@@ -342,7 +342,7 @@ int32_t Stream_vstate_render_voice(
 
     // Get output
     Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_STREAM);
+            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_STREAM, NULL);
     if (out_wb == NULL)
     {
         vstate->active = false;

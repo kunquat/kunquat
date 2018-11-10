@@ -66,8 +66,19 @@ static void get_mixed_audio_buffers(
     rassert(bufs != NULL);
 
     for (int32_t i = 0, port = port_start; port < port_stop; ++i, ++port)
-        bufs[i] = Device_thread_state_get_mixed_buffer_contents_mut(
-                proc_ts, port_type, port);
+    {
+        Work_buffer* wb =
+            Device_thread_state_get_mixed_buffer(proc_ts, port_type, port, NULL);
+        if (wb != NULL)
+        {
+            rassert(Work_buffer_get_sub_count(wb) == 1);
+            bufs[i] = Work_buffer_get_contents_mut(wb, 0);
+        }
+        else
+        {
+            bufs[i] = NULL;
+        }
+    }
 
     return;
 }
@@ -129,8 +140,19 @@ static void get_voice_audio_buffers(
     rassert(bufs != NULL);
 
     for (int32_t i = 0, port = port_start; port < port_stop; ++i, ++port)
-        bufs[i] =
-            Device_thread_state_get_voice_buffer_contents(proc_ts, port_type, port);
+    {
+        Work_buffer* wb =
+            Device_thread_state_get_voice_buffer(proc_ts, port_type, port, NULL);
+        if (wb != NULL)
+        {
+            rassert(Work_buffer_get_sub_count(wb) == 1);
+            bufs[i] = Work_buffer_get_contents_mut(wb, 0);
+        }
+        else
+        {
+            bufs[i] = NULL;
+        }
+    }
 
     return;
 }

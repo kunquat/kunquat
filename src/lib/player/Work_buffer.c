@@ -153,6 +153,13 @@ void Work_buffer_set_sub_count(Work_buffer* buffer, int sub_count)
 }
 
 
+int Work_buffer_get_sub_count(const Work_buffer* buffer)
+{
+    rassert(buffer != NULL);
+    return buffer->sub_count;
+}
+
+
 int Work_buffer_get_stride(const Work_buffer* buffer)
 {
     rassert(buffer != NULL);
@@ -177,6 +184,31 @@ void Work_buffer_clear(
 
     Work_buffer_set_const_start(buffer, sub_index, max(0, buf_start));
     Work_buffer_set_final(buffer, sub_index, true);
+
+    return;
+}
+
+
+void Work_buffer_clear_all(Work_buffer* buffer, int32_t buf_start, int32_t buf_stop)
+{
+    rassert(buffer != NULL);
+    rassert(buf_start >= -1);
+    rassert(buf_start <= Work_buffer_get_size(buffer));
+    rassert(buf_stop >= -1);
+    rassert(buf_stop <= Work_buffer_get_size(buffer) + 1);
+
+    const int32_t actual_start = buf_start * buffer->sub_count;
+    const int32_t actual_stop = buf_stop * buffer->sub_count;
+
+    float* fcontents = Work_buffer_get_contents_mut(buffer, 0);
+    for (int32_t i = actual_start; i < actual_stop; ++i)
+        fcontents[i] = 0;
+
+    for (int i = 0; i < buffer->sub_count; ++i)
+    {
+        Work_buffer_set_const_start(buffer, i, max(0, buf_start));
+        Work_buffer_set_final(buffer, i, true);
+    }
 
     return;
 }
@@ -398,6 +430,95 @@ void Work_buffer_mix(
 
     Work_buffer_set_const_start(dest, dest_sub_index, new_const_start);
     Work_buffer_set_final(dest, dest_sub_index, result_is_const_final);
+
+    return;
+}
+
+
+void Work_buffer_mix_all(
+        Work_buffer* dest,
+        const Work_buffer* src,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    rassert(dest != NULL);
+    rassert(src != NULL);
+    rassert(Work_buffer_get_size(dest) == Work_buffer_get_size(src));
+    rassert(dest->sub_count == src->sub_count);
+    rassert(buf_start >= -1);
+    rassert(buf_start <= Work_buffer_get_size(dest));
+    rassert(buf_stop >= -1);
+    rassert(buf_stop <= Work_buffer_get_size(dest) + 1);
+
+    if (dest == src)
+        return;
+
+    int32_t dest_const_starts[WORK_BUFFER_SUB_COUNT_MAX] = { 0 };
+    int32_t src_const_starts[WORK_BUFFER_SUB_COUNT_MAX] = { 0 };
+    bool dest_has_final_value_at[WORK_BUFFER_SUB_COUNT_MAX] = { false };
+    bool src_has_final_value_at[WORK_BUFFER_SUB_COUNT_MAX] = { false };
+
+    for (int i = 0; i < dest->sub_count; ++i)
+    {
+        dest_const_starts[i] = dest->const_start[i];
+        dest_has_final_value_at[i] =
+            (Work_buffer_is_final(dest, i) && (dest_const_starts[i] < buf_stop));
+
+        src_const_starts[i] = src->const_start[i];
+        src_has_final_value_at[i] =
+            (Work_buffer_is_final(src, i) && (src_const_starts[i] < buf_stop));
+    }
+
+    float* dest_contents = Work_buffer_get_contents_mut(dest, 0);
+    const float* src_contents = Work_buffer_get_contents(src, 0);
+
+    bool dest_has_neg_inf_final_value_at[WORK_BUFFER_SUB_COUNT_MAX] = { false };
+    bool src_has_neg_inf_final_value_at[WORK_BUFFER_SUB_COUNT_MAX] = { false };
+
+    for (int i = 0; i < dest->sub_count; ++i)
+    {
+        dest_has_neg_inf_final_value_at[i] =
+            (dest_has_final_value_at[i] &&
+             (dest_contents[dest_const_starts[i] * dest->sub_count + i] == -INFINITY));
+        src_has_neg_inf_final_value_at[i] =
+            (src_has_final_value_at[i] &&
+             (src_contents[src_const_starts[i] * src->sub_count + i] == -INFINITY));
+    }
+
+    const int32_t actual_start = buf_start * dest->sub_count;
+    const int32_t actual_stop = buf_stop * dest->sub_count;
+    for (int32_t i = actual_start; i < actual_stop; ++i)
+        dest_contents[i] += src_contents[i];
+
+    for (int i = 0; i < dest->sub_count; ++i)
+    {
+        bool result_is_const_final =
+            (dest_has_final_value_at[i] && src_has_final_value_at[i]);
+        int32_t new_const_start = max(dest_const_starts[i], src_const_starts[i]);
+
+        // Fill result buffer trail with negative infinity
+        // if one of the inputs ends with final negative infinity
+        if (dest_has_neg_inf_final_value_at[i])
+        {
+            result_is_const_final = true;
+            new_const_start = min(new_const_start, dest_const_starts[i]);
+
+            for (int32_t k = dest_const_starts[i]; k < buf_stop; ++k)
+                dest_contents[k * dest->sub_count] = -INFINITY;
+        }
+
+        if (src_has_neg_inf_final_value_at[i])
+        {
+            result_is_const_final = true;
+            new_const_start = min(new_const_start, src_const_starts[i]);
+
+            for (int32_t k = src_const_starts[i]; k < buf_stop; ++k)
+                dest_contents[k * dest->sub_count] = -INFINITY;
+        }
+
+        Work_buffer_set_const_start(dest, i, new_const_start);
+        Work_buffer_set_final(dest, i, result_is_const_final);
+    }
 
     return;
 }

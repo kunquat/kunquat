@@ -95,7 +95,7 @@ int32_t Add_vstate_render_voice(
 
     // Get frequencies
     Work_buffer* freqs_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH, NULL);
     Work_buffer* pitches_wb = freqs_wb;
     if (freqs_wb == NULL)
         freqs_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_PITCH, 1);
@@ -104,7 +104,7 @@ int32_t Add_vstate_render_voice(
 
     // Get volume scales
     Work_buffer* scales_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE, NULL);
     Work_buffer* dBs_wb = scales_wb;
     if ((dBs_wb != NULL) &&
             Work_buffer_is_final(dBs_wb, 0) &&
@@ -130,9 +130,9 @@ int32_t Add_vstate_render_voice(
     const Work_buffer* mod_wbs[] =
     {
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PHASE_MOD_L),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PHASE_MOD_L, NULL),
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PHASE_MOD_R),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PHASE_MOD_R, NULL),
     };
 
     for (int ch = 0; ch < 2; ++ch)
