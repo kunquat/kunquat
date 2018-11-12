@@ -35,19 +35,6 @@ CONTEXT_FIRE = 'fire'
 CONTEXT_TFIRE = 'tfire'
 
 
-def gen_sine(rate):
-    # we yield some silence here to comply with tests
-    # this code is probably removed later anyway
-    yield 0
-    yield 0
-
-    phase = 0
-    while True:
-        phase += 440 * 2 * math.pi / rate
-        phase %= 2 * math.pi
-        yield math.sin(phase) * 0.3
-
-
 class AudioEngine():
 
     def __init__(self, chunk_size):
@@ -56,12 +43,10 @@ class AudioEngine():
         self._cycle_time = None
         self._ui_engine = None
         self._nframes = chunk_size
-        self._silence = ([0] * self._nframes, [0] * self._nframes)
+        self._silence = [0] * (self._nframes * 2)
         self._render_speed = 0
         self._post_actions = deque()
         self._send_voice_info = False
-
-        self._sine = gen_sine(48000)
 
         self._is_handle_ready = True
 
@@ -78,10 +63,13 @@ class AudioEngine():
 
     def _get_audio_levels(self, audio_data):
         levels = []
-        for ch in audio_data:
+
+        lslice = islice(audio_data, 0, None, 2)
+        rslice = islice(audio_data, 1, None, 2)
+        for ch in (lslice, rslice):
             max_level = max(abs(item) for item in ch)
             levels.append(max_level)
-        assert len(levels) == 2
+
         return tuple(levels)
 
     def _process_event(self, channel_number, event_type, event_value, context):
@@ -136,9 +124,6 @@ class AudioEngine():
             self._ui_engine.call_post_action(action_name, args)
 
     def _mix(self, nframes):
-        #data_mono = list(islice(self._sine, nframes))
-        #audio_data = (data_mono, data_mono)
-
         success = False
 
         # Try rendering until we get more audio data
@@ -150,7 +135,7 @@ class AudioEngine():
                 event_data = self._rendering_engine.receive_events()
                 self._process_events(event_data, CONTEXT_MIX)
                 self._process_post_actions()
-                frame_count = len(audio_data[0])
+                frame_count = len(audio_data) // 2
                 if frame_count > 0:
                     success = True
                     self._push_amount = frame_count
