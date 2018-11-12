@@ -285,18 +285,17 @@ int32_t Player_get_frames_available(const Player* player);
 
 
 /**
- * Return an internal audio buffer.
+ * Get the internal audio buffer.
  *
- * \param player    The Player -- must not be \c NULL.
- * \param channel   The channel number -- must be \c 0 or \c 1.
+ * \param player   The Player -- must not be \c NULL.
  *
  * \return   The audio buffer.
  */
-const float* Player_get_audio(const Player* player, int channel);
+const float* Player_get_audio(const Player* player);
 
 
 /**
- * Return an internal event buffer.
+ * Get the internal event buffer.
  *
  * \param player   The Player -- must not be \c NULL.
  *

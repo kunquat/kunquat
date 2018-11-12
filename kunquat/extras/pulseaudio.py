@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2016
+# Author: Tomi Jylhä-Ollila, Finland 2010-2018
 #
 # This file is part of Kunquat.
 #
@@ -93,27 +93,25 @@ class Simple():
         if not self._connection:
             raise PulseAudioError(str(_simple.pa_strerror(error), encoding='utf-8'))
 
-    def write(self, *data):
+    def write(self, data):
         """Write audio data to the output stream.
 
         Arguments:
-        data -- The output buffers, each channel as a separate
-                parameter.
+        data -- The output buffer with channels in interleaved format.
 
         Exceptions:
         PulseAudioError -- Raised if the PulseAudio call fails.
-        ValueError      -- Wrong number of output buffers, or the
-                           buffer lengths do not match.
+        ValueError      -- The length of data is not divisible by expected
+                           number of channels.
 
         """
-        if len(data) != self._channels:
-            raise ValueError('Wrong number of output channel buffers')
-        frame_count = len(data[0])
+        if len(data) % self._channels != 0:
+            raise ValueError('Buffer length {} is not divisible'
+                    ' by expected channel count {}'.format(
+                        len(data), self._channels))
+        frame_count = len(data) // self._channels
         cdata = (ctypes.c_float * (frame_count * self._channels))()
-        for channel in range(self._channels):
-            if len(data[channel]) != frame_count:
-                raise ValueError('Output channel buffer lengths do not match')
-            cdata[channel::self._channels] = data[channel]
+        cdata[:] = data
         bytes_per_frame = 4 * self._channels
         error = ctypes.c_int(0)
         if _simple.pa_simple_write(self._connection,

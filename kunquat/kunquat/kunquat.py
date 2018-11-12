@@ -73,7 +73,7 @@ class Kunquat():
     >>> k.play(2)
     >>> audio_data = k.get_audio()
     >>> audio_data
-    ([0.0, 0.0], [0.0, 0.0])
+    [0.0, 0.0, 0.0, 0.0]
 
     """
 
@@ -290,15 +290,13 @@ class Kunquat():
         """Get audio data.
 
         Returns:
-        A pair containing audio data for, respectively, the left and
-        the right output channel.  Buffers shorter than frame_count
-        frames indicate that the end has been reached.
+        A list of floating-point values (normalised to range [-1.0, 1.0])
+        in interleaved 2-channel format.
 
         """
         frames_available = _kunquat.kqt_Handle_get_frames_available(self._handle)
-        cbuf_left = _kunquat.kqt_Handle_get_audio(self._handle, 0)
-        cbuf_right = _kunquat.kqt_Handle_get_audio(self._handle, 1)
-        return cbuf_left[:frames_available], cbuf_right[:frames_available]
+        cbuf = _kunquat.kqt_Handle_get_audio(self._handle)
+        return cbuf[:frames_available * 2]
 
     def set_channel_mute(self, channel, mute):
         """Set channel mute.
@@ -579,7 +577,7 @@ _kunquat.kqt_Handle_has_stopped.errcheck = _error_check
 _kunquat.kqt_Handle_get_frames_available.argtypes = [kqt_Handle]
 _kunquat.kqt_Handle_get_frames_available.restype = ctypes.c_long
 _kunquat.kqt_Handle_get_frames_available.errcheck = _error_check
-_kunquat.kqt_Handle_get_audio.argtypes = [kqt_Handle, ctypes.c_int]
+_kunquat.kqt_Handle_get_audio.argtypes = [kqt_Handle]
 _kunquat.kqt_Handle_get_audio.restype = ctypes.POINTER(ctypes.c_float)
 _kunquat.kqt_Handle_get_audio.errcheck = _error_check
 

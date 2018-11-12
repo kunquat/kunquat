@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2016
+#          Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -18,14 +18,12 @@ import unittest
 from .pulseaudio_async import Async
 
 
-@unittest.skip('Causes tests to hang in Travis')
 class TestPulseaudioAsync(unittest.TestCase):
 
     def _pa_callback(self, nframes):
         self._calls += 1
-        mono_sound = nframes * [0.2]
-        stereo_sound = (mono_sound, mono_sound)
-        return stereo_sound
+        sound = (nframes * 2) * [0.2]
+        return sound
 
     def test_basics(self):
         self._calls = 0

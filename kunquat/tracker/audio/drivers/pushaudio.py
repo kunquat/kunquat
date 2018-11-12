@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2017
+#          Tomi Jylhä-Ollila, Finland 2013-2018
 #
 # This file is part of Kunquat.
 #
@@ -28,9 +28,8 @@ class Pushaudio():
 
     def put_audio(self, audio_data):
         assert self._started
-        (left, right) = audio_data
-        if len(left) > 0:
-            self._pa.write(left, right)
+        if len(audio_data) > 0:
+            self._pa.write(audio_data)
         self._audio_source.acknowledge_audio()
 
     def start(self):

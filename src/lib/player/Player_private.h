@@ -55,7 +55,7 @@ struct Player
 
     int32_t audio_rate;
     int32_t audio_buffer_size;
-    float*  audio_buffers[KQT_BUFFERS_MAX];
+    float*  audio_buffer;
     int32_t audio_frames_available;
 
     int thread_count;

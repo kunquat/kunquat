@@ -1,4 +1,4 @@
-.TH kunquat\-player\-interface 3 "2018\-10\-11" "" "Kunquat"
+.TH kunquat\-player\-interface 3 "2018\-11\-12" "" "Kunquat"
 
 .SH NAME
 Kunquat player API
@@ -14,7 +14,7 @@ Kunquat player API
 
 .BI "long kqt_Handle_get_frames_available(kqt_Handle " handle );
 .br
-.BI "const float* kqt_Handle_get_audio(kqt_Handle " handle ", int " index );
+.BI "const float* kqt_Handle_get_audio(kqt_Handle " handle );
 
 .BI "int kqt_Handle_set_player_thread_count(kqt_Handle " handle ", int " count );
 .br
@@ -66,27 +66,22 @@ occurred.
 
 .IP "\fBlong kqt_Handle_get_frames_available(kqt_Handle\fR \fIhandle\fR\fB);\fR"
 Return the number of frames rendered after the last call of
-\fBkqt_Handle_play\fR, or -1 if an error occurred. A return value of 0 does
-not imply end of playback or error; a subsequent call of \fBkqt_Handle_play\fR
-may produce more audio data.
+\fBkqt_Handle_play\fR, or -1 if an error occurred. The total amount of
+floating-point values in the internal buffer is
+\fBkqt_Handle_get_frames_available(\fR\fIhandle\fR\fB)\fR * 2.
 
-.IP "\fBconst float* kqt_Handle_get_audio(kqt_Handle\fR \fIhandle\fR\fB, int\fR \fIindex\fR\fB);\fR"
+A return value of 0 does not imply end of playback or error; a subsequent call
+of \fBkqt_Handle_play\fR may produce more audio data.
+
+.IP "\fBconst float* kqt_Handle_get_audio(kqt_Handle\fR \fIhandle\fR\fB);\fR"
 Retrieve audio data rendered by the most recent call of
-\fBkqt_Handle_play\fR. The returned data contains the audio buffer contents of
-either the left or the right output channel if \fIindex\fR is, respectively, 0
-or 1. The returned buffer contains sample values normalised to the range
-[-1.0, 1.0]. However, values beyond this range are possible and they indicate
-clipping. The data in the returned buffers becomes invalid when
-\fBkqt_Handle_play\fR is called again. The function returns NULL if called with
-invalid arguments.
-
-.PP
-Many audio interfaces expect to receive the sound data in an interleaved form
-where both output channels are stored in a single output buffer in the order
-[left1, right1, left2, right2, ..., left\fIn\fR, right\fIn\fR]. Also, some
-audio interfaces do not support 32-bit floating point format. The Kunquat
-library does not support interleaving or audio data conversions, but these
-functions are usually easy to implement.
+\fBkqt_Handle_play\fR. The returned data contains the audio in 2-channel
+interleaved format ([left1, right1, left2, right2, ...,
+left\fIn\fR, right\fIn\fR]), which is what many audio programming interfaces
+expect. The returned sample values are normalised to the range [-1.0, 1.0].
+However, values beyond this range are possible and they indicate clipping.
+The data in the returned buffers becomes invalid when \fBkqt_Handle_play\fR
+is called again. The function returns NULL if called with invalid arguments.
 
 .SH "MULTITHREADING SUPPORT"
 

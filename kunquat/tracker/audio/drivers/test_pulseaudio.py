@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2016
+#          Tomi Jylhä-Ollila, Finland 2013-2018
 #
 # This file is part of Kunquat.
 #
@@ -25,7 +25,6 @@ def load_tests(loader, tests, ignore):
     return tests
 
 
-@unittest.skip('Causes tests to hang in Travis')
 class TestPulseaudio(TestAbstractDriver, unittest.TestCase):
 
     def setUp(self):

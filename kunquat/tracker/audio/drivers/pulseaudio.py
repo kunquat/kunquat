@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2018
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -29,49 +29,35 @@ def split_list_at(lst, i):
 
 def split_audio_at(audio, i):
     """
-    >>> split_audio_at(([1, 2, 3], [4, 5, 6]), 1)
-    (([1], [4]), ([2, 3], [5, 6]))
+    >>> split_audio_at([1, 4, 2, 5, 3, 6], 1)
+    ([1, 4], [2, 5, 3, 6])
     """
-    (left, right) = audio
-    (left1, left2) = split_list_at(left, i)
-    (right1, right2) = split_list_at(right, i)
-    audio1 = (left1, right1)
-    audio2 = (left2, right2)
-    return (audio1, audio2)
+    return split_list_at(audio, i * 2)
 
 def join_audio(audio1, audio2):
     """
-    >>> join_audio(([1], [4]), ([2, 3], [5, 6]))
-    ([1, 2, 3], [4, 5, 6])
+    >>> join_audio([1, 4], [2, 5, 3, 6])
+    [1, 4, 2, 5, 3, 6]
     """
-    (left1, right1) = audio1
-    (left2, right2) = audio2
-    left = left1 + left2
-    right = right1 + right2
-    audio = (left, right)
-    return audio
+    return audio1 + audio2
 
 def audio_len(audio):
     """
-    >>> audio_len(([1, 2, 3], [4, 5, 6]))
+    >>> audio_len([1, 4, 2, 5, 3, 6])
     3
     """
-    (left, right) = audio
-    assert len(left) == len(right)
-    return len(left)
+    assert len(audio) % 2 == 0
+    return len(audio) // 2
 
 class Pulseaudio():
 
     def __init__(self):
         self._started = False
         self._audio_source = None
-        self._pa = Async(
-                'Kunquat Tracker',
-                'Editor output',
-                self._pa_callback)
+        self._pa = Async('Kunquat Tracker', 'Editor output', self._pa_callback)
         self._buffer = queue.Queue()
         self._acks = queue.Queue()
-        self._workspace = ([],[])
+        self._workspace = []
         self._pa.init()
 
     def set_audio_source(self, audio_source):
@@ -101,7 +87,7 @@ class Pulseaudio():
                 fresh_audio = self._buffer.get(True, 1.0)
                 self._acks.put('ack')
             except queue.Empty:
-                fresh_audio = ([0.0] * missing, [0.0] * missing)
+                fresh_audio = [0.0] * (missing * 2)
             self._add_audio_to_workspace(fresh_audio)
             missing = nframes - audio_len(self._workspace)
 
@@ -111,7 +97,7 @@ class Pulseaudio():
             (audio_data, remainder) = split_audio_at(self._workspace, nframes)
         elif frames == nframes:
             audio_data = self._workspace
-            remainder = ([],[])
+            remainder = []
         else:
             assert False
         self._workspace = remainder
@@ -137,6 +123,6 @@ class Pulseaudio():
     def get_id(cls):
         return 'pulseaudio'
 
-    #'PulseAudio asynchronic pull driver'
+    #'PulseAudio asynchronous pull driver'
 
 

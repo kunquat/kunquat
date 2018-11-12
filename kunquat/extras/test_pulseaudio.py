@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2016
+#          Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -18,14 +18,13 @@ import unittest
 from .pulseaudio import Simple
 
 
-@unittest.skip('Causes tests to hang in Travis')
 class TestPulseaudio(unittest.TestCase):
 
     def test_basics(self):
         self._pa = Simple('PulseAudio Simple Python Wrapper Unit Test', 'Basic Test')
-        mono_sound = 200 * [0.2]
+        sound = (200 * 2) * [0.2]
         for _ in range(10):
-            self._pa.write(mono_sound, mono_sound)
+            self._pa.write(sound)
 
 
 if __name__ == '__main__':

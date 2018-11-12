@@ -125,8 +125,7 @@ Player* new_Player(
 
     player->audio_rate = audio_rate;
     player->audio_buffer_size = audio_buffer_size;
-    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
-        player->audio_buffers[i] = NULL;
+    player->audio_buffer = NULL;
     player->audio_frames_available = 0;
 
     player->thread_count = 0;
@@ -238,15 +237,12 @@ Player* new_Player(
 
     if (player->audio_buffer_size > 0)
     {
-        for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
+        player->audio_buffer =
+            memory_alloc_items(float, player->audio_buffer_size * KQT_BUFFERS_MAX);
+        if (player->audio_buffer == NULL)
         {
-            player->audio_buffers[i] = memory_alloc_items(
-                    float, player->audio_buffer_size);
-            if (player->audio_buffers[i] == NULL)
-            {
-                del_Player(player);
-                return NULL;
-            }
+            del_Player(player);
+            return NULL;
         }
     }
 
@@ -713,23 +709,16 @@ bool Player_set_audio_buffer_size(Player* player, int32_t size)
     // Handle empty buffers
     if (player->audio_buffer_size == 0)
     {
-        for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
-        {
-            memory_free(player->audio_buffers[i]);
-            player->audio_buffers[i] = NULL;
-        }
+        memory_free(player->audio_buffer);
     }
     else
     {
-        for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
-        {
-            float* new_buffer =
-                memory_realloc_items(float, size, player->audio_buffers[i]);
-            if (new_buffer == NULL)
-                return false;
+        float* new_buffer =
+            memory_realloc_items(float, size * KQT_BUFFERS_MAX, player->audio_buffer);
+        if (new_buffer == NULL)
+            return false;
 
-            player->audio_buffers[i] = new_buffer;
-        }
+        player->audio_buffer = new_buffer;
     }
 
     // Update device state buffers
@@ -1530,20 +1519,14 @@ void Player_play(Player* player, int32_t nframes)
 
             // Apply render volume
             const float* buf = Work_buffer_get_contents(buffer, 0);
-            for (int32_t i = 0; i < rendered; ++i)
-            {
-                player->audio_buffers[0][i] = *buf++ * mix_vol;
-                player->audio_buffers[1][i] = *buf++ * mix_vol;
-            }
+            for (int32_t i = 0; i < rendered * KQT_BUFFERS_MAX; ++i)
+                player->audio_buffer[i] = *buf++ * mix_vol;
         }
         else
         {
             // Fill with zeroes if we haven't produced any sound
-            for (int32_t port = 0; port < KQT_BUFFERS_MAX; ++port)
-            {
-                for (int32_t i = 0; i < rendered; ++i)
-                    player->audio_buffers[port][i] = 0;
-            }
+            for (int32_t i = 0; i < rendered * KQT_BUFFERS_MAX; ++i)
+                player->audio_buffer[i] = 0;
         }
 
 #if 0
@@ -1643,11 +1626,10 @@ int32_t Player_get_frames_available(const Player* player)
 }
 
 
-const float* Player_get_audio(const Player* player, int channel)
+const float* Player_get_audio(const Player* player)
 {
     rassert(player != NULL);
-    rassert(channel == 0 || channel == 1);
-    return player->audio_buffers[channel];
+    return player->audio_buffer;
 }
 
 
@@ -1850,8 +1832,7 @@ void del_Player(Player* player)
     del_Env_state(player->estate);
     del_Device_states(player->device_states);
 
-    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
-        memory_free(player->audio_buffers[i]);
+    memory_free(player->audio_buffer);
 
     memory_free(player);
     return;

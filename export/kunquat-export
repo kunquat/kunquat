@@ -114,19 +114,23 @@ def export(in_path, out_path, options):
 
     start_time = time.time()
     handle.play()
-    bufs = handle.get_audio()
+    buf = handle.get_audio()
     while not handle.has_stopped():
-        sf.write(*bufs)
+        sf.write(buf)
 
         if not options['quiet']:
-            clipped += sum(1 for (x, y) in zip(*bufs) if abs(x) > 1.0 or abs(y) > 1.0)
-            cur_peak = max(max(abs(x), abs(y)) for (x, y) in zip(*bufs))
+            lslice = it.islice(buf, 0, None, 2)
+            rslice = it.islice(buf, 1, None, 2)
+            clipped += sum(1 for (x, y) in zip(lslice, rslice)
+                    if abs(x) > 1.0 or abs(y) > 1.0)
+
+            cur_peak = max(abs(x) for x in buf)
             peak = max(peak, cur_peak)
             clen = print_status_line(handle.nanoseconds, duration, clipped)
             line_len = max(line_len, clen)
 
         handle.play()
-        bufs = handle.get_audio()
+        buf = handle.get_audio()
 
     end_time = time.time()
 

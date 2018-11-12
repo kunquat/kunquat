@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2016
+# Author: Tomi Jylhä-Ollila, Finland 2013-2018
 #
 # This file is part of Kunquat.
 #
@@ -52,8 +52,8 @@ class Async():
                        following arguments:
                        nframes -- Number of frames to be rendered.
                        The function must return the audio data in a
-                       tuple/list where each element contains the audio
-                       data of one channel.
+                       single list of floating-point numbers with
+                       channels laid out in interleaved format.
 
         Optional arguments:
         rate        -- Audio rate in frames per second (default: 48000).
@@ -222,20 +222,16 @@ class Async():
         # This fixes a PulseAudio annoyance after init
         if not _pa.pa_stream_is_corked(self._stream):
             # Get audio data
-            bufs = self._audio_cb(frame_count)
-            assert len(bufs) == self._channels
+            buf = self._audio_cb(frame_count)
 
             # Fill buffer with audio data
-            for ch in range(self._channels):
-                received_frames = len(bufs[ch])
-                if received_frames != frame_count:
-                    raise PulseAudioError(
-                            'Expected {} frames, received {}'.format(
-                            frame_count, received_frames)
-                        )
-                buf = bufs[ch]
-                buf.extend([0] * (frame_count - len(buf)))
-                cdata[ch::self._channels] = buf
+            received_frames = len(buf) // self._channels
+            if received_frames != frame_count:
+                raise PulseAudioError(
+                        'Expected {} frames, received {}'.format(
+                            frame_count, received_frames))
+            buf.extend([0] * (frame_count * 2 - len(buf)))
+            cdata[:] = buf
 
         # Write data
         if _pa.pa_stream_write(

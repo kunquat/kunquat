@@ -35,10 +35,17 @@ extern "C" {
  * for playing Kunquat compositions.
  *
  * After the Kunquat Handle has been created, the user can get the audio to
- * be played in short sections. First the user mixes a short section of music
- * into internal buffers and then transfers the necessary information from the
- * internal buffers into its own output buffers. This process is repeated as
- * many times as needed. The basic playback cycle might look like this:
+ * be played in short sections. First the user renders a short section of music
+ * into an internal buffer and then transfers the necessary information from
+ * the internal buffer into their own output buffer. This process is repeated
+ * as many times as needed.
+ *
+ * The audio output is organised in two interleaved areas in a single buffer,
+ * which should be compatible with most common audio programming interfaces.
+ * This means that the total amount of floating-point numbers in the returned
+ * buffer is kqt_Handle_get_frames_available(handle) * 2.
+ *
+ * The basic playback cycle might look like this:
  *
  * \code
  * long buffer_size = kqt_Handle_get_audio_buffer_size(handle);
@@ -46,15 +53,9 @@ extern "C" {
  * while (!kqt_Handle_has_stopped(handle))
  * {
  *     long frames_available = kqt_Handle_get_frames_available(handle);
- *     float* buffers[] =
- *     {
- *         kqt_Handle_get_audio(handle, 0), // left
- *         kqt_Handle_get_audio(handle, 1), // right
- *     };
+ *     float* buffer = kqt_Handle_get_audio(handle);
  *
- *     // Convert (if necessary) and store the contents of the
- *     // buffers into the output buffers of the program,
- *     // then play the contents of the output buffers.
+ *     // Send buffer contents to the audio interface
  *
  *     kqt_Handle_play(handle);
  * }
@@ -88,14 +89,16 @@ int kqt_Handle_has_stopped(kqt_Handle handle);
 
 
 /**
- * Get the amount of audio data available in internal audio buffers.
+ * Get the amount of audio data available in the internal audio buffer.
  *
  * \param handle   The Handle -- should be valid.
  *
- * \return   The number of frames available in each buffer, or \c -1 if an
- *           error occurred. A return value of \c 0 does not imply end of
- *           playback or error; a subsequent call of kqt_Handle_play may
- *           produce more audio data.
+ * \return   The number of frames available in the buffer, or \c -1 if an
+ *           error occurred. The total amount of floating-point values in
+ *           the buffer is twice the value returned, as libkunquat
+ *           produces stereo output. A return value of \c 0 does not imply
+ *           end of playback or error; a subsequent call of kqt_Handle_play
+ *           may produce more audio data.
  */
 long kqt_Handle_get_frames_available(kqt_Handle handle);
 
@@ -104,22 +107,18 @@ long kqt_Handle_get_frames_available(kqt_Handle handle);
  * Get an audio buffer from the Kunquat Handle.
  *
  * When called after a successful call of kqt_Handle_play, this function
- * returns a portion of rendered audio of one output channel. The parameter
- * \a index specifies the output channel.
+ * returns a portion of rendered audio as 2-channel interleaved data.
  *
  * \param handle   The Handle -- should be valid.
- * \param index    The output channel number. \c 0 is the left
- *                 mixing buffer and \c 1 is the right one.
  *
- * \return   The buffer, or \c NULL if \a handle is not valid or \a index
- *           is out of range.
- *           The buffer contains sample values normalised to the range
- *           [-1.0, 1.0]. However, values beyond this range are possible
- *           and they indicate clipping.
+ * \return   The buffer, or \c NULL if \a handle is not valid.
+ *           The buffer contains values normalised to the range [-1.0, 1.0].
+ *           However, values beyond this range are possible and they indicate
+ *           clipping.
  *           Note: Do not cache the returned value! The location of the buffer
  *           may change in memory.
  */
-const float* kqt_Handle_get_audio(kqt_Handle handle, int index);
+const float* kqt_Handle_get_audio(kqt_Handle handle);
 
 
 /**
