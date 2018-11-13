@@ -862,11 +862,20 @@ static void Player_process_voice_group(
             const int sub_count = Work_buffer_get_sub_count(in_wb);
             if (sub_count == 1)
             {
+                const Work_buffer* in_wbs[] =
+                {
+                    in_wb,
+                    Device_thread_state_get_voice_buffer(
+                            test_ts, DEVICE_PORT_TYPE_SEND, 1, NULL),
+                };
+                if (in_wbs[1] == NULL)
+                    in_wbs[1] = in_wbs[0];
+
                 for (int si = 0; si < 2; ++si)
                     Work_buffer_mix(
                             tparams->test_voice_output,
                             si,
-                            in_wb,
+                            in_wbs[si],
                             0,
                             render_start,
                             test_output_stop);
