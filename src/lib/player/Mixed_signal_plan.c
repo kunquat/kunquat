@@ -30,6 +30,7 @@
 #include <player/devices/Device_thread_state.h>
 #include <player/Mixed_signal_plan.h>
 #include <player/Work_buffer.h>
+#include <player/Work_buffer_conn_rules.h>
 #include <threads/Mutex.h>
 
 #include <stdbool.h>
@@ -65,6 +66,7 @@ typedef struct Level
 } Level;
 
 
+#if 0
 typedef struct Mixed_signal_connection
 {
     Work_buffer* recv_buf;
@@ -81,6 +83,7 @@ typedef struct Mixed_signal_connection
         .recv_sub_index = (rsi),    \
         .send_sub_index = (ssi),    \
     })
+#endif
 
 
 typedef struct Mixed_signal_task_info
@@ -136,7 +139,7 @@ static Mixed_signal_task_info* new_Mixed_signal_task_info(
     task_info->container_id = 0;
     task_info->bypass_conns = NULL;
 
-    task_info->conns = new_Vector(sizeof(Mixed_signal_connection));
+    task_info->conns = new_Vector(sizeof(Work_buffer_conn_rules));
     if (task_info->conns == NULL)
     {
         del_Mixed_signal_task_info(task_info);
@@ -169,10 +172,14 @@ static bool Mixed_signal_task_info_add_input(
     rassert(send_sub_index >= 0);
     rassert(send_sub_index < Work_buffer_get_sub_count(send_buf));
 
-    Mixed_signal_connection* conn =
-        MIXED_SIGNAL_CONNECTION_AUTO(recv_buf, recv_sub_index, send_buf, send_sub_index);
+    const Work_buffer_conn_rules* rules = Work_buffer_conn_rules_init(
+            WORK_BUFFER_CONN_RULES_AUTO,
+            recv_buf,
+            recv_sub_index,
+            send_buf,
+            send_sub_index);
 
-    return Vector_append(task_info->conns, conn);
+    return Vector_append(task_info->conns, rules);
 }
 
 
@@ -193,10 +200,14 @@ static bool Mixed_signal_task_info_add_bypass_input(
 
     rassert(task_info->bypass_conns != NULL);
 
-    const Mixed_signal_connection* conn =
-        MIXED_SIGNAL_CONNECTION_AUTO(recv_buf, recv_sub_index, send_buf, send_sub_index);
+    const Work_buffer_conn_rules* rules = Work_buffer_conn_rules_init(
+            WORK_BUFFER_CONN_RULES_AUTO,
+            recv_buf,
+            recv_sub_index,
+            send_buf,
+            send_sub_index);
 
-    return Vector_append(task_info->bypass_conns, conn);
+    return Vector_append(task_info->bypass_conns, rules);
 }
 
 
@@ -227,6 +238,10 @@ static void Mixed_signal_task_info_execute(
             {
                 for (int i = 0; i < Vector_size(task_info->bypass_conns); ++i)
                 {
+                    const Work_buffer_conn_rules* rules =
+                        Vector_get_ref(task_info->bypass_conns, i);
+                    Work_buffer_conn_rules_mix(rules, buf_start, buf_stop);
+#if 0
                     const Mixed_signal_connection* conn =
                         Vector_get_ref(task_info->bypass_conns, i);
                     /*
@@ -241,6 +256,7 @@ static void Mixed_signal_task_info_execute(
                             conn->send_sub_index,
                             buf_start,
                             buf_stop);
+#endif
                 }
             }
             //fflush(stdout);
@@ -252,6 +268,9 @@ static void Mixed_signal_task_info_execute(
     // Copy signals between buffers
     for (int i = 0; i < Vector_size(task_info->conns); ++i)
     {
+        const Work_buffer_conn_rules* rules = Vector_get_ref(task_info->conns, i);
+        Work_buffer_conn_rules_mix(rules, buf_start, buf_stop);
+#if 0
         const Mixed_signal_connection* conn = Vector_get_ref(task_info->conns, i);
         //fprintf(stdout, "(%p,%d) -> (%p,%d)\n",
         //        (const void*)conn->send_buf, conn->send_sub_index,
@@ -263,6 +282,7 @@ static void Mixed_signal_task_info_execute(
                 conn->send_sub_index,
                 buf_start,
                 buf_stop);
+#endif
     }
 
     // Process current device state
@@ -514,7 +534,8 @@ static bool Mixed_signal_plan_build_from_node(
             if (is_new_task_info && (container_id == 0))
             {
                 // Set up bypass connections
-                task_info->bypass_conns = new_Vector(sizeof(Mixed_signal_connection));
+                task_info->bypass_conns = new_Vector(sizeof(Work_buffer_conn_rules));
+                //task_info->bypass_conns = new_Vector(sizeof(Mixed_signal_connection));
                 if (task_info->bypass_conns == NULL)
                     return false;
 
