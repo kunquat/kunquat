@@ -66,26 +66,6 @@ typedef struct Level
 } Level;
 
 
-#if 0
-typedef struct Mixed_signal_connection
-{
-    Work_buffer* recv_buf;
-    const Work_buffer* send_buf;
-    int recv_sub_index;
-    int send_sub_index;
-} Mixed_signal_connection;
-
-
-#define MIXED_SIGNAL_CONNECTION_AUTO(rb, rsi, sb, ssi) \
-    (&(Mixed_signal_connection){    \
-        .recv_buf = (rb),           \
-        .send_buf = (sb),           \
-        .recv_sub_index = (rsi),    \
-        .send_sub_index = (ssi),    \
-    })
-#endif
-
-
 typedef struct Mixed_signal_task_info
 {
     bool is_input_required;
@@ -241,22 +221,6 @@ static void Mixed_signal_task_info_execute(
                     const Work_buffer_conn_rules* rules =
                         Vector_get_ref(task_info->bypass_conns, i);
                     Work_buffer_conn_rules_mix(rules, buf_start, buf_stop);
-#if 0
-                    const Mixed_signal_connection* conn =
-                        Vector_get_ref(task_info->bypass_conns, i);
-                    /*
-                    fprintf(stdout, "mix bypass %p -> %p\n",
-                            (const void*)conn->send_buf,
-                            (const void*)conn->recv_buf);
-                    // */
-                    Work_buffer_mix(
-                            conn->recv_buf,
-                            conn->recv_sub_index,
-                            conn->send_buf,
-                            conn->send_sub_index,
-                            buf_start,
-                            buf_stop);
-#endif
                 }
             }
             //fflush(stdout);
@@ -270,19 +234,6 @@ static void Mixed_signal_task_info_execute(
     {
         const Work_buffer_conn_rules* rules = Vector_get_ref(task_info->conns, i);
         Work_buffer_conn_rules_mix(rules, buf_start, buf_stop);
-#if 0
-        const Mixed_signal_connection* conn = Vector_get_ref(task_info->conns, i);
-        //fprintf(stdout, "(%p,%d) -> (%p,%d)\n",
-        //        (const void*)conn->send_buf, conn->send_sub_index,
-        //        (const void*)conn->recv_buf, conn->recv_sub_index);
-        Work_buffer_mix(
-                conn->recv_buf,
-                conn->recv_sub_index,
-                conn->send_buf,
-                conn->send_sub_index,
-                buf_start,
-                buf_stop);
-#endif
     }
 
     // Process current device state
