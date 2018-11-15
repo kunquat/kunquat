@@ -45,10 +45,9 @@
 
 struct Mixed_signal_plan
 {
-    bool is_finalised;
     int level_count;
     Etable* levels;
-    AAtree* build_task_infos;
+    AAtree* build_task_infos; // TODO: remove; this is only used during initialisation
 
     Device_states* dstates;
 
@@ -313,7 +312,6 @@ static Mixed_signal_task_info* Mixed_signal_create_or_get_task_info(
         Mixed_signal_plan* plan, uint32_t device_id, int level_index, bool* is_new)
 {
     rassert(plan != NULL);
-    rassert(!plan->is_finalised);
     rassert(level_index >= 0);
     rassert(level_index < MAX_LEVELS);
     rassert(is_new != NULL);
@@ -383,7 +381,6 @@ static bool Mixed_signal_plan_build_from_node(
         uint32_t container_id)
 {
     rassert(plan != NULL);
-    rassert(!plan->is_finalised);
     rassert(dstates != NULL);
     rassert(node != NULL);
     rassert(level_index >= 0);
@@ -581,7 +578,6 @@ static bool Mixed_signal_plan_build_from_node(
 static bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
 {
     rassert(plan != NULL);
-    rassert(!plan->is_finalised);
 
     // Move task info contexts from plan->build_task_infos to plan->levels
     AAiter* iter = AAiter_init(AAITER_AUTO, plan->build_task_infos);
@@ -677,8 +673,6 @@ static bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
     }
 #endif
 
-    plan->is_finalised = true;
-
     Mixed_signal_plan_reset(plan);
 
     return true;
@@ -714,7 +708,6 @@ Mixed_signal_plan* new_Mixed_signal_plan(
         return NULL;
 
     // Sanitise fields
-    plan->is_finalised = false;
     plan->level_count = 0;
     plan->levels = NULL;
     plan->build_task_infos = NULL;
