@@ -55,6 +55,7 @@ typedef struct Value Value;
 typedef struct Vector Vector;
 typedef struct Voice_state Voice_state;
 typedef struct Work_buffer Work_buffer;
+typedef struct Work_buffer_conn_rules Work_buffer_conn_rules;
 typedef struct Work_buffers Work_buffers;
 
 
