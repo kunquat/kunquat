@@ -83,6 +83,8 @@ START_TEST(Aligned_alloc_returns_proper_base_address)
 {
     uint8_t alignment = (uint8_t)_i;
 
+    kqt_fake_out_of_memory(-1);
+
 #define ALLOC_TEST_COUNT 4
     void* blocks[ALLOC_TEST_COUNT] = { NULL };
 
@@ -117,17 +119,21 @@ Suite* Memory_suite(void)
 
     const int timeout = DEFAULT_TIMEOUT;
 
-    TCase* tc_create = tcase_create("create");
-    suite_add_tcase(s, tc_create);
-    tcase_set_timeout(tc_create, timeout);
-    //tcase_add_checked_fixture(tc_create, setup_empty, handle_teardown);
+    TCase* tc_oom = tcase_create("out_of_memory");
+    suite_add_tcase(s, tc_oom);
+    tcase_set_timeout(tc_oom, timeout);
+    //tcase_add_checked_fixture(tc_oom, setup_empty, handle_teardown);
+
+    TCase* tc_aligned = tcase_create("aligned");
+    suite_add_tcase(s, tc_aligned);
+    tcase_set_timeout(tc_aligned, timeout);
 
 #ifdef KQT_LONG_TESTS
-    tcase_set_timeout(tc_create, LONG_TIMEOUT);
-    tcase_add_test(tc_create, Out_of_memory_at_handle_creation_fails_cleanly);
+    tcase_set_timeout(tc_oom, LONG_TIMEOUT);
+    tcase_add_test(tc_oom, Out_of_memory_at_handle_creation_fails_cleanly);
 #endif
 
-    tcase_add_loop_test(tc_create, Aligned_alloc_returns_proper_base_address, 2, 64);
+    tcase_add_loop_test(tc_aligned, Aligned_alloc_returns_proper_base_address, 2, 64);
 
     return s;
 }
