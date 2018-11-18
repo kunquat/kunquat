@@ -132,7 +132,7 @@ def build():
 
     process_cmd_line()
 
-    if options.enable_long_tests:
+    if options.enable_python_tests and options.enable_long_tests:
         python_modules = ['scripts', 'kunquat']
         fabricate.run('pylint', *python_modules)
         fabricate.run('flake8', *python_modules)
