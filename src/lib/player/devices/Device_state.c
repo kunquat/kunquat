@@ -188,6 +188,7 @@ void del_Device_state(Device_state* ds)
     if (ds == NULL)
         return;
 
+    // FIXME: Sharing of responsibilities is unclear here
     if (ds->destroy != NULL)
         ds->destroy(ds);
     else

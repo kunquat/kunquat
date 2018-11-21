@@ -132,6 +132,8 @@ const float* kqt_Handle_get_audio(kqt_Handle handle);
  *                 <= \c KQT_THREADS_MAX.
  *
  * \return   \c 1 if successful, otherwise \c 0.
+ *           Note: if memory allocation fails, the Handle should no longer be
+ *           used for playback.
  */
 int kqt_Handle_set_player_thread_count(kqt_Handle handle, int count);
 
@@ -190,9 +192,8 @@ long kqt_Handle_get_audio_rate(kqt_Handle handle);
  *                 no more than a couple of thousand frames.
  *
  * \return   \c 1 if successful, otherwise \c 0.
- *           Note: If memory allocation fails, playback is still possible but
- *           only with min{old_size, new_size} frames at a time. However, it
- *           may be a good idea to just give up in this case.
+ *           Note: If memory allocation fails, the Handle should no longer be
+ *           used for playback.
  */
 int kqt_Handle_set_audio_buffer_size(kqt_Handle handle, long size);
 
