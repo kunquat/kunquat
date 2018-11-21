@@ -78,7 +78,7 @@ static int32_t Sample_render(
         Proc_state* proc_state,
         const Device_thread_state* proc_ts,
         const Work_buffers* wbs,
-        float* out_buffers[2],
+        Work_buffer* out_wbs[2],
         int32_t buf_start,
         int32_t buf_stop,
         int32_t audio_rate,
@@ -93,28 +93,50 @@ static int32_t Sample_render(
     rassert(proc_state != NULL);
     rassert(proc_ts != NULL);
     rassert(wbs != NULL);
+    rassert(out_wbs != NULL);
     rassert(audio_rate > 0);
     rassert(tempo > 0);
     rassert(vol_scale >= 0);
     ignore(tempo);
 
+    float* out_buffers[2] =
+    {
+        (out_wbs[0] != NULL) ? Work_buffer_get_contents_mut(out_wbs[0], 0) : NULL,
+        (out_wbs[1] != NULL) ? Work_buffer_get_contents_mut(out_wbs[1], 0) : NULL,
+    };
+
     // This implementation does not support larger sample lengths :-P
     rassert(sample->len < INT32_MAX - 1);
+
+#define invalidate_outputs()                            \
+    if (true)                                           \
+    {                                                   \
+        for (int ch = 0; ch < 2; ++ch)                  \
+        {                                               \
+            if (out_wbs[ch] != NULL)                    \
+                Work_buffer_invalidate(out_wbs[ch]);    \
+        }                                               \
+    }                                                   \
+    else ignore(0)
 
     if (sample->len == 0)
     {
         vstate->active = false;
+        invalidate_outputs();
         return buf_start;
     }
 
     if (buf_start == buf_stop)
+    {
+        invalidate_outputs();
         return buf_stop;
+    }
 
     // Get frequencies
     Work_buffer* freqs_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH, NULL);
     Work_buffer* pitches_wb = freqs_wb;
-    if (freqs_wb == NULL)
+    if ((freqs_wb == NULL) || !Work_buffer_is_valid(freqs_wb))
         freqs_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_PITCH, 1);
     Proc_fill_freq_buffer(freqs_wb, pitches_wb, buf_start, buf_stop);
     const float* freqs = Work_buffer_get_contents(freqs_wb, 0);
@@ -124,16 +146,18 @@ static int32_t Sample_render(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE, NULL);
     Work_buffer* dBs_wb = force_scales_wb;
     if ((dBs_wb != NULL) &&
+            Work_buffer_is_valid(dBs_wb) &&
             Work_buffer_is_final(dBs_wb, 0) &&
             (Work_buffer_get_const_start(dBs_wb, 0) <= buf_start) &&
             (Work_buffer_get_contents(dBs_wb, 0)[buf_start] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
         vstate->active = false;
+        invalidate_outputs();
         return buf_start;
     }
 
-    if (force_scales_wb == NULL)
+    if ((force_scales_wb == NULL) || !Work_buffer_is_valid(force_scales_wb))
         force_scales_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_FORCE, 1);
     Proc_fill_scale_buffer(force_scales_wb, dBs_wb, buf_start, buf_stop);
     const float* force_scales = Work_buffer_get_contents(force_scales_wb, 0);
@@ -197,6 +221,7 @@ static int32_t Sample_render(
             if (positions[buf_start] >= length)
             {
                 vstate->active = false;
+                invalidate_outputs();
                 return buf_start;
             }
 
@@ -429,6 +454,21 @@ static int32_t Sample_render(
     vstate->pos = new_pos;
     vstate->pos_rem = new_pos_rem;
 
+    // Clear output buffers after sample end, FIXME: We should be able to get rid of this
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        Work_buffer* out_wb = out_wbs[ch];
+        if (out_wb == NULL)
+            continue;
+
+        float* out_buf = Work_buffer_get_contents_mut(out_wb, 0);
+
+        //fprintf(stderr, "Clearing ch %d, [%d,%d)\n", ch, (int)new_buf_stop, (int)buf_stop);
+
+        for (int32_t i = new_buf_stop; i < buf_stop; ++i)
+            out_buf[i] = 0;
+    }
+
     return new_buf_stop;
 }
 
@@ -609,11 +649,15 @@ int32_t Sample_vstate_render_voice(
     Sample_set_loop(sample, sample_state->params.loop);
     // */
 
-    float* out_buffers[2] = { NULL };
-    Proc_state_get_voice_audio_out_buffers(
-            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
+    Work_buffer* out_wbs[2] =
+    {
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L, NULL),
+        Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R, NULL),
+    };
 
-    if ((out_buffers[0] == NULL) && (out_buffers[1] == NULL))
+    if ((out_wbs[0] == NULL) && (out_wbs[1] == NULL))
     {
         vstate->active = false;
         return buf_start;
@@ -621,11 +665,36 @@ int32_t Sample_vstate_render_voice(
 
     const int32_t audio_rate = proc_state->parent.audio_rate;
 
-    return Sample_render(
+    const int32_t new_buf_stop = Sample_render(
             sample, header, vstate, proc_state, proc_ts, wbs,
-            out_buffers, buf_start, buf_stop, audio_rate, tempo,
+            out_wbs, buf_start, buf_stop, audio_rate, tempo,
             sample_state->middle_tone, sample_state->freq,
             sample_state->volume);
+
+#if 0
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        const Work_buffer* wb = out_wbs[ch];
+        if ((wb != NULL) && !Work_buffer_is_valid(wb))
+            fprintf(stderr, "%p is invalid\n", (const void*)wb);
+
+        if ((wb != NULL) && Work_buffer_is_valid(wb))
+        {
+            const float* contents = Work_buffer_get_contents(wb, 0);
+            for (int i = buf_start; i < buf_stop; ++i)
+            {
+                if (isnan(contents[i]))
+                {
+                    fprintf(stderr, "value at ch %d, index %d is nan, new_buf_stop: %d\n",
+                            ch, i, (int)new_buf_stop);
+                }
+                rassert(!isnan(contents[i]));
+            }
+        }
+    }
+#endif
+
+    return new_buf_stop;
 }
 
 

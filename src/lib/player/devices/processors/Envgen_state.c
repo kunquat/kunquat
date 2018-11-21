@@ -137,7 +137,7 @@ int32_t Envgen_vstate_render_voice(
     // Get time stretch input
     Work_buffer* stretch_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_STRETCH, NULL);
-    if (stretch_wb == NULL)
+    if ((stretch_wb == NULL) || !Work_buffer_is_valid(stretch_wb))
     {
         stretch_wb = Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_STRETCH, 1);
         float* stretches = Work_buffer_get_contents_mut(stretch_wb, 0);
@@ -153,7 +153,7 @@ int32_t Envgen_vstate_render_voice(
     // Get trigger signal input
     const Work_buffer* trigger_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_TRIGGER, NULL);
-    if (trigger_wb == NULL)
+    if ((trigger_wb == NULL) || !Work_buffer_is_valid(trigger_wb))
     {
         Work_buffer* fixed_trigger_wb =
             Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_TRIGGER, 1);

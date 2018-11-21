@@ -120,7 +120,7 @@ static void Filter_state_impl_apply_input_buffers(
         int32_t fast_cutoff_stop = buf_start;
         float const_cutoff = NAN;
 
-        if (cutoff_wb != NULL)
+        if ((cutoff_wb != NULL) && Work_buffer_is_valid(cutoff_wb))
         {
             const int32_t const_start = Work_buffer_get_const_start(cutoff_wb, 0);
             fast_cutoff_stop = clamp(const_start, buf_start, buf_stop);
@@ -167,7 +167,7 @@ static void Filter_state_impl_apply_input_buffers(
         int32_t fast_res_stop = buf_start;
         float const_res = NAN;
 
-        if (resonance_wb != NULL)
+        if ((resonance_wb != NULL) && Work_buffer_is_valid(resonance_wb))
         {
             const int32_t const_start = Work_buffer_get_const_start(resonance_wb, 0);
             fast_res_stop = clamp(const_start, buf_start, buf_stop);
@@ -226,9 +226,19 @@ static void Filter_state_impl_apply_input_buffers(
             hp_mults[i] = mult;
     }
 
+    // If we no longer get valid input, we still need to produce a valid output signal
+    // as the filter takes a while to adapt
     for (int ch = 0; ch < 2; ++ch)
     {
-        if ((in_buffers[ch] == NULL) || (out_buffers[ch] == NULL))
+        Work_buffer* in_wb = in_buffers[ch];
+        if ((in_wb != NULL) && !Work_buffer_is_valid(in_wb))
+            Work_buffer_clear(in_wb, 0, buf_start, buf_stop);
+    }
+
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        if ((in_buffers[ch] == NULL) ||
+                (out_buffers[ch] == NULL))
             continue;
 
         Filter_ch_state* state = &fimpl->states[ch];

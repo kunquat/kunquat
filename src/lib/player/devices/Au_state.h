@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -28,6 +28,7 @@
 struct Au_state
 {
     Device_state parent;
+    Voice_signal_plan* voice_signal_plan;
 
     bool bypass;
     double sustain; // 0 = no sustain, 1.0 = full sustain
@@ -47,6 +48,15 @@ struct Au_state
  */
 Device_state* new_Au_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
+
+
+/**
+ * Set a new Voice signal plan in the Audio unit state.
+ *
+ * \param au_state   The Audio unit state -- must not be \c NULL.
+ * \param plan       The Voice signal plan -- must not be \c NULL.
+ */
+void Au_state_set_voice_signal_plan(Au_state* au_state, Voice_signal_plan* plan);
 
 
 /**

@@ -31,6 +31,7 @@
 #include <player/Position.h>
 #include <player/Tuning_state.h>
 #include <player/Voice_group.h>
+#include <player/Voice_signal_plan.h>
 #include <player/Work_buffer.h>
 #include <player/Work_buffers.h>
 #include <string/common.h>
@@ -486,6 +487,32 @@ bool Player_prepare_mixing(Player* player)
     if (!Device_states_prepare(player->device_states, conns))
         return false;
 
+    {
+        Au_table* au_table = Module_get_au_table(player->module);
+        for (int i = 0; i < KQT_AUDIO_UNITS_MAX; ++i)
+        {
+            const Audio_unit* au = Au_table_get(au_table, i);
+            if ((au != NULL) &&
+                    Device_is_existent((const Device*)au) &&
+                    (Audio_unit_get_type(au) == AU_TYPE_INSTRUMENT))
+            {
+                const Connections* au_conns = Audio_unit_get_connections(au);
+                if (au_conns != NULL)
+                {
+                    const uint32_t au_id = Device_get_id((const Device*)au);
+                    Au_state* au_state =
+                        (Au_state*)Device_states_get_state(player->device_states, au_id);
+
+                    Voice_signal_plan* plan = new_Voice_signal_plan(
+                            player->device_states, player->thread_count, au_conns);
+                    if (plan == NULL)
+                        return false;
+                    Au_state_set_voice_signal_plan(au_state, plan);
+                }
+            }
+        }
+    }
+
     player->mixed_signal_plan = new_Mixed_signal_plan(player->device_states, conns);
     if (player->mixed_signal_plan == NULL)
         return false;
@@ -793,16 +820,33 @@ static void Player_process_voice_group(
     const Processor* first_proc = Voice_get_proc(first_voice);
     const Au_params* first_au_params = Processor_get_au_params(first_proc);
     const uint32_t au_id = first_au_params->device_id;
-    const Device_state* au_state =
-        Device_states_get_state(player->device_states, au_id);
-    const Audio_unit* au = (const Audio_unit*)Device_state_get_device(au_state);
-    const Connections* conns = Audio_unit_get_connections(au);
+    Au_state* au_state =
+        (Au_state*)Device_states_get_state(player->device_states, au_id);
+    //const Connections* conns = Audio_unit_get_connections(au);
 
     const bool use_test_output = Voice_is_using_test_output(first_voice);
     int32_t test_output_stop = render_stop;
 
-    if (conns != NULL)
+    Voice_signal_plan* plan = au_state->voice_signal_plan;
+
+    if (plan != NULL)
     {
+        const int ch_num = Voice_group_get_ch_num(vgroup);
+        const bool is_muted =
+            (ch_num >= 0) ? Channel_is_muted(player->channels[ch_num]) : false;
+        const bool enable_mixing = !is_muted && !use_test_output;
+
+        const int32_t process_stop = Voice_signal_plan_execute(
+                plan,
+                player->device_states,
+                tparams->thread_id,
+                vgroup,
+                tparams->work_buffers,
+                render_start,
+                render_stop,
+                player->master_params.tempo,
+                enable_mixing);
+        /*
         const int32_t process_stop = Voice_group_render(
                 vgroup,
                 player->device_states,
@@ -813,13 +857,11 @@ static void Player_process_voice_group(
                 render_stop,
                 player->audio_rate,
                 player->master_params.tempo);
+        */
 
         test_output_stop = process_stop;
 
-        const int ch_num = Voice_group_get_ch_num(vgroup);
-        const bool is_muted =
-            (ch_num >= 0) ? Channel_is_muted(player->channels[ch_num]) : false;
-
+        /*
         if (!is_muted && !use_test_output)
             Voice_group_mix(
                     vgroup,
@@ -828,6 +870,7 @@ static void Player_process_voice_group(
                     conns,
                     render_start,
                     process_stop);
+        */
 
         if (process_stop < render_stop)
             Voice_group_deactivate_all(vgroup);
@@ -847,6 +890,8 @@ static void Player_process_voice_group(
     if (use_test_output)
     {
         // Mix output signal of our test processor
+        const Audio_unit* au =
+            (const Audio_unit*)Device_state_get_device((const Device_state*)au_state);
         const Processor* test_proc =
             Audio_unit_get_proc(au, Voice_get_test_proc_index(first_voice));
         const uint32_t test_proc_id = Device_get_id((const Device*)test_proc);

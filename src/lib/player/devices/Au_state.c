@@ -23,6 +23,7 @@
 #include <player/Device_states.h>
 #include <player/devices/Device_state.h>
 #include <player/devices/Device_thread_state.h>
+#include <player/Voice_signal_plan.h>
 
 #include <math.h>
 #include <stdbool.h>
@@ -69,6 +70,22 @@ static void Au_state_fire_event(
 }
 
 
+static void del_Au_state(Device_state* dstate)
+{
+    if (dstate == NULL)
+        return;
+
+    Au_state* au_state = (Au_state*)dstate;
+
+    del_Voice_signal_plan(au_state->voice_signal_plan);
+    // Note: we don't own the dstates, so it must not be destroyed here
+
+    memory_free(au_state);
+
+    return;
+}
+
+
 static bool Au_state_init(
         Au_state* au_state,
         const Device* device,
@@ -82,7 +99,9 @@ static bool Au_state_init(
 
     au_state->parent.reset = Au_state_reset;
     au_state->parent.fire_dev_event = Au_state_fire_event;
+    au_state->parent.destroy = del_Au_state;
 
+    au_state->voice_signal_plan = NULL;
     au_state->dstates = NULL;
 
     Au_state_reset(&au_state->parent);
@@ -109,6 +128,18 @@ Device_state* new_Au_state(
     }
 
     return &au_state->parent;
+}
+
+
+void Au_state_set_voice_signal_plan(Au_state* au_state, Voice_signal_plan* plan)
+{
+    rassert(au_state != NULL);
+    rassert(plan != NULL);
+
+    del_Voice_signal_plan(au_state->voice_signal_plan);
+    au_state->voice_signal_plan = plan;
+
+    return;
 }
 
 

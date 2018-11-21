@@ -182,6 +182,9 @@ bool Device_thread_state_add_voice_buffer(
         Device_thread_state* ts, Device_port_type type, int port);
 
 
+void Device_thread_state_invalidate_voice_buffers(Device_thread_state* ts);
+
+
 /**
  * Clear voice audio buffers in the Device thread state.
  *

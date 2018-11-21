@@ -70,7 +70,7 @@ Work_buffer_conn_rules* Work_buffer_conn_rules_init(
 }
 
 
-static void Work_buffer_conn_rules_copy(
+static void Work_buffer_conn_rules_copy_rules(
         Work_buffer_conn_rules* dest, const Work_buffer_conn_rules* src)
 {
     rassert(dest != NULL);
@@ -109,7 +109,7 @@ bool Work_buffer_conn_rules_try_merge(
                 const uint8_t index2 = rules2->conns[0].recv_sub_index;
                 if ((index1 == 0 && index2 == 1) || (index1 == 1 && index2 == 0))
                 {
-                    Work_buffer_conn_rules_copy(result, rules1);
+                    Work_buffer_conn_rules_copy_rules(result, rules1);
                     result->length = 2;
                     result->conns[0].recv_sub_index = 0;
                     result->conns[0].send_sub_index = 0;
@@ -126,6 +126,55 @@ bool Work_buffer_conn_rules_try_merge(
 }
 
 
+static bool mapping_is_direct(const Work_buffer_conn_rules* rules)
+{
+    rassert(rules != NULL);
+
+    const int recv_sub_count = Work_buffer_get_sub_count(rules->receiver);
+    const int send_sub_count = Work_buffer_get_sub_count(rules->sender);
+
+    if ((rules->length != recv_sub_count) || (recv_sub_count != send_sub_count))
+        return false;
+
+    if ((rules->length == recv_sub_count) && (recv_sub_count == send_sub_count))
+    {
+        for (int i = 0; i < rules->length; ++i)
+        {
+            if (!Work_buffer_connection_is_direct(&rules->conns[i]))
+                return false;
+        }
+    }
+
+    return true;
+}
+
+
+void Work_buffer_conn_rules_copy(
+        const Work_buffer_conn_rules* rules, int32_t buf_start, int32_t buf_stop)
+{
+    rassert(rules != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop > buf_start);
+
+    if (mapping_is_direct(rules))
+    {
+        Work_buffer_copy_all(rules->receiver, rules->sender, buf_start, buf_stop);
+        return;
+    }
+
+    for (int i = 0; i < rules->length; ++i)
+        Work_buffer_copy(
+                rules->receiver,
+                rules->conns[i].recv_sub_index,
+                rules->sender,
+                rules->conns[i].send_sub_index,
+                buf_start,
+                buf_stop);
+
+    return;
+}
+
+
 void Work_buffer_conn_rules_mix(
         const Work_buffer_conn_rules* rules, int32_t buf_start, int32_t buf_stop)
 {
@@ -133,6 +182,7 @@ void Work_buffer_conn_rules_mix(
     rassert(buf_start >= 0);
     rassert(buf_stop > buf_start);
 
+#if 0
     const int recv_sub_count = Work_buffer_get_sub_count(rules->receiver);
     const int send_sub_count = Work_buffer_get_sub_count(rules->sender);
 
@@ -153,6 +203,12 @@ void Work_buffer_conn_rules_mix(
             Work_buffer_mix_all(rules->receiver, rules->sender, buf_start, buf_stop);
             return;
         }
+    }
+#endif
+    if (mapping_is_direct(rules))
+    {
+        Work_buffer_mix_all(rules->receiver, rules->sender, buf_start, buf_stop);
+        return;
     }
 
     for (int i = 0; i < rules->length; ++i)

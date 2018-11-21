@@ -95,6 +95,7 @@ int32_t Pitch_vstate_render_voice(
     if (!isfinite(pc->pitch))
     {
         vstate->active = false;
+        Work_buffer_invalidate(out_wb);
         return buf_start;
     }
 

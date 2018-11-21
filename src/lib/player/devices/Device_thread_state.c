@@ -298,6 +298,27 @@ bool Device_thread_state_add_voice_buffer(
 }
 
 
+void Device_thread_state_invalidate_voice_buffers(Device_thread_state* ts)
+{
+    rassert(ts != NULL);
+
+    for (Device_port_type port_type = DEVICE_PORT_TYPE_RECV;
+            port_type < DEVICE_PORT_TYPES; ++port_type)
+    {
+        Etable* bufs = ts->buffers[DEVICE_BUFFER_VOICE][port_type];
+        const int cap = Etable_get_capacity(bufs);
+        for (int port = 0; port < cap; ++port)
+        {
+            Work_buffer* buffer = Etable_get(bufs, port);
+            if (buffer != NULL)
+                Work_buffer_invalidate(buffer);
+        }
+    }
+
+    return;
+}
+
+
 void Device_thread_state_clear_voice_buffers(
         Device_thread_state* ts, int32_t buf_start, int32_t buf_stop)
 {
@@ -319,8 +340,14 @@ Work_buffer* Device_thread_state_get_voice_buffer(
     rassert(port >= 0);
     rassert(port < KQT_DEVICE_PORTS_MAX);
 
-    return Device_thread_state_get_buffer(
-            ts, DEVICE_BUFFER_VOICE, type, port, sub_index);
+    Device_port_groups groups;
+    Device_get_port_groups(ts->device, type, groups);
+    const int buf_index = Device_port_groups_get_alloc_info(groups, port, sub_index);
+
+    return Etable_get(ts->buffers[DEVICE_BUFFER_VOICE][type], buf_index);
+
+    //return Device_thread_state_get_buffer(
+    //        ts, DEVICE_BUFFER_VOICE, type, port, sub_index);
 }
 
 
@@ -371,6 +398,8 @@ void Device_thread_state_mix_voice_signals(
         const Work_buffer* voice_buffer = Etable_get(
                 ts->buffers[DEVICE_BUFFER_VOICE][DEVICE_PORT_TYPE_SEND], buf_index);
         rassert(voice_buffer != NULL);
+
+        //fprintf(stdout, "%p -> %p\n", (const void*)voice_buffer, (const void*)mixed_buffer);
 
         Work_buffer_mix_all(mixed_buffer, voice_buffer, buf_start, buf_stop);
         Device_thread_state_mark_mixed_audio(ts);

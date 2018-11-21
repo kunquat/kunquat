@@ -110,6 +110,7 @@ Voice* Voice_group_get_voice_by_proc(Voice_group* vg, uint32_t proc_id)
 }
 
 
+#if 0
 static void reset_subgraph(
         Device_states* dstates, int thread_id, const Device_node* node)
 {
@@ -157,8 +158,10 @@ static void reset_subgraph(
 
     return;
 }
+#endif
 
 
+#if 0
 static int32_t process_voice_group(
         const Device_node* node,
         Voice_group* vgroup,
@@ -357,6 +360,7 @@ int32_t Voice_group_render(
             audio_rate,
             tempo);
 }
+#endif
 
 
 int Voice_group_get_ch_num(const Voice_group* vg)
@@ -368,6 +372,7 @@ int Voice_group_get_ch_num(const Voice_group* vg)
 }
 
 
+#if 0
 static void mix_voice_signals(
         const Device_node* node,
         Voice_group* vgroup,
@@ -476,6 +481,7 @@ void Voice_group_mix(
 
     return;
 }
+#endif
 
 
 void Voice_group_deactivate_all(Voice_group* vg)

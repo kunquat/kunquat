@@ -1303,7 +1303,7 @@ static bool read_any_proc_signal_type(
     if (proc == NULL)
         return false;
 
-    bool voice_signals_selected = true;
+    bool voice_signals_selected = false;
     if (Streader_has_data(params->sr))
     {
         char type_name[64] = "";

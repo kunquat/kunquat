@@ -58,6 +58,10 @@ bool Work_buffer_conn_rules_try_merge(
         const Work_buffer_conn_rules* rules2);
 
 
+void Work_buffer_conn_rules_copy(
+        const Work_buffer_conn_rules* rules, int32_t buf_start, int32_t buf_stop);
+
+
 void Work_buffer_conn_rules_mix(
         const Work_buffer_conn_rules* rules, int32_t buf_start, int32_t buf_stop);
 

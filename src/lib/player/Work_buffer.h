@@ -118,6 +118,27 @@ int Work_buffer_get_stride(const Work_buffer* buffer);
 
 
 /**
+ * Invalidate the contents of the Work buffer.
+ *
+ * Work buffers that have invalid contents will automatically clear themselves
+ * before mixed into.
+ *
+ * \param buffer   The Work buffer -- must not be \c NULL.
+ */
+void Work_buffer_invalidate(Work_buffer* buffer);
+
+
+/**
+ * Get the valid status of the Work buffer.
+ *
+ * \param buffer   The Work buffer -- must not be \c NULL.
+ *
+ * \return   \c true if \a buffer has valid contents, otherwise \c false.
+ */
+bool Work_buffer_is_valid(const Work_buffer* buffer);
+
+
+/**
  * Clear the Work buffer with floating-point zeroes.
  *
  * \param buffer      The Work buffer -- must not be \c NULL.
@@ -230,6 +251,23 @@ void Work_buffer_copy(
         int dest_sub_index,
         const Work_buffer* restrict src,
         int src_sub_index,
+        int32_t buf_start,
+        int32_t buf_stop);
+
+
+/**
+ * Copy all subareas of a Work buffer into another.
+ *
+ * \param dest        The destination Work buffer -- must not be \c NULL.
+ * \param src         The source Work buffer -- must not be \c NULL or \a dest.
+ * \param buf_start   The start index of the area to be copied -- must be
+ *                    >= \c -1 and less than or equal to the buffer size.
+ * \param buf_stop    The stop index of the area to be copied -- must be
+ *                    >= \c -1 and less than or equal to buffer size + \c 1.
+ */
+void Work_buffer_copy_all(
+        Work_buffer* restrict dest,
+        const Work_buffer* restrict src,
         int32_t buf_start,
         int32_t buf_stop);
 

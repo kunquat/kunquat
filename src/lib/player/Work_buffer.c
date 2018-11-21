@@ -47,6 +47,7 @@ Work_buffer* new_Work_buffer(int32_t size, int sub_count)
     buffer->sub_count = sub_count;
     for (int i = 0; i < WORK_BUFFER_SUB_COUNT_MAX; ++i)
     {
+        buffer->is_valid[i] = true;
         buffer->const_start[i] = 0;
         buffer->is_final[i] = true;
     }
@@ -85,6 +86,7 @@ void Work_buffer_init_with_memory(
     buffer->sub_count = sub_count;
     for (int i = 0; i < WORK_BUFFER_SUB_COUNT_MAX; ++i)
     {
+        buffer->is_valid[i] = true;
         buffer->const_start[i] = 0;
         buffer->is_final[i] = true;
     }
@@ -94,6 +96,37 @@ void Work_buffer_init_with_memory(
         Work_buffer_clear(buffer, sub_index, -1, Work_buffer_get_size(buffer) + 1);
 
     return;
+}
+
+
+void Work_buffer_invalidate(Work_buffer* buffer)
+{
+    rassert(buffer != NULL);
+
+    for (int i = 0; i < WORK_BUFFER_SUB_COUNT_MAX; ++i)
+        buffer->is_valid[i] = false;
+
+#if 0
+    float* data = buffer->contents;
+    for (int i = -buffer->sub_count; i < (buffer->size + 1) * buffer->sub_count; ++i)
+        *data++ = NAN;
+#endif
+
+    return;
+}
+
+
+bool Work_buffer_is_valid(const Work_buffer* buffer)
+{
+    rassert(buffer != NULL);
+
+    for (int i = 0; i < buffer->sub_count; ++i)
+    {
+        if (!buffer->is_valid[i])
+            return false;
+    }
+
+    return true;
 }
 
 
@@ -124,6 +157,7 @@ bool Work_buffer_resize(Work_buffer* buffer, int32_t new_size)
 
     for (int sub_index = 0; sub_index < buffer->sub_count; ++sub_index)
     {
+        buffer->is_valid[sub_index] = false;
         Work_buffer_clear_const_start(buffer, sub_index);
         Work_buffer_set_final(buffer, sub_index, false);
     }
@@ -143,8 +177,10 @@ void Work_buffer_set_sub_count(Work_buffer* buffer, int sub_count)
         return;
 
     buffer->sub_count = sub_count;
+
     for (int i = 0; i < sub_count; ++i)
     {
+        buffer->is_valid[i] = false;
         buffer->const_start[i] = INT32_MAX;
         buffer->is_final[i] = false;
     }
@@ -182,6 +218,7 @@ void Work_buffer_clear(
     for (int32_t i = buf_start; i < buf_stop; ++i)
         fcontents[i * buffer->sub_count] = 0;
 
+    buffer->is_valid[sub_index] = true;
     Work_buffer_set_const_start(buffer, sub_index, max(0, buf_start));
     Work_buffer_set_final(buffer, sub_index, true);
 
@@ -206,6 +243,7 @@ void Work_buffer_clear_all(Work_buffer* buffer, int32_t buf_start, int32_t buf_s
 
     for (int i = 0; i < buffer->sub_count; ++i)
     {
+        buffer->is_valid[i] = true;
         Work_buffer_set_const_start(buffer, i, max(0, buf_start));
         Work_buffer_set_final(buffer, i, true);
     }
@@ -227,6 +265,8 @@ const float* Work_buffer_get_contents(const Work_buffer* buffer, int sub_index)
     rassert(sub_index >= 0);
     rassert(sub_index < buffer->sub_count);
 
+    rassert(buffer->is_valid[sub_index]);
+
     return (float*)buffer->contents + buffer->sub_count + sub_index;
 }
 
@@ -237,6 +277,7 @@ float* Work_buffer_get_contents_mut(Work_buffer* buffer, int sub_index)
     rassert(sub_index >= 0);
     rassert(sub_index < buffer->sub_count);
 
+    buffer->is_valid[sub_index] = true;
     Work_buffer_clear_const_start(buffer, sub_index);
     Work_buffer_set_final(buffer, sub_index, false);
 
@@ -248,6 +289,7 @@ int32_t* Work_buffer_get_contents_int_mut(Work_buffer* buffer, int sub_index)
 {
     rassert(buffer != NULL);
 
+    buffer->is_valid[sub_index] = true;
     Work_buffer_clear_const_start(buffer, sub_index);
     Work_buffer_set_final(buffer, sub_index, false);
 
@@ -278,6 +320,9 @@ void Work_buffer_copy(
     if (buf_start >= buf_stop)
         return;
 
+    if (!src->is_valid[src_sub_index])
+        return;
+
     const int32_t actual_start = buf_start + 1;
     const int32_t actual_stop = buf_stop + 1;
 
@@ -297,8 +342,61 @@ void Work_buffer_copy(
         src_pos += src_stride;
     }
 
+    dest->is_valid[dest_sub_index] = true;
     Work_buffer_set_const_start(
             dest, dest_sub_index, Work_buffer_get_const_start(src, src_sub_index));
+    Work_buffer_set_final(
+            dest, dest_sub_index, Work_buffer_is_final(src, src_sub_index));
+
+    return;
+}
+
+
+void Work_buffer_copy_all(
+        Work_buffer* restrict dest,
+        const Work_buffer* restrict src,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    rassert(dest != NULL);
+    rassert(src != NULL);
+    rassert(dest != src);
+    rassert(dest->sub_count == src->sub_count);
+    rassert(buf_start >= -1);
+    rassert(buf_start <= Work_buffer_get_size(dest));
+    rassert(buf_stop >= -1);
+    rassert(buf_stop <= Work_buffer_get_size(dest) + 1);
+
+    if (buf_start >= buf_stop)
+        return;
+
+    {
+        bool is_src_fully_valid = true;
+        for (int i = 0; i < src->sub_count; ++i)
+            is_src_fully_valid &= src->is_valid[i];
+
+        if (!is_src_fully_valid)
+        {
+            for (int i = 0; i < src->sub_count; ++i)
+                Work_buffer_copy(dest, i, src, i, buf_start, buf_stop);
+
+            return;
+        }
+    }
+
+    const int32_t actual_start = buf_start + 1;
+    const int32_t actual_stop = buf_stop + 1;
+    float* dest_pos = (float*)dest->contents + (actual_start * dest->sub_count);
+    const float* src_pos = (const float*)src->contents + (actual_start * dest->sub_count);
+    for (int32_t i = actual_start; i < actual_stop; ++i)
+        *dest_pos++ = *src_pos++;
+
+    for (int i = 0; i < dest->sub_count; ++i)
+    {
+        dest->is_valid[i] = true;
+        Work_buffer_set_const_start(dest, i, Work_buffer_get_const_start(src, i));
+        Work_buffer_set_final(dest, i, Work_buffer_is_final(src, i));
+    }
 
     return;
 }
@@ -384,6 +482,15 @@ void Work_buffer_mix(
     if (dest == src)
         return;
 
+    if (!src->is_valid[src_sub_index])
+        return;
+
+    if (!dest->is_valid[dest_sub_index])
+    {
+        Work_buffer_copy(dest, dest_sub_index, src, src_sub_index, buf_start, buf_stop);
+        return;
+    }
+
     const int32_t orig_const_start = Work_buffer_get_const_start(dest, dest_sub_index);
     const int32_t src_const_start = Work_buffer_get_const_start(src, src_sub_index);
 
@@ -403,7 +510,10 @@ void Work_buffer_mix(
          (src_contents[src_const_start * src->sub_count] == -INFINITY));
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
+    {
+        dassert(!isnan(src_contents[i * src->sub_count]));
         dest_contents[i * dest->sub_count] += src_contents[i * src->sub_count];
+    }
 
     bool result_is_const_final = (buffer_has_final_value && in_has_final_value);
     int32_t new_const_start = max(orig_const_start, src_const_start);
@@ -428,6 +538,7 @@ void Work_buffer_mix(
             dest_contents[i * dest->sub_count] = -INFINITY;
     }
 
+    dest->is_valid[dest_sub_index] = true;
     Work_buffer_set_const_start(dest, dest_sub_index, new_const_start);
     Work_buffer_set_final(dest, dest_sub_index, result_is_const_final);
 
@@ -452,6 +563,24 @@ void Work_buffer_mix_all(
 
     if (dest == src)
         return;
+
+    {
+        bool is_dest_fully_valid = true;
+        bool is_src_fully_valid = true;
+        for (int i = 0; i < dest->sub_count; ++i)
+        {
+            is_dest_fully_valid &= dest->is_valid[i];
+            is_src_fully_valid &= src->is_valid[i];
+        }
+
+        if (!is_dest_fully_valid || !is_src_fully_valid)
+        {
+            for (int i = 0; i < dest->sub_count; ++i)
+                Work_buffer_mix(dest, i, src, i, buf_start, buf_stop);
+
+            return;
+        }
+    }
 
     int32_t dest_const_starts[WORK_BUFFER_SUB_COUNT_MAX] = { 0 };
     int32_t src_const_starts[WORK_BUFFER_SUB_COUNT_MAX] = { 0 };
@@ -488,7 +617,10 @@ void Work_buffer_mix_all(
     const int32_t actual_start = buf_start * dest->sub_count;
     const int32_t actual_stop = buf_stop * dest->sub_count;
     for (int32_t i = actual_start; i < actual_stop; ++i)
+    {
+        dassert(!isnan(src_contents[i]));
         dest_contents[i] += src_contents[i];
+    }
 
     for (int i = 0; i < dest->sub_count; ++i)
     {
@@ -516,6 +648,7 @@ void Work_buffer_mix_all(
                 dest_contents[k * dest->sub_count] = -INFINITY;
         }
 
+        dest->is_valid[i] = true;
         Work_buffer_set_const_start(dest, i, new_const_start);
         Work_buffer_set_final(dest, i, result_is_const_final);
     }
