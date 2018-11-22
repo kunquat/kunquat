@@ -52,6 +52,9 @@ static void* render_thread_func(void* arg);
 #endif
 
 
+static bool Player_prepare_mixing_with_thread_count(Player* player, int thread_count);
+
+
 static void Player_thread_params_init(
         Player_thread_params* tp, Player* player, int thread_id)
 {
@@ -339,7 +342,7 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
 
     // (De)allocate Work buffers of Device states as needed
     if (!Device_states_set_thread_count(player->device_states, new_count) ||
-            !Player_prepare_mixing(player))
+            !Player_prepare_mixing_with_thread_count(player, new_count))
     {
         Error_set(
                 error,
@@ -473,9 +476,11 @@ bool Player_reserve_voice_work_buffer_space(Player* player, int32_t size)
 }
 
 
-bool Player_prepare_mixing(Player* player)
+static bool Player_prepare_mixing_with_thread_count(Player* player, int thread_count)
 {
     rassert(player != NULL);
+    rassert(thread_count > 0);
+    rassert(thread_count <= KQT_THREADS_MAX);
 
     del_Mixed_signal_plan(player->mixed_signal_plan);
     player->mixed_signal_plan = NULL;
@@ -504,7 +509,7 @@ bool Player_prepare_mixing(Player* player)
                         (Au_state*)Device_states_get_state(player->device_states, au_id);
 
                     Voice_signal_plan* plan = new_Voice_signal_plan(
-                            player->device_states, player->thread_count, au_conns);
+                            player->device_states, thread_count, au_conns);
                     if (plan == NULL)
                         return false;
                     Au_state_set_voice_signal_plan(au_state, plan);
@@ -518,6 +523,13 @@ bool Player_prepare_mixing(Player* player)
         return false;
 
     return true;
+}
+
+
+bool Player_prepare_mixing(Player* player)
+{
+    rassert(player != NULL);
+    return Player_prepare_mixing_with_thread_count(player, player->thread_count);
 }
 
 
