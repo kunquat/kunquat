@@ -139,7 +139,7 @@ static void Rangemap_pstate_render_mixed(
 
         const Work_buffer* in_wb = Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, port, NULL);
-        if ((in_wb == NULL) || !Work_buffer_is_valid(in_wb))
+        if ((in_wb == NULL) || !Work_buffer_is_valid(in_wb, 0))
             continue;
 
         apply_range(in_wb, out_wb, buf_start, buf_stop, mul, add, min_val, max_val);
@@ -216,7 +216,7 @@ int32_t Rangemap_vstate_render_voice(
 
         const Work_buffer* in_wb = Device_thread_state_get_voice_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, port, NULL);
-        if ((in_wb == NULL) || !Work_buffer_is_valid(in_wb))
+        if ((in_wb == NULL) || !Work_buffer_is_valid(in_wb, 0))
             continue;
 
         apply_range(in_wb, out_wb, buf_start, buf_stop, mul, add, min_val, max_val);

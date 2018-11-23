@@ -120,7 +120,7 @@ static void Filter_state_impl_apply_input_buffers(
         int32_t fast_cutoff_stop = buf_start;
         float const_cutoff = NAN;
 
-        if ((cutoff_wb != NULL) && Work_buffer_is_valid(cutoff_wb))
+        if ((cutoff_wb != NULL) && Work_buffer_is_valid(cutoff_wb, 0))
         {
             const int32_t const_start = Work_buffer_get_const_start(cutoff_wb, 0);
             fast_cutoff_stop = clamp(const_start, buf_start, buf_stop);
@@ -167,7 +167,7 @@ static void Filter_state_impl_apply_input_buffers(
         int32_t fast_res_stop = buf_start;
         float const_res = NAN;
 
-        if ((resonance_wb != NULL) && Work_buffer_is_valid(resonance_wb))
+        if ((resonance_wb != NULL) && Work_buffer_is_valid(resonance_wb, 0))
         {
             const int32_t const_start = Work_buffer_get_const_start(resonance_wb, 0);
             fast_res_stop = clamp(const_start, buf_start, buf_stop);
@@ -231,7 +231,7 @@ static void Filter_state_impl_apply_input_buffers(
     for (int ch = 0; ch < 2; ++ch)
     {
         Work_buffer* in_wb = in_buffers[ch];
-        if ((in_wb != NULL) && !Work_buffer_is_valid(in_wb))
+        if ((in_wb != NULL) && !Work_buffer_is_valid(in_wb, 0))
             Work_buffer_clear(in_wb, 0, buf_start, buf_stop);
     }
 

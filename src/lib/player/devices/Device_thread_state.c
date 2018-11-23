@@ -224,6 +224,39 @@ bool Device_thread_state_add_mixed_buffer(
 }
 
 
+static void Device_thread_state_invalidate_buffers(
+        Device_thread_state* ts, Device_buffer_type buf_type)
+{
+    rassert(ts != NULL);
+    rassert(buf_type < DEVICE_BUFFER_TYPES);
+
+    for (Device_port_type port_type = DEVICE_PORT_TYPE_RECV;
+            port_type < DEVICE_PORT_TYPES; ++port_type)
+    {
+        Etable* bufs = ts->buffers[buf_type][port_type];
+        const int cap = Etable_get_capacity(bufs);
+        for (int port = 0; port < cap; ++port)
+        {
+            Work_buffer* buffer = Etable_get(bufs, port);
+            if (buffer != NULL)
+                Work_buffer_invalidate(buffer);
+        }
+    }
+
+    return;
+}
+
+
+void Device_thread_state_invalidate_mixed_buffers(Device_thread_state* ts)
+{
+    rassert(ts != NULL);
+
+    Device_thread_state_invalidate_buffers(ts, DEVICE_BUFFER_MIXED);
+
+    return;
+}
+
+
 void Device_thread_state_clear_mixed_buffers(
         Device_thread_state* ts, int32_t buf_start, int32_t buf_stop)
 {
@@ -302,18 +335,7 @@ void Device_thread_state_invalidate_voice_buffers(Device_thread_state* ts)
 {
     rassert(ts != NULL);
 
-    for (Device_port_type port_type = DEVICE_PORT_TYPE_RECV;
-            port_type < DEVICE_PORT_TYPES; ++port_type)
-    {
-        Etable* bufs = ts->buffers[DEVICE_BUFFER_VOICE][port_type];
-        const int cap = Etable_get_capacity(bufs);
-        for (int port = 0; port < cap; ++port)
-        {
-            Work_buffer* buffer = Etable_get(bufs, port);
-            if (buffer != NULL)
-                Work_buffer_invalidate(buffer);
-        }
-    }
+    Device_thread_state_invalidate_buffers(ts, DEVICE_BUFFER_VOICE);
 
     return;
 }
@@ -327,6 +349,45 @@ void Device_thread_state_clear_voice_buffers(
     rassert(buf_stop >= buf_start);
 
     Device_thread_state_clear_buffers(ts, DEVICE_BUFFER_VOICE, buf_start, buf_stop);
+
+    return;
+}
+
+
+void Device_thread_state_invalidate_voice_outputs(Device_thread_state* ts)
+{
+    rassert(ts != NULL);
+
+    Etable* bufs = ts->buffers[DEVICE_BUFFER_VOICE][DEVICE_PORT_TYPE_SEND];
+    rassert(bufs != NULL);
+    const int cap = Etable_get_capacity(bufs);
+    for (int buf_index = 0; buf_index < cap; ++buf_index)
+    {
+        Work_buffer* buffer = Etable_get(bufs, buf_index);
+        if (buffer != NULL)
+            Work_buffer_invalidate(buffer);
+    }
+
+    return;
+}
+
+
+void Device_thread_state_clear_voice_outputs(
+        Device_thread_state* ts, int32_t buf_start, int32_t buf_stop)
+{
+    rassert(ts != NULL);
+    rassert(buf_start >= 0);
+    rassert(buf_stop > buf_start);
+
+    Etable* bufs = ts->buffers[DEVICE_BUFFER_VOICE][DEVICE_PORT_TYPE_SEND];
+    rassert(bufs != NULL);
+    const int cap = Etable_get_capacity(bufs);
+    for (int buf_index = 0; buf_index < cap; ++buf_index)
+    {
+        Work_buffer* buffer = Etable_get(bufs, buf_index);
+        if (buffer != NULL)
+            Work_buffer_clear_all(buffer, buf_start, buf_stop);
+    }
 
     return;
 }

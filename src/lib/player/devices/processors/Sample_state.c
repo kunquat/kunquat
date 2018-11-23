@@ -136,7 +136,7 @@ static int32_t Sample_render(
     Work_buffer* freqs_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH, NULL);
     Work_buffer* pitches_wb = freqs_wb;
-    if ((freqs_wb == NULL) || !Work_buffer_is_valid(freqs_wb))
+    if ((freqs_wb == NULL) || !Work_buffer_is_valid(freqs_wb, 0))
         freqs_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_PITCH, 1);
     Proc_fill_freq_buffer(freqs_wb, pitches_wb, buf_start, buf_stop);
     const float* freqs = Work_buffer_get_contents(freqs_wb, 0);
@@ -146,7 +146,7 @@ static int32_t Sample_render(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE, NULL);
     Work_buffer* dBs_wb = force_scales_wb;
     if ((dBs_wb != NULL) &&
-            Work_buffer_is_valid(dBs_wb) &&
+            Work_buffer_is_valid(dBs_wb, 0) &&
             Work_buffer_is_final(dBs_wb, 0) &&
             (Work_buffer_get_const_start(dBs_wb, 0) <= buf_start) &&
             (Work_buffer_get_contents(dBs_wb, 0)[buf_start] == -INFINITY))
@@ -157,7 +157,7 @@ static int32_t Sample_render(
         return buf_start;
     }
 
-    if ((force_scales_wb == NULL) || !Work_buffer_is_valid(force_scales_wb))
+    if ((force_scales_wb == NULL) || !Work_buffer_is_valid(force_scales_wb, 0))
         force_scales_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_FORCE, 1);
     Proc_fill_scale_buffer(force_scales_wb, dBs_wb, buf_start, buf_stop);
     const float* force_scales = Work_buffer_get_contents(force_scales_wb, 0);
@@ -675,10 +675,10 @@ int32_t Sample_vstate_render_voice(
     for (int ch = 0; ch < 2; ++ch)
     {
         const Work_buffer* wb = out_wbs[ch];
-        if ((wb != NULL) && !Work_buffer_is_valid(wb))
+        if ((wb != NULL) && !Work_buffer_is_valid(wb, 0))
             fprintf(stderr, "%p is invalid\n", (const void*)wb);
 
-        if ((wb != NULL) && Work_buffer_is_valid(wb))
+        if ((wb != NULL) && Work_buffer_is_valid(wb, 0))
         {
             const float* contents = Work_buffer_get_contents(wb, 0);
             for (int i = buf_start; i < buf_stop; ++i)

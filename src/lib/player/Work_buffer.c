@@ -106,7 +106,7 @@ void Work_buffer_invalidate(Work_buffer* buffer)
     for (int i = 0; i < WORK_BUFFER_SUB_COUNT_MAX; ++i)
         buffer->is_valid[i] = false;
 
-#if 0
+#if ENABLE_DEBUG_ASSERTS
     float* data = buffer->contents;
     for (int i = -buffer->sub_count; i < (buffer->size + 1) * buffer->sub_count; ++i)
         *data++ = NAN;
@@ -116,17 +116,13 @@ void Work_buffer_invalidate(Work_buffer* buffer)
 }
 
 
-bool Work_buffer_is_valid(const Work_buffer* buffer)
+bool Work_buffer_is_valid(const Work_buffer* buffer, int sub_index)
 {
     rassert(buffer != NULL);
+    rassert(sub_index >= 0);
+    rassert(sub_index < buffer->sub_count);
 
-    for (int i = 0; i < buffer->sub_count; ++i)
-    {
-        if (!buffer->is_valid[i])
-            return false;
-    }
-
-    return true;
+    return buffer->is_valid[sub_index];
 }
 
 
@@ -337,6 +333,7 @@ void Work_buffer_copy(
     const int32_t elem_count = actual_stop - actual_start;
     for (int32_t i = 0; i < elem_count; ++i)
     {
+        dassert(!isnan(*src_pos));
         *dest_pos = *src_pos;
         dest_pos += dest_stride;
         src_pos += src_stride;
@@ -389,7 +386,10 @@ void Work_buffer_copy_all(
     float* dest_pos = (float*)dest->contents + (actual_start * dest->sub_count);
     const float* src_pos = (const float*)src->contents + (actual_start * dest->sub_count);
     for (int32_t i = actual_start; i < actual_stop; ++i)
+    {
+        dassert(!isnan(*src_pos));
         *dest_pos++ = *src_pos++;
+    }
 
     for (int i = 0; i < dest->sub_count; ++i)
     {
@@ -511,6 +511,7 @@ void Work_buffer_mix(
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
+        dassert(!isnan(dest_contents[i * dest->sub_count]));
         dassert(!isnan(src_contents[i * src->sub_count]));
         dest_contents[i * dest->sub_count] += src_contents[i * src->sub_count];
     }
@@ -618,6 +619,7 @@ void Work_buffer_mix_all(
     const int32_t actual_stop = buf_stop * dest->sub_count;
     for (int32_t i = actual_start; i < actual_stop; ++i)
     {
+        dassert(!isnan(dest_contents[i]));
         dassert(!isnan(src_contents[i]));
         dest_contents[i] += src_contents[i];
     }

@@ -99,20 +99,36 @@ static void apply_panning(
     {
         const float* in_buf = in_buffers[0];
         float* out_buf = out_buffers[0];
-        if ((in_buf != NULL) && (out_buf != NULL))
+        if (out_buf != NULL)
         {
-            for (int32_t i = buf_start; i < buf_stop; ++i)
-                out_buf[i] = in_buf[i] * (1 - pannings[i]);
+            if (in_buf != NULL)
+            {
+                for (int32_t i = buf_start; i < buf_stop; ++i)
+                    out_buf[i] = in_buf[i] * (1 - pannings[i]);
+            }
+            else
+            {
+                for (int32_t i = buf_start; i < buf_stop; ++i)
+                    out_buf[i] = 0;
+            }
         }
     }
 
     {
         const float* in_buf = in_buffers[1];
         float* out_buf = out_buffers[1];
-        if ((in_buf != NULL) && (out_buf != NULL))
+        if (out_buf != NULL)
         {
-            for (int32_t i = buf_start; i < buf_stop; ++i)
-                out_buf[i] = in_buf[i] * (1 + pannings[i]);
+            if (in_buf != NULL)
+            {
+                for (int32_t i = buf_start; i < buf_stop; ++i)
+                    out_buf[i] = in_buf[i] * (1 + pannings[i]);
+            }
+            else
+            {
+                for (int32_t i = buf_start; i < buf_stop; ++i)
+                    out_buf[i] = 0;
+            }
         }
     }
 
@@ -151,13 +167,23 @@ static void Panning_pstate_render_mixed(
 
     // Get input
     float* in_buffers[2] = { NULL };
-    Proc_state_get_mixed_audio_in_buffers(
-            proc_ts, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_buffers);
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        Work_buffer* in_wb = Device_thread_state_get_mixed_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch, NULL);
+        if ((in_wb != NULL) && Work_buffer_is_valid(in_wb, 0))
+            in_buffers[ch] = Work_buffer_get_contents_mut(in_wb, 0);
+    }
 
     // Get output
     float* out_buffers[2] = { NULL };
-    Proc_state_get_mixed_audio_out_buffers(
-            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        Work_buffer* out_wb = Device_thread_state_get_mixed_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+        if (out_wb != NULL)
+            out_buffers[ch] = Work_buffer_get_contents_mut(out_wb, 0);
+    }
 
     apply_panning(
             wbs,
@@ -245,15 +271,25 @@ int32_t Panning_vstate_render_voice(
 
     // Get input
     float* in_buffers[2] = { NULL };
-    Proc_state_get_voice_audio_in_buffers(
-            proc_ts, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_buffers);
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        Work_buffer* in_wb = Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch, NULL);
+        if ((in_wb != NULL) && Work_buffer_is_valid(in_wb, 0))
+            in_buffers[ch] = Work_buffer_get_contents_mut(in_wb, 0);
+    }
     if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
         return buf_start;
 
     // Get output
     float* out_buffers[2] = { NULL };
-    Proc_state_get_voice_audio_out_buffers(
-            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+        if (out_wb != NULL)
+            out_buffers[ch] = Work_buffer_get_contents_mut(out_wb, 0);
+    }
 
     apply_panning(
             wbs,

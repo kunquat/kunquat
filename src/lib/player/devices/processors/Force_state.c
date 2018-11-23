@@ -96,7 +96,7 @@ int32_t Force_vstate_render_voice(
     // Get envelope time stretch inputs
     Work_buffer* stretch_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_ENV_STRETCH, NULL);
-    if ((stretch_wb == NULL) || !Work_buffer_is_valid(stretch_wb))
+    if ((stretch_wb == NULL) || !Work_buffer_is_valid(stretch_wb, 0))
     {
         stretch_wb = Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_ENV_STRETCH, 1);
         float* stretches = Work_buffer_get_contents_mut(stretch_wb, 0);
@@ -111,7 +111,7 @@ int32_t Force_vstate_render_voice(
 
     Work_buffer* rel_stretch_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_ENV_REL_STRETCH, NULL);
-    if ((rel_stretch_wb == NULL) || !Work_buffer_is_valid(rel_stretch_wb))
+    if ((rel_stretch_wb == NULL) || !Work_buffer_is_valid(rel_stretch_wb, 0))
     {
         rel_stretch_wb =
             Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_ENV_REL_STRETCH, 1);

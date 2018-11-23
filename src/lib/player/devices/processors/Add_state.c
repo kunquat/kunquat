@@ -98,7 +98,7 @@ int32_t Add_vstate_render_voice(
     Work_buffer* freqs_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH, NULL);
     Work_buffer* pitches_wb = freqs_wb;
-    if ((freqs_wb == NULL) || !Work_buffer_is_valid(freqs_wb))
+    if ((freqs_wb == NULL) || !Work_buffer_is_valid(freqs_wb, 0))
         freqs_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_PITCH, 1);
 
     Proc_fill_freq_buffer(freqs_wb, pitches_wb, buf_start, buf_stop);
@@ -109,7 +109,7 @@ int32_t Add_vstate_render_voice(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE, NULL);
     Work_buffer* dBs_wb = scales_wb;
     if ((dBs_wb != NULL) &&
-            Work_buffer_is_valid(dBs_wb) &&
+            Work_buffer_is_valid(dBs_wb, 0) &&
             Work_buffer_is_final(dBs_wb, 0) &&
             (Work_buffer_get_const_start(dBs_wb, 0) <= buf_start) &&
             (Work_buffer_get_contents(dBs_wb, 0)[buf_start] == -INFINITY))
@@ -149,7 +149,7 @@ int32_t Add_vstate_render_voice(
 
     for (int ch = 0; ch < 2; ++ch)
     {
-        if ((mod_wbs[ch] == NULL) || !Work_buffer_is_valid(mod_wbs[ch]))
+        if ((mod_wbs[ch] == NULL) || !Work_buffer_is_valid(mod_wbs[ch], 0))
         {
             Work_buffer* zero_buf = Work_buffers_get_buffer_mut(
                     wbs, (Work_buffer_type)(ADD_WORK_BUFFER_MOD_L + ch), 1);

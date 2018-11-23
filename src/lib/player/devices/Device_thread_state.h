@@ -114,6 +114,9 @@ bool Device_thread_state_add_mixed_buffer(
         Device_thread_state* ts, Device_port_type type, int port);
 
 
+void Device_thread_state_invalidate_mixed_buffers(Device_thread_state* ts);
+
+
 /**
  * Clear mixed audio buffers in the Device thread state.
  *
@@ -194,6 +197,17 @@ void Device_thread_state_invalidate_voice_buffers(Device_thread_state* ts);
  *                    equal to the buffer size.
  */
 void Device_thread_state_clear_voice_buffers(
+        Device_thread_state* ts, int32_t buf_start, int32_t buf_stop);
+
+
+/**
+ */
+void Device_thread_state_invalidate_voice_outputs(Device_thread_state* ts);
+
+
+/**
+ */
+void Device_thread_state_clear_voice_outputs(
         Device_thread_state* ts, int32_t buf_start, int32_t buf_stop);
 
 

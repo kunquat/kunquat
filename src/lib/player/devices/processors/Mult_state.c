@@ -65,6 +65,8 @@ static void multiply_signals(
         Work_buffer* in1_wb = in1_buffers[ch];
         Work_buffer* in2_wb = in2_buffers[ch];
         float* out_values = out_buffers[ch];
+        if (out_values == NULL)
+            continue;
 
         if ((in1_wb != NULL) && (in2_wb != NULL) && (out_values != NULL))
         {
@@ -79,6 +81,11 @@ static void multiply_signals(
 
             for (int32_t i = buf_start; i < buf_stop; ++i)
                 out_values[i] = in1_values[i] * in2_values[i];
+        }
+        else
+        {
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+                out_values[i] = 0;
         }
     }
 
@@ -116,6 +123,15 @@ static void Mult_pstate_render_mixed(
         Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_R, NULL),
     };
+
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        if ((in1_buffers[ch] != NULL) && !Work_buffer_is_valid(in1_buffers[ch], 0))
+            in1_buffers[ch] = NULL;
+
+        if ((in2_buffers[ch] != NULL) && !Work_buffer_is_valid(in2_buffers[ch], 0))
+            in2_buffers[ch] = NULL;
+    }
 
     // Get outputs
     float* out_buffers[2] = { NULL };

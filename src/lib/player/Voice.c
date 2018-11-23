@@ -18,6 +18,7 @@
 #include <init/devices/Device_impl.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/devices/Device_thread_state.h>
 #include <player/devices/Voice_state.h>
 
 #include <inttypes.h>
@@ -257,7 +258,12 @@ int32_t Voice_render(
 
     const int32_t process_stop = Voice_state_render_voice(
             vstate, pstate, proc_ts, au_state, wbs, buf_start, buf_stop, tempo);
-    ignore(process_stop); // TODO: not sure if we have any use for this
+
+    // Make sure that the outputs are either fully valid or fully invalid
+    if (process_stop == buf_start)
+        Device_thread_state_invalidate_voice_outputs(proc_ts);
+    else if (process_stop < buf_stop)
+        Device_thread_state_clear_voice_outputs(proc_ts, process_stop, buf_stop);
 
     int32_t keep_alive_stop = 0;
 

@@ -70,7 +70,7 @@ static void get_mixed_audio_buffers(
         Work_buffer* wb =
             Device_thread_state_get_mixed_buffer(proc_ts, port_type, port, NULL);
         if ((wb != NULL) &&
-                implies(port_type == DEVICE_PORT_TYPE_RECV, Work_buffer_is_valid(wb)))
+                implies(port_type == DEVICE_PORT_TYPE_RECV, Work_buffer_is_valid(wb, 0)))
         {
             rassert(Work_buffer_get_sub_count(wb) == 1);
             bufs[i] = Work_buffer_get_contents_mut(wb, 0);
@@ -247,7 +247,7 @@ void Proc_fill_freq_buffer(
     rassert(buf_start >= 0);
     rassert(buf_stop >= 0);
 
-    if ((pitches != NULL) && Work_buffer_is_valid(pitches))
+    if ((pitches != NULL) && Work_buffer_is_valid(pitches, 0))
     {
         Proc_clamp_pitch_values(pitches, buf_start, buf_stop);
 
@@ -297,7 +297,7 @@ void Proc_fill_scale_buffer(
     rassert(buf_start >= 0);
     rassert(buf_stop >= 0);
 
-    if ((dBs != NULL) && Work_buffer_is_valid(dBs))
+    if ((dBs != NULL) && Work_buffer_is_valid(dBs, 0))
     {
         const int32_t const_start = Work_buffer_get_const_start(dBs, 0);
         float* scales_data = Work_buffer_get_contents_mut(scales, 0);
@@ -387,7 +387,7 @@ Cond_work_buffer* Cond_work_buffer_init(
     cwb->def_value = def_value;
     cwb->wb_contents = &cwb->def_value;
 
-    if ((wb != NULL) && Work_buffer_is_valid(wb))
+    if ((wb != NULL) && Work_buffer_is_valid(wb, 0))
     {
         cwb->index_mask = ~(int32_t)0;
         cwb->wb_contents = Work_buffer_get_contents(wb, 0);

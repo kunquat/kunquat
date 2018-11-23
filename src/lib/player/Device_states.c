@@ -338,6 +338,26 @@ bool Device_states_set_audio_buffer_size(Device_states* states, int32_t size)
 }
 
 
+void Device_states_invalidate_mixed_buffers(Device_states* states)
+{
+    rassert(states != NULL);
+
+    for (int ei = 0; ei < ENTRY_TABLE_SIZE; ++ei)
+    {
+        Entry* entry = states->entries[ei];
+        while (entry != NULL)
+        {
+            for (int ti = 0; ti < states->thread_count; ++ti)
+                Device_thread_state_invalidate_mixed_buffers(entry->thread_states[ti]);
+
+            entry = entry->next;
+        }
+    }
+
+    return;
+}
+
+
 void Device_states_clear_audio_buffers(
         Device_states* states, int32_t start, int32_t stop)
 {

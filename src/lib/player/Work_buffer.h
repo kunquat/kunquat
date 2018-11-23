@@ -131,11 +131,14 @@ void Work_buffer_invalidate(Work_buffer* buffer);
 /**
  * Get the valid status of the Work buffer.
  *
- * \param buffer   The Work buffer -- must not be \c NULL.
+ * \param buffer      The Work buffer -- must not be \c NULL.
+ * \param sub_index   The index of the area to be checked -- must be >= \c 0 and
+ *                    < \a Work_buffer_get_sub_count(\a buffer).
  *
- * \return   \c true if \a buffer has valid contents, otherwise \c false.
+ * \return   \c true if \a buffer at \a sub_index has valid contents, otherwise
+ *           \c false.
  */
-bool Work_buffer_is_valid(const Work_buffer* buffer);
+bool Work_buffer_is_valid(const Work_buffer* buffer, int sub_index);
 
 
 /**
@@ -143,7 +146,7 @@ bool Work_buffer_is_valid(const Work_buffer* buffer);
  *
  * \param buffer      The Work buffer -- must not be \c NULL.
  * \param sub_index   The index of the area to be cleared -- must be >= \c 0 and
- *                    < \a Work_buffer_get_stride(buffer).
+ *                    < \a Work_buffer_get_sub_count(\a buffer).
  * \param buf_start   The start index of the area to be cleared -- must be
  *                    >= \c -1 and less than or equal to the buffer size.
  * \param buf_stop    The stop index of the area to be cleared -- must be

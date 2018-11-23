@@ -120,7 +120,7 @@ int32_t Noise_vstate_render_voice(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE, NULL);
     Work_buffer* dBs_wb = scales_wb;
     if ((dBs_wb != NULL) &&
-            Work_buffer_is_valid(dBs_wb) &&
+            Work_buffer_is_valid(dBs_wb, 0) &&
             Work_buffer_is_final(dBs_wb, 0) &&
             (Work_buffer_get_const_start(dBs_wb, 0) <= buf_start) &&
             (Work_buffer_get_contents(dBs_wb, 0)[buf_start] == -INFINITY))
@@ -130,7 +130,7 @@ int32_t Noise_vstate_render_voice(
         return buf_start;
     }
 
-    if ((scales_wb == NULL) || !Work_buffer_is_valid(scales_wb))
+    if ((scales_wb == NULL) || !Work_buffer_is_valid(scales_wb, 0))
         scales_wb = Work_buffers_get_buffer_mut(wbs, NOISE_WB_FIXED_FORCE, 1);
     Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);
     const float* scales = Work_buffer_get_contents(scales_wb, 0);

@@ -148,12 +148,22 @@ static void Delay_pstate_render_mixed(
     const Proc_delay* delay = (const Proc_delay*)dstate->device->dimpl;
 
     float* in_data[2] = { NULL };
-    Proc_state_get_mixed_audio_in_buffers(
-            proc_ts, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_data);
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        Work_buffer* in_wb = Device_thread_state_get_mixed_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch, NULL);
+        if ((in_wb != NULL) && Work_buffer_is_valid(in_wb, 0))
+            in_data[ch] = Work_buffer_get_contents_mut(in_wb, 0);
+    }
 
     float* out_data[2] = { NULL };
-    Proc_state_get_mixed_audio_out_buffers(
-            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_data);
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        Work_buffer* out_wb = Device_thread_state_get_mixed_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+        if (out_wb != NULL)
+            out_data[ch] = Work_buffer_get_contents_mut(out_wb, 0);
+    }
 
     float* history_data[] =
     {
@@ -199,8 +209,17 @@ static void Delay_pstate_render_mixed(
     {
         float* in = in_data[ch];
         float* out = out_data[ch];
+
         if ((in == NULL) || (out == NULL))
+        {
+            if (out != NULL)
+            {
+                for (int32_t i = buf_start; i < buf_stop; ++i)
+                    out[i] = 0;
+            }
+
             continue;
+        }
 
         // Clamp input values to finite range
         // (this is required due to possible multiplication by zero below)

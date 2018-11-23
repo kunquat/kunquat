@@ -554,7 +554,7 @@ int32_t Voice_signal_plan_execute(
         {
             const Voice_signal_task_info* task_info = Etable_get(tasks, i);
             Voice_signal_task_info_mix(
-                    task_info, dstates, thread_id, buf_start, keep_alive_stop);
+                    task_info, dstates, thread_id, buf_start, buf_stop);
         }
     }
 

@@ -1223,6 +1223,25 @@ static void Player_process_mixed_signals(
         }
     }
 
+    // Fill invalid buffer areas with silence
+    {
+        Device_thread_state* master_ts = Device_states_get_thread_state(
+                player->device_states, 0, Device_get_id((const Device*)player->module));
+        rassert(master_ts != NULL);
+
+        Work_buffer* master_wb = Device_thread_state_get_mixed_buffer(
+                master_ts, DEVICE_PORT_TYPE_RECV, 0, NULL);
+        if (master_wb != NULL)
+        {
+            for (int ch = 0; ch < KQT_BUFFERS_MAX; ++ch)
+            {
+                if (!Work_buffer_is_valid(master_wb, ch))
+                    Work_buffer_clear(
+                            master_wb, ch, render_start, render_start + frame_count);
+            }
+        }
+    }
+
     return;
 }
 
@@ -1328,11 +1347,12 @@ static void Player_mix_test_voice_signals(
 
         const int stride = Work_buffer_get_stride(wb);
 
-        const float first_vals[] =
+        float first_vals[2] = { 0.0f, 0.0f };
+        for (int ch = 0; ch < 2; ++ch)
         {
-            Work_buffer_get_contents(wb, 0)[buf_start * stride],
-            Work_buffer_get_contents(wb, 1)[buf_start * stride],
-        };
+            if (Work_buffer_is_valid(wb, 0))
+                first_vals[ch] = Work_buffer_get_contents(wb, ch)[buf_start * stride];
+        }
 
         if ((Work_buffer_get_const_start(wb, 0) > buf_start) ||
                 (first_vals[0] != 0.0f) ||
@@ -1483,15 +1503,6 @@ void Player_play(Player* player, int32_t nframes)
     const Connections* connections = Module_get_connections(player->module);
     rassert(connections != NULL);
 
-    // Clear mixed signal buffers
-    Device_states_clear_audio_buffers(player->device_states, 0, nframes);
-    for (int thread_id = 0; thread_id < KQT_THREADS_MAX; ++thread_id)
-    {
-        Player_thread_params* tp = &player->thread_params[thread_id];
-        if (tp->test_voice_output != NULL)
-            Work_buffer_clear_all(tp->test_voice_output, 0, nframes);
-    }
-
     // TODO: check if song or pattern instance location has changed
 
     // Composition-level progress
@@ -1499,6 +1510,15 @@ void Player_play(Player* player, int32_t nframes)
     int32_t rendered = 0;
     while (rendered < nframes && !Event_buffer_is_full(player->event_buffer))
     {
+        // Invalidate mixed signal buffers
+        Device_states_invalidate_mixed_buffers(player->device_states);
+        for (int thread_id = 0; thread_id < player->thread_count; ++thread_id)
+        {
+            Player_thread_params* tp = &player->thread_params[thread_id];
+            rassert(tp->test_voice_output != NULL);
+            Work_buffer_invalidate(tp->test_voice_output);
+        }
+
         // Move forwards in composition
         int32_t to_be_rendered = nframes - rendered;
         if (!player->master_params.parent.pause && !Player_has_stopped(player))
@@ -1563,39 +1583,44 @@ void Player_play(Player* player, int32_t nframes)
 
             if (player->module->is_dc_blocker_enabled)
                 Player_apply_dc_blocker(player, buf_start, buf_stop);
+
+            // Apply global parameters to the mixed signal
+            {
+                Device_thread_state* master_ts = Device_states_get_thread_state(
+                        player->device_states,
+                        0,
+                        Device_get_id((const Device*)player->module));
+                rassert(master_ts != NULL);
+
+                const int32_t buf_start_item = buf_start * KQT_BUFFERS_MAX;
+                const int32_t buf_stop_item = buf_stop * KQT_BUFFERS_MAX;
+
+                Work_buffer* buffer = Device_thread_state_get_mixed_buffer(
+                        master_ts, DEVICE_PORT_TYPE_RECV, 0, NULL);
+                if (buffer != NULL)
+                {
+                    // Apply render volume and copy to output
+                    const float mix_vol = (float)player->module->mix_vol;
+
+                    const float* buf = Work_buffer_get_contents(buffer, 0);
+                    for (int32_t i = buf_start_item; i < buf_stop_item; ++i)
+                        player->audio_buffer[i] = buf[i] * mix_vol;
+                }
+                else
+                {
+                    // Fill with zeroes if we haven't produced any sound
+                    for (int32_t i = buf_start_item; i < buf_stop_item; ++i)
+                        player->audio_buffer[i] = 0;
+                }
+            }
         }
 
         rendered += to_be_rendered;
     }
 
+#if 0
     // Apply global parameters to the mixed signal
     {
-        Device_thread_state* master_ts = Device_states_get_thread_state(
-                player->device_states, 0, Device_get_id((const Device*)player->module));
-        rassert(master_ts != NULL);
-
-        Work_buffer* buffer = Device_thread_state_get_mixed_buffer(
-                master_ts, DEVICE_PORT_TYPE_RECV, 0, NULL);
-        if (buffer != NULL)
-        {
-            const int sub_count = Work_buffer_get_sub_count(buffer);
-            rassert(sub_count == 2);
-
-            const float mix_vol = (float)player->module->mix_vol;
-
-            // Apply render volume
-            const float* buf = Work_buffer_get_contents(buffer, 0);
-            for (int32_t i = 0; i < rendered * KQT_BUFFERS_MAX; ++i)
-                player->audio_buffer[i] = *buf++ * mix_vol;
-        }
-        else
-        {
-            // Fill with zeroes if we haven't produced any sound
-            for (int32_t i = 0; i < rendered * KQT_BUFFERS_MAX; ++i)
-                player->audio_buffer[i] = 0;
-        }
-
-#if 0
         // Note: we only access as many ports as we can output
         for (int32_t port = 0; port < KQT_BUFFERS_MAX; ++port)
         {
@@ -1620,8 +1645,8 @@ void Player_play(Player* player, int32_t nframes)
                     player->audio_buffers[port][i] = 0;
             }
         }
-#endif
     }
+#endif
 
     player->audio_frames_available = rendered;
 

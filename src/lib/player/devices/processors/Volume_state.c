@@ -24,6 +24,7 @@
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/devices/Voice_state.h>
 #include <player/Linear_controls.h>
+#include <player/Work_buffer.h>
 #include <string/key_pattern.h>
 
 #include <stdint.h>
@@ -71,7 +72,15 @@ static void apply_volume(
         const float* in = in_buffers[ch];
         float* out = out_buffers[ch];
         if ((in == NULL) || (out == NULL))
+        {
+            if (out != NULL)
+            {
+                for (int32_t i = buf_start; i < buf_stop; ++i)
+                    out[i] = 0;
+            }
+
             continue;
+        }
 
         for (int32_t frame = buf_start; frame < buf_stop; ++frame)
             out[frame] = in[frame] * global_scale;
@@ -137,16 +146,28 @@ static void Volume_pstate_render_mixed(
     // Get control stream
     Work_buffer* vol_wb = Device_thread_state_get_mixed_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE, NULL);
+    if ((vol_wb != NULL) && !Work_buffer_is_valid(vol_wb, 0))
+        vol_wb = NULL;
 
     // Get input
     float* in_bufs[2] = { NULL };
-    Proc_state_get_mixed_audio_in_buffers(
-            proc_ts, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_bufs);
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        Work_buffer* in_wb = Device_thread_state_get_mixed_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch, NULL);
+        if ((in_wb != NULL) && Work_buffer_is_valid(in_wb, 0))
+            in_bufs[ch] = Work_buffer_get_contents_mut(in_wb, 0);
+    }
 
     // Get output
     float* out_bufs[2] = { NULL };
-    Proc_state_get_mixed_audio_out_buffers(
-            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_bufs);
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        Work_buffer* out_wb = Device_thread_state_get_mixed_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+        if (out_wb != NULL)
+            out_bufs[ch] = Work_buffer_get_contents_mut(out_wb, 0);
+    }
 
     apply_volume(
             2, in_bufs, out_bufs, vol_wb, (float)vpstate->volume, buf_start, buf_stop);
@@ -218,16 +239,26 @@ int32_t Volume_vstate_render_voice(
 
     // Get input
     float* in_bufs[2] = { NULL };
-    Proc_state_get_voice_audio_in_buffers(
-            proc_ts, PORT_IN_AUDIO_L, PORT_IN_AUDIO_COUNT, in_bufs);
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        Work_buffer* in_wb = Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch, NULL);
+        if ((in_wb != NULL) && Work_buffer_is_valid(in_wb, 0))
+            in_bufs[ch] = Work_buffer_get_contents_mut(in_wb, 0);
+    }
 
     if ((in_bufs[0] == NULL) && (in_bufs[1] == NULL))
         return buf_start;
 
     // Get output
     float* out_bufs[2] = { NULL };
-    Proc_state_get_voice_audio_out_buffers(
-            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_bufs);
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+        if (out_wb != NULL)
+            out_bufs[ch] = Work_buffer_get_contents_mut(out_wb, 0);
+    }
 
     const Volume_pstate* vpstate = (const Volume_pstate*)proc_state;
     apply_volume(
