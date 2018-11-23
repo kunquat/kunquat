@@ -50,6 +50,170 @@ Proc_state* new_Proc_state_default(
 }
 
 
+static Work_buffer* try_get_valid_wb_2ch(
+        Work_buffer* wb, int32_t buf_start, int32_t buf_stop)
+{
+    rassert(wb != NULL);
+    rassert(Work_buffer_get_sub_count(wb) == 2);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= buf_start);
+
+    const uint8_t all_valid_mask = (1 << 2) - 1;
+    uint8_t valid_mask =
+        (uint8_t)(Work_buffer_is_valid(wb, 0) | (Work_buffer_is_valid(wb, 1) << 1));
+
+    if (valid_mask != 0)
+    {
+        if (valid_mask != all_valid_mask)
+        {
+            const int clear_index = (valid_mask == 1) ? 1 : 0;
+            Work_buffer_clear(wb, clear_index, buf_start, buf_stop);
+        }
+
+        rassert(Work_buffer_is_valid(wb, 0));
+        rassert(Work_buffer_is_valid(wb, 1));
+
+        return wb;
+    }
+
+    return NULL;
+}
+
+
+static Work_buffer* get_mixed_buffer_2ch(
+        const Device_thread_state* proc_ts,
+        Device_port_type port_type,
+        int first_port,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    rassert(proc_ts != NULL);
+    rassert(port_type < DEVICE_PORT_TYPES);
+    rassert(first_port >= 0);
+    rassert(first_port + 1 < KQT_DEVICE_PORTS_MAX);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= buf_start);
+
+    int sub_index = 0;
+    Work_buffer* wb =
+        Device_thread_state_get_mixed_buffer(proc_ts, port_type, first_port, &sub_index);
+    if (wb == NULL)
+        return NULL;
+
+    rassert(Work_buffer_get_sub_count(wb) == 2);
+    rassert(sub_index == 0);
+
+    if (port_type == DEVICE_PORT_TYPE_RECV)
+        return try_get_valid_wb_2ch(wb, buf_start, buf_stop);
+
+    Work_buffer_mark_valid(wb, 0);
+    Work_buffer_mark_valid(wb, 1);
+
+    return wb;
+}
+
+
+static Work_buffer* get_voice_buffer_2ch(
+        const Device_thread_state* proc_ts,
+        Device_port_type port_type,
+        int first_port,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    rassert(proc_ts != NULL);
+    rassert(port_type < DEVICE_PORT_TYPES);
+    rassert(first_port >= 0);
+    rassert(first_port + 1 < KQT_DEVICE_PORTS_MAX);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= buf_start);
+
+    int sub_index = 0;
+    Work_buffer* wb =
+        Device_thread_state_get_voice_buffer(proc_ts, port_type, first_port, &sub_index);
+    if (wb == NULL)
+        return NULL;
+
+    rassert(Work_buffer_get_sub_count(wb) == 2);
+    rassert(sub_index == 0);
+
+    if (port_type == DEVICE_PORT_TYPE_RECV)
+        return try_get_valid_wb_2ch(wb, buf_start, buf_stop);
+
+    Work_buffer_mark_valid(wb, 0);
+    Work_buffer_mark_valid(wb, 1);
+
+    return wb;
+}
+
+
+Work_buffer* Proc_get_mixed_input_2ch(
+        const Device_thread_state* proc_ts,
+        int first_port,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    rassert(proc_ts != NULL);
+    rassert(first_port >= 0);
+    rassert(first_port + 1 < KQT_DEVICE_PORTS_MAX);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= buf_start);
+
+    return get_mixed_buffer_2ch(
+            proc_ts, DEVICE_PORT_TYPE_RECV, first_port, buf_start, buf_stop);
+}
+
+
+Work_buffer* Proc_get_mixed_output_2ch(
+        const Device_thread_state* proc_ts,
+        int first_port,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    rassert(proc_ts != NULL);
+    rassert(first_port >= 0);
+    rassert(first_port + 1 < KQT_DEVICE_PORTS_MAX);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= buf_start);
+
+    return get_mixed_buffer_2ch(
+            proc_ts, DEVICE_PORT_TYPE_SEND, first_port, buf_start, buf_stop);
+}
+
+
+Work_buffer* Proc_get_voice_input_2ch(
+        const Device_thread_state* proc_ts,
+        int first_port,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    rassert(proc_ts != NULL);
+    rassert(first_port >= 0);
+    rassert(first_port + 1 < KQT_DEVICE_PORTS_MAX);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= buf_start);
+
+    return get_voice_buffer_2ch(
+            proc_ts, DEVICE_PORT_TYPE_RECV, first_port, buf_start, buf_stop);
+}
+
+
+Work_buffer* Proc_get_voice_output_2ch(
+        const Device_thread_state* proc_ts,
+        int first_port,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    rassert(proc_ts != NULL);
+    rassert(first_port >= 0);
+    rassert(first_port + 1 < KQT_DEVICE_PORTS_MAX);
+    rassert(buf_start >= 0);
+    rassert(buf_stop >= buf_start);
+
+    return get_voice_buffer_2ch(
+            proc_ts, DEVICE_PORT_TYPE_SEND, first_port, buf_start, buf_stop);
+}
+
+
 void Proc_ramp_attack(
         Voice_state* vstate,
         int buf_count,
