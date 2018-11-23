@@ -15,11 +15,33 @@
 #include <player/devices/processors/Debug_state.h>
 
 #include <debug/assert.h>
+#include <init/devices/Device_impl.h>
+#include <init/devices/Device_port_groups.h>
 #include <init/devices/Processor.h>
 #include <init/devices/processors/Proc_debug.h>
 #include <mathnum/conversions.h>
 #include <player/devices/Device_thread_state.h>
 #include <player/devices/processors/Proc_state_utils.h>
+
+
+void Debug_get_port_groups(
+        const Device_impl* dimpl, Device_port_type port_type, Device_port_groups groups)
+{
+    rassert(dimpl != NULL);
+    rassert(groups != NULL);
+
+    switch (port_type)
+    {
+        case DEVICE_PORT_TYPE_RECV: Device_port_groups_init(groups, 0); break;
+
+        case DEVICE_PORT_TYPE_SEND: Device_port_groups_init(groups, 2, 0); break;
+
+        default:
+            rassert(false);
+    }
+
+    return;
+}
 
 
 int32_t Debug_vstate_render_voice(
@@ -49,13 +71,15 @@ int32_t Debug_vstate_render_voice(
             0);
 
     // Get output buffers for writing
-    float* out_buffers[2] = { NULL };
-    for (int ch = 0; ch < 2; ++ch)
+    float* out_buffer = NULL;
     {
         Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_SEND, 0, NULL);
         if (out_wb != NULL)
-            out_buffers[ch] = Work_buffer_get_contents_mut(out_wb, 0);
+        {
+            rassert(Work_buffer_get_sub_count(out_wb) == 2);
+            out_buffer = Work_buffer_get_contents_mut(out_wb, 0);
+        }
     }
 
     Proc_debug* debug = (Proc_debug*)proc->parent.dimpl;
@@ -70,10 +94,11 @@ int32_t Debug_vstate_render_voice(
             }
 
             const float val = 1.0;
-            if (out_buffers[0] != NULL)
-                out_buffers[0][buf_start] = val;
-            if (out_buffers[1] != NULL)
-                out_buffers[1][buf_start] = val;
+            if (out_buffer != NULL)
+            {
+                out_buffer[buf_start * 2] = val;
+                out_buffer[buf_start * 2 + 1] = val;
+            }
 
             // We want all single pulses to be included in test buffers,
             // even if another voice replaces us in the channel foreground
@@ -117,10 +142,11 @@ int32_t Debug_vstate_render_voice(
             vals[1] = -vals[1];
         }
 
-        if (out_buffers[0] != NULL)
-            out_buffers[0][i] = (float)vals[0];
-        if (out_buffers[1] != NULL)
-            out_buffers[1][i] = (float)vals[1];
+        if (out_buffer != NULL)
+        {
+            out_buffer[i * 2] = (float)vals[0];
+            out_buffer[i * 2 + 1] = (float)vals[1];
+        }
 
         vstate->rel_pos_rem += freq / audio_rate;
 

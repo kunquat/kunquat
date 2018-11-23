@@ -101,6 +101,32 @@ static bool Voice_signal_task_info_add_input(
 }
 
 
+static void Voice_signal_task_info_merge_connections(Voice_signal_task_info* task_info)
+{
+    rassert(task_info != NULL);
+
+    int cur_size = (int)Vector_size(task_info->conns);
+    for (int di = 0; di < cur_size - 1; ++di)
+    {
+        Work_buffer_conn_rules* dest_rules = Vector_get_ref(task_info->conns, di);
+
+        for (int si = di + 1; si < cur_size; ++si)
+        {
+            const Work_buffer_conn_rules* src_rules =
+                Vector_get_ref(task_info->conns, si);
+            if (Work_buffer_conn_rules_try_merge(dest_rules, dest_rules, src_rules))
+            {
+                Vector_remove_at(task_info->conns, si);
+                --cur_size;
+                break;
+            }
+        }
+    }
+
+    return;
+}
+
+
 static void Voice_signal_task_info_invalidate_buffers(
         const Voice_signal_task_info* task_info,
         Device_states* dstates,
@@ -421,11 +447,21 @@ static void Voice_signal_plan_mark_connections_to_mixed(
 }
 
 
-static bool Voice_signal_plan_finalise(Voice_signal_plan* plan)
+static bool Voice_signal_plan_finalise(Voice_signal_plan* plan, int thread_id)
 {
     rassert(plan != NULL);
+    rassert(thread_id >= 0);
+    rassert(thread_id < KQT_THREADS_MAX);
 
-    // TODO: Optimise connections
+    Etable* tasks = plan->tasks[thread_id];
+    rassert(tasks != NULL);
+
+    for (int i = 0; i < plan->task_count; ++i)
+    {
+        Voice_signal_task_info* task_info = Etable_get(tasks, i);
+        rassert(task_info != NULL);
+        Voice_signal_task_info_merge_connections(task_info);
+    }
 
     return true;
 }
@@ -456,7 +492,7 @@ static bool Voice_signal_plan_build(
     Voice_signal_plan_mark_connections_to_mixed(
             plan, dstates, thread_id, master, is_parent_mixed);
 
-    return Voice_signal_plan_finalise(plan);
+    return Voice_signal_plan_finalise(plan, thread_id);
 }
 
 
