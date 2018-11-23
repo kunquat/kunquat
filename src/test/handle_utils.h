@@ -182,7 +182,7 @@ void check_buffers_equal(
 
     for (long i = 0; i < len; ++i)
     {
-        if (fabs(expected[i] - actual[i]) > eps)
+        if (!(fabs(expected[i] - actual[i]) <= eps))
         {
             fail_buffers(expected, actual, i, len);
             break;
