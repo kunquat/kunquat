@@ -135,8 +135,13 @@ static void Mult_pstate_render_mixed(
 
     // Get outputs
     float* out_buffers[2] = { NULL };
-    Proc_state_get_mixed_audio_out_buffers(
-            proc_ts, PORT_OUT_SIGNAL_L, PORT_OUT_COUNT, out_buffers);
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        Work_buffer* out_wb = Device_thread_state_get_mixed_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_SIGNAL_L + ch, NULL);
+        if (out_wb != NULL)
+            out_buffers[ch] = Work_buffer_get_contents_mut(out_wb, 0);
+    }
 
     // Multiply the signals
     multiply_signals(in1_buffers, in2_buffers, out_buffers, buf_start, buf_stop);
@@ -234,8 +239,13 @@ int32_t Mult_vstate_render_voice(
     };
 
     float* out_buffers[2] = { NULL };
-    Proc_state_get_voice_audio_out_buffers(
-            proc_ts, PORT_OUT_SIGNAL_L, PORT_OUT_COUNT, out_buffers);
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_SIGNAL_L + ch, NULL);
+        if (out_wb != NULL)
+            out_buffers[ch] = Work_buffer_get_contents_mut(out_wb, 0);
+    }
 
     // Multiply the signals
     multiply_signals(in1_buffers, in2_buffers, out_buffers, buf_start, buf_stop);

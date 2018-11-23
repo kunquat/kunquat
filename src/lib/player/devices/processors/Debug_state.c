@@ -50,7 +50,13 @@ int32_t Debug_vstate_render_voice(
 
     // Get output buffers for writing
     float* out_buffers[2] = { NULL };
-    Proc_state_get_voice_audio_out_buffers(proc_ts, 0, 2, out_buffers);
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, ch, NULL);
+        if (out_wb != NULL)
+            out_buffers[ch] = Work_buffer_get_contents_mut(out_wb, 0);
+    }
 
     Proc_debug* debug = (Proc_debug*)proc->parent.dimpl;
     if (debug->single_pulse)
