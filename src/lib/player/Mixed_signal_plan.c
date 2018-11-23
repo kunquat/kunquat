@@ -190,6 +190,43 @@ static bool Mixed_signal_task_info_add_bypass_input(
 }
 
 
+static void Mixed_signal_task_info_merge_connections(Mixed_signal_task_info* task_info)
+{
+    rassert(task_info != NULL);
+
+    Vector* conn_group[] = { task_info->conns, task_info->bypass_conns };
+
+    for (int ci = 0; ci < 2; ++ci)
+    {
+        Vector* conns = conn_group[ci];
+        if (conns == NULL)
+        {
+            rassert(ci == 1);
+            continue;
+        }
+
+        int cur_size = (int)Vector_size(conns);
+        for (int di = 0; di < cur_size - 1; ++di)
+        {
+            Work_buffer_conn_rules* dest_rules = Vector_get_ref(conns, di);
+
+            for (int si = di + 1; si < cur_size; ++si)
+            {
+                const Work_buffer_conn_rules* src_rules = Vector_get_ref(conns, si);
+                if (Work_buffer_conn_rules_try_merge(dest_rules, dest_rules, src_rules))
+                {
+                    Vector_remove_at(conns, si);
+                    --cur_size;
+                    break;
+                }
+            }
+        }
+    }
+
+    return;
+}
+
+
 static void Mixed_signal_task_info_execute(
         const Mixed_signal_task_info* task_info,
         Device_states* dstates,
@@ -580,41 +617,43 @@ static bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
     rassert(plan != NULL);
 
     // Move task info contexts from plan->build_task_infos to plan->levels
-    AAiter* iter = AAiter_init(AAITER_AUTO, plan->build_task_infos);
-    const Mixed_signal_task_info* key = MIXED_SIGNAL_TASK_INFO_KEY(0);
-    Mixed_signal_task_info* task_info = AAiter_get_at_least(iter, key);
-    while (task_info != NULL)
     {
-        if (Mixed_signal_task_info_is_empty(task_info))
+        AAiter* iter = AAiter_init(AAITER_AUTO, plan->build_task_infos);
+        const Mixed_signal_task_info* key = MIXED_SIGNAL_TASK_INFO_KEY(0);
+        Mixed_signal_task_info* task_info = AAiter_get_at_least(iter, key);
+        while (task_info != NULL)
         {
-            AAtree_remove(plan->build_task_infos, task_info);
-            del_Mixed_signal_task_info(task_info);
-        }
-        else
-        {
-            Level* level = Etable_get(plan->levels, task_info->level_index);
-            if (level == NULL)
+            if (Mixed_signal_task_info_is_empty(task_info))
             {
-                level = new_Level();
-                if ((level == NULL) ||
-                        !Etable_set(plan->levels, task_info->level_index, level))
+                AAtree_remove(plan->build_task_infos, task_info);
+                del_Mixed_signal_task_info(task_info);
+            }
+            else
+            {
+                Level* level = Etable_get(plan->levels, task_info->level_index);
+                if (level == NULL)
                 {
-                    del_Level(level);
-                    return false;
+                    level = new_Level();
+                    if ((level == NULL) ||
+                            !Etable_set(plan->levels, task_info->level_index, level))
+                    {
+                        del_Level(level);
+                        return false;
+                    }
+
+                    plan->level_count = max(plan->level_count, task_info->level_index + 1);
                 }
 
-                plan->level_count = max(plan->level_count, task_info->level_index + 1);
+                if (!Level_add_task_info(level, task_info))
+                    return false;
+
+                AAtree_remove(plan->build_task_infos, task_info);
             }
 
-            if (!Level_add_task_info(level, task_info))
-                return false;
-
-            AAtree_remove(plan->build_task_infos, task_info);
+            // Reinitialise iterator as it is no longer valid
+            AAiter_init(iter, plan->build_task_infos);
+            task_info = AAiter_get_at_least(iter, key);
         }
-
-        // Reinitialise iterator as it is no longer valid
-        AAiter_init(iter, plan->build_task_infos);
-        task_info = AAiter_get_at_least(iter, key);
     }
 
     del_AAtree(plan->build_task_infos);
@@ -642,6 +681,16 @@ static bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
     }
 
     plan->level_count = write_pos;
+
+    for (int i = 0; i < plan->level_count; ++i)
+    {
+        Level* level = Etable_get(plan->levels, i);
+        for (int k = 0; k < level->task_count; ++k)
+        {
+            Mixed_signal_task_info* task_info = Etable_get(level->tasks, k);
+            Mixed_signal_task_info_merge_connections(task_info);
+        }
+    }
 
 #if 0
     for (int li = plan->level_count - 1; li >= 0; --li)
