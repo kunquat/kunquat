@@ -25,10 +25,30 @@
 #include <player/devices/Voice_state.h>
 #include <player/Linear_controls.h>
 #include <player/Work_buffer.h>
+#include <player/Work_buffers.h>
 #include <string/key_pattern.h>
 
 #include <stdint.h>
 #include <stdlib.h>
+
+
+void Volume_get_port_groups(
+        const Device_impl* dimpl, Device_port_type port_type, Device_port_groups groups)
+{
+    rassert(dimpl != NULL);
+
+    switch (port_type)
+    {
+        case DEVICE_PORT_TYPE_RECV: Device_port_groups_init(groups, 2, 1, 0); break;
+
+        case DEVICE_PORT_TYPE_SEND: Device_port_groups_init(groups, 2, 0); break;
+
+        default:
+            rassert(false);
+    }
+
+    return;
+}
 
 
 enum
@@ -49,58 +69,37 @@ enum
 };
 
 
+static const int VOLUME_WB_FIXED_VOLUME = WORK_BUFFER_IMPL_1;
+
+
 static void apply_volume(
-        int buf_count,
-        float* in_buffers[buf_count],
-        float* out_buffers[buf_count],
+        float* in_buffer,
+        float* out_buffer,
         Work_buffer* vol_wb,
+        const Work_buffers* wbs,
         float global_vol,
         int32_t buf_start,
         int32_t buf_stop)
 {
-    rassert(buf_count > 0);
-    rassert(in_buffers != NULL);
-    rassert(out_buffers != NULL);
+    rassert(in_buffer != NULL);
+    rassert(out_buffer != NULL);
     rassert(isfinite(global_vol));
     rassert(buf_start >= 0);
 
     const float global_scale = (float)dB_to_scale(global_vol);
 
-    // Copy input to output with global volume adjustment
-    for (int ch = 0; ch < buf_count; ++ch)
+    Work_buffer* scales_wb = Work_buffers_get_buffer_mut(wbs, VOLUME_WB_FIXED_VOLUME, 1);
+    Proc_fill_scale_buffer(scales_wb, vol_wb, buf_start, buf_stop);
+    const float* scales = Work_buffer_get_contents(scales_wb, 0);
+
+    const float* in = in_buffer + (buf_start * 2);
+    float* out = out_buffer + (buf_start * 2);
+
+    for (int32_t i = buf_start; i < buf_stop; ++i)
     {
-        const float* in = in_buffers[ch];
-        float* out = out_buffers[ch];
-        if ((in == NULL) || (out == NULL))
-        {
-            if (out != NULL)
-            {
-                for (int32_t i = buf_start; i < buf_stop; ++i)
-                    out[i] = 0;
-            }
-
-            continue;
-        }
-
-        for (int32_t frame = buf_start; frame < buf_stop; ++frame)
-            out[frame] = in[frame] * global_scale;
-    }
-
-    // Adjust output based on volume buffer
-    if (vol_wb != NULL)
-    {
-        Proc_fill_scale_buffer(vol_wb, vol_wb, buf_start, buf_stop);
-        const float* scales = Work_buffer_get_contents(vol_wb, 0);
-
-        for (int ch = 0; ch < buf_count; ++ch)
-        {
-            float* out = out_buffers[ch];
-            if (out == NULL)
-                continue;
-
-            for (int32_t i = buf_start; i < buf_stop; ++i)
-                out[i] *= scales[i];
-        }
+        const float scale = scales[i] * global_scale;
+        *out++ = (*in++) * scale;
+        *out++ = (*in++) * scale;
     }
 
     return;
@@ -150,27 +149,34 @@ static void Volume_pstate_render_mixed(
         vol_wb = NULL;
 
     // Get input
-    float* in_bufs[2] = { NULL };
-    for (int ch = 0; ch < 2; ++ch)
+    float* in_buf = NULL;
     {
-        Work_buffer* in_wb = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch, NULL);
-        if ((in_wb != NULL) && Work_buffer_is_valid(in_wb, 0))
-            in_bufs[ch] = Work_buffer_get_contents_mut(in_wb, 0);
+        Work_buffer* in_wb =
+            Proc_get_mixed_input_2ch(proc_ts, PORT_IN_AUDIO_L, buf_start, buf_stop);
+        if (in_wb != NULL)
+            in_buf = Work_buffer_get_contents_mut(in_wb, 0);
     }
 
     // Get output
-    float* out_bufs[2] = { NULL };
-    for (int ch = 0; ch < 2; ++ch)
+    float* out_buf = NULL;
     {
-        Work_buffer* out_wb = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+        Work_buffer* out_wb =
+            Proc_get_mixed_output_2ch(proc_ts, PORT_OUT_AUDIO_L, buf_start, buf_stop);
         if (out_wb != NULL)
-            out_bufs[ch] = Work_buffer_get_contents_mut(out_wb, 0);
+            out_buf = Work_buffer_get_contents_mut(out_wb, 0);
+    }
+
+    rassert(out_buf != NULL);
+
+    if (in_buf == NULL)
+    {
+        for (int32_t i = buf_start * 2; i < buf_stop * 2; ++i)
+            out_buf[i] = 0;
+        return;
     }
 
     apply_volume(
-            2, in_bufs, out_bufs, vol_wb, (float)vpstate->volume, buf_start, buf_stop);
+            in_buf, out_buf, vol_wb, wbs, (float)vpstate->volume, buf_start, buf_stop);
 
     return;
 }
@@ -238,37 +244,31 @@ int32_t Volume_vstate_render_voice(
     }
 
     // Get input
-    float* in_bufs[2] = { NULL };
-    for (int ch = 0; ch < 2; ++ch)
+    float* in_buf = NULL;
     {
-        Work_buffer* in_wb = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch, NULL);
-        if ((in_wb != NULL) && Work_buffer_is_valid(in_wb, 0))
-            in_bufs[ch] = Work_buffer_get_contents_mut(in_wb, 0);
+        Work_buffer* in_wb =
+            Proc_get_voice_input_2ch(proc_ts, PORT_IN_AUDIO_L, buf_start, buf_stop);
+        if (in_wb != NULL)
+            in_buf = Work_buffer_get_contents_mut(in_wb, 0);
     }
 
-    if ((in_bufs[0] == NULL) && (in_bufs[1] == NULL))
+    if (in_buf == NULL)
         return buf_start;
 
     // Get output
-    float* out_bufs[2] = { NULL };
-    for (int ch = 0; ch < 2; ++ch)
+    float* out_buf = NULL;
     {
-        Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+        Work_buffer* out_wb =
+            Proc_get_voice_output_2ch(proc_ts, PORT_OUT_AUDIO_L, buf_start, buf_stop);
         if (out_wb != NULL)
-            out_bufs[ch] = Work_buffer_get_contents_mut(out_wb, 0);
+            out_buf = Work_buffer_get_contents_mut(out_wb, 0);
     }
+
+    rassert(out_buf != NULL);
 
     const Volume_pstate* vpstate = (const Volume_pstate*)proc_state;
     apply_volume(
-            2,
-            in_bufs,
-            out_bufs,
-            vol_wb,
-            (float)vpstate->volume,
-            buf_start,
-            buf_stop);
+            in_buf, out_buf, vol_wb, wbs, (float)vpstate->volume, buf_start, buf_stop);
 
     return buf_stop;
 }
