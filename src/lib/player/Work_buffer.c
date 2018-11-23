@@ -116,6 +116,18 @@ void Work_buffer_invalidate(Work_buffer* buffer)
 }
 
 
+void Work_buffer_mark_valid(Work_buffer* buffer, int sub_index)
+{
+    rassert(buffer != NULL);
+    rassert(sub_index >= 0);
+    rassert(sub_index < buffer->sub_count);
+
+    buffer->is_valid[sub_index] = true;
+
+    return;
+}
+
+
 bool Work_buffer_is_valid(const Work_buffer* buffer, int sub_index)
 {
     rassert(buffer != NULL);

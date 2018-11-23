@@ -129,6 +129,16 @@ void Work_buffer_invalidate(Work_buffer* buffer);
 
 
 /**
+ * Mark subarea of the Work buffer as valid.
+ *
+ * \param buffer      The Work buffer -- must not be \c NULL.
+ * \param sub_index   The index of the area to be marked -- must be >= \c 0 and
+ *                    < \a Work_buffer_get_sub_count(\a buffer).
+ */
+void Work_buffer_mark_valid(Work_buffer* buffer, int sub_index);
+
+
+/**
  * Get the valid status of the Work buffer.
  *
  * \param buffer      The Work buffer -- must not be \c NULL.
