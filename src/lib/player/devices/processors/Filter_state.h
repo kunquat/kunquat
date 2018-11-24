@@ -16,11 +16,14 @@
 #define KQT_FILTER_STATE_H
 
 
+#include <init/devices/Device_impl.h>
 #include <player/devices/Device_state.h>
 #include <player/devices/Voice_state.h>
 
 #include <stdint.h>
 
+
+Device_impl_get_port_groups_func Filter_get_port_groups;
 
 Device_state_create_func new_Filter_pstate;
 

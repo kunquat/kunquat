@@ -26,6 +26,7 @@
 #include <memory.h>
 #include <player/devices/Device_thread_state.h>
 #include <player/devices/Proc_state.h>
+#include <player/devices/processors/Proc_state_utils.h>
 #include <player/devices/Voice_state.h>
 #include <player/Work_buffers.h>
 
@@ -34,10 +35,29 @@
 #include <stdlib.h>
 
 
+void Filter_get_port_groups(
+        const Device_impl* dimpl, Device_port_type port_type, Device_port_groups groups)
+{
+    rassert(dimpl != NULL);
+    rassert(groups != NULL);
+
+    switch (port_type)
+    {
+        case DEVICE_PORT_TYPE_RECV: Device_port_groups_init(groups, 2, 1, 1, 0); break;
+        case DEVICE_PORT_TYPE_SEND: Device_port_groups_init(groups, 2, 0); break;
+
+        default:
+            rassert(false);
+    }
+
+    return;
+}
+
+
 typedef struct Filter_ch_state
 {
-    double s1;
-    double s2;
+    float s1;
+    float s2;
 } Filter_ch_state;
 
 
@@ -59,6 +79,20 @@ static void Filter_state_impl_init(Filter_state_impl* fimpl, const Proc_filter* 
     }
 
     return;
+}
+
+
+static bool Filter_state_is_neutral(const Filter_state_impl* fimpl)
+{
+    rassert(fimpl != NULL);
+
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        if ((fimpl->states[ch].s1 != 0) || (fimpl->states[ch].s2 != 0))
+            return false;
+    }
+
+    return true;
 }
 
 
@@ -90,7 +124,7 @@ static float get_cutoff_ratio(double cutoff_param, int32_t audio_rate)
 
 static const int CONTROL_WB_CUTOFF = WORK_BUFFER_IMPL_1;
 static const int CONTROL_WB_RESONANCE = WORK_BUFFER_IMPL_2;
-static const int FILTER_WB_HP_MULT = WORK_BUFFER_IMPL_3;
+static const int FILTER_WB_SILENT_INPUT = WORK_BUFFER_IMPL_3;
 
 
 static void Filter_state_impl_apply_input_buffers(
@@ -99,16 +133,15 @@ static void Filter_state_impl_apply_input_buffers(
         const Work_buffer* cutoff_wb,
         const Work_buffer* resonance_wb,
         const Work_buffers* wbs,
-        Work_buffer* in_buffers[2],
-        Work_buffer* out_buffers[2],
+        Work_buffer* in_wb,
+        Work_buffer* out_wb,
         int32_t buf_start,
         int32_t buf_stop,
         int32_t audio_rate)
 {
     rassert(fimpl != NULL);
     rassert(wbs != NULL);
-    rassert(in_buffers != NULL);
-    rassert(out_buffers != NULL);
+    rassert(out_wb != NULL);
     rassert(audio_rate > 0);
 
     float* cutoffs = Work_buffers_get_buffer_contents_mut(wbs, CONTROL_WB_CUTOFF);
@@ -207,72 +240,73 @@ static void Filter_state_impl_apply_input_buffers(
         params_const_start = max(params_const_start, fast_res_stop);
     }
 
-    // Apply the filter
-    float* hp_mults = Work_buffers_get_buffer_contents_mut(wbs, FILTER_WB_HP_MULT);
-    for (int32_t i = buf_start; i < params_const_start; ++i)
-    {
-        const double g = cutoffs[i];
-        const double k = resonances[i];
-
-        hp_mults[i] = (float)(1.0 / (1.0 + k * g + g * g));
-    }
-    if (params_const_start < buf_stop)
-    {
-        const double g = cutoffs[params_const_start];
-        const double k = resonances[params_const_start];
-        const float mult = (float)(1.0 / (1.0 + k * g + g * g));
-
-        for (int32_t i = params_const_start; i < buf_stop; ++i)
-            hp_mults[i] = mult;
-    }
-
     // If we no longer get valid input, we still need to produce a valid output signal
     // as the filter takes a while to adapt
-    for (int ch = 0; ch < 2; ++ch)
+    if (in_wb == NULL)
     {
-        Work_buffer* in_wb = in_buffers[ch];
-        if ((in_wb != NULL) && !Work_buffer_is_valid(in_wb, 0))
-            Work_buffer_clear(in_wb, 0, buf_start, buf_stop);
+        in_wb = Work_buffers_get_buffer_mut(wbs, FILTER_WB_SILENT_INPUT, 2);
+        Work_buffer_clear_all(in_wb, buf_start, buf_stop);
     }
 
-    for (int ch = 0; ch < 2; ++ch)
+    // Apply the filter
     {
-        if ((in_buffers[ch] == NULL) ||
-                (out_buffers[ch] == NULL))
-            continue;
+        rassert(Work_buffer_get_stride(in_wb) == 2);
+        rassert(Work_buffer_get_stride(out_wb) == 2);
 
-        Filter_ch_state* state = &fimpl->states[ch];
+        const float* in = Work_buffer_get_contents(in_wb, 0) + (buf_start * 2);
+        float* out = Work_buffer_get_contents_mut(out_wb, 0) + (buf_start * 2);
 
-        const float* in_buf = Work_buffer_get_contents(in_buffers[ch], 0);
-        float* out_buf = Work_buffer_get_contents_mut(out_buffers[ch], 0);
+        float ch0_s1 = fimpl->states[0].s1;
+        float ch0_s2 = fimpl->states[0].s2;
+        float ch1_s1 = fimpl->states[1].s1;
+        float ch1_s2 = fimpl->states[1].s2;
 
-        double s1 = state->s1;
-        double s2 = state->s2;
+        const bool is_lowpass = (filter->type == FILTER_TYPE_LOWPASS);
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
-            const double x = in_buf[i];
-            const double g = cutoffs[i];
-            const double k = resonances[i];
+            const float x0 = *in++;
+            const float x1 = *in++;
+            const float g = cutoffs[i];
+            const float k = resonances[i];
 
-            const double hp_sample = (x - s1 * (k + g) - s2) * hp_mults[i];
+            const float hp_mult = 1.0f / (1.0f + (k * g) + (g * g));
 
-            const double input1 = g * hp_sample;
-            const double bp_sample = input1 + s1;
-            s1 = input1 + bp_sample;
+            const float hp_sample_0 = (x0 - ch0_s1 * (k + g) - ch0_s2) * hp_mult;
+            const float hp_sample_1 = (x1 - ch1_s1 * (k + g) - ch1_s2) * hp_mult;
 
-            const double input2 = g * bp_sample;
-            const double lp_sample = input2 + s2;
-            s2 = input2 + lp_sample;
+            const float input_0_1 = g * hp_sample_0;
+            const float bp_sample_0 = input_0_1 + ch0_s1;
+            ch0_s1 = input_0_1 + bp_sample_0;
 
-            if (filter->type == FILTER_TYPE_LOWPASS)
-                out_buf[i] = (float)lp_sample;
+            const float input_0_2 = g * bp_sample_0;
+            const float lp_sample_0 = input_0_2 + ch0_s2;
+            ch0_s2 = input_0_2 + lp_sample_0;
+
+            const float input_1_1 = g * hp_sample_1;
+            const float bp_sample_1 = input_1_1 + ch1_s1;
+            ch1_s1 = input_1_1 + bp_sample_1;
+
+            const float input_1_2 = g * bp_sample_1;
+            const float lp_sample_1 = input_1_2 + ch1_s2;
+            ch1_s2 = input_1_2 + lp_sample_1;
+
+            if (is_lowpass)
+            {
+                *out++ = lp_sample_0;
+                *out++ = lp_sample_1;
+            }
             else
-                out_buf[i] = (float)hp_sample;
+            {
+                *out++ = hp_sample_0;
+                *out++ = hp_sample_1;
+            }
         }
 
-        state->s1 = s1;
-        state->s2 = s2;
+        fimpl->states[0].s1 = ch0_s1;
+        fimpl->states[0].s2 = ch0_s2;
+        fimpl->states[1].s1 = ch1_s1;
+        fimpl->states[1].s2 = ch1_s2;
     }
 
     return;
@@ -339,22 +373,12 @@ static void Filter_pstate_render_mixed(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_RESONANCE, NULL);
 
     // Get audio buffers
-    Work_buffer* in_buffers[2] =
-    {
-        Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L, NULL),
-        Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R, NULL),
-    };
+    Work_buffer* in_wb =
+        Proc_get_mixed_input_2ch(proc_ts, PORT_IN_AUDIO_L, buf_start, buf_stop);
 
     // Get output
-    Work_buffer* out_buffers[2] =
-    {
-        Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L, NULL),
-        Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R, NULL),
-    };
+    Work_buffer* out_wb =
+        Proc_get_mixed_output_2ch(proc_ts, PORT_OUT_AUDIO_L, buf_start, buf_stop);
 
     const Proc_filter* filter = (const Proc_filter*)dstate->device->dimpl;
 
@@ -364,8 +388,8 @@ static void Filter_pstate_render_mixed(
             cutoff_wb,
             resonance_wb,
             wbs,
-            in_buffers,
-            out_buffers,
+            in_wb,
+            out_wb,
             buf_start,
             buf_stop,
             dstate->audio_rate);
@@ -442,27 +466,12 @@ int32_t Filter_vstate_render_voice(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_RESONANCE, NULL);
 
     // Get input
-    Work_buffer* in_buffers[2] =
-    {
-        Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L, NULL),
-        Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R, NULL),
-    };
-    if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
-    {
-        vstate->active = false;
-        return buf_start;
-    }
+    Work_buffer* in_wb =
+        Proc_get_voice_input_2ch(proc_ts, PORT_IN_AUDIO_L, buf_start, buf_stop);
 
     // Get output
-    Work_buffer* out_buffers[2] =
-    {
-        Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L, NULL),
-        Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R, NULL),
-    };
+    Work_buffer* out_wb =
+        Proc_get_voice_output_2ch(proc_ts, PORT_OUT_AUDIO_L, buf_start, buf_stop);
 
     const Device_state* dstate = (const Device_state*)proc_state;
     const Proc_filter* filter = (const Proc_filter*)dstate->device->dimpl;
@@ -473,11 +482,14 @@ int32_t Filter_vstate_render_voice(
             cutoff_wb,
             resonance_wb,
             wbs,
-            in_buffers,
-            out_buffers,
+            in_wb,
+            out_wb,
             buf_start,
             buf_stop,
             dstate->audio_rate);
+
+    if ((in_wb == NULL) && Filter_state_is_neutral(&fvstate->state_impl))
+        vstate->active = false;
 
     return buf_stop;
 }
