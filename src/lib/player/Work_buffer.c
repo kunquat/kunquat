@@ -106,7 +106,7 @@ void Work_buffer_invalidate(Work_buffer* buffer)
     for (int i = 0; i < WORK_BUFFER_SUB_COUNT_MAX; ++i)
         buffer->is_valid[i] = false;
 
-#if ENABLE_DEBUG_ASSERTS
+#ifdef ENABLE_DEBUG_ASSERTS
     float* data = buffer->contents;
     for (int i = -buffer->sub_count; i < (buffer->size + 1) * buffer->sub_count; ++i)
         *data++ = NAN;
