@@ -197,8 +197,6 @@ enum
 };
 
 
-//static const int FREEVERB_WB_LEFT = WORK_BUFFER_IMPL_1;
-//static const int FREEVERB_WB_RIGHT = WORK_BUFFER_IMPL_2;
 static const int FREEVERB_WB_FIXED_REFL = WORK_BUFFER_IMPL_1;
 static const int FREEVERB_WB_FIXED_DAMP = WORK_BUFFER_IMPL_2;
 static const int FREEVERB_WB_COMB_INPUT = WORK_BUFFER_IMPL_3;
@@ -326,39 +324,6 @@ static void Freeverb_pstate_render_mixed(
     Work_buffer* out_wb =
         Proc_get_mixed_output_2ch(proc_ts, PORT_OUT_AUDIO_L, buf_start, buf_stop);
 
-#if 0
-    // TODO: figure out a cleaner way of dealing with the buffers
-    Work_buffer* workspace[] =
-    {
-        Work_buffers_get_buffer_mut(wbs, FREEVERB_WB_LEFT, 1),
-        Work_buffers_get_buffer_mut(wbs, FREEVERB_WB_RIGHT, 1),
-    };
-
-    // Get input data
-    if ((in_wbs[0] != NULL) && (in_wbs[1] != NULL))
-    {
-        Work_buffer_copy(workspace[0], 0, in_wbs[0], 0, buf_start, buf_stop);
-        Work_buffer_copy(workspace[1], 0, in_wbs[1], 0, buf_start, buf_stop);
-    }
-    else if ((in_wbs[0] == NULL) != (in_wbs[1] == NULL))
-    {
-        const Work_buffer* existing = (in_wbs[0] != NULL) ? in_wbs[0] : in_wbs[1];
-        Work_buffer_copy(workspace[0], 0, existing, 0, buf_start, buf_stop);
-        Work_buffer_copy(workspace[1], 0, existing, 0, buf_start, buf_stop);
-    }
-    else
-    {
-        Work_buffer_clear(workspace[0], 0, buf_start, buf_stop);
-        Work_buffer_clear(workspace[1], 0, buf_start, buf_stop);
-    }
-
-    float* ws[] =
-    {
-        Work_buffer_get_contents_mut(workspace[0], 0),
-        Work_buffer_get_contents_mut(workspace[1], 0),
-    };
-#endif
-
     // Apply reverb
     {
         const float* in_contents = Work_buffer_get_contents(in_wb, 0);
@@ -400,59 +365,6 @@ static void Freeverb_pstate_render_mixed(
         _MM_SET_FLUSH_ZERO_MODE(old_ftoz);
 #endif
     }
-#if 0
-    {
-        float* comb_input =
-            Work_buffers_get_buffer_contents_mut(wbs, FREEVERB_WB_COMB_INPUT);
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            comb_input[i] = (float)((ws[0][i] + ws[1][i]) * freeverb->gain);
-
-#ifdef KQT_SSE
-        const unsigned int old_ftoz = _MM_GET_FLUSH_ZERO_MODE();
-        _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
-#endif
-
-        for (int ch = 0; ch < 2; ++ch)
-        {
-            float* ws_buf = ws[ch];
-            for (int32_t i = buf_start; i < buf_stop; ++i)
-                ws_buf[i] = 0;
-
-            for (int comb = 0; comb < FREEVERB_COMBS; ++comb)
-                Freeverb_comb_process(
-                        fstate->combs[ch][comb],
-                        ws_buf,
-                        comb_input,
-                        refls,
-                        damps,
-                        buf_start,
-                        buf_stop);
-
-            for (int allpass = 0; allpass < FREEVERB_ALLPASSES; ++allpass)
-                Freeverb_allpass_process(
-                        fstate->allpasses[ch][allpass], ws_buf, buf_start, buf_stop);
-        }
-
-#ifdef KQT_SSE
-        _MM_SET_FLUSH_ZERO_MODE(old_ftoz);
-#endif
-
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-        {
-            ws[0][i] = (float)(ws[0][i] * freeverb->wet1 + ws[1][i] * freeverb->wet2);
-            ws[1][i] = (float)(ws[1][i] * freeverb->wet1 + ws[0][i] * freeverb->wet2);
-        }
-    }
-#endif
-
-    // Copy results to outputs that exist
-#if 0
-    for (int ch = 0; ch < 2; ++ch)
-    {
-        if (out_wbs[ch] != NULL)
-            Work_buffer_copy(out_wbs[ch], 0, workspace[ch], 0, buf_start, buf_stop);
-    }
-#endif
 
     return;
 }
