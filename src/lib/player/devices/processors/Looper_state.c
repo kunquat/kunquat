@@ -30,6 +30,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 
@@ -866,7 +867,7 @@ static void Looper_pstate_render_mixed(
 
             Work_buffer* xfade_speeds_wb =
                 Work_buffers_get_buffer_mut(wbs, LOOPER_WB_TEMP_SPEED, 1);
-            const float* xfade_speeds = Work_buffer_get_contents(xfade_speeds_wb, 0);
+            const float* xfade_speeds = NULL;
             if (is_prev_speed_const)
             {
                 // Use previous speed value and assume that further changes in
@@ -889,6 +890,7 @@ static void Looper_pstate_render_mixed(
 
                 xfade_speeds = used_speeds;
             }
+            rassert(xfade_speeds != NULL);
 
             Mode_context_update(
                     fading_context,
