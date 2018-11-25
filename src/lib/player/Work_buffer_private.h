@@ -24,13 +24,13 @@
 
 struct Work_buffer
 {
-    int32_t size;
-    int init_sub_count;
-    int sub_count;
-    bool is_valid[WORK_BUFFER_SUB_COUNT_MAX]; // TODO: use ranges
-    int32_t const_start[WORK_BUFFER_SUB_COUNT_MAX];
-    bool is_final[WORK_BUFFER_SUB_COUNT_MAX]; // TODO: make more compact
     void* contents;
+    int32_t size;
+    int32_t const_start[WORK_BUFFER_SUB_COUNT_MAX];
+    uint8_t init_sub_count : 4;
+    uint8_t sub_count : 4;
+    uint8_t is_valid : 4; // TODO: use ranges?
+    uint8_t is_final : 4;
 };
 
 
