@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -41,7 +41,8 @@ Freeverb_comb* new_Freeverb_comb(int32_t buffer_size);
 /**
  * Process data buffer.
  *
- * \param comb        The Freeverb comb filter -- must not be \c NULL.
+ * \param comb_l      The Freeverb comb filter for left channel -- must not be \c NULL.
+ * \param comb_r      The Freeverb comb filter for right channel -- must not be \c NULL.
  * \param out_buf     The output buffer where the result is mixed -- must not be \c NULL.
  * \param in_buf      The input signal buffer -- must not be \c NULL.
  * \param refls       The reflectivity parameter buffer -- must not be \c NULL.
@@ -50,7 +51,8 @@ Freeverb_comb* new_Freeverb_comb(int32_t buffer_size);
  * \param buf_stop    The buffer stop position -- must be > \a buf_start.
  */
 void Freeverb_comb_process(
-        Freeverb_comb* comb,
+        Freeverb_comb* comb_l,
+        Freeverb_comb* comb_r,
         float* out_buf,
         const float* in_buf,
         const float* refls,

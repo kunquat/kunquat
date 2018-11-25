@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -18,10 +18,13 @@
 
 #include <decl.h>
 #include <init/devices/Device.h>
+#include <init/devices/Device_impl.h>
 #include <player/devices/Device_state.h>
 
 #include <stdint.h>
 
+
+Device_impl_get_port_groups_func Freeverb_get_port_groups;
 
 Device_state* new_Freeverb_pstate(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
