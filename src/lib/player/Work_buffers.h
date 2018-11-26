@@ -43,6 +43,8 @@ typedef enum
  *
  * \param buf_size   The buffer size -- must be >= \c 0 and
  *                   <= \c WORK_BUFFER_SIZE_MAX.
+ *                   NOTE: Work buffers with size \c 0 must not be requested for
+ *                   buffer retrieval.
  *
  * \return   The new Work buffers if successful, or \c NULL if memory
  *           allocation failed.
@@ -54,7 +56,7 @@ Work_buffers* new_Work_buffers(int32_t buf_size);
  * Resize the Work buffers.
  *
  * \param buffers    The Work buffers -- must not be \c NULL.
- * \param new_size   The new buffer size -- must be >= \c 0 and
+ * \param new_size   The new buffer size -- must be > \c 0 and
  *                   <= \c WORK_BUFFER_SIZE_MAX.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
@@ -65,7 +67,8 @@ bool Work_buffers_resize(Work_buffers* buffers, int32_t new_size);
 /**
  * Get a mutable Work buffer.
  *
- * \param buffers     The Work buffers -- must not be \c NULL.
+ * \param buffers     The Work buffers -- must not be \c NULL and must have
+ *                    non-zero buffer size.
  * \param type        The Work buffer type -- must be valid.
  * \param sub_count   The number of interleaved areas inside the buffer --
  *                    must be >= \c 1, <= \c WORK_BUFFER_SUB_COUNT_MAX and a
@@ -85,7 +88,8 @@ Work_buffer* Work_buffers_get_buffer_mut(
  * This is a convenience function that uses \a Work_buffer_get_contents_mut
  * directly.
  *
- * \param buffers   The Work buffers -- must not be \c NULL.
+ * \param buffers   The Work buffers -- must not be \c NULL and must have
+ *                  non-zero buffer size.
  * \param type      The Work buffer type -- must be valid.
  *
  * \return   The address of the internal buffer, with a valid index range of
@@ -102,7 +106,8 @@ float* Work_buffers_get_buffer_contents_mut(
  * This is a convenience function that uses \a Work_buffer_get_contents_int_mut
  * directly.
  *
- * \param buffers   The Work buffers -- must not be \c NULL.
+ * \param buffers   The Work buffers -- must not be \c NULL and must have
+ *                  non-zero buffer size.
  * \param type      The Work buffer type -- must be valid.
  *
  * \return   The address of the internal buffer, with a valid index range of

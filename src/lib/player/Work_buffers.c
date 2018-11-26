@@ -44,13 +44,16 @@ Work_buffers* new_Work_buffers(int32_t buf_size)
         buffers->buffers[i] = NULL;
 
     // Allocate buffers
-    for (int i = 0; i < WORK_BUFFER_COUNT_; ++i)
+    if (buf_size > 0)
     {
-        buffers->buffers[i] = new_Work_buffer(buf_size, WORK_BUFFER_SUB_COUNT_MAX);
-        if (buffers->buffers[i] == NULL)
+        for (int i = 0; i < WORK_BUFFER_COUNT_; ++i)
         {
-            del_Work_buffers(buffers);
-            return NULL;
+            buffers->buffers[i] = new_Work_buffer(buf_size, WORK_BUFFER_SUB_COUNT_MAX);
+            if (buffers->buffers[i] == NULL)
+            {
+                del_Work_buffers(buffers);
+                return NULL;
+            }
         }
     }
 
@@ -66,8 +69,17 @@ bool Work_buffers_resize(Work_buffers* buffers, int32_t new_size)
 
     for (int i = 0; i < WORK_BUFFER_COUNT_; ++i)
     {
-        if (!Work_buffer_resize(buffers->buffers[i], new_size))
-            return false;
+        if (buffers->buffers[i] == NULL)
+        {
+            buffers->buffers[i] = new_Work_buffer(new_size, WORK_BUFFER_SUB_COUNT_MAX);
+            if (buffers->buffers[i] == NULL)
+                return false;
+        }
+        else
+        {
+            if (!Work_buffer_resize(buffers->buffers[i], new_size))
+                return false;
+        }
     }
 
     return true;
@@ -84,6 +96,7 @@ Work_buffer* Work_buffers_get_buffer_mut(
     rassert(is_p2(sub_count));
 
     Work_buffer* buffer = buffers->buffers[type];
+    rassert(buffer != NULL);
     Work_buffer_set_sub_count(buffer, sub_count);
 
     return buffer;
@@ -97,6 +110,7 @@ float* Work_buffers_get_buffer_contents_mut(
     rassert(type < WORK_BUFFER_COUNT_);
 
     Work_buffer* buffer = Work_buffers_get_buffer_mut(buffers, type, 1);
+    rassert(buffer != NULL);
 
     return Work_buffer_get_contents_mut(buffer, 0);
 }
@@ -107,6 +121,8 @@ int32_t* Work_buffers_get_buffer_contents_int_mut(
 {
     rassert(buffers != NULL);
     rassert(type < WORK_BUFFER_COUNT_);
+
+    rassert(buffers->buffers[type] != NULL);
 
     return Work_buffer_get_contents_int_mut(buffers->buffers[type], 0);
 }

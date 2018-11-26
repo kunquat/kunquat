@@ -43,7 +43,7 @@ static void Work_buffer_mark_invalid(Work_buffer* buffer, int sub_index)
 
 Work_buffer* new_Work_buffer(int32_t size, int sub_count)
 {
-    rassert(size >= 0);
+    rassert(size > 0);
     rassert(size <= WORK_BUFFER_SIZE_MAX);
     rassert(sub_count >= 1);
     rassert(sub_count <= WORK_BUFFER_SUB_COUNT_MAX);
@@ -65,22 +65,19 @@ Work_buffer* new_Work_buffer(int32_t size, int sub_count)
     }
     buffer->contents = NULL;
 
-    if (buffer->size > 0)
+    // Allocate buffers
+    const int32_t actual_size = size + 2;
+    buffer->contents = memory_alloc_items_aligned(
+            char, actual_size * sub_count * WORK_BUFFER_ELEM_SIZE, 64);
+    if (buffer->contents == NULL)
     {
-        // Allocate buffers
-        const int32_t actual_size = size + 2;
-        buffer->contents = memory_alloc_items_aligned(
-                char, actual_size * sub_count * WORK_BUFFER_ELEM_SIZE, 64);
-        if (buffer->contents == NULL)
-        {
-            del_Work_buffer(buffer);
-            return NULL;
-        }
-
-        float* contents = buffer->contents;
-        for (int32_t i = 0; i < actual_size * sub_count; ++i)
-            contents[i] = 0;
+        del_Work_buffer(buffer);
+        return NULL;
     }
+
+    float* contents = buffer->contents;
+    for (int32_t i = 0; i < actual_size * sub_count; ++i)
+        contents[i] = 0;
 
     return buffer;
 }
@@ -156,16 +153,8 @@ bool Work_buffer_is_valid(const Work_buffer* buffer, int sub_index)
 bool Work_buffer_resize(Work_buffer* buffer, int32_t new_size)
 {
     rassert(buffer != NULL);
-    rassert(new_size >= 0);
+    rassert(new_size > 0);
     rassert(new_size <= WORK_BUFFER_SIZE_MAX);
-
-    if (new_size == 0)
-    {
-        buffer->size = new_size;
-        memory_free_aligned(buffer->contents);
-        buffer->contents = NULL;
-        return true;
-    }
 
     const int32_t actual_size = new_size + 2;
     char* new_contents = memory_alloc_items_aligned(

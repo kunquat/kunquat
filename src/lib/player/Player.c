@@ -288,11 +288,14 @@ static bool Player_thread_params_create_buffers(
     }
 
     rassert(tp->test_voice_output == NULL);
-    tp->test_voice_output = new_Work_buffer(audio_buffer_size, 2);
-    if (tp->test_voice_output == NULL)
+    if (audio_buffer_size > 0)
     {
-        Player_thread_params_deinit(tp);
-        return false;
+        tp->test_voice_output = new_Work_buffer(audio_buffer_size, 2);
+        if (tp->test_voice_output == NULL)
+        {
+            Player_thread_params_deinit(tp);
+            return false;
+        }
     }
 
     return true;

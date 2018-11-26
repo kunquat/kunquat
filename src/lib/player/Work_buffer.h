@@ -34,7 +34,7 @@
 /**
  * Create a new Work buffer.
  *
- * \param size        The buffer size -- must be >= \c 0 and
+ * \param size        The buffer size -- must be > \c 0 and
  *                    <= \c WORK_BUFFER_SIZE_MAX.
  * \param sub_count   The number of interleaved areas in the Work buffer --
  *                    must be >= \c 1, <= \c WORK_BUFFER_SUB_COUNT_MAX
@@ -73,7 +73,7 @@ void Work_buffer_init_with_memory(
  * Resize the Work buffer.
  *
  * \param buffer     The Work buffer -- must not be \c NULL.
- * \param new_size   The new buffer size -- must be >= \c 0 and
+ * \param new_size   The new buffer size -- must be > \c 0 and
  *                   <= \c WORK_BUFFER_SIZE_MAX.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
