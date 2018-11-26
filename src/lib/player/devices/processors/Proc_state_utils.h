@@ -60,20 +60,16 @@ Work_buffer* Proc_get_voice_output_2ch(
  * This function should be called by processor implementations (that need it)
  * before returning from their process function.
  *
- * \param vstate       The Voice state -- must not be \c NULL.
- * \param buf_count    The number of output buffers -- must be > \c 0.
- * \param out_bufs     The signal output buffers -- must not be \c NULL and
- *                     must contain at least \a buf_count buffers.
- * \param buf_start    The start index of the buffer area to be processed.
- * \param buf_stop     The stop index of the buffer area to be processed.
- * \param audio_rate   The audio rate -- must be positive.
+ * \param vstate        The Voice state -- must not be \c NULL.
+ * \param out_wb        The output Work buffer -- must not be \c NULL and must
+ *                      contain either 1 or 2 interleaved areas.
+ * \param frame_count   Number of frames to be processed -- must be > \c 0.
+ * \param audio_rate    The audio rate -- must be positive.
  */
 void Proc_ramp_attack(
         Voice_state* vstate,
-        int buf_count,
-        float* out_bufs[buf_count],
-        int32_t buf_start,
-        int32_t buf_stop,
+        Work_buffer* out_wb,
+        int32_t frame_count,
         int32_t audio_rate);
 
 

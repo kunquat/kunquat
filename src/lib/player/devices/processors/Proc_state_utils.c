@@ -188,22 +188,42 @@ Work_buffer* Proc_get_voice_output_2ch(
 
 void Proc_ramp_attack(
         Voice_state* vstate,
-        int buf_count,
-        float* out_bufs[buf_count],
-        int32_t buf_start,
-        int32_t buf_stop,
+        Work_buffer* out_wb,
+        int32_t frame_count,
         int32_t audio_rate)
 {
     rassert(vstate != NULL);
-    rassert(buf_count > 0);
-    rassert(out_bufs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
+    rassert(out_wb != NULL);
+    rassert(Work_buffer_get_sub_count(out_wb) <= 2);
+    rassert(frame_count > 0);
     rassert(audio_rate > 0);
 
-    const float start_ramp_attack = (float)vstate->ramp_attack;
+    float ramp_attack = (float)vstate->ramp_attack;
     const float inc = (float)(RAMP_ATTACK_TIME / audio_rate);
 
+    float* out = Work_buffer_get_contents_mut(out_wb, 0);
+
+    if (Work_buffer_get_sub_count(out_wb) == 1)
+    {
+        for (int32_t i = 0; (i < frame_count) && (ramp_attack < 1); ++i)
+        {
+            *out++ *= ramp_attack;
+            ramp_attack += inc;
+        }
+    }
+    else
+    {
+        for (int32_t i = 0; (i < frame_count) && (ramp_attack < 1); ++i)
+        {
+            *out++ *= ramp_attack;
+            *out++ *= ramp_attack;
+            ramp_attack += inc;
+        }
+    }
+
+    vstate->ramp_attack = ramp_attack;
+
+#if 0
     for (int ch = 0; ch < buf_count; ++ch)
     {
         if (out_bufs[ch] == NULL)
@@ -219,6 +239,7 @@ void Proc_ramp_attack(
 
         vstate->ramp_attack = ramp_attack;
     }
+#endif
 
     return;
 }

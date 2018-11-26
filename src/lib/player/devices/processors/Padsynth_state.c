@@ -29,6 +29,26 @@
 #include <stdlib.h>
 
 
+void Padsynth_get_port_groups(
+        const Device_impl* dimpl, Device_port_type port_type, Device_port_groups groups)
+{
+    rassert(dimpl != NULL);
+    rassert(groups != NULL);
+
+    switch (port_type)
+    {
+        case DEVICE_PORT_TYPE_RECV: Device_port_groups_init(groups, 0); break;
+
+        case DEVICE_PORT_TYPE_SEND: Device_port_groups_init(groups, 2, 0); break;
+
+        default:
+            rassert(false);
+    }
+
+    return;
+}
+
+
 typedef struct Padsynth_vstate
 {
     Voice_state parent;
@@ -126,14 +146,8 @@ int32_t Padsynth_vstate_render_voice(
     const float* scales = Work_buffer_get_contents(scales_wb, 0);
 
     // Get output buffer for writing
-    float* out_bufs[2] = { NULL };
-    for (int ch = 0; ch < 2; ++ch)
-    {
-        Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
-        if (out_wb != NULL)
-            out_bufs[ch] = Work_buffer_get_contents_mut(out_wb, 0);
-    }
+    Work_buffer* out_wb = Proc_get_voice_output_2ch(proc_ts, PORT_OUT_AUDIO_L);
+    rassert(out_wb != NULL);
 
     // Choose our sample
     const Padsynth_sample_entry* entry =
@@ -150,11 +164,58 @@ int32_t Padsynth_vstate_render_voice(
     const int32_t sample_rate = PADSYNTH_DEFAULT_AUDIO_RATE;
     const double sample_freq = cents_to_Hz(entry->centre_pitch);
 
-    const double audio_rate = dstate->audio_rate;
+    const double rel_sample_rate = sample_rate / dstate->audio_rate;
 
     const double init_pos = fmod(ps_vstate->pos, length); // the length may have changed
-    bool is_state_pos_updated = false;
+    //bool is_state_pos_updated = false;
 
+    double pos[2] = { init_pos, init_pos };
+    if (ps->is_stereo_enabled)
+    {
+        pos[1] += (length / 2);
+        if (pos[1] >= length)
+            pos[1] -= length;
+    }
+
+    float* out = Work_buffer_get_contents_mut(out_wb, 0);
+
+    for (int32_t i = 0; i < frame_count; ++i)
+    {
+        const float freq = freqs[i];
+        const float scale = scales[i];
+
+        const double rel_freq = freq / sample_freq;
+
+        for (int ch = 0; ch < 2; ++ch)
+        {
+            double pos_ch = pos[ch];
+
+            const int32_t pos1 = (int32_t)pos_ch;
+            const int32_t pos2 = pos1 + 1;
+            const double lerp_val = pos_ch - floor(pos_ch);
+
+            const float item1 = sample_buf[pos1];
+            const float item2 = sample_buf[pos2];
+            const float value = (float)lerp(item1, item2, lerp_val);
+
+            *out++ = value * scale;
+
+            pos_ch += rel_freq * rel_sample_rate;
+            if (pos_ch >= length)
+            {
+                pos_ch -= length;
+
+                if (pos_ch >= length)
+                    pos_ch = pos[ch]; // the pitch is insane, so skip updating
+            }
+
+            pos[ch] = pos_ch;
+        }
+    }
+
+    ps_vstate->pos = pos[0];
+
+#if 0
     for (int32_t ch = 0; ch < 2; ++ch)
     {
         float* out_buf = out_bufs[ch];
@@ -196,10 +257,10 @@ int32_t Padsynth_vstate_render_voice(
             is_state_pos_updated = true;
         }
     }
-
+#endif
 
     if (ps->is_ramp_attack_enabled)
-        Proc_ramp_attack(vstate, 2, out_bufs, 0, frame_count, dstate->audio_rate);
+        Proc_ramp_attack(vstate, out_wb, frame_count, dstate->audio_rate);
 
     return frame_count;
 }

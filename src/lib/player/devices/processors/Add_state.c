@@ -28,6 +28,28 @@
 #include <stdlib.h>
 
 
+void Add_get_port_groups(
+        const Device_impl* dimpl, Device_port_type port_type, Device_port_groups groups)
+{
+    rassert(dimpl != NULL);
+    rassert(groups != NULL);
+
+    // So far, the vast majority of use cases for this processor are using one channel,
+    // so it's probably more fruitful to optimise for multiple harmonics instead
+    switch (port_type)
+    {
+        case DEVICE_PORT_TYPE_RECV: Device_port_groups_init(groups, 0); break;
+
+        case DEVICE_PORT_TYPE_SEND: Device_port_groups_init(groups, 0); break;
+
+        default:
+            rassert(false);
+    }
+
+    return;
+}
+
+
 typedef struct Add_tone_state
 {
     double phase[2];
@@ -125,6 +147,7 @@ int32_t Add_vstate_render_voice(
     const float* scales = Work_buffer_get_contents(scales_wb, 0);
 
     // Get output buffer for writing
+    Work_buffer* out_wbs[2] = { NULL };
     float* out_bufs[2] = { NULL };
     for (int ch = 0; ch < 2; ++ch)
     {
@@ -135,6 +158,8 @@ int32_t Add_vstate_render_voice(
             float* out_buf = Work_buffer_get_contents_mut(out_wb, 0);
             for (int32_t i = 0; i < frame_count; ++i)
                 out_buf[i] = 0;
+
+            out_wbs[ch] = out_wb;
             out_bufs[ch] = out_buf;
         }
     }
@@ -288,7 +313,17 @@ int32_t Add_vstate_render_voice(
     }
 
     if (add->is_ramp_attack_enabled)
-        Proc_ramp_attack(vstate, 2, out_bufs, 0, frame_count, dstate->audio_rate);
+    {
+        const double orig_ramp_attack = vstate->ramp_attack; // TODO: clean up
+        if (out_wbs[0] != NULL)
+            Proc_ramp_attack(vstate, out_wbs[0], frame_count, dstate->audio_rate);
+
+        if (out_wbs[1] != NULL)
+        {
+            vstate->ramp_attack = orig_ramp_attack;
+            Proc_ramp_attack(vstate, out_wbs[1], frame_count, dstate->audio_rate);
+        }
+    }
 
     return frame_count;
 }
