@@ -318,8 +318,7 @@ static void Freeverb_pstate_render_mixed(
         }
     }
 
-    Work_buffer* out_wb =
-        Proc_get_mixed_output_2ch(proc_ts, PORT_OUT_AUDIO_L, 0, frame_count);
+    Work_buffer* out_wb = Proc_get_mixed_output_2ch(proc_ts, PORT_OUT_AUDIO_L);
 
     // Apply reverb
     {

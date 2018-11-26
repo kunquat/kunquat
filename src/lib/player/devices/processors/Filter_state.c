@@ -373,11 +373,10 @@ static void Filter_pstate_render_mixed(
 
     // Get audio buffers
     Work_buffer* in_wb =
-        Proc_get_mixed_input_2ch(proc_ts, PORT_IN_AUDIO_L, 0, frame_count);
+        Proc_get_mixed_input_2ch(proc_ts, PORT_IN_AUDIO_L, frame_count);
 
     // Get output
-    Work_buffer* out_wb =
-        Proc_get_mixed_output_2ch(proc_ts, PORT_OUT_AUDIO_L, 0, frame_count);
+    Work_buffer* out_wb = Proc_get_mixed_output_2ch(proc_ts, PORT_OUT_AUDIO_L);
 
     const Proc_filter* filter = (const Proc_filter*)dstate->device->dimpl;
 
@@ -463,11 +462,10 @@ int32_t Filter_vstate_render_voice(
 
     // Get input
     Work_buffer* in_wb =
-        Proc_get_voice_input_2ch(proc_ts, PORT_IN_AUDIO_L, 0, frame_count);
+        Proc_get_voice_input_2ch(proc_ts, PORT_IN_AUDIO_L, frame_count);
 
     // Get output
-    Work_buffer* out_wb =
-        Proc_get_voice_output_2ch(proc_ts, PORT_OUT_AUDIO_L, 0, frame_count);
+    Work_buffer* out_wb = Proc_get_voice_output_2ch(proc_ts, PORT_OUT_AUDIO_L);
 
     const Device_state* dstate = (const Device_state*)proc_state;
     const Proc_filter* filter = (const Proc_filter*)dstate->device->dimpl;

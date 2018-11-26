@@ -151,7 +151,7 @@ static void Volume_pstate_render_mixed(
     float* in_buf = NULL;
     {
         Work_buffer* in_wb =
-            Proc_get_mixed_input_2ch(proc_ts, PORT_IN_AUDIO_L, 0, frame_count);
+            Proc_get_mixed_input_2ch(proc_ts, PORT_IN_AUDIO_L, frame_count);
         if (in_wb != NULL)
             in_buf = Work_buffer_get_contents_mut(in_wb, 0);
     }
@@ -159,8 +159,7 @@ static void Volume_pstate_render_mixed(
     // Get output
     float* out_buf = NULL;
     {
-        Work_buffer* out_wb =
-            Proc_get_mixed_output_2ch(proc_ts, PORT_OUT_AUDIO_L, 0, frame_count);
+        Work_buffer* out_wb = Proc_get_mixed_output_2ch(proc_ts, PORT_OUT_AUDIO_L);
         if (out_wb != NULL)
             out_buf = Work_buffer_get_contents_mut(out_wb, 0);
     }
@@ -243,7 +242,7 @@ int32_t Volume_vstate_render_voice(
     float* in_buf = NULL;
     {
         Work_buffer* in_wb =
-            Proc_get_voice_input_2ch(proc_ts, PORT_IN_AUDIO_L, 0, frame_count);
+            Proc_get_voice_input_2ch(proc_ts, PORT_IN_AUDIO_L, frame_count);
         if (in_wb != NULL)
             in_buf = Work_buffer_get_contents_mut(in_wb, 0);
     }
@@ -254,8 +253,7 @@ int32_t Volume_vstate_render_voice(
     // Get output
     float* out_buf = NULL;
     {
-        Work_buffer* out_wb =
-            Proc_get_voice_output_2ch(proc_ts, PORT_OUT_AUDIO_L, 0, frame_count);
+        Work_buffer* out_wb = Proc_get_voice_output_2ch(proc_ts, PORT_OUT_AUDIO_L);
         if (out_wb != NULL)
             out_buf = Work_buffer_get_contents_mut(out_wb, 0);
     }

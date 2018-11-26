@@ -39,31 +39,19 @@ Proc_state* new_Proc_state_default(
 
 
 Work_buffer* Proc_get_mixed_input_2ch(
-        const Device_thread_state* proc_ts,
-        int first_port,
-        int32_t buf_start,
-        int32_t buf_stop);
+        const Device_thread_state* proc_ts, int first_port, int32_t frame_count);
 
 
 Work_buffer* Proc_get_mixed_output_2ch(
-        const Device_thread_state* proc_ts,
-        int first_port,
-        int32_t buf_start,
-        int32_t buf_stop);
+        const Device_thread_state* proc_ts, int first_port);
 
 
 Work_buffer* Proc_get_voice_input_2ch(
-        const Device_thread_state* proc_ts,
-        int first_port,
-        int32_t buf_start,
-        int32_t buf_stop);
+        const Device_thread_state* proc_ts, int first_port, int32_t frame_count);
 
 
 Work_buffer* Proc_get_voice_output_2ch(
-        const Device_thread_state* proc_ts,
-        int first_port,
-        int32_t buf_start,
-        int32_t buf_stop);
+        const Device_thread_state* proc_ts, int first_port);
 
 
 /**
