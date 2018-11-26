@@ -168,7 +168,7 @@ static void Slope_pstate_render_mixed(
 
     Work_buffer* in_wb = Device_thread_state_get_mixed_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL, NULL);
-    if (in_wb == NULL)
+    if ((in_wb == NULL) || !Work_buffer_is_valid(in_wb, 0))
     {
         Work_buffer* fixed_in_wb =
             Work_buffers_get_buffer_mut(wbs, SLOPE_WB_FIXED_INPUT, 1);
@@ -286,7 +286,7 @@ int32_t Slope_vstate_render_voice(
 
     Work_buffer* in_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL, NULL);
-    if (in_wb == NULL)
+    if ((in_wb == NULL) || !Work_buffer_is_valid(in_wb, 0))
     {
         Work_buffer* fixed_in_wb =
             Work_buffers_get_buffer_mut(wbs, SLOPE_WB_FIXED_INPUT, 1);
