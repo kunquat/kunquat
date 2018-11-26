@@ -16,9 +16,12 @@
 #define KQT_MULT_STATE_H
 
 
+#include <init/devices/Device_impl.h>
 #include <player/devices/Device_state.h>
 #include <player/devices/Voice_state.h>
 
+
+Device_impl_get_port_groups_func Mult_get_port_groups;
 
 Device_state_create_func new_Mult_pstate;
 
