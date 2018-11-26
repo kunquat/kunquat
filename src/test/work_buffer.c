@@ -29,10 +29,10 @@ static const int sub_counts[SUB_COUNTS] = { 1, 2, 4 };
 
 static void fill_buffer_area(float* area_start, int sub_count)
 {
-    for (int i = -sub_count; i < (BUFFER_SIZE + 1) * sub_count; ++i)
+    for (int i = 0; i < BUFFER_SIZE * sub_count; ++i)
     {
-        const int sub_index = (i + sub_count) % sub_count;
-        area_start[i] = (float)(sub_index + (((i + sub_count) / sub_count) - 1) * 10);
+        const int sub_index = i % sub_count;
+        area_start[i] = (float)(sub_index + (i / sub_count) * 10);
     }
 
     return;
@@ -46,11 +46,11 @@ START_TEST(Initial_work_buffer_contains_silence)
     Work_buffer* buffer = new_Work_buffer(BUFFER_SIZE, sub_count);
     assert(buffer != NULL);
 
-    const float* contents_base = Work_buffer_get_contents(buffer, 0) - sub_count;
+    const float* contents = Work_buffer_get_contents(buffer, 0);
 
-    float expected[(BUFFER_SIZE + 2) * WORK_BUFFER_SUB_COUNT_MAX] = { 0 };
+    float expected[BUFFER_SIZE * WORK_BUFFER_SUB_COUNT_MAX] = { 0 };
 
-    check_buffers_equal(expected, contents_base, (BUFFER_SIZE + 2) * sub_count, 0);
+    check_buffers_equal(expected, contents, BUFFER_SIZE * sub_count, 0);
 
     del_Work_buffer(buffer);
 }
@@ -67,28 +67,27 @@ START_TEST(Work_buffer_gives_correct_subareas)
     const int stride = Work_buffer_get_stride(buffer);
     fail_if(stride != sub_count, "Incorrect stride %d, expected %d", stride, sub_count);
 
-    const float* contents_base = Work_buffer_get_contents(buffer, 0) - sub_count;
+    const float* contents = Work_buffer_get_contents(buffer, 0);
 
     for (int sub_index = 0; sub_index < sub_count; ++sub_index)
     {
-        float* write_pos = Work_buffer_get_contents_mut(buffer, sub_index) - sub_count;
-        const float* expected_start = contents_base + sub_index;
+        float* write_pos = Work_buffer_get_contents_mut(buffer, sub_index);
+        const float* expected_start = contents + sub_index;
         fail_if(write_pos != expected_start,
                 "Incorrect buffer area start at sub index %d: offset by %d",
                 sub_index, (int)(expected_start - write_pos));
 
-        for (int i = -1; i < BUFFER_SIZE + 1; ++i)
+        for (int i = 0; i < BUFFER_SIZE; ++i)
         {
             *write_pos = (float)(sub_index + i * 10);
             write_pos += stride;
         }
     }
 
-    float expected[(BUFFER_SIZE + 2) * WORK_BUFFER_SUB_COUNT_MAX] = { 0 };
-    float* expected_start = expected + sub_count;
-    fill_buffer_area(expected_start, sub_count);
+    float expected[BUFFER_SIZE * WORK_BUFFER_SUB_COUNT_MAX] = { 0 };
+    fill_buffer_area(expected, sub_count);
 
-    check_buffers_equal(expected, contents_base, (BUFFER_SIZE + 2) * sub_count, 0);
+    check_buffers_equal(expected, contents, BUFFER_SIZE * sub_count, 0);
 
     del_Work_buffer(buffer);
 }
@@ -102,25 +101,23 @@ START_TEST(Work_buffer_clears_correct_subarea)
     Work_buffer* buffer = new_Work_buffer(BUFFER_SIZE, sub_count);
     assert(buffer != NULL);
 
-    float expected[(BUFFER_SIZE + 2) * WORK_BUFFER_SUB_COUNT_MAX] = { 0 };
-    float* expected_start = expected + sub_count;
+    float expected[BUFFER_SIZE * WORK_BUFFER_SUB_COUNT_MAX] = { 0 };
 
     for (int sub_index = 0; sub_index < sub_count; ++sub_index)
     {
         float* contents = Work_buffer_get_contents_mut(buffer, 0);
-        float* contents_base = contents - sub_count;
         fill_buffer_area(contents, sub_count);
-        Work_buffer_clear(buffer, sub_index, -1, Work_buffer_get_size(buffer) + 1);
+        Work_buffer_clear(buffer, sub_index, 0, Work_buffer_get_size(buffer));
 
-        fill_buffer_area(expected_start, sub_count);
+        fill_buffer_area(expected, sub_count);
         float* expected_zero = expected + sub_index;
-        for (int i = -1; i < BUFFER_SIZE + 1; ++i)
+        for (int i = 0; i < BUFFER_SIZE; ++i)
         {
             *expected_zero = 0;
             expected_zero += sub_count;
         }
 
-        check_buffers_equal(expected, contents_base, (BUFFER_SIZE + 2) * sub_count, 0);
+        check_buffers_equal(expected, contents, BUFFER_SIZE * sub_count, 0);
     }
 
     del_Work_buffer(buffer);
@@ -137,32 +134,30 @@ START_TEST(Work_buffer_copies_correct_subarea)
     assert(dest != NULL);
     assert(src != NULL);
 
-    float expected[(BUFFER_SIZE + 2) * WORK_BUFFER_SUB_COUNT_MAX] = { 0 };
-    float* expected_start = expected + sub_count;
+    float expected[BUFFER_SIZE * WORK_BUFFER_SUB_COUNT_MAX] = { 0 };
 
     float* src_contents = Work_buffer_get_contents_mut(src, 0);
     fill_buffer_area(src_contents, sub_count);
 
-    const float* dest_contents_base = Work_buffer_get_contents(dest, 0) - sub_count;
+    const float* dest_contents = Work_buffer_get_contents(dest, 0);
 
     for (int sub_index = 0; sub_index < sub_count; ++sub_index)
     {
         for (int i = 0; i < sub_count; ++i)
-            Work_buffer_clear(dest, i, -1, Work_buffer_get_size(dest) + 1);
+            Work_buffer_clear(dest, i, 0, Work_buffer_get_size(dest));
 
         Work_buffer_copy(
-                dest, sub_index, src, sub_index, -1, Work_buffer_get_size(dest) + 1);
+                dest, sub_index, src, sub_index, 0, Work_buffer_get_size(dest));
 
-        fill_buffer_area(expected_start, sub_count);
-        for (int i = -sub_count; i < (BUFFER_SIZE + 1) * sub_count; ++i)
+        fill_buffer_area(expected, sub_count);
+        for (int i = 0; i < BUFFER_SIZE * sub_count; ++i)
         {
-            const int sub = (i + sub_count) % sub_count;
+            const int sub = i % sub_count;
             if (sub != sub_index)
-                expected_start[i] = 0;
+                expected[i] = 0;
         }
 
-        check_buffers_equal(
-                expected, dest_contents_base, (BUFFER_SIZE + 2) * sub_count, 0);
+        check_buffers_equal(expected, dest_contents, BUFFER_SIZE * sub_count, 0);
     }
 
     del_Work_buffer(dest);
@@ -180,35 +175,32 @@ START_TEST(Work_buffer_mixes_correct_subarea)
     assert(dest != NULL);
     assert(src != NULL);
 
-    float expected[(BUFFER_SIZE + 2) * WORK_BUFFER_SUB_COUNT_MAX] = { 0 };
-    float* expected_start = expected + sub_count;
+    float expected[BUFFER_SIZE * WORK_BUFFER_SUB_COUNT_MAX] = { 0 };
 
     float* src_contents = Work_buffer_get_contents_mut(src, 0);
     fill_buffer_area(src_contents, sub_count);
 
     float* dest_contents = Work_buffer_get_contents_mut(dest, 0);
-    const float* dest_contents_base = dest_contents - sub_count;
 
     for (int sub_index = 0; sub_index < sub_count; ++sub_index)
     {
-        for (int i = -sub_count; i < (BUFFER_SIZE + 1) * sub_count; ++i)
+        for (int i = 0; i < BUFFER_SIZE * sub_count; ++i)
             dest_contents[i] = 10000;
 
         Work_buffer_mix(
-                dest, sub_index, src, sub_index, -1, Work_buffer_get_size(dest) + 1);
+                dest, sub_index, src, sub_index, 0, Work_buffer_get_size(dest));
 
-        fill_buffer_area(expected_start, sub_count);
-        for (int i = -sub_count; i < (BUFFER_SIZE + 1) * sub_count; ++i)
+        fill_buffer_area(expected, sub_count);
+        for (int i = 0; i < BUFFER_SIZE * sub_count; ++i)
         {
-            const int sub = (i + sub_count) % sub_count;
+            const int sub = i % sub_count;
             if (sub == sub_index)
-                expected_start[i] += 10000;
+                expected[i] += 10000;
             else
-                expected_start[i] = 10000;
+                expected[i] = 10000;
         }
 
-        check_buffers_equal(
-                expected, dest_contents_base, (BUFFER_SIZE + 2) * sub_count, 0);
+        check_buffers_equal(expected, dest_contents, BUFFER_SIZE * sub_count, 0);
     }
 
     del_Work_buffer(dest);
