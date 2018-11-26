@@ -854,31 +854,8 @@ static void Player_process_voice_group(
                 frame_count,
                 player->master_params.tempo,
                 enable_mixing);
-        /*
-        const int32_t process_stop = Voice_group_render(
-                vgroup,
-                player->device_states,
-                tparams->thread_id,
-                conns,
-                tparams->work_buffers,
-                0,
-                frame_count,
-                player->audio_rate,
-                player->master_params.tempo);
-        */
 
         test_output_stop = process_stop;
-
-        /*
-        if (!is_muted && !use_test_output)
-            Voice_group_mix(
-                    vgroup,
-                    player->device_states,
-                    tparams->thread_id,
-                    conns,
-                    0,
-                    process_stop);
-        */
 
         if (process_stop < frame_count)
             Voice_group_deactivate_all(vgroup);
@@ -942,30 +919,6 @@ static void Player_process_voice_group(
                         test_output_stop);
             }
         }
-
-#if 0
-        const Work_buffer* in_wbs[TEST_VOICE_OUTPUTS_MAX] =
-        {
-            Device_thread_state_get_voice_buffer(test_ts, DEVICE_PORT_TYPE_SEND, 0),
-            Device_thread_state_get_voice_buffer(test_ts, DEVICE_PORT_TYPE_SEND, 1),
-        };
-
-        if ((in_wbs[0] != NULL) || (in_wbs[1] != NULL))
-        {
-            if (in_wbs[0] == NULL)
-                in_wbs[0] = in_wbs[1];
-            else if (in_wbs[1] == NULL)
-                in_wbs[1] = in_wbs[0];
-
-            for (int port = 0; port < TEST_VOICE_OUTPUTS_MAX; ++port)
-                Work_buffer_mix(
-                        tparams->test_voice_outputs[port],
-                        0,
-                        in_wbs[port],
-                        0,
-                        0, test_output_stop);
-        }
-#endif
     }
 
     return;
@@ -1586,36 +1539,6 @@ void Player_play(Player* player, int32_t nframes)
 
         rendered += to_be_rendered;
     }
-
-#if 0
-    // Apply global parameters to the mixed signal
-    {
-        // Note: we only access as many ports as we can output
-        for (int32_t port = 0; port < KQT_BUFFERS_MAX; ++port)
-        {
-            float* out_buf = player->audio_buffers[port];
-
-            Work_buffer* buffer = Device_thread_state_get_mixed_buffer(
-                    master_ts, DEVICE_PORT_TYPE_RECV, port);
-
-            if (buffer != NULL)
-            {
-                // Apply render volume
-                const float* buf = Work_buffer_get_contents(buffer, 0);
-
-                const float mix_vol = (float)player->module->mix_vol;
-                for (int32_t i = 0; i < rendered; ++i)
-                    out_buf[i] = buf[i] * mix_vol;
-            }
-            else
-            {
-                // Fill with zeroes if we haven't produced any sound
-                for (int32_t i = 0; i < rendered; ++i)
-                    player->audio_buffers[port][i] = 0;
-            }
-        }
-    }
-#endif
 
     player->audio_frames_available = rendered;
 
