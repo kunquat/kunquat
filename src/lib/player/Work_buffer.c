@@ -78,7 +78,7 @@ Work_buffer* new_Work_buffer(int32_t size, int sub_count)
         }
 
         float* contents = buffer->contents;
-        for (int32_t i = 0; i < actual_size; ++i)
+        for (int32_t i = 0; i < actual_size * sub_count; ++i)
             contents[i] = 0;
     }
 
