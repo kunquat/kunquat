@@ -150,19 +150,18 @@ void Device_state_render_mixed(
         Device_state* ds,
         Device_thread_state* ts,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(ds != NULL);
     rassert(ts != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
+    rassert(frame_count >= 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
     if (Device_get_mixed_signals(ds->device) && (ds->render_mixed != NULL))
-        ds->render_mixed(ds, ts, wbs, buf_start, buf_stop, tempo);
+        ds->render_mixed(ds, ts, wbs, 0, frame_count, tempo);
 
     return;
 }

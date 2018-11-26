@@ -169,20 +169,18 @@ void Device_state_reset(Device_state* ds);
 /**
  * Render mixed signal in the Device state.
  *
- * \param ds          The Device state -- must not be \c NULL.
- * \param ts          The Device thread state -- must not be \c NULL.
- * \param wbs         The Work buffers -- must not be \c NULL.
- * \param buf_start   The start index of rendering -- must be >= \c 0.
- * \param buf_stop    The stop index of rendering -- must be less than or equal
- *                    to the audio buffer size.
- * \param tempo       The current tempo -- must be finite and > \c 0.
+ * \param ds            The Device state -- must not be \c NULL.
+ * \param ts            The Device thread state -- must not be \c NULL.
+ * \param wbs           The Work buffers -- must not be \c NULL.
+ * \param frame_count   Number of frames to be processed -- must be less than or equal
+ *                      to the audio buffer size.
+ * \param tempo         The current tempo -- must be finite and > \c 0.
  */
 void Device_state_render_mixed(
         Device_state* ds,
         Device_thread_state* ts,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo);
 
 

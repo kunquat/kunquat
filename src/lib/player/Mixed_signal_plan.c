@@ -274,7 +274,7 @@ static void Mixed_signal_task_info_execute(
     Device_thread_state* target_ts =
         Device_states_get_thread_state(dstates, 0, task_info->device_id);
     Device_state* target_dstate = Device_states_get_state(dstates, task_info->device_id);
-    Device_state_render_mixed(target_dstate, target_ts, wbs, 0, frame_count, tempo);
+    Device_state_render_mixed(target_dstate, target_ts, wbs, frame_count, tempo);
 
     return;
 }
