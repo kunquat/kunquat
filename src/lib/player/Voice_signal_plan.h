@@ -45,17 +45,15 @@ Voice_signal_plan* new_Voice_signal_plan(
  * \param thread_id       The ID of the rendering thread -- must be valid.
  * \param vgroup          The Voice group -- must not be \c NULL.
  * \param wbs             The Work buffers -- must not be \c NULL.
- * \param buf_start       The start index of buffer areas to be processed
- *                        -- must be less than the buffer size.
- * \param buf_stop        The stop index of buffer areas to be processed
- *                        -- must not be greater than the buffer size.
+ * \param frame_count     Number of frames to be processed
+ *                        -- must be >= \c 0 and not greater than the buffer size.
  * \param tempo           The current tempo -- must be > \c 0.
  * \param enable_mixing   \c true if voice signals should be added to mixed
  *                        outputs, otherwise \c false.
  *
  * \return   The stop index of complete frames rendered to voice buffers. This
- *           is always within range [\a buf_start, \a buf_stop]. If the stop
- *           index is < \a buf_stop, the note has ended.
+ *           is always <= \a frame_count. If the stop index is < \a frame_count,
+ *           the note has ended.
  */
 int32_t Voice_signal_plan_execute(
         Voice_signal_plan* plan,
@@ -63,8 +61,7 @@ int32_t Voice_signal_plan_execute(
         int thread_id,
         Voice_group* vgroup,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo,
         bool enable_mixing);
 

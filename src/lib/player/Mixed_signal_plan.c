@@ -231,15 +231,13 @@ static void Mixed_signal_task_info_execute(
         const Mixed_signal_task_info* task_info,
         Device_states* dstates,
         Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(task_info != NULL);
     rassert(dstates != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= buf_start);
+    rassert(frame_count >= 0);
     rassert(tempo > 0);
 
     if (task_info->container_id != 0)
@@ -256,7 +254,7 @@ static void Mixed_signal_task_info_execute(
                 {
                     const Work_buffer_conn_rules* rules =
                         Vector_get_ref(task_info->bypass_conns, i);
-                    Work_buffer_conn_rules_mix(rules, buf_start, buf_stop);
+                    Work_buffer_conn_rules_mix(rules, 0, frame_count);
                 }
             }
             //fflush(stdout);
@@ -269,14 +267,14 @@ static void Mixed_signal_task_info_execute(
     for (int i = 0; i < Vector_size(task_info->conns); ++i)
     {
         const Work_buffer_conn_rules* rules = Vector_get_ref(task_info->conns, i);
-        Work_buffer_conn_rules_mix(rules, buf_start, buf_stop);
+        Work_buffer_conn_rules_mix(rules, 0, frame_count);
     }
 
     // Process current device state
     Device_thread_state* target_ts =
         Device_states_get_thread_state(dstates, 0, task_info->device_id);
     Device_state* target_dstate = Device_states_get_state(dstates, task_info->device_id);
-    Device_state_render_mixed(target_dstate, target_ts, wbs, buf_start, buf_stop, tempo);
+    Device_state_render_mixed(target_dstate, target_ts, wbs, 0, frame_count, tempo);
 
     return;
 }
@@ -809,15 +807,13 @@ bool Mixed_signal_plan_execute_next_task(
         Mixed_signal_plan* plan,
         int level_index,
         Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(plan != NULL);
     rassert(level_index >= 0);
     rassert(level_index < plan->level_count);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= buf_start);
+    rassert(frame_count >= 0);
     rassert(tempo > 0);
 
     Mutex_lock(&plan->iter_lock);
@@ -855,8 +851,7 @@ bool Mixed_signal_plan_execute_next_task(
     // Iterators are now updated for the next caller
     Mutex_unlock(&plan->iter_lock);
 
-    Mixed_signal_task_info_execute(
-            task_info, plan->dstates, wbs, buf_start, buf_stop, tempo);
+    Mixed_signal_task_info_execute(task_info, plan->dstates, wbs, frame_count, tempo);
 
     return any_tasks_left_this_level;
 }
@@ -866,14 +861,12 @@ bool Mixed_signal_plan_execute_next_task(
 void Mixed_signal_plan_execute_all_tasks(
         Mixed_signal_plan* plan,
         Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(plan != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop > buf_start);
+    rassert(frame_count >= 0);
     rassert(tempo > 0);
 
     for (int level_index = plan->level_count - 1; level_index >= 0; --level_index)
@@ -888,7 +881,7 @@ void Mixed_signal_plan_execute_all_tasks(
             rassert(task_info != NULL);
 
             Mixed_signal_task_info_execute(
-                    task_info, plan->dstates, wbs, buf_start, buf_stop, tempo);
+                    task_info, plan->dstates, wbs, frame_count, tempo);
         }
     }
 

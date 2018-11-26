@@ -851,7 +851,6 @@ static void Player_process_voice_group(
                 tparams->thread_id,
                 vgroup,
                 tparams->work_buffers,
-                0,
                 frame_count,
                 player->master_params.tempo,
                 enable_mixing);
@@ -1015,7 +1014,6 @@ static void Player_execute_mixed_signal_tasks_synced(
                 player->mixed_signal_plan,
                 level_index,
                 tparams->work_buffers,
-                0,
                 frame_count,
                 player->master_params.tempo))
             ;
@@ -1195,7 +1193,6 @@ static void Player_process_mixed_signals(Player* player, int32_t frame_count)
             Mixed_signal_plan_execute_all_tasks(
                     player->mixed_signal_plan,
                     player->thread_params[0].work_buffers,
-                    0,
                     frame_count,
                     player->master_params.tempo);
         }

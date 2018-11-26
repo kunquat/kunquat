@@ -131,18 +131,16 @@ static void Voice_signal_task_info_invalidate_buffers(
         const Voice_signal_task_info* task_info,
         Device_states* dstates,
         int thread_id,
-        int32_t buf_start,
-        int32_t buf_stop)
+        int32_t frame_count)
 {
     rassert(task_info != NULL);
     rassert(thread_id >= 0);
     rassert(thread_id < KQT_THREADS_MAX);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= buf_start);
+    rassert(frame_count >= 0);
 
     Device_thread_state* dev_ts =
         Device_states_get_thread_state(dstates, thread_id, task_info->device_id);
-    //Device_thread_state_clear_voice_buffers(dev_ts, buf_start, buf_stop);
+    //Device_thread_state_clear_voice_buffers(dev_ts, 0, frame_count);
     Device_thread_state_invalidate_voice_buffers(dev_ts);
 
     return;
@@ -155,8 +153,7 @@ static int32_t Voice_signal_task_info_execute(
         int thread_id,
         Voice_group* vgroup,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(task_info != NULL);
@@ -165,18 +162,17 @@ static int32_t Voice_signal_task_info_execute(
     rassert(thread_id < KQT_THREADS_MAX);
     rassert(vgroup != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= buf_start);
+    rassert(frame_count >= 0);
     rassert(tempo > 0);
 
     // Mix signals to input buffers
     for (int i = 0; i < Vector_size(task_info->conns); ++i)
     {
         const Work_buffer_conn_rules* rules = Vector_get_ref(task_info->conns, i);
-        Work_buffer_conn_rules_mix(rules, buf_start, buf_stop);
+        Work_buffer_conn_rules_mix(rules, 0, frame_count);
     }
 
-    int keep_alive_stop = buf_start;
+    int keep_alive_stop = 0;
 
     // Process current processor state
     {
@@ -201,8 +197,8 @@ static int32_t Voice_signal_task_info_execute(
                     dstates,
                     thread_id,
                     wbs,
-                    buf_start,
-                    buf_stop,
+                    0,
+                    frame_count,
                     tempo);
         }
     }
@@ -215,21 +211,19 @@ static void Voice_signal_task_info_mix(
         const Voice_signal_task_info* task_info,
         Device_states* dstates,
         int thread_id,
-        int32_t buf_start,
-        int32_t buf_stop)
+        int32_t frame_count)
 {
     rassert(task_info != NULL);
     rassert(dstates != NULL);
     rassert(thread_id >= 0);
     rassert(thread_id < KQT_THREADS_MAX);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= buf_start);
+    rassert(frame_count >= 0);
 
     if (task_info->is_connected_to_mixed)
     {
         Device_thread_state* dev_ts =
             Device_states_get_thread_state(dstates, thread_id, task_info->device_id);
-        Device_thread_state_mix_voice_signals(dev_ts, buf_start, buf_stop);
+        Device_thread_state_mix_voice_signals(dev_ts, 0, frame_count);
     }
 
     return;
@@ -539,8 +533,7 @@ int32_t Voice_signal_plan_execute(
         int thread_id,
         Voice_group* vgroup,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo,
         bool enable_mixing)
 {
@@ -550,11 +543,10 @@ int32_t Voice_signal_plan_execute(
     rassert(thread_id < KQT_THREADS_MAX);
     rassert(vgroup != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= buf_start);
+    rassert(frame_count >= 0);
     rassert(tempo > 0);
 
-    int32_t keep_alive_stop = buf_start;
+    int32_t keep_alive_stop = 0;
 
     Etable* tasks = plan->tasks[thread_id];
     rassert(tasks != NULL);
@@ -564,7 +556,7 @@ int32_t Voice_signal_plan_execute(
         const Voice_signal_task_info* task_info = Etable_get(tasks, i);
         rassert(task_info != NULL);
         Voice_signal_task_info_invalidate_buffers(
-                task_info, dstates, thread_id, buf_start, buf_stop);
+                task_info, dstates, thread_id, frame_count);
     }
 
     for (int i = 0; i < plan->task_count; ++i)
@@ -577,8 +569,7 @@ int32_t Voice_signal_plan_execute(
                 thread_id,
                 vgroup,
                 wbs,
-                buf_start,
-                buf_stop,
+                frame_count,
                 tempo);
 
         keep_alive_stop = max(keep_alive_stop, task_keep_alive_stop);
@@ -589,8 +580,7 @@ int32_t Voice_signal_plan_execute(
         for (int i = 0; i < plan->task_count; ++i)
         {
             const Voice_signal_task_info* task_info = Etable_get(tasks, i);
-            Voice_signal_task_info_mix(
-                    task_info, dstates, thread_id, buf_start, buf_stop);
+            Voice_signal_task_info_mix(task_info, dstates, thread_id, frame_count);
         }
     }
 
