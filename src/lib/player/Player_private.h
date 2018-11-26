@@ -69,8 +69,7 @@ struct Player
     bool ok_to_start;
     bool early_exit_threads;
     bool stop_threads;
-    int32_t render_start;
-    int32_t render_stop;
+    int32_t render_frame_count;
 
     Device_states* device_states;
     Env_state*     estate;
