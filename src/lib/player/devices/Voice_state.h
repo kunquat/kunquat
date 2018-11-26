@@ -122,16 +122,15 @@ Voice_state* Voice_state_clear(Voice_state* state);
 /**
  * Render voice signal with the Voice state.
  *
- * \param vstate       The Voice state, or \c NULL if the associated processor
- *                     has a stateless voice processing function.
- * \param proc_state   The Processor state -- must not be \c NULL.
- * \param proc_ts      The Device thread state -- must not be \c NULL.
- * \param au_state     The Audio unit state -- must not be \c NULL.
- * \param wbs          The Work buffers -- must not be \c NULL.
- * \param buf_start    The start index of rendering -- must be >= \c 0.
- * \param buf_stop     The stop index of rendering -- must be less than or equal
- *                     to the audio buffer size.
- * \param tempo        The current tempo -- must be finite and > \c 0.
+ * \param vstate        The Voice state, or \c NULL if the associated processor
+ *                      has a stateless voice processing function.
+ * \param proc_state    The Processor state -- must not be \c NULL.
+ * \param proc_ts       The Device thread state -- must not be \c NULL.
+ * \param au_state      The Audio unit state -- must not be \c NULL.
+ * \param wbs           The Work buffers -- must not be \c NULL.
+ * \param frame_count   Number of frames to be processed -- must be less than or equal
+ *                      to the audio buffer size.
+ * \param tempo         The current tempo -- must be finite and > \c 0.
  *
  * \return   The actual stop index of rendering. This is always within
  *           the interval [\a buf_start, \a buf_stop].
@@ -142,8 +141,7 @@ int32_t Voice_state_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo);
 
 

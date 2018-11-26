@@ -220,21 +220,19 @@ void Voice_reset(Voice* voice);
 /**
  * Render the Voice.
  *
- * \param voice        The Voice, or \c NULL if the associated Processor uses
- *                     stateless Voice rendering.
- * \param proc_id      The Processor ID -- must be valid.
- * \param dstates      The Device states -- must not be \c NULL.
- * \param thread_id    The ID of the thread accessing the Device state
- *                     -- must be a valid ID currently in use.
- * \param wbs          The Work buffers -- must not be \c NULL.
- * \param buf_start    The start index of the buffer area to be rendered.
- * \param buf_stop     The stop index of the buffer area to be rendered.
- * \param tempo        The current tempo -- must be > \c 0.
+ * \param voice         The Voice, or \c NULL if the associated Processor uses
+ *                      stateless Voice rendering.
+ * \param proc_id       The Processor ID -- must be valid.
+ * \param dstates       The Device states -- must not be \c NULL.
+ * \param thread_id     The ID of the thread accessing the Device state
+ *                      -- must be a valid ID currently in use.
+ * \param wbs           The Work buffers -- must not be \c NULL.
+ * \param frame_count   Number of frames to be rendered >= \c 0.
+ * \param tempo         The current tempo -- must be > \c 0.
  *
- * \return   The stop index for keeping the Voice alive. This is always within
- *           the range [\a buf_start, \a buf_stop]. If equal to \a buf_stop,
- *           the Voice processing may not have finished and therefore should be
- *           kept alive.
+ * \return   The stop index for keeping the Voice alive. This is always
+ *           <= \a frame_count]. If equal to \a frame_count, voice processing
+ *           may not have finished and therefore should be kept alive.
  */
 int32_t Voice_render(
         Voice* voice,
@@ -242,8 +240,7 @@ int32_t Voice_render(
         Device_states* dstates,
         int thread_id,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo);
 
 

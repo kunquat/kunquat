@@ -228,8 +228,7 @@ int32_t Voice_render(
         Device_states* dstates,
         int thread_id,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(implies(voice != NULL, voice->proc != NULL));
@@ -238,11 +237,10 @@ int32_t Voice_render(
     rassert(thread_id >= 0);
     rassert(thread_id < KQT_THREADS_MAX);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= buf_start);
+    rassert(frame_count >= 0);
 
     if ((voice != NULL) && (voice->prio == VOICE_PRIO_INACTIVE))
-        return buf_start;
+        return 0;
 
     Proc_state* pstate = (Proc_state*)Device_states_get_state(dstates, proc_id);
     const Processor* proc = (const Processor*)pstate->parent.device;
@@ -257,13 +255,14 @@ int32_t Voice_render(
         vstate->keep_alive_stop = 0;
 
     const int32_t process_stop = Voice_state_render_voice(
-            vstate, pstate, proc_ts, au_state, wbs, buf_start, buf_stop, tempo);
+            vstate, pstate, proc_ts, au_state, wbs, frame_count, tempo);
+    rassert(process_stop >= 0);
 
     // Make sure that the outputs are either fully valid or fully invalid
-    if (process_stop == buf_start)
+    if (process_stop == 0)
         Device_thread_state_invalidate_voice_outputs(proc_ts);
-    else if (process_stop < buf_stop)
-        Device_thread_state_clear_voice_outputs(proc_ts, process_stop, buf_stop);
+    else if (process_stop < frame_count)
+        Device_thread_state_clear_voice_outputs(proc_ts, process_stop, frame_count);
 
     int32_t keep_alive_stop = 0;
 
@@ -274,7 +273,7 @@ int32_t Voice_render(
         if (!voice->state->active)
         {
             Voice_reset(voice);
-            return buf_start;
+            return 0;
         }
 
         if (!voice->state->note_on)
@@ -283,7 +282,7 @@ int32_t Voice_render(
         keep_alive_stop = voice->state->keep_alive_stop;
     }
 
-    return clamp(keep_alive_stop, buf_start, buf_stop);
+    return min(keep_alive_stop, frame_count);
 }
 
 

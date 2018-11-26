@@ -197,7 +197,6 @@ static int32_t Voice_signal_task_info_execute(
                     dstates,
                     thread_id,
                     wbs,
-                    0,
                     frame_count,
                     tempo);
         }
