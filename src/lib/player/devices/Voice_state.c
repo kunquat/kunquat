@@ -173,7 +173,7 @@ int32_t Voice_state_render_voice(
 
     // Call the implementation
     const int32_t impl_rendered_count = dimpl->render_voice(
-            vstate, proc_state, proc_ts, au_state, wbs, 0, frame_count, tempo);
+            vstate, proc_state, proc_ts, au_state, wbs, frame_count, tempo);
     rassert(impl_rendered_count <= frame_count);
 
     return impl_rendered_count;

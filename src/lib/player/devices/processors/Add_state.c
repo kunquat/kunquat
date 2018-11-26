@@ -78,8 +78,7 @@ int32_t Add_vstate_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(vstate != NULL);
@@ -87,6 +86,7 @@ int32_t Add_vstate_render_voice(
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
+    rassert(frame_count > 0);
     rassert(tempo > 0);
 
     const Device_state* dstate = &proc_state->parent;
@@ -101,7 +101,7 @@ int32_t Add_vstate_render_voice(
     if ((freqs_wb == NULL) || !Work_buffer_is_valid(freqs_wb, 0))
         freqs_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_PITCH, 1);
 
-    Proc_fill_freq_buffer(freqs_wb, pitches_wb, buf_start, buf_stop);
+    Proc_fill_freq_buffer(freqs_wb, pitches_wb, 0, frame_count);
     const float* freqs = Work_buffer_get_contents(freqs_wb, 0);
 
     // Get volume scales
@@ -111,17 +111,17 @@ int32_t Add_vstate_render_voice(
     if ((dBs_wb != NULL) &&
             Work_buffer_is_valid(dBs_wb, 0) &&
             Work_buffer_is_final(dBs_wb, 0) &&
-            (Work_buffer_get_const_start(dBs_wb, 0) <= buf_start) &&
-            (Work_buffer_get_contents(dBs_wb, 0)[buf_start] == -INFINITY))
+            (Work_buffer_get_const_start(dBs_wb, 0) == 0) &&
+            (Work_buffer_get_contents(dBs_wb, 0)[0] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
         vstate->active = false;
-        return buf_start;
+        return 0;
     }
 
     if (scales_wb == NULL)
         scales_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_FORCE, 1);
-    Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);
+    Proc_fill_scale_buffer(scales_wb, dBs_wb, 0, frame_count);
     const float* scales = Work_buffer_get_contents(scales_wb, 0);
 
     // Get output buffer for writing
@@ -133,7 +133,7 @@ int32_t Add_vstate_render_voice(
         if (out_wb != NULL)
         {
             float* out_buf = Work_buffer_get_contents_mut(out_wb, 0);
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+            for (int32_t i = 0; i < frame_count; ++i)
                 out_buf[i] = 0;
             out_bufs[ch] = out_buf;
         }
@@ -154,7 +154,7 @@ int32_t Add_vstate_render_voice(
         {
             Work_buffer* zero_buf = Work_buffers_get_buffer_mut(
                     wbs, (Work_buffer_type)(ADD_WORK_BUFFER_MOD_L + ch), 1);
-            Work_buffer_clear(zero_buf, 0, buf_start, buf_stop);
+            Work_buffer_clear(zero_buf, 0, 0, frame_count);
             mod_wbs[ch] = zero_buf;
         }
     }
@@ -194,10 +194,10 @@ int32_t Add_vstate_render_voice(
 
             double phase = tone_state->phase[ch];
 
-            int32_t res_slice_start = buf_start;
-            while (res_slice_start < buf_stop)
+            int32_t res_slice_start = 0;
+            while (res_slice_start < frame_count)
             {
-                int32_t res_slice_stop = buf_stop;
+                int32_t res_slice_stop = frame_count;
 
                 // Get current pitch range
                 const float first_mod_shift =
@@ -288,9 +288,9 @@ int32_t Add_vstate_render_voice(
     }
 
     if (add->is_ramp_attack_enabled)
-        Proc_ramp_attack(vstate, 2, out_bufs, buf_start, buf_stop, dstate->audio_rate);
+        Proc_ramp_attack(vstate, 2, out_bufs, 0, frame_count, dstate->audio_rate);
 
-    return buf_stop;
+    return frame_count;
 }
 
 

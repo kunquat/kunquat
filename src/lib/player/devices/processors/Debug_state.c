@@ -50,8 +50,7 @@ int32_t Debug_vstate_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(vstate != NULL);
@@ -59,6 +58,7 @@ int32_t Debug_vstate_render_voice(
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
+    rassert(frame_count > 0);
     rassert(tempo > 0);
 
     const Processor* proc = (const Processor*)proc_state->parent.device;
@@ -89,41 +89,37 @@ int32_t Debug_vstate_render_voice(
     Proc_debug* debug = (Proc_debug*)proc->parent.dimpl;
     if (debug->single_pulse)
     {
-        if (buf_start < buf_stop)
+        if (vstate->pos == 1)
         {
-            if (vstate->pos == 1)
-            {
-                vstate->active = false;
-                return buf_start;
-            }
-
-            const float val = 1.0;
-            if (out_buffer != NULL)
-            {
-                out_buffer[buf_start * 2] = val;
-                out_buffer[buf_start * 2 + 1] = val;
-            }
-
-            // We want all single pulses to be included in test buffers,
-            // even if another voice replaces us in the channel foreground
-            Voice_state_set_keep_alive_stop(vstate, buf_start + 1);
-
-            vstate->pos = 1;
-
-            return buf_start + 1;
+            vstate->active = false;
+            return 0;
         }
-        return buf_start;
+
+        const float val = 1.0;
+        if (out_buffer != NULL)
+        {
+            out_buffer[0] = val;
+            out_buffer[1] = val;
+        }
+
+        // We want all single pulses to be included in test buffers,
+        // even if another voice replaces us in the channel foreground
+        Voice_state_set_keep_alive_stop(vstate, 1);
+
+        vstate->pos = 1;
+
+        return 1;
     }
 
     if ((vstate->pos >= 10) || (!vstate->note_on && vstate->noff_pos_rem >= 2))
     {
         vstate->active = false;
-        return buf_start;
+        return 0;
     }
 
     const int32_t audio_rate = proc_state->parent.audio_rate;
 
-    for (int32_t i = buf_start; i < buf_stop; ++i)
+    for (int32_t i = 0; i < frame_count; ++i)
     {
         const double freq = cents_to_Hz(
                 Cond_work_buffer_get_value(actual_pitches, i));
@@ -177,9 +173,9 @@ int32_t Debug_vstate_render_voice(
         }
     }
 
-    Voice_state_set_keep_alive_stop(vstate, buf_stop);
+    Voice_state_set_keep_alive_stop(vstate, frame_count);
 
-    return buf_stop;
+    return frame_count;
 }
 
 

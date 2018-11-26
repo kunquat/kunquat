@@ -60,8 +60,7 @@ static void get_scalars(
 static void apply_range(
         const Work_buffer* in_wb,
         Work_buffer* out_wb,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         float mul,
         float add,
         float min_val,
@@ -69,8 +68,7 @@ static void apply_range(
 {
     rassert(in_wb != NULL);
     rassert(out_wb != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop > buf_start);
+    rassert(frame_count > 0);
     rassert(isfinite(mul));
     rassert(isfinite(add));
     rassert(min_val < max_val);
@@ -78,18 +76,18 @@ static void apply_range(
     const float* in = Work_buffer_get_contents(in_wb, 0);
     float* out = Work_buffer_get_contents_mut(out_wb, 0);
 
-    for (int32_t i = buf_start; i < buf_stop; ++i)
+    for (int32_t i = 0; i < frame_count; ++i)
         out[i] = (mul * in[i]) + add;
 
     if (isfinite(min_val))
     {
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
             out[i] = max(out[i], min_val);
     }
 
     if (isfinite(max_val))
     {
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
             out[i] = min(out[i], max_val);
     }
 
@@ -101,13 +99,13 @@ static void Rangemap_pstate_render_mixed(
         Device_state* dstate,
         Device_thread_state* proc_ts,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(dstate != NULL);
     rassert(proc_ts != NULL);
     rassert(wbs != NULL);
+    rassert(frame_count > 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
@@ -142,7 +140,7 @@ static void Rangemap_pstate_render_mixed(
         if ((in_wb == NULL) || !Work_buffer_is_valid(in_wb, 0))
             continue;
 
-        apply_range(in_wb, out_wb, buf_start, buf_stop, mul, add, min_val, max_val);
+        apply_range(in_wb, out_wb, frame_count, mul, add, min_val, max_val);
     }
 
     return;
@@ -173,8 +171,7 @@ int32_t Rangemap_vstate_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(vstate == NULL);
@@ -182,8 +179,7 @@ int32_t Rangemap_vstate_render_voice(
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
+    rassert(frame_count > 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
@@ -219,10 +215,10 @@ int32_t Rangemap_vstate_render_voice(
         if ((in_wb == NULL) || !Work_buffer_is_valid(in_wb, 0))
             continue;
 
-        apply_range(in_wb, out_wb, buf_start, buf_stop, mul, add, min_val, max_val);
+        apply_range(in_wb, out_wb, frame_count, mul, add, min_val, max_val);
     }
 
-    return buf_stop;
+    return frame_count;
 }
 
 

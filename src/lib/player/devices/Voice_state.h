@@ -45,8 +45,7 @@ typedef int32_t Voice_state_render_voice_func(
         const Device_thread_state*,
         const Au_state*,
         const Work_buffers*,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo);
 
 
@@ -132,8 +131,7 @@ Voice_state* Voice_state_clear(Voice_state* state);
  *                      to the audio buffer size.
  * \param tempo         The current tempo -- must be finite and > \c 0.
  *
- * \return   The actual stop index of rendering. This is always within
- *           the interval [\a buf_start, \a buf_stop].
+ * \return   The actual stop index of rendering. This is always <= \a frame_count.
  */
 int32_t Voice_state_render_voice(
         Voice_state* vstate,

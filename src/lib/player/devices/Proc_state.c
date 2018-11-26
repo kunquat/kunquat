@@ -127,20 +127,19 @@ void Proc_state_render_mixed(
         Device_state* dstate,
         Device_thread_state* ts,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(dstate != NULL);
     rassert(ts != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
+    rassert(frame_count > 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
     Proc_state* proc_state = (Proc_state*)dstate;
     if (proc_state->render_mixed != NULL)
-        proc_state->render_mixed(dstate, ts, wbs, buf_start, buf_stop, tempo);
+        proc_state->render_mixed(dstate, ts, wbs, frame_count, tempo);
 
     return;
 }

@@ -70,8 +70,7 @@ int32_t Padsynth_vstate_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(vstate != NULL);
@@ -79,10 +78,8 @@ int32_t Padsynth_vstate_render_voice(
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
+    rassert(frame_count > 0);
     rassert(tempo > 0);
-
-    if (buf_start == buf_stop)
-        return buf_start;
 
     const Device_state* dstate = &proc_state->parent;
 
@@ -92,7 +89,7 @@ int32_t Padsynth_vstate_render_voice(
     if (ps->sample_map == NULL)
     {
         vstate->active = false;
-        return buf_start;
+        return 0;
     }
 
     // Get frequencies
@@ -102,11 +99,11 @@ int32_t Padsynth_vstate_render_voice(
 
     if (isnan(ps_vstate->init_pitch))
         ps_vstate->init_pitch = (pitches_wb != NULL)
-            ? Work_buffer_get_contents(pitches_wb, 0)[buf_start] : 0;
+            ? Work_buffer_get_contents(pitches_wb, 0)[0] : 0;
 
     if (freqs_wb == NULL)
         freqs_wb = Work_buffers_get_buffer_mut(wbs, PADSYNTH_WB_FIXED_PITCH, 1);
-    Proc_fill_freq_buffer(freqs_wb, pitches_wb, buf_start, buf_stop);
+    Proc_fill_freq_buffer(freqs_wb, pitches_wb, 0, frame_count);
     const float* freqs = Work_buffer_get_contents(freqs_wb, 0);
 
     // Get volume scales
@@ -115,17 +112,17 @@ int32_t Padsynth_vstate_render_voice(
     Work_buffer* dBs_wb = scales_wb;
     if ((dBs_wb != NULL) &&
             Work_buffer_is_final(dBs_wb, 0) &&
-            (Work_buffer_get_const_start(dBs_wb, 0) <= buf_start) &&
-            (Work_buffer_get_contents(dBs_wb, 0)[buf_start] == -INFINITY))
+            (Work_buffer_get_const_start(dBs_wb, 0) == 0) &&
+            (Work_buffer_get_contents(dBs_wb, 0)[0] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
         vstate->active = false;
-        return buf_start;
+        return 0;
     }
 
     if (scales_wb == NULL)
         scales_wb = Work_buffers_get_buffer_mut(wbs, PADSYNTH_WB_FIXED_FORCE, 1);
-    Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);
+    Proc_fill_scale_buffer(scales_wb, dBs_wb, 0, frame_count);
     const float* scales = Work_buffer_get_contents(scales_wb, 0);
 
     // Get output buffer for writing
@@ -144,7 +141,7 @@ int32_t Padsynth_vstate_render_voice(
     if (entry == NULL)
     {
         vstate->active = false;
-        return buf_start;
+        return 0;
     }
 
     // Render audio
@@ -172,7 +169,7 @@ int32_t Padsynth_vstate_render_voice(
                 pos -= length;
         }
 
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
         {
             const float freq = freqs[i];
             const float scale = scales[i];
@@ -202,9 +199,9 @@ int32_t Padsynth_vstate_render_voice(
 
 
     if (ps->is_ramp_attack_enabled)
-        Proc_ramp_attack(vstate, 2, out_bufs, buf_start, buf_stop, dstate->audio_rate);
+        Proc_ramp_attack(vstate, 2, out_bufs, 0, frame_count, dstate->audio_rate);
 
-    return buf_stop;
+    return frame_count;
 }
 
 

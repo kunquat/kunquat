@@ -66,8 +66,7 @@ void Freeverb_comb_process(
         const float* in_buf,
         const float* refls,
         const float* damps,
-        int32_t buf_start,
-        int32_t buf_stop)
+        int32_t frame_count)
 {
     rassert(comb_l != NULL);
     rassert(comb_r != NULL);
@@ -75,17 +74,16 @@ void Freeverb_comb_process(
     rassert(in_buf != NULL);
     rassert(refls != NULL);
     rassert(damps != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop > buf_start);
+    rassert(frame_count > 0);
 
 #ifdef KQT_SSE
     dassert(_MM_GET_FLUSH_ZERO_MODE() == _MM_FLUSH_ZERO_ON);
 #endif
 
-    const float* in = in_buf + buf_start;
-    float* out = out_buf + (buf_start * 2);
+    const float* in = in_buf;
+    float* out = out_buf;
 
-    for (int32_t i = buf_start; i < buf_stop; ++i)
+    for (int32_t i = 0; i < frame_count; ++i)
     {
         float output_l = comb_l->buffer[comb_l->buffer_pos];
         float output_r = comb_r->buffer[comb_r->buffer_pos];

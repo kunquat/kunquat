@@ -79,8 +79,7 @@ static int32_t Sample_render(
         const Device_thread_state* proc_ts,
         const Work_buffers* wbs,
         Work_buffer* out_wbs[2],
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         int32_t audio_rate,
         double tempo,
         double middle_tone,
@@ -94,6 +93,7 @@ static int32_t Sample_render(
     rassert(proc_ts != NULL);
     rassert(wbs != NULL);
     rassert(out_wbs != NULL);
+    rassert(frame_count > 0);
     rassert(audio_rate > 0);
     rassert(tempo > 0);
     rassert(vol_scale >= 0);
@@ -123,13 +123,7 @@ static int32_t Sample_render(
     {
         vstate->active = false;
         invalidate_outputs();
-        return buf_start;
-    }
-
-    if (buf_start == buf_stop)
-    {
-        invalidate_outputs();
-        return buf_stop;
+        return 0;
     }
 
     // Get frequencies
@@ -138,7 +132,7 @@ static int32_t Sample_render(
     Work_buffer* pitches_wb = freqs_wb;
     if ((freqs_wb == NULL) || !Work_buffer_is_valid(freqs_wb, 0))
         freqs_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_PITCH, 1);
-    Proc_fill_freq_buffer(freqs_wb, pitches_wb, buf_start, buf_stop);
+    Proc_fill_freq_buffer(freqs_wb, pitches_wb, 0, frame_count);
     const float* freqs = Work_buffer_get_contents(freqs_wb, 0);
 
     // Get force input
@@ -148,18 +142,18 @@ static int32_t Sample_render(
     if ((dBs_wb != NULL) &&
             Work_buffer_is_valid(dBs_wb, 0) &&
             Work_buffer_is_final(dBs_wb, 0) &&
-            (Work_buffer_get_const_start(dBs_wb, 0) <= buf_start) &&
-            (Work_buffer_get_contents(dBs_wb, 0)[buf_start] == -INFINITY))
+            (Work_buffer_get_const_start(dBs_wb, 0) == 0) &&
+            (Work_buffer_get_contents(dBs_wb, 0)[0] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
         vstate->active = false;
         invalidate_outputs();
-        return buf_start;
+        return 0;
     }
 
     if ((force_scales_wb == NULL) || !Work_buffer_is_valid(force_scales_wb, 0))
         force_scales_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_FORCE, 1);
-    Proc_fill_scale_buffer(force_scales_wb, dBs_wb, buf_start, buf_stop);
+    Proc_fill_scale_buffer(force_scales_wb, dBs_wb, 0, frame_count);
     const float* force_scales = Work_buffer_get_contents(force_scales_wb, 0);
 
     float* abufs[KQT_BUFFERS_MAX] = { out_buffers[0], out_buffers[1] };
@@ -184,10 +178,10 @@ static int32_t Sample_render(
 
     // Get sample positions (assuming no loop at this point)
     const double shift_factor = middle_freq / (middle_tone * audio_rate);
-    positions[buf_start] = new_pos;
-    positions_rem[buf_start] = (float)new_pos_rem;
+    positions[0] = new_pos;
+    positions_rem[0] = (float)new_pos_rem;
 
-    for (int32_t i = buf_start; i < buf_stop; ++i)
+    for (int32_t i = 0; i < frame_count; ++i)
     {
         const float freq = freqs[i];
         const double shift_total = freq * shift_factor;
@@ -211,22 +205,22 @@ static int32_t Sample_render(
         loop_mode = SAMPLE_LOOP_OFF;
 
     // Apply loop and length constraints to sample positions
-    int32_t new_buf_stop = buf_stop;
+    int32_t new_buf_stop = frame_count;
     switch (loop_mode)
     {
         case SAMPLE_LOOP_OFF:
         {
             const int32_t length = (int32_t)sample->len;
 
-            if (positions[buf_start] >= length)
+            if (positions[0] >= length)
             {
                 vstate->active = false;
                 invalidate_outputs();
-                return buf_start;
+                return 0;
             }
 
             // Current positions
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+            for (int32_t i = 0; i < frame_count; ++i)
             {
                 if (positions[i] >= length)
                 {
@@ -237,9 +231,9 @@ static int32_t Sample_render(
             }
 
             // Next positions
-            for (int32_t i = buf_start; i < new_buf_stop; ++i)
+            for (int32_t i = 0; i < new_buf_stop; ++i)
                 next_positions[i] = positions[i] + 1;
-            for (int32_t i = new_buf_stop - 1; i >= buf_start; --i)
+            for (int32_t i = new_buf_stop - 1; i >= 0; --i)
             {
                 const int32_t next_pos = next_positions[i];
                 if (next_pos >= length)
@@ -257,7 +251,7 @@ static int32_t Sample_render(
             const int32_t loop_length = loop_end - loop_start;
 
             // Current positions
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+            for (int32_t i = 0; i < frame_count; ++i)
             {
                 int32_t cur_pos = positions[i];
                 if (cur_pos > loop_start)
@@ -270,7 +264,7 @@ static int32_t Sample_render(
             }
 
             // Next positions
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+            for (int32_t i = 0; i < frame_count; ++i)
             {
                 int32_t next_pos = positions[i] + 1;
                 if (next_pos >= loop_end)
@@ -290,7 +284,7 @@ static int32_t Sample_render(
             // Next positions
             // NOTE: These must be processed first as the current positions
             //       will be wrapped in-place below
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+            for (int32_t i = 0; i < frame_count; ++i)
             {
                 int32_t next_pos = positions[i] + 1;
                 if (next_pos > loop_start)
@@ -305,7 +299,7 @@ static int32_t Sample_render(
             }
 
             // Current positions
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+            for (int32_t i = 0; i < frame_count; ++i)
             {
                 int32_t cur_pos = positions[i];
                 if (cur_pos > loop_start)
@@ -356,7 +350,7 @@ static int32_t Sample_render(
                     if (audio_buffer == NULL)
                         continue;
 
-                    for (int32_t i = buf_start; i < new_buf_stop; ++i)
+                    for (int32_t i = 0; i < new_buf_stop; ++i)
                     {
                         const float force_scale = force_scales[i];
 
@@ -379,7 +373,7 @@ static int32_t Sample_render(
                     if (audio_buffer == NULL)
                         continue;
 
-                    for (int32_t i = buf_start; i < new_buf_stop; ++i)
+                    for (int32_t i = 0; i < new_buf_stop; ++i)
                     {
                         const float force_scale = force_scales[i];
 
@@ -402,7 +396,7 @@ static int32_t Sample_render(
                     if (audio_buffer == NULL)
                         continue;
 
-                    for (int32_t i = buf_start; i < new_buf_stop; ++i)
+                    for (int32_t i = 0; i < new_buf_stop; ++i)
                     {
                         const float force_scale = force_scales[i];
 
@@ -427,7 +421,7 @@ static int32_t Sample_render(
             if (audio_buffer == NULL)
                 continue;
 
-            for (int32_t i = buf_start; i < new_buf_stop; ++i)
+            for (int32_t i = 0; i < new_buf_stop; ++i)
             {
                 const float force_scale = force_scales[i];
 
@@ -443,11 +437,11 @@ static int32_t Sample_render(
     // Copy mono signal to the right channel
     if ((sample->channels == 1) && (abufs[0] != NULL) && (abufs[1] != NULL))
     {
-        const int32_t frame_count = new_buf_stop - buf_start;
-        rassert(frame_count >= 0);
-        memcpy(abufs[1] + buf_start,
-                abufs[0] + buf_start,
-                sizeof(float) * (size_t)frame_count);
+        const int32_t new_frame_count = new_buf_stop;
+        rassert(new_frame_count >= 0);
+        memcpy(abufs[1],
+                abufs[0],
+                sizeof(float) * (size_t)new_frame_count);
     }
 
     // Update position information
@@ -463,9 +457,9 @@ static int32_t Sample_render(
 
         float* out_buf = Work_buffer_get_contents_mut(out_wb, 0);
 
-        //fprintf(stderr, "Clearing ch %d, [%d,%d)\n", ch, (int)new_buf_stop, (int)buf_stop);
+        //fprintf(stderr, "Clearing ch %d, [%d,%d)\n", ch, (int)new_buf_stop, (int)frame_count);
 
-        for (int32_t i = new_buf_stop; i < buf_stop; ++i)
+        for (int32_t i = new_buf_stop; i < frame_count; ++i)
             out_buf[i] = 0;
     }
 
@@ -479,8 +473,7 @@ int32_t Sample_vstate_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(vstate != NULL);
@@ -488,14 +481,12 @@ int32_t Sample_vstate_render_voice(
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
+    rassert(frame_count > 0);
     rassert(tempo > 0);
 
     const Processor* proc = (const Processor*)proc_state->parent.device;
 
     Sample_vstate* sample_state = (Sample_vstate*)vstate;
-
-    if (buf_start >= buf_stop)
-        return buf_start;
 
     // Get volume scales
     const Cond_work_buffer* vols = Cond_work_buffer_init(
@@ -518,13 +509,13 @@ int32_t Sample_vstate_render_voice(
             if (map == NULL)
             {
                 vstate->active = false;
-                return buf_start;
+                return 0;
             }
 
             entry = Hit_map_get_entry(
                     map,
                     vstate->hit_index,
-                    Cond_work_buffer_get_value(vols, buf_start),
+                    Cond_work_buffer_get_value(vols, 0),
                     vstate->rand_p);
         }
         else
@@ -534,7 +525,7 @@ int32_t Sample_vstate_render_voice(
             if (map == NULL)
             {
                 vstate->active = false;
-                return buf_start;
+                return 0;
             }
 
             //fprintf(stderr, "pitch @ %p: %f\n", (void*)&state->pitch, state->pitch);
@@ -546,17 +537,17 @@ int32_t Sample_vstate_render_voice(
             const float* pitches =
                 (pitches_wb != NULL) ? Work_buffer_get_contents(pitches_wb, 0) : NULL;
             if (pitches != NULL)
-                start_pitch = pitches[buf_start];
+                start_pitch = pitches[0];
 
             entry = Note_map_get_entry(
                     map,
                     start_pitch,
-                    Cond_work_buffer_get_value(vols, buf_start),
+                    Cond_work_buffer_get_value(vols, 0),
                     vstate->rand_p);
             if (entry == NULL)
             {
                 vstate->active = false;
-                return buf_start;
+                return 0;
             }
 
             sample_state->middle_tone = entry->ref_freq;
@@ -575,7 +566,7 @@ int32_t Sample_vstate_render_voice(
                     (sample_num >= SAMPLES_MAX))
             {
                 vstate->active = false;
-                return buf_start;
+                return 0;
             }
 
             sample_state->sample = (int)sample_num;
@@ -589,7 +580,7 @@ int32_t Sample_vstate_render_voice(
             if (entry == NULL || entry->sample >= SAMPLES_MAX)
             {
                 vstate->active = false;
-                return buf_start;
+                return 0;
             }
 
             sample_state->sample = entry->sample;
@@ -613,7 +604,7 @@ int32_t Sample_vstate_render_voice(
     if (header == NULL)
     {
         vstate->active = false;
-        return buf_start;
+        return 0;
     }
 
     rassert(header->mid_freq > 0);
@@ -635,7 +626,7 @@ int32_t Sample_vstate_render_voice(
     if (sample == NULL)
     {
         vstate->active = false;
-        return buf_start;
+        return 0;
     }
 
     if (vstate->hit_index >= 0)
@@ -660,14 +651,14 @@ int32_t Sample_vstate_render_voice(
     if ((out_wbs[0] == NULL) && (out_wbs[1] == NULL))
     {
         vstate->active = false;
-        return buf_start;
+        return 0;
     }
 
     const int32_t audio_rate = proc_state->parent.audio_rate;
 
     const int32_t new_buf_stop = Sample_render(
             sample, header, vstate, proc_state, proc_ts, wbs,
-            out_wbs, buf_start, buf_stop, audio_rate, tempo,
+            out_wbs, frame_count, audio_rate, tempo,
             sample_state->middle_tone, sample_state->freq,
             sample_state->volume);
 
@@ -681,7 +672,7 @@ int32_t Sample_vstate_render_voice(
         if ((wb != NULL) && Work_buffer_is_valid(wb, 0))
         {
             const float* contents = Work_buffer_get_contents(wb, 0);
-            for (int i = buf_start; i < buf_stop; ++i)
+            for (int i = 0; i < frame_count; ++i)
             {
                 if (isnan(contents[i]))
                 {

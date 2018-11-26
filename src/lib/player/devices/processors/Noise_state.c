@@ -101,8 +101,7 @@ int32_t Noise_vstate_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(vstate != NULL);
@@ -110,6 +109,7 @@ int32_t Noise_vstate_render_voice(
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
+    rassert(frame_count > 0);
     rassert(tempo > 0);
 
 //    double max_amp = 0;
@@ -122,17 +122,17 @@ int32_t Noise_vstate_render_voice(
     if ((dBs_wb != NULL) &&
             Work_buffer_is_valid(dBs_wb, 0) &&
             Work_buffer_is_final(dBs_wb, 0) &&
-            (Work_buffer_get_const_start(dBs_wb, 0) <= buf_start) &&
-            (Work_buffer_get_contents(dBs_wb, 0)[buf_start] == -INFINITY))
+            (Work_buffer_get_const_start(dBs_wb, 0) == 0) &&
+            (Work_buffer_get_contents(dBs_wb, 0)[0] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
         vstate->active = false;
-        return buf_start;
+        return 0;
     }
 
     if ((scales_wb == NULL) || !Work_buffer_is_valid(scales_wb, 0))
         scales_wb = Work_buffers_get_buffer_mut(wbs, NOISE_WB_FIXED_FORCE, 1);
-    Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);
+    Proc_fill_scale_buffer(scales_wb, dBs_wb, 0, frame_count);
     const float* scales = Work_buffer_get_contents(scales_wb, 0);
 
     Noise_pstate* noise_state = (Noise_pstate*)proc_state;
@@ -156,7 +156,7 @@ int32_t Noise_vstate_render_voice(
 
         if (noise_state->order >= 0)
         {
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+            for (int32_t i = 0; i < frame_count; ++i)
             {
                 const double val = dc_zero_filter(
                         noise_state->order,
@@ -167,7 +167,7 @@ int32_t Noise_vstate_render_voice(
         }
         else
         {
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+            for (int32_t i = 0; i < frame_count; ++i)
             {
                 const double val = dc_pole_filter(
                         -noise_state->order,
@@ -179,10 +179,10 @@ int32_t Noise_vstate_render_voice(
     }
 
     const int32_t audio_rate = proc_state->parent.audio_rate;
-    Proc_ramp_attack(vstate, 2, out_buffers, buf_start, buf_stop, audio_rate);
+    Proc_ramp_attack(vstate, 2, out_buffers, 0, frame_count, audio_rate);
 
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
-    return buf_stop;
+    return frame_count;
 }
 
 

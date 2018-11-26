@@ -28,18 +28,17 @@
 #include <stdlib.h>
 
 
-static void clamp_buffer(Work_buffer* buffer, int32_t buf_start, int32_t buf_stop)
+static void clamp_buffer(Work_buffer* buffer, int32_t frame_count)
 {
     rassert(buffer != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop > buf_start);
+    rassert(frame_count > 0);
 
     const int32_t const_start = Work_buffer_get_const_start(buffer, 0);
     float* buf = Work_buffer_get_contents_mut(buffer, 0);
 
     const float bound = 20000000000.0f;
 
-    for (int32_t i = buf_start; i < buf_stop; ++i)
+    for (int32_t i = 0; i < frame_count; ++i)
         buf[i] = clamp(buf[i], -bound, bound);
 
     Work_buffer_set_const_start(buffer, 0, const_start);
@@ -53,8 +52,7 @@ static void process(
         Work_buffer* out_wb,
         bool absolute,
         double smoothing,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         int32_t audio_rate,
         float* inout_prev_value,
         float* inout_prev_slope)
@@ -62,8 +60,7 @@ static void process(
     rassert(in_wb != NULL);
     rassert(out_wb != NULL);
     rassert(smoothing >= 0);
-    rassert(buf_start >= 0);
-    rassert(buf_stop > buf_start);
+    rassert(frame_count > 0);
     rassert(audio_rate > 0);
     rassert(inout_prev_value != NULL);
     rassert(inout_prev_slope != NULL);
@@ -78,7 +75,7 @@ static void process(
     float prev_value = *inout_prev_value;
     float prev_slope = *inout_prev_slope;
 
-    for (int32_t i = buf_start; i < buf_stop; ++i)
+    for (int32_t i = 0; i < frame_count; ++i)
     {
         const float in_value = in[i];
 
@@ -95,7 +92,7 @@ static void process(
 
     if (absolute)
     {
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
             out[i] = fabsf(out[i]);
     }
 
@@ -158,18 +155,14 @@ static void Slope_pstate_render_mixed(
         Device_state* dstate,
         Device_thread_state* proc_ts,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(dstate != NULL);
     rassert(proc_ts != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start <= buf_stop);
+    rassert(frame_count > 0);
     rassert(tempo > 0);
-
-    if (buf_start == buf_stop)
-        return;
 
     Slope_pstate* spstate = (Slope_pstate*)dstate;
 
@@ -179,12 +172,12 @@ static void Slope_pstate_render_mixed(
     {
         Work_buffer* fixed_in_wb =
             Work_buffers_get_buffer_mut(wbs, SLOPE_WB_FIXED_INPUT, 1);
-        Work_buffer_clear(fixed_in_wb, 0, buf_start, buf_stop);
+        Work_buffer_clear(fixed_in_wb, 0, 0, frame_count);
         in_wb = fixed_in_wb;
     }
     else
     {
-        clamp_buffer(in_wb, buf_start, buf_stop);
+        clamp_buffer(in_wb, frame_count);
     }
 
     Work_buffer* out_wb = Device_thread_state_get_mixed_buffer(
@@ -194,7 +187,7 @@ static void Slope_pstate_render_mixed(
 
     if (!spstate->anything_rendered)
     {
-        spstate->prev_value = Work_buffer_get_contents(in_wb, 0)[buf_start];
+        spstate->prev_value = Work_buffer_get_contents(in_wb, 0)[0];
         spstate->anything_rendered = true;
     }
 
@@ -204,13 +197,12 @@ static void Slope_pstate_render_mixed(
             out_wb,
             slope->absolute,
             slope->smoothing,
-            buf_start,
-            buf_stop,
+            frame_count,
             Device_state_get_audio_rate(dstate),
             &spstate->prev_value,
             &spstate->prev_slope);
 
-    clamp_buffer(out_wb, buf_start, buf_stop);
+    clamp_buffer(out_wb, frame_count);
 
     return;
 }
@@ -278,8 +270,7 @@ int32_t Slope_vstate_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(vstate != NULL);
@@ -287,12 +278,8 @@ int32_t Slope_vstate_render_voice(
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= buf_start);
+    rassert(frame_count > 0);
     rassert(tempo > 0);
-
-    if (buf_start == buf_stop)
-        return buf_start;
 
     const Device_state* dstate = &proc_state->parent;
     Slope_vstate* svstate = (Slope_vstate*)vstate;
@@ -303,12 +290,12 @@ int32_t Slope_vstate_render_voice(
     {
         Work_buffer* fixed_in_wb =
             Work_buffers_get_buffer_mut(wbs, SLOPE_WB_FIXED_INPUT, 1);
-        Work_buffer_clear(fixed_in_wb, 0, buf_start, buf_stop);
+        Work_buffer_clear(fixed_in_wb, 0, 0, frame_count);
         in_wb = fixed_in_wb;
     }
     else
     {
-        clamp_buffer(in_wb, buf_start, buf_stop);
+        clamp_buffer(in_wb, frame_count);
     }
 
     Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
@@ -318,7 +305,7 @@ int32_t Slope_vstate_render_voice(
 
     if (!svstate->anything_rendered)
     {
-        svstate->prev_value = Work_buffer_get_contents(in_wb, 0)[buf_start];
+        svstate->prev_value = Work_buffer_get_contents(in_wb, 0)[0];
         svstate->anything_rendered = true;
     }
 
@@ -328,15 +315,14 @@ int32_t Slope_vstate_render_voice(
             out_wb,
             slope->absolute,
             slope->smoothing,
-            buf_start,
-            buf_stop,
+            frame_count,
             Device_state_get_audio_rate(dstate),
             &svstate->prev_value,
             &svstate->prev_slope);
 
-    clamp_buffer(out_wb, buf_start, buf_stop);
+    clamp_buffer(out_wb, frame_count);
 
-    return buf_stop;
+    return frame_count;
 }
 
 

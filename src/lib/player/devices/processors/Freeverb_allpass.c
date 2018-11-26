@@ -72,22 +72,20 @@ void Freeverb_allpass_process(
         Freeverb_allpass* allpass_l,
         Freeverb_allpass* allpass_r,
         float* buffer,
-        int32_t buf_start,
-        int32_t buf_stop)
+        int32_t frame_count)
 {
     rassert(allpass_l != NULL);
     rassert(allpass_r != NULL);
     rassert(buffer != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop > buf_start);
+    rassert(frame_count > 0);
 
 #ifdef KQT_SSE
     dassert(_MM_GET_FLUSH_ZERO_MODE() == _MM_FLUSH_ZERO_ON);
 #endif
 
-    float* value = buffer + (buf_start * 2);
+    float* value = buffer;
 
-    for (int32_t i = buf_start; i < buf_stop; ++i)
+    for (int32_t i = 0; i < frame_count; ++i)
     {
         float bufout_l = allpass_l->buffer[allpass_l->buffer_pos];
         float bufout_r = allpass_r->buffer[allpass_r->buffer_pos];

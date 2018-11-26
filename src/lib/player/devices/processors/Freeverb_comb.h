@@ -41,14 +41,13 @@ Freeverb_comb* new_Freeverb_comb(int32_t buffer_size);
 /**
  * Process data buffer.
  *
- * \param comb_l      The Freeverb comb filter for left channel -- must not be \c NULL.
- * \param comb_r      The Freeverb comb filter for right channel -- must not be \c NULL.
- * \param out_buf     The output buffer where the result is mixed -- must not be \c NULL.
- * \param in_buf      The input signal buffer -- must not be \c NULL.
- * \param refls       The reflectivity parameter buffer -- must not be \c NULL.
- * \param damps       The damp parameter buffer -- must not be \c NULL.
- * \param buf_start   The buffer start position -- must be >= \c 0.
- * \param buf_stop    The buffer stop position -- must be > \a buf_start.
+ * \param comb_l        The Freeverb comb filter for left channel -- must not be \c NULL.
+ * \param comb_r        The Freeverb comb filter for right channel -- must not be \c NULL.
+ * \param out_buf       The output buffer where the result is mixed -- must not be \c NULL.
+ * \param in_buf        The input signal buffer -- must not be \c NULL.
+ * \param refls         The reflectivity parameter buffer -- must not be \c NULL.
+ * \param damps         The damp parameter buffer -- must not be \c NULL.
+ * \param frame_count   Number of frames to be processed -- must be > \c 0.
  */
 void Freeverb_comb_process(
         Freeverb_comb* comb_l,
@@ -57,8 +56,7 @@ void Freeverb_comb_process(
         const float* in_buf,
         const float* refls,
         const float* damps,
-        int32_t buf_start,
-        int32_t buf_stop);
+        int32_t frame_count);
 
 
 /**

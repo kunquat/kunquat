@@ -161,7 +161,7 @@ void Device_state_render_mixed(
     rassert(tempo > 0);
 
     if (Device_get_mixed_signals(ds->device) && (ds->render_mixed != NULL))
-        ds->render_mixed(ds, ts, wbs, 0, frame_count, tempo);
+        ds->render_mixed(ds, ts, wbs, frame_count, tempo);
 
     return;
 }

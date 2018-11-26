@@ -51,14 +51,12 @@ static void multiply_signals(
         Work_buffer* in1_buffers[2],
         Work_buffer* in2_buffers[2],
         float* out_buffers[2],
-        int32_t buf_start,
-        int32_t buf_stop)
+        int32_t frame_count)
 {
     rassert(in1_buffers != NULL);
     rassert(in2_buffers != NULL);
     rassert(out_buffers != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
+    rassert(frame_count > 0);
 
     for (int ch = 0; ch < 2; ++ch)
     {
@@ -74,17 +72,17 @@ static void multiply_signals(
             float* in2_values = Work_buffer_get_contents_mut(in2_wb, 0);
 
             // Clamp inputs to finite range (so that we don't accidentally produce NaNs)
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+            for (int32_t i = 0; i < frame_count; ++i)
                 in1_values[i] = clamp(in1_values[i], -FLT_MAX, FLT_MAX);
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+            for (int32_t i = 0; i < frame_count; ++i)
                 in2_values[i] = clamp(in2_values[i], -FLT_MAX, FLT_MAX);
 
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+            for (int32_t i = 0; i < frame_count; ++i)
                 out_values[i] = in1_values[i] * in2_values[i];
         }
         else
         {
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+            for (int32_t i = 0; i < frame_count; ++i)
                 out_values[i] = 0;
         }
     }
@@ -97,8 +95,7 @@ static void Mult_pstate_render_mixed(
         Device_state* dstate,
         Device_thread_state* proc_ts,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(dstate != NULL);
@@ -144,7 +141,7 @@ static void Mult_pstate_render_mixed(
     }
 
     // Multiply the signals
-    multiply_signals(in1_buffers, in2_buffers, out_buffers, buf_start, buf_stop);
+    multiply_signals(in1_buffers, in2_buffers, out_buffers, frame_count);
 
     return;
 }
@@ -174,13 +171,12 @@ int32_t Mult_vstate_get_size(void)
 }
 
 
-static bool is_final_zero(const Work_buffer* in_wb, int32_t buf_start)
+static bool is_final_zero(const Work_buffer* in_wb)
 {
-    rassert(buf_start >= 0);
     return ((in_wb == NULL) ||
             (Work_buffer_is_final(in_wb, 0) &&
-             (Work_buffer_get_const_start(in_wb, 0) <= buf_start) &&
-             (Work_buffer_get_contents(in_wb, 0)[buf_start] == 0.0f)));
+             (Work_buffer_get_const_start(in_wb, 0) == 0) &&
+             (Work_buffer_get_contents(in_wb, 0)[0] == 0.0f)));
 }
 
 
@@ -190,8 +186,7 @@ int32_t Mult_vstate_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(vstate == NULL);
@@ -199,8 +194,7 @@ int32_t Mult_vstate_render_voice(
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
+    rassert(frame_count > 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
@@ -221,13 +215,13 @@ int32_t Mult_vstate_render_voice(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_R, NULL),
     };
 
-    const bool is_out1_final_zero = (is_final_zero(in1_buffers[0], buf_start) ||
-            is_final_zero(in2_buffers[0], buf_start));
-    const bool is_out2_final_zero = (is_final_zero(in1_buffers[1], buf_start) ||
-            is_final_zero(in2_buffers[1], buf_start));
+    const bool is_out1_final_zero =
+        (is_final_zero(in1_buffers[0]) || is_final_zero(in2_buffers[0]));
+    const bool is_out2_final_zero =
+        (is_final_zero(in1_buffers[1]) || is_final_zero(in2_buffers[1]));
 
     if (is_out1_final_zero && is_out2_final_zero)
-        return buf_start;
+        return 0;
 
     // Get outputs
     Work_buffer* out_wbs[2] =
@@ -248,23 +242,23 @@ int32_t Mult_vstate_render_voice(
     }
 
     // Multiply the signals
-    multiply_signals(in1_buffers, in2_buffers, out_buffers, buf_start, buf_stop);
+    multiply_signals(in1_buffers, in2_buffers, out_buffers, frame_count);
 
     if (is_out1_final_zero && (out_wbs[0] != NULL))
     {
-        rassert(out_buffers[0][buf_start] == 0);
-        Work_buffer_set_const_start(out_wbs[0], 0, buf_start);
+        rassert(out_buffers[0][0] == 0);
+        Work_buffer_set_const_start(out_wbs[0], 0, 0);
         Work_buffer_set_final(out_wbs[0], 0, true);
     }
 
     if (is_out2_final_zero && (out_wbs[1] != NULL))
     {
-        rassert(out_buffers[1][buf_start] == 0);
-        Work_buffer_set_const_start(out_wbs[1], 0, buf_start);
+        rassert(out_buffers[1][0] == 0);
+        Work_buffer_set_const_start(out_wbs[1], 0, 0);
         Work_buffer_set_final(out_wbs[1], 0, true);
     }
 
-    return buf_stop;
+    return frame_count;
 }
 
 

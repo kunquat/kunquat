@@ -52,20 +52,18 @@ void Freeverb_allpass_set_feedback(Freeverb_allpass* allpass, float feedback);
 /**
  * Process data buffer.
  *
- * \param allpass_l   The Freeverb allpass filter for the left channel
- *                    -- must not be \c NULL.
- * \param allpass_r   The Freeverb allpass filter for the right channel
- *                    -- must not be \c NULL.
- * \param buffer      The input/output buffer -- must not be \c NULL.
- * \param buf_start   The buffer start position -- must be >= \c 0.
- * \param buf_stop    The buffer stop position -- must be > \a buf_start.
+ * \param allpass_l     The Freeverb allpass filter for the left channel
+ *                      -- must not be \c NULL.
+ * \param allpass_r     The Freeverb allpass filter for the right channel
+ *                      -- must not be \c NULL.
+ * \param buffer        The input/output buffer -- must not be \c NULL.
+ * \param frame_count   Number of frames to be processed -- must be > \c 0.
  */
 void Freeverb_allpass_process(
         Freeverb_allpass* allpass_l,
         Freeverb_allpass* allpass_r,
         float* buffer,
-        int32_t buf_start,
-        int32_t buf_stop);
+        int32_t frame_count);
 
 
 /**

@@ -38,8 +38,7 @@ typedef void Device_state_render_mixed_func(
         Device_state*,
         Device_thread_state*,
         const Work_buffers*,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo);
 
 typedef void Device_state_fire_event_func(

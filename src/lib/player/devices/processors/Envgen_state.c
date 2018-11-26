@@ -117,8 +117,7 @@ int32_t Envgen_vstate_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(vstate != NULL);
@@ -126,8 +125,7 @@ int32_t Envgen_vstate_render_voice(
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
+    rassert(frame_count > 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
@@ -141,13 +139,13 @@ int32_t Envgen_vstate_render_voice(
     {
         stretch_wb = Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_STRETCH, 1);
         float* stretches = Work_buffer_get_contents_mut(stretch_wb, 0);
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
             stretches[i] = 0;
-        Work_buffer_set_const_start(stretch_wb, 0, buf_start);
+        Work_buffer_set_const_start(stretch_wb, 0, 0);
     }
     else
     {
-        Proc_clamp_pitch_values(stretch_wb, buf_start, buf_stop);
+        Proc_clamp_pitch_values(stretch_wb, 0, frame_count);
     }
 
     // Get trigger signal input
@@ -157,7 +155,7 @@ int32_t Envgen_vstate_render_voice(
     {
         Work_buffer* fixed_trigger_wb =
             Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_TRIGGER, 1);
-        Work_buffer_clear(fixed_trigger_wb, 0, buf_start, buf_stop);
+        Work_buffer_clear(fixed_trigger_wb, 0, 0, frame_count);
         trigger_wb = fixed_trigger_wb;
     }
 
@@ -167,21 +165,21 @@ int32_t Envgen_vstate_render_voice(
     if (out_wb == NULL)
     {
         vstate->active = false;
-        return buf_start;
+        return 0;
     }
     float* out_buffer = Work_buffer_get_contents_mut(out_wb, 0);
 
     const bool is_time_env_enabled =
         egen->is_time_env_enabled && (egen->time_env != NULL);
 
-    int32_t const_start = buf_start;
+    int32_t const_start = 0;
 
     if (is_time_env_enabled)
     {
-        int32_t slice_start = buf_start;
-        while (slice_start < buf_stop)
+        int32_t slice_start = 0;
+        while (slice_start < frame_count)
         {
-            int32_t slice_stop = buf_stop;
+            int32_t slice_stop = frame_count;
 
             bool trigger_after = false;
 
@@ -313,8 +311,8 @@ int32_t Envgen_vstate_render_voice(
                 for (int32_t i = slice_start; i < slice_stop; ++i)
                     out_buffer[i] = first_val;
 
-                // Note: buf_start is correct here as we never return to inactive state
-                const_start = buf_start;
+                // Note: zero is correct here as we never return to inactive state
+                const_start = 0;
             }
             else
             {
@@ -411,7 +409,7 @@ int32_t Envgen_vstate_render_voice(
     {
         // Initialise with default values
         const float value = egen_state->cur_y_max;
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
             out_buffer[i] = value;
 
         Work_buffer_set_final(out_wb, 0, true);
@@ -420,7 +418,7 @@ int32_t Envgen_vstate_render_voice(
     // Mark constant region of the buffer
     Work_buffer_set_const_start(out_wb, 0, const_start);
 
-    return buf_stop;
+    return frame_count;
 }
 
 

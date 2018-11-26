@@ -54,8 +54,7 @@ static void Compress_states_update(
         Work_buffer* gain_wb,
         Work_buffer* level_wbs[2],
         const Work_buffer* in_wbs[2],
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         int32_t audio_rate)
 {
     rassert(cstates != NULL);
@@ -65,8 +64,7 @@ static void Compress_states_update(
     rassert(level_wbs[0] != NULL);
     rassert(level_wbs[1] != NULL);
     rassert(in_wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop > buf_start);
+    rassert(frame_count > 0);
 
     // Get levels
     const float attack_mul =
@@ -87,7 +85,7 @@ static void Compress_states_update(
         float* levels = Work_buffer_get_contents_mut(level_wbs[ch], 0);
         const float* in = Work_buffer_get_contents(in_wbs[ch], 0);
 
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
         {
             const float in_abs = fabsf(in[i]);
             if (in_abs > level)
@@ -110,7 +108,7 @@ static void Compress_states_update(
     if ((in_wbs[0] != NULL) && (in_wbs[1] != NULL))
     {
         // Get maximum levels
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
             level_wbs[0] = max(level_wbs[0], level_wbs[1]);
     }
 
@@ -118,10 +116,10 @@ static void Compress_states_update(
         (in_wbs[0] == NULL) ? level_wbs[1] : level_wbs[0];
     const float* applied_levels = Work_buffer_get_contents(applied_levels_wb, 0);
 
-    Work_buffer_clear(gain_wb, 0, buf_start, buf_stop);
+    Work_buffer_clear(gain_wb, 0, 0, frame_count);
     float* gains = Work_buffer_get_contents_mut(gain_wb, 0);
 
-    for (int32_t i = buf_start; i < buf_stop; ++i)
+    for (int32_t i = 0; i < frame_count; ++i)
         gains[i] = 1.0f;
 
     if (compress->upward_enabled)
@@ -135,7 +133,7 @@ static void Compress_states_update(
         const float inv_ratio = (float)(1.0 / compress->upward_ratio);
         const float max_gain = (float)dB_to_scale(compress->upward_range);
 
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
         {
             const float level = applied_levels[i];
             if (level < threshold)
@@ -154,7 +152,7 @@ static void Compress_states_update(
         const float inv_ratio = (float)(1.0 / compress->downward_ratio);
         const float min_gain = (float)dB_to_scale(-compress->downward_range);
 
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
         {
             const float level = applied_levels[i];
             if (level > threshold)
@@ -174,14 +172,12 @@ static void write_audio(
         Work_buffer* out_wbs[2],
         const Work_buffer* gain_wb,
         const Work_buffer* in_wbs[2],
-        int32_t buf_start,
-        int32_t buf_stop)
+        int32_t frame_count)
 {
     rassert(out_wbs != NULL);
     rassert(gain_wb != NULL);
     rassert(in_wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop > buf_start);
+    rassert(frame_count > 0);
 
     const float* gains = Work_buffer_get_contents(gain_wb, 0);
 
@@ -193,7 +189,7 @@ static void write_audio(
         float* out = Work_buffer_get_contents_mut(out_wbs[ch], 0);
         const float* in = Work_buffer_get_contents(in_wbs[ch], 0);
 
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
             out[i] = in[i] * gains[i];
     }
 
@@ -258,13 +254,13 @@ static void Compress_pstate_render_mixed(
         Device_state* dstate,
         Device_thread_state* proc_ts,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(dstate != NULL);
     rassert(proc_ts != NULL);
     rassert(wbs != NULL);
+    rassert(frame_count > 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
@@ -309,11 +305,10 @@ static void Compress_pstate_render_mixed(
             gain_wb,
             level_wbs,
             in_wbs,
-            buf_start,
-            buf_stop,
+            frame_count,
             dstate->audio_rate);
 
-    write_audio(out_wbs, gain_wb, in_wbs, buf_start, buf_stop);
+    write_audio(out_wbs, gain_wb, in_wbs, frame_count);
 
     return;
 }
@@ -367,8 +362,7 @@ int32_t Compress_vstate_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(vstate != NULL);
@@ -376,8 +370,7 @@ int32_t Compress_vstate_render_voice(
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
+    rassert(frame_count > 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
@@ -424,13 +417,12 @@ int32_t Compress_vstate_render_voice(
             gain_wb,
             level_wbs,
             in_wbs,
-            buf_start,
-            buf_stop,
+            frame_count,
             dstate->audio_rate);
 
-    write_audio(out_wbs, gain_wb, in_wbs, buf_start, buf_stop);
+    write_audio(out_wbs, gain_wb, in_wbs, frame_count);
 
-    return buf_stop;
+    return frame_count;
 }
 
 

@@ -133,14 +133,13 @@ static void Delay_pstate_render_mixed(
         Device_state* dstate,
         Device_thread_state* proc_ts,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(dstate != NULL);
     rassert(proc_ts != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start <= buf_stop);
+    rassert(frame_count > 0);
     rassert(tempo > 0);
 
     Delay_pstate* dpstate = (Delay_pstate*)dstate;
@@ -188,7 +187,7 @@ static void Delay_pstate_render_mixed(
         delays =
             Work_buffers_get_buffer_contents_mut(wbs, DELAY_WORK_BUFFER_FIXED_DELAY);
         const float init_delay = (float)delay->init_delay;
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
             delays[i] = init_delay;
     }
 
@@ -197,7 +196,7 @@ static void Delay_pstate_render_mixed(
     const int32_t audio_rate = dstate->audio_rate;
 
     // Get total offsets
-    for (int32_t i = buf_start, chunk_offset = 0; i < buf_stop; ++i, ++chunk_offset)
+    for (int32_t i = 0, chunk_offset = 0; i < frame_count; ++i, ++chunk_offset)
     {
         const float cur_delay = delays[i];
         double delay_frames = cur_delay * (double)audio_rate;
@@ -214,7 +213,7 @@ static void Delay_pstate_render_mixed(
         {
             if (out != NULL)
             {
-                for (int32_t i = buf_start; i < buf_stop; ++i)
+                for (int32_t i = 0; i < frame_count; ++i)
                     out[i] = 0;
             }
 
@@ -223,13 +222,13 @@ static void Delay_pstate_render_mixed(
 
         // Clamp input values to finite range
         // (this is required due to possible multiplication by zero below)
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
             in[i] = clamp(in[i], -FLT_MAX, FLT_MAX);
 
         const float* history = history_data[ch];
         rassert(history != NULL);
 
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
         {
             const float total_offset = total_offsets[i];
 
@@ -246,12 +245,12 @@ static void Delay_pstate_render_mixed(
 
             if (cur_pos >= 0)
             {
-                const int32_t in_cur_pos = buf_start + cur_pos;
-                rassert(in_cur_pos < (int32_t)buf_stop);
+                const int32_t in_cur_pos = cur_pos;
+                rassert(in_cur_pos < frame_count);
                 cur_val = in[in_cur_pos];
 
-                const int32_t in_next_pos = min(buf_start + next_pos, i);
-                rassert(in_next_pos < (int32_t)buf_stop);
+                const int32_t in_next_pos = min(next_pos, i);
+                rassert(in_next_pos < frame_count);
                 next_val = in[in_next_pos];
             }
             else
@@ -274,7 +273,7 @@ static void Delay_pstate_render_mixed(
                 else
                 {
                     rassert(next_pos == 0);
-                    next_val = in[buf_start];
+                    next_val = in[0];
                 }
             }
 
@@ -299,7 +298,7 @@ static void Delay_pstate_render_mixed(
 
         cur_dpstate_buf_pos = dpstate->buf_pos;
 
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
         {
             history[cur_dpstate_buf_pos] = in[i];
 

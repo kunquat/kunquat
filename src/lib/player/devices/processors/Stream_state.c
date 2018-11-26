@@ -38,20 +38,18 @@ enum
 static void apply_controls(
         Linear_controls* controls,
         Work_buffer* out_wb,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(controls != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= buf_start);
+    rassert(frame_count > 0);
 
     Linear_controls_set_tempo(controls, tempo);
 
     if (out_wb != NULL)
-        Linear_controls_fill_work_buffer(controls, out_wb, buf_start, buf_stop);
+        Linear_controls_fill_work_buffer(controls, out_wb, 0, frame_count);
     else
-        Linear_controls_skip(controls, buf_stop - buf_start);
+        Linear_controls_skip(controls, frame_count);
 
     return;
 }
@@ -104,13 +102,13 @@ static void Stream_pstate_render_mixed(
         Device_state* dstate,
         Device_thread_state* proc_ts,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(dstate != NULL);
     rassert(proc_ts != NULL);
     rassert(wbs != NULL);
+    rassert(frame_count > 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
@@ -120,7 +118,7 @@ static void Stream_pstate_render_mixed(
     Work_buffer* out_wb = Device_thread_state_get_mixed_buffer(
             proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_STREAM, NULL);
 
-    apply_controls(&spstate->controls, out_wb, buf_start, buf_stop, tempo);
+    apply_controls(&spstate->controls, out_wb, frame_count, tempo);
 
     return;
 }
@@ -324,8 +322,7 @@ int32_t Stream_vstate_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(vstate != NULL);
@@ -333,8 +330,7 @@ int32_t Stream_vstate_render_voice(
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
+    rassert(frame_count > 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
@@ -346,12 +342,12 @@ int32_t Stream_vstate_render_voice(
     if (out_wb == NULL)
     {
         vstate->active = false;
-        return buf_start;
+        return 0;
     }
 
-    apply_controls(&svstate->controls, out_wb, buf_start, buf_stop, tempo);
+    apply_controls(&svstate->controls, out_wb, frame_count, tempo);
 
-    return buf_stop;
+    return frame_count;
 }
 
 

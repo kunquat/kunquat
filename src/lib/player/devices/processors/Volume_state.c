@@ -78,24 +78,23 @@ static void apply_volume(
         Work_buffer* vol_wb,
         const Work_buffers* wbs,
         float global_vol,
-        int32_t buf_start,
-        int32_t buf_stop)
+        int32_t frame_count)
 {
     rassert(in_buffer != NULL);
     rassert(out_buffer != NULL);
     rassert(isfinite(global_vol));
-    rassert(buf_start >= 0);
+    rassert(frame_count > 0);
 
     const float global_scale = (float)dB_to_scale(global_vol);
 
     Work_buffer* scales_wb = Work_buffers_get_buffer_mut(wbs, VOLUME_WB_FIXED_VOLUME, 1);
-    Proc_fill_scale_buffer(scales_wb, vol_wb, buf_start, buf_stop);
+    Proc_fill_scale_buffer(scales_wb, vol_wb, 0, frame_count);
     const float* scales = Work_buffer_get_contents(scales_wb, 0);
 
-    const float* in = in_buffer + (buf_start * 2);
-    float* out = out_buffer + (buf_start * 2);
+    const float* in = in_buffer;
+    float* out = out_buffer;
 
-    for (int32_t i = buf_start; i < buf_stop; ++i)
+    for (int32_t i = 0; i < frame_count; ++i)
     {
         const float scale = scales[i] * global_scale;
         *out++ = (*in++) * scale;
@@ -130,13 +129,13 @@ static void Volume_pstate_render_mixed(
         Device_state* dstate,
         Device_thread_state* proc_ts,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(dstate != NULL);
     rassert(proc_ts != NULL);
     rassert(wbs != NULL);
+    rassert(frame_count > 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
@@ -152,7 +151,7 @@ static void Volume_pstate_render_mixed(
     float* in_buf = NULL;
     {
         Work_buffer* in_wb =
-            Proc_get_mixed_input_2ch(proc_ts, PORT_IN_AUDIO_L, buf_start, buf_stop);
+            Proc_get_mixed_input_2ch(proc_ts, PORT_IN_AUDIO_L, 0, frame_count);
         if (in_wb != NULL)
             in_buf = Work_buffer_get_contents_mut(in_wb, 0);
     }
@@ -161,7 +160,7 @@ static void Volume_pstate_render_mixed(
     float* out_buf = NULL;
     {
         Work_buffer* out_wb =
-            Proc_get_mixed_output_2ch(proc_ts, PORT_OUT_AUDIO_L, buf_start, buf_stop);
+            Proc_get_mixed_output_2ch(proc_ts, PORT_OUT_AUDIO_L, 0, frame_count);
         if (out_wb != NULL)
             out_buf = Work_buffer_get_contents_mut(out_wb, 0);
     }
@@ -170,13 +169,12 @@ static void Volume_pstate_render_mixed(
 
     if (in_buf == NULL)
     {
-        for (int32_t i = buf_start * 2; i < buf_stop * 2; ++i)
+        for (int32_t i = 0; i < frame_count * 2; ++i)
             out_buf[i] = 0;
         return;
     }
 
-    apply_volume(
-            in_buf, out_buf, vol_wb, wbs, (float)vpstate->volume, buf_start, buf_stop);
+    apply_volume(in_buf, out_buf, vol_wb, wbs, (float)vpstate->volume, frame_count);
 
     return;
 }
@@ -217,8 +215,7 @@ int32_t Volume_vstate_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(vstate == NULL);
@@ -226,8 +223,7 @@ int32_t Volume_vstate_render_voice(
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
+    rassert(frame_count > 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
@@ -236,30 +232,30 @@ int32_t Volume_vstate_render_voice(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE, NULL);
     if ((vol_wb != NULL) &&
             Work_buffer_is_final(vol_wb, 0) &&
-            (Work_buffer_get_const_start(vol_wb, 0) <= buf_start) &&
-            (Work_buffer_get_contents(vol_wb, 0)[buf_start] == -INFINITY))
+            (Work_buffer_get_const_start(vol_wb, 0) == 0) &&
+            (Work_buffer_get_contents(vol_wb, 0)[0] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
-        return buf_start;
+        return 0;
     }
 
     // Get input
     float* in_buf = NULL;
     {
         Work_buffer* in_wb =
-            Proc_get_voice_input_2ch(proc_ts, PORT_IN_AUDIO_L, buf_start, buf_stop);
+            Proc_get_voice_input_2ch(proc_ts, PORT_IN_AUDIO_L, 0, frame_count);
         if (in_wb != NULL)
             in_buf = Work_buffer_get_contents_mut(in_wb, 0);
     }
 
     if (in_buf == NULL)
-        return buf_start;
+        return 0;
 
     // Get output
     float* out_buf = NULL;
     {
         Work_buffer* out_wb =
-            Proc_get_voice_output_2ch(proc_ts, PORT_OUT_AUDIO_L, buf_start, buf_stop);
+            Proc_get_voice_output_2ch(proc_ts, PORT_OUT_AUDIO_L, 0, frame_count);
         if (out_wb != NULL)
             out_buf = Work_buffer_get_contents_mut(out_wb, 0);
     }
@@ -267,10 +263,9 @@ int32_t Volume_vstate_render_voice(
     rassert(out_buf != NULL);
 
     const Volume_pstate* vpstate = (const Volume_pstate*)proc_state;
-    apply_volume(
-            in_buf, out_buf, vol_wb, wbs, (float)vpstate->volume, buf_start, buf_stop);
+    apply_volume(in_buf, out_buf, vol_wb, wbs, (float)vpstate->volume, frame_count);
 
-    return buf_stop;
+    return frame_count;
 }
 
 

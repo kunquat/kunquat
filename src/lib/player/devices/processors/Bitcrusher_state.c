@@ -98,8 +98,7 @@ static void Bitcrusher_state_impl_render(
         Work_buffer* resolution_wb,
         Work_buffer* in_buffers[2],
         Work_buffer* out_buffers[2],
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         int32_t audio_rate)
 {
     rassert(state != NULL);
@@ -107,6 +106,7 @@ static void Bitcrusher_state_impl_render(
     rassert(wbs != NULL);
     rassert(in_buffers != NULL);
     rassert(out_buffers != NULL);
+    rassert(frame_count > 0);
     rassert(audio_rate > 0);
 
     // Get hold durations
@@ -121,9 +121,9 @@ static void Bitcrusher_state_impl_render(
         else
         {
             float* holds = Work_buffer_get_contents_mut(holds_wb, 0);
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+            for (int32_t i = 0; i < frame_count; ++i)
                 holds[i] = hold;
-            Work_buffer_set_const_start(holds_wb, 0, buf_start);
+            Work_buffer_set_const_start(holds_wb, 0, 0);
         }
     }
     else
@@ -133,13 +133,13 @@ static void Bitcrusher_state_impl_render(
         const float* cutoffs = Work_buffer_get_contents(cutoff_wb, 0);
         float* holds = Work_buffer_get_contents_mut(holds_wb, 0);
 
-        for (int32_t i = buf_start; i < const_start; ++i)
+        for (int32_t i = 0; i < const_start; ++i)
             holds[i] = (float)get_hold_fast(cutoffs[i], audio_rate);
 
-        if (const_start < buf_stop)
+        if (const_start < frame_count)
         {
             const float hold = (float)get_hold(cutoffs[const_start], audio_rate);
-            for (int32_t i = const_start; i < buf_stop; ++i)
+            for (int32_t i = const_start; i < frame_count; ++i)
                 holds[i] = hold;
         }
 
@@ -164,7 +164,7 @@ static void Bitcrusher_state_impl_render(
             double hold_timer = state->hold_timer[ch];
             float hold_value = state->hold_value[ch];
 
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+            for (int32_t i = 0; i < frame_count; ++i)
             {
                 hold_timer += 1.0;
 
@@ -204,10 +204,10 @@ static void Bitcrusher_state_impl_render(
             const float mult = (float)exp2(bc->resolution);
 
             float* mults = Work_buffer_get_contents_mut(mults_wb, 0);
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+            for (int32_t i = 0; i < frame_count; ++i)
                 mults[i] = mult;
 
-            Work_buffer_set_const_start(mults_wb, 0, buf_start);
+            Work_buffer_set_const_start(mults_wb, 0, 0);
         }
     }
     else
@@ -217,13 +217,13 @@ static void Bitcrusher_state_impl_render(
         const float* res_buf = Work_buffer_get_contents(resolution_wb, 0);
         float* mults = Work_buffer_get_contents_mut(mults_wb, 0);
 
-        for (int32_t i = buf_start; i < const_start; ++i)
+        for (int32_t i = 0; i < const_start; ++i)
             mults[i] = (float)fast_exp2(max(1, res_buf[i]));
 
-        if (const_start < buf_stop)
+        if (const_start < frame_count)
         {
             const float mult = (float)exp2(max(1, res_buf[const_start]));
-            for (int32_t i = const_start; i < buf_stop; ++i)
+            for (int32_t i = const_start; i < frame_count; ++i)
                 mults[i] = mult;
         }
 
@@ -249,7 +249,7 @@ static void Bitcrusher_state_impl_render(
                 const float* in = Work_buffer_get_contents(in_wb, 0);
                 float* out = Work_buffer_get_contents_mut(out_wb, 0);
 
-                for (int32_t i = buf_start; i < buf_stop; ++i)
+                for (int32_t i = 0; i < frame_count; ++i)
                 {
                     const float mult = mults[i];
                     if (mult < min_ignore_mult)
@@ -275,7 +275,7 @@ static void Bitcrusher_state_impl_render(
 
                 float* out = Work_buffer_get_contents_mut(wb, 0);
 
-                for (int32_t i = buf_start; i < buf_stop; ++i)
+                for (int32_t i = 0; i < frame_count; ++i)
                 {
                     const float mult = mults[i];
                     if (mult < min_ignore_mult)
@@ -299,7 +299,7 @@ static void Bitcrusher_state_impl_render(
             if ((in_wb == NULL) || (out_wb == NULL))
                 continue;
 
-            Work_buffer_copy(out_wb, 0, in_wb, 0, buf_start, buf_stop);
+            Work_buffer_copy(out_wb, 0, in_wb, 0, 0, frame_count);
         }
     }
 
@@ -329,15 +329,13 @@ static void Bitcrusher_pstate_render_mixed(
         Device_state* dstate,
         Device_thread_state* proc_ts,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(dstate != NULL);
     rassert(proc_ts != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop > buf_start);
+    rassert(frame_count > 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
@@ -376,8 +374,7 @@ static void Bitcrusher_pstate_render_mixed(
             resolution_wb,
             in_buffers,
             out_buffers,
-            buf_start,
-            buf_stop,
+            frame_count,
             dstate->audio_rate);
 
     return;
@@ -425,8 +422,7 @@ int32_t Bitcrusher_vstate_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(vstate != NULL);
@@ -434,8 +430,7 @@ int32_t Bitcrusher_vstate_render_voice(
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
+    rassert(frame_count > 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
@@ -461,7 +456,7 @@ int32_t Bitcrusher_vstate_render_voice(
     if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
     {
         vstate->active = false;
-        return buf_start;
+        return 0;
     }
 
     // Get audio outputs
@@ -481,11 +476,10 @@ int32_t Bitcrusher_vstate_render_voice(
             resolution_wb,
             in_buffers,
             out_buffers,
-            buf_start,
-            buf_stop,
+            frame_count,
             dstate->audio_rate);
 
-    return buf_stop;
+    return frame_count;
 }
 
 
