@@ -240,6 +240,9 @@ static void Mixed_signal_task_info_execute(
     rassert(frame_count >= 0);
     rassert(tempo > 0);
 
+    if (frame_count == 0)
+        return;
+
     if (task_info->container_id != 0)
     {
         // Check bypass condition
