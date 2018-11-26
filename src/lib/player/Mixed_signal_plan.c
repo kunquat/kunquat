@@ -254,7 +254,7 @@ static void Mixed_signal_task_info_execute(
                 {
                     const Work_buffer_conn_rules* rules =
                         Vector_get_ref(task_info->bypass_conns, i);
-                    Work_buffer_conn_rules_mix(rules, 0, frame_count);
+                    Work_buffer_conn_rules_mix(rules, frame_count);
                 }
             }
             //fflush(stdout);
@@ -267,7 +267,7 @@ static void Mixed_signal_task_info_execute(
     for (int i = 0; i < Vector_size(task_info->conns); ++i)
     {
         const Work_buffer_conn_rules* rules = Vector_get_ref(task_info->conns, i);
-        Work_buffer_conn_rules_mix(rules, 0, frame_count);
+        Work_buffer_conn_rules_mix(rules, frame_count);
     }
 
     // Process current device state

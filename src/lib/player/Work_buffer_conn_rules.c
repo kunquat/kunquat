@@ -19,6 +19,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -85,13 +86,46 @@ static void Work_buffer_conn_rules_copy_rules(
 }
 
 
+#if 0
+static void print_rules(const Work_buffer_conn_rules* rules)
+{
+    rassert(rules != NULL);
+
+    FILE* out = stdout;
+    fprintf(out, "(%p -> %p, %d: [",
+            (const void*)rules->sender, (const void*)rules->receiver, (int)rules->length);
+    for (int i = 0; i < rules->length; ++i)
+    {
+        const Work_buffer_connection* conn = &rules->conns[i];
+        if (i != 0)
+            fprintf(out, ", ");
+        fprintf(out, "%d -> %d", conn->send_sub_index, conn->recv_sub_index);
+    }
+    fprintf(out, "])");
+
+    return;
+}
+#endif
+
+
 bool Work_buffer_conn_rules_try_merge(
         Work_buffer_conn_rules* result,
         const Work_buffer_conn_rules* rules1,
         const Work_buffer_conn_rules* rules2)
 {
+    rassert(result != NULL);
     rassert(rules1 != NULL);
     rassert(rules2 != NULL);
+    rassert(rules2 != rules1);
+
+#if 0
+    fprintf(stdout, "Try to merge ");
+    print_rules(rules1);
+    fprintf(stdout, " with ");
+    print_rules(rules2);
+    fprintf(stdout, "\n");
+    fflush(stdout);
+#endif
 
     if ((rules1->receiver != rules2->receiver) ||
             (rules1->sender != rules2->sender))
@@ -109,6 +143,8 @@ bool Work_buffer_conn_rules_try_merge(
                 const uint8_t index2 = rules2->conns[0].recv_sub_index;
                 if ((index1 == 0 && index2 == 1) || (index1 == 1 && index2 == 0))
                 {
+                    //fprintf(stdout, "Direct 2-2 connection\n");
+                    //fflush(stdout);
                     Work_buffer_conn_rules_copy_rules(result, rules1);
                     result->length = 2;
                     result->conns[0].recv_sub_index = 0;
@@ -150,15 +186,14 @@ static bool mapping_is_direct(const Work_buffer_conn_rules* rules)
 
 
 void Work_buffer_conn_rules_copy(
-        const Work_buffer_conn_rules* rules, int32_t buf_start, int32_t buf_stop)
+        const Work_buffer_conn_rules* rules, int32_t frame_count)
 {
     rassert(rules != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop > buf_start);
+    rassert(frame_count > 0);
 
     if (mapping_is_direct(rules))
     {
-        Work_buffer_copy_all(rules->receiver, rules->sender, buf_start, buf_stop);
+        Work_buffer_copy_all(rules->receiver, rules->sender, 0, frame_count);
         return;
     }
 
@@ -168,46 +203,22 @@ void Work_buffer_conn_rules_copy(
                 rules->conns[i].recv_sub_index,
                 rules->sender,
                 rules->conns[i].send_sub_index,
-                buf_start,
-                buf_stop);
+                0,
+                frame_count);
 
     return;
 }
 
 
 void Work_buffer_conn_rules_mix(
-        const Work_buffer_conn_rules* rules, int32_t buf_start, int32_t buf_stop)
+        const Work_buffer_conn_rules* rules, int32_t frame_count)
 {
     rassert(rules != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop > buf_start);
+    rassert(frame_count > 0);
 
-#if 0
-    const int recv_sub_count = Work_buffer_get_sub_count(rules->receiver);
-    const int send_sub_count = Work_buffer_get_sub_count(rules->sender);
-
-    if ((rules->length == recv_sub_count) && (recv_sub_count == send_sub_count))
-    {
-        bool all_direct = true;
-        for (int i = 0; i < rules->length; ++i)
-        {
-            if (!Work_buffer_connection_is_direct(&rules->conns[i]))
-            {
-                all_direct = false;
-                break;
-            }
-        }
-
-        if (all_direct)
-        {
-            Work_buffer_mix_all(rules->receiver, rules->sender, buf_start, buf_stop);
-            return;
-        }
-    }
-#endif
     if (mapping_is_direct(rules))
     {
-        Work_buffer_mix_all(rules->receiver, rules->sender, buf_start, buf_stop);
+        Work_buffer_mix_all(rules->receiver, rules->sender, 0, frame_count);
         return;
     }
 
@@ -217,8 +228,8 @@ void Work_buffer_conn_rules_mix(
                 rules->conns[i].recv_sub_index,
                 rules->sender,
                 rules->conns[i].send_sub_index,
-                buf_start,
-                buf_stop);
+                0,
+                frame_count);
 
     return;
 }

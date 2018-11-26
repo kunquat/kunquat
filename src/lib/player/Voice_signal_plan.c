@@ -169,7 +169,7 @@ static int32_t Voice_signal_task_info_execute(
     for (int i = 0; i < Vector_size(task_info->conns); ++i)
     {
         const Work_buffer_conn_rules* rules = Vector_get_ref(task_info->conns, i);
-        Work_buffer_conn_rules_mix(rules, 0, frame_count);
+        Work_buffer_conn_rules_mix(rules, frame_count);
     }
 
     int keep_alive_stop = 0;

@@ -59,11 +59,11 @@ bool Work_buffer_conn_rules_try_merge(
 
 
 void Work_buffer_conn_rules_copy(
-        const Work_buffer_conn_rules* rules, int32_t buf_start, int32_t buf_stop);
+        const Work_buffer_conn_rules* rules, int32_t frame_count);
 
 
 void Work_buffer_conn_rules_mix(
-        const Work_buffer_conn_rules* rules, int32_t buf_start, int32_t buf_stop);
+        const Work_buffer_conn_rules* rules, int32_t frame_count);
 
 
 #endif // KQT_WORK_BUFFER_CONNECTION_H
