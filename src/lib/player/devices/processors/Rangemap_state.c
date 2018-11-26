@@ -21,9 +21,30 @@
 #include <memory.h>
 #include <player/devices/Device_thread_state.h>
 #include <player/devices/processors/Proc_state_utils.h>
+#include <player/Work_buffers.h>
 
 #include <stdint.h>
 #include <stdlib.h>
+
+
+void Rangemap_get_port_groups(
+        const Device_impl* dimpl, Device_port_type port_type, Device_port_groups groups)
+{
+    rassert(dimpl != NULL);
+    rassert(groups != NULL);
+
+    switch (port_type)
+    {
+        case DEVICE_PORT_TYPE_RECV: Device_port_groups_init(groups, 2, 0); break;
+
+        case DEVICE_PORT_TYPE_SEND: Device_port_groups_init(groups, 2, 0); break;
+
+        default:
+            rassert(false);
+    }
+
+    return;
+}
 
 
 static void get_scalars(
@@ -76,23 +97,28 @@ static void apply_range(
     const float* in = Work_buffer_get_contents(in_wb, 0);
     float* out = Work_buffer_get_contents_mut(out_wb, 0);
 
-    for (int32_t i = 0; i < frame_count; ++i)
+    const int32_t item_count = frame_count * 2;
+
+    for (int32_t i = 0; i < item_count; ++i)
         out[i] = (mul * in[i]) + add;
 
     if (isfinite(min_val))
     {
-        for (int32_t i = 0; i < frame_count; ++i)
+        for (int32_t i = 0; i < item_count; ++i)
             out[i] = max(out[i], min_val);
     }
 
     if (isfinite(max_val))
     {
-        for (int32_t i = 0; i < frame_count; ++i)
+        for (int32_t i = 0; i < item_count; ++i)
             out[i] = min(out[i], max_val);
     }
 
     return;
 }
+
+
+static const int RANGEMAP_WB_FIXED_INPUT = WORK_BUFFER_IMPL_1;
 
 
 static void Rangemap_pstate_render_mixed(
@@ -125,23 +151,17 @@ static void Rangemap_pstate_render_mixed(
     const float min_val = (float)(rangemap->clamp_dest_min ? range_min : -INFINITY);
     const float max_val = (float)(rangemap->clamp_dest_max ? range_max : INFINITY);
 
-    // TODO: Support all ports?
-    //       We should only enable the support if we are 100% sure that
-    //       we don't need parameter input streams
-    for (int port = 0; port < 2; ++port)
+    Work_buffer* in_wb = Proc_get_mixed_input_2ch(proc_ts, 0, frame_count);
+    if (in_wb == NULL)
     {
-        Work_buffer* out_wb = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, port, NULL);
-        if (out_wb == NULL)
-            continue;
-
-        const Work_buffer* in_wb = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, port, NULL);
-        if ((in_wb == NULL) || !Work_buffer_is_valid(in_wb, 0))
-            continue;
-
-        apply_range(in_wb, out_wb, frame_count, mul, add, min_val, max_val);
+        in_wb = Work_buffers_get_buffer_mut(wbs, RANGEMAP_WB_FIXED_INPUT, 2);
+        Work_buffer_clear_all(in_wb, 0, frame_count);
     }
+
+    Work_buffer* out_wb = Proc_get_mixed_output_2ch(proc_ts, 0);
+    rassert(out_wb != NULL);
+
+    apply_range(in_wb, out_wb, frame_count, mul, add, min_val, max_val);
 
     return;
 }
@@ -200,23 +220,17 @@ int32_t Rangemap_vstate_render_voice(
     const float min_val = (float)(rangemap->clamp_dest_min ? range_min : -INFINITY);
     const float max_val = (float)(rangemap->clamp_dest_max ? range_max : INFINITY);
 
-    // TODO: Support all ports?
-    //       We should only enable the support if we are 100% sure that
-    //       we don't need parameter input streams
-    for (int port = 0; port < 2; ++port)
+    Work_buffer* in_wb = Proc_get_voice_input_2ch(proc_ts, 0, frame_count);
+    if (in_wb == NULL)
     {
-        Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, port, NULL);
-        if (out_wb == NULL)
-            continue;
-
-        const Work_buffer* in_wb = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, port, NULL);
-        if ((in_wb == NULL) || !Work_buffer_is_valid(in_wb, 0))
-            continue;
-
-        apply_range(in_wb, out_wb, frame_count, mul, add, min_val, max_val);
+        in_wb = Work_buffers_get_buffer_mut(wbs, RANGEMAP_WB_FIXED_INPUT, 2);
+        Work_buffer_clear_all(in_wb, 0, frame_count);
     }
+
+    Work_buffer* out_wb = Proc_get_voice_output_2ch(proc_ts, 0);
+    rassert(out_wb != NULL);
+
+    apply_range(in_wb, out_wb, frame_count, mul, add, min_val, max_val);
 
     return frame_count;
 }

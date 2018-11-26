@@ -74,6 +74,7 @@ Device_impl* new_Proc_rangemap(void)
 #undef REG_KEY
 #undef REG_KEY_BOOL
 
+    rangemap->parent.get_port_groups = Rangemap_get_port_groups;
     rangemap->parent.create_pstate = new_Rangemap_pstate;
     rangemap->parent.get_vstate_size = Rangemap_vstate_get_size;
     rangemap->parent.render_voice = Rangemap_vstate_render_voice;
