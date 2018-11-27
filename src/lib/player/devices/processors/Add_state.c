@@ -189,33 +189,33 @@ int32_t Add_vstate_render_voice(
 
     const float* base = Sample_get_buffer(add->base, 0);
 
-    for (int h = 0; h < add_state->tone_limit; ++h)
+    for (int32_t ch = 0; ch < 2; ++ch)
     {
-        const Add_tone* tone = &add->tones[h];
-        const double pitch_factor = tone->pitch_factor;
-        const double volume_factor = tone->volume_factor;
-
-        if ((pitch_factor <= 0) || (volume_factor <= 0))
+        float* out_buf_ch = out_bufs[ch];
+        if (out_buf_ch == NULL)
             continue;
 
-        const double pannings[] =
+        const float* mod_values_ch = Work_buffer_get_contents(mod_wbs[ch], 0);
+
+        const int32_t res_check_stop = min(frame_count,
+                max(Work_buffer_get_const_start(freqs_wb, 0),
+                    Work_buffer_get_const_start(mod_wbs[ch], 0)) + 1);
+
+        for (int h = 0; h < add_state->tone_limit; ++h)
         {
-            -tone->panning,
-            tone->panning,
-        };
+            const Add_tone* tone = &add->tones[h];
+            const double pitch_factor = tone->pitch_factor;
+            const double volume_factor = tone->volume_factor;
 
-        const double pitch_factor_inv_audio_rate = pitch_factor * inv_audio_rate;
-
-        Add_tone_state* tone_state = &add_state->tones[h];
-
-        for (int32_t ch = 0; ch < 2; ++ch)
-        {
-            float* out_buf_ch = out_bufs[ch];
-            if (out_buf_ch == NULL)
+            if ((pitch_factor <= 0) || (volume_factor <= 0))
                 continue;
 
-            const double panning_factor = 1 + pannings[ch];
-            const float* mod_values_ch = Work_buffer_get_contents(mod_wbs[ch], 0);
+            const double panning_factor =
+                (ch == 0) ? 1 - tone->panning : 1 + tone->panning;
+
+            const double pitch_factor_inv_audio_rate = pitch_factor * inv_audio_rate;
+
+            Add_tone_state* tone_state = &add_state->tones[h];
 
             double phase = tone_state->phase[ch];
 
@@ -239,7 +239,7 @@ int32_t Add_vstate_render_voice(
                 int32_t cur_size = ADD_BASE_FUNC_SIZE;
                 if (isfinite(shift_norm) && (shift_norm > 0.0f))
                 {
-                    cur_size = (int32_t)ipowi(2, clamp(-shift_exp + 1, 3, 30));
+                    cur_size = (int32_t)(1 << clamp(-shift_exp + 1, 3, 30));
                     cur_size = min(cur_size, ADD_BASE_FUNC_SIZE * 2);
                     rassert(is_p2(cur_size));
                 }
@@ -250,9 +250,6 @@ int32_t Add_vstate_render_voice(
                 const float* cur_base = base + base_offset;
 
                 // Get length of input compatible with current waveform resolution
-                const int32_t res_check_stop = min(res_slice_stop,
-                        max(Work_buffer_get_const_start(freqs_wb, 0),
-                            Work_buffer_get_const_start(mod_wbs[ch], 0)) + 1);
                 for (int32_t i = res_slice_start + 1; i < res_check_stop; ++i)
                 {
                     const float cur_mod_shift = mod_values_ch[i] - mod_values_ch[i - 1];
