@@ -113,6 +113,9 @@ class GccCommand():
         if enabled:
             self._compile_flags.append('-fPIC')
 
+    def set_native_arch(self):
+        self._compile_flags.append('-march=native')
+
     def add_define(self, name, value=None):
         if value == None:
             self._compile_flags.append('-D{}'.format(name))
@@ -219,6 +222,9 @@ class ClangCommand():
     def set_pic(self, enabled):
         if enabled:
             self._compile_flags.append('-fPIC')
+
+    def set_native_arch(self):
+        self._compile_flags.append('-march=native')
 
     def add_define(self, name, value=None):
         if value == None:

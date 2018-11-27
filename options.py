@@ -68,6 +68,9 @@ with_zip = True
 # (supported values: None (autodetect, default), 'gcc', 'clang')
 cc = None
 
+# use native CPU architecture
+enable_native_arch = True
+
 # optimisation level (0..4)
 optimise = 4
 

@@ -148,6 +148,9 @@ def build():
     #    compile_flags.append('-pg')
     #    link_flags.append('-pg')
 
+    if options.enable_native_arch:
+        cc.set_native_arch()
+
     if options.optimise not in range(5):
         print('Unsupported optimisation level: {}'.format(options.optimise),
                 file=sys.stderr)
