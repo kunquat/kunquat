@@ -890,7 +890,7 @@ static void Player_process_voice_group(
 
         const Work_buffer* in_wb = Device_thread_state_get_voice_buffer(
                 test_ts, DEVICE_PORT_TYPE_SEND, 0, NULL);
-        if (in_wb != NULL)
+        if ((in_wb != NULL) && Work_buffer_is_valid(in_wb, 0))
         {
             const int sub_count = Work_buffer_get_sub_count(in_wb);
             if (sub_count == 1)
@@ -901,7 +901,7 @@ static void Player_process_voice_group(
                     Device_thread_state_get_voice_buffer(
                             test_ts, DEVICE_PORT_TYPE_SEND, 1, NULL),
                 };
-                if (in_wbs[1] == NULL)
+                if ((in_wbs[1] == NULL) || !Work_buffer_is_valid(in_wbs[1], 0))
                     in_wbs[1] = in_wbs[0];
 
                 for (int si = 0; si < 2; ++si)
@@ -921,6 +921,9 @@ static void Player_process_voice_group(
                         0,
                         test_output_stop);
             }
+
+            Work_buffer_clear_all(
+                    tparams->test_voice_output, test_output_stop, frame_count);
         }
     }
 
