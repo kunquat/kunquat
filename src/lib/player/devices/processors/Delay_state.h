@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -16,7 +16,7 @@
 #define KQT_DELAY_STATE_H
 
 
-#include <decl.h>
+#include <init/devices/Device_impl.h>
 #include <player/devices/Device_state.h>
 #include <player/devices/Proc_state.h>
 #include <string/key_pattern.h>
@@ -25,8 +25,9 @@
 #include <stdint.h>
 
 
-Device_state* new_Delay_pstate(
-        const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
+Device_impl_get_port_groups_func Delay_get_port_groups;
+
+Device_state_create_func new_Delay_pstate;
 
 bool Delay_pstate_set_max_delay(
         Device_state* dstate, const Key_indices indices, double value);

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2018
  *
  * This file is part of Kunquat.
  *
@@ -54,6 +54,7 @@ Device_impl* new_Proc_delay(void)
         return NULL;
     }
 
+    delay->parent.get_port_groups = Delay_get_port_groups;
     delay->parent.create_pstate = new_Delay_pstate;
 
     // Register key set/update handlers
