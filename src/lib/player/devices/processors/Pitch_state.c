@@ -100,8 +100,6 @@ int32_t Pitch_vstate_render_voice(
     Pitch_controls_set_audio_rate(pc, dstate->audio_rate);
     Pitch_controls_set_tempo(pc, tempo);
 
-    out_buf[-1] = (float)pc->pitch;
-
     int32_t const_start = 0;
 
     // Apply pitch slide
