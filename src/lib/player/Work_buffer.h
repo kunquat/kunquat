@@ -158,9 +158,9 @@ bool Work_buffer_is_valid(const Work_buffer* buffer, int sub_index);
  * \param sub_index   The index of the area to be cleared -- must be >= \c 0 and
  *                    < \a Work_buffer_get_sub_count(\a buffer).
  * \param buf_start   The start index of the area to be cleared -- must be
- *                    >= \c -1 and less than or equal to the buffer size.
+ *                    >= \c 0 and less than the buffer size.
  * \param buf_stop    The stop index of the area to be cleared -- must be
- *                    >= \c -1 and less than or equal to buffer size + \c 1.
+ *                    >= \c 0 and less than or equal to buffer size.
  */
 void Work_buffer_clear(
         Work_buffer* buffer, int sub_index, int32_t buf_start, int32_t buf_stop);
@@ -171,9 +171,9 @@ void Work_buffer_clear(
  *
  * \param buffer      The Work buffer -- must not be \c NULL.
  * \param buf_start   The start index of the area to be cleared -- must be
- *                    >= \c -1 and less than or equal to the buffer size.
+ *                    >= \c 0 and less than the buffer size.
  * \param buf_stop    The stop index of the area to be cleared -- must be
- *                    >= \c -1 and less than or equal to buffer size + \c 1.
+ *                    >= \c 0 and less than or equal to buffer size.
  */
 void Work_buffer_clear_all(Work_buffer* buffer, int32_t buf_start, int32_t buf_stop);
 
@@ -196,10 +196,10 @@ int32_t Work_buffer_get_size(const Work_buffer* buffer);
  *
  * \param buffer      The Work buffer -- must not be \c NULL.
  * \param sub_index   The index of the area -- must be >= \c 0 and
- *                    < \a Work_buffer_get_stride(buffer).
+ *                    < \a Work_buffer_get_sub_count(buffer).
  *
  * \return   The address of the internal buffer, with a valid index range of
- *           [-1, Work_buffer_get_size(\a buffer)]. For devices that receive
+ *           [0, Work_buffer_get_size(\a buffer) + 3]. For devices that receive
  *           the buffer from a caller, this function never returns \c NULL.
  */
 const float* Work_buffer_get_contents(const Work_buffer* buffer, int sub_index);
@@ -219,10 +219,10 @@ const float* Work_buffer_get_contents(const Work_buffer* buffer, int sub_index);
  *
  * \param buffer      The Work buffer -- must not be \c NULL.
  * \param sub_index   The index of the area -- must be >= \c 0 and
- *                    < \a Work_buffer_get_stride(buffer).
+ *                    < \a Work_buffer_get_sub_count(buffer).
  *
  * \return   The address of the internal buffer, with a valid index range of
- *           [-1, Work_buffer_get_size(\a buffer)]. For devices that receive
+ *           [0, Work_buffer_get_size(\a buffer) + 3]. For devices that receive
  *           the buffer from a caller, this function never returns \c NULL.
  */
 float* Work_buffer_get_contents_mut(Work_buffer* buffer, int sub_index);
@@ -236,10 +236,10 @@ float* Work_buffer_get_contents_mut(Work_buffer* buffer, int sub_index);
  *
  * \param buffer      The Work buffer -- must not be \c NULL.
  * \param sub_index   The index of the area -- must be >= \c 0 and
- *                    < \a Work_buffer_get_stride(buffer).
+ *                    < \a Work_buffer_get_sub_count(buffer).
  *
  * \return   The address of the internal buffer, with a valid index range of
- *           [-1, Work_buffer_get_size(\a buffer)]. For devices that receive
+ *           [0, Work_buffer_get_size(\a buffer) + 3]. For devices that receive
  *           the buffer from a caller, this function never returns \c NULL.
  */
 int32_t* Work_buffer_get_contents_int_mut(Work_buffer* buffer, int sub_index);
@@ -250,14 +250,14 @@ int32_t* Work_buffer_get_contents_int_mut(Work_buffer* buffer, int sub_index);
  *
  * \param dest             The destination Work buffer -- must not be \c NULL.
  * \param dest_sub_index   The index of the destination area -- must be >= \c 0
- *                         and < \a Work_buffer_get_stride(dest).
+ *                         and < \a Work_buffer_get_sub_count(dest).
  * \param src              The source Work buffer -- must not be \c NULL or \a dest.
  * \param src_sub_index    The index of the source area -- must be >= \c 0 and
- *                         < \a Work_buffer_get_stride(src).
+ *                         < \a Work_buffer_get_sub_count(src).
  * \param buf_start        The start index of the area to be copied -- must be
- *                         >= \c -1 and less than or equal to the buffer size.
+ *                         >= \c 0 and less than the buffer size.
  * \param buf_stop         The stop index of the area to be copied -- must be
- *                         >= \c -1 and less than or equal to buffer size + \c 1.
+ *                         >= \c 0 and less than or equal to buffer size.
  */
 void Work_buffer_copy(
         Work_buffer* restrict dest,
@@ -274,9 +274,9 @@ void Work_buffer_copy(
  * \param dest        The destination Work buffer -- must not be \c NULL.
  * \param src         The source Work buffer -- must not be \c NULL or \a dest.
  * \param buf_start   The start index of the area to be copied -- must be
- *                    >= \c -1 and less than or equal to the buffer size.
+ *                    >= \c 0 and less than the buffer size.
  * \param buf_stop    The stop index of the area to be copied -- must be
- *                    >= \c -1 and less than or equal to buffer size + \c 1.
+ *                    >= \c 0 and less than or equal to buffer size.
  */
 void Work_buffer_copy_all(
         Work_buffer* restrict dest,
@@ -294,7 +294,7 @@ void Work_buffer_copy_all(
  *
  * \param buffer      The Work buffer -- must not be \c NULL.
  * \param sub_index   The index of the area -- must be >= \c 0 and
- *                    < \a Work_buffer_get_stride(buffer).
+ *                    < \a Work_buffer_get_sub_count(buffer).
  * \param start       The start index in \a buffer -- must be non-negative.
  */
 void Work_buffer_set_const_start(Work_buffer* buffer, int sub_index, int32_t start);
@@ -305,7 +305,7 @@ void Work_buffer_set_const_start(Work_buffer* buffer, int sub_index, int32_t sta
  *
  * \param buffer      The Work buffer -- must not be \c NULL.
  * \param sub_index   The index of the area -- must be >= \c 0 and
- *                    < \a Work_buffer_get_stride(buffer).
+ *                    < \a Work_buffer_get_sub_count(buffer).
  */
 void Work_buffer_clear_const_start(Work_buffer* buffer, int sub_index);
 
@@ -315,7 +315,7 @@ void Work_buffer_clear_const_start(Work_buffer* buffer, int sub_index);
  *
  * \param buffer      The Work buffer -- must not be \c NULL.
  * \param sub_index   The index of the area -- must be >= \c 0 and
- *                    < \a Work_buffer_get_stride(buffer).
+ *                    < \a Work_buffer_get_sub_count(buffer).
  *
  * \return   The constant-value start marker, or \c INT32_MAX if not set.
  */
@@ -327,7 +327,7 @@ int32_t Work_buffer_get_const_start(const Work_buffer* buffer, int sub_index);
  *
  * \param buffer      The Work buffer -- must not be \c NULL.
  * \param sub_index   The index of the area -- must be >= \c 0 and
- *                    < \a Work_buffer_get_stride(buffer).
+ *                    < \a Work_buffer_get_sub_count(buffer).
  * \param is_final    Whether or not the trailing constant is the final value.
  */
 void Work_buffer_set_final(Work_buffer* buffer, int sub_index, bool is_final);
@@ -338,7 +338,7 @@ void Work_buffer_set_final(Work_buffer* buffer, int sub_index, bool is_final);
  *
  * \param buffer      The Work buffer -- must not be \c NULL.
  * \param sub_index   The index of the area -- must be >= \c 0 and
- *                    < \a Work_buffer_get_stride(buffer).
+ *                    < \a Work_buffer_get_sub_count(buffer).
  *
  * \return   \c true if the constant trail of \a buffer is final, otherwise \c false.
  */
@@ -353,15 +353,15 @@ bool Work_buffer_is_final(const Work_buffer* buffer, int sub_index);
  * \param dest             The Work buffer that will contain the end result --
  *                         must not be \c NULL.
  * \param dest_sub_index   The index of the destination area -- must be >= \c 0
- *                         and < \a Work_buffer_get_stride(dest).
+ *                         and < \a Work_buffer_get_sub_count(dest).
  * \param src              The input Work buffer -- must not be \c NULL and must
  *                         have the same size as \a dest.
  * \param src_sub_index    The index of the destination area -- must be >= \c 0
- *                         and < \a Work_buffer_get_stride(src).
+ *                         and < \a Work_buffer_get_sub_count(src).
  * \param buf_start        The start index of the area to be mixed -- must be
- *                         >= \c -1 and less than or equal to the buffer size.
+ *                         >= \c 0 and less than the buffer size.
  * \param buf_stop         The stop index of the area to be mixed -- must be
- *                         >= \c -1 and less than or equal to buffer size + \c 1.
+ *                         >= \c 0 and less than or equal to buffer size.
  */
 void Work_buffer_mix(
         Work_buffer* dest,
@@ -382,9 +382,9 @@ void Work_buffer_mix(
  * \param src         The input Work buffer -- must not be \c NULL and must
  *                    have the same size and stride as \a dest.
  * \param buf_start   The start index of the area to be mixed -- must be
- *                    >= \c -1 and less than or equal to the buffer size.
+ *                    >= \c 0 and less than the buffer size.
  * \param buf_stop    The stop index of the area to be mixed -- must be
- *                    >= \c -1 and less than or equal to buffer size + \c 1.
+ *                    >= \c 0 and less than or equal to buffer size.
  */
 void Work_buffer_mix_all(
         Work_buffer* dest,
