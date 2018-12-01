@@ -90,14 +90,16 @@ void Work_buffer_init_with_memory(
         Work_buffer* buffer, int sub_count, void* space, int32_t raw_elem_count)
 {
     rassert(buffer != NULL);
+    rassert((intptr_t)buffer % 32 == 0);
     rassert(sub_count >= 1);
     rassert(sub_count <= WORK_BUFFER_SUB_COUNT_MAX);
     rassert(is_p2(sub_count));
     rassert(space != NULL);
+    rassert((intptr_t)space % 64 == 0);
     rassert(raw_elem_count >= sub_count * 2);
     rassert(raw_elem_count % sub_count == 0);
 
-    buffer->size = (raw_elem_count / sub_count) - 2;
+    buffer->size = (raw_elem_count / sub_count) - MARGIN_ELEM_COUNT;
     buffer->init_sub_count = (uint8_t)sub_count & 0xfU;
     buffer->sub_count = (uint8_t)sub_count & 0xfU;
     for (int i = 0; i < sub_count; ++i)
@@ -109,7 +111,8 @@ void Work_buffer_init_with_memory(
     buffer->contents = space;
 
     for (int sub_index = 0; sub_index < sub_count; ++sub_index)
-        Work_buffer_clear(buffer, sub_index, 0, Work_buffer_get_size(buffer) + 2);
+        Work_buffer_clear(
+                buffer, sub_index, 0, Work_buffer_get_size(buffer) + MARGIN_ELEM_COUNT);
 
     return;
 }

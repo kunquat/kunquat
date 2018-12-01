@@ -53,17 +53,19 @@ Work_buffer* new_Work_buffer(int32_t size, int sub_count);
  *       parameter to this function, and Work buffers initialised with this
  *       function must not be passed to \a del_Work_buffer.
  *
- * \param buffer           The Work buffer -- must not be \c NULL.
+ * \param buffer           The Work buffer -- must not be \c NULL and must be
+ *                         aligned to \c 32 bytes.
  * \param sub_count        The number of interleaved areas in the Work buffer
  *                         -- must be >= \c 1, <= \c WORK_BUFFER_SUB_COUNT_MAX
  *                         and a power of two.
  * \param space            The starting address of the memory area
- *                         -- must not be \c NULL.
+ *                         -- must not be \c NULL and must be aligned to
+ *                         \c 64 bytes.
  * \param raw_elem_count   The total number of elements in \a space -- must be
  *                         >= \a sub_count * \c 2 and divisible by
  *                         \a sub_count. The reported size of the initialised
  *                         Work buffer will be
- *                         (\a raw_elem_count / \a sub_count) - \c 2.
+ *                         (\a raw_elem_count / \a sub_count) - \c 3.
  */
 void Work_buffer_init_with_memory(
         Work_buffer* buffer, int sub_count, void* space, int32_t raw_elem_count);
