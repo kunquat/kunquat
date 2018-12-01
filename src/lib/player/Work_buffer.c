@@ -29,6 +29,9 @@ static_assert(sizeof(int32_t) <= WORK_BUFFER_ELEM_SIZE,
         "Work buffers must have space for enough 32-bit integers.");
 
 
+#define MARGIN_ELEM_COUNT 3
+
+
 static void Work_buffer_mark_invalid(Work_buffer* buffer, int sub_index)
 {
     rassert(buffer != NULL);
@@ -66,7 +69,7 @@ Work_buffer* new_Work_buffer(int32_t size, int sub_count)
     buffer->contents = NULL;
 
     // Allocate buffers
-    const int32_t actual_size = size + 2;
+    const int32_t actual_size = size + MARGIN_ELEM_COUNT;
     buffer->contents = memory_alloc_items_aligned(
             char, actual_size * sub_count * WORK_BUFFER_ELEM_SIZE, 64);
     if (buffer->contents == NULL)
@@ -106,7 +109,7 @@ void Work_buffer_init_with_memory(
     buffer->contents = space;
 
     for (int sub_index = 0; sub_index < sub_count; ++sub_index)
-        Work_buffer_clear(buffer, sub_index, -1, Work_buffer_get_size(buffer) + 1);
+        Work_buffer_clear(buffer, sub_index, 0, Work_buffer_get_size(buffer) + 2);
 
     return;
 }
@@ -120,7 +123,7 @@ void Work_buffer_invalidate(Work_buffer* buffer)
 
 #ifdef ENABLE_DEBUG_ASSERTS
     float* data = buffer->contents;
-    for (int i = -buffer->sub_count; i < (buffer->size + 1) * buffer->sub_count; ++i)
+    for (int i = 0; i < buffer->size * buffer->sub_count; ++i)
         *data++ = NAN;
 #endif
 
@@ -156,7 +159,7 @@ bool Work_buffer_resize(Work_buffer* buffer, int32_t new_size)
     rassert(new_size > 0);
     rassert(new_size <= WORK_BUFFER_SIZE_MAX);
 
-    const int32_t actual_size = new_size + 2;
+    const int32_t actual_size = new_size + MARGIN_ELEM_COUNT;
     char* new_contents = memory_alloc_items_aligned(
             char, actual_size * buffer->sub_count * WORK_BUFFER_ELEM_SIZE, 64);
     if (new_contents == NULL)
@@ -222,10 +225,10 @@ void Work_buffer_clear(
     rassert(buffer != NULL);
     rassert(sub_index >= 0);
     rassert(sub_index < buffer->sub_count);
-    rassert(buf_start >= -1);
-    rassert(buf_start <= Work_buffer_get_size(buffer));
-    rassert(buf_stop >= -1);
-    rassert(buf_stop <= Work_buffer_get_size(buffer) + 1);
+    rassert(buf_start >= 0);
+    rassert(buf_start < Work_buffer_get_size(buffer));
+    rassert(buf_stop >= 0);
+    rassert(buf_stop <= Work_buffer_get_size(buffer) + MARGIN_ELEM_COUNT);
 
     float* fcontents = Work_buffer_get_contents_mut(buffer, sub_index);
     for (int32_t i = buf_start; i < buf_stop; ++i)
@@ -242,10 +245,10 @@ void Work_buffer_clear(
 void Work_buffer_clear_all(Work_buffer* buffer, int32_t buf_start, int32_t buf_stop)
 {
     rassert(buffer != NULL);
-    rassert(buf_start >= -1);
-    rassert(buf_start <= Work_buffer_get_size(buffer));
-    rassert(buf_stop >= -1);
-    rassert(buf_stop <= Work_buffer_get_size(buffer) + 1);
+    rassert(buf_start >= 0);
+    rassert(buf_start < Work_buffer_get_size(buffer));
+    rassert(buf_stop >= 0);
+    rassert(buf_stop <= Work_buffer_get_size(buffer) + MARGIN_ELEM_COUNT);
 
     const int32_t actual_start = buf_start * buffer->sub_count;
     const int32_t actual_stop = buf_stop * buffer->sub_count;
@@ -280,7 +283,7 @@ const float* Work_buffer_get_contents(const Work_buffer* buffer, int sub_index)
 
     rassert(Work_buffer_is_valid(buffer, sub_index));
 
-    return (float*)buffer->contents + buffer->sub_count + sub_index;
+    return (float*)buffer->contents + sub_index;
 }
 
 
@@ -294,7 +297,7 @@ float* Work_buffer_get_contents_mut(Work_buffer* buffer, int sub_index)
     Work_buffer_clear_const_start(buffer, sub_index);
     Work_buffer_set_final(buffer, sub_index, false);
 
-    return (float*)buffer->contents + buffer->sub_count + sub_index;
+    return (float*)buffer->contents + sub_index;
 }
 
 
@@ -306,7 +309,7 @@ int32_t* Work_buffer_get_contents_int_mut(Work_buffer* buffer, int sub_index)
     Work_buffer_clear_const_start(buffer, sub_index);
     Work_buffer_set_final(buffer, sub_index, false);
 
-    return (int32_t*)buffer->contents + buffer->sub_count + sub_index;
+    return (int32_t*)buffer->contents + sub_index;
 }
 
 
@@ -325,10 +328,10 @@ void Work_buffer_copy(
     rassert(dest != src);
     rassert(src_sub_index >= 0);
     rassert(src_sub_index < src->sub_count);
-    rassert(buf_start >= -1);
-    rassert(buf_start <= Work_buffer_get_size(dest));
-    rassert(buf_stop >= -1);
-    rassert(buf_stop <= Work_buffer_get_size(dest) + 1);
+    rassert(buf_start >= 0);
+    rassert(buf_start < Work_buffer_get_size(dest));
+    rassert(buf_stop >= 0);
+    rassert(buf_stop <= Work_buffer_get_size(dest) + MARGIN_ELEM_COUNT);
 
     if (buf_start >= buf_stop)
         return;
@@ -336,18 +339,15 @@ void Work_buffer_copy(
     if (!Work_buffer_is_valid(src, src_sub_index))
         return;
 
-    const int32_t actual_start = buf_start + 1;
-    const int32_t actual_stop = buf_stop + 1;
-
     float* dest_pos =
-        (float*)dest->contents + (actual_start * dest->sub_count) + dest_sub_index;
+        (float*)dest->contents + (buf_start * dest->sub_count) + dest_sub_index;
     const int dest_stride = Work_buffer_get_stride(dest);
 
     const float* src_pos =
-        (const float*)src->contents + (actual_start * src->sub_count) + src_sub_index;
+        (const float*)src->contents + (buf_start * src->sub_count) + src_sub_index;
     const int src_stride = Work_buffer_get_stride(src);
 
-    const int32_t elem_count = actual_stop - actual_start;
+    const int32_t elem_count = buf_stop - buf_start;
     for (int32_t i = 0; i < elem_count; ++i)
     {
         dassert(!isnan(*src_pos));
@@ -376,10 +376,10 @@ void Work_buffer_copy_all(
     rassert(src != NULL);
     rassert(dest != src);
     rassert(dest->sub_count == src->sub_count);
-    rassert(buf_start >= -1);
-    rassert(buf_start <= Work_buffer_get_size(dest));
-    rassert(buf_stop >= -1);
-    rassert(buf_stop <= Work_buffer_get_size(dest) + 1);
+    rassert(buf_start >= 0);
+    rassert(buf_start < Work_buffer_get_size(dest));
+    rassert(buf_stop >= 0);
+    rassert(buf_stop <= Work_buffer_get_size(dest) + MARGIN_ELEM_COUNT);
 
     if (buf_start >= buf_stop)
         return;
@@ -398,11 +398,9 @@ void Work_buffer_copy_all(
         }
     }
 
-    const int32_t actual_start = buf_start + 1;
-    const int32_t actual_stop = buf_stop + 1;
-    float* dest_pos = (float*)dest->contents + (actual_start * dest->sub_count);
-    const float* src_pos = (const float*)src->contents + (actual_start * dest->sub_count);
-    for (int32_t i = actual_start; i < actual_stop; ++i)
+    float* dest_pos = (float*)dest->contents + (buf_start * dest->sub_count);
+    const float* src_pos = (const float*)src->contents + (buf_start * dest->sub_count);
+    for (int32_t i = buf_start; i < buf_stop; ++i)
     {
         dassert(!isnan(*src_pos));
         *dest_pos++ = *src_pos++;
@@ -496,10 +494,10 @@ void Work_buffer_mix(
     rassert(src_sub_index >= 0);
     rassert(src_sub_index < src->sub_count);
     rassert(Work_buffer_get_size(dest) == Work_buffer_get_size(src));
-    rassert(buf_start >= -1);
-    rassert(buf_start <= Work_buffer_get_size(dest));
-    rassert(buf_stop >= -1);
-    rassert(buf_stop <= Work_buffer_get_size(dest) + 1);
+    rassert(buf_start >= 0);
+    rassert(buf_start < Work_buffer_get_size(dest));
+    rassert(buf_stop >= 0);
+    rassert(buf_stop <= Work_buffer_get_size(dest) + MARGIN_ELEM_COUNT);
 
     if (dest == src)
         return;
@@ -579,10 +577,10 @@ void Work_buffer_mix_all(
     rassert(src != NULL);
     rassert(Work_buffer_get_size(dest) == Work_buffer_get_size(src));
     rassert(dest->sub_count == src->sub_count);
-    rassert(buf_start >= -1);
-    rassert(buf_start <= Work_buffer_get_size(dest));
-    rassert(buf_stop >= -1);
-    rassert(buf_stop <= Work_buffer_get_size(dest) + 1);
+    rassert(buf_start >= 0);
+    rassert(buf_start < Work_buffer_get_size(dest));
+    rassert(buf_stop >= 0);
+    rassert(buf_stop <= Work_buffer_get_size(dest) + MARGIN_ELEM_COUNT);
 
     if (dest == src)
         return;
