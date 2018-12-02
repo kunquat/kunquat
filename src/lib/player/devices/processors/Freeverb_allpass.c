@@ -79,7 +79,7 @@ void Freeverb_allpass_process(
     rassert(buffer != NULL);
     rassert(frame_count > 0);
 
-#ifdef KQT_SSE
+#if KQT_SSE
     dassert(_MM_GET_FLUSH_ZERO_MODE() == _MM_FLUSH_ZERO_ON);
 #endif
 
@@ -89,7 +89,7 @@ void Freeverb_allpass_process(
     {
         float bufout_l = allpass_l->buffer[allpass_l->buffer_pos];
         float bufout_r = allpass_r->buffer[allpass_r->buffer_pos];
-#ifndef KQT_SSE
+#if !KQT_SSE
         bufout_l = undenormalise(bufout_l);
         bufout_r = undenormalise(bufout_r);
 #endif

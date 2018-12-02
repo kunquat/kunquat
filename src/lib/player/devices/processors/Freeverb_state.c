@@ -330,7 +330,7 @@ static void Freeverb_pstate_render_mixed(
             comb_input[i] =
                 (float)((in_contents[i * 2] + in_contents[i * 2 + 1]) * freeverb->gain);
 
-#ifdef KQT_SSE
+#if KQT_SSE
         const unsigned int old_ftoz = _MM_GET_FLUSH_ZERO_MODE();
         _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
 #endif
@@ -355,7 +355,7 @@ static void Freeverb_pstate_render_mixed(
                     out_contents,
                     frame_count);
 
-#ifdef KQT_SSE
+#if KQT_SSE
         _MM_SET_FLUSH_ZERO_MODE(old_ftoz);
 #endif
     }

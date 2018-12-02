@@ -76,7 +76,7 @@ void Freeverb_comb_process(
     rassert(damps != NULL);
     rassert(frame_count > 0);
 
-#ifdef KQT_SSE
+#if KQT_SSE
     dassert(_MM_GET_FLUSH_ZERO_MODE() == _MM_FLUSH_ZERO_ON);
 #endif
 
@@ -87,7 +87,7 @@ void Freeverb_comb_process(
     {
         float output_l = comb_l->buffer[comb_l->buffer_pos];
         float output_r = comb_r->buffer[comb_r->buffer_pos];
-#ifndef KQT_SSE
+#if !KQT_SSE
         output_l = undenormalise(output_l);
         output_r = undenormalise(output_r);
 #endif
@@ -98,7 +98,7 @@ void Freeverb_comb_process(
 
         comb_l->filter_store = (output_l * damp2) + (comb_l->filter_store * damp1);
         comb_r->filter_store = (output_r * damp2) + (comb_r->filter_store * damp1);
-#ifndef KQT_SSE
+#if !KQT_SSE
         comb_l->filter_store = undenormalise(comb_l->filter_store);
         comb_r->filter_store = undenormalise(comb_r->filter_store);
 #endif
