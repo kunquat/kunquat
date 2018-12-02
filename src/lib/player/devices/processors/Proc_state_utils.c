@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/Processor.h>
+#include <intrinsics.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
@@ -309,6 +310,25 @@ void Proc_fill_scale_buffer(Work_buffer* scales, Work_buffer* dBs, int32_t frame
 
         const int32_t fast_stop = min(const_start, frame_count);
 
+        float const_dB = -INFINITY;
+
+#if KQT_SSE4_1
+        {
+            if (fast_stop < frame_count)
+                const_dB = clamp(dBs_data[fast_stop], -10000.0f, 10000.0f);
+
+            const __m128 min_dB = _mm_set1_ps(-500);
+            const __m128 max_dB = _mm_set1_ps(500);
+
+            for (int32_t i = 0; i < fast_stop; i += 4)
+            {
+                const __m128 dB = _mm_load_ps(dBs_data + i);
+                const __m128 clamped_dB = _mm_min_ps(_mm_max_ps(min_dB, dB), max_dB);
+                const __m128 scale = fast_dB_to_scale_f4(clamped_dB);
+                _mm_store_ps(scales_data + i, scale);
+            }
+        }
+#else
         // Sanitise input values
         {
             const float bound = 10000.0f;
@@ -317,21 +337,19 @@ void Proc_fill_scale_buffer(Work_buffer* scales, Work_buffer* dBs, int32_t frame
                 dBs_data[i] = clamp(dBs_data[i], -bound, bound);
 
             if (fast_stop < frame_count)
-            {
-                const float dB = clamp(dBs_data[fast_stop], -bound, bound);
-                for (int32_t i = fast_stop; i < frame_count; ++i)
-                    dBs_data[i] = dB;
-            }
+                const_dB = clamp(dBs_data[fast_stop], -bound, bound);
         }
 
         for (int32_t i = 0; i < fast_stop; ++i)
             scales_data[i] = (float)fast_dB_to_scale(dBs_data[i]);
+#endif
 
         //fprintf(stdout, "%d %d %d\n", 0, (int)fast_stop, (int)frame_count);
 
         if (fast_stop < frame_count)
         {
-            const float scale = (float)dB_to_scale(dBs_data[fast_stop]);
+            rassert(isfinite(const_dB));
+            const float scale = (float)dB_to_scale(const_dB);
             for (int32_t i = fast_stop; i < frame_count; ++i)
                 scales_data[i] = scale;
         }
