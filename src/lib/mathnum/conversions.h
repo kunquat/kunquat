@@ -52,6 +52,15 @@ static inline double fast_dB_to_scale(double dB)
 }
 
 
+#if KQT_SSE4_1
+static inline __m128 fast_dB_to_scale_f4(__m128 dB)
+{
+    const __m128 dB_scale = _mm_set1_ps((float)(1.0 / 6.0));
+    return fast_exp2_f4(_mm_mul_ps(dB, dB_scale));
+}
+#endif // KQT_SSE4_1
+
+
 /**
  * Convert the given scale value to dB.
  *
