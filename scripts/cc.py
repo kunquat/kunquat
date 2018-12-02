@@ -81,6 +81,7 @@ class GccCommand():
                 '-Wmissing-prototypes',
                 '-Wshadow',
                 '-Wstrict-prototypes',
+                '-Wundef',
                 '-Wunused-macros',
                 '-Wwrite-strings',
             ]
