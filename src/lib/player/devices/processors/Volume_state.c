@@ -88,7 +88,7 @@ static void apply_volume(
     const float global_scale = (float)dB_to_scale(global_vol);
 
     Work_buffer* scales_wb = Work_buffers_get_buffer_mut(wbs, VOLUME_WB_FIXED_VOLUME, 1);
-    Proc_fill_scale_buffer(scales_wb, vol_wb, 0, frame_count);
+    Proc_fill_scale_buffer(scales_wb, vol_wb, frame_count);
     const float* scales = Work_buffer_get_contents(scales_wb, 0);
 
     const float* in = in_buffer;

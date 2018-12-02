@@ -295,15 +295,10 @@ void Proc_fill_freq_buffer(
 }
 
 
-void Proc_fill_scale_buffer(
-        Work_buffer* scales,
-        Work_buffer* dBs,
-        int32_t buf_start,
-        int32_t buf_stop)
+void Proc_fill_scale_buffer(Work_buffer* scales, Work_buffer* dBs, int32_t frame_count)
 {
     rassert(scales != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
+    rassert(frame_count > 0);
 
     if ((dBs != NULL) && Work_buffer_is_valid(dBs, 0))
     {
@@ -312,32 +307,32 @@ void Proc_fill_scale_buffer(
 
         float* dBs_data = Work_buffer_get_contents_mut(dBs, 0);
 
-        const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
+        const int32_t fast_stop = min(const_start, frame_count);
 
         // Sanitise input values
         {
             const float bound = 10000.0f;
 
-            for (int32_t i = buf_start; i < fast_stop; ++i)
+            for (int32_t i = 0; i < fast_stop; ++i)
                 dBs_data[i] = clamp(dBs_data[i], -bound, bound);
 
-            if (fast_stop < buf_stop)
+            if (fast_stop < frame_count)
             {
                 const float dB = clamp(dBs_data[fast_stop], -bound, bound);
-                for (int32_t i = fast_stop; i < buf_stop; ++i)
+                for (int32_t i = fast_stop; i < frame_count; ++i)
                     dBs_data[i] = dB;
             }
         }
 
-        for (int32_t i = buf_start; i < fast_stop; ++i)
+        for (int32_t i = 0; i < fast_stop; ++i)
             scales_data[i] = (float)fast_dB_to_scale(dBs_data[i]);
 
-        //fprintf(stdout, "%d %d %d\n", (int)buf_start, (int)fast_stop, (int)buf_stop);
+        //fprintf(stdout, "%d %d %d\n", 0, (int)fast_stop, (int)frame_count);
 
-        if (fast_stop < buf_stop)
+        if (fast_stop < frame_count)
         {
             const float scale = (float)dB_to_scale(dBs_data[fast_stop]);
-            for (int32_t i = fast_stop; i < buf_stop; ++i)
+            for (int32_t i = fast_stop; i < frame_count; ++i)
                 scales_data[i] = scale;
         }
 
@@ -347,10 +342,10 @@ void Proc_fill_scale_buffer(
     {
         float* scales_data = Work_buffer_get_contents_mut(scales, 0);
 
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
             scales_data[i] = 1;
 
-        Work_buffer_set_const_start(scales, 0, buf_start);
+        Work_buffer_set_const_start(scales, 0, 0);
     }
 
     return;

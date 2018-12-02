@@ -102,17 +102,13 @@ void Proc_fill_freq_buffer(
  *       If that is not the case, the const start value of \a scales may be
  *       incorrect.
  *
- * \param scales      The destination buffer -- must not be \c NULL.
- * \param dBs         The decibel buffer -- must not be \c NULL. This buffer
- *                    may be the same as \a scales.
- * \param buf_start   The start index of the buffer area to be processed.
- * \param buf_stop    The stop index of the buffer area to be processed.
+ * \param scales        The destination buffer -- must not be \c NULL.
+ * \param dBs           The decibel buffer -- must not be \c NULL. This buffer
+ *                      may be the same as \a scales.
+ * \param frame_count   Number of frames to be processed -- must be > \c 0 and
+ *                      not be greater than the buffer size.
  */
-void Proc_fill_scale_buffer(
-        Work_buffer* scales,
-        Work_buffer* dBs,
-        int32_t buf_start,
-        int32_t buf_stop);
+void Proc_fill_scale_buffer(Work_buffer* scales, Work_buffer* dBs, int32_t frame_count);
 
 
 /**

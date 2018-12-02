@@ -153,7 +153,7 @@ static int32_t Sample_render(
 
     if ((force_scales_wb == NULL) || !Work_buffer_is_valid(force_scales_wb, 0))
         force_scales_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_FORCE, 1);
-    Proc_fill_scale_buffer(force_scales_wb, dBs_wb, 0, frame_count);
+    Proc_fill_scale_buffer(force_scales_wb, dBs_wb, frame_count);
     const float* force_scales = Work_buffer_get_contents(force_scales_wb, 0);
 
     float* abufs[KQT_BUFFERS_MAX] = { out_buffers[0], out_buffers[1] };

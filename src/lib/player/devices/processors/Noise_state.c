@@ -152,7 +152,7 @@ int32_t Noise_vstate_render_voice(
 
     if ((scales_wb == NULL) || !Work_buffer_is_valid(scales_wb, 0))
         scales_wb = Work_buffers_get_buffer_mut(wbs, NOISE_WB_FIXED_FORCE, 1);
-    Proc_fill_scale_buffer(scales_wb, dBs_wb, 0, frame_count);
+    Proc_fill_scale_buffer(scales_wb, dBs_wb, frame_count);
     const float* scales = Work_buffer_get_contents(scales_wb, 0);
 
     Noise_pstate* noise_state = (Noise_pstate*)proc_state;
