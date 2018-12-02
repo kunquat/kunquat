@@ -204,7 +204,11 @@ int32_t Work_buffer_get_size(const Work_buffer* buffer);
  *           [0, Work_buffer_get_size(\a buffer) + 3]. For devices that receive
  *           the buffer from a caller, this function never returns \c NULL.
  */
-const float* Work_buffer_get_contents(const Work_buffer* buffer, int sub_index);
+const float* Work_buffer_get_contents(const Work_buffer* buffer, int sub_index)
+#ifdef __GNUC__
+    __attribute__((assume_aligned(64)))
+#endif
+    ;
 
 
 /**
@@ -227,7 +231,11 @@ const float* Work_buffer_get_contents(const Work_buffer* buffer, int sub_index);
  *           [0, Work_buffer_get_size(\a buffer) + 3]. For devices that receive
  *           the buffer from a caller, this function never returns \c NULL.
  */
-float* Work_buffer_get_contents_mut(Work_buffer* buffer, int sub_index);
+float* Work_buffer_get_contents_mut(Work_buffer* buffer, int sub_index)
+#ifdef __GNUC__
+    __attribute__((assume_aligned(64)))
+#endif
+    ;
 
 
 /**
@@ -244,7 +252,11 @@ float* Work_buffer_get_contents_mut(Work_buffer* buffer, int sub_index);
  *           [0, Work_buffer_get_size(\a buffer) + 3]. For devices that receive
  *           the buffer from a caller, this function never returns \c NULL.
  */
-int32_t* Work_buffer_get_contents_int_mut(Work_buffer* buffer, int sub_index);
+int32_t* Work_buffer_get_contents_int_mut(Work_buffer* buffer, int sub_index)
+#ifdef __GNUC__
+    __attribute__((assume_aligned(64)))
+#endif
+    ;
 
 
 /**
