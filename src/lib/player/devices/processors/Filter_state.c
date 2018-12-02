@@ -18,11 +18,13 @@
 #include <debug/assert.h>
 #include <init/devices/Device.h>
 #include <init/devices/processors/Proc_filter.h>
+#include <intrinsics.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <mathnum/fast_exp2.h>
 #include <mathnum/fast_sin.h>
+#include <mathnum/fast_tan.h>
 #include <memory.h>
 #include <player/devices/Device_thread_state.h>
 #include <player/devices/Proc_state.h>
@@ -104,6 +106,24 @@ static float get_cutoff(double rel_freq)
 }
 
 
+static float get_cutoff_ratio(double cutoff_param, int32_t audio_rate)
+{
+    const double cutoff_ratio = cents_to_Hz((cutoff_param - 24) * 100) / audio_rate;
+    return (float)clamp(cutoff_ratio, 0.0001, 0.4999);
+}
+
+
+#if KQT_SSE && KQT_SSE2 && KQT_SSE4_1
+
+static __m128 get_cutoff_fast_f4(__m128 rel_freq)
+{
+    const __m128 pi = _mm_set1_ps((float)PI);
+    const __m128 scaled_freq = _mm_mul_ps(pi, rel_freq);
+    return fast_tan_pos_f4(scaled_freq);
+}
+
+#else
+
 static float get_cutoff_fast(double rel_freq)
 {
     dassert(rel_freq > 0);
@@ -114,12 +134,7 @@ static float get_cutoff_fast(double rel_freq)
     return (float)(fast_sin(scaled_freq) / fast_sin((PI * 0.5) + scaled_freq));
 }
 
-
-static float get_cutoff_ratio(double cutoff_param, int32_t audio_rate)
-{
-    const double cutoff_ratio = cents_to_Hz((cutoff_param - 24) * 100) / audio_rate;
-    return (float)clamp(cutoff_ratio, 0.0001, 0.4999);
-}
+#endif
 
 
 static const int CONTROL_WB_CUTOFF = WORK_BUFFER_IMPL_1;
@@ -159,6 +174,27 @@ static void Filter_state_impl_apply_input_buffers(
             const float* cutoff_buf = Work_buffer_get_contents(cutoff_wb, 0);
 
             // Get cutoff values from input
+#if KQT_SSE && KQT_SSE2 && KQT_SSE4_1
+            const __m128 inv_audio_rate = _mm_set_ps1((float)(1.0 / audio_rate));
+            for (int32_t i = 0; i < fast_cutoff_stop; i += 4)
+            {
+                const __m128 cutoff_param = _mm_load_ps(cutoff_buf + i);
+                const __m128 offset = _mm_set_ps1(-24);
+                const __m128 scale = _mm_set_ps1(100);
+                const __m128 cutoff_ratio = _mm_mul_ps(
+                        fast_cents_to_Hz_f4(
+                            _mm_mul_ps(_mm_add_ps(cutoff_param, offset), scale)),
+                        inv_audio_rate);
+
+                const __m128 min_ratio = _mm_set_ps1(0.0001f);
+                const __m128 max_ratio = _mm_set_ps1(0.4999f);
+                const __m128 cutoff_ratio_clamped =
+                    _mm_min_ps(_mm_max_ps(min_ratio, cutoff_ratio), max_ratio);
+
+                const __m128 cutoff = get_cutoff_fast_f4(cutoff_ratio_clamped);
+                _mm_store_ps(cutoffs + i, cutoff);
+            }
+#else
             for (int32_t i = 0; i < fast_cutoff_stop; ++i)
             {
                 const double cutoff_param = cutoff_buf[i];
@@ -168,6 +204,7 @@ static void Filter_state_impl_apply_input_buffers(
 
                 cutoffs[i] = get_cutoff_fast(cutoff_ratio_clamped);
             }
+#endif
 
             if (fast_cutoff_stop < frame_count)
             {
