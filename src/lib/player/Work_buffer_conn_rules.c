@@ -162,38 +162,45 @@ bool Work_buffer_conn_rules_try_merge(
 }
 
 
-static bool mapping_is_direct(const Work_buffer_conn_rules* rules)
+static bool mapping_is_direct(const Work_buffer_conn_rules* rules, uint8_t* conn_mask)
 {
     rassert(rules != NULL);
+    rassert(conn_mask != NULL);
 
     const int recv_sub_count = Work_buffer_get_sub_count(rules->receiver);
     const int send_sub_count = Work_buffer_get_sub_count(rules->sender);
 
-    if ((rules->length != recv_sub_count) || (recv_sub_count != send_sub_count))
+    if (recv_sub_count != send_sub_count)
         return false;
 
-    if ((rules->length == recv_sub_count) && (recv_sub_count == send_sub_count))
+    uint8_t mask = 0;
+
+    for (int i = 0; i < rules->length; ++i)
     {
-        for (int i = 0; i < rules->length; ++i)
-        {
-            if (!Work_buffer_connection_is_direct(&rules->conns[i]))
-                return false;
-        }
+        if (!Work_buffer_connection_is_direct(&rules->conns[i]))
+            return false;
+
+        mask |= (uint8_t)(1 << rules->conns[i].recv_sub_index);
     }
+
+    *conn_mask = mask;
 
     return true;
 }
 
 
+#if 0
 void Work_buffer_conn_rules_copy(
         const Work_buffer_conn_rules* rules, int32_t frame_count)
 {
     rassert(rules != NULL);
     rassert(frame_count > 0);
 
-    if (mapping_is_direct(rules))
+    uint8_t conn_mask = 0;
+
+    if (mapping_is_direct(rules, &conn_mask))
     {
-        Work_buffer_copy_all(rules->receiver, rules->sender, 0, frame_count);
+        Work_buffer_copy_all(rules->receiver, rules->sender, 0, frame_count, conn_mask);
         return;
     }
 
@@ -208,6 +215,7 @@ void Work_buffer_conn_rules_copy(
 
     return;
 }
+#endif
 
 
 void Work_buffer_conn_rules_mix(
@@ -216,9 +224,11 @@ void Work_buffer_conn_rules_mix(
     rassert(rules != NULL);
     rassert(frame_count > 0);
 
-    if (mapping_is_direct(rules))
+    uint8_t conn_mask = 0;
+
+    if (mapping_is_direct(rules, &conn_mask))
     {
-        Work_buffer_mix_all(rules->receiver, rules->sender, 0, frame_count);
+        Work_buffer_mix_all(rules->receiver, rules->sender, 0, frame_count, conn_mask);
         return;
     }
 

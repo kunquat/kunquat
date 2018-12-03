@@ -291,12 +291,15 @@ void Work_buffer_copy(
  *                    >= \c 0 and less than the buffer size.
  * \param buf_stop    The stop index of the area to be copied -- must be
  *                    >= \c 0 and less than or equal to buffer size.
+ * \param mask        Mask that determines which subareas to apply --
+ *                    must be < (1 << Work_buffer_get_sub_count(\a dest)).
  */
 void Work_buffer_copy_all(
         Work_buffer* restrict dest,
         const Work_buffer* restrict src,
         int32_t buf_start,
-        int32_t buf_stop);
+        int32_t buf_stop,
+        uint8_t mask);
 
 
 /**
@@ -399,12 +402,15 @@ void Work_buffer_mix(
  *                    >= \c 0 and less than the buffer size.
  * \param buf_stop    The stop index of the area to be mixed -- must be
  *                    >= \c 0 and less than or equal to buffer size.
+ * \param mask        Mask that determines which subareas to apply --
+ *                    must be < (1 << Work_buffer_get_sub_count(\a dest)).
  */
 void Work_buffer_mix_all(
         Work_buffer* dest,
         const Work_buffer* src,
         int32_t buf_start,
-        int32_t buf_stop);
+        int32_t buf_stop,
+        uint8_t mask);
 
 
 /**

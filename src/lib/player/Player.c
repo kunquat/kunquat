@@ -915,11 +915,13 @@ static void Player_process_voice_group(
             }
             else if (sub_count == 2)
             {
+                const uint8_t mask = (uint8_t)((1 << sub_count) - 1);
                 Work_buffer_mix_all(
                         tparams->test_voice_output,
                         in_wb,
                         0,
-                        test_output_stop);
+                        test_output_stop,
+                        mask);
             }
 
             Work_buffer_clear_all(
@@ -1290,7 +1292,7 @@ static void Player_mix_test_voice_signals(Player* player, int32_t frame_count)
                 (first_vals[0] != 0.0f) ||
                 (Work_buffer_get_const_start(wb, 1) > 0) ||
                 (first_vals[1] != 0.0f))
-            Work_buffer_mix_all(master_wb, wb, 0, frame_count);
+            Work_buffer_mix_all(master_wb, wb, 0, frame_count, (1 << 2) - 1);
     }
 
     return;

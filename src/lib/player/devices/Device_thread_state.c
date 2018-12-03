@@ -462,7 +462,9 @@ void Device_thread_state_mix_voice_signals(
 
         //fprintf(stdout, "%p -> %p\n", (const void*)voice_buffer, (const void*)mixed_buffer);
 
-        Work_buffer_mix_all(mixed_buffer, voice_buffer, buf_start, buf_stop);
+        const uint8_t mask =
+            (uint8_t)((1 << Work_buffer_get_sub_count(mixed_buffer)) - 1);
+        Work_buffer_mix_all(mixed_buffer, voice_buffer, buf_start, buf_stop, mask);
         Device_thread_state_mark_mixed_audio(ts);
     }
 
@@ -514,7 +516,9 @@ void Device_thread_state_combine_mixed_audio(
         const Work_buffer* src_buffer = Etable_get(src_buffers, i);
         rassert(src_buffer != NULL);
 
-        Work_buffer_mix_all(dest_buffer, src_buffer, buf_start, buf_stop);
+        const uint8_t mask =
+            (uint8_t)((1 << Work_buffer_get_sub_count(dest_buffer)) - 1);
+        Work_buffer_mix_all(dest_buffer, src_buffer, buf_start, buf_stop, mask);
     }
 
     return;

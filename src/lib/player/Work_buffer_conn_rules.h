@@ -58,8 +58,8 @@ bool Work_buffer_conn_rules_try_merge(
         const Work_buffer_conn_rules* rules2);
 
 
-void Work_buffer_conn_rules_copy(
-        const Work_buffer_conn_rules* rules, int32_t frame_count);
+//void Work_buffer_conn_rules_copy(
+//        const Work_buffer_conn_rules* rules, int32_t frame_count);
 
 
 void Work_buffer_conn_rules_mix(

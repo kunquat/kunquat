@@ -373,7 +373,8 @@ void Work_buffer_copy_all(
         Work_buffer* restrict dest,
         const Work_buffer* restrict src,
         int32_t buf_start,
-        int32_t buf_stop)
+        int32_t buf_stop,
+        uint8_t mask)
 {
     rassert(dest != NULL);
     rassert(src != NULL);
@@ -383,16 +384,20 @@ void Work_buffer_copy_all(
     rassert(buf_start < Work_buffer_get_size(dest));
     rassert(buf_stop >= 0);
     rassert(buf_stop <= Work_buffer_get_size(dest) + MARGIN_ELEM_COUNT);
+    rassert(mask < (1 << dest->sub_count));
 
     if (buf_start >= buf_stop)
         return;
 
     {
-        const uint8_t fully_valid_mask = (uint8_t)((1 << src->sub_count) - 1);
-        const bool is_src_fully_valid =
-            (src->is_valid & fully_valid_mask) == fully_valid_mask;
+        const bool src_is_masked_valid = ((src->is_valid & mask) == mask);
 
-        if (!is_src_fully_valid)
+        // See if destination has any contents outside the copy mask
+        // If there are such areas, we need to be careful not to overwrite them
+        const bool dest_has_other_valid_contents =
+            ((mask ^ dest->is_valid) & dest->is_valid) != 0;
+
+        if (!src_is_masked_valid || dest_has_other_valid_contents)
         {
             for (int i = 0; i < src->sub_count; ++i)
                 Work_buffer_copy(dest, i, src, i, buf_start, buf_stop);
@@ -410,16 +415,14 @@ void Work_buffer_copy_all(
     for (int32_t i = item_start; i < item_stop; ++i)
     {
         dassert(implies(
-                    Work_buffer_is_valid(src, i % dest->sub_count), !isnan(*src_pos)));
+                    Work_buffer_is_valid(src, i % src->sub_count), !isnan(*src_pos)));
         *dest_pos++ = *src_pos++;
     }
 
+    dest->is_valid = (uint8_t)(src->is_valid & mask) & 0xfU;
+
     for (int i = 0; i < dest->sub_count; ++i)
     {
-        if (Work_buffer_is_valid(src, i))
-            Work_buffer_mark_valid(dest, i);
-        else
-            Work_buffer_mark_invalid(dest, i);
         Work_buffer_set_const_start(dest, i, Work_buffer_get_const_start(src, i));
         Work_buffer_set_final(dest, i, Work_buffer_is_final(src, i));
     }
@@ -582,7 +585,8 @@ void Work_buffer_mix_all(
         Work_buffer* dest,
         const Work_buffer* src,
         int32_t buf_start,
-        int32_t buf_stop)
+        int32_t buf_stop,
+        uint8_t mask)
 {
     rassert(dest != NULL);
     rassert(src != NULL);
@@ -592,18 +596,21 @@ void Work_buffer_mix_all(
     rassert(buf_start < Work_buffer_get_size(dest));
     rassert(buf_stop >= 0);
     rassert(buf_stop <= Work_buffer_get_size(dest) + MARGIN_ELEM_COUNT);
+    rassert(mask < (1 << dest->sub_count));
 
     if (dest == src)
         return;
 
+    if (dest->is_valid == 0)
     {
-        const uint8_t fully_valid_mask = (uint8_t)((1 << dest->sub_count) - 1);
-        const bool is_dest_fully_valid =
-            ((dest->is_valid & fully_valid_mask) == fully_valid_mask);
-        const bool is_src_fully_valid =
-            ((src->is_valid & fully_valid_mask) == fully_valid_mask);
+        Work_buffer_copy_all(dest, src, buf_start, buf_stop, mask);
+        return;
+    }
 
-        if (!is_dest_fully_valid || !is_src_fully_valid)
+    {
+        const bool src_is_masked_valid = ((src->is_valid & mask) == mask);
+
+        if ((dest->is_valid != mask) || !src_is_masked_valid)
         {
             for (int i = 0; i < dest->sub_count; ++i)
                 Work_buffer_mix(dest, i, src, i, buf_start, buf_stop);
@@ -648,10 +655,13 @@ void Work_buffer_mix_all(
     const int32_t actual_stop = buf_stop * dest->sub_count;
     for (int32_t i = actual_start; i < actual_stop; ++i)
     {
-        dassert(!isnan(dest_contents[i]));
-        dassert(!isnan(src_contents[i]));
+        dassert(implies(
+                    Work_buffer_is_valid(src, i % src->sub_count),
+                    !isnan(src_contents[i])));
         dest_contents[i] += src_contents[i];
     }
+
+    dest->is_valid = mask & 0xfU;
 
     for (int i = 0; i < dest->sub_count; ++i)
     {
@@ -679,7 +689,6 @@ void Work_buffer_mix_all(
                 dest_contents[k * dest->sub_count] = -INFINITY;
         }
 
-        Work_buffer_mark_valid(dest, i);
         Work_buffer_set_const_start(dest, i, new_const_start);
         Work_buffer_set_final(dest, i, result_is_const_final);
     }
