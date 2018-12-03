@@ -403,15 +403,23 @@ void Work_buffer_copy_all(
 
     float* dest_pos = (float*)dest->contents + (buf_start * dest->sub_count);
     const float* src_pos = (const float*)src->contents + (buf_start * dest->sub_count);
-    for (int32_t i = buf_start; i < buf_stop; ++i)
+
+    const int32_t item_start = buf_start * dest->sub_count;
+    const int32_t item_stop = buf_stop * dest->sub_count;
+
+    for (int32_t i = item_start; i < item_stop; ++i)
     {
-        dassert(!isnan(*src_pos));
+        dassert(implies(
+                    Work_buffer_is_valid(src, i % dest->sub_count), !isnan(*src_pos)));
         *dest_pos++ = *src_pos++;
     }
 
     for (int i = 0; i < dest->sub_count; ++i)
     {
-        Work_buffer_mark_valid(dest, i);
+        if (Work_buffer_is_valid(src, i))
+            Work_buffer_mark_valid(dest, i);
+        else
+            Work_buffer_mark_invalid(dest, i);
         Work_buffer_set_const_start(dest, i, Work_buffer_get_const_start(src, i));
         Work_buffer_set_final(dest, i, Work_buffer_is_final(src, i));
     }
