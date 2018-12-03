@@ -237,8 +237,13 @@ int32_t Force_vstate_render_voice(
         float* time_env = Work_buffer_get_contents_mut(wb_time_env, 0);
 
         // Convert envelope data to dB
+#if KQT_SSE4_1
+        for (int32_t i = 0; i < env_force_stop; i += 4)
+            _mm_store_ps(time_env + i, fast_scale_to_dB_f4(_mm_load_ps(time_env + i)));
+#else
         for (int32_t i = 0; i < env_force_stop; ++i)
             time_env[i] = (float)fast_scale_to_dB(time_env[i]);
+#endif // KQT_SSE4_1
 
         // Check the end of envelope processing
         if (fvstate->env_state.is_finished)
@@ -262,6 +267,10 @@ int32_t Force_vstate_render_voice(
                 for (int32_t i = env_force_stop; i < new_buf_stop; ++i)
                     time_env[i] = last_value_dB;
             }
+        }
+        else
+        {
+            rassert(env_force_stop == new_buf_stop);
         }
 
         for (int32_t i = 0; i < new_buf_stop; ++i)
@@ -298,8 +307,14 @@ int32_t Force_vstate_render_voice(
             float* time_env = Work_buffer_get_contents_mut(wb_time_env, 0);
 
             // Convert envelope data to dB
+#if KQT_SSE4_1
+            for (int32_t i = 0; i < new_buf_stop; i += 4)
+                _mm_store_ps(
+                        time_env + i, fast_scale_to_dB_f4(_mm_load_ps(time_env + i)));
+#else
             for (int32_t i = 0; i < new_buf_stop; ++i)
                 time_env[i] = (float)fast_scale_to_dB(time_env[i]);
+#endif
 
             for (int32_t i = 0; i < new_buf_stop; ++i)
                 out_buf[i] += time_env[i];
