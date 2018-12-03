@@ -88,6 +88,21 @@ static inline double fast_scale_to_dB(double scale)
 }
 
 
+#if KQT_SSE4_1
+static inline __m128 fast_scale_to_dB_f4(__m128 scale)
+{
+    const __m128 zero = _mm_set1_ps(0);
+    const __m128 res_mask = _mm_cmpgt_ps(scale, zero);
+    const __m128 neg_inf = _mm_set1_ps(-INFINITY);
+    const __m128 dB_scale = _mm_set1_ps(6);
+
+    const __m128 result = _mm_mul_ps(fast_log2_f4(scale), dB_scale);
+
+    return _mm_blendv_ps(neg_inf, result, res_mask);
+}
+#endif // KQT_SSE4_1
+
+
 /**
  * Convert the given pitch from cents to Hz.
  *
