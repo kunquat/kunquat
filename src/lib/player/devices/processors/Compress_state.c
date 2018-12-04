@@ -53,7 +53,7 @@ static void Compress_states_update(
         const Proc_compress* compress,
         Work_buffer* gain_wb,
         Work_buffer* level_wbs[2],
-        const Work_buffer* in_wbs[2],
+        Work_buffer* in_wbs[2],
         int32_t frame_count,
         int32_t audio_rate)
 {
@@ -171,7 +171,7 @@ static void Compress_states_update(
 static void write_audio(
         Work_buffer* out_wbs[2],
         const Work_buffer* gain_wb,
-        const Work_buffer* in_wbs[2],
+        Work_buffer* in_wbs[2],
         int32_t frame_count)
 {
     rassert(out_wbs != NULL);
@@ -269,13 +269,18 @@ static void Compress_pstate_render_mixed(
     Compress_pstate* cpstate = (Compress_pstate*)dstate;
 
     // Get audio input buffers
-    const Work_buffer* in_wbs[2] =
+    Work_buffer* in_wbs[2] =
     {
         Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L, NULL),
         Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R, NULL),
     };
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        if ((in_wbs[ch] != NULL) && !Work_buffer_is_valid(in_wbs[ch], 0))
+            Work_buffer_clear_all(in_wbs[ch], 0, frame_count);
+    }
 
     // Get audio output buffers
     Work_buffer* out_wbs[2] =
@@ -381,13 +386,18 @@ int32_t Compress_vstate_render_voice(
     Compress_vstate* cvstate = (Compress_vstate*)vstate;
 
     // Get audio input buffers
-    const Work_buffer* in_wbs[2] =
+    Work_buffer* in_wbs[2] =
     {
         Device_thread_state_get_voice_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L, NULL),
         Device_thread_state_get_voice_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R, NULL),
     };
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        if ((in_wbs[ch] != NULL) && !Work_buffer_is_valid(in_wbs[ch], 0))
+            Work_buffer_clear_all(in_wbs[ch], 0, frame_count);
+    }
 
     // Get audio output buffers
     Work_buffer* out_wbs[2] =
