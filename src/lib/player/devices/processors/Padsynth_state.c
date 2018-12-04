@@ -118,7 +118,8 @@ int32_t Padsynth_vstate_render_voice(
     Work_buffer* pitches_wb = freqs_wb;
 
     if (isnan(ps_vstate->init_pitch))
-        ps_vstate->init_pitch = (pitches_wb != NULL)
+        ps_vstate->init_pitch =
+            ((pitches_wb != NULL) && Work_buffer_is_valid(pitches_wb, 0))
             ? Work_buffer_get_contents(pitches_wb, 0)[0] : 0;
 
     if (freqs_wb == NULL)
