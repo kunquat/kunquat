@@ -108,21 +108,9 @@ static int32_t Sample_render(
     // This implementation does not support larger sample lengths :-P
     rassert(sample->len < INT32_MAX - 1);
 
-#define invalidate_outputs()                            \
-    if (true)                                           \
-    {                                                   \
-        for (int ch = 0; ch < 2; ++ch)                  \
-        {                                               \
-            if (out_wbs[ch] != NULL)                    \
-                Work_buffer_invalidate(out_wbs[ch]);    \
-        }                                               \
-    }                                                   \
-    else ignore(0)
-
     if (sample->len == 0)
     {
         vstate->active = false;
-        invalidate_outputs();
         return 0;
     }
 
@@ -147,7 +135,6 @@ static int32_t Sample_render(
     {
         // We are only getting silent force from this point onwards
         vstate->active = false;
-        invalidate_outputs();
         return 0;
     }
 
@@ -215,7 +202,6 @@ static int32_t Sample_render(
             if (positions[0] >= length)
             {
                 vstate->active = false;
-                invalidate_outputs();
                 return 0;
             }
 
