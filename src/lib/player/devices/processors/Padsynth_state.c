@@ -164,7 +164,7 @@ int32_t Padsynth_vstate_render_voice(
     const int32_t sample_rate = PADSYNTH_DEFAULT_AUDIO_RATE;
     const double sample_freq = cents_to_Hz(entry->centre_pitch);
 
-    const double rel_sample_rate = sample_rate / dstate->audio_rate;
+    const double rel_sample_rate = sample_rate / (double)dstate->audio_rate;
 
     const double init_pos = fmod(ps_vstate->pos, length); // the length may have changed
     //bool is_state_pos_updated = false;
