@@ -535,7 +535,8 @@ int32_t Sample_vstate_render_voice(
             const Work_buffer* pitches_wb = Device_thread_state_get_voice_buffer(
                     proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH, NULL);
             const float* pitches =
-                (pitches_wb != NULL) ? Work_buffer_get_contents(pitches_wb, 0) : NULL;
+                ((pitches_wb != NULL) && Work_buffer_is_valid(pitches_wb, 0))
+                ? Work_buffer_get_contents(pitches_wb, 0) : NULL;
             if (pitches != NULL)
                 start_pitch = pitches[0];
 
