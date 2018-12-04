@@ -160,9 +160,9 @@ bool Work_buffer_is_valid(const Work_buffer* buffer, int sub_index);
  * \param sub_index   The index of the area to be cleared -- must be >= \c 0 and
  *                    < \a Work_buffer_get_sub_count(\a buffer).
  * \param buf_start   The start index of the area to be cleared -- must be
- *                    >= \c 0 and less than the buffer size.
+ *                    >= \c 0 and less than or equal to the buffer size.
  * \param buf_stop    The stop index of the area to be cleared -- must be
- *                    >= \c 0 and less than or equal to buffer size.
+ *                    >= \c 0 and less than or equal to the buffer size.
  */
 void Work_buffer_clear(
         Work_buffer* buffer, int sub_index, int32_t buf_start, int32_t buf_stop);
@@ -173,9 +173,9 @@ void Work_buffer_clear(
  *
  * \param buffer      The Work buffer -- must not be \c NULL.
  * \param buf_start   The start index of the area to be cleared -- must be
- *                    >= \c 0 and less than the buffer size.
+ *                    >= \c 0 and less than or equal to the buffer size.
  * \param buf_stop    The stop index of the area to be cleared -- must be
- *                    >= \c 0 and less than or equal to buffer size.
+ *                    >= \c 0 and less than or equal to the buffer size.
  */
 void Work_buffer_clear_all(Work_buffer* buffer, int32_t buf_start, int32_t buf_stop);
 
@@ -269,9 +269,9 @@ int32_t* Work_buffer_get_contents_int_mut(Work_buffer* buffer, int sub_index)
  * \param src_sub_index    The index of the source area -- must be >= \c 0 and
  *                         < \a Work_buffer_get_sub_count(src).
  * \param buf_start        The start index of the area to be copied -- must be
- *                         >= \c 0 and less than the buffer size.
+ *                         >= \c 0 and less than or equal to the buffer size.
  * \param buf_stop         The stop index of the area to be copied -- must be
- *                         >= \c 0 and less than or equal to buffer size.
+ *                         >= \c 0 and less than or equal to the buffer size.
  */
 void Work_buffer_copy(
         Work_buffer* restrict dest,
@@ -288,9 +288,9 @@ void Work_buffer_copy(
  * \param dest        The destination Work buffer -- must not be \c NULL.
  * \param src         The source Work buffer -- must not be \c NULL or \a dest.
  * \param buf_start   The start index of the area to be copied -- must be
- *                    >= \c 0 and less than the buffer size.
+ *                    >= \c 0 and less than or equal to the buffer size.
  * \param buf_stop    The stop index of the area to be copied -- must be
- *                    >= \c 0 and less than or equal to buffer size.
+ *                    >= \c 0 and less than or equal to the buffer size.
  * \param mask        Mask that determines which subareas to apply --
  *                    must be < (1 << Work_buffer_get_sub_count(\a dest)).
  */
@@ -376,9 +376,9 @@ bool Work_buffer_is_final(const Work_buffer* buffer, int sub_index);
  * \param src_sub_index    The index of the destination area -- must be >= \c 0
  *                         and < \a Work_buffer_get_sub_count(src).
  * \param buf_start        The start index of the area to be mixed -- must be
- *                         >= \c 0 and less than the buffer size.
+ *                         >= \c 0 and less than or equal to the buffer size.
  * \param buf_stop         The stop index of the area to be mixed -- must be
- *                         >= \c 0 and less than or equal to buffer size.
+ *                         >= \c 0 and less than or equal to the buffer size.
  */
 void Work_buffer_mix(
         Work_buffer* dest,
@@ -399,9 +399,9 @@ void Work_buffer_mix(
  * \param src         The input Work buffer -- must not be \c NULL and must
  *                    have the same size and stride as \a dest.
  * \param buf_start   The start index of the area to be mixed -- must be
- *                    >= \c 0 and less than the buffer size.
+ *                    >= \c 0 and less than or equal to the buffer size.
  * \param buf_stop    The stop index of the area to be mixed -- must be
- *                    >= \c 0 and less than or equal to buffer size.
+ *                    >= \c 0 and less than or equal to the buffer size.
  * \param mask        Mask that determines which subareas to apply --
  *                    must be < (1 << Work_buffer_get_sub_count(\a dest)).
  */

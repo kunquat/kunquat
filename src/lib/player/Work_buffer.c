@@ -229,7 +229,7 @@ void Work_buffer_clear(
     rassert(sub_index >= 0);
     rassert(sub_index < buffer->sub_count);
     rassert(buf_start >= 0);
-    rassert(buf_start < Work_buffer_get_size(buffer));
+    rassert(buf_start <= Work_buffer_get_size(buffer));
     rassert(buf_stop >= 0);
     rassert(buf_stop <= Work_buffer_get_size(buffer) + MARGIN_ELEM_COUNT);
 
@@ -249,7 +249,7 @@ void Work_buffer_clear_all(Work_buffer* buffer, int32_t buf_start, int32_t buf_s
 {
     rassert(buffer != NULL);
     rassert(buf_start >= 0);
-    rassert(buf_start < Work_buffer_get_size(buffer));
+    rassert(buf_start <= Work_buffer_get_size(buffer));
     rassert(buf_stop >= 0);
     rassert(buf_stop <= Work_buffer_get_size(buffer) + MARGIN_ELEM_COUNT);
 
@@ -332,7 +332,7 @@ void Work_buffer_copy(
     rassert(src_sub_index >= 0);
     rassert(src_sub_index < src->sub_count);
     rassert(buf_start >= 0);
-    rassert(buf_start < Work_buffer_get_size(dest));
+    rassert(buf_start <= Work_buffer_get_size(dest));
     rassert(buf_stop >= 0);
     rassert(buf_stop <= Work_buffer_get_size(dest) + MARGIN_ELEM_COUNT);
 
@@ -381,7 +381,7 @@ void Work_buffer_copy_all(
     rassert(dest != src);
     rassert(dest->sub_count == src->sub_count);
     rassert(buf_start >= 0);
-    rassert(buf_start < Work_buffer_get_size(dest));
+    rassert(buf_start <= Work_buffer_get_size(dest));
     rassert(buf_stop >= 0);
     rassert(buf_stop <= Work_buffer_get_size(dest) + MARGIN_ELEM_COUNT);
     rassert(mask < (1 << dest->sub_count));
@@ -509,11 +509,14 @@ void Work_buffer_mix(
     rassert(src_sub_index < src->sub_count);
     rassert(Work_buffer_get_size(dest) == Work_buffer_get_size(src));
     rassert(buf_start >= 0);
-    rassert(buf_start < Work_buffer_get_size(dest));
+    rassert(buf_start <= Work_buffer_get_size(dest));
     rassert(buf_stop >= 0);
     rassert(buf_stop <= Work_buffer_get_size(dest) + MARGIN_ELEM_COUNT);
 
     if (dest == src)
+        return;
+
+    if (buf_start >= buf_stop)
         return;
 
     if (!Work_buffer_is_valid(src, src_sub_index))
@@ -593,12 +596,15 @@ void Work_buffer_mix_all(
     rassert(Work_buffer_get_size(dest) == Work_buffer_get_size(src));
     rassert(dest->sub_count == src->sub_count);
     rassert(buf_start >= 0);
-    rassert(buf_start < Work_buffer_get_size(dest));
+    rassert(buf_start <= Work_buffer_get_size(dest));
     rassert(buf_stop >= 0);
     rassert(buf_stop <= Work_buffer_get_size(dest) + MARGIN_ELEM_COUNT);
     rassert(mask < (1 << dest->sub_count));
 
     if (dest == src)
+        return;
+
+    if (buf_start >= buf_stop)
         return;
 
     if (dest->is_valid == 0)
