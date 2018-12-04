@@ -129,7 +129,9 @@ static void Gaincomp_pstate_render_mixed(
     const Proc_gaincomp* gc = (const Proc_gaincomp*)dstate->device->dimpl;
     for (int ch = 0; ch < 2; ++ch)
     {
-        if ((in_buffers[ch] != NULL) && (out_buffers[ch] != NULL))
+        if ((in_buffers[ch] != NULL) &&
+                Work_buffer_is_valid(in_buffers[ch], 0) &&
+                (out_buffers[ch] != NULL))
             distort(gc, in_buffers[ch], out_buffers[ch], frame_count);
     }
 
@@ -203,7 +205,9 @@ int32_t Gaincomp_vstate_render_voice(
     const Proc_gaincomp* gc = (const Proc_gaincomp*)proc_state->parent.device->dimpl;
     for (int ch = 0; ch < 2; ++ch)
     {
-        if ((in_buffers[ch] != NULL) && (out_buffers[ch] != NULL))
+        if ((in_buffers[ch] != NULL) &&
+                Work_buffer_is_valid(in_buffers[ch], 0) &&
+                (out_buffers[ch] != NULL))
             distort(gc, in_buffers[ch], out_buffers[ch], frame_count);
     }
 
