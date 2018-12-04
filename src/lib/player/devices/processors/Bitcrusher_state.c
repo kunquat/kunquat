@@ -111,7 +111,7 @@ static void Bitcrusher_state_impl_render(
 
     // Get hold durations
     Work_buffer* holds_wb = Work_buffers_get_buffer_mut(wbs, BC_WB_HOLDS, 1);
-    if (cutoff_wb == NULL)
+    if ((cutoff_wb == NULL) || !Work_buffer_is_valid(cutoff_wb, 0))
     {
         const float hold = (float)get_hold(bc->cutoff, audio_rate);
         if (hold <= 1.0f)
@@ -193,7 +193,7 @@ static void Bitcrusher_state_impl_render(
 
     // Get resolution reduction multipliers
     Work_buffer* mults_wb = Work_buffers_get_buffer_mut(wbs, BC_WB_MULTS, 1);
-    if (resolution_wb == NULL)
+    if ((resolution_wb == NULL) || !Work_buffer_is_valid(resolution_wb, 0))
     {
         if (bc->resolution >= bc->res_ignore_min)
         {
@@ -356,6 +356,11 @@ static void Bitcrusher_pstate_render_mixed(
         Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R, NULL),
     };
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        if ((in_buffers[ch] != NULL) && !Work_buffer_is_valid(in_buffers[ch], 0))
+            in_buffers[ch] = NULL;
+    }
 
     // Get audio outputs
     Work_buffer* out_buffers[2] =
@@ -453,6 +458,12 @@ int32_t Bitcrusher_vstate_render_voice(
         Device_thread_state_get_voice_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R, NULL),
     };
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        if ((in_buffers[ch] != NULL) && !Work_buffer_is_valid(in_buffers[ch], 0))
+            in_buffers[ch] = NULL;
+    }
+
     if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
     {
         vstate->active = false;
