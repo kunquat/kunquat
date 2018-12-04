@@ -441,11 +441,12 @@ static void Device_thread_state_mark_mixed_audio(Device_thread_state* ts)
 
 
 void Device_thread_state_mix_voice_signals(
-        Device_thread_state* ts, int32_t buf_start, int32_t buf_stop)
+        Device_thread_state* ts, int32_t buf_start, int32_t mix_stop, int32_t clear_stop)
 {
     rassert(ts != NULL);
     rassert(buf_start >= 0);
-    rassert(buf_stop >= buf_start);
+    rassert(mix_stop >= buf_start);
+    rassert(clear_stop >= mix_stop);
 
     const Etable* mixed_bufs = ts->buffers[DEVICE_BUFFER_MIXED][DEVICE_PORT_TYPE_SEND];
     const int cap = Etable_get_capacity(mixed_bufs);
@@ -462,9 +463,11 @@ void Device_thread_state_mix_voice_signals(
 
         //fprintf(stdout, "%p -> %p\n", (const void*)voice_buffer, (const void*)mixed_buffer);
 
+        if (!Work_buffer_is_valid(mixed_buffer, 0))
+            Work_buffer_clear_all(mixed_buffer, buf_start, clear_stop);
         const uint8_t mask =
             (uint8_t)((1 << Work_buffer_get_sub_count(mixed_buffer)) - 1);
-        Work_buffer_mix_all(mixed_buffer, voice_buffer, buf_start, buf_stop, mask);
+        Work_buffer_mix_all(mixed_buffer, voice_buffer, buf_start, mix_stop, mask);
         Device_thread_state_mark_mixed_audio(ts);
     }
 

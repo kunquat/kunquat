@@ -210,6 +210,7 @@ static void Voice_signal_task_info_mix(
         const Voice_signal_task_info* task_info,
         Device_states* dstates,
         int thread_id,
+        int32_t keep_alive_stop,
         int32_t frame_count)
 {
     rassert(task_info != NULL);
@@ -222,7 +223,7 @@ static void Voice_signal_task_info_mix(
     {
         Device_thread_state* dev_ts =
             Device_states_get_thread_state(dstates, thread_id, task_info->device_id);
-        Device_thread_state_mix_voice_signals(dev_ts, 0, frame_count);
+        Device_thread_state_mix_voice_signals(dev_ts, 0, keep_alive_stop, frame_count);
     }
 
     return;
@@ -579,7 +580,8 @@ int32_t Voice_signal_plan_execute(
         for (int i = 0; i < plan->task_count; ++i)
         {
             const Voice_signal_task_info* task_info = Etable_get(tasks, i);
-            Voice_signal_task_info_mix(task_info, dstates, thread_id, frame_count);
+            Voice_signal_task_info_mix(
+                    task_info, dstates, thread_id, keep_alive_stop, frame_count);
         }
     }
 
