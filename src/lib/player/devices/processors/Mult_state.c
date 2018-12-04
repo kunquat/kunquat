@@ -73,8 +73,6 @@ static void multiply_signals(
         float* out_buffer,
         int32_t frame_count)
 {
-    rassert(in1_wb != NULL);
-    rassert(in2_wb != NULL);
     rassert(out_buffer != NULL);
     rassert(frame_count > 0);
 
