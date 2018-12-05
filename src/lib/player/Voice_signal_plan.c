@@ -24,6 +24,7 @@
 #include <mathnum/common.h>
 #include <memory.h>
 #include <player/devices/Device_thread_state.h>
+#include <player/Voice.h>
 #include <player/Voice_group.h>
 #include <player/Work_buffer.h>
 #include <player/Work_buffer_conn_rules.h>
@@ -154,7 +155,8 @@ static int32_t Voice_signal_task_info_execute(
         Voice_group* vgroup,
         const Work_buffers* wbs,
         int32_t frame_count,
-        double tempo)
+        double tempo,
+        bool* is_task_active)
 {
     rassert(task_info != NULL);
     rassert(dstates != NULL);
@@ -164,6 +166,7 @@ static int32_t Voice_signal_task_info_execute(
     rassert(wbs != NULL);
     rassert(frame_count >= 0);
     rassert(tempo > 0);
+    rassert(is_task_active != NULL);
 
     // Mix signals to input buffers
     for (int i = 0; i < Vector_size(task_info->conns); ++i)
@@ -171,6 +174,8 @@ static int32_t Voice_signal_task_info_execute(
         const Work_buffer_conn_rules* rules = Vector_get_ref(task_info->conns, i);
         Work_buffer_conn_rules_mix(rules, frame_count);
     }
+
+    bool active = false;
 
     int keep_alive_stop = 0;
 
@@ -186,7 +191,7 @@ static int32_t Voice_signal_task_info_execute(
         if ((dimpl->get_vstate_size == NULL) || (dimpl->get_vstate_size() > 0))
         {
             voice = Voice_group_get_voice_by_proc(vgroup, task_info->device_id);
-            call_render = (voice != NULL);
+            call_render = (voice != NULL) && (voice->prio != VOICE_PRIO_INACTIVE);
         }
 
         if (call_render)
@@ -199,8 +204,12 @@ static int32_t Voice_signal_task_info_execute(
                     wbs,
                     frame_count,
                     tempo);
+
+            active = true;
         }
     }
+
+    *is_task_active = active;
 
     return keep_alive_stop;
 }
@@ -548,6 +557,8 @@ int32_t Voice_signal_plan_execute(
 
     int32_t keep_alive_stop = 0;
 
+    bool any_active_tasks_connected_to_mixed = false;
+
     Etable* tasks = plan->tasks[thread_id];
     rassert(tasks != NULL);
 
@@ -563,6 +574,8 @@ int32_t Voice_signal_plan_execute(
     {
         const Voice_signal_task_info* task_info = Etable_get(tasks, i);
 
+        bool is_task_active = false;
+
         const int32_t task_keep_alive_stop = Voice_signal_task_info_execute(
                 task_info,
                 dstates,
@@ -570,7 +583,11 @@ int32_t Voice_signal_plan_execute(
                 vgroup,
                 wbs,
                 frame_count,
-                tempo);
+                tempo,
+                &is_task_active);
+
+        if (task_info->is_connected_to_mixed && is_task_active)
+            any_active_tasks_connected_to_mixed = true;
 
         keep_alive_stop = max(keep_alive_stop, task_keep_alive_stop);
     }
@@ -584,6 +601,9 @@ int32_t Voice_signal_plan_execute(
                     task_info, dstates, thread_id, keep_alive_stop, frame_count);
         }
     }
+
+    if (!any_active_tasks_connected_to_mixed)
+        Voice_group_deactivate_all(vgroup);
 
     return keep_alive_stop;
 }

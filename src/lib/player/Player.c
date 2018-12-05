@@ -862,8 +862,8 @@ static void Player_process_voice_group(
 
         if (process_stop < frame_count)
             Voice_group_deactivate_all(vgroup);
-        else
-            Voice_group_deactivate_unreachable(vgroup);
+        //else
+        //    Voice_group_deactivate_unreachable(vgroup);
 
         const int active_voice_count = Voice_group_get_active_count(vgroup);
         stats->voice_count += active_voice_count;
